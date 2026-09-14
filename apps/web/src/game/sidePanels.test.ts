@@ -80,6 +80,19 @@ describe("sidePanelFromEvent", () => {
     expect(result?.side).toBe("opp");
   });
 
+  it("does not duplicate a field deletion already announced by dedicated notices", () => {
+    const event: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["a", "source"],
+      from: "battleArea",
+      to: "trash",
+      deletedPermanents: [{ permanentId: "perm-a", instanceId: "a", cardId: "BT1-010", artId: "BT1-010", seat: 1 }],
+    };
+    expect(
+      sidePanelFromEvent(event, VIEWER, lookup({ a: "BT1-010", source: "BT1-001" }, { a: 1, source: 1 }), "id", 0),
+    ).toBeNull();
+  });
+
   it.each([0, 1] as const)("does not announce the automatic digivolution draw for seat %s", (seat) => {
     const event: ServerEvent = {
       kind: "cardsMoved",

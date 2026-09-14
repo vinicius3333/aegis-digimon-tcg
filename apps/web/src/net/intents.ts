@@ -16,7 +16,8 @@ export const intents = {
     targetSlot?: number,
     digiXros?: DigiXrosPlan,
     assembly?: AssemblyPlan,
-  ) => sendIntent(room, { type: "playCard", instanceId, targetSlot, digiXros, assembly }),
+    useAs?: "digimon" | "option",
+  ) => sendIntent(room, { type: "playCard", instanceId, targetSlot, digiXros, assembly, useAs }),
   linkCard: (room: AegisRoom, instanceId: string, targetPermanentId: string) =>
     sendIntent(room, { type: "linkCard", instanceId, targetPermanentId }),
   digivolve: (room: AegisRoom, permanentId: string, instanceId: string, useAlternateCost?: boolean) =>

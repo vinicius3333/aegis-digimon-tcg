@@ -903,6 +903,10 @@ export function PermanentDetailInspector({
  * decision dialog slice the same clause whichever one arrives.
  */
 export const TIMING_LABELS: Record<string, string> = {
+  whenHandTrashed: "When Cards Are Trashed from Your Hand",
+  whenTrashedFromHand: "When Trashed from Hand",
+  whenPlayed: "When Played",
+  whenSecurityRemoved: "When Security Is Removed",
   OnPlay: "On Play",
   WhenDigivolving: "When Digivolving",
   WhenAttacking: "When Attacking",
@@ -1931,6 +1935,30 @@ export function GameOverOverlay({
 }
 
 /* ---------------- EVO COST CHOICE ---------------- */
+
+export function DualPlayChoiceOverlay({
+  cardId,
+  onChoose,
+  onCancel,
+}: {
+  cardId: string;
+  onChoose: (useAs: "digimon" | "option") => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <ActionConfirmationOverlay
+      cardId={cardId}
+      title={t("overlay.dualPlayTitle")}
+      detail={getCardDefinition(cardId)?.optionEffect ?? t("overlay.dualPlayDetail")}
+      confirmLabel={t("overlay.playAsDigimon")}
+      alternateLabel={t("overlay.useAsOption")}
+      onConfirm={() => onChoose("digimon")}
+      onAlternate={() => onChoose("option")}
+      onCancel={onCancel}
+    />
+  );
+}
 
 export function ActionConfirmationOverlay({
   cardId,

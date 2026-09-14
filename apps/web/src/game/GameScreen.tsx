@@ -110,6 +110,7 @@ import {
 import {
   AllianceOverlay,
   ActionConfirmationOverlay,
+  DualPlayChoiceOverlay,
   BarrierOverlay,
   BlockOverlay,
   CardActionMenu,
@@ -412,6 +413,7 @@ export function GameScreen({
     requirement: AssemblyRequirement;
     candidates: AssemblyCandidate[];
   } | null>(null);
+  const [dualPlay, setDualPlay] = useState<{ instanceId: string; cardId: string } | null>(null);
   const [vortexMode, setVortexMode] = useState(false); // the selected attack is a ＜Vortex＞ declaration
   const [cardMenu, setCardMenu] = useState<{ permanentId: string; side: "you" | "opp"; x: number; y: number } | null>(
     null,
@@ -1063,11 +1065,12 @@ export function GameScreen({
     ? { ...presentedOpp, handCount: heldOpp.handCount, deckCount: heldOpp.deckCount }
     : presentedOpp;
   const isMyTurn = state.turnSeat === viewerSeat;
-  // Presentation cues run alongside play. Only server authority gates intents: match
-  // status, pending decisions, turn ownership, and the phase that permits the intent.
+  // Ordinary actions wait for the presented board to catch up, then follow the live
+  // match, decision, turn and phase guards. Effect responses use their own controls.
   const pendingServerDecision = Boolean(decision || state.pendingDecision);
   const pendingCombatWindow = Boolean(state.combatWindow);
-  const turnActionBlocked = state.gameOver || pendingServerDecision || pendingCombatWindow || !isMyTurn;
+  const turnActionBlocked =
+    state.gameOver || pendingServerDecision || pendingCombatWindow || cues.presenting || !isMyTurn;
   const mainActionBlocked = turnActionBlocked || state.phase !== Phase.Main;
   const endPhaseBlocked = turnActionBlocked || (state.phase !== Phase.Main && state.phase !== Phase.Breeding);
   const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
@@ -1132,6 +1135,10 @@ export function GameScreen({
     if (mainActionBlocked) return;
     const entry = handEntries.find((h) => h.instanceId === instanceId);
     if (entry) {
+      if (getCardDefinition(entry.cardId)?.isDualCard) {
+        setDualPlay({ instanceId, cardId: entry.cardId });
+        return;
+      }
       const dnaMaterials = findDnaMaterialCombination(entry.cardId, you.battleArea);
       if (dnaMaterials) {
         if (actionConfirmationsEnabled) {
@@ -2006,6 +2013,7 @@ export function GameScreen({
               // Digivolving] at once, and each row must read its own clause.
               timing: viewerDecision.options?.triggerTimings?.[index] || viewerDecision.options?.timing,
               description: undefined,
+              isInherited: viewerDecision.options?.triggerIsInherited?.[index] === true,
             }) ?? getCardDefinition(cardId)?.effectText;
           return {
             sourceLabel:
@@ -2394,6 +2402,28 @@ export function GameScreen({
         />
       ) : null}
 
+      {dualPlay ? (
+        <DualPlayChoiceOverlay
+          cardId={dualPlay.cardId}
+          onChoose={(useAs) => {
+            if (mainActionBlocked || !room) return;
+            if (!handEntries.some((entry) => entry.instanceId === dualPlay.instanceId)) {
+              setDualPlay(null);
+              clearSel();
+              return;
+            }
+            lastPlayAttemptRef.current = dualPlay.instanceId;
+            intents.playCard(room, dualPlay.instanceId, undefined, undefined, undefined, useAs);
+            playGameCue("cardPlay");
+            setDualPlay(null);
+            clearSel();
+          }}
+          onCancel={() => {
+            setDualPlay(null);
+            clearSel();
+          }}
+        />
+      ) : null}
       {actionConfirm ? (
         <ActionConfirmationOverlay
           cardId={actionConfirm.cardId}

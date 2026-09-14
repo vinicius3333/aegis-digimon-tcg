@@ -434,6 +434,8 @@ export interface DecisionRequest {
      * to tell them apart without inventing a "copy" that is not on the board.
      */
     triggerTimings?: string[];
+    /** Whether each pending activation belongs to the inherited text box. */
+    triggerIsInherited?: boolean[];
     timing?: string; // printed timing label of the resolving effect (e.g. "On Play"), for the overlay to show only that clause
     /** Exact clause that raised this decision, preserving main/inherited provenance without client-side guessing. */
     effectText?: string;

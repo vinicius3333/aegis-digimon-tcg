@@ -62,6 +62,36 @@ describe("order-trigger chooser identity", () => {
    * chooser once numbered them "copy 1"/"copy 2" and claimed a second Megadramon
    * that was never on the board.
    */
+  it("selects repeated watcher activations without duplicating tiles or using the enclosing timing", () => {
+    const keys = [
+      buildTriggerKey("source", "subtrigger/755/whenHandTrashed"),
+      buildTriggerKey("source", "subtrigger/755/whenHandTrashed/activation-2"),
+    ];
+    const { onRespond } = renderDecision({
+      decisionId: "repeated-discard",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      options: {
+        triggerKeys: keys,
+        triggerCardIds: ["BT24-042", "BT24-042"],
+        triggerTimings: ["whenHandTrashed", "whenHandTrashed"],
+        timing: "WhenDigivolving",
+      },
+    });
+    const tiles = screen.getAllByRole("button", { name: "[When Cards Are Trashed from Your Hand], Goblimon" });
+    expect(tiles).toHaveLength(2);
+    fireEvent.click(tiles[1]!);
+    expect(screen.getAllByRole("button", { name: "[When Cards Are Trashed from Your Hand], Goblimon" })).toHaveLength(
+      2,
+    );
+    expect(tiles[0]!.getAttribute("aria-pressed")).toBe("false");
+    expect(tiles[1]!.getAttribute("aria-pressed")).toBe("true");
+    expect(screen.queryByText("[When Digivolving]")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Resolve next effect/i }));
+    expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [keys[1]] });
+  });
+
   it("names two effects of ONE permanent by their firing window, never as copies", () => {
     renderDecision({
       decisionId: "megadramon-two-timings",

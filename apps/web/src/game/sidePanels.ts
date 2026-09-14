@@ -192,6 +192,9 @@ export function sidePanelFromEvent(
 ): SidePanel | null {
   switch (event.kind) {
     case "cardsMoved": {
+      // Identified field deletions already receive one dedicated notice per Digimon.
+      // Announcing the whole stack here duplicates that notice and calls sources deleted.
+      if (event.to === "trash" && (event.deletedPermanents?.length ?? 0) > 0) return null;
       if (event.from === "deck" && event.to === "hand" && event.drawReason === "digivolution") return null;
       const titleKey = titleForMovement(event.from, event.to);
       if (!titleKey) return null;
@@ -269,7 +272,13 @@ export function attackAnnouncementFromEvent(
   nowMs: number,
 ): AttackAnnouncement | null {
   if (event.kind !== "attackDeclared") return null;
-  return { id, cardId: event.attackerCardId, ...(event.attackerArtId ? { artId: event.attackerArtId } : {}), side: sideOf(event.seat, viewerSeat), createdAt: nowMs };
+  return {
+    id,
+    cardId: event.attackerCardId,
+    ...(event.attackerArtId ? { artId: event.attackerArtId } : {}),
+    side: sideOf(event.seat, viewerSeat),
+    createdAt: nowMs,
+  };
 }
 
 function sameSlot(a: SidePanel, b: SidePanel): boolean {

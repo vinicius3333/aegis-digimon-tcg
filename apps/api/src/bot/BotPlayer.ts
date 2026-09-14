@@ -72,7 +72,8 @@ export class BotPlayer {
   private readonly maxThinkMs: number;
   private readonly policy: BotPolicy;
   /** Narration the opposing client still owes the last attack, in milliseconds. */
-  private pendingNarrationMs = 0;
+  private narrationUntil = 0;
+  private readonly usesRealTimePacing: boolean;
   private readonly pause: (minMs: number, maxMs: number) => Promise<void>;
 
   constructor(
@@ -87,6 +88,7 @@ export class BotPlayer {
     this.policy = options.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
     const random = createBotRandom(seed ^ 0x9e37);
     const injected = options.thinkDelay;
+    this.usesRealTimePacing = injected === undefined;
     this.pause = injected
       ? () => injected()
       : (minMs, maxMs) =>
@@ -127,14 +129,16 @@ export class BotPlayer {
       case "securityChecked":
         // Each check is its own centre-stage scene, and the client plays them one
         // after another, so a multi-check attack owes the sum of them.
-        this.pendingNarrationMs +=
-          event.resolution === "effect" ? SECURITY_EFFECT_NARRATION_MS : SECURITY_CHECK_NARRATION_MS;
+        this.narrationUntil =
+          Math.max(Date.now(), this.narrationUntil) +
+          (event.resolution === "effect" ? SECURITY_EFFECT_NARRATION_MS : SECURITY_CHECK_NARRATION_MS);
         break;
       case "cardsMoved":
         // An effect that spends a security stack is narrated card by card, so a bot that
         // empties one owes the whole sequence before it may act again.
         if (event.from === Zone.Security && event.to === Zone.Trash) {
-          this.pendingNarrationMs += event.instanceIds.length * SECURITY_DESTRUCTION_NARRATION_MS;
+          this.narrationUntil =
+            Math.max(Date.now(), this.narrationUntil) + event.instanceIds.length * SECURITY_DESTRUCTION_NARRATION_MS;
         }
         break;
       case "blockWindowOpened":
@@ -217,14 +221,13 @@ export class BotPlayer {
   private onOwnPhase(phase: Phase, turnCount: number): void {
     if (turnCount !== this.lastTurnStarted) {
       this.lastTurnStarted = turnCount;
-      // Whatever the previous turn's checks still owed was narrated while this seat
-      // was not acting, so it must not be charged against its first action here.
-      this.pendingNarrationMs = 0;
+      // A turn change can reach the client before its security scene ends.
+      // Keep the deadline; elapsed narration naturally stops delaying this seat.
       this.policy.onTurnStart();
     }
     switch (phase) {
       case Phase.Breeding:
-        void this.afterThinking(() => this.runBreedingPhase());
+        void this.nextActionDelay().then(() => this.runBreedingPhase());
         break;
       case Phase.Main:
         this.startMainPhaseLoop();
@@ -327,11 +330,14 @@ export class BotPlayer {
    * that, so the wait is stretched to cover it: the next card is played once the clash
    * has handed the board back, never on top of it.
    */
-  private nextActionDelay(): Promise<void> {
-    const narration = this.pendingNarrationMs;
-    this.pendingNarrationMs = 0;
-    if (narration === 0) return this.delay();
-    return this.pause(Math.max(this.minThinkMs, narration), Math.max(this.maxThinkMs, narration));
+  private async nextActionDelay(): Promise<void> {
+    const narration = Math.max(0, this.narrationUntil - Date.now());
+    await this.pause(Math.max(this.minThinkMs, narration), Math.max(this.maxThinkMs, narration));
+    // More checks can arrive while this seat is already waiting to act.
+    while (this.usesRealTimePacing && this.narrationUntil > Date.now()) {
+      const remaining = this.narrationUntil - Date.now();
+      await this.pause(remaining, remaining);
+    }
   }
 }
 

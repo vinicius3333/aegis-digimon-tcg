@@ -41,7 +41,17 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
       // come from timeout/cancellation; it is honored as a decline only when every
       // remaining effect is optional (source
       // `_CanNoSelect: () => active.All(s => s.CardEffect.IsSkippable(...))`).
-      const triggerKeys = active.map((c) => buildTriggerKey(c.source.instanceId, c.effect.effectKey));
+      // One watcher can be armed by multiple discard events before this prompt.
+      // Preserve every activation while keeping React keys and responses unambiguous.
+      const usedKeys = new Set<string>();
+      const triggerKeys = active.map((c) => {
+        const base = buildTriggerKey(c.source.instanceId, c.effect.effectKey);
+        let key = base;
+        let occurrence = 1;
+        while (usedKeys.has(key)) key = `${base}/activation-${++occurrence}`;
+        usedKeys.add(key);
+        return key;
+      });
       const triggerCardIds = active.map((c) => c.source.cardId);
       // One permanent can put two effects on the stack at once (Megadramon's [On Play]
       // and [When Digivolving]). They share an instanceId and a card, so the chooser can
@@ -50,6 +60,7 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
       const triggerTimings = active.map(
         (c) =>
           c.effect.timingOverride ??
+          c.timingLabel ??
           (c.timing !== undefined ? EffectTiming[c.timing] : undefined) ??
           decisionTiming ??
           "",
@@ -65,6 +76,7 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
         options: {
           triggerKeys,
           triggerCardIds,
+          triggerIsInherited: active.map((c) => c.effect.isInherited),
           ...(triggerTimings.some((entry) => entry !== "") ? { triggerTimings } : {}),
           ...(decisionTiming !== undefined ? { timing: decisionTiming } : {}),
         },

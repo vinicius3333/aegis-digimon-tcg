@@ -137,6 +137,31 @@ describe("createResolverDecisions.chooseOrder", () => {
     expect(index).toBe(1);
   });
 
+  it("keeps repeated watcher activations independently selectable with their event timing", async () => {
+    const game = gameWithSeats();
+    const { transport, requests, bind } = autoTransport((req) => ({
+      kind: "orderTriggers",
+      order: [req.options!.triggerKeys![1]!],
+    }));
+    const manager = new DecisionManager(game, transport);
+    bind(manager);
+    const watcher = {
+      ...fakeCollected("subtrigger/755/whenHandTrashed", false, "s0-52", "BT24-007"),
+      timingLabel: "whenHandTrashed",
+      effect: { ...fakeCollected("watcher").effect, effectKey: "subtrigger/755/whenHandTrashed", isInherited: true },
+    };
+    const index = await createResolverDecisions(manager).chooseOrder(
+      0,
+      [watcher, watcher],
+      EffectTiming.WhenDigivolving,
+    );
+    const keys = requests[0]!.options!.triggerKeys!;
+    expect(new Set(keys).size).toBe(2);
+    expect(index).toBe(1);
+    expect(requests[0]!.options!.triggerIsInherited).toEqual([true, true]);
+    expect(requests[0]!.options!.triggerTimings).toEqual(["whenHandTrashed", "whenHandTrashed"]);
+  });
+
   it("carries the firing window of each pending trigger", async () => {
     const game = gameWithSeats();
     const { transport, requests, bind } = autoTransport((req) => ({

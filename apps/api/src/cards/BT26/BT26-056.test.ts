@@ -195,6 +195,33 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
     expect(s.perm("target").stack).toHaveLength(1);
   });
 
+  it("uses Inferno Divide and then Arts Digivolves the same card onto a level-4 TS Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-021", as: "base" }],
+          hand: [
+            { card: "BT26-056", as: "dual" },
+            { card: "BT1-010", as: "discard" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT26-060", as: "target", under: ["BT24-034", "BT26-015", "BT26-016"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dual").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-056");
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("discard").instanceId);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).not.toContain(s.inst("dual").instanceId);
+    expect(s.state.memory).toBe(7);
+  });
+
   it("waives the black Option requirement only with a TS card", async () => {
     const withoutTs = setupEngine({ 0: { hand: [{ card: "BT26-056", as: "infernoDivide" }] } });
     withoutTs.state.memory = 3;

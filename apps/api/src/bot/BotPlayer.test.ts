@@ -366,6 +366,76 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents).toHaveLength(2);
   });
 
+  it("preserves the opponent attack's security narration across the turn change", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+    bot.onEvent({ kind: "securityChecked", seat: 1, revealedCardId: "BT1-013", resolution: "battle" } as ServerEvent);
+    state.turnSeat = 1;
+    state.turnCount = 2;
+    state.phase = Phase.Breeding;
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Breeding, turnSeat: 1, turnCount: 2 } as ServerEvent);
+    await advance(SECURITY_CHECK_NARRATION_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents.length).toBeGreaterThan(0);
+  });
+
+  it("does not charge elapsed security narration against a later turn", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+    bot.onEvent({ kind: "securityChecked", seat: 1, revealedCardId: "BT1-013", resolution: "battle" } as ServerEvent);
+    await advance(SECURITY_CHECK_NARRATION_MS);
+    state.turnSeat = 1;
+    state.phase = Phase.Breeding;
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Breeding, turnSeat: 1, turnCount: 2 } as ServerEvent);
+    await advance(2_000);
+    expect(intents.length).toBeGreaterThan(0);
+  });
+
+  it("extends an in-flight action wait when another security check arrives", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    await advance(1_000);
+    bot.onEvent({ kind: "securityChecked", seat: 1, revealedCardId: "BT1-013", resolution: "battle" } as ServerEvent);
+    await advance(SECURITY_CHECK_NARRATION_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents.length).toBeGreaterThan(0);
+  });
+
   // An effect that spends a security stack is narrated card by card, so the whole run
   // owes its budget before the bot may play anything over it.
   it("waits out one narration per security card an effect trashed", async () => {
