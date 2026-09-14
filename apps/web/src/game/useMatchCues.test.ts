@@ -178,7 +178,15 @@ function renderCues(initialEvents: readonly ServerEvent[] = [], onActionRejected
   const feed = batchFeed();
   const view = renderHook(
     (batches: readonly ServerBatch[]) =>
-      useMatchCues({ batches, state: undefined, viewerSeat: VIEWER, mulliganOpen: false, anchors, onActionRejected }),
+      useMatchCues({
+        narrationLimit: 3,
+        batches,
+        state: undefined,
+        viewerSeat: VIEWER,
+        mulliganOpen: false,
+        anchors,
+        onActionRejected,
+      }),
     { initialProps: feed(initialEvents) },
   );
   return {
@@ -236,6 +244,7 @@ function renderCuesOverBoard(state: GameState) {
   const view = renderHook(
     (batches: readonly ServerBatch[]) =>
       useMatchCues({
+        narrationLimit: 3,
         batches,
         state,
         viewerSeat: VIEWER,
@@ -262,6 +271,7 @@ function renderCuesAwaitingAnswer() {
       decisionStateVersion?: number;
     }) =>
       useMatchCues({
+        narrationLimit: 3,
         batches,
         state: undefined,
         viewerSeat: VIEWER,
@@ -320,6 +330,7 @@ describe("match cues grouped by server batch", () => {
     return renderHook(
       (batches: readonly ServerBatch[]) =>
         useMatchCues({
+          narrationLimit: 3,
           batches,
           state: undefined,
           viewerSeat: VIEWER,
@@ -418,6 +429,7 @@ describe("match cues", () => {
     const { result, rerender } = renderHook(
       ({ state, events }: { state: GameState; events: readonly ServerEvent[] }) =>
         useMatchCues({
+          narrationLimit: 3,
           batches: feed(events),
           state,
           viewerSeat: VIEWER,
@@ -473,6 +485,7 @@ describe("match cues", () => {
     const { result, rerender } = renderHook(
       ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
         useMatchCues({
+          narrationLimit: 3,
           state,
           phaseEvents,
           batches,
@@ -1815,6 +1828,7 @@ describe("security a card effect trashes", () => {
     const { result, rerender: rerenderBatches } = renderHook(
       ({ batches, decisionPending }: { batches: readonly ServerBatch[]; decisionPending: boolean }) =>
         useMatchCues({
+          narrationLimit: 3,
           batches,
           state: TRASHED_SECURITY_BOARD,
           viewerSeat: VIEWER,
@@ -1980,6 +1994,7 @@ describe("security gains", () => {
     const view = renderHook(
       ({ batches, state }: { batches: readonly ServerBatch[]; state: GameState }) =>
         useMatchCues({
+          narrationLimit: 3,
           batches,
           state,
           viewerSeat: VIEWER,
@@ -2278,7 +2293,7 @@ describe("the narration feed", () => {
   });
 
   it.each([true, false])(
-    "caps mobile at two TOTAL records (portrait=%s), preserving newest across players",
+    "shows only the newest record across players on every layout (portrait=%s)",
     async (portrait) => {
       const feed = batchFeed();
       const view = renderHook(
@@ -2289,7 +2304,6 @@ describe("the narration feed", () => {
             viewerSeat: VIEWER,
             mulliganOpen: false,
             collapseNarration: portrait,
-            narrationLimit: 2,
             anchors,
             onActionRejected: vi.fn<(reason: string) => void>(),
           }),
@@ -2298,7 +2312,7 @@ describe("the narration feed", () => {
       await advance(0);
       view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
       await advance(0);
-      expect(cards(view.result.current.narration)).toEqual(["BT1-002", "BT1-009"]);
+      expect(cards(view.result.current.narration)).toEqual(["BT1-009"]);
       expect(view.result.current.narrationLock).toBe(false);
       expect(view.result.current.presenting).toBe(false);
     },

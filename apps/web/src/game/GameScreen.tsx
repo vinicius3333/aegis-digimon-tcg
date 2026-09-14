@@ -550,7 +550,7 @@ export function GameScreen({
     mulliganOpen: decision?.kind === "mulligan",
     // The portrait phone folds both narration corners into one centred slot.
     collapseNarration: collapseNotices,
-    narrationLimit: narrowGameLayout ? 2 : 3,
+    narrationLimit: 1,
     // A security check the server stopped to ask the viewer something cannot close until it
     // is answered, so the cue sequence needs to know a question is waiting.
     decisionPending: decisionPendingForViewer || openCombatWindowForBarrier !== null,
@@ -1070,8 +1070,16 @@ export function GameScreen({
   // match, decision, turn and phase guards. Effect responses use their own controls.
   const pendingServerDecision = Boolean(decision || state.pendingDecision);
   const pendingCombatWindow = Boolean(state.combatWindow);
+  // The server can reach Breeding/Main while the turn, unsuspend and draw banners
+  // are still queued. Their phase clock must release ordinary actions explicitly.
+  const phasePresentationPending = cues.phaseTransitionPending || turnTransition !== null || phaseBanner !== null;
   const turnActionBlocked =
-    state.gameOver || pendingServerDecision || pendingCombatWindow || cues.presenting || !isMyTurn;
+    state.gameOver ||
+    pendingServerDecision ||
+    pendingCombatWindow ||
+    cues.presenting ||
+    phasePresentationPending ||
+    !isMyTurn;
   const mainActionBlocked = turnActionBlocked || state.phase !== Phase.Main;
   const endPhaseBlocked = turnActionBlocked || (state.phase !== Phase.Main && state.phase !== Phase.Breeding);
   const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
@@ -1080,7 +1088,7 @@ export function GameScreen({
   // These drive the highlights and the hint that stand in for the old modal.
   const canHatchEgg = you.eggDeckCount > 0 && !you.breeding;
   const canMoveOutOfBreeding = canMoveFromBreeding(you.breeding);
-  // Decisions and match end take breeding actions away; presentation cues do not.
+  // Breeding actions open only after the phase presentation has finished.
   const breedingActionsOpen = breedingWindow && !turnActionBlocked;
   // The gauge is part of the scene, so it moves when the moment that moved it is narrated.
   const memory = displayMemory(shownState, viewerSeat);
@@ -3562,9 +3570,9 @@ export function GameScreen({
             turnCount={state.turnCount}
             memory={memory}
             isMyTurn={isMyTurn}
-            canMove={canMoveFromBreeding(you.breeding)}
+            canMove={breedingActionsOpen && canMoveOutOfBreeding}
             hasBreeding={!!you.breeding}
-            canHatch={you.eggDeckCount > 0 && !you.breeding}
+            canHatch={breedingActionsOpen && canHatchEgg}
             narrow
             log={log}
             onHatchOrMove={onBreeding}

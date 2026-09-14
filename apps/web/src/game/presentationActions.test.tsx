@@ -7,7 +7,11 @@ import { I18nProvider } from "../i18n";
 import type { AegisRoom } from "../net/client";
 import { GameScreen } from "./GameScreen";
 
-const cueFns = vi.hoisted(() => ({ advance: vi.fn<() => boolean>(() => false), skip: vi.fn<() => void>() }));
+const cueFns = vi.hoisted(() => ({
+  advance: vi.fn<() => boolean>(() => false),
+  skip: vi.fn<() => void>(),
+  phaseTransitionPending: false,
+}));
 vi.mock("./useMatchCues", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./useMatchCues")>();
   return {
@@ -16,7 +20,7 @@ vi.mock("./useMatchCues", async (importOriginal) => {
       ...actual.useMatchCues(...args),
       securityRevealPending: true,
       narrationLock: true,
-      phaseTransitionPending: true,
+      phaseTransitionPending: cueFns.phaseTransitionPending,
       decisionBarrierPending: true,
       advanceNarration: cueFns.advance,
       skipAnimations: cueFns.skip,
@@ -29,6 +33,7 @@ afterEach(() => {
   setActionConfirmationsEnabled(true);
   cueFns.advance.mockClear();
   cueFns.skip.mockClear();
+  cueFns.phaseTransitionPending = false;
 });
 
 function mount(phase: Phase, decision?: DecisionRequest, withBreedingBase = false) {
@@ -121,6 +126,33 @@ it("allows breeding hatch and end phase while presentation cues are active", () 
   expect(send).toHaveBeenCalledWith("hatchEgg", {});
   fireEvent.click(screen.getByRole("button", { name: /end breeding|end phase/i }));
   expect(send).toHaveBeenCalledWith("endPhase", {});
+});
+
+it("blocks hatching and ending breeding until the turn and phase banners finish", () => {
+  cueFns.phaseTransitionPending = true;
+  const { send, update } = mount(Phase.Breeding);
+  const eggDeck = document.querySelector(".game-utility-slot--you-eggs")!;
+  fireEvent.click(eggDeck);
+  expect(document.querySelector(".game-egg-deck--hatchable")).toBeNull();
+  const endPhase = screen.getByRole("button", { name: /end breeding|end phase/i });
+  expect(endPhase.hasAttribute("disabled")).toBe(true);
+  fireEvent.click(endPhase);
+  expect(send).not.toHaveBeenCalled();
+
+  cueFns.phaseTransitionPending = false;
+  update(Phase.Breeding);
+  fireEvent.click(document.querySelector(".game-egg-deck--hatchable")!);
+  expect(send).toHaveBeenCalledWith("hatchEgg", {});
+});
+
+it("blocks Main actions while earlier phase banners are still presenting", () => {
+  setActionConfirmationsEnabled(false);
+  cueFns.phaseTransitionPending = true;
+  const { send } = mount(Phase.Main);
+  const hand = screen.getByTestId("hand").querySelector<HTMLElement>(".game-hand-card")!;
+  fireEvent.click(hand);
+  fireEvent.click(screen.getByRole("button", { name: "Play Digimon" }));
+  expect(send).not.toHaveBeenCalled();
 });
 
 it("allows a Main phase digivolution onto the raising area while cues are active", () => {

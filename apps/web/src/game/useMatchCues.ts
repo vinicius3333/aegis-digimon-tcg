@@ -407,8 +407,7 @@ export function useMatchCues({
   viewerSeat,
   mulliganOpen,
   decisionPending = false,
-  collapseNarration = false,
-  narrationLimit = collapseNarration ? 2 : 3,
+  narrationLimit = 1,
   decisionStateVersion,
   anchors,
   onActionRejected,
@@ -430,7 +429,7 @@ export function useMatchCues({
   decisionPending?: boolean;
   /** The portrait phone folds both narration corners into one centred slot. */
   collapseNarration?: boolean;
-  /** Maximum recent items across both players (two on mobile, three on desktop). */
+  /** Maximum recent items across both players; defaults to one on every layout. */
   narrationLimit?: number;
   /**
    * The revision the viewer's open decision was raised at (`DecisionRequest.stateVersion`).
