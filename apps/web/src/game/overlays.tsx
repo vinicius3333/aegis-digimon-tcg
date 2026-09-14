@@ -1100,6 +1100,15 @@ const DESCRIBED_ACTION_PHRASES: readonly RegExp[] = [
   /^Place (?:up to )?(?:\d+|all) card\(s\) under$/,
   /^Reveal top \d+ and add$/,
   /^Gain (?:＜[^＞]+＞|<[^>]+>|keyword)$/,
+  // Security summaries can share a description with bare IR kinds. Recognize
+  // every phrase emitted by describeSecurityManipulation so the whole summary
+  // falls back to the matching printed clause.
+  /^Add -?\d+ card\(s\) to the opponent's security$/,
+  /^＜Recovery \+-?\d+＞$/,
+  /^Trash (?:up to )?-?\d+ of (?:your|opponent's) top security card\(s\)$/,
+  /^Reveal (?:your|opponent's) (?:top|bottom) security card$/,
+  /^Flip (?:your|opponent's) security card face up$/,
+  /^Move (?:your|opponent's) top security card to the bottom$/,
   /^Hatch a Digi-Egg$/,
   /^Search your deck$/,
   /^(?:Digivolve|DNA digivolve|De-Digivolve)$/,

@@ -3035,8 +3035,8 @@ export function GameScreen({
                 which keeps the raising area, the hand that digivolves into it and
                 the turn control lit. Notices, panels and dialogs all sit above. */}
             {breedingWindow ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
-            {/* The board darkens around exactly the cards the server offered. It is
-                a drawing only — the lit cards underneath keep every pointer event. */}
+            {/* Outlines mark the cards the server offered without dimming the field.
+                The cards underneath keep every pointer event. */}
             {spotlightOpen ? (
               <TargetingSpotlight subjects={spotlightSubjects} width={boardSize.width} height={boardSize.height} />
             ) : null}

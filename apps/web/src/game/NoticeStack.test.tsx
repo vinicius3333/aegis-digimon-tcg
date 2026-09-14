@@ -59,6 +59,23 @@ describe("NoticeStack", () => {
     expect(shown.textContent).not.toContain("[Hand]");
   });
 
+  it("replaces mixed security action summaries with the printed attacking clause", () => {
+    renderNotice(
+      notice({
+        body: {
+          variant: "effect",
+          cardId: "BT24-016",
+          timing: "OnUseAttack",
+          description: "[WhenAttacking] SecurityManipulation, Trash 1 of opponent's top security card(s)",
+        },
+      }),
+    );
+    const shown = screen.getByTestId("match-notice");
+    expect(shown.textContent).toContain("Your opponent places 1 card from their hand as the bottom security card.");
+    expect(shown.textContent).not.toContain("SecurityManipulation");
+    expect(shown.textContent).not.toContain("card(s)");
+  });
+
   it("marks whose moment it is, so the slot it sits in can be read at a glance", () => {
     renderNotice(notice({ side: "opp" }));
     expect(screen.getByTestId("match-notice").getAttribute("data-side")).toBe("opp");

@@ -6271,7 +6271,7 @@ button.side-panel__name:focus-visible {
 
 /* --- Targeting spotlight ------------------------------------------------- */
 
-/* The board goes dark around exactly the cards the server offered. It draws
+/* Target outlines mark exactly the cards the server offered. It draws
    only: the lit cards underneath are the things that have to stay clickable, so
    nothing here ever takes a pointer event. */
 .game-spotlight {
@@ -6282,10 +6282,6 @@ button.side-panel__name:focus-visible {
   height: 100%;
   pointer-events: none;
   animation: battle-spotlight-in var(--t-spotlight-in, 220ms) ease-out both;
-}
-
-.game-spotlight__scrim {
-  fill: rgb(3 7 14 / 68%);
 }
 
 .game-spotlight__ring {
