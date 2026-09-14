@@ -59,6 +59,26 @@ describe("GameStateAccess.permanentById", () => {
 });
 
 describe("GameStateAccess deletion narration", () => {
+  it("identifies the deleted field card separately from its digivolution cards", () => {
+    const state = makeState();
+    const permanent = makePermanent("battle-1", 1, false);
+    permanent.topCard.artId = "AD1-001_P1";
+    const source = new CardInstance();
+    source.instanceId = "source-1";
+    source.cardId = "BT1-009";
+    source.ownerSeat = 1;
+    permanent.stack.push(source);
+    state.players[1]!.battleArea.push(permanent);
+    const events: ServerEvent[] = [];
+    const access = new GameStateAccess(state, undefined, (event) => events.push(event));
+    access.deletePermanent("battle-1");
+    expect(events[0]).toMatchObject({
+      deletedPermanents: [
+        { permanentId: "battle-1", instanceId: "battle-1-top", cardId: CARD_ID, artId: "AD1-001_P1", seat: 1 },
+      ],
+    });
+  });
+
   it("publishes the move to trash, so a combat death reaches the client like any other deletion", () => {
     const state = makeState();
     state.players[0]!.battleArea.push(makePermanent("battle-1", 0, false));
@@ -67,7 +87,9 @@ describe("GameStateAccess deletion narration", () => {
 
     access.deletePermanent("battle-1");
 
-    expect(events).toEqual([{ kind: "cardsMoved", instanceIds: ["battle-1-top"], from: "battleArea", to: "trash" }]);
+    expect(events).toMatchObject([
+      { kind: "cardsMoved", instanceIds: ["battle-1-top"], from: "battleArea", to: "trash" },
+    ]);
   });
 
   it("names the breeding area as the origin of a breeding deletion", () => {
@@ -78,7 +100,9 @@ describe("GameStateAccess deletion narration", () => {
 
     access.deletePermanent("breeding-1");
 
-    expect(events).toEqual([{ kind: "cardsMoved", instanceIds: ["breeding-1-top"], from: "breeding", to: "trash" }]);
+    expect(events).toMatchObject([
+      { kind: "cardsMoved", instanceIds: ["breeding-1-top"], from: "breeding", to: "trash" },
+    ]);
   });
 
   it("trashes a deleted Digi-Egg, because the Digi-Egg redirect covers private areas only", () => {
@@ -100,7 +124,9 @@ describe("GameStateAccess deletion narration", () => {
     expect(state.players[0]!.battleArea).toHaveLength(0);
     expect(state.players[0]!.trash.map((card) => card.instanceId)).toEqual(["egg-battle-top"]);
     expect(state.players[0]!.eggDeck.map((card) => card.instanceId)).toEqual(["existing-egg"]);
-    expect(events).toEqual([{ kind: "cardsMoved", instanceIds: ["egg-battle-top"], from: "battleArea", to: "trash" }]);
+    expect(events).toMatchObject([
+      { kind: "cardsMoved", instanceIds: ["egg-battle-top"], from: "battleArea", to: "trash" },
+    ]);
   });
 
   it("publishes one event per origin zone for a simultaneous batch", () => {
@@ -113,10 +139,19 @@ describe("GameStateAccess deletion narration", () => {
 
     access.deletePermanentsBatched(["battle-1", "breeding-1", "battle-2"]);
 
-    expect(events).toEqual([
+    expect(events).toMatchObject([
       { kind: "cardsMoved", instanceIds: ["battle-1-top", "battle-2-top"], from: "battleArea", to: "trash" },
       { kind: "cardsMoved", instanceIds: ["breeding-1-top"], from: "breeding", to: "trash" },
     ]);
+    expect(events[0]).toMatchObject({
+      deletedPermanents: [
+        { permanentId: "battle-1", instanceId: "battle-1-top", cardId: CARD_ID, seat: 0 },
+        { permanentId: "battle-2", instanceId: "battle-2-top", cardId: CARD_ID, seat: 1 },
+      ],
+    });
+    expect(events[1]).toMatchObject({
+      deletedPermanents: [{ permanentId: "breeding-1", instanceId: "breeding-1-top", cardId: CARD_ID, seat: 0 }],
+    });
   });
 
   it("publishes nothing when the permanent is already off the field", () => {

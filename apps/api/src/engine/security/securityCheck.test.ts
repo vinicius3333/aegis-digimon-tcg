@@ -217,6 +217,29 @@ describe("runSecurityCheck", () => {
     });
   });
 
+  it("reports the attacker as surviving when tie deletion is prevented", async () => {
+    const card = makeSecurityCard(1, 0, "DIGI-EVEN");
+    const emitted: ServerEvent[] = [];
+    const h = harness([card], {
+      isDigimon: () => true,
+      dpOf: () => 4000,
+      securityCardDp: () => 4000,
+      // Model a would-leave replacement (such as Medusamon deleting a Token): the
+      // battle requests deletion, but the replacement keeps the attacker in play.
+      deletePermanents: async () => {},
+    });
+    await runSecurityCheck(h.state, (event) => emitted.push(event), h.win, h.deps, 1, attacker);
+
+    expect(h.state.players[0]?.battleArea).toHaveLength(1);
+    expect(emitted).toContainEqual({
+      kind: "securityChecked",
+      seat: 1,
+      revealedCardId: "DIGI-EVEN",
+      resolution: "battle",
+      battle: { attackerDeleted: false, securityDigimonDeleted: true, attackerDP: 4000, securityCardDP: 4000 },
+    });
+  });
+
   it("publishes no compare for a check that never battled", async () => {
     const card = makeSecurityCard(1, 0, "OPTION-Y");
     const emitted: ServerEvent[] = [];

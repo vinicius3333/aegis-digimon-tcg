@@ -18,11 +18,11 @@ import type { AttackTarget } from "./intents.js";
  * The DP compare of a Security Digimon battle (Comprehensive Rules §13-1-8-3), published so
  * the client can dramatize the losing side instead of inferring one from later deletions.
  *
- * These are the compare's verdicts, exactly as the rules resolve them — a tie loses on BOTH
- * sides. `attackerDeleted` is therefore what the battle decided, not what finally happened:
- * ＜Jamming＞ and the deletion-replacement pipeline (Armor Purge, Decoy, Material Save) can
- * still spare a losing attacker, and the Security Digimon is a loose card that CR 14-2-3
- * keeps alive and CR 13-1-8-4 trashes regardless of the verdict.
+ * `attackerDeleted` reports whether the attacker actually left after battle protection
+ * and deletion replacements resolve. A tie loses on both sides, but ＜Jamming＞ and
+ * leave-prevention effects can spare the attacker. `securityDigimonDeleted` retains the
+ * comparison verdict; the Security Digimon is a loose card that CR 14-2-3 keeps alive
+ * and CR 13-1-8-4 trashes regardless of that verdict.
  */
 export interface SecurityBattleResult {
   /** Effective DP values used by the server for this comparison. */
@@ -220,6 +220,14 @@ export type ServerEvent =
       // that lands the cards in their destination, so a client cannot reliably
       // resolve `instanceIds` against its own zone index at delivery time.
       kind: "cardsMoved";
+      /** Actual deleted field cards, captured before removal; excludes their supporting cards. */
+      deletedPermanents?: {
+        permanentId: string;
+        instanceId: string;
+        cardId: string;
+        artId?: string;
+        seat: Seat;
+      }[];
       /** A scheduled turn-end deletion, attributed to the card that installed it. */
       turnEndDeletion?: { sourceCardId: string; deletedCardId: string };
       /** Automatic bonus draw from digivolution, rather than a card effect. */

@@ -33,6 +33,7 @@ type EventPort = (event: ServerEvent) => void;
 interface DeletionMove {
   cards: CardInstance[];
   from: Zone.BattleArea | Zone.Breeding;
+  deletedPermanent?: NonNullable<Extract<ServerEvent, { kind: "cardsMoved" }>["deletedPermanents"]>[number];
 }
 
 /**
@@ -577,15 +578,29 @@ export class GameStateAccess {
       } else {
         extractPermanentAt(player, index);
       }
-      return { cards, from: inBreeding ? Zone.Breeding : Zone.BattleArea };
+      return {
+        cards,
+        from: inBreeding ? Zone.Breeding : Zone.BattleArea,
+        ...(target.topCard
+          ? {
+              deletedPermanent: {
+                permanentId: target.permanentId,
+                instanceId: target.topCard.instanceId,
+                cardId: target.topCard.cardId,
+                ...(target.topCard.artId ? { artId: target.topCard.artId } : {}),
+                seat: target.controllerSeat,
+              },
+            }
+          : {}),
+      };
     }
     return { cards: [], from: Zone.BattleArea };
   }
 
   /**
    * Narrate a deletion as one `cardsMoved` per origin zone across the whole batch. Grouping
-   * here rather than per permanent keeps a simultaneous deletion one notice on the client
-   * instead of one per Digimon, and this is the only place a deletion is narrated: every
+   * here rather than per permanent keeps a simultaneous deletion in one event, with each
+   * deleted permanent's identity available to the client. Every
    * deletion path in the engine — a battle death, a rule process, an effect — moves its cards
    * through this class, so callers add no `cardsMoved` of their own.
    */
@@ -595,6 +610,9 @@ export class GameStateAccess {
   ): void {
     if (this.emit === undefined) return;
     for (const from of [Zone.BattleArea, Zone.Breeding] as const) {
+      const deletedPermanents = moves
+        .filter((move) => move.from === from && move.cards.length > 0)
+        .flatMap((move) => (move.deletedPermanent ? [move.deletedPermanent] : []));
       const trashedInstanceIds = moves
         .filter((move) => move.from === from)
         .flatMap((move) => move.cards.map((card) => card.instanceId));
@@ -604,6 +622,7 @@ export class GameStateAccess {
           instanceIds: trashedInstanceIds,
           from,
           to: Zone.Trash,
+          ...(deletedPermanents.length > 0 ? { deletedPermanents } : {}),
           ...(turnEndDeletion ? { turnEndDeletion } : {}),
         });
     }

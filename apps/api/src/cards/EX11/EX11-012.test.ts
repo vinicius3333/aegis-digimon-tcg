@@ -6,6 +6,43 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX11-012 Medusamon", () => {
+  it("reports survival after paying an opponent's Token in an equal-DP security battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX11-012", as: "medusamon" }] },
+        1: {
+          battleArea: [{ card: "TOKEN-Petrification-Token", as: "token" }],
+          security: ["BT26-079", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const medusamonId = s.perm("medusamon").permanentId;
+    const tokenId = s.perm("token").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: medusamonId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
+      revealedCardId: "BT26-079",
+      battle: { attackerDP: 12000, securityCardDP: 12000, attackerDeleted: false },
+    });
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === medusamonId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === tokenId)).toBe(false);
+    expect(
+      s.events
+        .filter((event) => event.kind === "cardsMoved")
+        .flatMap((event) => event.deletedPermanents ?? [])
+        .map((deleted) => deleted.permanentId),
+    ).toEqual([tokenId]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("encodes only Medusamon's printed clauses and leaves reminder text on the token", () => {
     const compiled = runtimeCompiledCard("EX11-012")!;
 

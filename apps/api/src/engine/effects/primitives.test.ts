@@ -770,6 +770,12 @@ describe("primitives: trash / delete / suspend", () => {
         instanceIds: [h.s.inst("evo").instanceId, first.topCard.instanceId, second.topCard.instanceId],
         from: "battleArea",
         to: "trash",
+        deletedPermanents: [first, second].map((permanent) => ({
+          permanentId: permanent.permanentId,
+          instanceId: permanent.topCard.instanceId,
+          cardId: permanent.topCard.cardId,
+          seat: permanent.controllerSeat,
+        })),
       },
     ]);
   });

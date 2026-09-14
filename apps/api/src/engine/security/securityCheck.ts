@@ -392,7 +392,7 @@ export async function runSecurityCheck(
  * Battle the attacker against the revealed Security Digimon (CR 13-1-8-3).
  * Source: the battle branch of ISecurityCheck.
  *
- * Returns the DP-compare outcome so the caller can publish it on `securityChecked`,
+ * Returns the comparison and actual attacker-removal result for `securityChecked`,
  * or `undefined` when no compare happened (the attacker left play in between).
  */
 async function battleSecurityDigimon(
@@ -435,7 +435,12 @@ async function battleSecurityDigimon(
   // The Security Digimon is a loose card, not a field permanent: CR 14-2-3 keeps it
   // alive whatever the DP compare says, and CR 13-1-8-4 sends it to the trash unless
   // an effect gave it an area — which is exactly what trashIfStillLoose applies.
-  return { ...outcome, attackerDP, securityCardDP };
+  // The compare marks the attacker as a loser, but a would-leave replacement can
+  // prevent the requested deletion (for example EX11-012 Medusamon pays a Token).
+  // Publish the observable result so the security-clash presentation does not show
+  // a deletion animation for a Digimon that remains on the field.
+  const attackerDeleted = deps.permanentById(attacker.permanentId) === undefined;
+  return { ...outcome, attackerDeleted, attackerDP, securityCardDP };
 }
 
 /** Move `card` to the seat's trash if it is not already in another zone. */

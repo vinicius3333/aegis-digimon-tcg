@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, Zone, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,53 @@ import { compiled } from "./BT24-023.js";
 import "../index.js";
 
 describe("BT24-023 Calmaramon", () => {
+  it.each([{ under: [] }, { under: ["BT1-009"] }])(
+    "does not offer Decode with an ineligible own stack $under",
+    async ({ under }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT24-023", as: "calmaramon", under },
+              { card: "BT1-040", as: "other", under: ["BT24-027"] },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await advance(s.engine).verb.deletePermanent([s.perm("calmaramon").permanentId], "byEffect");
+      expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT24-023");
+    },
+  );
+
+  it.each([Zone.Hand, Zone.Trash] as const)(
+    "restricts suspension after Dark Field plays it from %s even with no return target",
+    async (zone) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT26-100", as: "darkField" }],
+            security: ["BT1-009"],
+          },
+          1: { battleArea: [{ card: "BT1-040", as: "restricted" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.give(0, zone, { card: "BT24-023", as: "calmaramon" });
+      s.state.memory = 3;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkField").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "suspend"));
+      expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
+      await s.engine.recomputeContinuousEffects();
+      expect(s.perm("restricted")).toMatchObject({ cannotSuspend: true });
+    },
+  );
+
   it("matches the immutable catalog identity", () => {
     expect(getCardDefinition("BT24-023")).toMatchObject({
       cardId: "BT24-023",

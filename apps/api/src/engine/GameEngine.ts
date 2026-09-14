@@ -3768,6 +3768,7 @@ export class GameEngine {
   private projectRestrictions(perm: Permanent): void {
     perm.cannotAttack = this.continuous.hasRestriction(perm.permanentId, "attack");
     perm.cannotBlock = this.continuous.hasRestriction(perm.permanentId, "block");
+    perm.cannotSuspend = this.continuous.hasRestriction(perm.permanentId, "suspend");
     perm.cannotUnsuspend = this.continuous.hasRestriction(perm.permanentId, "unsuspend");
     perm.cannotActivateWhenDigivolving = this.continuous.hasRestriction(
       perm.permanentId,

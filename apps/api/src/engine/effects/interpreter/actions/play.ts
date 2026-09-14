@@ -56,6 +56,24 @@ export function playCostScalingDelta(scaling: Scaling, factor: number): number {
   return factor;
 }
 
+export function ownStackPlayCandidates(ctx: EffectContext, target: Target) {
+  const filters = [target.filter, ...(target.orFilters ?? []), ...(target.filter.orFilters ?? [])];
+  const matching = playableCandidates(
+    ctx,
+    target,
+    (ctx.source.permanent()?.stack ?? []).filter((card) => {
+      const definition = ctx.game.definitionOf(card);
+      return (
+        filters.some((filter) => definitionMatches(filter, definition)) &&
+        !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, card.cardId, "play")
+      );
+    }),
+  );
+  return target.totalPlayCostBudget === undefined
+    ? matching
+    : matching.filter((card) => ctx.game.definitionOf(card).playCost <= target.totalPlayCostBudget!);
+}
+
 /**
  * Materialize a dynamic level ceiling before matching loose cards.
  *
@@ -352,24 +370,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       if (action.fromOwnDigivolutionStack) {
         const self = ctx.source.permanent();
         if (self === undefined) return false;
-        const filters = [
-          action.target.filter,
-          ...(action.target.orFilters ?? []),
-          ...(action.target.filter.orFilters ?? []),
-        ];
-        let matching = playableCandidates(
-          ctx,
-          action.target,
-          self.stack.filter((c) => {
-            const definition = ctx.game.definitionOf({ cardId: c.cardId } as never);
-            return filters.some((filter) => definitionMatches(filter, definition));
-          }),
-        );
+        const matching = ownStackPlayCandidates(ctx, action.target);
         const totalPlayCostBudget = action.target.totalPlayCostBudget;
         const playCostOf = (card: (typeof matching)[number]): number => ctx.game.definitionOf(card).playCost ?? 0;
-        if (totalPlayCostBudget !== undefined) {
-          matching = matching.filter((card) => playCostOf(card) <= totalPlayCostBudget);
-        }
         if (matching.length === 0) {
           ctx.lastEffectActed = false;
           return false;

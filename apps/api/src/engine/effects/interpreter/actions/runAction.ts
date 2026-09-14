@@ -31,6 +31,7 @@ import {
   materializeLevelComparisonScaling,
   materializePlayCostLteScaling,
   runPlayAction,
+  ownStackPlayCandidates,
 } from "./play.js";
 import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
 import { runRemovalAction } from "./removal.js";
@@ -53,6 +54,20 @@ function isCostBearingAction(action: Action): boolean {
     (action.additionalCosts?.length ?? 0) > 0 ||
     (action.costOptions?.length ?? 0) > 0
   );
+}
+
+function clearDeleteOutcome(ctx: EffectContext, action: Extract<Action, { kind: "Delete" }>): void {
+  ctx.lastDeleteCount = 0;
+  ctx.lastDeleteTargetSelected = false;
+  ctx.lastDeletedByThisEffectIds = [];
+  ctx.lastDeletedPermanentSnapshots = [];
+  ctx.lastDeletedLevel = undefined;
+  ctx.lastDeletedDP = undefined;
+  ctx.lastEffectActed = false;
+  if (action.trackCount !== undefined) {
+    ctx.namedCounts ??= new Map();
+    ctx.namedCounts.set(action.trackCount, 0);
+  }
 }
 
 /**
@@ -425,6 +440,21 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     return action.abortOnDecline === true;
   }
+  // A costless optional Delete still needs a legal target before its confirmation prompt.
+  // Cost-bearing Deletes are handled above because their target may be created by payment;
+  // keep those dynamic exceptions out of this early check (EX10-037).
+  if (
+    action.kind === "Delete" &&
+    action.optional === true &&
+    action.cost === undefined &&
+    !dynamicallyScaledDeleteTarget &&
+    !placeCostProducesDeleteTarget &&
+    !looseCostDefinesDeleteTarget &&
+    candidatePermanents(ctx, action.target, { includeUnaffectable: true }).length === 0
+  ) {
+    clearDeleteOutcome(ctx, action);
+    return false;
+  }
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&
@@ -465,15 +495,15 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   }
   if (
     action.kind === "Unsuspend" &&
-    action.cost !== undefined &&
+    (action.optional === true || action.cost !== undefined) &&
     action.allowCostWithoutTarget !== true &&
-    !(action.cost.bindHostAs !== undefined && action.cost.bindHostAs === action.target.fromSelectionRef) &&
-    (await resolvePermanentTargets(ctx, action.target)).every((id) => {
-      const permanent = ctx.game.permanentById(id);
-      return permanent === undefined || permanent.isSuspended !== true;
-    })
+    !(action.cost?.bindHostAs !== undefined && action.cost.bindHostAs === action.target.fromSelectionRef) &&
+    candidatePermanents(ctx, action.target, { includeUnaffectable: true }).every(
+      (permanent) => permanent.isSuspended !== true,
+    )
   ) {
-    return action.abortOnDecline === true;
+    ctx.lastEffectActed = false;
+    return action.cost !== undefined ? action.abortOnDecline === true : false;
   }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
     return action.abortOnDecline === true;
@@ -648,6 +678,15 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // Do not offer an optional play when no legal loose card exists. Besides avoiding a
     // meaningless UI prompt, this is required for nested entry windows: Nokia played from
     // security must finish resolving when the controller has no Agumon/Gabumon to play.
+    if (
+      action.kind === "PlayWithoutCost" &&
+      action.fromOwnDigivolutionStack === true &&
+      !costCreatesTrashCandidate &&
+      ownStackPlayCandidates(ctx, action.target).length === 0
+    ) {
+      ctx.lastEffectActed = false;
+      return false;
+    }
     if (
       action.kind === "PlayWithoutCost" &&
       !costCreatesTrashCandidate &&

@@ -80,6 +80,7 @@ export class Permanent extends Schema {
   // which already resolve them; surfacing them here too would double-count.
   @type("boolean") cannotAttack = false;
   @type("boolean") cannotBlock = false;
+  @type("boolean") cannotSuspend = false;
   // The two non-combat blanket restrictions the client shows as standing debuff badges,
   // projected from the same ledger entries the rules read: the unsuspend step skips a
   // permanent with `cannotUnsuspend` (GameEngine's unsuspend phase), and a [When

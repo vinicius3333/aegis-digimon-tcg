@@ -130,6 +130,32 @@ describe("EX10-037 Impmon", () => {
     await loop;
   });
 
+  it("does not ask to delete when a milled Impmon has no eligible opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          deck: [
+            { card: CARD_ID, as: "milledImpmon" },
+            { card: "BT1-009", as: "milledInert" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "lv5" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() =>
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("milledImpmon").instanceId),
+    );
+
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("lv5").permanentId]);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("declining the optional delete leaves the opponent's Lv.4 alive, mill still happens", async () => {
     const s = setupEngine(
       {
