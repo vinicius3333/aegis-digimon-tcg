@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, renderHook } from "@testing-library/react";
 import {
+  BATTLEFIELDS,
   CUSTOM_BATTLEFIELD_ID,
   battlefieldStyle,
   clearCustomBattlefield,
@@ -8,9 +10,51 @@ import {
   getCustomBattlefieldSrc,
   setBattlefieldId,
   setCustomBattlefield,
+  useBattlefieldStyle,
 } from "./battlefield";
 
 const image = "data:image/webp;base64,AAAA";
+
+describe("portrait battlefield", () => {
+  it.each(BATTLEFIELDS.filter((field) => field.src))("keeps desktop art and selects portrait art for $id", (field) => {
+    expect(String(battlefieldStyle(field.id).backgroundImage)).toContain(field.src);
+    expect(String(battlefieldStyle(field.id, true).backgroundImage)).toContain(field.portraitSrc);
+  });
+
+  it("preserves classic and custom surfaces in portrait", () => {
+    expect(battlefieldStyle("classic", true)).toEqual(battlefieldStyle("classic"));
+    setCustomBattlefield(image);
+    expect(String(battlefieldStyle(CUSTOM_BATTLEFIELD_ID, true).backgroundImage)).toContain(image);
+    clearCustomBattlefield();
+  });
+
+  it("switches art when the arena changes orientation without changing the selected scenery", () => {
+    let portrait = true;
+    const listeners = new Set<() => void>();
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({
+        get matches() {
+          return portrait;
+        },
+        addEventListener: (_event: string, listener: () => void) => listeners.add(listener),
+        removeEventListener: (_event: string, listener: () => void) => listeners.delete(listener),
+      })),
+    );
+    setBattlefieldId("tropical");
+    const { result, unmount } = renderHook(() => useBattlefieldStyle());
+    expect(String(result.current.backgroundImage)).toContain("aegis-arena-tropical-portrait.webp");
+    act(() => {
+      portrait = false;
+      for (const listener of listeners) listener();
+    });
+    expect(String(result.current.backgroundImage)).toContain("aegis-arena-tropical.webp");
+    expect(getBattlefieldId()).toBe("tropical");
+    unmount();
+    expect(listeners.size).toBe(0);
+    vi.unstubAllGlobals();
+  });
+});
 
 describe("custom battlefield", () => {
   beforeEach(() => {

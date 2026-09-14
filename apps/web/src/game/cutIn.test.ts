@@ -84,9 +84,9 @@ describe("cutInFromEvent", () => {
     expect(cutInFromEvent(played, 1, true)).not.toBeNull();
   });
 
-  it("leaves a low-level digivolution alone", () => {
+  it("announces a low-level digivolution", () => {
     expect(getCardDefinition(ROOKIE)?.level).toBeLessThan(CUT_IN_MIN_LEVEL);
-    expect(cutInFromEvent(digivolved(ROOKIE), 1, true)).toBeNull();
+    expect(cutInFromEvent(digivolved(ROOKIE), 1, true)).toMatchObject({ cardId: ROOKIE });
   });
 
   it("ignores an event that is not a landing", () => {

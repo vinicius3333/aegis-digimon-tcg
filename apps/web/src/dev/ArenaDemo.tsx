@@ -23,6 +23,7 @@ import { GameScreen } from "../game/GameScreen";
 import { TIMINGS } from "../game/timings";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
+import { createArenaSecurityDemoState } from "./arenaDemoSecurity";
 import { prepareDemoCombat } from "./arenaDemoCombat";
 import { ArenaKeywordEditor } from "./ArenaKeywordEditor";
 import { ArenaDemoTools } from "./ArenaDemoTools";
@@ -118,6 +119,9 @@ function previewRecipe(recipeId: string) {
 }
 
 export function createArenaDemoState(drawCounts: readonly [number, number] = [0, 0]): GameState {
+  if (new URLSearchParams(window.location.search).get("scenario") === "security") {
+    return createArenaSecurityDemoState(drawCounts);
+  }
   const state = new GameState();
   state.matchId = "arena-demo";
   state.phase = Phase.Main;
@@ -176,6 +180,8 @@ export function createArenaDemoState(drawCounts: readonly [number, number] = [0,
 export function ArenaDemo() {
   const { locale, t } = useTranslation();
   const portuguese = locale === "pt-BR";
+  const securityScenario = new URLSearchParams(window.location.search).get("scenario") === "security";
+  const [securityFaceDownCount, setSecurityFaceDownCount] = useState(0);
   const [phase, setPhase] = useState(Phase.Main);
   const [batches, setBatches] = useState<ServerBatch[]>([]);
   const [keywordGrants, setKeywordGrants] = useState<DemoKeywordGrants>({});
@@ -190,6 +196,18 @@ export function ArenaDemo() {
   const state = useMemo(() => {
     const next = createArenaDemoState(drawCounts);
     next.phase = phase;
+    if (securityScenario) {
+      for (let index = 0; index < securityFaceDownCount; index++) {
+        const card = next.players[0]?.security[index + 2];
+        if (card) {
+          card.faceUp = false;
+          card.cardId = "";
+          card.artId = "";
+        }
+      }
+      const partner = next.players[0]?.battleArea[0];
+      if (partner) partner.currentDP = partner.baseDP + Math.max(0, 2 - securityFaceDownCount) * 1000;
+    }
     applyDemoKeywordGrants(next, keywordGrants);
     prepareDemoCombat(next);
     if (turnStartStep !== null) {
@@ -200,7 +218,7 @@ export function ArenaDemo() {
       }
     }
     return next;
-  }, [phase, keywordGrants, drawCounts, turnStartStep]);
+  }, [phase, keywordGrants, drawCounts, turnStartStep, securityScenario, securityFaceDownCount]);
   const playback = useArenaVisualPlayback(state, keywordLabels, portuguese);
   function drawCard(seat: Seat) {
     if (!state.players.find((player) => player.seat === seat)?.deckCount) return;
@@ -309,6 +327,10 @@ export function ArenaDemo() {
           portuguese={portuguese}
           deckCounts={[state.players[0]!.deckCount, state.players[1]!.deckCount]}
           onKeywords={() => setKeywordEditorOpen(true)}
+          onSecurityFlip={
+            securityScenario ? () => setSecurityFaceDownCount((count) => (count === 3 ? 0 : count + 1)) : undefined
+          }
+          securityFaceUpCount={3 - securityFaceDownCount}
           onDraw={drawCard}
           onVisualPlayback={playback.controller.controls.start}
           onTurnStart={previewTurnStart}

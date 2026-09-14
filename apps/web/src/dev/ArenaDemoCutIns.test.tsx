@@ -46,6 +46,22 @@ const digivolution: ServerEvent = {
   mechanic: "blast",
 };
 
+it("shows the evolving Digimon in the centered cut-in with the default preference", async () => {
+  expect(areCutInsEnabled()).toBe(true);
+  const ui = () => (
+    <I18nProvider>
+      <ArenaDemo />
+    </I18nProvider>
+  );
+  const { container, rerender } = render(ui());
+  fixture.batches = [singleServerBatch([{ ...digivolution, cardId: "ST1-06", mechanic: "normal" }], 1)];
+  rerender(ui());
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(750);
+  });
+  expect(container.querySelector(".game-cut-in__card img")?.getAttribute("alt")).toContain("Coredramon");
+});
+
 it.each([false, true])("respects saved manual cut-ins=%s before and after forced visual playback", async (enabled) => {
   setCutInsEnabled(enabled);
   const stored = localStorage.getItem("aegis.digivolution-cut-in.enabled");

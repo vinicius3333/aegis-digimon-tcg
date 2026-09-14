@@ -1,15 +1,14 @@
 const STORAGE_KEY = "aegis.digivolution-cut-in.enabled";
 
 /**
- * Whether the full-screen digivolution cut-in plays. Off by default, the way the
- * reference client ships `showCutInAnimation`: it is spectacle, and a player who
- * has seen it a hundred times wants the board back.
+ * Whether the full-screen digivolution cut-in plays. Enabled by default; players
+ * can explicitly disable it in settings.
  */
 function readCutInsEnabled(): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) === "true";
+    return localStorage.getItem(STORAGE_KEY) !== "false";
   } catch {
-    return false;
+    return true;
   }
 }
 

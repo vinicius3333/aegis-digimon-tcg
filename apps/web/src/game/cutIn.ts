@@ -41,8 +41,8 @@ export interface DigivolutionCutIn {
 }
 
 /**
- * The level from which a digivolution is grand enough to be announced. The
- * reference client cuts in from Mega upward, which is level 6.
+ * The minimum level for announcing a played card. Digivolutions are announced
+ * at every level.
  */
 export const CUT_IN_MIN_LEVEL = 6;
 
@@ -82,7 +82,7 @@ function labelFor(mechanic: DigivolveMechanic): TranslationKey {
 /**
  * The cut-in an event earns, or null when it earns none.
  *
- * A digivolution to level 6 or higher always earns one. A *play* of such a card
+ * Every digivolution earns one. A *play* of a level 6 or higher card
  * earns one only when the card prints an [On Play] clause, or when the play was
  * itself a digivolution mechanic (DNA / DigiXros): an ordinary hard-played Mega is
  * a card landing on the board, while one that fires on arrival — or one that
@@ -93,9 +93,10 @@ export function cutInFromEvent(event: ServerEvent, key: number, enabled: boolean
   if (!enabled) return null;
   if (event.kind !== "digivolved" && event.kind !== "cardPlayed") return null;
   const definition = getCardDefinition(event.cardId);
-  if (!definition || (definition.level ?? 0) < CUT_IN_MIN_LEVEL) return null;
+  if (!definition) return null;
   const mechanic: DigivolveMechanic = event.mechanic ?? "normal";
   if (event.kind === "cardPlayed") {
+    if ((definition.level ?? 0) < CUT_IN_MIN_LEVEL) return null;
     if (!event.permanentId) return null;
     if (event.mechanic === undefined && !ON_PLAY_CLAUSE.test(definition.effectText ?? "")) return null;
   }

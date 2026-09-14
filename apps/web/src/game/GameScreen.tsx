@@ -2769,8 +2769,15 @@ export function GameScreen({
             return (
               <TrashViewerOverlay
                 title={ownerLabel}
-                cardIds={faceUpCardIds}
-                artIds={faceUpCards.map((card) => card.artId)}
+                cardIds={Array.from({ length: owner.securityCount }, (_, index) => {
+                  const card = owner.security?.[index];
+                  return card?.faceUp ? card.cardId : "";
+                })}
+                artIds={Array.from({ length: owner.securityCount }, (_, index) => {
+                  const card = owner.security?.[index];
+                  return card?.faceUp ? card.artId : "";
+                })}
+                preserveOrder
                 countLabel={t("overlay.securityCount", { faceUp: faceUpCardIds.length, count: owner.securityCount })}
                 emptyLabel={t("overlay.securityNoFaceUp")}
                 sheet={narrowGameLayout}
@@ -3125,6 +3132,7 @@ export function GameScreen({
                 shardSeed={securityBreak?.key}
                 securityDpDelta={shownYou.securityDpDelta}
                 faceUp={hasFaceUpSecurity(shownYou.security)}
+                securityCards={shownYou.security}
                 landing={securityFlights.has(viewerSeat)}
                 label={t("game.yourSecurityPile")}
                 refEl={(el) => {
@@ -3354,6 +3362,7 @@ export function GameScreen({
                   shardSeed={securityBreak?.key}
                   securityDpDelta={shownOpp.securityDpDelta}
                   faceUp={hasFaceUpSecurity(shownOpp.security)}
+                  securityCards={shownOpp.security}
                   landing={securityFlights.has(otherSeat(viewerSeat))}
                   attackLabel={
                     canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)

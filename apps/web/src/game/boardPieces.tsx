@@ -4,7 +4,7 @@
 
 import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
-import { getCardDefinition, type Permanent } from "@aegis/shared";
+import { getCardDefinition, type CardInstance, type Permanent } from "@aegis/shared";
 import { COLORS, colorKey } from "../design/theme";
 import { CardBack, CardFull, CardMini } from "../design/cards";
 import { useEnterAnimation } from "./animations";
@@ -22,6 +22,7 @@ import { pressGesture } from "./pressGesture";
 import { turnControlLabelKey, type TurnControlState } from "./turnControl";
 import { formatKeyword } from "./keywordDisplay";
 import { hasBlocker, restrictionBadges, sourceCountBadge } from "./fieldBadges";
+import { SecurityCardSlot } from "./SecurityCardSlot";
 import { deckLayerCount } from "./deckChrome";
 import type { PendingFateBadge } from "./pendingFate";
 import type { DpPulse } from "./dpPulse";
@@ -103,6 +104,7 @@ export function Pile({
   shardSeed,
   securityDpDelta = 0,
   faceUp,
+  securityCards,
   attackLabel,
   riffling,
   landing,
@@ -132,6 +134,7 @@ export function Pile({
   /** The stack holds a card the opponent has already seen. */
   securityDpDelta?: number;
   faceUp?: boolean;
+  securityCards?: readonly CardInstance[];
   /** What attacking this stack would be, while it is a legal target being aimed at. */
   attackLabel?: string;
   /** The pile is being shuffled: it riffles once. */
@@ -208,9 +211,14 @@ export function Pile({
         <span key={count} className="game-security-shield__count" aria-hidden>
           {count}
         </span>
-        <span className="game-security-cards" aria-hidden="true">
+        <span className="game-security-cards">
           {Array.from({ length: Math.min(count, 10) }, (_, index) => (
-            <i key={index} />
+            <SecurityCardSlot
+              key={securityCards?.[index]?.instanceId || `security-${index}`}
+              cardId={securityCards?.[index]?.faceUp ? securityCards[index].cardId : ""}
+              artId={securityCards?.[index]?.faceUp ? securityCards[index].artId : undefined}
+              faceUp={securityCards?.[index]?.faceUp === true}
+            />
           ))}
         </span>
         <span className="game-security-shield__label" aria-hidden>
@@ -1458,7 +1466,13 @@ export function Hand({
                   : style
               }
             >
-              <CardFull cardId={entry.cardId} artId={entry.artId} width={cardWidth} selected={sel} zoomOnHover={false} />
+              <CardFull
+                cardId={entry.cardId}
+                artId={entry.artId}
+                width={cardWidth}
+                selected={sel}
+                zoomOnHover={false}
+              />
               {picked ? (
                 <span
                   className="game-hand-card__pick-badge"

@@ -6,6 +6,7 @@
    marble arena and on a near-black sanctum floor. */
 
 import { useSyncExternalStore, type CSSProperties } from "react";
+import { useMediaQuery } from "./useMediaQuery";
 
 const STORAGE_KEY = "aegis.battlefield";
 const CUSTOM_IMAGE_KEY = "aegis.battlefield.custom";
@@ -18,6 +19,8 @@ export interface Battlefield {
   label: string;
   /** Undefined for the plain-gradient option, which paints no art. */
   src?: string;
+  /** Recomposition of the desktop art for the portrait arena layout. */
+  portraitSrc?: string;
   /** CSS gradient layered over `src` to hold the board's contrast budget. */
   scrim?: string;
 }
@@ -33,6 +36,7 @@ export const DEFAULT_BATTLEFIELD: Battlefield = {
   id: "tropical",
   label: "Tropical Arena",
   src: "/battlefield/aegis-arena-tropical.webp",
+  portraitSrc: "/battlefield/aegis-arena-tropical-portrait.webp",
   scrim: "linear-gradient(rgba(32,24,18,0.06), rgba(32,24,18,0.06))",
 };
 
@@ -43,36 +47,42 @@ export const BATTLEFIELDS: readonly Battlefield[] = [
     id: "sanctum",
     label: "Sanctum",
     src: "/battlefield/aegis-arena-sanctum.webp",
+    portraitSrc: "/battlefield/aegis-arena-sanctum-portrait.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(12,14,24,0.30), rgba(12,14,24,0.68))",
   },
   {
     id: "skyfall",
     label: "Skyfall",
     src: "/battlefield/aegis-arena-skyfall.webp",
+    portraitSrc: "/battlefield/aegis-arena-skyfall-portrait.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(248,246,242,0.62), rgba(248,246,242,0.40))",
   },
   {
     id: "nexus",
     label: "Nexus",
     src: "/battlefield/aegis-arena-nexus.webp",
+    portraitSrc: "/battlefield/aegis-arena-nexus-portrait.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.42), rgba(8,16,26,0.72))",
   },
   {
     id: "stone",
     label: "Stone",
     src: "/battlefield/aegis-arena-stone.webp",
+    portraitSrc: "/battlefield/aegis-arena-stone-portrait.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(250,249,247,0.55), rgba(250,249,247,0.30))",
   },
   {
     id: "void",
     label: "Void",
     src: "/battlefield/aegis-arena-void.webp",
+    portraitSrc: "/battlefield/aegis-arena-void-portrait.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(10,12,20,0.30), rgba(10,12,20,0.60))",
   },
   {
     id: "cloth",
     label: "Playmat",
     src: "/battlefield/aegis-arena-cloth.webp",
+    portraitSrc: "/battlefield/aegis-arena-cloth-portrait.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(250,249,247,0.52), rgba(250,249,247,0.28))",
   },
 ];
@@ -168,10 +178,11 @@ export function battlefieldById(id: string): Battlefield {
 }
 
 /** Board-surface style for a battlefield: scrim over art, or the plain gradient. */
-export function battlefieldStyle(id: string): CSSProperties {
+export function battlefieldStyle(id: string, portrait = false): CSSProperties {
   const field = battlefieldById(id);
+  const src = portrait ? (field.portraitSrc ?? field.src) : field.src;
   return {
-    backgroundImage: field.src ? `${field.scrim}, url("${field.src}")` : CLASSIC_SURFACE,
+    backgroundImage: src ? `${field.scrim}, url("${src}")` : CLASSIC_SURFACE,
     backgroundSize: "cover",
     backgroundPosition: "center",
   };
@@ -180,5 +191,6 @@ export function battlefieldStyle(id: string): CSSProperties {
 /** The selected battlefield's board style, re-rendering when the choice changes. */
 export function useBattlefieldStyle(): CSSProperties {
   const id = useSyncExternalStore(subscribeBattlefield, getBattlefieldId, () => DEFAULT_ID);
-  return battlefieldStyle(id);
+  const portrait = useMediaQuery("(max-width: 1023px) and (orientation: portrait)");
+  return battlefieldStyle(id, portrait);
 }

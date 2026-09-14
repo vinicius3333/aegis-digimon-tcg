@@ -7459,3 +7459,42 @@ button.side-panel__name:focus-visible {
   font-weight: 700;
   white-space: nowrap;
 }
+
+.security-viewer__name {
+  display: block;
+  max-width: 96px;
+  margin-top: 4px;
+  color: var(--ds-fg);
+  font-size: 11px;
+}
+.security-viewer__badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: var(--ds-accent-surface);
+  color: var(--ds-fg);
+  font: 700 11px var(--ds-font-mono);
+}
+.security-viewer__effect {
+  display: block;
+  max-width: 260px;
+  margin: 0;
+  color: var(--ds-fg);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+.trash-sheet__row .security-viewer__effect {
+  max-width: 160px;
+  white-space: normal;
+}
+
+@keyframes game-modal-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

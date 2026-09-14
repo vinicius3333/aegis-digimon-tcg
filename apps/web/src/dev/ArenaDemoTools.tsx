@@ -9,6 +9,8 @@ export function ArenaDemoTools({
   onDraw,
   onVisualPlayback,
   onTurnStart,
+  onSecurityFlip,
+  securityFaceUpCount,
   disabled = false,
 }: {
   portuguese: boolean;
@@ -17,6 +19,8 @@ export function ArenaDemoTools({
   onDraw: (seat: Seat) => void;
   onVisualPlayback: () => void;
   onTurnStart: () => void;
+  onSecurityFlip?: () => void;
+  securityFaceUpCount?: number;
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -118,6 +122,24 @@ export function ArenaDemoTools({
           >
             {portuguese ? "Editar keywords da demo" : "Edit demo keywords"}
           </button>
+          {onSecurityFlip ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onSecurityFlip();
+              }}
+            >
+              {securityFaceUpCount === 0
+                ? portuguese
+                  ? "Restaurar segurança revelada"
+                  : "Restore face-up security"
+                : portuguese
+                  ? "Virar carta da segurança para baixo"
+                  : "Turn a security card face-down"}
+            </button>
+          ) : null}
           {([0, 1] as const).map((seat) => {
             const action = portuguese
               ? seat === 0

@@ -916,3 +916,100 @@
     padding-top: 30px;
   }
 }
+
+/* Public security identities occupy the same slots as the hidden shields. */
+.game-security-cards i.game-security-card--revealed {
+  height: auto;
+  aspect-ratio: 5 / 7;
+  overflow: visible;
+  align-self: center;
+  background: var(--ds-surface);
+}
+.game-security-cards i.game-security-card--revealed::before,
+.game-security-cards i.game-security-card--revealed::after {
+  content: none;
+}
+.game-security-card--revealed img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.game-security-card--revealed img {
+  border-radius: inherit;
+}
+.game-security-cards {
+  align-items: center;
+}
+.game-security-card__buff {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  z-index: 1;
+  padding: 2px 4px;
+  border: 1px solid var(--ds-border);
+  border-radius: 4px;
+  background: var(--ds-surface);
+  color: var(--ds-fg);
+  font: 700 11px var(--ds-font-mono);
+  font-style: normal;
+  white-space: nowrap;
+}
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-security-cards {
+    height: 100%;
+  }
+}
+@media (max-width: 1023px) {
+  .game-security-card__buff {
+    padding: 1px 2px;
+    font-size: 8px;
+  }
+}
+
+.game-security-shield:has(.game-security-card--revealed) .game-security-shield__count {
+  top: 50%;
+  left: calc(100% + 12px);
+  transform: translateY(-50%);
+}
+
+.game-security-card__faces {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  transform-style: preserve-3d;
+}
+.game-security-card__faces > img {
+  backface-visibility: hidden;
+  border-radius: inherit;
+}
+.game-security-card__back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+}
+.game-security-card__back > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+.game-security-card--turning-down .game-security-card__faces {
+  animation: security-card-turn-down var(--security-flip-duration, 420ms) ease-in-out both;
+}
+@keyframes security-card-turn-down {
+  from {
+    transform: rotateY(0);
+  }
+  to {
+    transform: rotateY(180deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-security-card--turning-down .game-security-card__faces {
+    animation: none;
+  }
+}

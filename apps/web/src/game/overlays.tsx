@@ -3,6 +3,7 @@
    choices to the typed intent callbacks GameScreen passes. The security check has
    its own centre-stage scene in ./SecurityClashView. */
 
+import { securityCardEffects } from "./securityCardEffects";
 import { decisionSelectionMin } from "./decisionPresentation";
 import { useState, useEffect, useId, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -57,7 +58,7 @@ function Scrim({
         display: "flex",
         alignItems: align,
         justifyContent: "center",
-        animation: "aegis-rise 180ms ease-out",
+        animation: className === "game-modal" ? "game-modal-scrim-in 180ms ease-out" : "aegis-rise 180ms ease-out",
       }}
     >
       {children}
@@ -3046,10 +3047,12 @@ export function TrashViewerOverlay({
   sheet,
   countLabel,
   emptyLabel,
+  preserveOrder = false,
   onClose,
 }: {
   cardIds: string[];
   artIds?: string[];
+  preserveOrder?: boolean;
   title: string;
   /** Render as a bottom sheet with one scrollable row (touch layouts). */
   sheet?: boolean;
@@ -3062,9 +3065,10 @@ export function TrashViewerOverlay({
   const { t } = useTranslation();
   const countText = countLabel ?? t("overlay.trashCount", { count: cardIds.length });
   const emptyText = emptyLabel ?? t("overlay.trashEmpty");
-  const ordered = [...cardIds].reverse();
-  const orderedArts = cardIds.map((_, index) => artIds?.[index]).reverse();
-  const [activeIndex, setActiveIndex] = useState(0);
+  const ordered = preserveOrder ? [...cardIds] : [...cardIds].reverse();
+  const arts = cardIds.map((_, index) => artIds?.[index]);
+  const orderedArts = preserveOrder ? arts : arts.reverse();
+  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, ordered.findIndex(Boolean)));
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
   const zoomed = zoomedIndex === null ? undefined : ordered[zoomedIndex];
   const effectiveIndex = activeIndex < ordered.length ? activeIndex : 0;
@@ -3085,8 +3089,21 @@ export function TrashViewerOverlay({
             <div className="trash-sheet__row">
               {ordered.map((cardId, i) => (
                 <button type="button" key={`${cardId}-${i}`} onClick={() => setZoomedIndex(i)}>
-                  <CardArt cardId={cardId} artId={orderedArts[i]} width={96} />
-                  <figcaption>{getCardDefinition(cardId)?.nameEn ?? cardId}</figcaption>
+                  {cardId ? (
+                    <CardArt cardId={cardId} artId={orderedArts[i]} width={96} />
+                  ) : (
+                    <CardBack width={96} useSelectedSleeve={false} />
+                  )}
+                  <figcaption>
+                    {cardId ? (getCardDefinition(cardId)?.nameEn ?? cardId) : t("game.hiddenCard")}
+                  </figcaption>
+                  {preserveOrder && cardId
+                    ? securityCardEffects(cardId).map((effect) => (
+                        <span className="security-viewer__effect" key={effect.text}>
+                          {effect.text}
+                        </span>
+                      ))
+                    : null}
                 </button>
               ))}
             </div>
@@ -3172,7 +3189,9 @@ export function TrashViewerOverlay({
                     key={`${cardId}-${i}`}
                     onMouseEnter={() => setActiveIndex(i)}
                     onClick={() => setActiveIndex(i)}
-                    title={def?.nameEn ?? cardId}
+                    title={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
+                    aria-label={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
+                    onFocus={() => setActiveIndex(i)}
                     style={{
                       padding: 3,
                       borderRadius: 9,
@@ -3182,7 +3201,21 @@ export function TrashViewerOverlay({
                       transition: "background 120ms, border-color 120ms",
                     }}
                   >
-                    <CardArt cardId={cardId} artId={orderedArts[i]} width={64} />
+                    {cardId ? (
+                      <CardArt cardId={cardId} artId={orderedArts[i]} width={preserveOrder ? 96 : 64} />
+                    ) : (
+                      <CardBack width={96} useSelectedSleeve={false} />
+                    )}
+                    {preserveOrder ? (
+                      <span className="security-viewer__name">{def?.nameEn ?? t("game.hiddenCard")}</span>
+                    ) : null}
+                    {preserveOrder && cardId
+                      ? securityCardEffects(cardId).map((effect) => (
+                          <span className="security-viewer__badge" title={effect.text} key={effect.text}>
+                            {effect.badge}
+                          </span>
+                        ))
+                      : null}
                   </button>
                 );
               })}
@@ -3201,7 +3234,18 @@ export function TrashViewerOverlay({
             flexShrink: 0,
           }}
         >
-          {preview ? <CardArt cardId={preview} artId={orderedArts[effectiveIndex]} width={260} /> : null}
+          {preview ? (
+            <CardArt cardId={preview} artId={orderedArts[effectiveIndex]} width={260} />
+          ) : ordered.length ? (
+            <CardBack width={260} useSelectedSleeve={false} />
+          ) : null}
+          {preserveOrder && preview
+            ? securityCardEffects(preview).map((effect) => (
+                <p className="security-viewer__effect" key={effect.text}>
+                  {effect.text}
+                </p>
+              ))
+            : null}
           <Button size="md" variant="ghost" full onClick={onClose}>
             {t("common.close")}
           </Button>
