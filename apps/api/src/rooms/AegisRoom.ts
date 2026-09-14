@@ -1,5 +1,6 @@
 import { log, logError, withMatchLog } from "../logger.js";
-import { Room, Client, type Delayed } from "colyseus";
+import { Room, Client, ServerError, type Delayed } from "colyseus";
+import { canCreateRoom } from "../deployment/admission.js";
 import { randomBytes, randomUUID } from "node:crypto";
 import {
   GameState,
@@ -356,6 +357,7 @@ export class AegisRoom extends Room<GameState> {
     devScenario?: unknown;
   }): void {
     this.setState(new GameState());
+    if (!canCreateRoom()) throw new ServerError(503, "This game server is draining; retry on the active slot.");
     this.state.matchLogId = randomUUID();
     const seed = options.seed ?? Date.now() >>> 0;
     this.debug("room.created", {

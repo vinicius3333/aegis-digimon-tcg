@@ -11,6 +11,7 @@ export interface DeploymentRuntimeOptions {
   connectedClients: () => number;
   readiness: () => Promise<boolean>;
   acceptingNewRooms?: boolean;
+  canAcceptNewRooms?: () => boolean;
   /**
    * Propagates drain/activate to the slot's other processes.
    *
@@ -46,11 +47,12 @@ const DRAIN_ALLOWED_METHODS = new Set(["reconnect", "join", "joinbyid"]);
 
 export function createDeploymentRuntime(options: DeploymentRuntimeOptions): DeploymentRuntime {
   let acceptingNewRooms = options.acceptingNewRooms ?? true;
+  const isAccepting = () => acceptingNewRooms && (options.canAcceptNewRooms?.() ?? true);
 
   const status = (): DeploymentStatus => ({
     slot: options.slot,
     revision: options.revision,
-    acceptingNewRooms,
+    acceptingNewRooms: isAccepting(),
     activeRooms: options.activeRooms(),
     connectedClients: options.connectedClients(),
   });
@@ -60,7 +62,7 @@ export function createDeploymentRuntime(options: DeploymentRuntimeOptions): Depl
       status: "ok",
       slot: options.slot,
       revision: options.revision,
-      acceptingNewRooms,
+      acceptingNewRooms: isAccepting(),
     }),
     status,
     isAuthorized: (authorization) => bearerMatches(authorization, options.adminToken),
@@ -78,7 +80,7 @@ export function createDeploymentRuntime(options: DeploymentRuntimeOptions): Depl
       options.broadcastAcceptingNewRooms?.(true);
       return status();
     },
-    allowMatchmaking: (method) => acceptingNewRooms || DRAIN_ALLOWED_METHODS.has(method.toLocaleLowerCase()),
+    allowMatchmaking: (method) => isAccepting() || DRAIN_ALLOWED_METHODS.has(method.toLocaleLowerCase()),
   };
 }
 

@@ -3,4 +3,6 @@ node_modules
 **/node_modules
 **/dist
 tools
+!tools/deploy
+!tools/deploy/*.mjs
 docs

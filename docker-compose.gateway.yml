@@ -1,0 +1,37 @@
+# This stable service is installed once. Routine releases use tools/deploy/deploy.mjs,
+# not compose up --build. Recreating this gateway disconnects live WebSockets.
+services:
+  gateway:
+    image: aegis-gateway:1
+    container_name: aegis-gateway
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 384m
+    environment:
+      PORT: "80"
+      AEGIS_ROLLOUT_STATE: /state
+    volumes:
+      - ${AEGIS_ROLLOUT_STATE:-/opt/aegis-rollout}:/state:ro
+    networks:
+      default:
+        aliases:
+          - aegis-rollout-gateway
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1/deployment/manifest.json').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "3"
+
+networks:
+  default:
+    external: true
+    name: ${AEGIS_EDGE_NETWORK:?AEGIS_EDGE_NETWORK must be set}

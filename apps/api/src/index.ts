@@ -30,6 +30,7 @@ import { drainForShutdown, startDeadlineWorker, type DeadlineWorker } from "./to
 import { accountStore } from "./accounts/runtime.js";
 import { createDeploymentRuntime, installDeploymentRoutes, type DeploymentSlot } from "./deployment/runtime.js";
 import { DeploymentServer } from "./deployment/DeploymentServer.js";
+import { isActiveDeploymentSlot, setRoomCreationAdmission } from "./deployment/admission.js";
 import { corsOriginForRequest } from "./http/cors.js";
 import { createClusterRuntime } from "./cluster/runtime.js";
 import { roomCodeDirectory, setRoomCodeDirectory } from "./rooms/AegisRoom.js";
@@ -85,11 +86,17 @@ const deploymentRuntime = createDeploymentRuntime({
   revision: process.env.AEGIS_REVISION ?? "development",
   adminToken: process.env.AEGIS_DEPLOYMENT_ADMIN_TOKEN ?? "",
   acceptingNewRooms: process.env.AEGIS_DEPLOYMENT_START_DRAINING !== "true",
+  ...(process.env.AEGIS_DEPLOYMENT_MANIFEST
+    ? {
+        canAcceptNewRooms: () => isActiveDeploymentSlot(process.env.AEGIS_DEPLOYMENT_MANIFEST!, configuredSlot),
+      }
+    : {}),
   activeRooms: () => roomRegistry.size,
   connectedClients: () => [...roomRegistry.values()].reduce((total, room) => total + room.clients.length, 0),
   readiness: () => accountStore.healthCheck(),
   broadcastAcceptingNewRooms: cluster.broadcastAcceptingNewRooms,
 });
+setRoomCreationAdmission(() => deploymentRuntime.allowMatchmaking("create"));
 cluster.onAcceptingNewRoomsChanged((accepting) => deploymentRuntime.applyAcceptingNewRooms(accepting));
 installDeploymentRoutes({ app, runtime: deploymentRuntime });
 

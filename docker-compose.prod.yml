@@ -1,3 +1,8 @@
+# Legacy/bootstrap stack and source of the application's production environment.
+# After gateway migration, NEVER deploy this file with `up --build`: it would
+# introduce competing proxies and APIs. Use tools/deploy/deploy.mjs instead;
+# see docs/deployment-room-continuity.md for the installed Dokploy command.
+#
 # Production stack for a self-hosted deployment that sits behind an external
 # reverse proxy. The proxy terminates TLS and forwards to the `aegis-web`
 # alias on the shared network named by AEGIS_EDGE_NETWORK, so no host ports
