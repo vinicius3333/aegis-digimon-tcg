@@ -2684,7 +2684,7 @@
   border-bottom: 1px solid rgb(255 255 255 / 30%);
   /* The reference client's banner is ~620ms end to end (ShowTurnPlayerObject.cs: 300ms hold plus
      the in/out clips). 1s keeps it readable in a browser without stalling. */
-  animation: battle-banner var(--t-turn-banner, 620ms) ease-in-out both;
+  animation: battle-banner var(--t-turn-banner, 1000ms) ease-in-out both;
 }
 
 .game-turn-banner span {
@@ -2695,7 +2695,7 @@
   text-shadow:
     0 2px 0 rgb(11 13 16 / 55%),
     0 0 18px rgb(11 13 16 / 45%);
-  animation: battle-banner-text var(--t-turn-banner, 620ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: battle-banner-text var(--t-turn-banner, 1000ms) cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* The reference client's two exact band colours (ShowTurnPlayerObject.cs:24, :31),
@@ -6340,7 +6340,7 @@ button.side-panel__name:focus-visible {
   color: #fff;
   background: rgb(0 0 0 / 92%);
   border-radius: 0.2rem;
-  animation: battle-phase-banner var(--t-phase-banner, 800ms) ease-in-out both;
+  animation: battle-phase-banner var(--t-phase-banner, 1100ms) ease-in-out both;
 }
 
 @keyframes battle-phase-banner {

@@ -123,8 +123,8 @@ export const TIMINGS = {
   cardBurst: 800,
   /** The starburst at the hand slot where a turn-start draw lands. */
   drawBurst: 600,
-  /** The full-width turn banner: the reference client's 160ms in, 300ms hold and 160ms out. */
-  turnBanner: 620,
+  /** Full-width turn announcement, including its entrance and exit. */
+  turnBanner: 1000,
   /** How long a framed notice stays readable on its own. */
   noticeLifetime: 4200,
   /** A notice sliding in from its anchor. */
@@ -169,8 +169,10 @@ export const TIMINGS = {
   dpPulseFatalHold: 400,
   /** Phase banner opening: 200 ms, followed by 400 ms readable and 200 ms closing. */
   phaseBannerIn: 200,
-  /** Shorter phase announcements keep a batched turn start from trailing live play. */
-  phaseBanner: 800,
+  /** Readable phase announcement, including its entrance and exit. */
+  phaseBanner: 1100,
+  /** Clear-board pause between consecutive turn and phase announcements. */
+  phaseBannerGap: 250,
   /** One lap of the ring turning around the turn control while it is actionable. */
   turnControlPulse: 3200,
   /** How long the turn control refuses a second click after the first (a UI guard, not a rule). */

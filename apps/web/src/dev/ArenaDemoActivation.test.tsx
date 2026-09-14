@@ -50,7 +50,9 @@ it("previews five trigger timings and can repeat a deletion without losing its a
     expect(screen.queryByText("Visual preview: the card glows before this notice.")).toBeNull();
     expect(container.querySelector(".game-delete-burst") !== null).toBe(timing === "On Deletion");
     if (timing !== "When Attacking")
-      await advance(timing === "Start of Main Phase" ? TIMINGS.phaseBanner : TIMINGS.cardBurst);
+      await advance(
+        timing === "Start of Main Phase" ? TIMINGS.phaseBanner + TIMINGS.phaseBannerGap : TIMINGS.cardBurst,
+      );
     expect(container.querySelector(".game-permanent--effect-source,.game-pile--effect-source")).not.toBeNull();
     expect(screen.queryByText("Visual preview: the card glows before this notice.")).toBeNull();
     await advance(TIMINGS.effectSourceHold);

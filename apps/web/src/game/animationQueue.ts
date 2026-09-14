@@ -25,6 +25,8 @@ export interface AnimationStepContext {
   /** True once the step's track was replaced or the queue cleared: stop and leave the state alone. */
   readonly cancelled: boolean;
   readonly mode: AnimationQueueMode;
+  /** True while the user is fast-forwarding the current cues. */
+  readonly skipping: boolean;
 }
 
 export interface AnimationStep {
@@ -121,6 +123,9 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
 
   function contextFor(step: AnimationStep, run: StepRun): AnimationStepContext {
     return {
+      get skipping() {
+        return fastForward;
+      },
       get cancelled() {
         return run.cancelled;
       },

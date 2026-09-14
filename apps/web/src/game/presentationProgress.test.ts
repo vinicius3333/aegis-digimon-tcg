@@ -11,7 +11,7 @@ function runTracked(tracked: AnimationStep): () => void {
   const done = new Promise<void>((resolve) => {
     finish = resolve;
   });
-  void tracked.run({ wait: () => done, cancelled: false, mode: "live" });
+  void tracked.run({ wait: () => done, cancelled: false, mode: "live", skipping: false });
   return finish;
 }
 

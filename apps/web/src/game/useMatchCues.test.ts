@@ -396,6 +396,101 @@ describe("match cues", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it("waits for the opponent's card arrival and field burst before ending the turn", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([OPP_PLAY, { ...UNSUSPEND_PHASE, phase: "End", turnSeat: 1 }, TURN_END]);
+    await advance(0);
+    expect(result.current.zoneShowcase).not.toBeNull();
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.turnTransition).toBeNull();
+    await advance(SHOWCASE_TOTAL_MS);
+    expect(result.current.permanentBursts.size).toBe(1);
+    expect(result.current.phaseBanner).toBeNull();
+    await advance(TIMINGS.cardBurst + 16);
+    expect(result.current.phaseBanner?.phase).toBe("End");
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.turnTransition).toBeNull();
+    await advance(TIMINGS.phaseBannerGap);
+    expect(result.current.turnTransition).not.toBeNull();
+  });
+
+  it("waits for a raw play event's batch before showing the end banner", async () => {
+    const raw: ServerEvent[] = [OPP_PLAY, TURN_END];
+    const { result, rerender } = renderHook(
+      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          phaseEvents,
+          batches,
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+    );
+    rerender({ phaseEvents: raw, batches: [] });
+    await advance(100);
+    expect(result.current.turnTransition).toBeNull();
+    rerender({ phaseEvents: raw, batches: [singleServerBatch(raw)] });
+    await advance(0);
+    expect(result.current.zoneShowcase).not.toBeNull();
+    expect(result.current.turnTransition).toBeNull();
+    await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + 16);
+    expect(result.current.turnTransition).not.toBeNull();
+  });
+
+  it("can skip an end banner while the play batch is still open", async () => {
+    const raw: ServerEvent[] = [OPP_PLAY, TURN_END];
+    const { result, rerender } = renderHook(
+      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          phaseEvents,
+          batches,
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+    );
+    rerender({ phaseEvents: raw, batches: [] });
+    await advance(100);
+    expect(result.current.turnTransition).toBeNull();
+    act(() => result.current.skipAnimations());
+    await advance(0);
+    expect(result.current.phaseTransitionPending).toBe(false);
+    expect(result.current.turnTransition).toBeNull();
+  });
+
+  it("releases the end banner when a play batch close is lost", async () => {
+    const raw: ServerEvent[] = [OPP_PLAY, TURN_END];
+    const { result, rerender } = renderHook(
+      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          phaseEvents,
+          batches,
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+    );
+    rerender({ phaseEvents: raw, batches: [] });
+    await advance(100);
+    expect(result.current.turnTransition).toBeNull();
+    await advance(PRESENTED_BOARD_BUDGET_MS + 16);
+    expect(result.current.turnTransition).not.toBeNull();
+  });
+
   it("announces all phases in order when they arrive in one batch", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
@@ -404,7 +499,7 @@ describe("match cues", () => {
     await advance(0);
     for (const phase of phases) {
       expect(result.current.phaseBanner?.phase).toBe(phase);
-      await advance(TIMINGS.phaseBanner);
+      await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     }
     expect(result.current.phaseBanner).toBeNull();
   });
@@ -449,15 +544,15 @@ describe("match cues", () => {
     expect(result.current.phaseTransitionPending).toBe(true);
     expect(result.current.heldDrawState?.players[0]?.handCount).toBe(5);
     expect(result.current.drawFlights).toHaveLength(0);
-    await advance(TIMINGS.phaseBanner);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     expect(result.current.phaseBanner?.phase).toBe("Draw");
     expect(result.current.heldDrawState).toBeUndefined();
     expect(result.current.drawFlights).toHaveLength(1);
     expect(result.current.phaseTransitionPending).toBe(true);
-    await advance(TIMINGS.phaseBanner);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     expect(result.current.phaseBanner?.phase).toBe("Breeding");
     expect(result.current.phaseTransitionPending).toBe(true);
-    await advance(TIMINGS.phaseBanner);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     expect(result.current.phaseTransitionPending).toBe(false);
   });
 
@@ -467,7 +562,7 @@ describe("match cues", () => {
     rerender([UNSUSPEND_PHASE, { ...UNSUSPEND_PHASE, phase: "Breeding" }]);
     await advance(0);
     expect(result.current.phaseTransitionPending).toBe(true);
-    await advance(TIMINGS.phaseBanner * 2);
+    await advance((TIMINGS.phaseBanner + TIMINGS.phaseBannerGap) * 2);
     expect(result.current.phaseTransitionPending).toBe(false);
     expect(result.current.heldDrawState).toBeUndefined();
     expect(result.current.drawFlights).toHaveLength(0);
@@ -509,10 +604,10 @@ describe("match cues", () => {
     expect(result.current.heldDrawState?.players[0]?.deckCount).toBe(40);
     expect(result.current.phaseTransitionPending).toBe(true);
     rerender({ phaseEvents: phases, batches: [singleServerBatch(phases)] });
-    await advance(TIMINGS.phaseBanner);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     expect(result.current.phaseBanner?.phase).toBe("Draw");
     expect(result.current.heldDrawState).toBeUndefined();
-    await advance(TIMINGS.phaseBanner * 2);
+    await advance((TIMINGS.phaseBanner + TIMINGS.phaseBannerGap) * 2);
     expect(result.current.phaseBanner).toBeNull();
     expect(result.current.phaseTransitionPending).toBe(false);
   });
@@ -543,16 +638,16 @@ describe("match cues", () => {
     expect(result.current.phaseBanner).toBeNull();
     expect(result.current.unsuspendSweep).toBeNull();
     expect(result.current.presenting).toBe(true);
-    await advance(TIMINGS.turnBanner);
+    await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
     expect(result.current.turnTransition).toBeNull();
     expect(result.current.phaseBanner?.phase).toBe("Active");
     expect(result.current.unsuspendSweep?.seat).toBe(0);
-    await advance(TIMINGS.phaseBanner);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     expect(result.current.phaseBanner?.phase).toBe("Draw");
     expect(result.current.unsuspendSweep).toBeNull();
-    await advance(TIMINGS.phaseBanner);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     expect(result.current.phaseBanner?.phase).toBe("Breeding");
-    await advance(TIMINGS.phaseBanner);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     expect(result.current.phaseBanner).toBeNull();
     expect(result.current.presenting).toBe(false);
   });
@@ -2608,7 +2703,7 @@ describe("triggered effect source prelude", () => {
     expect(result.current.phaseBanner).not.toBeNull();
     expect(result.current.effectSources).toHaveLength(0);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
-    await advance(TIMINGS.phaseBanner);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     expect(result.current.effectSources).toHaveLength(1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
     await advance(TIMINGS.effectSourceHold);

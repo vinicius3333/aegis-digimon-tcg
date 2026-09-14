@@ -76,7 +76,12 @@ import {
   type PermanentBurst,
   type ZoneShowcase,
 } from "./showcases";
-import { createAnimationQueue, type AnimationQueueMode, type AnimationStep } from "./animationQueue";
+import {
+  createAnimationQueue,
+  type AnimationQueueMode,
+  type AnimationStep,
+  type AnimationStepContext,
+} from "./animationQueue";
 import { createPresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 import { presentationTelemetry } from "./presentationTelemetry";
 import { cutInFromEvent, type DigivolutionCutIn } from "./cutIn";
@@ -1913,6 +1918,41 @@ export function useMatchCues({
     }
   }
 
+  const phaseBatchesRef = useRef(batches);
+  phaseBatchesRef.current = batches;
+
+  async function waitForPhasePrerequisites(context: AnimationStepContext, arrivals: readonly ServerEvent[]) {
+    // Batch presentation registers its cues in the following layout effect.
+    await Promise.resolve();
+    const batchDeadline = Date.now() + PRESENTED_BOARD_BUDGET_MS;
+    while (!context.cancelled && !context.skipping && context.mode === "live") {
+      const awaitingBatch =
+        Date.now() < batchDeadline &&
+        arrivals.some(
+          (event) =>
+            !phaseBatchesRef.current.some((batch) =>
+              batch.events.some(
+                (candidate) =>
+                  candidate === event ||
+                  ("seq" in event &&
+                    "batch" in event &&
+                    candidate.seq === event.seq &&
+                    candidate.batch === event.batch) ||
+                  (!("seq" in event) &&
+                    (event.kind === "cardPlayed" || event.kind === "digivolved") &&
+                    candidate.kind === event.kind &&
+                    candidate.permanentId === event.permanentId),
+              ),
+            ),
+        );
+      const awaitingCue = queue.hasPendingStep(
+        (step) => step.track !== "phaseBanner" && step.track !== SECURITY_DOCK_TRACK,
+      );
+      if (!awaitingBatch && !awaitingCue) return;
+      await context.wait(16);
+    }
+  }
+
   const phaseHistory = useMemo(
     () =>
       (phaseEvents ?? batches.flatMap((batch) => batch.events)).filter(
@@ -1930,6 +1970,9 @@ export function useMatchCues({
     }
     const fresh = phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0);
     for (const openedPhase of fresh) {
+      const arrivals = (phaseEvents ?? [])
+        .slice(last ? phaseEvents!.lastIndexOf(last) + 1 : 0, phaseEvents?.indexOf(openedPhase))
+        .filter((event) => event.kind === "cardPlayed" || event.kind === "digivolved");
       if (openedPhase.kind === "turnEnded") {
         const transition: TurnTransitionCue = {
           endingSeat: openedPhase.endingSeat,
@@ -1942,9 +1985,12 @@ export function useMatchCues({
           track: "phaseBanner",
           async run(context) {
             try {
-              if (context.mode !== "live") return;
+              await waitForPhasePrerequisites(context, arrivals);
+              if (context.cancelled || context.mode !== "live") return;
               setTurnTransition(transition);
               await context.wait(TIMINGS.turnBanner);
+              setTurnTransition((current) => (current === transition ? null : current));
+              await context.wait(TIMINGS.phaseBannerGap);
             } finally {
               setTurnTransition((current) => (current === transition ? null : current));
               setPendingPhaseBanners((count) => count - 1);
@@ -1985,6 +2031,8 @@ export function useMatchCues({
                 setHeldDrawState(undefined);
                 return;
               }
+              await waitForPhasePrerequisites(context, arrivals);
+              if (context.cancelled || context.mode !== "live") return;
               setPhaseBanner(banner);
               if (banner.phase === UNSUSPEND_PHASE) {
                 setHeldSuspendedIds(new Set());
@@ -2010,6 +2058,8 @@ export function useMatchCues({
                 setHeldDrawState(undefined);
               }
               await context.wait(TIMINGS.phaseBanner);
+              setPhaseBanner((current) => (current?.key === banner.key ? null : current));
+              await context.wait(TIMINGS.phaseBannerGap);
             } finally {
               setPhaseBanner((current) => (current?.key === banner.key ? null : current));
               setPendingPhaseBanners((count) => count - 1);
