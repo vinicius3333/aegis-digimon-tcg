@@ -2110,18 +2110,10 @@ export function GameScreen({
                 (eligibleBase(shownYou.breeding) ||
                   (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(shownYou.breeding.permanentId))))
             }
-            focused={breedingWindow}
+            focused={breedingActionsOpen}
             drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
-            // Inside the breeding step the slot is the move-out action itself
-            // rather than the card menu — `onBreeding` still digivolves first
-            // when a hand card is selected.
-            onClick={
-              shownYou.breeding && selCardId && eligibleBase(shownYou.breeding)
-                ? onBreeding
-                : shownYou.breeding && !(breedingActionsOpen && canMoveOutOfBreeding)
-                  ? onYourPerm(shownYou.breeding)
-                  : onBreeding
-            }
+            // The raising slot answers the breeding step only once its actions open.
+            onClick={breedingActionsOpen ? onBreeding : undefined}
           />
         </div>
       </div>
@@ -3034,7 +3026,7 @@ export function GameScreen({
             {/* The breeding step is about one slot: the field dims behind the dock,
                 which keeps the raising area, the hand that digivolves into it and
                 the turn control lit. Notices, panels and dialogs all sit above. */}
-            {breedingWindow ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
+            {breedingActionsOpen ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
             {/* Outlines mark the cards the server offered without dimming the field.
                 The cards underneath keep every pointer event. */}
             {spotlightOpen ? (

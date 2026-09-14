@@ -116,3 +116,45 @@ it("shows the exact inherited clause instead of SaviorHuckmon's main effect", as
   expect(within(notice).getByText(inherited)).toBeDefined();
   expect(within(notice).queryByText(/\[When Digivolving\].*unsuspended Digimon/)).toBeNull();
 });
+
+it("dims breeding only once the viewer can act, never during setup or the opponent's turn", async () => {
+  const s = setupEngine({ 0: { security: 5 }, 1: { security: 5 } });
+  s.state.players[0]!.sessionId = "viewer-session";
+  s.state.players[1]!.sessionId = "opponent-session";
+  s.state.turnSeat = 0;
+  s.state.phase = "Breeding";
+  const connection = {
+    room: mocked.room,
+    status: "connected",
+    state: s.state,
+    events: [],
+    sessionId: "viewer-session",
+    stateVersion: 1,
+    roomCode: "",
+  };
+  mocked.roomResult.current = { ...connection, decision: { kind: "optional", seat: 1 } };
+  const { GameScreen } = await import("../src/game/GameScreen");
+  const element = () => (
+    <GameScreen
+      joinOptions={{ displayName: "Protagonist", deck: { mainDeck: [], eggDeck: [] } }}
+      identityColor="Red"
+      startMode="casual"
+      onExit={() => {}}
+    />
+  );
+  const { container, rerender } = render(element());
+  expect(container.querySelector(".game-breeding-mode")).toBeNull();
+
+  mocked.roomResult.current = connection;
+  rerender(element());
+  expect(container.querySelector(".game-breeding-mode")).not.toBeNull();
+
+  s.state.turnSeat = 1;
+  rerender(element());
+  expect(container.querySelector(".game-breeding-mode")).toBeNull();
+
+  s.state.turnSeat = 0;
+  s.state.phase = "Main";
+  rerender(element());
+  expect(container.querySelector(".game-breeding-mode")).toBeNull();
+});
