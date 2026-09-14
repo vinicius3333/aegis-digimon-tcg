@@ -151,9 +151,14 @@ describe("BT25-041 Murasamemon", () => {
     }
   });
 
-  it.each(["ST23-09", "BT25-057"])(
-    "uses multicolor DUAL %s through its trait Use Req after digivolving",
-    async (optionCard) => {
+  it.each([
+    ["ST23-09", 6],
+    ["BT25-057", 6],
+    ["ST23-09", 2],
+    ["BT25-057", 2],
+  ] as const)(
+    "uses multicolor DUAL %s through its trait Use Req after digivolving from memory %i",
+    async (optionCard, startingMemory) => {
       const preferInstanceIds: string[] = [];
       const s = setupEngine(
         {
@@ -175,7 +180,7 @@ describe("BT25-041 Murasamemon", () => {
       );
       preferInstanceIds.push(s.inst("option").instanceId);
       await s.ready();
-      s.state.memory = 6;
+      s.state.memory = startingMemory;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -186,9 +191,13 @@ describe("BT25-041 Murasamemon", () => {
         }),
       ).toEqual({ ok: true });
       await settle();
-      await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("option").instanceId));
+      await settle(() =>
+        optionCard === "ST23-09"
+          ? s.perm("base").topCard.cardId === optionCard
+          : s.state.players[0]!.trash.some((c) => c.cardId === optionCard),
+      );
       await settle();
-      expect(s.perm("base").topCard.cardId).toBe("BT25-041");
+      expect(s.perm("base").topCard.cardId).toBe(optionCard === "ST23-09" ? "ST23-09" : "BT25-041");
       expect(s.perm("tamer").stack).toHaveLength(0);
       expect(s.state.players[0]!.trash).toContainEqual(
         expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
@@ -201,11 +210,11 @@ describe("BT25-041 Murasamemon", () => {
           .filter((d) => d.req.kind === "selectCards")
           .flatMap((d) => d.req.options?.candidateInstanceIds ?? []),
       ).not.toContain(s.inst("wrongTrait").instanceId);
-      expect(s.state.memory).toBe(optionCard === "ST23-09" ? 1 : 2);
+      expect(s.state.memory).toBe(startingMemory - (optionCard === "ST23-09" ? 5 : 4));
       expect(s.state.players[1]!.battleArea).toHaveLength(optionCard === "ST23-09" ? 0 : 1);
       expect(s.state.players[1]!.deck.some((c) => c.cardId === "BT1-019")).toBe(optionCard === "ST23-09");
       expect(observe(s.engine).hasKeyword(s.perm("base"), "Rush")).toBe(optionCard === "BT25-057");
-      expect(s.perm("base").currentDP).toBe(optionCard === "BT25-057" ? 12000 : 7000);
+      expect(s.perm("base").currentDP).toBe(12000);
     },
   );
 
@@ -233,7 +242,7 @@ describe("BT25-041 Murasamemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === optionId));
+    await settle(() => s.perm("murasamemon").topCard.instanceId === optionId);
     await settle();
     expect(s.state.memory).toBe(1);
     expect(s.perm("tamer").stack).toHaveLength(0);
@@ -478,4 +487,49 @@ describe("BT25-041 Murasamemon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("ST23-03");
     expect(s.state.memory).toBe(0);
   });
+});
+
+it("keeps a nested e-Pulse play's Tamer decision on its own On Play text", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT25-041", as: "attacker" },
+          {
+            card: "ST23-13",
+            as: "tamer",
+            under: [
+              { card: "BT1-001", faceUp: false },
+              { card: "BT1-002", faceUp: false },
+            ],
+          },
+        ],
+        hand: [
+          { card: "ST23-15", as: "pulse" },
+          { card: "ST23-13", as: "playedTamer" },
+        ],
+        deck: ["BT1-003", "BT1-004"],
+      },
+      1: { security: ["BT1-010"] },
+    },
+    { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() =>
+    s.decisions.some((d) => d.req.sourceInstanceId === s.inst("playedTamer").instanceId && d.req.kind === "optional"),
+  );
+  const prompts = s.decisions.filter(
+    (d) => d.req.sourceInstanceId === s.inst("playedTamer").instanceId && d.req.kind === "optional",
+  );
+  expect(prompts.length).toBeGreaterThan(0);
+  expect(prompts.every((d) => d.req.options?.timing === "OnPlay")).toBe(true);
+  expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("pulse").instanceId)).toBe(true);
 });

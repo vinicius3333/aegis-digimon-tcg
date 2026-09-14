@@ -225,6 +225,8 @@ export type ServerEvent =
       // that lands the cards in their destination, so a client cannot reliably
       // resolve `instanceIds` against its own zone index at delivery time.
       kind: "cardsMoved";
+      /** Identity-free movement of face-down deck cards under a field permanent. */
+      deckToUnder?: { seat: Seat; permanentId: string; count: number };
       /** Actual deleted field cards, captured before removal; excludes their supporting cards. */
       deletedPermanents?: {
         permanentId: string;
@@ -441,6 +443,7 @@ export interface DecisionRequest {
      * to tell them apart without inventing a "copy" that is not on the board.
      */
     triggerTimings?: string[];
+    triggerDescriptions?: string[];
     /** Whether each pending activation belongs to the inherited text box. */
     triggerIsInherited?: boolean[];
     timing?: string; // printed timing label of the resolving effect (e.g. "On Play"), for the overlay to show only that clause

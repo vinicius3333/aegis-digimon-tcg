@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST23-15.js";
@@ -64,5 +65,37 @@ describe("ST23-15 e-Pulse", () => {
       { kind: "GainMemory", amount: 1 },
     ]);
     expect(start?.actions[1]).not.toHaveProperty("optional");
+  });
+});
+
+describe("ST23-15 start of Main", () => {
+  it("pays with the battle-area Option, face down at the bottom of a BEATBREAK Tamer, then draws and gains memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST23-15", as: "option" },
+            { card: "ST23-13", as: "tamer", under: [{ card: "BT1-001", as: "old", faceUp: false }] },
+          ],
+          deck: ["BT1-002", "BT1-003", "BT1-004"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const id = s.inst("option").instanceId;
+    const old = s.inst("old").instanceId;
+    s.state.memory = 3;
+    s.state.isFirstPlayersFirstTurn = false;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("tamer").stack.map((c) => c.instanceId)).toContain(id);
+    expect(s.perm("tamer").stack[0]?.instanceId).toBe(id);
+    expect(s.perm("tamer").stack.find((c) => c.instanceId === id)?.faceUp).toBe(false);
+    expect(s.perm("tamer").stack.some((c) => c.instanceId === old)).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 });

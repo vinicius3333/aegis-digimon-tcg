@@ -19,9 +19,24 @@ function NarrationItemView({ item, nowMs, onAdvance }: { item: NarrationItem; no
   );
 }
 
-function Slot({ slot, count, children }: { slot: NarrationSlot | "rejection"; count: number; children: ReactNode }) {
+function Slot({
+  slot,
+  count,
+  children,
+  securityDockActive,
+}: {
+  slot: NarrationSlot | "rejection";
+  count: number;
+  children: ReactNode;
+  securityDockActive?: boolean;
+}) {
   return (
-    <div className="narration-slot" data-slot={slot} style={{ "--narration-count": count } as CSSProperties}>
+    <div
+      className="narration-slot"
+      data-slot={slot}
+      data-security-dock={securityDockActive || undefined}
+      style={{ "--narration-count": count } as CSSProperties}
+    >
       {children}
     </div>
   );
@@ -37,6 +52,7 @@ export function NarrationStack({
   rejection,
   nowMs,
   compact = false,
+  securityDockActive = false,
   onAdvance,
   onDismissRejection,
 }: {
@@ -48,6 +64,7 @@ export function NarrationStack({
   nowMs?: number;
   /** The portrait phone folds both sides into one centred slot. */
   compact?: boolean;
+  securityDockActive?: boolean;
   /** Dismiss only the named record. */
   onAdvance: (id: string) => void;
   onDismissRejection: () => void;
@@ -66,12 +83,16 @@ export function NarrationStack({
   return (
     <>
       {oppItems.length > 0 ? (
-        <Slot slot="narration-opp" count={oppItems.length}>
+        <Slot slot="narration-opp" count={oppItems.length} securityDockActive={securityDockActive}>
           {oppItems.map(body)}
         </Slot>
       ) : null}
       {viewerItems.length > 0 || rejection ? (
-        <Slot slot={viewerSlot} count={viewerItems.length + (rejection ? 1 : 0)}>
+        <Slot
+          slot={viewerSlot}
+          count={viewerItems.length + (rejection ? 1 : 0)}
+          securityDockActive={securityDockActive}
+        >
           {viewerItems.map(body)}
           {rejection ? (
             <RejectionView key={rejection.id} notice={rejection} nowMs={now} onDismiss={onDismissRejection} />

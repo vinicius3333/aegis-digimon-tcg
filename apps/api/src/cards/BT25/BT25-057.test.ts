@@ -5,10 +5,107 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT25-057.js";
+import "./BT25-041.js";
 
 const CARD_ID = "BT25-057";
 
 describe("BT25-057 Monarchlizamon / Final Judgment", () => {
+  it.each(["hand", "BT25-041"] as const)("offers Arts Digivolve onto a Lv.4 after Option use via %s", async (route) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-049", as: "base" },
+            { card: "BT25-041", as: "murasame" },
+            { card: "ST23-13", as: "tamer", under: [{ card: "BT25-046", faceUp: false }] },
+          ],
+          hand: [{ card: CARD_ID, as: "dual" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1, preferInstanceIds: preferred },
+    );
+    const dualId = s.inst("dual").instanceId;
+    preferred.push(dualId, s.inst("base").instanceId);
+    await s.ready();
+    s.state.memory = 10;
+    const intent =
+      route === "hand"
+        ? { type: "playCard", instanceId: s.inst("dual").instanceId, useAs: "option" }
+        : { type: "attack", attackerPermanentId: s.perm("murasame").permanentId, target: { kind: "player" } };
+    expect(s.engine.applyIntent(0, intent as never)).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === dualId);
+    expect(s.decisions.some(({ req }) => req.promptText?.includes("Arts Digivolve"))).toBe(true);
+    const declaredAttack = s.events.find(
+      (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("base").permanentId,
+    );
+    expect(declaredAttack !== undefined).toBe(route === "hand");
+    const artsMovement = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(dualId) && event.to === "battleArea",
+    );
+    const completedAttack = s.events.findIndex(
+      (event) => event.kind === "securityRevealed" && event.attackerPermanentId === s.perm("base").permanentId,
+    );
+    expect(artsMovement).toBeGreaterThanOrEqual(0);
+    expect(completedAttack === -1 || artsMovement < completedAttack).toBe(true);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === CARD_ID && event.timing === "WhenAttacking",
+      ),
+    ).toBe(false);
+    expect(s.perm("base").stack).toContainEqual(expect.objectContaining({ cardId: "BT25-049" }));
+    expect(s.state.players[0]!.trash).not.toContainEqual(expect.objectContaining({ instanceId: dualId }));
+  });
+
+  it("offers Arts before security and does not ask again when declined during the forced attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-049", as: "base" }], hand: [{ card: CARD_ID, as: "dual" }] },
+        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    const dualId = s.inst("dual").instanceId;
+    await s.ready();
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: dualId, useAs: "option" } as never)).toEqual({
+      ok: true,
+    });
+    let declined = false;
+    let artsBeforeSecurity = false;
+    for (let step = 0; step < 6 && !declined; step += 1) {
+      await settle(
+        () => s.state.pendingDecision?.kind === "selectCards" || s.state.pendingDecision?.kind === "chooseTargets",
+      );
+      const pending = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
+      declined = request.promptText?.includes("Arts Digivolve") === true;
+      if (declined) {
+        artsBeforeSecurity =
+          s.events.some((event) => event.kind === "attackDeclared") &&
+          !s.events.some((event) => event.kind === "securityRevealed");
+      }
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: {
+            kind: request.kind,
+            instanceIds: declined ? [] : request.options!.candidateInstanceIds!.slice(0, 1),
+          },
+        } as never),
+      ).toEqual({ ok: true });
+    }
+    expect(declined).toBe(true);
+    expect(artsBeforeSecurity).toBe(true);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === dualId));
+    expect(s.decisions.filter(({ req }) => req.promptText?.includes("Arts Digivolve"))).toHaveLength(1);
+    expect(s.perm("base").topCard.cardId).toBe("BT25-049");
+  });
+
   it("matches catalog, erratum, alternate evolution, and the shared physical OPT", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
       colors: ["Green", "Black"],
@@ -122,6 +219,11 @@ describe("BT25-057 Monarchlizamon / Final Judgment", () => {
     const orderRequest = s.decisions.find(({ req }) => req.decisionId === orderDecision.decisionId)!.req;
     const keys = orderRequest.options?.triggerKeys ?? [];
     expect(keys).toHaveLength(2);
+    expect(orderRequest.options?.triggerTimings).toEqual(["WhenDigivolving", "WhenDigivolving"]);
+    expect(orderRequest.options?.triggerDescriptions).toEqual([
+      "[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+      "[When Digivolving] This Digimon may battle 1 of your opponent's Digimon.",
+    ]);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

@@ -1028,6 +1028,10 @@ export function useMatchCues({
           ? securityReveal.revealedCardId
           : revealOnStageRef.current?.scene.revealed.cardId;
       for (const [eventIndex, event] of fresh.entries()) {
+        if (event.kind === "cardsMoved" && event.deckToUnder) {
+          const { seat, permanentId, count } = event.deckToUnder;
+          for (let index = 0; index < count; index += 1) launchDeckToUnderFlight(seat, permanentId);
+        }
         sidePanelSequenceRef.current += 1;
         const id = `side-panel-${sidePanelSequenceRef.current}`;
         const announced = sidePanelFromEvent(event, viewerSeat, sidePanelLookupRef.current, id, now, showcasePlays);
@@ -2631,6 +2635,30 @@ export function useMatchCues({
         setDrawBursts((bursts) => [...bursts, { key, x: to.x, y: to.y }]);
         await context.wait(TIMINGS.drawBurst);
         setDrawBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
+      },
+    });
+  }
+
+  function launchDeckToUnderFlight(seat: Seat, permanentId: string) {
+    const board = anchors.board.current;
+    const source = seat === viewerSeat ? anchors.yourDeck.current : anchors.oppDeck.current;
+    const target = anchors.permanentCenter?.(permanentId);
+    if (!board || !source || !target) return;
+    const boardRect = board.getBoundingClientRect();
+    const sourceRect = source.getBoundingClientRect();
+    if (!sourceRect.width) return;
+    const x = sourceRect.left + sourceRect.width / 2 - boardRect.left;
+    const y = sourceRect.top + sourceRect.height / 2 - boardRect.top;
+    const key = ++drawFlightKeyRef.current;
+    const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
+    const flight: DrawFlight = { key, x, y, dx: target.x - x, dy: target.y - y, duration };
+    queue.enqueue({
+      id: `deck-under-flight-${key}`,
+      track: `deckUnder-${permanentId}`,
+      async run(context) {
+        setDrawFlights((flights) => [...flights, flight]);
+        await context.wait(duration);
+        setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
       },
     });
   }

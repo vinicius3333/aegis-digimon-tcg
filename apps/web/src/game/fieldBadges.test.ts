@@ -65,6 +65,36 @@ describe("dpChipColors", () => {
 });
 
 describe("restrictionBadges", () => {
+  it.each([
+    "immuneToOpponentOptionEffects",
+    "immuneToOpponentTamerEffects",
+    "protectedFromDpReduction",
+    "protectedFromDeDigivolve",
+    "protectedFromEffectDeletion",
+    "protectedFromEffectReturn",
+  ] as const)("labels %s as protection", (field) => {
+    const card = permanent({ cardId: "ST1-07" });
+    card[field] = true;
+    expect(restrictionBadges(card)).toEqual([
+      {
+        kind: field,
+        labelKey: `game.restriction.${field}`,
+        shortLabelKey: `game.protectionBadge.${field}`,
+        protection: true,
+      },
+    ]);
+  });
+  it("wears protection only while the server projects opposing Digimon immunity", () => {
+    const card = permanent({ cardId: "ST1-07" });
+    card.immuneToOpponentDigimonEffects = true;
+    expect(restrictionBadges(card)).toContainEqual({
+      kind: "immuneToOpponentDigimonEffects",
+      labelKey: "game.restriction.immuneToOpponentDigimonEffects",
+      protection: true,
+    });
+    card.immuneToOpponentDigimonEffects = false;
+    expect(restrictionBadges(card)).toEqual([]);
+  });
   function restricted(flags: Partial<Record<string, boolean>>): Permanent {
     return Object.assign(permanent({ cardId: "ST1-07" }), flags);
   }

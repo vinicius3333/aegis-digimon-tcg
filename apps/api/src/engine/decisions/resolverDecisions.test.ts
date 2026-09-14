@@ -187,6 +187,10 @@ describe("createResolverDecisions.chooseOrder", () => {
     );
 
     expect(requests[0]?.options?.triggerTimings).toEqual(["OnPlay", "WhenDigivolving"]);
+    expect(requests[0]?.options?.triggerDescriptions).toEqual([
+      "desc:EX1-069/on-play",
+      "desc:EX1-069/when-digivolving",
+    ]);
   });
 
   it("falls back to the decision timing and omits the field when no window is known", async () => {

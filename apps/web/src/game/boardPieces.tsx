@@ -797,9 +797,17 @@ export function PermanentView({
            themselves stay out of the accessibility tree rather than repeating it. */
         <div className="game-restriction-badges" aria-hidden="true">
           {restrictions.map((restriction) => (
-            <span key={restriction.kind} className="game-restriction-badge">
-              <i aria-hidden="true">⊘</i>
-              {t(restriction.labelKey)}
+            <span
+              key={restriction.kind}
+              className="game-restriction-badge"
+              data-protection={restriction.protection || undefined}
+              title={t(restriction.labelKey)}
+            >
+              <i aria-hidden="true">{restriction.protection ? <Icons.ShieldCheck size={12} /> : "⊘"}</i>
+              {t(
+                restriction.shortLabelKey ??
+                  (restriction.protection ? "game.digimonEffectProtectionBadge" : restriction.labelKey),
+              )}
             </span>
           ))}
         </div>

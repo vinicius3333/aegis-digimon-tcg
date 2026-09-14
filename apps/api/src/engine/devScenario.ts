@@ -24,7 +24,7 @@ import {
  * mulligan, security) with a hand-laid board and then hands control to the real turn loop, so
  * a developer lands mid-match instead of playing the opening turns every time.
  */
-export const DEV_SCENARIO_IDS = ["battle", "arena"] as const;
+export const DEV_SCENARIO_IDS = ["battle", "arena", "card-bugs"] as const;
 export type DevScenarioId = (typeof DEV_SCENARIO_IDS)[number];
 
 export function isDevScenarioId(value: unknown): value is DevScenarioId {
@@ -201,9 +201,37 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
   state.memory = 0;
 }
 
+/** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
+function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layBattleScenario(state, decks);
+  const human = state.players[0]!;
+  const tamer = establishedDigimon(0, ["ST23-13"], "-beatbreak");
+  pushOnStack(tamer, faceDownCard("dev-old-under", "BT25-046", 0));
+  placePermanent(human, tamer);
+  const pulse = establishedDigimon(0, ["ST23-15"], "-e-pulse");
+  pulse.placedByEffect = true;
+  placePermanent(human, pulse);
+  placePermanent(human, establishedDigimon(0, ["BT25-090"], "-tomoro"));
+  placePermanent(human, establishedDigimon(0, ["BT25-049", "BT25-041"], "-murasame"));
+  placePermanent(human, establishedDigimon(0, ["BT25-046", "BT25-049"], "-dual-evolution-target"));
+  const second = establishedDigimon(0, ["ST23-14"], "-second-tamer");
+  ["BT25-043", "ST23-11"].forEach((id, index) => pushOnStack(second, faceDownCard(`dev-second-under-${index}`, id, 0)));
+  placePermanent(human, second);
+  placePermanent(human, establishedDigimon(0, ["BT25-046", "BT25-049", "BT25-057"], "-monarch"));
+  ["ST23-15", "ST23-08", "BT25-049", "BT25-035", "BT25-057", "ST23-03", "ST23-09"].forEach((id, index) =>
+    insertCard(human, Zone.Hand, faceDownCard(`dev-bug-hand-${index}`, id, 0)),
+  );
+  const opponent = state.players[1]!;
+  ["BT19-051", "AD1-006", "BT8-095", "BT19-014"].forEach((id, index) =>
+    insertCard(opponent, Zone.Deck, faceDownCard(`dev-reveal-${index}`, id, 1), "top"),
+  );
+  state.memory = 5;
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
+  "card-bugs": layCardBugsScenario,
 };
 
 export function layDevScenario(scenario: DevScenarioId, state: GameState, decks: readonly [Decklist, Decklist]): void {

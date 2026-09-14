@@ -27,6 +27,7 @@ import {
 } from "./timings";
 import { NARRATION_TICK_MS } from "./narration";
 import { REJECTION_LIFETIME_MS } from "./notices";
+import { SIDE_PANEL_LIFETIME_MS } from "./sidePanels";
 import { PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 
 /**
@@ -148,6 +149,48 @@ const anchors: MatchCueAnchors = {
   yourHandDock: { current: null },
   oppHandStrip: { current: null },
 };
+
+it("flies a face-down card from the deck to its Tamer and clears it after landing", async () => {
+  const board = document.createElement("div");
+  const deck = document.createElement("div");
+  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(10, 20, 800, 600));
+  vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(610, 420, 100, 140));
+  const feed = batchFeed();
+  const { result, rerender } = renderHook(
+    ({ events }: { events: readonly ServerEvent[] }) =>
+      useMatchCues({
+        narrationLimit: 1,
+        batches: feed(events),
+        state: undefined,
+        viewerSeat: VIEWER,
+        mulliganOpen: false,
+        anchors: {
+          ...anchors,
+          board: { current: board },
+          yourDeck: { current: deck },
+          permanentCenter: (id) => (id === "tamer" ? { x: 200, y: 300 } : undefined),
+        },
+        onActionRejected: vi.fn<(reason: string) => void>(),
+      }),
+    { initialProps: { events: [] as readonly ServerEvent[] } },
+  );
+  rerender({
+    events: [
+      {
+        kind: "cardsMoved",
+        from: "deck",
+        to: "battleArea",
+        instanceIds: ["hidden"],
+        deckToUnder: { seat: 0, permanentId: "tamer", count: 1 },
+      },
+    ],
+  });
+  await advance(0);
+  expect(result.current.drawFlights).toHaveLength(1);
+  expect(result.current.drawFlights[0]).toMatchObject({ x: 650, y: 470, dx: -450, dy: -170 });
+  await advance(result.current.drawFlights[0]!.duration);
+  expect(result.current.drawFlights).toHaveLength(0);
+});
 
 /**
  * Turns the cumulative event log a test writes into the server batches the hook consumes:
@@ -1096,7 +1139,7 @@ describe("match cues", () => {
     const panel = result.current.sidePanels.at(-1);
     expect(panel?.titleKey).toBe("panel.revealedCards");
     expect(panel?.cards).toHaveLength(4);
-    await advance(NOTICE_ITEM_MS);
+    await advance(Math.max(TIMINGS.noticeLifetime, SIDE_PANEL_LIFETIME_MS) + NARRATION_TICK_MS);
     expect(result.current.sidePanels).toHaveLength(0);
   }
 
@@ -1152,10 +1195,11 @@ describe("match cues", () => {
 
       expect(result.current.zoneShowcase).toBeNull();
       expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
-      // What the [On Play] turned up still reads out, behind the clause that turned it up.
+      // The reveal stays beside its clause, even when the decorative cues are drained.
       expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect"]);
-      await advance(NOTICE_ITEM_MS);
       expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
+      await advance(1000);
+      expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
     } finally {
       hidden.mockRestore();
     }
@@ -2902,4 +2946,61 @@ it("highlights the opponent's Plutomon when its All Turns hand-trash effect acti
   expect(result.current.effectSources).toMatchObject([
     { seat: 1, cardId: "BT26-059", site: { zone: "field", permanentId: "plutomon" } },
   ]);
+});
+
+describe("Taiki hand-play reveal on a single narration slot", () => {
+  it("keeps all four cards readable alongside their On Play clause", async () => {
+    const feed = batchFeed();
+    const state = {
+      players: [
+        { battleArea: [], trash: [], hand: [] },
+        {
+          battleArea: [{ permanentId: "perm-4", topCard: { instanceId: "s1-40", cardId: "BT10-087" } }],
+          trash: [],
+          hand: [],
+        },
+      ],
+    } as unknown as GameState;
+    const { result, rerender } = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          narrationLimit: 1,
+          batches,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerBatch[] },
+    );
+    await advance(0);
+    const play: ServerEvent = {
+      kind: "cardPlayed",
+      seat: 1,
+      cardId: "BT10-087",
+      artId: "BT10-087",
+      permanentId: "perm-4",
+    };
+    rerender(feed([play]));
+    await advance(10);
+    const effect: ServerEvent = {
+      kind: "effectTriggered",
+      seat: 1,
+      sourceCardId: "BT10-087",
+      sourceInstanceId: "s1-40",
+      sourcePermanentId: "perm-4",
+      effectKey: "BT10-087/ir-6-0",
+      description: "[OnPlay] Reveal top 4 and add",
+      timing: "OnPlay",
+    };
+    const cardIds = ["BT19-014", "BT8-095", "AD1-006", "BT19-051"];
+    const reveals: ServerEvent[] = cardIds.map((cardId) => ({ kind: "cardRevealed", seat: 1, cardId, artId: cardId }));
+    rerender(feed([play, effect, ...reveals]));
+    await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold);
+    expect(result.current.sidePanels.at(-1)?.cards.map((card) => card.cardId)).toEqual(cardIds);
+    expect(result.current.notices.at(-1)?.body).toMatchObject({ variant: "effect", cardId: "BT10-087" });
+    await advance(1000);
+    expect(result.current.sidePanels.at(-1)?.cards.map((card) => card.cardId)).toEqual(cardIds);
+  });
 });

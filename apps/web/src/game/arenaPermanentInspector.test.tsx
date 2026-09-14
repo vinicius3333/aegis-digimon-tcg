@@ -7,6 +7,73 @@ import { GameScreen } from "./GameScreen";
 import { CardActionMenu } from "./overlays";
 import { buildPermanentDetail } from "./permanentDetail";
 import { groupedInspectorEvolutionCosts, inlineInspectorKeywordLines } from "./arenaInspectorModel";
+import { PermanentView } from "./boardPieces";
+
+it("shows opposing Digimon effect protection on the board and removes the badge when it expires", () => {
+  const source = permanent(0);
+  source.immuneToOpponentDigimonEffects = true;
+  const view = () => (
+    <I18nProvider>
+      <PermanentView perm={source} />
+    </I18nProvider>
+  );
+  const { rerender } = render(view());
+  expect(screen.getByText("Digimon protection").getAttribute("data-protection")).toBe("true");
+  source.immuneToOpponentDigimonEffects = false;
+  rerender(view());
+  expect(screen.queryByText("Digimon protection")).toBeNull();
+});
+
+it("shows active opposing Digimon effect protection in the card inspector", () => {
+  const source = permanent(0);
+  source.immuneToOpponentDigimonEffects = true;
+  render(
+    <I18nProvider>
+      <CardActionMenu
+        x={0}
+        y={0}
+        arenaInspection={{ side: "you", container: null }}
+        detail={buildPermanentDetail(source)}
+        canAttack={false}
+        onAttack={() => undefined}
+        onViewStack={() => undefined}
+        onClose={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.getByText("Protected from opposing Digimon effects").hasAttribute("data-protection")).toBe(true);
+});
+
+it("shows a face-down Tamer source as a back without its identity, effect, or zoom", () => {
+  const source = permanent(0);
+  source.topCard.cardId = "BT25-090";
+  const hidden = new CardInstance();
+  hidden.cardId = "BT25-057";
+  hidden.artId = "BT25-057_P1";
+  hidden.faceUp = false;
+  source.stack.push(hidden);
+  const detail = buildPermanentDetail(source);
+  expect(detail.cards.find((entry) => entry.faceDown)).toMatchObject({ cardId: "", faceDown: true });
+  render(
+    <I18nProvider>
+      <CardActionMenu
+        x={0}
+        y={0}
+        arenaInspection={{ side: "you", container: null }}
+        detail={detail}
+        canAttack={false}
+        onAttack={() => undefined}
+        onViewStack={() => undefined}
+        onClose={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  const panel = screen.getByRole("dialog", { name: "Tomoro Tenma" });
+  expect(within(panel).getByText("Face-down card")).toBeTruthy();
+  expect(panel.textContent).not.toContain("Monarchlizamon");
+  expect(panel.querySelector('[data-card-id="BT25-057"]')).toBeNull();
+  expect(within(panel).queryByRole("button", { name: /Open Monarchlizamon/ })).toBeNull();
+});
 
 it("shows Plutomon's equal-cost Black and Purple digivolution routes as explicit alternatives", () => {
   const source = permanent(0);

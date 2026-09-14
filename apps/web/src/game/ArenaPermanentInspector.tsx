@@ -2,7 +2,7 @@ import { EffectText } from "./EffectText";
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { getCardDefinition } from "@aegis/shared";
-import { CardFull } from "../design/cards";
+import { CardBack, CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
 import { COLORS, colorKey } from "../design/theme";
 import { useTranslation } from "../i18n";
@@ -180,7 +180,12 @@ export function ArenaPermanentInspector({
             ))}
             {detail.suspended ? <span>{t("overlay.suspended")}</span> : null}
             {detail.restrictions.map((restriction) => (
-              <span key={restriction.kind} data-warning="true">
+              <span
+                key={restriction.kind}
+                data-warning={restriction.protection ? undefined : "true"}
+                data-protection={restriction.protection || undefined}
+              >
+                {restriction.protection ? <Icons.ShieldCheck size={12} /> : null}
                 {t(restriction.labelKey)}
               </span>
             ))}
@@ -233,6 +238,17 @@ export function ArenaPermanentInspector({
                   ))
               : null}
             {supporting.map((card, index) => {
+              if (card.faceDown || !card.cardId)
+                return (
+                  <div
+                    key={`hidden-${index}`}
+                    className="arena-permanent-inspector__effect arena-permanent-inspector__effect--source"
+                    data-role={card.role}
+                  >
+                    <CardBack width={34} />
+                    <span>{t("game.hiddenCard")}</span>
+                  </div>
+                );
               const definition = getCardDefinition(card.cardId);
               const effect = card.role === "linked" ? definition?.linkEffect : definition?.inheritedEffectText;
               return (

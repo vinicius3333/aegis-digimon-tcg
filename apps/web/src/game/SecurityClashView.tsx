@@ -85,7 +85,12 @@ function ClashCard({
             the claw both reach past the card's edge. */}
         {spent ? (
           <span className="battle-clash__shatter" aria-hidden="true">
-            <CardShatter cardId={fighter.cardId} artId={fighter.artId} width={width} color={clashShatterColor(fighter.cardId)} />
+            <CardShatter
+              cardId={fighter.cardId}
+              artId={fighter.artId}
+              width={width}
+              color={clashShatterColor(fighter.cardId)}
+            />
           </span>
         ) : null}
         {fate === "beaten" ? <ClawSlash /> : null}
@@ -220,7 +225,7 @@ export function SecurityEdgeFlash({ scene }: { scene: SecurityBreakScene }) {
  * side panels do not occupy while its effect notice reads next to it (the notice is
  * mirrored to the same half by `noticeAnchor`, so the two are one moment).
  */
-export function SecurityBranch({ scene }: { scene: SecurityBranchScene }) {
+export function SecurityBranch({ scene, compact = false }: { scene: SecurityBranchScene; compact?: boolean }) {
   const { t } = useTranslation();
   const cardName = getCardDefinition(scene.cardId)?.nameEn ?? scene.cardId;
   return (
@@ -228,13 +233,14 @@ export function SecurityBranch({ scene }: { scene: SecurityBranchScene }) {
       className="battle-security-branch"
       data-testid="security-branch"
       data-side={scene.side}
+      data-compact={compact || undefined}
       // The dock is open-ended, so its slide-in and its exit are two animations rather
       // than one fixed clip: the state says which of them the card is playing.
       data-state={scene.state}
       role="status"
     >
       <figure className="battle-security-branch__frame">
-        <CardFull cardId={scene.cardId} artId={scene.artId} width={BRANCH_CARD_WIDTH} />
+        <CardFull cardId={scene.cardId} artId={scene.artId} width={compact ? 92 : BRANCH_CARD_WIDTH} />
         <figcaption className="battle-security-branch__caption">
           {t("overlay.securityResolving")}
           <br />

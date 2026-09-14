@@ -123,6 +123,13 @@ export { ModifierLedger } from "./modifiers.js";
  * a single authoritative gauge and primitives must use the real one.
  */
 export interface PrimitivesEngine {
+  /** Replace a used DUAL Option's pending trash with its optional free digivolution. */
+  artsDigivolve?(
+    seat: Seat,
+    instance: CardInstance,
+    definition: CardDefinition,
+    duringAttack?: boolean,
+  ): Promise<boolean>;
   /** Notify the engine that one triggered effect body has begun resolving. */
   beginEffectBody?(): void;
   /** Notify the engine that one triggered effect body has completely resolved. */
@@ -367,6 +374,7 @@ export interface CombatPort {
       /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
+      artsDigivolveOptionInstanceId?: string;
       drainTimingWindow?: () => Promise<void>;
     },
   ): Promise<void>;
@@ -2134,7 +2142,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     )
       return [];
     const placed: CardInstance[] = [];
+    const deckSources = new Map<Seat, number>();
     for (const instanceId of instanceIds) {
+      if (opts?.faceUp === false) {
+        for (const owner of state.players) {
+          if (owner.deck.some((card) => card.instanceId === instanceId)) {
+            deckSources.set(owner.seat as Seat, (deckSources.get(owner.seat as Seat) ?? 0) + 1);
+          }
+        }
+      }
       const instance = removeLooseInstance(state, instanceId);
       if (instance === undefined) continue;
       instance.faceUp = opts?.faceUp ?? true;
@@ -2148,6 +2164,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         instanceIds: placed.map((c) => c.instanceId),
         from: "various",
         to: Zone.BattleArea,
+        ...(deckSources.size === 1
+          ? {
+              deckToUnder: {
+                seat: [...deckSources.keys()][0]!,
+                permanentId: targetPermanentId,
+                count: [...deckSources.values()][0]!,
+              },
+            }
+          : {}),
       });
       // SubTrigger bus: "when [Tamer] cards are placed in this Digimon's digivolution cards"
       // watchers. No co-located EffectTiming analogue (a fresh fire point per RESEARCH A1).
@@ -2173,7 +2198,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (card === undefined) return undefined;
     card.faceUp = false;
     unshiftOnStack(permanent, card);
-    engine.emit({ kind: "cardsMoved", instanceIds: [card.instanceId], from: Zone.Deck, to: Zone.BattleArea });
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: [card.instanceId],
+      from: Zone.Deck,
+      to: Zone.BattleArea,
+      deckToUnder: { seat, permanentId: targetPermanentId, count: 1 },
+    });
     // The newly added card may change the host's inherited/static effect set. Refresh that
     // derived state before the placement watcher opens, matching the ordinary placeUnder path.
     await engine.recomputeContinuousEffects?.();
@@ -3321,11 +3352,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     let resolvingCard: CardInstance | undefined;
     let wasUnderCard = false;
     let resolutionError: unknown;
+    let usedDefinition: CardDefinition | undefined;
     if (usedCard !== undefined && usedOwner !== undefined) {
       // The schema has one transient slot per player. Do not overwrite an already-resolving
       // Option if a nested effect attempts a second use; the nested use simply fails atomically.
       if (usedOwner.resolvingOption !== undefined) return [];
-      let usedDefinition: CardDefinition | undefined;
       try {
         usedDefinition = requireCardDefinition(usedCard.cardId);
       } catch {
@@ -3343,8 +3374,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         );
         // A borrowed Option is used by the resolving effect's controller, not by the card's
         // owner (which may differ for a card captured under a Digimon's stack/link list).
-        if (engine.memory.memoryFor(ctx.source.ownerSeat) < 0 || engine.memory.maxCostFor(ctx.source.ownerSeat) < cost)
-          return [];
+        // Pending effects still resolve after memory crosses to the opponent's side.
+        if (engine.memory.maxCostFor(ctx.source.ownerSeat) < cost) return [];
         if (cost > 0) engine.memory.pay(ctx.source.ownerSeat, cost, "useOption");
       }
       wasUnderCard =
@@ -3361,6 +3392,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (usedDefinition === undefined) {
           await resolveCardEffect(ctx, usedCard.cardId, EffectTiming.OnUseOption);
         } else {
+          const optionDefinition = usedDefinition;
           const permanent = (): Permanent | undefined => {
             // While the Option is being resolved it is in the transient no-area slot, even when
             // it originated under a permanent. A later self-placement clears that slot and makes
@@ -3413,7 +3445,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
               isInHand: () =>
                 state.players.some((owner) => owner.hand.some(({ instanceId }) => instanceId === usedInstanceId)),
               isOwnersTurn: () => state.turnSeat === ctx.source.ownerSeat,
-              hasColor: (color) => usedDefinition.colors.includes(color),
+              hasColor: (color) => optionDefinition.colors.includes(color),
             },
           };
           await resolveCardEffect(optionCtx, usedCard.cardId, EffectTiming.OnUseOption);
@@ -3429,6 +3461,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // must not be trashed. Otherwise route the exact transient identity to trash once, including
     // when its effect throws. This also keeps ordinary stack/link uses atomic.
     let moved: CardInstance[] = [];
+    if (
+      resolutionError === undefined &&
+      resolvingCard !== undefined &&
+      usedOwner?.resolvingOption === resolvingCard &&
+      usedDefinition?.isDualCard &&
+      !state.gameOver
+    ) {
+      try {
+        await engine.artsDigivolve?.(ctx.source.ownerSeat, resolvingCard, usedDefinition);
+      } catch (error) {
+        resolutionError = error;
+      }
+    }
     if (resolvingCard !== undefined && usedOwner?.resolvingOption === resolvingCard) {
       setResolvingOption(usedOwner, undefined);
       insertCard(player(resolvingCard.ownerSeat), Zone.Trash, resolvingCard);
@@ -5994,6 +6039,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       attackMechanic?: string;
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
+      artsDigivolveOptionInstanceId?: string;
       drainTimingWindow?: () => Promise<void>;
     },
   ): Promise<void> => {
@@ -6051,7 +6097,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       withoutTap: opts?.withoutSuspending ?? false,
       attackMechanic: opts?.attackMechanic,
       afterAttackDeclaration: opts?.afterAttackDeclaration,
-      afterAttackTriggers: opts?.afterAttackTriggers,
+      afterAttackTriggers: async () => {
+        await opts?.afterAttackTriggers?.();
+        const option = player(controllerSeat).resolvingOption;
+        if (option !== undefined && option.instanceId === opts?.artsDigivolveOptionInstanceId) {
+          const definition = requireCardDefinition(option.cardId);
+          if (definition.isDualCard && !state.gameOver) {
+            await engine.artsDigivolve?.(controllerSeat, option, definition, true);
+          }
+        }
+      },
       drainTimingWindow: opts?.drainTimingWindow
         ? () => engine.resolveAttackTimingWindow?.(opts.drainTimingWindow!) ?? opts.drainTimingWindow!()
         : undefined,

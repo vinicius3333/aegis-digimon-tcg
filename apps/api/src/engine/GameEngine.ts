@@ -1136,6 +1136,8 @@ export class GameEngine {
     const getCombat = () => this.combat;
     return createPrimitives({
       state: this.state,
+      artsDigivolve: (seat, instance, definition, duringAttack) =>
+        this.resolveArtsDigivolve(seat, instance, definition, duringAttack),
       beginEffectBody: () => {
         this.effectResolutionDepth += 1;
       },
@@ -3794,6 +3796,27 @@ export class GameEngine {
   }
 
   private projectRestrictions(perm: Permanent): void {
+    perm.immuneToOpponentDigimonEffects = this.continuous.hasRestriction(perm.permanentId, "beAffected", "Digimon", {
+      byOpponentEffect: true,
+    });
+    perm.immuneToOpponentOptionEffects = this.continuous.hasRestriction(perm.permanentId, "beAffected", "Option", {
+      byOpponentEffect: true,
+    });
+    perm.immuneToOpponentTamerEffects = this.continuous.hasRestriction(perm.permanentId, "beAffected", "Tamer", {
+      byOpponentEffect: true,
+    });
+    perm.protectedFromDpReduction = this.continuous.hasRestriction(perm.permanentId, "dpImmune", undefined, {
+      byOpponentEffect: true,
+    });
+    perm.protectedFromDeDigivolve = this.continuous.hasRestriction(perm.permanentId, "cantBeDeDigivolved", undefined, {
+      byOpponentEffect: true,
+    });
+    perm.protectedFromEffectDeletion = this.continuous.hasRestriction(perm.permanentId, "beDeleted", undefined, {
+      byOpponentEffect: true,
+    });
+    perm.protectedFromEffectReturn = this.continuous.hasRestriction(perm.permanentId, "beReturned", undefined, {
+      byOpponentEffect: true,
+    });
     perm.cannotAttack = this.continuous.hasRestriction(perm.permanentId, "attack");
     perm.cannotBlock = this.continuous.hasRestriction(perm.permanentId, "block");
     perm.cannotSuspend = this.continuous.hasRestriction(perm.permanentId, "suspend");
@@ -6358,7 +6381,21 @@ export class GameEngine {
    * digivolution-requirement match. When no permanent qualifies, no decision is even
    * raised (there's nothing to offer, so the pending trash proceeds untouched).
    */
-  private async resolveArtsDigivolve(seat: Seat, instance: CardInstance, definition: CardDefinition): Promise<boolean> {
+  private readonly declinedAttackArts = new Set<string>();
+
+  private async resolveArtsDigivolve(
+    seat: Seat,
+    instance: CardInstance,
+    definition: CardDefinition,
+    duringAttack = false,
+  ): Promise<boolean> {
+    if (!duringAttack && this.declinedAttackArts.delete(instance.instanceId)) return false;
+    const result = await this.performArtsDigivolve(seat, instance, definition);
+    if (duringAttack && !result) this.declinedAttackArts.add(instance.instanceId);
+    return result;
+  }
+
+  private async performArtsDigivolve(seat: Seat, instance: CardInstance, definition: CardDefinition): Promise<boolean> {
     const eligible = this.access
       .battleAreaPermanents(seat)
       .filter(

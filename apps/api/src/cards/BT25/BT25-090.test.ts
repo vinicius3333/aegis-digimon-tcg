@@ -74,6 +74,14 @@ describe("BT25-090 Tomoro Tenma", () => {
       s.inst("existing").instanceId,
     ]);
     expect(s.perm("tomoro").stack.every((card) => card.faceUp === false)).toBe(true);
+    expect(
+      s.events
+        .filter((event) => event.kind === "cardsMoved" && event.deckToUnder)
+        .map((event) => (event.kind === "cardsMoved" ? event.deckToUnder : undefined)),
+    ).toEqual([
+      { seat: 0, permanentId: s.perm("tomoro").permanentId, count: 1 },
+      { seat: 0, permanentId: s.perm("tomoro").permanentId, count: 1 },
+    ]);
   });
 
   it("also triggers when the opponent's Digimon suspends, but refusal pays nothing", async () => {
@@ -310,4 +318,31 @@ describe("BT25-090 Tomoro Tenma", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === tomoroId)).toBe(true);
     expect(s.state.memory).toBe(1);
   });
+});
+
+it("does not offer a suspended Tomoro in simultaneous trigger choices", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [
+        { card: "BT25-090", as: "tomoro", suspended: true },
+        { card: "BT25-090", as: "available" },
+        { card: "BT1-009", as: "attacker" },
+      ],
+      deck: ["BT1-010", "BT1-011"],
+    },
+    1: { security: ["BT1-013"] },
+  });
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.decisions.length > 0);
+  expect(s.decisions.some((d) => d.req.kind === "orderTriggers")).toBe(false);
+  expect(s.decisions.filter((d) => d.req.kind === "optional").map((d) => d.req.sourceInstanceId)).toEqual([
+    s.inst("available").instanceId,
+  ]);
 });

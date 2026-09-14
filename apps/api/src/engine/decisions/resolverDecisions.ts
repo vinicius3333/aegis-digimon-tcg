@@ -78,6 +78,7 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
         options: {
           triggerKeys,
           triggerCardIds,
+          triggerDescriptions: active.map((c) => c.effect.description ?? ""),
           triggerIsInherited: active.map((c) => c.effect.isInherited),
           ...(triggerTimings.some((entry) => entry !== "") ? { triggerTimings } : {}),
           ...(decisionTiming !== undefined ? { timing: decisionTiming } : {}),

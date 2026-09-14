@@ -13,6 +13,7 @@
 
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { colorKey, palettePairFor, type ColorName } from "../design/theme";
+import type { TranslationKey } from "../i18n";
 
 /**
  * The keyword name the engine projects for ＜Blocker＞. Compared against
@@ -69,7 +70,14 @@ export type RestrictionBadgeKind =
   | "cannotBlock"
   | "cannotSuspend"
   | "cannotUnsuspend"
-  | "cannotActivateWhenDigivolving";
+  | "cannotActivateWhenDigivolving"
+  | "immuneToOpponentDigimonEffects"
+  | "immuneToOpponentOptionEffects"
+  | "immuneToOpponentTamerEffects"
+  | "protectedFromDpReduction"
+  | "protectedFromDeDigivolve"
+  | "protectedFromEffectDeletion"
+  | "protectedFromEffectReturn";
 
 /** The translation key each chip prints, named per restriction so a rename is caught. */
 export type RestrictionLabelKey = `game.restriction.${RestrictionBadgeKind}`;
@@ -78,6 +86,8 @@ export interface RestrictionBadge {
   kind: RestrictionBadgeKind;
   /** Translation key of the chip's short label. */
   labelKey: RestrictionLabelKey;
+  protection?: boolean;
+  shortLabelKey?: Extract<TranslationKey, `game.protectionBadge.${string}`>;
 }
 
 /**
@@ -85,6 +95,47 @@ export interface RestrictionBadge {
  * cannot do in combat first, then what it cannot do on its own turn.
  */
 const RESTRICTION_BADGES: readonly RestrictionBadge[] = [
+  {
+    kind: "immuneToOpponentOptionEffects",
+    labelKey: "game.restriction.immuneToOpponentOptionEffects",
+    shortLabelKey: "game.protectionBadge.immuneToOpponentOptionEffects",
+    protection: true,
+  },
+  {
+    kind: "immuneToOpponentTamerEffects",
+    labelKey: "game.restriction.immuneToOpponentTamerEffects",
+    shortLabelKey: "game.protectionBadge.immuneToOpponentTamerEffects",
+    protection: true,
+  },
+  {
+    kind: "protectedFromDpReduction",
+    labelKey: "game.restriction.protectedFromDpReduction",
+    shortLabelKey: "game.protectionBadge.protectedFromDpReduction",
+    protection: true,
+  },
+  {
+    kind: "protectedFromDeDigivolve",
+    labelKey: "game.restriction.protectedFromDeDigivolve",
+    shortLabelKey: "game.protectionBadge.protectedFromDeDigivolve",
+    protection: true,
+  },
+  {
+    kind: "protectedFromEffectDeletion",
+    labelKey: "game.restriction.protectedFromEffectDeletion",
+    shortLabelKey: "game.protectionBadge.protectedFromEffectDeletion",
+    protection: true,
+  },
+  {
+    kind: "protectedFromEffectReturn",
+    labelKey: "game.restriction.protectedFromEffectReturn",
+    shortLabelKey: "game.protectionBadge.protectedFromEffectReturn",
+    protection: true,
+  },
+  {
+    kind: "immuneToOpponentDigimonEffects",
+    labelKey: "game.restriction.immuneToOpponentDigimonEffects",
+    protection: true,
+  },
   { kind: "cannotAttack", labelKey: "game.restriction.cannotAttack" },
   { kind: "cannotBlock", labelKey: "game.restriction.cannotBlock" },
   { kind: "cannotSuspend", labelKey: "game.restriction.cannotSuspend" },

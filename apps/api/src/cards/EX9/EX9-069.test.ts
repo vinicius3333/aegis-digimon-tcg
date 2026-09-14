@@ -213,19 +213,8 @@ describe("EX9-069", () => {
       .filter((event) => event.kind === "effectTriggered")
       .filter((event) => event.sourceCardId === "EX9-069");
     expect(events.map((event) => event.effectKey.startsWith("subtrigger/"))).toEqual([false, true, true, false]);
-    // The second placement triggers both watchers again, but suspended Tamers
-    // cannot pay again. This is a new derived batch, not an older parent choice.
-    const repeated = s.state.pendingDecision!;
-    expect(repeated.kind).toBe("orderTriggers");
-    const repeatedKeys = (JSON.parse(repeated.payloadJson) as { triggerKeys: string[] }).triggerKeys;
-    expect(repeatedKeys).toEqual([expect.stringContaining("::subtrigger/"), expect.stringContaining("::subtrigger/")]);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: repeated.decisionId,
-        response: { kind: "orderTriggers", order: [repeatedKeys[0]!] },
-      }),
-    ).toEqual({ ok: true });
+    // Both suspended Tamers are unavailable for another suspension cost.
+    expect(s.state.pendingDecision).toBeUndefined();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(true);

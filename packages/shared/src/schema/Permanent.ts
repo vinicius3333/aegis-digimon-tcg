@@ -90,6 +90,13 @@ export class Permanent extends Schema {
   // about an action being declared right now.
   @type("boolean") cannotUnsuspend = false;
   @type("boolean") cannotActivateWhenDigivolving = false;
+  @type("boolean") immuneToOpponentDigimonEffects = false;
+  @type("boolean") immuneToOpponentOptionEffects = false;
+  @type("boolean") immuneToOpponentTamerEffects = false;
+  @type("boolean") protectedFromDpReduction = false;
+  @type("boolean") protectedFromDeDigivolve = false;
+  @type("boolean") protectedFromEffectDeletion = false;
+  @type("boolean") protectedFromEffectReturn = false;
   // Number of security cards an attack by this Digimon checks: base 1 plus every resolved
   // ＜Security Attack ±N＞ grant, floored at 0 (Comprehensive Rules §16-4-4). Projected from
   // the same helper the security-check loop uses (`securityStrikeCount`) so the inspector can

@@ -1751,7 +1751,13 @@ export function GameScreen({
   const stackCardsOf = (perm: Permanent): StackCard[] => {
     const cards: StackCard[] = [];
     if (perm.topCard?.cardId) cards.push({ cardId: perm.topCard.cardId, artId: perm.topCard.artId, role: "top" });
-    for (const ci of perm.stack) cards.push({ cardId: ci.cardId, artId: ci.artId, role: "stack" });
+    for (const ci of perm.stack)
+      cards.push({
+        cardId: ci.faceUp ? ci.cardId : "",
+        artId: ci.faceUp ? ci.artId : undefined,
+        faceDown: !ci.faceUp,
+        role: "stack",
+      });
     for (const ci of perm.linked) cards.push({ cardId: ci.cardId, artId: ci.artId, role: "linked" });
     return cards;
   };
@@ -2023,7 +2029,7 @@ export function GameScreen({
               // Per-trigger truth: one permanent can queue an [On Play] and a [When
               // Digivolving] at once, and each row must read its own clause.
               timing: viewerDecision.options?.triggerTimings?.[index] || viewerDecision.options?.timing,
-              description: undefined,
+              description: viewerDecision.options?.triggerDescriptions?.[index],
               isInherited: viewerDecision.options?.triggerIsInherited?.[index] === true,
             }) ?? getCardDefinition(cardId)?.effectText;
           return {
@@ -2371,7 +2377,9 @@ export function GameScreen({
 
       {securityClash && !state.gameOver ? <SecurityClash key={securityClash.key} scene={securityClash} /> : null}
 
-      {securityBranch && !state.gameOver ? <SecurityBranch key={securityBranch.key} scene={securityBranch} /> : null}
+      {securityBranch && !state.gameOver ? (
+        <SecurityBranch key={securityBranch.key} scene={securityBranch} compact={collapseNotices} />
+      ) : null}
 
       {zoneShowcase && !securityClash && !state.gameOver ? (
         <ZoneShowcase key={zoneShowcase.key} showcase={zoneShowcase} />
@@ -2977,6 +2985,7 @@ export function GameScreen({
               narration={cues.narration}
               rejection={cues.rejection}
               compact={collapseNotices}
+              securityDockActive={securityBranch !== null}
               onAdvance={cues.advanceNarration}
               onDismissRejection={cues.dismissRejection}
             />
@@ -3226,7 +3235,7 @@ export function GameScreen({
                     (handIsDigi && eligibleBase(p)) ||
                     dragBasePermanentIds.has(p.permanentId) ||
                     (linkSel?.targetPermanentIds.includes(p.permanentId) ?? false);
-                  const draggable = canAttackWith(p);
+                  const draggable = !handSel && !linkSel && canAttackWith(p);
                   return (
                     <PermanentView
                       key={p.permanentId}

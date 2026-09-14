@@ -21,7 +21,7 @@ export function LiveArenaDemo() {
       deckId: deck.deckId,
       deckName: deck.name,
       deck: { mainDeck: [...deck.decklist.mainDeck], eggDeck: [...deck.decklist.eggDeck] },
-      devScenario: "arena",
+      devScenario: new URLSearchParams(window.location.search).get("scenario") === "card-bugs" ? "card-bugs" : "arena",
     };
   }, [player]);
   const reset = () => setRun((current) => current + 1);

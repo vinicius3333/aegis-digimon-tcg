@@ -5957,6 +5957,11 @@ button.side-panel__name:focus-visible {
   line-height: 1;
 }
 
+.game-restriction-badge[data-protection] {
+  color: var(--ds-fg);
+  background: var(--ds-accent-surface);
+}
+
 /* --- Pending-fate badge -------------------------------------------------- */
 
 /* The reference client stacks its fate pills above the card's top edge in a
@@ -7592,18 +7597,15 @@ button.side-panel__name:focus-visible {
   flex-direction: column;
   gap: var(--ds-space-2);
   min-width: 0;
-  max-height: min(18rem, calc((55dvh - 2 * var(--ds-space-2)) / var(--narration-count, 1)));
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  max-height: none;
+  overflow-y: visible;
   pointer-events: auto;
   scrollbar-width: thin;
 }
 
 .narration-slot {
-  max-height: 55dvh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
+  max-height: none;
+  overflow-y: visible;
 }
 
 .narration-item > .side-panel-stack,
@@ -7611,11 +7613,22 @@ button.side-panel__name:focus-visible {
   flex-shrink: 0;
 }
 
-@media (width <= 767px), (height < 520px) and (orientation: landscape) {
-  .narration-item {
-    max-height: min(12rem, 22dvh);
-  }
+/* Keep revealed cards beside the security effect's dock, never beneath it. */
+.narration-slot[data-slot="narration-opp"][data-security-dock] {
+  right: auto;
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+}
+.narration-slot[data-slot="narration"][data-security-dock] {
+  right: calc(8rem + env(safe-area-inset-right, 0px));
+}
+.battle-security-branch[data-compact] {
+  --security-branch-lift: 2.5rem;
+}
+.battle-security-branch[data-compact] .battle-security-branch__caption {
+  max-width: 92px;
+}
 
+@media (width <= 767px), (height < 520px) and (orientation: landscape) {
   .narration-item .side-panel__cards {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -7637,4 +7650,10 @@ button.side-panel__name:focus-visible {
 .narration-item .card-link:hover,
 .narration-item .card-link:focus-visible {
   color: white;
+}
+
+/* Toasts grow to fit their contents on every layout. */
+.narration-slot {
+  max-height: none;
+  overflow-y: visible;
 }

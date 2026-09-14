@@ -1545,6 +1545,7 @@ export interface Primitives {
       /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
+      artsDigivolveOptionInstanceId?: string;
       drainTimingWindow?: () => Promise<void>;
     },
   ): Promise<void>;

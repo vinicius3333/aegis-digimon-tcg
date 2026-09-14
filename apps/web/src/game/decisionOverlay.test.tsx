@@ -10,6 +10,26 @@ import { CardOpenerProvider } from "./cardLinks";
 
 afterEach(() => cleanup());
 
+it("renders each Monarchlizamon trigger's authoritative clause instead of repeating the first timing match", () => {
+  renderDecision({
+    decisionId: "monarch-two-evolution-effects",
+    seat: 0,
+    kind: "orderTriggers",
+    promptText: "Choose the next pending effect to resolve.",
+    options: {
+      triggerKeys: [buildTriggerKey("monarch", "BT25-057/ir-0"), buildTriggerKey("monarch", "BT25-057/ir-2")],
+      triggerCardIds: ["BT25-057", "BT25-057"],
+      triggerTimings: ["WhenDigivolving", "WhenDigivolving"],
+      triggerDescriptions: [
+        "[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+        "[When Digivolving] This Digimon may battle 1 of your opponent's Digimon.",
+      ],
+    },
+  });
+  expect(screen.getAllByText(/By trashing the bottom face-down card/)).toHaveLength(1);
+  expect(screen.getByText(/This Digimon may battle 1 of your opponent's Digimon/)).toBeTruthy();
+});
+
 const optionalDecision: DecisionRequest = {
   decisionId: "decision-1",
   seat: 0,
@@ -3339,4 +3359,19 @@ it.each(["optional", "selectCards"] as const)("shows Decode's keyword and rules 
     options: { timing: "AllTurns", effectText, candidateInstanceIds: [], min: 1, max: 1 },
   });
   expect(screen.getByText(effectText)).toBeTruthy();
+});
+
+describe("DUAL Option decisions", () => {
+  it("shows Final Judgment's Option text for Monarchlizamon's Main attack prompt", () => {
+    renderDecision({
+      decisionId: "dual-main",
+      seat: 0,
+      kind: "optional",
+      promptText: "Use this effect?",
+      sourceCardId: "BT25-057",
+      options: { timing: "Main", effectText: "[Main] Modify DP, GainKeyword, Attack" },
+    });
+    expect(screen.getByText(/Then, it may attack/)).toBeTruthy();
+    expect(screen.queryByText(/De-Digivolve 1/)).toBeNull();
+  });
 });

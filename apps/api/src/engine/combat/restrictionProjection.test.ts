@@ -17,6 +17,57 @@ import "../../cards/index.js";
 const VANILLA_CARD = "AD1-001"; // no keywords
 
 describe("Permanent combat-restriction projection", () => {
+  it.each([
+    ["immuneToOpponentOptionEffects", "beAffected", "Option"],
+    ["immuneToOpponentTamerEffects", "beAffected", "Tamer"],
+    ["protectedFromDpReduction", "dpImmune", undefined],
+    ["protectedFromDeDigivolve", "cantBeDeDigivolved", undefined],
+    ["protectedFromEffectDeletion", "beDeleted", undefined],
+    ["protectedFromEffectReturn", "beReturned", undefined],
+  ] as const)(
+    "projects active %s without treating a source-qualified protection as universal",
+    async (field, restriction, sourceKind) => {
+      const s = setup();
+      const perm = digimon(0, 5000, VANILLA_CARD);
+      s.state.players[0]!.battleArea.push(perm);
+      const { continuous } = internalsOf(s.engine);
+      await s.engine.recomputeContinuousEffects();
+      expect(perm[field]).toBe(false);
+      continuous.addRestriction(perm.permanentId, restriction, EffectDuration.UntilEachTurnEnd, {
+        byOpponentEffectsOnly: true,
+        ...(sourceKind ? { fromSourceKind: [sourceKind] } : {}),
+      });
+      await s.engine.recomputeContinuousEffects();
+      expect(perm[field]).toBe(true);
+      continuous.sweep(s.state, "eachTurnEnd", 0);
+      await s.engine.recomputeContinuousEffects();
+      expect(perm[field]).toBe(false);
+    },
+  );
+  it("projects opposing Digimon effect immunity and removes it at its turn-end boundary", async () => {
+    const s = setup();
+    const perm = digimon(0, 5000, VANILLA_CARD);
+    s.state.players[0]!.battleArea.push(perm);
+    const { continuous } = internalsOf(s.engine);
+    continuous.addRestriction(perm.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
+      fromSourceKind: ["Digimon"],
+      byOpponentEffectsOnly: true,
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(perm.immuneToOpponentDigimonEffects).toBe(true);
+    continuous.sweep(s.state, "ownerTurnEnd", 0);
+    await s.engine.recomputeContinuousEffects();
+    expect(perm.immuneToOpponentDigimonEffects).toBe(true);
+    continuous.sweep(s.state, "opponentTurnEnd", 1);
+    await s.engine.recomputeContinuousEffects();
+    expect(perm.immuneToOpponentDigimonEffects).toBe(false);
+    continuous.addRestriction(perm.permanentId, "beAffected", EffectDuration.Permanent, {
+      fromSourceKind: ["Option"],
+      byOpponentEffectsOnly: true,
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(perm.immuneToOpponentDigimonEffects).toBe(false);
+  });
   it("publishes an imposed attack lock, and clears it when the restriction lapses", async () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;

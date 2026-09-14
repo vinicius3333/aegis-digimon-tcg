@@ -1027,7 +1027,14 @@ export function cardEffectClauseForTiming(
     ? [definition?.securityEffectText, definition?.effectText, definition?.inheritedEffectText]
     : isInherited
       ? [definition?.inheritedEffectText, definition?.effectText, definition?.securityEffectText]
-      : [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText];
+      : (timing === "Main" || timing === "OnUseOption") && definition?.isDualCard
+        ? [
+            definition.optionEffect,
+            definition.effectText,
+            definition.inheritedEffectText,
+            definition.securityEffectText,
+          ]
+        : [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText];
   const texts = boxes.filter((text): text is string => Boolean(text));
   const label = timing ? TIMING_LABELS[timing] : undefined;
   const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
@@ -1216,6 +1223,9 @@ export function playerFacingEffectClause({
   if (supplied && !isInternalEffectDescription(supplied)) {
     const definition = getCardDefinition(cardId);
     const isFullMainText = definition?.effectText?.trim() === supplied;
+    if (isFullMainText && definition?.isDualCard && (timing === "Main" || timing === "OnUseOption")) {
+      return resolvedEffectClause(cardId, timing, isInherited === true);
+    }
     return isFullMainText && timing !== undefined ? effectClauseForTiming(supplied, timing) : supplied;
   }
   // Without timing provenance, choosing the first printed text box can attribute a
@@ -1856,11 +1866,14 @@ export function DecisionOverlay({
               const detail = triggerDetails[i];
               const summary = distinctTriggerSummaries > 1 ? detail?.summary : undefined;
               const timingLabel = triggerTimingLabels[i];
-              const activeClause = cardEffectClauseForTiming(
-                cardId,
-                request.options?.triggerTimings?.[i] || request.options?.timing || undefined,
-                request.options?.triggerIsInherited?.[i],
-              );
+              const timing = request.options?.triggerTimings?.[i] || request.options?.timing || undefined;
+              const activeClause =
+                playerFacingEffectClause({
+                  cardId,
+                  timing,
+                  description: request.options?.triggerDescriptions?.[i],
+                  isInherited: request.options?.triggerIsInherited?.[i],
+                }) ?? cardEffectClauseForTiming(cardId, timing, request.options?.triggerIsInherited?.[i]);
               return (
                 <button
                   type="button"
@@ -2434,9 +2447,18 @@ export function CardActionMenu({
                     <span>{t(ROLE_LABEL_KEYS[role])}</span>
                     <div>
                       {group.map((c, i) => (
-                        <button type="button" key={`${c.cardId}-${i}`} onClick={() => openZoom(c.cardId, c.artId)}>
+                        <button
+                          type="button"
+                          key={`${c.cardId}-${i}`}
+                          disabled={c.faceDown || !c.cardId}
+                          onClick={() => openZoom(c.cardId, c.artId)}
+                        >
                           <CardArt cardId={c.cardId} artId={c.artId} width={54} />
-                          <figcaption>{getCardDefinition(c.cardId)?.nameEn ?? c.cardId}</figcaption>
+                          <figcaption>
+                            {c.faceDown || !c.cardId
+                              ? t("game.hiddenCard")
+                              : (getCardDefinition(c.cardId)?.nameEn ?? c.cardId)}
+                          </figcaption>
                         </button>
                       ))}
                     </div>
@@ -2561,6 +2583,7 @@ export function CardActionMenu({
 export interface StackCard {
   cardId: string;
   artId?: string;
+  faceDown?: boolean;
   role: "top" | "stack" | "linked";
 }
 
@@ -2828,11 +2851,18 @@ function StackViewerSheet({
                 <span>{t(ROLE_LABEL_KEYS[role])}</span>
                 <div className="stack-sheet__grid">
                   {group.map((c, i) => (
-                    <button type="button" key={`${c.cardId}-${i}`} onClick={() => onZoom(c.cardId, c.artId)}>
+                    <button
+                      type="button"
+                      key={`${c.cardId}-${i}`}
+                      disabled={c.faceDown || !c.cardId}
+                      onClick={() => onZoom(c.cardId, c.artId)}
+                    >
                       <CardArt cardId={c.cardId} artId={c.artId} width={72} />
                       <figcaption>
                         {role === "stack" ? <b>{i + 1}</b> : null}
-                        {getCardDefinition(c.cardId)?.nameEn ?? c.cardId}
+                        {c.faceDown || !c.cardId
+                          ? t("game.hiddenCard")
+                          : (getCardDefinition(c.cardId)?.nameEn ?? c.cardId)}
                       </figcaption>
                     </button>
                   ))}
@@ -3060,7 +3090,7 @@ export function StackViewerOverlay({
                             textOverflow: "ellipsis",
                           }}
                         >
-                          {def?.nameEn ?? c.cardId}
+                          {c.faceDown || !c.cardId ? t("game.hiddenCard") : (def?.nameEn ?? c.cardId)}
                         </div>
                         <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10.5, color: "var(--ds-fg-muted)" }}>
                           {def?.dp ? `${def.dp.toLocaleString()} DP` : c.cardId}

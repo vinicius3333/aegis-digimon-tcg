@@ -8,6 +8,29 @@ import { TIMINGS } from "./timings";
 
 afterEach(cleanup);
 
+it("reserves space for the security dock and releases it when the dock closes", () => {
+  const opponent = { ...item("security-reveal"), side: "opp" as const };
+  const view = (active: boolean, compact: boolean) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map([[opponent.id, opponent]])}
+        compact={compact}
+        securityDockActive={active}
+        rejection={null}
+        nowMs={0}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const { container, rerender } = render(view(true, false));
+  expect(container.querySelector('[data-slot="narration-opp"][data-security-dock]')).toBeTruthy();
+  rerender(view(false, false));
+  expect(container.querySelector("[data-security-dock]")).toBeNull();
+  rerender(view(true, true));
+  expect(container.querySelector('[data-slot="narration"][data-security-dock]')).toBeTruthy();
+});
+
 function item(id: string): NarrationItem {
   return {
     id,

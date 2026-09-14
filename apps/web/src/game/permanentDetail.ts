@@ -81,8 +81,9 @@ export function buildPermanentDetail(
         ]
       : []),
     ...[...permanent.stack].map((card) => ({
-      cardId: card.cardId,
-      ...(card.artId ? { artId: card.artId } : {}),
+      cardId: card.faceUp ? card.cardId : "",
+      ...(card.faceUp && card.artId ? { artId: card.artId } : {}),
+      ...(!card.faceUp ? { faceDown: true } : {}),
       role: "stack" as const,
     })),
     ...[...permanent.linked].map((card) => ({

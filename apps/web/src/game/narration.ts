@@ -116,8 +116,21 @@ export function buildNarrationItems({
     const host = source
       ? items.find((item) => item.notice === undefined && item.side === notice.side && item.source === source)
       : undefined;
-    if (host) {
-      host.notice = notice;
+    // A reveal and its sole effect clause in the same server batch describe
+    // one result. Keep them together when the layout has only one slot.
+    const revealHost =
+      !host &&
+      notice.body.variant === "effect" &&
+      notices.filter((candidate) => candidate.side === notice.side && candidate.body.variant === "effect").length === 1
+        ? items.find(
+            (item) =>
+              item.notice === undefined && item.side === notice.side && item.panel?.titleKey === "panel.revealedCards",
+          )
+        : undefined;
+    const combined = host ?? revealHost;
+    if (combined) {
+      combined.notice = notice;
+      if (revealHost) combined.source = source;
       continue;
     }
     items.push({

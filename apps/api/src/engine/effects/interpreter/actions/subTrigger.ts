@@ -1062,7 +1062,7 @@ export async function runSubTrigger(
       event === "onDigivolutionCardDiscarded");
   // "by suspending this Tamer" is unpayable while the Tamer is already suspended, so such a
   // watcher must not join the simultaneous-trigger ordering prompt it could only decline.
-  const requiresSelfSuspend = (action.actions ?? []).some(costsSelfSuspend);
+  const requiresSelfSuspend = costsSelfSuspend(action);
   ctx.fx.subscribeSubTrigger({
     event,
     ...(ctx.activeEffectKey !== undefined || ctx.activeActionPath !== undefined

@@ -454,7 +454,7 @@ export async function relocateByEffect(
   ctx: EffectContext,
   destPermanentId: string,
   sourcePermanentId: string,
-  opts?: { belowTop?: boolean; shedOwnCards?: boolean },
+  opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
 ): Promise<boolean> {
   if (ctx.fx.relocatePermanentByEffect !== undefined) {
     return ctx.fx.relocatePermanentByEffect(destPermanentId, sourcePermanentId, opts);
@@ -809,19 +809,28 @@ export async function payCost(
       while (chosen.length < count) {
         const candidates = stacks.flatMap(({ host, cards }) => {
           const next = cards.find((card) => !chosen.some((entry) => entry.instanceId === card.instanceId));
-          return next === undefined ? [] : [{ hostId: host.permanentId, instanceId: next.instanceId }];
+          return next === undefined
+            ? []
+            : [
+                {
+                  hostId: host.permanentId,
+                  instanceId: next.instanceId,
+                  selectionId:
+                    cost.kind === "trashBottomFaceDownUnderTamer" ? host.topCard!.instanceId : next.instanceId,
+                },
+              ];
         });
         const needed = count - chosen.length;
         const forced = candidates.length === 1 || available - chosen.length === needed;
         const ids = forced
-          ? candidates.slice(0, needed).map((candidate) => candidate.instanceId)
+          ? candidates.slice(0, needed).map((candidate) => candidate.selectionId)
           : await ctx.ask.selectCards(ctx, {
-              candidates: candidates.map((candidate) => candidate.instanceId),
+              candidates: candidates.map((candidate) => candidate.selectionId),
               min: 1,
               max: Math.min(needed, candidates.length),
             });
         if (ids.length === 0 || ids.length > needed || new Set(ids).size !== ids.length) return false;
-        const selected = ids.map((id) => candidates.find((candidate) => candidate.instanceId === id));
+        const selected = ids.map((id) => candidates.find((candidate) => candidate.selectionId === id));
         if (selected.some((candidate) => candidate === undefined)) return false;
         for (const candidate of selected) if (candidate !== undefined) chosen.push(candidate);
       }
@@ -2095,6 +2104,7 @@ export async function payCost(
               const moved = await ctx.fx.relocatePermanentsByEffect(hostPermId, sourceIds, {
                 belowTop: cost.position !== "bottom",
                 shedOwnCards: cost.shedOwnCards === true,
+                ...(cost.faceDown !== undefined ? { faceUp: !cost.faceDown } : {}),
               });
               if (
                 moved.length !== sourceIds.length ||
@@ -2106,6 +2116,7 @@ export async function payCost(
               const moved = await relocateByEffect(ctx, hostPermId, sourceIds[0]!, {
                 belowTop: cost.position !== "bottom",
                 shedOwnCards: cost.shedOwnCards === true,
+                ...(cost.faceDown !== undefined ? { faceUp: !cost.faceDown } : {}),
               });
               if (moved) placedSourceIds.push(sourceIds[0]!);
             }

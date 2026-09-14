@@ -26,6 +26,8 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenDigivolving",
+      description:
+        "[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
       actions: [
         {
           kind: "DeDigivolve",
@@ -51,6 +53,8 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      description:
+        "[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
       actions: [
         {
           kind: "DeDigivolve",
@@ -96,6 +100,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
       ],
+      description: "[When Digivolving] This Digimon may battle 1 of your opponent's Digimon.",
     },
     {
       // Option side, "Final Judgment": [Main] 1 of your Digimon gains ＜Rush＞, ＜Security A. +1＞

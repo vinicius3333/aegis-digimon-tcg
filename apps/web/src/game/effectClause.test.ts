@@ -2,6 +2,18 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { cardEffectClauseForTiming, effectClauseForTiming, playerFacingEffectClause } from "./overlays";
 
+it("distinguishes Monarchlizamon's two effects with the same evolution timing", () => {
+  const descriptions = [
+    "[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+    "[When Digivolving] This Digimon may battle 1 of your opponent's Digimon.",
+  ];
+  expect(
+    descriptions.map((description) =>
+      playerFacingEffectClause({ cardId: "BT25-057", timing: "WhenDigivolving", description }),
+    ),
+  ).toEqual(descriptions);
+});
+
 // AD1-001: a single printed clause fires under either timing.
 const SHARED =
   "[Digivolve] Lv.3: Cost 2\n\n[On Play] [When Digivolving] You may return 1 card with [Greymon] in its name from your trash to the hand.\n[All Turns] When your Digimon are played, this may digivolve.";

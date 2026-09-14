@@ -47,26 +47,29 @@ describe("multi-card bottom face-down Tamer costs", () => {
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const firstDecision = s.state.pendingDecision!;
     const firstPayload = JSON.parse(firstDecision.payloadJson) as { candidateInstanceIds?: string[] };
-    expect(firstPayload.candidateInstanceIds).toEqual([s.inst("paidOne").instanceId, s.inst("otherCost").instanceId]);
+    expect(firstPayload.candidateInstanceIds).toEqual([
+      s.inst("firstTamer").instanceId,
+      s.inst("secondTamer").instanceId,
+    ]);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: firstDecision.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("paidOne").instanceId] },
+        response: { kind: "selectCards", instanceIds: [s.inst("firstTamer").instanceId] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const secondDecision = s.state.pendingDecision!;
     const secondPayload = JSON.parse(secondDecision.payloadJson) as { candidateInstanceIds?: string[] };
     expect(secondPayload.candidateInstanceIds).toEqual([
-      s.inst("optionCost").instanceId,
-      s.inst("otherCost").instanceId,
+      s.inst("firstTamer").instanceId,
+      s.inst("secondTamer").instanceId,
     ]);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: secondDecision.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("optionCost").instanceId] },
+        response: { kind: "selectCards", instanceIds: [s.inst("firstTamer").instanceId] },
       }),
     ).toEqual({ ok: true });
     automation.autoSelectCards = true;

@@ -42,6 +42,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         attackPlayerOnly: action.attackPlayerOnly,
         attackMechanic: action.attackMechanic,
         afterAttackTriggers: fireDeferredSuspensionTriggers,
+        artsDigivolveOptionInstanceId: ctx.source.definition.isDualCard ? ctx.source.instanceId : undefined,
         // Combat pauses this effect. Its When Attacking and other pending effects
         // must finish before Counter / security, including attacks without an IR flag.
         drainTimingWindow: ctx.drainCurrentTimingWindow,
