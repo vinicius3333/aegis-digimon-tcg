@@ -834,14 +834,11 @@ export class AegisRoom extends Room<GameState> {
     // Tournament rooms stay refused here, and that refusal is what `POST /bot/join` inherits. A
     // tournament bot is seated only through seatTournamentBot(), against an authorization no HTTP
     // caller can obtain.
-    if (
-      this.isRankedRoom ||
-      this.isTournamentRoom ||
-      this.isPrivate ||
-      this.bots[this.BOT_SEAT] !== undefined ||
-      this.clients.length !== 1
-    )
-      return false;
+    if (this.isRankedRoom || this.isTournamentRoom || this.isPrivate || this.clients.length !== 1) return false;
+
+    // Reloads and reconnections can repeat /bot/join for the same match.
+    // Acknowledge the existing bot without replacing it or restarting the engine.
+    if (this.bots[this.BOT_SEAT] !== undefined) return true;
 
     this.bots[this.BOT_SEAT] = new BotPlayer(this.BOT_SEAT, this.state, (intent) => {
       const result = this.applyLoggedIntent(this.BOT_SEAT, intent);

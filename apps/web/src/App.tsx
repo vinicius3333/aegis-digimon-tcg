@@ -22,6 +22,7 @@ import { PlayerMenu } from "./account/PlayerMenu";
 import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 import { isBattleLabPath } from "./dev/BattleLab";
+import { clearReconnectSession } from "./net/reconnectSession";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
 const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Login })));
@@ -261,7 +262,12 @@ export function AegisClient({
       displayName: effectivePlayer.name,
       deckId: activeDeck?.id,
       deckName: activeDeck?.name,
-      deck: { mainDeck: activeDeck?.mainDeck ?? [], eggDeck: activeDeck?.eggDeck ?? [], mainDeckArts: activeDeck?.mainDeckArts, eggDeckArts: activeDeck?.eggDeckArts },
+      deck: {
+        mainDeck: activeDeck?.mainDeck ?? [],
+        eggDeck: activeDeck?.eggDeck ?? [],
+        mainDeckArts: activeDeck?.mainDeckArts,
+        eggDeckArts: activeDeck?.eggDeckArts,
+      },
     }),
     [effectivePlayer.name, activeDeck],
   );
@@ -321,6 +327,9 @@ export function AegisClient({
               }}
               onNav={navigateScreen}
               onStart={(mode, code, requestedBotDeckId, requestedBetaBattleMode) => {
+                // A lobby start explicitly requests a new match, even if a page
+                // reload left a resumable seat from the previous match in storage.
+                clearReconnectSession();
                 setStartMode(mode);
                 setRoomCode(code);
                 setBotDeckId(requestedBotDeckId);

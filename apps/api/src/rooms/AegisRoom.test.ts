@@ -164,7 +164,14 @@ describe("AegisRoom ready-gated match start", () => {
     room.clients.push(human);
     room.onJoin(human, { displayName: "Human", deck: RED_DECK });
 
-    room.addBot();
+    expect(room.addBot()).toBe(true);
+
+    const bot = room.state.players[1];
+    const version = room.state.stateVersion;
+    expect(room.addBot()).toBe(true);
+    expect(room.state.players[1]).toBe(bot);
+    expect(room.state.stateVersion).toBe(version);
+    expect(broadcastedEvents(room).filter((e) => e.kind === "matchStarted")).toHaveLength(1);
 
     expect(broadcastedEvents(room).some((e) => e.kind === "matchStarted")).toBe(true);
   });
