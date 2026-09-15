@@ -49,7 +49,14 @@ export interface MatchResult {
   reason: string;
   turnCount: number;
   timedOut: boolean;
-  rejections: { seat: Seat; intent: string; reason: string }[];
+  rejections: {
+    seat: Seat;
+    intent: string;
+    reason: string;
+    details?: Intent;
+    cardId?: string;
+    hostCardId?: string;
+  }[];
   errors: string[];
   seats: [SeatStats, SeatStats];
   /** Present only when `captureEvents` was requested; avoids retaining large traces in benchmarks. */
@@ -110,9 +117,30 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   for (const seat of [0, 1] as const) {
     const config = options.seats[seat];
     const send = (intent: Intent) => {
+      const rejectedCardId =
+        intent.type === "digivolve"
+          ? state.players[seat]?.hand.find((card) => card.instanceId === intent.instanceId)?.cardId
+          : undefined;
+      const rejectedHostCardId =
+        intent.type === "digivolve"
+          ? (
+              state.players[seat]?.battleArea.find((permanent) => permanent.permanentId === intent.permanentId) ??
+              (state.players[seat]?.breedingArea?.permanentId === intent.permanentId
+                ? state.players[seat]?.breedingArea
+                : undefined)
+            )?.topCard?.cardId
+          : undefined;
       try {
         const result = engine.applyIntent(seat, intent);
-        if (!result.ok) rejections.push({ seat, intent: intent.type, reason: result.reason });
+        if (!result.ok)
+          rejections.push({
+            seat,
+            intent: intent.type,
+            reason: result.reason,
+            details: structuredClone(intent),
+            ...(rejectedCardId ? { cardId: rejectedCardId } : {}),
+            ...(rejectedHostCardId ? { hostCardId: rejectedHostCardId } : {}),
+          });
         return result;
       } catch (error) {
         errors.push(`seat ${seat} ${intent.type}: ${String(error)}`);

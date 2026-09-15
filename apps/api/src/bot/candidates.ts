@@ -92,7 +92,7 @@ function digivolveCandidates(view: BotView): Candidate[] {
     if (!isDigimonCard(card.definition)) continue;
     for (const base of bases) {
       if (base.cardId === undefined) continue;
-      const cost = digivolveCost(card.cardId, base.cardId);
+      const cost = digivolveCost(card.cardId, base.cardId, { inBreeding: base === view.breeding });
       if (cost === undefined || cost > view.maxAffordable) continue;
       candidates.push({
         kind: "digivolve",
@@ -198,12 +198,17 @@ function activateCandidates(view: BotView): Candidate[] {
  * `digivolve.ts` that would reject the intent, and the memory cost alone does not describe
  * them. Skipping is the safe failure: the path is unavailable, never wrongly available.
  */
-export function digivolveCost(evolvingId: string, baseId: string): number | undefined {
+export function digivolveCost(
+  evolvingId: string,
+  baseId: string,
+  options: { inBreeding?: boolean } = {},
+): number | undefined {
   const evo = matchingEvoCost(evolvingId, baseId);
   if (evo !== undefined) return evo.memoryCost;
   const alternate = matchingAlternateDigivolutionRequirement(evolvingId, baseId);
   if (alternate === undefined) return undefined;
   const hasUnverifiableCost =
+    (alternate.battleAreaOnly === true && options.inBreeding === true) ||
     alternate.placementCost !== undefined ||
     alternate.burstDigivolve !== undefined ||
     alternate.minTraitStackCount !== undefined ||

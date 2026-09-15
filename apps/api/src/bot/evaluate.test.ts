@@ -263,6 +263,14 @@ describe("candidate legality", () => {
     const keys = enumerateMainPhaseCandidates(state).map((entry) => entry.key);
     expect(keys).toContain("play:i-BT25-043");
   });
+
+  it("does not offer a battle-area-only alternate digivolution in breeding", () => {
+    const shoutmon = unit({ permanentId: "raising", cardId: "BT5-009", definition: getCardDefinition("BT5-009") });
+    const omniShoutmon = getCardDefinition("BT5-014");
+    const state = view({ breeding: shoutmon, hand: [handCard("BT5-014", omniShoutmon)], memory: 10, freeMemory: 10 });
+
+    expect(enumerateMainPhaseCandidates(state).map((entry) => entry.key)).not.toContain("digivolve:i-BT5-014:raising");
+  });
 });
 
 describe("decision candidate ranking", () => {

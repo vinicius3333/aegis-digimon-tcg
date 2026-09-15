@@ -1,4 +1,5 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, isAbsolute, resolve } from "node:path";
 import { ALL_FAMOUS_DECKS, VALIDATED_FAMOUS_DECKS, isFamousDeckAvailable, type FamousDeck } from "@aegis/shared";
 import { assertLegalDeck, type Decklist } from "../engine/testDecks.js";
 import { runBattleFuzz, type FuzzDeck } from "./battleFuzzer.js";
@@ -15,6 +16,11 @@ function integerFlag(name: string, fallback: number | undefined): number | undef
 function stringFlag(name: string): string | undefined {
   const index = process.argv.indexOf(name);
   return index < 0 ? undefined : process.argv[index + 1];
+}
+
+function invocationPath(value: string): string {
+  if (isAbsolute(value)) return value;
+  return resolve(process.env.INIT_CWD ?? process.cwd(), value);
 }
 
 function fuzzDeck(source: FamousDeck): FuzzDeck {
@@ -38,7 +44,7 @@ async function main(): Promise<void> {
   }
   const deckFile = stringFlag("--deck-file");
   if (deckFile) {
-    const saved = parseDeckCorpus(JSON.parse(await readFile(deckFile, "utf8")) as unknown);
+    const saved = parseDeckCorpus(JSON.parse(await readFile(invocationPath(deckFile), "utf8")) as unknown);
     for (const candidate of saved) {
       const fingerprint = JSON.stringify({
         m: [...candidate.deck.mainDeck].sort(),
@@ -47,7 +53,8 @@ async function main(): Promise<void> {
       if (!unique.has(fingerprint)) unique.set(fingerprint, candidate);
     }
   }
-  const decks = [...unique.values()];
+  const deckLimit = integerFlag("--deck-limit", undefined);
+  const decks = [...unique.values()].slice(0, deckLimit);
   const maximumMatchups = exhaustive ? undefined : integerFlag("--matchups", decks.length);
   const started = Date.now();
   const report = await runBattleFuzz({
@@ -61,7 +68,11 @@ async function main(): Promise<void> {
   });
   const receipt = { ...report, durationMs: Date.now() - started };
   const output = stringFlag("--output");
-  if (output) await writeFile(output, `${JSON.stringify(receipt, null, 2)}\n`, "utf8");
+  if (output) {
+    const outputPath = invocationPath(output);
+    await mkdir(dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, `${JSON.stringify(receipt, null, 2)}\n`, "utf8");
+  }
   console.log(JSON.stringify(receipt, null, 2));
   if (report.failures.length > 0) process.exitCode = 1;
 }
