@@ -122,6 +122,13 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
+          // Keep the watcher announcement tied to THIS second [All Turns] clause.  A bare
+          // `onDeletionOf` description only identifies the event bus, so the client otherwise
+          // selects the first [All Turns] paragraph (the would-leave replacement) for its
+          // narration.
+          raw: "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
+          effectTextPart:
+            "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
           sourceFilter: {
             excludeSelf: true,
             kind: ["Digimon", "Tamer"],

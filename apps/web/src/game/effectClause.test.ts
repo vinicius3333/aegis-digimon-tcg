@@ -27,6 +27,45 @@ it("shows Genshi's optional play clause when its full printed text is supplied",
   ).toBe(part);
 });
 
+it("shows MoonMillenniummon's deletion watcher rather than its first All Turns replacement", () => {
+  const watcher =
+    "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.";
+  expect(
+    playerFacingEffectClause({ cardId: "BT19-075", timing: "AllTurns", description: watcher, effectTextPart: watcher }),
+  ).toBe(watcher);
+});
+
+it.each([
+  [
+    "BT16-101",
+    "[All Turns] [Once Per Turn] When an opponent's Digimon is deleted in battle or by having 0 DP, gain 2 memory.",
+  ],
+  [
+    "BT17-036",
+    "[All Turns] [Once Per Turn] When a card is trashed from your security stack by an effect, this Digimon with [Leon Alexander] in its digivolution cards may digivolve into a Digimon card with [Pulsemon]\u00a0in its text in the hand without paying the cost.",
+  ],
+  ["BT17-073", "[All Turns] [Once Per Turn] When another Digimon is deleted, you may unsuspend this Digimon."],
+  [
+    "BT23-058",
+    "[All Turns] [Once Per Turn] When this Digimon suspends, delete all of your opponent's Digimon with the lowest play cost.",
+  ],
+  [
+    "EX3-044",
+    "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
+  ],
+  [
+    "EX7-061",
+    "[All Turns] [Once Per Turn] When another Digimon is deleted, if it's your turn, you may play 1 purple level 4 or lower Digimon card from your trash without paying the cost. If it's your opponent's turn, trash the top card of their security stack.",
+  ],
+  [
+    "EX9-033",
+    "[All Turns] [Once Per Turn] When other Digimon are deleted, delete 1 of your opponent's lowest level Digimon.",
+  ],
+  ["EX12-019", "[All Turns] [Once Per Turn] When security stacks are removed from, this Digimon may unsuspend."],
+])("shows %s's specific All Turns watcher", (cardId, watcher) => {
+  expect(playerFacingEffectClause({ cardId, timing: "AllTurns", description: watcher })).toBe(watcher);
+});
+
 it("distinguishes Monarchlizamon's two effects with the same evolution timing", () => {
   const descriptions = [
     "[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",

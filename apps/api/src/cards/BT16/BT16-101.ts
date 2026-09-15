@@ -83,6 +83,9 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
+          raw: "[All Turns] [Once Per Turn] When an opponent's Digimon is deleted in battle or by having 0 DP, gain 2 memory.",
+          effectTextPart:
+            "[All Turns] [Once Per Turn] When an opponent's Digimon is deleted in battle or by having 0 DP, gain 2 memory.",
           sourceFilter: {
             controller: "opponent",
             kind: ["Digimon"],

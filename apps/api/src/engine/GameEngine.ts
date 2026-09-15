@@ -334,6 +334,25 @@ function subTriggerIdentity(sub: SubTriggerSubscription): string {
 }
 
 /**
+ * A single printed `[Once Per Turn]` watcher can observe several simultaneous subjects of one
+ * effect (for example, MoonMillenniummon deletes two Tamers). They are separate bus events, but
+ * they are not separate activations that the player may order: only one copy of that exact
+ * watcher may enter the pending-trigger UI. Keep distinct action paths, which carry different
+ * `dedupeKey`s, independently selectable for cards whose one printed OPT genuinely contains
+ * multiple triggered clauses.
+ */
+function uniqueOncePerTurnWatcherOccurrences(items: readonly ArmedSubTrigger[]): ArmedSubTrigger[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (item.sub.oncePerTurnKey === undefined) return true;
+    const identity = subTriggerIdentity(item.sub);
+    if (seen.has(identity)) return false;
+    seen.add(identity);
+    return true;
+  });
+}
+
+/**
  * Whether the card directly beneath this permanent's top — the base it just digivolved from —
  * is a Tamer.
  *
@@ -3268,9 +3287,11 @@ export class GameEngine {
       ...this.pendingNestedTimingEffects.filter((pending) => this.nestedTriggerSourceStillResident(pending)),
       ...this.parkedEntryCollected(),
       ...this.armedAsPendingCollected(
-        this.pendingWindowSubTriggers.filter(
-          (item) =>
-            !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) && this.subTriggerStillActivatable(item),
+        uniqueOncePerTurnWatcherOccurrences(
+          this.pendingWindowSubTriggers.filter(
+            (item) =>
+              !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) && this.subTriggerStillActivatable(item),
+          ),
         ),
       ),
     ];

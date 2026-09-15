@@ -140,6 +140,9 @@ describe("BT19-075 MoonMillenniummon", () => {
           {
             kind: "SubTrigger",
             event: "onDeletionOf",
+            raw: "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
+            effectTextPart:
+              "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
             // "other Digimon or Tamers" — either seat's, but never this Digimon itself.
             sourceFilter: { excludeSelf: true, kind: ["Digimon", "Tamer"] },
             actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
@@ -270,6 +273,63 @@ describe("BT19-075 MoonMillenniummon", () => {
     ]);
     expect(s.state.pendingDecision).toBeUndefined();
 
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("offers MoonMillenniummon's simultaneous Tamer deletions as one OPT watcher with its own printed clause", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT19-075", as: "moon" },
+            { card: "BT1-013", as: "spare" },
+          ],
+          deck: DECK,
+          security: SECURITY,
+        },
+        1: {
+          hand: opponentHand(9),
+          battleArea: [
+            { card: "BT1-087", as: "tamer1" },
+            { card: "BT1-087", as: "tamer2" },
+            { card: "BT1-087", as: "tamer3" },
+          ],
+          deck: DECK,
+          security: [
+            { card: "BT1-009", as: "sec1" },
+            { card: "BT1-013", as: "sec2" },
+            { card: "BT1-009", as: "sec3" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 16;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("moon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    await settleAcrossTimers(() => s.state.pendingDecision === undefined);
+
+    // Both Tamers were deleted by one effect, but this exact watcher is [Once Per Turn],
+    // so it must not be exposed twice merely to ask the player to order duplicate entries.
+    const moonOrderingRequests = s.decisions.filter(
+      ({ req }) =>
+        req.kind === "orderTriggers" && req.options?.triggerCardIds?.every((cardId) => cardId === "BT19-075"),
+    );
+    expect(moonOrderingRequests).toHaveLength(0);
+
+    const watcher = s.events.find(
+      (event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === "BT19-075" && event.timing === "onDeletionOf",
+    );
+    expect(watcher).toMatchObject({
+      description:
+        "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
+      printedTiming: "AllTurns",
+    });
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });

@@ -84,6 +84,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
+          raw: "[All Turns] [Once Per Turn] When another Digimon is deleted, you may unsuspend this Digimon.",
+          effectTextPart:
+            "[All Turns] [Once Per Turn] When another Digimon is deleted, you may unsuspend this Digimon.",
           sourceFilter: {
             excludeSelf: true,
             kind: ["Digimon"],

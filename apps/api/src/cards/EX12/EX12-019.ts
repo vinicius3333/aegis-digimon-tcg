@@ -130,6 +130,9 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAttackTargetSwitched",
+          raw: "[All Turns] [Once Per Turn] When attack targets change, until your opponent's turn ends, their Digimon effects don't affect this Digimon and it gets +4000 DP.",
+          effectTextPart:
+            "[All Turns] [Once Per Turn] When attack targets change, until your opponent's turn ends, their Digimon effects don't affect this Digimon and it gets +4000 DP.",
           actions: [
             {
               kind: "Restrict",
@@ -158,7 +161,6 @@ const compiled: CompiledCard = {
               duration: "untilOpponentTurnEnd",
             },
           ],
-          raw: "whenAttackTargetSwitched",
         },
       ],
       frequency: "OncePerTurn",
@@ -169,6 +171,9 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          raw: "[All Turns] [Once Per Turn] When security stacks are removed from, this Digimon may unsuspend.",
+          effectTextPart:
+            "[All Turns] [Once Per Turn] When security stacks are removed from, this Digimon may unsuspend.",
           sourceFilter: {
             controller: "any",
           },
@@ -185,7 +190,6 @@ const compiled: CompiledCard = {
               optional: true,
             },
           ],
-          raw: "whenSecurityRemoved",
         },
       ],
       frequency: "OncePerTurn",
