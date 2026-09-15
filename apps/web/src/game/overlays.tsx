@@ -1175,7 +1175,14 @@ export function playerFacingEffectClause({
   const exactPrintedClause = supplied
     ? boxes.flatMap((text) => text?.split("\n") ?? []).find((line) => normalize(line) === normalize(supplied))
     : undefined;
-  const printedKeyword = supplied?.match(/^＜[^＞]+＞/)?.[0];
+  // A full card text can start with a keyword preamble (e.g. Use Req.).
+  // Keyword activations are standalone or followed by explanatory prose.
+  const keywordPrefix = supplied?.match(/^＜[^＞]+＞/)?.[0];
+  const printedKeyword =
+    keywordPrefix && !/^(?:\[|＜)/.test(supplied!.slice(keywordPrefix.length).trim()) ? keywordPrefix : undefined;
+  // Synthesized keyword effects describe their activation after a colon. The
+  // keyword may have been granted by another card and be absent from this card.
+  const keywordActivation = supplied?.match(/^＜[^＞]+＞:\s*\S/) ? supplied : undefined;
   const matchingKeyword =
     printedKeyword &&
     boxes
@@ -1191,6 +1198,7 @@ export function playerFacingEffectClause({
     : undefined;
   const clause =
     (matchingKeyword ||
+      keywordActivation ||
       delayClause ||
       (exactPrintedClause && effectClauseForTiming(exactPrintedClause, effectiveTiming))) ??
     (effectiveTiming === undefined ? undefined : resolvedEffectClause(cardId, effectiveTiming, inherited));

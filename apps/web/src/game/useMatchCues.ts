@@ -446,7 +446,7 @@ export function useMatchCues({
   viewerSeat,
   mulliganOpen,
   decisionPending = false,
-  narrationLimit = Number.POSITIVE_INFINITY,
+  narrationLimit = 1,
   decisionStateVersion,
   anchors,
   onActionRejected,
@@ -774,6 +774,7 @@ export function useMatchCues({
   // same commit, which is what tells a turn-start draw from an effect draw.
   const turnStartDrawRef = useRef({ you: false, opp: false });
   const eventDrawCountsRef = useRef<{ you?: number; opp?: number }>({});
+  const pendingDigivolutionDrawRef = useRef(new Set<Seat>());
 
   const playCue = (kind: SoundKind) => {
     const now = Date.now();
@@ -1208,6 +1209,7 @@ export function useMatchCues({
           ? securityReveal.revealedCardId
           : revealOnStageRef.current?.scene.revealed.cardId;
       for (const [eventIndex, event] of fresh.entries()) {
+        if (event.kind === "digivolved") pendingDigivolutionDrawRef.current.add(event.seat);
         if (event.kind === "cardsMoved" && event.from === "deck" && event.to === "hand") {
           const seat =
             event.seat ??
@@ -1215,7 +1217,10 @@ export function useMatchCues({
           if (seat !== undefined) {
             const side = seat === viewerSeat ? "you" : "opp";
             eventDrawCountsRef.current[side] = state?.players[seat]?.handCount;
-            launchDrawFlight(side);
+            const followsDigivolution =
+              event.drawReason === "digivolution" && pendingDigivolutionDrawRef.current.has(seat);
+            launchDrawFlight(side, false, followsDigivolution ? TIMINGS.cardBurst : 0);
+            if (event.drawReason === "digivolution") pendingDigivolutionDrawRef.current.delete(seat);
           }
         }
         if (event.kind === "cardsMoved" && event.deckToUnder) {
@@ -2915,7 +2920,7 @@ export function useMatchCues({
    * client presents a draw centre-screen; the web port keeps the deck→hand read,
    * which is what makes an opponent's draw visible at all.
    */
-  function launchDrawFlight(side: "you" | "opp", turnStart = false) {
+  function launchDrawFlight(side: "you" | "opp", turnStart = false, waitBeforeMs = 0) {
     const board = anchors.board.current;
     const source = side === "you" ? anchors.yourDeck.current : anchors.oppDeck.current;
     const target = side === "you" ? anchors.yourHandDock.current : anchors.oppHandStrip.current;
@@ -2947,6 +2952,8 @@ export function useMatchCues({
       id: `draw-flight-${key}`,
       track: `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {
+        if (waitBeforeMs > 0) await context.wait(waitBeforeMs);
+        if (context.cancelled) return;
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);
         setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));

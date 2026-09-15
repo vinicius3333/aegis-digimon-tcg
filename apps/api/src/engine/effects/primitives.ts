@@ -1517,6 +1517,18 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     ledger.recomputeDP(state, permanent.permanentId);
     permanent.isSuspended = carriedSuspended;
     engine.emit({ kind: "cardsMoved", instanceIds: [instance.instanceId], from: "various", to: Zone.BattleArea });
+    // This is a real digivolution even though an effect initiated it. Without the
+    // semantic event, clients see only an unexplained zone movement followed by a
+    // draw and cannot run the digivolution presentation.
+    engine.emit({
+      kind: "digivolved",
+      seat,
+      permanentId: permanent.permanentId,
+      cardId: instance.cardId,
+      ...(instance.artId ? { artId: instance.artId } : {}),
+      mechanic: "normal",
+      inBreeding: permanent.inBreeding,
+    });
     // CR 7-1-4-1: every digivolution draws its digivolution bonus unless a caller
     // explicitly suppresses it. Effect-driven digivolution is still digivolution; making
     // the undefined default false silently skipped the bonus for nearly every card module.

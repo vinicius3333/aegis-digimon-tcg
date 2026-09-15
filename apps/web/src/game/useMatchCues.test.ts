@@ -245,6 +245,42 @@ it.each([0, 1] as const)(
   },
 );
 
+it("finishes an effect-driven digivolution burst before flying its bonus draw", async () => {
+  const board = document.createElement("div");
+  const deck = document.createElement("div");
+  const hand = document.createElement("div");
+  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
+  vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
+  vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+  const feed = batchFeed();
+  const { result, rerender } = renderHook(
+    (events: readonly ServerEvent[]) =>
+      useMatchCues({
+        batches: feed(events),
+        state: undefined,
+        viewerSeat: VIEWER,
+        mulliganOpen: false,
+        anchors: {
+          ...anchors,
+          board: { current: board },
+          yourDeck: { current: deck },
+          yourHandDock: { current: hand },
+        },
+        onActionRejected: vi.fn<(reason: string) => void>(),
+      }),
+    { initialProps: [] as readonly ServerEvent[] },
+  );
+  rerender([
+    { kind: "digivolved", seat: 0, permanentId: "effect-evo", cardId: "EX12-036", mechanic: "normal" },
+    { kind: "cardsMoved", from: "deck", to: "hand", instanceIds: ["bonus"], seat: 0, drawReason: "digivolution" },
+  ]);
+  await advance(0);
+  expect(result.current.permanentBursts.get("effect-evo")?.variant).toBe("evolve");
+  expect(result.current.drawFlights).toHaveLength(0);
+  await advance(TIMINGS.cardBurst);
+  expect(result.current.drawFlights).toHaveLength(1);
+});
+
 /**
  * Turns the cumulative event log a test writes into the server batches the hook consumes:
  * whatever is new since the previous render is one batch, which is the boundary the server
@@ -2711,28 +2747,31 @@ describe("the narration feed", () => {
     expect(result.current.narration.size).toBe(0);
   });
 
-  it.each([true, false])("shows all active records across players on every layout (portrait=%s)", async (portrait) => {
-    const feed = batchFeed();
-    const view = renderHook(
-      (batches: readonly ServerBatch[]) =>
-        useMatchCues({
-          batches,
-          state: undefined,
-          viewerSeat: VIEWER,
-          mulliganOpen: false,
-          collapseNarration: portrait,
-          anchors,
-          onActionRejected: vi.fn<(reason: string) => void>(),
-        }),
-      { initialProps: feed([]) },
-    );
-    await advance(0);
-    view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
-    await advance(0);
-    expect(cards(view.result.current.narration)).toEqual(["BT1-001", "BT1-002", "BT1-009"]);
-    expect(view.result.current.narrationLock).toBe(false);
-    expect(view.result.current.presenting).toBe(false);
-  });
+  it.each([true, false])(
+    "shows only the newest record across players on every layout (portrait=%s)",
+    async (portrait) => {
+      const feed = batchFeed();
+      const view = renderHook(
+        (batches: readonly ServerBatch[]) =>
+          useMatchCues({
+            batches,
+            state: undefined,
+            viewerSeat: VIEWER,
+            mulliganOpen: false,
+            collapseNarration: portrait,
+            anchors,
+            onActionRejected: vi.fn<(reason: string) => void>(),
+          }),
+        { initialProps: feed([]) },
+      );
+      await advance(0);
+      view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
+      await advance(0);
+      expect(cards(view.result.current.narration)).toEqual(["BT1-009"]);
+      expect(view.result.current.narrationLock).toBe(false);
+      expect(view.result.current.presenting).toBe(false);
+    },
+  );
 
   it("dismisses the selected record without dismissing its neighbors or changing their clocks", async () => {
     const { result, rerender } = renderCues();

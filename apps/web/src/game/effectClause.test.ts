@@ -2,6 +2,31 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { cardEffectClauseForTiming, effectClauseForTiming, playerFacingEffectClause } from "./overlays";
 
+it("names Execute when an inherited grant gives it to a card without the printed keyword", () => {
+  const description =
+    "＜Execute＞: at the end of this turn, this Digimon may attack (including an unsuspended opponent's Digimon). At the end of the attack, this Digimon is deleted.";
+  expect(playerFacingEffectClause({ cardId: "EX12-004", timing: "EndOfYourTurn", description })).toBe(description);
+});
+
+it.each(["Main", "YourTurn"])("does not mistake Genshi's Use Requirement preamble for its %s activation", (timing) => {
+  const definition = getCardDefinition("EX12-074")!;
+  expect(playerFacingEffectClause({ cardId: "EX12-074", timing, description: definition.effectText })).toBe(
+    cardEffectClauseForTiming("EX12-074", timing),
+  );
+});
+
+it("shows Genshi's optional play clause when its full printed text is supplied", () => {
+  const part = "Then, you may play 1 [Shambala] trait card from your hand with the cost reduced by 3.";
+  expect(
+    playerFacingEffectClause({
+      cardId: "EX12-074",
+      timing: "Main",
+      description: getCardDefinition("EX12-074")!.effectText,
+      effectTextPart: part,
+    }),
+  ).toBe(part);
+});
+
 it("distinguishes Monarchlizamon's two effects with the same evolution timing", () => {
   const descriptions = [
     "[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",

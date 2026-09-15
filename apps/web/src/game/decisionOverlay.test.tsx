@@ -61,6 +61,42 @@ function renderDecision(request: DecisionRequest = optionalDecision) {
   return { ...result, onRespond };
 }
 
+it("shows Genshi's activating effect instead of its Use Requirement", () => {
+  renderDecision({
+    decisionId: "genshi-main",
+    seat: 0,
+    kind: "optional",
+    promptText: "Use this effect?",
+    sourceCardId: "EX12-074",
+    options: { timing: "Main", effectText: getCardDefinition("EX12-074")!.effectText },
+  });
+  expect(screen.getByText(/Add your bottom security card to the hand/)).toBeTruthy();
+  expect(screen.queryByText(/Use Req/)).toBeNull();
+});
+
+it.each(["optional", "orderTriggers"] as const)("names granted Execute in the %s choice", (kind) => {
+  const description =
+    "＜Execute＞: at the end of this turn, this Digimon may attack (including an unsuspended opponent's Digimon). At the end of the attack, this Digimon is deleted.";
+  renderDecision({
+    decisionId: "granted-execute",
+    seat: 0,
+    kind,
+    promptText: "Use this effect?",
+    sourceCardId: "EX12-009",
+    options:
+      kind === "optional"
+        ? { timing: "EndOfYourTurn", effectText: description }
+        : {
+            triggerKeys: ["wankomon/execute"],
+            triggerCardIds: ["EX12-009"],
+            triggerTimings: ["EndOfYourTurn"],
+            triggerDescriptions: [description],
+          },
+  });
+  expect(screen.getByText(/at the end of this turn, this Digimon may attack/)).toBeTruthy();
+  expect(screen.getByText(/Execute/)).toBeTruthy();
+});
+
 it("uses authoritative trigger card ids for order-trigger labels and art", () => {
   renderDecision({
     decisionId: "garurumon-attack-order",

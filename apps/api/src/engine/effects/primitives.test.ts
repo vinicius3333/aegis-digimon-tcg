@@ -1348,6 +1348,15 @@ describe("primitives: digivolveFromInstance (effect-driven digivolve)", () => {
     expect(base.stack.map((c) => c.instanceId)).toContain(baseTopId);
     expect(base.baseDP).toBe(5000);
     expect(h.state.players[0]!.hand).toHaveLength(0);
+    expect(h.events).toContainEqual(
+      expect.objectContaining({
+        kind: "digivolved",
+        seat: 0,
+        permanentId: base.permanentId,
+        cardId: DIGIMON,
+        mechanic: "normal",
+      }),
+    );
   });
 
   // A paid effect-digivolve priced the base against the PRINTED EvoCosts only. A Tamer base

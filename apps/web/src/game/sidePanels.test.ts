@@ -104,11 +104,9 @@ describe("sidePanelFromEvent", () => {
     expect(sidePanelFromEvent(event, VIEWER, lookup({ a: "BT1-010" }, { a: seat }), "id", 0)).toBeNull();
   });
 
-  it("opens a hand panel for an effect that added cards to a hand", () => {
+  it("does not duplicate an effect draw with a hand panel", () => {
     const event: ServerEvent = { kind: "cardsMoved", instanceIds: ["a"], from: "deck", to: "hand" };
-    expect(sidePanelFromEvent(event, VIEWER, lookup({ a: "BT1-010" }, { a: 0 }), "id", 0)?.titleKey).toBe(
-      "panel.cardsAddedToHand",
-    );
+    expect(sidePanelFromEvent(event, VIEWER, lookup({ a: "BT1-010" }, { a: 0 }), "id", 0)).toBeNull();
   });
 
   it("ignores movements the board already shows", () => {
