@@ -1,5 +1,13 @@
 // @vitest-environment jsdom
-import { CardInstance, GameState, Phase, PlayerState, Permanent, type DecisionRequest } from "@aegis/shared";
+import {
+  CardInstance,
+  GameState,
+  Phase,
+  PlayerState,
+  Permanent,
+  type DecisionRequest,
+  type SequencedServerEvent,
+} from "@aegis/shared";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { setActionConfirmationsEnabled } from "../design/actionConfirmation";
@@ -76,6 +84,7 @@ function mount(phase: Phase, decision?: DecisionRequest, withBreedingBase = fals
   }
   const send = vi.fn<(type: string, payload: unknown) => void>();
   const room = { connection: { isOpen: true }, send } as unknown as AegisRoom;
+  const events: SequencedServerEvent[] = [];
   const view = (nextDecision = decision) => (
     <I18nProvider>
       <GameScreen
@@ -86,7 +95,7 @@ function mount(phase: Phase, decision?: DecisionRequest, withBreedingBase = fals
           room,
           status: "connected",
           state,
-          events: [],
+          events: [...events],
           batches: [],
           decision: nextDecision,
           acknowledgeDecision: () => undefined,
@@ -100,6 +109,17 @@ function mount(phase: Phase, decision?: DecisionRequest, withBreedingBase = fals
   const rendered = render(view());
   return {
     send,
+    rejectPlay() {
+      events.push({
+        kind: "actionRejected",
+        intent: "playCard",
+        reason: "wrong-phase",
+        seq: 1,
+        batch: "rejection",
+        stateVersion: state.stateVersion,
+      });
+      rendered.rerender(view());
+    },
     setOpponentConnected(connected: boolean) {
       state.players[1]!.connected = connected;
       rendered.rerender(view());
@@ -131,6 +151,21 @@ it("plays during active presentation cues in Main", () => {
   expect(send).toHaveBeenCalledWith("playCard", expect.objectContaining({ instanceId: "hand-card" }));
   expect(cueFns.advance).not.toHaveBeenCalled();
   expect(cueFns.skip).not.toHaveBeenCalled();
+});
+
+it("restores an optimistically hidden played card when the server rejects it", () => {
+  setActionConfirmationsEnabled(false);
+  const { rejectPlay } = mount(Phase.Main);
+  const hand = screen.getByTestId("hand").querySelector<HTMLElement>(".game-hand-card")!;
+  fireEvent.click(hand);
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "Greymon" })).getByRole("button", { name: "Play Digimon" }),
+  );
+  expect(screen.getByTestId("hand").querySelectorAll(".game-hand-card")).toHaveLength(0);
+
+  rejectPlay();
+
+  expect(screen.getByTestId("hand").querySelectorAll(".game-hand-card")).toHaveLength(1);
 });
 
 it("allows breeding hatch and end phase while presentation cues are active", () => {

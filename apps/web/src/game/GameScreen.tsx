@@ -16,9 +16,11 @@ import {
   getCardDefinition,
   parseTriggerKey,
   type AssemblyRequirement,
+  type AssemblyPlan,
   type AttackTarget,
   type DecisionResponse,
   type DigiXrosRequirement,
+  type DigiXrosPlan,
   type Permanent,
   type Seat,
 } from "@aegis/shared";
@@ -402,6 +404,10 @@ export function GameScreen({
 
   const [handSel, setHandSel] = useState<string | null>(null); // selected hand instanceId
   const [handPreview, setHandPreview] = useState<string | null>(null); // pinned hand-card inspection
+  // A play leaves the hand visually at the same instant the intent is dispatched. The
+  // synchronized state will confirm that departure; a rejection rolls it back.
+  const [optimisticPlayedInstanceId, setOptimisticPlayedInstanceId] = useState<string>();
+  const playAttemptEventSeqRef = useRef(-1);
   const [selPerm, setSelPerm] = useState<string | null>(null); // selected attacker permanentId
   // A link declaration in progress: the card to link (hand or a battle-area top) and the
   // server-projected Digimon it may be plugged into. The next tap on one of them sends it.
@@ -884,6 +890,22 @@ export function GameScreen({
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
 
+  useEffect(() => {
+    if (!optimisticPlayedInstanceId) return;
+    const stillInHand = you?.hand.some((card) => card.instanceId === optimisticPlayedInstanceId) ?? false;
+    if (!stillInHand) {
+      setOptimisticPlayedInstanceId(undefined);
+      return;
+    }
+    const rejected = events.some(
+      (event, index) =>
+        event.kind === "actionRejected" &&
+        event.intent === "playCard" &&
+        (event.seq ?? index) > playAttemptEventSeqRef.current,
+    );
+    if (rejected) setOptimisticPlayedInstanceId(undefined);
+  }, [events, optimisticPlayedInstanceId, you]);
+
   // Re-measured whenever the board's population changes, which is also the commit that
   // drops a deleted permanent: the survivors are re-measured and the deleted permanent's
   // last position stays behind for its burst.
@@ -1091,7 +1113,11 @@ export function GameScreen({
   const breedingYou = cues.heldBreedingState?.seat === viewerSeat ? cues.heldBreedingState.player : shownYou;
   const breedingOpp = cues.heldBreedingState?.seat === otherSeat(viewerSeat) ? cues.heldBreedingState.player : shownOpp;
   const shownHand = heldYou?.hand ?? you.hand;
-  const shownHandCount = heldYou?.handCount ?? you.handCount;
+  const shownHandCount = Math.max(
+    0,
+    (heldYou?.handCount ?? you.handCount) -
+      (optimisticPlayedInstanceId && you.hand.some((card) => card.instanceId === optimisticPlayedInstanceId) ? 1 : 0),
+  );
   const shownOpponentHandCount = heldOpp?.handCount ?? opp.handCount;
   const isMyTurn = state.turnSeat === viewerSeat;
   // Ordinary actions wait for the presented board to catch up, then follow the live
@@ -1142,22 +1168,24 @@ export function GameScreen({
    * Only the turn-start draw may retain an earlier hand; retained cards still use live
    * legality, and a card already removed by the server cannot be acted on.
    */
-  const shownHandEntries: HandEntry[] = !heldYou
-    ? handEntries
-    : [...(shownHand ?? [])].map(
-        (ci) =>
-          handEntries.find((entry) => entry.instanceId === ci.instanceId) ?? {
-            instanceId: ci.instanceId,
-            cardId: ci.cardId,
-            artId: ci.artId,
-            activatableEffectsJson: "",
-            playableFromHand: false,
-            projectedPlayCost: -1,
-            digivolveTargetPermanentIds: [],
-            linkTargetPermanentIds: [],
-            appFusionRoutes: [],
-          },
-      );
+  const shownHandEntries: HandEntry[] = (
+    !heldYou
+      ? handEntries
+      : [...(shownHand ?? [])].map(
+          (ci) =>
+            handEntries.find((entry) => entry.instanceId === ci.instanceId) ?? {
+              instanceId: ci.instanceId,
+              cardId: ci.cardId,
+              artId: ci.artId,
+              activatableEffectsJson: "",
+              playableFromHand: false,
+              projectedPlayCost: -1,
+              digivolveTargetPermanentIds: [],
+              linkTargetPermanentIds: [],
+              appFusionRoutes: [],
+            },
+        )
+  ).filter((entry) => entry.instanceId !== optimisticPlayedInstanceId);
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
   const selCardId = selEntry?.cardId;
   const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
@@ -1166,6 +1194,19 @@ export function GameScreen({
     handPreview && !decision ? handEntries.find((entry) => entry.instanceId === handPreview) : undefined;
 
   // ----- intent senders (no-op safely if the room dropped) -----
+  const dispatchPlayCard = (
+    activeRoom: Parameters<typeof intents.playCard>[0],
+    instanceId: string,
+    targetSlot?: number,
+    digiXros?: DigiXrosPlan,
+    assembly?: AssemblyPlan,
+    useAs?: "digimon" | "option",
+  ) => {
+    lastPlayAttemptRef.current = instanceId;
+    playAttemptEventSeqRef.current = events.reduce((latest, event, index) => Math.max(latest, event.seq ?? index), -1);
+    setOptimisticPlayedInstanceId(instanceId);
+    intents.playCard(activeRoom, instanceId, targetSlot, digiXros, assembly, useAs);
+  };
   const playCard = (instanceId: string, confirmDrop = false) => {
     if (mainActionBlocked) return;
     const entry = handEntries.find((h) => h.instanceId === instanceId);
@@ -1286,9 +1327,8 @@ export function GameScreen({
       }
     }
     if (room) {
-      lastPlayAttemptRef.current = instanceId;
       playGameCue("cardPlay");
-      intents.playCard(room, instanceId);
+      dispatchPlayCard(room, instanceId);
     }
     clearSel();
   };
@@ -2458,7 +2498,7 @@ export function GameScreen({
               return;
             }
             lastPlayAttemptRef.current = dualPlay.instanceId;
-            intents.playCard(room, dualPlay.instanceId, undefined, undefined, undefined, useAs);
+            dispatchPlayCard(room, dualPlay.instanceId, undefined, undefined, undefined, useAs);
             playGameCue("cardPlay");
             setDualPlay(null);
             clearSel();
@@ -2501,7 +2541,7 @@ export function GameScreen({
           onConfirm={() => {
             if (mainActionBlocked) return;
             if (room) {
-              if (actionConfirm.kind === "play") intents.playCard(room, actionConfirm.instanceId);
+              if (actionConfirm.kind === "play") dispatchPlayCard(room, actionConfirm.instanceId);
               else if (actionConfirm.kind === "digivolve")
                 intents.digivolve(room, actionConfirm.permanentId, actionConfirm.instanceId);
               else intents.dnaDigivolve(room, actionConfirm.materialPermanentIds, actionConfirm.instanceId);
@@ -2595,7 +2635,7 @@ export function GameScreen({
             if (room) {
               lastPlayAttemptRef.current = assemblyPick.instanceId;
               playGameCue("cardPlay");
-              intents.playCard(room, assemblyPick.instanceId, undefined, undefined, { materialInstanceIds });
+              dispatchPlayCard(room, assemblyPick.instanceId, undefined, undefined, { materialInstanceIds });
             }
             setAssemblyPick(null);
             clearSel();
@@ -2605,7 +2645,7 @@ export function GameScreen({
             if (room) {
               lastPlayAttemptRef.current = assemblyPick.instanceId;
               playGameCue("cardPlay");
-              intents.playCard(room, assemblyPick.instanceId);
+              dispatchPlayCard(room, assemblyPick.instanceId);
             }
             setAssemblyPick(null);
             clearSel();
@@ -2628,13 +2668,13 @@ export function GameScreen({
           onConfirm={(materialInstanceIds, expanderPermanentIds) => {
             if (mainActionBlocked) return;
             if (room)
-              intents.playCard(room, digiXrosPick.instanceId, undefined, { materialInstanceIds, expanderPermanentIds });
+              dispatchPlayCard(room, digiXrosPick.instanceId, undefined, { materialInstanceIds, expanderPermanentIds });
             setDigiXrosPick(null);
             clearSel();
           }}
           onSkip={() => {
             if (mainActionBlocked) return;
-            if (room) intents.playCard(room, digiXrosPick.instanceId);
+            if (room) dispatchPlayCard(room, digiXrosPick.instanceId);
             setDigiXrosPick(null);
             clearSel();
           }}
