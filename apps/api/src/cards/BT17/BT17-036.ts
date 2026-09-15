@@ -31,6 +31,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectTrashesFromSecurity",
+          raw: "[All Turns] [Once Per Turn] When a card is trashed from your security stack by an effect, this Digimon with [Leon Alexander] in its digivolution cards may digivolve into a Digimon card with [Pulsemon]\u00a0in its text in the hand without paying the cost.",
+          effectTextPart:
+            "[All Turns] [Once Per Turn] When a card is trashed from your security stack by an effect, this Digimon with [Leon Alexander] in its digivolution cards may digivolve into a Digimon card with [Pulsemon]\u00a0in its text in the hand without paying the cost.",
           actions: [
             {
               kind: "Digivolve",

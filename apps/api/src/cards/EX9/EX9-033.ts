@@ -59,6 +59,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
+          raw: "[All Turns] [Once Per Turn] When other Digimon are deleted, delete 1 of your opponent's lowest level Digimon.",
+          effectTextPart:
+            "[All Turns] [Once Per Turn] When other Digimon are deleted, delete 1 of your opponent's lowest level Digimon.",
           sourceFilter: {
             controller: "any",
             excludeSelf: true,

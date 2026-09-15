@@ -1175,6 +1175,15 @@ export function playerFacingEffectClause({
   const exactPrintedClause = supplied
     ? boxes.flatMap((text) => text?.split("\n") ?? []).find((line) => normalize(line) === normalize(supplied))
     : undefined;
+  // Some catalog entries place consecutive printed clauses on one line. A watcher still sends
+  // its complete bracketed clause, so recognize that exact fragment instead of falling back to
+  // the first clause with the same timing.
+  const containedPrintedClause =
+    supplied &&
+    /^\[[^\]]+\]/.test(supplied) &&
+    boxes.some((text) => normalize(text ?? "").includes(normalize(supplied)))
+      ? supplied
+      : undefined;
   // A full card text can start with a keyword preamble (e.g. Use Req.).
   // Keyword activations are standalone or followed by explanatory prose.
   const keywordPrefix = supplied?.match(/^＜[^＞]+＞/)?.[0];
@@ -1200,7 +1209,8 @@ export function playerFacingEffectClause({
     (matchingKeyword ||
       keywordActivation ||
       delayClause ||
-      (exactPrintedClause && effectClauseForTiming(exactPrintedClause, effectiveTiming))) ??
+      ((exactPrintedClause || containedPrintedClause) &&
+        effectClauseForTiming(exactPrintedClause || containedPrintedClause, effectiveTiming))) ??
     (effectiveTiming === undefined ? undefined : resolvedEffectClause(cardId, effectiveTiming, inherited));
   const part = effectTextPart?.trim();
   const timingClause =
