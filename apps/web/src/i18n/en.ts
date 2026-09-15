@@ -276,6 +276,8 @@ export const en = {
   "game.reconnectingDetail": "The connection dropped. Trying to resume your match.",
   "game.connectionLost": "Connection lost",
   "game.connectionLostDetail": "The server is unreachable. Check your connection and try again.",
+  "game.opponentDisconnected": "Opponent disconnected",
+  "game.opponentDisconnectedDetail": "Waiting for your opponent to reconnect. The match will resume automatically.",
   "game.waitingBot": "Connecting bot opponent…",
   "game.waitingBotDetail": "The match starts automatically.",
   "game.botConnectionFailed": "Could not connect the bot",

@@ -100,12 +100,25 @@ function mount(phase: Phase, decision?: DecisionRequest, withBreedingBase = fals
   const rendered = render(view());
   return {
     send,
+    setOpponentConnected(connected: boolean) {
+      state.players[1]!.connected = connected;
+      rendered.rerender(view());
+    },
     update(nextPhase: Phase, nextDecision?: DecisionRequest) {
       state.phase = nextPhase;
       rendered.rerender(view(nextDecision));
     },
   };
 }
+
+it("shows a modal while the opponent is disconnected and closes it after reconnection", () => {
+  const { setOpponentConnected } = mount(Phase.Main);
+  setOpponentConnected(false);
+  expect(screen.getByRole("dialog", { name: "Opponent disconnected" })).toBeDefined();
+  expect(screen.getByText(/match will resume automatically/i)).toBeDefined();
+  setOpponentConnected(true);
+  expect(screen.queryByRole("dialog", { name: "Opponent disconnected" })).toBeNull();
+});
 
 it("plays during active presentation cues in Main", () => {
   setActionConfirmationsEnabled(false);

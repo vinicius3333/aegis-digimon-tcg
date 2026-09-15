@@ -279,6 +279,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.reconnectingDetail": "A conexão caiu. Tentando retomar sua partida.",
   "game.connectionLost": "Conexão perdida",
   "game.connectionLostDetail": "O servidor está inacessível. Verifique sua conexão e tente de novo.",
+  "game.opponentDisconnected": "Oponente desconectado",
+  "game.opponentDisconnectedDetail": "Aguardando o oponente reconectar. A partida continuará automaticamente.",
   "game.waitingBot": "Conectando o bot adversário…",
   "game.waitingBotDetail": "A partida começa automaticamente.",
   "game.botConnectionFailed": "Não foi possível conectar o bot",

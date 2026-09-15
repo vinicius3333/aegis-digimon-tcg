@@ -40,6 +40,10 @@ export interface AnimationStep {
   replace?: boolean;
   /** Defaults to true. A step that carries something to read sets false and keeps its time. */
   skippable?: boolean;
+  /** Informational steps can remain visible without holding the presented board snapshot. */
+  holdsBoard?: boolean;
+  /** Informational steps can remain visible while an authoritative decision opens. */
+  blocksDecision?: boolean;
   /**
    * Overrides the queue's mode for this step alone. Reconnect replay enqueues
    * `replay` steps while the queue itself stays live for whatever comes next.

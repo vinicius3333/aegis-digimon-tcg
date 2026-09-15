@@ -3,7 +3,7 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CardInstance, Permanent, Phase, type GameState, type ServerEvent } from "@aegis/shared";
-import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
+import { compactPhaseArrivals, useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import {
   CLASH_OUTCOME_AT_MS,
@@ -241,7 +241,7 @@ it.each([0, 1] as const)(
     expect(result.current.drawFlights).toHaveLength(1);
     expect(result.current.phaseBanner).toBeNull();
     await advance(result.current.drawFlights[0]!.duration + 32);
-    expect(result.current.phaseBanner?.phase).toBe("End");
+    expect(result.current.phaseBanner?.phase).toBe("Breeding");
   },
 );
 
@@ -279,6 +279,26 @@ it("finishes an effect-driven digivolution burst before flying its bonus draw", 
   expect(result.current.drawFlights).toHaveLength(0);
   await advance(TIMINGS.cardBurst);
   expect(result.current.drawFlights).toHaveLength(1);
+});
+
+it("collapses a complete automatic phase burst to the phase the server actually reached", () => {
+  const arrivals = [
+    { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 },
+    { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 },
+    { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
+    { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 2 },
+    { kind: "phaseChanged", phase: "Breeding", turnSeat: 1, turnCount: 2 },
+    { kind: "phaseChanged", phase: "Main", turnSeat: 1, turnCount: 2 },
+  ] as const satisfies readonly Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }>[];
+
+  expect(compactPhaseArrivals(arrivals)).toEqual([arrivals.at(-1)]);
+  expect(compactPhaseArrivals(arrivals.slice(0, 4))).toEqual(arrivals.slice(0, 4));
+  const unrelated = [
+    ...arrivals.slice(0, 3),
+    { kind: "phaseChanged", phase: "End", turnSeat: 1, turnCount: 2 },
+    { kind: "phaseChanged", phase: "Main", turnSeat: 0, turnCount: 3 },
+  ] as const;
+  expect(compactPhaseArrivals(unrelated)).toEqual(unrelated);
 });
 
 /**
@@ -560,11 +580,12 @@ describe("match cues", () => {
   });
 
   it.each(["separate", "combined", "raw"])(
-    "does not let a bot attack overtake queued turn phases (%s batch)",
+    "collapses a bot's queued turn phases before presenting its attack (%s batch)",
     async (delivery) => {
       const { result, rerender } = renderCues([], undefined, delivery === "raw");
+      const turnEnd: ServerEvent = { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 3 };
       const phases: ServerEvent[] = [
-        TURN_END,
+        turnEnd,
         ...["Active", "Draw", "Breeding", "Main"].map((phase) => ({
           kind: "phaseChanged" as const,
           phase,
@@ -575,14 +596,11 @@ describe("match cues", () => {
       rerender(delivery !== "separate" ? [...phases, ATTACK, REVEAL, CHECK] : phases);
       await advance(100);
       if (delivery === "separate") rerender([...phases, ATTACK, REVEAL, CHECK]);
-      await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
-      for (const phase of ["Active", "Draw", "Breeding", "Main"]) {
-        expect(result.current.phaseBanner?.phase).toBe(phase);
-        expect(result.current.attackAnnouncement).toBeNull();
-        expect(result.current.attackLunge).toBeNull();
-        expect(result.current.securityClash).toBeNull();
-        await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
-      }
+      expect(result.current.phaseBanner?.phase).toBe("Main");
+      expect(result.current.attackAnnouncement).toBeNull();
+      expect(result.current.attackLunge).toBeNull();
+      expect(result.current.securityClash).toBeNull();
+      await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
       await advance(16);
       expect(result.current.attackAnnouncement).not.toBeNull();
     },
@@ -700,7 +718,7 @@ describe("match cues", () => {
     expect(result.current.turnTransition).not.toBeNull();
   });
 
-  it("announces all phases in order when they arrive in one batch", async () => {
+  it("announces unrelated phases in order when they arrive in one batch", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
     const phases = ["Active", "Draw", "Breeding", "Main", "End"];
@@ -2767,6 +2785,10 @@ describe("the narration feed", () => {
       await advance(0);
       view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
       await advance(0);
+      expect(cards(view.result.current.narration)).toEqual(["BT1-001"]);
+      await advance(TIMINGS.effectAnnounce);
+      expect(cards(view.result.current.narration)).toEqual(["BT1-002"]);
+      await advance(TIMINGS.effectAnnounce);
       expect(cards(view.result.current.narration)).toEqual(["BT1-009"]);
       expect(view.result.current.narrationLock).toBe(false);
       expect(view.result.current.presenting).toBe(false);

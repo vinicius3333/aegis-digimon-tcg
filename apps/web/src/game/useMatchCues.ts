@@ -184,6 +184,7 @@ const BOARD_HOLDING_TRACKS: readonly string[] = [
 ];
 
 function holdsTheBoard(step: AnimationStep): boolean {
+  if (step.holdsBoard === false) return false;
   const track = step.track ?? "";
   return (
     step.id.startsWith("narration-step-") ||
@@ -344,6 +345,43 @@ const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 /** The phone layouts, matching GameScreen's `NARROW_LAYOUT_QUERY` and the touch block in game.css. */
 const TOUCH_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";
+
+/**
+ * React can receive a complete automatic turn transition in one render. Playing every
+ * intermediate ribbon after the server has already reached the final phase leaves the
+ * presentation several seconds behind the match. Keep incremental transitions intact,
+ * but collapse a burst containing the whole turn pipeline to its newest useful phase.
+ */
+export function compactPhaseArrivals(
+  arrivals: readonly Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }>[],
+): readonly Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }>[] {
+  let turnEndedIndex = -1;
+  for (let index = arrivals.length - 1; index >= 0; index -= 1) {
+    if (arrivals[index]?.kind !== "turnEnded") continue;
+    turnEndedIndex = index;
+    break;
+  }
+  if (turnEndedIndex < 0) return arrivals;
+  const turnEnded = arrivals[turnEndedIndex];
+  if (turnEnded?.kind !== "turnEnded") return arrivals;
+  const automaticPhases = arrivals.slice(turnEndedIndex + 1);
+  if (automaticPhases.length < 3) return arrivals;
+  const phaseRanks = new Map(["Active", "Draw", "Breeding", "Main"].map((phase, index) => [phase, index]));
+  let previousRank = -1;
+  for (const event of automaticPhases) {
+    if (event.kind !== "phaseChanged" || event.turnSeat !== turnEnded.nextSeat) return arrivals;
+    const rank = phaseRanks.get(event.phase);
+    if (rank === undefined || rank <= previousRank) return arrivals;
+    previousRank = rank;
+  }
+  const preceding = arrivals[turnEndedIndex - 1];
+  const transitionStart =
+    preceding?.kind === "phaseChanged" && preceding.phase === "End" && preceding.turnSeat === turnEnded.endingSeat
+      ? turnEndedIndex - 1
+      : turnEndedIndex;
+  if (arrivals.length - transitionStart < 5) return arrivals;
+  return [...arrivals.slice(0, transitionStart), automaticPhases.at(-1)!];
+}
 
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
@@ -611,7 +649,9 @@ export function useMatchCues({
   // deliberately excluded: it waits for the answer itself and would deadlock.
   // Toast reading happens outside the queue, so it never delays a decision.
   queueChangedRef.current = () =>
-    setDecisionAnimationsPending(queue.hasPendingStep((step) => step.track !== SECURITY_DOCK_TRACK));
+    setDecisionAnimationsPending(
+      queue.hasPendingStep((step) => step.track !== SECURITY_DOCK_TRACK && step.blocksDecision !== false),
+    );
   // Assigned on every render so the queue's bookkeeping always reaches the current setter.
   publishPresentedRef.current = () => setPresentedStateVersion(progress.current());
 
@@ -932,6 +972,8 @@ export function useMatchCues({
       id: `narration-step-${item.id}`,
       origin,
       track,
+      holdsBoard: false,
+      blocksDecision: false,
       async run(context) {
         if (context.mode === "replay" || narrationSkipRef.current) return;
         if (onPlay && initialSite?.zone === "field") {
@@ -978,7 +1020,9 @@ export function useMatchCues({
         if (!shown) return;
         setNarration((items) => new Map([...items, [shown.id, shown] as const].slice(-narrationLimitRef.current)));
         reportShown(`narration-step-${item.id}`, context);
-        if (onPlay && shown.notice) await context.wait(TIMINGS.effectAnnounce);
+        // One narration slot is a FIFO, not a latest-event ticker. Give every clause
+        // one readable beat before the next server event can replace it in that slot.
+        if (shown.notice && narrationLimitRef.current === 1) await context.wait(TIMINGS.effectAnnounce);
       },
     });
   }
@@ -2223,7 +2267,7 @@ export function useMatchCues({
       phaseBaselineRef.current = true;
       return;
     }
-    const fresh = phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0);
+    const fresh = compactPhaseArrivals(phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0));
     for (const openedPhase of fresh) {
       if (openedPhase.kind === "phaseChanged" && !isAnnouncedPhase(openedPhase.phase)) continue;
       const phaseOrder = ++nextPhaseOrderRef.current;

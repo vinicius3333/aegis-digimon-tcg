@@ -2429,6 +2429,10 @@ export function GameScreen({
         <BugReportDialog signedIn={signedIn} matchLogId={state.matchLogId} onClose={() => setBugReportOpen(false)} />
       ) : null}
 
+      {!vsBot && !opp.connected && !state.gameOver ? (
+        <WaitingOverlay title={t("game.opponentDisconnected")} detail={t("game.opponentDisconnectedDetail")} />
+      ) : null}
+
       {state.gameOver ? (
         <GameOverOverlay
           result={gameOverResult}
