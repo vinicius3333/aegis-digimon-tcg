@@ -213,6 +213,9 @@ export type ServerEvent =
       kind: "effectResolved";
       seat: Seat;
       sourceCardId: string;
+      /** Physical source and host copied from the matching `effectTriggered`. */
+      sourceInstanceId?: string;
+      sourcePermanentId?: string;
       effectKey: string;
       description: string;
       timing?: string;

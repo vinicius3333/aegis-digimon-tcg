@@ -162,7 +162,8 @@ export interface SubTriggerSubscription {
  * this to announce it to the players the way the effect stack announces the effects it
  * resolves. Called immediately before the body, never for a watcher that was skipped.
  */
-export type SubTriggerAnnounce = (sub: SubTriggerSubscription, ctx: EffectContext | undefined) => void;
+/** Announces a watcher and may return the callback that closes its presentation after resolution. */
+export type SubTriggerAnnounce = (sub: SubTriggerSubscription, ctx: EffectContext | undefined) => void | (() => void);
 
 /** The per-turn firing ledger `fire` consults/updates for `oncePerTurnKey`-gated watchers. */
 export interface SubTriggerTurnLedger {
@@ -561,8 +562,9 @@ export class SubTriggerRegistry {
         // by that combination only when it is the intentional, contextless BT1-021 shape.
         if (sub.sourcePermanentId === undefined && sub.sourceInstanceId === undefined && sub.matches === undefined) {
           this.markFired(sub, windowToken, turnLedger);
-          announce?.(sub, undefined);
+          const resolved = announce?.(sub, undefined);
           await sub.run(undefined as unknown as EffectContext);
+          resolved?.();
           if (sub.oncePerTurnKey !== undefined) successfulOncePerTurnKeys.add(sub.oncePerTurnKey);
           fired += 1;
         }
@@ -572,7 +574,7 @@ export class SubTriggerRegistry {
         continue;
       }
       this.markFired(sub, windowToken, turnLedger);
-      announce?.(sub, ctx);
+      const resolved = announce?.(sub, ctx);
       // Every triggered watcher is an effect resolution. Keep the resolving seat/kinds on
       // the same stack used by ordinary timing effects so nested verbs retain effect
       // provenance (for example, a Tamer's PlaceUnder must publish byEffectSeat). A linked
@@ -586,6 +588,7 @@ export class SubTriggerRegistry {
       } finally {
         ctx.fx?.leaveEffectResolution?.();
       }
+      resolved?.();
       if (sub.oncePerTurnKey !== undefined && ctx.oncePerTurnActivationDeclined === true) {
         // A shared same-event snapshot may contain several action-path clauses. A declined
         // sibling rolls back only its provisional mark; once any sibling has succeeded, the

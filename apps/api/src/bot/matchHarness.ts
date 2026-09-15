@@ -28,6 +28,8 @@ export interface MatchOptions {
   seats: readonly [SeatConfig, SeatConfig];
   /** Abort a match that has not ended by this turn, scoring it as a draw. */
   turnLimit?: number;
+  /** Keep the public event stream for deterministic presentation analysis. */
+  captureEvents?: boolean;
 }
 
 export interface SeatStats {
@@ -50,6 +52,8 @@ export interface MatchResult {
   rejections: { seat: Seat; intent: string; reason: string }[];
   errors: string[];
   seats: [SeatStats, SeatStats];
+  /** Present only when `captureEvents` was requested; avoids retaining large traces in benchmarks. */
+  events?: ServerEvent[];
 }
 
 const DEFAULT_TURN_LIMIT = 60;
@@ -76,6 +80,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   ];
   const rejections: MatchResult["rejections"] = [];
   const errors: string[] = [];
+  const events: ServerEvent[] | undefined = options.captureEvents ? [] : undefined;
   const bots: (BotPlayer | undefined)[] = [undefined, undefined];
   let finished = false;
   let winnerSeat: Seat | undefined;
@@ -90,6 +95,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
       bots[seat]?.onActionSettled(intentType);
     },
     emit: (event: ServerEvent) => {
+      events?.push(structuredClone(event));
       recordEvent(event, state, stats);
       if (event.kind === "gameOver") {
         finished = true;
@@ -168,6 +174,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
     rejections,
     errors,
     seats: stats,
+    ...(events ? { events } : {}),
   };
 }
 
