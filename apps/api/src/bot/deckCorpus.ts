@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { releaseDateForSet } from "@aegis/shared";
 import type { Decklist } from "../engine/testDecks.js";
 import { assertLegalDeck } from "../engine/testDecks.js";
 import type { FuzzDeck } from "./battleFuzzer.js";
@@ -8,6 +9,13 @@ interface StoredDeckShape {
   eggDeck?: unknown;
   main_deck?: unknown;
   egg_deck?: unknown;
+}
+
+/** Stable newest-first ordering for catalog sources; unknown dates remain last. */
+export function newestDeckSources<T extends { block: string }>(sources: readonly T[]): T[] {
+  return [...sources].sort((left, right) =>
+    (releaseDateForSet(right.block) ?? "").localeCompare(releaseDateForSet(left.block) ?? ""),
+  );
 }
 
 function cardIds(value: unknown, field: string): string[] {

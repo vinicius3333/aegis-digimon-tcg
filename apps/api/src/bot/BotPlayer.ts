@@ -70,6 +70,7 @@ export class BotPlayer {
   private runningMainPhase = false;
   private resumeMainPhaseWhenIdle = false;
   private lastTurnStarted = -1;
+  private breedingActionTurn = -1;
   /** The attack currently in its block window, so the block appraisal knows the target. */
   private pendingAttackTargetsPlayer = true;
   private readonly minThinkMs: number;
@@ -104,11 +105,27 @@ export class BotPlayer {
     return this.policy.name;
   }
 
+  /** Minimal scheduler state for headless stall diagnostics. */
+  get diagnosticState(): { runningMainPhase: boolean; resumeMainPhaseWhenIdle: boolean } {
+    return {
+      runningMainPhase: this.runningMainPhase,
+      resumeMainPhaseWhenIdle: this.resumeMainPhaseWhenIdle,
+    };
+  }
+
   onDecisionRequested(request: DecisionRequest): void {
+    const requestedTurnCount = this.state.turnCount;
     void this.nextActionDelay().then(() => {
       this.act(this.policy.answerDecision(this.view(), request));
-      // Answering may have been what the main-phase loop was waiting on; restart it.
-      this.startMainPhaseLoop();
+      // Answering may have been what the phase driver was waiting on. Let the engine's
+      // continuation settle before reading the phase and scheduling the next action.
+      void settleContinuation().then(() => {
+        // A decision can finish a combat or effect that also ends the turn. The new
+        // phaseChanged event owns the next turn; this stale callback must not act in it.
+        if (this.state.turnCount !== requestedTurnCount || this.state.turnSeat !== this.seat) return;
+        if (this.state.phase === Phase.Breeding) this.runBreedingPhase();
+        else this.startMainPhaseLoop();
+      });
     });
   }
 
@@ -164,9 +181,22 @@ export class BotPlayer {
           const context = {
             attackerPermanentId: event.attackerPermanentId,
             eligibleBlockerIds: event.eligibleBlockerIds,
+            mustBlock: event.mustBlock === true,
             targetsPlayer: this.pendingAttackTargetsPlayer,
           };
-          this.respondWithView((view) => this.policy.chooseBlockResponse(view, context), { type: "declineBlock" });
+          const forcedBlockerId = event.mustBlock === true ? event.eligibleBlockerIds[0] : undefined;
+          const fallback: Intent =
+            forcedBlockerId === undefined
+              ? { type: "declineBlock" }
+              : { type: "declareBlock", blockerPermanentId: forcedBlockerId };
+          this.respondWithView(
+            (view) => this.policy.chooseBlockResponse(view, context),
+            fallback,
+            () =>
+              this.state.combatWindow?.kind === "block" &&
+              this.state.combatWindow.seat === this.seat &&
+              this.state.combatWindow.attackerPermanentId === event.attackerPermanentId,
+          );
         }
         break;
       case "counterWindowOpened":
@@ -218,8 +248,13 @@ export class BotPlayer {
    * staying silent. Answered on a reflex rather than a think time: the attack is frozen
    * on the attacker's screen until it lands.
    */
-  private respondWithView(choose: (view: BotView) => Intent, fallback: Intent): void {
+  private respondWithView(
+    choose: (view: BotView) => Intent,
+    fallback: Intent,
+    stillOpen: () => boolean = () => true,
+  ): void {
     void this.reflex().then(() => {
+      if (!stillOpen()) return;
       const view = this.view();
       this.act(view === undefined ? fallback : choose(view));
     });
@@ -254,7 +289,11 @@ export class BotPlayer {
   }
 
   private startMainPhaseLoop(): void {
-    if (!this.isMyMainPhase() || this.runningMainPhase) return;
+    if (!this.isMyMainPhase()) return;
+    if (this.runningMainPhase) {
+      this.resumeMainPhaseWhenIdle = true;
+      return;
+    }
     this.runningMainPhase = true;
     void this.runMainPhaseLoop().finally(() => {
       this.runningMainPhase = false;
@@ -266,12 +305,23 @@ export class BotPlayer {
   }
 
   private runBreedingPhase(): void {
+    if (
+      this.state.gameOver ||
+      this.state.turnSeat !== this.seat ||
+      this.state.phase !== Phase.Breeding ||
+      this.state.pendingDecision !== undefined
+    )
+      return;
+    if (this.breedingActionTurn === this.state.turnCount) return;
     const view = this.view();
     if (view === undefined) {
+      this.breedingActionTurn = this.state.turnCount;
       this.act({ type: "endPhase" });
       return;
     }
-    this.act(this.policy.chooseBreedingAction(view));
+    this.breedingActionTurn = this.state.turnCount;
+    const result = this.act(this.policy.chooseBreedingAction(view));
+    if (result !== undefined && result.ok === false) this.breedingActionTurn = -1;
   }
 
   private async runMainPhaseLoop(): Promise<void> {
@@ -279,22 +329,20 @@ export class BotPlayer {
     await microtask();
 
     let actionStep = 0;
-    let waitStep = 0;
     while (actionStep < MAX_MAIN_PHASE_ACTIONS) {
       if (!this.isMyMainPhase()) return;
 
       const pending = this.state.pendingDecision;
       if (pending !== undefined) {
         if (pending.seat !== this.seat) {
-          // A decision for the opponent blocks our actions too; yield and retry.
-          if (++waitStep > 100) return;
+          // A decision for the opponent blocks our actions too. Keep the active seat's
+          // driver alive until it closes: only the responding bot is notified directly.
           await microtask();
           continue;
         }
         // Our own decision; onDecisionRequested answers it and restarts this loop.
         return;
       }
-      waitStep = 0;
       actionStep++;
 
       await this.nextActionDelay();
@@ -321,7 +369,7 @@ export class BotPlayer {
       await microtask();
     }
 
-    if (this.isMyMainPhase()) this.act({ type: "endPhase" });
+    if (this.isMyMainPhase() && this.state.pendingDecision === undefined) this.act({ type: "endPhase" });
   }
 
   private isMyMainPhase(): boolean {
@@ -352,4 +400,10 @@ export class BotPlayer {
 
 function microtask(): Promise<void> {
   return new Promise<void>((resolve) => setImmediate(resolve));
+}
+
+async function settleContinuation(): Promise<void> {
+  // Decision resolution may unwind several nested trigger promises before the main verb
+  // queue is ready again. Keep this headless-safe; real-time bots already wait seconds.
+  for (let step = 0; step < 10; step++) await microtask();
 }

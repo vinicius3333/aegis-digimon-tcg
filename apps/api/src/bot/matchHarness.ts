@@ -56,6 +56,8 @@ export interface MatchResult {
     details?: Intent;
     cardId?: string;
     hostCardId?: string;
+    phase?: Phase;
+    turnCount?: number;
   }[];
   errors: string[];
   seats: [SeatStats, SeatStats];
@@ -125,8 +127,8 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
         intent.type === "digivolve"
           ? (
               state.players[seat]?.battleArea.find((permanent) => permanent.permanentId === intent.permanentId) ??
-              (state.players[seat]?.breedingArea?.permanentId === intent.permanentId
-                ? state.players[seat]?.breedingArea
+              (state.players[seat]?.breeding?.permanentId === intent.permanentId
+                ? state.players[seat]?.breeding
                 : undefined)
             )?.topCard?.cardId
           : undefined;
@@ -138,6 +140,8 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
             intent: intent.type,
             reason: result.reason,
             details: structuredClone(intent),
+            phase: state.phase,
+            turnCount: state.turnCount,
             ...(rejectedCardId ? { cardId: rejectedCardId } : {}),
             ...(rejectedHostCardId ? { hostCardId: rejectedHostCardId } : {}),
           });
@@ -184,7 +188,14 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
     if (signature === progressSignature) {
       ticksSinceProgress += 1;
       if (ticksSinceProgress > 5_000) {
-        errors.push(`match stalled at ${signature}`);
+        errors.push(
+          `match stalled at ${signature} ` +
+            JSON.stringify({
+              combatWindow: state.combatWindow?.toJSON(),
+              bots: bots.map((bot) => bot?.diagnosticState),
+              lastEvent: events?.at(-1),
+            }),
+        );
         break;
       }
     } else {

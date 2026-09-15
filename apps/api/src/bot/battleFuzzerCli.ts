@@ -3,7 +3,7 @@ import { dirname, isAbsolute, resolve } from "node:path";
 import { ALL_FAMOUS_DECKS, VALIDATED_FAMOUS_DECKS, isFamousDeckAvailable, type FamousDeck } from "@aegis/shared";
 import { assertLegalDeck, type Decklist } from "../engine/testDecks.js";
 import { runBattleFuzz, type FuzzDeck } from "./battleFuzzer.js";
-import { parseDeckCorpus } from "./deckCorpus.js";
+import { newestDeckSources, parseDeckCorpus } from "./deckCorpus.js";
 
 function integerFlag(name: string, fallback: number | undefined): number | undefined {
   const index = process.argv.indexOf(name);
@@ -32,7 +32,8 @@ function fuzzDeck(source: FamousDeck): FuzzDeck {
 async function main(): Promise<void> {
   const exhaustive = process.argv.includes("--exhaustive");
   const useAvailableCatalog = process.argv.includes("--available-catalog");
-  const sources = useAvailableCatalog ? ALL_FAMOUS_DECKS.filter(isFamousDeckAvailable) : VALIDATED_FAMOUS_DECKS;
+  const selectedSources = useAvailableCatalog ? ALL_FAMOUS_DECKS.filter(isFamousDeckAvailable) : VALIDATED_FAMOUS_DECKS;
+  const sources = process.argv.includes("--newest") ? newestDeckSources(selectedSources) : selectedSources;
   const unique = new Map<string, FuzzDeck>();
   for (const source of sources) {
     const candidate = fuzzDeck(source);

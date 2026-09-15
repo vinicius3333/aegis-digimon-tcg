@@ -91,7 +91,7 @@ function digivolveCandidates(view: BotView): Candidate[] {
   for (const card of view.hand) {
     if (!isDigimonCard(card.definition)) continue;
     for (const base of bases) {
-      if (base.cardId === undefined) continue;
+      if (base.cardId === undefined || base.cannotDigivolve) continue;
       const cost = digivolveCost(card.cardId, base.cardId, { inBreeding: base === view.breeding });
       if (cost === undefined || cost > view.maxAffordable) continue;
       candidates.push({

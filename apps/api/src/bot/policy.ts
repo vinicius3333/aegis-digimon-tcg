@@ -33,6 +33,7 @@ export interface BotPolicy {
 export interface BlockContext {
   attackerPermanentId: string;
   eligibleBlockerIds: readonly string[];
+  mustBlock: boolean;
   /** False when the declared attack targets one of our Digimon rather than us. */
   targetsPlayer: boolean;
 }
@@ -102,12 +103,15 @@ export function createEvaluationPolicy(options: EvaluationPolicyOptions = {}): B
       const readyToDeploy = breeding.level >= profile.weights.deployLevel;
       // A Digimon that can still grow where nothing can attack it should stay put; one
       // that cannot has stopped earning its slot, so move it and free the slot for an egg.
-      const canStillGrow = view.hand.some(
-        (card) =>
-          isDigimonCard(card.definition) &&
-          breeding.cardId !== undefined &&
-          (digivolveCost(card.cardId, breeding.cardId) ?? Number.POSITIVE_INFINITY) <= view.maxAffordable,
-      );
+      const canStillGrow =
+        !breeding.cannotDigivolve &&
+        view.hand.some(
+          (card) =>
+            isDigimonCard(card.definition) &&
+            breeding.cardId !== undefined &&
+            (digivolveCost(card.cardId, breeding.cardId, { inBreeding: true }) ?? Number.POSITIVE_INFINITY) <=
+              view.maxAffordable,
+        );
       if (readyToDeploy || !canStillGrow) {
         return { type: "moveFromBreeding", permanentId: breeding.permanentId };
       }
@@ -121,6 +125,12 @@ export function createEvaluationPolicy(options: EvaluationPolicyOptions = {}): B
     },
 
     chooseBlockResponse(view: BotView, context: BlockContext): Intent {
+      if (context.mustBlock) {
+        const blockerPermanentId = context.eligibleBlockerIds[0];
+        return blockerPermanentId === undefined
+          ? { type: "declineBlock" }
+          : { type: "declareBlock", blockerPermanentId };
+      }
       const attacker = view.opponentBoard.find((unit) => unit.permanentId === context.attackerPermanentId);
       const appraisal = appraiseBlock(view, attacker, context.eligibleBlockerIds, context.targetsPlayer, profile);
       if (appraisal === undefined) return { type: "declineBlock" };

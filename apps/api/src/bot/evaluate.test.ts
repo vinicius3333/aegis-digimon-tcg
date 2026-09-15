@@ -22,6 +22,7 @@ function unit(overrides: Partial<BotUnit> & { permanentId: string }): BotUnit {
     level: 4,
     suspended: false,
     inBreeding: false,
+    cannotDigivolve: false,
     keywords: [],
     canAttackPlayer: false,
     attackablePermanentIds: [],
@@ -270,6 +271,19 @@ describe("candidate legality", () => {
     const state = view({ breeding: shoutmon, hand: [handCard("BT5-014", omniShoutmon)], memory: 10, freeMemory: 10 });
 
     expect(enumerateMainPhaseCandidates(state).map((entry) => entry.key)).not.toContain("digivolve:i-BT5-014:raising");
+  });
+
+  it("does not offer an evolution over a server-restricted base", () => {
+    const negamon = unit({
+      permanentId: "raising",
+      cardId: "EX9-005",
+      definition: getCardDefinition("EX9-005"),
+      cannotDigivolve: true,
+    });
+    const soundbirdmon = getCardDefinition("EX9-046");
+    const state = view({ breeding: negamon, hand: [handCard("EX9-046", soundbirdmon)] });
+
+    expect(enumerateMainPhaseCandidates(state).map((entry) => entry.key)).not.toContain("digivolve:i-EX9-046:raising");
   });
 });
 

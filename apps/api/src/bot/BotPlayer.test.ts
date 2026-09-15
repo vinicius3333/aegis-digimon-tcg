@@ -381,6 +381,7 @@ describe("BotPlayer action pacing and player attacks", () => {
       },
       FIXED_THINK,
     );
+    state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
 
     bot.onEvent({
       kind: "blockWindowOpened",
@@ -392,6 +393,71 @@ describe("BotPlayer action pacing and player attacks", () => {
 
     await advance(COMBAT_REFLEX_MAX_MS - COMBAT_REFLEX_MIN_MS + 1);
     expect(intents).toHaveLength(1);
+  });
+
+  it("does not answer a block window after combat has already closed it", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+      },
+      FIXED_THINK,
+    );
+
+    bot.onEvent({
+      kind: "blockWindowOpened",
+      attackerPermanentId: "atk",
+      eligibleBlockerIds: ["large"],
+    } as ServerEvent);
+    state.combatWindow = undefined;
+    await advance(COMBAT_REFLEX_MAX_MS);
+
+    expect(intents).toEqual([]);
+  });
+
+  it("declares an eligible blocker when Collision makes blocking mandatory", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => intents.push(intent), FIXED_THINK);
+
+    bot.onEvent({
+      kind: "blockWindowOpened",
+      attackerPermanentId: "atk",
+      eligibleBlockerIds: ["large"],
+      mustBlock: true,
+    } as ServerEvent);
+    await advance(COMBAT_REFLEX_MAX_MS);
+
+    expect(intents).toEqual([{ type: "declareBlock", blockerPermanentId: "large" }]);
+  });
+
+  it("falls back to an eligible blocker for Collision when its view is unavailable", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    state.players = [] as never;
+    state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => intents.push(intent), FIXED_THINK);
+
+    bot.onEvent({
+      kind: "blockWindowOpened",
+      attackerPermanentId: "atk",
+      eligibleBlockerIds: ["forced"],
+      mustBlock: true,
+    } as ServerEvent);
+    await advance(COMBAT_REFLEX_MAX_MS);
+
+    expect(intents).toEqual([{ type: "declareBlock", blockerPermanentId: "forced" }]);
   });
 
   // The check owns the centre of the opposing screen until its scene fades. A second

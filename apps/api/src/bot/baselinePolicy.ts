@@ -1,7 +1,7 @@
 import type { DecisionRequest, Intent } from "@aegis/shared";
 import { digivolveCost } from "./candidates.js";
 import { DEFAULT_BOT_PROFILE } from "./profiles.js";
-import type { AllianceContext, BotPolicy, CounterContext } from "./policy.js";
+import type { AllianceContext, BlockContext, BotPolicy, CounterContext } from "./policy.js";
 import { answerDecisionWith } from "./policy.js";
 import { isDigimonCard, type BotUnit, type BotView } from "./view.js";
 
@@ -66,7 +66,11 @@ export function createBaselinePolicy(): BotPolicy {
       return develop.intent;
     },
 
-    chooseBlockResponse(): Intent {
+    chooseBlockResponse(_view: BotView, context: BlockContext): Intent {
+      if (context.mustBlock) {
+        const blockerPermanentId = context.eligibleBlockerIds[0];
+        if (blockerPermanentId !== undefined) return { type: "declareBlock", blockerPermanentId };
+      }
       return { type: "declineBlock" };
     },
 
@@ -126,8 +130,8 @@ function bestDigivolve(view: BotView): DevelopAction | undefined {
   for (const card of view.hand) {
     if (!isDigimonCard(card.definition)) continue;
     for (const base of bases) {
-      if (base.cardId === undefined) continue;
-      const cost = digivolveCost(card.cardId, base.cardId);
+      if (base.cardId === undefined || base.cannotDigivolve) continue;
+      const cost = digivolveCost(card.cardId, base.cardId, { inBreeding: base.inBreeding });
       if (cost === undefined || cost > view.maxAffordable) continue;
       const value = (card.definition?.level ?? 0) * 100 - cost;
       if (best === undefined || value > best.value) {
@@ -157,10 +161,11 @@ function bestPlay(view: BotView): DevelopAction | undefined {
 }
 
 function canDigivolveOnto(view: BotView, base: BotUnit): boolean {
-  if (base.cardId === undefined) return false;
+  if (base.cardId === undefined || base.cannotDigivolve) return false;
   return view.hand.some(
     (card) =>
       isDigimonCard(card.definition) &&
-      (digivolveCost(card.cardId, base.cardId!) ?? Number.POSITIVE_INFINITY) <= view.maxAffordable,
+      (digivolveCost(card.cardId, base.cardId!, { inBreeding: base.inBreeding }) ?? Number.POSITIVE_INFINITY) <=
+        view.maxAffordable,
   );
 }
