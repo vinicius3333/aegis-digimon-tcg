@@ -718,7 +718,7 @@
   inset: 0;
   background: linear-gradient(110deg, transparent 40%, rgb(224 250 255 / 20%) 49%, transparent 58%);
   translate: -110% 0;
-  animation: arena-phase-glint var(--t-phase-banner, 800ms) ease-out both;
+  animation: arena-phase-glint var(--t-phase-banner, 1100ms) ease-out both;
   pointer-events: none;
   content: "";
 }

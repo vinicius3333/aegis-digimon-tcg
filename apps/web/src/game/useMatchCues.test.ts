@@ -790,7 +790,7 @@ describe("match cues", () => {
     await advance(0);
     expect(result.current.phaseBanner?.phase).toBe("Active");
     expect(result.current.phaseTransitionPending).toBe(true);
-    expect(result.current.heldDrawState?.players[0]?.handCount).toBe(5);
+    expect(result.current.heldDrawState?.state.players[0]?.handCount).toBe(5);
     expect(result.current.drawFlights).toHaveLength(0);
     await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
     expect(result.current.phaseBanner?.phase).toBe("Draw");
@@ -1030,6 +1030,78 @@ describe("match cues", () => {
     },
   );
 
+  it("holds the incoming seat's turn-start draw when the outgoing seat drew by effect in the same patch", async () => {
+    const board = document.createElement("div");
+    const deck = document.createElement("div");
+    const hand = document.createElement("div");
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    const state = {
+      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+    } as unknown as GameState;
+    const reports: import("@aegis/shared").PresentationReport[] = [];
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      (events: readonly ServerEvent[]) =>
+        useMatchCues({
+          batches: feed(events),
+          phaseEvents: events,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          onPresentationReport: (report) => reports.push(report),
+          anchors: {
+            ...anchors,
+            board: { current: board },
+            yourDeck: { current: deck },
+            yourHandDock: { current: hand },
+            oppDeck: { current: deck },
+            oppHandStrip: { current: hand },
+          },
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerEvent[] },
+    );
+    await advance(0);
+
+    // One patch: the viewer's last effect draw, then the whole turn flip to the opponent,
+    // whose turn-start draw reaches the client as a hand count and no event at all.
+    state.players[VIEWER]!.handCount = 6;
+    state.players[1]!.handCount = 6;
+    rerender([
+      { kind: "cardsMoved", from: "deck", to: "hand", instanceIds: ["effect-draw"], seat: VIEWER },
+      { kind: "phaseChanged", phase: "End", turnSeat: VIEWER, turnCount: 4 },
+      { kind: "turnEnded", endingSeat: VIEWER, nextSeat: 1, turnCount: 4 },
+      { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 5 },
+      { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 5 },
+      { kind: "phaseChanged", phase: "Breeding", turnSeat: 1, turnCount: 5 },
+    ]);
+    await advance(32);
+
+    // The viewer's own draw belongs to the turn that just ran, so it is on screen at once.
+    // The opponent is the held seat: its count stays at the figure the turn opened with.
+    const turnDrawStarted = () => reports.some((report) => report.track.startsWith("turnDrawFlight-"));
+    expect(reports.some((report) => report.track.startsWith("drawFlight-"))).toBe(true);
+    expect(result.current.heldDrawState?.seat).toBe(1);
+    expect(result.current.heldDrawState?.state.players[1]?.handCount).toBe(5);
+    expect(turnDrawStarted()).toBe(false);
+
+    // It stays held through the viewer's own flight and every ribbon that precedes its
+    // own: the End ribbon, the turn change, then Active.
+    const seen: string[] = [];
+    while (result.current.phaseBanner?.phase !== "Draw") {
+      expect(turnDrawStarted()).toBe(false);
+      const shown = result.current.phaseBanner?.phase;
+      if (shown && seen.at(-1) !== shown) seen.push(shown);
+      await advance(100);
+    }
+    expect(seen).toEqual(["End", "Active"]);
+    expect(result.current.turnTransition).toBeNull();
+    expect(result.current.heldDrawState).toBeUndefined();
+    expect(turnDrawStarted()).toBe(true);
+  });
+
   it("holds a mutable server hand before its patched batch closes, without replaying phase events", async () => {
     const state = {
       players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
@@ -1062,8 +1134,8 @@ describe("match cues", () => {
     rerender({ phaseEvents: phases, batches: [] });
     await advance(0);
     expect(result.current.phaseBanner?.phase).toBe("Active");
-    expect(result.current.heldDrawState?.players[0]?.handCount).toBe(5);
-    expect(result.current.heldDrawState?.players[0]?.deckCount).toBe(40);
+    expect(result.current.heldDrawState?.state.players[0]?.handCount).toBe(5);
+    expect(result.current.heldDrawState?.state.players[0]?.deckCount).toBe(40);
     expect(result.current.phaseTransitionPending).toBe(true);
     rerender({ phaseEvents: phases, batches: [singleServerBatch(phases)] });
     await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);

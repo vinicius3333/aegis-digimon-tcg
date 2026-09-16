@@ -320,8 +320,12 @@ export interface MatchCues {
   phaseBanner: PhaseBanner | null;
   /** Turn actions wait until all queued phase announcements have finished. */
   phaseTransitionPending: boolean;
-  /** Hand/deck presentation before the queued draw phase reaches the screen. */
-  heldDrawState: GameState | undefined;
+  /**
+   * Hand/deck presentation for the seat whose queued draw phase has not reached the
+   * screen yet. Only that seat is held: the other one keeps drawing on screen, because
+   * its cards belong to a turn the ribbons have already announced.
+   */
+  heldDrawState: { seat: Seat; state: GameState } | undefined;
   /** Keep card rotation from exposing a Main attack before its phase announcement. */
   heldPhaseState: GameState | undefined;
   /** Keep the raising area unchanged until its Breeding announcement finishes. */
@@ -687,7 +691,7 @@ export function useMatchCues({
   const [pendingPermanentIds, setPendingPermanentIds] = useState<ReadonlySet<string>>(new Set());
   const [phaseBanner, setPhaseBanner] = useState<PhaseBanner | null>(null);
   const [pendingPhaseBanners, setPendingPhaseBanners] = useState(0);
-  const [heldDrawState, setHeldDrawState] = useState<GameState | undefined>();
+  const [heldDrawState, setHeldDrawState] = useState<{ seat: Seat; state: GameState } | undefined>();
   const [heldPhaseState, setHeldPhaseState] = useState<GameState | undefined>();
   const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
@@ -698,7 +702,8 @@ export function useMatchCues({
   const previousDrawStateRef = useRef<GameState | undefined>(undefined);
   const phaseBaselineRef = useRef(false);
   const lastPhaseEventRef = useRef<Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }> | undefined>(undefined);
-  const drawPhaseWaitingRef = useRef(false);
+  /** The seat whose turn-start draw is held back, or null while nothing is held. */
+  const drawPhaseWaitingRef = useRef<Seat | null>(null);
   const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
   const [fieldClash, setFieldClash] = useState<FieldClashScene | null>(null);
   const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
@@ -1355,19 +1360,21 @@ export function useMatchCues({
             for (const [drawIndex] of event.instanceIds.entries())
               launchDrawFlight(side, false, waitBeforeMs + drawIndex * TIMINGS.drawFlightStagger);
             /**
-             * An effect draw releases the draw-phase hold.
+             * An effect draw by the held seat releases that seat's draw-phase hold.
              *
              * The hold freezes the presented hand at the previous revision so the draw the
-             * turn opens with stays hidden until its Draw banner. It is armed when the
-             * Active banner is ENQUEUED, which — when a turn flips in the same patch that
-             * carried the previous player's last effect — happens before this batch is read,
-             * so cards this effect drew were frozen out of the hand for as long as the
-             * banners took to run. Only the phase draw needs hiding, and that one moves
-             * through GameEngine.drawCards and emits no event at all: reaching this line
-             * means the cards came from an effect, and belong on screen now.
+             * turn opens with stays hidden until its Draw banner. Only the phase draw needs
+             * hiding, and that one moves through GameEngine.drawCards and emits no event at
+             * all: reaching this line means the cards came from an effect, and belong on
+             * screen now.
+             *
+             * The seat matters. A turn that flips in the same patch that carried the
+             * PREVIOUS player's last effect arms the hold for the incoming seat before this
+             * batch is read; releasing it here on the outgoing seat's draw let the incoming
+             * seat's turn-start draw fly ribbons ahead of its own Draw banner.
              */
-            if (drawPhaseWaitingRef.current) {
-              drawPhaseWaitingRef.current = false;
+            if (drawPhaseWaitingRef.current === seat) {
+              drawPhaseWaitingRef.current = null;
               setHeldDrawState(undefined);
             }
             if (event.drawReason === "digivolution") pendingDigivolutionDrawRef.current.delete(seat);
@@ -2503,8 +2510,9 @@ export function useMatchCues({
       if (banner) {
         setPendingPhaseBanners((count) => count + 1);
         if (banner.phase === UNSUSPEND_PHASE) {
-          drawPhaseWaitingRef.current = true;
-          setHeldDrawState(previousDrawStateRef.current);
+          drawPhaseWaitingRef.current = openedPhase.turnSeat;
+          const drawState = previousDrawStateRef.current;
+          setHeldDrawState(drawState && { seat: openedPhase.turnSeat, state: drawState });
           setHeldPhaseState(previousDrawStateRef.current);
           const player = previousDrawStateRef.current?.players[openedPhase.turnSeat];
           if (player) setHeldBreedingState({ seat: openedPhase.turnSeat, player });
@@ -2526,7 +2534,7 @@ export function useMatchCues({
                 setHeldSuspendedIds(new Set());
                 setHeldPhaseState(undefined);
                 setHeldBreedingState(undefined);
-                drawPhaseWaitingRef.current = false;
+                drawPhaseWaitingRef.current = null;
                 setHeldDrawState(undefined);
                 return;
               }
@@ -2590,7 +2598,7 @@ export function useMatchCues({
               }
               // The first turn can skip drawing; breeding also releases the hold.
               if (banner.phase === "Draw" || banner.phase === "Breeding" || banner.phase === "Main") {
-                drawPhaseWaitingRef.current = false;
+                drawPhaseWaitingRef.current = null;
                 setHeldDrawState(undefined);
               }
               await context.wait(TIMINGS.phaseBanner);
@@ -2640,7 +2648,7 @@ export function useMatchCues({
                 setHeldSuspendedIds(new Set());
                 setHeldPhaseState(undefined);
                 setHeldBreedingState(undefined);
-                drawPhaseWaitingRef.current = false;
+                drawPhaseWaitingRef.current = null;
                 setHeldDrawState(undefined);
               }
             }
@@ -2886,26 +2894,33 @@ export function useMatchCues({
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
   useEffect(() => {
-    if (!drawPhaseWaitingRef.current) {
+    if (drawPhaseWaitingRef.current === null) {
       previousDrawStateRef.current = state ? snapshotGameState(state) : undefined;
     }
   }, [state, state?.stateVersion, you?.handCount, opp?.handCount, phaseBanner]);
   useEffect(() => {
     if (you === undefined || opp === undefined) return;
-    if (drawPhaseWaitingRef.current) return;
+    const heldSeat = drawPhaseWaitingRef.current;
+    // The held side keeps every figure it had: its count, the flag that says the growth is
+    // a turn-start draw, and the event count that proves the draw was already narrated.
+    // They are read again on the pass the Draw ribbon releases.
+    const heldSide = heldSeat === null ? undefined : heldSeat === viewerSeat ? "you" : "opp";
     const previous = handCountsRef.current;
-    handCountsRef.current = { you: you.handCount, opp: opp.handCount };
+    handCountsRef.current = {
+      you: heldSide === "you" && previous ? previous.you : you.handCount,
+      opp: heldSide === "opp" && previous ? previous.opp : opp.handCount,
+    };
     if (!previous || mulliganOpen) {
       turnStartDrawRef.current = { you: false, opp: false };
       return;
     }
     const turnStart = turnStartDrawRef.current;
-    turnStartDrawRef.current = { you: false, opp: false };
-    if (opp.handCount > previous.opp && eventDrawCountsRef.current.opp !== opp.handCount)
+    turnStartDrawRef.current = { you: heldSide === "you" && turnStart.you, opp: heldSide === "opp" && turnStart.opp };
+    if (heldSide !== "opp" && opp.handCount > previous.opp && eventDrawCountsRef.current.opp !== opp.handCount)
       launchDrawFlight("opp", turnStart.opp);
-    if (you.handCount > previous.you && eventDrawCountsRef.current.you !== you.handCount)
+    if (heldSide !== "you" && you.handCount > previous.you && eventDrawCountsRef.current.you !== you.handCount)
       launchDrawFlight("you", turnStart.you);
-    eventDrawCountsRef.current = {};
+    eventDrawCountsRef.current = heldSide ? { [heldSide]: eventDrawCountsRef.current[heldSide] } : {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.handCount, opp?.handCount, phaseBanner]);
 

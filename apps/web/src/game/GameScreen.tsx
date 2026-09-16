@@ -1104,8 +1104,11 @@ export function GameScreen({
   }
   const presentedYou = phaseField(presentedYouBase, phaseYou);
   const presentedOpp = phaseField(presentedOppBase, phaseOpp);
-  const heldYou = cues.heldDrawState?.players[viewerSeat];
-  const heldOpp = cues.heldDrawState?.players[otherSeat(viewerSeat)];
+  // Only the seat whose Draw ribbon is still queued is held back: the other seat's cards
+  // belong to a turn the ribbons have already announced, so they land as they arrive.
+  const heldDraw = cues.heldDrawState;
+  const heldYou = heldDraw?.seat === viewerSeat ? heldDraw.state.players[viewerSeat] : undefined;
+  const heldOpp = heldDraw?.seat === otherSeat(viewerSeat) ? heldDraw.state.players[otherSeat(viewerSeat)] : undefined;
   const shownYou = heldYou
     ? { ...presentedYou, hand: heldYou.hand, handCount: heldYou.handCount, deckCount: heldYou.deckCount }
     : presentedYou;

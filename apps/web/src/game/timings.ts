@@ -168,7 +168,11 @@ export const TIMINGS = {
   dpPulseHold: 100,
   /** … and four times as long when the debuff is the one that kills. */
   dpPulseFatalHold: 400,
-  /** Phase banner opening: 200 ms, followed by 400 ms readable and 200 ms closing. */
+  /**
+   * The beat a phase ribbon needs to be on screen at all, which the demos wait out before
+   * they read one. The ribbon's own keyframes (`arena-phase-ribbon`) split `phaseBanner`
+   * 25/50/25, so at 1100 ms it enters for 275, holds legible for 550 and leaves for 275.
+   */
   phaseBannerIn: 200,
   /** Readable phase announcement, including its entrance and exit. */
   phaseBanner: 1100,
