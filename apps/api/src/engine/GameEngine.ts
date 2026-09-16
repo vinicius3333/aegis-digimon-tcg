@@ -886,6 +886,15 @@ export class GameEngine {
     private readonly state: GameState,
     private readonly hooks: GameEngineHooks,
   ) {
+    // Every zone move is narrated through `hooks.emit`: the one place that sees a card leave
+    // the field. Wrapped before the collaborators below capture `this.hooks.emit` by value.
+    this.hooks = {
+      ...hooks,
+      emit: (event) => {
+        this.forgetUsesOfCardsLeavingField(event);
+        hooks.emit(event);
+      },
+    };
     // TODO(effect-framework): import "../cards" is done at boot for side-effect
     //   registration; wire the registry into the resolution path here.
     this.continuous = new ContinuousEffectLedger(
@@ -1795,6 +1804,19 @@ export class GameEngine {
         await this.sweepDurations(boundary);
       },
     };
+  }
+
+  /**
+   * CR §3-1-3-1-2: a card that leaves the field returns as a new card, so its [Once Per Turn]
+   * effects are available again (EX12-065 replayed by ＜Fortitude＞, KB Q6866). A card still on
+   * the field is the same Digimon (§3-4-5, KB Q4253) and keeps its counts. Forgetting at the
+   * departure, not after the deletion reactions, keeps the use ＜Fortitude＞'s replay then spends.
+   */
+  private forgetUsesOfCardsLeavingField(event: ServerEvent): void {
+    if (event.kind !== "cardsMoved") return;
+    const onField = (zone: string): boolean => zone === Zone.BattleArea || zone === Zone.Breeding;
+    if (!onField(event.from) || onField(event.to)) return;
+    for (const instanceId of event.instanceIds) this.tracker.forgetInstance(instanceId);
   }
 
   /**

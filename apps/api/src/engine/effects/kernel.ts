@@ -50,6 +50,14 @@ export class UseTracker {
     else this.counts.set(k, next);
   }
 
+  /** Drop one instance's uses: CR §3-1-3-1-2, a card that leaves the field returns as a new card. */
+  forgetInstance(instanceId: string): void {
+    const prefix = `${instanceId}\0`;
+    for (const key of this.counts.keys()) {
+      if (key.startsWith(prefix)) this.counts.delete(key);
+    }
+  }
+
   /** Clear all use counts (called when a new turn begins). */
   resetForNewTurn(): void {
     this.counts.clear();

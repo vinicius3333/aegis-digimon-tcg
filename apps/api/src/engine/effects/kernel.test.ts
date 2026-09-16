@@ -100,6 +100,17 @@ describe("UseTracker / isOverMaxPerTurn", () => {
     tracker.resetForNewTurn();
     expect(tracker.count("A#1", "k")).toBe(0);
   });
+
+  it("forgetInstance clears every effect of one instance and leaves other instances alone", () => {
+    const tracker = new UseTracker();
+    tracker.register("A#1", "k");
+    tracker.register("A#1", "other");
+    tracker.register("A#2", "k");
+    tracker.forgetInstance("A#1");
+    expect(tracker.count("A#1", "k")).toBe(0);
+    expect(tracker.count("A#1", "other")).toBe(0);
+    expect(tracker.count("A#2", "k")).toBe(1);
+  });
 });
 
 describe("canTrigger / canActivate gating", () => {
