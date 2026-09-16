@@ -59,7 +59,7 @@ describe("ST22-05 Sakuyamon Option-use windows", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.promptText === "UseOptionWithoutCost",
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.promptText === "Use an Option without paying the cost",
     );
     const useOption = s.state.pendingDecision!;
     expect(
@@ -73,7 +73,7 @@ describe("ST22-05 Sakuyamon Option-use windows", () => {
     expect(
       s.decisions.some(
         ({ req }) =>
-          req.kind === "optional" && req.sourceCardId === "ST22-05" && req.promptText === "UseOptionWithoutCost",
+          req.kind === "optional" && req.sourceCardId === "ST22-05" && req.promptText === "Use an Option without paying the cost",
       ),
     ).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);

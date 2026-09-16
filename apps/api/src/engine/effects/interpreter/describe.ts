@@ -83,6 +83,51 @@ export function describeAction(action: Action): string {
   return cost === undefined ? body : `By paying: ${describeCost(cost)} → ${body}`;
 }
 
+/** Tail of a play/use label: free, cost reduced, or paid in full. */
+function describePlayCost(payCost: boolean, reduceCostBy: number | undefined): string {
+  if (!payCost) return "without paying the cost";
+  if (reduceCostBy !== undefined && reduceCostBy > 0) return `with the cost reduced by ${reduceCostBy}`;
+  return "by paying its cost";
+}
+
+function describePlayToken(action: Extract<Action, { kind: "PlayToken" }>): string {
+  const count = action.count ?? action.amount ?? 1;
+  const first = action.token ?? action.tokens[0];
+  const name = typeof first === "string" ? first : first?.name;
+  return name === undefined ? `Play ${count} token(s)` : `Play ${count} [${name}] token(s)`;
+}
+
+/** The printed wording of a restriction, so a modal bullet never shows the IR identifier. */
+const restrictionPhrases: Record<string, string> = {
+  attack: "can't attack",
+  attackPlayers: "can't attack players",
+  cantAttackDigimon: "can't attack Digimon",
+  attackOnlySuspendedDigimon: "can only attack suspended Digimon",
+  block: "can't block",
+  cantBeBlocked: "can't be blocked",
+  suspend: "can't suspend",
+  unsuspend: "doesn't unsuspend",
+  unsuspendDuringOwnUnsuspendPhase: "doesn't unsuspend during the unsuspend phase",
+  unsuspendDuringUnsuspendPhase: "doesn't unsuspend during the unsuspend phase",
+  beDeletedInBattle: "can't be deleted in battle",
+  beDeleted: "can't be deleted",
+  beTrashed: "can't be trashed",
+  beReturned: "can't be returned",
+  leaveBattleAreaExceptByDeletion: "can't leave the battle area except by deletion",
+  digivolve: "can't digivolve",
+  digivolveToLevel7: "can't digivolve into level 7",
+  attackTargetChange: "can't change attack targets",
+  cantBeAttacked: "can't be attacked",
+  dpImmune: "is unaffected by DP changes",
+  beAffected: "is unaffected by effects",
+  cantBeDeDigivolved: "can't be de-digivolved",
+};
+
+function describeRestriction(restriction: string): string {
+  const phrase = restrictionPhrases[restriction];
+  return phrase === undefined ? "Apply a restriction" : `Target ${phrase}`;
+}
+
 function describeActionBody(action: Action): string {
   switch (action.kind) {
     case "Draw":
@@ -98,7 +143,15 @@ function describeActionBody(action: Action): string {
     case "SetBaseDP":
       return `Set base DP to ${action.value}`;
     case "PlayWithoutCost":
-      return "Play without paying the cost";
+      return `Play ${describePlayCost(action.payCost, action.reduceCostBy)}`;
+    case "UseOptionWithoutCost":
+      return `Use an Option ${describePlayCost(action.payCost, action.reduceCostBy)}`;
+    case "PlayToken":
+      return describePlayToken(action);
+    case "MovePermanent":
+      return `Move to the ${action.direction === "toBreeding" ? "breeding" : "battle"} area`;
+    case "Restrict":
+      return describeRestriction(action.restriction);
     case "PlaceUnder":
       return `Place ${action.target.upTo ? "up to " : ""}${String(action.target.count)} card(s) under`;
     case "RevealAdd":
@@ -154,6 +207,8 @@ function describeSecurityManipulation(action: Extract<Action, { kind: "SecurityM
       return `Flip ${whose} security card face up`;
     case "moveTopToBottom":
       return `Move ${whose} top security card to the bottom`;
+    case "placeAsSecurity":
+      return `Place ${amount} card(s) as ${whose} security card(s)`;
     default:
       return action.kind;
   }
