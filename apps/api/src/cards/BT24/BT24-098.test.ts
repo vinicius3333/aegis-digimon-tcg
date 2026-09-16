@@ -24,8 +24,17 @@ describe("BT24-098 Invasion of the Titans", () => {
   it("draws and trashes on Main, then arms and consumes Delay correctly", () => {
     const main = BT24_098.effects?.find((entry) => entry.trigger === "Main" && entry.keywords === undefined);
     expect(main?.actions).toEqual([
-      { kind: "Draw", controller: "mine", amount: 2 },
-      { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 2 } },
+      {
+        kind: "Draw",
+        controller: "mine",
+        amount: 2,
+        effectTextPart: "[Main] ＜Draw 2＞ and trash 2 cards in your hand.",
+      },
+      {
+        kind: "Trash",
+        target: { filter: { controller: "mine", zone: "hand" }, count: 2 },
+        effectTextPart: "[Main] ＜Draw 2＞ and trash 2 cards in your hand.",
+      },
       { kind: "PlaceInBattleAreaSelf" },
     ]);
     const arm = BT24_098.effects?.find((entry) => entry.trigger === "YourTurn");

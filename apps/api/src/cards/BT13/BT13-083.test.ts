@@ -23,8 +23,12 @@ describe("BT13-083 Gizmon: AT", () => {
 
   it("draws 2, trashes 2, and cannot digivolve", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toEqual([
-      { kind: "Draw", controller: "mine", amount: 2 },
-      { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 2 } },
+      { kind: "Draw", controller: "mine", amount: 2, effectTextPart: "[On Play] ＜Draw 2＞." },
+      {
+        kind: "Trash",
+        target: { filter: { controller: "mine", zone: "hand" }, count: 2 },
+        effectTextPart: "Then, trash 2 cards in your hand.",
+      },
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions?.[0]).toMatchObject({
       kind: "Restrict",

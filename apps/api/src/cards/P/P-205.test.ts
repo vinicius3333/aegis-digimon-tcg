@@ -22,9 +22,14 @@ describe("P-205 Insane Synthetic Monster", () => {
     for (const effect of card.effects.filter(
       (entry) => (entry.trigger === "Main" && !entry.keywords?.length) || entry.trigger === "Security",
     )) {
+      // Only the Security clause carries printed presentation text; the Main clause has none.
+      const printed =
+        effect.trigger === "Security"
+          ? { effectTextPart: "[Security] ＜Draw 2＞ and trash 2 cards in your hand." }
+          : {};
       expect(effect.actions).toEqual([
-        { kind: "Draw", controller: "mine", amount: 2 },
-        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 2 } },
+        { kind: "Draw", controller: "mine", amount: 2, ...printed },
+        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 2 }, ...printed },
         { kind: "PlaceInBattleAreaSelf" },
       ]);
     }

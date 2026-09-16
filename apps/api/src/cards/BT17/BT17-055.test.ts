@@ -40,6 +40,8 @@ describe("BT17-055 Infermon", () => {
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: 1,
           stopAtLevel: 3,
+          effectTextPart:
+            "[When Digivolving] ＜De-Digivolve1＞ 1 of your opponent's Digimon (Trash the top card. You can't trash past level 3 cards).",
         },
         {
           kind: "Restrict",

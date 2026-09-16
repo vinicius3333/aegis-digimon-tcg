@@ -57,6 +57,7 @@ describe("P-155 Pawn Device", () => {
                 filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 11000 } },
                 count: 1,
               },
+              effectTextPart: "[Security] Delete 1 of your opponent's Digimon with 11000 DP or less.",
             },
             { kind: "AddToHandSelf" },
           ],

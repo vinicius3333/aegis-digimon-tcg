@@ -44,6 +44,8 @@ describe("EX5-024 Azulongmon", () => {
                 },
                 count: 1,
               },
+              effectTextPart:
+                "[On Play] [When Digivolving] Return 1 of your opponent's level 5 or lower Digimon to the hand.",
             },
             {
               kind: "Unsuspend",
@@ -55,6 +57,8 @@ describe("EX5-024 Azulongmon", () => {
                 },
                 count: 1,
               },
+              effectTextPart:
+                "Then, unsuspend 1 of your Digimon with the [Deva]/[Four Great Dragons]/[Four Sovereigns] trait.",
             },
           ],
         }),

@@ -51,7 +51,12 @@ describe("EX2-070 Digivolution Plug-In S", () => {
         expect.objectContaining({
           trigger: "Main",
           actions: [
-            { kind: "Draw", controller: "mine", amount: 1 },
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+              effectTextPart: "[Main] ＜Draw 1＞. (Draw 1 card from your deck.)",
+            },
             {
               kind: "Digivolve",
               target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
@@ -59,6 +64,8 @@ describe("EX2-070 Digivolution Plug-In S", () => {
               payCost: false,
               ignoreDigivolutionRequirements: false,
               optional: true,
+              effectTextPart:
+                "Then, you may digivolve 1 of your Digimon into a Digimon card in your hand that can digivolve for a digivolution cost of 3 or less without paying its digivolution cost.",
             },
           ],
         }),

@@ -186,8 +186,17 @@ describe("BT4-071 through BT4-080 direct IR audit evidence", () => {
 
   it("keeps BT4-079's draw-then-trash order", () => {
     expect(effect("BT4-079", "OnPlay").actions).toEqual([
-      { kind: "Draw", controller: "mine", amount: 1 },
-      { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+      {
+        kind: "Draw",
+        controller: "mine",
+        amount: 1,
+        effectTextPart: "[On Play] Trigger ＜Draw 1＞. (Draw 1 card from your deck.)",
+      },
+      {
+        kind: "Trash",
+        target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        effectTextPart: "Then, trash 1 card in your hand.",
+      },
     ]);
   });
 });

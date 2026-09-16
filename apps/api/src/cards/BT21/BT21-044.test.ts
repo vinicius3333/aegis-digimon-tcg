@@ -62,18 +62,23 @@ describe("BT21-044 compiled implementation", () => {
           target: selectedMarcusTarget,
           keyword: { keyword: "Rush", raw: "＜Rush＞" },
           duration: "forTheTurn",
+          effectTextPart:
+            "[On Play] [When Digivolving] For the turn, 1 of your [Marcus Damon]s is also treated as a 3000 DP Digimon, can't digivolve, and gains ＜Rush＞ and ＜Alliance＞.",
         },
         {
           kind: "GainKeyword",
           target: selectedMarcusTarget,
           keyword: { keyword: "Alliance", raw: "＜Alliance＞" },
           duration: "forTheTurn",
+          effectTextPart:
+            "[On Play] [When Digivolving] For the turn, 1 of your [Marcus Damon]s is also treated as a 3000 DP Digimon, can't digivolve, and gains ＜Rush＞ and ＜Alliance＞.",
         },
         {
           kind: "Attack",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           withoutSuspending: false,
           optional: true,
+          effectTextPart: "Then, 1 of your Digimon may attack.",
         },
       ]);
     }

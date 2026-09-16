@@ -31,7 +31,7 @@ describe("BT21-016 Shoutmon (King Version)", () => {
       expect.objectContaining({
         trigger: "OnDeletion",
         actions: [
-          expect.objectContaining({
+          {
             kind: "PlaceUnder",
             target: {
               filter: {
@@ -44,12 +44,16 @@ describe("BT21-016 Shoutmon (King Version)", () => {
             },
             underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
             optional: true,
-          }),
+            effectTextPart:
+              "[On Deletion] You may place 1 Digimon card with the [Xros Heart]/[Blue Flare]/[Hero] trait from your hand or trash under any of your Tamers.",
+          },
           {
             kind: "PlaceUnder",
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
             optional: true,
+            effectTextPart:
+              "[On Deletion] You may place 1 Digimon card with the [Xros Heart]/[Blue Flare]/[Hero] trait from your hand or trash under any of your Tamers.",
           },
         ],
       }),

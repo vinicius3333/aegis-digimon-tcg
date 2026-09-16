@@ -74,7 +74,12 @@ describe("BT21-100 The Digimon I Designed", () => {
 
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
     expect(main?.actions).toEqual([
-      { kind: "Draw", controller: "mine", amount: 1 },
+      {
+        kind: "Draw",
+        controller: "mine",
+        amount: 1,
+        effectTextPart: "[Main] ＜Draw 1＞ and trash 1 card in your hand.",
+      },
       expect.objectContaining({ kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } }),
       { kind: "PlaceInBattleAreaSelf" },
     ]);

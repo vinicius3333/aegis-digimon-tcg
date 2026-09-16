@@ -23,7 +23,15 @@ describe("BT1-103 Testament", () => {
       },
       {
         trigger: "Security",
-        actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }],
+        actions: [
+          {
+            kind: "Draw",
+            controller: "mine",
+            amount: 1,
+            effectTextPart: "[Security] Trigger <Draw 1＞. (Draw 1 card from your deck.)",
+          },
+          { kind: "AddToHandSelf" },
+        ],
         isSecurity: true,
       },
     ]);

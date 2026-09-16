@@ -61,7 +61,15 @@ describe("EX2-068 High-Speed Plug-In D", () => {
         expect.objectContaining({
           trigger: "Security",
           isSecurity: true,
-          actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }],
+          actions: [
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+              effectTextPart: "[Security] ＜Draw 1＞. (Draw 1 card from your deck.)",
+            },
+            { kind: "AddToHandSelf" },
+          ],
         }),
       ]),
     );
