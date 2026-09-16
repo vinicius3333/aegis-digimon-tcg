@@ -1223,7 +1223,34 @@ export function playerFacingEffectClause({
     part && matchingKeyword && effectiveTiming !== undefined
       ? resolvedEffectClause(cardId, effectiveTiming, inherited)
       : undefined;
-  if (part && [clause, timingClause].some((candidate) => candidate && normalize(candidate).includes(normalize(part))))
+  // A card can print two clauses under the same timing (BT16-101's and EX12-019's two
+  // [All Turns] lines). `clause` resolves to the FIRST of them, so an authored passage from
+  // the second would be replaced by the wrong printed text; accept any authored part that is
+  // a verbatim fragment of this card's own printed boxes.
+  // A supplied passage that stitches SEVERAL of this card's printed clauses together is the
+  // fuller reading of one moment — a [Security] clause that activates this card's [Main] effect
+  // carries both — so it is shown whole. A whole printed BOX is not that: it is the card's text
+  // with every clause in it, and the timing still has to be sliced out of it.
+  const wholePrintedBox = supplied && boxes.some((text) => text && normalize(text) === normalize(supplied));
+  if (
+    supplied &&
+    clause &&
+    !wholePrintedBox &&
+    // A keyword activation already IS the passage to show; only a sliced printed clause can
+    // be the narrower half of a longer supplied one.
+    !keywordActivation &&
+    !matchingKeyword &&
+    !delayClause &&
+    normalize(supplied) !== normalize(clause) &&
+    normalize(supplied).includes(normalize(clause))
+  )
+    return supplied;
+  const printedPart = part && boxes.some((text) => text && normalize(text).includes(normalize(part)));
+  if (
+    part &&
+    (printedPart ||
+      [clause, timingClause].some((candidate) => candidate && normalize(candidate).includes(normalize(part))))
+  )
     return part;
   return clause;
 }
