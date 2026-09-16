@@ -423,6 +423,225 @@ describe("EX13-037 Dynasmon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("＜Blocker＞ intercepts a real attack declared at the player", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "dynasmon" }],
+          deck: ["BT1-010", "BT1-012"],
+          security: ["BT1-013", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT9-035", as: "attacker", dp: 20_000 }],
+          deck: ["BT1-011", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    const securityBefore = s.state.players[0]!.security.length;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("dynasmon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    await settle();
+
+    // The block happened: the attack never reached security, and the 12000 blocker lost the battle
+    // to the 20000 attacker instead.
+    expect(s.state.players[0]!.security).toHaveLength(securityBefore);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
+  });
+
+  it("＜Raid＞ switches the attack onto their Digimon and ＜Piercing＞ carries the excess to security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "dynasmon" }],
+          deck: ["BT1-010", "BT1-012"],
+          // 5 cards: after the [When Attacking] trash the stack is 4, so the "3 or fewer" tails of
+          // BOTH printed clauses stay shut and this test is only about the two keywords.
+          security: ["BT1-013", "BT1-011", "BT1-012", "BT1-010", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: BIG_VICTIM, as: "victim" }],
+          deck: ["BT1-011", "BT1-014"],
+          security: ["BT1-013", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dynasmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle();
+
+    // ＜Raid＞ redirected an attack that was DECLARED at the player onto their only unsuspended
+    // Digimon...
+    expect(s.events.some((event) => event.kind === "attackDeclared" && event.target.kind === "player")).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain(BIG_VICTIM);
+    // ...and ＜Piercing＞ then sent the surplus through as a security check.
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    // The own-stack tail never opened: 5 - 1 (the [When Attacking] trash) = 4.
+    expect(s.state.players[0]!.security).toHaveLength(4);
+  });
+
+  it("gains the +10000 DP even with an EMPTY security stack: the trash is an action, not a cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "dynasmon" }], deck: ["BT1-010", "BT1-012"], security: [] },
+        1: { deck: ["BT1-011"], security: [] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dynasmon"));
+    await settle();
+
+    expect(s.perm("dynasmon").currentDP).toBe(getCardDefinition(CARD_ID)!.dp! + 10000);
+    // Nothing to trash on either side; the empty stacks simply no-op.
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  // "until your opponent's turn ends" spans two turn boundaries when the clause resolves on the
+  // controller's own turn: it must survive the controller's own turn end and expire at the
+  // opponent's. Each boundary needs its own engine; a hand-laid turn cannot be chained.
+  it.each([
+    ["the +10000 DP survives the controller's own turn end", 0 as const, 22_000],
+    ["the +10000 DP expires at the opponent's turn end", 1 as const, 12_000],
+  ])("%s", async (_label, turnSeat, expectedDP) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "dynasmon" }],
+          deck: ["BT1-010", "BT1-012"],
+          security: ["BT1-013", "BT1-011", "BT1-012", "BT1-010", "BT1-009"],
+        },
+        1: { deck: ["BT1-011"], security: ["BT1-013", "BT1-011"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dynasmon"));
+    await settle();
+    expect(s.perm("dynasmon").currentDP).toBe(22_000);
+
+    s.state.turnSeat = turnSeat;
+    await advance(s.engine).runTurn(turnSeat);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("dynasmon").currentDP).toBe(expectedDP);
+  });
+
+  it("holds the ＜Recovery +1＞ gate at 4 security and spends the watcher's own once-per-turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          // Suspended: this scenario is about the security removals, not about blocking.
+          battleArea: [{ card: CARD_ID, as: "dynasmon", suspended: true }],
+          deck: [{ card: "BT1-012", as: "recovered" }, "BT1-010"],
+          security: ["BT1-013", "BT1-011", "BT1-012", "BT1-010", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT9-035", as: "attacker", dp: 20_000 },
+            { card: "BT1-019", as: "secondAttacker", dp: 20_000 },
+            { card: BIG_VICTIM, as: "victim" },
+          ],
+          deck: ["BT1-011", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: [] },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 4);
+    await settle();
+
+    // The -12000 target is a free choice, so measure the whole opposing board: 20000 + 20000 +
+    // 13000 = 53000 printed/seeded, minus exactly one 12000 debuff.
+    const opposingDP = () => s.state.players[1]!.battleArea.reduce((total, { currentDP }) => total + currentDP, 0);
+
+    // 4 security left ⇒ the "3 or fewer" tail is shut, so the -12000 landed but Recovery did not.
+    expect(opposingDP()).toBe(53_000 - 12_000);
+    expect(s.state.players[0]!.security).toHaveLength(4);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("recovered").instanceId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 3);
+    await settle();
+
+    // A second removal in the SAME turn: the [Once Per Turn] watcher is spent, so no further
+    // -12000 and no Recovery even though the gate would now hold at 3.
+    expect(opposingDP()).toBe(53_000 - 12_000);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("recovered").instanceId);
+  });
+
+  it("pays the printed Yellow/Red EvoCost of 4 from a Lv.5 that prints no [Witchelny] token", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: PLAIN_LV5, as: "base" }],
+        hand: [{ card: CARD_ID, as: "dynasmon" }],
+        deck: [{ card: "BT1-010", as: "evolutionDraw" }, "BT1-012"],
+        security: ["BT1-013"],
+      },
+      1: { deck: ["BT1-011"] },
+    });
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dynasmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("dynasmon").instanceId);
+
+    // The alternate header needs [Witchelny] in the source's text, so this Red Lv.5 pays the
+    // printed 4, not the header's 3.
+    expect(s.state.memory).toBe(4);
+  });
+
   it.each([
     // Right levels, but the Lv.5 slot's card prints no [Witchelny] token.
     ["a material without the [Witchelny] token", [PLAIN_LV5, WITCHELNY_LV4, WITCHELNY_LV3]],
