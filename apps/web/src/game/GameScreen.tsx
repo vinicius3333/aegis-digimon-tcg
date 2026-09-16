@@ -1122,6 +1122,10 @@ export function GameScreen({
   );
   const shownOpponentHandCount = heldOpp?.handCount ?? opp.handCount;
   const isMyTurn = state.turnSeat === viewerSeat;
+  // What the ribbons have announced, for the readouts only: the live turn is what every
+  // guard below reads, and what `isMyTurn` must keep meaning.
+  const displayedTurnSeat = cues.displayedTurn?.seat ?? shownState.turnSeat;
+  const displayedTurnCount = cues.displayedTurn?.count ?? shownState.turnCount;
   // Ordinary actions wait for the presented board to catch up, then follow the live
   // match, decision, turn and phase guards. Effect responses use their own controls.
   const pendingServerDecision = Boolean(decision || state.pendingDecision);
@@ -2991,8 +2995,7 @@ export function GameScreen({
             </div>
             <div className="game-mobile-turn">
               <strong>
-                {shownState.turnSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")} ·{" "}
-                {shownState.turnCount}
+                {displayedTurnSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")} · {displayedTurnCount}
               </strong>
               <span>
                 {t(`game.phase.${shownState.phase}` as const)} · {memory > 0 ? "+" : ""}
@@ -3124,11 +3127,11 @@ export function GameScreen({
           {!narrowGameLayout ? (
             <aside className="game-log-ticker" aria-label={t("game.matchLog")}>
               <div className="game-log-ticker__status">
-                <span data-my-turn={isMyTurn || undefined}>
-                  {isMyTurn ? t("game.yourTurn") : t("game.opponentsTurn")}
+                <span data-my-turn={displayedTurnSeat === viewerSeat || undefined}>
+                  {displayedTurnSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")}
                 </span>
                 <span>
-                  {t("game.turnAndMemory", { turn: shownState.turnCount, memory: `${memory > 0 ? "+" : ""}${memory}` })}
+                  {t("game.turnAndMemory", { turn: displayedTurnCount, memory: `${memory > 0 ? "+" : ""}${memory}` })}
                 </span>
               </div>
               <ol className="game-log-ticker__lines">

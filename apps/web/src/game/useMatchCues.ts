@@ -328,6 +328,13 @@ export interface MatchCues {
   heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
   /** The last announced phase persists through the gaps between ribbons. */
   displayedPhase: GameState["phase"] | undefined;
+  /**
+   * The turn the ribbons have reached. The live state flips the moment the server resolves
+   * the handover, which on a fast opponent lands in the same patch as the cues for the turn
+   * that just ended; a readout bound to it announces the next turn over a card still in
+   * flight. Bind the readout to this instead — legality still reads the live state.
+   */
+  displayedTurn: { seat: Seat; count: number } | undefined;
   /** Keep last turn's suspended cards rotated until their Unsuspend announcement starts. */
   heldSuspendedIds: ReadonlySet<string>;
   /** The zone-specific moment each activating effect source is currently playing. */
@@ -720,6 +727,9 @@ export function useMatchCues({
   const [heldPhaseState, setHeldPhaseState] = useState<GameState | undefined>();
   const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
+  const [announcedTurn, setAnnouncedTurn] = useState<{ seat: Seat; count: number } | undefined>(
+    state && { seat: state.turnSeat, count: state.turnCount },
+  );
   const [heldSuspendedIds, setHeldSuspendedIds] = useState<ReadonlySet<string>>(new Set());
   const previousDrawStateRef = useRef<GameState | undefined>(undefined);
   const phaseBaselineRef = useRef(false);
@@ -2475,6 +2485,12 @@ export function useMatchCues({
               await waitForPhasePrerequisites(context, arrivals, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
               visiblePhaseBannerRef.current = true;
+              // The count belongs to the turn that just ended; the new one arrives with the
+              // phase ribbons that follow, which carry it.
+              setAnnouncedTurn((current) => ({
+                seat: openedPhase.nextSeat,
+                count: current?.count ?? openedPhase.turnCount,
+              }));
               cutNarrationBefore(phaseOrder);
               playCue("turnChange");
               setTurnTransition(transition);
@@ -2533,6 +2549,7 @@ export function useMatchCues({
               visiblePhaseBannerRef.current = true;
               cutNarrationBefore(phaseOrder);
               if (isAnnouncedPhase(openedPhase.phase)) setAnnouncedPhase(openedPhase.phase);
+              setAnnouncedTurn({ seat: openedPhase.turnSeat, count: openedPhase.turnCount });
               setPhaseBanner(banner);
               if (banner.phase === UNSUSPEND_PHASE) {
                 setHeldSuspendedIds(new Set());
@@ -3406,6 +3423,7 @@ export function useMatchCues({
     heldPhaseState,
     heldBreedingState,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
+    displayedTurn: pendingPhaseBanners > 0 ? announcedTurn : state && { seat: state.turnSeat, count: state.turnCount },
     heldSuspendedIds,
     combatImpactIds,
     fieldClash,

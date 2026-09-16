@@ -800,6 +800,70 @@ describe("match cues", () => {
     expect(result.current.phaseTransitionPending).toBe(false);
   });
 
+  it("keeps the turn readout on the turn whose cues are still playing", async () => {
+    // The shape that made a viewer see a card reach their hand on the opponent's turn: the
+    // server resolves the handover and the opponent's opening phases into the same patch as
+    // the effect draw that preceded them, so the live turn flips while the flight is still up.
+    const anchor = document.createElement("div");
+    vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 100, 100));
+    const drawAnchors = {
+      ...anchors,
+      board: { current: anchor },
+      yourDeck: { current: anchor },
+      yourHandDock: { current: anchor },
+    };
+    const before = {
+      turnSeat: 0,
+      turnCount: 2,
+      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+    } as unknown as GameState;
+    const drawn = {
+      ...before,
+      players: before.players.map((player, seat) => (seat === 0 ? { ...player, handCount: 6, deckCount: 39 } : player)),
+    } as unknown as GameState;
+    const handedOver = { ...drawn, turnSeat: 1, turnCount: 3 } as unknown as GameState;
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      ({ state, events }: { state: GameState; events: readonly ServerEvent[] }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          batches: feed(events),
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors: drawAnchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { state: before, events: [] as readonly ServerEvent[] } },
+    );
+    await advance(0);
+    expect(result.current.displayedTurn).toEqual({ seat: 0, count: 2 });
+    rerender({ state: drawn, events: [] });
+    await advance(0);
+    expect(result.current.drawFlights).toHaveLength(1);
+    rerender({
+      state: handedOver,
+      events: [
+        { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 2 },
+        { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
+        { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 3 },
+      ],
+    });
+    await advance(0);
+    // The live state is already the opponent's turn. The readout is not, because the ribbon
+    // that announces it is still waiting for the flight.
+    expect(handedOver.turnSeat).toBe(1);
+    expect(result.current.drawFlights).toHaveLength(1);
+    expect(result.current.displayedTurn).toEqual({ seat: 0, count: 2 });
+    await advance(TIMINGS.drawFlight);
+    expect(result.current.drawFlights).toHaveLength(0);
+    await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
+    expect(result.current.displayedTurn?.seat).toBe(1);
+    await advance((TIMINGS.phaseBanner + TIMINGS.phaseBannerGap) * 3);
+    expect(result.current.displayedTurn).toEqual({ seat: 1, count: 3 });
+    expect(result.current.phaseTransitionPending).toBe(false);
+  });
+
   it("releases the phase lock when the first turn skips drawing", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
