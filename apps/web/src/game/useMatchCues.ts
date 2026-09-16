@@ -2878,16 +2878,11 @@ export function useMatchCues({
   useEffect(() => {
     if (!state) return;
     const current = new Map<string, FreezeFlags>();
-    const identity = new Map<string, { cardId: string | undefined; seat: Seat }>();
     for (const player of state.players) {
       for (const permanent of player.battleArea) {
         current.set(permanent.permanentId, {
           cannotAttack: permanent.cannotAttack,
           cannotBlock: permanent.cannotBlock,
-        });
-        identity.set(permanent.permanentId, {
-          cardId: permanent.topCard?.cardId,
-          seat: permanent.controllerSeat,
         });
       }
     }
@@ -2898,9 +2893,6 @@ export function useMatchCues({
     if (pulses.length === 0) return;
     freezePulseKeyRef.current += pulses.length;
     for (const pulse of pulses) {
-      const frozen = identity.get(pulse.permanentId);
-      const frozenCardId = frozen?.cardId;
-      const frozenSide = frozen?.seat === viewerSeat ? "you" : "opp";
       queue.enqueue({
         id: `freeze-pulse-${pulse.key}`,
         // Several permanents can be locked by one resolution, so each jolts on its own
@@ -2909,21 +2901,8 @@ export function useMatchCues({
         replace: true,
         async run(context) {
           if (context.mode !== "live") return;
-          if (frozenCardId !== undefined) {
-            narrate(
-              [
-                {
-                  id: `freeze-${pulse.key}`,
-                  side: frozenSide,
-                  fromSecurity: false,
-                  body: { variant: "keyword", keyword: pulse.kind, cardId: frozenCardId },
-                  createdAt: Date.now(),
-                },
-              ],
-              [],
-              lastBatchIdRef.current,
-            );
-          }
+          /* The jolt on the card and the badge under it already say the Digimon lost the
+             action, and the effect's own clause is on screen beside them, so no notice. */
           try {
             setFreezePulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));
             await context.wait(TIMINGS.freezeShake);
