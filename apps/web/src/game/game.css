@@ -2684,15 +2684,11 @@
   pointer-events: none;
 }
 
-/* A used Option is not a revealed Security card: it stays close to the hand it
-   came from, at the lower left, while its [Main] clause plays out. */
+/* A used Option holds on the right edge at the board's middle, the same half of the
+   screen a revealed Security card uses, but centred rather than lifted: its [Main]
+   clause plays out beside the board instead of over the hand it came from. */
 .battle-security-branch[data-source="option"] {
   --security-branch-lift: 0rem;
-
-  top: auto;
-  right: auto;
-  bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
-  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
 }
 
 /* A check whose reveal and close arrived together plays the whole detour as one clip. */

@@ -75,7 +75,7 @@ export const TIMINGS = {
    */
   securityDockHold: 300,
   /** Minimum readable hold for a used Option in the effect dock. */
-  optionDockHold: 1800,
+  optionDockHold: 600,
   /** How often the open-ended dock re-checks whether its check has closed. */
   securityDockPoll: 120,
   /**
