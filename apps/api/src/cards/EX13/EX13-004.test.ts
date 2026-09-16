@@ -27,6 +27,9 @@ const HOST = "BT1-045";
 const WITCHELNY_DESTINATION = "BT18-036";
 const WITCHELNY_DESTINATION_LV5 = "BT18-039";
 const NON_MATCH_DESTINATION = "BT9-035";
+//   EX13-034 Wisemon — YELLOW Lv.5, EvoCost Yellow Lv.4 for 4, types ["Wizard"] only. [Witchelny]
+//     appears ONLY inside its printed text, so it separates `match: "text"` from `match: "trait"`.
+const TEXT_ONLY_WITCHELNY = "EX13-034";
 const INERT = "BT1-009";
 const DECK = ["BT1-011", "BT1-012", "BT1-013", "BT1-014"];
 const AUTOMATION = { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true };
@@ -164,6 +167,88 @@ describe("EX13-004 DemiMeramon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nearMatch").instanceId);
     expect(s.state.memory).toBe(5);
     // Nothing digivolved, so the conditional security trash never runs.
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("topSecurity").instanceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("accepts a destination that carries [Witchelny] only in its printed effect text", async () => {
+    // EX13-034 Wisemon is Yellow Lv.5 with types ["Wizard"] — NO [Witchelny] trait — but its
+    // printed "[Digivolve] Lv.4 w/[Witchelny] in text: Cost 3" line mentions [Witchelny]. Only a
+    // `match: "text"` reading reaches it; `match: "trait"` would refuse. The base is the textless
+    // Lv.4 BT9-035 Starmon so the printed EvoCost Yellow Lv.4 for 4 is the only cost in play.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: NON_MATCH_DESTINATION, as: "host", under: [CARD_ID] }],
+          hand: [
+            { card: TEXT_ONLY_WITCHELNY, as: "wisemon" },
+            { card: INERT, as: "spare" },
+          ],
+          security: [
+            { card: "BT1-010", as: "topSecurity" },
+            { card: "BT1-011", as: "bottomSecurity" },
+          ],
+          deck: DECK,
+        },
+        1: { security: [INERT, INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === TEXT_ONLY_WITCHELNY);
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("wisemon").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([CARD_ID, NON_MATCH_DESTINATION]);
+    // 5 - 3 (printed EvoCost Yellow Lv.4 for 4, reduced by 1 by THIS card).
+    expect(s.state.memory).toBe(2);
+    // The top security card left to this card's "If this effect digivolved" clause.
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("bottomSecurity").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
+  });
+
+  it("refuses a [Witchelny] hand card that is an illegal evolution over this carrier", async () => {
+    // BT18-039 Mistymon carries the [Witchelny] trait, so it passes the printed filter, but it is
+    // Lv.5 with EvoCost Yellow Lv.4 — illegal over the Lv.3 host. The digivolution must not happen
+    // and, because it did not, the security trash must not run either.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: HOST, as: "host", under: [CARD_ID], dp: 20_000 }],
+          hand: [
+            { card: WITCHELNY_DESTINATION_LV5, as: "lv5" },
+            { card: INERT, as: "spare" },
+          ],
+          security: [{ card: "BT1-010", as: "topSecurity" }],
+          deck: DECK,
+        },
+        1: { security: [INERT, INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.perm("host").topCard.cardId).toBe(HOST);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("lv5").instanceId);
+    expect(s.state.memory).toBe(10);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("topSecurity").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
