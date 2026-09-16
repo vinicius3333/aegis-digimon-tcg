@@ -233,5 +233,6 @@ it("mobile touch-drag offers both BT10-069 evolution costs instead of choosing s
     s.perm("darkKnightmon").permanentId,
     s.inst("darkKnightmonX").instanceId,
     true,
+    0,
   );
 });

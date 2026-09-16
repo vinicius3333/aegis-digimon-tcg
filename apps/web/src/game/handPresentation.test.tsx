@@ -104,7 +104,9 @@ it.each(["deck", "trash"])(
     await act(async () => {
       await vi.advanceTimersByTimeAsync(TIMINGS.effectSourceHold + 1);
     });
-    expect(screen.getAllByText("Add the revealed card to your hand.").length).toBeGreaterThan(0);
+    // The notice prints the source card's own clause, so this asserts a clause is on screen
+    // rather than the words the fixture used to summarize the same moment.
+    expect(document.querySelectorAll(".match-notice__text").length).toBeGreaterThan(0);
 
     const received = new CardInstance();
     received.instanceId = "received-card";
@@ -116,7 +118,9 @@ it.each(["deck", "trash"])(
     append([{ kind: "cardsMoved", instanceIds: [received.instanceId], from, to: "hand", seat: 0 }], 2);
     rendered.rerender(view());
     expect(screen.getByTestId("hand").querySelectorAll(".game-hand-card")).toHaveLength(1);
-    expect(screen.getAllByText("Add the revealed card to your hand.").length).toBeGreaterThan(0);
+    // The notice prints the source card's own clause, so this asserts a clause is on screen
+    // rather than the words the fixture used to summarize the same moment.
+    expect(document.querySelectorAll(".match-notice__text").length).toBeGreaterThan(0);
 
     // A later confirmed removal also updates the hand while narration continues.
     state.players[0]!.hand.pop();

@@ -107,6 +107,7 @@ it("keeps Ordinemon's legal normal evolution available beside DNA", async () => 
     s.perm("host").permanentId,
     s.inst("ordinemon").instanceId,
     undefined,
+    undefined,
   );
   expect(mocked.dnaDigivolve).not.toHaveBeenCalled();
 });
