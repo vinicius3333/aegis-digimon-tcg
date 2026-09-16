@@ -18,6 +18,7 @@ export function ArenaDemoTools({
   onEffectActivation,
   onSecurityEffect,
   onNoticeOrdering,
+  onSplitToasts,
   onSecurityFlip,
   securityFaceUpCount,
   disabled = false,
@@ -43,6 +44,8 @@ export function ArenaDemoTools({
   onSecurityEffect?: () => void;
   /** Attack, its [When Attacking] trigger, the check, then the turn change — in order. */
   onNoticeOrdering?: () => void;
+  /** One moment in both columns: the clause on the left, the cards it turned up on the right. */
+  onSplitToasts?: () => void;
   onSecurityFlip?: () => void;
   securityFaceUpCount?: number;
   disabled?: boolean;
@@ -200,6 +203,18 @@ export function ArenaDemoTools({
               {portuguese
                 ? "Reproduzir ordem dos avisos: ataque → segurança → virada de turno"
                 : "Play notice ordering: attack → security → turn change"}
+            </button>
+          ) : null}
+          {onSplitToasts ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onSplitToasts();
+              }}
+            >
+              {portuguese ? "Reproduzir avisos da esquerda e da direita" : "Play the left and right toasts"}
             </button>
           ) : null}
           {onImperial ? (

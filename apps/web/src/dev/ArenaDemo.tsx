@@ -547,6 +547,38 @@ export function ArenaDemo() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnStartStep]);
   /**
+   * One moment carrying both halves: the clause on the left, the cards it turned up on the
+   * right. It is the opponent's, because a reveal only opens a panel on the side that did
+   * NOT make it — the viewer's own reveal is already visible in the zone it came from.
+   */
+  function previewSplitToasts() {
+    setBatches([]);
+    setPhase(Phase.Main);
+    const board = createArenaDemoState(drawCounts);
+    const source = board.players[1]!.battleArea[0]!;
+    setBatches([
+      singleServerBatch([
+        {
+          kind: "effectTriggered",
+          seat: 1,
+          sourceCardId: source.topCard.cardId,
+          effectKey: "demo/split-toasts",
+          timing: "OnPlay",
+          description: portuguese
+            ? "[Ao Jogar] Revele as 3 cartas do topo do seu deck."
+            : "[OnPlay] Reveal the top 3 cards of your deck.",
+        },
+        /* A public snapshot lists no deck at all, so the ids come from the viewer's hand;
+           they are only identities for the panel. */
+        ...board.players[0]!.hand.slice(0, 3).map((revealed) => ({
+          kind: "cardRevealed" as const,
+          seat: 1 as const,
+          cardId: revealed.cardId,
+        })),
+      ]),
+    ]);
+  }
+  /**
    * The three notice fixes of 2026-09-16, in the order a match raises them.
    *
    * It is the opponent's attack, as the reported match was: a reveal only opens a panel
@@ -774,6 +806,7 @@ export function ArenaDemo() {
           onEffectActivation={previewEffectActivation}
           onSecurityEffect={previewSecurityEffect}
           onNoticeOrdering={previewNoticeOrdering}
+          onSplitToasts={previewSplitToasts}
           disabled={turnStartStep !== null}
         />
         <span className="aegis-arena-demo-note" role="status">
