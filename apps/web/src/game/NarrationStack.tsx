@@ -60,6 +60,7 @@ function Slot({
   securityDockActive,
   onTogglePeek,
   peekLabel,
+  anchor = "bottom",
 }: {
   slot: NarrationSlot | "rejection";
   count: number;
@@ -68,6 +69,15 @@ function Slot({
   /** Collapses the opened column back to the accordion (the phone's slot). */
   onTogglePeek?: () => void;
   peekLabel?: string;
+  /**
+   * Which end of the column holds still as it fills.
+   *
+   * A running column follows the newest moment at the bottom, the way a feed does. The
+   * accordion's opened column anchors at the top instead: it is opened to be read from the
+   * beginning, and a column that jumped to the end would drop the viewer into the middle of
+   * a batch they had not seen yet.
+   */
+  anchor?: "top" | "bottom";
 }) {
   const column = useRef<HTMLDivElement>(null);
   const [more, setMore] = useState(false);
@@ -75,31 +85,42 @@ function Slot({
   useLayoutEffect(() => {
     const element = column.current;
     if (!element) return;
-    element.scrollTop = element.scrollHeight;
-  }, [count]);
+    element.scrollTop = anchor === "top" ? 0 : element.scrollHeight;
+  }, [count, anchor]);
   useEffect(() => {
     const element = column.current;
     if (!element) return;
-    const update = () => setMore(element.scrollTop > 1);
+    // The chevron points at what is out of sight, which is the end the column is not
+    // anchored to: below a top-anchored column, above a bottom-anchored one.
+    const update = () =>
+      setMore(
+        anchor === "top" ? element.scrollTop + element.clientHeight < element.scrollHeight - 1 : element.scrollTop > 1,
+      );
     update();
     element.addEventListener("scroll", update, { passive: true });
     return () => element.removeEventListener("scroll", update);
-  }, [count]);
+  }, [count, anchor]);
   return (
     <div
       className="narration-slot"
       data-slot={slot}
       data-security-dock={securityDockActive || undefined}
       data-more={more || undefined}
+      data-anchor={anchor}
       ref={column}
       style={{ "--narration-count": count } as CSSProperties}
     >
-      {more ? (
+      {more && anchor === "bottom" ? (
         <span className="narration-slot__more" aria-hidden="true">
           <Icons.ChevronUp size={26} />
         </span>
       ) : null}
       {children}
+      {more && anchor === "top" ? (
+        <span className="narration-slot__more" data-below="true" aria-hidden="true">
+          <Icons.ChevronDown size={26} />
+        </span>
+      ) : null}
       {onTogglePeek ? (
         <button className="narration-slot__peek" type="button" onClick={onTogglePeek} aria-expanded={true}>
           <Icons.ChevronUp size={18} />
@@ -167,12 +188,23 @@ function peekSummary(
  * still running, and nothing else. It is the whole control — tapping anywhere on it opens
  * the column — so no close button or eroding ring competes for the 44px it stands in.
  */
+/**
+ * How many toasts a set of moments draws, which is not how many moments it holds: one
+ * moment carrying both halves — the clause on the left, the cards it moved on the right —
+ * is two toasts on the board. The band counts what the viewer would see, so a moment with
+ * both halves is not reported as one.
+ */
+function toastCount(items: readonly NarrationItem[]): number {
+  return items.reduce((total, item) => total + (item.notice ? 1 : 0) + (item.panel ? 1 : 0), 0);
+}
+
 function PeekLine({ items, label, onOpen }: { items: readonly NarrationItem[]; label: string; onOpen: () => void }) {
   const { t } = useTranslation();
   const newest = items.at(-1);
   if (!newest) return null;
   const summary = peekSummary(newest, t);
-  const queued = items.length - 1;
+  // The band already names one of them, so the badge counts the rest.
+  const queued = toastCount(items) - 1;
   return (
     <button className="narration-peek" type="button" onClick={onOpen} aria-label={label} aria-expanded={false}>
       {summary.cardId ? (
@@ -271,7 +303,7 @@ export function NarrationStack({
           slot={textSlot}
           count={textItems.length + (rejection ? 1 : 0)}
           securityDockActive={securityDockActive}
-          {...(compact ? { onTogglePeek: () => setExpanded(false) } : {})}
+          {...(compact ? { onTogglePeek: () => setExpanded(false), anchor: "top" as const } : {})}
           peekLabel={t("notice.collapse")}
         >
           {textItems.map(compact ? compactBody : body("text"))}
