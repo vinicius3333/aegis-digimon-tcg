@@ -60,7 +60,26 @@ function item(id: string): NarrationItem {
   };
 }
 
-it("keeps two records in the portrait column and dismisses only the selected ID", () => {
+/* The portrait column collapses whole: the accordion stands in for every record until the
+   viewer opens it, so the band is all the board carries. */
+it("collapses the whole portrait column into the accordion", () => {
+  const { container } = render(
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map([item("one"), item("two")].map((entry) => [entry.id, entry]))}
+        compact
+        nowMs={0}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>,
+  );
+  expect(container.querySelectorAll('[data-slot="narration"] .narration-item')).toHaveLength(0);
+  expect(container.querySelectorAll(".narration-peek")).toHaveLength(1);
+});
+
+it("opens the whole portrait column from the accordion, and dismisses only the selected ID", () => {
   const onAdvance = vi.fn<(id: string) => void>();
   const { container } = render(
     <I18nProvider>
@@ -74,9 +93,12 @@ it("keeps two records in the portrait column and dismisses only the selected ID"
       />
     </I18nProvider>,
   );
+  fireEvent.click(screen.getByRole("button", { name: "Show the full notice" }));
   expect(container.querySelectorAll('[data-slot="narration"] .narration-item')).toHaveLength(2);
   fireEvent.click(screen.getAllByRole("button", { name: "Dismiss notice" })[1]!);
   expect(onAdvance).toHaveBeenCalledExactlyOnceWith("two");
+  fireEvent.click(screen.getByRole("button", { name: "Fold the notice back" }));
+  expect(container.querySelectorAll('[data-slot="narration"] .narration-item')).toHaveLength(0);
 });
 
 it("does not accelerate an existing countdown when another record arrives", () => {

@@ -767,6 +767,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "notice.keyword.fragment": "＜Fragment＞ salvou",
   "notice.keyword.armorPurge": "＜Armor Purge＞ salvou",
   "notice.dismiss": "Fechar aviso",
+  "notice.expand": "Mostrar o aviso completo",
+  "notice.collapse": "Recolher o aviso",
 
   "reject.not-your-turn": "Não é seu turno",
   "reject.wrong-phase": "Não dá para fazer isso agora",

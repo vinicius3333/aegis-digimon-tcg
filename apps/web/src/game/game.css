@@ -8083,3 +8083,149 @@ button.side-panel__name:focus-visible {
     animation: none;
   }
 }
+
+/* --- The phone's folded narration band -------------------------------- */
+
+/* The phone's slot lies over the opponent's field. Folded, it is one row saying what the
+   newest moment is and how many more are still running — a purpose-built line, not a
+   shrunken notice: folding the full panel with CSS left its close button and its card name
+   hanging below a band a third of their height. The row IS the control, so a tap anywhere
+   on it opens the column, and it stands in a full touch target. */
+.narration-peek {
+  display: flex;
+  width: 100%;
+  min-height: 4rem;
+  padding: 0.4rem 0.55rem 0.4rem 0.45rem;
+  border: 1px solid rgb(120 170 240 / 26%);
+  border-radius: 0.5rem;
+  background: linear-gradient(180deg, rgb(20 40 76 / 82%) 0%, rgb(10 20 40 / 82%) 100%);
+  color: rgb(214 232 255);
+  cursor: pointer;
+  gap: 0.45rem;
+  align-items: center;
+  pointer-events: auto;
+  backdrop-filter: blur(2px);
+}
+
+/* Cropped rather than scaled: a scaled thumbnail still reserves the full card's height,
+   which is what made the band four times taller than the text on it. */
+.narration-peek__art {
+  display: block;
+  overflow: hidden;
+  width: 1.6rem;
+  height: 2.25rem;
+  flex: none;
+  border-radius: 0.2rem;
+}
+
+.narration-peek__art > * {
+  transform: scale(0.65);
+  transform-origin: top left;
+}
+
+/* Two lines: what the moment is, then one line of what it says. */
+.narration-peek__copy {
+  display: flex;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.1rem;
+  text-align: left;
+}
+
+.narration-peek__head {
+  display: flex;
+  min-width: 0;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+/* The timing is what the player is looking for — "[When Attacking]" — so it leads and is
+   never the part that gets cut. */
+.narration-peek__label {
+  flex: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(150 196 255);
+}
+
+.narration-peek__name {
+  overflow: hidden;
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Clamped to one line: the band says whether the moment is worth opening, not what it did. */
+.narration-peek__clause {
+  overflow: hidden;
+  font-size: 0.74rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgb(186 210 240);
+}
+
+/* How much is queued behind this one, so a folded band never hides that more is running. */
+.narration-peek__more {
+  flex: none;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgb(120 170 240 / 22%);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.narration-peek__chevron {
+  display: grid;
+  flex: none;
+  color: rgb(150 196 255);
+  place-items: center;
+}
+
+/* Rides the open column's corner, clear of each notice's close button. The explicit
+   `min-height` keeps it off the board's 44px touch-target floor, which is taller than the
+   row it sits on. */
+.narration-slot__peek {
+  position: absolute;
+  z-index: 1;
+  top: 0.15rem;
+  right: 0.15rem;
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(6 16 34 / 70%);
+  color: rgb(214 232 255);
+  cursor: pointer;
+  place-items: center;
+  pointer-events: auto;
+}
+
+/* The opened column's control points back the way it came. */
+.narration-slot__peek svg {
+  transform: rotate(180deg);
+}
+
+@media (width < 600px) {
+  /* The band rides at the very top of the board, over the opponent's counters, hand and
+     raising strip — none of which is read while a moment is being narrated.
+     Height is not capped here. A cap turned the opened column into a 132px scroller that
+     cut the clause off at the top, which is the one thing opening it is for: the folded
+     band is what keeps the board clear, and opening it is the viewer asking to read. */
+  .narration-slot[data-slot="narration"] {
+    top: max(var(--ds-space-1), env(safe-area-inset-top, 0px));
+    max-height: none;
+    overflow: visible;
+    pointer-events: auto;
+  }
+}

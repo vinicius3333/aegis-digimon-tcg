@@ -760,6 +760,8 @@ export const en = {
   "notice.keyword.fragment": "＜Fragment＞ saved it",
   "notice.keyword.armorPurge": "＜Armor Purge＞ saved it",
   "notice.dismiss": "Dismiss notice",
+  "notice.expand": "Show the full notice",
+  "notice.collapse": "Fold the notice back",
 
   "reject.not-your-turn": "It's not your turn",
   "reject.wrong-phase": "Can't do that right now",
