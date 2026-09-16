@@ -3704,6 +3704,44 @@ it("gives up the battle hold when the check never closes", async () => {
   expect(result.current.securityClash).toBeNull();
 });
 
+// A close that arrives after the hold has given up finds an empty stage. The battle it
+// carries has to be played from the start rather than dropped onto the outcome beat: a
+// live match sat on a decision for minutes, the hold expired, and the verdict then ran in
+// the 510 ms tail -- both Digimon died before the card had finished arriving.
+it("plays the whole battle when the close arrives after the hold gave up", async () => {
+  const REVEALED_DIGIMON: ServerEvent = {
+    ...REVEAL,
+    isDigimon: true,
+    hasSecurityEffect: false,
+    attackerDP: 2000,
+    securityCardDP: 4000,
+  };
+  const CLOSE: ServerEvent = {
+    ...CHECK,
+    battle: { attackerDP: 2000, securityCardDP: 4000, attackerDeleted: true, securityDigimonDeleted: true },
+  };
+  const { result, rerender } = renderCues();
+  rerender([ATTACK]);
+  await advance(10000);
+  rerender([ATTACK, REVEALED_DIGIMON]);
+  await advance(TIMINGS.securityDockMax + TIMINGS.securityDockPoll);
+  expect(result.current.securityClash).toBeNull();
+
+  rerender([ATTACK, REVEALED_DIGIMON, CLOSE]);
+  await advance(0);
+  // Back on stage with its full lead-in ahead of it, not already at the blow.
+  expect(result.current.securityClash?.resolution).toBe("battle");
+  // Left unset, which is the scene's own lead-in; the bug pinned it to 0.
+  expect(result.current.securityClash?.outcomeAtMs).not.toBe(0);
+
+  // It stays for the whole scene: the attacker's entrance, the reveal and the hold all
+  // still have to play before the outcome beat the tail alone used to cover.
+  await advance(CLASH_TOTAL_MS - 1);
+  expect(result.current.securityClash?.resolution).toBe("battle");
+  await advance(1);
+  expect(result.current.securityClash).toBeNull();
+});
+
 it("highlights the field host for a Succession effect even with another copy of the level 6 in hand", async () => {
   const board = {
     players: [

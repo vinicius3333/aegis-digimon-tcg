@@ -32,8 +32,7 @@ describe("BoardSelectionRail", () => {
     expect(screen.getByText("1 selected of 0–2")).toBeTruthy();
   });
 
-  it("always shows an active No Selection action so the player can decline the selection", () => {
-    const onNoSelection = vi.fn<() => void>();
+  it("hides No Selection when the selection is mandatory", () => {
     const { unmount } = renderIn(
       <BoardSelectionRail
         prompt="Select 1 card."
@@ -42,13 +41,15 @@ describe("BoardSelectionRail", () => {
         pickCount={0}
         canConfirm={false}
         onConfirm={noop}
-        onNoSelection={onNoSelection}
+        onNoSelection={noop}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "No Selection" }));
-    expect(onNoSelection).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "No Selection" })).toBeNull();
     unmount();
+  });
 
+  it("offers an active No Selection action for an up-to selection", () => {
+    const onNoSelection = vi.fn<() => void>();
     renderIn(
       <BoardSelectionRail
         prompt="Select up to 1 card."
@@ -57,10 +58,12 @@ describe("BoardSelectionRail", () => {
         pickCount={0}
         canConfirm
         onConfirm={noop}
-        onNoSelection={noop}
+        onNoSelection={onNoSelection}
       />,
     );
     expect((screen.getByRole("button", { name: "No Selection" }) as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "No Selection" }));
+    expect(onNoSelection).toHaveBeenCalledTimes(1);
   });
 
   it("keeps End Selection disabled until the count is valid", () => {

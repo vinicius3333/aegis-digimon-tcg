@@ -51,9 +51,11 @@ export const COLLAPSED_NARRATION_LIMIT = 6;
 /**
  * How much longer a moment reads on the phone's folded slot. The same clause is set in a
  * caption size there, competing with the board underneath it, so the desktop's clock is
- * not enough time to read it.
+ * not enough time to read it. The band also has to be noticed before it can be read —
+ * it sits over the opponent's field rather than in the reader's own line of sight — so
+ * the clock covers finding it as well as reading it.
  */
-export const TOUCH_NARRATION_LIFETIME_SCALE = 1.6;
+export const TOUCH_NARRATION_LIFETIME_SCALE = 2.4;
 
 /**
  * A refused action answers the viewer's own tap, so it is shown at once and never

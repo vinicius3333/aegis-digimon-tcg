@@ -2177,6 +2177,12 @@ export function useMatchCues({
       // A scene that has been holding the card on stage since an earlier batch starts its
       // outcome beat now; one staged in this batch keeps the reference client's lead-in.
       const heldOnStage = staged !== null && !closesFreshReveal;
+      // A card the hold let go of is not on stage any more, however long it held before it
+      // gave up. Its battle is staged again from nothing, so it needs the whole lead-in --
+      // the attacker taking its place, the reveal, the hold -- rather than the outcome beat
+      // a card still standing there would take. Without this the blow lands in the 510 ms
+      // tail on a card the viewer never saw arrive.
+      const restagedBattle = staged?.exited === true && securityCheck.resolution === "battle";
       const scene = settleSecurityClashScene(
         staged?.scene ??
           buildSecurityRevealScene({
@@ -2192,7 +2198,7 @@ export function useMatchCues({
                 }
               : undefined,
           }),
-        { ...securityCheck, ...(heldOnStage ? { outcomeAtMs: 0 } : {}) },
+        { ...securityCheck, ...(heldOnStage && !restagedBattle ? { outcomeAtMs: 0 } : {}) },
       );
       const docked = staged?.docked === true;
       const staging = staged === null;
@@ -2236,7 +2242,7 @@ export function useMatchCues({
               // A docked card is not on stage at all, so its battle puts it back there.
               if (restoreBattle) setSecurityClash(scene);
               else setSecurityClash((current) => (current?.key === key ? scene : current));
-              await context.wait(CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
+              await context.wait(restagedBattle ? CLASH_TOTAL_MS : CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
             } finally {
               setSecurityClash((current) => (current?.key === key ? null : current));
             }

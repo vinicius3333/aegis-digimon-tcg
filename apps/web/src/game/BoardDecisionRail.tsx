@@ -163,15 +163,18 @@ export function BoardSelectionRail({
       detail={t("overlay.selectedOfRange", { count: pickCount, range: min === max ? `${max}` : `${min}–${max}` })}
       onOpenDialog={onOpenDialog}
     >
-      {/* Keep both action slots mounted. Besides making both ways out of a selection
-          immediately discoverable, this prevents the rail from jumping when the first
-          card is picked. */}
+      {/* Keep the confirm slot mounted so the rail does not jump when the first card is
+          picked. No Selection only exists for an up-to selection (min 0); a mandatory
+          one (BT24-016 forcing the opponent to place a card as security) has no way out,
+          so offering the button would promise an answer the server rejects. */}
       <Button full icon={Icons.Check} disabled={pickCount === 0 || !canConfirm} onClick={onConfirm}>
         {t("overlay.endSelection")}
       </Button>
-      <Button full variant="secondary" onClick={onNoSelection}>
-        {t("overlay.noSelection")}
-      </Button>
+      {min === 0 ? (
+        <Button full variant="secondary" onClick={onNoSelection}>
+          {t("overlay.noSelection")}
+        </Button>
+      ) : null}
     </BoardPromptRail>
   );
 }

@@ -8196,23 +8196,31 @@ button.side-panel__name:focus-visible {
 /* Rides the open column's corner, clear of each notice's close button. The explicit
    `min-height` keeps it off the board's 44px touch-target floor, which is taller than the
    row it sits on. */
+/* Named in words and sized for a thumb: the column is opened by a tap, so the way out of
+   it has to be findable by eye over a board full of cards, not a bare chevron. */
 .narration-slot__peek {
-  position: absolute;
-  z-index: 1;
-  top: 0.15rem;
-  right: 0.15rem;
-  display: grid;
-  width: 1.9rem;
-  height: 1.9rem;
-  min-height: 0;
-  padding: 0;
-  border: 0;
+  display: inline-flex;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  align-items: center;
+  align-self: flex-end;
+  min-height: 2.75rem;
+  padding: 0 0.85rem 0 0.7rem;
+  border: 1px solid rgb(148 191 255 / 45%);
   border-radius: 999px;
-  background: rgb(6 16 34 / 70%);
-  color: rgb(214 232 255);
+  background: rgb(6 16 34 / 92%);
+  box-shadow: 0 2px 10px rgb(2 8 20 / 55%);
+  color: rgb(226 240 255);
   cursor: pointer;
-  place-items: center;
+  gap: 0.3rem;
   pointer-events: auto;
+}
+
+.narration-slot__peek-label {
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 /* The opened column's control points back the way it came. */
@@ -8253,11 +8261,13 @@ button.side-panel__name:focus-visible {
     margin-bottom: 0;
   }
 
-  /* Both controls stay put while the column scrolls under them. */
+  /* Both controls stay put while the column scrolls under them. The pill leads the column
+     and keeps its own row rather than floating over the first moment: pulled up over it
+     with a negative margin, it landed on that moment's own dismiss button. */
   .narration-slot[data-slot="narration"] .narration-slot__peek {
     position: sticky;
+    z-index: calc(var(--ds-z-dialog) - 2);
     top: 0.15rem;
     align-self: flex-end;
-    margin-bottom: calc(-1.9rem - var(--ds-space-2));
   }
 }

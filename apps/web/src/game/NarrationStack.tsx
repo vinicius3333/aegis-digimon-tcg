@@ -19,6 +19,13 @@ import { noticeRemaining, type MatchNotice } from "./notices";
 const PEEK_ART_WIDTH = 34;
 
 /**
+ * How much a column may have left to scroll before it counts as scrolled to the end. Below
+ * this the remainder is the gap under the last moment and sub-pixel rounding, not a moment
+ * the viewer has not seen, and a chevron over it points at nothing.
+ */
+const MORE_CHEVRON_SLACK_PX = 24;
+
+/**
  * One half of a moment, in the column that half belongs to. A moment carrying both a
  * clause and a list of cards is drawn twice — once per column — and either half dismisses
  * the whole moment, because they are one thing that happened.
@@ -60,6 +67,7 @@ function Slot({
   securityDockActive,
   onTogglePeek,
   peekLabel,
+  closeLabel,
   anchor = "bottom",
 }: {
   slot: NarrationSlot | "rejection";
@@ -68,7 +76,10 @@ function Slot({
   securityDockActive?: boolean;
   /** Collapses the opened column back to the accordion (the phone's slot). */
   onTogglePeek?: () => void;
+  /** The control's accessible name, which says what tapping it does. */
   peekLabel?: string;
+  /** The word printed on the control, short enough to ride the column's top edge. */
+  closeLabel?: string;
   /**
    * Which end of the column holds still as it fills.
    *
@@ -91,14 +102,29 @@ function Slot({
     const element = column.current;
     if (!element) return;
     // The chevron points at what is out of sight, which is the end the column is not
-    // anchored to: below a top-anchored column, above a bottom-anchored one.
+    // anchored to: below a top-anchored column, above a bottom-anchored one. A remainder
+    // smaller than a line of text is not content, it is rounding and the gap under the
+    // last moment, so it does not earn a chevron promising something below.
     const update = () =>
       setMore(
-        anchor === "top" ? element.scrollTop + element.clientHeight < element.scrollHeight - 1 : element.scrollTop > 1,
+        anchor === "top"
+          ? element.scrollTop + element.clientHeight < element.scrollHeight - MORE_CHEVRON_SLACK_PX
+          : element.scrollTop > MORE_CHEVRON_SLACK_PX,
       );
     update();
     element.addEventListener("scroll", update, { passive: true });
-    return () => element.removeEventListener("scroll", update);
+    /* The column also grows and shrinks without scrolling and without a new moment: a
+       card's art arrives late, a clause rewraps. Watching the box and its moments keeps
+       the chevron honest about what is actually out of sight. */
+    // Feature-detected rather than assumed: the test renderer has no ResizeObserver, and
+    // without one the scroll listener above still keeps the chevron right.
+    const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(update);
+    observer?.observe(element);
+    for (const child of element.children) observer?.observe(child);
+    return () => {
+      element.removeEventListener("scroll", update);
+      observer?.disconnect();
+    };
   }, [count, anchor]);
   return (
     <div
@@ -110,6 +136,24 @@ function Slot({
       ref={column}
       style={{ "--narration-count": count } as CSSProperties}
     >
+      {onTogglePeek ? (
+        /* The only way back to the band, on a screen with no Escape key: a labelled pill
+           rather than a bare icon, sized for a thumb and named in words, because an
+           unlabelled 30px chevron over a busy board is not a control anyone finds.
+           It leads the column so that sticking to the top edge pins it from the first
+           paint: sitting after the moments, it stayed at the far end of a column taller
+           than the screen and was only reachable by scrolling to the bottom of it. */
+        <button
+          className="narration-slot__peek"
+          type="button"
+          onClick={onTogglePeek}
+          aria-expanded={true}
+          aria-label={peekLabel}
+        >
+          <Icons.ChevronUp size={18} />
+          <span className="narration-slot__peek-label">{closeLabel}</span>
+        </button>
+      ) : null}
       {more && anchor === "bottom" ? (
         <span className="narration-slot__more" aria-hidden="true">
           <Icons.ChevronUp size={26} />
@@ -120,12 +164,6 @@ function Slot({
         <span className="narration-slot__more" data-below="true" aria-hidden="true">
           <Icons.ChevronDown size={26} />
         </span>
-      ) : null}
-      {onTogglePeek ? (
-        <button className="narration-slot__peek" type="button" onClick={onTogglePeek} aria-expanded={true}>
-          <Icons.ChevronUp size={18} />
-          <span className="aegis-sr-only">{peekLabel}</span>
-        </button>
       ) : null}
     </div>
   );
@@ -305,6 +343,7 @@ export function NarrationStack({
           securityDockActive={securityDockActive}
           {...(compact ? { onTogglePeek: () => setExpanded(false), anchor: "top" as const } : {})}
           peekLabel={t("notice.collapse")}
+          closeLabel={t("notice.close")}
         >
           {textItems.map(compact ? compactBody : body("text"))}
           {rejection ? (

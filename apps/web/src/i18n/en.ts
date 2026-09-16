@@ -762,6 +762,7 @@ export const en = {
   "notice.dismiss": "Dismiss notice",
   "notice.expand": "Show the full notice",
   "notice.collapse": "Fold the notice back",
+  "notice.close": "Close",
 
   "reject.not-your-turn": "It's not your turn",
   "reject.wrong-phase": "Can't do that right now",

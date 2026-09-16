@@ -769,6 +769,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "notice.dismiss": "Fechar aviso",
   "notice.expand": "Mostrar o aviso completo",
   "notice.collapse": "Recolher o aviso",
+  "notice.close": "Fechar",
 
   "reject.not-your-turn": "Não é seu turno",
   "reject.wrong-phase": "Não dá para fazer isso agora",

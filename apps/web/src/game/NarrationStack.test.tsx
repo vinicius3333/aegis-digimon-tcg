@@ -101,6 +101,29 @@ it("opens the whole portrait column from the accordion, and dismisses only the s
   expect(container.querySelectorAll('[data-slot="narration"] .narration-item')).toHaveLength(0);
 });
 
+/* The opened column is taller than the phone it is read on, so a control at the end of it
+   is only reachable by scrolling past every moment. Leading the column is what lets it
+   stick to the top edge from the first paint. */
+it("leads the opened portrait column with its close control", () => {
+  const { container } = render(
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map([item("one"), item("two")].map((entry) => [entry.id, entry]))}
+        compact
+        nowMs={0}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Show the full notice" }));
+  const close = screen.getByRole("button", { name: "Fold the notice back" });
+  expect(container.querySelector('[data-slot="narration"]')?.firstElementChild).toBe(close);
+  // Named in words, not left as a bare chevron to be guessed at.
+  expect(close.textContent).toContain("Close");
+});
+
 it("does not accelerate an existing countdown when another record arrives", () => {
   const first = item("one");
   const view = (items: NarrationItem[], nowMs: number) => (
