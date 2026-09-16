@@ -222,13 +222,25 @@
   right: 0.5rem;
   z-index: 10001;
   display: grid;
+  /* The list grows with every fixture added to it, so it is bounded by the screen rather
+     than by the count: past the bottom edge it scrolls inside itself instead of running
+     off it. `dvh` because the phone's address bar makes `vh` taller than the screen. */
+  max-height: calc(100dvh - 4.75rem - env(safe-area-inset-bottom, 0px));
   gap: 0.25rem;
+  overflow-y: auto;
   width: min(19rem, calc(100vw - 1rem));
   padding: 0.5rem;
   border: 1px solid var(--demo-border);
   border-radius: var(--ds-radius-md);
   background: #122835;
   box-shadow: 0 12px 28px #0009;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* A scrolling list must not shrink its own rows to fit; each keeps its touch target. */
+.aegis-arena-demo-tools-menu > button {
+  flex-shrink: 0;
 }
 .aegis-arena-demo-tools-menu button {
   display: flex;

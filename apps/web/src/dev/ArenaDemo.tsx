@@ -85,6 +85,15 @@ const SECURITY_REPLAY_GAP_MS = 750;
 const SECURITY_TAMER_CARD_ID = "BT10-087";
 const SECURITY_TAMER_PERMANENT_ID = "perm-4";
 
+/* The gaps of the notice-ordering preview, one per beat. They stand in for the server's
+   own pacing in the match this preview reproduces: the declaration, then the trigger the
+   attack fired, then the check, then the turn change — each far enough apart to be read,
+   close enough that the previous toasts are still on screen when the next beat lands. */
+const NOTICE_ORDER_GAPS_MS = [0, 1200, 1700, 2200] as const;
+
+/* The card the scripted check turns up. A Digimon, so the reveal plays its battle. */
+const NOTICE_ORDER_SECURITY_CARD_ID = "BT1-010";
+
 const ARENA_DECKS: readonly {
   recipeId: string;
   name: string;
@@ -261,6 +270,9 @@ export function ArenaDemo() {
   const [securityReplayStep, setSecurityReplayStep] = useState<number | null>(null);
   /** The board the replay has reached, kept after it ends: 0 none, 2 Taiki played, 6 Xros'd. */
   const [securityBoardStep, setSecurityBoardStep] = useState(0);
+  /** Which beat of the notice-ordering preview has been emitted, or null when idle. */
+  const [noticeOrderStep, setNoticeOrderStep] = useState<number | null>(null);
+  const [noticeOrderRun, setNoticeOrderRun] = useState(0);
   /** The run number of the open hand-selection fixture, so repeating it asks again. */
   const [handSelectionRun, setHandSelectionRun] = useState<number | null>(null);
   const keywordLabels = useMemo(() => demoKeywordLabels(keywordGrants), [keywordGrants]);
@@ -534,6 +546,103 @@ export function ArenaDemo() {
     // The demo emits one batch; production cues own the actual presentation clocks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnStartStep]);
+  /**
+   * The three notice fixes of 2026-09-16, in the order a match raises them.
+   *
+   * It is the opponent's attack, as the reported match was: a reveal only opens a panel
+   * on the side that did NOT make it, so the viewer's own attack could never show both
+   * halves of a moment.
+   *
+   * Beat 1 declares the attack. Beat 2 is the [When Attacking] trigger the declaration
+   * fired, carrying both halves of one moment — the clause and the cards it turned up —
+   * so the left column leads and the right follows a beat later. Beat 3 is the security
+   * check, which now waits for that clause instead of breaking the shield over it. Beat 4
+   * passes the turn, and every toast still on screen keeps its own clock through the
+   * ribbons rather than being cleared by them.
+   */
+  function previewNoticeOrdering() {
+    setBatches([]);
+    setPhase(Phase.Main);
+    setNoticeOrderRun((run) => run + 1);
+    setNoticeOrderStep(0);
+  }
+  useEffect(() => {
+    if (noticeOrderStep === null) return;
+    if (noticeOrderStep >= NOTICE_ORDER_GAPS_MS.length) {
+      setNoticeOrderStep(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      const board = createArenaDemoState(drawCounts);
+      const attacker = board.players[1]!.battleArea[0]!;
+      const attackerCardId = attacker.topCard.cardId;
+      const beats: readonly ServerEvent[][] = [
+        [
+          {
+            kind: "attackDeclared",
+            seat: 1,
+            attackerCardId,
+            attackerPermanentId: attacker.permanentId,
+            target: { kind: "player" },
+          },
+        ],
+        [
+          {
+            kind: "effectTriggered",
+            seat: 1,
+            sourceCardId: attackerCardId,
+            effectKey: "demo/notice-order/when-attacking",
+            /* The engine's own key, not the label: TIMING_LABELS maps it to the
+               "When Attacking" the notice prints. */
+            timing: "OnUseAttack",
+            description: portuguese
+              ? "[Ao Atacar] Revele as 3 cartas do topo do seu deck."
+              : "[When Attacking] Reveal the top 3 cards of your deck.",
+          },
+          /* A public snapshot lists no deck at all, and never the opponent's cards, so the
+             three ids come from the viewer's hand. They are only identities for the panel. */
+          ...board.players[0]!.hand.slice(0, 3).map((revealed) => ({
+            kind: "cardRevealed" as const,
+            seat: 1 as const,
+            cardId: revealed.cardId,
+          })),
+        ],
+        [
+          {
+            kind: "securityRevealed",
+            seat: 0,
+            revealedCardId: NOTICE_ORDER_SECURITY_CARD_ID,
+            artId: NOTICE_ORDER_SECURITY_CARD_ID,
+            attackerArtId: attackerCardId,
+            attackerPermanentId: attacker.permanentId,
+            attackerDP: attacker.currentDP,
+            securityCardDP: 3000,
+            hasSecurityEffect: false,
+            isDigimon: true,
+          },
+          {
+            kind: "securityChecked",
+            seat: 0,
+            revealedCardId: NOTICE_ORDER_SECURITY_CARD_ID,
+            artId: NOTICE_ORDER_SECURITY_CARD_ID,
+            attackerArtId: attackerCardId,
+            resolution: "battle",
+          },
+        ],
+        [
+          { kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 6 },
+          { kind: "phaseChanged", phase: Phase.Active, turnSeat: 0, turnCount: 6 },
+          { kind: "phaseChanged", phase: Phase.Draw, turnSeat: 0, turnCount: 6 },
+          { kind: "phaseChanged", phase: Phase.Breeding, turnSeat: 0, turnCount: 6 },
+        ],
+      ];
+      setBatches((previous) => [...previous, singleServerBatch(beats[noticeOrderStep]! as ServerEvent[])]);
+      setNoticeOrderStep((step) => (step === null ? null : step + 1));
+    }, NOTICE_ORDER_GAPS_MS[noticeOrderStep]!);
+    return () => clearTimeout(timer);
+    // The board fixture is stable for the length of the preview; only the beat drives it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noticeOrderStep, noticeOrderRun]);
   useEffect(() => {
     if (noticeBurstStep === null) return;
     if (noticeBurstStep >= NOTICE_BURST_COUNT) {
@@ -664,6 +773,7 @@ export function ArenaDemo() {
           onHandSelection={previewHandSelection}
           onEffectActivation={previewEffectActivation}
           onSecurityEffect={previewSecurityEffect}
+          onNoticeOrdering={previewNoticeOrdering}
           disabled={turnStartStep !== null}
         />
         <span className="aegis-arena-demo-note" role="status">

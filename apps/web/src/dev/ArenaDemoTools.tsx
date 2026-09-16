@@ -17,6 +17,7 @@ export function ArenaDemoTools({
   onImperial,
   onEffectActivation,
   onSecurityEffect,
+  onNoticeOrdering,
   onSecurityFlip,
   securityFaceUpCount,
   disabled = false,
@@ -40,6 +41,8 @@ export function ArenaDemoTools({
   ) => void;
   /** The docked security card and a full narration column at once. */
   onSecurityEffect?: () => void;
+  /** Attack, its [When Attacking] trigger, the check, then the turn change — in order. */
+  onNoticeOrdering?: () => void;
   onSecurityFlip?: () => void;
   securityFaceUpCount?: number;
   disabled?: boolean;
@@ -183,6 +186,20 @@ export function ArenaDemoTools({
               }}
             >
               {portuguese ? "Reproduzir efeito de segurança" : "Play security-effect scenario"}
+            </button>
+          ) : null}
+          {onNoticeOrdering ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onNoticeOrdering();
+              }}
+            >
+              {portuguese
+                ? "Reproduzir ordem dos avisos: ataque → segurança → virada de turno"
+                : "Play notice ordering: attack → security → turn change"}
             </button>
           ) : null}
           {onImperial ? (
