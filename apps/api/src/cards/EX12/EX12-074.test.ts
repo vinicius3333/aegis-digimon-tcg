@@ -120,6 +120,17 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("target").instanceId),
     ).toBe(true);
     expect(s.state.memory).toBe(2);
+
+    // Placing itself as a security card is this Option's final routing, so that movement
+    // carries the marker the trash route carries. Without it the client's resolving-Option
+    // dock never learns the card is done and holds the right of the screen — with every
+    // centre-stage cue queued behind it — until its 45-second failsafe ceiling.
+    const optionId = s.inst("option").instanceId;
+    expect(
+      s.events.some(
+        (event) => event.kind === "cardsMoved" && event.optionUsed === true && event.instanceIds.includes(optionId),
+      ),
+    ).toBe(true);
   });
 
   it("still places itself when the security stack is empty", async () => {

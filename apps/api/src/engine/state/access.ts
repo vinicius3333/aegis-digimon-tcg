@@ -349,6 +349,37 @@ export function setResolvingOption(player: PlayerState, card: CardInstance | und
   if (card !== undefined) (player as PortHost)[VISIBILITY_PORT]?.(player.seat, Zone.BattleArea, card);
 }
 
+/**
+ * The used Option whose own effect just moved it out of §9-1-4's no-area slot, per game state.
+ * See {@link noteRoutedUsedOption} for why the marker exists and how it is spent.
+ */
+const routedUsedOptions = new WeakMap<GameState, string>();
+
+/**
+ * Record that a used Option left `resolvingOption` for a real area — §9-1-5's placement
+ * exception (into security, the battle area, the deck, a digivolution stack). That movement IS
+ * the used Option's final routing, the role the trash step plays for every other Option, and the
+ * client's Option dock closes on the `cardsMoved` that carries it. A route that does not mark it
+ * leaves the dock holding the right-hand slot until its failsafe ceiling, with every centre-stage
+ * cue queued behind it. Recorded at the one seam that claims the slot, so a new placement route
+ * cannot forget to mark itself.
+ */
+export function noteRoutedUsedOption(state: GameState, instanceId: string): void {
+  routedUsedOptions.set(state, instanceId);
+}
+
+/**
+ * Stamp the routing marker onto the first `cardsMoved` carrying the claimed instance, and spend
+ * it. Every other event passes through untouched.
+ */
+export function markRoutedUsedOption(state: GameState, event: ServerEvent): ServerEvent {
+  if (event.kind !== "cardsMoved") return event;
+  const routed = routedUsedOptions.get(state);
+  if (routed === undefined || !event.instanceIds.includes(routed)) return event;
+  routedUsedOptions.delete(state);
+  return event.optionUsed === true ? event : { ...event, optionUsed: true as const };
+}
+
 /** Remove the permanent at `index` from a seat's battle area; undefined when out of range. */
 export function extractPermanentAt(player: PlayerState, index: number): Permanent | undefined {
   if (index < 0) return undefined;

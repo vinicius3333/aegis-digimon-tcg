@@ -40,6 +40,7 @@ import {
   pushOnStack,
   removeFromStackAt,
   replaceStack,
+  noteRoutedUsedOption,
   setBreeding,
   setResolvingOption,
   setTopCard,
@@ -6626,6 +6627,11 @@ function removeLooseInstance(
     if (owner.resolvingOption?.instanceId === instanceId) {
       const card = owner.resolvingOption;
       setResolvingOption(owner, undefined);
+      // Whatever area this claim is heading for, the movement that lands it there is the used
+      // Option's final routing, and the client's Option dock closes on that event's `optionUsed`
+      // marker. Marked at the claim rather than at each destination so no placement route can
+      // leave the dock waiting for a close that never comes.
+      noteRoutedUsedOption(state, instanceId);
       return card;
     }
     const fromHand = spliceById(owner.hand, instanceId);

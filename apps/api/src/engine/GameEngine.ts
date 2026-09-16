@@ -41,7 +41,7 @@ import {
   syncPublicCounts,
 } from "./state/visibility.js";
 import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
-import { GameStateAccess, insertCard, setTopCard, takeTop } from "./state/access.js";
+import { GameStateAccess, insertCard, markRoutedUsedOption, setTopCard, takeTop } from "./state/access.js";
 import { CombatController, type CombatTrigger } from "./combat/controller.js";
 import { detachLeaveReplacements, detachTraitTokens } from "./effects/detach.js";
 import { guardLeaveReplacements } from "./effects/guard.js";
@@ -892,7 +892,9 @@ export class GameEngine {
       ...hooks,
       emit: (event) => {
         this.forgetUsesOfCardsLeavingField(event);
-        hooks.emit(event);
+        // The same seam marks the movement that routes a used Option out of its no-area slot,
+        // whichever area the Option's own effect sent it to.
+        hooks.emit(markRoutedUsedOption(this.state, event));
       },
     };
     // TODO(effect-framework): import "../cards" is done at boot for side-effect
