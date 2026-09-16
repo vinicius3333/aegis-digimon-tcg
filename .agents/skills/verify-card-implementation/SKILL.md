@@ -46,7 +46,18 @@ Map each clause to executable behavior. Check:
 
 Follow every shared primitive used by the module far enough to verify its real
 semantics. When the engine cannot express the card faithfully, improve the
-smallest reusable engine seam before implementing the card.
+smallest reusable engine seam before implementing the card, and document that
+seam in `docs/audits/engine/<seam>.md` (kebab-case).
+
+Registration rules from `AGENTS.md`:
+
+- The module registers behaviour exclusively with
+  `registerIrCard(cardId, compiled)`. Never add or keep a second
+  `registerCard` registration for the same card; a handwritten card is ported
+  to compiled IR or recorded as an open item below 10/10.
+- No `// @ts-nocheck`, casts, suppressions or weakened printed requirements.
+- `coverage: "full"` and `residual: []` are the target. A clause the engine
+  cannot express stays as an `it.fails` test naming the seam.
 
 Completion criterion: every clause maps to concrete code, with no silent gap or
 approximation.
@@ -114,15 +125,19 @@ unsupported or ambiguous.
 Run the focused test first:
 
 ```bash
-pnpm --filter @aegis/api exec vitest run src/cards/<SET>/<CARD-ID>.test.ts
+pnpm --filter @aegis/api exec vitest run src/cards/<SET>/<CARD-ID>.test.ts --maxWorkers=1 --no-file-parallelism
 ```
 
 Then run tests for every shared engine seam changed, followed by:
 
 ```bash
 pnpm typecheck
+pnpm exec oxlint <changed files>; pnpm exec oxfmt --check <changed files>
 git diff --check
 ```
+
+Always pass `--maxWorkers=1 --no-file-parallelism`; each vitest process with
+the API graph takes about 1.5 GB, and parallel lanes share the machine.
 
 Run broader card or engine suites when the implementation changes shared
 targeting, timing, zones, combat, decisions, or effect resolution.
@@ -132,6 +147,14 @@ and diff validation all pass, or each unrelated pre-existing failure is named
 with evidence.
 
 ## 6. Close the audit
+
+Record the evidence only in the set ledger `docs/audits/<SET>.md`, in the
+card's `### <CARD-ID> — <Name>` section (catalog line, printed and inherited
+contracts, trace with action vocabulary and proof test names, KB line, score
+line `**N/10** (c + ir + b + p + g)`, ambiguities). Never add per-card files,
+reports, logs or JSON under `docs/audits/`; `apps/api/src/cards/audit-docs.test.ts`
+rejects them. When working as a lane under a coordinator, write the section
+to the scratchpad and let the coordinator fold it into the ledger.
 
 Report:
 
