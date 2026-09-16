@@ -192,6 +192,16 @@ export interface SetupEngineOptions {
    */
   preferInstanceIds?: string[];
   /**
+   * Refuse the one offer whose prompt contains any of these substrings: an `optional` prompt
+   * is answered no, and a zero-floor (`min: 0`) card selection is answered with nothing,
+   * before `autoAcceptOptional`/`autoSelectCards` get to accept. A blanket auto-accept takes
+   * every offer in the flow, including ones a test isn't about — CR §4-19 ＜Arts Digivolve＞,
+   * say, which replaces a used DUAL card's pending trash and so moves the card a trash
+   * assertion is watching. Naming the prompt refuses that one offer and leaves every other
+   * decision in the flow answered as before.
+   */
+  declinePrompts?: string[];
+  /**
    * Answer a `chooseOption` decision with this option index instead of `autoChooseOption`'s
    * default of 0 — for a card whose intended (or asserted) branch isn't the first-listed one.
    */
@@ -344,7 +354,26 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
     seed: 1,
     requestDecision: (seat, req) => {
       decisions.push({ seat, req });
-      if (opts?.autoAcceptOptional && req.kind === "optional") {
+      const promptRefused = (opts?.declinePrompts ?? []).some((prompt) => (req.promptText ?? "").includes(prompt));
+      const declined =
+        promptRefused &&
+        (req.kind === "optional" ||
+          ((req.kind === "selectCards" || req.kind === "chooseTargets") && (req.options?.min ?? 0) === 0));
+      if (declined) {
+        queueMicrotask(() =>
+          engineRef?.applyIntent(seat, {
+            type: "respondDecision",
+            decisionId: req.decisionId,
+            response:
+              req.kind === "optional"
+                ? { kind: "optional", accept: false }
+                : req.kind === "selectCards"
+                  ? { kind: "selectCards", instanceIds: [] }
+                  : { kind: "chooseTargets", instanceIds: [] },
+          }),
+        );
+      }
+      if (!declined && opts?.autoAcceptOptional && req.kind === "optional") {
         queueMicrotask(() =>
           engineRef?.applyIntent(seat, {
             type: "respondDecision",
@@ -353,7 +382,7 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
           }),
         );
       }
-      if (opts?.autoDeclineOptional && req.kind === "optional") {
+      if (!declined && opts?.autoDeclineOptional && req.kind === "optional") {
         queueMicrotask(() =>
           engineRef?.applyIntent(seat, {
             type: "respondDecision",
@@ -418,7 +447,7 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
           }),
         );
       }
-      if (opts?.autoSelectCards && (req.kind === "selectCards" || req.kind === "chooseTargets")) {
+      if (!declined && opts?.autoSelectCards && (req.kind === "selectCards" || req.kind === "chooseTargets")) {
         const candidates = req.options?.candidateInstanceIds ?? [];
         // Bias toward `preferInstanceIds`: when a capped selection's candidates include one,
         // pick it first so the effect lands on the asserted/intended target, not an arbitrary

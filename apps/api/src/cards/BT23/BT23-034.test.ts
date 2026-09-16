@@ -262,7 +262,9 @@ describe("BT23-034 Sakuyamon", () => {
           deck: ["BT1-013", "BT1-014", "BT1-009"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // ST24-07 carries ＜Raid＞, whose optional switch would redirect this player attack onto
+      // Sakuyamon. Decline it so the attack stays on the player and the proof is about timings.
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["＜Raid＞"] },
     );
     s.state.memory = 10;
     await s.ready();
