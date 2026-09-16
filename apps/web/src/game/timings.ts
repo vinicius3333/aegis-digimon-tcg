@@ -218,6 +218,22 @@ export const TIMINGS = {
   /** The glow a field permanent holds while its effect activates, before its toast appears. */
   effectSourceHold: 480,
   /**
+   * How long a security check waits for the clauses the attack already raised.
+   *
+   * A [When Attacking] effect resolves server-side before the security card is revealed,
+   * but its toast spends `effectSourceHold` glowing the source card first, so the shield
+   * broke while the clause was still on its way in and the check read as having happened
+   * first. The break waits the clauses out, bounded so a column that keeps filling can
+   * never hold the check for good.
+   */
+  securityClauseLead: 1400,
+  /**
+   * The beat between the two halves of one moment: the clause on the left, then the cards
+   * it moved on the right. Both halves used to land in the same frame, which read as two
+   * unrelated toasts appearing at once instead of as a sentence and its result.
+   */
+  narrationCardsLag: 320,
+  /**
    * How long a triggered-effect notice — an [On Play], a [When Digivolving] — reads on its
    * own before what it did is played out. The same beat `attackAnnounce` gives an attack
    * call-out, and for the same reason: long enough to read the timing and the card name,

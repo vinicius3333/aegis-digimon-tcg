@@ -1067,14 +1067,26 @@ export function useMatchCues({
         if (context.cancelled || narrationSkipRef.current) return;
         const shown = presentableNarration(item);
         if (!shown) return;
-        setNarration((items) =>
-          pushNarrationItem(
-            items,
-            shown,
-            collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
-            collapseNarrationRef.current,
-          ),
-        );
+        const push = (published: NarrationItem) =>
+          setNarration((items) =>
+            pushNarrationItem(
+              items,
+              published,
+              collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
+              collapseNarrationRef.current,
+            ),
+          );
+        // Left, then right. A moment carrying both halves is a sentence and its result, so
+        // the clause takes the screen first and the cards it moved follow a beat later.
+        // The folded phone slot draws both halves in one item, so it is published whole.
+        const staggered = !collapseNarrationRef.current && shown.notice !== undefined && shown.panel !== undefined;
+        if (staggered) {
+          const { panel: _panel, ...clauseOnly } = shown;
+          push(clauseOnly);
+          await context.wait(TIMINGS.narrationCardsLag);
+          if (context.cancelled || narrationSkipRef.current) return;
+        }
+        push(shown);
         reportShown(`narration-step-${item.id}`, context);
         // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
         // single moment, give every clause one readable beat before the next server event
@@ -1834,7 +1846,12 @@ export function useMatchCues({
       // The board drops the checked card as soon as its patch lands; the shield keeps the
       // figure that still counts it until the reveal has actually put the card on screen.
       holdSecurityCard(key, seat, securityCountOf(seat));
-      enqueue(shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: seat, viewerSeat }), { replace }));
+      enqueue(
+        shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: seat, viewerSeat }), {
+          replace,
+          ...(replayingHistory ? {} : { clausesBefore: batchId }),
+        }),
+      );
       void queue.idle().then(() => {
         if (queuedSecurityKeyRef.current === key) queuedSecurityKeyRef.current = null;
       });
@@ -2467,22 +2484,14 @@ export function useMatchCues({
   /**
    * The clauses a ribbon at `phaseOrder` would cover: everything an earlier phase raised.
    *
-   * A notice reads for six seconds, so a turn change — five ribbons back to back — outlives
-   * it by far. Left alone, the clause is still on screen when the ribbons are done and reads
-   * as something the new turn did.
+   * The ribbon waits one readable beat for them, but it no longer takes them off the
+   * screen: a clause keeps its own six-second clock across the turn change, so a moment
+   * raised at the end of a turn is still readable once the ribbons are done.
    */
   function narrationBefore(phaseOrder: number): NarrationItem[] {
     return [...narrationRef.current.values()].filter(
       (item) => (narrationPhaseOrdersRef.current.get(item.id) ?? 0) < phaseOrder,
     );
-  }
-
-  /** Take those clauses off the screen: the ribbon is about to cover them anyway. */
-  function cutNarrationBefore(phaseOrder: number) {
-    const covered = new Set(narrationBefore(phaseOrder).map((item) => item.id));
-    if (covered.size === 0) return;
-    for (const id of covered) narrationPhaseOrdersRef.current.delete(id);
-    setNarration((items) => new Map([...items].filter(([id]) => !covered.has(id))));
   }
 
   async function waitForPhasePrerequisites(
@@ -2594,7 +2603,6 @@ export function useMatchCues({
                 seat: openedPhase.nextSeat,
                 count: current?.count ?? openedPhase.turnCount,
               }));
-              cutNarrationBefore(phaseOrder);
               playCue("turnChange");
               setTurnTransition(transition);
               await context.wait(TIMINGS.turnBanner);
@@ -2652,7 +2660,6 @@ export function useMatchCues({
               await waitForPhasePrerequisites(context, arrivals, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
               visiblePhaseBannerRef.current = true;
-              cutNarrationBefore(phaseOrder);
               if (isAnnouncedPhase(openedPhase.phase)) setAnnouncedPhase(openedPhase.phase);
               setAnnouncedTurn({ seat: openedPhase.turnSeat, count: openedPhase.turnCount });
               setPhaseBanner(banner);
@@ -3140,7 +3147,10 @@ export function useMatchCues({
    * board holds while the shards clear. Pure motion — the clash that follows carries the
    * information — so it is skipped outright unless the queue is live.
    */
-  function shieldBreakStep(scene: SecurityBreakScene, { replace = true }: { replace?: boolean } = {}): AnimationStep {
+  function shieldBreakStep(
+    scene: SecurityBreakScene,
+    { replace = true, clausesBefore }: { replace?: boolean; clausesBefore?: string } = {},
+  ): AnimationStep {
     return {
       id: `security-break-${scene.key}`,
       track: CENTER_STAGE_TRACK,
@@ -3152,6 +3162,23 @@ export function useMatchCues({
       replace,
       async run(context) {
         if (context.mode !== "live") return;
+        // Whatever the attack itself raised reads before the shield breaks. The server
+        // resolves a [When Attacking] effect ahead of the reveal, but its toast glows the
+        // source card first, so without this wait the check opened over a clause that had
+        // not arrived yet and looked like it had fired afterwards.
+        if (clausesBefore !== undefined) {
+          const deadline = Date.now() + TIMINGS.securityClauseLead;
+          while (
+            !context.cancelled &&
+            !context.skipping &&
+            Date.now() < deadline &&
+            queue.hasPendingStep(
+              (step) => step.id.startsWith("narration-step-") && step.origin?.batchId !== clausesBefore,
+            )
+          )
+            await context.wait(16);
+          if (context.cancelled) return;
+        }
         try {
           setSecurityBreak({ ...scene, phase: "arm" });
           await context.wait(SECURITY_BREAK_TIMINGS.armMs);

@@ -1656,6 +1656,8 @@ describe("match cues", () => {
     expect(result.current.zoneShowcase).toBeNull();
     // The arrival releases the effect and its results while Security remains readable.
     expect(result.current.notices).toHaveLength(2);
+    // The clause takes the screen first; the cards it turned up follow a beat later.
+    await advance(TIMINGS.narrationCardsLag);
     const panel = result.current.sidePanels.at(-1);
     expect(panel?.titleKey).toBe("panel.revealedCards");
     expect(panel?.cards).toHaveLength(4);
@@ -1821,6 +1823,8 @@ describe("match cues", () => {
     expect(result.current.notices).toHaveLength(1);
     expect(result.current.notices[0]?.body.variant).toBe("effect");
 
+    // The clause takes the screen first; the cards it turned up follow a beat later.
+    await advance(TIMINGS.narrationCardsLag);
     const panel = result.current.sidePanels.at(-1);
     expect(panel?.titleKey).toBe("panel.revealedCards");
     expect(panel?.cards).toHaveLength(4);
@@ -3183,8 +3187,9 @@ describe("the narration feed", () => {
 
   /* The BT25-008 play of 2026-09-16: the clause that passed the turn was raised, and the
      five ribbons the turn change queues covered it for 5.3s while its six-second clock ran
-     out underneath them. The clause reads first, then the ribbon takes the screen and it. */
-  it("reads the clause that passed the turn before the ribbon, and clears it as the ribbon opens", async () => {
+     out underneath them. The ribbon waits for the clause to be readable, and then leaves it
+     alone: a moment keeps running across the turn change and expires on its own clock. */
+  it("reads the clause that passed the turn before the ribbon, and keeps it running across it", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
     rerender([yourEffect("BT1-001")]);
@@ -3202,6 +3207,10 @@ describe("the narration feed", () => {
 
     await advance(200 + 16);
     expect(result.current.phaseBanner?.phase).toBe("End");
+    expect(cards(result.current.narration)).toEqual(["BT1-001"]);
+
+    // Still its own clock, not the ribbon's: it goes when its reading time is up.
+    await advance(TIMINGS.noticeLifetime);
     expect(result.current.narration.size).toBe(0);
   });
 
@@ -3882,7 +3891,7 @@ describe("Taiki hand-play reveal on a single narration slot", () => {
     const cardIds = ["BT19-014", "BT8-095", "AD1-006", "BT19-051"];
     const reveals: ServerEvent[] = cardIds.map((cardId) => ({ kind: "cardRevealed", seat: 1, cardId, artId: cardId }));
     rerender(feed([play, effect, ...reveals]));
-    await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold);
+    await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold + TIMINGS.narrationCardsLag);
     expect(result.current.sidePanels.at(-1)?.cards.map((card) => card.cardId)).toEqual(cardIds);
     expect(result.current.notices.at(-1)?.body).toMatchObject({ variant: "effect", cardId: "BT10-087" });
     await advance(1000);
