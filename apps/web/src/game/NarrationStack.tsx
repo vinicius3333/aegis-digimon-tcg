@@ -1,20 +1,41 @@
-/* Recent effects and card movements share bounded columns. Each item owns its
-   reading lifetime and dismissal; both players share one column on portrait phones. */
+/* Recent effects and card movements share two bounded columns, split by what a moment is
+   rather than by whose moment it is: the clause to read on the left, the cards the moment
+   moved on the right. Both players' moments use both columns, so the eye always looks in
+   the same place for the same kind of thing. Each item owns its reading lifetime and
+   dismissal; a portrait phone folds the two columns into one. */
 
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { NoticeStack } from "./NoticeStack";
 import { SidePanelStack } from "./SidePanelStack";
-import { narrationRemaining, type NarrationItem, type NarrationSlot } from "./narration";
+import { isCardListNotice, narrationRemaining, type NarrationItem, type NarrationSlot } from "./narration";
 import { noticeRemaining, type MatchNotice } from "./notices";
 
-function NarrationItemView({ item, nowMs, onAdvance }: { item: NarrationItem; nowMs: number; onAdvance: () => void }) {
+/**
+ * One half of a moment, in the column that half belongs to. A moment carrying both a
+ * clause and a list of cards is drawn twice — once per column — and either half dismisses
+ * the whole moment, because they are one thing that happened.
+ */
+function NarrationItemView({
+  item,
+  half,
+  nowMs,
+  onAdvance,
+}: {
+  item: NarrationItem;
+  half: "text" | "cards";
+  nowMs: number;
+  onAdvance: () => void;
+}) {
   // Keep the running CSS duration stable when neighboring records change.
   const [mountedAt] = useState(nowMs);
   const remainingMs = narrationRemaining(item, mountedAt);
+  const notice = item.notice && (half === "cards") === isCardListNotice(item.notice) ? item.notice : undefined;
   return (
     <>
-      {item.panel ? <SidePanelStack panel={item.panel} remainingMs={remainingMs} onDismiss={onAdvance} /> : null}
-      {item.notice ? <NoticeStack notice={item.notice} remainingMs={remainingMs} onDismiss={onAdvance} /> : null}
+      {half === "cards" && item.panel ? (
+        <SidePanelStack panel={item.panel} remainingMs={remainingMs} onDismiss={onAdvance} />
+      ) : null}
+      {notice ? <NoticeStack notice={notice} remainingMs={remainingMs} onDismiss={onAdvance} /> : null}
     </>
   );
 }
@@ -70,30 +91,36 @@ export function NarrationStack({
   onDismissRejection: () => void;
 }) {
   const now = nowMs ?? Date.now();
-  // The refusal shares the viewer's slot, which on a phone is the only slot there is.
-  const viewerSlot: NarrationSlot = compact ? "narration" : "narration-you";
+  // A refusal is a sentence about the viewer's own tap, so it reads with the clauses —
+  // which on a phone is the only column there is.
+  const textSlot: NarrationSlot = compact ? "narration" : "narration-text";
   const items = [...narration.values()];
-  const viewerItems = compact ? items : items.filter((item) => item.side === "you");
-  const oppItems = compact ? [] : items.filter((item) => item.side === "opp");
-  const body = (shown: NarrationItem) => (
+  const hasCards = (item: NarrationItem) => Boolean(item.panel || (item.notice && isCardListNotice(item.notice)));
+  const hasText = (item: NarrationItem) => Boolean(item.notice && !isCardListNotice(item.notice));
+  const textItems = compact ? items : items.filter(hasText);
+  const cardItems = compact ? [] : items.filter(hasCards);
+  const body = (half: "text" | "cards") => (shown: NarrationItem) => (
     <div className="narration-item" key={shown.id} data-narration-id={shown.id}>
-      <NarrationItemView item={shown} nowMs={now} onAdvance={() => onAdvance(shown.id)} />
+      <NarrationItemView item={shown} half={half} nowMs={now} onAdvance={() => onAdvance(shown.id)} />
+    </div>
+  );
+  // The folded column draws both halves of a moment, one after the other.
+  const compactBody = (shown: NarrationItem) => (
+    <div className="narration-item" key={shown.id} data-narration-id={shown.id}>
+      <NarrationItemView item={shown} half="cards" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
+      <NarrationItemView item={shown} half="text" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>
   );
   return (
     <>
-      {oppItems.length > 0 ? (
-        <Slot slot="narration-opp" count={oppItems.length} securityDockActive={securityDockActive}>
-          {oppItems.map(body)}
+      {cardItems.length > 0 ? (
+        <Slot slot="narration-cards" count={cardItems.length} securityDockActive={securityDockActive}>
+          {cardItems.map(body("cards"))}
         </Slot>
       ) : null}
-      {viewerItems.length > 0 || rejection ? (
-        <Slot
-          slot={viewerSlot}
-          count={viewerItems.length + (rejection ? 1 : 0)}
-          securityDockActive={securityDockActive}
-        >
-          {viewerItems.map(body)}
+      {textItems.length > 0 || rejection ? (
+        <Slot slot={textSlot} count={textItems.length + (rejection ? 1 : 0)} securityDockActive={securityDockActive}>
+          {textItems.map(compact ? compactBody : body("text"))}
           {rejection ? (
             <RejectionView key={rejection.id} notice={rejection} nowMs={now} onDismiss={onDismissRejection} />
           ) : null}

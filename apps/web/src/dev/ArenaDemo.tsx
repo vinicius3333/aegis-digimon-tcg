@@ -541,7 +541,6 @@ export function ArenaDemo() {
         onExit={() => window.location.assign("/")}
         demoConnection={{
           room: undefined,
-          showCutIns: playback.controller.active ? true : undefined,
           keywordLabels: playback.connection?.keywordLabels ?? keywordLabels,
           status: "connected",
           state: playback.connection?.state ?? state,

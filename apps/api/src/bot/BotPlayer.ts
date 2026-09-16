@@ -115,17 +115,27 @@ export class BotPlayer {
 
   onDecisionRequested(request: DecisionRequest): void {
     const requestedTurnCount = this.state.turnCount;
-    void this.nextActionDelay().then(() => {
-      this.act(this.policy.answerDecision(this.view(), request));
-      // Answering may have been what the phase driver was waiting on. Let the engine's
-      // continuation settle before reading the phase and scheduling the next action.
-      void settleContinuation().then(() => {
-        // A decision can finish a combat or effect that also ends the turn. The new
-        // phaseChanged event owns the next turn; this stale callback must not act in it.
-        if (this.state.turnCount !== requestedTurnCount || this.state.turnSeat !== this.seat) return;
-        if (this.state.phase === Phase.Breeding) this.runBreedingPhase();
-        else this.startMainPhaseLoop();
-      });
+    const answer = () => this.answerDecision(request, requestedTurnCount);
+    // A reactive [All Turns] clause has already interrupted an action. Holding its optional
+    // choice for the ordinary main-phase think time leaves the effect visibly hanging after
+    // its source has lit up; answer it on the same short reflex clock as combat windows.
+    if (request.options?.timing === "AllTurns") {
+      void this.reflex().then(answer);
+      return;
+    }
+    void this.nextActionDelay().then(answer);
+  }
+
+  private answerDecision(request: DecisionRequest, requestedTurnCount: number): void {
+    this.act(this.policy.answerDecision(this.view(), request));
+    // Answering may have been what the phase driver was waiting on. Let the engine's
+    // continuation settle before reading the phase and scheduling the next action.
+    void settleContinuation().then(() => {
+      // A decision can finish a combat or effect that also ends the turn. The new
+      // phaseChanged event owns the next turn; this stale callback must not act in it.
+      if (this.state.turnCount !== requestedTurnCount || this.state.turnSeat !== this.seat) return;
+      if (this.state.phase === Phase.Breeding) this.runBreedingPhase();
+      else this.startMainPhaseLoop();
     });
   }
 

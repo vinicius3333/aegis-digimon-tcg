@@ -125,7 +125,7 @@ describe("EX7-039 Jazamon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.memory).toBe(1);
-    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
+    expect(s.decisions.filter((decision) => decision.req.kind === "selectCards")).toHaveLength(1);
     await stopTurn(s, turn, 0);
   });
 
@@ -146,7 +146,7 @@ describe("EX7-039 Jazamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.memory).toBe(0);
-    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
+    expect(s.decisions.filter((decision) => decision.req.kind === "selectCards")).toHaveLength(1);
     await stopTurn(s, turn, 0);
   });
 

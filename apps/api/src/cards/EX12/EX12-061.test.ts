@@ -89,19 +89,21 @@ describe("EX12-061 Hanimon", () => {
           deck: ["BT1-009", "BT1-010"],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: false },
     );
     const player = s.state.players[0]!;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    // The hand cost is the clause's only question, so it is asked as the selection
+    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => player.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID));

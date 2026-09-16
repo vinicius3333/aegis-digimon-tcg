@@ -163,20 +163,22 @@ describe("BT25-101 Divine Arms Version Ω", () => {
           deck: ["AD1-001", "AD1-002"],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: false },
     );
     s.state.memory = 3;
     await s.ready();
     expect(
       s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    // The hand cost is the clause's only question, so it is asked as the selection
+    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);

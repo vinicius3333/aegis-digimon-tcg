@@ -3,7 +3,7 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import { evaluateCondition } from "../conditions.js";
-import { canPayCost, payCost, payOneCostOption } from "../costs.js";
+import { canPayCost, costIsAskedAsSelection, payCost, payOneCostOption } from "../costs.js";
 import { describeAction, describeCost } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
@@ -631,6 +631,23 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     if (!paid) return action.abortOnDecline === true;
     costModifierPaidCount = payment.paidCount;
   }
+  /*
+   * The action's cost is paid by choosing cards out of the controller's own hand, and it is
+   * the only thing gating the clause. Such a cost asks the clause's question by itself:
+   * choosing nothing is the refusal, and an unpaid cost aborts on exactly the path a refusal
+   * takes. So the "you may…" prompt in front of it is dropped and the selection carries the
+   * decision — "By trashing 1 card …, Draw 1" reads as one choice on the card, not two.
+   *
+   * `abortOnDecline` is required: without it a refusal would skip only this action and leave
+   * the rest of the effect resolving for free off a cost that was never paid.
+   */
+  const costAsksThisAction =
+    action.kind !== "RawUnparsed" &&
+    action.optional === true &&
+    action.abortOnDecline === true &&
+    payableActionCost !== undefined &&
+    costIsAskedAsSelection(payableActionCost as Cost);
+
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):
   // offering "you may…" for an effect the controller cannot perform is misleading. The cost
@@ -850,7 +867,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // "By [cost], you may [effect]" pays first and asks afterwards: the leading prompt would make
     // a decline skip the cost too. The pay-then-ask block further down raises the payload prompt
     // once the cost is spent.
-    if (!costUnpayable && action.payCostBeforeOptional !== true) {
+    if (!costUnpayable && !costAsksThisAction && action.payCostBeforeOptional !== true) {
       const chooser =
         action.kind === "Delete" && action.target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
       const yes = await chooser.optional(ctx, describeAction(action));
@@ -905,10 +922,21 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       // cannot perform that pairing because it has not yet resolved the action target.
       if (!canPayCost(ctx, payableActionCost)) return action.abortOnDecline === true;
     } else if (payableActionCost.optional) {
+      // A cost paid by choosing cards out of the controller's own hand asks its own
+      // question: choosing nothing is the refusal, and an unpaid cost aborts the clause on
+      // exactly the path a refusal took. A "pay cost?" prompt in front of that selection
+      // makes the player answer the same thing twice, which is not how the printed card
+      // reads ("By trashing 1 card …, Draw 1" is one decision, not two).
+      const costAsksItself = !forceOptionalCostProcessing && costIsAskedAsSelection(payableActionCost);
       const willPay =
-        forceOptionalCostProcessing || (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payableActionCost)}?`));
+        forceOptionalCostProcessing ||
+        costAsksItself ||
+        (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payableActionCost)}?`));
       if (willPay) {
+        const outerCostIsTheQuestion = ctx.costIsTheQuestion;
+        ctx.costIsTheQuestion = costAsksItself;
         const paid = await payCost(ctx, payableActionCost, costPayment);
+        ctx.costIsTheQuestion = outerCostIsTheQuestion;
         if (!paid) return action.abortOnDecline === true;
       } else if (action.abortOnDecline === true) {
         // A clause may make only its processing condition optional; refusal skips
@@ -917,9 +945,18 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       }
     } else {
       const deferSuspendTriggers = action.kind === "Attack" && payableActionCost.kind === "suspend";
+      const outerCostIsTheQuestion = ctx.costIsTheQuestion;
+      ctx.costIsTheQuestion = costAsksThisAction;
       const paid = await payCost(ctx, payableActionCost, costPayment, { deferSuspendTriggers });
+      ctx.costIsTheQuestion = outerCostIsTheQuestion;
       if (paid && deferSuspendTriggers) deferredCostSuspensions = [...(ctx.lastSuspendedPermanentIds ?? [])];
       if (!paid) {
+        // Where the cost selection replaced the "you may…" prompt, answering it with nothing IS
+        // that prompt's decline, so it preserves the once-per-turn opportunity the same way.
+        if (costAsksThisAction && action.preserveOncePerTurnOnDecline === true) {
+          ctx.lastEffectActed = false;
+          ctx.oncePerTurnActivationDeclined = true;
+        }
         // An unpayable ACTIVATION cost ("By [paying X], [effect]. Then …") means the entire
         // ability does nothing, so abort the REMAINING actions of this effect too — otherwise
         // a downstream "Then …" payload (or a self-place security continuation) would resolve

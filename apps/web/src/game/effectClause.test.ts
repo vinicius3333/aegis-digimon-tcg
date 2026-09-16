@@ -35,6 +35,13 @@ it("shows MoonMillenniummon's deletion watcher rather than its first All Turns r
   ).toBe(watcher);
 });
 
+it("slices Chronomon's All Turns protection out of its full printed text", () => {
+  const definition = getCardDefinition("BT26-016")!;
+  expect(playerFacingEffectClause({ cardId: "BT26-016", timing: "AllTurns", description: definition.effectText })).toBe(
+    "[All Turns] [Once Per Turn] When this Digimon would leave the battle area, by returning your top security card to the bottom of the deck, it doesn't leave.",
+  );
+});
+
 it.each([
   [
     "BT16-101",

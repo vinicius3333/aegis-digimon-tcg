@@ -73,6 +73,17 @@ describe("sidePanelFromEvent", () => {
     });
   });
 
+  it("does not call a used Option a discard when it reaches trash", () => {
+    const event: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["option"],
+      from: "hand",
+      to: "trash",
+      optionUsed: true,
+    };
+    expect(sidePanelFromEvent(event, VIEWER, lookup({ option: "BT1-090" }, { option: 0 }), "id", 100)).toBeNull();
+  });
+
   it("opens a deletion panel for cards leaving the battle area, on the owner's side", () => {
     const event: ServerEvent = { kind: "cardsMoved", instanceIds: ["a"], from: "battleArea", to: "trash" };
     const result = sidePanelFromEvent(event, VIEWER, lookup({ a: "BT1-010" }, { a: 1 }), "id", 0);
@@ -175,8 +186,7 @@ describe("sidePanelFromEvent", () => {
     expect(sidePanelFromEvent(mine, VIEWER, lookup({}, {}), "a", 0, false)).toBeNull();
   });
 
-  it("announces only the opponent's digivolution", () => {
-    const mine: ServerEvent = { kind: "digivolved", seat: 0, permanentId: "p", cardId: "BT1-040", mechanic: "normal" };
+  it("opens no panel for a digivolution, which the centre-screen showcase holds up", () => {
     const theirs: ServerEvent = {
       kind: "digivolved",
       seat: 1,
@@ -184,21 +194,8 @@ describe("sidePanelFromEvent", () => {
       cardId: "BT1-041",
       mechanic: "normal",
     };
-    expect(sidePanelFromEvent(mine, VIEWER, lookup({}, {}), "a", 0)).toBeNull();
-    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0)?.titleKey).toBe("panel.digivolutionCards");
-  });
-
-  it("leaves the opponent's breeding digivolution to the centre-screen showcase", () => {
-    const theirs: ServerEvent = {
-      kind: "digivolved",
-      seat: 1,
-      permanentId: "p",
-      cardId: "BT1-041",
-      mechanic: "normal",
-      inBreeding: true,
-    };
-    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0, true)).toBeNull();
-    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0, false)?.titleKey).toBe("panel.digivolutionCards");
+    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0)).toBeNull();
+    expect(sidePanelFromEvent({ ...theirs, inBreeding: true }, VIEWER, lookup({}, {}), "b", 0, false)).toBeNull();
   });
 });
 

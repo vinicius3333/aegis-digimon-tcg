@@ -179,6 +179,9 @@ function numbered(cards: readonly (string | Omit<SidePanelCard, "badge">)[]): Si
  * The panel an event deserves, or null when the event opens none. A movement
  * whose cards cannot be identified yields null rather than an empty panel.
  *
+ * Digivolutions open no panel: the centre-screen showcase holds the card up,
+ * and a corner panel saying the same thing again would only duplicate it.
+ *
  * `showcasePlays` is whether the centre-stage zone showcase will actually play for
  * this viewer; it decides only whether a play needs announcing here instead.
  */
@@ -192,6 +195,9 @@ export function sidePanelFromEvent(
 ): SidePanel | null {
   switch (event.kind) {
     case "cardsMoved": {
+      // A used Option is presented in the resolving-effect dock until its Main body
+      // finishes. Its eventual trip to trash is bookkeeping, not a discard moment.
+      if (event.optionUsed) return null;
       // Identified field deletions already receive one dedicated notice per Digimon.
       // Announcing the whole stack here duplicates that notice and calls sources deleted.
       if (event.to === "trash" && (event.deletedPermanents?.length ?? 0) > 0) return null;
@@ -243,20 +249,6 @@ export function sidePanelFromEvent(
       return {
         id,
         titleKey: "panel.playedCard",
-        side: "opp",
-        cards: numbered([{ cardId: event.cardId, ...(event.artId ? { artId: event.artId } : {}) }]),
-        ordered: false,
-        createdAt: nowMs,
-      };
-    case "digivolved":
-      if (event.seat === viewerSeat) return null;
-      // A breeding digivolution is held up centre-screen by the same showcase as a play,
-      // which says everything this panel would; a battle-area one only changes a stack in
-      // place, so it keeps its panel either way.
-      if (event.inBreeding && showcasePlays) return null;
-      return {
-        id,
-        titleKey: "panel.digivolutionCards",
         side: "opp",
         cards: numbered([{ cardId: event.cardId, ...(event.artId ? { artId: event.artId } : {}) }]),
         ordered: false,

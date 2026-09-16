@@ -70,7 +70,7 @@ describe("BT18-058 Kotemon", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT18-099"]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-011"]);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
     assertNoLoudGap(s);
   });
 

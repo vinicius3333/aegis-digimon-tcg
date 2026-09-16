@@ -5,6 +5,7 @@ import {
   TURN_NARRATION_MS,
   SECURITY_CHECK_NARRATION_MS,
   SECURITY_DESTRUCTION_NARRATION_MS,
+  EFFECT_CHOICE_NARRATION_MS,
   Zone,
   type DecisionRequest,
   type GameState,
@@ -141,8 +142,34 @@ describe("BotPlayer action pacing and player attacks", () => {
     });
     await advance(2348);
     expect(intents).toEqual([]);
-    await advance(1860);
+    await advance(EFFECT_CHOICE_NARRATION_MS + 272);
     expect(intents[0]).toMatchObject({ type: "respondDecision", decisionId: "analog-choice" });
+  });
+
+  it("answers an All Turns reaction on the short reflex clock", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
+
+    bot.onDecisionRequested({
+      decisionId: "all-turns-delete",
+      seat: 1,
+      kind: "chooseTargets",
+      promptText: "Delete the lowest-level Digimon",
+      options: {
+        candidateInstanceIds: ["small"],
+        min: 1,
+        max: 1,
+        timing: "AllTurns",
+        targetFate: "delete",
+      },
+    });
+
+    await advance(COMBAT_REFLEX_MIN_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(COMBAT_REFLEX_MAX_MS - COMBAT_REFLEX_MIN_MS + 1);
+    expect(intents).toMatchObject([{ type: "respondDecision", decisionId: "all-turns-delete" }]);
   });
 
   it("waits two seconds, then attacks the player with its strongest eligible Digimon", async () => {
@@ -427,7 +454,7 @@ describe("BotPlayer action pacing and player attacks", () => {
     state.turnSeat = 0;
     state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
     const intents: Intent[] = [];
-    const bot = new BotPlayer(1, state, (intent) => intents.push(intent), FIXED_THINK);
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
 
     bot.onEvent({
       kind: "blockWindowOpened",
@@ -447,7 +474,7 @@ describe("BotPlayer action pacing and player attacks", () => {
     state.players = [] as never;
     state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
     const intents: Intent[] = [];
-    const bot = new BotPlayer(1, state, (intent) => intents.push(intent), FIXED_THINK);
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
 
     bot.onEvent({
       kind: "blockWindowOpened",

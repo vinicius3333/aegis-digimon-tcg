@@ -90,7 +90,9 @@ describe("BT15-006", () => {
             ],
           },
         },
-        { autoAcceptOptional, autoSelectCards: true },
+        // The hand cost is the clause's only question, so it is asked as the selection itself:
+        // no card is the refusal (see `costIsAskedAsSelection`).
+        autoAcceptOptional ? { autoAcceptOptional, autoSelectCards: true } : { autoDeclineOptional: true },
       );
 
       const hostId = s.perm("host").permanentId;

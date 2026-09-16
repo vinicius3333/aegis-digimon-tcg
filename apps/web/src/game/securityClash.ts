@@ -171,6 +171,8 @@ export interface SecurityBranchScene {
   artId?: string;
   side: SecurityClashSide;
   state: SecurityBranchState;
+  /** The same dock animation also presents a used Option during its [Main] resolution. */
+  source?: "security" | "option";
 }
 
 export function buildSecurityBreakScene({

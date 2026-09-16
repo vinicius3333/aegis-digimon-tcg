@@ -266,15 +266,9 @@ describe("Ascension through public battle deletion", () => {
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId })).toEqual({
         ok: true,
       });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
-      const grant = s.state.pendingDecision!;
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: grant.decisionId,
-          response: { kind: "optional", accept: true },
-        }),
-      ).toEqual({ ok: true });
+      // Pumpkinmon's grant is gated only by a hand-trash cost, so it no longer asks a separate
+      // "use this effect?" question: the cost selection is that question and `autoSelectCards`
+      // pays it (see `costIsAskedAsSelection`).
       await settle(() => s.state.players[0]!.hand.length === 1);
       expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Ascension")).toBe(true);
       advance(s.engine).endMainPhaseIfOpen(0);

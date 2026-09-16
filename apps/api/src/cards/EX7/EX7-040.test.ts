@@ -109,7 +109,7 @@ describe("EX7-040 ToyAgumon", () => {
       s.inst("second").instanceId,
     ]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
-    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
+    expect(s.decisions.filter((decision) => decision.req.kind === "selectCards")).toHaveLength(1);
   });
 
   it("declines without trashing or drawing", async () => {
@@ -133,7 +133,7 @@ describe("EX7-040 ToyAgumon", () => {
         instanceId: s.inst("toy").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
+    await settle(() => s.decisions.some((decision) => decision.req.kind === "selectCards"));
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);

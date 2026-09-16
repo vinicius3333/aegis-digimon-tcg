@@ -464,6 +464,24 @@ export async function relocateByEffect(
   return ctx.fx.relocatePermanent(destPermanentId, sourcePermanentId, opts);
 }
 
+/**
+ * A whole-clause cost paid by trashing a fixed number of cards the controller picks out of
+ * their own hand ("By trashing 1 [TS] trait card from your hand, …").
+ *
+ * Such a cost is its own question: choosing no card is how a player declines, exactly as
+ * the reference client does it, so an optional clause gated only by this cost does not need
+ * a separate "use this effect?" step in front of the selection. See `stack.ts:resolveOne`.
+ */
+export function costIsAskedAsSelection(cost: Cost | undefined): boolean {
+  if (cost?.kind !== "trash" || cost.target === undefined) return false;
+  if (cost.target.upTo === true || cost.target.count === "all") return false;
+  const { filter } = cost.target;
+  if (filter.zone === undefined && !/(?:from|in) (?:your|their) hand/i.test(cost.raw ?? "")) return false;
+  if (filter.zone !== undefined && filter.zone !== "hand") return false;
+  // "their hand" is the opponent's; only the controller's own hand is a question they answer.
+  return filter.controller !== "opponent";
+}
+
 export async function payCost(
   ctx: EffectContext,
   cost: Cost,
@@ -1408,7 +1426,16 @@ export async function payCost(
         }
         const want = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
         if (candidates.length < want) return false;
-        const chosen = await pickLoose(ctx, { ...handTarget, count: want }, candidates);
+        // Where this cost is the clause's only question, the selection is always asked —
+        // never auto-taken from a hand with exactly one match — and it may be answered with
+        // nothing, which declines the whole clause.
+        const chosen = ctx.costIsTheQuestion
+          ? await ctx.ask.selectCards(ctx, {
+              candidates: candidates.map((candidate) => candidate.instanceId),
+              min: 0,
+              max: want,
+            })
+          : await pickLoose(ctx, { ...handTarget, count: want }, candidates);
         if (chosen.length < want) return false;
         const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
         ctx.lastTrashedCards = moved.map((card) => ({

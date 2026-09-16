@@ -48,6 +48,29 @@ describe("BT26-092 compiled behavior", () => {
     await loop;
   });
 
+  it("offers an empty selection to decline the optional TS discard cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-092", as: "shota" }],
+          hand: [{ card: "BT25-093", as: "tsCard" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 0;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.decisions.find(({ req }) => req.kind === "selectCards")?.req.options).toMatchObject({ min: 0, max: 1 });
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("tsCard").instanceId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("retains the optional TS attack redirection target and deck-bottom cost", () => {
     const action = compiled.effects.find((effect) => effect.trigger === "OpponentsTurn")?.actions[0];
     expect(action).toMatchObject({

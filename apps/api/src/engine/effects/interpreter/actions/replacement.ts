@@ -343,8 +343,18 @@ export async function runReplacement(
             printedClause(subCtx.source.definition.effectText);
           // The clause travels as the decision's `effectText` provenance (the channel the
           // client already renders beside the source card), never interpolated into the
-          // question itself.
-          const askCtx = preventReason === undefined ? subCtx : { ...subCtx, activeEffectText: preventReason };
+          // question itself. The install-time timing (and inheritance) rides along so the
+          // client slices the resolving clause out of a fallback full-text clause instead of
+          // showing every printed effect (BT26-016's protection).
+          const askCtx =
+            preventReason === undefined
+              ? subCtx
+              : {
+                  ...subCtx,
+                  activeEffectText: preventReason,
+                  ...(ctx.activeTiming !== undefined ? { activeTiming: ctx.activeTiming } : {}),
+                  ...(ctx.activeEffectIsInherited === true ? { activeEffectIsInherited: true } : {}),
+                };
           const yes = await askCtx.ask.optional(askCtx, "Prevent leaving the battle area?");
           if (!yes) return false;
         }

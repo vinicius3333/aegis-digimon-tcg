@@ -338,6 +338,7 @@ it("raises an opponent's Plutomon during effect activation and returns it afterw
   );
   const card = container.querySelector<HTMLElement>(".game-permanent--effect-source")!;
   expect(card.style.transform).toBe("translateY(-6px)");
+  expect(container.querySelectorAll(".game-effect-source-particles i")).toHaveLength(8);
   rerender(
     <I18nProvider>
       <PermanentView perm={permanent} />

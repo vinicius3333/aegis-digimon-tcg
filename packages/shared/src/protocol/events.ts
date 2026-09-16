@@ -242,6 +242,8 @@ export type ServerEvent =
       turnEndDeletion?: { sourceCardId: string; deletedCardId: string };
       /** Automatic bonus draw from digivolution, rather than a card effect. */
       drawReason?: "digivolution";
+      /** The card finished resolving after it was used as an Option, not discarded by an effect. */
+      optionUsed?: true;
       instanceIds: string[];
       from: string;
       to: string;

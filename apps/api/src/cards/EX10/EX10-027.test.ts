@@ -335,11 +335,24 @@ describe("EX10-027 DeadlyAxemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deadly").instanceId })).toEqual({
       ok: true,
     });
+    // Two prompts, in cost-then-payload order. The hand-card cost is its own question now
+    // (see `costIsAskedAsSelection`), so it is offered at `min: 0` — paying it is picking the
+    // card. The "you may return" that follows is the Q5082 branch: answered with nothing.
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const decisionId = s.state.pendingDecision!.decisionId;
-    // One fused prompt: the hand-card cost is forced (a single legal card) and the only
-    // SELECTABLE candidate is the qualifying trash Digimon, at `min: 0` — the "up to 1" of
-    // "you may return". Answering it with nothing is the Q5082 branch.
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({
+      min: 0,
+      max: 1,
+      candidateInstanceIds: [s.inst("cost").instanceId],
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     expect(s.decisions.at(-1)!.req.options).toMatchObject({
       min: 0,
       max: 1,
@@ -348,7 +361,7 @@ describe("EX10-027 DeadlyAxemon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId,
+        decisionId: s.state.pendingDecision!.decisionId,
         response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });

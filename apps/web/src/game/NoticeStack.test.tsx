@@ -117,6 +117,22 @@ describe("NoticeStack", () => {
     expect(screen.queryByRole("button", { name: /effect text$/ })).toBeNull();
   });
 
+  it("keeps Engage's complete keyword explanation in the text toast", () => {
+    renderNotice(
+      notice({
+        body: {
+          variant: "effect",
+          cardId: "BT26-016",
+          timing: "EndOfYourTurn",
+          description: "＜Engage＞: at the end of this turn, this Digimon may attack.",
+        },
+      }),
+    );
+
+    const shown = screen.getByTestId("match-notice");
+    expect(shown.textContent).toContain("＜Engage＞: at the end of this turn, this Digimon may attack.");
+  });
+
   it("names a recovery without exposing the card behind it", () => {
     renderNotice(notice({ body: { variant: "recovery", amount: 2 } }));
     const shown = screen.getByTestId("match-notice");
@@ -125,7 +141,7 @@ describe("NoticeStack", () => {
   });
 
   it("names a card deleted from the field", () => {
-    renderNotice(notice({ body: { variant: "deletion", cardId: "BT1-010", artId: "BT1-010_P2" } }));
+    renderNotice(notice({ body: { variant: "deletion", cards: [{ cardId: "BT1-010", artId: "BT1-010_P2" }] } }));
     expect(screen.getByTestId("match-notice").textContent).toContain("Deleted");
     expect(screen.getByTestId("match-notice").textContent).toContain("Agumon");
   });
@@ -136,7 +152,7 @@ describe("NoticeStack", () => {
       <I18nProvider>
         <CardOpenerProvider onOpenCard={(cardId, artId) => opened.push([cardId, artId])}>
           <NoticeStack
-            notice={notice({ body: { variant: "deletion", cardId: "BT1-010", artId: "BT1-010_P2" } })}
+            notice={notice({ body: { variant: "deletion", cards: [{ cardId: "BT1-010", artId: "BT1-010_P2" }] } })}
             remainingMs={NOTICE_LIFETIME_MS}
             onDismiss={() => undefined}
           />

@@ -204,7 +204,10 @@ describe("BT25-006 Dorimon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      // The hand cost is the clause's only question, so it is asked as the selection itself:
+      // no card is the refusal, the card is the acceptance (see `costIsAskedAsSelection`).
+      // This test needs one of each, so it answers both prompts rather than auto-selecting.
+      {},
     );
     s.state.turnSeat = 1;
     s.state.memory = 10;
@@ -215,13 +218,13 @@ describe("BT25-006 Dorimon", () => {
       attackerPermanentId: s.perm("attacker").permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const firstDecision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(firstDecision.seat, {
         type: "respondDecision",
         decisionId: firstDecision.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     expect(firstTrigger).toEqual({ ok: true });
@@ -235,13 +238,13 @@ describe("BT25-006 Dorimon", () => {
       attackerPermanentId: s.perm("secondAttacker").permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const secondDecision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(secondDecision.seat, {
         type: "respondDecision",
         decisionId: secondDecision.decisionId,
-        response: { kind: "optional", accept: true },
+        response: { kind: "selectCards", instanceIds: [s.inst("handCost").instanceId] },
       }),
     ).toEqual({ ok: true });
     expect(secondTrigger).toEqual({ ok: true });

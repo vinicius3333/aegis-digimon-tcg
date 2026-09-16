@@ -146,7 +146,6 @@ import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "./SecurityClas
 import { ZoneShowcase } from "./ZoneShowcase";
 import { CardBurst } from "./CardBurst";
 import { CardShatter } from "./CardShatterView";
-import { DigivolutionCutInView } from "./DigivolutionCutInView";
 import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
@@ -305,7 +304,6 @@ export function GameScreen({
   > & {
     /** Canonical keyword names mapped to printed parameters in the visual demo. */
     keywordLabels?: Readonly<Record<string, Readonly<Record<string, string>>>>;
-    showCutIns?: boolean;
     respondDecision?: (response: DecisionResponse) => void;
     acknowledgeBlockWindow?: (blockerPermanentId?: string) => void;
     /** A fabricated connection has no server batches; its whole event list is one moment. */
@@ -552,7 +550,6 @@ export function GameScreen({
   // component only renders what it reports.
   const cues = useMatchCues({
     snapshots,
-    cutInsEnabled: demoConnection?.showCutIns,
     batches: cueBatches,
     phaseEvents: events,
     state,
@@ -596,7 +593,6 @@ export function GameScreen({
     attackLunge,
     combatImpactIds,
     fieldClash,
-    cutIn,
     deckRiffles,
     effectSources,
     securityFlights,
@@ -608,6 +604,7 @@ export function GameScreen({
     drawFlights,
     pendingPermanentIds,
     permanentBursts,
+    optionBranch,
     securityBranch,
     securityBreak,
     securityClash,
@@ -2293,6 +2290,7 @@ export function GameScreen({
       {viewerDecision && answerOnBoard && viewerDecision.kind === "selectCards" ? (
         <BoardSelectionRail
           key={viewerDecision.decisionId}
+          sourceCardId={decisionSourceCardId}
           prompt={
             playerFacingPromptText(viewerDecision.promptText, viewerDecision.kind) ??
             (decisionMin === decisionMax
@@ -2451,6 +2449,10 @@ export function GameScreen({
         <SecurityBranch key={securityBranch.key} scene={securityBranch} compact={collapseNotices} />
       ) : null}
 
+      {optionBranch && !state.gameOver ? (
+        <SecurityBranch key={`option-${optionBranch.key}`} scene={optionBranch} compact={collapseNotices} />
+      ) : null}
+
       {zoneShowcase && !securityClash && !state.gameOver ? (
         <ZoneShowcase key={zoneShowcase.key} showcase={zoneShowcase} />
       ) : null}
@@ -2458,8 +2460,6 @@ export function GameScreen({
       {historyOpen ? (
         <PlayLogSidebar log={log} onClose={() => setHistoryOpen(false)} onOpenCard={setZoomCardId} />
       ) : null}
-
-      {cutIn && !state.gameOver ? <DigivolutionCutInView key={cutIn.key} cutIn={cutIn} /> : null}
 
       {zoomCardId ? (
         <CardZoomOverlay cardId={zoomCardId} artId={zoomArtId} onClose={() => setZoomCardId(null)} />
@@ -3059,7 +3059,7 @@ export function GameScreen({
               narration={cues.narration}
               rejection={cues.rejection}
               compact={collapseNotices}
-              securityDockActive={securityBranch !== null}
+              securityDockActive={securityBranch !== null || optionBranch !== null}
               onAdvance={cues.advanceNarration}
               onDismissRejection={cues.dismissRejection}
             />
@@ -3594,7 +3594,7 @@ export function GameScreen({
             <span
               key={burst.key}
               aria-hidden="true"
-              className="game-delete-burst"
+              className={`game-delete-burst${burst.effectDeletion ? " game-delete-burst--effect" : ""}`}
               style={{ left: burst.x, top: burst.y }}
             >
               {/* The card's own art breaking apart where it stood, when the board still

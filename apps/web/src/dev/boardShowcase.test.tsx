@@ -26,7 +26,6 @@ const SECTION_IDS = [
   "showcase-side-panels",
   "showcase-notices",
   "showcase-dialogs",
-  "showcase-cut-in",
   "showcase-permanent-inspector",
   "showcase-effect-sources",
   "showcase-tracking-arrow",

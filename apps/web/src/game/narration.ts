@@ -8,11 +8,14 @@ import { pushSidePanel, SIDE_PANEL_LIFETIME_MS, type SidePanel } from "./sidePan
 export type NarrationSide = NoticeSide;
 
 /**
- * Where an item is presented. A portrait phone has one centred slot, because four
- * corners on a 390px screen put a notice on the hand or the field being read;
- * everything else keeps the viewer's corner and the opponent's corner.
+ * Where an item is presented. The board reads in two columns, split by what a moment is
+ * rather than by whose moment it is: a clause to read on the left, the cards a moment
+ * moved on the right. Both players' moments share both columns, so the eye always looks
+ * in the same place for the same kind of thing. A portrait phone folds them into one
+ * centred slot, because two columns on a 390px screen put a moment on the hand or on the
+ * field being read.
  */
-export type NarrationSlot = "narration" | "narration-you" | "narration-opp";
+export type NarrationSlot = "narration" | "narration-text" | "narration-cards";
 
 export interface NarrationItem {
   id: string;
@@ -45,7 +48,10 @@ export function isQueuedNotice(notice: MatchNotice): boolean {
 /** The card a notice is about, when it names one. */
 export function noticeSourceCardId(notice: MatchNotice): string | undefined {
   const { body } = notice;
-  if (body.variant === "effect" || body.variant === "keyword" || body.variant === "deletion") return body.cardId;
+  if (body.variant === "effect" || body.variant === "keyword") return body.cardId;
+  // A deletion that took several permanents is about the effect, not about any one of
+  // them, so it names a source only when it took exactly one.
+  if (body.variant === "deletion") return body.cards.length === 1 ? body.cards[0]?.cardId : undefined;
   return undefined;
 }
 
@@ -68,10 +74,66 @@ export function narrationRemaining(item: NarrationItem, nowMs: number): number {
   return Math.max(0, item.createdAt + narrationReadingTime(item) - nowMs);
 }
 
-/** Which slot presents this item, given whether the layout has folded them into one. */
-export function narrationSlot(item: Pick<NarrationItem, "side">, collapsed: boolean): NarrationSlot {
-  if (collapsed) return "narration";
-  return item.side === "you" ? "narration-you" : "narration-opp";
+/**
+ * A notice that names cards rather than reading as a sentence. It belongs with the card
+ * lists on the right, not with the clauses on the left.
+ */
+export function isCardListNotice(notice: MatchNotice): boolean {
+  return notice.body.variant === "deletion";
+}
+
+/**
+ * Every column this item appears in. A moment carrying both a clause and the cards it
+ * moved is read in both: the clause on the left, the list on the right.
+ */
+export function narrationSlots(item: Pick<NarrationItem, "panel" | "notice">, collapsed: boolean): NarrationSlot[] {
+  if (collapsed) return ["narration"];
+  const slots: NarrationSlot[] = [];
+  if (item.notice && !isCardListNotice(item.notice)) slots.push("narration-text");
+  if (item.panel || (item.notice && isCardListNotice(item.notice))) slots.push("narration-cards");
+  return slots;
+}
+
+/** The column an item leads with, for callers that only need one. */
+export function narrationSlot(item: Pick<NarrationItem, "panel" | "notice">, collapsed: boolean): NarrationSlot {
+  return narrationSlots(item, collapsed)[0] ?? (collapsed ? "narration" : "narration-text");
+}
+
+/**
+ * The presented items after `shown` arrives, with every column it lands in trimmed to
+ * `limit`.
+ *
+ * A column is a FIFO of its own, so the item pushed out is the oldest one **in the same
+ * column**. One cap shared across the whole screen let a card list evict the clause that
+ * explained it; folded into the phone's single slot, everything queues together again.
+ */
+/** Every column trimmed to `limit`, oldest first. */
+export function trimNarration(
+  items: ReadonlyMap<string, NarrationItem>,
+  limit: number,
+  collapsed: boolean,
+): Map<string, NarrationItem> {
+  const next = new Map(items);
+  const slots = new Set([...next.values()].flatMap((item) => narrationSlots(item, collapsed)));
+  for (const slot of slots) {
+    const inSlot = [...next.values()].filter((item) => narrationSlots(item, collapsed).includes(slot));
+    for (const evicted of inSlot.slice(0, Math.max(0, inSlot.length - limit))) next.delete(evicted.id);
+  }
+  return next;
+}
+
+export function pushNarrationItem(
+  items: ReadonlyMap<string, NarrationItem>,
+  shown: NarrationItem,
+  limit: number,
+  collapsed: boolean,
+): Map<string, NarrationItem> {
+  const next = new Map([...items, [shown.id, shown] as const]);
+  for (const slot of narrationSlots(shown, collapsed)) {
+    const inSlot = [...next.values()].filter((item) => narrationSlots(item, collapsed).includes(slot));
+    for (const evicted of inSlot.slice(0, Math.max(0, inSlot.length - limit))) next.delete(evicted.id);
+  }
+  return next;
 }
 
 /**

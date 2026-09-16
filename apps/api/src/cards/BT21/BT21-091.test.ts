@@ -321,15 +321,8 @@ describe("BT21-091 Spirit Evolution!", () => {
     await s.ready();
     const optionId = s.inst("option").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const mainCost = s.decisions.at(-1)!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: mainCost.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
+    // The Main clause's hand cost has no separate "use this effect?" prompt: the cost
+    // selection is that question, and `autoSelectCards` pays it (see `costIsAskedAsSelection`).
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;

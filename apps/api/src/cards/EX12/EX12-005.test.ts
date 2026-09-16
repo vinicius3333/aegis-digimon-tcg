@@ -50,20 +50,23 @@ describe("EX12-005 Agumon", () => {
           deck: ["BT1-009", "BT1-010"],
         },
       },
-      { autoSelectCards: true },
+      // No auto-selection here: the cost selection IS the refusal, so this test answers it.
+      {},
     );
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.state.players[0]!.hand[0]!.instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    // The hand-trash cost is the clause's only question, so it is asked as the selection
+    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const pending = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: pending.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);

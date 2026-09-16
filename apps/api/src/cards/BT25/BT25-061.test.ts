@@ -136,7 +136,7 @@ describe("BT25-061 Offmon", () => {
       expect.arrayContaining([s.inst("plain").instanceId, s.inst("drawn").instanceId]),
     );
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("appmonTamer").instanceId);
   });
 

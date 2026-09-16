@@ -43,13 +43,15 @@ describe("ST12-12 Sistermon Blanc", () => {
     );
     const costId = s.inst("cost").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blanc").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    // The hand cost is the clause's only question, so it is asked as the selection
+    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const pending = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: pending.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);

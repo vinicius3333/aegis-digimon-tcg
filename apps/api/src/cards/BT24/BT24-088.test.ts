@@ -296,7 +296,7 @@ describe("BT24-088 Asuna Shiroki", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: asunaId })).toEqual({ ok: true });
     await settle(
       () =>
-        s.decisions.some(({ req }) => req.kind === "optional") &&
+        s.decisions.some(({ req }) => req.kind === "selectCards") &&
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === asunaId),
     );
 
@@ -332,7 +332,7 @@ describe("BT24-088 Asuna Shiroki", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: asunaId })).toEqual({ ok: true });
     await settle(
       () =>
-        s.decisions.some(({ req }) => req.kind === "optional") &&
+        s.decisions.some(({ req }) => req.kind === "selectCards") &&
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === asunaId),
     );
 

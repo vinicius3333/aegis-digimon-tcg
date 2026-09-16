@@ -34,6 +34,13 @@ it("runs the arena security battle through a real server and websocket intents",
         decisionId: request.decisionId,
         response: { kind: "optional", accept: false },
       });
+    } else if (request.kind === "selectCards" && (request.options?.min ?? 1) === 0) {
+      // A clause gated only by a hand cost has no separate "use this effect?" prompt: the
+      // cost selection is that question, and picking no card is the decline.
+      room.send("respondDecision", {
+        decisionId: request.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      });
     }
   });
   try {
@@ -75,7 +82,9 @@ it("runs the arena security battle through a real server and websocket intents",
         ]),
       );
     });
-    expect(decisions.filter((request) => request.kind === "optional" && request.sourceCardId === "BT26-009")).toEqual(
+    expect(
+      decisions.filter((request) => request.kind === "selectCards" && request.sourceCardId === "BT26-009"),
+    ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ sourcePermanentId: "you-hyokomon", sourceInstanceId: expect.any(String) }),
         expect.objectContaining({ sourcePermanentId: "you-breeding", sourceInstanceId: expect.any(String) }),

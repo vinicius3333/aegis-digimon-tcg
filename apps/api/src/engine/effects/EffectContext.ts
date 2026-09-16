@@ -2016,6 +2016,13 @@ export interface EffectContext {
    * relevant printed clause instead of the card's full effect text. Display-only.
    */
   activeTiming?: string;
+  /**
+   * The clause resolving now is optional and its only gate is a cost the controller pays by
+   * picking cards. The selection is the question, so it is always asked and may be answered
+   * with nothing — which declines the clause. Set by `runEffect` from the built effect's
+   * `costIsTheQuestion`; read by `payCost`.
+   */
+  costIsTheQuestion?: boolean;
   /** A public Main declaration has committed this resolution's leading processing condition. */
   declaredProcessingCondition?: boolean;
   /** Internal marker for effects re-derived by the continuous-effect pass. */

@@ -85,6 +85,58 @@ describe("securityRevealed presentation hints", () => {
   });
 });
 
+/**
+ * The revealed card's own [Security] clause resolves outside the effect stack
+ * (`resolveSecurityEffect` runs it directly), so it must announce itself like any
+ * other triggered effect: the client reads the clause into the left notice column
+ * from the `effectTriggered` it is stamped with.
+ */
+describe("the revealed card's [Security] clause announces itself", () => {
+  type SecurityTriggered = EffectTriggeredEvent & { timing: "Security" };
+
+  async function check(cardId: string): Promise<readonly ServerEvent[]> {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", dp: 3000, as: "attacker" }] },
+      1: { security: [{ card: cardId }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "securityChecked"));
+    return s.events;
+  }
+
+  function securityTriggered(events: readonly ServerEvent[]): SecurityTriggered[] {
+    return events.filter((e): e is SecurityTriggered => e.kind === "effectTriggered" && e.timing === "Security");
+  }
+
+  it.each([
+    ["BT10-087", "a Tamer played for free"],
+    ["BT1-093", "an Option returning to hand"],
+  ])("announces %s (%s) ahead of the closing securityChecked", async (cardId) => {
+    const events = await check(cardId);
+    const triggered = securityTriggered(events);
+    expect(triggered).toHaveLength(1);
+    expect(triggered[0]).toMatchObject({
+      seat: 1,
+      sourceCardId: cardId,
+      duringSecurityCheck: true,
+    });
+    expect(triggered[0]!.description).toContain("[Security]");
+    const checkIndex = events.findIndex((e) => e.kind === "securityChecked");
+    expect(events.slice(checkIndex).some((e) => e.kind === "effectTriggered")).toBe(false);
+  });
+
+  it("does not announce a card that has no [Security] clause", async () => {
+    const events = await check("BT1-010");
+    expect(securityTriggered(events)).toHaveLength(0);
+  });
+});
+
 /** The player-directed win on empty security is untouched by the ＜Piercing＞ guard. */
 describe("a player-directed attack into empty security", () => {
   it("wins the game", async () => {

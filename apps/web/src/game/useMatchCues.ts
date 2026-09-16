@@ -22,7 +22,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import type { RefObject } from "react";
-import type { GameState, Seat, ServerEvent, PresentationReport } from "@aegis/shared";
+import { getCardDefinition, isOption, type GameState, type Seat, type ServerEvent, type PresentationReport } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
 import { buildInstanceIndex, otherSeat } from "./boardModel";
 import { batchesAfter, type ServerBatch } from "../net/serverBatches";
@@ -38,7 +38,7 @@ import {
 } from "./sidePanels";
 import {
   effectNoticeFromEvent,
-  deletionNoticeFromEvent,
+  deletionNoticesFromEvent,
   isOwnEffectNotice,
   noticeRemaining,
   keywordNoticeFromEvent,
@@ -48,7 +48,13 @@ import {
   securityGainNoticeFromEvent,
   type MatchNotice,
 } from "./notices";
-import { buildNarrationItems, narrationReadingTime, type NarrationItem } from "./narration";
+import {
+  buildNarrationItems,
+  narrationReadingTime,
+  pushNarrationItem,
+  trimNarration,
+  type NarrationItem,
+} from "./narration";
 import {
   buildSecurityBranchScene,
   buildSecurityBreakScene,
@@ -84,8 +90,6 @@ import {
 } from "./animationQueue";
 import { createPresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 import { presentationTelemetry } from "./presentationTelemetry";
-import { cutInFromEvent, type DigivolutionCutIn } from "./cutIn";
-import { areCutInsEnabled } from "../design/cutIn";
 import {
   effectActivationFromEvent,
   effectActivationTrack,
@@ -104,7 +108,6 @@ import {
   CLASH_REVEAL_SHOWN_AT_MS,
   CLASH_TOTAL_MS,
   COMBAT_IMPACT_TOTAL_MS,
-  cutInTotalMs,
   dpPulseTotalMs,
   FIELD_CLASH_IMPACT_AT_MS,
   FIELD_CLASH_LUNGE_AT_MS,
@@ -138,6 +141,8 @@ export type DeleteBurst = {
   key: number;
   x: number;
   y: number;
+  /** Effect deletions get a brief energy ring in addition to the card shatter. */
+  effectDeletion?: boolean;
   /** The card that was there, so its own art can be the thing that shatters. */
   cardId?: string;
   artId?: string;
@@ -255,6 +260,8 @@ export interface MatchCues {
   securityBreak: SecurityBreakCue | null;
   /** The revealed card, held to the side while its effect resolves. */
   securityBranch: SecurityBranchScene | null;
+  /** A used Option parked with the security-effect animation while its [Main] resolves. */
+  optionBranch: SecurityBranchScene | null;
   /**
    * True from the moment a security check is queued until the centre-stage scene has
    * finished showing the revealed card. Nothing that speaks for that card — its effect
@@ -310,8 +317,6 @@ export interface MatchCues {
   displayedPhase: GameState["phase"] | undefined;
   /** Keep last turn's suspended cards rotated until their Unsuspend announcement starts. */
   heldSuspendedIds: ReadonlySet<string>;
-  /** The full-screen cut-in currently playing, when the setting is on. */
-  cutIn: DigivolutionCutIn | null;
   /** The zone-specific moment each activating effect source is currently playing. */
   effectSources: readonly EffectActivation[];
   /** The deck piles currently riffling, as `${seat}:${pile}`. */
@@ -484,11 +489,11 @@ export function useMatchCues({
   viewerSeat,
   mulliganOpen,
   decisionPending = false,
-  narrationLimit = 1,
+  collapseNarration = false,
+  narrationLimit = 2,
   decisionStateVersion,
   anchors,
   onActionRejected,
-  cutInsEnabled,
   onPresentationReport,
 }: {
   /** The closed server batches, in order. One batch is one moment of the rules. */
@@ -506,9 +511,13 @@ export function useMatchCues({
    * question is what releases a presentation still holding the screen (see below).
    */
   decisionPending?: boolean;
-  /** The portrait phone folds both narration corners into one centred slot. */
+  /** The portrait phone folds both narration columns into one centred slot. */
   collapseNarration?: boolean;
-  /** Maximum recent items across both players; defaults to one on every layout. */
+  /**
+   * How many moments one column holds. Two, so a clause is not displaced the moment the
+   * other player raises one — the columns are shared by both players now. The phone's
+   * folded slot keeps one, because there is only room to read one thing at a time there.
+   */
   narrationLimit?: number;
   /**
    * The revision the viewer's open decision was raised at (`DecisionRequest.stateVersion`).
@@ -518,8 +527,6 @@ export function useMatchCues({
   decisionStateVersion?: number;
   anchors: MatchCueAnchors;
   onActionRejected: (reason: string) => void;
-  /** A visual showcase can show existing cut-ins without changing the saved preference. */
-  cutInsEnabled?: boolean;
   onPresentationReport?: (report: PresentationReport) => void;
 }): MatchCues {
   // How far the presentation has got, in server revisions. Every step is counted into the
@@ -672,6 +679,7 @@ export function useMatchCues({
     new Map(),
   );
   const [securityBranch, setSecurityBranch] = useState<SecurityBranchScene | null>(null);
+  const [optionBranch, setOptionBranch] = useState<SecurityBranchScene | null>(null);
   // The check whose reveal the screen still owes the viewer, by clash key.
   const [pendingRevealKey, setPendingRevealKey] = useState<number | null>(null);
   // The revision the viewer's prompt is waiting for the presentation to reach. Null
@@ -701,7 +709,6 @@ export function useMatchCues({
   const [fieldClash, setFieldClash] = useState<FieldClashScene | null>(null);
   const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
   const [freezePulses, setFreezePulses] = useState<ReadonlyMap<string, FreezePulse>>(new Map());
-  const [cutIn, setCutIn] = useState<DigivolutionCutIn | null>(null);
   const [effectSources, setEffectSources] = useState<readonly EffectActivation[]>([]);
   const [deckRiffles, setDeckRiffles] = useState<ReadonlySet<string>>(new Set());
   const [securityFlights, setSecurityFlights] = useState<ReadonlySet<number>>(new Set());
@@ -726,6 +733,8 @@ export function useMatchCues({
   /** The advance each presenting slot is waiting on, so a tap moves it on. */
   const narrationLimitRef = useRef(narrationLimit);
   narrationLimitRef.current = narrationLimit;
+  const collapseNarrationRef = useRef(collapseNarration);
+  collapseNarrationRef.current = collapseNarration;
   /** Set by an explicit skip: every item still queued is collapsed rather than read. */
   const narrationSkipRef = useRef(false);
   // Read inside a running step, so they follow the live props rather than the ones the
@@ -759,6 +768,9 @@ export function useMatchCues({
   // The dock the centre-stage track is currently holding open, if any. The dock step polls
   // it: the check closing (or a newer reveal claiming the key) is what lets the card go.
   const securityDockRef = useRef<{ key: number; closed: boolean } | null>(null);
+  // A used Option has the same open-ended lifetime as a docked Security card: it starts
+  // at cardPlayed and closes only when the server confirms its post-resolution routing.
+  const optionDockRef = useRef<{ key: number; closed: boolean } | null>(null);
   // `cardsMoved` names only instance ids, so the panels need the board's current
   // identity and ownership index to name the cards that just moved.
   const sidePanelLookupRef = useRef<SidePanelLookup>({ cardId: () => undefined, seat: () => undefined });
@@ -779,8 +791,8 @@ export function useMatchCues({
   const phaseBannerKeyRef = useRef(0);
   const dpPulseKeyRef = useRef(0);
   const freezePulseKeyRef = useRef(0);
-  const cutInKeyRef = useRef(0);
   const effectSourceKeyRef = useRef(0);
+  const optionDockKeyRef = useRef(0);
   const deletionReadyAtRef = useRef(new Map<string, { readyAt: number; instanceId?: string }>());
   const deckRiffleKeyRef = useRef(0);
   // Where every card the viewer can see currently sits, so an activation can be
@@ -924,13 +936,13 @@ export function useMatchCues({
   const effectNarrationTracksRef = useRef(new Map<Seat, string>());
 
   /** Publish the clause before the results queued behind its arrival. */
-  function enqueueNarrationItem(item: NarrationItem) {
+  function enqueueNarrationItem(item: NarrationItem, effectSourceHoldMs: number = TIMINGS.effectSourceHold) {
     const body = item.notice?.body;
     const seat = item.side === "you" ? viewerSeat : otherSeat(viewerSeat);
     const initialSite = body?.variant === "effect" ? cardSiteRef.current.locate(body.cardId, seat, body) : undefined;
     const timing = body?.variant === "effect" ? (body.timing ?? "") : "";
     // Follow the actual arrival track, including its field burst, rather than
-    // estimating when a normal play, evolution or cut-in will be finished.
+    // estimating when a normal play or evolution will be finished.
     const onPlay = /on.?play/i.test(timing) && initialSite?.zone === "field";
     const arrivalTrack =
       /on.?play|when.?digivolving/i.test(timing) && initialSite?.zone === "field"
@@ -1009,7 +1021,7 @@ export function useMatchCues({
             try {
               setEffectSources((sources) => [...sources, activation]);
               reportShown(`effect-source-${activation.key}`, context);
-              await context.wait(TIMINGS.effectSourceHold);
+              await context.wait(effectSourceHoldMs);
             } finally {
               setEffectSources((sources) => sources.filter((source) => source.key !== activation.key));
             }
@@ -1018,10 +1030,18 @@ export function useMatchCues({
         if (context.cancelled || narrationSkipRef.current) return;
         const shown = presentableNarration(item);
         if (!shown) return;
-        setNarration((items) => new Map([...items, [shown.id, shown] as const].slice(-narrationLimitRef.current)));
+        setNarration((items) =>
+          pushNarrationItem(
+            items,
+            shown,
+            collapseNarrationRef.current ? 1 : narrationLimitRef.current,
+            collapseNarrationRef.current,
+          ),
+        );
         reportShown(`narration-step-${item.id}`, context);
-        // One narration slot is a FIFO, not a latest-event ticker. Give every clause
-        // one readable beat before the next server event can replace it in that slot.
+        // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
+        // single moment, give every clause one readable beat before the next server event
+        // can replace it; a column with room shows a batch together instead.
         if (shown.notice && narrationLimitRef.current === 1) await context.wait(TIMINGS.effectAnnounce);
       },
     });
@@ -1044,15 +1064,24 @@ export function useMatchCues({
     return () => clearTimeout(timer);
   }, [narration]);
 
+  // A tightened cap has to be applied to what is already on screen, per column: trimming
+  // the map as one list would drop a clause because the other column happened to be full.
   useEffect(() => {
-    setNarration((items) => (items.size > narrationLimit ? new Map([...items].slice(-narrationLimit)) : items));
+    setNarration((items) =>
+      trimNarration(items, collapseNarrationRef.current ? 1 : narrationLimit, collapseNarrationRef.current),
+    );
   }, [narrationLimit]);
 
   /**
    * Queues one moment's worth of narration: the panels and the notices the same beat
    * raised, folded into as few items as they honestly make (narration.ts).
    */
-  function narrate(notices: readonly MatchNotice[], panels: readonly SidePanel[], batchId: string) {
+  function narrate(
+    notices: readonly MatchNotice[],
+    panels: readonly SidePanel[],
+    batchId: string,
+    effectSourceHoldMs: number = TIMINGS.effectSourceHold,
+  ) {
     if (notices.length === 0 && panels.length === 0) return;
     const items = buildNarrationItems({
       batchId,
@@ -1061,7 +1090,7 @@ export function useMatchCues({
       nowMs: Date.now(),
       nextId: () => `narration-${(narrationSequenceRef.current += 1)}`,
     });
-    for (const item of items) enqueueNarrationItem(item);
+    for (const item of items) enqueueNarrationItem(item, effectSourceHoldMs);
   }
 
   /** Raises whatever a security check has still not said, on the clock it is raised at. */
@@ -1154,6 +1183,17 @@ export function useMatchCues({
         origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
         ...(replayingHistory ? { mode: "replay" as const } : {}),
       });
+    const usedOption = fresh.find(
+      (event) =>
+        event.kind === "cardPlayed" &&
+        event.permanentId === undefined &&
+        (() => {
+          const definition = getCardDefinition(event.cardId);
+          return definition !== undefined && isOption(definition);
+        })(),
+    );
+    const optionRouted = fresh.some((event) => event.kind === "cardsMoved" && event.optionUsed === true);
+    if (optionRouted && optionDockRef.current) optionDockRef.current.closed = true;
     // A permanent that lost a battle takes the claw and the shake first, and its
     // burst waits behind them — the reference client hits the card, then breaks
     // it. Only combat deletions get the impact; an effect deletion has no blow
@@ -1205,11 +1245,11 @@ export function useMatchCues({
     let afterArrivalPanels: readonly SidePanel[] = [];
     /** The arrival cues themselves, held back so the check can take the screen first. */
     let deferredZoneChanges: readonly AnimationStep[] = [];
-    /** How long the cut-in this batch enqueued owns the centre of the screen first. */
-    let cutInLeadInMs = 0;
+    /** A closing check first moves its revealed card to the execution slot at the right. */
+    let deferredSecurityArrivalsQueued = false;
     /**
      * How long the beats that explain an announced play own the screen before anything
-     * that play caused may be narrated: the cut-in, the card held centre-stage under its
+     * that play caused may be narrated: the card held centre-stage under its
      * call-out, then the clause it triggered. The battle's `combatLeadInMs` above is the
      * same idea one step earlier in the chain, and the two stack.
      */
@@ -1221,6 +1261,27 @@ export function useMatchCues({
       const ids = [...arrivalHoldIds];
       void queue.idle().then(() => {
         setPendingPermanentIds((held) => ids.reduce((next, id) => remove(next, id), held));
+      });
+    }
+    function enqueueDeferredSecurityArrivals(key: number) {
+      if (deferredSecurityArrivalsQueued) return;
+      deferredSecurityArrivalsQueued = true;
+      // A free play is a consequence of the security card. In a batch that also closes
+      // the check, the branch-in cue is still ahead of us on the serial track; enqueueing
+      // the arrival before it made the permanent appear before its source reached the
+      // execution slot at the right of the board.
+      for (const step of deferredZoneChanges) enqueue(step);
+      releaseArrivalHoldsWhenIdle();
+      if (afterArrivalNotices.length === 0 && afterArrivalPanels.length === 0) return;
+      const arrivalNotices = afterArrivalNotices;
+      const arrivalPanels = afterArrivalPanels;
+      enqueue({
+        id: `security-arrival-notices-${key}`,
+        track: CENTER_STAGE_TRACK,
+        skippable: false,
+        run() {
+          narrate(arrivalNotices, arrivalPanels, batchId);
+        },
       });
     }
 
@@ -1286,16 +1347,15 @@ export function useMatchCues({
         if (event.kind === "securityChecked") securityEffectPendingRef.current = event.resolution === "effect";
         const candidateNotices =
           event.kind === "cardsMoved" && (event.deletedPermanents?.length ?? 0) > 0
-            ? event.deletedPermanents!.map((_, deletedIndex) => {
-                noticeSequenceRef.current += 1;
-                return deletionNoticeFromEvent(
-                  event,
-                  viewerSeat,
-                  `notice-${noticeSequenceRef.current}`,
-                  now,
-                  deletedIndex,
-                );
-              })
+            ? deletionNoticesFromEvent(
+                event,
+                viewerSeat,
+                () => {
+                  noticeSequenceRef.current += 1;
+                  return `notice-${noticeSequenceRef.current}`;
+                },
+                now,
+              )
             : (() => {
                 noticeSequenceRef.current += 1;
                 const noticeId = `notice-${noticeSequenceRef.current}`;
@@ -1312,34 +1372,6 @@ export function useMatchCues({
             raised.push(notice);
             noticeAt.push(eventIndex);
           }
-      }
-      // The cut-in owns the centre of the screen ahead of the showcase, so the
-      // announcement lands on a screen the player is already looking at. Pure
-      // spectacle behind a setting: skippable, and dropped outright under reduced
-      // motion or a hidden tab.
-      for (const event of fresh) {
-        cutInKeyRef.current += 1;
-        const announced = cutInFromEvent(event, cutInKeyRef.current, cutInsEnabled ?? areCutInsEnabled());
-        if (!announced) continue;
-        // A cut-in replaces the track, so only the last one enqueued in a batch ever
-        // plays: what it costs the beats behind it is its own length, not the sum.
-        cutInLeadInMs = cutInTotalMs(announced.tier);
-        enqueue({
-          id: `cut-in-${announced.key}`,
-          track: CENTER_STAGE_TRACK,
-          replace: true,
-          async run(context) {
-            if (context.mode !== "live") return;
-            await context.wait(combatLeadInMs);
-            if (context.cancelled) return;
-            try {
-              setCutIn(announced);
-              await context.wait(cutInTotalMs(announced.tier));
-            } finally {
-              setCutIn((current) => (current?.key === announced.key ? null : current));
-            }
-          },
-        });
       }
       // Zone changes own the centre of the screen: the opponent's card is held
       // up, the destination stays hidden behind it, and only then does the
@@ -1399,7 +1431,11 @@ export function useMatchCues({
         // The board renders a permanent the moment its patch lands, so a card whose
         // arrival is still queued has to be held back from the field until the cue
         // that shows it arriving actually runs — otherwise it is simply there.
-        if (showcase && burst) {
+        // A player normally watches their own card leave their hand, so only an opponent's
+        // play earns the centre-screen hold. A Tamer played from the viewer's Security is
+        // different: the player has not seen it arrive yet, and it must stay hidden until
+        // the security card has reached its right-hand execution slot.
+        if (burst && (showcase || securityReveal !== undefined || revealOnStageRef.current !== null)) {
           arrivalHoldIds.push(burst.permanentId);
           setPendingPermanentIds((held) => new Set(held).add(burst.permanentId));
         }
@@ -1414,6 +1450,10 @@ export function useMatchCues({
       // of the hand fan.
       for (const event of fresh) {
         effectSourceKeyRef.current += 1;
+        // The used Option already has the more legible dock presentation below. Do not
+        // also make its final trash position look like the source of its own [Main].
+        if (usedOption?.kind === "cardPlayed" && event.kind === "effectActivated" && event.sourceCardId === usedOption.cardId)
+          continue;
         const activation = effectActivationFromEvent(event, effectSourceKeyRef.current, cardSiteRef.current.locate);
         if (!activation) continue;
         enqueue({
@@ -1497,6 +1537,49 @@ export function useMatchCues({
           phaseOrder: enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current,
         });
       const presenting = raised.length > 0 || opened.length > 0;
+      if (usedOption?.kind === "cardPlayed") {
+        optionDockKeyRef.current += 1;
+        const key = optionDockKeyRef.current;
+        const dock: SecurityBranchScene = {
+          key,
+          cardId: usedOption.cardId,
+          ...(usedOption.artId ? { artId: usedOption.artId } : {}),
+          side: usedOption.seat === viewerSeat ? "you" : "opp",
+          state: "docked",
+          source: "option",
+        };
+        optionDockRef.current = { key, closed: optionRouted };
+        enqueue({
+          id: `option-dock-in-${key}`,
+          track: "optionDock",
+          skippable: false,
+          async run(context) {
+            setOptionBranch(dock);
+            await context.wait(SECURITY_BRANCH_IN_MS);
+          },
+        });
+        enqueue({
+          id: `option-dock-hold-${key}`,
+          track: "optionDockHold",
+          skippable: false,
+          async run(context) {
+            // Keep even a one-batch Option long enough for its activated effects to read.
+            let waitedMs = 0;
+            while (!context.cancelled && waitedMs < TIMINGS.optionDockHold) {
+              await context.wait(TIMINGS.securityDockPoll);
+              waitedMs += TIMINGS.securityDockPoll;
+            }
+            while (!context.cancelled && !optionDockRef.current?.closed && waitedMs < TIMINGS.securityDockMax) {
+              await context.wait(TIMINGS.securityDockPoll);
+              waitedMs += TIMINGS.securityDockPoll;
+            }
+            if (optionDockRef.current?.key === key) optionDockRef.current = null;
+            setOptionBranch((current) => (current?.key === key ? { ...current, state: "closing" } : current));
+            await context.wait(SECURITY_DOCK_CLOSE_MS);
+            setOptionBranch((current) => (current?.key === key ? null : current));
+          },
+        });
+      }
       if (securityReveal) {
         deferredZoneChanges = zoneChanges;
         // Split at the play. What the revealed card itself did — its `[Security]` clause —
@@ -1528,18 +1611,26 @@ export function useMatchCues({
       } else if (arriving && presenting) {
         const heldForShowcase = showcased ? afterShowcaseNotices : raised;
         const panelsForShowcase = opened;
+        const deletesFromField = fresh.some(
+          (event) => event.kind === "cardsMoved" && (event.deletedPermanents?.length ?? 0) > 0,
+        );
         // The clause the played card triggered gets the beat after the showcase to itself:
-        // it is read out, and only then does what it did reach the board.
+        // it is read out, and only then does what it did reach the board. A deletion keeps
+        // the final 200 ms of the source glow under the toast, then breaks immediately.
         const clauseRead = heldForShowcase.some((notice) => notice.body.variant === "effect");
+        const effectSourceHoldMs = deletesFromField
+          ? TIMINGS.effectSourceHold - TIMINGS.noticeIn
+          : TIMINGS.effectSourceHold;
         playLeadInMs = showcasePlays
-          ? cutInLeadInMs + (showcased ? SHOWCASE_TOTAL_MS : 0) + (clauseRead ? TIMINGS.effectAnnounce : 0)
+          ? (showcased ? SHOWCASE_TOTAL_MS : 0) +
+            (clauseRead ? (deletesFromField ? TIMINGS.effectSourceHold : TIMINGS.effectAnnounce) : 0)
           : 0;
         enqueue({
           id: `showcase-notices-${showcaseKeyRef.current}`,
           track: CENTER_STAGE_TRACK,
           skippable: false,
           run() {
-            narrate(heldForShowcase, panelsForShowcase, batchId);
+            narrate(heldForShowcase, panelsForShowcase, batchId, effectSourceHoldMs);
           },
         });
         // The prompt this play is about to raise waits behind the same beats through the
@@ -1894,22 +1985,9 @@ export function useMatchCues({
         revealOnStageRef.current = { key, scene: settled, exited: true };
         readOutSecurityNotices(key, { notices: heldNotices, panels: heldPanels });
       }
-      // The card a `[Security]` effect played now arrives on the field, behind everything
-      // the check has shown so far, and only once it is there does what IT did read out.
-      for (const step of deferredZoneChanges) enqueue(step);
-      releaseArrivalHoldsWhenIdle();
-      if (afterArrivalNotices.length > 0 || afterArrivalPanels.length > 0) {
-        const arrivalNotices = afterArrivalNotices;
-        const arrivalPanels = afterArrivalPanels;
-        enqueue({
-          id: `security-arrival-notices-${key}`,
-          track: CENTER_STAGE_TRACK,
-          skippable: false,
-          run() {
-            narrate(arrivalNotices, arrivalPanels, batchId);
-          },
-        });
-      }
+      // An unfinished check parks at the right before its eventual close, so its free
+      // play can arrive now. A closing check queues this after its branch-in below.
+      if (!closingCheck) enqueueDeferredSecurityArrivals(key);
     }
     if (securityCheck?.kind === "securityChecked") {
       const staged = revealOnStageRef.current;
@@ -2003,6 +2081,9 @@ export function useMatchCues({
           },
         });
       }
+      // When the reveal and close arrive in one batch, the security card must visibly
+      // reach the right-hand execution slot before a Tamer it played enters the field.
+      if (closingCheck) enqueueDeferredSecurityArrivals(key);
       // A reveal already on stage has read out its notices; only a scene staged straight
       // from the close still owes them. The board comes back either way: a check that ran
       // long has been holding it since the reveal.
@@ -2174,6 +2255,7 @@ export function useMatchCues({
           deleted?.artId,
           deleted?.seat,
           deleted?.instanceId,
+          !clashLoserIds.has(anchorId) && !beaten.has(anchorId),
         );
         if (step) {
           deletionBurstPresentedRef.current.add(anchorId);
@@ -2824,6 +2906,7 @@ export function useMatchCues({
     metadataArtId?: string,
     metadataSeat?: Seat,
     metadataInstanceId?: string,
+    effectDeletion = false,
   ): AnimationStep | null {
     const center = anchors.permanentCenter?.(anchorId);
     if (!center) return null;
@@ -2842,6 +2925,7 @@ export function useMatchCues({
       key,
       x: center.x - DELETE_BURST_SIZE / 2,
       y: center.y - DELETE_BURST_SIZE / 2,
+      ...(effectDeletion ? { effectDeletion: true } : {}),
       ...(cardId ? { cardId, color: burstColorFor(cardId) } : {}),
       ...(metadataArtId ? { artId: metadataArtId } : {}),
     };
@@ -2937,6 +3021,10 @@ export function useMatchCues({
           if (context.cancelled) return;
         }
         if (!burst) return;
+        // A Security play belonging to the viewer has no centre-screen showcase, but it
+        // may still have been held until the source card completed its right-hand move.
+        // Hand the field back at this landing beat, together with its burst.
+        if (!showcase) setPendingPermanentIds((held) => remove(held, burst.permanentId));
         // The permanent's track also carries its effect prelude. Serialize later
         // arrivals so an automatic evolution cannot cancel the earlier toast.
         queue.enqueue({
@@ -3117,6 +3205,7 @@ export function useMatchCues({
     securityClash,
     securityBreak,
     securityBranch,
+    optionBranch,
     securityRevealPending: pendingRevealKey !== null,
     decisionBarrierPending: decisionBarrier !== null,
     decisionAnimationsPending,
@@ -3128,7 +3217,6 @@ export function useMatchCues({
     permanentBursts,
     pendingPermanentIds,
     attackLunge,
-    cutIn,
     effectSources,
     deckRiffles,
     securityFlights,

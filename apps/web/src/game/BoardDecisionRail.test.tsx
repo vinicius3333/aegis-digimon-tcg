@@ -32,7 +32,8 @@ describe("BoardSelectionRail", () => {
     expect(screen.getByText("1 selected of 0–2")).toBeTruthy();
   });
 
-  it("offers No Selection only when the decision allows picking nothing", () => {
+  it("always shows an active No Selection action so the player can decline the selection", () => {
+    const onNoSelection = vi.fn<() => void>();
     const { unmount } = renderIn(
       <BoardSelectionRail
         prompt="Select 1 card."
@@ -41,10 +42,11 @@ describe("BoardSelectionRail", () => {
         pickCount={0}
         canConfirm={false}
         onConfirm={noop}
-        onNoSelection={noop}
+        onNoSelection={onNoSelection}
       />,
     );
-    expect(screen.queryByRole("button", { name: "No Selection" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "No Selection" }));
+    expect(onNoSelection).toHaveBeenCalledTimes(1);
     unmount();
 
     renderIn(
@@ -58,7 +60,7 @@ describe("BoardSelectionRail", () => {
         onNoSelection={noop}
       />,
     );
-    expect(screen.getByRole("button", { name: "No Selection" })).toBeTruthy();
+    expect((screen.getByRole("button", { name: "No Selection" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("keeps End Selection disabled until the count is valid", () => {
@@ -80,6 +82,21 @@ describe("BoardSelectionRail", () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
+  it("keeps End Selection disabled with no selected cards, including an optional selection", () => {
+    renderIn(
+      <BoardSelectionRail
+        prompt="Select up to 1 card."
+        min={0}
+        max={1}
+        pickCount={0}
+        canConfirm
+        onConfirm={noop}
+        onNoSelection={noop}
+      />,
+    );
+    expect((screen.getByRole("button", { name: "End Selection" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
   it("keeps Escape available without showing a dialog button", () => {
     const onOpenDialog = vi.fn<() => void>();
     renderIn(
@@ -97,6 +114,28 @@ describe("BoardSelectionRail", () => {
     expect(screen.queryByRole("button", { name: "Open the decision dialog" })).toBeNull();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(onOpenDialog).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows and opens the source card art when the selection came from a card effect", () => {
+    const opened: string[] = [];
+    renderIn(
+      <CardOpenerProvider onOpenCard={(cardId) => opened.push(cardId)}>
+        <BoardSelectionRail
+          sourceCardId="ST1-07"
+          prompt="Select 1 card."
+          clause="Draw 1 card."
+          min={1}
+          max={1}
+          pickCount={0}
+          canConfirm={false}
+          onConfirm={noop}
+          onNoSelection={noop}
+        />
+      </CardOpenerProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /^Open / }));
+    expect(opened).toEqual(["ST1-07"]);
   });
 });
 

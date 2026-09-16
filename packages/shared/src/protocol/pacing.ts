@@ -34,7 +34,7 @@ export const SECURITY_DESTRUCTION_NARRATION_MS = 1_900;
 /** Opponent play showcase plus field arrival burst, before its On Play can be announced. */
 export const CARD_ARRIVAL_NARRATION_MS = 2_620;
 /** Source glow, clause announcement, then a beat to see the revealed cards before a bot chooses. */
-export const EFFECT_CHOICE_NARRATION_MS = 1_600;
+export const EFFECT_CHOICE_NARRATION_MS = 2_600;
 
 /** One phase ribbon including its gap; consecutive phases share the client's track. */
 export const PHASE_NARRATION_MS = 1_350;

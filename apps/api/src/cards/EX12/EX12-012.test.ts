@@ -96,7 +96,7 @@ describe("EX12-012 Apemon", () => {
           deck: ["BT1-009", "BT1-010"],
         },
       },
-      { autoSelectCards: true },
+      {},
     );
     s.state.memory = 10;
 
@@ -108,13 +108,15 @@ describe("EX12-012 Apemon", () => {
         }
       : { type: "playCard" as const, instanceId: s.inst("source").instanceId };
     expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    // The hand cost is the clause's only question, so it is asked as the selection
+    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const pending = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: pending.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle();

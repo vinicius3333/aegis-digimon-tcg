@@ -6,9 +6,10 @@
 
 import { useEffect, type ReactNode } from "react";
 import { Button } from "../design/primitives";
+import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
-import { CardLink, cardDisplayName } from "./cardLinks";
+import { cardDisplayName, useCardOpener } from "./cardLinks";
 
 function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
   useEffect(() => {
@@ -29,9 +30,34 @@ function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
     give the board the space instead. */
 type BoardPromptVariant = "prompt" | "selection";
 
+/** The art of the card asking the question, big enough to recognise beside its clause. */
+const BOARD_PROMPT_ART_WIDTH = 92;
+
+/**
+ * The card asking the question. With the name gone from the rail, the art is the only
+ * route to the card, so it carries the link's role and label rather than being decorative.
+ */
+function BoardPromptArt({ cardId }: { cardId: string }) {
+  const { t } = useTranslation();
+  const openCard = useCardOpener();
+  const art = <CardMini cardId={cardId} width={BOARD_PROMPT_ART_WIDTH} zoomOnHover={false} />;
+  if (!openCard) return <span className="board-prompt__art">{art}</span>;
+  return (
+    <button
+      type="button"
+      className="board-prompt__art"
+      aria-label={t("feed.openCard", { card: cardDisplayName(cardId, t) })}
+      onClick={() => openCard(cardId)}
+    >
+      {art}
+    </button>
+  );
+}
+
 function BoardPromptRail({
   variant,
   label,
+  art,
   eyebrow,
   prompt,
   clause,
@@ -42,6 +68,8 @@ function BoardPromptRail({
 }: {
   variant: BoardPromptVariant;
   label: string;
+  /** The card asking the question. Its picture says which card this is, so the name does not have to. */
+  art?: string;
   eyebrow?: ReactNode;
   prompt: string;
   clause?: string;
@@ -75,11 +103,21 @@ function BoardPromptRail({
         ) : null}
         <div className="board-prompt__heading">
           {eyebrow ? <p className="board-prompt__eyebrow">{eyebrow}</p> : null}
-          <p className="board-prompt__text" aria-live="polite">
+          {/* The card's printed clause is the question. A restated prompt over it says the
+              same thing twice, so it stays only as the live region that announces the
+              decision — and becomes the visible question when no clause explains it. */}
+          <p className="board-prompt__text" aria-live="polite" data-quiet={clause ? true : undefined}>
             {prompt}
           </p>
         </div>
-        {clause ? <p className="board-prompt__clause">{clause}</p> : null}
+        {/* The clause leads and the art sits beside it, against the top: the text is what
+            the player reads, the picture only says which card is asking. */}
+        {clause || art ? (
+          <div className="board-prompt__body">
+            {clause ? <p className="board-prompt__clause">{clause}</p> : null}
+            {art ? <BoardPromptArt cardId={art} /> : null}
+          </div>
+        ) : null}
         {detail ? <p className="board-prompt__detail">{detail}</p> : null}
         <div className="board-prompt__actions">{children}</div>
       </section>
@@ -89,6 +127,7 @@ function BoardPromptRail({
 
 /** `selectCards` answered out of the viewer's hand: the rail counts the picks. */
 export function BoardSelectionRail({
+  sourceCardId,
   prompt,
   clause,
   min,
@@ -99,6 +138,8 @@ export function BoardSelectionRail({
   onNoSelection,
   onOpenDialog,
 }: {
+  /** The card asking for the selection, shown as the same art cue the optional rail uses. */
+  sourceCardId?: string;
   prompt: string;
   /** The printed clause that asked for the selection, so the rail carries the same context the dialog did. */
   clause?: string;
@@ -116,19 +157,21 @@ export function BoardSelectionRail({
       variant="selection"
       label={t("overlay.handSelection")}
       eyebrow={t("overlay.handSelection")}
+      art={sourceCardId}
       prompt={prompt}
       clause={clause}
       detail={t("overlay.selectedOfRange", { count: pickCount, range: min === max ? `${max}` : `${min}–${max}` })}
       onOpenDialog={onOpenDialog}
     >
-      <Button full icon={Icons.Check} disabled={!canConfirm} onClick={onConfirm}>
-        {t("overlay.endSelection")}
+      {/* Keep both action slots mounted. Besides making both ways out of a selection
+          immediately discoverable, this prevents the rail from jumping when the first
+          card is picked. */}
+      <Button full icon={Icons.Check} disabled={pickCount === 0 || !canConfirm} onClick={onConfirm}>
+          {t("overlay.endSelection")}
       </Button>
-      {min === 0 ? (
-        <Button full variant="secondary" onClick={onNoSelection}>
-          {t("overlay.noSelection")}
-        </Button>
-      ) : null}
+      <Button full variant="secondary" onClick={onNoSelection}>
+        {t("overlay.noSelection")}
+      </Button>
     </BoardPromptRail>
   );
 }
@@ -156,10 +199,9 @@ export function BoardOptionalPrompt({
     <BoardPromptRail
       variant="prompt"
       label={sourceName ? t("overlay.cardEffect", { name: sourceName }) : t("overlay.useEffectPrompt")}
-      // The clause below is the card's own printed text, which names other cards
-      // only as prose this client cannot resolve to ids. The source is the one card
-      // the rail holds an id for, so it is the one name that links.
-      eyebrow={sourceCardId ? <CardLink cardId={sourceCardId} /> : undefined}
+      // The art is the card, so the name below it would only repeat the picture. The link
+      // is kept when there is no art to show instead.
+      art={sourceCardId}
       prompt={prompt ?? t("overlay.useEffectPrompt")}
       clause={clause}
       // The dialog shows nothing the rail does not, so Escape is the only way back to it.

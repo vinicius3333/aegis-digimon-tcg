@@ -18,7 +18,6 @@ import { TargetingSpotlight } from "../game/TargetingSpotlight";
 import type { SpotlightSubject } from "../game/spotlight";
 import { pendingFateBadge } from "../game/pendingFate";
 import { buildPermanentDetail } from "../game/permanentDetail";
-import { DigivolutionCutInView } from "../game/DigivolutionCutInView";
 import { CardShatter } from "../game/CardShatterView";
 import { PlayLogSidebar } from "../game/OpponentActionFeedView";
 import type { LogLine } from "../game/boardModel";
@@ -1140,43 +1139,6 @@ export function BoardShowcase() {
             <TurnControl state="waiting" onEndPhase={noop} />
           </div>
         </Case>
-      </Section>
-
-      <Section
-        id="showcase-cut-in"
-        title="digivolution cut-in"
-        note="Behind a setting, off by default. The card lands centre-screen over a sweeping colour band. The server names the mechanic on the event, and each mechanic gets its own tier: DigiXros holds longer and shakes, DNA flanks the result with the two cards that merged, Burst is the longest and glows while it holds. Blast keeps the base tier and only changes the word."
-        stacked
-      >
-        {[
-          { tier: "base" as const, label: "base tier (1.45s)", extra: {} },
-          { tier: "digiXros" as const, label: "DigiXros tier (2.0s + shake)", extra: {} },
-          {
-            tier: "dna" as const,
-            label: "DNA tier (1.65s, two sources flanking)",
-            extra: { sourceCardIds: [CARDS.champion, CARDS.champion] },
-          },
-          { tier: "burst" as const, label: "Burst tier (2.7s)", extra: { label: "game.cutInWordBurst" as const } },
-          {
-            tier: "base" as const,
-            label: "Blast (base tier, own word)",
-            extra: { label: "game.cutInWordBlast" as const },
-          },
-        ].map((sample) => (
-          <Stage key={sample.label} label={sample.label} height={420}>
-            <DigivolutionCutInView
-              cutIn={{
-                key: 1,
-                cardId: CARDS.mega,
-                seat: 0,
-                tier: sample.tier,
-                label: "game.cutInWord",
-                color: "Red",
-                ...sample.extra,
-              }}
-            />
-          </Stage>
-        ))}
       </Section>
 
       <Section

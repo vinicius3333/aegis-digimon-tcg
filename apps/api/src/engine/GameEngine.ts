@@ -6276,12 +6276,39 @@ export class GameEngine {
         continue;
       }
       log("[resolveSecurityEffect]", card.cardId, `resolving ${effect.effectKey}`);
+      // The [Security] clause is a triggered effect like any other, so it announces itself
+      // the same way: the client reads the clause out of the left notice column beside the
+      // revealed card. `resolveSecurityEffect` runs inside `securityCheckDepth`, so the
+      // stamp below marks the announcement for the client's hold-until-reveal queue.
+      this.hooks.emit({
+        kind: "effectTriggered",
+        seat: source.ownerSeat,
+        sourceCardId: source.cardId,
+        sourceInstanceId: source.instanceId,
+        sourcePermanentId: source.permanent()?.permanentId,
+        effectKey: effect.effectKey,
+        description: effect.description,
+        timing: "Security",
+        ...(effect.isInherited ? { isInherited: true } : {}),
+        ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+      });
       ctx.fx.enterEffectResolution?.(source.ownerSeat, securityEffectSourceKinds);
       try {
         await effect.resolve(ctx);
       } finally {
         ctx.fx.leaveEffectResolution?.();
       }
+      this.hooks.emit({
+        kind: "effectResolved",
+        seat: source.ownerSeat,
+        sourceCardId: source.cardId,
+        sourceInstanceId: source.instanceId,
+        sourcePermanentId: source.permanent()?.permanentId,
+        effectKey: effect.effectKey,
+        description: effect.description,
+        timing: "Security",
+        ...(effect.isInherited ? { isInherited: true } : {}),
+      });
       this.tracker.register(source.instanceId, effect.effectKey);
       activated = true;
     }

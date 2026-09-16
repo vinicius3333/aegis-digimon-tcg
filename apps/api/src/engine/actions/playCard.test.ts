@@ -298,7 +298,9 @@ describe("applyPlayCard - Option resolve then trash", () => {
 
     // OnUseOption fired (not OnPlay).
     expect(fired).toEqual([{ timing: EffectTiming.OnUseOption, instanceId: id }]);
-    expect(events.some((e) => e.kind === "cardsMoved" && e.to === "trash")).toBe(true);
+    expect(events).toContainEqual(
+      expect.objectContaining({ kind: "cardsMoved", instanceIds: [id], to: "trash", optionUsed: true }),
+    );
     expect(events.some((e) => e.kind === "cardPlayed")).toBe(true);
   });
 

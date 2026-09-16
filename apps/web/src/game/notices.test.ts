@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Seat, ServerEvent } from "@aegis/shared";
 import {
-  deletionNoticeFromEvent,
+  deletionNoticesFromEvent,
   effectNoticeFromEvent,
   isOwnEffectNotice,
   keywordNoticeFromEvent,
@@ -35,9 +35,17 @@ const resolved = (seat: Seat): ServerEvent => ({
   timing: "OnPlay",
 });
 
-describe("deletionNoticeFromEvent", () => {
+describe("deletionNoticesFromEvent", () => {
+  const ids = () => {
+    let next = 0;
+    return () => {
+      next += 1;
+      return `delete-${next}`;
+    };
+  };
+
   it("names a card deleted from the field", () => {
-    const result = deletionNoticeFromEvent(
+    const result = deletionNoticesFromEvent(
       {
         kind: "cardsMoved",
         from: "battleArea",
@@ -48,33 +56,80 @@ describe("deletionNoticeFromEvent", () => {
         ],
       },
       VIEWER,
-      "delete-1",
+      ids(),
       42,
     );
-    expect(result).toMatchObject({
-      side: "opp",
-      body: { variant: "deletion", cardId: "BT1-010", artId: "BT1-010_P2" },
-      createdAt: 42,
+    expect(result).toMatchObject([
+      {
+        side: "opp",
+        body: { variant: "deletion", cards: [{ cardId: "BT1-010", artId: "BT1-010_P2" }] },
+        createdAt: 42,
+      },
+    ]);
+  });
+
+  // Two permanents taken by one effect are one moment to read, not two call-outs stacked
+  // in the same corner.
+  it("gathers every card one movement deleted from the same side into one notice", () => {
+    const result = deletionNoticesFromEvent(
+      {
+        kind: "cardsMoved",
+        from: "battleArea",
+        to: "trash",
+        instanceIds: ["a", "b"],
+        deletedPermanents: [
+          { permanentId: "perm-a", instanceId: "a", cardId: "BT1-010", seat: 1 },
+          { permanentId: "perm-b", instanceId: "b", cardId: "BT1-020", artId: "BT1-020_P1", seat: 1 },
+        ],
+      },
+      VIEWER,
+      ids(),
+      42,
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0]?.body).toEqual({
+      variant: "deletion",
+      cards: [{ cardId: "BT1-010" }, { cardId: "BT1-020", artId: "BT1-020_P1" }],
     });
+  });
+
+  // The two sides read out of opposite corners, so they stay two notices.
+  it("keeps each side's deletions in its own notice", () => {
+    const result = deletionNoticesFromEvent(
+      {
+        kind: "cardsMoved",
+        from: "battleArea",
+        to: "trash",
+        instanceIds: ["a", "b"],
+        deletedPermanents: [
+          { permanentId: "perm-a", instanceId: "a", cardId: "BT1-010", seat: 1 },
+          { permanentId: "perm-b", instanceId: "b", cardId: "BT1-020", seat: 0 },
+        ],
+      },
+      VIEWER,
+      ids(),
+      42,
+    );
+    expect(result.map((notice) => notice.side)).toEqual(["opp", "you"]);
   });
 
   it("does not call a hand trash or unnamed movement a field deletion", () => {
     expect(
-      deletionNoticeFromEvent(
+      deletionNoticesFromEvent(
         { kind: "cardsMoved", from: "hand", to: "trash", instanceIds: ["dead"], cardIds: ["BT1-010"], seat: 1 },
         VIEWER,
-        "n",
+        ids(),
         0,
       ),
-    ).toBeNull();
+    ).toEqual([]);
     expect(
-      deletionNoticeFromEvent(
+      deletionNoticesFromEvent(
         { kind: "cardsMoved", from: "battleArea", to: "trash", instanceIds: ["dead"], seat: 1 },
         VIEWER,
-        "n",
+        ids(),
         0,
       ),
-    ).toBeNull();
+    ).toEqual([]);
   });
 });
 

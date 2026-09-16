@@ -10,6 +10,7 @@
 
 import type { AnimationStep } from "./animationQueue";
 import type { PresentationTelemetry } from "./presentationTelemetry";
+import { TIMINGS } from "./timings";
 
 /**
  * How long the board may stay behind the live state before it catches up regardless.
@@ -17,9 +18,11 @@ import type { PresentationTelemetry } from "./presentationTelemetry";
  * The count is the only thing that knows a step is over, and a step whose track is
  * replaced before it ever starts never runs — so without a bound a dropped cue could leave
  * the board frozen. One reading time plus a beat: long enough for the moment being read
- * out, short enough that nothing the viewer sees is ever stale for long.
+ * out, short enough that nothing the viewer sees is ever stale for long. Derived from the
+ * notice's reading time: a budget shorter than it would cut a notice off mid-read and drop
+ * whatever the queue still owed behind it.
  */
-export const PRESENTED_BOARD_BUDGET_MS = 5000;
+export const PRESENTED_BOARD_BUDGET_MS = TIMINGS.noticeLifetime + 800;
 
 interface Entry {
   id: string;

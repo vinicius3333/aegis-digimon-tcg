@@ -18,7 +18,9 @@ describe("BT12-009 Flamemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flamemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flamemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("hybrid").instanceId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("plain").instanceId);
@@ -29,14 +31,21 @@ describe("BT12-009 Flamemon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT12-009", as: "flamemon" }, { card: "BT12-012", as: "hybrid" }],
+          hand: [
+            { card: "BT12-009", as: "flamemon" },
+            { card: "BT12-012", as: "hybrid" },
+          ],
           deck: ["BT1-009", "BT1-010"],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      // The Hybrid cost is the clause's only question, so it is asked as the selection itself:
+      // answering with no card is the refusal (see `costIsAskedAsSelection`).
+      { autoDeclineOptional: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flamemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flamemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("hybrid").instanceId);
     expect(s.state.players[0]!.deck).toHaveLength(2);
@@ -45,12 +54,20 @@ describe("BT12-009 Flamemon", () => {
   it("does not draw when no Hybrid Digimon can pay the cost", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT12-009", as: "flamemon" }, { card: "BT1-009", as: "plain" }], deck: ["BT1-010"] },
+        0: {
+          hand: [
+            { card: "BT12-009", as: "flamemon" },
+            { card: "BT1-009", as: "plain" },
+          ],
+          deck: ["BT1-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flamemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flamemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("plain").instanceId);
     expect(s.state.players[0]!.deck).toHaveLength(1);

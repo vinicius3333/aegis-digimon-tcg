@@ -79,18 +79,20 @@ describe("BT18-013 Deltamon", () => {
           trash: [{ card: "BT18-015", as: "target" }],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: false },
     );
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deltamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    // The hand cost is the clause's only question, so it is asked as the selection
+    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);

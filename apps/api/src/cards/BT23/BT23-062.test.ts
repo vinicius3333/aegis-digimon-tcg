@@ -170,7 +170,7 @@ describe("BT23-062 Dracmon", () => {
 
     // CR 15-7-4 / 15-7-2: declining the "By trashing ..." condition keeps the card and
     // blocks the memory gain.
-    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(true);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([matchingId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);

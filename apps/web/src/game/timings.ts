@@ -10,7 +10,6 @@
 
 import type { CSSProperties } from "react";
 import { CARD_SHARD_SPREAD_MS } from "./cardShatter";
-import type { CutInTier } from "./cutIn";
 
 export const TIMINGS = {
   /** Card back flying from a deck pile to the hand that just grew. */
@@ -75,6 +74,8 @@ export const TIMINGS = {
    * been on screen for the whole resolution by then, so this is a beat, not a read.
    */
   securityDockHold: 300,
+  /** Minimum readable hold for a used Option in the effect dock. */
+  optionDockHold: 1800,
   /** How often the open-ended dock re-checks whether its check has closed. */
   securityDockPoll: 120,
   /**
@@ -125,16 +126,16 @@ export const TIMINGS = {
   drawBurst: 600,
   /** Full-width turn announcement, including its entrance and exit. */
   turnBanner: 1000,
-  /** How long a framed notice stays readable on its own. */
-  noticeLifetime: 4200,
+  /** How long a framed notice stays readable on its own. Long enough to read a whole clause, not just recognise it. */
+  noticeLifetime: 6000,
   /** A notice sliding in from its anchor. */
   noticeIn: 200,
   /** How long one opponent action stays up in the corner feed. */
   feedAction: 3600,
   /** A feed entry carrying effect text to read is held longer than a bare title. */
-  feedEffect: 5600,
+  feedEffect: 7200,
   /** How long a side panel stays readable. Nothing on the board shortens it. */
-  sidePanelLifetime: 5000,
+  sidePanelLifetime: 7000,
   /** Cards moved within this window join the panel already open. */
   sidePanelMergeWindow: 1500,
   /** A side panel opening. */
@@ -179,16 +180,6 @@ export const TIMINGS = {
   turnControlCover: 1500,
   /** The WIN / LOSE word scaling and glowing into place. */
   resultSplashIn: 520,
-  /** The full-screen digivolution cut-in, base tier (the reference client's 1.45 s). */
-  cutIn: 1450,
-  /** The DigiXros tier, which holds longer and shakes (2.0 s). */
-  cutInXros: 2000,
-  /** The DNA / Jogress tier, which flanks the result with its two sources (1.65 s). */
-  cutInDna: 1650,
-  /** The Burst tier, the longest of them (2.7 s). */
-  cutInBurst: 2700,
-  /** The cut-in's card and band wiping in, and back out again. */
-  cutInWipe: 180,
   /** The play log sliding out of, and back into, the right edge. */
   logSidebar: 160,
   /** The jolt a permanent takes when an attack or block lock lands on it (0.2 s). */
@@ -205,7 +196,7 @@ export const TIMINGS = {
   arrowFlash: 85,
   /** A card growing to its inspected size. */
   cardMagnify: 120,
-  /** The glow a field permanent holds while its effect activates. */
+  /** The glow a field permanent holds while its effect activates, before its toast appears. */
   effectSourceHold: 480,
   /**
    * How long a triggered-effect notice — an [On Play], a [When Digivolving] — reads on its
@@ -215,9 +206,9 @@ export const TIMINGS = {
    */
   effectAnnounce: 800,
   /** A card flying up out of the trash pile as its effect activates. */
-  effectTrashRise: 320,
+  effectTrashRise: 420,
   /** An Option rising out of the hand fan as it activates. */
-  effectHandRise: 260,
+  effectHandRise: 360,
   /** The card's own art breaking into shards where it was deleted. */
   cardShatter: 520,
 } as const;
@@ -289,7 +280,7 @@ export const SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold + TIM
  * The ceiling on how long the beats that explain a play may hold back what the play
  * caused: the deletions it dealt out, and the viewer's own prompt.
  *
- * A cut-in, a showcase and an [On Play] clause add up past what anyone will sit through,
+ * A showcase and an [On Play] clause add up past what anyone will sit through,
  * and each thing held back pays for the wait differently. The deletion cue is drawn where
  * the permanent used to stand — the board drops it with the server's patch, not with the
  * cue — so the longer the cue waits, the further it drifts from the card leaving. The
@@ -297,7 +288,7 @@ export const SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold + TIM
  * replaced track, an event that never arrived), which is why its hold is a wall clock
  * rather than a queued step, and why that clock needs a ceiling.
  */
-export const PLAY_LEAD_IN_BUDGET_MS = 3500;
+export const PLAY_LEAD_IN_BUDGET_MS = 4000;
 
 /** When the showcase starts clearing out, which is also when the field may reveal. */
 export const SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold;
@@ -322,20 +313,6 @@ export const FIELD_CLASH_IMPACT_AT_MS = FIELD_CLASH_LUNGE_AT_MS + TIMINGS.attack
 
 /** A board battle end to end: the arrow, the lunge, and the claw-and-shake it lands. */
 export const FIELD_CLASH_TOTAL_MS = FIELD_CLASH_IMPACT_AT_MS + COMBAT_IMPACT_TOTAL_MS;
-
-/** A cut-in, end to end, for the tier it is playing. */
-export function cutInTotalMs(tier: CutInTier): number {
-  switch (tier) {
-    case "digiXros":
-      return TIMINGS.cutInXros;
-    case "dna":
-      return TIMINGS.cutInDna;
-    case "burst":
-      return TIMINGS.cutInBurst;
-    case "base":
-      return TIMINGS.cutIn;
-  }
-}
 
 /** A DP pulse, end to end: the particles plus the beat the new figure is held on. */
 export function dpPulseTotalMs(fatal: boolean): number {
@@ -392,11 +369,6 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-phase-banner": TIMINGS.phaseBanner,
   "--t-turn-control-pulse": TIMINGS.turnControlPulse,
   "--t-result-splash-in": TIMINGS.resultSplashIn,
-  "--t-cut-in": TIMINGS.cutIn,
-  "--t-cut-in-xros": TIMINGS.cutInXros,
-  "--t-cut-in-dna": TIMINGS.cutInDna,
-  "--t-cut-in-burst": TIMINGS.cutInBurst,
-  "--t-cut-in-wipe": TIMINGS.cutInWipe,
   "--t-log-sidebar": TIMINGS.logSidebar,
   "--t-freeze-shake": TIMINGS.freezeShake,
   "--t-deck-riffle": TIMINGS.deckRiffle,

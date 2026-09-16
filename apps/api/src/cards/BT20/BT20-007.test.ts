@@ -64,7 +64,7 @@ describe("BT20-007 Dracomon", () => {
     const declinedTurn = declined.engine.runOneTurn();
     await advance(declined.engine).waitForMainPhase(0);
     await settle(() => declined.state.pendingDecision === undefined);
-    expect(declined.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(declined.decisions.some(({ req }) => req.kind === "selectCards")).toBe(true);
     expect(declined.state.players[0]!.hand.map((card) => card.instanceId)).toContain(declined.inst("cost").instanceId);
     expect(declined.state.players[0]!.deck.map((card) => card.instanceId)).toContain(declined.inst("top").instanceId);
     expect(declined.state.memory).toBe(0);

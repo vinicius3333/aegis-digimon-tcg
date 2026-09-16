@@ -38,7 +38,7 @@ export type NoticeBody =
       sourceInstanceId?: string;
       sourcePermanentId?: string;
     }
-  | { variant: "deletion"; cardId: string; artId?: string }
+  | { variant: "deletion"; cards: readonly DeletedCard[] }
   | { variant: "recovery"; amount: number }
   | { variant: "securityGain"; amount: number }
   | { variant: "rejection"; reason: string }
@@ -46,6 +46,12 @@ export type NoticeBody =
 
 /** The named mechanics the board calls out by name as they happen. */
 export type NoticeKeyword = "digiXros" | "cannotAttack" | "cannotBlock";
+
+/** One permanent named by a deletion call-out. */
+export interface DeletedCard {
+  cardId: string;
+  artId?: string;
+}
 
 export type NoticeVariant = NoticeBody["variant"];
 
@@ -93,28 +99,38 @@ export function effectNoticeFromEvent(
 }
 
 /**
- * The field deletion call-out. Only the engine's field-to-trash movement earns this
- * notice; trashing a card from hand, deck, security, or a stack is a different action.
- * `deletedPermanents` is carried on the public movement so this remains truthful even
- * when the state patch and event arrive in different ticks.
+ * The field deletion call-out, one per side the movement deleted from.
+ *
+ * Only the engine's field-to-trash movement earns this notice; trashing a card from hand,
+ * deck, security, or a stack is a different action. `deletedPermanents` is carried on the
+ * public movement so this remains truthful even when the state patch and event arrive in
+ * different ticks.
+ *
+ * An effect that deletes several permanents at once is one moment, not one per card, so
+ * every card it took from the same side is named by the same notice. The two sides stay
+ * apart because they are read out of opposite corners.
  */
-export function deletionNoticeFromEvent(
+export function deletionNoticesFromEvent(
   event: ServerEvent,
   viewerSeat: Seat,
-  id: string,
+  nextId: () => string,
   nowMs: number,
-  deletedIndex = 0,
-): MatchNotice | null {
-  if (event.kind !== "cardsMoved" || event.to !== "trash" || !event.deletedPermanents?.length) return null;
-  const deleted = event.deletedPermanents[deletedIndex];
-  if (!deleted) return null;
-  return {
-    id,
-    side: sideOf(deleted.seat, viewerSeat),
+): MatchNotice[] {
+  if (event.kind !== "cardsMoved" || event.to !== "trash" || !event.deletedPermanents?.length) return [];
+  const bySide = new Map<NoticeSide, DeletedCard[]>();
+  for (const deleted of event.deletedPermanents) {
+    const side = sideOf(deleted.seat, viewerSeat);
+    const cards = bySide.get(side) ?? [];
+    cards.push({ cardId: deleted.cardId, ...(deleted.artId ? { artId: deleted.artId } : {}) });
+    bySide.set(side, cards);
+  }
+  return [...bySide].map(([side, cards]) => ({
+    id: nextId(),
+    side,
     fromSecurity: false,
-    body: { variant: "deletion", cardId: deleted.cardId, ...(deleted.artId ? { artId: deleted.artId } : {}) },
+    body: { variant: "deletion" as const, cards },
     createdAt: nowMs,
-  };
+  }));
 }
 
 /** The notice a security recovery deserves, on the recovering player's side. */

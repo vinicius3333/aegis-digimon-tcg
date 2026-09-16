@@ -368,14 +368,14 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
     expect(gameCss).not.toMatch(/\.match-notice__text \{[^}]*max-height/);
     // The viewer's corner clears the egg deck and the raising slot, which the
     // tablet block's 9rem sat on: a moment takes the tap meant for either.
-    expect(phonePortraitRules).toMatch(/\.narration-slot\[data-slot="narration-you"\] \{[^}]*bottom:\s*calc\(17rem/);
-    expect(gameCss).toMatch(/\.narration-slot\[data-slot="narration-you"\] \{[^}]*bottom:\s*calc\(11rem/);
+    expect(phonePortraitRules).toMatch(/\.narration-slot\[data-slot="narration-text"\] \{[^}]*bottom:\s*calc\(17rem/);
+    expect(gameCss).toMatch(/\.narration-slot\[data-slot="narration-text"\] \{[^}]*bottom:\s*calc\(11rem/);
   });
 
   it("drops the opponent's moment and the attack call-out below the phone feed", () => {
     // The feed starts at 6.75rem and is 3.25rem tall in portrait, so the base
     // 9.5rem put both of them underneath it: the player never read who attacked.
-    expect(phonePortraitRules).toMatch(/\.narration-slot\[data-slot="narration-opp"\] \{[^}]*top:\s*calc\(10\.5rem/);
+    expect(phonePortraitRules).toMatch(/\.narration-slot\[data-slot="narration-cards"\] \{[^}]*top:\s*calc\(10\.5rem/);
     expect(phonePortraitRules).toMatch(/\.attack-announcement \{[^}]*top:\s*calc\(10\.5rem/);
   });
 
@@ -404,13 +404,13 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
     // The 132px hand fans ~75px taller than the compact one; at 11rem the viewer's
     // panels and notices sat on top of it on a 900px-tall laptop.
     expect(pointerWidthRules).toBeDefined();
-    expect(pointerWidthRules).toMatch(/\.narration-slot\[data-slot="narration-you"\] \{[^}]*bottom:\s*calc\(13rem/);
+    expect(pointerWidthRules).toMatch(/\.narration-slot\[data-slot="narration-text"\] \{[^}]*bottom:\s*calc\(13rem/);
   });
 
   it("moves the opponent's moment and the attack call-out off the landscape band", () => {
     // The memory band crosses the middle of a 390px-tall screen, which is where
     // 9.5rem put both of them.
-    expect(landscapeRules).toMatch(/\.narration-slot\[data-slot="narration-opp"\] \{[^}]*top:\s*calc\(3\.25rem/);
+    expect(landscapeRules).toMatch(/\.narration-slot\[data-slot="narration-cards"\] \{[^}]*top:\s*calc\(3\.25rem/);
     expect(landscapeRules).toMatch(/\.attack-announcement \{[^}]*top:\s*calc\(3\.25rem[^}]*translate:\s*none/);
   });
 });

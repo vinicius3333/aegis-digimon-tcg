@@ -152,7 +152,9 @@ describe("BT20-070 Loogarmon", () => {
           trash: [{ card: "BT20-089", as: "soc" }],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      // The hand-trash cost is the clause's only question, so it is asked as the selection
+      // itself: answering with no card is the refusal (see `costIsAskedAsSelection`).
+      { autoDeclineOptional: true },
     );
     s.state.memory = 6;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loogarmon").instanceId })).toEqual({

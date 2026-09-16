@@ -153,10 +153,12 @@ export interface EngineSetup {
 export interface SetupEngineOptions {
   autoAcceptOptional?: boolean;
   /**
-   * Answer every "use this effect?" prompt with no — the declined branch. Mutually exclusive
-   * in practice with `autoAcceptOptional` (a test wants one behavior or the other per run);
-   * setting both answers whichever the engine asks first and leaves the rest to the first
-   * flag that matches, so pass exactly one.
+   * Answer every "use this effect?" prompt with no — the declined branch. Also answers a
+   * zero-floor card selection with nothing, because a clause gated only by a hand-payable
+   * cost raises that selection INSTEAD of a separate prompt, and picking nothing is how it
+   * is refused. Mutually exclusive in practice with `autoAcceptOptional` (a test wants one
+   * behavior or the other per run); setting both answers whichever the engine asks first and
+   * leaves the rest to the first flag that matches, so pass exactly one.
    */
   autoDeclineOptional?: boolean;
   autoSelectCards?: boolean;
@@ -215,6 +217,22 @@ export interface SetupEngineOptions {
  */
 /** Alias -> its stable card identity and, for a seeded field card, original permanent identity. */
 type AliasTable = Map<string, { kind: "permanent" | "instance"; id: string; instanceId?: string }>;
+
+/** The seat whose zones hold `instanceId`, or `undefined` when no zone does. */
+function instanceOwnerSeat(state: GameState, instanceId: string): Seat | undefined {
+  for (const [index, player] of state.players.entries()) {
+    const zones = [player.hand, player.deck, player.trash, player.security, player.eggDeck];
+    if (zones.some((zone) => zone.some((card) => card.instanceId === instanceId))) return index as Seat;
+    const onField = player.battleArea.some(
+      (permanent) =>
+        permanent.topCard?.instanceId === instanceId ||
+        permanent.stack.some((card) => card.instanceId === instanceId) ||
+        permanent.linked.some((card) => card.instanceId === instanceId),
+    );
+    if (onField) return index as Seat;
+  }
+  return undefined;
+}
 
 function cardOf(spec: CardSpec): { card: string; as?: string; faceUp?: boolean } {
   return typeof spec === "string" ? { card: spec } : spec;
@@ -341,6 +359,35 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
             type: "respondDecision",
             decisionId: req.decisionId,
             response: { kind: "optional", accept: false },
+          }),
+        );
+      }
+      // A clause gated only by a cost the controller pays from their own hand has no separate
+      // "use this effect?" prompt: choosing no card IS the refusal (see `costIsAskedAsSelection`).
+      // So a test that declines answers whichever of the two the engine actually raises. Only a
+      // selection drawn entirely from the responder's OWN hand, for a source card the responder
+      // also owns, is that cost. Any other zero-floor selection — a target question ("choose up
+      // to 1 Digimon"), or an opponent-directed one ("your opponent may trash 1 card") — is not,
+      // and swallowing it here would reject the test's own response or answer for the opponent.
+      const sourceIsOwnedByResponder =
+        req.sourceInstanceId === undefined ||
+        // A card mid-play sits in no zone, so an unlocatable source is not evidence of the
+        // opponent's ownership — only a source found in the OTHER seat's zones is.
+        (instanceOwnerSeat(state, req.sourceInstanceId) ?? seat) === seat;
+      const isHandCostSelection =
+        req.kind === "selectCards" &&
+        (req.options?.min ?? 1) === 0 &&
+        (req.options?.candidateInstanceIds?.length ?? 0) > 0 &&
+        sourceIsOwnedByResponder &&
+        req.options!.candidateInstanceIds!.every((instanceId) =>
+          state.players[seat]?.hand.some((card) => card.instanceId === instanceId),
+        );
+      if (opts?.autoDeclineOptional && isHandCostSelection) {
+        queueMicrotask(() =>
+          engineRef?.applyIntent(seat, {
+            type: "respondDecision",
+            decisionId: req.decisionId,
+            response: { kind: "selectCards", instanceIds: [] },
           }),
         );
       }

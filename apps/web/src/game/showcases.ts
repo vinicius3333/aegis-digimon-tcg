@@ -49,13 +49,11 @@ export function burstColorFor(cardId: string): ColorName {
  *
  * Only the opponent's arrivals are announced this way: the viewer dragged their
  * own card and already watched it leave their hand, so their move keeps the
- * field burst and skips the hold. A battle-area digivolution is read off the
- * board itself — the stack changes where it stands, under its own burst — but a
- * breeding digivolution happens in a corner slot the viewer is not watching, so
- * the opponent's is held centre-screen like a play.
+ * field burst and skips the hold. Every opponent digivolution is held up too,
+ * whatever the area — the stack changes where the viewer is not watching.
  */
 export function zoneShowcaseFromEvent(event: ServerEvent, viewerSeat: Seat, key: number): ZoneShowcase | null {
-  if (event.kind !== "cardPlayed" && !(event.kind === "digivolved" && event.inBreeding)) return null;
+  if (event.kind !== "cardPlayed" && event.kind !== "digivolved") return null;
   if (event.seat === viewerSeat) return null;
   return {
     key,

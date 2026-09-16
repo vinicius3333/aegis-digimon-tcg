@@ -2,7 +2,7 @@
 
 import type { EffectContext } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
-import { payCost } from "../costs.js";
+import { costIsAskedAsSelection, payCost } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { runModal } from "./modal.js";
 import { runPrevent, runReplacement } from "./replacement.js";
@@ -94,7 +94,13 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
     case "CostGatedBlock": {
       // This wrapper owns the single payment; nested actions deliberately run without re-paying
       // the wrapper cost (EX6-021, Q3719).
+      // An optional hand-trash cost is declined by selecting no card. Propagate that
+      // selection contract while paying the wrapper; otherwise `payCost` asks for one
+      // card and the client cannot offer its No Selection response.
+      const outerCostIsTheQuestion = ctx.costIsTheQuestion;
+      ctx.costIsTheQuestion = action.optional === true && costIsAskedAsSelection(action.cost);
       const paid = await payCost(ctx, action.cost);
+      ctx.costIsTheQuestion = outerCostIsTheQuestion;
       if (!paid) return action.abortOnDecline === true;
       for (const nested of action.actions) {
         const abort = await runAction(ctx, nested);

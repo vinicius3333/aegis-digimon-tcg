@@ -73,17 +73,12 @@ scenario("card-selection", () => {
     tap(yuukiImg);
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
-    // Yuuki's OnPlay opens the "optional" decision; accept it.
-    const optionalDialog = await findDecisionSurface();
-    fireEvent.click(within(optionalDialog).getByRole("button", { name: /yes, activate|^use$/i }));
-
-    // Accepting cascades into the real "selectCards" decision. Its candidates are
-    // all in hand, so it is answered on the board: the rail's "Hand selection"
-    // eyebrow and the pickable hand cards prove this is genuinely the
-    // card-selection prompt, not the optional one. The rail is reused (same
-    // component, new props), so wait for its content to actually flip rather than
-    // just for "a prompt" to be present — that would still match the stale
-    // optional one mid-transition.
+    // Yuuki's OnPlay is gated only by its hand-trash cost, so there is no separate
+    // "use this effect?" step: the engine raises the real "selectCards" decision straight
+    // away and picking no card is how it would be refused. Its candidates are all in hand,
+    // so it is answered on the board — the rail's "Hand selection" eyebrow and the pickable
+    // hand cards prove this is genuinely the card-selection prompt.
+    await findDecisionSurface();
     const selectDialog = await vi.waitFor(
       () => {
         const dialog = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
@@ -120,7 +115,7 @@ scenario("card-selection", () => {
       }
       const decisionId = opponent.room.state.pendingDecision.decisionId;
       const dialog = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
-      fireEvent.click(within(dialog).getByRole("button", { name: /no, decline|^not use$/i }));
+      fireEvent.click(within(dialog).getByRole("button", { name: /no, decline|^not use$|^no selection$/i }));
       await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionId), {
         timeout: 10_000,
       });

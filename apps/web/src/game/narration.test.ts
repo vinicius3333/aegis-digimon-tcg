@@ -5,8 +5,11 @@ import {
   narrationReadingTime,
   narrationRemaining,
   narrationSlot,
+  narrationSlots,
   noticeSourceCardId,
   panelSourceCardId,
+  pushNarrationItem,
+  type NarrationItem,
 } from "./narration";
 import { NOTICE_LIFETIME_MS, type MatchNotice } from "./notices";
 import { SIDE_PANEL_LIFETIME_MS, SIDE_PANEL_MERGE_WINDOW_MS, type SidePanel } from "./sidePanels";
@@ -143,14 +146,60 @@ describe("reading time", () => {
   });
 });
 
-describe("which slot presents a moment", () => {
-  it("gives the viewer one corner and the opponent the other", () => {
-    expect(narrationSlot({ side: "you" }, false)).toBe("narration-you");
-    expect(narrationSlot({ side: "opp" }, false)).toBe("narration-opp");
+describe("which column presents a moment", () => {
+  // Split by what the moment is, not by whose it is: both players' clauses read on the
+  // left and both players' card lists on the right.
+  it("puts a clause in the text column whichever side raised it", () => {
+    expect(narrationSlot({ notice: notice({ side: "you" }) }, false)).toBe("narration-text");
+    expect(narrationSlot({ notice: notice({ side: "opp" }) }, false)).toBe("narration-text");
+  });
+
+  it("puts a panel of cards in the card column", () => {
+    expect(narrationSlot({ panel: panel() }, false)).toBe("narration-cards");
+  });
+
+  it("reads a deletion as a card list rather than as a clause", () => {
+    const deletion = notice({ body: { variant: "deletion", cards: [{ cardId: "BT1-010" }] } });
+    expect(narrationSlot({ notice: deletion }, false)).toBe("narration-cards");
+  });
+
+  it("gives a moment carrying both halves a place in each column", () => {
+    expect(narrationSlots({ panel: panel(), notice: notice() }, false)).toEqual(["narration-text", "narration-cards"]);
   });
 
   it("folds both into one slot where the layout has only room for one", () => {
-    expect(narrationSlot({ side: "you" }, true)).toBe("narration");
-    expect(narrationSlot({ side: "opp" }, true)).toBe("narration");
+    expect(narrationSlots({ panel: panel(), notice: notice() }, true)).toEqual(["narration"]);
+  });
+});
+
+describe("pushing a moment into its column", () => {
+  const clause = (id: string): NarrationItem => ({
+    id,
+    side: "you",
+    batchId: "b1",
+    createdAt: 0,
+    notice: notice(),
+  });
+  const cards = (id: string): NarrationItem => ({
+    id,
+    side: "opp",
+    batchId: "b1",
+    createdAt: 0,
+    panel: panel(),
+  });
+
+  it("keeps each column independent, so a card list never evicts the clause beside it", () => {
+    const after = pushNarrationItem(pushNarrationItem(new Map(), clause("a"), 1, false), cards("b"), 1, false);
+    expect([...after.keys()]).toEqual(["a", "b"]);
+  });
+
+  it("drops the oldest moment of the same column once that column is full", () => {
+    const after = pushNarrationItem(pushNarrationItem(new Map(), clause("a"), 1, false), clause("b"), 1, false);
+    expect([...after.keys()]).toEqual(["b"]);
+  });
+
+  it("makes both columns share one queue where the layout folds them together", () => {
+    const after = pushNarrationItem(pushNarrationItem(new Map(), clause("a"), 1, true), cards("b"), 1, true);
+    expect([...after.keys()]).toEqual(["b"]);
   });
 });

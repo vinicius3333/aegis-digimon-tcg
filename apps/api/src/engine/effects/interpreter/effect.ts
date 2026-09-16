@@ -32,7 +32,7 @@ import { canAttemptDigivolve } from "./actions/digivolve.js";
 import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
-import { canPayCost, payCost } from "./costs.js";
+import { canPayCost, costIsAskedAsSelection, payCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
@@ -588,6 +588,9 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   // preflight it before anything resolves and pay it once. An action inside the clause that
   // aborts — an opponent declining an optional — does not refund it.
   if (effect.cost !== undefined) {
+    // The selection this cost asks for is the clause's own question wherever the resolver
+    // skipped the separate optional prompt (see `costIsAskedAsSelection`).
+    ctxWithSelections.costIsTheQuestion = effect.optional === true && costIsAskedAsSelection(effect.cost);
     if (
       effect.cost.optional === true &&
       ctx.borrowedEffectOverrides?.forceCostProcessing !== true &&
@@ -597,6 +600,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       return;
     }
     const paid = canPayCost(ctxWithSelections, effect.cost) && (await payCost(ctxWithSelections, effect.cost));
+    ctxWithSelections.costIsTheQuestion = undefined;
     if (!paid) {
       ctxWithSelections.effectRestrictions = outerRestrictions;
       return;

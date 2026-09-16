@@ -129,7 +129,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
       ok: true,
     });
-    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);

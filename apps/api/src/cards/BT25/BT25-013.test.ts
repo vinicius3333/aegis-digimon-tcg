@@ -124,15 +124,8 @@ describe("BT25-013 Firamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const costDecision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: costDecision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
+    // The hand-trash cost has no "use this effect?" prompt of its own: the cost selection
+    // IS that question, and `autoSelectCards` answers it by taking the card.
 
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const returnDecision = s.state.pendingDecision!;
@@ -196,15 +189,8 @@ describe("BT25-013 Firamon", () => {
         instanceId: s.inst("firamon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const costDecision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: costDecision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
+    // The hand-trash cost has no "use this effect?" prompt of its own: the cost selection
+    // IS that question, and `autoSelectCards` answers it by taking the card.
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const returnDecision = s.state.pendingDecision!;
     expect(

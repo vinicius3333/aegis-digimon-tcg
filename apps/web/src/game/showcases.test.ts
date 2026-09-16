@@ -30,8 +30,13 @@ describe("centre-screen showcase", () => {
     expect(zoneShowcaseFromEvent({ ...PLAYED, seat: VIEWER }, VIEWER, 1)).toBeNull();
   });
 
-  it("leaves a battle-area digivolution to the board, which shows the stack change in place", () => {
-    expect(zoneShowcaseFromEvent(DIGIVOLVED, VIEWER, 1)).toBeNull();
+  it("holds up the opponent's battle-area digivolution, which changes a stack in place", () => {
+    expect(zoneShowcaseFromEvent(DIGIVOLVED, VIEWER, 1)).toMatchObject({
+      key: 1,
+      cardId: "BT1-011",
+      seat: OPPONENT,
+      kind: "digivolve",
+    });
   });
 
   it("holds up the opponent's breeding digivolution, which happens off where the viewer looks", () => {

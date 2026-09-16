@@ -125,9 +125,9 @@ const descriptions: Record<Mechanism, { pt: string; en: string; cue: string; cap
     captureAtMs: 800,
   },
   evolve: {
-    pt: "Observe a digievolução e as partículas existentes. Blast usa o cut-in compartilhado; esta prévia não valida materiais, custos ou uma jogada legal.",
-    en: "Watch the existing digivolution and particles. Blast uses the shared cut-in; this preview does not validate materials, costs or a legal play.",
-    cue: ".game-cut-in",
+    pt: "Observe a digievolução e as partículas existentes. A carta é segurada no centro da tela; esta prévia não valida materiais, custos ou uma jogada legal.",
+    en: "Watch the existing digivolution and particles. The card is held centre-screen; this preview does not validate materials, costs or a legal play.",
+    cue: ".battle-showcase",
     captureAtMs: 1800,
   },
   draw: {

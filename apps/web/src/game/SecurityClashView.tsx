@@ -233,6 +233,7 @@ export function SecurityBranch({ scene, compact = false }: { scene: SecurityBran
       className="battle-security-branch"
       data-testid="security-branch"
       data-side={scene.side}
+      data-source={scene.source ?? "security"}
       data-compact={compact || undefined}
       // The dock is open-ended, so its slide-in and its exit are two animations rather
       // than one fixed clip: the state says which of them the card is playing.
@@ -242,7 +243,7 @@ export function SecurityBranch({ scene, compact = false }: { scene: SecurityBran
       <figure className="battle-security-branch__frame">
         <CardFull cardId={scene.cardId} artId={scene.artId} width={compact ? 92 : BRANCH_CARD_WIDTH} />
         <figcaption className="battle-security-branch__caption">
-          {t("overlay.securityResolving")}
+          {scene.source === "option" ? t("overlay.optionResolving") : t("overlay.securityResolving")}
           <br />
           {cardName}
         </figcaption>

@@ -205,18 +205,18 @@ describe("BT24-075 SkullBaluchimon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      {},
     );
     s.state.memory = 7;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
-    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
-    const prompt = s.decisions.find(({ req }) => req.kind === "optional")!.req;
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const prompt = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: prompt.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() =>

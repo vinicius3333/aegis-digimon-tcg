@@ -19,7 +19,7 @@ import {
   type DigiXrosRequirement,
 } from "@aegis/shared";
 import { Badge, Button, Dialog } from "../design/primitives";
-import { CardBack, CardFull, Sigil } from "../design/cards";
+import { CardBack, CardFull, CardMini, Sigil } from "../design/cards";
 import { COLORS, colorKey } from "../design/theme";
 import { Icons } from "../design/icons";
 import { triggerCardId, triggerLabels } from "./boardModel";
@@ -35,6 +35,9 @@ import { TOUCH_LAYOUT_QUERY, useMediaQuery, WIDE_DIALOG_QUERY } from "../design/
 import { ArenaPermanentInspector, type ArenaInspectionOptions } from "./ArenaPermanentInspector";
 
 const name = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
+
+/** The art of the card asking the question, big enough to recognise beside its clause. */
+const DECISION_SOURCE_ART_WIDTH = 76;
 
 function Scrim({
   children,
@@ -59,7 +62,10 @@ function Scrim({
         display: "flex",
         alignItems: align,
         justifyContent: "center",
-        animation: className === "game-modal" ? "game-modal-scrim-in 180ms ease-out" : "aegis-rise 180ms ease-out",
+        // A scrim covers the whole board, so it may only fade: a keyframe that also moved it
+        // would slide the dimming off one edge and flash the board through the gap. The
+        // panel it holds owns the entrance.
+        animation: "game-modal-scrim-in 180ms ease-out",
       }}
     >
       {children}
@@ -217,7 +223,7 @@ export function BlockOverlay({
         borderRadius: 18,
         boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
         padding: 20,
-        animation: "aegis-rise 200ms ease-out",
+        animation: "battle-dialog-in 200ms ease-out",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
@@ -370,7 +376,7 @@ export function AllianceOverlay({
         borderRadius: 18,
         boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
         padding: 20,
-        animation: "aegis-rise 200ms ease-out",
+        animation: "battle-dialog-in 200ms ease-out",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
@@ -501,7 +507,7 @@ export function CounterOverlay({
         borderRadius: 18,
         boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
         padding: 20,
-        animation: "aegis-rise 200ms ease-out",
+        animation: "battle-dialog-in 200ms ease-out",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
@@ -606,7 +612,7 @@ export function EvadeOverlay({
         borderRadius: 18,
         boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
         padding: 20,
-        animation: "aegis-rise 200ms ease-out",
+        animation: "battle-dialog-in 200ms ease-out",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
@@ -683,7 +689,7 @@ export function BarrierOverlay({
         borderRadius: 18,
         boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
         padding: 20,
-        animation: "aegis-rise 200ms ease-out",
+        animation: "battle-dialog-in 200ms ease-out",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
@@ -1206,8 +1212,8 @@ export function playerFacingEffectClause({
         .find(Boolean)
     : undefined;
   const clause =
-    (matchingKeyword ||
-      keywordActivation ||
+    (keywordActivation ||
+      matchingKeyword ||
       delayClause ||
       ((exactPrintedClause || containedPrintedClause) &&
         effectClauseForTiming(exactPrintedClause || containedPrintedClause, effectiveTiming))) ??
@@ -1447,6 +1453,11 @@ export function DecisionOverlay({
       : !specificPrompt || (sourceCardId && specificPrompt === name(sourceCardId))
         ? genericPrompt
         : specificPrompt;
+  /* A generic title over the card's own clause says the same thing twice, and less
+     precisely ("Resolve effect" above the sentence that says what to resolve). It is
+     dropped there; a title the server wrote for this decision is kept, because the clause
+     does not carry the question it asks. */
+  const restatedTitle = Boolean(sourceEffectText) && promptText === genericPrompt;
 
   if (isViewingBoard) {
     const returnControl = (
@@ -1501,42 +1512,28 @@ export function DecisionOverlay({
         borderRadius: 20,
         boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
         padding: 22,
-        animation: "aegis-rise 200ms ease-out",
+        animation: "battle-dialog-in 200ms ease-out",
       }}
     >
-      <div
-        className="decision-overlay__header"
-        style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: sourceEffectText ? 10 : 14 }}
-      >
+      {/* The card asking the question, and the question in the card's own printed words.
+          The clause says what a restated title said less precisely, so the title is kept
+          only for a decision no card text explains. */}
+      <div className="decision-overlay__header" style={{ marginBottom: 14 }}>
+        {sourceCardId ? (
+          <span className="decision-overlay__source-art" aria-hidden="true">
+            <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
+          </span>
+        ) : null}
         <div className="decision-overlay__heading">
-          <div
-            className="decision-overlay__eyebrow"
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--ds-accent)",
-            }}
-          >
+          <div className="decision-overlay__eyebrow">
             {sourceCardId ? (
               <CardLinkedText text={t("overlay.cardEffect", { name: name(sourceCardId) })} cardIds={[sourceCardId]} />
             ) : (
               t("overlay.effect")
             )}
           </div>
-          <div
-            className="decision-overlay__title"
-            style={{
-              fontFamily: "var(--ds-font-display)",
-              fontWeight: 700,
-              fontSize: 18,
-              color: "var(--ds-fg)",
-              marginTop: 2,
-            }}
-          >
-            {promptText}
-          </div>
+          {sourceEffectText ? <p className="decision-overlay__effect-text">{sourceEffectText}</p> : null}
+          {restatedTitle ? null : <div className="decision-overlay__title">{promptText}</div>}
         </div>
         <Button
           className="decision-overlay__view-board"
@@ -1549,23 +1546,6 @@ export function DecisionOverlay({
           <span className="decision-overlay__view-board-label">{t("overlay.viewBoard")}</span>
         </Button>
       </div>
-
-      {sourceEffectText ? (
-        <div
-          className="decision-overlay__effect-text"
-          style={{
-            fontSize: 12,
-            color: "var(--ds-fg-secondary)",
-            lineHeight: 1.55,
-            background: "var(--ds-surface-muted)",
-            borderRadius: 10,
-            padding: "8px 12px",
-            marginBottom: 14,
-          }}
-        >
-          {sourceEffectText}
-        </div>
-      ) : null}
 
       {isSelect ? (
         <div style={{ marginBottom: 18 }}>
@@ -2129,7 +2109,7 @@ export function EvoCostChoiceOverlay({
         borderRadius: 20,
         boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
         padding: 22,
-        animation: "aegis-rise 200ms ease-out",
+        animation: "battle-dialog-in 200ms ease-out",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>

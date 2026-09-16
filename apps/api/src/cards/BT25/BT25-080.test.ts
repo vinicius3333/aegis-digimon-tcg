@@ -215,21 +215,21 @@ describe("BT25-080 Witchmon", () => {
         },
         1: { battleArea: [{ card: LEVEL_FIVE, as: "target" }] },
       },
-      { autoSelectCards: true },
+      {},
     );
     const declinedTarget = declined.perm("target").permanentId;
     const pending = fireTiming(declined, EffectTiming.OnPlay, {
       subjectPermanentId: declined.perm("witchmon").permanentId,
       enteredByEffect: 0,
     });
-    await settle(() => declined.decisions.some((decision) => decision.req.kind === "optional"), 80);
-    const decision = declined.decisions.find((entry) => entry.req.kind === "optional");
+    await settle(() => declined.decisions.some((decision) => decision.req.kind === "selectCards"), 80);
+    const decision = declined.decisions.find((entry) => entry.req.kind === "selectCards");
     expect(decision).toBeDefined();
     if (decision !== undefined) {
       declined.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.req.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       });
     }
     await pending;

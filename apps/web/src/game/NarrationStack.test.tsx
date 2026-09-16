@@ -8,8 +8,10 @@ import { TIMINGS } from "./timings";
 
 afterEach(cleanup);
 
+// The dock holds the upper right, which is the card column's corner — so that is the
+// column that steps out of its way.
 it("reserves space for the security dock and releases it when the dock closes", () => {
-  const opponent = { ...item("security-reveal"), side: "opp" as const };
+  const opponent = { ...cardItem("security-reveal"), side: "opp" as const };
   const view = (active: boolean, compact: boolean) => (
     <I18nProvider>
       <NarrationStack
@@ -24,12 +26,29 @@ it("reserves space for the security dock and releases it when the dock closes", 
     </I18nProvider>
   );
   const { container, rerender } = render(view(true, false));
-  expect(container.querySelector('[data-slot="narration-opp"][data-security-dock]')).toBeTruthy();
+  expect(container.querySelector('[data-slot="narration-cards"][data-security-dock]')).toBeTruthy();
   rerender(view(false, false));
   expect(container.querySelector("[data-security-dock]")).toBeNull();
   rerender(view(true, true));
   expect(container.querySelector('[data-slot="narration"][data-security-dock]')).toBeTruthy();
 });
+
+function cardItem(id: string): NarrationItem {
+  return {
+    id,
+    side: "opp",
+    batchId: "batch",
+    createdAt: 0,
+    panel: {
+      id,
+      titleKey: "panel.revealedCards",
+      side: "opp",
+      cards: [{ cardId: "BT1-010", badge: 1 }],
+      ordered: false,
+      createdAt: 0,
+    },
+  };
+}
 
 function item(id: string): NarrationItem {
   return {

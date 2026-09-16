@@ -91,7 +91,7 @@ export type PlayCardCheck =
 export type PlayCardEvent =
   | { kind: "cardPlayed"; seat: Seat; cardId: string; artId?: string; permanentId?: string }
   | { kind: "memoryChanged"; from: number; to: number; reason: string }
-  | { kind: "cardsMoved"; instanceIds: string[]; from: string; to: string };
+  | { kind: "cardsMoved"; instanceIds: string[]; from: string; to: string; optionUsed?: true };
 
 /**
  * Injected side-effect dependencies. Each is owned by a sibling subsystem; the
@@ -480,6 +480,7 @@ export async function applyPlayCard(
         instanceIds: [instance.instanceId],
         from: Zone.Hand,
         to: Zone.Trash,
+        optionUsed: true,
       });
     }
 

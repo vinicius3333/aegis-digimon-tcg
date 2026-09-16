@@ -93,8 +93,13 @@ scenario("optional-decision", () => {
       const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
       const acceptBtn = within(dialog).queryByRole("button", { name: /yes, activate|^use$/i });
       const declineBtn = within(dialog).queryByRole("button", { name: /no, decline|^not use$/i });
+      // A selection rail whose floor is zero carries the refusal itself: a clause gated only
+      // by a hand cost has no separate "use this effect?" step, so "No Selection" IS the decline.
+      const noSelectionBtn = within(dialog).queryByRole("button", { name: /^no selection$/i });
       if (acceptBtn && declineBtn) {
         fireEvent.click(mode === "accept" ? acceptBtn : declineBtn);
+      } else if (mode === "decline" && noSelectionBtn) {
+        fireEvent.click(noSelectionBtn);
       } else {
         fireEvent.click(decisionCandidates(dialog)[0]!);
         fireEvent.click(within(dialog).getByRole("button", { name: /confirm target|^end selection$/i }));
@@ -111,8 +116,8 @@ scenario("optional-decision", () => {
   it("declining the optional effect leaves the memory gauge at just the play cost", async () => {
     const opponent = await playYuuki();
 
-    // Yuuki's OnPlay opens the real "optional" decision, on the board rail
-    // beside the Tamer it is about to change.
+    // Yuuki's OnPlay is gated only by its hand-trash cost, so the board rail beside the Tamer
+    // asks that cost directly — answering it with nothing is the decline.
     const dialog = await findDecisionSurface();
     expect(within(dialog).getByText(/yuuki/i)).toBeTruthy();
 

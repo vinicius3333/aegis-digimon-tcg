@@ -157,7 +157,7 @@ describe("EX7-042 Jazardmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jazard").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
+    await settle(() => s.decisions.some((decision) => decision.req.kind === "selectCards"));
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);

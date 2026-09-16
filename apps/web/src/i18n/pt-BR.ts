@@ -263,8 +263,6 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.cardSleeve": "Verso das cartas",
   "settings.cardSleeveDesc": "Escolha uma sleeve para suas cartas ocultas",
   "settings.actionConfirmations": "Confirmar ações",
-  "settings.cutIns": "Cut-ins de digievolução",
-  "settings.cutInsDesc": "Exibir animações em tela cheia apenas para Digimon de nível 6.",
   "settings.actionConfirmationsDesc": "Perguntar antes de jogar, digievoluir ou fazer uma digievolução DNA opcional",
   "settings.sound": "Efeitos sonoros",
   "settings.soundDesc": "Cliques, seleções e sinais de combate",
@@ -375,9 +373,6 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.stats.oppBoard": "Mesa do opon.",
   "game.stats.yourSecurity": "Sua segurança",
   "game.stack": "Pilha",
-  "game.cutInWord": "Digievolução",
-  "game.cutInWordBlast": "Digievolução Blast",
-  "game.cutInWordBurst": "Digievolução Burst",
   "game.securityAttack": "Ataque à segurança",
   "game.directAttack": "Ataque direto",
   "game.faceUpSecurity": "Carta virada na segurança",
@@ -493,6 +488,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.securityBattleDetail":
     "{name} ({dp} DP) batalha sozinho contra o atacante. O Digimon com menos DP é deletado. Você não pode escolher nem redirecionar para ele.",
   "overlay.securityEffect": "O efeito de segurança dispara",
+  "overlay.optionResolving": "Efeito da Option sendo resolvido",
   "overlay.securityEffectDetail":
     "O efeito de segurança da carta resolve automaticamente e depois ela vai para o lixo.",
   "overlay.securityTrashed": "Sem efeito, descartada",

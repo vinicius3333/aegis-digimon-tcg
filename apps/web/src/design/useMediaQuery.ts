@@ -40,3 +40,10 @@ export const COARSE_POINTER_QUERY = "(pointer: coarse)";
  * viewports whose CSS lays it out.
  */
 export const TOUCH_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";
+
+/**
+ * The pointer-sized board, where a notice has room to be read rather than glanced
+ * at. It is the same condition the stylesheet's desktop notice block carries, so
+ * the art size chosen here and the frame drawn around it grow together.
+ */
+export const DESKTOP_NOTICE_QUERY = "(width >= 768px) and (height >= 520px)";

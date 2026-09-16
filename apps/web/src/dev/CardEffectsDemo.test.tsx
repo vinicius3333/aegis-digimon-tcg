@@ -130,7 +130,11 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.getByRole("dialog", { name: /Megiddo Flame · effect/i })).toBeTruthy();
-    expect(await screen.findByText("Choose an effect")).toBeTruthy();
+    // The generic "Choose an effect" title is dropped when the card's own printed clause is
+    // shown: that clause is the question, and the title only restated it less precisely.
+    await vi.waitFor(() =>
+      expect(screen.getByRole("dialog").querySelector(".decision-overlay__effect-text")?.textContent).toBeTruthy(),
+    );
     expect(screen.getByRole("button", { name: "Delete 1 opponent's level 4 or lower Digimon" })).toBeTruthy();
     expect(
       screen.getByRole("button", {
@@ -221,7 +225,11 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.getByRole("dialog", { name: /Avalon's Gate · effect/i })).toBeTruthy();
-    expect(await screen.findByText("Choose an effect")).toBeTruthy();
+    // The generic "Choose an effect" title is dropped when the card's own printed clause is
+    // shown: that clause is the question, and the title only restated it less precisely.
+    await vi.waitFor(() =>
+      expect(screen.getByRole("dialog").querySelector(".decision-overlay__effect-text")?.textContent).toBeTruthy(),
+    );
     expect(screen.getByRole("button", { name: "Suspend an opponent's Digimon and grant ＜Piercing＞" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Unsuspend one of your Digimon" })).toBeTruthy();
   });
@@ -938,7 +946,11 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.getByRole("dialog", { name: /Shadramon · effect/i })).toBeTruthy();
-    expect(await screen.findByText("Choose an effect")).toBeTruthy();
+    // The generic "Choose an effect" title is dropped when the card's own printed clause is
+    // shown: that clause is the question, and the title only restated it less precisely.
+    await vi.waitFor(() =>
+      expect(screen.getByRole("dialog").querySelector(".decision-overlay__effect-text")?.textContent).toBeTruthy(),
+    );
     expect(screen.getByRole("button", { name: "Digivolve" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "DNA digivolve" })).toBeTruthy();
   });

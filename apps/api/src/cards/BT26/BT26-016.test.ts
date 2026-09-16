@@ -406,6 +406,12 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    // The prevention prompt carries the installing clause's timing so the client
+    // shows only the [All Turns] protection, not the whole printed card.
+    const preventPrompt = s.decisions.find(
+      ({ req }) => req.kind === "optional" && req.promptText === "Prevent leaving the battle area?",
+    );
+    expect(preventPrompt?.req.options?.timing).toBe("AllTurns");
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.deck.at(-1)).toMatchObject({ cardId: "BT1-009", faceUp: false });

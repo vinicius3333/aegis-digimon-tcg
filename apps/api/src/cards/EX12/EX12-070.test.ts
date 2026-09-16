@@ -102,7 +102,7 @@ describe("EX12-070 Sanmyojin Arrival", () => {
           deck: ["BT1-009", "BT1-012"],
         },
       },
-      { autoSelectCards: true },
+      {},
     );
     s.state.memory = 3;
     await s.ready();
@@ -110,13 +110,13 @@ describe("EX12-070 Sanmyojin Arrival", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
-    const decision = s.decisions.find(({ req }) => req.kind === "optional")!;
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const decision = s.decisions.find(({ req }) => req.kind === "selectCards")!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.req.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-070"));

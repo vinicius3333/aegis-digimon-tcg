@@ -107,6 +107,14 @@ const RETURN_TO_DECK: ServerEvent = {
   to: "deckBottom",
 };
 const YOUR_PLAY: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-011", permanentId: "perm-8" };
+const OPTION_USE: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-090" };
+const OPTION_ROUTED: ServerEvent = {
+  kind: "cardsMoved",
+  instanceIds: ["option-1"],
+  from: "hand",
+  to: "trash",
+  optionUsed: true,
+};
 
 /* BT10-087 Taiki Kudo on the opponent's security stack: its [Security] clause plays it for
    free, and the [On Play] that follows reveals the top four cards of their deck. */
@@ -126,6 +134,7 @@ const OPP_SECURITY_NOTICE: ServerEvent = {
   timing: "Security",
 };
 const OPP_TAIKI_PLAY: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT10-087", permanentId: "perm-taiki" };
+const YOUR_TAIKI_PLAY: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT10-087", permanentId: "perm-your-taiki" };
 const OPP_ON_PLAY: ServerEvent = {
   kind: "effectTriggered",
   seat: 1,
@@ -1208,6 +1217,25 @@ describe("match cues", () => {
     expect(result.current.securityBranch).toBeNull();
   });
 
+  it("parks a used Option with the security-effect dock instead of narrating its final trash move", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([OPTION_USE, OPTION_ROUTED]);
+    await advance(0);
+    expect(result.current.optionBranch).toMatchObject({
+      cardId: "BT1-090",
+      side: "you",
+      source: "option",
+      state: "docked",
+    });
+
+    await advance(TIMINGS.optionDockHold + TIMINGS.securityDockPoll);
+    expect(result.current.optionBranch?.state).toBe("closing");
+    await advance(SECURITY_DOCK_CLOSE_MS);
+    expect(result.current.optionBranch).toBeNull();
+  });
+
   it("owes the screen a reveal from the check until the scene has played it", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
@@ -1377,6 +1405,41 @@ describe("match cues", () => {
     expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
     // The dock stays up until the check closes.
     expect(result.current.securityBranch?.state).toBe("docked");
+  });
+
+  it("moves a resolved security card to the right before its played Tamer enters the field", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    // A fast resolution can deliver the reveal, free play, and close together. The Tamer
+    // must remain held while its security card is still travelling to the execution slot.
+    rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_TAIKI_PLAY, EFFECT_CHECK]);
+    await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
+    expect(result.current.securityBranch).not.toBeNull();
+    expect(result.current.zoneShowcase).toBeNull();
+    expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(true);
+
+    await advance(1);
+    expect(result.current.securityBranch).not.toBeNull();
+    expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
+  });
+
+  it("holds the viewer's Security Tamer off the field until its card reaches the right", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, EFFECT_REVEAL, YOUR_TAIKI_PLAY, EFFECT_CHECK]);
+    await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
+    // The player's regular hand plays skip the showcase, but a Security play cannot:
+    // its source is still animating from the shield to the execution slot.
+    expect(result.current.pendingPermanentIds.has("perm-your-taiki")).toBe(true);
+
+    await advance(1);
+    expect(result.current.securityBranch).not.toBeNull();
+    // The queued field-burst is scheduled after the branch step yields back to the queue.
+    await advance(0);
+    expect(result.current.pendingPermanentIds.has("perm-your-taiki")).toBe(false);
+    expect(result.current.permanentBursts.get("perm-your-taiki")).toMatchObject({ variant: "play" });
   });
 
   /* The exact payloads a live dev-scenario check delivers, captured off the wire. The
@@ -1942,15 +2005,24 @@ describe("zone-change showcases", () => {
     expect(result.current.permanentBursts.get("perm-8")).toMatchObject({ variant: "play" });
   });
 
-  it("skips the hold for the opponent's digivolution but keeps the field burst", async () => {
+  it("holds the opponent's digivolution centre-screen like a play, then bursts the stack", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
     rerender([{ kind: "digivolved", seat: 1, permanentId: "perm-9", cardId: "BT1-011", mechanic: "normal" }]);
     await advance(0);
+    expect(result.current.zoneShowcase).toMatchObject({ cardId: "BT1-011", kind: "digivolve" });
+    // The destination stays hidden while the card is being announced.
+    expect(result.current.pendingPermanentIds.has("perm-9")).toBe(true);
+    expect(result.current.permanentBursts.has("perm-9")).toBe(false);
+
+    await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
-    expect(result.current.pendingPermanentIds.size).toBe(0);
+    expect(result.current.pendingPermanentIds.has("perm-9")).toBe(false);
     expect(result.current.permanentBursts.get("perm-9")).toMatchObject({ variant: "evolve" });
+
+    await advance(TIMINGS.cardBurst);
+    expect(result.current.permanentBursts.has("perm-9")).toBe(false);
   });
 
   it("burns over a digivolution and opens the breeding slot on a hatch", async () => {
@@ -2639,7 +2711,7 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
   /** When the [On Play] clause is read out: once the card has had the screen to itself. */
   const CLAUSE_AT_MS = SHOWCASE_TOTAL_MS;
   /** When what the clause did reaches the board. */
-  const DELETION_AT_MS = CLAUSE_AT_MS + TIMINGS.effectAnnounce;
+  const DELETION_AT_MS = CLAUSE_AT_MS + TIMINGS.effectSourceHold;
   /** When the viewer's own prompt may finally open. */
   const PROMPT_AT_MS = DELETION_AT_MS + TIMINGS.cardShatter;
 
@@ -2765,8 +2837,10 @@ describe("the narration feed", () => {
     expect(result.current.narration.size).toBe(0);
   });
 
+  // Each corner is a FIFO of its own, so a moment only ever displaces an earlier moment of
+  // the same side. Folded into the phone's single slot, the two sides share that one queue.
   it.each([true, false])(
-    "shows only the newest record across players on every layout (portrait=%s)",
+    "keeps only the newest record per slot, which the phone folds into one (portrait=%s)",
     async (portrait) => {
       const feed = batchFeed();
       const view = renderHook(
@@ -2785,11 +2859,11 @@ describe("the narration feed", () => {
       await advance(0);
       view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
       await advance(0);
-      expect(cards(view.result.current.narration)).toEqual(["BT1-001"]);
+      // All three are clauses, so they all read out of the one text column. It holds two,
+      // and the phone's folded slot holds one, so the oldest is what falls off.
+      expect(cards(view.result.current.narration)).toEqual(portrait ? ["BT1-009"] : ["BT1-002", "BT1-009"]);
       await advance(TIMINGS.effectAnnounce);
-      expect(cards(view.result.current.narration)).toEqual(["BT1-002"]);
-      await advance(TIMINGS.effectAnnounce);
-      expect(cards(view.result.current.narration)).toEqual(["BT1-009"]);
+      expect(cards(view.result.current.narration)).toEqual(portrait ? ["BT1-009"] : ["BT1-002", "BT1-009"]);
       expect(view.result.current.narrationLock).toBe(false);
       expect(view.result.current.presenting).toBe(false);
     },
@@ -3048,11 +3122,11 @@ describe("triggered effect source prelude", () => {
     rerender([arrival, first]);
     await advance(100);
     rerender([arrival, first, { ...arrival }, second]);
-    await advance(TIMINGS.cardBurst - 100 + TIMINGS.effectSourceHold);
+    await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst - 100 + TIMINGS.effectSourceHold);
     expect(result.current.notices.map((notice) => notice.body)).toContainEqual(
       expect.objectContaining({ description: "First effect." }),
     );
-    await advance(TIMINGS.cardBurst + TIMINGS.effectSourceHold);
+    await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold);
     expect(result.current.notices.map((notice) => notice.body)).toEqual([
       expect.objectContaining({ description: "First effect." }),
       expect.objectContaining({ description: "Second effect." }),
@@ -3120,7 +3194,7 @@ describe("triggered effect source prelude", () => {
       await advance(0);
       expect(result.current.effectSources).toHaveLength(0);
       expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
-      await advance((timing === "On Play" ? SHOWCASE_TOTAL_MS : 0) + TIMINGS.cardBurst);
+      await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst);
       expect(result.current.effectSources).toHaveLength(1);
       expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
       await advance(TIMINGS.effectSourceHold);

@@ -411,6 +411,18 @@ export function DpPulseParticles({ pulse }: { pulse: DpPulse }) {
 /** Stars in the entrance halo; each one is placed and delayed by its position in game.css. */
 const SPARKLE_INDEXES = [0, 1, 2, 3, 4];
 
+/** Particles orbiting a permanent while its own effect is activating. */
+const EFFECT_SOURCE_PARTICLE_OFFSETS = [
+  [0, -1],
+  [0.7, -0.7],
+  [1, 0],
+  [0.7, 0.7],
+  [0, 1],
+  [-0.7, 0.7],
+  [-1, 0],
+  [-0.7, -0.7],
+] as const;
+
 /** Stars orbiting a permanent that cannot attack yet, spaced evenly around the ellipse. */
 const SUMMONING_STAR_INDEXES = [0, 1, 2, 3, 4, 5];
 
@@ -630,7 +642,22 @@ export function PermanentView({
         {/* The reference client drops a landing card onto an OutBounce and kicks up
             dust where it hits; the dust is what sells the drop as weight. */}
         {burst ? <span key={`dust-${burst.key}`} className="game-card-dust" aria-hidden="true" /> : null}
-        {effectSource ? <span className="game-effect-source-spark" aria-hidden="true" /> : null}
+        {effectSource ? (
+          <span className="game-effect-source-particles" aria-hidden="true">
+            {EFFECT_SOURCE_PARTICLE_OFFSETS.map(([x, y], index) => (
+              <i
+                key={index}
+                style={
+                  {
+                    "--effect-particle-index": index,
+                    "--effect-particle-x": x,
+                    "--effect-particle-y": y,
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </span>
+        ) : null}
         <CardMini
           cardId={topId}
           artId={perm.topCard?.artId}

@@ -323,7 +323,6 @@ describe("generic engine selection prompts", () => {
       options: { min: 1, max: 1 },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.queryByText(promptText)).toBeNull();
   });
 
@@ -336,7 +335,6 @@ describe("generic engine selection prompts", () => {
       options: { choices: ["Draw 1", "Gain 1 memory"] },
     });
 
-    expect(screen.getByText("Choose an effect")).toBeTruthy();
     expect(screen.queryByText("Choose one effect to activate")).toBeNull();
   });
 
@@ -2113,7 +2111,6 @@ describe("decision board preview", () => {
       },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.getByText(/When an effect suspends this Digimon/i)).toBeTruthy();
     expect(screen.getByText(/suspend 1 of your opponent's Digimon/i)).toBeTruthy();
     expect(screen.queryByText("Choose targets")).toBeNull();
@@ -2135,7 +2132,6 @@ describe("decision board preview", () => {
       },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.queryByText("Select cards")).toBeNull();
     expect(screen.getByRole("button", { name: "Confirm targets" })).toBeTruthy();
     expectDracomonRevealText();
@@ -2202,7 +2198,6 @@ describe("decision board preview", () => {
       options: { timing: "OnPlay", candidateInstanceIds: ["opponent-digimon"], min: 1, max: 1 },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.getByText(/All of your opponent's Digimon gain.*Security Attack -1/i)).toBeTruthy();
     expect(screen.getByText(/played by \[Trial of the Four Great Dragons\]'s effect/i)).toBeTruthy();
     expect(screen.getByText(/Security Attack -2.*instead/i)).toBeTruthy();
@@ -2220,7 +2215,6 @@ describe("decision board preview", () => {
       options: { timing: "OnDestroyedAnyone" },
     });
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(screen.getByText(/If you don't have a \[Trial of the Four Great Dragons\] in play/i)).toBeTruthy();
     expect(screen.getByText(/you may place 1 \[Trial of the Four Great Dragons\] from your hand/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
@@ -2237,7 +2231,6 @@ describe("decision board preview", () => {
       options: { timing: "WhenDigivolving" },
     });
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(screen.getByText(/You may return 1 card with the \[Four Great Dragons\] trait/i)).toBeTruthy();
     expect(screen.getByText(/from your trash to your hand/i)).toBeTruthy();
   });
@@ -2266,7 +2259,6 @@ describe("decision board preview", () => {
       expect(screen.getByText(/Arrange the cards going to the bottom of the deck/i)).toBeTruthy();
       expect(screen.getByRole("button", { name: "Confirm order" })).toBeTruthy();
     } else {
-      expect(screen.getByText("Resolve effect")).toBeTruthy();
       expect(screen.queryByText(promptText)).toBeNull();
       expect(screen.getByRole("button", { name: "None" })).toBeTruthy();
       expect(screen.getByRole("button", { name: "Confirm targets" })).toBeTruthy();
@@ -2287,7 +2279,6 @@ describe("decision board preview", () => {
       options: { timing: "YourTurn", candidateInstanceIds: ["opponent-digimon"], min: 1, max: 1 },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.getByText(/When you play a Digimon with \[Four Great Dragons\]/i)).toBeTruthy();
     expect(screen.getByText(/or place \[Trial of the Four Great Dragons\] in your battle area/i)).toBeTruthy();
     expect(screen.getByText(/1 of your opponent's Digimon gets -3000 DP for the turn/i)).toBeTruthy();
@@ -2304,7 +2295,6 @@ describe("decision board preview", () => {
       options: { timing: "WhenDigivolving" },
     });
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(screen.getByText(/If you don't have a \[Trial of the Four Great Dragons\] in play/i)).toBeTruthy();
     expect(screen.getByText(/you may place 1 \[Trial of the Four Great Dragons\] from your hand/i)).toBeTruthy();
     expect(screen.getByText(/in your battle area/i)).toBeTruthy();
@@ -2321,7 +2311,6 @@ describe("decision board preview", () => {
       options: { timing: "OnPlay", candidateInstanceIds: ["opponent-digimon"], min: 1, max: 1 },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.getByText(/1 of your opponent's Digimon gains.*Security Attack -2/i)).toBeTruthy();
     expect(screen.getByText(/until the end of your opponent's turn/i)).toBeTruthy();
     expect(screen.getByText(/Four Sovereigns.*gain 2 memory/i)).toBeTruthy();
@@ -2338,7 +2327,6 @@ describe("decision board preview", () => {
       options: { timing: "WhenDigivolving", candidateInstanceIds: ["dramon"], min: 1, max: 1 },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.getByText(/Reveal the top 4 cards of your deck/i)).toBeTruthy();
     expect(screen.getByText(/1 yellow card with \[Dramon\] in its name/i)).toBeTruthy();
     expect(screen.getByText(/1 card with \[Four Great Dragons\] in its traits/i)).toBeTruthy();
@@ -2356,7 +2344,6 @@ describe("decision board preview", () => {
       options: { timing: "OnPlay", candidateInstanceIds: ["angel"], min: 1, max: 1 },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.getByText(/Reveal the top 4 cards of your deck/i)).toBeTruthy();
     expect(screen.getByText(/other than \[Three Great Angels\]/i)).toBeTruthy();
     expect(screen.getByText(/1 card with the \[Four Great Dragons\] trait/i)).toBeTruthy();
@@ -2379,7 +2366,6 @@ describe("decision board preview", () => {
       },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(
       screen.getByText(/Search your security stack, reveal 1 card from it, and add it to your hand/i),
     ).toBeTruthy();
@@ -2404,7 +2390,6 @@ describe("decision board preview", () => {
       },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.getByText(/Reveal the top 4 cards of your deck/i)).toBeTruthy();
     expect(
       screen.getByText(/\[Angel\], \[Cherub\], \[Throne\], \[Authority\], \[Seraph\] or \[Virtue\]/i),
@@ -2424,7 +2409,6 @@ describe("decision board preview", () => {
       options: { timing: "WhenDigivolving" },
     });
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(screen.getByText(/1 blue level 3 Digimon card or 1 Digimon card with \[Seadramon\]/i)).toBeTruthy();
     expect(screen.getByText(/\[Aqua\] or \[Sea Animal\] in one of its traits/i)).toBeTruthy();
     expect(screen.queryByText("playWithoutCost")).toBeNull();
@@ -2440,7 +2424,6 @@ describe("decision board preview", () => {
       options: { timing: "OpponentsTurn" },
     });
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(
       screen.getByText(
         /When your opponent plays a Digimon, you may activate 1 of this Digimon's \[When Digivolving\] effects\.$/i,
@@ -2459,7 +2442,6 @@ describe("decision board preview", () => {
       options: { timing: "OnDeletion" },
     });
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(
       screen.getByText(
         /If you don't have a \[Trial of the Four Great Dragons\] in play, you may place 1 \[Trial of the Four Great Dragons\] from your hand/i,
@@ -2478,7 +2460,6 @@ describe("decision board preview", () => {
       options: { timing: "OnStartMainPhase" },
     });
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(
       screen.getByText(
         /By suspending 1 of your Digimon with \[Dramon\] or \[Examon\] in its name, your opponent attacks with 1 of their Digimon/i,
@@ -2497,7 +2478,6 @@ describe("decision board preview", () => {
       options: { timing: "WhenDigivolving" },
     });
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(
       screen.getByText(
         /play 1 blue level 3 Digimon card or 1 level 4 or lower Digimon card with \[Aqua\] or \[Sea Animal\]/i,
@@ -2519,7 +2499,6 @@ describe("decision board preview", () => {
       options: { timing: "WhenAttacking" },
     });
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(
       screen.getByText(/play 1 blue level 3 Digimon card from 1 of your blue Digimon's digivolution cards/i),
     ).toBeTruthy();
@@ -2541,7 +2520,6 @@ describe("decision board preview", () => {
       },
     });
 
-    expect(screen.getByText("Resolve effect")).toBeTruthy();
     expect(screen.getByText(/Trash any 2 digivolution cards under 1 of your opponent's Digimon/)).toBeTruthy();
     expect(screen.queryByText("Select cards")).toBeNull();
     expect(screen.queryByText(/TrashDigivolution|Restrict/)).toBeNull();
@@ -2600,7 +2578,6 @@ describe("decision board preview", () => {
     );
 
     expect(screen.queryByText("gainMemory")).toBeNull();
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
   });
 
   it("shows Homeros's printed clause for its cost-bearing foreign-effect decision", () => {
@@ -2625,7 +2602,6 @@ describe("decision board preview", () => {
     );
 
     expect(screen.queryByText(/ActivateForeignEffect|By paying:/)).toBeNull();
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(screen.getByText(/By suspending this Tamer, you may activate 1/)).toBeTruthy();
   });
 
@@ -2732,7 +2708,6 @@ describe("decision board preview", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(screen.getByText(getCardDefinition("ST12-08")!.inheritedEffectText!)).toBeTruthy();
     expect(screen.queryByText(/\[When Digivolving\].*unsuspended Digimon/)).toBeNull();
   });

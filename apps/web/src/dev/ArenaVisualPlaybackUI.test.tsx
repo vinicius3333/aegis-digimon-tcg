@@ -2,7 +2,6 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
-import { areCutInsEnabled } from "../design/cutIn";
 import { ArenaDemo } from "./ArenaDemo";
 
 beforeEach(() => {
@@ -38,33 +37,6 @@ it("plays the first fresh attack through real GameScreen and restores manual pur
   expect(container.querySelector(".aegis-arena-demo-toolbar")!.hasAttribute("inert")).toBe(false);
   expect(container.querySelectorAll(".game-hand-card")).toHaveLength(21);
   expect(screen.queryByRole("region", { name: "Visual keyword playback" })).toBeNull();
-});
-
-it("shows a real Blast cut-in during contextual attack scenes", async () => {
-  const saved = areCutInsEnabled();
-  const { container } = render(
-    <I18nProvider>
-      <ArenaDemo />
-    </I18nProvider>,
-  );
-  fireEvent.click(screen.getByRole("button", { name: "Demo tools" }));
-  fireEvent.click(screen.getByRole("menuitem", { name: "Automatically preview keywords" }));
-  fireEvent.click(screen.getByRole("button", { name: "Pause after this scene" }));
-  fireEvent.click(screen.getByRole("button", { name: /1\/44 · Blocker/ }));
-  fireEvent.change(screen.getByRole("combobox", { name: "Choose a keyword" }), { target: { value: "25" } });
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(750);
-  });
-  expect(container.querySelector(".game-cut-in")).toBeTruthy();
-  expect(areCutInsEnabled()).toBe(saved);
-  fireEvent.click(screen.getByRole("button", { name: /26\/44 · Blast Digivolve/ }));
-  fireEvent.change(screen.getByRole("combobox", { name: "Choose a keyword" }), { target: { value: "43" } });
-  expect(screen.getByRole("button", { name: /44\/44 · Succession · Interaction scene/ })).toBeTruthy();
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(650);
-  });
-  expect(container.querySelector(".game-cut-in")).toBeNull();
-  expect(screen.getByTestId("attack-announcement")).toBeTruthy();
 });
 
 it("renders a drawn fixture card through GameScreen with complete hand affordances", async () => {
