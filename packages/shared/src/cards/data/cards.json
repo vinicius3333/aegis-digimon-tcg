@@ -107173,6 +107173,29 @@
     "nameJp": "キャロモン"
   },
   {
+    "cardId": "EX13-004",
+    "set": "EX13",
+    "nameEn": "DemiMeramon",
+    "colors": [
+      "Yellow"
+    ],
+    "kinds": [
+      "DigiEgg"
+    ],
+    "playCost": -1,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-004",
+    "level": 2,
+    "forms": [
+      "In-Training"
+    ],
+    "inheritedEffectText": "[When Attacking] [Once Per Turn] This Digimon may digivolve into a Digimon card with [Witchelny] in its text in the hand with the cost reduced by 1. If this effect digivolved, trash your top security card.",
+    "nameJp": "プチメラモン"
+  },
+  {
     "cardId": "EX13-005",
     "set": "EX13",
     "nameEn": "Bebydomon",
@@ -107916,6 +107939,42 @@
     "nameJp": "スレイヤードラモン"
   },
   {
+    "cardId": "EX13-025",
+    "set": "EX13",
+    "nameEn": "Candlemon",
+    "colors": [
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 3,
+    "dp": 2000,
+    "evoCosts": [
+      {
+        "color": "Yellow",
+        "level": 2,
+        "memoryCost": 0
+      }
+    ],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-025",
+    "level": 3,
+    "forms": [
+      "Rookie"
+    ],
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Flame"
+    ],
+    "effectText": "[Start of Your Main Phase] If you have 3 or more security cards, trash your top or bottom security card, ＜Draw 1＞ and gain 1 memory. Then, if you have 2 or fewer security cards, you may place 1 card with [Witchelny] in its text from your hand as the bottom security card.\n[Rule] Trait: Has [Witchelny] Type.",
+    "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon with [Dynasmon] or [Witchelny] in its text would leave the battle area by your opponent's effects, by trashing your top security card, it doesn't leave.",
+    "nameJp": "キャンドモン"
+  },
+  {
     "cardId": "EX13-026",
     "set": "EX13",
     "nameEn": "Kudamon",
@@ -108035,6 +108094,49 @@
     "nameJp": "スカモン"
   },
   {
+    "cardId": "EX13-029",
+    "set": "EX13",
+    "nameEn": "FlameWizardmon",
+    "colors": [
+      "Yellow",
+      "Red"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 5,
+    "dp": 5000,
+    "evoCosts": [
+      {
+        "color": "Yellow",
+        "level": 3,
+        "memoryCost": 3
+      },
+      {
+        "color": "Red",
+        "level": 3,
+        "memoryCost": 3
+      }
+    ],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-029",
+    "level": 4,
+    "forms": [
+      "Armor Form"
+    ],
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Wizard",
+      "Witchelny"
+    ],
+    "effectText": "[Digivolve] Lv.3 w/[Witchelny] in text: Cost 2 \n\n＜Armor Purge＞ \n[When Digivolving] [When Attacking] [Once Per Turn] By trashing your top security card, 1 of your opponent's Digimon gets -4000 DP for the turn. After, if you have 3 or fewer security cards, delete 1 of your opponent's Digimon with 4000 DP or less.\n[Rule] Name: Also treated as [Wizardmon].",
+    "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon with [Dynasmon] or [Witchelny] in its text would leave the battle area by your opponent's effects, by trashing your top security card, it doesn't leave.",
+    "nameJp": "フレイウィザーモン"
+  },
+  {
     "cardId": "EX13-030",
     "set": "EX13",
     "nameEn": "Reppamon",
@@ -108150,6 +108252,85 @@
     "nameJp": "チィリンモン"
   },
   {
+    "cardId": "EX13-033",
+    "set": "EX13",
+    "nameEn": "Mistymon",
+    "colors": [
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 7,
+    "dp": 7000,
+    "evoCosts": [
+      {
+        "color": "Yellow",
+        "level": 4,
+        "memoryCost": 4
+      },
+      {
+        "color": "Red",
+        "level": 4,
+        "memoryCost": 4
+      }
+    ],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-033",
+    "level": 5,
+    "forms": [
+      "Ultimate"
+    ],
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Magic Warrior",
+      "Witchelny"
+    ],
+    "effectText": "[Digivolve] Lv.4 w/[Witchelny] in text: Cost 3 \n\n＜Barrier＞ \n[On Play] [When Digivolving] You may place 1 [Witchelny] text card from your hand as the bottom security card. Then, by trashing your top security card, 1 of your Digimon may attack.\n[All Turns] [Once Per Turn] When your security stack is removed from, 1 of your opponent's Digimon gets -6000 DP for the turn. Then, if you have 3 or fewer security cards, delete 1 of their 6000 DP or lower Digimon.",
+    "inheritedEffectText": "[All Turns] [Once Per Turn] When your security stack is removed from, this Digimon may unsuspend.",
+    "nameJp": "ミスティモン"
+  },
+  {
+    "cardId": "EX13-034",
+    "set": "EX13",
+    "nameEn": "Wisemon",
+    "colors": [
+      "Yellow",
+      "Black"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 6,
+    "dp": 6000,
+    "evoCosts": [
+      {
+        "color": "Yellow",
+        "level": 4,
+        "memoryCost": 4
+      }
+    ],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-034",
+    "level": 5,
+    "forms": [
+      "Ultimate"
+    ],
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Wizard"
+    ],
+    "effectText": "[Digivolve] Lv.4 w/[Witchelny] in text: Cost 3 \n\n＜Barrier＞ \n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Until your opponent's turn ends, 1 of your Digimon gains ＜Reboot＞ and ＜Blocker＞ , and their ＜De-Digivolve＞ effects don't affect it.\n[All Turns] [Once Per Turn] When your security stack is removed from, ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, if you have 3 or fewer security cards, 1 of their Digimon can't digivolve until their turn ends.",
+    "inheritedEffectText": "[All Turns] [Once Per Turn] When your security stack is removed from, this Digimon may unsuspend.",
+    "nameJp": "ワイズモン"
+  },
+  {
     "cardId": "EX13-035",
     "set": "EX13",
     "nameEn": "KingEtemon",
@@ -108225,6 +108406,48 @@
     ],
     "effectText": "[Digivolve] Lv.5 w/[Holy Beast]/[DATA SQUAD] trait: Cost 3 \n[Assembly -5] Lv.5 × Lv.4 × Lv.3, all Yellow w/[Holy Beast] trait\n\n[Security] [On Play] 1 of your opponent's Digimon gets -7000 DP for the turn. If there are 6 or fewer total cards in both players' security stacks, instead all of their Digimon get -7000 DP for the turn.\n[When Digivolving] By trashing the top security card of 1 player with the most security cards, you may activate 1 of this Digimon's [Security] effects.\n[When Digivolving] [End of Attack] [Counter] [Once Per Turn] You may place 1 of each player's Digimon as the top security cards.",
     "nameJp": "スレイプモン"
+  },
+  {
+    "cardId": "EX13-037",
+    "set": "EX13",
+    "nameEn": "Dynasmon",
+    "colors": [
+      "Yellow",
+      "Red"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 12,
+    "dp": 12000,
+    "evoCosts": [
+      {
+        "color": "Yellow",
+        "level": 5,
+        "memoryCost": 4
+      },
+      {
+        "color": "Red",
+        "level": 5,
+        "memoryCost": 4
+      }
+    ],
+    "rarity": "SR",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-037",
+    "level": 6,
+    "forms": [
+      "Mega"
+    ],
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Holy Warrior",
+      "Royal Knight"
+    ],
+    "effectText": "[Digivolve] Lv.5 w/[Witchelny] in text: Cost 3 \n[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Witchelny] in text\n\n＜Raid＞ \n＜Piercing＞ \n＜Blocker＞ \n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] trash your top security card and this Digimon gets +10000 DP until your opponent's turn ends. Then, if you have 3 or fewer security cards, trash their top security card.\n[All Turns] [Once Per Turn] When security stacks are removed from, 1 of your opponent's Digimon gets -12000 DP until their turn ends. Then, if you have 3 or fewer security cards, ＜Recovery +1＞ ",
+    "nameJp": "デュナスモン"
   },
   {
     "cardId": "EX13-038",
@@ -108653,6 +108876,86 @@
     "nameJp": "コテモン"
   },
   {
+    "cardId": "EX13-049",
+    "set": "EX13",
+    "nameEn": "Dorumon",
+    "colors": [
+      "Black",
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 3,
+    "dp": 1000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 2,
+        "memoryCost": 1
+      },
+      {
+        "color": "Yellow",
+        "level": 2,
+        "memoryCost": 1
+      }
+    ],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-049",
+    "level": 3,
+    "forms": [
+      "Rookie"
+    ],
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Beast",
+      "X Antibody",
+      "Chronicle"
+    ],
+    "effectText": "[Digivolve] [Dorimon]/Black Lv.2 w/[X Antibody] trait: Cost 0 \n\n[When Moving] [On Play] Reveal the top 3 cards of your deck. Add 1 card with the [X Antibody] or [Chronicle] trait among them to the hand. Return the rest to the top or bottom of the deck.",
+    "inheritedEffectText": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+    "nameJp": "ドルモン"
+  },
+  {
+    "cardId": "EX13-050",
+    "set": "EX13",
+    "nameEn": "Bokomon",
+    "colors": [
+      "Black"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 3,
+    "dp": 1000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 2,
+        "memoryCost": 0
+      }
+    ],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-050",
+    "level": 3,
+    "forms": [
+      "Rookie"
+    ],
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Mutant"
+    ],
+    "effectText": "[All Turns] Players can't gain memory other than by Tamer effects.",
+    "inheritedEffectText": "＜Blocker＞ ",
+    "nameJp": "ボコモン"
+  },
+  {
     "cardId": "EX13-051",
     "set": "EX13",
     "nameEn": "Guardromon",
@@ -108766,6 +109069,91 @@
     "nameJp": "サンダーボールモン"
   },
   {
+    "cardId": "EX13-054",
+    "set": "EX13",
+    "nameEn": "Nanimon",
+    "colors": [
+      "Black"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 3,
+    "dp": 3000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 3,
+        "memoryCost": 2
+      },
+      {
+        "color": "Yellow",
+        "level": 3,
+        "memoryCost": 2
+      }
+    ],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-054",
+    "level": 4,
+    "forms": [
+      "Champion"
+    ],
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Invader"
+    ],
+    "effectText": "[Security] At the end of the battle, play this card without paying the cost.\n[On Play] [On Deletion] 1 of your opponent's Digimon can't attack players until their turn ends.\n[Rule] Trait: Has [Mutant] Type.",
+    "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
+    "nameJp": "ナニモン"
+  },
+  {
+    "cardId": "EX13-055",
+    "set": "EX13",
+    "nameEn": "Raptordramon",
+    "colors": [
+      "Black",
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 5,
+    "dp": 5000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 3,
+        "memoryCost": 3
+      },
+      {
+        "color": "Yellow",
+        "level": 3,
+        "memoryCost": 3
+      }
+    ],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-055",
+    "level": 4,
+    "forms": [
+      "Champion"
+    ],
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Cyborg",
+      "X Antibody",
+      "Chronicle"
+    ],
+    "effectText": "[Digivolve] [Dorumon]/Lv.3 w/[Chronicle] trait: Cost 2 \n\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.\n[When Attacking] This Digimon may digivolve into a Digimon card with the [Chronicle] trait in the hand or trash.",
+    "inheritedEffectText": "＜Barrier＞ ",
+    "nameJp": "ラプタードラモン"
+  },
+  {
     "cardId": "EX13-056",
     "set": "EX13",
     "nameEn": "Giromon",
@@ -108800,6 +109188,50 @@
     "effectText": "＜Collision＞ \n＜Blocker＞ \n[All Turns] [Once Per Turn] When this Digimon suspends, reveal the top 3 cards of your deck. You may play 1 level 4 or lower black Digimon card with ＜Blocker＞ among them without paying the cost. Trash the rest.\n[Rule] Trait: Has [Machine] Type.",
     "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When any of your Digimon suspend, you may play 1 level 5 or lower black Digimon card with ＜Blocker＞ from your hand without paying the cost.",
     "nameJp": "ギロモン"
+  },
+  {
+    "cardId": "EX13-057",
+    "set": "EX13",
+    "nameEn": "Grademon",
+    "colors": [
+      "Black",
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 7,
+    "dp": 7000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 4,
+        "memoryCost": 4
+      },
+      {
+        "color": "Yellow",
+        "level": 4,
+        "memoryCost": 4
+      }
+    ],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-057",
+    "level": 5,
+    "forms": [
+      "Ultimate"
+    ],
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Warrior",
+      "X Antibody",
+      "Chronicle"
+    ],
+    "effectText": "[Digivolve] [Raptordramon]/Lv.4 w/[Chronicle] trait: Cost 3 \n\n[On Play] [When Digivolving] Until your opponent's turn ends, 1 of your [X Antibody] or [Chronicle] trait Digimon gains ＜Reboot＞ and ＜Blocker＞. If during an attack, it also isn't affected by their Digimon effects and gets +5000 DP.\n[End of Attack] [Once Per Turn] This Digimon may digivolve into a Digimon card with the [Chronicle] trait in the hand or trash.",
+    "inheritedEffectText": "[All Turns] [Once Per Turn] When any of your [Chronicle] trait Digimon would leave the battle area, by trashing your top security card, they don't leave.",
+    "nameJp": "グレイドモン"
   },
   {
     "cardId": "EX13-058",
@@ -108872,6 +109304,50 @@
     "effectText": "[When Digivolving] [On Deletion] Reveal the top 3 cards of your deck. You may play 1 play cost 7 or lower Digimon card with [Mamemon] in its name or the [Mutant] trait among them without paying the cost. Trash the rest.\n[End of Your Turn] [Once Per Turn] By deleting 1 of your Digimon with [Mamemon] in its name, delete 1 of your opponent's Digimon with the lowest play cost.",
     "inheritedEffectText": "[End of Your Turn] [Once Per Turn] By deleting 1 of your Digimon with [Mamemon] in its name, delete all of your opponent's Digimon with the lowest play cost.",
     "nameJp": "ビッグマメモン"
+  },
+  {
+    "cardId": "EX13-060",
+    "set": "EX13",
+    "nameEn": "Alphamon",
+    "colors": [
+      "Black",
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 13,
+    "dp": 13000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 5,
+        "memoryCost": 5
+      },
+      {
+        "color": "Yellow",
+        "level": 5,
+        "memoryCost": 5
+      }
+    ],
+    "rarity": "UR",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-060",
+    "level": 6,
+    "forms": [
+      "Mega"
+    ],
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Holy Warrior",
+      "Royal Knight",
+      "X Antibody",
+      "Chronicle"
+    ],
+    "effectText": "[Digivolve] [Grademon]/Lv.5 w/[Chronicle] trait: Cost 4 \n[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Chronicle] trait\n\n[When Digivolving] 1 of your opponent's Digimon gets -8000 DP until their turn ends. Then, if they have 5 or more memory, gain 2 memory.\n[Your Turn] [Once Per Turn] When any of your [Chronicle] trait Digimon or Tamers are played, 1 of your Digimon may attack. Then, you may activate 1 of this Digimon's [When Digivolving] effects.\n[End of Your Turn] [Once Per Turn] You may play 1 [Chronicle] trait card without [Alphamon] in its name from your hand with the cost reduced by 6. It gains ＜Rush＞ for the turn. ",
+    "nameJp": "アルファモン"
   },
   {
     "cardId": "EX13-061",
@@ -109231,6 +109707,30 @@
     "effectText": "[Start of Your Main Phase] By trashing 1 [Chronicle] trait card from your hand, ＜Draw 1＞ and gain 1 memory.\n[Your Turn] When one of your [Chronicle] trait Digimon attacks, by suspending this Tamer, you may use 1 [X Antibody] or 1 Option card with the [Chronicle] trait from your hand with the cost reduced by 1.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
     "nameJp": "堂本コータ"
+  },
+  {
+    "cardId": "EX13-073",
+    "set": "EX13",
+    "nameEn": "Tai Kamiya & Matt Ishida",
+    "colors": [
+      "Black",
+      "Purple"
+    ],
+    "kinds": [
+      "Tamer"
+    ],
+    "playCost": 4,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-073",
+    "types": [
+      "ADVENTURE"
+    ],
+    "effectText": "[Start of Your Main Phase] If you have an [ADVENTURE] trait Digimon, gain 1 memory.\n[Your Turn] When your [ADVENTURE] trait Digimon or Tamers are played, by suspending this Tamer, ＜Draw 1＞ and trash 1 card in your hand.\n[All Turns] All of your level 5 or higher [ADVENTURE] trait Digimon gain ＜Rush＞ and ＜Blocker＞ ",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
+    "nameJp": "八神太一＆石田ヤマト"
   },
   {
     "cardId": "EX13-074",
