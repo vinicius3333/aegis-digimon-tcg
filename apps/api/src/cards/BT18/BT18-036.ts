@@ -47,6 +47,12 @@ export const compiled: CompiledCard = {
           event: "wouldLeavePlay",
           leaveCause: "byOpponentEffect",
           sourceFilter: {
+            // "When THIS yellow Digimon ... would leave" (Q3087): only the Digimon carrying
+            // this card in its digivolution cards is protected. Without the self-gate the
+            // prevent reaction installs with `protectsSelf === false`
+            // (interpreter/actions/replacement.ts:239-241) and guards every matching
+            // permanent the owner controls, not just the host.
+            isSelfRef: true,
             controllerDefault: "mine",
             kind: ["Digimon"],
             colors: ["Yellow"],
