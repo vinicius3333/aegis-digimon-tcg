@@ -428,3 +428,47 @@ it.each([false, true])("BT26-015 preserves a declined deck-add reaction (inherit
   expect(s.perm("host").isSuspended).toBe(inherited);
   expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(0);
 });
+
+it("BT26-015 keeps its inherited deck-add reaction armed when the host is not suspended yet", async () => {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT26-009", as: "host", under: [{ card: "BT26-015" }] }],
+        hand: [
+          { card: "BT26-023", as: "firstPlay" },
+          { card: "BT26-023", as: "secondPlay" },
+          { card: "BT1-009", as: "firstMaterial" },
+          { card: "BT1-009", as: "secondMaterial" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT26-039", as: "firstTarget" },
+          { card: "BT26-039", as: "secondTarget" },
+        ],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+  );
+  preferred.push(s.inst("firstMaterial").instanceId, s.inst("secondMaterial").instanceId);
+  s.state.memory = 20;
+  await s.ready();
+
+  // The host is unsuspended, so the "may unsuspend" has no legal target and is never asked.
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("firstTarget").instanceId));
+  expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT26-015")).toHaveLength(0);
+
+  // Same turn, host now suspended: the [Once Per Turn] must still be available.
+  s.perm("host").isSuspended = true;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(
+    () => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("secondTarget").instanceId),
+  );
+  expect(s.perm("host").isSuspended).toBe(false);
+});

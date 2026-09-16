@@ -510,6 +510,11 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     )
   ) {
     ctx.lastEffectActed = false;
+    // No suspended target means the "may unsuspend" prompt is never raised, so the player
+    // never chose to use it. Treat the skip like a decline for the [Once Per Turn] budget
+    // (BT26-015: the inherited deck-add reaction must stay armed until the host actually
+    // suspends later in the same turn).
+    if (action.preserveOncePerTurnOnDecline === true) ctx.oncePerTurnActivationDeclined = true;
     return action.cost !== undefined ? action.abortOnDecline === true : false;
   }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
