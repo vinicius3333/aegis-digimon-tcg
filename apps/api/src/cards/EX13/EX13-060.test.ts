@@ -474,18 +474,11 @@ describe("EX13-060 Alphamon", () => {
     assertNoLoudGap(s);
   });
 
-  // RETAINED RED — engine seam, not a card-module gap.
-  //
-  // "Then, you may activate 1 of this Digimon's [When Digivolving] effects" resolves correctly
-  // when the watcher was woken by a [Chronicle] DIGIMON entering play (proven green in the next
-  // test), but not when it was woken by a [Chronicle] TAMER.
-  //
-  // Seam: `apps/api/src/engine/effects/interpreter/actions/meta.ts:65` — the untargeted
-  // `ReactivateEffect` branch re-runs `runtimeCompiledCard(ctx.source.cardId)`'s
-  // [When Digivolving] effects against `ctx.source.permanent()`. On the Tamer-driven watcher the
-  // re-run is entered (an `effectTriggered`/`effectResolved` pair is emitted) but its ModifyDP
-  // selects nothing. Expected: the opponent's Digimon at 4000 DP. Actual: 12000 DP, untouched.
-  it.fails("re-runs the [When Digivolving] body on a Tamer-driven watcher (engine seam)", async () => {
+  // "Then, you may activate 1 of this Digimon's [When Digivolving] effects" on a watcher woken
+  // by a [Chronicle] TAMER. The Tamer's own play drives a continuous recompute that is still in
+  // flight while this watcher body resolves, so the body's one-shot -8000 must still be tagged
+  // as a triggered modifier rather than a continuous one.
+  it("re-runs the [When Digivolving] body on a Tamer-driven watcher", async () => {
     const s = setupEngine(
       {
         0: {
@@ -632,19 +625,20 @@ describe("EX13-060 Alphamon", () => {
     assertNoLoudGap(s);
   });
 
-  // RETAINED RED — engine seam, not a card-module gap.
+  // RETAINED RED — the EXPECTATION is under review, not the engine.
   //
-  // The same "1 [Chronicle] trait card" pool must include an OPTION card. BT20-095 Fellowship of
-  // Hope's Keepers is a black [X Antibody]/[Chronicle] Option with a printed play cost of 3, so
-  // the reduction floors it at 0 and it should be played by this clause.
+  // This test asserts that the "1 [Chronicle] trait card" pool reaches an OPTION (BT20-095, a
+  // black [X Antibody]/[Chronicle] Option whose cost 3 floors at 0 under the reduction).
+  // `playableCandidates` in `apps/api/src/engine/effects/interpreter/actions/play.ts` drops
+  // Option-only cards from a kind-less play pool on purpose, and comprehensive rules §6-5 backs
+  // that: the Main-phase actions are "play a Digimon card or Tamer card from the hand" versus
+  // "USE an Option card from the hand", so "play 1 card" never reaches an Option. The printed
+  // rider "It gains ＜Rush＞ for the turn" points the same way — an Option has nothing to gain it.
   //
-  // Seam: `apps/api/src/engine/effects/interpreter/actions/play.ts`'s PlayWithoutCost candidate
-  // resolution does not offer Option cards for a `target.filter` that carries no `kind`; the same
-  // fixture is reachable by an ordinary `playCard` intent, so it is the effect-driven play path
-  // that drops it. Expected: the Option leaves hand. Actual: it stays in hand and nothing is
-  // played. Adding `kind: ["Digimon", "Tamer", "Option"]` would not be the printed reading — the
-  // clause names "1 card" — and the Tamer half already works without a `kind`.
-  it.fails("reaches a [Chronicle] OPTION from hand (engine seam)", async () => {
+  // Making kind-less pools include Options would change every kind-less play IR in the catalog
+  // (BT21-098 and friends), so it needs an explicit rules decision before the engine moves.
+  // See `docs/audits/engine/kindless-play-pool-options.md`.
+  it.fails("reaches a [Chronicle] OPTION from hand (expectation under review)", async () => {
     const s = setupEngine(
       {
         0: {

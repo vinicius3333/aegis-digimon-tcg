@@ -792,12 +792,6 @@ export class GameEngine {
   private rngForSeat: ((seat: Seat) => Rng) | undefined;
   /** Monotonic source of permanentIds unique within the match. */
   private permanentSeq = 0;
-  /**
-   * True while {@link recomputeContinuousEffects} is re-firing the persistent
-   * (`EffectTiming.None`) static effects, so the continuous-capable primitives tag
-   * what they record as `continuous` (the next recompute clears and re-derives it).
-   */
-  private continuousMode = false;
   /** Shared completion barrier for the current continuous recompute batch. */
   private recomputeInFlight: Promise<void> | undefined;
   /** Coalesces external recompute requests that arrive while a pass is rebuilding the ledgers. */
@@ -816,9 +810,9 @@ export class GameEngine {
 
   /**
    * Which tier the code running RIGHT HERE belongs to, carried down the async call chain
-   * rather than held in a field ({@link continuousMode}).
+   * rather than held in a field.
    *
-   * `continuousMode` alone cannot answer the question once two flows interleave: a
+   * A shared field alone cannot answer the question once two flows interleave: a
    * recompute is a long `await` chain, and a timing window resolving concurrently with it
    * (a play whose trailing recompute is still in flight while the next window opens) would
    * read the recompute's flag and tag its own one-shot modifiers `continuous` — the next
@@ -827,8 +821,8 @@ export class GameEngine {
    * own statics would stop being tagged and accumulate forever. Only per-flow state
    * separates them, which is what this store is.
    *
-   * `undefined` (no enclosing scope) falls back to the field, so paths that never enter
-   * either scope behave exactly as before.
+   * `undefined` (no enclosing scope) means the code is NOT on a continuous chain, and is
+   * read as such — see {@link inContinuousPass}.
    */
   private readonly continuousScope = new ContinuousEffectScope();
 
@@ -848,7 +842,12 @@ export class GameEngine {
 
   /** Whether what is being recorded right here belongs to the continuous tier. */
   private inContinuousPass(): boolean {
-    return this.continuousScope.getStore() ?? this.continuousMode;
+    // No store means this code is not on a continuous-recompute chain, and it must NOT fall
+    // back to a shared "a recompute is running somewhere" flag: a triggered body interleaving
+    // with an in-flight recompute would tag its one-shot modifiers `continuous`, and the next
+    // recompute would erase them (EX13-060's re-run [When Digivolving] -8000 vanished whenever
+    // a Tamer play woke its watcher while the play's own recompute was still in flight).
+    return this.continuousScope.getStore() ?? false;
   }
   /** Trigger payload for the timing window currently resolving. */
   /** Transient security-DP modifiers during an active security check. */
@@ -3709,35 +3708,30 @@ export class GameEngine {
     const task = Promise.resolve().then(async () => {
       do {
         this.recomputeQueued = false;
-        this.continuousMode = true;
-        try {
-          // Everything each pass records is a continuous effect, and the tier tag has to follow
-          // THIS async chain: a timing window resolving concurrently (a play whose trailing
-          // recompute is still in flight) must not read the tag from a shared field.
-          //
-          // A continuous gate may read a value produced by another continuous effect (for
-          // example, EX10-010's DP threshold on two facing copies). Re-derive from a clean tier
-          // each time so stale grants and duplicate watchers cannot accumulate, but seed each
-          // pass with the previous pass's DP deltas so the dependency chain can reach a fixpoint.
-          // The cap protects the resolver from a genuinely oscillating set of card effects.
-          const maxFixpointPasses = 32;
-          let seed = this.continuousDpSeeds();
-          let converged = false;
-          for (let pass = 0; pass < maxFixpointPasses; pass++) {
-            await this.continuousScope.run(true, () => this.runContinuousPass(noPromptAsk, seed));
-            this.updateContinuousDpSeeds();
-            const next = this.continuousDpSeeds();
-            if (sameNumericMap(seed, next)) {
-              converged = true;
-              break;
-            }
-            seed = next;
+        // Everything each pass records is a continuous effect, and the tier tag has to follow
+        // THIS async chain: a timing window resolving concurrently (a play whose trailing
+        // recompute is still in flight) must not read the tag from a shared field.
+        //
+        // A continuous gate may read a value produced by another continuous effect (for
+        // example, EX10-010's DP threshold on two facing copies). Re-derive from a clean tier
+        // each time so stale grants and duplicate watchers cannot accumulate, but seed each
+        // pass with the previous pass's DP deltas so the dependency chain can reach a fixpoint.
+        // The cap protects the resolver from a genuinely oscillating set of card effects.
+        const maxFixpointPasses = 32;
+        let seed = this.continuousDpSeeds();
+        let converged = false;
+        for (let pass = 0; pass < maxFixpointPasses; pass++) {
+          await this.continuousScope.run(true, () => this.runContinuousPass(noPromptAsk, seed));
+          this.updateContinuousDpSeeds();
+          const next = this.continuousDpSeeds();
+          if (sameNumericMap(seed, next)) {
+            converged = true;
+            break;
           }
-          if (!converged) {
-            throw new Error(`continuous effects did not converge after ${maxFixpointPasses} passes`);
-          }
-        } finally {
-          this.continuousMode = false;
+          seed = next;
+        }
+        if (!converged) {
+          throw new Error(`continuous effects did not converge after ${maxFixpointPasses} passes`);
         }
       } while (this.recomputeQueued);
 
