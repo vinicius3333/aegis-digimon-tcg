@@ -2921,6 +2921,7 @@ function parasaurmonDemo(effect: string | null): CardEffectsFixture {
           max: 1,
           timing: "YourTurn",
           effectText: inherited,
+          isInherited: true,
         },
       },
     };
@@ -19376,12 +19377,35 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     roomCode: "",
   };
 
+  // Each fixture explains, in its own words, what the simulated moment proves. The match
+  // notice beside it prints the card's own text instead (that is what a player needs during
+  // a game), so this page states its scenario notes itself rather than smuggling them
+  // through an event the board renders as printed rules text.
+  const scenarioNotes = [
+    ...new Set(
+      (fixture.events ?? [])
+        // Only the triggered-effect notice swaps its description for printed rules text;
+        // every other narrated event still shows the words the fixture gave it.
+        .map((event) => (event.kind === "effectTriggered" ? event.description : undefined))
+        .filter((note): note is string => typeof note === "string" && note.trim().length > 0),
+    ),
+  ];
+
   return (
-    <GameScreen
-      joinOptions={{ displayName: "Effect tester", deck: { mainDeck: [], eggDeck: [] } }}
-      identityColor="Blue"
-      onExit={() => window.location.assign("/")}
-      demoConnection={demoConnection}
-    />
+    <>
+      <GameScreen
+        joinOptions={{ displayName: "Effect tester", deck: { mainDeck: [], eggDeck: [] } }}
+        identityColor="Blue"
+        onExit={() => window.location.assign("/")}
+        demoConnection={demoConnection}
+      />
+      {scenarioNotes.length > 0 ? (
+        <aside className="card-effects-demo-notes" aria-label="Scenario notes">
+          {scenarioNotes.map((note) => (
+            <p key={note}>{note}</p>
+          ))}
+        </aside>
+      ) : null}
+    </>
   );
 }
