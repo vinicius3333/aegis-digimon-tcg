@@ -502,7 +502,13 @@ export function PermanentView({
   if (perm.securityAttackModifier !== 0 && perm.keywords.includes("SecurityAttack"))
     badgeKeywords.add("SecurityAttack");
   const activeKeywords = [...badgeKeywords].map((keyword) =>
-    formatResolvedKeyword(keyword, perm.securityAttackModifier, keywordLabels?.[keyword]),
+    // Only a permanent that actually carries a modifier prints one: a plainly GRANTED
+    // ＜Security Attack＞ has no arithmetic to show, and "+0" reads as a nullified keyword.
+    formatResolvedKeyword(
+      keyword,
+      perm.securityAttackModifier === 0 ? undefined : perm.securityAttackModifier,
+      keywordLabels?.[keyword],
+    ),
   );
   const visibleKeywords = activeKeywords.slice(0, 3);
   const hiddenKeywordCount = activeKeywords.length - visibleKeywords.length;

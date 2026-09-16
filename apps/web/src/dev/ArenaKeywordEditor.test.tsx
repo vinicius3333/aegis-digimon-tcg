@@ -84,9 +84,8 @@ it("displays signed numeric and textual parameters in the inspector with an expl
   ui.close();
   fireEvent.keyDown(ui.field(), { key: "Enter" });
   const detail = screen.getByRole("dialog", { name: "Chronomon: Holy Mode" });
-  expect(within(detail).getByRole("region", { name: "Active keywords" }).textContent).toContain(
-    "Security Attack +2 ×3",
-  );
+  // The chip prints the SIGNED modifier now, not the resolved number of security checks.
+  expect(within(detail).getByRole("region", { name: "Active keywords" }).textContent).toContain("Security Attack +2");
   expect(detail.textContent).toContain("Succession ([Ceresmon])");
   expect(ui.field().querySelector('[aria-label^="Active keywords:"]')?.textContent).toContain(
     "Succession ([Ceresmon])",
