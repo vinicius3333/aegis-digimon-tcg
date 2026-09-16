@@ -638,6 +638,51 @@ describe("EX13-057 Grademon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
   });
 
+  // No cause qualifier is printed, so BATTLE reaches the watcher too. Driven by a real declared
+  // attack that the [Chronicle] Digimon loses.
+  it("saves a [Chronicle] ally that loses a real battle, not only effect deletions", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-014", as: "host", under: [{ card: CARD_ID, as: "source" }] },
+            { card: CHRONICLE_LV3, as: "ally", dp: 3000 },
+          ],
+          security: [
+            { card: "BT1-011", as: "cost" },
+            { card: "BT1-012", as: "kept" },
+          ],
+          deck: ["BT1-013", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: NON_MATCH, as: "wall", dp: 9000, suspended: true }],
+          deck: ["BT1-013", "BT1-011"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    const allyId = s.perm("ally").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: allyId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle(() => s.state.pendingDecision === undefined);
+
+    // 3000 lost to 9000, but the replacement paid a security card and the attacker stayed.
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === allyId)).toBe(true);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("kept").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
+  });
+
   it("does not protect an [X Antibody] Digimon without the [Chronicle] trait", async () => {
     const s = setupEngine(
       {
@@ -747,5 +792,240 @@ describe("EX13-057 Grademon", () => {
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("ally").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("untouched").instanceId]);
+  });
+
+  // The printed duration "Until your opponent's turn ends" plus both granted keywords, proven
+  // through the real turn loop: the grant survives into the opponent's turn, ＜Reboot＞ unsuspends
+  // the recipient at THEIR unsuspend phase, ＜Blocker＞ intercepts a real declared attack, and both
+  // keywords are gone once that turn ends.
+  it("carries both keywords into the opponent's turn, reboots, blocks, and expires at that turn's end", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "grademon" }],
+          battleArea: [{ card: CHRONICLE_LV3, as: "chronicle", dp: 12_000 }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-013", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT9-035", as: "attacker", dp: 6000 }],
+          hand: [{ card: "BT1-010", as: "spare" }],
+          deck: ["BT1-013", "BT1-011", "BT1-012"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chronicle").topCard.instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 8;
+    await s.ready();
+
+    // The grant is made inside a REAL own turn that is then played out to its end, so the
+    // end-of-turn duration sweep runs before the opponent's turn begins. A shorter duration
+    // (the engine's `UntilEachTurnEnd`) would be swept right here.
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grademon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    await settle(() => observe(s.engine).hasKeyword(s.perm("chronicle"), "Reboot"));
+
+    // Suspend the recipient by hand, as an attack of its own would have.
+    s.perm("chronicle").isSuspended = true;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
+    // ＜Reboot＞: it unsuspended during the OPPONENT's unsuspend phase, and the grant is still on.
+    expect(s.perm("chronicle").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("chronicle"), "Blocker")).toBe(true);
+
+    // ＜Blocker＞: a real declared attack at the player is intercepted instead of hitting security.
+    const securityBefore = s.state.players[0]!.security.length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("chronicle").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security).toHaveLength(securityBefore);
+    // 12000 blocker beat the 6000 attacker, so the battle happened rather than the security check.
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    // "Until your opponent's turn ends": both keywords are gone the moment that turn ended.
+    expect(observe(s.engine).hasKeyword(s.perm("chronicle"), "Reboot")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("chronicle"), "Blocker")).toBe(false);
+  });
+
+  // "isn't affected by THEIR DIGIMON effects": the printed scope is Digimon-sourced effects only.
+  // Driven with real opponent cards on the opponent's own turn while the rider is live.
+  it("blanks an opponent Digimon's effect during the attack rider while an opponent Option still lands", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: LV4_FEEDER, as: "raptor", under: ["BT1-010"], dp: 5000 },
+            { card: CHRONICLE_LV3, as: "chronicle", dp: 9000 },
+          ],
+          hand: [{ card: CARD_ID, as: "grademon" }],
+          deck: [{ card: NON_MATCH, as: "bonusDraw" }, "BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: {
+          hand: [
+            { card: "BT20-033", as: "digimonEffect" },
+            { card: "BT1-106", as: "optionEffect" },
+          ],
+          deck: ["BT1-013", "BT1-011", "BT1-012"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chronicle").topCard.instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("raptor").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("chronicle").currentDP).toBe(14_000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    // BT20-033 LoaderLeomon's [On Play] would give 1 of THEIR Digimon -3000 DP. It is a Digimon
+    // effect, so the printed immunity refuses it outright.
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("digimonEffect").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("chronicle").currentDP).toBe(14_000);
+
+    // BT1-106 is an OPTION with the same shape of effect. The printed scope does not cover it.
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("optionEffect").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("chronicle").currentDP).toBe(7000);
+  });
+
+  it("leaves the recipient exposed to an opponent Digimon effect when the grant happened OUTSIDE an attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "grademon" }],
+          battleArea: [{ card: CHRONICLE_LV3, as: "chronicle", dp: 9000 }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: {
+          hand: [{ card: "BT20-033", as: "digimonEffect" }],
+          deck: ["BT1-013", "BT1-011", "BT1-012"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chronicle").topCard.instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grademon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    await settle(() => observe(s.engine).hasKeyword(s.perm("chronicle"), "Reboot"));
+    // No attack was open, so neither half of the rider applied.
+    expect(s.perm("chronicle").currentDP).toBe(9000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("digimonEffect").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    // Without the rider the opponent's Digimon effect reaches it normally.
+    expect(s.perm("chronicle").currentDP).toBe(6000);
+  });
+
+  // The [End of Attack] window opened by a REAL declared attack, and its same-turn refusal against
+  // a second real attack by a DIFFERENT Digimon.
+  it("fires [End of Attack] off a real attack and refuses a second attack the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "grademon", under: ["BT1-010"], dp: 7000 },
+            { card: CHRONICLE_LV3, as: "other", dp: 9000 },
+          ],
+          hand: [
+            { card: CHRONICLE_LV6, as: "firstTarget" },
+            { card: "BT20-018", as: "secondTarget" },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-013"],
+        },
+        1: { deck: ["BT1-013", "BT1-011"], security: ["BT1-014", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 12;
+    await s.ready();
+    const grademonId = s.perm("grademon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: grademonId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    await settle(() => !observe(s.engine).isAttacking());
+
+    const host = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === grademonId)!;
+    const afterFirst = host.topCard.cardId;
+    expect([CHRONICLE_LV6, "BT20-018"]).toContain(afterFirst);
+    expect(host.stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", CARD_ID]);
+
+    // [Once Per Turn]: the SECOND attack this turn, by a different Digimon, opens no usable window.
+    const handBefore = s.state.players[0]!.hand.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    const reread = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === grademonId)!;
+    expect(reread.topCard.cardId).toBe(afterFirst);
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore);
   });
 });
