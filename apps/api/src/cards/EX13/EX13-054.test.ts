@@ -152,7 +152,7 @@ describe("EX13-054 Nanimon", () => {
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("restricted").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("wall").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle();
@@ -216,7 +216,7 @@ describe("EX13-054 Nanimon", () => {
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("nanimon").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("nanimon").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === nanimonInstanceId));
