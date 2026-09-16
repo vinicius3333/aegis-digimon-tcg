@@ -12,6 +12,11 @@ const CARD_ID = "EX13-034";
 const WITCHELNY_LV4 = "EX7-019";
 // BT1-014: Lv.4 Red, no printed text at all — neither the alternate header nor the EvoCost.
 const PLAIN_LV4 = "BT1-014";
+// BT14-098 "DCD Bomb": [Main] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Its tail clause
+// needs 3 [D-Brigade]/[DigiPolice] cards returned from trash, which an empty trash cannot pay, so
+// the card reduces to a bare public ＜De-Digivolve＞ — the handle that proves "their
+// ＜De-Digivolve＞ effects don't affect it".
+const DE_DIGIVOLVE_OPTION = "BT14-098";
 
 describe("EX13-034 Wisemon", () => {
   it("matches the catalog identity", () => {
@@ -360,15 +365,18 @@ describe("EX13-034 Wisemon", () => {
   });
 
   it("digivolves from a BLUE Lv.4 [Witchelny]-text source for 3 and refuses a plain Lv.4", async () => {
-    const legal = setupEngine({
-      0: {
-        battleArea: [{ card: WITCHELNY_LV4, as: "base" }],
-        hand: [{ card: CARD_ID, as: "wisemon" }],
-        deck: [{ card: "BT1-010", as: "evolutionDraw" }, "BT1-012"],
-        security: ["BT1-013"],
+    const legal = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WITCHELNY_LV4, as: "base" }],
+          hand: [{ card: CARD_ID, as: "wisemon" }],
+          deck: [{ card: "BT1-010", as: "evolutionDraw" }, "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: { deck: ["BT1-011"] },
       },
-      1: { deck: ["BT1-011"] },
-    });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     legal.state.memory = 8;
     await legal.ready();
     const baseInstanceId = legal.perm("base").topCard.instanceId;
@@ -384,6 +392,13 @@ describe("EX13-034 Wisemon", () => {
     // Cost 3 off the alternate header, not the Yellow-only EvoCost's 4.
     expect(legal.state.memory).toBe(5);
     expect(legal.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
+    // The [When Digivolving] window ran off the PUBLIC digivolve intent, not an injected timing:
+    // the only Digimon on the controller's board is the freshly digivolved Wisemon, so it is the
+    // one that had to take the grant.
+    await settle();
+    expect(observe(legal.engine).hasKeyword(legal.perm("base"), "Reboot")).toBe(true);
+    expect(observe(legal.engine).hasKeyword(legal.perm("base"), "Blocker")).toBe(true);
+    expect(observe(legal.engine).isRestricted(legal.perm("base"), "cantBeDeDigivolved")).toBe(true);
 
     const illegal = setupEngine({
       0: {
@@ -404,5 +419,320 @@ describe("EX13-034 Wisemon", () => {
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(illegal.state.memory).toBe(8);
+  });
+
+  it("refuses the OPPONENT's ＜De-Digivolve＞ on the protected Digimon but lands it on an unprotected one", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "wisemon" },
+            { card: "BT1-020", as: "guarded", under: [{ card: PLAIN_LV4, as: "guardedBase" }] },
+            { card: "BT1-020", as: "control", under: [{ card: PLAIN_LV4, as: "controlBase" }] },
+          ],
+          deck: ["BT1-010", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: {
+          // A black Digimon on their board: an Option can only be played with a Digimon or Tamer
+          // of its own color in play, and BT3-107 is black. BT3-059 is a vanilla black Lv.3.
+          battleArea: [{ card: "BT3-059", as: "blackAnchor" }],
+          hand: [
+            { card: DE_DIGIVOLVE_OPTION, as: "optionA" },
+            { card: DE_DIGIVOLVE_OPTION, as: "optionB" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    preferred.push(s.perm("guarded").topCard.instanceId);
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wisemon"));
+    await settle();
+    expect(observe(s.engine).isRestricted(s.perm("guarded"), "cantBeDeDigivolved")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("control"), "cantBeDeDigivolved")).toBe(false);
+
+    // The opponent aims their ＜De-Digivolve＞ at the protected Digimon: the restriction is
+    // enforced when the mutation resolves, so the stack comes through untouched.
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("optionA").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("guarded").topCard.cardId).toBe("BT1-020");
+    expect(s.perm("guarded").stack.map((card) => card.cardId)).toEqual([PLAIN_LV4]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT1-020");
+
+    // Same effect, unprotected Digimon: it peels. The protection is target-scoped, not a blanket
+    // "no ＜De-Digivolve＞ this turn".
+    preferred.length = 0;
+    preferred.push(s.perm("control").topCard.instanceId);
+    s.state.memory = 0;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("optionB").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("control").topCard.cardId === PLAIN_LV4);
+    expect(s.perm("control").stack).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("guarded"), "cantBeDeDigivolved")).toBe(true);
+  });
+
+  it("keeps the grant through the opponent's turn, unsuspends on ＜Reboot＞, and expires at that turn's end", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "wisemon" },
+            { card: "BT1-020", as: "ally" },
+          ],
+          deck: ["BT1-010", "BT1-012", "BT1-013", "BT1-009"],
+          security: ["BT1-013"],
+        },
+        1: { deck: ["BT1-011", "BT1-014", "BT1-012", "BT1-009"], security: ["BT1-013"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    preferred.push(s.perm("ally").topCard.instanceId);
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wisemon"));
+    await settle();
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Reboot")).toBe(true);
+
+    await advance(s.engine).runTurn(0);
+    // Suspended going INTO the opponent's turn: ＜Reboot＞ is only observable at their unsuspend
+    // phase, and seat 0's own unsuspend phase (just run above) would have cleared it anyway.
+    s.perm("ally").isSuspended = true;
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.perm("ally").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("ally"), "cantBeDeDigivolved")).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    // "Until your opponent's turn ends" — all three parts of the one grant expire together.
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Reboot")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("ally"), "cantBeDeDigivolved")).toBe(false);
+  });
+
+  it("＜De-Digivolve 1＞ on a Digimon with no digivolution cards does nothing — it is not deleted", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "wisemon" }],
+          deck: ["BT1-010", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT9-035", as: "attacker", dp: 20_000 },
+            { card: "BT1-012", as: "bare" },
+          ],
+          deck: ["BT1-011", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    const bareInstanceId = s.perm("bare").topCard.instanceId;
+    preferred.push(bareInstanceId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    await settle();
+
+    // A stackless Digimon survives untouched: ＜De-Digivolve＞ trashes digivolution cards, and
+    // there are none — this is not a rule deletion.
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === bareInstanceId)).toBe(
+      true,
+    );
+    expect(s.perm("bare").stack).toHaveLength(0);
+    expect(s.perm("bare").topCard.cardId).toBe("BT1-012");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).not.toContain("BT1-012");
+  });
+
+  it("the digivolve lock refuses a public digivolve on the locked Digimon, spares the rest, and expires after their turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "wisemon" }],
+          deck: ["BT1-010", "BT1-012", "BT1-013"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: [
+            { card: PLAIN_LV4, as: "attacker", dp: 20_000 },
+            { card: PLAIN_LV4, as: "locked", under: [{ card: PLAIN_LV4, as: "lockedBase" }] },
+          ],
+          hand: [
+            { card: "BT1-020", as: "evoA" },
+            { card: "BT1-020", as: "evoB" },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-009"],
+          security: ["BT1-013"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    preferred.push(s.perm("locked").topCard.instanceId);
+
+    // Their whole turn runs on the production loop, so "until their turn ends" is judged by the
+    // real end-of-turn sweep rather than by a hand-set phase.
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    await settle();
+
+    // "1 of their Digimon" — exactly one of the two, and the choice itself is free (it is a fresh
+    // selection, not necessarily the ＜De-Digivolve＞d one), so the test reads which one it was.
+    const lockedAliases = ["attacker", "locked"].filter((alias) =>
+      observe(s.engine).isRestricted(s.perm(alias), "digivolve"),
+    );
+    expect(lockedAliases).toHaveLength(1);
+    const lockedAlias = lockedAliases[0]!;
+    const freeAlias = lockedAlias === "attacker" ? "locked" : "attacker";
+    // Both sides are still Lv.4 Red after the peel, so either is a legal BT1-020 digivolve source
+    // and the refusal can only come from the restriction.
+    expect(s.perm(lockedAlias).topCard.cardId).toBe(PLAIN_LV4);
+    expect(s.perm(freeAlias).topCard.cardId).toBe(PLAIN_LV4);
+
+    // Public digivolve intent on the locked Digimon: refused, and nothing leaves hand or memory.
+    s.state.memory = 0;
+    const lockedTopInstanceId = s.perm(lockedAlias).topCard.instanceId;
+    const refused = s.engine.applyIntent(1, {
+      type: "digivolve",
+      permanentId: s.perm(lockedAlias).permanentId,
+      instanceId: s.inst("evoA").instanceId,
+    });
+    expect(refused.ok).toBe(false);
+    expect(s.perm(lockedAlias).topCard.instanceId).toBe(lockedTopInstanceId);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evoA").instanceId);
+    expect(s.state.memory).toBe(0);
+
+    // Their OTHER Digimon still digivolves normally.
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm(freeAlias).permanentId,
+        instanceId: s.inst("evoB").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm(freeAlias).topCard.cardId === "BT1-020");
+
+    // "until their turn ends".
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).isRestricted(s.perm(lockedAlias), "digivolve")).toBe(false);
+  });
+
+  it("inherited: the host may DECLINE the unsuspend, and the watcher is once per turn", async () => {
+    const declining = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-020", as: "host", suspended: true, under: [CARD_ID] }],
+          deck: ["BT1-010", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT9-035", as: "attacker", dp: 20_000 }],
+          deck: ["BT1-011", "BT1-014"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await declining.ready();
+    declining.state.turnSeat = 1;
+    declining.state.memory = 1;
+
+    expect(
+      declining.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: declining.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declining.state.players[0]!.security.length === 0);
+    await settle();
+
+    // "may" — declined, so the host stays suspended.
+    expect(declining.perm("host").isSuspended).toBe(true);
+
+    const opt = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-020", as: "host", suspended: true, under: [CARD_ID] }],
+          deck: ["BT1-010", "BT1-012"],
+          security: ["BT1-013", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT9-035", as: "attackerA", dp: 20_000 },
+            { card: "BT9-035", as: "attackerB", dp: 20_000 },
+          ],
+          deck: ["BT1-011", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await opt.ready();
+    opt.state.turnSeat = 1;
+    opt.state.memory = 1;
+
+    expect(
+      opt.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: opt.perm("attackerA").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opt.state.players[0]!.security.length === 1);
+    await settle();
+    expect(opt.perm("host").isSuspended).toBe(false);
+
+    // Second removal in the SAME turn: the [Once Per Turn] budget is spent.
+    opt.perm("host").isSuspended = true;
+    expect(
+      opt.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: opt.perm("attackerB").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opt.state.players[0]!.security.length === 0);
+    await settle();
+    expect(opt.perm("host").isSuspended).toBe(true);
   });
 });
