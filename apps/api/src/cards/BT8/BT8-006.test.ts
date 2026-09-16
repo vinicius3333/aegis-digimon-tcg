@@ -1,6 +1,4 @@
-import { appendFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-const dbg = (...a: unknown[]) => appendFileSync("/tmp/dbg.log", a.map((x) => JSON.stringify(x)).join(" ") + "\n");
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-006.js";
 import "./BT8-072.js";
@@ -25,23 +23,6 @@ describe("BT8-006 DemiMeramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => false, 200);
-    dbg(
-      "EV",
-      s.events.map((e) => [e.kind, (e as any).sourceCardId]),
-    );
-    dbg("PD", s.state.pendingDecision);
-    dbg(
-      "HAND",
-      s.state.players[0]!.hand.map((c) => c.cardId),
-    );
-    dbg(
-      "TRASH",
-      s.state.players[0]!.trash.map((c) => c.cardId),
-    );
-    dbg(
-      "DECK",
-      s.state.players[0]!.deck.map((c) => c.cardId),
-    );
 
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[0]!.hand).toHaveLength(1);
