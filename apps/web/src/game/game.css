@@ -3246,7 +3246,11 @@
   box-sizing: content-box;
   width: var(--panel-row-w);
   padding: 1rem 0.9rem 1.1rem;
-  margin: 0;
+  /* The row is a fixed width so the panel is the same whether it lists two cards or six,
+     which leaves it narrower than the panel wherever the panel is wide — the phone's
+     full-width slot most of all. `justify-content` centres the fan inside the row; this
+     centres the row inside the panel, without which the cards sat against its left edge. */
+  margin: 0 auto;
   flex-wrap: nowrap;
   gap: 0;
   align-items: flex-start;
@@ -8219,13 +8223,41 @@ button.side-panel__name:focus-visible {
 @media (width < 600px) {
   /* The band rides at the very top of the board, over the opponent's counters, hand and
      raising strip — none of which is read while a moment is being narrated.
-     Height is not capped here. A cap turned the opened column into a 132px scroller that
-     cut the clause off at the top, which is the one thing opening it is for: the folded
-     band is what keeps the board clear, and opening it is the viewer asking to read. */
+     The opened column runs down to just above the viewer's own egg, security, deck and
+     trash row, and scrolls past that with the chevron the slot already draws saying there
+     is more above. Opening it is the viewer asking to read, so it is allowed to cover both
+     battle rows; what it stays clear of is the viewer's own counters and hand, which are
+     what they act with. Measured on this board: the column starts at 60px and that row at
+     569px, so 31rem leaves it 13px of clearance. An earlier cap cut the clause off
+     silently, which is what made it feel broken; with the chevron the column reads as
+     scrollable rather than as truncated. */
   .narration-slot[data-slot="narration"] {
     top: max(var(--ds-space-1), env(safe-area-inset-top, 0px));
+    max-height: 31rem;
+    overflow-y: auto;
+    pointer-events: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* The folded band is one row: it has nothing to scroll and no chevron to draw. */
+  .narration-slot[data-slot="narration"]:has(.narration-peek) {
     max-height: none;
     overflow: visible;
-    pointer-events: auto;
+  }
+
+  /* Pointing at what is below instead of above: it rides the bottom edge, not the top. */
+  .narration-slot__more[data-below] {
+    top: auto;
+    bottom: 0;
+    margin-top: calc(-2.6rem - var(--ds-space-2));
+    margin-bottom: 0;
+  }
+
+  /* Both controls stay put while the column scrolls under them. */
+  .narration-slot[data-slot="narration"] .narration-slot__peek {
+    position: sticky;
+    top: 0.15rem;
+    align-self: flex-end;
+    margin-bottom: calc(-1.9rem - var(--ds-space-2));
   }
 }
