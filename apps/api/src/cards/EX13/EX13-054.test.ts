@@ -1,0 +1,379 @@
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./EX13-054.js";
+import "../index.js";
+
+const CARD_ID = "EX13-054";
+
+describe("EX13-054 Nanimon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      cardId: CARD_ID,
+      nameEn: "Nanimon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 3,
+      dp: 3000,
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Invader"],
+      evoCosts: [
+        { color: "Black", level: 3, memoryCost: 2 },
+        { color: "Yellow", level: 3, memoryCost: 2 },
+      ],
+      inheritedEffectText: "[All Turns] This Digimon gets +1000 DP.",
+    });
+  });
+
+  it("compiles every printed clause", () => {
+    expect(compiled).toMatchObject({ cardId: CARD_ID, coverage: "full", residual: [] });
+    expect(compiled.digivolutionRequirement).toBeUndefined();
+    expect(compiled.effects).toHaveLength(5);
+
+    // [Security] At the end of the battle, play this card without paying the cost.
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Security",
+      timing: "endOfBattle",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, target: { isSelf: true } }],
+        },
+      ],
+    });
+
+    // [On Play] [On Deletion] 1 of your opponent's Digimon can't attack players until their turn ends.
+    for (const index of [1, 2]) {
+      expect(compiled.effects[index]).toMatchObject({
+        trigger: index === 1 ? "OnPlay" : "OnDeletion",
+        actions: [
+          {
+            kind: "Restrict",
+            restriction: "attackPlayers",
+            duration: "untilOpponentTurnEnd",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          },
+        ],
+      });
+    }
+
+    // [Rule] Trait: Has [Mutant] Type.
+    expect(compiled.effects[3]).toMatchObject({
+      trigger: "Rule",
+      actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Mutant"], duration: "permanent" }],
+    });
+
+    // Inherited: [All Turns] This Digimon gets +1000 DP.
+    expect(compiled.effects[4]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent", target: { isSelf: true } }],
+    });
+  });
+
+  it("[On Play] restricts one chosen opposing Digimon and leaves the other free", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "nanimon" }], deck: ["BT1-010"] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "restricted" },
+            { card: "BT1-010", as: "free" },
+          ],
+          deck: ["BT1-011"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    preferInstanceIds.push(s.perm("restricted").topCard.instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nanimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers"));
+
+    // Exactly one of the two opposing Digimon is restricted, and only from attacking players.
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("free"), "attackPlayers")).toBe(false);
+  });
+
+  it("refuses the restricted Digimon's player attack while its ally and its own Digimon attack stay legal", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "nanimon" }],
+          battleArea: [{ card: "BT1-020", as: "wall", dp: 1000, suspended: true }],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "restricted" },
+            { card: "BT1-010", as: "free" },
+          ],
+          deck: ["BT1-011"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    preferInstanceIds.push(s.perm("restricted").topCard.instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nanimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    const refused = s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("restricted").permanentId,
+      target: { kind: "player" },
+    });
+    expect(refused.ok).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+
+    // The same Digimon may still attack a Digimon: only the player attack is cut off.
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("restricted").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.security).toHaveLength(2);
+
+    // And the opponent's other Digimon is untouched: its player attack goes through.
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("free").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("the restriction expires once the opponent's turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "nanimon" }], deck: ["BT1-010", "BT1-012", "BT1-013"] },
+        1: { battleArea: [{ card: "BT1-009", as: "restricted" }], deck: ["BT1-011", "BT1-012", "BT1-013"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nanimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers"));
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers")).toBe(true);
+
+    // A full opponent turn through the real turn loop — "until their turn ends".
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers")).toBe(false);
+  });
+
+  it("[On Deletion] fires from a real battle deletion and restricts the surviving attacker", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "nanimon", suspended: true }],
+          security: ["BT1-010"],
+          deck: ["BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker", dp: 9000 }], deck: ["BT1-011"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    await s.ready();
+    const nanimonInstanceId = s.perm("nanimon").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("nanimon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === nanimonInstanceId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(nanimonInstanceId);
+    expect(observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("attacker"), "attack")).toBe(false);
+  });
+
+  it("plays itself only after the security battle has already deleted the attacker", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: CARD_ID, as: "nanimon" }], deck: ["BT1-010"] },
+        1: {
+          battleArea: [
+            { card: "BT1-020", as: "attacker", dp: 2000 },
+            { card: "BT1-009", as: "bystander" },
+          ],
+          deck: ["BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    await s.ready();
+    const nanimonInstanceId = s.inst("nanimon").instanceId;
+    const attackerInstanceId = s.perm("attacker").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === nanimonInstanceId));
+
+    // The 2000 DP attacker lost the security battle against the 3000 DP checked card. That
+    // outcome is already settled when Nanimon enters play, so its [On Play] can only reach the
+    // Digimon that survived — proof the play is deferred past the battle, not run during the check.
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerInstanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(nanimonInstanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(nanimonInstanceId);
+    expect(observe(s.engine).isRestricted(s.perm("bystander"), "attackPlayers")).toBe(true);
+  });
+
+  it("plays itself from security at the end of a real security battle", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: CARD_ID, as: "nanimon" }], deck: ["BT1-010"] },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker", dp: 9000 }], deck: ["BT1-011"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    await s.ready();
+    const nanimonInstanceId = s.inst("nanimon").instanceId;
+    const memoryBeforeCheck = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === nanimonInstanceId));
+
+    // The security battle ran to completion first: the 9000 DP attacker survived it, and the
+    // checked card it trashed is no longer in the trash — it is on the board.
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toContain(
+      s.perm("attacker").topCard.instanceId,
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(nanimonInstanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(nanimonInstanceId);
+    // The play is free: the defender's memory gauge is untouched by it.
+    expect(s.state.memory).toBe(memoryBeforeCheck);
+    // [On Play] then fires from the board against the post-battle opponent board.
+    expect(observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers")).toBe(true);
+  });
+
+  it("carries the [Mutant] trait granted by its [Rule] clause", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: CARD_ID, as: "nanimon" }], deck: ["BT1-010"] },
+      1: { deck: ["BT1-011"] },
+    });
+    await s.ready();
+    await advance(s.engine).recompute();
+
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("nanimon"), "Mutant")).toBe(true);
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("nanimon"), "Invader")).toBe(true);
+  });
+
+  it("passes +1000 DP up as an inherited effect", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "top", under: [CARD_ID] }], deck: ["BT1-010"] },
+      1: { deck: ["BT1-011"] },
+    });
+    await s.ready();
+    await advance(s.engine).recompute();
+
+    const printedDp = getCardDefinition("BT1-020")!.dp!;
+    expect(s.perm("top").currentDP).toBe(printedDp + 1000);
+  });
+
+  it("gives no inherited DP to itself while it is the top card of its own stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: CARD_ID, as: "nanimon", under: ["BT11-036"] }], deck: ["BT1-010"] },
+      1: { deck: ["BT1-011"] },
+    });
+    await s.ready();
+    await advance(s.engine).recompute();
+
+    expect(s.perm("nanimon").currentDP).toBe(getCardDefinition(CARD_ID)!.dp!);
+  });
+
+  it("digivolves from a black Lv.3 for 2 and refuses an illegal source", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT11-036", as: "base" }],
+        hand: [{ card: CARD_ID, as: "nanimon" }],
+        deck: [{ card: "BT1-010", as: "evolutionDraw" }],
+      },
+      1: { deck: ["BT1-011"] },
+    });
+    legal.state.memory = 5;
+    await legal.ready();
+    const baseInstanceId = legal.perm("base").topCard.instanceId;
+
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("nanimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.instanceId === legal.inst("nanimon").instanceId);
+    expect(legal.state.memory).toBe(3);
+    expect(legal.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
+
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: CARD_ID, as: "nanimon" }] },
+      1: { deck: ["BT1-011"] },
+    });
+    illegal.state.memory = 5;
+    await illegal.ready();
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("base").permanentId,
+        instanceId: illegal.inst("nanimon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(illegal.state.memory).toBe(5);
+  });
+});

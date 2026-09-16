@@ -1,8 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT18-036.js";
 import "./BT18-019.js";
+
+const INERT_SECURITY = ["BT1-009", "BT1-011", "BT1-012"];
+
+type Setup = ReturnType<typeof setupEngine>;
+
+/** Open the named seat's real Main phase inside a running production turn loop. */
+async function openMain(s: Setup, seat: 0 | 1): Promise<void> {
+  await advance(s.engine).waitForMainPhase(seat);
+}
+
+/** Close the named seat's Main phase, tolerating production's own auto-pass. */
+function closeMain(s: Setup, seat: 0 | 1): void {
+  advance(s.engine).endMainPhaseIfOpen(seat);
+}
+
+/** Stop the running turn loop so the test can assert on a quiescent board. */
+async function stopLoop(s: Setup, loop: Promise<void>, seat: 0 | 1): Promise<void> {
+  expect(s.engine.applyIntent(seat, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
 
 describe("BT18-036 Wizardmon", () => {
   it("limits inherited prevention to opponent effects and the yellow Data/Witchelny filter", () => {
@@ -18,6 +39,7 @@ describe("BT18-036 Wizardmon", () => {
           event: "wouldLeavePlay",
           leaveCause: "byOpponentEffect",
           sourceFilter: {
+            isSelfRef: true,
             colors: ["Yellow"],
             nameOrTrait: [{ tokens: ["Data", "Witchelny"], match: "trait" }],
           },
@@ -155,5 +177,255 @@ describe("BT18-036 Wizardmon", () => {
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(1);
     assertNoLoudGap(s);
+  });
+
+  it.each([
+    ["BT3-037", "Data"],
+    ["BT26-022", "Witchelny"],
+  ])("prevents an opponent effect from removing a yellow %s host by trashing the top security card", async (host) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: host, as: "host", dp: 4000, under: [{ card: "BT18-036", as: "wizardmon" }] }],
+          security: [
+            { card: "BT1-009", as: "secTop" },
+            { card: "BT1-011", as: "secNext" },
+          ],
+          deck: ["BT1-012", "BT1-012"],
+          hand: [{ card: "BT1-012", as: "spare" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "opponentSource", dp: 20_000 }],
+          hand: [
+            { card: "BT2-091", as: "flare" },
+            { card: "BT1-012", as: "opponentSpare" },
+          ],
+          security: INERT_SECURITY,
+          deck: ["BT1-012", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flare").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 1);
+    closeMain(s, 1);
+    await stopLoop(s, loop, 1);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([host]);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("wizardmon").instanceId]);
+    // Exactly the TOP security card paid for it.
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("secTop").instanceId]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("secNext").instanceId]);
+    assertNoLoudGap(s);
+  });
+
+  it.each([
+    ["BT1-051", "a yellow Vaccine host with neither the [Data] nor the [Witchelny] trait"],
+    ["BT1-014", "a red [Data] host that is not yellow"],
+  ])("does not protect %s (%s)", async (host) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: host, as: "host", dp: 4000, under: [{ card: "BT18-036", as: "wizardmon" }] }],
+          security: [
+            { card: "BT1-009", as: "secTop" },
+            { card: "BT1-011", as: "secNext" },
+          ],
+          deck: ["BT1-012", "BT1-012"],
+          hand: [{ card: "BT1-012", as: "spare" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "opponentSource", dp: 20_000 }],
+          hand: [
+            { card: "BT2-091", as: "flare" },
+            { card: "BT1-012", as: "opponentSpare" },
+          ],
+          security: INERT_SECURITY,
+          deck: ["BT1-012", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flare").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    closeMain(s, 1);
+    await stopLoop(s, loop, 1);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("secTop").instanceId,
+      s.inst("secNext").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT18-036", host].sort());
+  });
+
+  it("protects only the Digimon carrying this card, not a matching yellow [Data] sibling (Q3087)", async () => {
+    // Both permanents are yellow [Data] Lv.4 Digimon; only `carrier` has Wizardmon underneath.
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-037", as: "carrier", dp: 4000, under: [{ card: "BT18-036", as: "wizardmon" }] },
+            { card: "BT9-035", as: "sibling", dp: 4000 },
+          ],
+          security: [
+            { card: "BT1-009", as: "secTop" },
+            { card: "BT1-011", as: "secNext" },
+          ],
+          deck: ["BT1-012", "BT1-012"],
+          hand: [{ card: "BT1-012", as: "spare" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "opponentSource", dp: 20_000 }],
+          hand: [
+            { card: "BT2-091", as: "flare" },
+            { card: "BT1-012", as: "opponentSpare" },
+          ],
+          security: INERT_SECURITY,
+          deck: ["BT1-012", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    // Aim the opponent's removal at the SIBLING, which carries no Wizardmon.
+    preferInstanceIds.push(s.perm("sibling").topCard!.instanceId, s.perm("sibling").permanentId);
+    const siblingTopId = s.perm("sibling").topCard!.instanceId;
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flare").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    closeMain(s, 1);
+    await stopLoop(s, loop, 1);
+
+    // The sibling is gone and nothing was paid: the prevention is scoped to its own host.
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
+      s.perm("carrier").topCard!.instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([siblingTopId]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("secTop").instanceId,
+      s.inst("secNext").instanceId,
+    ]);
+  });
+
+  it("prevents only once per opponent turn and re-arms on the opponent's following turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-037", as: "host", dp: 4000, under: [{ card: "BT18-036", as: "wizardmon" }] }],
+          security: [
+            { card: "BT1-009", as: "secOne" },
+            { card: "BT1-011", as: "secTwo" },
+            { card: "BT1-012", as: "secThree" },
+          ],
+          deck: ["BT1-012", "BT1-012", "BT1-012", "BT1-012"],
+          hand: [{ card: "BT1-012", as: "spare" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "opponentSource", dp: 20_000 }],
+          hand: [
+            { card: "BT2-091", as: "flareOne" },
+            { card: "BT2-091", as: "flareTwo" },
+            { card: "BT2-091", as: "flareThree" },
+            { card: "BT1-012", as: "opponentSpare" },
+          ],
+          security: INERT_SECURITY,
+          deck: ["BT1-012", "BT1-012", "BT1-012", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flareOne").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 2);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+
+    // Second removal in the SAME turn: refused, and no further security is spent.
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flareTwo").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("secTwo").instanceId,
+      s.inst("secThree").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT18-036", "BT3-037"]);
+    closeMain(s, 1);
+    await stopLoop(s, loop, 1);
+  });
+
+  it("re-arms the once-per-turn prevention on the opponent's following turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-037", as: "host", dp: 4000, under: [{ card: "BT18-036", as: "wizardmon" }] }],
+          security: [
+            { card: "BT1-009", as: "secOne" },
+            { card: "BT1-011", as: "secTwo" },
+            { card: "BT1-012", as: "secThree" },
+          ],
+          deck: ["BT1-012", "BT1-012", "BT1-012", "BT1-012"],
+          hand: [{ card: "BT1-012", as: "spare" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "opponentSource", dp: 20_000 }],
+          hand: [
+            { card: "BT2-091", as: "flareOne" },
+            { card: "BT2-091", as: "flareTwo" },
+            { card: "BT1-012", as: "opponentSpare" },
+          ],
+          security: INERT_SECURITY,
+          deck: ["BT1-012", "BT1-012", "BT1-012", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flareOne").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 2);
+    closeMain(s, 1);
+
+    // Seat 0's own turn passes, then the opponent's next turn: a fresh once-per-turn window.
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flareTwo").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    closeMain(s, 1);
+    await stopLoop(s, loop, 1);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT3-037"]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("secThree").instanceId]);
   });
 });
