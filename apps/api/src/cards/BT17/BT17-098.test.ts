@@ -177,13 +177,6 @@ describe("BT17-098 Hacker Pride", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
-  // Q2892: "top card" means 1 or more cards WITH cards underneath, so a Digimon with no
-  // digivolution cards is not a legal host. Engine seam: the routed place-as-cost branch in
-  // apps/api/src/engine/effects/interpreter/costs.ts (payCost, `cost.destination !== undefined`
-  // + `targetIsPermanent`) calls resolvePermanentTargets(ctx, cost.target) without requiring
-  // `permanent.stack.length > 0` when `cost.detachPermanentTop === true`. Expected: the bare
-  // Boutmon is not offered and the Delay cannot be paid. Actual: its only card is placed on the
-  // security stack, the permanent leaves the battle area, and 2 memory is gained.
   it("refuses the Delay when the only [Pulsemon]-text host has no digivolution cards", async () => {
     const s = setupEngine(
       {
@@ -254,7 +247,6 @@ describe("BT17-098 Hacker Pride", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === legalTopId));
 
-    // Q2893: the Tamer underneath becomes the top card and stays in the battle area as a Tamer.
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(legalTopId);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.perm("legalHost").topCard?.cardId).toBe("BT17-080");

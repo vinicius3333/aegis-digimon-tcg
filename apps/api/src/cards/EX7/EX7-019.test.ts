@@ -223,7 +223,6 @@ describe("EX7-019 Sorcermon", () => {
     await settle(() => s.perm("stacked").stack.length === 1);
     expect(s.perm("stacked").stack.map((card) => card.cardId)).toEqual(["BT1-028"]);
 
-    // Victory Sword publicly unsuspends the blue host.
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("victory").instanceId })).toEqual({
       ok: true,

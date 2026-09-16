@@ -1,7 +1,3 @@
-// Hand-authored override — do not regenerate.
-// OnPlay+WhenDigivolving: 3 separate bottom PlaceUnder actions (1 per named card from trash).
-// Errata (2022-09-05): Fujinmon (not Fuijinmon). Source zone: trash (per text and errata).
-// GainMemory scaling: count all cards placed by this effect (no controllerDefault restriction).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

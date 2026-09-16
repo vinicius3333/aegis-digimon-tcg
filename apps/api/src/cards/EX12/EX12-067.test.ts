@@ -203,8 +203,6 @@ describe("EX12-067 Kiyoshiro Higashimitarai", () => {
             { card: CARD_ID, as: "kiyo" },
             { card: "EX12-027", as: "attacker" },
           ],
-          // A level-3 pure Digimon cannot evolve this level-4 attacker. A DUAL
-          // with an illegal evolution route may still be legal in the Option branch.
           hand: [{ card: "EX12-023", as: "illegalTarget" }],
         },
       },

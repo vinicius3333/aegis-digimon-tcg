@@ -9,15 +9,6 @@ import "../BT2/BT2-010.js";
 import "./BT11-097.js";
 import { compiled } from "./BT11-097.js";
 
-// A3 for BT11-097 (Crimson Flare):
-//   [Main] Delete 1 of your opponent's Digimon with 8000 DP or less.
-//
-// FAILS-WHEN-REVERTED: the declarative effect record handled the Delete clause but the
-// generated "activate [On Deletion] effect" fallback was inert. The hand-written module's
-// [Main] DELETE step is the observable: `deletePermanent` is called with the chosen
-// permanent. Without this module, the timing guard for EffectTiming.OnPlay would
-// yield zero effects (the IR registered under `OptionSkill` which doesn't exist).
-
 function fakeDef(cardId: string, kind: CardKind = CardKind.Digimon): CardDefinition {
   return {
     cardId,
@@ -162,7 +153,7 @@ describe("BT11-097 Crimson Flare [Main]", () => {
         !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
     );
 
-    expect(s.state.memory).toBe(6); // pay 5, then Biyomon's [On Deletion] gains 1
+    expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("biyomon").permanentId,
     );
@@ -212,15 +203,11 @@ describe("BT11-097 Crimson Flare [Main]", () => {
       }
     }
 
-    // FAILS-WHEN-REVERTED: IR's Main action was Delete but under OptionSkill timing which
-    // doesn't exist — yielding 0 effects at OnPlay. This assertion requires deletePermanent
-    // to have been called.
     expect(deletedIds).toContain(oppDigimon.permanentId);
   });
 
   it("does NOT target opponent Digimon with > 8000 DP", async () => {
     const deletedIds: string[] = [];
-    // 9000 DP — above the 8000 threshold
     const oppDigimon = fakePerm("opp-high", 9000, 1 as Seat);
     const ctx = makeCtx({ deletedIds, oppBattleArea: [oppDigimon] });
 
@@ -233,7 +220,6 @@ describe("BT11-097 Crimson Flare [Main]", () => {
       }
     }
 
-    // 9000 DP Digimon is not a valid target; nothing should be deleted.
     expect(deletedIds).toHaveLength(0);
   });
 

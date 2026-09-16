@@ -6,17 +6,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-073.js";
 import "./index.js";
 
-// BT17-073 DexDorugoramon (Digimon, Lv6, Purple/Black)
-//   [Digivolve][Dorugoramon]: Cost 2  (no "in name" -> exact-name alternate route)
-//   [Trash] [All Turns] When one of your [Dorugoramon] would be deleted, by digivolving it into
-//     this card without paying the cost, prevent that deletion.
-//   [When Digivolving] <De-Digivolve3> 1 of your opponent's Digimon. Then, if [Dorugoramon] is in
-//     this Digimon's digivolution cards or this card is digivolving from the trash, delete all of
-//     your opponent's Digimon with the lowest level.
-//   [All Turns] [Once Per Turn] When another Digimon is deleted, you may unsuspend this Digimon.
-// Q&A: Q2838 (the [Trash] effect triggers while this card is in the trash and your Dorugoramon
-//   would be deleted); Q2839 (using it against a DP-becoming-0 deletion prevents that deletion,
-//   but the DP reduction carries over and re-deletes if DexDorugoramon is still at 0 DP).
 describe("BT17-073 DexDorugoramon", () => {
   it("matches the catalog printed text, evolution costs and the exact-name route", () => {
     expect(getCardDefinition("BT17-073")).toMatchObject({
@@ -44,7 +33,6 @@ describe("BT17-073 DexDorugoramon", () => {
     expect(printed).toContain(
       "[All Turns] [Once Per Turn] When another Digimon is deleted, you may unsuspend this Digimon.",
     );
-    // The printed route carries no "in name", so it is modelled as an exact-name alternate.
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Dorugoramon"], cost: 2, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -145,14 +133,11 @@ describe("BT17-073 DexDorugoramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowLevelId));
 
-    // Alternate exact-name route paid 2 (2 -> 0), Dorugoramon sits beneath, bonus draw landed.
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").topCard.instanceId).toBe(dexId);
     expect(s.perm("base").stack.some((card) => card.cardId === "BT16-064")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
-    // De-Digivolve3 peeled the L6 top off deTarget, promoting the L5 source.
     expect(s.perm("deTarget").topCard.cardId).toBe("AD1-002");
-    // Dorugoramon in the digivolution cards satisfies the condition; the lowest-level (L3) died.
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowLevelId)).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -185,7 +170,6 @@ describe("BT17-073 DexDorugoramon", () => {
     const dexId = s.inst("dexDorugoramon").instanceId;
     const lowLevelId = s.perm("lowLevel").permanentId;
 
-    // Normal Lv5-Purple evoCost route (memory 5), from the battle area, base is not Dorugoramon.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -196,9 +180,7 @@ describe("BT17-073 DexDorugoramon", () => {
     await settle(() => s.perm("base").topCard.cardId === "AD1-002" || s.perm("deTarget").topCard.cardId === "AD1-002");
 
     expect(s.state.memory).toBe(0);
-    // De-Digivolve still fired.
     expect(s.perm("deTarget").topCard.cardId).toBe("AD1-002");
-    // Condition unmet -> the lowest-level Digimon survives.
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowLevelId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -219,9 +201,6 @@ describe("BT17-073 DexDorugoramon", () => {
     const dexId = s.inst("dexDorugoramon").instanceId;
     const nearId = s.perm("nearName").topCard.instanceId;
 
-    // "DexDorugoramon" contains "Dorugoramon" as a substring but is not the exact name, and it is
-    // Lv6, so it satisfies neither the exact-name route nor the Lv5 evoCost. Under the substring
-    // `names` form it would wrongly pass the cost-2 route.
     for (const useAlternateCost of [true, false]) {
       expect(
         s.engine.applyIntent(0, {
@@ -232,7 +211,6 @@ describe("BT17-073 DexDorugoramon", () => {
         }),
       ).not.toEqual({ ok: true });
     }
-    // An off-route Lv3 base is refused on both routes too.
     for (const useAlternateCost of [true, false]) {
       expect(
         s.engine.applyIntent(0, {
@@ -303,7 +281,6 @@ describe("BT17-073 DexDorugoramon", () => {
     await settle(() => !s.perm("dexDorugoramon").isSuspended);
     expect(s.perm("dexDorugoramon").isSuspended).toBe(false);
 
-    // Plumbing: re-suspend between two real battles so the second attack has a legal target.
     await advance(s.engine).verb.suspend([dexPermId]);
     expect(s.perm("dexDorugoramon").isSuspended).toBe(true);
 
@@ -316,7 +293,6 @@ describe("BT17-073 DexDorugoramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-013"));
 
-    // The once-per-turn allowance is spent, so the second deletion leaves it suspended.
     expect(s.perm("dexDorugoramon").isSuspended).toBe(true);
   });
 

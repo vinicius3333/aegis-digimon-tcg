@@ -145,9 +145,6 @@ describe("BT2-041 ShineGreymon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    // Both `RepeatPerCount` DP hits land on the same auto-selected opponent Digimon
-    // (`neoDevimonHost`, not `target`), so `target`'s DP never moves; the real proof
-    // of this test is the memory swing from NeoDevimon's per-suspended-Tamer reaction.
     await settle(() => s.state.memory === -1);
 
     expect(s.state.memory).toBe(-1);

@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Errata 2021-11-12: only OTHER same-named Digimon gain Decoy, and Decoy replaces
-// deletion only when caused by an opponent's effect.
 const compiled: CompiledCard = {
   effects: [
     {

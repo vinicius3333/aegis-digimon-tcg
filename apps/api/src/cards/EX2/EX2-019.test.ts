@@ -172,9 +172,6 @@ describe("EX2-019 Renamon", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-    // Passing the turn hands the shared memory gauge to the next player, so the
-    // absolute marker is reset by the turn loop. Assert this Option's exact net
-    // delta instead of coupling the proof to that turn-start gauge value.
     const nextTurnBefore = s.state.memory;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option3").instanceId })).toEqual({
       ok: true,

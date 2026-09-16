@@ -77,8 +77,6 @@ describe("BT10-110 Seiken Meppa", () => {
     s.state.memory = 10;
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("jesmon"), "SecurityAttack")).toBeGreaterThan(0);
-    // Venusmon only forbids attacks aimed at itself; it does not broadly disable
-    // Jesmon's attacks against the player or another Digimon.
     expect(observe(s.engine).isRestricted(s.perm("jesmon"), "attack")).toBe(false);
     expect(observe(s.engine).timingEffectDisabled(s.perm("jesmon"), "whenDigivolving")).toBe(true);
 

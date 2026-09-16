@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play][When Digivolving]: By trashing 1 card with [Gammamon] in its TEXT from hand,
-// give 1 opponent's Digimon BOTH <Collision> AND "[Start of Your Main Phase] This Digimon attacks."
-// until their turn ends. KB Q4586: "in its text" = contains Gammamon in name, traits, effects, etc.
-// KB Q4587: the gained effects work normally unless the Digimon is unaffected by your effects.
-//
-// [On Deletion]: You may play 1 [Canoweissmon] or 1 level 4-or-lower Digimon card with [Gammamon]
-// in its text from trash without paying cost. ("with [Gammamon]" = text match per KB Q4586).
-// The bracket-only [Canoweissmon] branch is an exact named-card reference per comprehensive §2-3-1.
-// isInherited version has same rule.
 export const compiled: CompiledCard = {
   effects: [
     {

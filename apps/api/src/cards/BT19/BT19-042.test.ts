@@ -6,11 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-042.js";
 
-/**
- * Drive one production turn and run `body` while that seat's Main phase is authoritatively
- * open. `advance().runTurn` closes Main immediately, which is too early for a clause that has
- * to be observed from inside the phase.
- */
 async function runTurnWith(s: EngineSetup, seat: 0 | 1, body: () => Promise<void>): Promise<void> {
   const driver = advance(s.engine);
   const turn = s.engine.runOneTurn();
@@ -53,7 +48,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
   });
 
   it("compiles the bracketed name gates exactly and the own security card as the only cost", () => {
-    // `[Digivolve][Dynasmon]` is a bracketed exact name, not a substring gate.
     expect(digivolutionRequirementsFor("BT19-042")).toEqual([{ namesExact: ["Dynasmon"], cost: 1, isAlternate: true }]);
 
     const digivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")!;
@@ -64,8 +58,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
       expect(effect.actions[0]).toMatchObject({
         kind: "trashSecurityTop",
         controller: "opponent",
-        // Printed: "by trashing the top card of YOUR security stack, trash the top card of your
-        // OPPONENT's". Only the own card is the cost; the opponent's trash is the payload.
         cost: { kind: "trashSecurityTop" },
         condition: {
           kind: "selfHasInDigivolutionCards",
@@ -114,13 +106,10 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
       await settle(() => s.perm("base").topCard?.cardId === "BT19-042");
       await settle(() => s.perm("base").currentDP === 18000);
 
-      // The cost-1 alternate route, not the cost-4 printed EvoCost: memory 3 - 1 + 1 (the
-      // digivolve draw does not touch memory) leaves 2.
       expect(s.state.memory).toBe(2);
       const host = s.perm("base");
       expect(host.stack.map((card) => card.cardId)).toEqual(["BT1-057", "BT19-041"]);
       expect(host.currentDP).toBe(18000);
-      // Exact endpoints: each player lost the TOP card of their stack, in order.
       expect(securityIds(s, 0)).toEqual([s.inst("mineSecond").instanceId, s.inst("mineThird").instanceId]);
       expect(securityIds(s, 1)).toEqual([s.inst("oppSecond").instanceId]);
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("mineTop").instanceId);
@@ -130,9 +119,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
   });
 
   it("refuses the cost-1 route from a near-miss [Dynasmon (X Antibody)] base and from an illegal level", async () => {
-    // "Dynasmon (X Antibody)" CONTAINS "Dynasmon": a substring gate would hand it the cost-1
-    // route. Both bases are also illegal for the printed Lv.5 EvoCost, so the whole intent is
-    // refused rather than silently falling back.
     for (const base of ["BT19-042", "BT1-014"]) {
       const s = setupEngine({
         0: {
@@ -186,7 +172,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard?.cardId === "BT19-042");
       expect(s.state.memory).toBe(2);
-      // Sirenmon is neither [Dynasmon] nor [X Antibody]: the clause does not fire.
       expect(s.perm("base").currentDP).toBe(12000);
       expect(s.state.players[0]!.security).toHaveLength(1);
       expect(s.state.players[1]!.security).toHaveLength(1);
@@ -225,9 +210,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
   });
 
   it("still pays and boosts when the opponent's security stack is empty", async () => {
-    // The printed cost is only YOUR top security card, so an empty opponent stack removes the
-    // payload's trash but not the +6000 DP — unlike BT19-043, whose "both players'" cost is
-    // atomic (KB Q3096).
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT19-042", as: "dynasX", under: ["BT19-041"] }],
@@ -303,9 +285,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
           security: inert(4),
         },
       },
-      // ＜Raid＞ offers to switch the attack target while the opponent has an unsuspended
-      // Digimon; decline it so the declared target stands. The clause under test is mandatory,
-      // so this flag cannot suppress it.
       { autoDeclineOptional: true },
     );
     s.state.memory = 3;
@@ -328,7 +307,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[1]!.security).toHaveLength(3);
 
-    // Same turn, second timing: the shared once-per-turn use is spent, so nothing more happens.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -342,8 +320,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
     expect(s.perm("base").currentDP).toBe(18000);
     drive.endMainPhaseIfOpen(0);
 
-    // The opponent's own turn: attacking with the raider suspends it so it is a legal target
-    // again next turn, without ever writing `turnSeat` by hand.
     await drive.waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
@@ -356,7 +332,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
     const mySecurityAfterTheirAttack = s.state.players[0]!.security.length;
     drive.endMainPhaseIfOpen(1);
 
-    // Next own turn: the use has reset and the +6000 from the earlier turn has expired.
     await drive.waitForMainPhase(0);
     expect(s.perm("base").currentDP).toBe(12000);
     expect(
@@ -374,9 +349,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
     await loop;
   });
 
-  // At 2 security the deck's top card is placed ON TOP of the stack; at 3 the gate is shut and the
-  // stack keeps its own 3 cards. Seat 0's first turn has no draw step, so the deck only loses a
-  // card to the Recovery itself.
   it.each([
     [2, true],
     [3, false],
@@ -423,8 +395,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("dynasX"), "Raid")).toBe(true);
 
-    // CR 16-23-1: the attack target switches to the opponent's highest-DP unsuspended Digimon,
-    // so the security stack is never checked.
     await runTurnWith(s, 0, async () => {
       expect(
         s.engine.applyIntent(0, {
@@ -445,8 +415,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
         battleArea: [{ card: "BT19-042", as: "dynasX", under: ["BT1-057"] }],
         hand: ["BT1-009"],
         deck: Array.from({ length: 8 }, () => "BT1-009"),
-        // Three, so seat 0's own [End of Your Turn] ＜Recovery +1＞ gate ("2 or fewer") stays shut
-        // and the block assertion measures only the block.
         security: ["BT1-009", "BT1-013", "BT1-014"],
       },
       1: {
@@ -461,7 +429,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
 
     const loop = s.engine.startTurnLoop();
     const drive = advance(s.engine);
-    // Seat 0 does nothing: the blocker must still be unsuspended when seat 1 attacks.
     await drive.waitForMainPhase(0);
     drive.endMainPhaseIfOpen(0);
 
@@ -480,7 +447,6 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
       },
     );
     await settle(() => !observe(s.engine).isAttacking());
-    // The block redirected the attack: security untouched, the 6000 attacker is deleted.
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
 

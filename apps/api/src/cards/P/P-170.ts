@@ -1,19 +1,12 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-170 AvengeKidmon.
-// Replacement: when this card would be played, paying cost (return 3 [Three Musketeers]-text
-// cards from trash to deck bottom) reduces play cost by 6.
-// digivolutionRequirement.texts:["Three Musketeers"] covers "in text" — isAlternate is correct.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
       actions: [
         {
-          // When this card would be played, paying the cost (return 3 Three-Musketeers-text cards
-          // from trash to deck bottom) reduces the play cost by 6.
-          // Single Replacement — no inner duplicate; the outer mode/amount IS the reduction.
           kind: "Replacement",
           event: "wouldBePlayed",
           sourceFilter: {

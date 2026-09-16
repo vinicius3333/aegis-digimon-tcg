@@ -221,7 +221,7 @@ describe("BT20-040 Coredramon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-042"));
     expect(s.perm("coredramon").topCard.cardId).toBe("BT20-040");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("destination").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(3); // Groundramon's printed play cost is 7.
+    expect(s.state.memory).toBe(3);
   });
 
   it("uses Raid and grants its inherited host +2000 DP only on its controller's turn", async () => {

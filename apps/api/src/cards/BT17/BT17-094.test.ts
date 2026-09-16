@@ -139,7 +139,6 @@ describe("BT17-094 Ancient Guardian Deity", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-017")).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("spare").instanceId);
-    // 2 for the Option, then AncientGreymon's 12 reduced by 4.
     expect(s.state.memory).toBe(0);
   });
 
@@ -168,7 +167,6 @@ describe("BT17-094 Ancient Guardian Deity", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-083")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093")).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOnlyTamer").instanceId);
-    // 2 for the Option; Koji Minamoto's 4 reduced by 4 costs nothing.
     expect(s.state.memory).toBe(3);
   });
 

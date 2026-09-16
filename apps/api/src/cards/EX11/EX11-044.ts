@@ -1,8 +1,3 @@
-// HAND-FIXED IR for EX11-044 — do not regenerate.
-// Delete cost: count corrected to 3 (was 1); added superlative:highestPlayCost; fixed
-// cost filter (kind:Digimon removed, zone added). AllTurns: plain PlaceUnder converted
-// to SubTrigger (fires when digivolution cards are trashed); PlaceUnder corrected from
-// Save form to standard form (Mineral/Rock from trash → self bottom).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
@@ -47,10 +42,6 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                // canPayCost only recognizes a stack-trash cost through filter.zone; with just
-                // `from` the affordability gate fell through to its `return true` default and
-                // offered the optional clause with fewer than 3 payable cards (KB Q5889: a "by"
-                // cost may not be partially paid).
                 zone: "digivolutionCards",
                 nameOrTrait: [
                   {
@@ -89,10 +80,6 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                // canPayCost only recognizes a stack-trash cost through filter.zone; with just
-                // `from` the affordability gate fell through to its `return true` default and
-                // offered the optional clause with fewer than 3 payable cards (KB Q5889: a "by"
-                // cost may not be partially paid).
                 zone: "digivolutionCards",
                 nameOrTrait: [
                   {
@@ -131,10 +118,6 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                // canPayCost only recognizes a stack-trash cost through filter.zone; with just
-                // `from` the affordability gate fell through to its `return true` default and
-                // offered the optional clause with fewer than 3 payable cards (KB Q5889: a "by"
-                // cost may not be partially paid).
                 zone: "digivolutionCards",
                 nameOrTrait: [
                   {

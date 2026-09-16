@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1246: +1000 DP applies to any color (no color restriction on Aura).
-// "When an opponent's Digimon is deleted by dropping to 0 DP" is represented
-// explicitly so effect and battle deletions do not arm the watcher.
 const compiled: CompiledCard = {
   effects: [
     {

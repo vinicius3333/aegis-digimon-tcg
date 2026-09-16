@@ -275,7 +275,6 @@ describe("BT13-008 Agumon", () => {
     );
     await s.ready();
 
-    // Supplemental production suspension seam isolates the inherited color filter.
     await advance(s.engine).verb.suspend([s.perm("blueTamer").permanentId]);
     await settle();
 

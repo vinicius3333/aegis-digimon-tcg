@@ -1,13 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5210: the condition is "2 or fewer security cards OR 3 or more [Hero] trait Tamers
-// with different names". Encoded as orConditions on the action.
 export const compiled: CompiledCard = {
   effects: [
     {
-      // The continuous permission also participates in normal and effect-driven evolution
-      // through the shared base-granted matcher; the activated view remains selectable.
       trigger: "YourTurn",
       actions: [
         {

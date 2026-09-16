@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT22-037 Chirinmon
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -376,10 +376,6 @@ describe("EX8-025", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Raid tried to switch the player attack to the unsuspended Digimon, but Whamon's
-    // inherited restriction rejects that target change. The player therefore loses both
-    // security cards from SeitenGokuumon's printed Security Attack +1, while the otherwise
-    // vulnerable Raid target remains in play.
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(
       s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("unsuspendedTarget").instanceId),

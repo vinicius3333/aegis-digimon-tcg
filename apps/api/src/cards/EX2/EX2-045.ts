@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// When you would play this card from your hand, reduce its play cost by 2 if you have
-//   [Guilmon], [Terriermon], [Renamon], or [Impmon] in play.
-// [Your Turn] This Digimon can't attack.
-// [Your Turn] When one of your Digimon digivolves, you may suspend this Digimon to gain
-//   1 memory, <Draw 1>, and have 1 of your Digimon get +3000 DP for the turn.
-//   (KB Q3465: Calumon is Lv.- so "same level" checks won't match it for opponent effects.)
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -53,7 +53,6 @@ describe("BT25-038 Shakkoumon", () => {
         controller: "mine",
         bothPlayers: true,
         amount: 1,
-        // Structured gate — a "raw" kind evaluates as unmet, so the trash would never happen.
         condition: { kind: "isDnaDigivolving", raw: "DNA digivolving" },
       });
     }

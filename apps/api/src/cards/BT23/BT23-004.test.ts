@@ -87,7 +87,6 @@ describe("BT23-004 DemiMeramon", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Suspend the source through a real attack: only a suspended Digimon can be attacked back.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -99,8 +98,6 @@ describe("BT23-004 DemiMeramon", () => {
     expect(s.perm("source").isSuspended).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    // The inherited grant must start on the opponent's turn, so the source is deleted there
-    // by the opponent's own attack rather than by an injected deletion.
     await advance(s.engine).waitForMainPhase(1);
     const sourcePermanentId = s.perm("source").permanentId;
     expect(
@@ -185,7 +182,6 @@ describe("BT23-004 DemiMeramon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
-    // The opponent's own Ghost is never a legal target for "1 of YOUR Digimon".
     expect(observe(s.engine).hasKeyword(s.perm("opponentGhost"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opponentGhost"), "Retaliation")).toBe(false);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });

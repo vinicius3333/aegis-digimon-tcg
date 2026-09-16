@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The committed catalog drops the icon in "Add 1 card with [icon] or 1 Tamer". The official
-// LM-014 card list resolves it as <Blocker>, so this is a keyword filter rather than the
-// unrelated <Draw 1> keyword printed on the inherited clause.
 const compiled: CompiledCard = {
   effects: [
     {

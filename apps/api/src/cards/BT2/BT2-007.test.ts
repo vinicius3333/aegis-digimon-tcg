@@ -39,8 +39,6 @@ describe("BT2-007 Pagumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // A player-directed attack resolves through the security check, not a
-    // Digimon-vs-Digimon battle, so `combatResolved` never fires here.
     await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
     expect(s.state.players[0]!.trash).toHaveLength(0);
     assertNoLoudGap(s);

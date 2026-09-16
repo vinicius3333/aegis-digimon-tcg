@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file carries a direct IR override
-// for the generated forced-attack grant, which must be anchored as a timed watcher on the
-// chosen opposing Digimon so its "until their turn ends" lifecycle is preserved.
 export const compiled: CompiledCard = {
   effects: [
     {

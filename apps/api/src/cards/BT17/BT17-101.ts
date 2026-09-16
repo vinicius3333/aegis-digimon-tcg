@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT17-101 Fenriloogamon: Takemikazuchi.
-// Q2900: the Trash effect listens for a qualifying level 6 Pulsemon-text Digimon
-// being played. Q4712: the Tamer branch is independent of the DNA branch.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -23,8 +20,6 @@ export const compiled: CompiledCard = {
             {
               kind: "DnaDigivolve",
               materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },
-              // The source card is this card's loose instance in Trash, not a fresh copy from
-              // hand. `isSelfRef` keeps the result anchored to the card whose Trash watcher ran.
               into: { controllerDefault: "mine", zone: "trash", isSelfRef: true, kind: ["Digimon"] },
               payCost: true,
               optional: true,

@@ -88,7 +88,7 @@ describe("BT25-070 Logamon", () => {
 
     expect(s.perm("logamon").linked.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondLink").instanceId);
-    expect(s.state.memory).toBe(1); // printed Link cost 1 reduced by 1
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT25-081"]);
 
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("logamon"));
@@ -273,7 +273,7 @@ describe("BT25-070 Logamon", () => {
       {
         0: {
           battleArea: [{ card: "BT25-070", as: "logamon" }],
-          trash: [{ card: "BT21-005", as: "noLink" }], // Social attribute, but a Digi-Egg with no <Link>
+          trash: [{ card: "BT21-005", as: "noLink" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -316,7 +316,7 @@ describe("BT25-070 Logamon", () => {
     );
 
     expect(s.perm("host").linked.map((card) => card.cardId)).toEqual(["BT25-070"]);
-    expect(s.state.memory).toBe(0); // printed Link cost 2
+    expect(s.state.memory).toBe(0);
     expect(observe(s.engine).hasRestriction(s.perm("opponentDigimon"), "unsuspend")).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("otherTamer"), "unsuspend")).toBe(false);
   });

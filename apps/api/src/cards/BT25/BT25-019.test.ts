@@ -143,8 +143,6 @@ describe("BT25-019 UltimateBrachiomon", () => {
         0: { battleArea: [{ card: "BT25-019", as: "brachio" }], deck: ["BT1-013"] },
         1: { deck: ["BT1-013"] },
       });
-      // Enter Main with the turn player's side of the gauge, then arrange the exact
-      // opponent-memory boundary before publicly ending the turn.
       s.state.memory = 1;
 
       const turn = s.engine.runOneTurn();

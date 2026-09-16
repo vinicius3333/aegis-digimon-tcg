@@ -6,21 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-064.js";
 
-/**
- * BT19-064 Justimon: Blitz Arm ACE (Black, Lv.6, Vaccine, Cyborg, 11000 DP, play cost 6,
- * Overflow ＜-4＞).
- *
- * [Digivolve] [Justimon: Accel Arm]/[Justimon: Critical Arm]: Cost 1
- * [Hand] [Counter] ＜Blast Digivolve＞
- * [On Play] [When Digivolving] This Digimon gains ＜Blocker＞ and isn't affected by your
- *   opponent's Digimon's effects until the end of your opponent's turn.
- * [When Digivolving] [When Attacking] [Once Per Turn] By trashing 1 Option card in the battle
- *   area, unsuspend this Digimon.
- *
- * Everything is driven through public intents and the real production turn loop: the opponent's
- * turn is reached with `startTurnLoop`, never by assigning `turnSeat`.
- */
-
 const FILLER = ["BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013", "BT1-014"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-014"];
 
@@ -72,7 +57,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
       "WhenDigivolving",
       "WhenAttacking",
     ]);
-    // The printed route names two EXACT cards; `names` would be the "[X] in its name" substring gate.
     expect(digivolutionRequirementsFor("BT19-064")).toMatchObject([
       { namesExact: ["Justimon: Accel Arm", "Justimon: Critical Arm"], cost: 1, isAlternate: true },
     ]);
@@ -83,13 +67,11 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
           kind: "Restrict",
           restriction: "beAffected",
           duration: "untilOpponentTurnEnd",
-          // "your opponent's DIGIMON's effects" — narrower than "your opponent's effects".
           fromSourceKind: ["Digimon"],
           byOpponentEffectsOnly: true,
         },
       ]);
     }
-    // One [Once Per Turn] shared between the two printed timings.
     for (const index of [3, 4]) {
       expect(compiled.effects?.[index]).toMatchObject({
         frequency: "OncePerTurn",
@@ -102,8 +84,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
             cost: {
               kind: "trash",
               target: {
-                // KB Q3126/Q3127: an Option card put on the battle area by a
-                // "place this card in the battle area" effect, on EITHER player's side.
                 filter: {
                   zone: "battleArea",
                   controllerDefault: "any",
@@ -119,8 +99,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     }
     expect(compiled.effects?.[0]).toMatchObject({ isFromHand: true, keywords: [{ keyword: "BlastDigivolve" }] });
   });
-
-  // --- [Digivolve] alternate route --------------------------------------------------------
 
   it.each([
     ["BT11-073", "Justimon: Accel Arm"],
@@ -152,7 +130,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT19-064");
 
-    // 10 - 1: the alternate route, not the printed Black Lv.5 route's 3.
     expect(s.state.memory).toBe(9);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
     expect(s.state.players[0]!.hand).toHaveLength(2);
@@ -161,8 +138,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
   });
 
   it("falls back to the normal Black Lv.5 route (cost 3) when the base is not one of the two named cards", async () => {
-    // `useAlternateCost: true` with no matching alternate silently uses the normal route, so the
-    // memory delta — not `{ok:true}` — is what discriminates the two routes.
     const s = setupEngine(
       {
         0: {
@@ -221,8 +196,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT19-064")).toBe(true);
   });
 
-  // --- [Hand] [Counter] ＜Blast Digivolve＞ -------------------------------------------------
-
   it("＜Blast Digivolve＞ digivolves from hand in the opponent's real counter window for no memory", async () => {
     const s = setupEngine(
       {
@@ -244,7 +217,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
     await openMain(s, 0);
-    // Without the counter window the card cannot be digivolved on the opponent's turn at all.
     closeMain(s, 0);
     await openMain(s, 1);
 
@@ -277,17 +249,11 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT19-064");
 
     expect(s.perm("base").topCard?.cardId).toBe("BT19-064");
-    // ＜Blast Digivolve＞ waives the digivolution cost entirely.
     expect(s.state.memory).toBe(memoryBefore);
     await stopLoop(s, loop, 1);
     assertNoLoudGap(s);
   });
 
-  // --- [When Digivolving] ＜Blocker＞ + immunity --------------------------------------------
-
-  /** Seat 0 digivolves Justimon onto an Accel Arm base inside a real turn loop, then hands over. */
-  // Returns the running loop WRAPPED: an async function that returned it directly would await
-  // the whole turn loop instead of handing it back.
   async function digivolveInsideLoop(s: Setup): Promise<{ loop: Promise<void> }> {
     const loop = s.engine.startTurnLoop();
     await openMain(s, 0);
@@ -309,7 +275,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
       0: {
         battleArea: [
           { card: "BT11-073", as: "base" },
-          // A peer with no grant: the comparative control for both halves of the clause.
           { card: "BT1-013", as: "peer" },
         ],
         hand: [{ card: "BT19-064", as: "justi" }, "BT1-013"],
@@ -324,12 +289,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     };
   }
 
-  /**
-   * The opponent's Main phase auto-passes as soon as they have no legal action left, so a
-   * "for the turn" / "until the end of your opponent's turn" value read after `settle` is already
-   * expired. `onEvent` reads the board inside the engine's own call stack, at the instant the
-   * opposing effect finishes resolving.
-   */
   interface ResolutionSnapshot {
     baseDP: number;
     peerDP: number;
@@ -338,9 +297,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
   }
 
   it("[When Digivolving] grants ＜Blocker＞ and immunity, and an opposing DIGIMON effect aimed at it does nothing", async () => {
-    // The restriction is applied when the effect RESOLVES, not at targeting: the immune Digimon is
-    // still offered as a candidate, so `preferInstanceIds` pins the opposing Angemon's -3000 DP
-    // onto it and the assertion is that the board does not move.
     const preferred: string[] = [];
     const snapshots: ResolutionSnapshot[] = [];
     let s!: Setup;
@@ -375,8 +331,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     });
     await settle(() => snapshots.length > 0);
 
-    // At the instant the opposing Angemon's [On Play] finished: nothing moved, and both halves of
-    // the printed clause were still live on the immune Digimon.
     expect(snapshots.at(-1)).toEqual({
       baseDP: 11_000,
       peerDP: 5000,
@@ -384,7 +338,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
       baseImmune: true,
     });
 
-    // Both grants expire once that opponent turn ends.
     await openMain(s, 0);
     expect(s.state.phase).toBe(Phase.Main);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(false);
@@ -424,8 +377,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     });
     await settle(() => snapshots.length > 0);
 
-    // The identical effect, pinned to the peer, takes its full 3000 DP — so the immune reading
-    // above is the printed protection, not a dead effect.
     expect(snapshots.at(-1)).toEqual({
       baseDP: 11_000,
       peerDP: 2000,
@@ -473,16 +424,12 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // The 11000 DP blocker suspended itself, ate the attack and deleted the 3000 DP attacker;
-    // security never lost a card.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(securityBefore);
     expect(s.perm("base").isSuspended).toBe(true);
     await stopLoop(s, loop, 1);
     assertNoLoudGap(s);
   });
-
-  // --- [When Digivolving] [When Attacking] [Once Per Turn] unsuspend -----------------------
 
   it("trashes the OPPONENT's placed Option to unsuspend itself (Q3127)", async () => {
     const s = setupEngine(
@@ -556,8 +503,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     expect(s.perm("base").isSuspended).toBe(false);
     const spentOption = s.state.players[0]!.trash.map((card) => card.instanceId);
 
-    // [When Attacking] the same turn: the shared use is gone, so no second Option is trashed and
-    // the attacker stays suspended after its attack.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -595,8 +540,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     const loop = s.engine.startTurnLoop();
     await openMain(s, 0);
 
-    // Attack 1: the [When Attacking] cost pays an Option and unsuspends the attacker, so it may
-    // attack again this turn.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -607,7 +550,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     await settle(() => s.state.players[0]!.trash.length === 1);
     expect(s.perm("justi").isSuspended).toBe(false);
 
-    // Attack 2: the once-per-turn use is spent, so the second Option survives and it stays suspended.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -619,7 +561,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     expect(s.state.players[0]!.trash).toHaveLength(1);
     expect(s.perm("justi").isSuspended).toBe(true);
 
-    // The next own turn through the real loop resets the use and the second Option pays.
     closeMain(s, 0);
     await openMain(s, 1);
     closeMain(s, 1);
@@ -640,8 +581,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     await stopLoop(s, loop, 0);
     assertNoLoudGap(s);
   });
-
-  // --- ACE Overflow ＜-4＞ -----------------------------------------------------------------
 
   it("ACE Overflow ＜-4＞ hands 4 memory to the opponent when it leaves the battle area", async () => {
     const s = setupEngine(
@@ -677,7 +616,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
       [justiTopId, s.inst("accel").instanceId].sort(),
     );
-    // Overflow ＜-4＞: the catalog's `overflowMemory: 4` moves 4 memory to the opponent.
     expect(s.state.memory).toBe(-1);
     assertNoLoudGap(s);
   });
@@ -720,8 +658,6 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === SECURITY.length - 1);
 
-    // No Option anywhere: the cost cannot be paid, so the attacker stays suspended and no
-    // Digimon permanent was trashed in its place.
     expect(s.perm("base").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);

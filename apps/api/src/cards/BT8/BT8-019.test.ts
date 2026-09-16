@@ -38,8 +38,6 @@ describe("BT8-019 Zhuqiaomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("spared").topCard?.cardId).toBe("BT1-010");
     expect(s.state.memory).toBe(2);
-    // One trigger window resolves for the simultaneous batch, but the printed
-    // "for each ... deleted" scaling counts both opposing Digimon.
     expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(2);
   });
 

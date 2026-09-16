@@ -172,8 +172,6 @@ describe("BT24-022 Ikkakumon", () => {
     await settle(() => s.state.phase === "Active");
     await settle(() => !s.perm("host").isSuspended);
     expect(s.perm("host").isSuspended).toBe(false);
-    // The owner also takes the ordinary draw for this non-first turn; the inherited trigger
-    // contributes the second card during the same Active phase.
     expect(s.state.players[0]!.hand).toHaveLength(9);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.deck).toHaveLength(1);

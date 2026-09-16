@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-//
-// Note: the corresponding "P-159" entry in packages/shared/src/effects/effects.json is
-// preserving this card's [All Turns] SubTrigger clause and its Static/Main GainKeyword grants —
-// or it will regress this file back to that incomplete state.
-//
-// Renamed "whenEffectTrashes" (declared in SubTriggerEventName, never fired anywhere) to the
-// already-live "whenTrashedByEffect" — its isSelfRef sourceFilter matches that event's
-// self-anchor semantics exactly (cards.json effectText: "When an effect trashes this card...").
 const compiled: CompiledCard = {
   effects: [
     {

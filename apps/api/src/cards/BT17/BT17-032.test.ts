@@ -4,15 +4,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-032.js";
 
-// BT17-032 Kyubimon (Digimon, Lv4, Yellow)
-//   [When Digivolving] If you don't have [Rika Nonaka], you may play 1 [Rika Nonaka]
-//     from your hand without paying the cost.
-//   Inherited [Your Turn][Once Per Turn]: When you use an option card with a cost of 2
-//     or more, 1 of your opponent's Digimon gains <Security Attack -1> until the end of
-//     their turn.
-// Fixtures: Yellow Lv3 source BT1-045 (inert); BT17-085 is Rika Nonaka; BT1-102 and a
-// second copy are Yellow cost-2 Options; ST3-13 is a Yellow cost-1 Option; opponents are
-// inert Red Digimon BT1-009/BT1-010.
 describe("BT17-032", () => {
   it("matches the catalog, printed text, and full IR contract", () => {
     expect(getCardDefinition("BT17-032")).toMatchObject({
@@ -108,8 +99,6 @@ describe("BT17-032", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === rikaId));
 
-    // Kyubimon sits on the Lv3 source; Rika is on the field for free; the free play spent
-    // no memory (only the cost-2 digivolve did: 3 -> 1); the digivolve bonus draw landed.
     expect(s.perm("source").topCard.cardId).toBe("BT17-032");
     expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["BT1-045"]);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === rikaId)).toBe(true);
@@ -242,16 +231,12 @@ describe("BT17-032", () => {
     const debuffed = s.state.players[1]!.battleArea.filter((permanent) =>
       observe(s.engine).hasKeyword(permanent, "SecurityAttack"),
     );
-    // Exactly one target, at exactly -1: a second fire would either debuff the other
-    // Digimon (length 2) or stack on the same one (amount -2).
     expect(debuffed).toHaveLength(1);
     expect(observe(s.engine).keywordAmount(debuffed[0]!, "SecurityAttack")).toBe(-1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("plays Rika beside a near-miss Tamer peer that does not answer the [Rika Nonaka] gate", async () => {
-    // Comparative peer: BT1-087 "T.K. Takaishi" is a Tamer in play but is not a
-    // [Rika Nonaka], so "if you don't have [Rika Nonaka]" is still satisfied.
     const s = setupEngine(
       {
         0: {
@@ -288,7 +273,6 @@ describe("BT17-032", () => {
   });
 
   it("treats another printing named Rika Nonaka as [Rika Nonaka] and refuses the free play", async () => {
-    // The gate is by name, not by card id: EX2-060 is a different Rika Nonaka printing.
     const s = setupEngine(
       {
         0: {

@@ -451,7 +451,6 @@ describe("BT23-052 Consulmon", () => {
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // "until your opponent's turn ends": both keywords survive the whole opponent turn.
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
 

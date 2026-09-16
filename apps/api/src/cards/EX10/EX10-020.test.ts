@@ -22,10 +22,6 @@ function orderPayload(payloadJson: string): OrderPayload {
   return JSON.parse(payloadJson) as OrderPayload;
 }
 
-// Both pending turn-end processings hang off the SAME permanent (EX10-020's delayed delete is
-// anchored to the permanent it played, which is now topped by BT15-102), so `triggerCardIds`
-// reports BT15-102 twice and the effect key is the only discriminator. The delayed delete is
-// the sub-trigger key; the other key is Apocalymon's own [End of Your Turn] IR effect.
 const DELAYED_DELETE = "delayed-delete-played";
 
 function triggerKeyFor(payload: OrderPayload, which: "delete" | "apocalymon"): string {
@@ -57,11 +53,6 @@ describe("EX10-020 Puppetmon", () => {
     expect(runtimeCompiledCard(CARD_ID)).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  // --- [Hand] [Main] reduced-cost play + turn-end deletion -------------------
-
-  // KB Q5062: the condition is "no Digimon other than [Dark Masters]-text Digimon", so an
-  // empty battle area satisfies it. KB Q5735: the played Digimon is deleted at turn end.
-  // The deletion here runs through the real turn loop, not an injected OnEndTurn window.
   it("plays itself for 6 with no Digimon at all and is deleted at turn end (Q5062, Q5735)", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: CARD_ID, as: "puppetmon" }, "BT1-013"], deck: ["BT1-013", "BT1-014", "BT1-009"] } },
@@ -83,7 +74,6 @@ describe("EX10-020 Puppetmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
 
-    // Play cost 11 reduced by 5 = 6, paid out of exactly 6 memory.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain(CARD_ID);
@@ -92,16 +82,12 @@ describe("EX10-020 Puppetmon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await settleAcrossTimers(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    // Deleted -> [On Deletion] with no green face-up security -> bottom security, face up.
     expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId: CARD_ID, faceUp: true });
 
     s.engine.applyIntent(0, { type: "surrender" });
     await loop;
   });
 
-  // KB Q5057: "[X] in its text" spans name, traits and effect text. BT15-027 Scorpiomon is a
-  // Blue [Ancient Crustacean] whose only [Dark Masters] reference is inside its effect text,
-  // so it must NOT block the clause; AD1-001 Greymon carries the token nowhere and must.
   it("allows a Dark-Masters-text Digimon on the board and is blocked by any other (Q5057)", async () => {
     const allowed = setupEngine(
       { 0: { hand: [{ card: CARD_ID, as: "puppetmon" }], battleArea: ["BT15-027"] } },
@@ -133,8 +119,6 @@ describe("EX10-020 Puppetmon", () => {
     expect(s.state.memory).toBe(6);
   });
 
-  // The turn-end deletion belongs to the [Hand] [Main] effect, not to the card: a Puppetmon
-  // played the normal way (or already on the board) survives the turn.
   it("a normal play does not arm the delayed deletion", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: CARD_ID, as: "puppetmon" }, "BT1-013"], deck: ["BT1-013", "BT1-014"] } },
@@ -159,8 +143,6 @@ describe("EX10-020 Puppetmon", () => {
     s.engine.applyIntent(0, { type: "surrender" });
     await loop;
   });
-
-  // --- [On Play] [When Attacking] return 1 suspended opposing Digimon --------
 
   it("returns 1 suspended OPPOSING Digimon to the deck bottom on a real play", async () => {
     const s = setupEngine(
@@ -192,10 +174,8 @@ describe("EX10-020 Puppetmon", () => {
       () => !s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === returnedInstanceId),
     );
 
-    // Exactly the opponent's suspended Digimon left, and it is now the bottom deck card.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[1]!.deck.at(-1)!.instanceId).toBe(returnedInstanceId);
-    // My own suspended Digimon is not a legal target ("your opponent's").
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT15-027", CARD_ID]);
     expect(s.state.pendingDecision).toBeUndefined();
 
@@ -242,12 +222,6 @@ describe("EX10-020 Puppetmon", () => {
     expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
-  // --- [All Turns] digivolve restriction ------------------------------------
-
-  // Proved through the public digivolve intent, so the assertion covers the card's own IR
-  // registration of the constraint rather than the ledger primitive in isolation. Both
-  // candidates are Lv.7 with a legal "Green Lv.6, cost 6" evolution requirement; only
-  // BT15-102 Apocalymon may be reached.
   it("can only digivolve into [Apocalymon]", async () => {
     const routes = getCardDefinition("BT12-057")!.evoCosts;
     expect(routes).toContainEqual({ color: "Green", level: 6, memoryCost: 6 });
@@ -289,10 +263,6 @@ describe("EX10-020 Puppetmon", () => {
     expect(s.perm("puppetmon").stack.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
   });
 
-  // --- [On Deletion] place face up as bottom security ------------------------
-
-  // A production battle deletion: Puppetmon (11000) attacks a 20000 DP suspended Digimon and
-  // loses. Its [When Attacking] return is steered onto the decoy so the battle target stays.
   it("places itself face up as the BOTTOM security card when deleted in battle", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -326,7 +296,6 @@ describe("EX10-020 Puppetmon", () => {
     await settle();
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    // Bottom of the stack, revealed. KB Q5058: it stays a normal security card otherwise.
     expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: puppetInstanceId, faceUp: true });
     expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009", CARD_ID]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain(CARD_ID);
@@ -338,7 +307,6 @@ describe("EX10-020 Puppetmon", () => {
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "puppetmon" }],
-          // BT1-071 Vegiemon is Green; face up, so the condition fails.
           security: [{ card: "BT1-071", faceUp: true }],
         },
         1: {
@@ -369,8 +337,6 @@ describe("EX10-020 Puppetmon", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
   });
 
-  // A face-DOWN green security card does not satisfy "green face-up security cards", so the
-  // placement still happens.
   it("still places itself when the only green security card is face down", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -405,11 +371,6 @@ describe("EX10-020 Puppetmon", () => {
     expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-071", CARD_ID]);
   });
 
-  // --- [Security] --------------------------------------------------------------
-
-  // KB Q5059/Q5060: a face-up security card is checked normally and its [Security] effect
-  // triggers. KB Q6511: the effect resolves, THEN the Digimon battles the attacker — the
-  // 3000 DP attacker loses to Puppetmon's 11000 DP.
   it("plays a level 5 [Dark Masters]-text card and then battles the attacker (Q5060, Q6511)", async () => {
     const s = setupEngine(
       {
@@ -436,18 +397,14 @@ describe("EX10-020 Puppetmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     await settle();
 
-    // The [Security] effect played the level 5 card for free.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT15-027");
     expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).not.toContain("BT15-027");
-    // Then the security Digimon battled: the 3000 DP attacker is deleted, Puppetmon is not
-    // on the battle area (a checked security Digimon goes to the trash after the battle).
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(attackerInstanceId);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
-  // KB Q5064: "if this card was face-up" means face up in the security stack when checked.
   it("does nothing when checked face down, when refused, or with no eligible card (Q5064)", async () => {
     const run = async (faceUp: boolean, autoDeclineOptional: boolean) =>
       setupEngine(
@@ -482,24 +439,13 @@ describe("EX10-020 Puppetmon", () => {
       await settle(() => s.state.players[1]!.security.length === 0);
       await settle();
 
-      // No [Security] play happened, so every hand card is still in hand. BT15-102 is level 7
-      // and BT1-071 has no [Dark Masters] text, so neither is ever eligible.
       expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toEqual(
         expect.arrayContaining(["BT15-027", "BT15-102", "BT1-071"]),
       );
       expect(s.state.players[1]!.battleArea).toHaveLength(0);
     }
   });
-  // --- Q5063 / Q5736: the turn player orders simultaneous turn-end processing ----
 
-  // Board: Puppetmon is played by its own [Hand] [Main] effect (arming the turn-end delete on
-  // the permanent it played) and then digivolves into BT15-102 Apocalymon in the SAME turn.
-  // Apocalymon prints "[End of Your Turn] [Once Per Turn] By placing 1 level 6 or lower card
-  // from your trash as this Digimon's bottom digivolution card, ... Then, trash the top 2 cards
-  // of your opponent's deck for each of this Digimon's level 6 digivolution cards." So at that
-  // turn end the same controller has two pending processings on one permanent: EX10-020's
-  // delayed delete and BT15-102's [End of Your Turn]. `autoOrderTriggers: false` leaves the
-  // `orderTriggers` decision pending so the test answers it itself and drives BOTH orders.
   const orderingBoard = (): BoardSpec => ({
     0: {
       hand: [{ card: CARD_ID, as: "puppetmon" }, { card: "BT15-102", as: "apocalymon" }, "BT1-013"],
@@ -509,8 +455,6 @@ describe("EX10-020 Puppetmon", () => {
     1: { deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-012"] },
   });
 
-  // Bring the board to "Puppetmon played by C1, digivolved into Apocalymon, main phase ended"
-  // and stop on the pending `orderTriggers` decision.
   async function reachTurnEndOrdering(s: ReturnType<typeof setupEngine>) {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -528,7 +472,6 @@ describe("EX10-020 Puppetmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
     expect(s.state.memory).toBe(0);
 
-    // Same turn, same permanent: the restriction of C3 permits exactly this route.
     s.state.memory = 6;
     expect(
       s.engine.applyIntent(0, {
@@ -545,14 +488,10 @@ describe("EX10-020 Puppetmon", () => {
 
     const decision = s.state.pendingDecision!;
     expect(decision.kind).toBe("orderTriggers");
-    // The choice belongs to the turn player, seat 0.
     const request = s.decisions.find(({ req }) => req.kind === "orderTriggers")!;
     expect(request.seat).toBe(0);
     const payload = orderPayload(decision.payloadJson);
     expect(payload.triggerKeys).toHaveLength(2);
-    // One key per pending processing, both in the turn-end window, both on this permanent.
-    // The chooser is labelled with each effect's PRINTED timing, not the engine window: the
-    // Apocalymon clause reads [End of Your Turn], the delayed deletion is the rule processing.
     expect(payload.triggerTimings).toEqual(["EndOfYourTurn", "endOfTurn"]);
     expect(payload.triggerCardIds).toEqual(["BT15-102", "BT15-102"]);
     expect(triggerKeyFor(payload, "delete")).toContain(DELAYED_DELETE);
@@ -578,12 +517,8 @@ describe("EX10-020 Puppetmon", () => {
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => s.state.turnSeat === 1);
 
-    // Apocalymon resolved BEFORE the delete: the trash fodder was placed under it and the
-    // opponent lost the top 2 deck cards (one level 6 digivolution card: EX10-020).
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013", "BT1-014"]);
-    // 4 seeded - 2 trashed by Apocalymon - 1 drawn on seat 1's turn start.
     expect(s.state.players[1]!.deck).toHaveLength(1);
-    // Then the delayed delete still removed the whole stack.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
 
     s.engine.applyIntent(0, { type: "surrender" });
@@ -607,24 +542,15 @@ describe("EX10-020 Puppetmon", () => {
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => s.state.turnSeat === 1);
 
-    // Delete first: the permanent left the battle area, so the same-turn-end [End of Your Turn]
-    // never placed the fodder and never trashed the opponent's deck. Order-dependent endpoint.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("fodder").instanceId);
     expect(s.state.players[1]!.trash).toHaveLength(0);
-    // 4 seeded - 0 trashed - 1 drawn on seat 1's turn start.
     expect(s.state.players[1]!.deck).toHaveLength(3);
 
     s.engine.applyIntent(0, { type: "surrender" });
     await loop;
   });
 
-  // --- Comparative peer: another Green Lv.6 "can only digivolve into" restriction ---
-
-  // BT15-052 Puppetmon prints "[Your Turn] This Digimon can only digivolve into white Digimon"
-  // — the same RestrictDigivolveInto shape scoped by COLOR, where EX10-020 scopes it by NAME.
-  // BT4-090 Chaosmon is White Lv.7 with a legal { Green, 6, cost 6 } route, so it separates the
-  // two restrictions: legal for the peer, refused by EX10-020 because it is not [Apocalymon].
   it("peer: BT15-052's colour restriction admits a White Lv.7 that EX10-020's name restriction refuses", async () => {
     expect(getCardDefinition("BT4-090")!.colors).toEqual(["White"]);
     expect(getCardDefinition("BT4-090")!.evoCosts).toContainEqual({ color: "Green", level: 6, memoryCost: 6 });
@@ -667,6 +593,5 @@ describe("EX10-020 Puppetmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("peer").topCard.cardId === "BT4-090");
     expect(s.perm("peer").stack.map(({ cardId }) => cardId)).toEqual(["BT15-052"]);
-    // The digivolve consumed exactly one of the two copies (the other hand card is the\n    // digivolution bonus draw).\n    expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "BT4-090")).toHaveLength(1);
   });
 });

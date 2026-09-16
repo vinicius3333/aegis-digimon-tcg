@@ -7,30 +7,14 @@ import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-/**
- * BT19-062 Cyberdramon — Black Lv.5 Ultimate, 9000 DP, play cost 7,
- * evo cost 4 from a Black Lv.4.
- *
- * Printed clauses:
- *   1. [Digivolve][Strikedramon]: Cost 3                                    (alternate route)
- *   2. ＜Rush＞                                                              (main)
- *   3. ＜Collision＞                                                         (main)
- *   4. [When Attacking] Trash 1 of your Option cards in the battle area.    (main, Q3120/Q3121)
- *   5. [End of Your Turn] If your opponent has an unsuspended Digimon, this Digimon attacks
- *      a player.                                                            (main, Q3122/Q3123)
- *   6. ＜Collision＞                                                         (inherited)
- *
- * KB (`node tools/kb/query.mjs card BT19-062`): Q3120, Q3121, Q3122, Q3123.
- */
-
-const STRIKEDRAMON = "BT19-060"; // the exact printed [Strikedramon] — Black Lv.4, 5000 DP
-const OTHER_STRIKEDRAMON = "EX2-032"; // a second printing of the same name
-const BLACK_LV4 = "BT10-062"; // Golemon: Black Lv.4, inert — the printed colour route only
-const RED_LV4 = "BT1-014"; // Kokatorimon: Red Lv.4, inert — illegal source
-const OPTION = "BT19-093"; // Queen Device: an Option that places itself in the battle area
-const INERT_LV3 = "BT1-009"; // Monodramon: Lv.3, no keywords
-const INERT_LV3_B = "BT1-013"; // Muchomon: Lv.3, no keywords
-const XROS_HOST = "BT19-013"; // Shoutmon X5: Lv.5, no inherited effect of its own
+const STRIKEDRAMON = "BT19-060";
+const OTHER_STRIKEDRAMON = "EX2-032";
+const BLACK_LV4 = "BT10-062";
+const RED_LV4 = "BT1-014";
+const OPTION = "BT19-093";
+const INERT_LV3 = "BT1-009";
+const INERT_LV3_B = "BT1-013";
+const XROS_HOST = "BT19-013";
 const INERT_SECURITY = "BT1-009";
 
 describe("BT19-062 Cyberdramon", () => {
@@ -64,8 +48,6 @@ describe("BT19-062 Cyberdramon", () => {
             kind: "Trash",
             target: {
               count: 1,
-              // "your Option cards in the battle area": only Options the controller placed
-              // there through a "place this card in the battle area" effect (Q3120).
               filter: {
                 zone: "battleArea",
                 controller: "mine",
@@ -93,19 +75,12 @@ describe("BT19-062 Cyberdramon", () => {
       { trigger: "Static", actions: [], isInherited: true, keywords: [{ keyword: "Collision" }] },
     ]);
     expect(card?.effects).toHaveLength(5);
-    // The printed route names [Strikedramon] in brackets: an EXACT name gate, so a future
-    // "[Strikedramon] in its name" relative cannot answer it (the `names` substring form would).
     expect(card?.digivolutionRequirement).toEqual([{ namesExact: ["Strikedramon"], cost: 3, isAlternate: true }]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [Digivolve][Strikedramon]: Cost 3
-  // ---------------------------------------------------------------------------
 
   it("offers the Cost 3 route to every printing named [Strikedramon] and to nothing else", () => {
     expect(matchingAlternateDigivolutionRequirement("BT19-062", STRIKEDRAMON)).toMatchObject({ cost: 3 });
     expect(matchingAlternateDigivolutionRequirement("BT19-062", OTHER_STRIKEDRAMON)).toMatchObject({ cost: 3 });
-    // Same colour and level, different name: only the printed evo cost of 4 remains.
     expect(matchingAlternateDigivolutionRequirement("BT19-062", BLACK_LV4)).toBeUndefined();
     expect(matchingAlternateDigivolutionRequirement("BT19-062", RED_LV4)).toBeUndefined();
   });
@@ -140,11 +115,9 @@ describe("BT19-062 Cyberdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT19-062");
 
-    // The gauge started at exactly the route's cost, so the route actually paid is pinned.
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
-    // Stack proof: Strikedramon's inherited [All Turns] +1000 DP rides under the new top card.
     expect(s.perm("base").currentDP).toBe(baseCardId === STRIKEDRAMON ? 10_000 : 9000);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
@@ -179,10 +152,6 @@ describe("BT19-062 Cyberdramon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-062"]);
   });
 
-  // ---------------------------------------------------------------------------
-  // ＜Rush＞
-  // ---------------------------------------------------------------------------
-
   it("attacks the turn it is played, where a fresh non-＜Rush＞ peer is refused", async () => {
     const s = setupEngine(
       {
@@ -207,7 +176,6 @@ describe("BT19-062 Cyberdramon", () => {
 
     const peer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === BLACK_LV4)!;
     const cyber = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT19-062")!;
-    // Same turn, same arrival: only the ＜Rush＞ holder may declare.
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: peer.permanentId, target: { kind: "player" } }),
     ).not.toEqual({ ok: true });
@@ -220,10 +188,6 @@ describe("BT19-062 Cyberdramon", () => {
     expect(peer.isSuspended).toBe(false);
   });
 
-  // ---------------------------------------------------------------------------
-  // ＜Collision＞ (main and inherited) — Comprehensive Rules §16-30
-  // ---------------------------------------------------------------------------
-
   it("forces the opponent to block, where a peer without ＜Collision＞ does not", async () => {
     const s = setupEngine(
       {
@@ -235,7 +199,6 @@ describe("BT19-062 Cyberdramon", () => {
           security: [{ card: INERT_SECURITY }],
         },
         1: {
-          // No printed ＜Blocker＞: it can only block if ＜Collision＞ grants it.
           battleArea: [{ card: INERT_LV3, as: "nonBlocker" }],
           security: [{ card: INERT_SECURITY }, { card: INERT_SECURITY }],
         },
@@ -247,7 +210,6 @@ describe("BT19-062 Cyberdramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("cyber"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("peer"), "Collision")).toBe(false);
 
-    // Negative control first: the plain Black Lv.4 opens no block window at all.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -277,7 +239,6 @@ describe("BT19-062 Cyberdramon", () => {
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("nonBlocker").permanentId }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    // The forced block spent the blocker and saved the second security card.
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
@@ -301,7 +262,6 @@ describe("BT19-062 Cyberdramon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    // Identical printed top cards; only the digivolution card underneath differs.
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("bare"), "Collision")).toBe(false);
 
@@ -319,13 +279,7 @@ describe("BT19-062 Cyberdramon", () => {
     expect(s.engine.applyIntent(1, { type: "declineBlock" }).ok).toBe(false);
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Attacking] Trash 1 of your Option cards in the battle area. (Q3120, Q3121)
-  // ---------------------------------------------------------------------------
-
   it("must trash its controller's effect-placed Option, and never the opponent's", async () => {
-    // `autoDeclineOptional` is deliberate: Q3121 makes the trash mandatory, so there is no
-    // optional prompt for the decline to reach.
     const s = setupEngine(
       {
         0: {
@@ -334,8 +288,6 @@ describe("BT19-062 Cyberdramon", () => {
           security: [{ card: INERT_SECURITY }],
         },
         1: {
-          // An Option seeded onto the battle area is `placedByEffect` by default (§17-1-3-2-2):
-          // the near-miss here is its CONTROLLER, not how it got there.
           battleArea: [{ card: OPTION, as: "opponentOption" }],
           security: [{ card: INERT_SECURITY }, { card: INERT_SECURITY }],
         },
@@ -359,9 +311,7 @@ describe("BT19-062 Cyberdramon", () => {
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("queen").instanceId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-062"]);
-    // The opponent's Option is untouched: the filter is controller-scoped.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([OPTION]);
-    // Their trash holds only the security card this attack checked, never their Option.
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("opponentOption").instanceId);
     expect(s.perm("cyber").isSuspended).toBe(true);
   });
@@ -392,11 +342,6 @@ describe("BT19-062 Cyberdramon", () => {
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
-  // ---------------------------------------------------------------------------
-  // [End of Your Turn] If your opponent has an unsuspended Digimon, this Digimon attacks a
-  // player. (Q3122, Q3123)
-  // ---------------------------------------------------------------------------
-
   it("attacks the player at the end of its controller's turn (Q3122)", async () => {
     const s = setupEngine(
       {
@@ -417,7 +362,6 @@ describe("BT19-062 Cyberdramon", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
-    // ＜Collision＞ still applies to the forced attack, so the block window opens and compels.
     await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
     const opened = s.events.find((event) => event.kind === "blockWindowOpened");
     expect(opened && "mustBlock" in opened ? opened.mustBlock : undefined).toBe(true);
@@ -436,7 +380,6 @@ describe("BT19-062 Cyberdramon", () => {
       target: { kind: "player" },
     });
     expect(s.perm("cyber").isSuspended).toBe(true);
-    // The forced block resolved the battle: 9000 beat the 3000 blocker, security untouched.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
@@ -498,8 +441,6 @@ describe("BT19-062 Cyberdramon", () => {
     ).toEqual({ ok: true });
     await turn;
 
-    // "A new attack declaration can't be made during an attack" — the second copy's effect may
-    // activate, but it cannot produce a second attack.
     const declared = s.events.filter((event) => event.kind === "attackDeclared");
     expect(declared).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(2);

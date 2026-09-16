@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-corrected IR override for BT23-024 (08-07). The [All Turns] suspend-restriction
-// -with-superlative-exception clause is authored as ArmSuspendRestriction (A3-proven,
-// preserves this override instead of regenerating it back to RawUnparsed (regen:check).
 export const compiled: CompiledCard = {
   effects: [
     {

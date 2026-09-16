@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4026: at exactly 3 security BOTH the suspend+DP-buff AND the return fire.
-// "3 or more" → suspend + DP buff; "3 or fewer" → return. At 3 both are true.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -18,7 +16,6 @@ const compiled: CompiledCard = {
           kind: "Suspend",
           target: {
             filter: {
-              // "suspend 1 Digimon" carries no possessive: either player's.
               controllerDefault: "any",
               kind: ["Digimon"],
             },
@@ -74,7 +71,6 @@ const compiled: CompiledCard = {
           kind: "Suspend",
           target: {
             filter: {
-              // "suspend 1 Digimon" carries no possessive: either player's.
               controllerDefault: "any",
               kind: ["Digimon"],
             },
@@ -124,7 +120,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [All Turns] While this Digimon is suspended, it isn't affected by opponent Digimon effects.
       trigger: "AllTurns",
       actions: [
         {
@@ -136,8 +131,6 @@ const compiled: CompiledCard = {
           },
           grant: "immuneToOpponentDigimonEffects",
           condition: {
-            // `selfIsSuspended` is the supported condition kind; `isSelfSuspended` is not one,
-            // and an unknown kind evaluates to false, so the immunity never armed.
             kind: "selfIsSuspended",
             raw: "while this Digimon is suspended",
           },

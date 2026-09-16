@@ -67,8 +67,6 @@ describe("BT13-072 DoruGreymon", () => {
         0: {
           battleArea: [{ card: "BT13-066", as: "base" }],
           hand: [{ card: "BT13-072", as: "doru" }],
-          // The mandatory digivolution draw consumes the first card before
-          // [When Digivolving] reveals the next three.
           deck: ["BT1-009", "BT9-055", "BT1-010", "BT1-011"],
         },
       },

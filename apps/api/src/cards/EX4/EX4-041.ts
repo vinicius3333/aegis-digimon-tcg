@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX4-041 (DeadlyAxemon).
-// runtime-effect fixes:
-// - [On Play] Draw: the cost+abortOnDecline pattern already gates the Draw on paying the trash
-//   cost correctly; this was already faithfully encoded.
-// - [On Deletion] RevealAdd: add filter must restrict to cards with [Blue Flare] or [Twilight]
-//   trait. Text says "If that card has the [Blue Flare] or [Twilight] trait, add it to your hand.
-//   Trash the rest." — added nameOrTrait match:"trait" with tokens ["Blue Flare","Twilight"].
-// - Inherited [All Turns] ModifyDP +1000 permanent (for each digivolution card gained) preserved.
 export const compiled: CompiledCard = {
   effects: [
     {

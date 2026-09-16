@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX3-052 (Jazarichmon).
-// runtime-effect fixes:
-// - [On Play] DeDigivolve: removed the separate Trash action targeting a level 3 Digimon —
-//   <De-Digivolve 1> means trash 1 card from the top of the target Digimon stopping at level 3
-//   (or the last card). It does NOT separately trash the Digimon itself if it reaches lv3.
-//   Encoded with stopAtLevel:3 per existing engine convention (see BT15-059).
-// - PlayWithoutCost for Hina Kurihara from hand is preserved.
-// - Inherited [Your Turn] SecurityAttack+1 (conditional on having OnPlay effect) is preserved.
 export const compiled: CompiledCard = {
   effects: [
     {

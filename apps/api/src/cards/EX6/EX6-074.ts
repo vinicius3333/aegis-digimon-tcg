@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -36,8 +33,6 @@ export const compiled: CompiledCard = {
               effectTextPart:
                 "Then, 1 of your Digimon may digivolve into [Angewomon]/[LadyDevimon] in your trash with the cost reduced by 1.",
               kind: "Digivolve",
-              // The printed clause says "1 of your Digimon", not "that Digimon";
-              // the played trait Digimon only arms this watcher.
               target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               into: {
                 controllerDefault: "mine",

@@ -38,6 +38,6 @@ describe("BT11-103 Poison Powder", () => {
     s.state.memory = 0;
     await advance(s.engine).verb.suspend([s.perm("a").permanentId]);
     await advance(s.engine).verb.suspend([s.perm("b").permanentId]);
-    expect(s.state.memory).toBe(2); // opponent lost 2 total, represented from turn seat 0
+    expect(s.state.memory).toBe(2);
   });
 });

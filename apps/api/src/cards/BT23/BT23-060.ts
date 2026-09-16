@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Compiled effect IR for BT23-060 (Machinedramon).
-//
-// The AUTO-GENERATED header was removed (card-module contract) to preserve this hand-edit.
-// The [When Attacking] clause had no activate-foreign verb, so the runtime record emitted
-// RawUnparsed. It is now the structured `ActivateForeignEffect` action (interpreter case
-// "ActivateForeignEffect"): borrow a face-up [Zaxon] trait security card's [On Play] effect
-// and run it as this Digimon's effect. KB Q5331 — this borrowed activation forces the
-// cost-bearing processing condition and consumes an eligible trash card before a hand fallback;
-// ordinary BT23-045 resolution remains optional and keeps its combined hand/trash source pool.
 export const compiled: CompiledCard = {
   effects: [
     {

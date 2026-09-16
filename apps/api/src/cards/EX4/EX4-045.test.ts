@@ -131,7 +131,7 @@ describe("EX4-045 MetalGreymon", () => {
     await settle(() => s.perm("other").topCard?.cardId === "BT1-044");
 
     expect(s.perm("other").topCard?.cardId).toBe("BT1-044");
-    expect(s.state.memory).toBe(9); // BT1-044 costs 3; this effect reduces it to 1.
+    expect(s.state.memory).toBe(9);
   });
 
   it("allows declining the optional digivolution", async () => {

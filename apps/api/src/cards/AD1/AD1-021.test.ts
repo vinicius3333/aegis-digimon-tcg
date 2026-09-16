@@ -5,13 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./AD1-021.js";
 
-// AD1-021 Marcus Damon & Agumon
-// [End of Your Turn] [Once Per Turn] If you have a yellow Digimon with [Agumon] or
-// [Greymon] in its name, for the turn, 1 of your [Marcus Damon]s is also treated as
-// a 6000 DP Digimon, gains <Rush> and can't digivolve. Then, 1 of your Digimon may attack.
-//
-// KB sources: Q6101-Q6111 (2026-03-13/2026-05-08)
-
 describe("AD1-021 Marcus Damon & Agumon", () => {
   const compiled = registeredCompiledCards.get("AD1-021");
 

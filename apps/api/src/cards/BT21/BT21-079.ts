@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT21-079 (Megidramon).
-// Fixes:
-// 1. EndOfAttack Delete: text says "Delete all Digimon" — both players' Digimon.
-//    Removed controllerDefault:"opponent" → no controller filter (affects all).
-// 2. OnDeletion CostModifier scaling: text says "both players' trashes" so the scaling
-//    filter must count cards from both players' trashes (no controller restriction).
-// 3. CostModifier is integrated into PlayWithoutCost as a dynamic ceiling, not a sibling
-//    action. Using inline playCostCeiling with scaling per 10 cards in both trashes.
-//    The base ceiling is 3 (playCostLte:3) + 2 per 10 total cards in both trashes.
 export const compiled: CompiledCard = {
   effects: [
     {

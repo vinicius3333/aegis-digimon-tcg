@@ -8,7 +8,6 @@ import { compiled } from "./BT23-098.js";
 const optionPermanent = (s: ReturnType<typeof setupEngine>, seat: 0 | 1, instanceId: string) =>
   s.state.players[seat]!.battleArea.find((permanent) => permanent.topCard?.instanceId === instanceId);
 
-/** Answer the open `optional` prompt for its seat, so one flow can accept and refuse in turn. */
 const answerOptional = async (s: ReturnType<typeof setupEngine>, prompt: string, accept: boolean) => {
   await settle(() => s.state.pendingDecision?.kind === "optional");
   const decision = s.state.pendingDecision;
@@ -42,7 +41,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     const s = setupEngine(
       {
         0: {
-          // A purple Digi-Egg in breeding is the Option's colour source (CR 4-21-2).
           breeding: { card: "BT11-006", as: "egg" },
           hand: [
             { card: "BT23-098", as: "option" },
@@ -64,7 +62,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ghostmonId)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
-    // Only the Option's own cost 3 leaves the gauge; Ghostmon (play cost 2) is free.
     expect(s.state.memory).toBe(1);
   });
 
@@ -97,7 +94,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     const s = setupEngine(
       {
         0: {
-          // A purple Digi-Egg in breeding is the Option's colour source (CR 4-21-2).
           breeding: { card: "BT11-006", as: "egg" },
           hand: [
             { card: "BT23-098", as: "option" },
@@ -223,8 +219,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(optionPermanent(s, 0, optionId)).toBeUndefined();
     expect(s.perm("naturalGhost").topCard?.cardId).toBe("BT20-068");
-    // Necromon's printed digivolution cost from level 5 is 4; ＜Delay＞ pays 4 - 3 = 1.
-    // Memory 5 - 2 (the natural Bakemon digivolve) - 1 = 2.
     expect(s.perm("delayGhost").topCard?.cardId).toBe("BT20-079");
     expect(s.perm("delayGhost").stack.map((card) => card.instanceId)).toContain(delayBaseId);
     expect(s.state.memory).toBe(2);
@@ -303,8 +297,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
       }),
     ).toEqual({ ok: true });
 
-    // Violet Inboots' own [Your Turn] effect is what suspends it, and it is optional too, so
-    // the two prompts are answered by hand: accept the suspension, then refuse the ＜Delay＞.
     await answerOptional(s, "by suspending this Tamer", true);
     await settle(() => s.perm("violet").isSuspended);
     expect(s.perm("violet").isSuspended).toBe(true);
@@ -346,7 +338,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     );
     const optionId = s.inst("option").instanceId;
     const delayBaseId = s.perm("delayGhost").topCard!.instanceId;
-    // Both Ghosts are legal ＜Delay＞ targets; bias the pick to the Lv.5 Phantomon.
     prefer.push(delayBaseId, s.perm("delayGhost").permanentId);
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -363,8 +354,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.turnCount).toBeGreaterThan(placedTurn);
 
-    // Violet Inboots' [Start of Your Main Phase] effect offers nothing here (no [Violet
-    // Inboots] in hand), so the new turn opens with no prompt and the Tamer stays put.
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.perm("violet").isSuspended).toBe(false);
@@ -380,7 +369,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     ).toEqual({ ok: true });
     await answerOptional(s, "by suspending this Tamer", true);
     await answerOptional(s, "Trash this card to activate its ＜Delay＞", true);
-    // The ＜Delay＞ body is itself a "may digivolve", so it asks a second time.
     await answerOptional(s, "Digivolve", true);
     await settle(() => s.perm("delayGhost").topCard?.cardId === "BT20-079");
 
@@ -390,7 +378,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     expect(s.perm("naturalGhost").topCard?.cardId).toBe("BT20-068");
     expect(s.perm("delayGhost").topCard?.cardId).toBe("BT20-079");
     expect(s.perm("delayGhost").stack.map((card) => card.instanceId)).toContain(delayBaseId);
-    // 5 - 2 (the public Bakemon digivolve) - 1 (Necromon's cost 4 reduced by 3).
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("delayEvolver").instanceId);
@@ -399,8 +386,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     await loop;
   });
 
-  // Seat 1 owns the placed Option; seat 0 (the turn player) suspends its own Violet Inboots,
-  // so this is an opponent's suspension on the opponent's turn — no turnSeat write needed.
   it("ignores an opponent-controlled Violet Inboots suspension", async () => {
     const s = setupEngine(
       {
@@ -476,7 +461,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
         count: 1,
         filter: {
           controller: "mine",
-          // Bracketed card names are exact references (CR 2-3-2-1), not substrings.
           nameOrTrait: [{ tokens: ["Ghostmon", "Violet Inboots"], match: "nameExact" }],
         },
       },
@@ -498,7 +482,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     expect(subTrigger.actions[0]).toMatchObject({
       kind: "Digivolve",
       from: ["hand"],
-      // The reduced remainder is still paid, so the action must not be a cost-free digivolve.
       payCost: true,
       reduceCost: 3,
       optional: true,
@@ -506,7 +489,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
       into: {
         controllerDefault: "mine",
         kind: ["Digimon"],
-        // Q5386: the card needs BOTH traits, not either one.
         and: [
           { nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }] },
           { nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },

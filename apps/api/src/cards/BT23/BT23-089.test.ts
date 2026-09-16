@@ -9,16 +9,8 @@ import { compiled } from "./BT23-089.js";
 
 const NEUTRAL_SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 
-// A legal same-level digivolution pair under a [CS] host: Numemon (Lv.4, no trait) digivolves
-// into GoldNumemon (BT22-031, "[Digivolve] Lv.4 w/[Numemon] in name: Cost 2"), which digivolves
-// into Angewomon (BT23-031, "[Digivolve] Lv.4 w/[CS] trait: Cost 3"). The stack therefore holds
-// two level 4 cards, only one of which carries the [CS] trait — the host is what must be [CS].
 const SAME_LEVEL_STACK = ["BT2-056", "BT22-031"];
-// Numemon (Lv.4) plus Huckmon (Lv.3): a stack with no same-level pair.
 const MIXED_LEVEL_STACK = ["BT2-056", "BT23-006"];
-// Real catalog cards seeded in a face-down state; their levels are unavailable to
-// the same-level payment filter under CR 4-7-9/10. This is a supplemental
-// information-boundary fixture, not a public producer proof.
 const HIDDEN_LEVEL_STACK = [
   { card: "BT2-056", faceUp: false },
   { card: "BT22-031", faceUp: false },
@@ -94,10 +86,6 @@ describe("BT23-089 Takumi Aiba", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
-  // ---------------------------------------------------------------------------
-
   it("gains 1 memory at the start of its controller's main phase while the opponent has a Digimon", async () => {
     const s = setupEngine({
       0: {
@@ -145,7 +133,6 @@ describe("BT23-089 Takumi Aiba", () => {
   });
 
   it("ignores an opponent Digimon that is only in the breeding area", async () => {
-    // Comprehensive rules 3-4-5-8: information on cards in breeding areas can't be referenced.
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT23-089", as: "takumi" }],
@@ -198,22 +185,12 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // Passing the turn hands seat 1 the minimum 3 memory. A second gain for seat 0 would read
-    // as 2 here, so the exact 3 proves the Tamer stayed silent on the opponent's turn.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // [All Turns] leave prevention.
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Seat 1's board for an own-turn battle: two big Digimon seeded SUSPENDED, so seat 0 can
-   * attack them and lose the attacker in battle. Seat 1 never unsuspends on seat 0's turn.
-   */
   function opponentBlockers() {
     return {
       battleArea: [
@@ -226,23 +203,16 @@ describe("BT23-089 Takumi Aiba", () => {
     };
   }
 
-  /** Start the real turn loop and stop inside `seat`'s open Main phase. */
   async function reachMainPhase(s: ReturnType<typeof setupEngine>, seat: 0 | 1): Promise<void> {
     await advance(s.engine).waitForMainPhase(seat);
   }
 
-  /**
-   * Open seat 0's own Main phase through the real turn loop. Returns the loop WRAPPED:
-   * an async function that returned it directly would resolve to the loop promise itself
-   * and hang the test.
-   */
   async function openOwnTurn(s: ReturnType<typeof setupEngine>): Promise<{ loop: Promise<unknown> }> {
     const loop = s.engine.startTurnLoop();
     await reachMainPhase(s, 0);
     return { loop };
   }
 
-  /** Attack `alias` into the named suspended opposing Digimon and let the battle settle. */
   async function attackInto(s: ReturnType<typeof setupEngine>, attacker: string, defender: string) {
     expect(
       s.engine.applyIntent(0, {
@@ -255,8 +225,6 @@ describe("BT23-089 Takumi Aiba", () => {
   }
 
   it("pays the compound cost on the OPPONENT's turn to keep a [CS] Digimon deleted in battle", async () => {
-    // [All Turns]: seat 0 suspends its own Angewomon by attacking the player on its own turn,
-    // then seat 1 attacks that suspended Digimon on seat 1's turn.
     const s = setupEngine(
       {
         0: {
@@ -283,7 +251,6 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(stackIds).toHaveLength(2);
 
     const { loop } = await openOwnTurn(s);
-    // Suspend the Angewomon publicly: its 6000 DP beats seat 1's 3000 DP top security card.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -347,7 +314,6 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === angewomonPermanentId)).toBe(
       false,
     );
-    // Declining pays nothing: the whole permanent (top card plus its 2 stack cards) is trashed.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(angewomonId);
     expect(s.state.players[0]!.trash).toHaveLength(3);
     expect(s.perm("takumi").isSuspended).toBe(false);
@@ -529,14 +495,12 @@ describe("BT23-089 Takumi Aiba", () => {
     const bId = s.perm("angewomonB").topCard!.instanceId;
 
     const { loop } = await openOwnTurn(s);
-    // First payment: A is saved, the Tamer suspends, A's same-level pair is trashed.
     await attackInto(s, "angewomonA", "bigA");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentA)).toBe(true);
     expect(s.perm("takumi").isSuspended).toBe(true);
     expect(s.perm("angewomonA").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(2);
 
-    // Second would-leave event with the suspend half of the cost unpayable: B leaves.
     await attackInto(s, "angewomonB", "bigB");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentB)).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(bId);
@@ -624,8 +588,6 @@ describe("BT23-089 Takumi Aiba", () => {
   });
 
   it("saves every [CS] Digimon leaving together for a single payment", async () => {
-    // BT25-093 Ignition Flare deletes ALL of the opponent's lowest-DP Digimon in one event.
-    // "They don't leave" pays once and saves both.
     const s = setupEngine(
       {
         0: {
@@ -663,7 +625,6 @@ describe("BT23-089 Takumi Aiba", () => {
       expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentId)).toBe(true);
     }
     expect(s.perm("takumi").isSuspended).toBe(true);
-    // Exactly one payment: 2 cards left one of the two stacks, the other stack is untouched.
     expect(s.state.players[0]!.trash).toHaveLength(2);
     const stackSizes = [s.perm("angewomonA").stack.length, s.perm("angewomonB").stack.length].sort();
     expect(stackSizes).toEqual([0, 2]);
@@ -672,10 +633,6 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // ---------------------------------------------------------------------------
-  // [Security] Play this card without paying the cost.
-  // ---------------------------------------------------------------------------
 
   it("plays itself from security without paying its cost", async () => {
     const s = setupEngine(
@@ -715,7 +672,6 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === takumiId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === takumiId)).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(0);
-    // Seat 1 is the turn player: its memory is unchanged by seat 0's free play.
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.pendingDecision).toBeUndefined();
 

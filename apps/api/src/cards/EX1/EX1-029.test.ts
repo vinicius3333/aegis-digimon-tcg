@@ -52,7 +52,7 @@ describe("EX1-029 MagnaAngemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("yellowChoice").instanceId)).toBe(true);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(3); // 6 - BT1-087's play cost 4 + EX1-029's inherited memory 1
+    expect(s.state.memory).toBe(3);
   });
 
   it("does not gain the attack bonus with fewer than three security cards", async () => {
@@ -153,7 +153,7 @@ describe("EX1-029 MagnaAngemon", () => {
         s.state.pendingDecision === undefined,
     );
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.memory).toBe(-1); // second play costs 4; EX1-029 is once per turn
+    expect(s.state.memory).toBe(-1);
   });
 
   it("does not gain memory for an opponent's security addition during this player's turn", async () => {
@@ -181,7 +181,7 @@ describe("EX1-029 MagnaAngemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[1]!.security).toHaveLength(1); // opponent's Recovery +1 is public, but not ours
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("resets the inherited once-per-turn memory gain on the next own turn", async () => {
@@ -229,7 +229,7 @@ describe("EX1-029 MagnaAngemon", () => {
       ok: true,
     });
     await settle(() => s.perm("host").topCard.cardId === "EX1-031" && s.state.players[0]!.security.length === 4);
-    expect(s.state.memory).toBe(7); // evolve cost 4, then Recovery +1 and EX1-029's reset gain +1
+    expect(s.state.memory).toBe(7);
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX1-029", "BT1-060"]);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
@@ -267,8 +267,8 @@ describe("EX1-029 MagnaAngemon", () => {
     });
     await settle(() => s.perm("source").topCard.cardId === "EX1-031");
     expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["BT1-046", "BT1-051", "EX1-029"]);
-    expect(s.state.players[0]!.security).toHaveLength(4); // EX1-031's Recovery +1
-    expect(s.state.memory).toBe(2); // 10 - 2 - 3 - 4 + EX1-029's inherited +1
+    expect(s.state.players[0]!.security).toHaveLength(4);
+    expect(s.state.memory).toBe(2);
   });
 
   it("rejects an illegal non-yellow evolution and does not expose the inherited effect", async () => {

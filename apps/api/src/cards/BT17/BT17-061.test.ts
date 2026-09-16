@@ -212,10 +212,6 @@ describe("BT17-061 Goblimon", () => {
   });
 
   it("builds a real stack from a played Goblimon and grants Retaliation once buried", async () => {
-    // Realistic stack over two public routes: BT17-061 is played from the hand (cost 3),
-    // then BT3-080 Saberdramon digivolves onto it (Purple Lv4 from a Purple Lv3, 2
-    // memory). Retaliation is inherited, so it is absent while Goblimon is the top card
-    // and present only after Saberdramon buries it.
     const s = setupEngine(
       {
         0: {
@@ -235,8 +231,6 @@ describe("BT17-061 Goblimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: goblimonId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-061"));
 
-    // Step 1: on the field as the top card, cost 3 paid, no other Digimon to pay the
-    // [On Play] cost, and its own inherited keyword is not active on itself.
     const hosted = s.state.players[0]!.battleArea[0]!;
     expect(hosted.topCard?.instanceId).toBe(goblimonId);
     expect(hosted.stack).toHaveLength(0);
@@ -252,8 +246,6 @@ describe("BT17-061 Goblimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard?.cardId === "BT3-080");
 
-    // Step 2: Saberdramon buries Goblimon, pays 2 memory, draws the digivolve bonus, and
-    // now inherits Retaliation from the Goblimon underneath.
     const evolved = s.state.players[0]!.battleArea[0]!;
     expect(evolved.permanentId).toBe(hosted.permanentId);
     expect(evolved.stack.map((card) => card.instanceId)).toEqual([goblimonId]);

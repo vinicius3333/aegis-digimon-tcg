@@ -7,10 +7,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-105.js";
 
-// P-105 (Physical Training): reveal two cards, add a yellow card, place this
-// Option in the battle area, and optionally use Delay to digivolve a yellow
-// Digimon from hand for its cost reduced by 2.
-
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
 }
@@ -173,7 +169,6 @@ describe("P-105 (Physical Training)", () => {
   });
 
   it("yields no effects at wrong timings (OnPlay, OnStartTurn)", () => {
-    // Sanity: the card contributes nothing at unrelated windows.
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
     expect(module!.effectsForTiming(EffectTiming.OnStartTurn, source)).toHaveLength(0);
@@ -225,8 +220,6 @@ describe("P-105 (Physical Training)", () => {
 
     const recorder: Recorder = { calls: [] };
 
-    // A non-yellow (Red) card and a yellow card are among the "revealed" results.
-    // We fake reveal() to return them so the RevealAdd logic processes both.
     const redCard = { instanceId: "INST#RED-OPT", cardId: "RED-OPTION", ownerSeat: 0 as Seat };
     const yellowCard = { instanceId: "INST#YELLOW-OPT", cardId: "YELLOW-OPTION", ownerSeat: 0 as Seat };
 
@@ -294,17 +287,12 @@ describe("P-105 (Physical Training)", () => {
     const ctx: EffectContext = { source: makeSource(), trigger: {}, game, fx: fx as Primitives, ask };
     await effects[0]!.resolve(ctx);
 
-    // Only the yellow card should be offered/added — the red one must not appear.
     const addedToHand = recorder.calls.filter((c) => c.verb === "returnToHand");
     const instancesAdded = addedToHand.flatMap((c) => c.args[0] as string[]);
     expect(instancesAdded).toContain(yellowCard.instanceId);
     expect(instancesAdded).not.toContain(redCard.instanceId);
   });
 
-  // The <Delay> clause digivolves "1 of your Digimon"; both [Main] effects map to
-  // OnDeclaration, so the digivolve clause must be selected by its action shape (not
-  // effects[0], which is the reveal clause), and a board Digimon must be seated so
-  // runDigivolve reaches the in-hand `into` selection.
   function boardDigimon(): Permanent {
     return {
       permanentId: "OWN-DIGI",
@@ -344,7 +332,6 @@ describe("P-105 (Physical Training)", () => {
     const deletes = recorder.calls.filter((c) => c.verb === "deletePermanent");
     expect(deletes).toHaveLength(1);
     expect(deletes[0]!.args[0]).toEqual([SOURCE_PERMANENT_ID]);
-    // The board Digimon that digivolves must NOT be the one trashed as the Delay cost.
     expect(deletes[0]!.args[0]).not.toEqual(["OWN-DIGI"]);
   });
 
@@ -368,7 +355,6 @@ describe("P-105 (Physical Training)", () => {
 
     const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
     expect(digivolves).toHaveLength(1);
-    // args: (targetPermanentId, sourceInstanceId, opts). The chosen source must be yellow.
     expect(digivolves[0]!.args[1]).toBe(yellowDigimon.instanceId);
     expect(digivolves[0]!.args[1]).not.toBe(redDigimon.instanceId);
   });
@@ -391,15 +377,11 @@ describe("P-105 (Physical Training)", () => {
 
     const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
     expect(digivolves.length).toBeGreaterThanOrEqual(1);
-    // The third arg is opts; opts.costDelta should carry -2 from the IR's DigivolveAction.
     const opts = digivolves[0]!.args[2] as Record<string, unknown> | undefined;
     expect(opts?.costDelta).toBe(-2);
   });
 
   it("OnDeclaration <Delay> does NOT digivolve when the player declines (Q4195: choosing not to is allowed)", async () => {
-    // Q4195: "Can I activate this card's <Delay> effect but choose to not digivolve? Yes, you can."
-    // The Digivolve action is optional; declining the prompt must skip digivolveFromInstance
-    // even though a legal yellow target is available.
     const recorder: Recorder = { calls: [] };
     const yellowDigimon = { instanceId: "INST#YELLOW-D3", cardId: "YELLOW-DIGIMON-3", ownerSeat: 0 as Seat };
 
@@ -412,7 +394,6 @@ describe("P-105 (Physical Training)", () => {
         "YELLOW-DIGIMON-3": { kinds: ["Digimon"] as never, colors: ["Yellow"] as never },
       },
       ask: {
-        // Player declines every optional prompt.
         optional: async () => false,
         selectCards: async (_c, o) => o.candidates.slice(0, 1),
         chooseTargets: async (_c, o) => o.candidates.slice(0, 1),
@@ -421,7 +402,6 @@ describe("P-105 (Physical Training)", () => {
 
     await digivolveClause().resolve(ctx);
 
-    // When the player declines the optional digivolve, digivolveFromInstance must not fire.
     const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
     expect(digivolves).toHaveLength(0);
   });

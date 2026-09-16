@@ -6,19 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-020.js";
 
-// BT19-020 Greymon — Blue/Black Lv.4 Champion, 5000 DP, play cost 5,
-// digivolves from a Blue Lv.3 or a Black Lv.3 for 3.
-//   ＜Rush＞
-//   [On Deletion] If you have 1 or fewer Tamers, you may play 1 [Kiriha Aonuma] from your
-//   hand without paying the cost. Then, ＜Save＞.
-//   Inherited: ＜Reboot＞.
-//
-// Fixtures: BT1-028 Elecmon (inert Blue Lv.3) and BT2-052 Hagurumon (inert Black Lv.3) are
-// the two legal digivolution sources; BT1-064 Goblimon (inert Green Lv.3) is the illegal
-// source. BT19-081 Kiriha Aonuma is the exact printed Tamer; EX4-062
-// [Kiriha Aonuma & Nene Amano] is the near-miss whose name merely CONTAINS it, and
-// BT19-079 Taiki Kudo is the unrelated second Tamer. Security is seeded with inert
-// main-deck Digimon so no digivolve or attack trips the security-out win check.
 describe("BT19-020 Greymon", () => {
   it("matches the catalog printing", () => {
     expect(getCardDefinition("BT19-020")).toMatchObject({
@@ -46,7 +33,6 @@ describe("BT19-020 Greymon", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Rush" }] });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "OnDeletion",
-      // "Then, ＜Save＞" is the keyword, so the placement is optional and lands at the bottom.
       keywords: [{ keyword: "Save" }],
       actions: [
         {
@@ -54,7 +40,6 @@ describe("BT19-020 Greymon", () => {
           payCost: false,
           optional: true,
           from: ["hand"],
-          // Bracketed [Kiriha Aonuma] is an EXACT name, never a substring.
           target: { count: 1, filter: { controller: "mine", nameOrTrait: [{ match: "nameExact" }] } },
           condition: {
             kind: "youHave",
@@ -76,10 +61,6 @@ describe("BT19-020 Greymon", () => {
     });
     expect(compiled.effects).toHaveLength(3);
   });
-
-  // ---------------------------------------------------------------------------
-  // Digivolution routes
-  // ---------------------------------------------------------------------------
 
   it.each([
     ["Blue Lv.3", "BT1-028"],
@@ -140,10 +121,6 @@ describe("BT19-020 Greymon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-020"]);
   });
 
-  // ---------------------------------------------------------------------------
-  // ＜Rush＞
-  // ---------------------------------------------------------------------------
-
   it("attacks the turn it arrives while a plain peer that arrived with it may not", async () => {
     const s = setupEngine(
       {
@@ -165,7 +142,6 @@ describe("BT19-020 Greymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("greymon"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plainPeer"), "Rush")).toBe(false);
 
-    // The summoning-sickness gate refuses the peer that arrived this turn without ＜Rush＞.
     const refused = s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("plainPeer").permanentId,
@@ -187,10 +163,6 @@ describe("BT19-020 Greymon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.perm("greymon").isSuspended).toBe(true);
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Deletion] ... Then, ＜Save＞ — Q3076, Q4714
-  // ---------------------------------------------------------------------------
 
   it("plays Kiriha with no Tamer in play and Saves under the Tamer it just played (Q3076)", async () => {
     const s = setupEngine(
@@ -218,7 +190,6 @@ describe("BT19-020 Greymon", () => {
     expect(kiriha.stack.map((card) => card.instanceId)).toEqual([greymonInstanceId]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    // Played "without paying the cost": the memory gauge never moves.
     expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -242,7 +213,6 @@ describe("BT19-020 Greymon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
     await s.ready();
-    // Pin the ＜Save＞ host so the placement position is asserted deterministically.
     preferInstanceIds.push(s.perm("firstTamer").topCard!.instanceId);
     const greymonInstanceId = s.inst("greymon").instanceId;
     const olderInstanceId = s.inst("older").instanceId;
@@ -251,23 +221,14 @@ describe("BT19-020 Greymon", () => {
     await settle(() => s.perm("firstTamer").stack.length === 2);
     await settle(() => false, 30);
 
-    // The "if" clause failed, so the Kiriha in hand stays there; the ＜Save＞ after "then"
-    // still happens (Q4714).
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-081"]);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.perm("secondTamer").stack).toHaveLength(0);
-    // Comprehensive 4-3-2: a card placed under a Tamer that already has cards under it goes
-    // to the BOTTOM of the stack. `Permanent.stack` is bottom-first.
     expect(s.perm("firstTamer").stack.map((card) => card.instanceId)).toEqual([greymonInstanceId, olderInstanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // [Kiriha Aonuma] is a bracketed EXACT name gate. BT10-088 is a different printing with
-  // the same printed name (qualifies); EX4-062 prints "The name of this card/Tamer is also
-  // treated as [Kiriha Aonuma]/[Nene Amano]", so it answers to the exact name too
-  // (qualifies); BT11-095 [Taiki, Kiriha, & Nene] and BT1-085 [Tai Kamiya] are the
-  // near-miss Tamers this clause must never play.
   it.each([
     ["BT10-088", true],
     ["EX4-062", true],
@@ -303,7 +264,6 @@ describe("BT19-020 Greymon", () => {
     );
     expect(onBoard).toBe(qualifies);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === candidateInstanceId)).toBe(!qualifies);
-    // ＜Save＞ runs either way, and no cost is ever paid.
     expect(s.perm("taiki").stack.map((card) => card.instanceId)).toEqual([greymonInstanceId]);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -323,8 +283,6 @@ describe("BT19-020 Greymon", () => {
         },
         1: { security: ["BT1-009", "BT1-013"] },
       },
-      // Declines BOTH optionals: no play, and ＜Save＞ itself is optional too, so the
-      // Greymon goes to the trash instead of under the Tamer.
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -365,10 +323,6 @@ describe("BT19-020 Greymon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited ＜Reboot＞
-  // ---------------------------------------------------------------------------
-
   it("grants inherited ＜Reboot＞ only to the host it sits under", async () => {
     const s = setupEngine({
       0: {
@@ -383,13 +337,10 @@ describe("BT19-020 Greymon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plain"), "Reboot")).toBe(false);
-    // An inherited effect never applies to the card while it is the TOP card.
     expect(observe(s.engine).hasKeyword(s.perm("onTop"), "Reboot")).toBe(false);
   });
 
   it("actually unsuspends its host during the opponent's unsuspend phase", async () => {
-    // Both own Digimon attack into security on turn 0 and end it suspended. 20 000 DP keeps
-    // them alive through the security check; only the Greymon host carries ＜Reboot＞.
     const s = setupEngine(
       {
         0: {

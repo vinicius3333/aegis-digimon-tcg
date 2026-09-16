@@ -5,9 +5,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const generated = getCompiledCard("EX5-072")!;
 export const compiled: CompiledCard = structuredClone(generated);
 
-// The generated record combines Use Requirement waiver and pay-time reduction in one Static
-// effect. The waiver consumer deliberately accepts waiver-only Static blocks, so split the
-// clauses while preserving their independent runtime semantics.
 const staticEffect = compiled.effects.find((effect) => effect.trigger === "Static");
 const waiver = staticEffect?.actions.find((action) => action.kind === "WaiveColorRequirement");
 if (staticEffect !== undefined && waiver !== undefined && staticEffect.actions.length > 1) {
@@ -15,7 +12,6 @@ if (staticEffect !== undefined && waiver !== undefined && staticEffect.actions.l
   compiled.effects.unshift({ trigger: "Static", actions: [waiver] });
 }
 
-// Q3685: exclude this card and count each qualifying trash name once.
 const reduction = compiled.effects
   .flatMap((effect) => effect.actions)
   .find((action) => action.kind === "ReducePlayCost");
@@ -46,7 +42,6 @@ if (reduction?.kind === "ReducePlayCost" && reduction.scaling !== undefined && r
 }
 const securityReturn = compiled.effects.find((effect) => effect.trigger === "Security")?.actions[0];
 if (securityReturn?.kind === "Return") {
-  // Security text says "1 card with [Fanglongmon] in its name", not a Digimon card.
   securityReturn.target.filter.kind = undefined;
 }
 const mainPlay = compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0];
@@ -59,8 +54,6 @@ if (mainPlay?.kind === "PlayWithoutCost") {
   };
 }
 
-// Drop empty generated containers left behind by the normalization above. Preserve keyword-only
-// Static effects because those carry executable continuous abilities even without actions.
 compiled.effects = compiled.effects.filter(
   (effect) =>
     !(

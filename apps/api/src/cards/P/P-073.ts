@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4174: the payment is 2 digivolution cards that share a level with each other.
-// Q4175 confirms the WereGarurumon name is an always-on rule.
 const compiled: CompiledCard = {
   effects: [
     {

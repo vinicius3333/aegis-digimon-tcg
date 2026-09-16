@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT25-066 Guardromon. Its leave replacement pays from this Digimon's own Link zone;
-// a neighboring Digimon's link card cannot satisfy the cost.
 export const compiled: CompiledCard = {
   effects: [
     {

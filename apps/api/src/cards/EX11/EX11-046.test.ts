@@ -4,29 +4,13 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import "../index.js"; // register the compiled cards so the real activateEffect path runs
-
-/**
- * A3 for EX11-046 (Galacticmon) — the [When Digivolving] mass-delete's survivor.
- *
- *   [On Play] [When Digivolving] Choose 1 of your opponent's highest play cost
- *   Digimon and delete all of their other Digimon.
- *
- * `Target.except` narrows its own survivor pool to the opponent's HIGHEST-play-cost
- * Digimon via `selector: "highestPlayCost"` (reusing the same superlative machinery
- * `Filter.superlative` already applies elsewhere). Before this fix the interpreter
- * never read `except`, so the delete matched EVERY opponent Digimon — including the
- * one with the highest play cost that the printed text spares.
- *
- * FAILS-WHEN-REVERTED: dropping the `except` carve-out makes the highest-play-cost
- * Digimon get deleted along with the rest, and the "survives" assertion below flips.
- */
+import "../index.js";
 
 const GALACTICMON = "EX11-046";
-const GALACTICMON_BASE = "BT11-111"; // Lv.6 [Galacticmon], satisfies the alternate digivolve requirement
-const OPPONENT_CHEAP = "AD1-011"; // playCost 8 — must be deleted (not the highest)
-const OPPONENT_COSTLY = "AD1-004"; // playCost 12 — the highest, must survive
-const DECOY = "P-094"; // Destromon — Black Lv.5, NOT named [Galacticmon]
+const GALACTICMON_BASE = "BT11-111";
+const OPPONENT_CHEAP = "AD1-011";
+const OPPONENT_COSTLY = "AD1-004";
+const DECOY = "P-094";
 
 describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-cost opponent Digimon", () => {
   it("captures the official Assembly -6 recipe", () => {
@@ -90,13 +74,10 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
 
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // The highest-play-cost opponent Digimon survives ...
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === costly.permanentId)).toBe(true);
-    // ... while the cheaper one was deleted.
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === cheap.permanentId)).toBe(false);
   });
 
-  /** Boundary: 3 Vemmon is one short — neither Blocker nor the immunity is granted. */
   it("grants nothing when the evolving Digimon has only 3 Vemmon in its stack", async () => {
     const s = setupEngine(
       {
@@ -148,8 +129,6 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     expect(base.topCard?.cardId).toBe(GALACTICMON);
     expect(base.stack.filter((card) => card.cardId === "BT11-061")).toHaveLength(4);
     expect(observe(s.engine).hasKeyword(base, "Blocker")).toBe(true);
-    // "isn't affected by THEIR effects": GrantImmunity requires `immuneFrom` — without it the
-    // action is not assignable to Action at all, and the printed scope is unstated.
     expect(runtimeCompiledCard(GALACTICMON)?.effects[1]?.actions[2]).toMatchObject({
       kind: "GrantImmunity",
       immuneFrom: "opponentEffects",
@@ -212,11 +191,6 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     assertNoLoudGap(s);
   });
 
-  /**
-   * FAILS-WHEN-REVERTED: the [End of Opponent's Turn] destination was encoded as
-   * `into: { namesExact: ["Galacticmon"] }`, and `names` is not a Filter field — the interpreter
-   * ignored it and offered every card in hand and trash (Snatchmon, Destromon, ...).
-   */
   it("only digivolves into a card named [Galacticmon] at the end of the opponent's turn", async () => {
     const withHand = (hand: string) =>
       setupEngine(
@@ -245,10 +219,6 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     expect(named.perm("self").topCard?.cardId).toBe(GALACTICMON_BASE);
   });
 
-  /**
-   * The printed source is "in the hand OR trash". FAILS-WHEN-REVERTED: dropping "trash" from
-   * `from` leaves nothing to digivolve into and the top card stays EX11-046.
-   */
   it("also digivolves into a [Galacticmon] sitting in the TRASH, and only into that name", async () => {
     const withTrash = (trashCard: string) =>
       setupEngine(

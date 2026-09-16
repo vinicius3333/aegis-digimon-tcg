@@ -271,7 +271,6 @@ describe("EX10-011 MaloMyotismon", () => {
           security: ["BT1-009", "BT1-010"],
         },
       },
-      // Declining every optional prompt proves the two-delete clause is mandatory (Q5029).
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     const ownVictimId = s.perm("ownVictim").permanentId;
@@ -293,8 +292,6 @@ describe("EX10-011 MaloMyotismon", () => {
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(ownVictimId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(oppVictimId);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    // Deleting your own Digimon feeds the [All Turns] clause: one security card trashed and
-    // the surviving (suspended, so never a delete target) opponent Digimon bottom-decked.
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(oppSuspendedInstanceId);
@@ -341,7 +338,6 @@ describe("EX10-011 MaloMyotismon", () => {
     await settle();
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([thirdId]);
 
-    // Same turn: the shared once-per-turn use is spent, so [When Attacking] deletes nothing.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -358,7 +354,6 @@ describe("EX10-011 MaloMyotismon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // Next own turn: the use has reset, so the same attack now deletes the last Digimon.
     expect(s.perm("base").isSuspended).toBe(false);
     expect(
       s.engine.applyIntent(0, {
@@ -455,7 +450,6 @@ describe("EX10-011 MaloMyotismon", () => {
     await settle(() => s.perm("redBase").topCard.cardId === CARD_ID);
     await settle();
 
-    // Printed Red Lv.5 cost is 6, not the alternate route's 5.
     expect(s.state.memory).toBe(0);
     expect(s.perm("redBase").stack.map(({ cardId }) => cardId)).toEqual(["BT1-020"]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(bonusDrawInstanceId);

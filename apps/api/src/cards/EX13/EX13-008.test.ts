@@ -8,14 +8,6 @@ import { compiled } from "./EX13-008.js";
 
 const cardId = "EX13-008";
 
-// Reveal fixtures.
-//   ST1-04   — named "Dracomon": matches the text reference through its NAME.
-//   BT20-044 — "Breakdramon": matches only through its printed inherited text
-//              ("[Dracomon]/[Examon] in their text"), so it proves the reference reads
-//              text fields and not just the name.
-//   BT1-009  — "Monodramon": the near-match. It carries "dramon" but neither "Dracomon"
-//              nor "Examon", so the filter must refuse it.
-//   BT1-011  — "Agumon Expert": plain non-match, no dragon token at all.
 const NAME_MATCH = "ST1-04";
 const TEXT_ONLY_MATCH = "BT20-044";
 const NEAR_MATCH = "BT1-009";
@@ -45,11 +37,8 @@ describe("EX13-008 Dracomon", () => {
   it("compiles every printed clause", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
 
-    // A bracketed bare [Name] is the exact reading, so the off-colour Bebydomon prints are
-    // reachable while "Bebydomon"-adjacent names are not.
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Bebydomon"], cost: 0, isAlternate: true }]);
 
-    // One sentence printed under two timings: two effects, identical action list, neither inherited.
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect.isInherited).toBeUndefined();
@@ -88,10 +77,6 @@ describe("EX13-008 Dracomon", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve] [Bebydomon]: Cost 0 — additive to the printed Red Lv.2 evoCost.
-  // ---------------------------------------------------------------------------
-
   it("digivolves from an off-colour [Bebydomon] for 0 and refuses a same-level green egg", async () => {
     const legal = setupEngine({
       0: {
@@ -113,12 +98,10 @@ describe("EX13-008 Dracomon", () => {
     ).toEqual({ ok: true });
     await settle(() => legal.perm("bebydomon").topCard.cardId === cardId);
 
-    // Cost 0, and the egg survives underneath as the single digivolution card.
     expect(legal.state.memory).toBe(0);
     expect(legal.perm("bebydomon").stack.map(({ instanceId }) => instanceId)).toEqual([
       legal.inst("bebydomon").instanceId,
     ]);
-    // Digivolution's bonus draw: the one deck card is now the only card in hand.
     expect(legal.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
       legal.inst("bonusDraw").instanceId,
     ]);
@@ -171,10 +154,6 @@ describe("EX13-008 Dracomon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] Reveal 3, add 1 [Dracomon]/[Examon]-in-text card, rest to deck bottom.
-  // ---------------------------------------------------------------------------
-
   it("adds the text-only match on play and bottoms the near-match and the non-match", async () => {
     const s = setupEngine(
       {
@@ -202,9 +181,7 @@ describe("EX13-008 Dracomon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
-    // Only the text match reaches the hand; the near-match "Monodramon" is refused.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("textMatch").instanceId]);
-    // The sentinel stays on top of the two returned cards, proving "bottom of the deck".
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
       s.inst("nearMatch").instanceId,
@@ -243,7 +220,6 @@ describe("EX13-008 Dracomon", () => {
     await settle(() => s.state.players[0]!.hand.some(({ cardId: id }) => id === NAME_MATCH));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // "Add 1 card" is singular: the second match is returned with the rest.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("nameMatch").instanceId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
@@ -290,10 +266,6 @@ describe("EX13-008 Dracomon", () => {
     assertNoLoudGap(s);
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Moving] — the same clause on the public breeding-move route.
-  // ---------------------------------------------------------------------------
-
   it("fires the same reveal clause when it moves out of breeding", async () => {
     const s = setupEngine(
       {
@@ -337,13 +309,6 @@ describe("EX13-008 Dracomon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [End of Your Turn] DNA digivolve.
-  // The smallest legal stack that reaches the clause: EX13-008 sits in the digivolution
-  // cards of a battle-area Digimon, whose controller also has a second Digimon, and the
-  // DNA destination (BT20-045 Examon, [Breakdramon] + [Slayerdramon]) is in hand.
-  // ---------------------------------------------------------------------------
-
   it("DNA digivolves the host and another of your Digimon into the hand card", async () => {
     const s = setupEngine(
       {
@@ -369,8 +334,6 @@ describe("EX13-008 Dracomon", () => {
     );
 
     const examon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT20-045")!;
-    // Both material permanents are consumed into the single DNA result, and both their
-    // stacks survive beneath it — EX13-008 included.
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([examon.permanentId]);
     expect(examon.permanentId).not.toBe(hostId);
     expect(examon.permanentId).not.toBe(partnerId);
@@ -396,7 +359,6 @@ describe("EX13-008 Dracomon", () => {
     await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("breakdramon"));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The opponent's Slayerdramon is not "your other Digimon", so nothing happens.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT20-044"]);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT20-027"]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("examon").instanceId]);

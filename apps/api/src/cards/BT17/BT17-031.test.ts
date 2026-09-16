@@ -248,8 +248,6 @@ describe("BT17-031", () => {
     s.state.turnSeat = 0;
     s.state.memory = 10;
 
-    // Open seat 0's next Main for real so the second Option use fires through the production
-    // play seam, then close it. The keyword granted last own turn ended at the opponent's turn.
     const nextTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.turnSeat).toBe(0);

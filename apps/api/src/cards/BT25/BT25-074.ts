@@ -1,12 +1,3 @@
-// HAND-FIXED IR for BT25-074 (Tankdramon) — do not regenerate over this file.
-//
-// runtime-effect fix: "Reveal the top 3 cards of your deck. You may play 1 play cost 12 or
-// lower [D-Brigade] or [ACCEL] trait Digimon card among them with the cost reduced by
-// 5. Trash the rest." was split into a useless RevealAdd(add:[]) that added nothing,
-// plus an unlinked PlayWithoutCost/Trash pair that didn't source from the revealed
-// cards at all. Recompiled as a single RevealAdd with an add[] "play" disposition
-// (costDelta:5, the new play-cost-reduction sibling of a full payCost:false waiver)
-// and rest:"trash".
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

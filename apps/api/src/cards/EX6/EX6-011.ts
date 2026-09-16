@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX6-011 RagnaLoardmon
-// Text: "[Hand][Counter] <Blast DNA Digivolve ([Durandamon] + [BryweLudramon])>"
-// Text: "<Raid>. <Reboot>"
-// Text: "[On Play][When Digivolving] Trash the top card of your opponent's security stack
-//   and Digimon isn't affected by your opponent's effects until the end of their turn.
-//   Then, if DNA digivolving, <De-Digivolve 1> all of your opponent's Digimon
-//   (Trash the top card. You can't trash past level 3 cards) and delete 1 of their Digimon."
-// Protection applies even when the opponent has no security cards.
 export const compiled: CompiledCard = {
   effects: [
     {

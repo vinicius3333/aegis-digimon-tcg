@@ -1,13 +1,3 @@
-// HAND-FIXED IR for LM-001 — do not regenerate.
-// [Hand][Counter] parenthetical "(Your Digimon may digivolve into this card without
-// paying the cost)" = BlastDigivolve keyword mechanic (same as ＜Blast Digivolve＞).
-// Audit fixes (LM audit): the "for each color in this Digimon's digivolution cards" ceiling
-// is raised BEFORE the delete resolves and is scoped to this permanent, and it counts the
-// SOURCE stack's distinct colors (`digivolutionCardColors`) — `unit: "colors"` over a
-// `zone: "digivolutionCards"` filter reads battle-area permanents, never the stack.
-// The placement destination is this Digimon itself ("as this Digimon's bottom digivolution card").
-// "When ANOTHER Digimon is deleted" is side-agnostic, so the watcher's source filter defaults to
-// either controller rather than only this Digimon's own side.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

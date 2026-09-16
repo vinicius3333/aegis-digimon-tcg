@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// RB1-035 Hokuto Amanokawa — hand-fixed IR.
-// [Start of Your Turn] If your opponent has 3 or more Tamers, gain 1 memory.
-// [All Turns] When an opponent plays a Digimon, by suspending this Tamer,
-//   gain 1 memory if that Digimon is level 4 or higher,
-//   and <Draw 1> if it is level 3.
-//
-// KB Q4109: can suspend for Lv.- Digimon (no level → neither condition fires).
-// KB Q4110: if opponent plays Lv.3 AND Lv.4+ simultaneously, both conditions fire.
-// KB Q4111: even if multiple Lv.3 are played at once, Draw 1 fires only once (once per trigger).
-//
 const compiled: CompiledCard = {
   effects: [
     {
@@ -32,9 +22,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [All Turns] When an opponent plays a Digimon, by suspending this Tamer,
-      // gain 1 memory if that Digimon is level 4 or higher, and <Draw 1> if level 3.
-      // Single suspend cost for both conditional actions (once per trigger event).
       trigger: "AllTurns",
       actions: [
         {

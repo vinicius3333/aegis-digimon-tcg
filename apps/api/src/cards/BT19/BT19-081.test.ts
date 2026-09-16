@@ -5,29 +5,16 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// BT19-081 Kiriha Aonuma (Blue Tamer, cost 3, [General]/[Blue Flare]).
-//
-//   [Start of Your Main Phase] By placing 1 Digimon card with the [Blue Flare]/[Xros Heart]
-//     trait from your hand under any of your Tamers, gain 1 memory.
-//   [All Turns] When any of your [Blue Flare] trait Digimon cards with DigiXros requirements
-//     would be played, by suspending this Tamer, you may place cards from under your Tamers
-//     as digivolution cards for a DigiXros.
-//   [Security] Play this card without paying the cost.
-//
-// KB: Q3142 (under-Tamer is ADDED to the normal hand/battle-area sources), Q3143 (the material
-// may sit under any of your Tamers), Q3144 (it applies to every qualifying play, not once
-// per turn).
-
 const KIRIHA = "BT19-081";
-const TAKATO = "BT19-080"; // a plain red Tamer: a legal HOST that is not an expander itself
-const BT10_KIRIHA = "BT10-088"; // Kiriha Aonuma — REGISTERED expander, no trait gate
-const TAIKI = "BT19-079"; // Taiki Kudo — REGISTERED expander gated on [Xros Heart], not [Blue Flare]
-const BLUE_FLARE = "BT19-020"; // Greymon, Blue, L4, [Dinosaur]/[Blue Flare]
-const XROS_HEART = "BT10-008"; // Shoutmon, L3, [Mini Dragon]/[Xros Heart]
-const PLAIN = "BT1-009"; // Monodramon, [Mini Dragon] — neither printed trait
-const XROS_BF = "BT19-025"; // MetalGreymon, [Blue Flare], DigiXros -2: Blue [Greymon] x [MailBirdramon]
-const XROS_MAT_A = "BT19-020"; // Greymon (Blue) — fills the [Greymon] slot
-const XROS_MAT_B = "BT19-022"; // MailBirdramon (Blue) — fills the [MailBirdramon] slot
+const TAKATO = "BT19-080";
+const BT10_KIRIHA = "BT10-088";
+const TAIKI = "BT19-079";
+const BLUE_FLARE = "BT19-020";
+const XROS_HEART = "BT10-008";
+const PLAIN = "BT1-009";
+const XROS_BF = "BT19-025";
+const XROS_MAT_A = "BT19-020";
+const XROS_MAT_B = "BT19-022";
 const FILLER = ["BT1-009", "BT1-010", "BT1-012", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-012", "BT1-013"];
 
@@ -41,7 +28,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
       playCost: 3,
       types: ["General", "Blue Flare"],
       effectText:
-        // NOTE: the catalog separates each bracketed trait ref from "trait" with U+00A0.
         "[Start of Your Main Phase] By placing 1 Digimon card with the [Blue Flare]/[Xros Heart]\u00A0trait from your " +
         "hand under any of your Tamers, gain 1 memory.\n" +
         "[All Turns] When any of your [Blue Flare]\u00A0trait Digimon cards with DigiXros requirements would be played, " +
@@ -61,7 +47,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
           {
             kind: "GainMemory",
             amount: 1,
-            // "By placing …," is the controller's choice (comprehensive 15-7-4).
             optional: true,
             cost: {
               kind: "place",
@@ -69,7 +54,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
-                  // "with the […] trait" is EXACT, never a substring.
                   nameOrTrait: [{ tokens: ["Blue Flare", "Xros Heart"], match: "trait" }],
                 },
                 from: ["hand"],
@@ -109,8 +93,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
     ]);
   });
 
-  // --- play cost ------------------------------------------------------------------------
-
   it("costs 3 memory to play from hand in a real Main phase", async () => {
     const s = setupEngine(
       {
@@ -137,8 +119,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [Start of Your Main Phase] --------------------------------------------------------
-
   it("[Start of Your Main Phase] places a [Blue Flare] hand card under this Tamer and gains 1 memory", async () => {
     const s = setupEngine(
       {
@@ -157,12 +137,11 @@ describe("BT19-081 Kiriha Aonuma", () => {
     const bfId = s.inst("bf").instanceId;
 
     const turn = s.engine.runOneTurn();
-    // Read INSIDE the open Main phase: after runTurn returns, the turn has already passed.
     await advance(s.engine).waitForMainPhase(0);
 
     expect(s.perm("kiriha").stack.map((c) => c.instanceId)).toEqual([bfId]);
     expect(s.state.players[0]!.hand.map((c) => c.cardId)).toEqual([PLAIN]);
-    expect(s.state.memory).toBe(6); // 5 + 1
+    expect(s.state.memory).toBe(6);
     expect(s.state.pendingDecision).toBeUndefined();
 
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -195,7 +174,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
     await acceptedTurn;
     assertNoLoudGap(accepted);
 
-    // Same board, same hand — the controller simply refuses the paid condition.
     const declined = setupEngine(
       {
         0: {
@@ -215,7 +193,7 @@ describe("BT19-081 Kiriha Aonuma", () => {
     await advance(declined.engine).waitForMainPhase(0);
     expect(declined.perm("kiriha").stack.map((c) => c.instanceId)).toEqual([]);
     expect(declined.state.players[0]!.hand.map((c) => c.cardId).sort()).toEqual([PLAIN, XROS_HEART].sort());
-    expect(declined.state.memory).toBe(5); // no memory gained without the placement
+    expect(declined.state.memory).toBe(5);
     advance(declined.engine).endMainPhaseIfOpen(0);
     await declinedTurn;
     assertNoLoudGap(declined);
@@ -226,7 +204,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
       {
         0: {
           battleArea: [{ card: KIRIHA, as: "kiriha" }],
-          // BT1-009 Monodramon is [Mini Dragon]: no [Blue Flare], no [Xros Heart].
           hand: [{ card: PLAIN, as: "plain" }],
           deck: [...FILLER],
           security: [...SECURITY],
@@ -257,7 +234,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
         0: {
           battleArea: [{ card: KIRIHA, as: "kiriha" }],
           hand: [{ card: PLAIN, as: "plain" }],
-          // "from your hand" — the same card sitting in the trash must not pay the cost.
           trash: [{ card: BLUE_FLARE, as: "trashedBf" }],
           deck: [...FILLER],
           security: [...SECURITY],
@@ -303,14 +279,11 @@ describe("BT19-081 Kiriha Aonuma", () => {
     await s.ready();
     const bfId = s.inst("bf").instanceId;
     const hostId = s.perm("host").permanentId;
-    // Bias the host choice toward the OTHER Tamer. A `chooseTargets` for a permanent
-    // destination carries PERMANENT ids, not top-card instance ids.
     hostPreference.push(hostId);
 
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // The card landed under BT19-080, not under BT19-081 itself.
     expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([bfId]);
     expect(s.perm("kiriha").stack.map((c) => c.instanceId)).toEqual([]);
     expect(hostId).not.toBe(s.perm("kiriha").permanentId);
@@ -321,8 +294,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
     await turn;
     assertNoLoudGap(s);
   });
-
-  // --- [Security] -----------------------------------------------------------------------
 
   it("[Security] plays itself for free through a real security check", async () => {
     const s = setupEngine(
@@ -355,7 +326,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual([kirihaId]);
     expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([fillerId]);
     expect(s.state.players[1]!.trash.map((c) => c.instanceId)).not.toContain(kirihaId);
-    // Nothing paid its cost of 3: only the attacker's own memory swing happened.
     expect(s.state.memory).toBe(3);
     expect(s.perm("attacker").isSuspended).toBe(true);
     assertNoLoudGap(s);
@@ -393,8 +363,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [All Turns] DigiXros source-zone expansion -----------------------------------------
-
   it("Q3142 baseline: hand materials remain legal for a [Blue Flare] DigiXros with no expander", async () => {
     const s = setupEngine(
       {
@@ -412,7 +380,7 @@ describe("BT19-081 Kiriha Aonuma", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3; // 7 - 2 - 2
+    s.state.memory = 3;
     await s.ready();
     const matA = s.inst("matA").instanceId;
     const matB = s.inst("matB").instanceId;
@@ -429,7 +397,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === XROS_BF);
     expect(played?.stack.map((c) => c.instanceId).sort()).toEqual([matA, matB].sort());
     expect(s.state.memory).toBe(0);
-    // The normal source needed no Tamer, so nothing was suspended.
     expect(s.perm("kiriha").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
@@ -475,13 +442,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
     assertNoLoudGap(s);
   });
 
-  // Q3142/Q3143 at the real seam. The permission is consumed by the DigiXros play subsystem,
-  // which reads the static registry in `packages/shared/src/cards/zoneExpanders.ts`
-  // (`DIGIXROS_ZONE_EXPANDERS` / `digiXrosZoneExpanderFor`) whenever a play intent names
-  // `expanderPermanentIds` (`apps/api/src/engine/actions/digiXros.ts`). BT19-081 is registered
-  // there with the [Blue Flare] gate, `underTamerMax: 100` and no `underTamerHostScope`, so the
-  // material may sit under ANY of this player's Tamers (Q3143) — here, under BT19-080, a Tamer
-  // that could never legalize the play on its own.
   it("Q3142/Q3143: an under-Tamer material is legal when BT19-081 is suspended", async () => {
     const s = setupEngine(
       {
@@ -521,7 +481,7 @@ describe("BT19-081 Kiriha Aonuma", () => {
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === XROS_BF);
     expect(played?.stack.map((c) => c.instanceId).sort()).toEqual([underId, matB].sort());
     expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([]);
-    expect(s.perm("host").isSuspended).toBe(false); // the HOST is never the one suspended
+    expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("kiriha").isSuspended).toBe(true);
   });
 
@@ -559,9 +519,6 @@ describe("BT19-081 Kiriha Aonuma", () => {
   });
 
   it("the trait gate is per registration: BT19-079's [Xros Heart] gate refuses this [Blue Flare] card", async () => {
-    // BT19-025 MetalGreymon is [Cyborg]/[Blue Flare] — exactly what BT19-081's clause names and
-    // exactly what BT19-079's clause does not. The refusal is what a correct BT19-081
-    // registration would have to invert.
     const s = setupEngine(
       {
         0: {

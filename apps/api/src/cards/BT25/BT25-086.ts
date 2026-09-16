@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** BT25-086 Dan Yuki — audited against the catalog and KB Q6405-Q6408/Q6713. */
 export const compiled: CompiledCard = {
   effects: [
     {

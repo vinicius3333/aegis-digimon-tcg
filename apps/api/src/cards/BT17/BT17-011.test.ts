@@ -74,27 +74,16 @@ describe("BT17-011 Agunimon", () => {
     });
   });
 
-  // Printed "[Digivolve][Takuya Kanbara]: Cost 2" / "[Digivolve][BurningGreymon]: Cost 1" carry no
-  // "in name", so both routes are exact-name gates (coordinator decision, cardData.ts 482-488).
   it("gates both printed alternate routes on the exact name", () => {
     expect(matchingAlternateDigivolutionRequirement("BT17-011", TAKUYA)).toMatchObject({
       cost: 2,
       baseIsTamer: true,
     });
     expect(matchingAlternateDigivolutionRequirement("BT17-011", BURNING_GREYMON)).toMatchObject({ cost: 1 });
-    // A generic red Tamer is not the named base: it only reaches the Static "onto a red Tamer as
-    // a level-3 red Digimon" route at cost 3, not Takuya's cheaper cost-2 named route.
     expect(matchingAlternateDigivolutionRequirement("BT17-011", RED_TAMER)).toMatchObject({ cost: 3 });
-    // A non-red Tamer has no route at all.
     expect(matchingAlternateDigivolutionRequirement("BT17-011", BLUE_TAMER)).toBeUndefined();
   });
 
-  // No true near-name negative exists: the only card whose printed name substring-contains
-  // "Takuya Kanbara" but is not it is BT18-088 "Takuya Kanbara & Koji Minamoto", which is an
-  // official effectiveNames alias (shared effectiveNames.ts, same pattern as AD1-020
-  // "Tommy, Takuya, & Zoe"). namesExact accepts it through that alias, which is the intended
-  // "also treated as [Takuya Kanbara]" behavior, so the exact route legitimately accepts it and
-  // there is no substring-only card left to refuse. "BurningGreymon" has no substring-container.
   it("accepts an official Takuya Kanbara alias on the exact route", () => {
     expect(matchingAlternateDigivolutionRequirement("BT17-011", TAKUYA_AND_KOJI)).toMatchObject({
       cost: 2,
@@ -203,7 +192,6 @@ describe("BT17-011 Agunimon", () => {
       s.state.players[0]!.battleArea.some((p) => p.permanentId === stackId && p.topCard?.cardId === ANCIENT_GREYMON),
     );
 
-    // 10 - 1 (BurningGreymon route) - 3 (cost override) = 6.
     expect(s.state.memory).toBe(6);
     const stack = s.state.players[0]!.battleArea.find((p) => p.permanentId === stackId)!;
     expect(stack.stack.map(({ cardId }) => cardId)).toEqual([BURNING_GREYMON, "BT17-011"]);
@@ -312,7 +300,6 @@ describe("BT17-011 Agunimon", () => {
 
     expect(s.state.memory).toBe(9);
     await advance(s.engine).runTurn(0);
-    // No digivolve by this effect, so the delayed delete must not fire.
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === stackId)).toBe(true);
   });
 

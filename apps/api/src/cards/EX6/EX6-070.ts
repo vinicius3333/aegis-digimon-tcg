@@ -28,7 +28,6 @@ const isDelayedDeleteEffect = (effect: (typeof generated.effects)[number]) => {
   );
 };
 
-/** EX6-070 — Phantom Pain, with end-turn Delay arming structured. */
 export const compiled: CompiledCard = {
   ...generated,
   effects: [

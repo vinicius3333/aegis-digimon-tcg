@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST10-02 Salamon.
-// [Inherited][End of Your Turn] DNA digivolve this Digimon (which has this card in its
-//   digivolution cards) + one other of your Digimon in play, into a Digimon in your hand
-//   that has [DNA Digivolve], paying the digivolve cost.
-// KB Q724: must have [DNA Digivolve] in target; Q725: can't ignore digivolve requirements.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -8,13 +8,9 @@ import { compiled } from "./EX10-010.js";
 import "../index.js";
 
 const CARD_ID = "EX10-010";
-/** Lv.5 Red, no printed, inherited or Security text — a silent ＜Blast Digivolve＞ / digivolve base. */
 const BASE_L5 = "BT1-024";
-/** Play cost exactly 7 — the inclusive edge of "play cost 7 or lower". Inert. */
 const COST_7 = "BT10-065";
-/** Play cost 8 — one step past the boundary. Inert. */
 const COST_8 = "BT12-069";
-/** Printed 13000 DP, inert: the public way to arm the [All Turns] gate without injected DP. */
 const BIG_13K = "BT8-030";
 
 describe("EX10-010 BlackWarGreymon", () => {
@@ -50,9 +46,6 @@ describe("EX10-010 BlackWarGreymon", () => {
         ],
       });
     }
-    // The "While your opponent has ..." gate is spelled `condition`, the typed field the shared
-    // per-action gate reads (`action.condition ?? action.while`). `while` is not declared on
-    // ModifyDPAction / GrantImmunityAction, so the old spelling did not typecheck.
     expect(compiled.effects?.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
       actions: [
         {
@@ -94,7 +87,6 @@ describe("EX10-010 BlackWarGreymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: aceInstanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // The printed play cost is paid in full: 7 memory in, 0 out.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === aceInstanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([cost8Id]);
@@ -126,7 +118,6 @@ describe("EX10-010 BlackWarGreymon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Nothing at play cost 7 or lower exists, so the deletion finds no candidate at all.
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -196,16 +187,12 @@ describe("EX10-010 BlackWarGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // The Red Lv.5 route costs 4.
     expect(s.state.memory).toBe(0);
-    // `Permanent.stack` holds only the cards BENEATH the top card, so the base is the source.
     expect(s.perm("base").topCard.instanceId).toBe(aceInstanceId);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseCardId]);
     expect(s.perm("base").currentDP).toBe(12000);
-    // Evolution bonus draw.
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evoDraw").instanceId);
-    // [When Digivolving] used the same cost-7-or-lower boundary as [On Play].
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([cost8Id]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -276,8 +263,6 @@ describe("EX10-010 BlackWarGreymon", () => {
   });
 
   it("reads the threshold on the OPPONENT's board only", async () => {
-    // "While your OPPONENT has a Digimon with 13000 DP or more". FAILS-WHEN-REVERTED: dropping
-    // `controller: "opponent"` (or using `anyHas`) turns the grant on from my own big Digimon.
     const s = setupEngine({
       0: {
         battleArea: [
@@ -294,13 +279,6 @@ describe("EX10-010 BlackWarGreymon", () => {
   });
 
   it.each([0, 1] as const)("Q5013/Q5202 mutual fixed point with the seed on seat %s", async (seedSeat) => {
-    // Q5202 stages exactly this board: both players control an EX10-010, and I control a
-    // Digimon whose ORIGINAL DP is 13000+. The ruling says BOTH [All Turns] effects activate
-    // and both DPs become 15000 — my big Digimon turns THEIR copy on, and their copy's
-    // resulting 15000 DP turns MINE on in a self-sustaining loop.
-    //
-    // The continuous layer re-derives from a clean tier while carrying the previous pass's
-    // derived DP as a seed. This closes the mutual dependency regardless of effect ordering.
     const mine = {
       battleArea: [
         { card: CARD_ID, as: "mine" },
@@ -311,23 +289,17 @@ describe("EX10-010 BlackWarGreymon", () => {
     const s = setupEngine(seedSeat === 0 ? { 0: mine, 1: theirs } : { 0: theirs, 1: mine });
     await s.ready();
 
-    // The DIRECT half is correct: my 13000 DP Digimon is their opponent's Digimon, so their
-    // copy turns on and gains both the +3000 and the immunity.
     expect(s.perm("theirs").currentDP).toBe(15000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("theirs"), "beAffected", "Digimon")).toBe(true);
 
-    // The INDIRECT half closes on the next fixpoint pass. Ruling value: 15000 and immune.
     expect(s.perm("mine").currentDP).toBe(15000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("mine"), "beAffected", "Digimon")).toBe(true);
 
-    // Repeating the stable pass must not accumulate more DP.
     await s.engine.recomputeContinuousEffects();
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("theirs").currentDP).toBe(15000);
     expect(s.perm("mine").currentDP).toBe(15000);
 
-    // Q5202's second half: once the 13000 DP Digimon leaves, the established mutual grants
-    // remain active at 15000.
     expect(await advance(s.engine).verb.deletePermanent([s.perm("big").permanentId], "byEffect")).toBe(1);
     await s.engine.recomputeContinuousEffects();
 
@@ -335,8 +307,6 @@ describe("EX10-010 BlackWarGreymon", () => {
     expect(s.perm("mine").currentDP).toBe(15000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("theirs"), "beAffected", "Digimon")).toBe(true);
 
-    // A guaranteed rule-based departure breaks the mutual support. The last copy must
-    // lose both its DP grant and immunity instead of retaining the prior pass's seed.
     expect(await advance(s.engine).verb.deletePermanent([s.perm("theirs").permanentId], "byRule")).toBe(1);
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("mine").currentDP).toBe(12000);
@@ -376,8 +346,6 @@ describe("EX10-010 BlackWarGreymon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("greymon"));
     await settle(() => s.perm("mine").currentDP === 15000 && s.perm("theirs").currentDP === 15000);
 
-    // The Greymon grant is temporary and opposing to theirs. Once theirs becomes immune,
-    // that grant must be suppressed; its final 15000 is exactly 12000 + its own static grant.
     expect(s.perm("mine").currentDP).toBe(15000);
     expect(s.perm("theirs").currentDP).toBe(15000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("mine"), "beAffected", "Digimon")).toBe(true);
@@ -411,21 +379,15 @@ describe("EX10-010 BlackWarGreymon", () => {
     await settle(() => s.perm("target").currentDP === 15000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon")).toBe(false);
 
-    // Cross the gate after the opposing +3000 has already been recorded.
     await advance(s.engine).verb.modifyDP(s.perm("qualifier").permanentId, 1000, EffectDuration.UntilOpponentTurnEnd);
     await settle(() => observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon"));
     expect(s.perm("target").currentDP).toBe(15000);
 
-    // The +3000 remains in the duration ledger while immunity is active. Removing the
-    // 13000-DP qualifier lapses only the immunity/static grant; the opponent-origin grant
-    // must become visible again instead of having been deleted at the immunity boundary.
     expect(await advance(s.engine).verb.deletePermanent([s.perm("qualifier").permanentId], "byEffect")).toBe(1);
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon")).toBe(false);
     expect(s.perm("target").currentDP).toBe(15000);
   });
-
-  // --- public keyword and ACE proofs (no injected timing) ---
 
   it("＜Raid＞ redirects a public player-directed attack onto the highest-DP unsuspended Digimon", async () => {
     const s = setupEngine(
@@ -456,8 +418,6 @@ describe("EX10-010 BlackWarGreymon", () => {
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // 12000 DP beat the 9000 DP Footmon in the redirected battle; the 3000 DP Digimon was
-    // never a legal ＜Raid＞ target, and the player took no security check.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([lowId]);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(highId);
     expect(s.state.players[1]!.security).toHaveLength(securityBefore);
@@ -482,7 +442,6 @@ describe("EX10-010 BlackWarGreymon", () => {
     const bigId = s.perm("big").permanentId;
     const securityBefore = s.state.players[0]!.security.length;
 
-    // The opponent's printed 13000 DP Digimon arms the [All Turns] gate publicly.
     expect(s.perm("source").currentDP).toBe(15000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(true);
 
@@ -499,10 +458,8 @@ describe("EX10-010 BlackWarGreymon", () => {
     );
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // ＜Blocker＞ stopped the security check, and the 15000 DP blocker won the battle.
     expect(s.state.players[0]!.security).toHaveLength(securityBefore);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // With the 13000 DP Digimon gone the gate closes again: KB Q5026.
     expect(s.perm("source").currentDP).toBe(12000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(false);
   });
@@ -513,8 +470,6 @@ describe("EX10-010 BlackWarGreymon", () => {
         0: {
           battleArea: [
             { card: CARD_ID, as: "source" },
-            // Negative control on the SAME seat: no ＜Reboot＞, so it must stay suspended
-            // through the opponent's unsuspend phase.
             { card: "BT1-009", as: "control" },
           ],
           hand: ["BT1-009"],
@@ -522,7 +477,6 @@ describe("EX10-010 BlackWarGreymon", () => {
           security: ["BT1-009", "BT1-010"],
         },
         1: {
-          // Suspended, so ＜Raid＞ has no legal redirect candidate during seat 0's attacks.
           battleArea: [{ card: COST_8, as: "theirs", suspended: true }],
           hand: ["BT1-011"],
           deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009"],
@@ -532,8 +486,6 @@ describe("EX10-010 BlackWarGreymon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
 
-    // Suspend both seat-0 Digimon the public way — by attacking during seat 0's own turn,
-    // AFTER seat 0's unsuspend phase has already run.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     for (const alias of ["source", "control"]) {
@@ -552,13 +504,9 @@ describe("EX10-010 BlackWarGreymon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
 
-    // ＜Reboot＞ (CR §16-11): this Digimon also unsuspends during the OPPONENT's unsuspend
-    // phase. The seat-0 control Digimon beside it has no ＜Reboot＞ and stays suspended, so
-    // the pass was selective rather than a blanket unsuspend.
     expect(s.state.turnSeat).toBe(1);
     expect(s.perm("source").isSuspended).toBe(false);
     expect(s.perm("control").isSuspended).toBe(true);
-    // The turn player's own Digimon unsuspended by the ordinary unsuspend phase.
     expect(s.perm("theirs").isSuspended).toBe(false);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -610,8 +558,6 @@ describe("EX10-010 BlackWarGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isAttacking());
 
-    // ＜Blast Digivolve＞ is answered through the open [Counter] window, not as a bare
-    // `digivolve` intent: only `respondCounter` closes the window.
     expect(
       s.engine.applyIntent(0, {
         type: "respondCounter",
@@ -622,15 +568,12 @@ describe("EX10-010 BlackWarGreymon", () => {
     await settle(() => s.perm("base").topCard.instanceId === aceInstanceId);
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // It entered play on the OPPONENT's turn, over the Lv.5 base, without paying memory.
     expect(s.state.turnSeat).toBe(1);
     expect(s.perm("base").topCard.instanceId).toBe(aceInstanceId);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseCardId]);
     expect(s.state.memory).toBe(memoryBefore);
-    // The evolution bonus draw still happens.
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evoDraw").instanceId);
-    // [When Digivolving] resolved in that window and deleted the cost-7 Digimon.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(cost7Id);
     expect(s.state.pendingDecision).toBeUndefined();
 
@@ -668,9 +611,6 @@ describe("EX10-010 BlackWarGreymon", () => {
           s.state.pendingDecision === undefined,
       );
 
-      // Q5021: BlackWarGreymon is the only legal candidate, so the effect always chose it —
-      // there is no "it could not be targeted" escape hatch.
-      // Q5020: with the gate open the -3000 DP simply does not apply.
       expect(s.perm("source").currentDP).toBe(expectedDP);
       expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(gateOpen);
       expect(s.state.pendingDecision).toBeUndefined();
@@ -693,15 +633,12 @@ describe("EX10-010 BlackWarGreymon", () => {
     s.state.memory = 8;
     await s.engine.recomputeContinuousEffects();
 
-    // Step 1: the gate is shut, so the opposing -3000 DP lands normally.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("angemon").instanceId })).toEqual({
       ok: true,
     });
     await settleAcrossTimers(() => s.perm("source").currentDP === 9000 && s.state.pendingDecision === undefined);
     expect(s.perm("source").currentDP).toBe(9000);
 
-    // Step 2: the same player publicly plays a printed 13000 DP Digimon, opening the gate.
-    // The memory reset is setup only — the board change under test is the public play.
     s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("big").instanceId })).toEqual({ ok: true });
     await settleAcrossTimers(
@@ -710,8 +647,6 @@ describe("EX10-010 BlackWarGreymon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Q5023: as soon as it gains the "effects don't affect" effect, the earlier -3000 DP
-    // stops applying. 12000 printed + its own 3000, with the opposing grant suppressed.
     expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(true);
     expect(s.perm("source").currentDP).toBe(15000);
   });
@@ -734,7 +669,6 @@ describe("EX10-010 BlackWarGreymon", () => {
     );
     await s.ready();
 
-    // No opposing 13000 DP Digimon, so the [All Turns] gate is shut and the ACE sits at 12000.
     expect(s.perm("ace").currentDP).toBe(12000);
     const before = new MemoryGauge(s.state).memoryFor(1);
 
@@ -747,8 +681,6 @@ describe("EX10-010 BlackWarGreymon", () => {
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => s.state.players[1]!.battleArea.length === 0);
 
-    // CR §4-18-2: the ACE's OWN controller loses the printed overflowMemory when it leaves
-    // the battle area, whoever the turn player is.
     expect(new MemoryGauge(s.state).memoryFor(1)).toBe(before - 4);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
   });
@@ -768,7 +700,6 @@ describe("EX10-010 BlackWarGreymon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Only the play cost of 7 moved the marker: CR §4-18-3 exempts entering the field.
     expect(s.state.memory).toBe(0);
   });
 });

@@ -174,7 +174,6 @@ describe("BT20-053 Grademon", () => {
         !observe(s.engine).isAttacking(),
     );
     const buffedDP = s.perm("host").currentDP;
-    // Printed 7000, two Your Turn inherited +2000 grants, and the attack-time +5000.
     expect(buffedDP).toBe(16000);
     expect(s.state.memory).toBe(7);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("host"), "beAffected", "Digimon")).toBe(true);

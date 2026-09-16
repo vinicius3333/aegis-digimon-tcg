@@ -5,18 +5,6 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./P-245.js";
 
-/**
- * P-245 Kakkinmon — DigiEgg, Lv.2 In-Training, Black, [Armor].
- *
- * [Inherited][End of All Turns][Once Per Turn] By suspending 1 of your black Digimon with
- * ＜Blocker＞, if your hand has 7 or fewer cards, ＜Draw 1＞
- *
- * Fixtures are deliberately inert: BT3-060 Psychemon (black Lv.3, no printed or inherited
- * text) hosts the egg, BT5-061 Commandramon is a printed-＜Blocker＞ black Lv.3 with no
- * inherited text, BT3-059 Commandramon is a black Lv.3 WITHOUT ＜Blocker＞, and BT13-082
- * Peckmon is a ＜Blocker＞ that is PURPLE — the two decoys prove both halves of the cost
- * filter.
- */
 describe("P-245 Kakkinmon", () => {
   it("matches the immutable catalog identity and keeps full IR coverage", () => {
     expect(getCardDefinition("P-245")).toMatchObject({

@@ -54,7 +54,7 @@ describe("BT20-004 Pinamon", () => {
     await settle(() => s.perm("host").topCard.cardId === "BT20-031");
 
     expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT20-004");
-    expect(s.state.memory).toBe(3); // only the played Liollmon's cost was paid; 2-cost ACCEL evolution became free
+    expect(s.state.memory).toBe(3);
 
     const nonMatch = setupEngine(
       {
@@ -224,7 +224,6 @@ describe("BT20-004 Pinamon", () => {
     expect(s.perm("host").topCard.cardId).toBe("BT20-031");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT20-004", "BT20-030"]);
 
-    // Complete a real opponent turn so the Once Per Turn watcher resets on the next owner turn.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
@@ -235,7 +234,7 @@ describe("BT20-004 Pinamon", () => {
     });
     await settle(() => s.perm("host").topCard.cardId === "BT20-033");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT20-004", "BT20-030", "BT20-031"]);
-    expect(s.state.memory).toBe(1); // real turn-cycle pass memory funds play cost 3 + reduced evolution cost 1
+    expect(s.state.memory).toBe(1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

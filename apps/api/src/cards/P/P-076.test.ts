@@ -33,10 +33,6 @@ describe("P-076 Deltamon", () => {
         instanceId: s.inst("metalGreymon").instanceId,
       }),
     ).toEqual({ ok: true });
-    // Deltamon's own Delete is a WhenAttacking effect, not WhenDigivolving — but the
-    // digivolution target itself, BT8-067 MetalGreymon, carries its own mandatory
-    // [When Digivolving] "delete 1 opponent Digimon with 3000 DP or less", which fires
-    // right here and removes one of the two DP-3000 opponents before any attack happens.
     await settle(() => s.perm("deltamon").topCard.cardId === "BT8-067" && s.state.pendingDecision === undefined, 5000);
     expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

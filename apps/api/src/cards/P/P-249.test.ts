@@ -5,35 +5,13 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./P-249.js";
 import "../index.js";
 
-// P-249 Strabimon — Yellow Lv.3 Hybrid Beastkin.
-//
-// [Start of Your Main Phase] By placing 1 card with the [Hybrid] trait from your hand or trash
-// as this Digimon's bottom digivolution card or under any of your Tamers with inherited effects,
-// that Digimon or Tamer may digivolve into a [Hybrid] trait Digimon card in the hand with the
-// cost reduced by 2.
-// [Inherited] [On Deletion] You may play 1 Tamer card with inherited effects from your hand
-// without paying the cost.
-//
-// source: printed card text. The card is announced but not yet distributed (Official Store
-// Tournament 2026 Vol.4, street date 2026-10-01), so the local rules KB has no P-249 entries;
-// every clause below is unambiguous as printed and needs no ruling.
-//
-// FAILS-WHEN-REVERTED: drop the StartOfYourMainPhase effect and the Hybrid card stays where it
-// is, no host gains a bottom digivolution card, and no reduced-cost digivolution happens. Drop
-// `reduceCost: 2` and the reduced-cost assertions read the full printed cost. Drop
-// `underOrFilters` and a Tamer can never host the placement. Drop `hasInheritedEffects` and a
-// Tamer without inherited effects becomes a legal host. Drop the inherited OnDeletion effect and
-// the Tamer stays in hand when the stack's host is deleted.
-
-// Hybrid-trait fixtures. "Hybrid" is a FORM, and the engine's trait set is
-// [...types, ...forms, ...attributes], so these match `match: "trait"`.
-const HYBRID_PLACEMENT_CARD = "BT4-025"; // Lobomon, Blue Lv.4 Hybrid; static text only.
-const HYBRID_COST_3 = "BT7-036"; // Zephyrmon, Yellow Lv.4 Hybrid, Yellow Lv.3 digivolve cost 3.
-const HYBRID_COST_2 = "BT7-035"; // Kazemon, Yellow Lv.4 Hybrid, Yellow Lv.3 digivolve cost 2.
-const NON_HYBRID_CARD = "BT1-009"; // Monodramon; no Hybrid form, no triggered effects.
-const TAMER_WITH_INHERITED = "BT7-088"; // Zoe Orimoto, Yellow Tamer with an inherited effect.
-const TAMER_WITHOUT_INHERITED = "BT2-087"; // Kari Kamiya, Yellow Tamer, no inherited effect.
-const TAMER_WITH_INHERITED_NO_ON_PLAY = "BT18-094"; // Koichi Kimura, Purple/Yellow, inherited.
+const HYBRID_PLACEMENT_CARD = "BT4-025";
+const HYBRID_COST_3 = "BT7-036";
+const HYBRID_COST_2 = "BT7-035";
+const NON_HYBRID_CARD = "BT1-009";
+const TAMER_WITH_INHERITED = "BT7-088";
+const TAMER_WITHOUT_INHERITED = "BT2-087";
+const TAMER_WITH_INHERITED_NO_ON_PLAY = "BT18-094";
 
 describe("P-249 IR", () => {
   it("gates the optional Hybrid digivolution behind the printed placement cost", () => {
@@ -106,10 +84,8 @@ describe("P-249 [Start of Your Main Phase] placement cost and reduced Hybrid dig
     await settle(() => s.perm("strabimon").topCard.instanceId === s.inst("zephyrmon").instanceId);
 
     expect(s.perm("strabimon").topCard.cardId).toBe(HYBRID_COST_3);
-    // Bottom-most digivolution card first: the paid placement sits under the original P-249.
     expect(s.perm("strabimon").stack.map((card) => card.cardId)).toEqual([HYBRID_PLACEMENT_CARD, "P-249"]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("lobomon").instanceId)).toBe(false);
-    // Printed Yellow Lv.3 digivolution cost 3, reduced by 2, so exactly 1 memory is paid.
     expect(s.state.memory).toBe(4);
   });
 
@@ -133,7 +109,6 @@ describe("P-249 [Start of Your Main Phase] placement cost and reduced Hybrid dig
     await settle(() => s.perm("strabimon").topCard.instanceId === s.inst("kazemon").instanceId);
 
     expect(s.perm("strabimon").topCard.cardId).toBe(HYBRID_COST_2);
-    // Printed cost 2 reduced by 2 is 0; the reduction never becomes a memory gain.
     expect(s.state.memory).toBe(5);
   });
 
@@ -161,7 +136,6 @@ describe("P-249 [Start of Your Main Phase] placement cost and reduced Hybrid dig
 
     expect(s.perm("zoe").topCard.cardId).toBe(HYBRID_COST_2);
     expect(s.perm("zoe").stack.map((card) => card.cardId)).toEqual([HYBRID_PLACEMENT_CARD, TAMER_WITH_INHERITED]);
-    // The source Digimon is untouched when the controller routes the placement to a Tamer.
     expect(s.perm("strabimon").topCard.cardId).toBe("P-249");
     expect(s.perm("strabimon").stack).toHaveLength(0);
   });
@@ -300,8 +274,6 @@ describe("P-249 [Start of Your Main Phase] placement cost and reduced Hybrid dig
     ).toEqual({ ok: true });
     await firing;
 
-    // The cost is paid before the "may" is offered, so the placement stands and the Hybrid
-    // Digimon stays in hand.
     expect(s.perm("strabimon").topCard.cardId).toBe("P-249");
     expect(s.perm("strabimon").stack.map((card) => card.cardId)).toEqual([HYBRID_PLACEMENT_CARD]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("kazemon").instanceId)).toBe(true);
@@ -358,9 +330,7 @@ describe("P-249 inherited [On Deletion] Tamer play", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("koichi").instanceId),
     ).toBe(true);
-    // Free play: no memory changes hands.
     expect(s.state.memory).toBe(5);
-    // A Tamer without inherited effects is not an eligible choice.
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("kari").instanceId)).toBe(true);
   });
 

@@ -1,7 +1,3 @@
-// Hand-authored override for EX3-009.
-// runtime-effect fix: the trait gate was a raw string. Encoded it structurally as
-// selfTopHasText against this Digimon's own traits. Per KB Q3376 [Dragonkin] is also
-// included alongside [Dragon], [saur], [Ceratopsian].
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

@@ -5,7 +5,6 @@ import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../en
 import "../index.js";
 import { compiled } from "./BT23-086.js";
 
-/** Drive one real turn for `seat` and let its End of Turn window resolve. */
 async function runOwnTurn(s: EngineSetup, seat: 0 | 1): Promise<void> {
   const turn = s.engine.runOneTurn();
   await advance(s.engine).waitForMainPhase(seat);
@@ -234,7 +233,6 @@ describe("BT23-086 Yuugo", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Q5358: the card is still revealed after the effect that placed it has fully resolved.
     expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -249,8 +247,6 @@ describe("BT23-086 Yuugo", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
 
-    // Q5359: the check ran with the card revealed and otherwise followed the standard rules —
-    // an 11000 DP security Digimon deletes the 3000 DP attacker and is then trashed.
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === zaxonId)).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === raiderId)).toBe(true);
@@ -260,11 +256,6 @@ describe("BT23-086 Yuugo", () => {
   });
 
   it("offers only [Zaxon] Digimon from the placement pool, never a [Zaxon] Tamer or a near-miss", async () => {
-    // Mixed pool in the printed source zone (hand): two [Zaxon] Digimon, a near-miss that shares
-    // the colour AND the [Machine] trait with one of them but has no [Zaxon] trait, a Tamer that
-    // DOES have the [Zaxon] trait (the text says "Digimon card"), and one unrelated card.
-    // No trait in the catalog contains "Zaxon" as a proper substring, so BT2-066 is the closest
-    // near-miss available.
     const prefer: string[] = [];
     const s = setupEngine(
       {
@@ -300,7 +291,6 @@ describe("BT23-086 Yuugo", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yuugo").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === zaxonBId));
 
-    // The offered candidate set is the real endpoint: exactly the two [Zaxon] Digimon.
     const placement = s.decisions.find(({ req }) => req.options?.candidateInstanceIds?.includes(zaxonAId));
     expect(placement).toBeDefined();
     expect([...placement!.req.options!.candidateInstanceIds!].sort()).toEqual([zaxonAId, zaxonBId].sort());
@@ -319,8 +309,6 @@ describe("BT23-086 Yuugo", () => {
   });
 
   it("reads the end-of-turn attack grant from the live top card after a public digivolve", async () => {
-    // The grant is evaluated against the stack's CURRENT top card: a Lv.5 [Rock] base is no
-    // candidate, the Lv.6 [Machine] card digivolved onto it in the same turn is.
     const s = setupEngine(
       {
         0: {
@@ -355,7 +343,6 @@ describe("BT23-086 Yuugo", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.instanceId === machinedramonId && !s.state.pendingDecision);
 
-    // Real stack: the Lv.5 base is now a digivolution card under the Lv.6 [Machine] top card.
     expect(s.perm("base").topCard?.cardId).toBe("BT2-066");
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
 
@@ -371,7 +358,6 @@ describe("BT23-086 Yuugo", () => {
   });
 
   it("Q5361: shuffling the security stack turns the face-up placed card face down again", async () => {
-    // Filled in after setup: the harness reads this array at decision time.
     const prefer: string[] = [];
     const s = setupEngine(
       {
@@ -391,8 +377,6 @@ describe("BT23-086 Yuugo", () => {
       {
         autoAcceptOptional: true,
         autoSelectCards: true,
-        // Steer BT1-087's "add 1 card from your security stack to the hand" to the OTHER
-        // security card, so the face-up placed card is still in the stack when it shuffles.
         preferInstanceIds: prefer,
       },
     );
@@ -405,7 +389,6 @@ describe("BT23-086 Yuugo", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === zaxonId));
     expect(s.state.players[0]!.security.find((card) => card.instanceId === zaxonId)?.faceUp).toBe(true);
 
-    // BT1-087 T.K. Takaishi's [On Play] ends with "Then shuffle your security stack."
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shuffler").instanceId })).toEqual({
       ok: true,
     });
@@ -417,7 +400,6 @@ describe("BT23-086 Yuugo", () => {
 
     const player = s.state.players[0]!;
     expect(player.security.length).toBeGreaterThan(0);
-    // Q5361: after the shuffle every security card is face down, the placed one included.
     expect(player.security.every((card) => card.faceUp !== true)).toBe(true);
     expect(player.security.some((card) => card.instanceId === zaxonId)).toBe(true);
     expect(player.hand.some((card) => card.instanceId === s.inst("securityBottom").instanceId)).toBe(true);
@@ -500,8 +482,6 @@ describe("BT23-086 Yuugo", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("lowLevelMachine").isSuspended).toBe(false);
     expect(s.perm("wrongTrait").isSuspended).toBe(false);
-    // Comprehensive rules 15-7-5: the controller may pay an optional processing condition even
-    // when the processing after it cannot be executed, so accepting still suspends Yuugo.
     expect(s.perm("yuugo").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
@@ -547,7 +527,6 @@ describe("BT23-086 Yuugo", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // The Active phase unsuspends the board, so arm the suspension after Main opens.
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     s.perm("yuugo").isSuspended = true;
@@ -642,10 +621,6 @@ describe("BT23-086 Yuugo", () => {
   });
 
   it("restricts the end-of-turn attack to the player, not a suspended opposing Digimon", async () => {
-    // Printed: "1 of your level 6 Digimon ... may attack a player." `attackPlayer` only WIDENS
-    // the candidate list; `attackPlayerOnly` (added to `AttackAction` in
-    // packages/shared/src/effects/ir/actions/combat.ts by engine lane 6) narrows it to the
-    // player, driving the option `forceAttack` already had in primitives.ts.
     const s = setupEngine(
       {
         0: {
@@ -669,8 +644,6 @@ describe("BT23-086 Yuugo", () => {
 
     await runOwnTurn(s, 0);
 
-    // The forced attack offers the player only. Auto-selection would take "player" either way,
-    // so the endpoint is the choice the controller was GIVEN, not the target that was hit.
     const attackChoice = s.decisions.find(({ req }) => req.options?.candidateInstanceIds?.includes("player"));
     expect(attackChoice?.req.options?.candidateInstanceIds).toEqual(["player"]);
     expect(attackChoice?.req.options?.candidateInstanceIds).not.toContain(baitPermanentId);

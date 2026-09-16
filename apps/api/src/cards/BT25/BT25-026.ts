@@ -1,21 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT25-026 Crescemon — Digimon
-// Alt digivolution: from Lv.4 w/[TS] traits cost 3
-// [On Play][When Digivolving] Trash the bottom 3 digivolution cards of 1 of your
-//   opponent's Digimon. Then, 1 of their Digimon with no digivolution cards can't
-//   suspend until their turn ends.
-// [Your Turn] When your Digimon are played or digivolve, if any of them are red,
-//   this Digimon may digivolve into [Dianamon] in the trash with the cost reduced by 2.
-//   (KB Q6290: triggers even on non-red Digimon, but can only activate if that Digimon is red.
-//    KB Q6291: references the Digimon after it digivolves.)
-// [Inherited] This Digimon's attack target can't be changed (your turn only).
-//
-// (the triggering permanent's top card is red — Q6290/Q6291, read POST-digivolve) and
-// `IsOwnerTurn`. Both are expressed as the SubTrigger `fireCondition` (allOf of
-// `triggerSubjectHasColor:{red}` + `isYourTurn`); the watcher body is skipped entirely when the
-// gate does not hold, so the (mandatory once activated) digivolve never runs on a non-red event.
 export const compiled: CompiledCard = {
   effects: [
     {

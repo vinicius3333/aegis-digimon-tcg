@@ -110,9 +110,9 @@ describe("BT20-012 Ginryumon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("ginryumon").topCard.cardId === "BT20-053");
-    expect(s.state.memory).toBe(2); // Chronicle alternate cost 3, paid during the attack
+    expect(s.state.memory).toBe(2);
     expect(s.perm("ginryumon").stack.map((card) => card.cardId)).toEqual(["BT20-010", "BT20-012"]);
-    expect(s.perm("ginryumon").currentDP).toBe(chronicle.dp + 9000); // Ryudamon +2000, Ginryumon +2000, Grademon +5000
+    expect(s.perm("ginryumon").currentDP).toBe(chronicle.dp + 9000);
   });
 
   it("observably grants its inherited host +2000 DP only during its controller's turn", async () => {

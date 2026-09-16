@@ -70,13 +70,6 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
-          // "At the end of YOUR turn, delete the Digimon this effect played" (KB Q5744). The
-          // ＜Delay＞ fires on the opponent's turn, so the delete waits for the controller's next
-          // turn end: exactly `DelayedDelete`, which arms the owner-turn-gated watcher on the
-          // permanent the PlayWithoutCost above produced (documented behavior —
-          // EffectDuration.UntilOwnerTurnEnd + OnEndTurn gated on IsOwnerTurn). Replaces an
-          // IMMEDIATE Delete whose `playedByThisEffect` filter the engine never read, so the card
-          // deleted an arbitrary permanent on the spot instead of the played one at turn end.
           kind: "DelayedDeletePlayed",
           raw: "at the end of your turn, delete the Digimon this effect played",
         },
@@ -117,14 +110,6 @@ export const compiled: CompiledCard = {
           kind: "AddToHandSelf",
         },
         {
-          // "At turn end, delete the Digimon this effect played" (KB Q5744). A [Security] effect
-          // resolves during the OPPONENT's turn and documented behavior arms it with
-          // EffectDuration.UntilEachTurnEnd and no owner-turn gate, so the played Digimon dies at
-          // the end of THAT turn — not at the controller's next turn end. `DelayedDelete` is
-          // therefore wrong here; instead the watcher is ANCHORED (`on`) to the permanent bound by
-          // the play above (`bindResultAs`/`boundRef`) and its body deletes its own anchor, so
-          // "this Digimon" resolves to exactly the played permanent. This replaces a Delete
-          // carrying the never-read `playedByThisEffect` filter, which matched every permanent.
           kind: "SubTrigger",
           event: "endOfTurn",
           on: {

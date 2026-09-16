@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited: all three conditional keywords use the Digimon selected by the DP boost,
-// and the 16000-DP gate is evaluated for the result of the fixed +3000 boost
-// (equivalently, current DP >= 13000 before that modifier is recomputed; KB Q1274-Q1276).
 const compiled: CompiledCard = {
   effects: [
     {

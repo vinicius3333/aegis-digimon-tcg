@@ -1,7 +1,3 @@
-// Hand-authored override for ST24-01 (Koromon, DigiEgg).
-// Fix: cost "by trashing the bottom face-down card from under any of your Tamers"
-// targets a digivolution card beneath a Tamer (zone:"digivolutionCards" +
-// hostFilter kind:["Tamer"]), NOT the Tamer permanent itself.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

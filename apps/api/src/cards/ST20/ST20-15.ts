@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST20-15 Island of Adventure
-// [Static] While you have no face-up [Island of Adventure] security cards,
-//   you can ignore this card's color requirements.
-// [Security] [All Turns] All of your level 3 or higher Digimon get +2000 DP.
-// [Main] Add your top security card to the hand. Then, place this card face up as the top security card.
-// [Security] You may play 1 Tamer card from your hand without paying the cost.
-// Q4697: can activate [Main] with 0 security cards; can't add top security but still places self as security
 const compiled: CompiledCard = {
   effects: [
     {

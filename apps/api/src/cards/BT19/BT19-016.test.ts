@@ -5,10 +5,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT19-016.js";
 import "../index.js";
 
-// Fixtures: BT19-081 Kiriha Aonuma and ST1-12 Tai Kamiya are the Tamer hosts, BT19-020
-// Greymon is the [Blue Flare] Digimon card the cost places, BT1-027 Armadillomon (Blue,
-// Mollusk/no Blue Flare) is the near-miss hand card, BT1-009 the inert body and security.
-
 describe("BT19-016 Gaossmon", () => {
   it("matches the catalog printing", () => {
     expect(getCardDefinition("BT19-016")).toMatchObject({
@@ -37,7 +33,6 @@ describe("BT19-016 Gaossmon", () => {
         optional: true,
         cost: {
           kind: "place",
-          // "[Blue Flare] trait" is an exact trait reference, not a substring match.
           target: {
             filter: {
               zone: "hand",
@@ -82,7 +77,7 @@ describe("BT19-016 Gaossmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.perm("gaoss").topCard?.cardId).toBe("BT19-016");
-    expect(s.state.memory).toBe(7); // play cost 3
+    expect(s.state.memory).toBe(7);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -116,7 +111,6 @@ describe("BT19-016 Gaossmon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.perm("tamer").stack.length === 1);
 
-    // Gaossmon lost the battle (1000 vs 3000) and its [On Deletion] paid out.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-081"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT19-016");
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("blueFlare").instanceId]);
@@ -242,8 +236,6 @@ describe("BT19-016 Gaossmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
   });
   it("does nothing from inside a digivolution stack when the host is deleted", async () => {
-    // Gaossmon prints no inherited effect, so once it is a digivolution card its
-    // [On Deletion] must stay silent even though the whole stack goes to the trash.
     const s = setupEngine(
       {
         0: {

@@ -333,9 +333,6 @@ describe("EX3-028 Patamon", () => {
   });
 
   it("rejects non-yellow Cherub and yellow Three Great Angels while still returning every revealed card", async () => {
-    // The catalog currently has no yellow Cherub outside [Three Great Angels]. These
-    // two real cards prove both live boundaries: Cherub without yellow fails the color
-    // gate, while yellow Cherub is explicitly excluded by the errata.
     expect(getCardDefinition("ST17-09")).toMatchObject({ colors: ["Green", "Purple"], types: ["Cherub"] });
     expect(getCardDefinition("BT3-041")?.types).toEqual(expect.arrayContaining(["Cherub", "Three Great Angels"]));
     const s = setupEngine(

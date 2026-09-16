@@ -39,7 +39,6 @@ describe("ST19-11 Chaperomon", () => {
       {
         0: {
           battleArea: [
-            // ST19-11's replacement is inherited: it must be beneath a host Digimon.
             { card: "BT1-010", as: "chap", under: ["ST19-11"] },
             { card: "TOKEN-Familiar-Token", as: "fodder", dp: 3000 },
           ],
@@ -51,8 +50,6 @@ describe("ST19-11 Chaperomon", () => {
     s.state.memory = 20;
     s.state.turnSeat = 1;
     await s.ready();
-    // No public intent isolates an arbitrary opponent-effect deletion without adding
-    // another card's targeting behavior, so use the production deletion verb directly.
     expect(await advance(s.engine).verb.deletePermanent([s.perm("chap").permanentId], "byEffect")).toBe(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(true);
     await settle(

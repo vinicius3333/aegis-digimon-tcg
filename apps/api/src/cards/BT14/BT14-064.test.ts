@@ -51,9 +51,6 @@ describe("BT14-064", () => {
         0: {
           battleArea: [{ card: "BT14-061", as: "base" }],
           hand: [{ card: "BT14-064", as: "evolving" }],
-          // Digivolution draws one card before [When Digivolving]. Keep that
-          // mandatory draw separate so Hi-Commandramon is in the three-card
-          // reveal rather than being consumed by the evolution draw.
           deck: ["AD1-003", "BT14-060", "AD1-001", "AD1-002"],
         },
       },

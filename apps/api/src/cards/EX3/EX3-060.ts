@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-verified IR for EX3-060 (ExTyrannomon).
-// The attack/block restriction is a live aura only while this Digimon has no
-// digivolution cards. A structured gate keeps it synchronized as sources change.
 const compiled: CompiledCard = {
   effects: [
     {

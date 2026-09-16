@@ -80,7 +80,6 @@ describe("LM-003 TeslaJellymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-003", as: "attacker", dp: 4000 }], hand: [{ card: "BT1-029", as: "blueCost" }] },
-        // Titamon is a printed 12000 DP Security Digimon, so the attacker loses the battle.
         1: { security: [{ card: "BT1-080" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -164,8 +163,6 @@ describe("LM-003 TeslaJellymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== attackerId), 2000);
 
-    // Retaliation deletes by effect (Q3992), so the battle-only grant cannot save it;
-    // once the permanent leaves play its temporary grant is no longer observable either.
     expect(observe(s.engine).isRestricted(attackerId, "beDeletedInBattle")).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
   });

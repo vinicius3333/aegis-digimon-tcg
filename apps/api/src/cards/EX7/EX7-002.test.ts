@@ -175,8 +175,6 @@ describe("EX7-002 Hiyarimon", () => {
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.deck).toHaveLength(2);
 
-    // There is no public second-attack verb for a suspended Digimon. The production test seam
-    // unsuspends the same host so the same-turn once-per-turn refusal can still be observed.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(attack({ kind: "player" })).toEqual({ ok: true });
     await settle();

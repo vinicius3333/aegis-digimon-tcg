@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play]/[When Digivolving]: Delete 1 opponent's Digimon Lv.4 or lower.
-// If your Tamers have 2+ total colors, delete Lv.5 or lower INSTEAD (raised cap by 1).
-// [Your Turn] [Once Per Turn]: When another of your Digimon is played or digivolves,
-// IF any of them have [ADVENTURE] trait, 1 of your Digimon MUST gain <Alliance> for the turn
-// (KB Q4588: mandatory when condition met). Then, 1 of your Digimon MAY attack (optional, KB Q4590).
-// KB Q4732: attack part runs even if ADVENTURE condition is not met.
 export const compiled: CompiledCard = {
   effects: [
     {

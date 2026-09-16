@@ -1,8 +1,3 @@
-// HAND-FIXED — generator must preserve this file (was AUTO-GENERATED FROM IR).
-// Fix: the [When Attacking] gate "if this Digimon has a [Garurumon] digivolution card"
-// was left as an unevaluable raw condition (the effect never fired). Compiled to the
-// structured `selfDigivolutionStackHasTrait` check with a `match:"name"` ref, per the
-// printed text (a digivolution card with [Garurumon] in its NAME).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

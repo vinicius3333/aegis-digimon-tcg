@@ -108,8 +108,6 @@ describe("EX5-009 Indramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // Structural fixture only: the production placement primitive makes the Option visible in
-    // the battle area for Q3531's printed Option-name scope; no card behavior is credited here.
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);

@@ -5,22 +5,6 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-/**
- * A3 — Q1f: BT12-105 (Spiking Strike) [Main] "Until the end of your opponent's turn, 1 of
- * your opponent's Digimon gains '[On Deletion] Trash the top card of your security stack.'
- * Then, if you have a blue Digimon in play, you may play 1 green level 4 or lower Digimon
- * card with a [Free] trait from your hand without paying its cost."
- *
- * Same Q1f malformed-`GrantAuraToOpponents`-shape gap as BT6-102/BT15-068/ST15-16 (see
- * BT6-102's header for the full writeup). Proves the SHARED "[On Deletion] Trash the top card
- * of your security stack." library entry (also granted by BT15-095) and its self-referential
- * "your" — KB Q2241 confirms deleting the GRANTED Digimon trashes ITS OWN controller's (the
- * opponent's) top security card, not the caster's.
- *
- * FAILS-WHEN-REVERTED: reverting the interpreter's routing branch or the library entry makes
- * the grant install with no effect, so deleting the recipient never trashes any security.
- */
-
 describe('A3 BT12-105 — granted "[On Deletion] Trash the top card of your security stack."', () => {
   it("registers the printed Security activation", () => {
     const module = getEffectModule("BT12-105");
@@ -104,7 +88,6 @@ describe('A3 BT12-105 — granted "[On Deletion] Trash the top card of your secu
 
     s.state.turnSeat = 0;
 
-    // Never play BT12-105 — no grant is ever installed on anyone.
     expect(engine.continuous.listCustomEffectGrants().length).toBe(0);
 
     const securityBefore = p1.security.length;

@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// RevealAdd rest is player's choice (top or bottom): deckTopOrBottom.
-// AllTurns Replacement cost must restrict to Option cards in digivolution cards.
 export const compiled: CompiledCard = {
   effects: [
     {

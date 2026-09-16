@@ -11,17 +11,12 @@ const CARD_ID = "EX10-045";
 const INERT_DECK = ["BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013", "BT1-014"];
 const INERT_SECURITY = ["BT1-009", "BT1-013", "BT1-014"];
 
-// [Bagra Army] trait Digimon that stay quiet while merely sitting on the board: their printed
-// clauses are [On Play] / [When Digivolving] / [On Deletion] only.
-const BAGRA_HOST = "EX10-026"; // SkullKnightmon, Lv.4 4000, [Undead]/[Bagra Army]/[Twilight]
-const BAGRA_TARGET = "EX10-044"; // Damemon, Lv.4 3000, [Mutant]/[Bagra Army] — the DigiXros material
-const CHUUCHUUMON = "EX10-039"; // ChuuChuumon, Lv.3, [Beast]/[Bagra Army] — the other material
-// Lv.4 [Mineral]/[LIBERATOR]: a digivolution-card pool the [Bagra Army] hostFilter must refuse.
+const BAGRA_HOST = "EX10-026";
+const BAGRA_TARGET = "EX10-044";
+const CHUUCHUUMON = "EX10-039";
 const NON_BAGRA_HOST = "EX10-028";
-// Level 3 Black Digimon with no printed text: a legal NORMAL evolution source for Tuwarmon
-// (Black Lv.3, cost 3) but an illegal source for the "[Damemon]: Cost 1" alternate route.
 const NON_DAMEMON_LV3 = "BT2-052";
-const NEUTRAL_TAMER = "BT12-094"; // Yuu Amano: no [On Deletion] / battle-time clause of its own
+const NEUTRAL_TAMER = "BT12-094";
 
 describe("EX10-045 Tuwarmon", () => {
   it("records the exact catalog and the [Damemon] alternate evolution", () => {
@@ -44,8 +39,6 @@ describe("EX10-045 Tuwarmon", () => {
   it("compiles one shared once-per-turn clause, a [DigiXros -2] pair, and a bottom-positioned ＜Save＞", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    // `count` on a DigiXros requirement is the PER-MATERIAL cost reduction (xrosLink.ts), so
-    // "[DigiXros -2] [Damemon] x [ChuuChuumon]" is two distinct slots at -2 each.
     expect(compiled.digiXrosRequirement).toEqual([
       { materials: [{ names: ["Damemon"] }, { names: ["ChuuChuumon"] }], count: 2 },
     ]);
@@ -76,7 +69,6 @@ describe("EX10-045 Tuwarmon", () => {
         ],
       });
     }
-    // Comprehensive Rules 4-3: ＜Save＞ places this card at the BOTTOM of the Tamer's stack.
     expect(compiled.effects?.find((effect) => effect.trigger === "OnDeletion")).toMatchObject({
       actions: [
         {
@@ -131,7 +123,6 @@ describe("EX10-045 Tuwarmon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Both arrived this turn. Only the one printing ＜Rush＞ may attack (§16-1).
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -171,7 +162,6 @@ describe("EX10-045 Tuwarmon", () => {
     );
     await s.ready();
 
-    // The plain attacker offers no ＜Collision＞, so the blockerless defender is an illegal blocker.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -179,8 +169,6 @@ describe("EX10-045 Tuwarmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The plain attacker grants no ＜Collision＞ and the defender has no ＜Blocker＞, so no block
-    // window ever opens for this attack — there is no such milestone to wait on here.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(
@@ -188,7 +176,6 @@ describe("EX10-045 Tuwarmon", () => {
     ).toMatchObject({ ok: false });
     await settle(() => s.state.players[1]!.security.length === 2);
 
-    // Tuwarmon's ＜Collision＞ (§16-30) makes the very same defender a legal blocker.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -202,7 +189,6 @@ describe("EX10-045 Tuwarmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blocked"));
     expect(s.events.filter((event) => event.kind === "blocked")).toHaveLength(1);
-    // The block stopped the second security check.
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
@@ -238,14 +224,11 @@ describe("EX10-045 Tuwarmon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Play cost paid in full, cost card moved stack -> trash.
     expect(s.state.memory).toBe(0);
     expect(s.perm("costHost").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([costId]);
-    // Both keywords land on the SAME chosen Digimon (`fromSelectionRef: "chosen"`).
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Retaliation")).toBe(true);
-    // Not on the non-[Bagra Army] board-mate, and not spread across the whole board.
     expect(observe(s.engine).hasKeyword(s.perm("plain"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("plain"), "Retaliation")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("costHost"), "Retaliation")).toBe(false);
@@ -353,12 +336,9 @@ describe("EX10-045 Tuwarmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("damemon").topCard.instanceId === tuwarmonId && s.state.pendingDecision === undefined);
 
-    // Cost 1, not the printed EvoCost of 3.
     expect(s.state.memory).toBe(3);
-    // `stack` holds only the cards beneath the top card: Damemon became a digivolution card.
     expect(s.perm("damemon").stack.map(({ instanceId }) => instanceId)).toEqual([damemonId]);
     expect(s.perm("damemon").topCard.cardId).toBe(CARD_ID);
-    // The digivolution bonus draw.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
   });
 
@@ -376,7 +356,6 @@ describe("EX10-045 Tuwarmon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // 5 memory covers even the printed EvoCost of 3, so the refusal is the [Damemon] name gate.
     s.state.memory = 5;
     const tuwarmonId = s.inst("tuwarmon").instanceId;
 
@@ -439,7 +418,6 @@ describe("EX10-045 Tuwarmon", () => {
     s.state.memory = 4;
     const tuwarmonId = s.inst("tuwarmon").instanceId;
 
-    // Use 1 of 1 on this Digimon: the [When Digivolving] arm.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -453,8 +431,6 @@ describe("EX10-045 Tuwarmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("targetA"), "Retaliation")).toBe(true);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost1").instanceId]);
 
-    // Same turn, SAME Digimon, the [When Attacking] arm of the same clause: the shared
-    // once-per-turn use is spent, so no second grant and the second cost card is untouched.
     preferred.length = 0;
     preferred.push(s.inst("cost2").instanceId, s.perm("targetB").topCard.instanceId);
     expect(
@@ -475,7 +451,6 @@ describe("EX10-045 Tuwarmon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // The first grant expired with the opponent's turn, and the once-per-turn use has reset.
     expect(observe(s.engine).hasKeyword(s.perm("targetA"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("targetA"), "Retaliation")).toBe(false);
     expect(
@@ -525,19 +500,16 @@ describe("EX10-045 Tuwarmon", () => {
     const targetId = s.perm("target").topCard.instanceId;
     const attackerId = s.perm("attacker").topCard.instanceId;
 
-    // The grant comes from [On Play] on my own turn; no combat of mine is involved.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tuwarmon").instanceId })).toEqual({
       ok: true,
     });
     await settle(
       () => observe(s.engine).hasKeyword(s.perm("target"), "Blocker") && s.state.pendingDecision === undefined,
     );
-    // Neutral memory so ending Main hands the turn straight to the opponent.
     s.state.memory = 0;
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // The grant survives into the opponent's turn ("until your opponent's turn ends").
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Retaliation")).toBe(true);
 
@@ -549,7 +521,6 @@ describe("EX10-045 Tuwarmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    // The granted ＜Blocker＞ is what makes this a legal block: Damemon prints none.
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("target").permanentId })).toEqual(
       {
         ok: true,
@@ -561,11 +532,9 @@ describe("EX10-045 Tuwarmon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // 3000 vs 20000: the blocker died, and ＜Retaliation＞ (§16-13) took the attacker with it.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).not.toContain(targetId);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).not.toContain(attackerId);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(attackerId);
-    // The block stopped the security check.
     expect(s.state.players[0]!.security).toHaveLength(3);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -606,7 +575,6 @@ describe("EX10-045 Tuwarmon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Printed cost 7, reduced by 2 per material.
     expect(s.state.memory).toBe(4);
     const xrosed = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CARD_ID)!;
     expect(xrosed.stack.map(({ instanceId }) => instanceId).sort()).toEqual([damemonId, chuuId].sort());
@@ -620,7 +588,6 @@ describe("EX10-045 Tuwarmon", () => {
           hand: [
             { card: CARD_ID, as: "tuwarmon" },
             { card: BAGRA_TARGET, as: "damemon" },
-            // [Bagra Army] but not [ChuuChuumon]: the recipe names cards, not the trait.
             { card: BAGRA_HOST, as: "wrongMaterial" },
           ],
           deck: INERT_DECK,
@@ -676,13 +643,11 @@ describe("EX10-045 Tuwarmon", () => {
     );
     await s.ready();
     const tuwarmonId = s.inst("tuwarmon").instanceId;
-    // `under` is bottom-most first, so the Tamer already holds under0 (bottom), under1 (top).
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("under0").instanceId,
       s.inst("under1").instanceId,
     ]);
 
-    // 7000 into a suspended 20000 wall: Tuwarmon loses the battle and is deleted.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -692,8 +657,6 @@ describe("EX10-045 Tuwarmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === tuwarmonId));
 
-    // Comprehensive Rules 4-3: the saved card goes to the BOTTOM of the stack, not directly
-    // beneath the Tamer.
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
       tuwarmonId,
       s.inst("under0").instanceId,
@@ -762,7 +725,6 @@ describe("EX10-045 Tuwarmon", () => {
     s.state.memory = 7;
     const sourceId = s.inst("source").instanceId;
 
-    // The played copy's own trash cost is the effect that trashes the digivolution card.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tuwarmon").instanceId })).toEqual({
       ok: true,
     });
@@ -774,7 +736,6 @@ describe("EX10-045 Tuwarmon", () => {
 
     expect(s.perm("host").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([sourceId]);
-    // The inherited clause drew exactly the top card of the deck.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Blocker")).toBe(true);
   });

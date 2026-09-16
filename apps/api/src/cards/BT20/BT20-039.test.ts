@@ -107,7 +107,7 @@ describe("BT20-039 Diatrymon", () => {
       () => ordinary.perm("base").topCard.cardId === "BT20-039" && ordinary.state.pendingDecision === undefined,
     );
     expect(ordinary.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-038"]);
-    expect(ordinary.state.memory).toBe(1); // Printed 3 minus Falcomon's 1.
+    expect(ordinary.state.memory).toBe(1);
   });
 
   it("does not suspend an allied Digimon or invent a target when the opponent has none", async () => {

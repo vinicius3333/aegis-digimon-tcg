@@ -107,10 +107,6 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
       }),
     ).toEqual({ ok: true });
 
-    // This attack targets the player directly and never faces a blocker, so it resolves
-    // through the security-check path (combat/controller.ts's checkSecurity hook), not
-    // resolveDigimonBattle — combatResolved is only emitted for a Digimon-vs-Digimon battle,
-    // so it never fires here.
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === deleteTargetPermanentId) &&

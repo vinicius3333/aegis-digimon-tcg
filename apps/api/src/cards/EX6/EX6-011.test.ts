@@ -60,8 +60,6 @@ describe("EX6-011 RagnaLoardmon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(1);
   });
 
-  // EX6-011 prints [DNA Digivolve] Red Lv.6 + Black Lv.6: Cost 0. Blast DNA is a Counter-only
-  // procedure (CR 16-31), so the Main-phase verb takes the printed cost-0 recipe instead.
   it("publicly DNA digivolves at Main for the printed cost 0 and resolves the DNA-only de-digivolve/delete tail", async () => {
     const s = setupEngine(
       {

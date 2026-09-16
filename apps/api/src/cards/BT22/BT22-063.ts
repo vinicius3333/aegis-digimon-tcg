@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT22-063 Alphamon
-// Fix: [All Turns] condition was raw string; replaced with orConditions (selfDigivolutionStackHas +
-//   stackHasSameLevelCards). Q4922: unsuspend always happens regardless of condition.
-// The Kyoko Kuremi path is available only while the owner has 3 or fewer
-// security cards; this is represented by the live whileCondition gate.
 export const compiled: CompiledCard = {
   effects: [
     {

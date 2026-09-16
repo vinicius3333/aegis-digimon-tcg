@@ -36,8 +36,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAttacking",
-          // `whenAttacking` reads the attacking subject through `triggerFilter`
-          // (SUBJECT_TRIGGER_FILTER_EVENTS); a `sourceFilter` here is never consumed.
           triggerFilter: {
             isSelfRef: true,
           },
@@ -49,9 +47,6 @@ export const compiled: CompiledCard = {
                 filter: {},
                 count: 1,
               },
-              // The declared defender is only known when the watcher FIRES; a condition on the
-              // SubTrigger action itself is evaluated while the watcher is being installed, when
-              // the trigger payload carries no defender.
               condition: {
                 kind: "attackTargetMatchesFilter",
                 filter: {
@@ -71,8 +66,6 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      // Printed "[Digivolve][Patamon]" is an EXACT name, not a substring: `names` would also
-      // accept any future source whose name merely contains "Patamon".
       namesExact: ["Patamon"],
       cost: 2,
       isAlternate: true,

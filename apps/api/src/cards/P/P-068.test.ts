@@ -65,9 +65,6 @@ describe("P-068 Herissmon", () => {
         s.state.players[0]!.hand.some((card) => card.instanceId === herissmonId) &&
         s.state.players[0]!.security.some((card) => card.instanceId === remainingId),
     );
-    // The predicate above becomes true while the first check is still resolving.
-    // Flush the attack so the final assertion catches a stale opening Strike that
-    // would incorrectly consume the second security card afterward.
     await settle(() => false, 200);
 
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([remainingId]);

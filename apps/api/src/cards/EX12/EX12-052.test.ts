@@ -73,8 +73,6 @@ describe("EX12-052 Diarbbitmon", () => {
         actions: [{ kind: "ModifyDP" }, { kind: "Battle" }],
       });
     }
-    // Q6836: neither half of the clause is a "may", so the IR must not carry an optional gate
-    // that would let the controller take the DP and skip the battle (or skip both).
     for (const trigger of ["WhenDigivolving", "WhenAttacking", "Counter"] as const) {
       const shared = compiled.effects.filter((effect) => effect.trigger === trigger).at(-1)!;
       expect(shared.optional).toBeUndefined();
@@ -144,8 +142,6 @@ describe("EX12-052 Diarbbitmon", () => {
     );
     await s.ready();
 
-    // FAILS-WHEN-REVERTED: restoring `optional: true` on the ModifyDP opens an optional
-    // decision here, so the settle below never sees the opponent leave the battle area.
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 

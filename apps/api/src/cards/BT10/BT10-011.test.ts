@@ -5,17 +5,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../BT8/BT8-008.js";
 import { compiled } from "./BT10-011.js";
 
-// BT10-011 Canoweissmon — documented behavior: the card behavior source
-//   "[Your Turn][Once Per Turn] WHEN ONE OF YOUR TAMERS BECOMES SUSPENDED, this Digimon
-//    gets +2000 DP for the turn. Then, if this Digimon has 12000 DP or more, it gains
-//    <Security Attack +1> for the turn."
-// The IR keeps the printed Your Turn/Once Per Turn gate around a whenSuspended
-// sub-trigger. The interpreter arms that watcher from the continuous Your Turn window,
-// while the event itself fires when a controlled Tamer suspends.
-//
-// Q1938 (2024-03-28): even if multiple Tamers suspend at the same time the +2000 DP only
-// applies once — confirming it is a single suspend-triggered activation.
-//
 describe("BT10-011 Canoweissmon [Your Turn] suspend trigger", () => {
   it("encodes the suspend trigger, both effect-conferral clauses, and alternate evolution", () => {
     expect(compiled.effects).toEqual(

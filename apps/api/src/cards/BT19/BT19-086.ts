@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT19-086 Ryo Akiyama (Tamer):
-// [Start of Your Main Phase] By placing 1 Option card with the [Device] trait
-//   from your hand in the battle area, <Draw 1>.
-// [Main] By suspending this Tamer and trashing 4 of your Option cards with the
-//   [Device] trait in the battle area, you may play 1 [Cyberdramon] from your
-//   hand or trash without paying the cost.
-// KB Q3151: you may choose not to play Cyberdramon after paying the cost.
-
 const compiled: CompiledCard = {
   effects: [
     {

@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX11-068 Violet Inboots
-// Text: [Start of Your Turn] If you have 2 or less memory, set it to 3.
-// Text: [Your Turn] When one of your [Ghost] trait Digimon attacks, by suspending this Tamer,
-//   <Draw 1> and trash 1 card in your hand. If attacking by <Execute>, it may digivolve into
-//   a [Ghost] trait Digimon card in the hand with the digivolution cost reduced by 2.
-// KB Q5938: "if attacking by <Execute>" is met when triggered by an <Execute> attack.
-// Fixes:
-//   - SubTrigger actions were empty; Draw 1 and trash-from-hand must be inside.
-//   - Digivolve belongs inside SubTrigger; target = the attacking Ghost Digimon (sourceFilter).
 export const compiled: CompiledCard = {
   effects: [
     {

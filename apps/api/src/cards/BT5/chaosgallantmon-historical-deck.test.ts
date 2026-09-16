@@ -61,10 +61,7 @@ describe("BT5 ChaosGallantmon historical deck gauntlet", () => {
     );
     await settle();
 
-    // ChaosGallantmon paid 4, then Guilmon's effect-deletion returned 1 memory.
     expect(s.state.memory).toBeGreaterThanOrEqual(0);
-    // Only the normal digivolution draw happened. ChuuChuumon's reveal-4 On Play was
-    // suppressed by ChaosGallantmon, so three cards remain in the deck.
     expect(s.state.players[0]!.deck).toHaveLength(3);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.perm("base").stack.some(({ cardId }) => cardId === "BT5-079")).toBe(true);
@@ -89,8 +86,6 @@ describe("BT5 ChaosGallantmon historical deck gauntlet", () => {
     );
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === firstRookieId)).toBe(false);
-    // ChaosGallantmon already revived once this turn, so the inherited sacrifice cannot
-    // revive the second copy even though it remains a legal purple Lv.3 in the trash.
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === secondRookieId)).toBe(false);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === secondRookieId)).toBe(true);
 

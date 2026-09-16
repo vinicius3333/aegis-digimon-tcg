@@ -6,7 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-019.js";
 
-/** Inert filler so neither seat decks out or auto-passes during a real turn loop. */
 const FILLER = ["BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013"];
 
 function hand(s: ReturnType<typeof setupEngine>): string[] {
@@ -38,8 +37,6 @@ describe("BT19-019 Shellmon", () => {
   });
 
   it("compiles the printed clauses into the expected IR", () => {
-    // "[Yao Qinglan]" is a bracketed exact reference, so the gate is `nameExact`, not the
-    // substring form `name`.
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
@@ -77,9 +74,6 @@ describe("BT19-019 Shellmon", () => {
   });
 
   it("digivolves publicly onto a Blue Lv.3 for 2 and plays Yao Qinglan free from the When Digivolving window", async () => {
-    // Realistic stack: BT19-017 Sangomon (Blue Lv.3 LIBERATOR) is the printed source. The
-    // digivolve intent pays the printed cost of 2 and draws the 1 digivolution card, and the
-    // free play of the Tamer costs nothing on top of it.
     const s = setupEngine(
       {
         0: {
@@ -109,9 +103,7 @@ describe("BT19-019 Shellmon", () => {
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([sangoId]);
     expect(board(s)).toEqual(["BT19-019", "BT19-082"]);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === yaoId)).toBe(true);
-    // Cost 2 for the digivolve, 0 for the Tamer.
     expect(s.state.memory).toBe(8);
-    // 1 bonus draw; the Tamer left the hand, the spare BT1-013 did not.
     expect(hand(s).sort()).toEqual(["BT1-009", "BT1-013"]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-014"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -147,12 +139,9 @@ describe("BT19-019 Shellmon", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard?.cardId === "BT19-019");
-      // Drain fully: the 2-Tamer branch asserts that no extra permanent appears, which a
-      // predicate cannot wait for.
       await settle();
 
       expect(board(s)).toEqual([...expectedBoard]);
-      // With 2 Tamers the condition fails, so Yao Qinglan stays in hand next to the spare.
       expect(hand(s).includes("BT19-082")).toBe(tamers.length === 2);
       expect(s.state.memory).toBe(8);
       expect(s.state.pendingDecision).toBeUndefined();
@@ -191,9 +180,6 @@ describe("BT19-019 Shellmon", () => {
   });
 
   it("matches [Yao Qinglan] by exact name, not by card id, and ignores the LIBERATOR Tamer peer", async () => {
-    // Near-miss peer: BT18-093 Violet Inboots is also a Tamer with the [LIBERATOR] trait, but is
-    // not named Yao Qinglan. BT22-086 is a DIFFERENT card id printing the same name, so the
-    // `nameExact` gate must take it.
     const s = setupEngine(
       {
         0: {
@@ -231,8 +217,6 @@ describe("BT19-019 Shellmon", () => {
   });
 
   it("refuses an illegal digivolution source", async () => {
-    // Printed requirement: Blue Lv.3. BT1-009 Monodramon is a RED Lv.3 and BT1-014 Kokatorimon a
-    // red Lv.4, so neither is a legal source at any memory.
     const s = setupEngine({
       0: {
         battleArea: [
@@ -263,9 +247,6 @@ describe("BT19-019 Shellmon", () => {
   });
 
   it("counts as having the [Aquatic] type for another card's trait filter (Q3075)", async () => {
-    // The printed "[Rule] Trait: Has the [Aquatic] type." has a cross-card consequence: BT19-017
-    // Sangomon's On Play looks for "[Aqua]/[Sea Animal] in any of its traits", and Shellmon
-    // qualifies on [Aquatic] alone. BT1-030 Gomamon ([Sea Beast]) is the near-miss that must not.
     const s = setupEngine(
       {
         0: {
@@ -302,9 +283,6 @@ describe("BT19-019 Shellmon", () => {
   });
 
   it("gains 1 memory at End of Attack from under a real Huankunmon host, once per turn", async () => {
-    // Peer/stack case: the realistic Swimmon (Lv.3) -> Shellmon (Lv.4) -> Huankunmon (Lv.5)
-    // stack. Only BT19-019's buried clause pays memory — BT19-018's inherited ＜Jamming＞ and
-    // BT19-023's own [Your Turn] inherited clause contribute none.
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT19-023", as: "host", dp: 20_000, under: ["BT19-018", "BT19-019"] }],
@@ -335,7 +313,6 @@ describe("BT19-019 Shellmon", () => {
     expect(s.state.memory).toBe(before + 1);
     expect(s.state.players[1]!.security).toHaveLength(4);
 
-    // Same turn, second attack by the same host: [Once Per Turn] is spent.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(s.perm("host").isSuspended).toBe(false);
     expect(
@@ -348,7 +325,6 @@ describe("BT19-019 Shellmon", () => {
     await settle(() => s.state.players[1]!.security.length === 3);
     expect(s.state.memory).toBe(before + 1);
 
-    // Next own turn: the counter resets.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);

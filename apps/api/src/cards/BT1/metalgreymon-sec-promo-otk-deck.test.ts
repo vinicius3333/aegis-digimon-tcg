@@ -27,7 +27,6 @@ describe("BT1 MetalGreymon SEC promo OTK deck", () => {
     s.state.memory = 2;
     await s.ready();
 
-    // Promo Agumon, starter Agumon, and Tai all apply before combat.
     expect(s.perm("metalGreymon").currentDP).toBe(13_000);
     expect(observe(s.engine).keywordAmount(s.perm("metalGreymon"), "SecurityAttack")).toBe(2);
     expect(

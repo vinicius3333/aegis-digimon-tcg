@@ -5,30 +5,14 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// BT19-079 Taiki Kudo (Red Tamer, cost 4, [General]/[Xros Heart]).
-//
-//   [Start of Your Turn] If you have 2 or less memory, set it to 3.
-//   [All Turns] When any of your [Xros Heart] trait Digimon cards with DigiXros requirements
-//     would be played, by suspending this Tamer, you may place cards from under your Tamers
-//     as digivolution cards for a DigiXros.
-//   [Security] Play this card without paying the cost.
-//
-// KB: Q3138 (under-Tamer is ADDED to the normal hand/battle-area sources), Q3139 (any of your
-// Tamers hosts, not only this one), Q3140 (fires for each played card, not once per turn).
-//
-// The zone expansion is consumed by the DigiXros play subsystem: `packages/shared/src/cards/
-// zoneExpanders.ts` registers BT19-079 with `appliesTo: hasAnyTrait(["Xros Heart"])`,
-// `underTamerMax: 100` and no `underTamerHostScope`, and `engine/actions/digiXros.ts` reads
-// that registry when the play intent names `expanderPermanentIds`.
-
-const TAIKI = "BT19-079"; // the expander Tamer
-const TAKATO = "BT19-080"; // a plain red Tamer — a HOST that is not itself an expander
-const KIRIHA = "BT10-088"; // peer expander with NO trait gate (appliesTo: () => true)
-const XROS = "BT10-009"; // [Xros Heart] Shoutmon X4, DigiXros -2, cost 9
-const XROS_CHEAP = "BT11-009"; // [Xros Heart] Shoutmon + StarSword, DigiXros -1, cost 5
-const NOT_XROS = "BT10-077"; // [Bagra Army] MadLeomon, DigiXros -2, cost 5 — no [Xros Heart]
-const SHOUTMON = "BT10-008"; // "Shoutmon" — fills a slot of both XROS and XROS_CHEAP
-const BAGRA = "BT10-077"; // itself carries [Bagra Army]; fills NOT_XROS's single trait slot
+const TAIKI = "BT19-079";
+const TAKATO = "BT19-080";
+const KIRIHA = "BT10-088";
+const XROS = "BT10-009";
+const XROS_CHEAP = "BT11-009";
+const NOT_XROS = "BT10-077";
+const SHOUTMON = "BT10-008";
+const BAGRA = "BT10-077";
 const FILLER = ["BT1-009", "BT1-010", "BT1-012", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-012", "BT1-013"];
 
@@ -40,7 +24,6 @@ describe("BT19-079 Taiki Kudo", () => {
       kinds: ["Tamer"],
       playCost: 4,
       types: ["General", "Xros Heart"],
-      // NOTE: the catalog separates "[Xros Heart]" from "trait" with U+00A0, not a plain space.
       effectText:
         "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n" +
         "[All Turns] When any of your [Xros Heart]\u00A0trait Digimon cards with DigiXros requirements would be " +
@@ -87,8 +70,6 @@ describe("BT19-079 Taiki Kudo", () => {
     ]);
   });
 
-  // --- play cost -----------------------------------------------------------------------
-
   it("costs 4 memory to play from hand in a real Main phase", async () => {
     const s = setupEngine(
       {
@@ -111,8 +92,6 @@ describe("BT19-079 Taiki Kudo", () => {
     await loop;
     assertNoLoudGap(s);
   });
-
-  // --- [Start of Your Turn] memory ------------------------------------------------------
 
   it("[Start of Your Turn] sets memory to 3 from 2, read inside the open Main phase", async () => {
     const s = setupEngine(
@@ -162,8 +141,6 @@ describe("BT19-079 Taiki Kudo", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [Security] ----------------------------------------------------------------------
-
   it("[Security] plays itself for free through a real security check", async () => {
     const s = setupEngine(
       {
@@ -192,11 +169,9 @@ describe("BT19-079 Taiki Kudo", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === taikiId));
 
-    // The checked Tamer is on seat 1's board, not in security and not in the trash...
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual([taikiId]);
     expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([fillerId]);
     expect(s.state.players[1]!.trash.map((c) => c.instanceId)).not.toContain(taikiId);
-    // ...and nothing paid its cost of 4: only the attacker's own memory swing happened.
     expect(s.state.memory).toBe(3);
     expect(s.perm("attacker").isSuspended).toBe(true);
     assertNoLoudGap(s);
@@ -229,13 +204,10 @@ describe("BT19-079 Taiki Kudo", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((c) => c.instanceId === fillerId));
 
-    // Only the top card was checked; BT19-079 stayed face down in security and played nothing.
     expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([taikiId]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     assertNoLoudGap(s);
   });
-
-  // --- [All Turns] DigiXros source-zone expansion ----------------------------------------
 
   it("Q3138: hand and battle-area materials remain legal with no expander at all", async () => {
     const s = setupEngine(
@@ -253,7 +225,7 @@ describe("BT19-079 Taiki Kudo", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 7; // 9 - 2 (one material)
+    s.state.memory = 7;
     const materialId = s.inst("handMaterial").instanceId;
     await s.ready();
 
@@ -269,7 +241,6 @@ describe("BT19-079 Taiki Kudo", () => {
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === XROS);
     expect(played?.stack.map((c) => c.instanceId)).toEqual([materialId]);
     expect(s.state.memory).toBe(0);
-    // The normal source did not need the Tamer, so nothing was suspended.
     expect(s.perm("taiki").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
@@ -304,8 +275,8 @@ describe("BT19-079 Taiki Kudo", () => {
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === XROS);
     expect(played?.stack.map((c) => c.instanceId)).toEqual([underId]);
     expect(s.perm("taiki").stack.map((c) => c.instanceId)).toEqual([]);
-    expect(s.perm("taiki").isSuspended).toBe(true); // the printed suspend cost was paid
-    expect(s.state.memory).toBe(0); // 9 - 2 = 7 paid
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
 
@@ -372,8 +343,6 @@ describe("BT19-079 Taiki Kudo", () => {
         0: {
           battleArea: [
             { card: TAIKI, as: "taiki" },
-            // BT19-080 Takato Matsuki is a plain red Tamer with no expander registration:
-            // it can host the material but could never legalize it on its own.
             { card: TAKATO, as: "host", under: [{ card: SHOUTMON, as: "under" }] },
           ],
           hand: [{ card: XROS, as: "xros" }],
@@ -401,7 +370,7 @@ describe("BT19-079 Taiki Kudo", () => {
     expect(played?.stack.map((c) => c.instanceId)).toEqual([underId]);
     expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([]);
     expect(s.perm("taiki").isSuspended).toBe(true);
-    expect(s.perm("host").isSuspended).toBe(false); // the HOST is never the one suspended
+    expect(s.perm("host").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
 
@@ -453,7 +422,7 @@ describe("BT19-079 Taiki Kudo", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 12; // 7 for Shoutmon X4, then 4 for Shoutmon + StarSword
+    s.state.memory = 12;
     const underA = s.inst("underA").instanceId;
     const underB = s.inst("underB").instanceId;
     await s.ready();
@@ -486,8 +455,6 @@ describe("BT19-079 Taiki Kudo", () => {
     expect(s.state.memory).toBe(1);
     assertNoLoudGap(s);
   });
-
-  // --- trait gate, with a peer control --------------------------------------------------
 
   it("the [Xros Heart] gate rejects a DigiXros card without that trait", async () => {
     const s = setupEngine(
@@ -531,7 +498,7 @@ describe("BT19-079 Taiki Kudo", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3; // 5 - 2 (one material)
+    s.state.memory = 3;
     const underId = s.inst("under").instanceId;
     await s.ready();
 

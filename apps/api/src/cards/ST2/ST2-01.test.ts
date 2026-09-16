@@ -55,8 +55,6 @@ describe("ST2-01 Tsunomon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Tsunomon's +1000 DP turns the 3000-DP attacker into a 4000-DP winner;
-    // without the inherited bonus, this matchup would be an equal-DP deletion.
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

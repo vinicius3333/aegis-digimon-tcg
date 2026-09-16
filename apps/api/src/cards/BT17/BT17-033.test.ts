@@ -142,8 +142,6 @@ describe("BT17-033 GeoGreymon", () => {
   });
 
   it("loses the +3000 DP once the turn ends", async () => {
-    // The battle-time DP is read through `onEvent` because the attack hands the turn
-    // over as soon as it resolves, and the grant is already gone by then.
     const dpDuringTurn: number[] = [];
     const s: ReturnType<typeof setupEngine> = setupEngine(
       {
@@ -200,7 +198,6 @@ describe("BT17-033 GeoGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // 5000 DP security Digimon reduced to 2000 loses to the 4000 DP attacker.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(0);

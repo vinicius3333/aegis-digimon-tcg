@@ -68,7 +68,6 @@ describe("BT17-052 Agumon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
-    // Intermediate state: play cost 4 paid, 1 memory gained, 1 card drawn.
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([notDrawnId]);
 
@@ -79,7 +78,6 @@ describe("BT17-052 Agumon", () => {
       () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT16-087").length === 2,
     );
 
-    // Second play in the same turn: cost only, no gain and no draw.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([notDrawnId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([drawnId]);
@@ -150,7 +148,6 @@ describe("BT17-052 Agumon", () => {
     });
     await settle(() => s.state.players[0]!.deck.length === secondDeck - 1);
 
-    // Fresh turn, fresh use: the second Kosuke drew again.
     expect(s.state.players[0]!.deck).toHaveLength(secondDeck - 1);
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT16-087")).toHaveLength(
       2,
@@ -170,10 +167,6 @@ describe("BT17-052 Agumon", () => {
   });
 
   it("ignores a near-miss Tamer peer and fires only for the exact [Kosuke Kisakata]", async () => {
-    // Comparative peer: BT26-096 is "Kosuke Misono", a Tamer sharing only the given name.
-    // The catalog holds no card whose name merely CONTAINS "Kosuke Kisakata", so the
-    // nameExact vs substring distinction has no observable near-miss; this is the closest
-    // available peer and it must not fire the watcher.
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT17-052", as: "agumon" }],
@@ -197,7 +190,6 @@ describe("BT17-052 Agumon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT26-096"));
 
-    // Cost 3 paid, no memory gain and no draw for the near-miss peer.
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([drawnId, notDrawnId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kisakata").instanceId]);
@@ -207,7 +199,6 @@ describe("BT17-052 Agumon", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
-    // Cost 4 paid, then 1 memory gained and 1 card drawn for the exact name.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([notDrawnId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([drawnId]);

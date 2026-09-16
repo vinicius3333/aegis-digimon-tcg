@@ -7,7 +7,6 @@ import { compiled } from "./EX13-005.js";
 
 const CARD_ID = "EX13-005";
 
-/** Fire the inherited [When Attacking] window on a host carrying the Digi-Egg. */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm(alias), {
     attackerPermanentId: s.perm(alias).permanentId,
@@ -81,7 +80,6 @@ describe("EX13-005 Bebydomon", () => {
         },
       ],
     });
-    // No DigiXros allowance: the clause reaches nothing that needs one.
     expect(compiled.effects[0]?.actions?.[0]).not.toMatchObject({ options: [[{ allowDigiXros: true }], []] });
   });
 
@@ -115,7 +113,6 @@ describe("EX13-005 Bebydomon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed cost 3, reduced by 1, paid out of 3 memory.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("spare").instanceId]);
     const played = s.state.players[0]!.battleArea.find(
@@ -123,7 +120,6 @@ describe("EX13-005 Bebydomon", () => {
     );
     expect(played).toBeDefined();
     expect(played!.stack).toHaveLength(0);
-    // The attacker survived the battle it started and still carries the Digi-Egg.
     const host = s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === hostId);
     expect(host).toBeDefined();
     expect(host!.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("egg").instanceId]);
@@ -137,11 +133,8 @@ describe("EX13-005 Bebydomon", () => {
         0: {
           battleArea: [{ card: "BT1-064", as: "host", under: [{ card: CARD_ID, as: "egg" }] }],
           hand: [
-            // Near miss: "Monodramon" shares the -dramon suffix but prints neither token.
             { card: "BT1-009", as: "nearMiss" },
-            // Unrelated.
             { card: "BT1-010", as: "unrelated" },
-            // Text-only match: named Coredramon, but its digivolution text prints [Dracomon].
             { card: "EX13-018", as: "textOnly" },
           ],
         },
@@ -154,7 +147,6 @@ describe("EX13-005 Bebydomon", () => {
     await attackWindow(s, "host");
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed cost 5, reduced by 1, paid out of 4 memory.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("nearMiss").instanceId,
@@ -199,11 +191,8 @@ describe("EX13-005 Bebydomon", () => {
         0: {
           battleArea: [
             { card: "BT1-064", as: "host", under: [{ card: CARD_ID, as: "egg" }] },
-            // A Red permanent: using a Red Option still needs its color requirement met.
             { card: "BT1-009", as: "redAlly" },
           ],
-          // Unleash the Dragon Gene prints [Dracomon]/[Examon]; the Agumon beside it matches
-          // neither token, so the play branch has no candidate and the use branch is forced.
           hand: [
             { card: "BT20-093", as: "option" },
             { card: "BT1-010", as: "unrelated" },
@@ -221,10 +210,8 @@ describe("EX13-005 Bebydomon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed use cost 2, reduced by 1, paid out of 1 memory.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unrelated").instanceId]);
-    // The Option resolved its own [Main] body, which places it in the battle area.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
       s.perm("host").topCard.instanceId,
       s.perm("redAlly").topCard.instanceId,
@@ -278,14 +265,12 @@ describe("EX13-005 Bebydomon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("second").instanceId]);
 
-    // Same turn, second attack window: the once-per-turn gate refuses it.
     s.state.memory = 4;
     await attackWindow(s, "host");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("second").instanceId]);
 
-    // A real opponent turn passes; the gate reopens on the controller's next turn.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -364,7 +349,6 @@ describe("EX13-005 Bebydomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT1-064");
-    // Green Lv.2 -> Green Lv.3 at printed cost 0, with the egg preserved as the source.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.breeding!.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
 
@@ -381,7 +365,6 @@ describe("EX13-005 Bebydomon", () => {
     expect(host.topCard.cardId).toBe("BT1-064");
     expect(host.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
 
-    // The opponent's turn start unsuspended the target; re-suspend it so the attack is legal.
     await advance(s.engine).verb.suspend([s.perm("target").permanentId]);
 
     expect(

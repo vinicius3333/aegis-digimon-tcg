@@ -100,10 +100,6 @@ describe("BT21-057 Greymon", () => {
           security: [{ card: "BT1-009", as: "security" }],
           deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        // ZeedMillenniummon has no inherent cannot-attack restriction and is unaffected by
-        // opponent effects while it has no digivolution cards (CR 15-15-5). Its Reboot-like
-        // suspension restriction is separate from attack capability; the unprotected BT1-010
-        // target in the preceding public test demonstrates the same grant's normal attack.
         1: {
           battleArea: [{ card: "BT19-101", as: "unaffected" }],
           security: [{ card: "BT1-009", as: "opponent-security" }],

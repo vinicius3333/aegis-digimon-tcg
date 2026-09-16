@@ -1,6 +1,3 @@
-// Hand-fixed: inherited effect fires when ANY Digimon's attack target is switched (KB Q806).
-// No sourceFilter — activates regardless of which Digimon is involved.
-// DP bonus lasts until end of turn, not permanent.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

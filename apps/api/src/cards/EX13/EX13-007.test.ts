@@ -30,7 +30,6 @@ describe("EX13-007 Guilmon", () => {
 
   it("compiles both printed clauses", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
-    // The same clause is printed under two timings, so both must carry the same action.
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect.isInherited).toBeUndefined();
@@ -42,13 +41,10 @@ describe("EX13-007 Guilmon", () => {
         target: { count: 1, filter: { zone: "trash", controller: "mine", kind: ["Digimon"] } },
         cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
       });
-      // "with [Gallantmon] in its name" is the substring reading, so ChaosGallantmon is in
-      // range; the red Tamer alternative is a separate kind and therefore an orFilter.
       const filter = irNode(effect.actions[0]).target.filter;
       expect(filter.nameOrTrait).toEqual([{ tokens: ["Gallantmon"], match: "name" }]);
       expect(filter.orFilters).toEqual([{ zone: "trash", controller: "mine", kind: ["Tamer"], colors: ["Red"] }]);
     }
-    // No "while ..." clause is printed, so the inherited modifier carries no condition.
     const inherited = compiled.effects.find((effect) => effect.isInherited)!;
     expect(inherited).toMatchObject({
       trigger: "AllTurns",
@@ -56,11 +52,6 @@ describe("EX13-007 Guilmon", () => {
     });
     expect(irNode(inherited.actions[0]).condition).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] By trashing 1 card in your hand, you may return 1 Digimon card with
-  // [Gallantmon] in its name or 1 red Tamer card from your trash to the hand.
-  // ---------------------------------------------------------------------------
 
   it("trashes 1 hand card to return a Gallantmon Digimon from the trash", async () => {
     const s = setupEngine(
@@ -157,7 +148,6 @@ describe("EX13-007 Guilmon", () => {
             { card: cardId, as: "source" },
             { card: "BT1-009", as: "fodder" },
           ],
-          // A red Digimon without the name, a Tamer of the wrong color: both branches miss.
           trash: [
             { card: "BT1-009", as: "plainRedDigimon" },
             { card: "BT1-086", as: "blueTamer" },
@@ -177,7 +167,6 @@ describe("EX13-007 Guilmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
     await drainMicrotasks(20);
 
-    // Nothing is returned and the trash cost is never paid: the hand keeps its fodder.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("fodder").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("plainRedDigimon").instanceId,
@@ -219,10 +208,6 @@ describe("EX13-007 Guilmon", () => {
     assertNoLoudGap(s);
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Moving] — the same clause on the public breeding-move route.
-  // ---------------------------------------------------------------------------
-
   it("fires the same clause when it moves out of breeding", async () => {
     const s = setupEngine(
       {
@@ -255,14 +240,6 @@ describe("EX13-007 Guilmon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [All Turns] Add 2000 to this Digimon's DP deletion effects' maximums.
-  // Comprehensive rules 15-15-4-1: the bonus adds to the value SHOWN IN TEXT, so only a
-  // printed numeric maximum moves. The deletion under test is BT19-015 Gallantmon's
-  // [When Digivolving] "delete 1 of your opponent's Digimon with 8000 DP or less",
-  // reached through the public digivolve intent with Guilmon in the stack beneath it.
-  // ---------------------------------------------------------------------------
-
   it("raises the printed 8000 maximum to 10000 regardless of the memory gauge", async () => {
     const s = setupEngine(
       {
@@ -275,8 +252,6 @@ describe("EX13-007 Guilmon", () => {
       },
       { autoSelectCards: true },
     );
-    // The Gallantmon route costs 4; unlike BT19-007's conditional twin, this clause has no
-    // memory gate, so the gauge is deliberately left positive when the effect resolves.
     s.state.memory = 5;
     await s.ready();
 
@@ -289,7 +264,6 @@ describe("EX13-007 Guilmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 20);
 
-    // Gallantmon's own [Your Turn] [Once Per Turn] "gain 2 memory" confirms a real deletion.
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").topCard?.cardId).toBe("BT19-015");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([cardId, "BT19-012"]);

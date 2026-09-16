@@ -8,25 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-019";
 
-/**
- * EX10-019 Warudamon (Lv.5 Green/Purple, [Ult.]/[Appmon], 8000 DP).
- *
- * Printed text:
- *   [App Fusion] [Mienumon] & [Sakusimon]: Cost 0
- *   ＜Fortitude＞
- *   [On Play] [When Digivolving] You may link 1 level 4 or lower Digimon card from your
- *     trash or this Digimon's digivolution cards to this Digimon without paying the cost.
- *   [All Turns] [Once Per Turn] When this Digimon gets linked, you may suspend 1 of your
- *     opponent's Digimon or Tamers. It can't unsuspend in their next unsuspend phase.
- *   [Link] [Appmon] trait: Cost 3   Link DP +4000
- *   Link effect: [All Turns] When any of your opponent's Digimon suspend, by trashing 1 of
- *     this Digimon's link cards, trash your opponent's top security card.
- *
- * Every behavioural clause below is driven from a public intent (`playCard`, `digivolve`,
- * `appFusion`, `linkCard`, `attack`, `declareBlock`) or the real turn loop. A suspension of
- * an opponent's Digimon is produced naturally by a declared block or by this card's own
- * [All Turns] clause, never by injected timing.
- */
 describe("EX10-019 Warudamon", () => {
   it("records the exact catalog, App Fusion, Fortitude, Link, and scoped watchers", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -144,7 +125,6 @@ describe("EX10-019 Warudamon", () => {
   it("refuses an off-colour level-4 source: the printed routes are Green and Purple only", async () => {
     const s = setupEngine({
       0: {
-        // BT24-035 Gatomon: Yellow, level 4 - the right level on the wrong colour.
         battleArea: [{ card: "BT24-035", as: "yellowBase" }],
         hand: [{ card: CARD_ID, as: "warudamon" }],
         deck: ["BT1-013"],
@@ -201,11 +181,8 @@ describe("EX10-019 Warudamon", () => {
         0: {
           hand: [{ card: CARD_ID, as: "warudamon" }, "BT1-013"],
           trash: [
-            // BT24-035 Gatomon: level 4 but NO printed [Link] requirement (Q5053).
             { card: "BT24-035", as: "noLink" },
-            // BT24-053 Protecmon: level 3, [Link] [Appmon] trait.
             { card: "BT24-053", as: "eligible" },
-            // BT21-101 Gaiamon: has [Link]... on a level 6 body, so out of range.
             { card: "BT21-101", as: "tooBig" },
           ],
         },
@@ -224,14 +201,10 @@ describe("EX10-019 Warudamon", () => {
       s.inst("noLink").instanceId,
       s.inst("tooBig").instanceId,
     ]);
-    // Play cost 8 only; the link itself is free.
     expect(s.state.memory).toBe(0);
-    // 8000 printed + Protecmon's own Link DP +2000.
     expect(s.perm("warudamon").currentDP).toBe(10_000);
     assertNoLoudGap(s);
 
-    // Negative control: with ONLY ineligible cards in the trash nothing is linked at all,
-    // which is what proves the level and ＜Link＞ gates rather than a lucky pick order.
     const none = setupEngine(
       {
         0: {
@@ -289,8 +262,6 @@ describe("EX10-019 Warudamon", () => {
     expect(s.perm("neighbor").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("otherSource").instanceId]);
     assertNoLoudGap(s);
 
-    // Negative control: only the NEIGHBOUR holds an eligible digivolution card, so nothing is
-    // linked - the clause reaches this Digimon's own stack, not any stack on the board.
     const none = setupEngine(
       {
         0: {
@@ -348,16 +319,12 @@ describe("EX10-019 Warudamon", () => {
     s.state.memory = 8;
     await s.ready();
 
-    // The only arming in this suite: a "can't be suspended" restriction, installed through the
-    // production `restrict` primitive (the verb every Restrict clause compiles to). No printed
-    // card in the fixture pool grants it, and Q5054 is exactly about that state.
     await advance(s.engine).verb.restrict(
       s.perm("protectedTarget").permanentId,
       "beSuspended",
       EffectDuration.Permanent,
     );
 
-    // First link -> [All Turns] [Once Per Turn] fires; the chosen target cannot suspend.
     preferred.push(s.perm("protectedTarget").permanentId);
     expect(
       s.engine.applyIntent(0, {
@@ -370,12 +337,8 @@ describe("EX10-019 Warudamon", () => {
     expect(s.perm("protectedTarget").isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("protectedTarget"), "unsuspend")).toBe(true);
     expect(s.state.memory).toBe(5);
-    // Nothing suspended, so the linked copy's own link effect never fired: security untouched.
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    // Free the single link slot the natural way: attack, let the opponent block. The blocker
-    // suspends, which is an opponent Digimon suspending, so the LINKED Warudamon card's link
-    // effect pays its cost by trashing itself and trashes the opponent's top security card.
     preferred.length = 0;
     expect(
       s.engine.applyIntent(0, {
@@ -394,8 +357,6 @@ describe("EX10-019 Warudamon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("firstLink").instanceId);
     expect(s.perm("warudamon").linked).toHaveLength(0);
 
-    // Second link in the SAME turn: the [Once Per Turn] use was spent by the first link even
-    // though it suspended nothing (Q5056), so this one may not suspend or restrict anything.
     preferred.push(s.perm("laterTarget").permanentId);
     expect(
       s.engine.applyIntent(0, {
@@ -421,7 +382,6 @@ describe("EX10-019 Warudamon", () => {
       },
       { autoDeclineOptional: true },
     );
-    // BT24-053 Protecmon's own printed link cost is 1.
     s.state.memory = 1;
     await s.ready();
     expect(
@@ -464,8 +424,6 @@ describe("EX10-019 Warudamon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Turn 1 (mine): link -> suspend victimA + "can't unsuspend". victimA suspending is an
-    // opponent Digimon suspending, so linkA's own link effect trashes itself for 1 security.
     preferred.push(s.perm("victimA").permanentId);
     expect(
       s.engine.applyIntent(0, {
@@ -480,12 +438,10 @@ describe("EX10-019 Warudamon", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("aTopSecurity").instanceId);
     expect(s.perm("warudamon").linked).toHaveLength(0);
 
-    // The opponent's unsuspend phase must leave victimA suspended.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("victimA").isSuspended).toBe(true);
 
-    // Back on my turn the restriction has lapsed and the once-per-turn use has reset.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).isRestricted(s.perm("victimA"), "unsuspend")).toBe(false);
@@ -513,7 +469,6 @@ describe("EX10-019 Warudamon", () => {
       {
         0: {
           battleArea: [
-            // BT24-053 Protecmon: [Appmon]. BT1-009 Monodramon: [Mini Dragon], not [Appmon].
             { card: "BT24-053", as: "appmon" },
             { card: "BT1-009", as: "notAppmon" },
           ],
@@ -591,8 +546,6 @@ describe("EX10-019 Warudamon", () => {
         0: {
           battleArea: [
             {
-              // BT21-101 Gaiamon prints ＜Link +1＞ and the [Appmon] trait, so the host really
-              // holds two link cards without any test-side grant.
               card: "BT21-101",
               as: "host",
               linked: [
@@ -705,8 +658,6 @@ describe("EX10-019 Warudamon", () => {
       withSource.state.players[0]!.trash.some(({ instanceId }) => instanceId === withSource.inst("source").instanceId),
     );
     await settle(() => false, 40);
-    // ＜Fortitude＞ replays the top card as a NEW permanent, so the board is read directly
-    // rather than through the Board Spec alias, which still names the deleted permanent.
     const replayed = withSource.state.players[0]!.battleArea;
     expect(replayed.map(({ topCard }) => topCard.instanceId)).toEqual([warudamonId]);
     expect(replayed[0]!.stack).toHaveLength(0);

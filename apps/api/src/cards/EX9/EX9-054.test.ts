@@ -36,7 +36,6 @@ describe("EX9-054", () => {
         0: {
           battleArea: [
             { card: "EX9-054", as: "source" },
-            // EX9-005 can play this Negamon-text Digimon and become its bottom source.
             { card: "EX9-047", as: "other", under: ["EX9-005"] },
           ],
           trash: ["EX9-005"],

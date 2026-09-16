@@ -108,8 +108,6 @@ describe("EX12-012 Apemon", () => {
         }
       : { type: "playCard" as const, instanceId: s.inst("source").instanceId };
     expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
-    // The hand cost is the clause's only question, so it is asked as the selection
-    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const pending = s.state.pendingDecision!;
     expect(

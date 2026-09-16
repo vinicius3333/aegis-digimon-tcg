@@ -4,27 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import module from "./BT3-093.js";
 
-// A3 for BT3-093 (Davis Motomiya, Blue Tamer).
-//
-// [On Play] Reveal the top 3 cards of your deck. Add 1 blue Digimon and 1 green
-// Digimon among them to your hand. Place the remaining cards at the bottom of
-// your deck in any order.
-//
-// FAILS-WHEN-REVERTED: The [On Play] clause in the original IR is an inert parser fallback
-// (no-op). The hand-written module implements it: when Davis is played, if there
-// is a blue Digimon among the top 3 revealed deck cards, it is added to hand.
-// When reverted, nothing is added to hand and the deck top cards are not moved.
-//
-// Test: seat 0 plays Davis Motomiya; the top 3 of their deck include a blue Digimon
-// (AD1-010 Garurumon) and a green Digimon (BT1-064 Goblimon). After the effect
-// resolves, both are in hand.
-//
-// Cards:
-//   BT3-093  — Davis Motomiya (the Tamer being tested)
-//   AD1-010  — Garurumon (Blue Lv.4 Digimon — will be added to hand as "1 blue")
-//   BT1-064  — Goblimon (Green Lv.3 Digimon — will be added to hand as "1 green")
-//   BT1-090  — Gravity Crush (Blue Option — should NOT be added as the blue Digimon)
-
 describe("BT3-093 Davis Motomiya [On Play] reveals deck and adds Digimon to hand", () => {
   it("matches official metadata and publishes separate typed triggers", () => {
     expect(module.cardId).toBe("BT3-093");
@@ -69,14 +48,10 @@ describe("BT3-093 Davis Motomiya [On Play] reveals deck and adds Digimon to hand
     const s = setup(
       {
         0: {
-          // Build a deck whose top 3 cards are: Garurumon (Blue Lv.4), Goblimon (Green
-          // Lv.3), and Gravity Crush (Blue Option — should NOT be picked as the "blue
-          // Digimon"). Deck's top card is the LAST element (draws pop()), so the array
-          // is written bottom-to-top, oldest first — same order as the original pushes.
           deck: [
             { card: "BT1-090", as: "optionCard", faceUp: true },
             { card: "BT1-064", as: "goblimon", faceUp: true },
-            { card: "AD1-010", as: "garurumon", faceUp: true }, // top of deck
+            { card: "AD1-010", as: "garurumon", faceUp: true },
           ],
           hand: [{ card: "BT3-093", as: "davis" }],
         },
@@ -97,23 +72,17 @@ describe("BT3-093 Davis Motomiya [On Play] reveals deck and adds Digimon to hand
       instanceId: davis.instanceId,
     });
 
-    // Wait for [On Play] to resolve: both Garurumon and Goblimon end up in hand.
     await settle(
       () =>
         p0.hand.some((c) => c.instanceId === garurumon.instanceId) &&
         p0.hand.some((c) => c.instanceId === goblimon.instanceId),
     );
 
-    // Davis is now on the battle area (played successfully).
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT3-093")).toBe(true);
-    // The blue Digimon (Garurumon) was added to hand.
     expect(p0.hand.some((c) => c.instanceId === garurumon.instanceId)).toBe(true);
-    // The green Digimon (Goblimon) was added to hand.
     expect(p0.hand.some((c) => c.instanceId === goblimon.instanceId)).toBe(true);
-    // The Option card (not a Digimon) was not taken — should be in deck bottom.
     expect(p0.hand.some((c) => c.instanceId === optionCard.instanceId)).toBe(false);
     expect(p0.deck.some((c) => c.instanceId === optionCard.instanceId)).toBe(true);
-    // Hand grew by 2 (blue + green Digimon), minus the Davis itself.
     expect(p0.hand.length).toBe(handBefore - 1 + 2);
   });
 

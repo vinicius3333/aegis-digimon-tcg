@@ -99,7 +99,6 @@ describe("BT22-036 Chaperomon", () => {
     );
     await settle(() => s.perm("shoemon").topCard?.cardId === "BT22-036");
 
-    // Q4882: EX7-024 reduces this effect's fixed cost from 3 to 2.
     expect(s.state.memory).toBe(3);
     expect(s.perm("shoemon").stack.map((card) => card.cardId)).toEqual(["BT22-032", "EX7-024"]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("invalid").instanceId]);

@@ -81,8 +81,6 @@ describe("BT13-098 Richard Sampson", () => {
       },
       1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
-    // Keep a legal Main action available so production does not auto-end the
-    // phase immediately after resolving its entry window.
     s.state.memory = 3;
     await s.ready();
     const turn = s.engine.runOneTurn();

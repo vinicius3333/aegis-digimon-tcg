@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4368 (binding): the [All Turns] effect triggers when EITHER player's Digimon suspends.
-// The whenSuspended SubTrigger must have no controller restriction on sourceFilter — it applies
-// to all Digimon, not just the controller's.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -1,13 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4196: <Delay> effect cannot ignore digivolution requirements.
-// KB Q4197: cannot burst/DNA digivolve via this effect.
-// KB Q4199: player can activate Delay but choose not to digivolve (optional).
 const compiled: CompiledCard = {
   effects: [
     {
-      // [Main] Reveal top 2, add 1 yellow card to hand, rest to deck bottom. Then place self in battle area.
       trigger: "Main",
       actions: [
         {
@@ -31,8 +27,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [Main] <Delay>: 1 of your Digimon may digivolve into a yellow Digimon card in your
-      // hand for its digivolution cost. When it would digivolve by this effect, reduce cost by 2.
       trigger: "Main",
       actions: [
         {

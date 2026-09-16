@@ -1,9 +1,6 @@
 import type { CompiledCard, SubTriggerEvent } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The engine's canonical event bus includes this event, while the shared card-facing union
-// predates that addition. Keep the engine event spelling (and therefore its opponent-turn gate)
-// while making the boundary explicit and typed rather than suppressing this module's checks.
 const endOfOpponentTurn = "endOfOpponentTurn" as unknown as SubTriggerEvent;
 
 const compiled: CompiledCard = {
@@ -44,9 +41,6 @@ const compiled: CompiledCard = {
           bindResultAs: "playedByThisEffect",
         },
         {
-          // "The Digimon played by this effect can't digivolve to level 7". `boundRef` names the
-          // permanent the play above produced; the declarative effect record used the never-read
-          // `playedByThisEffect` filter here, so the restriction landed on an arbitrary Digimon.
           kind: "Restrict",
           target: {
             filter: {
@@ -59,14 +53,6 @@ const compiled: CompiledCard = {
           duration: "permanent",
         },
         {
-          // Errata (2025-04-25): "at the NEXT end of your opponent's turn, delete that Digimon";
-          // KB Q5722 makes it one-shot — only the FIRST opponent turn end after the play, so a
-          // Digimon that survives that deletion is not deleted at later opponent turn ends
-          // (`once`). Q3433: it is still "the Digimon played by this effect" after De-Digivolve or
-          // added digivolution cards, i.e. the PERMANENT is tracked — so the watcher is anchored
-          // (`on`) to the bound played permanent and deletes its own anchor, replacing the
-          // never-read `playedByThisEffect` filter that matched every Digimon on the board.
-          // documented behavior (UntilOpponentTurnEndEffects + OnEndTurn, maxCount 1).
           kind: "SubTrigger",
           event: endOfOpponentTurn,
           once: true,

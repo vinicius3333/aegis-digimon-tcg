@@ -180,8 +180,6 @@ describe("BT5-081 ChaosGallantmon", () => {
     expect(s.perm("base").topCard.cardId).toBe("BT5-081");
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // The normal digivolution bonus draws exactly one card; no additional draw/reveal occurs
-    // when the watcher suppresses the played rookie's [On Play] effect.
     expect(s.state.players[0]!.deck).toHaveLength(3);
   });
 

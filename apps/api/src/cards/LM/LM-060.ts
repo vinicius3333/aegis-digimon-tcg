@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// LM-060 Shadow Training
-// Same printed card as LM-054 Treadmill Training in green/purple. Audit fix (LM audit): the
-// generated modules for LM-055 through LM-062 dropped part of the shared Delay clause — the
-// `reduceCost: 2` reduction, the `payCost: true` that makes the digivolution paid at all, or
-// both — so this file is templated from the audited LM-054 module with the colours and the
-// self-name swapped.
-
 const compiled: CompiledCard = {
   effects: [
     {

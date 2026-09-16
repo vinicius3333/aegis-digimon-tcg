@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q3348 (binding): The Replacement intercepts "when [a Digimon] would digivolve into"
-// a Gallantmon/Growlmon named card — it fires first and grants <Blitz> even if the
-// digivolution later fails.
-// Effect 0: [Your Turn] SubTrigger on opponent Digimon deletion — by suspending this
-//   Tamer, gain 1 memory. GainMemory is the payoff inside the SubTrigger's actions.
-// Effect 1: [Your Turn] Replacement on wouldDigivolve — into filter restricts to
-//   Gallantmon or Growlmon named targets; GainKeyword: Blitz, forTheTurn, on the
-//   digivolving Digimon (sourceRef). The [When Digivolving] prefix on <Blitz> is the
-//   timing scope per card text; the engine represents it as the Digimon having Blitz
-//   for the turn (the keyword becomes usable in the WhenDigivolving window).
 export const compiled: CompiledCard = {
   effects: [
     {

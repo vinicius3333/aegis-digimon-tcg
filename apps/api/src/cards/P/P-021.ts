@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4130: an exact [Mimi Tachikawa] in play enables the free [Palmon] play.
 const compiled: CompiledCard = {
   effects: [
     {

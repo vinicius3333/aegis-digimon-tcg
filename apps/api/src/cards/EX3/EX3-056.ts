@@ -1,9 +1,6 @@
-// HAND-VERIFIED IR for EX3-056 Guilmon — preserve the delete-outcome branch.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The shared interpreter executes this reviewed IR; removing the generated header
-// keeps the compiler from overwriting the verified conditional behavior.
 const compiled: CompiledCard = {
   effects: [
     {

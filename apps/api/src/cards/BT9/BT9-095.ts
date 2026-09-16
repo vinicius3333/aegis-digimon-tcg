@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q1898-Q1901: the reducer requires the exact [X Antibody] card name; the
-// optional Greymon attack must be legal, targets only the player, and runs the
-// ordinary attack lifecycle (including [When Attacking] effects).
 export const compiled: CompiledCard = {
   effects: [
     {

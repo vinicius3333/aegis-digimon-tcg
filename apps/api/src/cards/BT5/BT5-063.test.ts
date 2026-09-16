@@ -117,8 +117,6 @@ describe("BT5-063 Kurisarimon", () => {
           { card: "BT5-084", as: "sameName" },
           { card: "BT5-066", as: "differentName" },
         ],
-        // BT18-102 is a legal white Lv.7 evolution from BT5-084 and has no
-        // intrinsic Rush, so the post-evolution assertion isolates the inherited grant.
         hand: [{ card: "BT18-102", as: "renamed" }],
       },
     });

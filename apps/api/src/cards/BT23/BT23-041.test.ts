@@ -7,26 +7,6 @@ import "../index.js";
 import { compiled } from "./BT23-041.js";
 import type { EngineSetup } from "../../engine/testkit/harness.js";
 
-/**
- * BT23-041 Kabuterimon
- *   [Digivolve] Lv.3 w/[CS] trait: Cost 2
- *   ＜Alliance＞
- *   [All Turns] [Once Per Turn] When this Digimon suspends, 1 of your Digimon gains
- *   ＜Piercing＞ and +3000 DP for the turn.
- *
- * Every clause is driven by a public intent: `attack` (the ordinary way a Digimon suspends),
- * an opponent's Option that suspends it, `respondAlliance`, and `digivolve`.
- *
- * ＜Alliance＞ (comprehensive rules §16-24-1) belongs to the ATTACKER: when Kabuterimon
- * attacks it may suspend 1 of your OTHER Digimon for that Digimon's DP and ＜Security A. +1＞.
- * So every attack by Kabuterimon opens an Alliance prompt that the test must answer.
- */
-
-/**
- * Hand the turn over to the opponent through the real turn loop rather than writing
- * `state.turnSeat`: run seat 0's turn, end its Main, and stop inside seat 1's Main.
- * Returns `{ loop }` — awaiting the loop promise directly would hang until the game ends.
- */
 async function passTurnToOpponent(s: EngineSetup): Promise<{ loop: Promise<void> }> {
   const loop = s.engine.startTurnLoop();
   await advance(s.engine).waitForMainPhase(0);
@@ -35,7 +15,6 @@ async function passTurnToOpponent(s: EngineSetup): Promise<{ loop: Promise<void>
   return { loop };
 }
 
-/** Answer Kabuterimon's ＜Alliance＞ prompt with "no ally", leaving the attack otherwise plain. */
 async function declineAlliance(s: EngineSetup): Promise<void> {
   await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
   expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
@@ -59,8 +38,6 @@ describe("BT23-041 Kabuterimon", () => {
       attributes: ["Vaccine"],
       types: ["Insectoid", "Hudie", "CS"],
     });
-    // The catalog stores a non-breaking space before "trait" in the Digivolve line. Normalise
-    // it here so this file holds no invisible character; the catalog itself is not edited.
     const effectText = getCardDefinition("BT23-041")!.effectText!.replaceAll("\u00a0", " ");
     expect(effectText).toContain("[Digivolve] Lv.3 w/[CS] trait: Cost 2");
     expect(effectText).toContain("＜Alliance＞");
@@ -124,7 +101,6 @@ describe("BT23-041 Kabuterimon", () => {
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    // Bias the "1 of your Digimon" prompt to the ally, so the recipient is not the source.
     preferred.push(s.perm("ally").permanentId, s.perm("ally").topCard.instanceId);
     const allyBaseDp = s.perm("ally").currentDP;
     const kabuterimonBaseDp = s.perm("kabuterimon").currentDP;
@@ -148,8 +124,6 @@ describe("BT23-041 Kabuterimon", () => {
     expect(s.perm("ally").currentDP).toBe(allyBaseDp + 3000);
     expect(s.perm("kabuterimon").currentDP).toBe(kabuterimonBaseDp);
 
-    // The recipient beats a 4000 DP defender only because of the +3000, and its ＜Piercing＞
-    // turns that win into a further security check.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -172,7 +146,6 @@ describe("BT23-041 Kabuterimon", () => {
   });
 
   it("also triggers when an opponent's effect suspends it during the opponent's turn", async () => {
-    // Only Kabuterimon is on the controller's board, so the recipient it picks is itself.
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT23-041", as: "kabuterimon" }], deck: Array(8).fill("BT1-011") },
@@ -244,7 +217,6 @@ describe("BT23-041 Kabuterimon", () => {
     expect(s.perm("ally").currentDP).toBe(allyBaseDp + 3000);
     expect(s.perm("kabuterimon").isSuspended).toBe(true);
 
-    // Unsuspend Kabuterimon publicly so it can suspend a second time in the same turn.
     preferred.length = 0;
     preferred.push(
       s.perm("kabuterimon").permanentId,
@@ -313,13 +285,11 @@ describe("BT23-041 Kabuterimon", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // "For the turn" ends with the turn that granted it: the opponent's Main already sees it gone.
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(false);
     expect(s.perm("ally").currentDP).toBe(allyBaseDp);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Next own turn: the Active phase unsuspends it and the once-per-turn counter has reset.
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(false);
     expect(s.perm("ally").currentDP).toBe(allyBaseDp);
@@ -378,12 +348,9 @@ describe("BT23-041 Kabuterimon", () => {
         decisionId: request.decisionId,
         response: { kind: "chooseTargets", instanceIds: [opposingPermanentId] },
       }),
-      // A forged id outside the candidate set fails the decision registry's minimum-valid
-      // count check, which reports the generic "still waiting for a decision" code.
     ).toEqual({ ok: false, reason: "decision-pending" });
     expect(s.state.pendingDecision?.decisionId).toBe(request.decisionId);
 
-    // The legal answer resolves the same decision and leaves the opponent untouched.
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -431,13 +398,9 @@ describe("BT23-041 Kabuterimon", () => {
     });
     await settle(() => s.events.some((event) => event.kind === "allianceResolved") && !observe(s.engine).isAttacking());
 
-    // §16-24-1: the attacker gains the suspended ally's DP and ＜Security A. +1＞ for the
-    // attack. Both are attack-scoped, so the observable endpoint is the extra security check:
-    // 3 cards down to 1 rather than 2.
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.perm("kabuterimon").currentDP).toBe(kabuterimonBaseDp);
     expect(s.state.players[1]!.security).toHaveLength(1);
-    // The ally's suspension is not this Digimon's own, so the clause fired exactly once.
     expect(s.state.players[0]!.battleArea.filter((permanent) => observe(s.engine).hasPierce(permanent))).toHaveLength(
       1,
     );

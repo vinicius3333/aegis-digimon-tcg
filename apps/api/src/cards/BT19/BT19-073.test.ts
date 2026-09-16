@@ -7,16 +7,9 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import "./BT19-073.js";
 
-// Inert main-deck Digimon only: no Digi-Egg may sit in a deck or in security, and the
-// numeric `security: n` form is forbidden.
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
-/**
- * Answer the successive `chooseTargets` decisions of one effect with named permanents, in
- * order. The printed clause picks a ＜De-Digivolve＞ target and then a SEPARATE digivolve-lock
- * target, so a blanket auto-responder cannot express "de-digivolve this one, lock that one".
- */
 function scriptTargets(s: EngineSetup, picks: string[][]) {
   const answered = new Set<string>();
   const seen: { candidates: string[]; picked: string[] }[] = [];
@@ -42,7 +35,6 @@ function scriptTargets(s: EngineSetup, picks: string[][]) {
   };
 }
 
-/** Every id a scripted pick may legitimately name for one permanent. */
 function idsOf(s: EngineSetup, alias: string): string[] {
   const permanent = s.perm(alias);
   return [permanent.permanentId, permanent.topCard!.instanceId];
@@ -78,8 +70,6 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
   it("compiles the exact-name alternate route, both keywords, and the conditional grant", () => {
     const card = runtimeCompiledCard("BT19-073");
     expect(card).toMatchObject({ coverage: "full", residual: [] });
-    // "[Digivolve][LordKnightmon]" is a bracketed EXACT name: a substring `names` gate would
-    // let this card's own print ("LordKnightmon (X Antibody)") serve as its source.
     expect(card?.digivolutionRequirement).toEqual([{ namesExact: ["LordKnightmon"], cost: 1, isAlternate: true }]);
     expect(card?.effects.filter((effect) => effect.keywords !== undefined)).toMatchObject([
       { trigger: "Static", keywords: [{ keyword: "Collision" }] },
@@ -88,19 +78,16 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
     expect(card?.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
       actions: [
         {
-          // Q3134: ONE opponent Digimon is chosen for the whole clause ...
           kind: "SelectBind",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, bindAs: "deDigivolveTarget" },
         },
         {
-          // ... and ＜De-Digivolve 1＞ is repeated on THAT Digimon, once per your Digimon.
           kind: "DeDigivolve",
           target: { fromSelectionRef: "deDigivolveTarget", count: 1 },
           amount: 1,
           scaling: { per: 1, filter: { controller: "mine", kind: ["Digimon"] }, unit: "cards" },
         },
         {
-          // "Then, ... 1 of their Digimon can't digivolve" is a SEPARATE selection.
           kind: "Restrict",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           restriction: "digivolve",
@@ -166,7 +153,7 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT19-073");
     await settle();
 
-    expect(s.state.memory).toBe(9); // the alternate route costs 1, not the printed 4
+    expect(s.state.memory).toBe(9);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT3-076", "BT3-085", "BT13-090"]);
     expect(s.perm("base").stack.at(-1)?.instanceId).toBe(baseInstanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
@@ -175,8 +162,6 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
   });
 
   it("charges the normal Lv5 cost of 4 when the base is not exactly [LordKnightmon]", async () => {
-    // `useAlternateCost` silently falls back to the normal route when no alternate matches,
-    // so only the memory delta discriminates.
     const s = setupEngine(
       {
         0: {
@@ -210,7 +195,7 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
     await settle(() => s.perm("darkKnightmon").topCard?.cardId === "BT19-073");
     await settle();
 
-    expect(s.state.memory).toBe(6); // Black Lv5 evolution cost 4
+    expect(s.state.memory).toBe(6);
   });
 
   it("refuses its own print as a source: [LordKnightmon] is exact, not a substring", async () => {
@@ -218,7 +203,6 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
       0: {
         hand: [{ card: "BT19-073", as: "xAntibody" }],
         battleArea: [
-          // "LordKnightmon (X Antibody)" CONTAINS "LordKnightmon" but is not that card.
           { card: "BT19-073", as: "selfPeer", under: ["BT13-090"] },
           { card: "BT4-080", as: "purpleLv4" },
         ],
@@ -257,7 +241,6 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
         ],
         battleArea: [
           { card: "BT13-090", as: "base", under: ["BT3-085"] },
-          // The second of "your Digimon": the scaling counts 2 after the digivolution.
           { card: "BT12-079", as: "peer" },
         ],
         deck: [{ card: "BT1-013", as: "drawn" }, ...FILLER],
@@ -294,13 +277,11 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
     await settle();
     script.drive();
 
-    // Only the chosen Digimon was de-digivolved, twice (one per my two Digimon).
     expect(s.perm("deDigivolved").topCard?.cardId).toBe("BT3-076");
     expect(s.perm("deDigivolved").stack).toHaveLength(0);
     expect(s.perm("deDigivolved").topCard?.instanceId).toBe(stackBefore[0]);
     expect(s.perm("locked").topCard?.cardId).toBe("BT12-069");
     expect(s.perm("locked").stack.map((card) => card.instanceId)).toEqual(lockedStackBefore);
-    // The two selections are independent: the lock landed on the OTHER Digimon.
     expect(observe(s.engine).isRestricted(s.perm("locked"), "digivolve")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("deDigivolved"), "digivolve")).toBe(false);
     expect(script.seen[0]!.candidates).toEqual(
@@ -335,7 +316,6 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
       },
     });
     await s.ready();
-    // De-digivolve one Digimon, lock a different one.
     const script = scriptTargets(s, [idsOf(s, "victim"), idsOf(s, "locked")]);
     const loop = s.engine.startTurnLoop();
 
@@ -356,10 +336,9 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
     await settle();
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    // The opponent's real turn: their locked Digimon cannot digivolve, the peer can.
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
-    s.state.memory = 10; // the gauge is turn-relative: 10 in the opponent's own favour
+    s.state.memory = 10;
     expect(
       s.engine.applyIntent(1, {
         type: "digivolve",
@@ -390,7 +369,6 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
         battleArea: [
           { card: "BT19-073", as: "host", under: ["BT13-090"] },
           { card: "ST13-12", as: "knightmon" },
-          // Near-miss peer: same colour, no [Knightmon] anywhere in its text.
           { card: "BT12-069", as: "plainPeer" },
         ],
         hand: [{ card: "BT1-009", as: "spare" }],
@@ -405,13 +383,12 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
     });
     await s.ready();
 
-    expect(s.perm("knightmon").currentDP).toBe(10_000); // 7000 + 3000
+    expect(s.perm("knightmon").currentDP).toBe(10_000);
     expect(observe(s.engine).hasKeyword(s.perm("knightmon"), "Alliance")).toBe(true);
-    expect(s.perm("host").currentDP).toBe(15_000); // its own name carries [Knightmon] too
+    expect(s.perm("host").currentDP).toBe(15_000);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
     expect(s.perm("plainPeer").currentDP).toBe(9000);
     expect(observe(s.engine).hasKeyword(s.perm("plainPeer"), "Alliance")).toBe(false);
-    // "your Digimon" only: the opponent's identical Knightmon is untouched.
     expect(s.perm("theirKnightmon").currentDP).toBe(7000);
     expect(observe(s.engine).hasKeyword(s.perm("theirKnightmon"), "Alliance")).toBe(false);
   });
@@ -468,7 +445,6 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // ＜Collision＞ (§16-30): the opponent's plain Digimon gains ＜Blocker＞ and must block.
     await settle();
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).not.toEqual({ ok: true });
     expect(
@@ -477,7 +453,6 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // ＜Piercing＞: 15000 over the 9000 blocker, and the excess checks security.
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT12-069");
     expect(s.state.players[1]!.security.length).toBeLessThan(securityBefore);
 

@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX9-050 Numemon
-// [End of Your Turn] [Once Per Turn] By placing 3 [Ver.1] trait Digimon cards from your
-// trash face down as this Digimon's bottom digivolution cards, it may digivolve into a
-// [Ver.1] trait Digimon card in the hand or trash.
-// [inherited] [Static] <Blocker>
-// Q4805: All 3 cards must be placed; partial cost cannot be met.
-// The place cost already encodes faceDown/position/host correctly.
 export const compiled: CompiledCard = {
   effects: [
     {

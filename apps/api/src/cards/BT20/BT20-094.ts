@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The printed All Turns Delay reacts immediately to opponent security removal.
-// Its intrinsic activation gate pays the Option trash cost and enforces the entry-turn limit.
 export const compiled: CompiledCard = {
   effects: [
     {

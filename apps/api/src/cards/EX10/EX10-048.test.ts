@@ -8,24 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-048";
 
-/**
- * EX10-048 Myotismon (Purple, Lv.5 Ultimate, [Undead]).
- *
- * "When this card would be played, by deleting 1 of your Digimon with [Myotismon] in its
- * text, reduce the play cost by 4.
- *  [On Play] [On Deletion] Until your opponent's turn ends, 1 of your purple Digimon gains
- *  ＜Blocker＞ and ＜Retaliation＞"
- * Inherited: "[On Deletion] You may play 1 purple Tamer card from your trash suspended
- * without paying the cost."
- *
- * Fixtures:
- * - EX1-056 DemiDevimon: purple Lv.3, carries "[Myotismon]" in its EFFECT text but not in
- *   its name — the Q5130 discriminator for "in its text".
- * - BT2-067 DemiDevimon: purple Lv.3 with no text at all — an inert buff target.
- * - BT1-009 Monodramon / BT1-013 Muchomon: inert RED Digimon — colour negatives / walls.
- * - BT3-096 Mimi Tachikawa: purple Tamer whose own trigger needs an Option card, so it
- *   stays quiet after being played. BT1-085 Tai Kamiya is the red-Tamer negative.
- */
 describe("EX10-048 Myotismon", () => {
   it("records the exact catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -42,9 +24,6 @@ describe("EX10-048 Myotismon", () => {
       inheritedEffectText:
         "[On Deletion] You may play 1 purple Tamer card from your trash suspended without paying the cost.",
     });
-    // CATALOG DISCREPANCY: the printed text carries a NON-BREAKING SPACE (U+00A0) after
-    // "[Myotismon]" where the official list has a plain space. Compared on normalized
-    // whitespace so the clause itself is still asserted exactly.
     expect(getCardDefinition(CARD_ID)!.effectText!.replace(/\u00a0/gu, " ")).toBe(
       "When this card would be played, by deleting 1 of your Digimon with [Myotismon] in its text, reduce the play cost by 4.\n[On Play] [On Deletion] Until your opponent's turn ends, 1 of your purple Digimon gains ＜Blocker＞ and ＜Retaliation＞",
     );
@@ -69,8 +48,6 @@ describe("EX10-048 Myotismon", () => {
               filter: {
                 controller: "mine",
                 kind: ["Digimon"],
-                // Q5130: "in its text" is the whole-card union (name, traits, every text
-                // field), which the interpreter models as match "text".
                 nameOrTrait: [{ tokens: ["Myotismon"], match: "text" }],
               },
             },
@@ -94,7 +71,6 @@ describe("EX10-048 Myotismon", () => {
             kind: "GainKeyword",
             keyword: { keyword: "Retaliation" },
             duration: "untilOpponentTurnEnd",
-            // "1 of your purple Digimon gains X and Y" is one Digimon, not two.
             target: { sameTarget: true },
           },
         ],
@@ -141,13 +117,10 @@ describe("EX10-048 Myotismon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
     await settle(() => false, 30);
 
-    // 7 - 4 = 3 memory paid, and the named cost card is in the trash.
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("sacrifice").instanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
 
-    // [On Play]: exactly one purple Digimon gains BOTH keywords; the red one gains neither,
-    // and Myotismon itself was not the chosen target.
     const seen = observe(s.engine);
     expect(seen.hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
     expect(seen.hasKeyword(s.perm("ally"), "Retaliation")).toBe(true);
@@ -182,8 +155,6 @@ describe("EX10-048 Myotismon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
     await settle(() => false, 30);
 
-    // A purple Digimon is on the board, but none of them has [Myotismon] in its text, so the
-    // cost could not be paid: full price, nothing deleted.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
@@ -225,7 +196,6 @@ describe("EX10-048 Myotismon", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // Still granted on the opponent's turn: the duration runs UNTIL that turn ends.
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation")).toBe(true);
 
@@ -301,7 +271,6 @@ describe("EX10-048 Myotismon", () => {
       ({ topCard }) => topCard?.instanceId === s.inst("tamer").instanceId,
     )!;
     expect(tamer.isSuspended).toBe(true);
-    // Free: the Tamer's printed cost of 2 was never charged.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT2-067", CARD_ID]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -337,12 +306,6 @@ describe("EX10-048 Myotismon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  /**
-   * Q5131 regression: deleting a Digimon with an [On Deletion] effect to pay this card's
-   * play-cost reduction makes that [On Deletion] and this card's [On Play] trigger
-   * SIMULTANEOUSLY, so the turn player picks the resolve order. The current engine parks the
-   * cost deletion in the play's trigger batch and exposes both effects through `orderTriggers`.
-   */
   it("Q5131: the cost deletion's [On Deletion] and this card's [On Play] share the turn player's ordering window", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -369,13 +332,10 @@ describe("EX10-048 Myotismon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("myotismon").instanceId })).toEqual({
       ok: true,
     });
-    // EX10-047 Arukenimon carries its own [On Deletion]; deleting it as this card's play cost
-    // makes both effects trigger together, so the turn player must choose the order.
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
     const decision = s.state.pendingDecision;
     expect(decision?.kind).toBe("orderTriggers");
     const triggerKeys = (JSON.parse(decision!.payloadJson) as { triggerKeys: string[] }).triggerKeys;
-    // One key per source: this card's [On Play] and the cost-deleted Arukenimon's [On Deletion].
     expect(triggerKeys).toHaveLength(2);
     expect(triggerKeys.filter((key) => key.includes(CARD_ID))).toHaveLength(1);
     expect(triggerKeys.filter((key) => key.includes("EX10-047"))).toHaveLength(1);
@@ -406,8 +366,6 @@ describe("EX10-048 Myotismon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
     await settle(() => false, 30);
 
-    // With the default harness ordering, the cost card is deleted, the reduced cost is charged,
-    // and this card's own [On Play] resolves.
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX10-047"]);
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);

@@ -60,7 +60,6 @@ describe("BT26-079 compiled behavior", () => {
       ],
     });
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
-      // The three timings share the printed [Once Per Turn] limit.
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.frequency).toBe("OncePerTurn");
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         sharedUseKey: "bt26-079-trash-cost-delete",

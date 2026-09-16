@@ -269,7 +269,6 @@ describe("BT21-082 Takuya Kanbara", () => {
     expect(s.perm("base").topCard.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-015")).toBe(true);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
-    // The same destination is legal for an ordinary public evolution; only Takuya's trait gate excludes it.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

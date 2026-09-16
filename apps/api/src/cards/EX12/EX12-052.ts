@@ -3,9 +3,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const sharedUseKey = "ir-shared-0";
 
-// The DP boost and the battle are one mandatory sequence: KB Q6836 forbids taking the +3000 DP
-// and then declining the battle, and neither clause is printed with a "may" of its own, so the
-// only optionality is the player's choice to activate the [Counter] window at all.
 const dpAndBattleActions: Action[] = [
   {
     kind: "ModifyDP",

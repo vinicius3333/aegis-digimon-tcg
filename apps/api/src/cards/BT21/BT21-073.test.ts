@@ -220,15 +220,11 @@ describe("BT21-073 Charismon", () => {
     expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
     expect(s.state.memory).toBe(1);
 
-    // The grant's [Start of Your Main Phase] trigger is consumed through the public turn
-    // lifecycle on the opponent's next turn, rather than by firing a synthetic timing hook.
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 0;
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
-    // Charismon is itself a Blocker; explicitly decline that optional block so the granted
-    // attack reaches the player's security and remains distinct from a blocked attack.
     if (!immune) {
       await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
       expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
@@ -353,7 +349,6 @@ describe("BT21-073 Charismon", () => {
         0: {
           battleArea: [
             {
-              // BT21-101's printed Link +1 makes this two-link fixture legal.
               card: "BT21-101",
               as: "host",
               linked: [
@@ -367,8 +362,6 @@ describe("BT21-073 Charismon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    // Keep Charismon itself linked so its inherited replacement remains installed for the
-    // second leave attempt; pay the first prevention with the other Link card.
     preferred.push(s.inst("gossipmon").instanceId);
 
     expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("charismon").instanceId);
@@ -433,7 +426,6 @@ describe("BT21-073 Charismon", () => {
     await s.ready();
 
     const hostInstanceId = s.inst("host").instanceId;
-    // Pay the first replacement with Gossipmon and retain Charismon as source.
     preferred.push(s.inst("gossipmon").instanceId);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia1").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("gossipmon").instanceId));
@@ -443,8 +435,6 @@ describe("BT21-073 Charismon", () => {
       true,
     );
 
-    // A second public Option in the same turn is a fresh leave attempt, but the
-    // once-per-turn replacement is exhausted despite Charismon remaining as an eligible Link cost.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia2").instanceId })).toEqual({ ok: true });
     await settle(
       () => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === hostInstanceId),

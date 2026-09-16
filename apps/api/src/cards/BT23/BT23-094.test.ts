@@ -50,8 +50,6 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(turn.actions[0].actions[1].target.fromSelectionRef).toBe(turn.actions[0].actions[0].target.bindAs);
   });
 
-  // Q5368, asked about this printed wording, answers that "on the field" is the battle area
-  // OR the breeding area — the CR 3-4-7-8 "explicitly references breeding areas" exception.
   it("waives the yellow color requirement from an off-color CS Digimon in breeding (Q5368)", async () => {
     const s = setupEngine(
       {
@@ -73,8 +71,6 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving")).toBe(true);
   });
 
-  // A Digimon's traits are its top card's: a [CS] card in the digivolution cards beneath a
-  // non-[CS] top card is not a "[CS] trait Digimon".
   it("does not waive the color requirement from a CS card under a non-CS top card", async () => {
     const s = setupEngine(
       {
@@ -96,7 +92,6 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  // Q5368: a Tamer in the battle area satisfies the same condition.
   it("waives the color requirement from an off-color CS Tamer in the battle area", async () => {
     const s = setupEngine(
       {
@@ -161,14 +156,11 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving")).toBe(true);
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenAttacking")).toBe(true);
-    // Controller boundary: "1 of their Digimon" never reaches the caster's own board.
     expect(observe(s.engine).keywordAmount(s.perm("csDigimon"), "SecurityAttack")).toBe(0);
     expect(observe(s.engine).timingEffectDisabled(s.perm("csDigimon"), "whenDigivolving")).toBe(false);
     expect(observe(s.engine).timingEffectDisabled(s.perm("csDigimon"), "whenAttacking")).toBe(false);
   });
 
-  // Q5369 + Q5372: the blocked [When Digivolving] does not activate, and its "by trashing 1
-  // card in your hand" cost is not processed either.
   it("blocks the restricted Digimon's When Digivolving effect and never pays its by-cost", async () => {
     const s = setupEngine(
       {
@@ -214,9 +206,6 @@ describe("BT23-094 Nanomachine Break", () => {
     await settle(() => s.perm("target").topCard?.cardId === "EX6-048");
 
     expect(s.perm("target").topCard?.cardId).toBe("EX6-048");
-    // The [When Digivolving] never activated: no hand card was trashed for its cost and the
-    // caster's Digimon was granted no "[End of Attack] Delete this Digimon." aura.
-    // Both candidate cost cards are still in hand (the turn loop's draw step adds others).
     const handIds = s.state.players[1]!.hand.map((card) => card.instanceId);
     expect(handIds).toContain(costAId);
     expect(handIds).toContain(costBId);
@@ -227,9 +216,6 @@ describe("BT23-094 Nanomachine Break", () => {
     await loop;
   });
 
-  // Q5370 + Q5373: an effect printed as [When Digivolving] [End of Attack] [Once Per Turn]
-  // is silenced at the digivolve timing without consuming its once-per-turn use, so it can
-  // still activate at [End of Attack] in the same turn.
   it("leaves the End of Attack half of the same once-per-turn effect available", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -273,7 +259,6 @@ describe("BT23-094 Nanomachine Break", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").topCard?.cardId === "BT21-029");
-    // [When Digivolving] was blocked, so seat 0's Digimon are all still on the board.
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT1-009")).toHaveLength(
       1,
     );
@@ -288,8 +273,6 @@ describe("BT23-094 Nanomachine Break", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === preyId));
 
-    // [End of Attack] still had its once-per-turn use available (Q5373) and is not masked
-    // by the restriction (Q5370).
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === preyId)).toBe(true);
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenAttacking")).toBe(true);
 
@@ -387,7 +370,6 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving")).toBe(false);
   });
 
-  // CR 16-17-3: a ＜Delay＞ cannot be activated on the turn its card entered the battle area.
   it("cannot pay the Delay on the turn it entered the battle area", async () => {
     const s = setupEngine(
       {
@@ -417,9 +399,6 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving")).toBe(false);
   });
 
-  // Q5371: another card's "activate 1 of its [When Digivolving] effects" cannot reach the
-  // restricted Digimon either. Seat 1 owns BT20-021 Jesmon GX (a [When Digivolving] that
-  // deletes) and BT10-110 Seiken Meppa (the borrowing effect); seat 0 owns the restriction.
   const seikenMeppaFixture = () =>
     setupEngine(
       {
@@ -483,8 +462,6 @@ describe("BT23-094 Nanomachine Break", () => {
     });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT10-110"));
 
-    // The borrowed [When Digivolving] never activated: no deletion, and its "by placing 1
-    // [Royal Knight] trait card" cost was not paid either (Q5372).
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === preyId)).toBe(false);
     expect(s.perm("csDigimon").topCard?.instanceId).toBe(preyId);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(royalKnightId);
@@ -542,8 +519,6 @@ describe("BT23-094 Nanomachine Break", () => {
     await loop;
   });
 
-  // ＜Security A. -1＞ proved through a real security check: the restricted Digimon attacks
-  // the player and checks 1 - 1 = 0 security cards, so the defender's stack is untouched.
   it("makes the restricted Digimon check one fewer security card when it attacks", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -586,7 +561,6 @@ describe("BT23-094 Nanomachine Break", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended && !observe(s.engine).isAttacking());
 
-    // Zero security cards checked: the single card is still face-down in security.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([securityCardId]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === securityCardId)).toBe(false);
 
@@ -624,7 +598,6 @@ describe("BT23-094 Nanomachine Break", () => {
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // Still live during the whole of the opponent's turn.
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving")).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
 

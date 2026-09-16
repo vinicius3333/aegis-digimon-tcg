@@ -1,9 +1,3 @@
-// HAND-FIXED IR for BT2-051 (RustTyrannomon) — do not regenerate over this file.
-// The generated GrantCanAttackUnsuspended dropped the "[Your Turn] When you have a
-// green Tamer in play" gate; it is restored as a structured youHave condition.
-// The whenDeletesInBattle subtrigger's "and survives" qualifier needs no IR field:
-// the engine fires that event only when the attacker survived and the defender was
-// deleted (combat/controller.ts — not a both-die tie).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

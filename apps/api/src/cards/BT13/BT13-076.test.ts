@@ -115,8 +115,6 @@ describe("BT13-076 KingEtemon", () => {
 
     for (const alias of ["etemon", "sukamon"]) {
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(true);
-      // The compiled card keeps the printed restriction token, while the observer reads
-      // the engine's normalized enforcement token.
       expect(observe(s.engine).isRestricted(s.perm(alias), "beReturned")).toBe(true);
     }
     expect(observe(s.engine).hasKeyword(s.perm("nonmatching"), "Blocker")).toBe(false);

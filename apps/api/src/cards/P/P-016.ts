@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4127: a Diaboromon token counts because its exact card name is [Diaboromon].
-// KB Q4128: this card counts itself when calculating the Security Attack bonus.
 const compiled: CompiledCard = {
   effects: [
     {

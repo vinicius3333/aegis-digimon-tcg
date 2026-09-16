@@ -82,12 +82,6 @@ describe("BT19-001 Pickmons", () => {
     expect((s.state.players[0] as PlayerState).hand.map((card) => card.cardId)).toEqual(["BT19-016"]);
   });
   it("carries the inherited draw through the real Digi-Egg route and is once per turn", async () => {
-    // Peer/stack case. Every zone change is a public intent: `hatchEgg` takes BT19-001 off the
-    // egg deck in the production Breeding window, the Red Lv.3 BT3-009 digivolves onto it in
-    // the breeding area (Lv.2 Red, cost 0), `moveFromBreeding` carries the stack into the
-    // battle area on the next own turn, and only then does the inherited [When Attacking]
-    // clause fire from under the real host. `preferInstanceIds` biases the cost selection
-    // toward the OFF-TRAIT peer in hand, so a filter that accepted it would place it.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -114,7 +108,6 @@ describe("BT19-001 Pickmons", () => {
     preferInstanceIds.push(s.inst("offTraitCard").instanceId);
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1 (seat 0): hatch, then digivolve onto the egg inside the breeding area.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.state.players[0]!.breeding).toBeUndefined();
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
@@ -139,7 +132,6 @@ describe("BT19-001 Pickmons", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 3 (seat 0): move the raised stack into the battle area and attack.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
@@ -159,7 +151,6 @@ describe("BT19-001 Pickmons", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.length === 1);
 
-    // The Xros Heart peer paid the cost; the off-trait peer stayed in hand despite the bias.
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("xrosCard").instanceId]);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("offTraitCard").instanceId)).toBe(
       true,
@@ -168,7 +159,6 @@ describe("BT19-001 Pickmons", () => {
     expect(drawn).toHaveLength(1);
     expect(drawn[0]!.instanceId).toBe(deckTopInstanceId);
 
-    // Same turn, second attack: Once Per Turn refuses a second placement and draw.
     const handAfterFirstAttack = s.state.players[0]!.hand.length;
     await advance(s.engine).verb.unsuspend([carrier.permanentId]);
     expect(
@@ -186,7 +176,6 @@ describe("BT19-001 Pickmons", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 5 (seat 0): the guard has reset, so the clause fires again from the same stack.
     await advance(s.engine).waitForMainPhase(0);
     const handBeforeReset = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     expect(
@@ -213,8 +202,6 @@ describe("BT19-001 Pickmons", () => {
     await loop;
   });
   it("does nothing when there is no Tamer to place the card under", async () => {
-    // The cost names a destination ("under any of your Tamers"), so with no Tamer in play the
-    // qualifying [Xros Heart] card in hand must stay there and no draw happens.
     const s = setupEngine(
       {
         0: {

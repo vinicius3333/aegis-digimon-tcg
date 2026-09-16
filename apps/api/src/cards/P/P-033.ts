@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4145-Q4147: both keyword grants track current DP continuously, including during
-// attack resolution; crossing below 13000 immediately removes additional checks.
 const compiled: CompiledCard = {
   effects: [
     {

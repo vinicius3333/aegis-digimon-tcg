@@ -1,18 +1,6 @@
 import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST24-06 RizeGreymon
-// [Digivolve] [GeoGreymon]/Lv.4 w/[DATA SQUAD] trait: Cost 3
-// [On Play] [When Digivolving] [When Attacking] [Once Per Turn]
-//   1 of your opponent's Digimon gets -5000 DP for the turn.
-//   Then, by trashing 2 bottom face-down cards from under any of your Tamers,
-//   you may play or use 1 [DATA SQUAD] trait card with a play or use cost of 5 or less
-//   from your hand without paying the cost.
-// [Inherited] [All Turns] [Once Per Turn] When this Digimon with [ShineGreymon] in its name
-//   or the [DATA SQUAD] trait would leave the battle area,
-//   by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.
-// Q6211: must trash all 2 required cards (can't partially meet "by" condition)
-// Q6212: can trash cards from under multiple Tamers (total 2)
 const playOrUseDataSquad: Action = {
   kind: "Modal",
   choose: 1,

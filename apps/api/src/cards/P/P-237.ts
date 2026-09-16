@@ -1,20 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-237 Unique Emblem: Machina's Ascension
-// <Use Req. ([Maquinamon] in text)>
-// [Main] You may play 1 [Maquinamon] or [Unchained] from hand or trash without cost.
-//   Then, place this card in the battle area.
-// [All Turns] When any of your [Unchained] are played, <Delay>
-//   · 1 of your Digimon may digivolve into a Lv6 or lower Digimon card with
-//     [Maquinamon] in its text in the hand without paying the cost.
-// [Security] Activate this card's [Main] effect.
-//
-// KB Q6523: the AllTurns trigger fires when Unchained is played via inherited effect.
-// KB Q6524: "[Maquinamon] in its text" = name/traits/effects/inherited/digivolve-reqs etc.
-// "[Maquinamon] or [Unchained]" in the [Main] effect uses exact name (no "in text" qualifier).
-// PlaceInBattleAreaSelf is mandatory (not optional) — "Then, place this card".
-// <Delay> pattern: SubTrigger grants Delay; separate Main+[Delay] trigger holds the payload.
 const compiled: CompiledCard = {
   effects: [
     {

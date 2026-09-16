@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for ST24-04 (Agumon).
-// Fix: RevealAdd must include TWO disposition entries:
-//   1. add 1 [DATA SQUAD] trait card to hand
-//   2. place 1 [DATA SQUAD] trait card face-down under any of your [DATA SQUAD] Tamers
-// KB Q6207: the placed card goes to the bottom of any existing cards under the Tamer.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -32,7 +32,6 @@ describe("EX9-031", () => {
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     expect(s.state.pendingDecision?.kind).toBe("chooseTargets");
     expect(s.decisions.at(-1)?.seat).toBe(0);
-    // Hammer Spark gives the defender 2; Harpymon gives the active player 1.
     expect(s.state.memory).toBe(2);
     expect(s.events.filter((event) => event.kind === "memoryChanged").map(({ from, to }) => [from, to])).toEqual([
       [3, 1],

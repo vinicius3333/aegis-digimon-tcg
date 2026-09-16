@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR correction: the inherited played Digimon is bound so its
-// can't-digivolve and delayed deletion riders apply only to that Digimon.
 export const compiled: CompiledCard = {
   effects: [
     {

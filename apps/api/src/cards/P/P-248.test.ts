@@ -8,31 +8,16 @@ import { compiled } from "./P-248.js";
 
 const cardId = "P-248";
 
-// Cost fixtures for "1 card with [Veedramon] in its text or the [Armor Form] or [Free] trait".
-//   BT2-026  — named "Veedramon": matches through the NAME half of the text union.
-//   BT11-112 — "Rina Shinomiya": a Tamer with no traits at all whose printed effect text says
-//              "[Veedramon]", so it proves the reference reads text fields and not just names.
-//   BT1-027  — "Armadillomon": [Rookie]/[Free]/[Mammal] with NO printed text, so it can only
-//              match through the [Free] trait.
-//   BT12-037 — "Opossummon": [Armor Form] AND [Free]. Every [Armor Form] print in the catalog
-//              also carries [Free], so this is the closest a real fixture gets to the
-//              [Armor Form] branch.
-//   BT1-009  — "Monodramon": [Rookie]/[Vaccine]/[Mini Dragon], no printed text. The non-match:
-//              "dramon" in the name is not "Veedramon", and none of its traits qualify.
 const NAME_MATCH = "BT2-026";
 const TEXT_ONLY_MATCH = "BT11-112";
 const FREE_TRAIT_MATCH = "BT1-027";
 const ARMOR_FORM_MATCH = "BT12-037";
 const NON_MATCH = "BT1-009";
 
-// Digivolution fixtures. ST8-01 DemiVeemon prints no [main] effect, so it cannot open a
-// decision of its own; BT1-003 Upamon is the same-colour Lv.2 egg that is NOT a [DemiVeemon];
-// BT1-007 Tanemon is green, so neither the printed evoCosts nor the alternate reach this card.
 const DEMIVEEMON = "ST8-01";
 const OTHER_BLUE_EGG = "BT1-003";
 const OFF_COLOUR_EGG = "BT1-007";
 
-/** A neutral deck: BT1-009 prints no effects, so drawing it can never open a decision. */
 function neutralDeck(length: number): string[] {
   return Array.from({ length }, () => NON_MATCH);
 }
@@ -63,11 +48,8 @@ describe("P-248 Veemon", () => {
   it("compiles every printed clause", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
 
-    // A bare bracketed [Name] header is the exact reading, additive to the printed evoCosts.
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["DemiVeemon"], cost: 0, isAlternate: true }]);
 
-    // One trash cost gates BOTH the draw and the memory gain, and it carries no
-    // `optional` — the printed sentence has no "may", so it is paid whenever it can be.
     const startOfMain = compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase")!;
     expect(startOfMain.isInherited).toBeUndefined();
     expect(startOfMain.actions).toHaveLength(1);
@@ -110,10 +92,6 @@ describe("P-248 Veemon", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve] [DemiVeemon]: Cost 0
-  // ---------------------------------------------------------------------------
-
   it("digivolves from a [DemiVeemon] egg for 0 memory and keeps the egg as its only source", async () => {
     const s = setupEngine({
       0: {
@@ -137,7 +115,6 @@ describe("P-248 Veemon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("egg").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("egg").instanceId]);
-    // Digivolution's bonus draw: the single deck card is now the only card in hand.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
   });
 
@@ -185,25 +162,11 @@ describe("P-248 Veemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === cardId);
 
-    // The cost-0 route is name-gated: Upamon pays the printed Blue Lv.2 memory cost of 1.
     expect(s.state.memory).toBe(-1);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Start of Your Main Phase] trash 1 qualifying card, ＜Draw 1＞, gain 1 memory.
-  // Driven through a real turn: runOneTurn fires the timing when the main phase opens.
-  // ---------------------------------------------------------------------------
-
-  // The top deck card, so a hand holding it afterwards is proof the clause's ＜Draw 1＞ ran.
-  // It carries no printed text and none of the three cost tokens, so it can neither open a
-  // decision nor satisfy the cost it was drawn by.
   const DRAWN_SENTINEL = "BT1-013";
 
-  /**
-   * Run one seat-0 turn with P-248 on the battle area and `hand` in hand, and report what the
-   * start-of-main clause did. `memory` is compared against a control run whose hand holds
-   * nothing the clause can trash, because the turn's own gauge is not this card's business.
-   */
   async function runStartOfMain(hand: string[]): Promise<{
     trashed: string[];
     handCardIds: string[];
@@ -241,7 +204,6 @@ describe("P-248 Veemon", () => {
     const control = await runStartOfMain([NON_MATCH, NON_MATCH]);
 
     expect(control.trashed).toEqual([]);
-    // The cost could not be paid, so the whole clause was skipped: no draw either.
     expect(control.handCardIds).toEqual([NON_MATCH, NON_MATCH]);
   });
 
@@ -250,7 +212,6 @@ describe("P-248 Veemon", () => {
     const observed = await runStartOfMain([FREE_TRAIT_MATCH]);
 
     expect(observed.trashed).toEqual([FREE_TRAIT_MATCH]);
-    // −1 trashed, +1 drawn: the sentinel replaces the trashed card in hand.
     expect(observed.handCardIds).toEqual([DRAWN_SENTINEL]);
     expect(observed.memory).toBe(control.memory + 1);
   });
@@ -278,7 +239,6 @@ describe("P-248 Veemon", () => {
     const control = await runStartOfMain([NON_MATCH]);
     const observed = await runStartOfMain([FREE_TRAIT_MATCH, ARMOR_FORM_MATCH, TEXT_ONLY_MATCH]);
 
-    // "1 card" is singular: two of the three qualifying cards survive, plus the drawn card.
     expect(observed.trashed).toHaveLength(1);
     expect(observed.handCardIds).toHaveLength(3);
     expect(observed.handCardIds).toContain(DRAWN_SENTINEL);
@@ -305,16 +265,11 @@ describe("P-248 Veemon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // "[Start of Your Main Phase]" is the controller's own main phase only.
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("free").instanceId]);
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited [Your Turn] +2000 DP — P-248 under a real evolution stack.
-  // ---------------------------------------------------------------------------
 
   it("gives its host +2000 DP only during the host controller's turn", async () => {
     const s = setupEngine({
@@ -365,7 +320,6 @@ describe("P-248 Veemon", () => {
     await settle(() => s.perm("stack").topCard.cardId === NAME_MATCH);
 
     const host = s.perm("stack");
-    // P-248 is now a digivolution card, and its inherited clause reads the NEW top card's DP.
     expect(host.stack.map(({ cardId: id }) => id)).toEqual([DEMIVEEMON, cardId]);
     expect(host.currentDP).toBe(host.baseDP + 2000);
   });

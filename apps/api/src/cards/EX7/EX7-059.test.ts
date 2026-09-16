@@ -54,7 +54,6 @@ describe("EX7-059", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009"));
-    // The used Chaos Triangular replaces the paid source by placing itself underneath.
     expect(s.perm("beel").stack).toHaveLength(2);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX7-066")).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(1);

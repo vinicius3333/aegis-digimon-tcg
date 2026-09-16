@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main]: Return 1 opponent's Digimon Lv.4 or lower to bottom of deck.
-// By returning 1 of your blue Digimon to the bottom of the deck [as a cost],
-// return a Digimon Lv.6 or lower INSTEAD (not in addition).
-// Encoded as: try upgraded (cost+Lv.6); if declined, fall back to base (Lv.4).
 const compiled: CompiledCard = {
   effects: [
     {
@@ -27,8 +23,6 @@ const compiled: CompiledCard = {
           bindResultAs: "upgraded",
           cost: {
             kind: "return",
-            // "to the bottom of the deck". Without this the permanent branch of the return
-            // cost (interpreter/costs.ts) falls through to `returnToHand`.
             to: "deckBottom",
             target: {
               filter: {

@@ -82,7 +82,6 @@ describe("EX3-043 Entmon", () => {
     expect(s.perm("woodmonBase").stack.map(({ cardId }) => cardId)).toEqual(["BT1-072"]);
     expect(s.perm("pomumonCost").isSuspended).toBe(true);
     expect(s.perm("woodmonBase").isSuspended).toBe(false);
-    // Pomumon's own registered watcher sees the Digisorption suspension and suspends the opponent.
     expect(s.perm("opposingDigimon").isSuspended).toBe(true);
 
     const optional = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "EX3-043")?.req;

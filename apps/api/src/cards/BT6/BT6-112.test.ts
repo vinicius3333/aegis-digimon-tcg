@@ -4,12 +4,6 @@ import "./BT6-095.js";
 import "./BT6-105.js";
 import "./BT6-112.js";
 
-// A3 for BT6-112 (BeelStarmon) — static play-cost reduction: reduce this card's play cost by the
-// number of [Three Musketeers] Digimon + cost-7 Options in your trash (documented behavior).
-//
-// FAILS-WHEN-REVERTED: with one [Three Musketeers] Digimon in the trash, BT6-112 (printed cost 12)
-// plays for 11 — memory 12 → 1. Without the reduction it would cost 12 (memory → 0).
-
 describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-7 Option count", () => {
   it("returns a cost-7 Option from trash, then uses one from hand for free", async () => {
     const preferred: string[] = [];
@@ -52,15 +46,14 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
     const s = setupEngine(
       {
         0: {
-          trash: ["BT6-017"], // a [Three Musketeers] Digimon in trash → -1 cost
+          trash: ["BT6-017"],
           hand: [{ card: "BT6-112", as: "beelstarmon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const p0 = s.state.players[0]!;
-    s.state.memory = 12; // printed cost 12; reduced to 11 → memory should land at 1
-    // Install the static play-cost modifier (recompute scans hand cards) before playing.
+    s.state.memory = 12;
     await s.engine.recomputeContinuousEffects();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstarmon").instanceId })).toEqual({
@@ -70,7 +63,6 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT6-112"));
 
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === "BT6-112")).toBe(true);
-    // 12 − (12 − 1 reduction) = memory 1. Without the reduction it would be 0.
     expect(s.state.memory).toBe(1);
   });
 

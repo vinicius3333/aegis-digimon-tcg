@@ -30,7 +30,7 @@ describe("EX11 Assembly EX11-036 / EX11-045 / EX11-046", () => {
     s.state.memory = 10;
     await playByAssembly(s, "EX11-036", ["greenMulti", "greenMulti2", "green1", "green2", "greenMulti3"]);
     const played = s.state.players[0]!.battleArea[0]!;
-    expect(s.state.memory).toBe(3); // play 12 reduced by Assembly -5
+    expect(s.state.memory).toBe(3);
     expect(played.stack.map((c) => c.cardId)).toHaveLength(5);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
@@ -117,7 +117,7 @@ describe("EX11 Assembly EX11-036 / EX11-045 / EX11-046", () => {
     });
     s.state.memory = 10;
     await playByAssembly(s, "EX11-046", ["v1", "v2", "v3", "option", "tamer", "tamer2", "tamer3", "option2"]);
-    expect(s.state.memory).toBe(2); // play 14 reduced by Assembly -6
+    expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(8);
     for (const as of ["v1", "v2", "v3", "option", "tamer", "tamer2", "tamer3", "option2"]) {
       expect(getCardDefinition(s.inst(as).cardId)?.effectText).toContain("Vemmon");

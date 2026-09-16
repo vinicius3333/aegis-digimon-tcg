@@ -6,32 +6,9 @@ import { drainMicrotasks, setupEngine, settle, settleAcrossTimers } from "../../
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT19-074.js";
 
-// BT19-074 Beelzemon: Blast Mode — Purple Lv.7 Mega/Virus/[Demon Lord], DP 15000, play cost 8,
-// EvoCost Purple Lv.6 for 5, ACE with Overflow ＜5＞.
-//   [Digivolve]Lv.6 w/[Beelzemon] in name: Cost 4
-//   [Hand] [Counter] ＜Blast Digivolve＞
-//   [On Play] [When Digivolving] Delete 1 of your opponent's level 6 or lower Digimon.
-//     If you have 10 or more cards in your trash, delete 1 of their Digimon instead.
-//   [When Attacking] [Once Per Turn] By returning 10 non-Digi-Egg cards from your trash to the
-//     top of the deck, trash your opponent's top security card.
-//
-// KB: `node tools/kb/query.mjs card BT19-074` reports no knowledge-base entries — no Q&A to cover.
-//
-// Fixtures — inert cards only; peer modules are deliberately NOT imported, so every peer on the
-// board contributes nothing but its catalog identity:
-//   BT1-009 Monodramon   Lv3 Red    3000 — deck/security filler, illegal digivolve source
-//   BT1-013 Muchomon     Lv3 Red    5000 — deck/security filler, spare playable card in hand
-//   BT2-067 DemiDevimon  Lv3 Purple 3000 — illegal digivolve source of the right colour
-//   BT3-089 Boltmon      Lv6 Purple 12000, no text — legal EvoCost base; NEAR MISS for the
-//                        "w/[Beelzemon] in name" alternate route, and a level-6 deletion target
-//   BT2-111 Beelzemon    Lv6 Purple 11000 — legal alternate-route base ("Beelzemon" in name)
-//   BT18-019 Millenniummon Lv7 Red/Black 14000 — the level-7 NEAR MISS the printed
-//                        "level 6 or lower" branch must not reach
-//   BT1-001 Yokomon      Digi-Egg — the trash card the "10 non-Digi-Egg cards" cost must skip
 const DECK = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 
-/** Ten distinct, inert, non-Digi-Egg trash cards for the [When Attacking] cost. */
 function tenTrash(prefix: string): { card: string; as: string }[] {
   return Array.from({ length: 10 }, (_, index) => ({
     card: index % 2 === 0 ? "BT1-009" : "BT1-013",
@@ -57,8 +34,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
       overflowMemory: 5,
     });
     const printed = getCardDefinition("BT19-074")!.effectText!;
-    // The printed digivolve line separates "[Beelzemon]" from "in name" with a NON-BREAKING
-    // space (U+00A0), so the assertion spells it out rather than using a plain space.
     expect(printed).toContain("[Digivolve]Lv.6 w/[Beelzemon]\u00A0in name: Cost 4 \n");
     expect(printed).toContain("[Hand] [Counter] ＜Blast Digivolve＞ \n");
     expect(printed).toContain(
@@ -74,8 +49,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects).toMatchObject([
       { trigger: "Counter", isFromHand: true, actions: [], keywords: [{ keyword: "BlastDigivolve" }] },
-      // "…delete 1 of their Digimon INSTEAD" — one deletion either way, so the two branches are
-      // the arms of a single ConditionalBranch, never two Delete actions in sequence.
       ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
         trigger,
         actions: [
@@ -101,11 +74,8 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
         actions: [
           {
             kind: "SecurityManipulation",
-            // `trash` is the engine's alias for `trashTop` (actions/security.ts:143).
             op: "trash",
             controller: "opponent",
-            // "non-Digi-Egg cards" — the kinds list is the exclusion, so a Digi-Egg in the same
-            // trash is never a candidate.
             cost: {
               kind: "return",
               to: "deckTop",
@@ -114,19 +84,13 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
                 filter: { zone: "trash", controller: "mine", kind: ["Digimon", "Tamer", "Option"] },
               },
             },
-            // A printed "By …," condition is the controller's choice (comprehensive 15-7-4).
             optional: true,
           },
         ],
       },
     ]);
-    // "Lv.6 w/[Beelzemon] IN NAME" is the substring gate, so `names`, not `namesExact`.
     expect(compiled?.digivolutionRequirement).toEqual([{ level: 6, names: ["Beelzemon"], cost: 4, isAlternate: true }]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] — the level-6-or-lower branch
-  // ---------------------------------------------------------------------------
 
   it("[On Play] under 10 trash deletes exactly one level-6-or-lower Digimon and spares the level 7", async () => {
     const s = setupEngine(
@@ -162,7 +126,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-074"]);
-    // Only the level 6 is reachable; the level 7 is untouched.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
       s.perm("level7").topCard!.instanceId,
     ]);
@@ -194,7 +157,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 9;
-    // Nine cards in trash: one short of the "10 or more" branch.
     expect(s.state.players[0]!.trash).toHaveLength(9);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blast").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
@@ -209,10 +171,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] — the 10-trash branch replaces the first, it does not add to it
-  // ---------------------------------------------------------------------------
 
   it("[On Play] at 10 trash deletes one Digimon of ANY level INSTEAD, never both", async () => {
     const preferInstanceIds: string[] = [];
@@ -238,7 +196,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    // Pin the level 7 so the endpoint proves the branch reached past "level 6 or lower".
     preferInstanceIds.push(s.perm("level7").topCard!.instanceId, s.perm("level7").permanentId);
     await s.ready();
 
@@ -250,7 +207,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     await settle();
 
-    // Exactly one deletion: the level 6 survives, so the level-6 branch did not also run.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
       s.perm("level6").topCard!.instanceId,
     ]);
@@ -260,10 +216,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // ---------------------------------------------------------------------------
-  // Evolution routes
-  // ---------------------------------------------------------------------------
 
   it("[Digivolve] Lv.6 w/[Beelzemon] in name costs 4 on a real stack and fires [When Digivolving]", async () => {
     const s = setupEngine(
@@ -293,13 +245,10 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // Cost 4 through the named route, not the 5 of the printed Purple Lv.6 EvoCost.
     expect(s.state.memory).toBe(6);
     expect(s.perm("beelzemon").topCard?.cardId).toBe("BT19-074");
-    // The whole source stack is carried under the new top card, bottom-most first.
     expect(s.perm("beelzemon").stack.map((card) => card.cardId)).toEqual(["BT2-067", "BT2-075", "BT2-111"]);
     expect(s.perm("beelzemon").stack.at(-1)!.instanceId).toBe(baseId);
-    // The digivolution bonus draw happened exactly once.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("level6").instanceId]);
   });
@@ -325,8 +274,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
         type: "digivolve",
         permanentId: s.perm("boltmon").permanentId,
         instanceId: s.inst("blast").instanceId,
-        // `useAlternateCost` with no matching alternate route silently falls back to the
-        // normal EvoCost, so only the memory delta discriminates the two routes.
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
@@ -369,10 +316,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("blast").instanceId]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Hand] [Counter] ＜Blast Digivolve＞
-  // ---------------------------------------------------------------------------
-
   it("blast digivolves from hand in the opponent's counter window for no memory and still fires its clause", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -399,8 +342,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    // Pin the level 6: the attacking Lv.3 is an equally legal deletion target, and taking it
-    // would end the attack instead of proving the blast's clause.
     preferInstanceIds.push(s.perm("level6").topCard!.instanceId, s.perm("level6").permanentId);
     await s.ready();
     const loop = s.engine.startTurnLoop();
@@ -428,16 +369,13 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     await settle(() => s.perm("beelzemon").topCard?.cardId === "BT19-074");
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // ＜Blast Digivolve＞ waived the memory cost but still drew the digivolution bonus card.
     expect(s.state.memory).toBe(6);
     expect(s.perm("beelzemon").stack.map((card) => card.instanceId)).toEqual([s.inst("beelzemon").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
-    // The [When Digivolving] clause resolved off the blast (fewer than 10 trash cards).
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
       s.perm("attacker").topCard!.instanceId,
     ]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("level6").instanceId]);
-    // The unblocked attack still checked exactly one of the controller's security cards.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("ownSec2").instanceId,
       s.inst("ownSec3").instanceId,
@@ -447,23 +385,17 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Attacking] [Once Per Turn]
-  // ---------------------------------------------------------------------------
-
   it("[When Attacking] returns exactly 10 non-Digi-Egg trash cards to the deck top and trashes the top security", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT19-074", as: "blast" }],
           hand: [{ card: "BT1-013", as: "spare" }],
-          // Eleven trash cards, one of them a Digi-Egg the cost may never take.
           trash: [{ card: "BT1-001", as: "digiEgg" }, ...tenTrash("t")],
           deck: [{ card: "BT1-014", as: "deckTop" }, ...DECK],
           security: SECURITY,
         },
         1: {
-          // A suspended, low-DP wall so the attack resolves in battle and never checks security.
           battleArea: [{ card: "BT1-009", as: "wall", dp: 1000, suspended: true }],
           deck: DECK,
           security: [
@@ -489,7 +421,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     await settle(() => s.state.players[1]!.security.length === 2);
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // The cost took ten cards to the TOP of the deck and left the Digi-Egg behind.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("digiEgg").instanceId]);
     expect(
       s.state.players[0]!.deck.slice(0, 10)
@@ -497,7 +428,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
         .sort(),
     ).toEqual([...costIds].sort());
     expect(s.state.players[0]!.deck[10]!.instanceId).toBe(s.inst("deckTop").instanceId);
-    // Exactly the opponent's TOP security card went to their trash; order below it is intact.
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("sec2").instanceId,
       s.inst("sec3").instanceId,
@@ -505,7 +435,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("sec1").instanceId, s.inst("wall").instanceId]),
     );
-    // The battle itself happened: the 15000 DP attacker survived the 1000 DP wall.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-074"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -545,7 +474,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // The cost is unpayable, so nothing moved and no security was trashed.
     expect(s.state.players[0]!.trash).toHaveLength(10);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckBefore);
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
@@ -624,7 +552,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1 (seat 0): one attack into the seeded wall, one security trashed by the clause.
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 5;
     expect(
@@ -644,11 +571,9 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     ]);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Turn 2 (seat 1): the opponent's real turn, driven by the loop, not by injected state.
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 3 (seat 0): the attacker unsuspended in its own unsuspend phase and fires again.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("blast").isSuspended).toBe(false);
     s.state.memory = 5;
@@ -662,8 +587,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     await settle(() => s.state.players[1]!.security.length === 1);
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // The clause paid its second cost (the trash is empty again) and trashed sec2; the
-    // unblocked attack then checked sec3 on its own.
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("sec4").instanceId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
@@ -674,10 +597,6 @@ describe("BT19-074 Beelzemon: Blast Mode", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // ---------------------------------------------------------------------------
-  // ACE Overflow ＜5＞
-  // ---------------------------------------------------------------------------
 
   it("pays ACE Overflow ＜5＞ when it leaves the battle area", async () => {
     const s = setupEngine(

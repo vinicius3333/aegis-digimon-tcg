@@ -136,8 +136,6 @@ describe("BT23-075 Eater EDEN", () => {
     expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
-  // Eater EDEN prints no normal digivolve cost, so the name-gated route is the only route.
-  // Both intent branches must therefore charge the same printed 3 memory.
   it("charges the printed 3 whether or not the intent asks for the alternate cost", async () => {
     for (const useAlternateCost of [true, false]) {
       const s = setupEngine({
@@ -277,8 +275,6 @@ describe("BT23-075 Eater EDEN", () => {
     s.state.memory = 3;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Suspend Eater EDEN publicly: it attacks on its own turn, so it is a legal target when
-    // the opponent's turn comes around.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -338,8 +334,6 @@ describe("BT23-075 Eater EDEN", () => {
     s.state.memory = 3;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Suspend Eater EDEN publicly: it attacks on its own turn, so it is a legal target when
-    // the opponent's turn comes around.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -389,8 +383,6 @@ describe("BT23-075 Eater EDEN", () => {
     const edenPermanentId = s.perm("eden").permanentId;
     const bitInstanceId = s.inst("bit").instanceId;
 
-    // No printed card in this pool deletes your own Eater EDEN, so the owner-effect cause is
-    // driven through the production removal verb inside seat 0's own effect resolution.
     advance(s.engine).verb.enterEffectResolution(0 as Seat, ["Digimon"]);
     try {
       await advance(s.engine).verb.deletePermanent([edenPermanentId], "byEffect");
@@ -458,15 +450,6 @@ describe("BT23-075 Eater EDEN", () => {
     await loop;
   });
 
-  // Q5352: with BT22-007 [Mother Eater] in a breeding Digimon's digivolution cards, its
-  // inherited "place them as this Digimon's bottom digivolution cards" replacement and Eater
-  // EDEN's own [All Turns] replacement answer the same leave event. The ruling says you may
-  // not chain them: EDEN cannot be placed under the breeding host AND then play a free
-  // [Eater]. The leave event here is a public battle deletion on the opponent's turn.
-  // Exactly one of the two replacements applies, and WHICH one is the affected player's
-  // choice — Q5352 answers only "may I do both?" with "No". `orderReplacements` asks the
-  // controller, and `preferTriggerKeys` answers that prompt with BT22-007's placement; the
-  // other branch (EDEN's own clause) is equally legal and is covered by the tests above.
   it("does not stack the breeding [Mother Eater] placement with its own leave effect (Q5352)", async () => {
     const s = setupEngine(
       {
@@ -490,7 +473,6 @@ describe("BT23-075 Eater EDEN", () => {
     );
     s.state.memory = 3;
     const loop = s.engine.startTurnLoop();
-    // The breeding area holds a legal move, so the Breeding window waits for an answer.
     await settle(() => s.state.phase === Phase.Breeding);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
@@ -527,11 +509,6 @@ describe("BT23-075 Eater EDEN", () => {
     await loop;
   });
 
-  // Coordinator probe for BT23-074's Q6706/Q6707. Erika Mishima (BT23-084) is a Tamer whose
-  // LOWER text grants ＜Alliance＞ while the Digimon is [Hudiemon], [Eater Legion] or
-  // [Eater EDEN]. Eater EDEN prints no ＜Alliance＞, so a stack that reaches EDEN through
-  // Erika discriminates the inherited-effect ruling (Q6707: yes) from the security-effect
-  // ruling (Q6706: no). Route: play Erika, digivolve BT23-074 off the Tamer, then BT23-075.
   it("gains inherited ＜Alliance＞ on Eater EDEN through an Erika Mishima source (Q6707)", async () => {
     const s = setupEngine(
       {

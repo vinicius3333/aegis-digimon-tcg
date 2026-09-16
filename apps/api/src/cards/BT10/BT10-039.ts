@@ -1,4 +1,3 @@
-// hand-authored override: preserve the canonical Option-kind filter for UI/server candidates
 import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,9 +11,6 @@ const optionFilter: Filter = {
   ],
 };
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {

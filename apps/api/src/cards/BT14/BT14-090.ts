@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -39,14 +36,9 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          // Q2466: the two trash placements are paid first; only the evolution
-          // that follows is optional. A direct optional Digivolve would prompt
-          // before paying the placement and force the evolution after payment.
           kind: "CostGatedBlock",
           cost: {
             kind: "compound",
-            // The two cards leave the trash simultaneously; the player chooses
-            // their order when they become the bottom cards of the stack.
             orderPlacedCards: true,
             costs: [
               {

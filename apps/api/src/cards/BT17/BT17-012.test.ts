@@ -24,7 +24,6 @@ describe("BT17-012 BurningGreymon", () => {
       effectText: PRINTED_EFFECT,
       inheritedEffectText: "[Your Turn] This Digimon gets +2000 DP.",
     });
-    // Printed "[Digivolve][X]: Cost N" carries no "in name", so the route is exact-name gated.
     expect(compiled.digivolutionRequirement).toEqual([
       { namesExact: ["Takuya Kanbara"], cost: 2, isAlternate: true, baseIsTamer: true },
       { namesExact: ["Agunimon"], cost: 1, isAlternate: true },
@@ -65,17 +64,12 @@ describe("BT17-012 BurningGreymon", () => {
   });
 
   it("gates the named routes on the exact base name", () => {
-    // [Takuya Kanbara] route: Tamer base only, cost 2.
     expect(matchingAlternateDigivolutionRequirement("BT17-012", "BT12-088")).toMatchObject({
       cost: 2,
       baseIsTamer: true,
     });
-    // BT18-088 is printed "[Rule] Name: Also treated as [Takuya Kanbara]", so the exact gate
-    // still accepts it through its effective name.
     expect(matchingAlternateDigivolutionRequirement("BT17-012", "BT18-088")).toMatchObject({ cost: 2 });
-    // [Agunimon] route: Lv4 Digimon base, cost 1.
     expect(matchingAlternateDigivolutionRequirement("BT17-012", "BT17-011")).toMatchObject({ cost: 1 });
-    // A red Lv4 Digimon that is not Agunimon has no alternate route at all.
     expect(matchingAlternateDigivolutionRequirement("BT17-012", "BT1-014")).toBeUndefined();
   });
 
@@ -102,12 +96,9 @@ describe("BT17-012 BurningGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("takuya").topCard?.instanceId === burningId);
 
-    // Cost 2 from the named route, not 3 from the generic "onto a red Tamer" path.
     expect(s.state.memory).toBe(3);
-    // Q2736: the Tamer becomes a digivolution card under the new top card.
     expect(s.perm("takuya").stack.map((card) => card.instanceId)).toEqual([takuyaId]);
     expect(s.perm("takuya").topCard?.cardId).toBe("BT17-012");
-    // Q2734: a digivolution bonus draw happens even when the base is a Tamer.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonus").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
@@ -272,10 +263,8 @@ describe("BT17-012 BurningGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("burning").topCard?.cardId === "BT17-014" && !observe(s.engine).isAttacking());
 
-    // Printed digivolution cost 4, reduced by 1 => 3.
     expect(s.state.memory).toBe(2);
     expect(s.perm("burning").stack.map((card) => card.instanceId)).toEqual([burningId]);
-    // Bonus draw for the effect-driven digivolution, plus the untouched spare card.
     expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
@@ -284,7 +273,6 @@ describe("BT17-012 BurningGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT12-017 EmperorGreymon is [Hybrid] but needs a red Lv5 base; BurningGreymon is Lv4.
           battleArea: [{ card: "BT17-012", as: "burning" }],
           hand: [{ card: "BT12-017", as: "emperor" }, "BT1-009"],
           deck: ["BT1-010", "BT1-011"],
@@ -316,7 +304,6 @@ describe("BT17-012 BurningGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT17-013 WarGrowlmon is a legal red Lv5 successor but has the [Ultimate] form.
           battleArea: [{ card: "BT17-012", as: "burning" }],
           hand: [{ card: "BT17-013", as: "warGrowlmon" }, "BT1-009"],
           deck: ["BT1-010", "BT1-011"],
@@ -370,15 +357,11 @@ describe("BT17-012 BurningGreymon", () => {
   });
 
   it("gains a Tamer digivolution card's inherited effect but not its security effect (Q6556/Q6557)", async () => {
-    // BT17-079 is a red [Takuya Kanbara] Tamer registered by this set's index; its inherited
-    // "[Your Turn] +2000 DP" and its "[Security] Play without paying the cost" exercise the same
-    // Tamer-under-Digimon question the Q&A pair asks.
     const s = setupEngine({
       0: { battleArea: [{ card: "BT17-012", as: "burning", under: ["BT17-079"] }] },
     });
     await s.ready();
 
-    // Q6557: the Tamer's inherited +2000 DP stacks on the printed 6000, only during your turn.
     expect(s.perm("burning").currentDP).toBe(8000);
     s.state.turnSeat = 1;
     await s.ready();
@@ -386,10 +369,6 @@ describe("BT17-012 BurningGreymon", () => {
     s.state.turnSeat = 0;
     await s.ready();
 
-    // Q6556: the Tamer's "[Security] Play this card without paying the cost" is a security
-    // effect of the digivolution card and is never granted to the Digimon. It is only ever
-    // checked while that card sits in the security stack, so the board carries no affordance
-    // for it: nothing was played, and the hand stays empty.
     expect(getCardDefinition("BT17-079")?.securityEffectText).toBeUndefined();
     expect(getCardDefinition("BT17-079")?.effectText).toContain("[Security] Play this card without paying the cost.");
     expect(s.state.players[0]!.hand).toHaveLength(0);

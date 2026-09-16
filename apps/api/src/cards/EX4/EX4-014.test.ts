@@ -32,8 +32,6 @@ describe("EX4-014 Gaossmon", () => {
     });
   });
 
-  // BT1-003 is an already-hatched stack source in the battle area; no Digi-Egg is placed in
-  // either a main deck or Security fixture.
   it("digivolves from a blue level-2 Digi-Egg for 0 and preserves the source", async () => {
     const s = setupEngine({
       0: {

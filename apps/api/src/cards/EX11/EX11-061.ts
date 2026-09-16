@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX11-061 (the AUTO-GENERATED header is absent on purpose so
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -71,13 +70,6 @@ export const compiled: CompiledCard = {
               abortOnDecline: true,
             },
             {
-              // "At turn end, delete the Digimon this effect played" (KB Q5915/Q5916).
-              // `DelayedDelete` arms the engine's turn-end delete watcher on the permanent the
-              // PlayWithoutCost above just produced (ctx.lastPlayedPermanentIds). Two corrections
-              // over the declarative effect record: (1) it lived OUTSIDE the whenOneOfYoursDigivolves watcher,
-              // so it armed when the [Your Turn] clause installed rather than after a play, and
-              // (2) its Delete carried the never-read `playedByThisEffect` filter, which matched
-              // every permanent. documented behavior (per-played-permanent OnEndTurn delete).
               kind: "DelayedDelete",
               raw: "at turn end, delete the Digimon this effect played",
             },

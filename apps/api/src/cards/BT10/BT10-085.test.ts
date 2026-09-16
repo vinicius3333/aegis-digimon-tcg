@@ -105,7 +105,6 @@ describe("BT10-085 Sistermon Ciel", () => {
     });
     await settle(() => s.perm("base").topCard.cardId === "BT10-016" && s.state.memory === 4);
     expect(s.perm("base").stack.some((c) => c.cardId === "BT10-011")).toBe(true);
-    // Pay 3 to digivolve, then Sistermon Ciel's once-per-turn trigger gains 1.
     expect(s.state.memory).toBe(4);
   });
 

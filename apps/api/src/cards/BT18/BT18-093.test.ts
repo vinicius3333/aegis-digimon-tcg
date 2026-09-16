@@ -23,7 +23,6 @@ describe("BT18-093 Violet Inboots", () => {
 
     await advance(s.engine).runTurn(0);
 
-    // runTurn completes the turn and passes priority, normalizing memory.
     expect(s.state.memory).toBe(-3);
   });
 

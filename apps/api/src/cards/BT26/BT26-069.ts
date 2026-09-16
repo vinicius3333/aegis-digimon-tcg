@@ -67,8 +67,6 @@ export const compiled: CompiledCard = {
               into: titanTrash,
               from: ["trash"],
               payCost: true,
-              // Same printed inherited clause as BT26-066; keep the alternate [TS]
-              // digivolution requirement preferred so both encode one behavior.
               useAlternateCost: true,
               costDelta: -1,
               optional: true,

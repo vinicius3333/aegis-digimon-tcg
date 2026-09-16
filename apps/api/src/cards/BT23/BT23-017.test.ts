@@ -108,8 +108,6 @@ describe("BT23-017 Betamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: betamonId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === betamonId));
     expect(s.state.memory).toBe(2);
-    // The only legal return is the CS Tamer: the CS card with a Digi-Egg kind and the non-CS
-    // Digimon both stay in the trash, and the hand holds exactly the recovered card.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("csTamer").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("cost").instanceId, s.inst("csEgg").instanceId, s.inst("nonCs").instanceId]),
@@ -213,10 +211,8 @@ describe("BT23-017 Betamon", () => {
       (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,
     );
     expect(played).toBeDefined();
-    // Only the cost-5 Hudie is eligible; the cost-7 Hudie stays in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tooExpensive").instanceId);
     expect(observe(s.engine).isRestricted(played!, "digivolve")).toBe(true);
-    // The restriction is real: a public, otherwise legal CS evolution onto it is refused.
     s.state.memory = 8;
     expect(
       s.engine.applyIntent(0, {
@@ -227,7 +223,6 @@ describe("BT23-017 Betamon", () => {
     ).toMatchObject({ ok: false });
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionCandidate").instanceId);
 
-    // Survives the end of its controller's own turn (Q5561: only the opponent turn end deletes it).
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === played!.permanentId)).toBe(true);
@@ -290,12 +285,6 @@ describe("BT23-017 Betamon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-032")).toBe(false);
   });
 
-  // Q5256/Q5318: the Digimon Betamon's inherited [When Attacking] plays is locked out of
-  // digivolving, and DNA digivolution is digivolution, so BT23-050's own [On Play] DNA offer
-  // cannot consume it. `preferInstanceIds` steers the material selection onto exactly the
-  // Angemon + freshly played Ankylomon pair, so the only reason the offer can fail is the
-  // "can't digivolve" lock — the board still holds a legal alternative pair
-  // (Garurumon + Angemon) that the engine would otherwise be free to use.
   it("refuses an effect-driven DNA offer that would consume the Digimon this inherited effect played, per Q5256 and Q5318", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(

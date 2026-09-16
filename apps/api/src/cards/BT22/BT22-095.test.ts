@@ -96,7 +96,7 @@ describe("BT22-095 Akemi Suedou", () => {
     await settle(() => s.perm("akemi").isSuspended, 400);
 
     expect(s.perm("akemi").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(3); // 5 - 3 play + 1 trigger; the hand remains <= 7 so Draw 1 also resolves.
+    expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 

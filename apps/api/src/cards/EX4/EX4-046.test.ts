@@ -104,7 +104,7 @@ describe("EX4-046 WereGarurumon", () => {
     await settle(() => s.perm("other").topCard?.cardId === "EX4-012");
 
     expect(s.perm("other").topCard?.cardId).toBe("EX4-012");
-    expect(s.state.memory).toBe(8); // EX4-012 costs 4; this effect reduces it to 2.
+    expect(s.state.memory).toBe(8);
   });
 
   it("allows declining the optional digivolution", async () => {

@@ -8,26 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-041";
 
-/**
- * EX10-041 Wizardmon (Lv.4 Purple/Yellow, [Wizard]/[Witchelny], DP 5000).
- *
- * Printed clauses:
- *  1. "[Digivolve] Lv.3 w/[Evil] trait: Cost 2" — an alternate digivolution route.
- *  2. "When effects trash this card from the deck or security stack, give 1 of your
- *     opponent's Digimon ＜Security A. -1＞ until their turn ends."
- *  3. "[On Play] [When Digivolving] By trashing your top security card, trash the top 2
- *     cards of your deck and all of your opponent's Digimon get -3000 DP for the turn."
- *  4. Inherited: "＜Barrier＞".
- *
- * KB Q5122 (2025-09-05) is binding on clause 2: it does NOT trigger when this card is
- * merely among cards REVEALED from the deck or security stack and then trashed. Both
- * negative controls below (a reveal-and-trash search, and an ordinary security check)
- * assert the absence of the grant, and both positives drive a real public intent.
- *
- * P-017 DemiDevimon is the workhorse fixture: a Lv.3 Purple [Evil] Digimon whose whole
- * text is "[On Play] Trash the top 2 cards of your deck", so it is both the direct-mill
- * source for clause 2 and the legal alternate digivolution source for clause 1.
- */
 describe("EX10-041 Wizardmon", () => {
   it("records the exact catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -84,9 +64,6 @@ describe("EX10-041 Wizardmon", () => {
     expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({
       keywords: [{ keyword: "Barrier" }],
     });
-    // The deck watcher must carry no attribution flag: `whenTrashedFromDeck` only fires from the
-    // TrashTopDeck / DeleteOrTrash deck seams (already effect-only), and `requireByEffect` reads a
-    // payload field those seams never set, so either flag is dead or actively silences the clause.
     const deckWatcher = compiled.effects?.find((effect) => effect.trigger === "AllTurns")?.actions?.[0];
     expect(deckWatcher).not.toHaveProperty("byEffect");
     expect(deckWatcher).not.toHaveProperty("requireByEffect");
@@ -143,10 +120,6 @@ describe("EX10-041 Wizardmon", () => {
   });
 
   it("Q5122 negative: being revealed by a search and then trashed does NOT give Security A. -1", async () => {
-    // BT3-051 Dokugumon: "[On Play] Reveal the top 3 cards of your deck. Add 1 level 5 and
-    // 1 level 6 Digimon card among them to your hand. Trash the remaining cards." The two
-    // adds are unambiguous (one Lv.5 and one Lv.6 are revealed), so Wizardmon is the card
-    // that lands in the trash — from the REVEALED set, not straight off the deck.
     const s = setupEngine(
       {
         0: {
@@ -200,14 +173,9 @@ describe("EX10-041 Wizardmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Seat 0 has no Digimon, so no block window opens: the attack goes straight to the
-    // security check that reveals and trashes the Wizardmon security card.
     await settle(() => s.state.players[0]!.security.length === 0);
     await settle(() => false, 40);
 
-    // The checked Wizardmon lost its battle against the 20000 DP attacker and went to trash,
-    // but a security CHECK is not "effects trash this card", so the attacker keeps its
-    // Security Attack value.
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([CARD_ID]);
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -217,9 +185,6 @@ describe("EX10-041 Wizardmon", () => {
   });
 
   it("pays the On Play security cost, mills 2, and gives EVERY opposing Digimon -3000 DP", async () => {
-    // The trashed top security card is a second Wizardmon, so the same intent also proves
-    // the security half of clause 2: an EFFECT (this card's own cost) trashed it from the
-    // security stack, and it grants ＜Security A. -1＞ from there.
     const s = setupEngine(
       {
         0: {
@@ -241,7 +206,6 @@ describe("EX10-041 Wizardmon", () => {
     );
     s.state.memory = 8;
     await s.ready();
-    // Aim the count:1 ＜Security A. -1＞ grant at a named recipient rather than an arbitrary one.
     const p1 = s.state.players[1]!;
     expect(p1.battleArea).toHaveLength(2);
 
@@ -263,7 +227,6 @@ describe("EX10-041 Wizardmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-014"]);
     expect(s.perm("first").currentDP).toBe(6000);
     expect(s.perm("second").currentDP).toBe(4000);
-    // The trashed security copy handed exactly one opposing Digimon ＜Security A. -1＞.
     const granted = p1.battleArea.filter(
       (permanent) => observe(s.engine).keywordAmount(permanent, "SecurityAttack") === -1,
     );
@@ -335,13 +298,10 @@ describe("EX10-041 Wizardmon", () => {
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard?.cardId === CARD_ID);
     await settle(() => false, 40);
 
-    // The alternate route costs 2 (the printed Purple/Yellow Lv.3 routes cost 3), so
-    // `useAlternateCost` is proved by the memory endpoint, not by `{ ok: true }` alone.
     expect(s.state.memory).toBe(3);
     const wizard = s.perm("wizard");
     expect(wizard.topCard.cardId).toBe(CARD_ID);
     expect(wizard.stack.map((card) => card.instanceId)).toEqual([sourceInstanceId]);
-    // Digivolving draws 1; the [When Digivolving] block then trashed security and milled 2.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
@@ -354,8 +314,6 @@ describe("EX10-041 Wizardmon", () => {
   it("refuses the alternate route from a Lv.3 source without the [Evil] trait", async () => {
     const s = setupEngine({
       0: {
-        // BT1-009 is a Red Lv.3 with no [Evil] trait: neither the printed Purple/Yellow Lv.3
-        // routes nor the alternate [Evil] route accepts it.
         battleArea: [{ card: "BT1-009", as: "source" }],
         hand: [{ card: CARD_ID, as: "wizard" }],
         deck: ["BT1-013", "BT1-014"],
@@ -377,8 +335,6 @@ describe("EX10-041 Wizardmon", () => {
   });
 
   it('the -3000 DP is "for the turn" and is gone once the turn it resolved on ends', async () => {
-    // Mutation check for the `forTheTurn` duration: under `untilOpponentTurnEnd` the debuff
-    // on the opponent's Digimon would survive seat 0's own turn end.
     const s = setupEngine(
       {
         0: {
@@ -430,13 +386,10 @@ describe("EX10-041 Wizardmon", () => {
     await settle(() => observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === -1);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
 
-    // "their turn" is the OPPONENT's turn, so my own turn ending must not clear the grant —
-    // the whole point of the clause is to shrink the opponent's security checks on their turn.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
 
-    // The consumed endpoint: a base ＜Security Attack 1＞ attacker at -1 checks NO security.
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(
       s.engine.applyIntent(1, {
@@ -448,7 +401,6 @@ describe("EX10-041 Wizardmon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-013"]);
 
-    // Their turn ends: the grant expires and my next turn opens without it.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
@@ -487,7 +439,6 @@ describe("EX10-041 Wizardmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard?.cardId === CARD_ID);
-    // As the TOP card, Wizardmon's own inherited ＜Barrier＞ does not apply to it.
     expect(observe(s.engine).hasKeyword(s.perm("wizard"), "Barrier")).toBe(false);
 
     expect(

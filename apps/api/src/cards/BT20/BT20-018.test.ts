@@ -117,7 +117,7 @@ describe("BT20-018 Ouryumon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT20-017", "BT20-014"]),
     );
-    expect(s.state.memory).toBe(-2); // catalog On Play cost 12 from the legal maximum fixture gauge 10.
+    expect(s.state.memory).toBe(-2);
   });
 
   it("reaches Ouryumon from a legal Hisyaryumon stack through public evolution", async () => {

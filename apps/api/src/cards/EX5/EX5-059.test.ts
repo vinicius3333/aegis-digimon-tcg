@@ -144,8 +144,6 @@ describe("EX5-059 Dobermon (X Antibody)", () => {
           ],
           deck: ["BT1-010"],
         },
-        // Match P-065's focused boundary fixture: ST1-03 is printed at exactly
-        // 2000 DP, so its reactivated On Play deletion has one legal target.
         1: {
           battleArea: [
             { card: "ST1-03", as: "target", dp: 2000 },

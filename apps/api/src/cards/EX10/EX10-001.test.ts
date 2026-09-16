@@ -65,7 +65,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     const memoryBefore = s.state.memory;
 
     await s.ready();
-    // FAILS-WHEN-REVERTED: drop the SubTrigger from EX10-001.ts => no memory gain at all.
     await advance(s.engine).verb.trash([s.inst("linkCard").instanceId], 0);
     await settle(() => host.linked.length === 1 && s.state.memory === memoryBefore + 1);
 
@@ -74,7 +73,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("linkCard").instanceId);
     expect(s.state.memory).toBe(memoryBefore + 1);
 
-    // [Once Per Turn]: the second link-card trash in the same turn pays nothing.
     await advance(s.engine).verb.trash([s.inst("secondLinkCard").instanceId], 0);
     await settle(() => false, 30);
 
@@ -83,8 +81,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
   });
 
   it("scopes the watcher to this Digimon's own link cards", () => {
-    // FAILS-WHEN-REVERTED: dropping `sourceFilter` makes the watcher fire on every link-card
-    // trash on the board, including the opponent's.
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "YourTurn",
       isInherited: true,
@@ -139,7 +135,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     await settle(() => false, 30);
     expect(s.state.memory).toBe(memoryBefore);
 
-    // The host's OWN link card still pays out, proving the gate is scoped, not disabled.
     await advance(s.engine).verb.trash([s.inst("ownLink").instanceId], 0);
     await settle(() => s.state.memory === memoryBefore + 1);
     expect(s.state.memory).toBe(memoryBefore + 1);
@@ -172,13 +167,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
-  /**
-   * Q5006 — "Does this card's inherited effect trigger even when a card would get linked by
-   * an effect to an already linked card whose link card is trashed and replaced?" A: "No, it
-   * doesn't trigger." Linking past the link limit trashes the existing link card through the
-   * §17-1-3-2-5 rule-check sweep (`GameEngine.trashExcessLinkCards`, byRule), not through an
-   * effect, and the trash seam suppresses `whenLinkTrashed` for a rule trim.
-   */
   it("Q5006: gains no memory when a link replacement trashes the old link card", async () => {
     const s = setupEngine({
       0: {
@@ -217,23 +205,15 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
 
     expect(host.linked.map((card) => card.instanceId)).toEqual([s.inst("newLink").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("oldLink").instanceId);
-    // Exactly the link cost left memory: no +1 rode along with the replacement trash.
     expect(s.state.memory).toBe(memoryBefore - linkCost);
     expect(s.state.players[0]!.hand).toHaveLength(0);
 
-    // The same host still pays out for a genuine effect trash, so the gate is the rule-trim
-    // provenance, not a dead watcher.
     const afterReplacement = s.state.memory;
     await advance(s.engine).verb.trash([s.inst("newLink").instanceId], 0);
     await settle(() => s.state.memory === afterReplacement + 1);
     expect(s.state.memory).toBe(afterReplacement + 1);
   });
 
-  /**
-   * [Your Turn] + [Once Per Turn] through the real turn loop: pays on your turn, refuses a
-   * second payout in that same turn, stays silent for the whole of the opponent's turn, and
-   * pays again on your next turn.
-   */
   it("pays only on your turn and resets on your next turn", async () => {
     const s = setupEngine({
       0: {
@@ -261,8 +241,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
         security: ["BT1-009", "BT1-010"],
       },
     });
-    // Keep all four seeded link cards legal so the §17-1-3-2-5 sweep never trims (and never
-    // silently consumes) a link card the scenario still needs.
     advance(s.engine).ledgers.continuous.addLinkMaxGrant(s.perm("host").permanentId, 3, EffectDuration.Permanent);
 
     const loop = s.engine.startTurnLoop();
@@ -273,7 +251,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     await settle(() => s.state.memory === ownTurnBefore + 1);
     expect(s.state.memory).toBe(ownTurnBefore + 1);
 
-    // Same turn, second link-card trash: [Once Per Turn] refuses.
     await advance(s.engine).verb.trash([s.inst("l2").instanceId], 0);
     await settle(() => false, 30);
     expect(s.state.memory).toBe(ownTurnBefore + 1);
@@ -282,7 +259,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
 
-    // [Your Turn]: silent for the whole of the opponent's turn, even on a fresh turn counter.
     const opponentTurnBefore = s.state.memory;
     await advance(s.engine).verb.trash([s.inst("l3").instanceId], 1);
     await settle(() => false, 30);
@@ -292,7 +268,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // Back on your own turn: the once-per-turn counter has reset.
     const nextTurnBefore = s.state.memory;
     await advance(s.engine).verb.trash([s.inst("l4").instanceId], 0);
     await settle(() => s.state.memory === nextTurnBefore + 1);
@@ -302,15 +277,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-  /**
-   * The real Digi-Egg route, entirely through public intents and the production turn loop.
-   *
-   * §6-4-1 allows exactly ONE breeding action per turn, and both `hatchEgg` and
-   * `moveFromBreeding` are gated on the Breeding phase, so the route spans two of the
-   * controller's own turns: hatch on turn 1, digivolve in the breeding area during that
-   * turn's Main phase, move the finished stack out on turn 3. Only after that move does the
-   * inherited watcher live on a battle-area carrier, and the payout below is measured there.
-   */
   it("hatches, digivolves in breeding, moves to the battle area, and pays out on that carrier", async () => {
     const s = setupEngine({
       0: {
@@ -328,7 +294,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     const eggInstanceId = s.inst("egg").instanceId;
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1, Breeding phase: the egg leaves the egg deck for the breeding area.
     await settleAcrossTimers(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(["EX10-001"]);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
@@ -337,7 +302,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     const breedingPermanentId = s.state.players[0]!.breeding!.permanentId;
     expect(s.state.players[0]!.breeding!.topCard!.instanceId).toBe(eggInstanceId);
 
-    // Turn 1, Main phase: a Lv.3 digivolves onto the egg in the breeding area.
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -355,7 +319,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 3, Breeding phase: the finished stack moves to the battle area.
     await settleAcrossTimers(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: breedingPermanentId })).toEqual({
       ok: true,
@@ -367,9 +330,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     expect(carrier.topCard!.cardId).toBe("BT21-047");
     expect(carrier.stack.map((card) => card.instanceId)).toEqual([eggInstanceId]);
 
-    // Turn 3, Main phase: link a card onto the carrier through the public intent, then have an
-    // effect trash it. The +1 is the inherited clause paying out on a carrier that reached the
-    // battle area only by hatch -> digivolve -> move.
     await advance(s.engine).waitForMainPhase(0);
     const linkCost = linkCostOf(requireCardDefinition("BT21-047"), 0);
     const memoryBeforeLink = s.state.memory;
@@ -397,13 +357,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     await loop;
   });
 
-  /**
-   * Carrier movement: the watcher binds to the PERMANENT carrying the egg, not to the card
-   * that was on top when it was installed. Digivolving the carrier again keeps the same
-   * permanent id, keeps the egg in the stack, and keeps the link card (the new top is still
-   * an [Appmon], so the §17-1-3-2-6 link-legality sweep leaves it alone) — and the payout
-   * still follows that permanent while a neighbour's link trash stays silent.
-   */
   it("keeps the isSelfRef binding on the carrier permanent when the carrier digivolves again", async () => {
     const s = setupEngine({
       0: {
@@ -437,19 +390,16 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.cardId === "BT22-050");
 
-    // Same permanent, egg still in the stack under the new top, link card untouched.
     expect(s.perm("host").permanentId).toBe(hostPermanentId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX10-001", "BT21-047"]);
     expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("ownLink").instanceId]);
 
     const memoryAfterDigivolve = s.state.memory;
-    // The neighbour is a different permanent: still silent after the carrier moved up a level.
     await advance(s.engine).verb.trash([s.inst("neighborLink").instanceId], 0);
     await settle(() => false, 30);
     expect(s.state.memory).toBe(memoryAfterDigivolve);
     expect(s.perm("neighbor").linked).toHaveLength(0);
 
-    // The carrier's own link card still pays out, so the binding followed the permanent.
     await advance(s.engine).verb.trash([s.inst("ownLink").instanceId], 0);
     await settle(() => s.state.memory === memoryAfterDigivolve + 1);
     expect(s.state.memory).toBe(memoryAfterDigivolve + 1);

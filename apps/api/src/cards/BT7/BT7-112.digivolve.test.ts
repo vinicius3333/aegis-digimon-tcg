@@ -18,18 +18,8 @@ import {
   type DigivolveIntent,
 } from "../../engine/actions/digivolve.js";
 import { cardHasTrait, definitionOf, matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
-import "./BT7-112.js"; // side-effect: registers the alternate digivolution requirement
+import "./BT7-112.js";
 
-// BT7-112 (Susanoomon) alternate digivolution path:
-//   "You may digivolve this card from your hand onto one of your Tamers as if the Tamer is
-//    a level 6 Digimon by placing 10 Tamer cards and/or cards with [Hybrid] in their traits
-//    from your hand and/or trash at the bottom of your deck in any order."
-//
-// Real fixtures from cards.json:
-//   BT7-112  Susanoomon — White Lv.6 Digimon (the evolving card)
-//   BT7-089  — a Tamer (legal alternate base; also placement material via kind Tamer)
-//   AD1-002  Aldamon — Digimon with the [Hybrid] trait (placement material via trait)
-//   AD1-001  Greymon — a plain Digimon (NOT a legal alternate base; NOT placement material)
 const SUSANOOMON = "BT7-112";
 const TAMER = "BT7-089";
 const HYBRID = "AD1-002";
@@ -58,7 +48,6 @@ function permanentOf(top: CardInstance, seat: Seat): Permanent {
   return p;
 }
 
-/** seat 0 = turn player, Main phase; a Tamer base permanent; BT7-112 in hand; a deck for the +1 draw. */
 function makeState(opts: { handMaterial?: string[]; trashMaterial?: string[]; memory?: number }): {
   state: GameState;
   gauge: MemoryGauge;
@@ -91,12 +80,6 @@ function makeState(opts: { handMaterial?: string[]; trashMaterial?: string[]; me
   return { state, gauge: new MemoryGauge(state), permanent, evolver };
 }
 
-/**
- * The placement-cost matcher + payer, mirroring GameEngine.placementCostCards /
- * payAlternatePlacement minus the interactive card selection (the real engine prompts the
- * player for WHICH cards to place and their bottom-deck order — KB Q1691; this deterministic
- * stand-in is its timeout fallback).
- */
 function placementDeps(): Pick<DigivolveDeps, "alternatePlacementPayable" | "payAlternatePlacement"> {
   const matching = (state: GameState, seat: Seat, req: DigivolutionRequirement): CardInstance[] => {
     const spec = req.placementCost;
@@ -131,7 +114,7 @@ function placementDeps(): Pick<DigivolveDeps, "alternatePlacementPayable" | "pay
           if (ids.has(arr[i]!.instanceId)) pulled.push(arr.splice(i, 1)[0]!);
         }
       }
-      for (const card of pulled) player.deck.push(card); // deck bottom
+      for (const card of pulled) player.deck.push(card);
       return true;
     },
   };
@@ -178,8 +161,6 @@ describe("BT7-112 alternate digivolution requirement (cardData)", () => {
   });
 
   it("does NOT match a non-Tamer (Digimon) base", () => {
-    // The gateless generated requirement is replaced by the Tamer-gated override, so a
-    // Digimon base no longer matches the alternate path.
     expect(matchingAlternateDigivolutionRequirement(SUSANOOMON, PLAIN_DIGIMON)).toBeUndefined();
   });
 });
@@ -188,7 +169,7 @@ describe("BT7-112 alternate digivolution onto a Tamer (digivolve action)", () =>
   it("rejects when fewer than 10 [Hybrid]/Tamer cards are available to place", () => {
     const { state, gauge, permanent, evolver } = makeState({
       handMaterial: Array(5).fill(HYBRID),
-      trashMaterial: Array(4).fill(TAMER), // 9 total < 10
+      trashMaterial: Array(4).fill(TAMER),
     });
     const check = validateDigivolve(state, 0, intent(permanent.permanentId, evolver.instanceId), deps(gauge));
     expect(check).toEqual({ ok: false, reason: "invalid-evolution" });
@@ -196,7 +177,7 @@ describe("BT7-112 alternate digivolution onto a Tamer (digivolve action)", () =>
 
   it("does not count non-matching cards toward the placement cost", () => {
     const { state, gauge, permanent, evolver } = makeState({
-      handMaterial: Array(9).fill(HYBRID).concat(Array(5).fill(PLAIN_DIGIMON)), // 9 matching + 5 noise
+      handMaterial: Array(9).fill(HYBRID).concat(Array(5).fill(PLAIN_DIGIMON)),
     });
     const check = validateDigivolve(state, 0, intent(permanent.permanentId, evolver.instanceId), deps(gauge));
     expect(check).toEqual({ ok: false, reason: "invalid-evolution" });
@@ -205,7 +186,7 @@ describe("BT7-112 alternate digivolution onto a Tamer (digivolve action)", () =>
   it("accepts when 10 matching cards are available, using the alternate cost (7)", () => {
     const { state, gauge, permanent, evolver } = makeState({
       handMaterial: Array(6).fill(HYBRID),
-      trashMaterial: Array(4).fill(TAMER), // 10 total
+      trashMaterial: Array(4).fill(TAMER),
     });
     const check = validateDigivolve(state, 0, intent(permanent.permanentId, evolver.instanceId), deps(gauge));
     expect(check.ok).toBe(true);
@@ -230,12 +211,9 @@ describe("BT7-112 alternate digivolution onto a Tamer (digivolve action)", () =>
     const result = await applyDigivolve(state, 0, intent(permanent.permanentId, evolver.instanceId), deps(gauge));
     expect(result.ok).toBe(true);
 
-    // The Tamer permanent is now topped by Susanoomon (the evolving card stacked on).
     expect(permanent.topCard!.cardId).toBe(SUSANOOMON);
     expect(permanent.stack.some((c) => c.cardId === TAMER)).toBe(true);
 
-    // 10 placement cards left hand+trash; the deck grew by 10 (bottom) minus the 1 drawn on
-    // digivolve. Net deck delta: +10 placed - 1 drawn = +9.
     expect(player.deck.length).toBe(deckBefore + PLACEMENT_COUNT - 1);
     expect(player.hand.filter((c) => c.cardId === HYBRID).length).toBe(0);
     expect(player.trash.filter((c) => c.cardId === TAMER).length).toBe(0);

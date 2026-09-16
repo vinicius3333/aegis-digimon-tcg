@@ -1,7 +1,6 @@
 import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX4-069 — Gaia Reactor.
 const deleteExceptHighest = (controller: "mine" | "opponent"): Action => ({
   kind: "Delete",
   target: {

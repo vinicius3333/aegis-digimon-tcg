@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT2/BT2-058.js";
 import "../BT1/BT1-040.js";
 import "./EX3-024.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 async function waitForNewDecision(s: ReturnType<typeof setupEngine>, previousCount: number) {
   await settle(() => s.decisions.length > previousCount && s.state.pendingDecision !== undefined);
@@ -190,8 +190,6 @@ describe("EX3-024 Slayerdramon", () => {
         0: {
           battleArea: [
             { card: "EX3-024", as: "slayerdramon" },
-            // A [Dramon] cost Digimon that does NOT unsuspend itself: EX3-074 Examon prints
-            // "when this Digimon becomes suspended, unsuspend it", which would undo the cost.
             { card: "EX3-020", as: "dramonCost" },
           ],
         },
@@ -251,7 +249,6 @@ describe("EX3-024 Slayerdramon", () => {
       }),
     ).toEqual({ ok: true });
     const attacker = await waitForNewDecision(s, count++);
-    // The suspend cost was paid by Examon; Slayerdramon itself is not the cost target.
     expect(s.perm("examonCost").isSuspended).toBe(true);
     expect(s.state.memory).toBe(0);
     expect(

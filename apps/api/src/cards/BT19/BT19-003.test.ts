@@ -32,11 +32,6 @@ describe("BT19-003 Viximon", () => {
   });
 
   it("carries the inherited return through the real Digi-Egg route and resets once per turn on the next own turn", async () => {
-    // Peer/stack case, no injected timing. `hatchEgg` takes BT19-003 off the egg deck in the
-    // production Breeding window, the Yellow Lv.3 BT1-045 digivolves onto it in the breeding
-    // area (Lv.2 Yellow, cost 0), `moveFromBreeding` carries the stack into the battle area on
-    // the next own turn, and the [End of Your Turn] inherited clause then fires from under the
-    // real host at that turn's natural end — once that turn, and once more on the next own turn.
     const s = setupEngine(
       {
         0: {
@@ -63,7 +58,6 @@ describe("BT19-003 Viximon", () => {
     );
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1 (seat 0): hatch the Digi-Egg through the production Breeding window.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.state.players[0]!.breeding).toBeUndefined();
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
@@ -72,7 +66,6 @@ describe("BT19-003 Viximon", () => {
     const eggPermanentId = s.state.players[0]!.breeding!.permanentId;
     expect(s.state.players[0]!.eggDeck).toHaveLength(0);
 
-    // Digivolve onto the egg inside the breeding area; the egg becomes the digivolution card.
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -85,7 +78,6 @@ describe("BT19-003 Viximon", () => {
     expect(s.state.players[0]!.breeding!.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
 
-    // Still in breeding: the inherited clause must not fire at this turn's end.
     const trashBeforeMove = s.state.players[0]!.trash.length;
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
@@ -93,7 +85,6 @@ describe("BT19-003 Viximon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "P-095")).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 3 (seat 0): move the raised stack into the battle area, then let the turn end.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
@@ -106,7 +97,6 @@ describe("BT19-003 Viximon", () => {
     const handBeforeTurnEnd = s.state.players[0]!.hand.map((card) => card.instanceId);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // End of turn 3: exactly one Plug-In Option comes back; the non-Plug-In peer stays.
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "P-095"));
     await advance(s.engine).waitForMainPhase(1);
     const returnedFirst = s.state.players[0]!.hand.filter((card) => card.cardId === "P-095");
@@ -118,7 +108,6 @@ describe("BT19-003 Viximon", () => {
     expect(handBeforeTurnEnd).not.toContain(returnedFirst[0]!.instanceId);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 5 (seat 0): the Once Per Turn guard has reset, so the second copy comes back.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[0]!.hand.filter((card) => card.cardId === "P-095")).toHaveLength(1);
     advance(s.engine).endMainPhaseIfOpen(0);

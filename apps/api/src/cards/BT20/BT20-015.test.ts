@@ -230,7 +230,7 @@ describe("BT20-015 Hisyaryumon", () => {
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
     expect(s.perm("attacker").topCard.cardId).toBe("BT20-015");
-    expect(s.perm("attacker").currentDP).toBe(16000); // 7000 + 5000 + two own-turn inherited 2000 bonuses.
+    expect(s.perm("attacker").currentDP).toBe(16000);
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
@@ -265,8 +265,6 @@ describe("BT20-015 Hisyaryumon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      // A player-directed attack resolves through the security check, not a
-      // Digimon-vs-Digimon battle, so `combatResolved` never fires here.
       await settle(
         () => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking(),
       );

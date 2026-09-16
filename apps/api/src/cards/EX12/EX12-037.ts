@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX12-037.
-// "for every 5 of this Digimon's digivolution cards, activate 1 of the effects below":
-// Modal.chooseScaling = { per:5, unit:"digivolutionCards" } drives the pick count.
-// 0–4 cards → 0 options; 5–9 → 1; 10–14 → 2. The declarative effect record had choose:1 fixed.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -1,7 +1,3 @@
-// HAND-AUTHORED OVERRIDE — maintained as a direct implementation (the AUTO-GENERATED header is
-// intentionally removed). The runtime record double-emitted "...＜Draw 1＞. (Draw 1 card from
-// your deck.)" as a cost-bearing Draw plus a bare Draw from the reminder text, so the card
-// drew 2. This carries the corrected single cost-bearing Draw 1.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

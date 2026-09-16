@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT22-070 (DarkTyrannomon X Antibody).
-// digivolutionRequirement: Lv.4 Tyrannomon in name, w/o [X Antibody] trait, cost 0.
-// [When Digivolving]: condition checks digivolution stack for card named [DarkTyrannomon]
-//   OR card with trait [X Antibody] (two separate nameOrTrait entries with OR semantics).
-// [When Attacking]: digivolve into [Tyrannomon]-name or [Dinosaur]-trait card from hand.
-// [All Turns] inherited: whenDeletesInBattle → gain 1 memory, but NOT when simultaneous
-//   deletion (Q4929: can't activate if both die at same timing).
 export const compiled: CompiledCard = {
   effects: [
     {

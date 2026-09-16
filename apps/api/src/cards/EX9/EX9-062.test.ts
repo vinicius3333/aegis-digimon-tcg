@@ -71,7 +71,6 @@ describe("EX9-062", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-074"]);
-    // Declaration is top-first; the stored stack is bottom-first.
     expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual([...materials].reverse());
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.memory).toBe(2);

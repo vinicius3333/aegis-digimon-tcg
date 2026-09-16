@@ -257,7 +257,6 @@ describe("BT21-024 Cyberdramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("level4").topCard.cardId === "BT21-028");
-    // BT21-019's inherited +2000 and BT21-024's inherited +4000 both apply on our turn.
     expect(s.perm("level4").currentDP).toBe(18000);
 
     await advance(s.engine).runTurn(0);

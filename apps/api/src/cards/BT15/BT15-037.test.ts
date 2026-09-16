@@ -112,8 +112,6 @@ describe("BT15-037 Gatomon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT15-037"));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT15-037")).toBe(true);
-    // Revelation costs 4; Gatomon's newly installed watcher gains 1 for its own
-    // effect-driven removal from security.
     expect(s.state.memory).toBe(-3);
     expect(s.state.players[0]!.security).toHaveLength(0);
     assertNoLoudGap(s);

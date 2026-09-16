@@ -2,17 +2,9 @@ import { describe, it, expect } from "vitest";
 import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./P-021.js";
 
-// A3 for P-021 (A New World) — Mimi Tachikawa + Palmon play effect:
-//   "[Main] If you have a [Mimi Tachikawa] in play, you may play a [Palmon] from your hand
-//    without paying its memory cost. If you played one, return 1 of your [Mimi Tachikawa]
-//    to its owner's hand."
-//
-// FAILS-WHEN-REVERTED: without the P-021 module, playing the option does nothing —
-//   the Palmon does not appear in the battle area, and Mimi is not bounced.
-
 const P_021 = "P-021";
-const PALMON = "BT1-067"; // Palmon, Lv3, cost 3 (plays free via effect)
-const MIMI = "BT1-089"; // Mimi Tachikawa, Tamer
+const PALMON = "BT1-067";
+const MIMI = "BT1-089";
 
 function playersOf(s: EngineSetup) {
   return { p0: s.state.players[0]!, p1: s.state.players[1]! };
@@ -39,15 +31,12 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
       ok: true,
     });
 
-    // After settling, Palmon should be in the battle area (played free).
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === PALMON));
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === PALMON)).toBe(true);
 
-    // Mimi Tachikawa should have been bounced back to hand.
     await settle(() => p0.hand.some((c) => c.cardId === MIMI), 400);
     expect(p0.hand.some((c) => c.cardId === MIMI)).toBe(true);
 
-    // Mimi is no longer in the battle area.
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === MIMI)).toBe(false);
   });
 
@@ -67,16 +56,12 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
     const { p0 } = playersOf(s);
     s.state.memory = 3;
 
-    // The effect has canActivate gated on Mimi being in play. Without Mimi the card
-    // can still be played (cost 0), but the effect does nothing (effect returns early).
-    // This is an observable: no Palmon enters the battle area.
     const palmon = s.inst("palmon");
 
     const optionId = s.inst("option").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => p0.trash.some((card) => card.instanceId === optionId));
 
-    // Palmon should remain in hand — the effect gated on Mimi did not play it.
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === PALMON)).toBe(false);
     expect(p0.hand.some((c) => c.instanceId === palmon.instanceId)).toBe(true);
     assertNoLoudGap(s);

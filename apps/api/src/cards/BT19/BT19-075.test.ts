@@ -6,40 +6,9 @@ import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/ha
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT19-075.js";
 
-// BT19-075 MoonMillenniummon — Purple Lv.7 Mega/Virus/[Wicked God], DP 15000, play cost 15,
-// EvoCost Purple Lv.6 for 5.
-//   [Digivolve][Millenniummon]: Cost 2
-//   [On Play] [When Digivolving] Your opponent trashes cards in their hand until they have 5
-//     left. For every 2 cards trashed by this effect, delete 1 of your opponent's Tamers.
-//   [All Turns] When this Digimon would leave the battle area, by deleting 1 of your Digimon
-//     with the [Composite] trait Digimon, it doesn't leave.
-//   [All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your
-//     opponent's top security card.
-//
-// KB Q3135 (2024-09-20): "Which player chooses the cards to trash in the hand for this card's
-//   [On Play] [When Digivolving] effect?" — "Your opponent chooses and trashes the cards in
-//   their hand." Covered by the `chooser: "opponent"` IR field and by asserting the
-//   selection decision is routed to seat 1.
-//
-// Fixtures — inert cards only; no peer module is imported, so every peer contributes nothing
-// but its catalog identity:
-//   BT1-009 Monodramon    Lv3 Red    3000, no text — filler; NON-[Composite] near miss
-//   BT1-013 Muchomon      Lv3 Red    5000, no text — filler / spare hand card / plain attacker
-//   BT2-067 DemiDevimon   Lv3 Purple 3000, no text — ILLEGAL digivolve source
-//   BT3-089 Boltmon       Lv6 Purple 12000, no text — legal PRINTED EvoCost base (cost 5)
-//   BT18-019 Millenniummon  Lv7 Red/Black 14000 — legal EXACT-name alternate base (cost 2)
-//   BT19-101 ZeedMillenniummon Lv7 Red/Purple/Black — NEAR MISS: contains "Millenniummon" as a
-//                          substring but is not exactly [Millenniummon]
-//   BT6-012 Deltamon      Lv4 Red    7000, [Composite], NO printed or inherited text — the
-//                          replacement cost's target. BT19-069 (also [Composite]) is unusable
-//                          here: it prints an [On Deletion] hand-trash clause that fires when
-//                          the cost deletes it, adding a second card to the controller's trash
-//                          as soon as its module is registered.
-//   BT1-087 T.K. Takaishi Yellow Tamer, no text — Tamer target / own-side near miss
 const DECK = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 
-/** `count` distinct, inert, aliased hand cards for the opponent's discard-to-five clause. */
 function opponentHand(count: number): { card: string; as: string }[] {
   return Array.from({ length: count }, (_, index) => ({
     card: index % 2 === 0 ? "BT1-009" : "BT1-013",
@@ -67,15 +36,12 @@ describe("BT19-075 MoonMillenniummon", () => {
     expect(printed).toContain(
       "[On Play] [When Digivolving] Your opponent trashes cards in their hand until they have 5 left. For every 2 cards trashed by this effect, delete 1 of your opponent's Tamers.",
     );
-    // The printed line separates "[Composite]" from "trait" with a NON-BREAKING space (U+00A0).
     expect(printed).toContain(
       "[All Turns] When this Digimon would leave the battle area, by deleting 1 of your Digimon with the [Composite]\u00A0trait Digimon, it doesn't leave.",
     );
     expect(printed).toContain(
       "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
     );
-    // MoonMillenniummon itself is [Wicked God], not [Composite]: it can never pay its own
-    // replacement cost with itself.
     expect(getCardDefinition("BT19-075")!.types).not.toContain("Composite");
   });
 
@@ -88,7 +54,6 @@ describe("BT19-075 MoonMillenniummon", () => {
         actions: [
           {
             kind: "Trash",
-            // Q3135: the OPPONENT chooses which cards leave their own hand.
             chooser: "opponent",
             trackCount: "trashedThisEffect",
             target: { filter: { zone: "hand", controller: "opponent" }, untilHandSize: 5 },
@@ -96,8 +61,6 @@ describe("BT19-075 MoonMillenniummon", () => {
           {
             kind: "Delete",
             target: { count: 1, filter: { controller: "opponent", kind: ["Tamer"] } },
-            // "For every 2 cards trashed BY THIS EFFECT" — scaled off the tracked count, not
-            // off any board or hand total.
             scaling: { per: 2, unit: "namedCount", countSource: "trashedThisEffect" },
           },
         ],
@@ -108,8 +71,6 @@ describe("BT19-075 MoonMillenniummon", () => {
           {
             kind: "Replacement",
             event: "wouldLeavePlay",
-            // "When THIS Digimon would leave" — without isSelfRef the generic branch would
-            // protect every permanent on both seats (replacement.ts:238-241).
             sourceFilter: { isSelfRef: true },
             actions: [
               {
@@ -123,7 +84,6 @@ describe("BT19-075 MoonMillenniummon", () => {
                     filter: {
                       controller: "mine",
                       kind: ["Digimon"],
-                      // "with the [Composite] trait" is the EXACT trait match.
                       nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
                     },
                   },
@@ -143,20 +103,14 @@ describe("BT19-075 MoonMillenniummon", () => {
             raw: "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
             effectTextPart:
               "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
-            // "other Digimon or Tamers" — either seat's, but never this Digimon itself.
             sourceFilter: { excludeSelf: true, kind: ["Digimon", "Tamer"] },
             actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
           },
         ],
       },
     ]);
-    // Bracketed `[Millenniummon]` is an EXACT-name route, not the substring `names` gate.
     expect(compiled?.digivolutionRequirement).toEqual([{ namesExact: ["Millenniummon"], cost: 2, isAlternate: true }]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] — Q3135 and the "for every 2 cards" scaling
-  // ---------------------------------------------------------------------------
 
   it("Q3135: the opponent chooses two cards down to five, and two trashed cards delete one Tamer", async () => {
     const s = setupEngine(
@@ -197,11 +151,9 @@ describe("BT19-075 MoonMillenniummon", () => {
     await settleAcrossTimers(() => s.state.pendingDecision === undefined);
 
     expect(s.state.memory).toBe(1);
-    // Q3135: the hand selection was asked of the OPPONENT (seat 1), not of the controller.
     const handSelection = s.decisions.find((entry) => entry.req.kind === "selectCards" && entry.seat === 1);
     expect(handSelection).toBeDefined();
     expect(s.state.players[1]!.hand).toHaveLength(5);
-    // 2 cards trashed / 2 = exactly one Tamer deleted; the other Tamer and their Digimon stay.
     expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT1-087")).toHaveLength(
       1,
     );
@@ -210,12 +162,10 @@ describe("BT19-075 MoonMillenniummon", () => {
         (permanent) => permanent.topCard?.instanceId === s.perm("opponentDigimon").topCard!.instanceId,
       ),
     ).toBe(true);
-    // The controller's own Tamer is never a candidate.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual([
       "BT1-087",
       "BT19-075",
     ]);
-    // The deleted Tamer is an "other Tamer deleted": the watcher trashed exactly one security.
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("sec2").instanceId,
       s.inst("sec3").instanceId,
@@ -264,9 +214,7 @@ describe("BT19-075 MoonMillenniummon", () => {
     await settleAcrossTimers(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[1]!.hand).toHaveLength(5);
-    // 4 trashed / 2 = 2 Tamers deleted in the same effect.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    // Two Tamer deletions in one turn, but the watcher is [Once Per Turn]: one security card.
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("sec2").instanceId,
       s.inst("sec3").instanceId,
@@ -313,8 +261,6 @@ describe("BT19-075 MoonMillenniummon", () => {
     await settle(() => s.state.players[1]!.security.length === 2);
     await settleAcrossTimers(() => s.state.pendingDecision === undefined);
 
-    // Both Tamers were deleted by one effect, but this exact watcher is [Once Per Turn],
-    // so it must not be exposed twice merely to ask the player to order duplicate entries.
     const moonOrderingRequests = s.decisions.filter(
       ({ req }) =>
         req.kind === "orderTriggers" && req.options?.triggerCardIds?.every((cardId) => cardId === "BT19-075"),
@@ -371,11 +317,9 @@ describe("BT19-075 MoonMillenniummon", () => {
 
       expect(s.state.players[1]!.hand).toHaveLength(5);
       expect(s.state.players[1]!.trash).toHaveLength(handSize - 5);
-      // floor(1 / 2) = 0 and floor(0 / 2) = 0: the Tamer survives either way.
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
         s.perm("tamer1").topCard!.instanceId,
       ]);
-      // No deletion happened, so the watcher never fired.
       expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
         s.inst("sec1").instanceId,
         s.inst("sec2").instanceId,
@@ -386,10 +330,6 @@ describe("BT19-075 MoonMillenniummon", () => {
       await loop;
     }
   });
-
-  // ---------------------------------------------------------------------------
-  // Evolution routes
-  // ---------------------------------------------------------------------------
 
   it("[Digivolve][Millenniummon] costs 2 on a real stack and fires [When Digivolving]", async () => {
     const s = setupEngine(
@@ -427,7 +367,6 @@ describe("BT19-075 MoonMillenniummon", () => {
     await settle(() => s.state.players[1]!.hand.length === 5);
     await settleAcrossTimers(() => s.state.pendingDecision === undefined);
 
-    // Cost 2 through the exact-name route, not the 5 of the printed Purple Lv.6 EvoCost.
     expect(s.state.memory).toBe(8);
     expect(s.perm("millenniummon").topCard?.cardId).toBe("BT19-075");
     expect(s.perm("millenniummon").stack.map((card) => card.cardId)).toEqual(["BT2-067", "BT2-075", "BT18-019"]);
@@ -491,8 +430,6 @@ describe("BT19-075 MoonMillenniummon", () => {
         type: "digivolve",
         permanentId: s.perm("boltmon").permanentId,
         instanceId: s.inst("moon").instanceId,
-        // No exact-name route matches, so this silently falls back: only the memory delta
-        // (5, not 2) discriminates the two routes.
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
@@ -532,10 +469,6 @@ describe("BT19-075 MoonMillenniummon", () => {
     expect(s.state.memory).toBe(10);
   });
 
-  // ---------------------------------------------------------------------------
-  // [All Turns] would-leave replacement
-  // ---------------------------------------------------------------------------
-
   it("survives a lost battle by deleting a [Composite] Digimon, never the non-[Composite] peer", async () => {
     const s = setupEngine(
       {
@@ -573,13 +506,10 @@ describe("BT19-075 MoonMillenniummon", () => {
     await settle(() => s.state.players[0]!.trash.length === 1);
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // The 20000 DP wall won the battle, but MoonMillenniummon did not leave.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId).sort()).toEqual(
       [s.perm("moon").topCard!.instanceId, s.perm("plain").topCard!.instanceId].sort(),
     );
-    // The cost took the [Composite] Digimon; the non-[Composite] peer was never a candidate.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("composite").instanceId]);
-    // That Composite deletion is an "other Digimon deleted", so the watcher fired once.
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("sec2").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -621,21 +551,15 @@ describe("BT19-075 MoonMillenniummon", () => {
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT19-075"]);
-    // The Composite Digimon was not paid, so it is still on the board.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
       s.perm("composite").topCard!.instanceId,
     ]);
-    // `excludeSelf`: this Digimon's own deletion is not an "OTHER Digimon" deletion.
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("sec1").instanceId,
       s.inst("sec2").instanceId,
     ]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // [All Turns] [Once Per Turn] watcher — either player's other Digimon
-  // ---------------------------------------------------------------------------
 
   it.each([
     ["an opponent's Digimon dying in battle", 1_000, 0],
@@ -678,13 +602,11 @@ describe("BT19-075 MoonMillenniummon", () => {
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(opponentSurvivors);
-    // Either seat's other Digimon counts: one security card left the opponent's stack, in order.
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("sec2").instanceId,
       s.inst("sec3").instanceId,
     ]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("sec1").instanceId);
-    // MoonMillenniummon itself never left the board.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain("BT19-075");
     expect(s.state.pendingDecision).toBeUndefined();
   });

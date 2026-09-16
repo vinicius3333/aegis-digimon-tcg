@@ -58,8 +58,6 @@ describe("BT15-078", () => {
       s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("playedDigimon").instanceId),
     );
 
-    // The redirected battle deletes the suspended level-3 target. Its On Play was
-    // suppressed, so the deck was not revealed and the aura's On Deletion loss was applied.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(4);
     expect(s.state.memory).toBe(4);

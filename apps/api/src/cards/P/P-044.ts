@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4161: when the two-low-DP branch is available, its controller may select
-// either one or two of those Digimon.
 const compiled: CompiledCard = {
   effects: [
     {

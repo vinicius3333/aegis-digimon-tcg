@@ -178,8 +178,6 @@ describe("EX11-048 Ghostmon", () => {
       () => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("egg").permanentId),
     );
     await settle(() => s.state.memory === memoryBeforeBattle - 1);
-    // Seat 1 is the active opponent, so seat 0's +1 memory is represented by a -1
-    // shared-gauge delta. This proves the inherited On Deletion resolved after battle.
     expect(s.state.memory).toBe(memoryBeforeBattle - 1);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual(expect.arrayContaining(["BT11-078", cardId]));
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

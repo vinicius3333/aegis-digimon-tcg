@@ -4,9 +4,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled = structuredClone(getCompiledCard("BT12-011")!);
 const onDeletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion");
 if (onDeletion !== undefined) {
-  // Save must resolve before the printed "Then" placement. Keeping Save only as
-  // effect keyword metadata lets the generic synthesized Save timing race the
-  // action-bearing On Deletion effect, which can select this card from trash first.
   onDeletion.keywords = [];
   onDeletion.actions = onDeletion.actions.filter(
     (action) =>

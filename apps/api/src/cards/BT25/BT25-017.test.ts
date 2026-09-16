@@ -114,9 +114,6 @@ describe("BT25-017 Flaremon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    // The paid deletion has no "use this effect?" prompt of its own: its hand cost is the
-    // question, and taking the card is the acceptance (see `costIsAskedAsSelection`).
-    // `autoSelectCards` answers that selection with the card.
     await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.topCard.cardId === "BT1-010"));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -135,8 +132,6 @@ describe("BT25-017 Flaremon", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }], security: ["BT1-001", "BT1-002"] },
       },
-      // No auto-selection: refusing the paid deletion IS answering its cost selection with
-      // nothing, so this test answers that prompt itself.
       { autoAcceptOptional: false },
     );
     s.state.memory = 10;

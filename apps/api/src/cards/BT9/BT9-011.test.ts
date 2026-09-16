@@ -96,10 +96,6 @@ describe("BT9-011 Growlmon (X Antibody)", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 5;
-    // WhenDigivolving effects don't fire for a digivolution still inside the breeding
-    // slot (§4-8-4), so build the Growlmon (X Antibody) stack there, then move it to
-    // the battle area before the final digivolve into WarGrowlmon so its [When
-    // Digivolving] deletion actually triggers.
     for (const alias of ["guilmonX", "growlmonX"] as const) {
       expect(
         s.engine.applyIntent(0, {

@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [All Turns]: This is a SubTrigger replacement — when any of your [Dinobeemon]/[Paildramon]
-// WOULD BE returned to hands or decks (a wouldLeave event with destination hand/deck),
-// 2 of your Digimon MAY DNA digivolve into [Imperialdramon: Dragon Mode] in hand.
-// KB Q4400: the DNA digivolved result is a different Digimon, so the leave effect is
-// effectively replaced (or the DNA digivolve happens in response).
-// The "in the hand" specifies where the target card is sourced from for the DNA digivolve.
 export const compiled: CompiledCard = {
   effects: [
     {

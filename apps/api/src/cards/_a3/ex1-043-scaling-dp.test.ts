@@ -4,21 +4,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 
-// Import the override so it self-registers on the registry.
 import "../EX1/EX1-043.js";
-
-// ---------------------------------------------------------------------------
-// EX1-043 Kuwagamon scaling-DP A3
-//
-// EX1-043 grants itself +1000 DP for each Insectoid card in its digivolution
-// stack during the owner's turn.
-// where count() = PermanentOfThisCard().DigivolutionCards.Count(c => c.IsDigimon &&
-// c.CardTraits.Contains("Insectoid")).
-//
-// FAILS-WHEN-REVERTED LEVER:
-//   If the amount is reverted to a static 0 (or the count is dropped),
-//   modifyDP is never called with a positive amount and the assertion FAILS → RED.
-// ---------------------------------------------------------------------------
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -133,7 +119,6 @@ function makeContext(opts: {
     modifyDP: (id: string, amount: number, duration: unknown) => {
       opts.recorder.calls.push({ verb: "modifyDP", args: [id, amount, duration] });
     },
-    // Stub out primitives the YourTurn SubTrigger clause may invoke.
     subscribeSubTrigger: () => {},
     grantKeyword: () => {},
   } as unknown as Primitives;
@@ -191,8 +176,6 @@ describe("EX1-043 Kuwagamon scaling-DP A3", () => {
     expect(amounts).toContain(1000);
   });
 
-  // REVERT LEVER: if the scaling is removed (amount set to static 0), modifyDP is
-  // never called with a positive amount and this assertion FAILS → RED confirmed.
   it("[None] does NOT call modifyDP with positive amount when no Insectoid in digivolution stack", async () => {
     const recorder: Recorder = { calls: [] };
     const ctx = makeContext({ insectoidCountInStack: 0, recorder });

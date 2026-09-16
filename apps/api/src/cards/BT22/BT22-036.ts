@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT22-036 (Chaperomon).
-// [Hand][Main]: conditional digivolve-from-trash effect (cost 3, ignoring reqs, Arisa condition).
-// <Overclock>: EndOfYourTurn trigger — delete Token or other [Puppet] Digimon → attack player without suspending.
-// Inherited [All Turns]: Replacement prevents leaving play (excluding own effects) via delete Token or other [Puppet].
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -26,8 +26,6 @@ describe("BT19-008 Shoutmon", () => {
   });
 
   it("compiles the three printed clauses with exact-trait and exact-name filters", () => {
-    // "[Xros Heart] trait" is the exact form (match: "trait"), not the "in its traits"
-    // substring form; "[OmniShoutmon]" is an exact name.
     expect(compiled.digivolutionRequirement).toEqual([
       { level: 2, traits: ["Xros Heart"], cost: 0, isAlternate: true },
     ]);
@@ -60,7 +58,6 @@ describe("BT19-008 Shoutmon", () => {
             },
           ],
         },
-        // ＜Save＞ (comprehensive 16-20-1) places THIS card under 1 of your Tamers.
         {
           kind: "PlaceUnder",
           optional: true,
@@ -83,17 +80,12 @@ describe("BT19-008 Shoutmon", () => {
   });
 
   it("offers its cost-0 alternate route only over a level-2 Xros Heart base", () => {
-    // BT10-005 Monimon: Lv.2 Digi-Egg, traits CRT/Twilight/Xros Heart.
     expect(matchingAlternateDigivolutionRequirement("BT19-008", "BT10-005")?.cost).toBe(0);
-    // BT19-005 Hopmon: same level, Baby Dragon only — the near-miss base.
     expect(matchingAlternateDigivolutionRequirement("BT19-008", "BT19-005")).toBeUndefined();
-    // BT19-031 Starmons: Xros Heart, but Lv.3 — level must match too.
     expect(matchingAlternateDigivolutionRequirement("BT19-008", "BT19-031")).toBeUndefined();
   });
 
   it("takes the cost-0 route through the real breeding stack and refuses the non-Xros-Heart egg", async () => {
-    // Peer/stack proof: hatch -> alternate digivolve in breeding -> move into the battle
-    // area, all through public intents, with a near-miss Lv.2 egg on the opposing seat.
     const s = setupEngine({
       0: {
         eggDeck: [{ card: "BT10-005", as: "xrosEgg" }],
@@ -129,14 +121,12 @@ describe("BT19-008 Shoutmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT19-008");
 
-    // Cost 0: memory untouched. The digivolution draw still happens (hand: -1 played, +1 drawn).
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
     expect(s.state.players[0]!.breeding!.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
 
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Seat 1's Lv.2 Baby Dragon egg is not a legal cost-0 source.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 1);
     expect(s.engine.applyIntent(1, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.breeding?.topCard?.cardId === "BT19-005");
@@ -152,7 +142,6 @@ describe("BT19-008 Shoutmon", () => {
     expect(s.state.players[1]!.breeding!.topCard!.cardId).toBe("BT19-005");
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 3: the raised stack reaches the battle area intact.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
@@ -167,8 +156,6 @@ describe("BT19-008 Shoutmon", () => {
   });
 
   it("digivolves into a legal OmniShoutmon from under a Tamer without paying the cost", async () => {
-    // BT19-012 OmniShoutmon carries "[Digivolve][Shoutmon]: Cost 4", so a Lv.3 Shoutmon is a
-    // legal source; [On Play] waives the 4 memory, not the requirement.
     const s = setupEngine(
       {
         0: {
@@ -188,15 +175,12 @@ describe("BT19-008 Shoutmon", () => {
 
     const omni = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT19-012");
     expect(omni?.stack.map((card) => card.instanceId)).toEqual([shoutmonInstanceId]);
-    // Nothing left under the Tamer, and only the 4 memory for PLAYING Shoutmon was paid.
     expect(s.perm("tamer").stack).toHaveLength(0);
     expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("does not ignore OmniShoutmon digivolution requirements (Q3062)", async () => {
-    // BT11-018 Shoutmon DX is "also treated as [OmniShoutmon]", so it passes the name
-    // filter — but it is Lv.6 off a Lv.5 Red source, which a Lv.3 Shoutmon cannot meet.
     const s = setupEngine(
       {
         0: {
@@ -224,8 +208,6 @@ describe("BT19-008 Shoutmon", () => {
   });
 
   it("plays an Xros Heart Tamer from the top 3, bottoms the rest, then Saves under that Tamer (Q3063)", async () => {
-    // Near-miss peer: BT19-081 Kiriha Aonuma is a Tamer from the same set whose trait is
-    // Blue Flare, not Xros Heart, so it must be bottomed rather than played.
     const s = setupEngine(
       {
         0: {
@@ -251,8 +233,6 @@ describe("BT19-008 Shoutmon", () => {
     const playedTamer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT19-079");
     expect(playedTamer?.stack.map((card) => card.instanceId)).toEqual([shoutmonInstanceId]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === shoutmonInstanceId)).toBe(false);
-    // The Blue Flare Tamer was never a candidate; it and the two Digimon go to the bottom
-    // under the untouched remainder of the deck.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-081")).toBe(false);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011", "BT19-081", "BT1-009"]);
     expect(s.state.memory).toBe(memoryBefore);
@@ -287,7 +267,6 @@ describe("BT19-008 Shoutmon", () => {
       0: {
         battleArea: [
           { card: "BT19-012", as: "xrosHost", under: ["BT19-008"] },
-          // Near-miss: same colour, same seat, Holy Warrior/Royal Knight traits.
           { card: "BT19-015", as: "plainHost", under: ["BT19-008"] },
         ],
       },

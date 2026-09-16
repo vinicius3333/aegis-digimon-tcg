@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-//
-// Hand-fixed: the Option side's "Trash any 4 cards under your opponent's Digimon or Tamers"
-// pools every eligible host, so its target count is "all" (the Target contract's only
-// non-numeric value), matching EX12-035's identical `scope: "acrossDigimon"` shape.
 const compiled: CompiledCard = {
   effects: [
     {

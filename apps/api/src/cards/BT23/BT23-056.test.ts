@@ -6,16 +6,15 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-056.js";
 
-/** Fixtures, named so each board reads as the rules situation it sets up. */
-const CS_TAMER = "BT22-083"; // Yuuko Kamishiro — Tamer with the [CS] trait.
-const PLAIN_TAMER = "BT10-092"; // Nene Amano — Black Tamer without the [CS] trait.
-const CS_LEVEL_4 = "BT23-041"; // Kabuterimon — Lv.4 with [CS], Green/Yellow: the off-colour alternate route.
-const BLACK_LEVEL_4 = "BT10-062"; // Golemon — Black Lv.4 without [CS]: the printed colour route.
-const NON_CS_LEVEL_4 = "BT1-037"; // Gorillamon — Blue Lv.4 without [CS]: no legal route.
-const WEAK_SECURITY = "BT1-011"; // Agumon Expert Lv.3, 1000 DP — a security body the attacker beats.
-const HOST = "BT23-057"; // Gankoomon Lv.6 Black — an inert seeded body carrying BT23-056 as a source.
-const IMMUNE_DIGIMON = "ST18-12"; // Zephagamon — gains "unaffected by opponent Digimon effects" when a Digimon unsuspends.
-const FILLER = "BT1-009"; // Monodramon Lv.3 — a legal main-deck body for security, deck and board.
+const CS_TAMER = "BT22-083";
+const PLAIN_TAMER = "BT10-092";
+const CS_LEVEL_4 = "BT23-041";
+const BLACK_LEVEL_4 = "BT10-062";
+const NON_CS_LEVEL_4 = "BT1-037";
+const WEAK_SECURITY = "BT1-011";
+const HOST = "BT23-057";
+const IMMUNE_DIGIMON = "ST18-12";
+const FILLER = "BT1-009";
 
 describe("BT23-056 WereGarurumon", () => {
   it("matches every catalog field and complete compiled clause", () => {
@@ -58,8 +57,6 @@ describe("BT23-056 WereGarurumon", () => {
     });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // The block resolved a battle instead of a security check: 7000 DP beats the 3000 DP
-    // attacker, security is untouched, and WereGarurumon survives suspended.
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
     expect(s.perm("were").isSuspended).toBe(true);
@@ -91,7 +88,6 @@ describe("BT23-056 WereGarurumon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-056"));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The grant lands on the opponent's Digimon, never on one of the granter's own.
     expect(observe(s.engine).subscriptions("startOfYourMainPhase", s.perm("victim").permanentId)).toHaveLength(1);
     expect(observe(s.engine).subscriptions("startOfYourMainPhase", s.perm("ally").permanentId)).toHaveLength(0);
     expect(s.perm("victim").isSuspended).toBe(false);
@@ -99,20 +95,14 @@ describe("BT23-056 WereGarurumon", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    // WereGarurumon is an eligible blocker; declining keeps the forced attack on the player
-    // so the security check is the observable endpoint.
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // "[Start of Your Main Phase] This Digimon attacks": the victim suspended itself and
-    // checked one of its controller's opponent's security cards.
     expect(s.perm("victim").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // "until their turn ends": the grant is swept at the end of the victim's own turn, so
-    // their next main phase passes with no forced attack and no further security check.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).subscriptions("startOfYourMainPhase", s.perm("victim").permanentId)).toHaveLength(0);
@@ -251,8 +241,6 @@ describe("BT23-056 WereGarurumon", () => {
           battleArea: [
             { card: "BT23-056", as: "blockerOne" },
             { card: "BT23-056", as: "blockerTwo" },
-            // The de-digivolve target never enters a battle, so its stack only changes
-            // through the inherited clause.
             { card: "BT23-056", as: "stackHolder", under: [FILLER, BLACK_LEVEL_4], suspended: true },
           ],
           hand: [FILLER],
@@ -267,9 +255,7 @@ describe("BT23-056 WereGarurumon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    /** Attack the player with `attacker`, have seat 1 block with `blocker`, and settle. */
     const attackAndBlock = async (attacker: string, blocker: string): Promise<void> => {
-      // Re-pin the de-digivolve choice: the target's top card changes each time it sheds one.
       preferred.length = 0;
       preferred.push(s.perm("stackHolder").topCard!.instanceId);
       expect(
@@ -287,7 +273,6 @@ describe("BT23-056 WereGarurumon", () => {
       await settle();
     };
 
-    /** The card ids the de-digivolve target still carries: top card plus digivolution cards. */
     const holderCards = (): string[] => {
       const holder = s.perm("stackHolder");
       return [holder.topCard!.instanceId, ...holder.stack.map((card) => card.instanceId)];
@@ -297,7 +282,6 @@ describe("BT23-056 WereGarurumon", () => {
     const before = holderCards();
     expect(before).toHaveLength(3);
 
-    // First target switch of seat 0's turn: the inherited clause fires.
     await attackAndBlock("host", "blockerOne");
     const afterFirst = holderCards();
     expect(afterFirst).toHaveLength(2);
@@ -305,11 +289,9 @@ describe("BT23-056 WereGarurumon", () => {
     expect(firstShed).toHaveLength(1);
     expect(inTrash(firstShed[0]!)).toBe(true);
 
-    // Second target switch in the same turn: [Once Per Turn] refuses.
     await attackAndBlock("second", "blockerTwo");
     expect(holderCards()).toEqual(afterFirst);
 
-    // The counter resets on seat 0's next turn, so the same host fires again.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
@@ -327,8 +309,6 @@ describe("BT23-056 WereGarurumon", () => {
     await loop;
   });
 
-  // KB Q5321: the grant may be given to a Digimon that effects don't affect, but the gained
-  // effect does not trigger if that Digimon is still unaffected at the trigger timing.
   it("grants onto an unaffected Digimon, which then never triggers the gained attack (Q5321)", async () => {
     const s = setupEngine(
       {
@@ -339,9 +319,6 @@ describe("BT23-056 WereGarurumon", () => {
           security: [WEAK_SECURITY, WEAK_SECURITY, WEAK_SECURITY],
         },
         1: {
-          // Zephagamon: [All Turns] [Once Per Turn] when a Digimon is unsuspended it stops
-          // being affected by the opponent's Digimon's effects for the turn. Its own Active
-          // phase re-arms that immunity before its main phase opens.
           battleArea: [{ card: IMMUNE_DIGIMON, as: "victim", suspended: true }],
           deck: Array(10).fill(FILLER),
           security: [FILLER, FILLER],
@@ -358,13 +335,11 @@ describe("BT23-056 WereGarurumon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-056"));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // First half of Q5321: the grant is allowed and installed.
     expect(observe(s.engine).subscriptions("startOfYourMainPhase", s.perm("victim").permanentId)).toHaveLength(1);
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
 
-    // Second half: the immunity is live at the trigger timing, so nothing attacks.
     expect(observe(s.engine).isRestrictedByEffect(s.perm("victim"), "beAffected", "Digimon")).toBe(true);
     expect(observe(s.engine).subscriptions("startOfYourMainPhase", s.perm("victim").permanentId)).toHaveLength(1);
     expect(s.perm("victim").isSuspended).toBe(false);

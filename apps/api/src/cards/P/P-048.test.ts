@@ -4,16 +4,9 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
-// A3 for P-048 (UlforceVeedramon Zero) — [When Digivolving] effect:
-//   "You may place 3 non-Digi-Egg cards from your trash at the bottom of your deck to
-//    unsuspend this Digimon and 1 of your Tamers."
-//
-// FAILS-WHEN-REVERTED: without the P-048 module the effect does nothing —
-//   after digivolving + paying trash cost, P-048 remains suspended.
-
 const P_048 = "P-048";
-const BASE_BLUE_LV5 = "BT1-038"; // Monzaemon, Blue Lv5 — a valid base for P-048 (Blue Lv5+)
-const FILLER_1 = "AD1-001"; // non-DigiEgg filler for trash
+const BASE_BLUE_LV5 = "BT1-038";
+const FILLER_1 = "AD1-001";
 const FILLER_2 = "AD1-002";
 const FILLER_3 = "AD1-003";
 
@@ -22,13 +15,11 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
     const s = setupEngine(
       {
         0: {
-          // Base permanent (Blue Lv5 Digimon, suspended — digivolving suspends the base).
           battleArea: [
             { card: BASE_BLUE_LV5, as: "basePerm", dp: 4000, suspended: true },
             { card: "BT1-086", as: "tamer", suspended: true },
           ],
           hand: [{ card: P_048, as: "p048" }],
-          // 3 non-DigiEgg cards in trash (the cost).
           trash: [FILLER_1, FILLER_2, FILLER_3],
         },
       },
@@ -38,7 +29,6 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
     const basePerm = s.perm("basePerm");
     const baseSourceInstanceId = basePerm.topCard.instanceId;
 
-    // Enough memory to digivolve (cost 4 from Blue Lv5).
     s.state.memory = 4;
 
     expect(
@@ -49,7 +39,6 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
       }),
     ).toEqual({ ok: true });
 
-    // After settling, the permanent should be unsuspended (P-048 WhenDigivolving effect).
     await settle(() => {
       const perm = p0.battleArea.find((p) => p.permanentId === basePerm.permanentId);
       return perm !== undefined && !perm.isSuspended && !s.perm("tamer").isSuspended && s.state.memory === 1;
@@ -57,10 +46,9 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
 
     const perm = p0.battleArea.find((p) => p.permanentId === basePerm.permanentId);
     expect(perm).toBeDefined();
-    // Fails-when-reverted: without P-048's WhenDigivolving, the permanent stays suspended.
     expect(perm?.isSuspended).toBe(false);
     expect(s.perm("tamer").isSuspended).toBe(false);
-    expect(s.state.memory).toBe(1); // Paid 4, then the once-per-turn return trigger gained 1.
+    expect(s.state.memory).toBe(1);
     expect(perm!.stack.some((card) => card.instanceId === baseSourceInstanceId)).toBe(true);
 
     const another = s.give(0, Zone.Trash, "BT1-009");
@@ -70,7 +58,7 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
       }
     ).primitives.returnToDeck([another.instanceId]);
     await settle();
-    expect(s.state.memory).toBe(1); // The second return in the same turn doesn't gain memory.
+    expect(s.state.memory).toBe(1);
   });
 
   it("does not unsuspend when trash has fewer than 3 non-DigiEgg cards", async () => {
@@ -79,7 +67,6 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
         0: {
           battleArea: [{ card: BASE_BLUE_LV5, as: "basePerm", dp: 4000, suspended: true }],
           hand: [{ card: P_048, as: "p048" }],
-          // Only 2 non-DigiEgg cards in trash — canActivate fails.
           trash: [FILLER_1, FILLER_2],
         },
       },
@@ -101,10 +88,6 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
       200,
     );
 
-    // With < 3 non-DigiEgg, the effect cannot activate.
-    // The permanent may or may not be suspended (depends on engine digivolve base logic),
-    // but the unsuspend via the effect definitely did NOT run (no 3-trash cost paid).
-    // We assert the trash is unchanged (no cards moved to deck).
     expect(p0.deck.length).toBe(0);
     expect(s.perm("basePerm").isSuspended).toBe(true);
     expect(p0.trash).toHaveLength(2);

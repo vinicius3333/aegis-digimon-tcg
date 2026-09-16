@@ -527,8 +527,6 @@ describe("EX3-040 Parasaurmon", () => {
     expect(s.perm("secondTarget").isSuspended).toBe(true);
     expect(observe(s.engine).subscriptions("whenEffectSuspends")).toHaveLength(2);
     const ex3040Decisions = s.decisions.filter(({ req }) => req.sourceCardId === "EX3-040");
-    // Both copies watch the same event, so they are simultaneous triggers of one player and
-    // the controller picks which resolves first before either body asks for its target.
     expect(ex3040Decisions.map(({ req }) => req.kind)).toEqual(["orderTriggers", "chooseTargets"]);
   });
 

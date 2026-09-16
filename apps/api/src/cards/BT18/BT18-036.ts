@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -47,11 +44,6 @@ export const compiled: CompiledCard = {
           event: "wouldLeavePlay",
           leaveCause: "byOpponentEffect",
           sourceFilter: {
-            // "When THIS yellow Digimon ... would leave" (Q3087): only the Digimon carrying
-            // this card in its digivolution cards is protected. Without the self-gate the
-            // prevent reaction installs with `protectsSelf === false`
-            // (interpreter/actions/replacement.ts:239-241) and guards every matching
-            // permanent the owner controls, not just the host.
             isSelfRef: true,
             controllerDefault: "mine",
             kind: ["Digimon"],

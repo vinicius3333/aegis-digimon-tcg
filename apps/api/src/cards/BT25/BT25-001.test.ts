@@ -53,7 +53,6 @@ describe("BT25-001 Tokomon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // The public evolution draws one card; the inherited attack trigger draws one more.
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
 
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);

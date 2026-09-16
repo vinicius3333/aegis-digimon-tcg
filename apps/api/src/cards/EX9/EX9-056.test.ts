@@ -133,7 +133,6 @@ describe("EX9-056", () => {
             deck: ["BT1-010"],
           },
           1: {
-            // Inject the exact first excluded DP value to distinguish <= from an off-by-one bound.
             battleArea: [{ card: target, as: "target", dp: decline ? 8000 : 8001 }],
             security: ["BT1-010", "BT1-048"],
           },

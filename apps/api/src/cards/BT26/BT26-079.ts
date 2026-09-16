@@ -2,8 +2,6 @@ import type { Action, CardEffect, CompiledCard, Filter, Target } from "@aegis/sh
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-// ＜Decode ([Plutomon])＞ is a bracket-only card reference (§2-3-1-2): exact name only, so
-// this card's own ZombiePlutomon copies in the digivolution stack do not qualify.
 const plutomon: Filter = {
   controller: "mine",
   zone: "trash",
@@ -50,8 +48,6 @@ const trimHands: Action[] = [
     chooser: "opponent",
   },
 ];
-// No [Once Per Turn] is printed on the On Play / When Digivolving / When Attacking clause, so the
-// shared key only collapses the three timings onto one ledger entry — it must not cap uses.
 const shared = { sharedUseKey: "bt26-079-trash-cost-delete", actions: [deleteLevel6] } satisfies Pick<
   CardEffect,
   "sharedUseKey" | "actions"

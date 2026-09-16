@@ -270,7 +270,7 @@ describe("BT21-101 Gaiamon", () => {
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
-      s.state.memory = 3; // The public Link costs 3; App Fusion itself costs 0.
+      s.state.memory = 3;
       await s.ready();
       expect(
         s.engine.applyIntent(0, {
@@ -281,8 +281,6 @@ describe("BT21-101 Gaiamon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("host").topCard.cardId === "BT21-101");
       expect(s.perm("host").topCard.cardId).toBe("BT21-101");
-      // App Fusion stacks both materials; Gaiamon's accepted evolution effect then
-      // links one of those two sources. The unchosen material remains in the stack.
       await settle(() => s.perm("host").linked.length === 1);
       expect(s.perm("host").stack).toHaveLength(1);
       expect(s.perm("host").linked).toHaveLength(1);

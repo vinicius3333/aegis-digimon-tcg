@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5933: "on the field" = both breeding area and battle area.
-// KB Q5934: breeding area digivolve via [On Play] does not trigger [When Digivolving].
-// KB Q5935: battle area digivolve via [On Play] DOES trigger [Your Turn] SubTrigger.
-// KB Q5936: breeding area digivolve via [On Play] does NOT trigger [Your Turn] SubTrigger.
-// KB Q5937: "X in its text" = any part of the card (name, traits, effects, requirements, etc.).
-//
-// [On Play]: target zone is "field" (both areas). Into filter: Lucemon in name.
-// [Your Turn] SubTrigger: fires when ANY of your Digimon digivolve into a Lucemon-named card.
-//   sourceFilter: any of your Digimon (no name restriction on the source).
-//   digivolveIntoFilter: Lucemon in name.
-//   Actions: GainMemory with suspend as its cost (not a cost on the SubTrigger itself).
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -1,17 +1,10 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Compiled effect IR for EX11-045.
-// Fix vs auto-generated: the inherited [All Turns] Delete needs a SubTrigger with
-// event "whenEffectAddsDigivolution" (see BT22-027) — the compiler doesn't yet parse
-// "When effects add to this Digimon's digivolution cards" as a trigger condition, so
-// the generator drops it and the Delete fires on every All Turns trigger instead.
 const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 5, texts: ["Maquinamon"], cost: 3, isAlternate: true }],
   effects: [
     {
-      // Printed ＜Blocker＞ belongs on the keyword line — the shape registration reads for
-      // printed-keyword metadata (peers EX11-035 / EX11-073) — not a self-targeted GainKeyword.
       trigger: "Static",
       actions: [],
       keywords: [

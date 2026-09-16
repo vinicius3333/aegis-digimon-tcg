@@ -5,25 +5,12 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-/**
- * BT19-058 SkullKnightmon — Black/Purple Lv.4 Champion, 4000 DP, play cost 4,
- * evo cost 3 from a Black or Purple Lv.3.
- *
- * Printed clauses:
- *   1. ＜Blocker＞                       (main, keyword, CR 16-5)
- *   2. [On Deletion] ＜Save＞            (main, CR 16-20 / 4-3-2)
- *   3. ＜Blocker＞                       (inherited)
- *
- * KB: `node tools/kb/query.mjs card BT19-058` reports no knowledge-base entries —
- * no Q&A, errata or banlist row, matching docs/audits/BT19.md#knowledge-base-index.
- */
-
-const PLAIN_LV4_PEER = "BT1-014"; // Kokatorimon: Red Lv.4, 4000 DP, no effects, no keywords
-const BIG_ATTACKER = "BT1-013"; // Muchomon: Red Lv.3, 5000 DP, no effects
-const BLACK_LV3 = "BT2-052"; // Hagurumon: Black Lv.3, 3000 DP, no effects
-const PURPLE_LV3 = "BT2-067"; // DemiDevimon: Purple Lv.3, 3000 DP, no effects
-const GREEN_LV3 = "BT1-064"; // Goblimon: Green Lv.3, 3000 DP, no effects — illegal source
-const INERT_SECURITY = "BT1-009"; // Monodramon: main-deck Lv.3, never a Digi-Egg
+const PLAIN_LV4_PEER = "BT1-014";
+const BIG_ATTACKER = "BT1-013";
+const BLACK_LV3 = "BT2-052";
+const PURPLE_LV3 = "BT2-067";
+const GREEN_LV3 = "BT1-064";
+const INERT_SECURITY = "BT1-009";
 const DECK = ["BT1-009", "BT1-012", "BT1-013", "BT1-014"];
 
 describe("BT19-058 SkullKnightmon", () => {
@@ -58,7 +45,6 @@ describe("BT19-058 SkullKnightmon", () => {
       },
       { trigger: "Static", isInherited: true, keywords: [{ keyword: "Blocker" }] },
     ]);
-    // No printed [Digivolve] line: only the two evo costs above are legal routes.
     expect(card?.digivolutionRequirement ?? []).toEqual([]);
   });
 
@@ -91,12 +77,10 @@ describe("BT19-058 SkullKnightmon", () => {
     const eligible = opened !== undefined && "eligibleBlockerIds" in opened ? opened.eligibleBlockerIds : [];
     expect(eligible).toContain(skullId);
     expect(eligible).not.toContain(peerId);
-    // Near-miss peer: same level and DP, no ＜Blocker＞ — the engine refuses its block.
     expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: peerId }).ok).toBe(false);
     expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: skullId })).toEqual({ ok: true });
 
     await settle(() => s.events.some((e) => e.kind === "combatResolved"));
-    // 5000 attacker beats the 4000 blocker; the block spent the security check.
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([peerId]);
     expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([s.inst("sec").instanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
@@ -129,7 +113,6 @@ describe("BT19-058 SkullKnightmon", () => {
 
     const opened = s.events.find((e) => e.kind === "blockWindowOpened");
     const eligible = opened !== undefined && "eligibleBlockerIds" in opened ? opened.eligibleBlockerIds : [];
-    // Stack proof: the identical bare peer differs only by the digivolution card underneath.
     expect(eligible).toContain(hostId);
     expect(eligible).not.toContain(bareId);
     expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: bareId }).ok).toBe(false);
@@ -159,7 +142,6 @@ describe("BT19-058 SkullKnightmon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("skull").permanentId], "byEffect");
     await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === selfId));
 
-    // CR 4-3-2: ＜Save＞ places the card at the bottom of the Tamer's digivolution cards.
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([selfId, beneathId]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === selfId)).toBe(false);
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual(["BT19-086"]);
@@ -210,8 +192,6 @@ describe("BT19-058 SkullKnightmon", () => {
     await s.ready();
     const blackBaseId = s.perm("black").topCard!.instanceId;
 
-    // Illegal source: Green is not one of the two printed evo colors, and no [Digivolve] line
-    // waives it. Both the plain and the alternate-cost request must be refused.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -250,7 +230,6 @@ describe("BT19-058 SkullKnightmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("purple").topCard?.cardId === "BT19-058");
     expect(s.state.memory).toBe(3);
-    // Each digivolve also granted its bonus draw (CR 6-2-2): two draws off the top of the deck.
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-058", "BT1-009", "BT1-012"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("three").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-013", "BT1-014"]);

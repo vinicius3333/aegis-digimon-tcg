@@ -125,7 +125,6 @@ describe("BT17-058 GroundLocomon", () => {
             { card: "BT17-058", as: "groundLocomon" },
             { card: "BT1-009", as: "spare" },
           ],
-          // The first card is consumed by the digivolve bonus draw; the reveal sees the next three.
           deck: [
             { card: "BT1-014", as: "bonusDraw" },
             { card: "BT17-054", as: "eligible" },
@@ -151,7 +150,6 @@ describe("BT17-058 GroundLocomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("locomon").stack.length === 2);
 
-    // The placed card is the BOTTOM digivolution card, beneath the Lv5 source it digivolved from.
     expect(s.perm("locomon").stack.map((card) => card.instanceId)).toEqual([eligibleId, locomonId]);
     expect(s.perm("locomon").topCard?.instanceId).toBe(groundLocomonId);
     expect(s.state.memory).toBe(0);
@@ -172,7 +170,6 @@ describe("BT17-058 GroundLocomon", () => {
             { card: "BT17-058", as: "groundLocomon" },
             { card: "BT1-009", as: "spare" },
           ],
-          // BT1-012/BT1-013 are red (wrong colour); BT17-057 is black but level 6.
           deck: [
             { card: "BT17-057", as: "tooHigh" },
             { card: "BT1-012", as: "offColorOne" },
@@ -229,7 +226,6 @@ describe("BT17-058 GroundLocomon", () => {
     await settle(() => s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === preyId)).toBe(false);
-    // Piercing checked one security card; the 2000 DP Biyomon lost that battle too.
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("securityTop").instanceId)).toBe(true);
     expect(s.perm("groundLocomon").topCard?.cardId).toBe("BT17-058");
@@ -273,7 +269,6 @@ describe("BT17-058 GroundLocomon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.perm("groundLocomon").stack).toHaveLength(1);
 
-    // Same turn, second real attack: [Once Per Turn] refuses a second play.
     await advance(s.engine).verb.unsuspend([attackerId]);
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
@@ -282,7 +277,6 @@ describe("BT17-058 GroundLocomon", () => {
     expect(playedFromStack()).toBe(1);
     expect(s.perm("groundLocomon").stack).toHaveLength(1);
 
-    // Next own turn through the real turn loop: the counter has reset.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 0;

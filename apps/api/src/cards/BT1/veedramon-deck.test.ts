@@ -27,8 +27,6 @@ describe("BT1/ST8 Veedramon and UlforceVeedramon deck", () => {
     });
     await s.ready();
 
-    // BT1-115's inherited aura is a single +1000 while the condition is true; two
-    // blue Tamers do not stack the same inherited effect twice.
     expect(s.perm("ulforce").currentDP).toBe(13000);
 
     expect(

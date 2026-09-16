@@ -203,7 +203,6 @@ describe("BT26-074 Cerberusmon", () => {
     expect(effect.canActivate(ctx)).toBe(true);
     await effect.resolve(ctx);
 
-    // The sole hand-cost candidate is deterministic; the only prompt selects the exact [Titan] Option.
     expect(selectCards).toHaveBeenCalledOnce();
     expect(selectCards).toHaveBeenCalledWith(expect.anything(), {
       candidates: [titanOption.instanceId],

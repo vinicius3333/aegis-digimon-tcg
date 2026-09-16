@@ -5,12 +5,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT19-018.js";
 import "../index.js";
 
-// Fixtures: BT19-017 Sangomon is the near-miss peer (same colour, same level, same 1000 DP,
-// also Aquatic, but no ＜Evade＞ and no inherited ＜Jamming＞); BT19-019 Shellmon is the
-// realistic Blue Lv.4 evolution host; BT1-024 MetalTyrannomon + BT19-015 Gallantmon supply
-// a real opponent deletion effect; BT1-013 Muchomon (5000 DP, inert) is the Security Digimon.
-
-/** Digivolve seat 0's Lv.5 body into Gallantmon, whose [When Digivolving] deletes ≤8000 DP. */
 function gallantmonBoard(preferInstanceIds: string[]) {
   return setupEngine(
     {
@@ -42,8 +36,6 @@ describe("BT19-018 Swimmon", () => {
       level: 3,
       playCost: 3,
       dp: 1000,
-      // The catalog already bakes the [Rule] trait into `types`, next to the printed
-      // [Tropical Fish] type.
       types: ["Tropical Fish", "Aquatic"],
       evoCosts: [{ color: "Blue", level: 2, memoryCost: 0 }],
       effectText: "＜Evade＞ \n[Rule] Trait: Has the [Aquatic] type.",
@@ -58,7 +50,6 @@ describe("BT19-018 Swimmon", () => {
       actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Aquatic"], target: { filter: { isSelfRef: true } } }],
     });
     expect(compiled.effects[2]).toMatchObject({ isInherited: true, keywords: [{ keyword: "Jamming" }] });
-    // The inherited clause is the ONLY inherited one; ＜Evade＞ stays with the top card.
     expect(compiled.effects.filter((effect) => effect.isInherited === true)).toHaveLength(1);
     expect(compiled.coverage).toBe("full");
   });
@@ -80,7 +71,6 @@ describe("BT19-018 Swimmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("swim"), "Evade")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("plainBlue"), "Aquatic")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("plainBlue"), "Evade")).toBe(false);
-    // The grant is self-scoped: BT19-017, which prints the same [Rule], gains nothing here.
     expect(observe(s.engine).hasEffectiveTrait(s.perm("swim"), "Tropical Fish")).toBe(true);
   });
 
@@ -109,8 +99,6 @@ describe("BT19-018 Swimmon", () => {
     expect(s.perm("swim").isSuspended).toBe(true);
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
-    // Gallantmon's own fallback did not apply: this effect DID choose and did not delete
-    // only because ＜Evade＞ replaced the deletion.
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -178,7 +166,6 @@ describe("BT19-018 Swimmon", () => {
       () => jamming.events.some((event) => event.kind === "securityChecked") && !observe(jamming.engine).isAttacking(),
     );
 
-    // 4000 DP host lost to the 5000 DP Security Digimon but ＜Jamming＞ kept it (§16-9-1).
     expect(jamming.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([hostId]);
     expect(jamming.state.players[0]!.trash).toHaveLength(0);
     expect(jamming.state.players[1]!.trash.map((card) => card.instanceId)).toContain(
@@ -186,7 +173,6 @@ describe("BT19-018 Swimmon", () => {
     );
     expect(jamming.state.pendingDecision).toBeUndefined();
 
-    // Control: the same host with the near-miss peer underneath has no Jamming and dies.
     const plain = setupEngine({
       0: { battleArea: [{ card: "BT19-019", as: "host", under: ["BT19-017"] }], security: ["BT1-009"] },
       1: { security: [{ card: "BT1-013", as: "securityDigimon" }, "BT1-009", "BT1-010"] },

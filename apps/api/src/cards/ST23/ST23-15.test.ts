@@ -83,10 +83,6 @@ describe("ST23-15 start of Main", () => {
           deck: ["BT1-002", "BT1-003", "BT1-004"],
         },
       },
-      // Seat 0 has no legal Main action here, so the turn auto-passes as soon as the
-      // start-of-phase effect finishes and the rest of the turn keeps moving cards under the
-      // same Tamer. Snapshot what this clause produced as it resolves instead of racing the
-      // Main window for a board that later turns keep changing.
       {
         autoAcceptOptional: true,
         autoSelectCards: true,

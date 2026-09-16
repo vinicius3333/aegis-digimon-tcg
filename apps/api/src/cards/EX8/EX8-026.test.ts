@@ -189,13 +189,8 @@ describe("EX8-026", () => {
       { autoAcceptOptional: true },
     );
     s.state.turnSeat = 1;
-    // Memory is signed from the turn player's perspective; -1 means the
-    // non-turn owner (the MetalSeadramon controller) has 1 memory.
     s.state.memory = -1;
     await s.ready();
-    // Crossed memory opens the engine's normal Blitz confirmation window;
-    // accept that window so the following intent reaches attack legality,
-    // where EX8-026's suspend prohibition is asserted.
     (s.engine as unknown as { checkTurnEndAfterVerb: () => void }).checkTurnEndAfterVerb();
     await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("blitz").permanentId));
     expect(s.state.phase).toBe("Main");

@@ -38,8 +38,6 @@ describe("BT12-009 Flamemon", () => {
           deck: ["BT1-009", "BT1-010"],
         },
       },
-      // The Hybrid cost is the clause's only question, so it is asked as the selection itself:
-      // answering with no card is the refusal (see `costIsAskedAsSelection`).
       { autoDeclineOptional: true },
     );
     s.state.memory = 10;

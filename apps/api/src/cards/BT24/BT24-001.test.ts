@@ -141,9 +141,6 @@ describe("BT24-001 Gigimon", () => {
           security: [{ card: "BT1-014", as: "ownSecurity" }],
         },
         1: {
-          // BT12-099's public Security effect deletes an opposing Digimon at 6000 DP or less.
-          // If BT24-001's pending security-removal trigger ran first, this 3000-DP target
-          // would also be deleted. Its survival proves the Security effect resolved first.
           security: [
             { card: "BT12-099", as: "securityOption" },
             { card: "BT1-014", as: "opponentSecurity" },
@@ -194,7 +191,6 @@ describe("BT24-001 Gigimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT24-009");
-    // Gigimon -> Shamanmon uses the printed Red Lv.2 route for 1 memory.
     expect(s.state.memory).toBe(9);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("draw1").instanceId)).toBe(true);
     expect(s.perm("egg").topCard.instanceId).toBe(s.inst("level3").instanceId);
@@ -209,7 +205,6 @@ describe("BT24-001 Gigimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT24-010");
-    // Shamanmon -> Greymon uses the public TS alternate route for 2 memory.
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("draw2").instanceId)).toBe(true);
     expect(s.perm("egg").topCard.instanceId).toBe(s.inst("level4").instanceId);

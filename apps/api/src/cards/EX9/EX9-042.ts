@@ -1,7 +1,3 @@
-// EX9-042 Toropiamon — hand-fixed IR.
-// [All Turns] effect triggers when effects suspend your [WG] Digimon → SubTrigger on
-// whenEffectSuspends (triggerFilter: controller mine + WG trait).
-// The digivolve fires on this Digimon (source=self) into a WG card from hand, free.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

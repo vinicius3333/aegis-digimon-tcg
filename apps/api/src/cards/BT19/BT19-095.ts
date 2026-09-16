@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Both grant clauses print "for the turn" (`forTheTurn`). KB Q3170 confirms the
-// trashed clause's duration when it resolves during the opponent's turn: it
-// lasts until the end of that current opponent turn.
 const compiled: CompiledCard = {
   effects: [
     {

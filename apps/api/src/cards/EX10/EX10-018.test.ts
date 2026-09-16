@@ -149,10 +149,6 @@ describe("EX10-018 Astamon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  // KB Q5050: "＜Save＞ in its text" covers the whole card — name, traits, effects, inherited
-  // effects and the digivolution/DigiXros requirement headers. BT12-061 Ganemon prints ＜Save＞
-  // only inside its own digivolution requirement ("Digivolve: 2 from Lv.3 w/＜Save＞ in text"),
-  // so it is a legal base even though it never gains the keyword.
   it("Q5050: a level 4 whose only ＜Save＞ is in its digivolution requirement is a legal base", async () => {
     const s = setupEngine({
       0: {
@@ -176,9 +172,6 @@ describe("EX10-018 Astamon", () => {
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT12-061"]);
   });
 
-  // KB Q5050 negative: a different keyword or a name that merely contains the letters "save"
-  // is not ＜Save＞. ＜Material Save 1＞ (BT10-111) and [Savemon] (BT21-059) are both level 4,
-  // so only the token spelling keeps them out of the cost-3 route.
   it.each([
     ["＜Material Save 1＞ is not ＜Save＞", "BT10-111"],
     ["[Savemon] in text is not ＜Save＞", "BT21-059"],
@@ -254,8 +247,6 @@ describe("EX10-018 Astamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === astamonId));
 
-    // Astamon lost the battle, its digivolution card went to the trash, and Fortitude put the
-    // card itself back into the battle area free of cost and with an empty stack.
     const replayed = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === astamonId)!;
     expect(replayed.stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("source").instanceId]);
@@ -410,8 +401,6 @@ describe("EX10-018 Astamon", () => {
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-071", CARD_ID]));
     expect([...s.perm("base").keywords]).toContain("Piercing");
 
-    // Behavioural proof of the inherited ＜Piercing＞: Titamon (12000 DP) deletes the 3000 DP
-    // Digimon it attacked and survives, so the attack goes on to check 1 security card.
     s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {

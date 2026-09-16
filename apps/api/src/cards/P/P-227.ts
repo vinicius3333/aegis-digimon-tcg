@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-227 Unique Emblem: Primal Impact
-// [Main] Reveal top 3 of your deck. Add 1 Digimon with [Tyrannomon] in name or [Reptile]/[Dinosaur]
-//   trait AND 1 [LIBERATOR] trait card from them to hand. Return rest to deck bottom.
-//   Then place this card in the battle area.
-// [Your Turn] When any of your [Ryutaro Williams] are played, <Delay>
-//   · 1 of your Digimon may digivolve into a Lv6 or lower [LIBERATOR] trait card from hand
-//     with the digivolution cost reduced by 3.
-// [Security] Activate this card's [Main] effect.
-//
-// <Delay> pattern: the SubTrigger grants Delay to this card (the option permanent).
-// The Delay payload is a separate Main trigger with keywords:[Delay].
 const compiled: CompiledCard = {
   effects: [
     {

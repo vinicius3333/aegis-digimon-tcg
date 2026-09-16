@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [All Turns][Once Per Turn]: When other [Royal Base] Digimon would leave the battle area
-// BY EFFECTS, by placing this Digimon as the face-up bottom security card, they don't leave.
-// KB Q3098: all simultaneously-leaving Digimon are all prevented (no per-Digimon selection).
-// The trigger condition is leave-by-effects only, not combat/battle resolution.
-// Mode "prevent" indicates the leaving is cancelled entirely; cost is the placement.
 export const compiled: CompiledCard = {
   effects: [
     {

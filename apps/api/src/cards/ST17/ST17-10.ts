@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST17-10 Henry Wong
-// effectText:
-//   [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
-//   [Main] By placing this Tamer and 1 [Gargomon] and 1 [Rapidmon] from your trash in any
-//     order as one of your [Terriermon]'s bottom digivolution cards, that Digimon may
-//     digivolve into [MegaGargomon] in the hand for a digivolution cost of 4, ignoring its
-//     digivolution requirements. If this effect digivolved, that Digimon gains <Rush> for the turn.
-//   KB Q835: player may pay the cost but then choose not to digivolve.
-//   KB Q836: all 3 cards (Tamer + Gargomon + Rapidmon) go under a SINGLE [Terriermon].
-//
-// Processing placements resolve as a leading CostGatedBlock, independently of optional evolution.
 const compiled: CompiledCard = {
   effects: [
     {

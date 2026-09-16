@@ -86,8 +86,6 @@ describe("BT17-024 Seasarmon", () => {
   });
 
   it("can grant the Jamming to another of your Digimon instead of itself", async () => {
-    // Steer the "1 of your Digimon" choice onto the ally: proving the target is not
-    // hard-wired to the source needs the grant to land somewhere else.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -149,7 +147,6 @@ describe("BT17-024 Seasarmon", () => {
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([materialId, baseInstanceId]);
     expect(s.perm("base").topCard!.cardId).toBe("BT17-024");
     expect(s.state.memory).toBe(0);
-    // The digivolution bonus draw is the only card left in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Jamming")).toBe(true);
   });
@@ -183,8 +180,6 @@ describe("BT17-024 Seasarmon", () => {
     await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Jamming"));
     expect(s.perm("base").stack.some((card) => card.instanceId === materialId)).toBe(true);
 
-    // Paying the digivolution cost hands the turn over on its own; the expiry is
-    // asserted on the far side of that real turn boundary.
     await advance(s.engine).waitForMainPhase(1);
 
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Jamming")).toBe(false);

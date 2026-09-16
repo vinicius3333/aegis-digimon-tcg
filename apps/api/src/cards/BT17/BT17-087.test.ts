@@ -142,14 +142,9 @@ describe("BT17-087 Marcus Damon", () => {
   it("selects [Marcus Damon] by exact name, refusing a near-name combined card", () => {
     const exactRef = { tokens: ["Marcus Damon"], match: "nameExact" as const };
 
-    // Printed name and the aliased combined card ("& Thomas H. Norstein" carries
-    // "Marcus Damon" in its CardNames) both qualify.
     expect(matchNameOrTrait(getCardDefinition("BT17-087")!, exactRef)).toBe(true);
     expect(matchNameOrTrait(getCardDefinition("ST24-13")!, exactRef)).toBe(true);
 
-    // AD1-021 "Marcus Damon & Agumon" only has the substring, not the exact name
-    // (KB Q6101, comprehensive 2-3-1-2/2-3-1-3), so a bracket-only [Marcus Damon]
-    // reference must reject it. Substring `match: "name"` would wrongly accept it.
     expect(matchNameOrTrait(getCardDefinition("AD1-021")!, exactRef)).toBe(false);
     expect(matchNameOrTrait(getCardDefinition("AD1-021")!, { tokens: ["Marcus Damon"], match: "name" })).toBe(true);
   });

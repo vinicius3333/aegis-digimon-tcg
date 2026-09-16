@@ -30,9 +30,6 @@ const securityForTamer = {
   ],
 } as unknown as CardAction;
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {

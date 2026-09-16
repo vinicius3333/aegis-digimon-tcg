@@ -4,21 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-068.js";
-// Self-register every card module so the engine drives the REGISTERED BT15-068 IR.
 import "../index.js";
-
-/**
- * A3 — Q1f: BT15-068 (Purple Digimon) "[On Play] Until the end of your opponent's turn, 1 of
- * their Digimon gains '[On Deletion] Lose 1 memory.'"
- *
- * Same Q1f malformed-shape gap as BT6-102/BT11-106 (see BT6-102's header for the full writeup).
- * This card proves the SHARED "[On Deletion] Lose 1 memory." library entry — the same literal
- * token BT20-065 and BT9-014 also grant — fires correctly from an [On Play] trigger (rather than
- * an Option's [Main]), reusing exactly one library entry across three cards.
- *
- * FAILS-WHEN-REVERTED: reverting the interpreter's routing branch or the library entry makes
- * the grant either throw when the recipient is deleted, or silently install nothing.
- */
 
 describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
   it("watches only effect-played opponent Digimon in the battle area", () =>
@@ -156,13 +142,13 @@ describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
       ),
     ).toBe(true);
 
-    s.state.memory = 5; // isolate the granted effect's delta from the play's own memory cost
+    s.state.memory = 5;
 
     await engine.recomputeContinuousEffects();
     await engine.primitives.deletePermanent([recipient.permanentId], "byEffect");
     await settle(() => !p1.battleArea.some((p) => p.permanentId === recipient.permanentId));
 
-    expect(s.state.memory).toBe(6); // 5 + 1 (opponent-owned recipient: seat-relative -1 => +1)
+    expect(s.state.memory).toBe(6);
   });
 
   it("NEGATIVE: a Digimon that never received the grant costs nothing on deletion", async () => {
@@ -189,7 +175,6 @@ describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
     s.state.memory = 5;
     s.state.turnSeat = 0;
 
-    // Never play BT15-068 — no grant is ever installed on anyone.
     expect(engine.continuous.listCustomEffectGrants().length).toBe(0);
 
     await engine.recomputeContinuousEffects();

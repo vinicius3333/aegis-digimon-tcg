@@ -256,9 +256,6 @@ describe("BT20-082 DeathXmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // This is a player-directed, unblocked attack, so it resolves through security checks
-    // rather than emitting `combatResolved` (that event only fires for a resolved
-    // Digimon-vs-Digimon battle; see combat/controller.ts's `completedCombat`).
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });

@@ -6,27 +6,14 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-012.js";
-import "../index.js"; // register compiled cards so the real activate / turn-loop paths run
+import "../index.js";
 
-/**
- * Fixture vocabulary.
- *
- * BT15-072 Vilemon: level 4, trait "Evil", carries "[Dark Masters]" only in its EFFECT TEXT.
- * It is the KB Q5030 lever — "with [Dark Masters] in its text" must match it even though no
- * trait or name does.
- * BT15-031 MetalSeadramon: carries the [Dark Masters] TRAIT.
- * BT1-009..BT1-014: inert main-deck Digimon with no effects, so they can neither open a
- * decision nor change a result.
- */
-
-/** The OnDeclaration effectKey for the card's [Hand][Main] reduced-cost play. */
 function reducedCostPlayEffectKey(s: EngineSetup, instance: CardInstance): string {
   const found = ownEffectKeys(s, instance, EffectTiming.OnDeclaration)[0];
   if (found === undefined) throw new Error("EX10-012 surfaces no [Hand][Main] activated effect");
   return found;
 }
 
-/** EX10-012's own effect keys at a timing, read through the testkit's `cardSource` seam. */
 function ownEffectKeys(s: EngineSetup, card: CardInstance | Permanent, timing: EffectTiming): string[] {
   const source = observe(s.engine).cardSource(card);
   return effectsOf(timing, source)
@@ -73,7 +60,6 @@ describe("EX10-012 — [Hand] [Main] reduced-cost play", () => {
       {
         0: {
           hand: [{ card: "EX10-012", as: "metal" }],
-          // Q5030: Vilemon has [Dark Masters] only in its text, so it does not break the gate.
           battleArea: [{ card: "BT15-072", as: "textOnly" }],
         },
       },
@@ -153,8 +139,6 @@ describe("EX10-012 — [Hand] [Main] reduced-cost play", () => {
         0: {
           hand: [{ card: "EX10-012", as: "metal" }],
           battleArea: [
-            // Trait-only match, text-only match (KB Q5030): `match: "any"` is the union, so
-            // neither closes the gate.
             { card: "BT15-031", as: "traitOnly" },
             { card: "BT15-072", as: "textOnly" },
           ],
@@ -188,7 +172,6 @@ describe("EX10-012 — [Hand] [Main] reduced-cost play", () => {
           battleArea: [
             { card: "BT15-031", as: "traitOnly" },
             { card: "BT15-072", as: "textOnly" },
-            // Neither name, trait nor text mentions [Dark Masters].
             { card: "BT1-013", as: "noMatch" },
           ],
         },
@@ -239,13 +222,10 @@ describe("EX10-012 — [Hand] [Main] reduced-cost play", () => {
     await settle(() => onField(s, metalId));
     expect(onField(s, metalId)).toBe(true);
 
-    // The real turn loop closes the turn: no injected OnEndTurn.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
     expect(onField(s, metalId)).toBe(false);
-    // It left the battle area by its own delete, so its [On Deletion] clause runs too: with no
-    // blue face-up security card of its own it is placed face up at the bottom of security.
     const security = s.state.players[0]!.security;
     expect(security.map((c) => c.instanceId).at(-1)).toBe(metalId);
     expect(security.at(-1)!.faceUp).toBe(true);
@@ -299,7 +279,6 @@ describe("EX10-012 — [On Play] / [When Attacking] suspend lock", () => {
         0: {
           hand: [{ card: "EX10-012", as: "metal" }, "BT1-014"],
           deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009"],
-          // Security so the opponent's legal attack does not end the game mid-test.
           security: ["BT1-009", "BT1-012", "BT1-013"],
         },
         1: {
@@ -332,10 +311,6 @@ describe("EX10-012 — [On Play] / [When Attacking] suspend lock", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // "Can't suspend" (comprehensive §4-23) also blocks the self-suspension of an attack.
-    // The interpreter records the printed "can't suspend" as `beSuspended`; the continuous
-    // ledger reads that spelling and `suspend` as the same prohibition, so the attack gate in
-    // engine/combat/legality.ts sees it (comprehensive §4-23).
     expect(observe(s.engine).hasRestriction(s.perm("lockedDigimon"), "suspend")).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("freeDigimon"), "suspend")).toBe(false);
     expect(
@@ -355,7 +330,6 @@ describe("EX10-012 — [On Play] / [When Attacking] suspend lock", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // The lock ends with the opponent's turn.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).hasRestriction(s.perm("lockedDigimon"), "beSuspended")).toBe(false);
@@ -474,13 +448,11 @@ describe("EX10-012 — [All Turns] digivolution lock", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("metal").topCard!.cardId === "BT15-102");
 
-    // Stack identity: EX10-012 is now the only digivolution card, and the host is Apocalymon.
     const host = s.perm("metal");
     expect(host.topCard!.cardId).toBe("BT15-102");
     expect(host.stack.map((c) => c.cardId)).toEqual(["EX10-012"]);
     expect(host.stack.map((c) => c.instanceId)).toEqual([metalId]);
 
-    // Its own main-text clauses stop being offered: the permanent surfaces no EX10-012 effect.
     expect(ownEffectKeys(s, host, EffectTiming.OnDeclaration)).toEqual([]);
     expect(ownEffectKeys(s, host, EffectTiming.OnPlay)).toEqual([]);
     expect(
@@ -489,7 +461,6 @@ describe("EX10-012 — [All Turns] digivolution lock", () => {
         .map(({ effectKey }) => effectKey),
     ).toEqual(expect.not.arrayContaining([expect.stringContaining("EX10-012/")]));
 
-    // [When Attacking] is silent as well: attacking locks nobody.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -503,8 +474,6 @@ describe("EX10-012 — [All Turns] digivolution lock", () => {
     expect(seen.hasRestriction(s.perm("otherDigimon"), "beSuspended")).toBe(false);
     expect(seen.hasRestriction(s.perm("tamer"), "beSuspended")).toBe(false);
 
-    // The 20000 DP wall wins, so the whole stack leaves: [On Deletion] is silent too — the
-    // digivolution card goes to the trash, not face up under security.
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === host.permanentId)).toBe(false);
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(metalId);
     expect(s.state.players[0]!.security).toHaveLength(2);
@@ -549,17 +518,11 @@ describe("EX10-012 — [All Turns] digivolution lock", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("metal").topCard!.cardId === "BT15-102");
 
-    // Both end-of-turn processings (the delayed delete and Apocalymon's own [End of Your
-    // Turn]) belong to the turn player, who orders them: the harness answers that
-    // orderTriggers decision. The stack still leaves the battle area.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === host.permanentId)).toBe(false);
     expect(s.state.players[0]!.trash.map((c) => c.cardId)).toEqual(expect.arrayContaining(["BT15-102", "EX10-012"]));
-    // Q5036/Q5733: the delayed delete and Apocalymon's [End of Your Turn] are simultaneous
-    // pending processing, so the turn player is asked for the order rather than the engine
-    // fixing one.
     const orderPrompts = s.decisions.filter(({ req }) => req.kind === "orderTriggers");
     expect(orderPrompts.length).toBeGreaterThan(0);
     expect(orderPrompts.every(({ seat }) => seat === 0)).toBe(true);
@@ -604,7 +567,6 @@ describe("EX10-012 — [On Deletion] face-up security placement", () => {
       metalId,
     ]);
     expect(security[2]!.faceUp).toBe(true);
-    // KB Q5031: the other cards stay face down.
     expect(security.slice(0, 2).every((c) => c.faceUp !== true)).toBe(true);
   });
 
@@ -661,10 +623,8 @@ describe("EX10-012 — [Security] free play", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // The [Security] effect resolved from hand.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT15-072");
     expect(s.state.players[1]!.hand).toHaveLength(0);
-    // Q6510: the checked Digimon then battles the attacker — 11000 DP beats 3000.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === attackerId)).toBe(false);
     expect(s.state.players[0]!.trash.map((c) => c.cardId)).toContain("BT1-009");
     expect(s.state.players[1]!.trash.map((c) => c.instanceId)).toContain(guardId);
@@ -677,11 +637,8 @@ describe("EX10-012 — [Security] free play", () => {
         0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
         1: {
           hand: [
-            // Text-only match at level 4 — the only legal candidate.
             { card: "BT15-072", as: "textOnly" },
-            // Trait match, but level 6: over the "level 5 or lower" bound.
             { card: "BT15-031", as: "traitOnlyTooHigh" },
-            // No [Dark Masters] anywhere.
             { card: "BT1-013", as: "noMatch" },
           ],
           security: [{ card: "EX10-012", faceUp: true }],
@@ -700,8 +657,6 @@ describe("EX10-012 — [Security] free play", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT15-072"));
 
-    // Exactly one of the three is eligible, so the engine never asks: it resolves the single
-    // legal candidate and the two distractors stay in hand untouched.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.instanceId)).toEqual([
       s.inst("textOnly").instanceId,
     ]);
@@ -768,7 +723,6 @@ describe("EX10-012 — [Security] free play", () => {
       {
         0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
         1: {
-          // BT15-031 is level 6 (over the bound); BT1-013 carries no [Dark Masters] text at all.
           hand: [
             { card: "BT15-031", as: "tooHigh" },
             { card: "BT1-013", as: "noText" },

@@ -7,17 +7,6 @@ import { compiled } from "./EX13-020.js";
 
 const cardId = "EX13-020";
 
-// Fixtures, and why each one is here:
-//   BT1-009 Monodramon   Red Lv.3 3000 DP, no text  — neutral source / illegal-source negative
-//   BT1-010 .. BT1-014   inert red main-deck Digimon — spare hand cards, deck filler, trash filler
-//   EX13-017 Veemon      Blue Lv.3, attribute [Free] — satisfies BOTH the Blue Lv.3 EvoCost and
-//                        the alternate `[Veemon]` route, so the two costs can be compared
-//   BT20-009 Veemon      RED Lv.3 [Free] — reaches the alternate route although no red EvoCost
-//                        is printed, proving the route is wider than the catalog EvoCost
-//   BT6-111 Alphamon     Black Lv.6, type [Royal Knight], attribute Vaccine (NOT [Free]) — the
-//                        [Royal Knight] half of the unsuspend filter, with no battle-area text
-//   BT18-044 FunBeemon   Green/Black Lv.3, type [Royal Base] — the near-miss trait: it shares the
-//                        "Royal" word but is not [Royal Knight], so the filter must refuse it
 describe("EX13-020 Magnamon", () => {
   it("matches the catalog identity and printed text", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
@@ -55,11 +44,7 @@ describe("EX13-020 Magnamon", () => {
   });
 
   it("compiles the printed headers, both keywords, the shared once-per-turn body and both unsuspend windows", () => {
-    // The two play-legality headers are structural fields, read back through the shared
-    // accessors the server and the client projection use.
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Veemon"], cost: 3, isAlternate: true }]);
-    // `digivolutionRequirementsFor` reports only the printed ALTERNATE paths; the catalog
-    // EvoCosts stay on the card definition and are proven separately below by cost.
     expect(digivolutionRequirementsFor(cardId)).toEqual([{ namesExact: ["Veemon"], cost: 3, isAlternate: true }]);
     expect(compiled.assemblyRequirement).toEqual([
       { reduceCost: 2, materials: [{ namesExact: ["Veemon"], count: 1 }] },
@@ -74,8 +59,6 @@ describe("EX13-020 Magnamon", () => {
       ],
     });
 
-    // One printed [Once Per Turn] covers all three timings, so all three windows share one
-    // per-turn ledger key.
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"] as const) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-buff" });
@@ -122,10 +105,6 @@ describe("EX13-020 Magnamon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve] [Veemon]: Cost 3 — and the catalog Blue/Yellow Lv.3 EvoCost beside it
-  // ---------------------------------------------------------------------------
-
   it("digivolves from a Blue Veemon for 3 on the alternate route, keeping the source stack and drawing 1", async () => {
     const s = setupEngine(
       {
@@ -155,15 +134,11 @@ describe("EX13-020 Magnamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("veemon").topCard?.cardId === cardId);
 
-    // Source-stack identity: Veemon is now the sole digivolution card beneath Magnamon.
     expect(s.perm("veemon").topCard?.instanceId).toBe(s.inst("magnamon").instanceId);
     expect(s.perm("veemon").stack.map((card) => card.cardId)).toEqual(["EX13-017"]);
-    // Cost 3 off a gauge of 5 — NOT the printed Blue Lv.3 EvoCost of 4 — plus the bonus draw.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
-    // [When Digivolving] fired: one red card in the trashes is one color, so +1000 DP.
     expect(s.perm("veemon").currentDP).toBe(8000);
-    // "Then, to 1 of your opponent's Digimon, give -4000 DP" — the only legal target took it.
     expect(s.perm("victim").currentDP).toBe(16_000);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
@@ -271,10 +246,6 @@ describe("EX13-020 Magnamon", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Assembly -2] [Veemon]
-  // ---------------------------------------------------------------------------
-
   it("plays by Assembly -2, placing one Veemon from the trash under it for a play cost of 5", async () => {
     const s = setupEngine(
       {
@@ -305,7 +276,6 @@ describe("EX13-020 Magnamon", () => {
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === cardId)!;
     expect(played.stack.map((card) => card.cardId)).toEqual(["EX13-017"]);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX13-017")).toBe(false);
-    // Printed play cost 7 reduced by the flat Assembly -2: 6 memory - 5 = 1.
     expect(s.state.memory).toBe(1);
     assertNoLoudGap(s);
   });
@@ -315,7 +285,6 @@ describe("EX13-020 Magnamon", () => {
       {
         0: {
           hand: [{ card: cardId, as: "magnamon" }],
-          // Monodramon is the same level and color family as a Veemon but carries another name.
           trash: [{ card: "BT1-009", as: "wrongMaterial" }],
           deck: ["BT1-011", "BT1-012"],
         },
@@ -338,16 +307,11 @@ describe("EX13-020 Magnamon", () => {
     expect(s.state.memory).toBe(6);
   });
 
-  // ---------------------------------------------------------------------------
-  // "+1000 DP until your opponent's turn ends for each color in trashes"
-  // ---------------------------------------------------------------------------
-
   it("scales the self buff by the distinct colors across BOTH trashes", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: cardId, as: "magnamon" }],
-          // Red (BT1-009) + Blue (EX13-017) = 2 colors from your own trash.
           trash: [
             { card: "BT1-009", as: "red" },
             { card: "EX13-017", as: "blue" },
@@ -356,7 +320,6 @@ describe("EX13-020 Magnamon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-014", as: "victim" }],
-          // Green + Black from the OPPONENT's trash; "trashes" is plural, so these count too.
           trash: [{ card: "BT18-044", as: "greenBlack" }],
           security: ["BT1-012", "BT1-013"],
         },
@@ -367,7 +330,6 @@ describe("EX13-020 Magnamon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magnamon"));
 
-    // Red, Blue, Green, Black = 4 distinct colors, so 4 x 1000 on top of the printed 7000.
     expect(s.perm("magnamon").currentDP).toBe(11_000);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
@@ -389,7 +351,6 @@ describe("EX13-020 Magnamon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magnamon"));
 
     expect(s.perm("magnamon").currentDP).toBe(7000);
-    // 4000 DP off a printed 4000 leaves 0, which deletes the Digimon.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-014"]);
     assertNoLoudGap(s);
@@ -420,11 +381,9 @@ describe("EX13-020 Magnamon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magnamon"));
 
     const debuffed = [s.perm("chosen"), s.perm("untouched")];
-    // Exactly one of the two took the hit; the other is untouched.
     expect(debuffed.map((permanent) => permanent.currentDP).sort()).toEqual([16_000, 20_000]);
     assertNoLoudGap(s);
 
-    // "until their turn ends": run the opponent's whole turn and the modifier is gone.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -478,7 +437,6 @@ describe("EX13-020 Magnamon", () => {
     assertNoLoudGap(s);
   });
 
-  // Explicit timing seam corroborates the public play boundaries above.
   it("scales the opponent debuff by every 5000 DP this Digimon has", async () => {
     const s = setupEngine(
       {
@@ -530,17 +488,13 @@ describe("EX13-020 Magnamon", () => {
     expect(s.perm("magnamon").currentDP).toBe(8000);
     expect(s.perm("victim").currentDP).toBe(16_000);
 
-    // The attack window is the SAME per-turn use, so it refuses: no second +1000 and no
-    // second -4000.
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("magnamon"));
     expect(s.perm("magnamon").currentDP).toBe(8000);
     expect(s.perm("victim").currentDP).toBe(16_000);
-    // The digivolve window is spent too.
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("magnamon"));
     expect(s.perm("magnamon").currentDP).toBe(8000);
     expect(s.perm("victim").currentDP).toBe(16_000);
 
-    // Through the real turn loop: the opponent's turn clears both the use and the durations.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -553,11 +507,6 @@ describe("EX13-020 Magnamon", () => {
     expect(s.perm("magnamon").currentDP).toBe(8000);
     expect(s.perm("victim").currentDP).toBe(16_000);
   });
-
-  // ---------------------------------------------------------------------------
-  // [End of Your Turn] [Once Per Turn] 1 of your [Free] or [Royal Knight] trait Digimon
-  // may unsuspend.
-  // ---------------------------------------------------------------------------
 
   it("unsuspends itself: Magnamon carries both the [Free] attribute and the [Royal Knight] type", async () => {
     const s = setupEngine(
@@ -576,8 +525,6 @@ describe("EX13-020 Magnamon", () => {
   });
 
   it("discriminates the trait filter three ways: [Free] matches, [Royal Base] and a plain Digimon do not", async () => {
-    // Fired from the INHERITED window under a plain Monodramon host, so Magnamon itself is not a
-    // candidate and the filter has to choose among the three board Digimon on its own merits.
     const s = setupEngine(
       {
         0: {
@@ -596,9 +543,6 @@ describe("EX13-020 Magnamon", () => {
 
     await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("host"));
 
-    // Only the [Free] Veemon qualifies. [Royal Base] shares the word "Royal" with
-    // [Royal Knight] but trait matching is exact equality, so it is refused, as is a Digimon
-    // with neither trait — including the Monodramon host carrying the clause.
     expect(s.perm("freeVeemon").isSuspended).toBe(false);
     expect(s.perm("royalBase").isSuspended).toBe(true);
     expect(s.perm("plain").isSuspended).toBe(true);
@@ -608,8 +552,6 @@ describe("EX13-020 Magnamon", () => {
   });
 
   it("unsuspends a [Royal Knight] that is not [Free], and a [Free] Digimon that is not a Royal Knight", async () => {
-    // Alphamon (BT6-111) is [Royal Knight] with the Vaccine attribute, so only the
-    // [Royal Knight] half of the filter can reach it.
     const knightPreference: string[] = [];
     const royalKnight = setupEngine(
       {
@@ -629,8 +571,6 @@ describe("EX13-020 Magnamon", () => {
     await advance(royalKnight.engine).fire(EffectTiming.EndOfYourTurn, royalKnight.perm("magnamon"));
     expect(royalKnight.perm("alphamon").isSuspended).toBe(false);
 
-    // Veemon (BT2-021) is [Free]/[Mini Dragon] with no Royal Knight type, so only the [Free]
-    // half can reach it.
     const freePreference: string[] = [];
     const free = setupEngine(
       {
@@ -732,8 +672,6 @@ describe("EX13-020 Magnamon", () => {
     );
     await s.ready();
 
-    // The host is Monodramon: [Rookie]/Vaccine/[Mini Dragon], so it matches neither trait and
-    // the inherited clause finds nothing to unsuspend.
     await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("host"));
     expect(s.perm("host").isSuspended).toBe(true);
 
@@ -755,10 +693,6 @@ describe("EX13-020 Magnamon", () => {
     expect(withTarget.perm("veemon").isSuspended).toBe(false);
     expect(withTarget.perm("host").stack.map((card) => card.cardId)).toEqual([cardId]);
   });
-
-  // ---------------------------------------------------------------------------
-  // ＜Blocker＞ and ＜Armor Purge＞
-  // ---------------------------------------------------------------------------
 
   it("opens a real block window and intercepts an attack with ＜Blocker＞", async () => {
     const s = setupEngine({
@@ -784,7 +718,6 @@ describe("EX13-020 Magnamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
 
-    // The 2000 DP attacker loses to 7000 DP and the security stack is untouched.
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("magnamon"), "Blocker")).toBe(true);
@@ -813,8 +746,6 @@ describe("EX13-020 Magnamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
 
-    // Magnamon itself is trashed as the Armor Purge cost and the Veemon beneath it is promoted,
-    // so the permanent survives with Veemon on top.
     const survivor = s.state.players[0]!.battleArea[0];
     expect(survivor?.topCard?.cardId).toBe("EX13-017");
     expect(survivor?.stack.map((card) => card.cardId)).toEqual([]);

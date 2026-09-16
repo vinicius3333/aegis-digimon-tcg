@@ -13,16 +13,10 @@ function internals(s: ReturnType<typeof setupEngine>): EngineInternals {
   return s.engine as unknown as EngineInternals;
 }
 
-// A3 for P-072 (MetalGreymon: Alterous Mode) — [When Digivolving] effect:
-//   "If you have a Tamer in play, delete 1 of your opponent's Digimon with 5000 DP or less."
-//
-// FAILS-WHEN-REVERTED: without the P-072 module the opponent's Digimon is NOT deleted
-//   after digivolving, even when a Tamer is in play and the target is ≤5000 DP.
-
 const P_072 = "P-072";
-const BASE_RED_LV4 = "AD1-001"; // Greymon, Red Lv4 — valid base for P-072 (Red Lv4, cost 3)
-const TAMER = "BT1-089"; // Mimi Tachikawa — just any Tamer
-const OPP_DIGIMON_LE5000 = "AD1-001"; // Greymon, DP 5000
+const BASE_RED_LV4 = "AD1-001";
+const TAMER = "BT1-089";
+const OPP_DIGIMON_LE5000 = "AD1-001";
 
 describe("P-072 MetalGreymon: Alterous Mode — [When Digivolving] delete ≤5000 DP", () => {
   it("digivolves from a MetalGreymon-named Digimon for cost 0", async () => {
@@ -66,7 +60,6 @@ describe("P-072 MetalGreymon: Alterous Mode — [When Digivolving] delete ≤500
     const basePerm = s.perm("basePerm");
     const oppPerm = s.perm("oppPerm");
 
-    // Enough memory to digivolve (Red Lv4 EvoCost = 3).
     s.state.memory = 3;
 
     expect(
@@ -77,22 +70,18 @@ describe("P-072 MetalGreymon: Alterous Mode — [When Digivolving] delete ≤500
       }),
     ).toEqual({ ok: true });
 
-    // After settling, the opponent's Digimon should have been deleted.
     await settle(() => !p1.battleArea.some((p) => p.permanentId === oppPerm.permanentId), 400);
 
-    // Fails-when-reverted: without P-072's WhenDigivolving, the opponent Digimon stays.
     expect(p1.battleArea.some((p) => p.permanentId === oppPerm.permanentId)).toBe(false);
   });
 
   it("does NOT delete when no Tamer is in play", async () => {
     const s = setupEngine(
       {
-        // No Tamer in player 0's battle area.
         0: {
           battleArea: [{ card: BASE_RED_LV4, as: "basePerm", dp: 5000 }],
           hand: [{ card: P_072, as: "p072" }],
         },
-        // Opponent has a ≤5000 DP Digimon.
         1: { battleArea: [{ card: OPP_DIGIMON_LE5000, as: "oppPerm", dp: 5000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -115,7 +104,6 @@ describe("P-072 MetalGreymon: Alterous Mode — [When Digivolving] delete ≤500
       200,
     );
 
-    // Without a Tamer, the WhenDigivolving canActivate fails — opponent Digimon stays.
     expect(p1.battleArea.some((p) => p.permanentId === oppPerm.permanentId)).toBe(true);
   });
 

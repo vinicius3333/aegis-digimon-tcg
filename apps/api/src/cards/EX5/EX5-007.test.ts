@@ -213,8 +213,6 @@ describe("EX5-007 Coronamon", () => {
     await settle(() => s.state.memory === 7 && s.perm("host").topCard?.instanceId === sourceB.instanceId);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([originalTop.instanceId, sourceA.instanceId]);
 
-    // Q3528 preserves sourceB's spent record, while sourceA remains an
-    // independent physical copy with its own first Once Per Turn use.
     const secondCopyEffect = observe(s.engine)
       .activatableEffects(s.perm("host"))
       .find((entry) => entry.instanceId === sourceA.instanceId && /Gain 2 memory/i.test(entry.description ?? ""));
@@ -229,8 +227,6 @@ describe("EX5-007 Coronamon", () => {
     await settle(() => s.state.memory === 9 && s.perm("host").topCard?.instanceId === sourceA.instanceId);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceB.instanceId, originalTop.instanceId]);
 
-    // Cycling back to sourceB in the same turn is now blocked: both copies
-    // have spent their own Once Per Turn activation.
     expect(
       observe(s.engine)
         .activatableEffects(s.perm("host"))

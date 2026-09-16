@@ -61,8 +61,6 @@ describe("EX1-002 Biyomon", () => {
       }),
     ).toEqual({ ok: true });
 
-    // The inherited [When Attacking] Draw 1 resolves before §12's public blocker
-    // response. Observe both state and protocol, then answer with the real intent.
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(p0.hand).toHaveLength(1);
     expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
@@ -143,8 +141,6 @@ describe("EX1-002 Biyomon", () => {
       ok: true,
     });
     await settle(() => !s.perm("attacker").isSuspended);
-    // A real second attack in the same turn is allowed after unsuspending, but the
-    // inherited Once Per Turn marker prevents a second draw.
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
     expect(p0.hand).toHaveLength(1);
@@ -155,7 +151,7 @@ describe("EX1-002 Biyomon", () => {
     await settle(() => s.state.turnSeat === 0 && s.state.phase === "Main");
 
     expect(s.perm("attacker").isSuspended).toBe(false);
-    expect(p0.hand).toHaveLength(2); // prior draw plus the normal draw at the start of this turn
+    expect(p0.hand).toHaveLength(2);
     expect(attack()).toEqual({ ok: true });
     await settle(() => p0.hand.length === 3);
     expect(p0.hand).toHaveLength(3);

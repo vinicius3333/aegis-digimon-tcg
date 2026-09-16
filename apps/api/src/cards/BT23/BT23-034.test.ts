@@ -187,8 +187,6 @@ describe("BT23-034 Sakuyamon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;
 
-    // [When Digivolving] spends the shared use. The base was already in play, so the new
-    // Sakuyamon can attack in the same turn and reach the [When Attacking] timing.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -209,7 +207,6 @@ describe("BT23-034 Sakuyamon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle();
 
-    // Same turn, second timing: the once-per-turn use is already spent, so no second -6000.
     expect(s.perm("target").currentDP).toBe(4000);
     expect(s.state.players[1]!.security).toHaveLength(1);
 
@@ -219,7 +216,6 @@ describe("BT23-034 Sakuyamon", () => {
     await advance(s.engine).waitForMainPhase(0);
     await settle();
 
-    // The duration expired with the opponent's turn and the use re-armed.
     expect(s.perm("target").currentDP).toBe(10000);
     expect(
       s.engine.applyIntent(0, {
@@ -236,9 +232,6 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  // Q5282, Q5283, Q5286: the restriction stops the [When Digivolving] half of a shared
-  // [When Digivolving] [When Attacking] [Once Per Turn] effect from activating, without
-  // consuming the once-per-turn use, so the [When Attacking] half still activates.
   it("suppresses the opponent's When Digivolving half but leaves the shared When Attacking use", async () => {
     const s = setupEngine(
       {
@@ -262,8 +255,6 @@ describe("BT23-034 Sakuyamon", () => {
           deck: ["BT1-013", "BT1-014", "BT1-009"],
         },
       },
-      // ST24-07 carries ＜Raid＞, whose optional switch would redirect this player attack onto
-      // Sakuyamon. Decline it so the attack stays on the player and the proof is about timings.
       { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["＜Raid＞"] },
     );
     s.state.memory = 10;
@@ -295,13 +286,11 @@ describe("BT23-034 Sakuyamon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "ST24-07");
     await settle();
 
-    // Q5282/Q5285: nothing from the [When Digivolving] half happened.
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === tamerId)).toBe(true);
     expect(s.perm("sakuyamon").permanentId).toBe(sakuyamonPermanentId);
     expect(s.perm("sakuyamon").currentDP).toBe(11000);
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // Q5283/Q5286: the same effect still activates on the [When Attacking] timing.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -319,8 +308,6 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  // Q5284: an external "activate that card's [When Digivolving] effect" effect cannot
-  // activate a restricted card's [When Digivolving] effect either.
   it.each([true, false])(
     "blocks an external activation of a restricted When Digivolving effect (restricted=%s)",
     async (restricted) => {
@@ -367,7 +354,6 @@ describe("BT23-034 Sakuyamon", () => {
     },
   );
 
-  // Q5285: a suppressed [When Digivolving] effect does not even process its "by" cost.
   it.each([true, false])("does not process the By cost of a suppressed effect (restricted=%s)", async (restricted) => {
     const s = setupEngine(
       {
@@ -434,8 +420,6 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  // Q5289: the placed card is a face-up security card that stays revealed, behind the
-  // security cards already in the stack.
   it("places the deleted card face up behind the existing security card", async () => {
     const s = setupEngine(
       {
@@ -460,8 +444,6 @@ describe("BT23-034 Sakuyamon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Attacking suspends Sakuyamon so the opponent can attack it next turn, and its own
-    // [When Attacking] half weakens the future attacker to 12000 — still above its 11000 DP.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -497,9 +479,6 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  // Q5290: a security check of that face-up card runs like any other security check.
-  // The fixture holds the exact state the previous test produces: BT23-034 face up in
-  // its owner's security stack.
   it("checks the face-up placed card as a normal security card", async () => {
     const s = setupEngine(
       {
@@ -537,8 +516,6 @@ describe("BT23-034 Sakuyamon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle();
 
-    // The face-up card is checked exactly like a face-down one: it battles the attacker
-    // as a Security Digimon (11000 DP beats 3000) and then leaves the security stack.
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerCardId);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === placedId)).toBe(false);
@@ -550,8 +527,6 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  // Q5291: a [Security] effect still triggers when the checked card was already face up.
-  // The fixture's face-up security card is the state BT23-034's [On Deletion] produces.
   it("triggers the Security effect of a face-up security card", async () => {
     const s = setupEngine(
       {
@@ -596,7 +571,6 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  // Q5292: shuffling a security stack that holds face-up cards leaves every card face down.
   it("re-hides every face-up security card on a shuffle", async () => {
     const s = setupEngine(
       {

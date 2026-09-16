@@ -71,8 +71,6 @@ describe("BT22-026 MetalGarurumon", () => {
         {
           kind: "Unsuspend",
           target: { filter: { isSelfRef: true }, isSelf: true },
-          // Structured, not "raw": evaluateCondition treats an unparsed gate as unmet, so a raw
-          // kind here would silently never unsuspend.
           condition: { kind: "selfHasNameContaining" },
         },
       ],

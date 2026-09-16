@@ -1,20 +1,10 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-corrected IR override for EX10-035 (08-15). The [Hand][Main] reduced-cost play is the
-// exclude filter, it plays THIS card from hand with the play cost reduced by 5 and arms the
-// turn-end self-delete ON THE PLAYED PERMANENT. The DelayedDeletePlayed therefore fires ONLY on
-// this reduced-cost play path (KB Q5737), NOT on a normal [On Play] — so it is modeled inside the
-// activated effect, not under OnPlay. RestrictDigivolveInto ([Apocalymon]) is authored + A3-proven
 export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
-      // The printed clause is [Hand][Main]: it activates only while this card is in hand.
-      // effects.json carries the flag; this hand-authored override REPLACES that entry, so
-      // dropping it here silently widened the clause to any zone (and, once the residency
-      // guard landed, made the card's own play unreachable — a [Main] effect that is not
-      // hand-flagged is excluded FROM the hand).
       isFromHand: true,
       condition: {
         kind: "youHaveNone",

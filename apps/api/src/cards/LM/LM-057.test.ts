@@ -5,8 +5,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-057.js";
 
-// The nine Training Options share one printed card; each is proven on its own colour pair so a
-// colour-swapped or clause-dropping regression in one module cannot hide behind another.
 describe("LM-057 Wall Training", () => {
   it("reveals two, adds a red or blue card, bottoms the rest and places itself", async () => {
     const s = setupEngine(
@@ -34,7 +32,6 @@ describe("LM-057 Wall Training", () => {
   it("ignores its colour requirements while no copy of itself is in the battle area", async () => {
     const s = setupEngine(
       {
-        // No Digimon or Tamer at all: only the printed waiver makes this legal.
         0: { hand: [{ card: "LM-057", as: "option" }], deck: ["BT1-047", "BT1-047"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -81,7 +78,6 @@ describe("LM-057 Wall Training", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // The printed digivolution cost is 3; the reduction leaves 1.
     s.state.memory = 1;
     await s.ready();
 

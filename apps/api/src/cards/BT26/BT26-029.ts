@@ -69,8 +69,6 @@ export const compiled: CompiledCard = {
                   controller: "mine",
                   zone: "digivolutionCards",
                   kind: ["Digimon"],
-                  // Decode's bracket-only reference (§2-3-1-2) names exactly
-                  // [Aegiomon], rather than every card containing that text.
                   nameOrTrait: [{ tokens: ["Aegiomon"], match: "nameExact" }],
                 },
                 count: 1,

@@ -93,7 +93,6 @@ describe("LM-015 Ryudamon", () => {
     s.state.turnSeat = 0;
     await s.ready();
 
-    // Ginryumon carries the [X Antibody] trait, so the aura applies.
     expect(s.perm("host").currentDP).toBe(getCardDefinition("BT15-058")!.dp! + 1000);
   });
 

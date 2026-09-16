@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-186 Gallantmon — the Japanese printed text and Q4629/Q4630 establish “13000 DP or more.”
-// The English Q&A translation says “or less”; Japanese source wording takes priority.
 const compiled: CompiledCard = {
   effects: [
     {

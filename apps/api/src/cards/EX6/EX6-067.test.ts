@@ -66,7 +66,6 @@ describe("EX6-067 Final Excalibur", () => {
             { card: "BT1-053", as: "angel", suspended: true },
             { card: "BT1-060", as: "archangel", suspended: true },
             { card: "BT1-063", as: "threeGreatAngels", suspended: true },
-            // Petermon is not an Angel-family card; its Kudamon source must not make it match.
             { card: "BT1-056", as: "nearMatch", suspended: true, under: ["BT1-046"] },
           ],
         },

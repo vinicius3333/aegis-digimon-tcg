@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** BT25-088 Kyo Sawashiro — audited against the catalog and KB Q6415-Q6421. */
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -497,7 +497,6 @@ describe("BT21-021 OmniShoutmon", () => {
     expect(ex6?.stack.map((card) => card.instanceId)).toEqual([...materialIds].reverse());
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === omniId)).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === ex6Id)).toBe(false);
-    // Eleven printed cost minus five from OmniShoutmon and ten from five materials floors at zero.
     expect(s.state.memory).toBe(6);
   });
 

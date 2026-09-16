@@ -26,8 +26,6 @@ export const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       actions: [
-        // The printed "your or your opponent's hand" wording is represented by two
-        // directional buses, sharing one once-per-turn key.
         {
           kind: "SubTrigger",
           event: "whenEffectAddsToHand",

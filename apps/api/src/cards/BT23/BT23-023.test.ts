@@ -6,13 +6,8 @@ import "../index.js";
 import "./BT23-015.js";
 import { compiled } from "./BT23-023.js";
 
-/** Inert main-deck Digimon with no triggered text, so a draw never opens a decision. */
 const INERT_DECK = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-027", "BT1-028"];
 
-/**
- * Hand the turn to seat 1 through the real turn loop instead of writing `state.turnSeat`.
- * Returns the loop promise so the caller can surrender and await it.
- */
 async function toOpponentMain(s: EngineSetup): Promise<{ loop: Promise<void> }> {
   await s.ready();
   const loop = s.engine.startTurnLoop();
@@ -106,7 +101,6 @@ describe("BT23-023 Whamon", () => {
       true,
     );
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === whamonId)).toBe(false);
-    // The replaced Whamon and the unchosen digivolution card go to the trash; only one card returns.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("whamon").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -188,7 +182,6 @@ describe("BT23-023 Whamon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === sourceId)).toBe(true);
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstDecoy").instanceId);
-    // Second use in the same turn: Once Per Turn is spent, so no second source is played.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondGaia").instanceId })).toEqual({
       ok: true,
     });
@@ -197,7 +190,6 @@ describe("BT23-023 Whamon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === secondSourceId)).toBe(false);
     expect(s.perm("surfimon").stack.map((card) => card.instanceId)).toContain(secondSourceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondDecoy").instanceId);
-    // Next opponent turn: the Once Per Turn has reset and the reaction fires again.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -230,7 +222,6 @@ describe("BT23-023 Whamon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     expect(s.perm("base").topCard?.instanceId).toBe(whamonId);
-    // Digivolving draws one bonus card, so the emptied hand refills to exactly one card.
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
@@ -295,7 +286,6 @@ describe("BT23-023 Whamon", () => {
       {
         0: {
           battleArea: [
-            // BT1-009 Monodramon is a level-3 black Digimon without the CS trait: no legal play.
             { card: "BT23-023", as: "whamon", under: [{ card: "BT1-009", as: "ineligible" }] },
             { card: "BT23-035", as: "neighbor", under: [{ card: "BT23-019", as: "wrongStack" }] },
           ],
@@ -396,8 +386,6 @@ describe("BT23-023 Whamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // Structural: the engine exposes no public own-effect that deletes your own Digimon
-    // without also carrying text of its own, so the owner-effect negative uses the verb seam.
     expect(await advance(s.engine).verb.deletePermanent([s.perm("whamon").permanentId], "byEffect")).toBe(1);
     await settle();
     expect(

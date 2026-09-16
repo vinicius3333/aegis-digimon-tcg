@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT23-099 (The Sistermon Sisters Training Gym).
-// Static: while you have a Digimon with [Huckmon] in its name on the field (including
-// breeding area per KB Q5387), ignore this card's color requirements.
-// [Main] <Draw 1> then place this card in the battle area.
-// [Your Turn] When any of your Digimon digivolve into a Digimon with [Huckmon] or
-// [Jesmon] in its name, activate <Delay> to play 1 [Sistermon] card from hand or
-// trash without cost.
-// [Security] play 1 [Sistermon] from hand or trash without cost; you may place this
-// card in the battle area.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -26,7 +17,6 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              // KB Q5387: "on the field" = battle area OR breeding area
               kind: ["Digimon"],
               zone: ["battleArea", "breeding"],
               nameOrTrait: [{ tokens: ["Huckmon"], match: "name" }],
@@ -51,13 +41,11 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      // SubTrigger: when your Huckmon/Jesmon digivolves, this card gains <Delay>.
       trigger: "YourTurn",
       actions: [
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
-          // sourceFilter applies to the Digimon being digivolved into
           sourceFilter: {
             controllerDefault: "mine",
             kind: ["Digimon"],

@@ -32,8 +32,6 @@ describe("BT19-012 OmniShoutmon", () => {
   });
 
   it("compiles every printed clause", () => {
-    // "also treated as [Shoutmon] for a DigiXros" is a name grant confined to the DigiXros
-    // ledger (Q3068), and prints no timing bracket — Static, not AllTurns.
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "Static",
       actions: [
@@ -63,8 +61,6 @@ describe("BT19-012 OmniShoutmon", () => {
         ],
       });
     }
-    // "with the [Xros Heart]/[Blue Flare] trait" is an EXACT trait test, never a substring,
-    // and the cards come from the controller's own hand or trash.
     expect(compiled.effects?.[3]).toMatchObject({
       trigger: "OnDeletion",
       actions: [
@@ -83,7 +79,6 @@ describe("BT19-012 OmniShoutmon", () => {
         },
       ],
     });
-    // Printed "[Your Turn]" is the YourTurn trigger, not Static.
     expect(compiled.effects?.[4]).toMatchObject({
       trigger: "YourTurn",
       isInherited: true,
@@ -103,17 +98,10 @@ describe("BT19-012 OmniShoutmon", () => {
     ]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve][Shoutmon]: Cost 4 / [Digivolve] Lv.4 w/[Xros Heart]\u00A0trait: Cost 3
-  // ---------------------------------------------------------------------------
-
   it("resolves each alternate requirement to its own cost and rejects a non-matching base", () => {
-    // BT19-008 Shoutmon is the exact printed name; BT19-010 Shoutmon X4 is the near miss —
-    // it carries "Shoutmon" as a substring, so only the Lv.4 [Xros Heart] route may match it.
     expect(matchingAlternateDigivolutionRequirement("BT19-012", "BT19-008")).toMatchObject({ cost: 4 });
     expect(matchingAlternateDigivolutionRequirement("BT19-012", "BT19-010")).toMatchObject({ cost: 3 });
     expect(matchingAlternateDigivolutionRequirement("BT19-012", "BT19-033")).toMatchObject({ cost: 3 });
-    // Lv.3 Xros Heart (wrong level) and a Lv.2 with neither name nor trait.
     expect(matchingAlternateDigivolutionRequirement("BT19-012", "BT19-009")).toBeUndefined();
     expect(matchingAlternateDigivolutionRequirement("BT19-012", "BT19-005")).toBeUndefined();
   });
@@ -148,7 +136,6 @@ describe("BT19-012 OmniShoutmon", () => {
 
     expect(s.perm("base").topCard?.cardId).toBe("BT19-012");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([baseCardId]);
-    // The gauge started at exactly the route's cost, so the reduced route is what was paid.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -178,11 +165,6 @@ describe("BT19-012 OmniShoutmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-012"]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.
-  // Then, delete 1 of your opponent's Digimon with 3000 DP or less.
-  // ---------------------------------------------------------------------------
-
   it("reduces one opposing Digimon by 3000 and then deletes it at the 3000 DP boundary", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -204,8 +186,6 @@ describe("BT19-012 OmniShoutmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omni").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // 6000 - 3000 = 3000 lands exactly on the printed maximum, so that Digimon is the one
-    // deleted; the untouched 4000 DP peer keeps its DP and stays on the board.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-010"]);
     expect(s.perm("untouched").currentDP).toBe(4000);
     expect(s.state.memory).toBe(3);
@@ -227,18 +207,11 @@ describe("BT19-012 OmniShoutmon", () => {
     await drainMicrotasks(30);
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
-    // The -3000 still applied and lasts only for the turn.
     expect(s.perm("target").currentDP).toBe(4000);
     expect(s.state.memory).toBe(3);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Deletion] Place 1 Digimon card with the [Xros Heart]/[Blue Flare] trait from your
-  // hand or trash under your Tamers.
-  // ---------------------------------------------------------------------------
-
   it("places a matching Digimon under its own Tamer when it dies in battle", async () => {
-    // Deletion reached through a real attack into a bigger suspended Digimon, not a verb.
     const s = setupEngine(
       {
         0: {
@@ -271,8 +244,6 @@ describe("BT19-012 OmniShoutmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.length === 1);
 
-    // Only the [Blue Flare] card in the controller's own trash qualified: the [Dark Dragon]
-    // card in hand and the opponent's [Xros Heart] card in THEIR trash are both near misses.
     expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT19-016"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-009"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT19-012"]);
@@ -312,10 +283,6 @@ describe("BT19-012 OmniShoutmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [Your Turn] This Digimon with the [Xros Heart]\u00A0trait gains ＜Rush＞.
-  // ---------------------------------------------------------------------------
-
   it("grants inherited Rush only to an Xros Heart host during its controller's turn", async () => {
     const s = setupEngine({
       0: {
@@ -327,7 +294,6 @@ describe("BT19-012 OmniShoutmon", () => {
     });
     await advance(s.engine).recompute();
 
-    // BT19-015 Gallantmon ([Holy Warrior]/[Royal Knight]) is the near-miss trait host.
     expect(observe(s.engine).hasKeyword(s.perm("xrosHost"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plainHost"), "Rush")).toBe(false);
 
@@ -364,10 +330,6 @@ describe("BT19-012 OmniShoutmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  // ---------------------------------------------------------------------------
-  // "This card is also treated as [Shoutmon] for a DigiXros." — Q3068.
-  // ---------------------------------------------------------------------------
-
   it("is a legal [Shoutmon] material for a DigiXros but keeps its printed name", async () => {
     const s = setupEngine({
       0: {
@@ -383,7 +345,6 @@ describe("BT19-012 OmniShoutmon", () => {
     });
     await s.ready();
 
-    // The alias never reaches ordinary name matching.
     expect(observe(s.engine).effectiveNames(s.perm("omni"))).toEqual(["omnishoutmon"]);
 
     expect(
@@ -407,7 +368,6 @@ describe("BT19-012 OmniShoutmon", () => {
   });
 
   it("is not a ＜Material Save＞-eligible [Shoutmon] under a Tamer (Q3068)", async () => {
-    // The DigiXros-only alias is invisible to the eligibility test ＜Material Save＞ uses.
     expect(digiXrosMatches("BT10-013", "BT19-012")).toBe(false);
     expect(digiXrosMatches("BT10-013", "BT19-008")).toBe(true);
 
@@ -440,8 +400,6 @@ describe("BT19-012 OmniShoutmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.length > 0);
 
-    // ＜Material Save 3＞ moved the real [Shoutmon] and [Ballistamon]; OmniShoutmon was never
-    // eligible and went to the trash with the rest of the stack.
     expect(
       s
         .perm("tamer")

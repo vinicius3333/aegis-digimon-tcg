@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT7-031 Herissmon — inherited effect: when trashed by THIS Digimon's <Digi-Burst>
-// activation, return this card to its owner's hand AFTER the Digi-Burst effect resolves
-// (Q1551). The engine emits the dedicated onDigiBurstCardDiscarded sub-trigger.
 const compiled: CompiledCard = {
   effects: [
     {

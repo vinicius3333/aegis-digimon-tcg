@@ -127,7 +127,6 @@ describe("BT19-001 through BT19-020 card-by-card audit", () => {
           ],
         },
       },
-      // Save is optional (comprehensive 16-20-3); accept it while the Tamer play has no candidate.
       { autoAcceptOptional: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("greymon").permanentId]);

@@ -10,20 +10,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../ST3/ST3-11.js";
 import "../ST3/ST3-14.js";
 
-// LM-020 (Quantumon) — two clauses with dense official Q&A:
-//
-//  [When Digivolving] By placing 1 Digimon on top of its owner's security stack,
-//  reveal all of your opponent's security cards, place 1 among them on top of your
-//  opponent's deck, then shuffle the rest back.
-//
-//  [Start of Opponent's Turn] Declare 1 card category. Reveal the top card of your
-//  opponent's deck. If it matches, this Digimon isn't affected by that category for
-//  the turn. Return the revealed card to top or bottom of opponent's deck.
-//  (Q4003 notes this text was errata'd to include the "top or bottom" return choice.)
-//
-// The behavioral cases below preserve the corrected security-placement and
-// StartOfOpponentsTurn timing semantics against the production engine.
-
 function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
   return {
     cardId: "LM-020",
@@ -47,7 +33,7 @@ function makeSource(over: Partial<CardSource> = {}): CardSource {
     definition: fakeDefinition(),
     permanent: () => undefined,
     isOnBattleArea: () => true,
-    isOwnersTurn: () => false, // this triggers on opponent's turn
+    isOwnersTurn: () => false,
     hasColor: () => false,
     ...over,
   };
@@ -89,7 +75,6 @@ describe("LM-020 Quantumon", () => {
         { kind: "SecurityManipulation", op: "revealAllChooseToDeckTopShuffleRest", controller: "opponent" },
       ],
     });
-    // No [Once Per Turn] is printed on the When Digivolving clause.
     expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")?.frequency).toBeUndefined();
     expect(compiled.effects.find((effect) => effect.trigger === "StartOfOpponentsTurn")?.actions).toEqual([
       expect.objectContaining({ kind: "DeclareCategoryImmunity", duration: "forTheTurn" }),
@@ -169,9 +154,6 @@ describe("LM-020 Quantumon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
 
-    // The Digimon lands in ITS OWNER's stack, never the resolving player's. The second half of
-    // the clause then moves one of that stack's cards onto the same player's deck, so the card
-    // ends up in one of those two zones — both belonging to its owner.
     expect(s.state.players[0]!.security.some((card) => card.cardId === "LM-016")).toBe(false);
     expect(
       s.state.players[1]!.security.some((card) => card.cardId === "LM-016") ||
@@ -240,25 +222,16 @@ describe("LM-020 Quantumon", () => {
   const module = getEffectModule("LM-020");
 
   it("is registered", () => {
-    // Basic smoke test — the import side-effect must register the module.
     expect(module, "LM-020 must self-register on import").toBeDefined();
   });
 
-  // Q4003: [Start of Opponent's Turn] fires at the START of the OPPONENT's turn.
-  // The engine models that as the opponent's OnStartTurn window. The IR trigger
-  // "StartOfOpponentsTurn" must map to EffectTiming.OnStartTurn, not to None.
-  // Now PASSES: timingForTrigger() maps "StartOfOpponentsTurn" -> EffectTiming.OnStartTurn
-  // and the turn-ownership guard restricts it to the opponent's turn.
   it("StartOfOpponentsTurn clause produces at least one effect at OnStartTurn timing", () => {
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnStartTurn, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);
   });
 
-  // Q4003: No effect fires at WhenDigivolving for the Start-of-Opponent's-Turn clause —
-  // wrong-timing sanity check (a separate guard from the main xfail above).
   it("WhenDigivolving timing has at least one effect (the digivolving clause)", () => {
-    // Q4008/Q4009: the WhenDigivolving effect is real and fire-able; it must exist there.
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);

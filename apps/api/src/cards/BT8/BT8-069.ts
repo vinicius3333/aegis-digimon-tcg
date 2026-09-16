@@ -1,7 +1,3 @@
-// HAND-FIXED IR for BT8-069 — do not regenerate.
-// WhenDigivolving: added from:hand, underFilter:self, position:bottom; added Delete gated
-// action. YourTurn SubTrigger: added Restrict("can't be deleted") action. The printed
-// inherited EndOfAttack effect belongs to Ouryumon and unsuspends an Alphamon host.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

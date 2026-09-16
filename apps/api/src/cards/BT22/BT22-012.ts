@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT22-012 (RizeGreymon).
-// Text: ＜Raid＞
-//   [When Digivolving] If you have 1 or fewer Tamers, from your hand and without paying
-//   the cost, you may play 1 red or black Tamer card with a play cost of 4 or less OR
-//   1 Tamer card with the [CS] trait.
-//   [Inherited] ＜Security Attack +1＞
-// Fixes vs AUTO-GENERATED:
-//   - Condition changed from youHave (>=1) to permanentCount <= 1.
-//   - Filter changed from AND (colors+cost+trait) to orFilters: two separate options
-//     (red/black Tamer cost<=4) OR (CS-trait Tamer).
 export const compiled: CompiledCard = {
   effects: [
     {

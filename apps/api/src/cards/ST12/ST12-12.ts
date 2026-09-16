@@ -1,8 +1,3 @@
-// HAND-AUTHORED OVERRIDE — maintained as a direct implementation (the AUTO-GENERATED header is
-// intentionally removed). The runtime record double-emitted the [On Play] "By trashing 1 card
-// in your hand, ＜Draw 2＞. (Draw 2 cards from your deck.)" as TWO Draw-2 actions — one
-// cost-bearing and one bare from the reminder text — so the card drew 4. This carries the
-// corrected single cost-bearing Draw 2; the rest of the IR matches the runtime record output.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

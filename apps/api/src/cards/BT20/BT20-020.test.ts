@@ -137,7 +137,6 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
       ),
     ).toBe(false);
 
-    // The restriction is by-effect only: an ordinary Tamer play remains legal.
     s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("ordinaryTamer").instanceId })).toEqual({
       ok: true,
@@ -408,11 +407,6 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
   });
 
   it("naturally deletes an opposing Digimon after a security check within the source DP limit", async () => {
-    // `tooLarge` (14000 DP) outguns the 13000-DP fighter, so with `autoSelectCards`
-    // Raid's mandatory highest-DP redirect (§16-23-4) always sends the attack at
-    // `tooLarge` instead of the player, and the fighter dies in that battle before
-    // any security check ever happens. Decline the Raid redirect explicitly so the
-    // attack actually goes at the player and exercises the security-removed power.
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-020", as: "fighter" }] },
       1: {

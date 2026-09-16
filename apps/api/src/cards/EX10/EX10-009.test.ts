@@ -6,11 +6,6 @@ import { setupEngine, settle, type BoardSpec, type SeatSpec } from "../../engine
 import "../index.js";
 import { compiled } from "./EX10-009.js";
 
-/**
- * Board Spec shared by every [When Digivolving] case: a level 5 source of a printed
- * evolution colour, Creepymon in hand, and a stocked deck so the digivolution bonus draw
- * and any milling have real cards to move.
- */
 function digivolveBoard(source: string, opponent: SeatSpec): BoardSpec {
   return {
     0: {
@@ -40,8 +35,6 @@ describe("EX10-009 Creepymon", () => {
       attributes: ["Virus"],
       types: ["Demon Lord", "Seven Great Demon Lords", "Fallen Angel"],
     });
-    // The catalog prints no inherited and no security text for this card; assert that so a
-    // later catalog change that adds either is caught here instead of silently uncovered.
     const definition = getCardDefinition("EX10-009");
     expect(definition?.inheritedEffectText).toBeUndefined();
     expect(definition?.securityEffectText).toBeUndefined();
@@ -79,15 +72,11 @@ describe("EX10-009 Creepymon", () => {
         },
       ],
     });
-    // "This Digimon may attack" prints no "without suspending" clause (contrast BT21-072), so
-    // the effect-driven attack follows the normal declaration rules and taps the attacker.
     expect(compiled.effects?.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({
       actions: [{ kind: "Attack", withoutSuspending: false, optional: true }],
     });
   });
 
-  // C1: the printed evolution routes, driven by the public `digivolve` intent. Both printed
-  // costs are level 5 / cost 4, one per colour.
   it.each([
     ["red", "BT1-020"],
     ["purple", "BT10-079"],
@@ -121,7 +110,6 @@ describe("EX10-009 Creepymon", () => {
     expect(s.perm("source").stack.map((card) => card.instanceId)).toEqual([sourceId]);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
-    // Only the lowest-DP Digimon is deleted, and because a deletion happened the deck is untouched.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("high").permanentId,
     ]);
@@ -203,14 +191,11 @@ describe("EX10-009 Creepymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
 
-    // The 1000 DP breeding Digimon is untouched (Comprehensive Rules §3-4-5-2) and the
-    // 9000 DP battle-area Digimon is the lowest among legal targets, so it dies.
     expect(s.state.players[1]!.breeding?.topCard?.instanceId).toBe(s.inst("inBreeding").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(deckBefore);
   });
 
-  // Q5016: no opposing Digimon at all still counts as "this effect didn't delete".
   it("Q5016 mills exactly 5 when the opponent has no Digimon to delete", async () => {
     const s = setupEngine(
       digivolveBoard("BT1-020", {
@@ -240,9 +225,6 @@ describe("EX10-009 Creepymon", () => {
     ]);
   });
 
-  // Q5017: the only opposing Digimon survives a deletion-prevention static, so nothing was
-  // deleted and the fallback mill still happens. BT14-062 Datamon prints
-  // "[All Turns] This Digimon can't be deleted by your opponent's effects."
   it("Q5017 mills 5 when the only opposing Digimon cannot be deleted by opponent effects", async () => {
     const s = setupEngine(
       digivolveBoard("BT1-020", {
@@ -268,8 +250,6 @@ describe("EX10-009 Creepymon", () => {
     expect(s.state.players[1]!.trash.filter((card) => card.cardId !== "BT14-062")).toHaveLength(5);
   });
 
-  // Q5018: two tied lowest-DP Digimon, one protected. One deletion succeeds, so the
-  // "didn't delete" condition is NOT met and the deck stays whole.
   it("Q5018 does not mill when at least one of the tied lowest DP Digimon is deleted", async () => {
     const s = setupEngine(
       digivolveBoard("BT1-020", {
@@ -299,7 +279,6 @@ describe("EX10-009 Creepymon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-020"]);
   });
 
-  // C1 on its second printed timing: [On Deletion], reached by losing a real battle.
   it("fires the same clause on deletion after losing a battle it declared", async () => {
     const s = setupEngine(
       {
@@ -329,16 +308,12 @@ describe("EX10-009 Creepymon", () => {
       5000,
     );
 
-    // Creepymon loses the battle (12000 vs 15000); its [On Deletion] then deletes the
-    // survivor, which was the opponent's only — hence lowest DP — Digimon. A deletion
-    // happened, so no mill.
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX10-009"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-014"]);
     expect(s.state.players[1]!.deck).toHaveLength(deckBefore);
   });
 
-  // C2 + Q5019: the [When Attacking] breeding play, reached by a real attack declaration.
   it.each([
     ["red", "BT1-013"],
     ["purple", "BT3-083"],
@@ -376,8 +351,6 @@ describe("EX10-009 Creepymon", () => {
     await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("eligible").instanceId, 5000);
 
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe(eligible);
-    // The two non-matching trash cards stay put: 5000 DP is the inclusive boundary, and
-    // "red or purple" excludes a blue card.
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-020", "BT1-028"]);
     expect(s.state.players[0]!.breeding?.inBreeding).toBe(true);
   });
@@ -388,8 +361,6 @@ describe("EX10-009 Creepymon", () => {
         0: {
           battleArea: [{ card: "EX10-009", as: "creepymon" }],
           trash: [
-            // Blue 3000 DP (within the DP bound, wrong colour) and red 6000 DP (right
-            // colour, one over the 5000 DP bound).
             { card: "BT1-028", as: "wrongColour" },
             { card: "BT1-020", as: "tooLarge" },
           ],
@@ -418,15 +389,12 @@ describe("EX10-009 Creepymon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-020", "BT1-028"]);
   });
 
-  // Q5019: a Digimon played into breeding by this effect does not trigger its own [On Play].
   it("Q5019 does not fire the played Digimon's On Play effect", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX10-009", as: "creepymon" }],
-          // EX10-007 Greymon: "[On Play] [When Digivolving] 1 Digimon gets +3000 DP until
-          // your opponent's turn ends." Red, 4000 DP, so it is a legal choice here.
           trash: [{ card: "EX10-007", as: "eligible" }],
           deck: ["BT1-009", "BT1-010"],
         },
@@ -453,7 +421,6 @@ describe("EX10-009 Creepymon", () => {
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined, 5000);
 
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("EX10-007");
-    // No +3000 DP landed anywhere: the [On Play] never ran.
     expect(s.perm("creepymon").currentDP).toBe(creepymonDp);
     expect(s.state.players[0]!.breeding?.currentDP).toBe(4000);
   });
@@ -521,20 +488,6 @@ describe("EX10-009 Creepymon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(true);
   });
 
-  // Q5656, fixed by seam 9. BT24-078 Creepymon (X Antibody) prints a {Trash} [Your Turn] effect
-  // that reacts to the same attack declaration. The ruling: both trigger simultaneously and the
-  // player picks the order, but resolving the trash digivolve first means this card's
-  // [When Attacking] can no longer activate.
-  //
-  // Seam: the sub-trigger fire path in apps/api/src/engine/effects/subtriggers.ts together with
-  // the timing-window queue in apps/api/src/engine/effects/EffectContext.ts (`fireTiming` /
-  // `fireSubTriggers`). Two defects, both outside this card's module:
-  //   1. The `whenAttacking` watcher bus fired AFTER the OnUseAttack timing window instead of
-  //      being folded into it, so the two never reached one `orderTriggers` prompt.
-  //      `GameEngine.withPendingAttackSubTriggers` now runs the attack windows with the event's
-  //      watchers parked in them, the same seam every other event already used.
-  //   2. Once both share a window, `stack.ts`'s own presence/identity diff retires EX10-009's
-  //      entry as soon as BT24-078 becomes the permanent's top card (CR 15-4-4-3).
   it("Q5656 loses its When Attacking window when the trash digivolve is ordered first", async () => {
     const s = setupEngine(
       {
@@ -542,8 +495,6 @@ describe("EX10-009 Creepymon", () => {
           battleArea: [{ card: "EX10-009", as: "creepymon" }],
           trash: [
             { card: "BT24-078", as: "xAntibody" },
-            // Avian trait, so BT24-078's own [When Digivolving] play (Evil / Fallen Angel
-            // only) cannot pick it up; the only route into breeding is EX10-009's clause.
             { card: "BT1-013", as: "eligible" },
           ],
           deck: ["BT1-009", "BT1-010"],
@@ -567,18 +518,13 @@ describe("EX10-009 Creepymon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined, 5000);
 
-    // The trash digivolve resolved: EX10-009 is now a digivolution card under BT24-078.
     expect(s.perm("creepymon").topCard?.instanceId).toBe(s.inst("xAntibody").instanceId);
     expect(s.perm("creepymon").stack.map((card) => card.cardId)).toContain("EX10-009");
-    // The two [When Attacking] reactions were offered as a simultaneous set the controller
-    // orders. ACTUAL: only three plain `optional` prompts are raised, never `orderTriggers`.
     expect(s.decisions.some(({ req }) => req.kind === "orderTriggers")).toBe(true);
-    // EX10-009's own [When Attacking] never activated, so nothing reached breeding.
     expect(s.state.players[0]!.breeding).toBeUndefined();
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(true);
   });
 
-  // C3: [End of Your Turn] through the production turn loop, not an injected timing.
   it("attacks at the end of its controller's real turn and suspends doing so", async () => {
     const preferred = ["player"];
     const s = setupEngine(
@@ -624,10 +570,6 @@ describe("EX10-009 Creepymon", () => {
   });
 
   it("cannot attack again at end of turn once its main-phase attack suspended it", async () => {
-    // FAILS-WHEN-REVERTED: `withoutSuspending: true` would let the already-suspended
-    // Creepymon declare a second, untapped attack. The printed text is the plain
-    // "may attack" form. A Board Spec `suspended: true` cannot prove this — the turn's own
-    // Unsuspend step clears it — so the suspension comes from a real attack this turn.
     const s = setupEngine(
       {
         0: {

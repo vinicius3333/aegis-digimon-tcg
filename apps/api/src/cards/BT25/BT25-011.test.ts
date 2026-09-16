@@ -140,7 +140,6 @@ describe("BT25-011 Aquilamon", () => {
       expect.arrayContaining(["BT25-010", "BT25-011", "BT24-034"]),
     );
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    // Both BT25-010 and BT25-011 are inherited sources in this legal DNA stack.
     expect(merged.currentDP).toBe(12000);
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();

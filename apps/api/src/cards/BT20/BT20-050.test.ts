@@ -140,8 +140,6 @@ describe("BT20-050 HoverEspimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Player-directed, unblocked attacks resolve through a security check rather than
-    // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 1);
     expect(s.state.players[0]!.hand).toHaveLength(3);
 

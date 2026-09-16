@@ -49,7 +49,6 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
       5000,
     );
 
-    // Q1105: MaloMyotismon is already in play when Arukenimon deletes itself.
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(
       s.engine.applyIntent(0, {
@@ -82,7 +81,6 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
         !observe(s.engine).isAttacking(),
     );
 
-    // Q1118/Q1120: two deletions grant 2 memory to each active MaloMyotismon.
     expect(s.state.memory).toBe(8);
     expect(s.state.players[1]!.security).toHaveLength(2);
     assertNoLoudGap(s);

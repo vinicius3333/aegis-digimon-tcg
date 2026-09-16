@@ -44,8 +44,6 @@ describe("BT23-060 Machinedramon", () => {
       { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    // Pin the ＜De-Digivolve 1＞ onto the stacked Digimon; the 14000 DP Dullahamon has no
-    // digivolution cards, so choosing it would make the clause a no-op.
     preferred.push(s.perm("stacked").topCard!.instanceId);
     s.state.memory = 12;
     const stackedId = s.perm("stacked").permanentId;
@@ -57,8 +55,6 @@ describe("BT23-060 Machinedramon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === stackedId));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 13000 DP GranDracmon shed its top card down to 4000 DP Sangloupmon, so the follow-up
-    // deletion could reach it; 14000 DP Dullahamon stayed above the 8000 DP band.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([largeId]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT23-063", "BT23-068"]);
     expect(s.state.memory).toBe(0);
@@ -404,8 +400,6 @@ describe("BT23-060 Machinedramon", () => {
     await settle(() => s.state.memory === 0 && s.state.pendingDecision === undefined);
     await settle();
 
-    // The lone opposing Digimon carries no digivolution cards, so ＜De-Digivolve 1＞ changes
-    // nothing and 9000 DP stays one step above the deletion band.
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === bigId)).toBe(true);
     expect(s.perm("big").currentDP).toBe(9000);
     expect(s.state.players[1]!.trash).toHaveLength(0);

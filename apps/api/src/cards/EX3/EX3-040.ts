@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited IR for EX3-040. The generated record omitted the green Digimon play filter and
-// the allied Digimon scope of the inherited suspension watcher.
 const compiled: CompiledCard = {
   effects: [
     {

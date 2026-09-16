@@ -63,7 +63,7 @@ describe("BT22-037 Chirinmon", () => {
       "Printed digivolution requirement (cost 4)",
       "Alternate digivolution requirement (cost 3)",
     ]);
-    expect(s.state.memory).toBe(5); // 3 for Chirinmon, then 4 - 2 for BT22-041.
+    expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT22-034", "BT22-037"]);
     expect(s.perm("base").topCard.cardId).toBe("BT22-041");
@@ -94,7 +94,7 @@ describe("BT22-037 Chirinmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT22-041");
 
-    expect(s.state.memory).toBe(6); // 3 for Chirinmon, then alternate 3 - 2 for BT22-041.
+    expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 

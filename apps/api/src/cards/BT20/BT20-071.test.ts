@@ -12,23 +12,9 @@ import "./BT20-070.js";
 import "./BT20-080.js";
 import "../BT14/BT14-087.js";
 
-// A3 for BT20-071 (Soloogarmon — Purple Lv.5 Digimon).
-//
-// [On Play] / [When Digivolving]: By trashing 1 card in your hand, for the turn, 1 of your
-//   Digimon gains ＜Raid＞ and gets +3000 DP.
-// [Your Turn][Inherited] This Digimon with the [SoC]/[SEEKERS] trait doesn't activate
-//   [Security] effects on Option cards it checks.
-//
-// FAILS-WHEN-REVERTED: on Soloogarmon [On Play], a controller Digimon's DP increases by 3000,
-//   proving the trash-hand-and-grant-raid effect resolved.
-
-// BT20-071 = Soloogarmon (Purple/Red Lv.5, dp 7000, playCost 7)
 const SOLOOGARMON = "BT20-071";
-// BT20-032 = Bulkmon (Lv.4, SEEKERS trait — base to digivolve Soloogarmon onto)
 const BULKMON = "BT20-032";
-// BT1-010 Agumon — cheap filler for hand trash
 const AGUMON = "BT1-010";
-// BT1-001 Koromon — a Digimon to grant Raid+3000 to
 const KOROMON = "BT20-010";
 
 describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP", () => {
@@ -70,15 +56,11 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
       {
         0: {
           battleArea: [
-            // Bulkmon on the battle area (will digivolve into Soloogarmon).
             { card: BULKMON, dp: 4000, as: "bulkmonPerm" },
-            // Another Digimon (Koromon) that may receive Raid + DP boost.
             { card: KOROMON, dp: 1000, as: "koromonPerm" },
           ],
           hand: [
-            // Soloogarmon in hand to digivolve into.
             { card: SOLOOGARMON, as: "soloogarmonInst" },
-            // A hand card to trash as cost (Agumon).
             { card: AGUMON, as: "cost" },
           ],
         },
@@ -90,14 +72,11 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
     const soloogarmonInst = s.inst("soloogarmonInst");
     const koromonPerm = s.perm("koromonPerm");
 
-    // Use enough memory to pay the printed 4-cost red/yellow evolution.
     s.state.memory = 4;
 
-    // Record initial DPs for all own Digimon (the effect picks the first candidate).
     const initialBulkmonDP = bulkmonPerm.currentDP;
     const initialKoromonDP = koromonPerm.currentDP;
 
-    // Digivolve Bulkmon → Soloogarmon.
     const res = s.engine.applyIntent(0, {
       type: "digivolve",
       permanentId: bulkmonPerm.permanentId,
@@ -106,14 +85,8 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
 
     expect(res.ok).toBe(true);
 
-    // The [When Digivolving] effect fires: player accepts trashing a hand card
-    // (hooks accept=true for optional, first candidate for selectCards).
-    // Then the auto-respond hook picks the first Digimon candidate for the +3000 DP grant.
-    // The effect targets whichever Digimon appears first in battleArea; either Koromon or
-    // the evolved permanent (now Soloogarmon) gets the buff.
     await settle(() => bulkmonPerm.currentDP !== initialBulkmonDP || koromonPerm.currentDP !== initialKoromonDP, 600);
 
-    // One of the two Digimon should have received the +3000 DP grant.
     const anyBoosted = bulkmonPerm.currentDP > initialBulkmonDP || koromonPerm.currentDP > initialKoromonDP;
     expect(anyBoosted).toBe(true);
     const boosted = bulkmonPerm.currentDP > initialBulkmonDP ? bulkmonPerm : koromonPerm;

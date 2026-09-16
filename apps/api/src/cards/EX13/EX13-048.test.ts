@@ -9,31 +9,18 @@ import { compiled } from "./EX13-048.js";
 
 const cardId = "EX13-048";
 
-// Reference fixtures for the two different [Knightmon] readings.
-//   ST15-09  "Knightmon"       — the exact token in the NAME, so it matches both readings.
-//   BT7-058  "SkullKnightmon"  — SUBSTRING in the name, the reason the name slot is
-//                                `match: "name"` rather than `nameExact`. Its only printed
-//                                effect is [When Attacking], inert in these fixtures.
-//   BT18-058 "Kotemon"         — the discriminating near-match: it prints "[Knightmon]" inside
-//                                its own effect TEXT and nowhere in its name, so it matches the
-//                                text slot and must be refused by the name slot.
-//   BT1-013 / BT1-014          — inert main-deck Digimon carrying no [Knightmon] token at all.
 const NAME_EXACT = "ST15-09";
 const NAME_SUBSTRING = "BT7-058";
 const TEXT_ONLY = "BT18-058";
-// BT18-062 Gladimon — a SECOND [Knightmon]-in-text-only card. Two of them in one reveal is what
-// pins the name slot to `match: "name"`: under a text reading it would take the second card too.
 const TEXT_ONLY_2 = "BT18-062";
 const NON_MATCH = "BT1-013";
 const NON_MATCH_2 = "BT1-014";
 
-// Inert neutral fixtures (main-deck Digimon, no printed effects).
 const SENTINEL = "BT1-009";
 const NEUTRAL_LV3 = "BT1-013";
 
 const BLACK_EGG = "BT10-005";
 const GREEN_EGG = "BT1-007";
-// Black Lv.4 whose only printed effect is [On Play] — nothing fires when it digivolves.
 const BLACK_LV4 = "BT7-059";
 
 describe("EX13-048 Kotemon", () => {
@@ -59,7 +46,6 @@ describe("EX13-048 Kotemon", () => {
 
   it("compiles every printed clause", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
-    // The card prints no [Digivolve] header; the single Black Lv.2 route is a catalog EvoCost.
     expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
 
@@ -115,10 +101,6 @@ describe("EX13-048 Kotemon", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] Reveal 3. Add 1 [Knightmon]-in-text card AND 1 [Knightmon]-named card to hand.
-  // ---------------------------------------------------------------------------
-
   it("adds one text match and one name match to hand and bottoms the rest", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -137,8 +119,6 @@ describe("EX13-048 Kotemon", () => {
       },
       { autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
     );
-    // The text slot resolves first and the named card matches it too, so steer it to the
-    // text-only card; the name slot then has the named card left to take.
     preferred.push(s.inst("textMatch").instanceId);
     s.state.memory = 3;
     await s.ready();
@@ -153,8 +133,6 @@ describe("EX13-048 Kotemon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
       [s.inst("textMatch").instanceId, s.inst("nameMatch").instanceId].sort(),
     );
-    // "Return the rest to the bottom of the deck": the non-match sits UNDER the untouched
-    // sentinel that was never revealed.
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
       s.inst("miss").instanceId,
@@ -164,8 +142,6 @@ describe("EX13-048 Kotemon", () => {
     assertNoLoudGap(s);
   });
 
-  // The discriminating case for the two readings: BT18-058 Kotemon prints "[Knightmon]" in its
-  // effect text but never in its name, so the text slot takes it and the name slot finds nothing.
   it("refuses a text-only match in the name slot, adding just one card", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -194,8 +170,6 @@ describe("EX13-048 Kotemon", () => {
     await settle(() => s.state.players[0]!.hand.length > 0);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Exactly ONE card reaches the hand: the text slot takes BT18-058, and the name slot refuses
-    // the second [Knightmon]-in-text card, which is bottomed with the rest.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("textMatch").instanceId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
@@ -205,7 +179,6 @@ describe("EX13-048 Kotemon", () => {
     assertNoLoudGap(s);
   });
 
-  // "in its name" is the SUBSTRING reading: SkullKnightmon carries [Knightmon] inside its name.
   it("accepts a substring name match in the name slot", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -281,10 +254,6 @@ describe("EX13-048 Kotemon", () => {
     assertNoLoudGap(s);
   });
 
-  // ---------------------------------------------------------------------------
-  // Printed EvoCost: Black Lv.2 cost 0.
-  // ---------------------------------------------------------------------------
-
   it("digivolves from a black Lv.2 egg for 0 and refuses a green egg", async () => {
     const s = setupEngine({
       0: {
@@ -307,9 +276,7 @@ describe("EX13-048 Kotemon", () => {
     await settle(() => s.perm("egg").topCard.cardId === cardId);
 
     expect(s.state.memory).toBe(0);
-    // Source identity: the egg survives as the single digivolution card beneath Kotemon.
     expect(s.perm("egg").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("egg").instanceId]);
-    // Digivolution's bonus draw moved the one deck card into hand.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
 
@@ -337,12 +304,6 @@ describe("EX13-048 Kotemon", () => {
     ]);
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [All Turns] [Once Per Turn] leave prevention.
-  // ---------------------------------------------------------------------------
-
-  // The cost reads "in its text", so a Digimon that merely PRINTS "[Knightmon]" in its effect
-  // text — never in its name — is a legal payment. This is the wider of the card's two readings.
   it("keeps the host in play against an opponent's effect by deleting a [Knightmon]-in-text Digimon", async () => {
     const s = setupEngine(
       {
@@ -396,12 +357,9 @@ describe("EX13-048 Kotemon", () => {
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("bystander").permanentId,
     ]);
-    // The host and its digivolution card went to the trash; the bystander was never touched.
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id).sort()).toEqual([cardId, NEUTRAL_LV3].sort());
   });
 
-  // "1 of YOUR other Digimon" — the deliberate contrast with EX13-027's bare "1 other Digimon"
-  // (encoded `controller: "any"`). An opposing [Knightmon] cannot be spent here.
   it("cannot pay with the opponent's [Knightmon], so the host leaves", async () => {
     const s = setupEngine(
       {
@@ -480,7 +438,6 @@ describe("EX13-048 Kotemon", () => {
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
 
-    // "other than by your effects": the payable Knightmon was never touched.
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("fodder").permanentId,
     ]);
@@ -513,15 +470,12 @@ describe("EX13-048 Kotemon", () => {
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(hostId);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
 
-    // Same turn: the once-per-turn budget is spent, so the second leave goes through even though
-    // a second payable [Knightmon] is still standing.
     advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
     expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(hostId);
 
-    // A fresh host, and a real turn in between, restores the budget.
     const revived = s.putOnBoard(0, { card: NEUTRAL_LV3, as: "host2", under: [cardId] });
     await s.ready();
     s.state.turnSeat = 1;
@@ -564,8 +518,6 @@ describe("EX13-048 Kotemon", () => {
     ]);
   });
 
-  // Smallest legal stack that reaches the inherited clause through a real digivolution:
-  // black Lv.2 egg -> EX13-048 -> black Lv.4, with the inherited watcher still live on top.
   it("grants the inherited prevention to a Digimon digivolved onto it, preserving source identity", async () => {
     const s = setupEngine(
       {
@@ -597,7 +549,6 @@ describe("EX13-048 Kotemon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     const hostId = s.perm("kotemon").permanentId;
-    // Source identity survives the transition: egg at the bottom, EX13-048 above it.
     expect(s.perm("kotemon").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("egg").instanceId,
       s.inst("kotemon").instanceId,

@@ -5,18 +5,9 @@ import { setupEngine, settle, type BoardSpec, type SetupEngineOptions } from "..
 import "../index.js";
 import { compiled } from "./BT23-090.js";
 
-// Printed text (BT23-090 Keisuke Amasawa, White Tamer, play cost 4, [Hudie]/[CS]):
-//   [Start of Your Turn] If you have 2 or less memory, set it to 3.
-//   [End of Your Turn] By suspending this Tamer and returning 1 of your Digimon with the
-//     [Hudie] trait to the hand, you may play 1 Tamer card with the [CS] trait from your
-//     hand without paying the cost.
-//   [All Turns] All of your [Hudie] Digimon get +1000 DP.
-//   [Security] Play this card without paying the cost.
-
 const NEUTRAL_SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 const NEUTRAL_DECK = ["BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"];
 
-/** Seat 0 board with a spare playable card so the Main phase does not auto-pass. */
 function turnBoard(seat0: BoardSpec[0], seat1?: BoardSpec[1]): BoardSpec {
   return {
     0: { deck: [...NEUTRAL_DECK], security: [...NEUTRAL_SECURITY], ...seat0 },
@@ -29,16 +20,10 @@ function turnBoard(seat0: BoardSpec[0], seat1?: BoardSpec[1]): BoardSpec {
   };
 }
 
-/**
- * Start the real turn loop on seat 0 and stop inside its open Main phase. `memory` is
- * armed before the loop starts, so the [Start of Your Turn] window reads it.
- */
 async function runSeat0Turn(board: BoardSpec, opts: SetupEngineOptions, memory?: number) {
   const s = setupEngine(board, opts);
   if (memory !== undefined) s.state.memory = memory;
   const loop = s.engine.startTurnLoop();
-  // A seeded breeding-area permanent opens the interactive Breeding window, which blocks
-  // until the turn player acts or skips.
   for (let i = 0; i < 500 && s.state.phase !== Phase.Main; i += 1) {
     if (s.state.phase === Phase.Breeding && s.state.turnSeat === 0) {
       s.engine.applyIntent(0, { type: "endPhase" });
@@ -49,13 +34,11 @@ async function runSeat0Turn(board: BoardSpec, opts: SetupEngineOptions, memory?:
   return { s, loop };
 }
 
-/** End seat 0's turn (firing its [End of Your Turn] window) and stop in seat 1's Main. */
 async function endSeat0Turn(s: Awaited<ReturnType<typeof runSeat0Turn>>["s"]) {
   expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
   await advance(s.engine).waitForMainPhase(1);
 }
 
-/** Close the loop from seat 1's Main phase. */
 async function finish(s: Awaited<ReturnType<typeof runSeat0Turn>>["s"], loop: Promise<unknown>) {
   expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
   await loop;
@@ -122,10 +105,6 @@ describe("BT23-090 Keisuke Amasawa", () => {
   });
 
   it("pays both costs at the end of the turn and plays a [CS] Tamer from hand for free", async () => {
-    // Memory observed at the instant the Tamer arrives: a paid play would have charged its
-    // printed cost of 4 right there. The gauge is already reframed to the incoming turn
-    // player's sign by then (TurnStateMachine applies the pass-turn memory rule before it
-    // opens the End of Your Turn window), so a free play reads exactly -memoryBefore.
     const memoryAtPlay: number[] = [];
     let watchedTamerId: string | undefined;
     let sRef: Awaited<ReturnType<typeof runSeat0Turn>>["s"] | undefined;
@@ -171,10 +150,9 @@ describe("BT23-090 Keisuke Amasawa", () => {
     expect(me.battleArea.some((permanent) => permanent.topCard?.instanceId === tamerId)).toBe(true);
     expect(me.hand.some((card) => card.instanceId === tamerId)).toBe(false);
     expect(me.trash.some((card) => card.instanceId === tamerId)).toBe(false);
-    // A free play costs nothing: paying BT23-080's play cost of 4 would read -7 here.
     expect(memoryBefore).toBe(3);
     expect(memoryAtPlay).toEqual([-3]);
-    expect(s.state.memory).toBe(3); // seat 1 now holds the 3 memory seat 0 passed
+    expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
 
     await finish(s, loop);
@@ -206,8 +184,6 @@ describe("BT23-090 Keisuke Amasawa", () => {
     await finish(s, loop);
   });
 
-  // KB Q5363: a "by" cost is all-or-nothing. With no [Hudie] Digimon to return, the whole
-  // cost fails, so this Tamer must not suspend and nothing may be played.
   it("suspends nothing and plays nothing without a [Hudie] Digimon to return (Q5363)", async () => {
     const { s, loop } = await runSeat0Turn(
       turnBoard({
@@ -284,7 +260,6 @@ describe("BT23-090 Keisuke Amasawa", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
       1,
     );
-    // The Active phase unsuspends the board, so re-arm the suspension inside Main.
     s.perm("keisuke").isSuspended = true;
 
     await endSeat0Turn(s);
@@ -352,12 +327,10 @@ describe("BT23-090 Keisuke Amasawa", () => {
     expect(s.perm("nonHudie").currentDP).toBe(1000);
     expect(s.perm("opponentHudie").currentDP).toBe(7000);
 
-    // A [Hudie] Digimon that arrives later picks the buff up on the next recompute.
     const late = s.putOnBoard(0, { card: "BT23-020", as: "lateHudie" });
     await s.ready();
     expect(late.currentDP).toBe(6000);
 
-    // [All Turns]: still active during the opponent's turn.
     await endSeat0Turn(s);
     expect(s.perm("hudie").currentDP).toBe(8000);
     expect(s.perm("opponentHudie").currentDP).toBe(7000);
@@ -366,11 +339,6 @@ describe("BT23-090 Keisuke Amasawa", () => {
   });
 
   it("stops granting +1000 DP the moment this Tamer leaves the field", async () => {
-    // Mixed [Hudie] pool: two [Hudie] Digimon at different base DP, a non-[Hudie] control, and
-    // this Tamer itself — which carries the [Hudie] trait but is a Tamer, so "all of your [Hudie]
-    // DIGIMON" must not touch it. Seat 1 removes the Tamer on its own real turn with BT15-097
-    // Ultimate Slicer ("delete 1 of your opponent's Digimon or Tamers with the lowest play cost"):
-    // Keisuke's play cost of 4 is uniquely the lowest on seat 0's board.
     const { s, loop } = await runSeat0Turn(
       turnBoard(
         {
@@ -385,7 +353,6 @@ describe("BT23-090 Keisuke Amasawa", () => {
         {
           deck: [...NEUTRAL_DECK],
           security: [...NEUTRAL_SECURITY],
-          // A black permanent satisfies the Option's colour requirement.
           battleArea: [{ card: "BT10-064", as: "opponentBlack" }],
           hand: [
             { card: "BT15-097", as: "slicer" },
@@ -399,14 +366,12 @@ describe("BT23-090 Keisuke Amasawa", () => {
     const keisukeId = s.perm("keisuke").topCard!.instanceId;
     const fodderId = s.inst("cyborgFodder").instanceId;
 
-    // Buffed while the Tamer is on the field; the Tamer itself is not a Digimon.
     expect(s.perm("hudieA").currentDP).toBe(8000);
     expect(s.perm("hudieB").currentDP).toBe(6000);
     expect(s.perm("control").currentDP).toBe(10_000);
     expect(s.perm("keisuke").currentDP).toBe(0);
 
     await endSeat0Turn(s);
-    // Still buffed on the opponent's turn, with the Tamer still on the field.
     expect(s.perm("hudieA").currentDP).toBe(8000);
     expect(s.perm("hudieB").currentDP).toBe(6000);
     s.state.memory = 6;
@@ -420,13 +385,10 @@ describe("BT23-090 Keisuke Amasawa", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // The Tamer is gone and its continuous grant went with it: both [Hudie] Digimon drop by
-    // exactly 1000 to their printed DP, and the non-[Hudie] control never moved.
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === keisukeId)).toBe(true);
     expect(s.perm("hudieA").currentDP).toBe(7000);
     expect(s.perm("hudieB").currentDP).toBe(5000);
     expect(s.perm("control").currentDP).toBe(10_000);
-    // The Option's own cost was paid from seat 1's hand.
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === fodderId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
 

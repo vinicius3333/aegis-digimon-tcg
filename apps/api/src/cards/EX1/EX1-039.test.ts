@@ -138,8 +138,6 @@ describe("EX1-039 Lillymon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
       ok: true,
     });
-    // "controller: opponent" is relative to the player who plays the suspender, and
-    // `autoSelectCards` lands on the first eligible target — player0's host — not "target".
     await settle(() => s.perm("host").isSuspended);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

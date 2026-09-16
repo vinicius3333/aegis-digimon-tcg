@@ -10,14 +10,9 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
           raw: "When an effect places a Tamer card in one of your Digimon's digivolution cards, by suspending this Tamer, gain 1 memory",
-          // Every legal placement of a Tamer under a Digimon is effect-driven; the public
-          // Mind Link activation does not currently carry the optional byEffect provenance
-          // bit into the onAddDigivolutionCards payload.
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
           addedDigivolutionCardFilter: { kind: ["Tamer"] },
           actions: [
-            // "by suspending this Tamer" is a COST, not an ordered action: an already
-            // suspended Tamer cannot pay it, so no memory is gained.
             {
               kind: "CostGatedBlock",
               cost: {

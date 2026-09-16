@@ -6,25 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled as P_246 } from "./P-246.js";
 import "../index.js";
 
-// Fixtures — every one is chosen to be silent on the paths this card walks, so the only
-// decision any scenario can open is P-246's own optional digivolve.
-//   BT2-052  Hagurumon (Lv.3 Black, 3000 DP, NO printed text at all) — the host carrying the egg.
-//   BT2-056  Numemon (Lv.4 Black, 3000 DP, no printed text) — the Lv.4 host for the cost boundary.
-//   BT14-034 Sukamon (Lv.4 Yellow/Black, 1000 DP) — the [Sukamon] name subject that is deleted.
-//            Its only main clause is [Security]; its [On Deletion] sits in INHERITED text, which
-//            a top card does not use (comprehensive §4-23-1), so its deletion is inert.
-//   BT6-063  BigMamemon (Lv.5 Black, 10000 DP, no printed text) — the [Mamemon] half of the
-//            trigger set, matched by substring, and inert on deletion.
-//   BT13-065 PlatinumSukamon (Lv.4 Black, Black Lv.3 cost 2) — the digivolve destination. Its
-//            only clause is [On Deletion], which never fires on a digivolve.
-//   BT6-064  Mamemon (Lv.5 Black, Black Lv.4 cost 3) — the cost-3 destination used to prove the
-//            reduction is exactly 2 (1 memory actually paid). Its clauses are ＜Decoy＞ and
-//            [On Deletion]; neither fires when it is digivolved into.
-//   BT3-070  Etemon (Lv.5 Black) — the trigger-set discriminator: [Etemon] is a legal
-//            DESTINATION name but NOT a triggering deletion.
-//   BT1-024  MetalTyrannomon (Lv.5 Red, 10000 DP, no printed text) — an inert non-matching
-//            Digimon, used both as a non-triggering deletion and as the opponent's attacker.
-//   BT1-080  Titamon (Lv.6 Green, 12000 DP, no printed text) — the inert wall that wins battles.
 const CARD_ID = "P-246";
 
 describe("P-246 Motimon", () => {
@@ -40,7 +21,6 @@ describe("P-246 Motimon", () => {
       inheritedEffectText:
         "[Your Turn] [Once Per Turn] When any of your other Digimon with [Sukamon] or [Mamemon] in their names are deleted, this Digimon may digivolve into a Digimon card with [Sukamon], [Etemon] or [Mamemon] in its name in the hand with the cost reduced by 2.",
     });
-    // A Digi-Egg carries no main text and no Security text.
     expect(getCardDefinition(CARD_ID)?.effectText).toBeUndefined();
     expect(getCardDefinition(CARD_ID)?.securityEffectText).toBeUndefined();
   });
@@ -107,7 +87,6 @@ describe("P-246 Motimon", () => {
     await advance(s.engine).waitForMainPhase(0);
     const memoryBeforeAttack = s.state.memory;
 
-    // 1000 DP into 12000 DP: the attacking Sukamon loses and is deleted.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -119,12 +98,10 @@ describe("P-246 Motimon", () => {
     await settle(() => s.perm("host").topCard.cardId === "BT13-065");
     await settle();
 
-    // The host digivolved; the egg and the old top card are its digivolution cards, bottom first.
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("platinum").instanceId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["P-246", "BT2-052"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT13-065");
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT14-034"]);
-    // Printed digivolution cost 2, reduced by 2: nothing is paid.
     expect(s.state.memory).toBe(memoryBeforeAttack);
     expect(s.state.pendingDecision).toBeUndefined();
 
@@ -156,7 +133,6 @@ describe("P-246 Motimon", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // 10000 DP into 12000 DP: the attacker is deleted.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -180,7 +156,6 @@ describe("P-246 Motimon", () => {
       {
         0: {
           battleArea: [
-            // Numemon is Lv.4 Black, so Mamemon's printed "Black Lv.4: Cost 3" requirement is met.
             { card: "BT2-056", as: "host", under: [CARD_ID] },
             { card: "BT14-034", as: "sukamon" },
           ],
@@ -235,8 +210,6 @@ describe("P-246 Motimon", () => {
           deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      // Etemon's own [On Deletion] is optional; declining it keeps the board readable while
-      // P-246's clause is the thing under test.
       { autoDeclineOptional: true },
     );
     s.state.memory = 3;
@@ -245,7 +218,6 @@ describe("P-246 Motimon", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // 6000 DP into 12000 DP: the Etemon is deleted.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -372,7 +344,6 @@ describe("P-246 Motimon", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
 
-    // 10000 DP into 1000 DP: seat 0's own Sukamon is deleted, but on the OPPONENT's turn.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -537,8 +508,6 @@ describe("P-246 Motimon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle();
 
-    // The second matching deletion is in the same turn: Once Per Turn suppresses the
-    // optional digivolve even though the Lv.4-base Mamemon remains a legal destination.
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("platinum").instanceId);
     expect(s.perm("host").permanentId).toBe(hostId);
     expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);

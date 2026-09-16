@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-054 Seraphimon — hand-corrected IR.
-// [When Digivolving] If you have a Tamer in play, <Recovery +1 (Deck)>.
-//   Recovery +1 (Deck) = place the top card of your deck on top of your security stack.
-//   Encoded as SecurityManipulation with implicit top-of-deck source (no chooser).
-// [On Deletion] <Recovery +1 (Deck)>.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -1,4 +1,3 @@
-// Hand-authored override: the inherited attack gate is structured as selfHasOnPlayEffect.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

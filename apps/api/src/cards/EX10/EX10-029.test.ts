@@ -21,15 +21,10 @@ describe("EX10-029 Warpmon compiled contract", () => {
       types: ["Transmission"],
       linkDp: 3000,
     });
-    // Catalog quirk: the printed link requirement separates "[Appmon]" from "trait" with a
-    // non-breaking space (U+00A0), so normalise before comparing.
     expect(getCardDefinition(CARD_ID)?.linkRequirement?.replace(/\u00a0/g, " ")).toBe("[Link] [Appmon] trait: Cost 2");
-    // Warpmon prints no inherited effect and no separate Security text: the [Security] clause
-    // lives in the main effect text.
     expect(getCardDefinition(CARD_ID)?.inheritedEffectText).toBeUndefined();
     expect(getCardDefinition(CARD_ID)?.securityEffectText).toBeUndefined();
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    // Warpmon prints no [Digivolve] line; its only route is the catalog evoCost.
     expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.linkRequirement).toEqual([{ cost: 2, traits: ["Appmon"] }]);
     expect(compiled.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
@@ -83,7 +78,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === CARD_ID);
       expect(s.state.memory).toBe(0);
-      // The source card really became the digivolution card beneath Warpmon.
       expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCard]);
       expect(s.perm("base").currentDP).toBe(4000);
     }
@@ -117,8 +111,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
     expect(link.state.memory).toBe(0);
     expect(link.perm("appmon").currentDP).toBe(baseDp + 3000);
 
-    // No printed alternate route: a non-black level-3 base is rejected outright, and a legal
-    // black level-3 base still costs the printed 2 rather than any alternate.
     const wrongColor = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: CARD_ID, as: "warp" }] },
     });
@@ -149,8 +141,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
     expect(observe(s.engine).hasKeyword(warp, "Blocker")).toBe(true);
     expect(warp.controllerSeat).toBe(1);
     expect(warp.isSuspended).toBe(false);
-    // "At the end of the battle": Warpmon fights the security battle first (4000 DP against
-    // the 3000 DP attacker) and only then arrives on the security player's board.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.security).toHaveLength(0);
@@ -188,8 +178,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle();
 
-    // No security was checked, and Warpmon's 4000 DP beat the 3000 DP attacker: both security
-    // cards are still there, in their original order.
     expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("secTop").instanceId,
       s.inst("secBottom").instanceId,
@@ -239,8 +227,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
       {
         0: {
           battleArea: [
-            // BT21-101 Gaiamon prints ＜Link +1＞ and carries the [Appmon] trait, so the second
-            // link slot comes from a real printed keyword rather than a ledger grant.
             { card: "BT21-101", as: "host", suspended: true, linked: [{ card: "BT26-010", as: "sameHost" }] },
             { card: "BT21-009", as: "neighbor", linked: [{ card: "BT26-010", as: "neighborLink" }] },
             { card: "BT1-009", as: "target" },
@@ -272,8 +258,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
     expect(accepted.perm("neighbor").linked.map(({ instanceId }) => instanceId)).toContain(
       accepted.inst("neighborLink").instanceId,
     );
-    // The host really did hold two link cards at once: Gaiamon's own [Once Per Turn]
-    // "when your Digimon get linked" clause paid its unsuspend cost off the same link.
     expect(accepted.perm("host").isSuspended).toBe(false);
     expect(accepted.state.players[1]!.security).toHaveLength(1);
 
@@ -340,7 +324,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // Still protected across the whole of the opponent's turn.
     expect(observe(s.engine).isRestricted(s.perm("target"), "cantBeDeDigivolved")).toBe(true);
 
     advance(s.engine).endMainPhaseIfOpen(1);
@@ -351,10 +334,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
     await loop;
   });
 
-  // The restriction flag alone is not proof: a real ＜De-Digivolve＞ effect must bounce off the
-  // protected Digimon on the opponent's turn. EX7-046 Jazarichmon prints "[On Play]
-  // ＜De-Digivolve 1＞ 1 of your opponent's Digimon", so the opponent drives it with a public
-  // `play` intent inside the real turn loop.
   const deDigivolveBoard = () => ({
     0: {
       battleArea: [
@@ -402,7 +381,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
     await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX7-046"));
     await settle();
 
-    // The Lv.5 top and its Lv.4 digivolution card are both untouched, and nothing reached trash.
     expect(s.perm("target").topCard.cardId).toBe("BT10-081");
     expect(s.perm("target").stack.map(({ cardId }) => cardId)).toEqual(["BT10-074"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
@@ -410,8 +388,6 @@ describe("EX10-029 Warpmon compiled contract", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
 
-    // Control: identical board and identical opponent play, but Warpmon is never linked, so the
-    // same ＜De-Digivolve 1＞ trashes the Lv.5 top and leaves the Lv.4 card on top.
     const controlPreferred: string[] = [];
     const control = setupEngine(deDigivolveBoard(), {
       autoAcceptOptional: true,

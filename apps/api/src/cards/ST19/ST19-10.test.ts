@@ -50,8 +50,6 @@ describe("ST19-10 ExTyrannomon", () => {
         },
       }),
     ).toEqual({ ok: true });
-    // Each battle-area material is relocated under the new Digimon through the asynchronous
-    // would-leave consult, so the placement lands after `ready()`'s continuous recompute.
     await settle(() =>
       s.state.players[0]!.battleArea.some(
         (permanent) => permanent.topCard.cardId === "ST19-10" && permanent.stack.length === 2,

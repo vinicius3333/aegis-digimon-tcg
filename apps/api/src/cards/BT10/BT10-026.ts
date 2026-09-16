@@ -1,7 +1,3 @@
-// HAND-FIXED IR for BT10-026 — do not regenerate.
-// Restores Armor Purge and the printed DigiXros recipe. PlaceUnder accepts only hand or
-// under-Tamer Blue Flare cards and inserts them at the bottom. The attack/block clause is one
-// target selection, not two independent restrictions that could affect different Digimon.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

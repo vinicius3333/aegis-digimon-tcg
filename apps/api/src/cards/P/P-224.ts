@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q6119: effect activates even with 8+ cards in hand; the "7 or fewer" condition
-// gates only the Draw 1 action, not the cost/trigger. Main PlayWithoutCost reads
-// from under any of your Tamers with cost reduced by 1 (not free).
 const compiled: CompiledCard = {
   effects: [
     {

@@ -68,9 +68,6 @@ describe("BT26-009 Hyokomon", () => {
         permanentId: legal.perm("tsEgg").permanentId,
       }),
     ).toEqual({ ok: true });
-    // `moveFromBreeding` relocates the permanent into the battle area; it does not itself
-    // drive the turn state machine, so the phase stays exactly what the test forced it to
-    // (Breeding) — check the real milestone (battle-area membership) instead.
     await settle(() => legal.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-011"));
     expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002", "BT26-009"]);
 

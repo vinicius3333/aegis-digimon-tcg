@@ -171,8 +171,6 @@ describe("BT21-044 compiled implementation", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
 
-    // The printed "For the turn" duration ends at the end of the turn that played RizeGreymon,
-    // before the opponent reaches Main. The card remains a Tamer with its printed zero DP.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     const opponentTurn = s.engine.runOneTurn();

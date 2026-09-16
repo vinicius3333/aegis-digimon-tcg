@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR: the Counter marker must carry Blast Digivolve so the engine's
-// hand-based counter eligibility and cost-waived digivolution path can see it.
 const compiled: CompiledCard = {
   effects: [
     {

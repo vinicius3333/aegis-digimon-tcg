@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -69,8 +66,6 @@ export const compiled: CompiledCard = {
           },
         },
         {
-          // BT10-011 grants a Gammamon stack card's own effects to this Digimon.
-          // Q3656 therefore also resolves the granted P-065 On Play deletion.
           kind: "ActivateForeignEffect",
           zone: "digivolutionCards",
           fromTriggers: ["OnPlay"],

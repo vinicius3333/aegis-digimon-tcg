@@ -1,19 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX12-021 Gabumon
-// [Digivolve] [Tsunomon]/Lv.2 w/[VB] trait: Cost 0
-// [Start of Your Main Phase] By trashing 1 card with [Garurumon] in its name or the
-//   [VB] trait from your hand, <Draw 1> and gain 1 memory.
-// [Inherited][When Attacking][Once Per Turn] If your hand has 7 or fewer cards, <Draw 1>
-//
-// Cost is paid ONCE for the combined Draw+GainMemory effect; cost lives on the Draw action
-// only (the first action in the sequence). GainMemory has no cost: `abortOnDecline` on the
-// Draw already stops the whole sequence when the trash cost is declined or unpayable, and
-// the printed text ties the memory gain to paying the cost, NOT to a card actually reaching
-// the hand (an empty deck still gains the memory).
-// The cost filter carries zone:"hand" explicitly; without it the hand branch of the trash
-// cost is reached only through a regex over `cost.raw`.
 const compiled: CompiledCard = {
   effects: [
     {

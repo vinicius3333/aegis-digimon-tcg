@@ -1,5 +1,3 @@
-// HAND-FIXED IR for BT10-020 — do not regenerate.
-// On Play scaling and AllTurns Aura both count opposing Digimon in the battle area.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

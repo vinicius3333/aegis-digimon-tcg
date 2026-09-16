@@ -271,16 +271,13 @@ describe("BT17-069 Fenriloogamon", () => {
       s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT17-070").length;
     const play = (alias: string) => s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(alias).instanceId });
 
-    // Turn 1 (seat 0).
     const turn1 = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // First SoC play: the once-per-turn effect deletes one target.
     expect(play("turnOnePlayA")).toEqual({ ok: true });
     await settle(() => opposingTargets() === 2);
     expect(opposingTargets()).toBe(2);
 
-    // Second SoC play same turn: once-per-turn is spent, so no further deletion.
     expect(play("turnOnePlayB")).toEqual({ ok: true });
     await settle();
     expect(opposingTargets()).toBe(2);
@@ -288,18 +285,14 @@ describe("BT17-069 Fenriloogamon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn1;
 
-    // `runOneTurn` stops at End; emulate the production `passTurn` between turns by flipping the
-    // seat and re-framing the gauge so each own turn crosses the owner-turn-start reset boundary.
     const passTurn = (mem: number) => {
       s.state.turnSeat = (1 - s.state.turnSeat) as Seat;
       s.state.memory = mem;
     };
 
-    // Turn 2 (seat 1): a real opponent turn between mine.
     passTurn(20);
     await advance(s.engine).runTurn(1);
 
-    // Turn 3 (seat 0): its owner-turn-start boundary resets the once-per-turn frequency.
     passTurn(20);
     const turn3 = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);

@@ -179,8 +179,6 @@ describe("BT20-101 Zephagamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    // The once-per-turn unsuspend was already spent by the source's public On Play suspension,
-    // so Zephagamon's own attack leaves it suspended.
     expect(s.perm("zephagamon").isSuspended).toBe(true);
   });
 

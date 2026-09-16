@@ -49,8 +49,6 @@ export const compiled: CompiledCard = {
           condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
           amount: 1,
         },
-        // "1 of your Digimon may attack an opponent's Digimon": `Attack.target` names the
-        // ATTACKER (see AttackAction in the shared IR), not the defender.
         {
           effectTextPart: "Then, 1 of your Digimon may attack an opponent's Digimon.",
           kind: "Attack",
@@ -87,8 +85,6 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
   ],
-  // "[Digivolve]Lv.5 w/[Pulsemon] in its text: Cost 3" -- an alternate reduced-cost path.
-  // "in its text" is the source's full card-information union, so it uses `texts`, not `names`.
   digivolutionRequirement: [
     {
       level: 5,

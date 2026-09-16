@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Digivolving]: Return "up to 14 play cost's total worth" uses
-// Return.totalPlayCostBudget:14 — new capability (see LANE_E.md).
-// PlayMultiple from digivolutionCards: from:["digivolutionCards"] corrected from "digivolution".
-// [All Turns] DisableTimingEffect: "none of your opponent's Digimon can activate [On Play]
-// effects" targets all opposing Digimon and is gated by an entry-level memoryAtMost:1
-// condition per KB Q3899. The player-scoped form keeps the prohibition live for entrants.
-// GrantStatic: immuneToOpponentDigimonEffects is already correct per KB.
 export const compiled: CompiledCard = {
   effects: [
     {

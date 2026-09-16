@@ -1,19 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT19-053 (QueenBeemon).
-// Fixes:
-// 1. WhenAttacking: PlayWithoutCost has reduceCost:8 embedded (not a separate Replacement
-//    action). The payCost:true + Replacement was structurally incorrect — the cost is
-//    reduced inline as a modifier on the play action.
-// 2. AllTurns Replacement: leaveCause:"otherThanBattle" added to exclude battle deletions
-//    (text: "other than in battle", KB Q3108 confirms placement covers all affected
-//    Digimon at once so source is matched Digimon, not a separate source).
-// 3. AllTurns Replacement: source filter in SecurityManipulation now uses the sourceFilter
-//    Digimon (the leaving Royal Base Digimon) not a generic Digimon filter, and preserves all
-//    matching members of a simultaneous leave event (KB Q3108).
-// 4. AllTurns Replacement: SecurityManipulation adds faceUp:true (text: "face-up").
-// 5. AllTurns: KB Q3108 says all affected Digimon can be placed; count:"all" on source.
 const compiled: CompiledCard = {
   effects: [
     {

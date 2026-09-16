@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST19-15 Noble Family Arts
-// [Main] 1 of your opponent's Digimon gets -6000 DP for the turn.
-// If there are 3 or more Digimon (total across both players), increase
-// the DP reduction of this effect by -6000 (so -12000 total to same target).
-// KB Q863/Q864 confirm: counts all Digimon both sides; -12000 total to same 1 opponent Digimon.
 const compiled: CompiledCard = {
   effects: [
     {

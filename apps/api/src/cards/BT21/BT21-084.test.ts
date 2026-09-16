@@ -225,7 +225,6 @@ describe("BT21-084 Haru Shinkai", () => {
     const securityChecked = s.events.findIndex((event) => event.kind === "securityChecked");
     const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-084");
     expect(securityChecked).toBeGreaterThanOrEqual(0);
-    // securityChecked is emitted after the Security effect has resolved.
     expect(played).toBeGreaterThanOrEqual(0);
     expect(played).toBeLessThan(securityChecked);
     expect(observe(s.engine).isAttacking()).toBe(false);

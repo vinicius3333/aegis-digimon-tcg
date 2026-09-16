@@ -29,9 +29,6 @@ export const compiled: CompiledCard = {
               kind: "Draw",
               controller: "mine",
               amount: 1,
-              // `youHave` counts battle-area permanents through `permanentMatchesFilter`,
-              // which ignores `filter.orFilters` (engine seam). The printed OR is therefore
-              // expressed with the `anyOf` condition combinator instead of a filter union.
               condition: {
                 kind: "anyOf",
                 raw: "you have [Argomon] or a yellow Digimon with [Agumon]/[Greymon]",

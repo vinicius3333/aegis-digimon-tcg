@@ -60,8 +60,6 @@ it("uses both named DigiXros materials through the public play intent", async ()
   ).toEqual({ ok: true });
   await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-084"));
   expect(s.state.memory).toBe(3);
-  // Stack storage is bottom-to-top; the printed requirement order is therefore visible
-  // top-to-bottom as Mervamon, then Sparrowmon.
   expect(s.perm("jet").stack.map(({ cardId }) => cardId)).toEqual(["BT10-060", "BT11-086"]);
 });
 

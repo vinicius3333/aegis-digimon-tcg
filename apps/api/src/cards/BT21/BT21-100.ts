@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-100 The Digimon I Designed — manually verified. The effect-deletion
-// watcher only arms Delay; the digivolution is a separate Delay payload.
 export const compiled: CompiledCard = {
   effects: [
     {

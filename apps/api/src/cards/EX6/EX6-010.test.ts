@@ -7,19 +7,9 @@ import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import { compiled } from "./EX6-010.js";
 import "../AD1/AD1-018.js";
 
-// A3 for EX6-010 (Durandamon) — Red Lv.6 Digimon (Legend-Arms).
-//
-// [Your Turn][Inherited] When this Digimon's top card is [RagnaLoardmon] and it is
-// attacking, the [Security] effects on cards it checks don't activate.
-// Implemented via disableSecurityEffect(perm, "any", UntilEachTurnEnd).
-//
-// Observable outcome tested here: after recompute(), a RagnaLoardmon permanent with
-// Durandamon in its digivolution stack has `isSecurityEffectDisabled(...) === true`
-// for any security card kind.
-//
 const DURANDAMON = "EX6-010";
-const RAGNALOARDMON = "BT3-019"; // "RagnaLoardmon" — exact name match for guard
-const FILLER = "BT1-009"; // Monodramon — not RagnaLoardmon
+const RAGNALOARDMON = "BT3-019";
+const FILLER = "BT1-009";
 
 function ledger(engine: unknown): ContinuousEffectLedger {
   return (engine as { continuous: ContinuousEffectLedger }).continuous;
@@ -29,7 +19,6 @@ async function recompute(engine: unknown): Promise<void> {
   await (engine as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
 }
 
-/** A minimal CardDefinition stub with Option kind, enough for isSecurityEffectDisabled(). */
 function fakeOptionDef(): CardDefinition {
   return {
     cardId: "TEST-OPTION",
@@ -52,9 +41,7 @@ describe("EX6-010 [Inherited] RagnaLoardmon host disables security effects (reco
 
     await recompute(s.engine);
 
-    // The inherited static effect should have recorded a security-effect disable on the host.
     expect(ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef())).toBe(true);
-    // FAILS-WHEN-REVERTED: the `disableSecurityEffect` call is removed → no disable recorded → false.
   });
 
   it("does NOT disable security effects when top card is NOT RagnaLoardmon", async () => {
@@ -85,10 +72,6 @@ describe("EX6-010 [Inherited] RagnaLoardmon host disables security effects (reco
   });
 });
 
-// A3 for EX6-010's [Hand] [Main] clause: "By paying 3 cost and placing this card as the
-// bottom digivolution card of 1 of your Digimon that's level 6 or has the [Legend-Arms]
-// trait, delete 1 of your opponent's Digimon with as much or less DP as that Digimon."
-//
 describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete opponent Digimon", () => {
   it("structurally gates Delete on the complete payment-and-placement activation condition", () => {
     const action = compiled.effects
@@ -102,10 +85,10 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-004", dp: 12000, as: "host" }], // WarGreymon, level 6
+          battleArea: [{ card: "AD1-004", dp: 12000, as: "host" }],
           hand: [{ card: "EX6-010", as: "durandamon" }],
         },
-        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "victim" }] }, // DP <= host's DP
+        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "victim" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -125,7 +108,7 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
     await settle(() => !p1.battleArea.some((p) => p.permanentId === victim.permanentId), 600);
 
     expect(s.perm("host").stack.some((c) => c.instanceId === durandamon.instanceId)).toBe(true);
-    expect(s.state.memory).toBe(7); // paid 3 cost
+    expect(s.state.memory).toBe(7);
     expect(p1.battleArea.some((p) => p.permanentId === victim.permanentId)).toBe(false);
   });
 
@@ -133,7 +116,7 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", dp: 3000, as: "host" }], // level 3, NOT eligible
+          battleArea: [{ card: "BT1-009", dp: 3000, as: "host" }],
           hand: [{ card: "EX6-010", as: "durandamon" }],
         },
       },

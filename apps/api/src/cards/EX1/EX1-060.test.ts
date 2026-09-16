@@ -48,7 +48,6 @@ describe("EX1-060 LadyDevimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && s.perm("base").topCard?.cardId === "EX1-060");
-    // Digivolution itself draws one card; declining the optional effect leaves the other two.
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
@@ -89,14 +88,12 @@ describe("EX1-060 LadyDevimon", () => {
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX1-056") &&
         s.state.memory === 7,
     );
-    // EX1-070 costs 4; the inherited effect refunds 1 for the first trash play.
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option2").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX1-057"));
-    // The [Once Per Turn] inherited effect does not refund the second trash play.
     expect(s.state.memory).toBe(3);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main", 5000);

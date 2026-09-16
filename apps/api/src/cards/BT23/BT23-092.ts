@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -21,12 +18,6 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "youHave",
             filter: {
-              // Printed "on the field" spans the battle area and the breeding area (Q5365,
-              // asked about this wording). CR 3-4-7-8 bars referencing breeding-area
-              // information "except for effects that explicitly specify or reference breeding
-              // areas", and that card-specific ruling is exactly such a reference.
-              // Spelled as the two real zones: "field" is not a `ZoneRef`, so it only reached
-              // the same behaviour through `countMatching`'s unknown-zone fallback.
               zone: ["battleArea", "breeding"],
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],

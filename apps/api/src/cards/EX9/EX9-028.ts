@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX9-028 Nanimon
-// [End of Your Turn] [Once Per Turn] By placing 3 [Ver.4] trait Digimon cards from your
-// trash face down as this Digimon's bottom digivolution cards, it may digivolve into a
-// [Ver.4] trait Digimon card in the hand or trash.
-// [inherited] [Your Turn] All of your opponent's Security Digimon get -3000 DP.
-// Q4782: All 3 cards must be placed; partial cost cannot be met.
-// Note: The cost already encodes faceDown/position/host correctly via place cost fields.
 export const compiled: CompiledCard = {
   effects: [
     {

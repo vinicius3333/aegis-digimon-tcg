@@ -354,8 +354,6 @@ describe("BT26-078 compiled behavior", () => {
   });
 
   it("lets the newly played Digimon attack through the granted Rush", async () => {
-    // Public play flow: the threshold-crossing play grants Rush, and the same-turn Rush attack
-    // remains available before the crossed-memory turn closes.
     const s = setupEngine(
       {
         0: {

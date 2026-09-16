@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX4-068 — Heaven's Judgement.
 const compiled: CompiledCard = {
   effects: [
     {

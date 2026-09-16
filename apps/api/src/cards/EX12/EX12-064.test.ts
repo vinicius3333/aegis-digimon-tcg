@@ -173,9 +173,6 @@ describe("EX12-064 Megadramon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    // [On Play] deletes the only level 4 or lower Digimon. Megadramon carries [Cyborg]/[ME], so
-    // its own play then fires the [All Turns] watcher, which reruns [When Digivolving]: no
-    // level 4 or lower target remains, so the De-Digivolve branch peels the level 5 stack.
     await settle(() => s.state.players[1]!.battleArea.length === 1 && s.perm("high").stack.length === 0);
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
@@ -200,8 +197,6 @@ describe("EX12-064 Megadramon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // The mandatory delete consumed the level 4 or lower target, so "if this effect didn't
-    // delete" is false and the level 5 stack is left intact.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX12-059"]);
     expect(s.perm("stacked").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010"]);
   });
@@ -227,8 +222,6 @@ describe("EX12-064 Megadramon", () => {
     );
     preferred.push(s.perm("stacked").topCard.instanceId);
     await s.ready();
-    // The only level 4 or lower Digimon is unaffected by Digimon effects, so the mandatory
-    // delete resolves without removing anything. Q6863: that still counts as "didn't delete".
     advance(s.engine).ledgers.continuous.addRestriction(
       s.perm("immune").permanentId,
       "beAffected",

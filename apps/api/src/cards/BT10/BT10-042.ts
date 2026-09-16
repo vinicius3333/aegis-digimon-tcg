@@ -1,4 +1,3 @@
-// HAND-FIXED IR for BT10-042 (Venusmon) — do not regenerate over this file.
 import type { CompiledCard, RestrictAction } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -17,11 +16,6 @@ const restrictToSource = {
   duration: "permanent",
 } satisfies RestrictAction & { specificTarget: "source" };
 
-// Hand-fix: the [Opponent's Turn] static restrict must apply ONLY to opponent Digimon
-// that have ＜Security Attack＞ (Q1965: any Digimon affected by SA+ or SA-; Q1966: a
-// gate and restricted ALL opponent Digimon. The keyword filter below restores the gate
-// (permanentMatchesFilter reads both printed ＜Security Attack＞ text and granted SA
-// keywords — e.g. the SA-1 this card's [When Digivolving] clause confers).
 export const compiled: CompiledCard = {
   effects: [
     {

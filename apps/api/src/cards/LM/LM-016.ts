@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it.
-// Audit fix (LM audit): the digivolution watcher fired on ANY deletion of another friendly
-// Digimon; the printed clause is limited to deletion BY AN EFFECT.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -17,8 +13,6 @@ const compiled: CompiledCard = {
             controller: "mine",
             excludeSelf: true,
             kind: ["Digimon"],
-            // "When an EFFECT deletes one of your other Digimon": a battle deletion must not
-            // arm this clause.
             deleteCause: "byEffect",
           },
           actions: [

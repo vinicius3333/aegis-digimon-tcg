@@ -23,7 +23,7 @@ describe("BT7-014 Aldamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("aldamon").instanceId);
 
-    expect(s.state.memory).toBe(4); // Printed 3, reduced by 2.
+    expect(s.state.memory).toBe(4);
   });
 
   it("pays the printed cost when its base has no Tamer source", async () => {

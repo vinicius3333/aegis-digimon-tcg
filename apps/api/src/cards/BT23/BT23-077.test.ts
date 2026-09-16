@@ -178,7 +178,6 @@ describe("BT23-077 Sistermon Ciel", () => {
       },
       { autoSelectCards: true, preferInstanceIds },
     );
-    // Reach the opponent's turn through the real turn loop rather than writing `turnSeat`.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -308,7 +307,6 @@ describe("BT23-077 Sistermon Ciel", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT23-077", as: "ciel" }] } });
     await s.ready();
 
-    // The ledger stores granted names case-folded; compare on the same footing.
     const lower = (names: string[]): string[] => names.map((name) => name.toLowerCase());
     expect(lower(observe(s.engine).grantedNames(s.perm("ciel")))).toEqual(["sistermon noir"]);
     expect(lower(observe(s.engine).effectiveNames(s.perm("ciel")))).toEqual(
@@ -319,9 +317,6 @@ describe("BT23-077 Sistermon Ciel", () => {
   });
 
   it("is selected by a peer card's public [Sistermon]-substring name reference, and a non-Sistermon is not", async () => {
-    // BT20-013 BaoHuckmon: [Main] [Once Per Turn] play 1 Digimon with [Sistermon]/[Gankoomon]
-    // in its name from hand with the play cost reduced by 2. `match: "name"` is the substring
-    // axis of CR 2-3-2-2, so it must reach "Sistermon Ciel" and stop at a plain Champion.
     const s = setupEngine(
       {
         0: {
@@ -352,11 +347,8 @@ describe("BT23-077 Sistermon Ciel", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === cielId));
 
-    // Only Ciel matched, so the engine never had to ask: it is the single candidate and the
-    // plain Champion stayed in hand.
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === cielId)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([nonMatchId]);
-    // Ciel's printed play cost is 4; the reduction makes it 2.
     expect(s.state.memory).toBe(4);
     expect(s.state.pendingDecision).toBeUndefined();
   });

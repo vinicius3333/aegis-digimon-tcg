@@ -9,18 +9,8 @@ import "./BT20-073.js";
 import "./BT20-069.js";
 import "./index.js";
 
-// A3 for BT20-078 (Reapermon — Purple Lv.6 Digimon).
-//
-// [Static] ＜Collision＞
-// [Static] ＜Blocker＞
-// [On Deletion] Delete 1 of your opponent's Digimon or Tamers with a play cost of 4 or less.
-//
-// FAILS-WHEN-REVERTED: on Reapermon's deletion, a <=4-cost opponent permanent is deleted.
-
 const REAPERMON = "BT20-078";
-// BT1-010 Agumon — cost 3, Digimon (qualifies for "cost 4 or less" deletion target).
 const AGUMON = "BT1-010";
-// BT1-021 MetalGreymon — cost 6 Digimon (does NOT qualify — too expensive).
 const METAL_GREYMON = "BT1-021";
 
 describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", () => {
@@ -173,18 +163,10 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
   it("[On Deletion] deletes opponent Digimon with play cost <= 4 when Reapermon is deleted", async () => {
     const s = setupEngine(
       {
-        // Seat 0: Reapermon (the card being deleted).
         0: { battleArea: [{ card: REAPERMON, dp: 11000, as: "reapermon" }] },
         1: {
           battleArea: [
-            // Agumon (cost 3 — valid deletion target).
-            // Suspended on purpose: Reapermon prints ＜Collision＞, which per Comprehensive Rules
-            // §16-30-1 grants every opponent Digimon ＜Blocker＞ and forces the opponent to block
-            // whenever possible. An unsuspended Agumon would therefore be compelled to block and
-            // the attack would never reach MetalGreymon, so Reapermon would never die and this
-            // [On Deletion] clause would never be reached.
             { card: AGUMON, dp: 2000, as: "agumon", suspended: true },
-            // MetalGreymon (> 11000 DP to kill Reapermon in battle); suspended so it can be attacked.
             { card: METAL_GREYMON, dp: 15000, as: "metalGreymon", suspended: true },
           ],
         },
@@ -196,7 +178,6 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
     const agumon = s.perm("agumon");
     const metalGreymon = s.perm("metalGreymon");
 
-    // Seat 0 attacks with Reapermon (11000 DP) vs MetalGreymon (15000 DP).
     s.state.memory = 5;
     const res = s.engine.applyIntent(0, {
       type: "attack",
@@ -206,12 +187,9 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
 
     expect(res).toEqual({ ok: true });
 
-    // After battle, Reapermon (11000) loses to MetalGreymon (15000) and is deleted.
-    // [On Deletion] should then delete Agumon (cost 3 <= 4).
     await settle(() => !p1.battleArea.some((pp) => pp.permanentId === agumon.permanentId), 600);
 
     expect(p1.battleArea.some((pp) => pp.permanentId === agumon.permanentId)).toBe(false);
-    // Agumon should now be in p1's trash.
     expect(p1.trash.some((c) => c.cardId === AGUMON)).toBe(true);
   });
 
@@ -221,9 +199,7 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
         0: { battleArea: [{ card: REAPERMON, dp: 11000, as: "reapermon" }] },
         1: {
           battleArea: [
-            // MetalGreymon cost 10 — NOT eligible for deletion.
             { card: METAL_GREYMON, dp: 15000, as: "metalGreymon", suspended: true },
-            // The attacking MetalGreymon.
             { card: METAL_GREYMON, dp: 15000, as: "oppAttacker", suspended: true },
           ],
         },
@@ -243,7 +219,6 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === REAPERMON));
 
-    // MetalGreymon (cost > 4) must not be offered to the Delete action.
     expect(p1.battleArea.filter((pp) => pp.permanentId === metalGreymon.permanentId)).toHaveLength(1);
     expect(p1.battleArea.some((pp) => pp.topCard.cardId === METAL_GREYMON)).toBe(true);
   });

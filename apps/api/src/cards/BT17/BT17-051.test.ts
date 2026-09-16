@@ -45,8 +45,6 @@ describe("BT17-051 Argomon", () => {
     });
     expect(definition.effectText).toContain("[Digivolve]Lv.5 [Argomon]: Cost 4");
     expect(definition.effectText).toContain("[Opponent's Turn] None of your opponent's Tamers can unsuspend.");
-    // The printed route is "[Digivolve]Lv.5 [Argomon]: Cost 4" (bracketed name, no "in name"),
-    // so the requirement is exact-name (namesExact), not the substring `names`. IR change.
     expect(compiled.digivolutionRequirement).toEqual([
       { level: 5, namesExact: ["Argomon"], cost: 4, isAlternate: true },
     ]);
@@ -131,15 +129,11 @@ describe("BT17-051 Argomon", () => {
     await settle(() => s.perm("base").topCard?.instanceId === evolvingId);
 
     const argomon = s.perm("base");
-    // Cost 4 route taken (10 - 4 = 6); the cost-5 catalog fallback would leave 5.
     expect(s.state.memory).toBe(6);
-    // Bonus draw from the top of the deck.
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
-    // Source-stack identity: base BT17-048 plus 4 placed BT17-042 = 5 Argomon digivolution cards.
     expect(argomon.stack.map((card) => card.instanceId)).toContain(baseInstanceId);
     expect(argomon.stack.filter((card) => card.cardId === "BT17-042")).toHaveLength(4);
     expect(argomon.stack).toHaveLength(5);
-    // 5 Argomon → +2000 DP (13000 → 15000) and delete budget 4 + 2 = 6.
     expect(argomon.currentDP).toBe(15000);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
@@ -172,7 +166,6 @@ describe("BT17-051 Argomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.instanceId === evolvingId);
 
-    // Exact-name gate rejects "MegaKabuterimon"; only the cost-5 catalog Lv.5 route remains.
     expect(s.state.memory).toBe(5);
   });
 
@@ -196,7 +189,6 @@ describe("BT17-051 Argomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: argomonId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-051"));
 
-    // No Argomon placed → base budget 4 deletes only the Lv.3; the Lv.- Digimon is never eligible.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([levellessId]);
   });
 
@@ -220,7 +212,6 @@ describe("BT17-051 Argomon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-051"));
 
     const argomon = s.perm("argomon");
-    // 2 Argomon placed → +1000 DP (13000 → 14000), proving "up to 4" places the available count.
     expect(argomon.stack).toHaveLength(2);
     expect(argomon.currentDP).toBe(14000);
   });
@@ -250,7 +241,6 @@ describe("BT17-051 Argomon", () => {
 
     expect(s.perm("oppTamer").isSuspended).toBe(true);
     expect(unsuspendedIds).not.toContain(s.perm("oppTamer").permanentId);
-    // Comparative control: the restriction is Tamer-scoped, so an opposing Digimon still unsuspends.
     expect(s.perm("oppDigimon").isSuspended).toBe(false);
     expect(unsuspendedIds).toContain(s.perm("oppDigimon").permanentId);
   });

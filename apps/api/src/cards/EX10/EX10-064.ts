@@ -56,11 +56,6 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "DigiXrosMaterialZoneExpansion",
-              // "under your Tamers" is the ZoneRef `underTamers`. The prior `tamerCards`
-              // token is not a ZoneRef at all: the material picker in actions/play.ts only
-              // recognizes underTamers/underMyTamers/underTamer/digivolutionCards and
-              // trash (`ledgerUnderTamer`/`ledgerTrash`), so the under-Tamers half of
-              // Q5175/Q5176 was silently dead and only the trash half applied.
               zones: ["underTamers", "trash"],
               duration: "forTheTurn",
               cost: {

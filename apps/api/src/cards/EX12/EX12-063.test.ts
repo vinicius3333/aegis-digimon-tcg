@@ -162,7 +162,6 @@ describe("EX12-063 Karakurumon", () => {
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "source" }],
-          // Same [Puppet]/[TB] traits as the eligible card, one level above the printed ceiling.
           trash: [{ card: CARD_ID, as: "overLevel" }],
         },
       },

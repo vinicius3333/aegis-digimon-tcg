@@ -60,8 +60,6 @@ describe("EX11-041 Oblivimon", () => {
               op: "addBottom",
               faceUp: true,
               optional: true,
-              // FAILS-WHEN-REVERTED: without detachPermanentTop the whole permanent is moved
-              // and its digivolution cards are trashed (KB Q5875/Q5888).
               detachPermanentTop: true,
               source: { filter: { isSelfRef: true }, isSelf: true },
             },
@@ -155,12 +153,6 @@ describe("EX11-041 Oblivimon", () => {
     assertNoLoudGap(invalid);
   });
 
-  /**
-   * KB Q5875 / Q5888: "this Digimon's top stacked card" is the permanent's OWN top card. Only
-   * that card leaves for security; the digivolution cards stay and the next one is promoted.
-   * FAILS-WHEN-REVERTED: dropping `detachPermanentTop` moves the whole permanent to security
-   * and trashes the stack, so the survivor lookup and the empty-trash assertion both flip.
-   */
   it("sheds only its own top card to the security bottom and promotes the stack", async () => {
     const s = setupEngine(
       {

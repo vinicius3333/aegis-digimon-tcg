@@ -70,7 +70,6 @@ describe("P-219 engine behavior", () => {
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flame").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    // Flame Inferno costs 9; the qualifying opponent trash count pays 9 - 3 = 6.
     expect(s.state.memory).toBe(4);
   });
 

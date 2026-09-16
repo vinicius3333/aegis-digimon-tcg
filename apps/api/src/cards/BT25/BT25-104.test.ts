@@ -66,13 +66,7 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT25-104" && s.perm("target").currentDP === 2000);
     const burstInstance = s.perm("base").topCard.instanceId;
-    // Final Shining Burst applies -15000, then the replayed Marcus suspends and applies
-    // its own -3000 reaction. Prove the completed nested chain rather than its 5000-DP
-    // intermediate state.
     expect(s.perm("target").currentDP).toBe(2000);
-    // The Burst cost returns Marcus, then this card's mandatory When Digivolving
-    // activates its Option-side Main. With auto-selection enabled, that optional Main
-    // replays Marcus; his On Play suspension gains 1 memory while a Greymon is present.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === marcusId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === marcusId)).toBe(true);
@@ -81,7 +75,6 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
       EffectTiming.OnEndTurn,
     );
-    // §8-3-2-1 trashes the Burst top and promotes the former top.
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === burstInstance)).toBe(true);
     expect(s.perm("base").topCard.instanceId).toBe(priorTop);
   });
@@ -185,9 +178,6 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
-  // CR 3-4-6: "the field" (what CR 16-42-3 scopes <Use Req.> to) is the battle area AND the
-  // breeding area, so a breeding DATA SQUAD Digimon satisfies it. A DATA SQUAD Option placed
-  // in the battle area still doesn't (it's not a Digimon or Tamer).
   it("is enabled by a breeding DATA SQUAD Digimon but not by a DATA SQUAD Option in the battle area", async () => {
     expect(compiled.effects).toEqual(
       expect.arrayContaining([

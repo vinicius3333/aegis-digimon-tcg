@@ -135,9 +135,6 @@ describe("BT23-007 Musclemon", () => {
     expect(s.state.memory).toBe(4);
     expect(s.perm("host").currentDP).toBe(baseDp + 2000);
     expect(s.perm("host").linked.map(({ instanceId }) => instanceId)).toContain(s.inst("muscle").instanceId);
-    // `hasKeyword` reads the general granted-keyword ledger, which a linked Static effect
-    // does not populate; `hasPierce` is the modifier ledger Piercing actually lives on
-    // (see the sibling test below, which proves it through real combat).
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
   });
 

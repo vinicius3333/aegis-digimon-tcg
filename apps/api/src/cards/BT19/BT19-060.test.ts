@@ -5,25 +5,12 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-/**
- * BT19-060 Strikedramon — Black Lv.4 Champion, 5000 DP, play cost 5,
- * evo cost 2 from a Black Lv.3.
- *
- * Printed clauses:
- *   1. [When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Ryo Akiyama]
- *      from your hand without paying the cost.                              (main)
- *   2. [All Turns] This Digimon gets +1000 DP.                              (inherited)
- *
- * KB: `node tools/kb/query.mjs card BT19-060` reports no knowledge-base entries —
- * no Q&A, errata or banlist row, matching docs/audits/BT19.md#knowledge-base-index.
- */
-
-const RYO = "BT19-086"; // Ryo Akiyama: Black Tamer — the exact [Ryo Akiyama] the clause names
-const OTHER_TAMER = "BT19-083"; // Rika Nonaka: Yellow Tamer — near-miss peer, wrong name
-const PLAIN_LV4_PEER = "BT1-014"; // Kokatorimon: Red Lv.4, 4000 DP, no effects
-const BLACK_LV3 = "BT2-052"; // Hagurumon: Black Lv.3, 3000 DP, no effects
-const GREEN_LV3 = "BT1-064"; // Goblimon: Green Lv.3, 3000 DP, no effects — illegal source
-const RED_LV3 = "BT1-009"; // Monodramon: Red Lv.3, 3000 DP, no effects — illegal source
+const RYO = "BT19-086";
+const OTHER_TAMER = "BT19-083";
+const PLAIN_LV4_PEER = "BT1-014";
+const BLACK_LV3 = "BT2-052";
+const GREEN_LV3 = "BT1-064";
+const RED_LV3 = "BT1-009";
 const INERT_SECURITY = "BT1-009";
 const DECK = ["BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-012", "BT1-013"];
 
@@ -54,7 +41,6 @@ describe("BT19-060 Strikedramon", () => {
         actions: [
           {
             kind: "PlayWithoutCost",
-            // Bracketed [Ryo Akiyama] is an EXACT name reference, not a substring gate.
             target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Ryo Akiyama"], match: "nameExact" }] } },
             from: ["hand"],
             payCost: false,
@@ -63,7 +49,6 @@ describe("BT19-060 Strikedramon", () => {
           },
         ],
       },
-      // Printed "[All Turns]" must compile to the AllTurns trigger, not Static.
       { trigger: "AllTurns", isInherited: true, actions: [{ kind: "ModifyDP", amount: 1000 }] },
     ]);
     expect(card?.digivolutionRequirement ?? []).toEqual([]);
@@ -101,11 +86,10 @@ describe("BT19-060 Strikedramon", () => {
     const ryoPermanent = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === ryoId);
     expect(ryoPermanent?.topCard?.cardId).toBe(RYO);
     expect(ryoPermanent?.stack).toHaveLength(0);
-    // Only the digivolve cost of 2 was paid; the Tamer came down for free.
     expect(s.state.memory).toBe(4);
     expect(s.perm("base").topCard?.cardId).toBe("BT19-060");
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-012"]); // the digivolve draw
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-012"]);
     expect(s.events.some((e) => e.kind === "actionRejected")).toBe(false);
   });
 
@@ -267,14 +251,12 @@ describe("BT19-060 Strikedramon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Stack proof: identical printed cards, differing only by the digivolution card underneath.
     expect(s.perm("host").currentDP).toBe(5000);
     expect(s.perm("bare").currentDP).toBe(4000);
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
 
-    // [All Turns], so the bonus survives the hand-over to the opponent's turn.
     expect(s.state.turnSeat).toBe(1);
     expect(s.perm("host").currentDP).toBe(5000);
     expect(s.perm("bare").currentDP).toBe(4000);

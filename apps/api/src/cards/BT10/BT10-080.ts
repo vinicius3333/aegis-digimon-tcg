@@ -1,7 +1,3 @@
-// Hand-authored override for BT10-080 (SkullBaluchimon).
-// runtime-effect fix: the hand-trash effect is a future trigger gated to your turn and
-// digivolves one of your Digimon into this card from trash; the When Digivolving
-// effect grants an [On Deletion] trigger when the digivolution came from trash.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

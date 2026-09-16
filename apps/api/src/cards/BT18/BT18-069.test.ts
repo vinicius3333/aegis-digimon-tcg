@@ -41,7 +41,6 @@ describe("BT18-069 Knightmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    // Keep the active seat's entry gauge above the automatic pass threshold so Main opens.
     s.state.memory = 4;
     await s.ready();
 

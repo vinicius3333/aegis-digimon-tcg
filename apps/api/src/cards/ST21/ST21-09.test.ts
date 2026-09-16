@@ -108,9 +108,6 @@ describe("ST21-09", () => {
           ],
         },
       },
-      // ST21-12's own inherited [Your Turn] "reduce the play cost by 1" cost-reduction
-      // prompt fires first when playing this ADVENTURE-trait card; decline it so the
-      // play — and ST21-09's own On Play — proceeds without stalling on that decision.
       { autoSelectCards: true, autoDeclineOptional: true },
     );
     const boundaryId = s.perm("boundary").topCard.instanceId;

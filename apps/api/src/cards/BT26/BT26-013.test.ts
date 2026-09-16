@@ -80,9 +80,6 @@ describe("BT26-013 Musyamon", () => {
         permanentId: legal.perm("tsEgg").permanentId,
       }),
     ).toEqual({ ok: true });
-    // `moveFromBreeding` relocates the permanent into the battle area; it does not itself
-    // drive the turn state machine, so the phase stays exactly what the test forced it to
-    // (Breeding) — check the real milestone (battle-area membership) instead.
     await settle(() => legal.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-013"));
 
     const illegal = setupEngine({
@@ -211,8 +208,6 @@ describe("BT26-013 Musyamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("cost").instanceId));
 
-    // CR §15-7-5 allows an optional processing condition to be paid even when the
-    // processing after it cannot do anything.
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

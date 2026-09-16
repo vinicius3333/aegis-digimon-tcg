@@ -3,8 +3,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const mineralOrRock = [{ tokens: ["Mineral", "Rock"], match: "trait" as const }];
 
-// Q4277: the trigger checks the host whose digivolution cards were trashed; the
-// identity of the trashed card itself is unrestricted.
 const compiled: CompiledCard = {
   effects: [
     {

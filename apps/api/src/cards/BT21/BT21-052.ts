@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT21-052 (Examon X Antibody).
-// Fixes:
-// 1. AllTurns: both SubTrigger.Unsuspend and Trash must be INSIDE the SubTrigger's
-//    actions array (they are both part of the "when this Digimon suspends" trigger).
-//    The Trash was incorrectly at AllTurns.actions[] as a sibling of SubTrigger.
-// 2. Trash action source is opponent's top security card, not a generic opponent card.
-//    Using trashSecurityTop with controller:"opponent", count:1.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// DNA Digivolve: [Slayerdramon] + [Breakdramon], unsuspended with both stacked.
-// [On Play][When Digivolving] Suspend 1 opponent Digimon; it doesn't unsuspend next phase.
-// [All Turns][Once Per Turn] When an opponent's Digimon becomes suspended, you may:
-//   • Suspend 1 of your opponent's Digimon, or
-//   • Unsuspend 1 of your Digimon.
 export const compiled: CompiledCard = {
   effects: [
     {

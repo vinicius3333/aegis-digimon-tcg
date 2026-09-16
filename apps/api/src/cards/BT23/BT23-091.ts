@@ -1,22 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT23-091 (Wolkenapalm, Red/CS Option).
-// Text:
-//   While you have a Digimon or Tamer with the [CS] trait on the field, you can ignore
-//   this card's color requirements.
-//   [Main] Delete 1 of your opponent's Digimon with the lowest DP. Then, place this
-//   card in the battle area.
-//   [Your Turn] When one of your [CS] trait Digimon attacks, ＜Delay＞
-//   ・Delete 1 of your opponent's Digimon with the lowest DP.
-//   [Security] Delete 1 of your opponent's Digimon with the lowest DP. Then, place this
-//   card in the battle area.
-// KB Q5364, asked about this printed wording, answers that "on the field" means the battle
-// area OR the breeding area. CR 3-4-7-8 blocks referencing breeding-area information "except
-// for effects that explicitly specify or reference breeding areas", and that card-specific
-// ruling is exactly such a reference, so the [CS] check spans both field zones.
-// The attack-triggered ＜Delay＞ is intrinsic to that timing window: accepting it trashes
-// this option and immediately resolves the lowest-DP deletion.
 export const compiled: CompiledCard = {
   effects: [
     {

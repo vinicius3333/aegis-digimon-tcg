@@ -1,9 +1,6 @@
-// Hand-authored override — do not regenerate.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q1915/Q1916: discard count drives repeated De-Digivolve 1 on one bound target;
-// the later level-4 deletion is a fresh target choice.
 export const compiled: CompiledCard = {
   effects: [
     {

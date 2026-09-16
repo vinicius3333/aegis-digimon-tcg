@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-maintained: Q4115 requires an exact [Agumon] digivolution card.
 const compiled: CompiledCard = {
   effects: [
     {

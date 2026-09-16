@@ -120,9 +120,6 @@ describe("BT18-098 Dragon's Roar", () => {
         1: {
           battleArea: [
             { card: "BT1-010", as: "triggerTarget", dp: 5000 },
-            // The Main -6000 must leave this Digimon above the Security effect's
-            // 6000-DP ceiling, so the two naturally resolving target choices do
-            // not become ambiguous after the security card is trashed.
             { card: "BT1-009", as: "survivor", dp: 12500 },
           ],
         },

@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX10-045 Tuwarmon
-// Fixes:
-//   - DigiXros: was [Damemon] count:2 (wrong); text is [DigiXros -2] [Damemon] x [ChuuChuumon]
-//     = two distinct material slots with cost reduction 2 each.
-//   - "[Digivolve] [Damemon]: Cost 1" is the digivolutionRequirement, not a Main effect.
-//   - GainKeyword(Retaliation) was optional+abortOnDecline — wrong. The effect is a single
-//     "by trashing, gain Blocker AND Retaliation". Second GainKeyword is mandatory after cost.
-//   - the Retaliation target is the canonical typed `fromSelectionRef` shape. `filter`/`count`
-//     are IGNORED for that form (Target docs; targeting/permanents.ts short-circuits on the
-//     bound id), so they carry no semantics — they exist only to satisfy `Target`.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -208,10 +198,6 @@ const compiled: CompiledCard = {
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
-          // Comprehensive Rules 4-3: a card placed under a Tamer that already holds cards goes
-          // to the BOTTOM of that stack. `runPlaceUnder` reads `belowTop: action.position !==
-          // "bottom"`, so a positionless PlaceUnder would tuck the saved card directly beneath
-          // the Tamer instead.
           position: "bottom",
           optional: true,
         },

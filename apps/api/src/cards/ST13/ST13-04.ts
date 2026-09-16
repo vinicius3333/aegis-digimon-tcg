@@ -1,24 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST13-04 Duramon
-// [Your Turn] When this Digimon would digivolve into a card in your hand that's
-//   black or has [Legend-Arms] in its traits, reduce the digivolution cost by 1.
-// [Inherited][End of Your Turn] You may DNA digivolve this Digimon and one of
-//   your other Digimon in play into a Digimon card in your hand for its DNA
-//   digivolve cost.
-//
-// Q&A (Q770): The inherited effect fires before the opponent's turn starts;
-//   DNA digivolves with one other Digimon in play.
-// Q&A (Q771): Cannot DNA digivolve into a card without a DNA digivolve requirement.
-// Q&A (Q772): Must use the Digimon specified by the DNA digivolution requirement.
-//
-// Fixes vs prior IR:
-// - [Your Turn] Replacement: kept as-is (correct nested reduceCost pattern matching
-//   BT3-031 pattern; outer gates target, inner reduces).
-// - [End of Your Turn] DnaDigivolve: materials is now an array of two Targets
-//   (self + one other Digimon excluding self); into filter adds hasDnaDigivolutionRequirement
-//   and zone:'hand'; into is a filter wrapping (not a nested object).
 const compiled: CompiledCard = {
   effects: [
     {

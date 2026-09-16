@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX12-027 TeslaJellymon
-// [Digivolve] [Jellymon]/Lv.3 w/[DS] trait: Cost 2
-// [Main][Once Per Turn] You may play or use 1 card with [Jellymon] in its text or the
-//   [DS] trait from your hand with the cost reduced by 2.
-// [Inherited][When Attacking][Once Per Turn] <Draw 1>. Then, if your hand has 7 or more
-//   cards, trash 1 card in your hand.
-//
-// "play or use": PlayWithoutCost(payCost:true, reduceCostBy:2) covers Digimon/Tamer play.
-// UseOptionWithoutCost(payCost:true, reduceCostBy:2) covers the Option use path — now that
-// UseOptionWithoutCost honors reduceCostBy, this is fully encodable (EX12-050 pattern).
 const compiled: CompiledCard = {
   effects: [
     {

@@ -32,8 +32,6 @@ describe("BT22-006 Moonmon", () => {
       {
         0: {
           deck: ["BT1-009"],
-          // Legal green/yellow stack: Moonmon is a source egg under Terriermon,
-          // then Gargomon evolves over the Terriermon level 3.
           battleArea: [{ card: "BT22-046", as: "host", under: ["BT22-006", "BT22-043"] }],
         },
       },
@@ -159,8 +157,6 @@ describe("BT22-006 Moonmon", () => {
     expect(evolved.stack.map((card) => card.instanceId)).toContain(moonmonId);
     expect(evolved.stack.at(-1)?.instanceId).toBe(moonmonId);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolving").instanceId)).toBe(false);
-    // The effect-paid evolution performs the ordinary evolution draw. Moonmon's
-    // inherited effect must not add a second draw or trash a hand card (Q5212).
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === moonmonId)).toBe(false);
   });

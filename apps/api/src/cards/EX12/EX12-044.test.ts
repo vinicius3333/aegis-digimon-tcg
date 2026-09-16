@@ -221,8 +221,6 @@ describe("EX12-044 Angewomon", () => {
       {
         0: {
           battleArea: [
-            // Only the second stack holds a legal Decode candidate, and it belongs to a
-            // different permanent, so the leaving host must find nothing to play.
             { card: "BT1-058", as: "host", under: [cardId] },
             { card: "BT1-058", as: "neighbor", under: [{ card: "BT1-051", as: "candidate" }] },
           ],

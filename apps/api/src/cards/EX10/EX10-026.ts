@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -71,9 +68,6 @@ const compiled: CompiledCard = {
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
-          // Comprehensive Rules 4-3: a card placed under a Tamer that already has cards
-          // stacked under it goes to the BOTTOM. Without this the shared PlaceUnder path
-          // defaults to `belowTop`, which inserts the saved card directly beneath the Tamer.
           position: "bottom",
           optional: true,
         },

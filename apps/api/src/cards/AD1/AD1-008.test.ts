@@ -158,7 +158,6 @@ describe("AD1-008 Gallantmon", () => {
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
-      // Accepts the optional evolution attack target automatically while declining Raid redirection.
       { autoSelectCards: true, autoDeclineOptional: true },
     );
     s.state.memory = 5;

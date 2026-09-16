@@ -93,7 +93,6 @@ describe("BT11-069 MetalGreymon (X Antibody)", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([securityIds[0]]);
     expect(s.state.memory).toBe(3);
 
-    // A second real unsuspend in the same opponent turn is suppressed.
     await advance(s.engine).verb.suspend([s.perm("secondOpponent").permanentId]);
     await advance(s.engine).verb.unsuspend([s.perm("secondOpponent").permanentId]);
     expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds.slice(1));
@@ -102,7 +101,6 @@ describe("BT11-069 MetalGreymon (X Antibody)", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await firstTurn;
 
-    // Pass a complete neutral turn; the second opponent Digimon stays suspended for the reset.
     s.state.turnSeat = 0;
     s.state.memory = 3;
     const neutralTurn = s.engine.runOneTurn();

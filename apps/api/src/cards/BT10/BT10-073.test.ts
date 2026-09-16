@@ -132,8 +132,6 @@ describe("BT10-073 ChuuChuumon", () => {
     );
     await settle(() => s.state.memory !== 0);
 
-    // Memory is signed from the turn player's perspective, so seat 0 gaining 1
-    // during seat 1's turn produces -1.
     expect(s.state.memory).toBe(-1);
   });
 

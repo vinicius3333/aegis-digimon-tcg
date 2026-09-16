@@ -49,10 +49,6 @@ describe("EX11-049 Punkmon", () => {
           ],
         },
       },
-      // EX11-050 matches BOTH its printed evoCost (Purple/Red Lv.4, cost 4) and its alternate
-      // [Dark Dragon]/[Evil Dragon] requirement (cost 3), so the paying digivolve opens a
-      // `chooseOption` route prompt. Without an answer the effect never resolves.
-      // `autoChooseOption` takes index 0 — the printed route.
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 5;
@@ -121,7 +117,6 @@ describe("EX11-049 Punkmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard.cardId === "EX11-050");
     expect(s.perm("source").topCard.cardId).toBe("EX11-050");
-    // Alternate cost 3, reduced by 2 => 1 memory paid.
     expect(s.state.memory).toBe(4);
     assertNoLoudGap(s);
   });
@@ -150,7 +145,6 @@ describe("EX11-049 Punkmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard.cardId === "EX10-053");
     expect(s.perm("source").topCard.cardId).toBe("EX10-053");
-    // EX10-053's ordinary level-4 route costs 5; the printed effect reduction pays 3.
     expect(s.state.memory).toBe(3);
     assertNoLoudGap(s);
   });

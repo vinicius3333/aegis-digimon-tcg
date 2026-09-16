@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4131: both exact cost cards must be available and returned atomically; neither
-// card may be returned alone.
 const compiled: CompiledCard = {
   effects: [
     {

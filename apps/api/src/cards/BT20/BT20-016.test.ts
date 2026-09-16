@@ -225,7 +225,7 @@ describe("BT20-016 Paildramon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === paildramonId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === dinobeemonId)).toBe(false);
     expect(dragonMode.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-016", "BT20-074"]));
-    expect(s.state.memory).toBe(4); // The printed Purple Lv.5 + Red Lv.5 DNA cost is 0; Overflow (-4) is inactive.
+    expect(s.state.memory).toBe(4);
   });
 
   it("lets the owner refuse the replacement when legal materials exist, so the battled Paildramon is deleted", async () => {

@@ -133,8 +133,6 @@ describe("EX12-054 Guardromon", () => {
     );
 
     const resolution = advance(s.engine).fire(timing, s.perm("source"));
-    // The hand cost is the clause's only question, so it is asked as the selection
-    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     expect(
       s.engine.applyIntent(0, {

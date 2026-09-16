@@ -97,10 +97,6 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          // "This Digimon may attack" — a plain effect-driven attack, so the attacker suspends
-          // and must be unsuspended to declare. Only the explicit "may attack WITHOUT
-          // suspending" wording (BT21-072) sets `withoutSuspending`; the plain form matches
-          // BT22-010/BT22-074.
           withoutSuspending: false,
           optional: true,
         },

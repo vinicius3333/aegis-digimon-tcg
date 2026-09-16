@@ -100,8 +100,6 @@ it("keeps a Digimon played after resolution suspended in the opponent's next uns
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
   await settle(() => s.perm("initial").isSuspended);
 
-  // Enter the opponent's turn through the public play intent, then drive the production
-  // unsuspend-phase seam for the exact duration boundary under test.
   s.state.turnSeat = 1;
   s.state.memory = 10;
   expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("entrant").instanceId })).toEqual({

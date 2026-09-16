@@ -7,20 +7,14 @@ import "../index.js";
 
 const CARD_ID = "EX10-040";
 
-// BT1-009 Monodramon, BT1-013 Muchomon and BT1-014 Kokatorimon print no main, inherited or
-// security text, so nothing in a deck, trash or security stack built from them can fire.
 const INERT_LV3 = "BT1-009";
 const INERT_LV3_ALT = "BT1-013";
 const INERT_LV4 = "BT1-014";
-// BT4-082 Dobermon: purple Lv.4, 7000 DP, no main, inherited or security text — the
-// smallest legal digivolution target for this card's printed Purple Lv.3 requirement.
 const PURPLE_LV4 = "BT4-082";
 
-/** A deck deep enough to survive the turn draw plus repeated milling, in a known order. */
 const deck = (count: number, prefix: string) =>
   Array.from({ length: count }, (_, index) => ({ card: INERT_LV3, as: `${prefix}${index}` }));
 
-/** A seat that can sit in a real turn loop: a playable card in hand, security and deck. */
 const neutralSeat = () => ({ hand: [INERT_LV3_ALT], security: [INERT_LV3, INERT_LV3, INERT_LV3] });
 
 const ids = (cards: Iterable<{ instanceId: string }>) => Array.from(cards, ({ instanceId }) => instanceId);
@@ -51,8 +45,6 @@ describe("EX10-040 DemiDevimon", () => {
   it("carries both clauses as IR with the two conditions on SEPARATE actions", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    // The mill and the memory gain are two independently gated actions, not one nested
-    // clause: Q5121 needs the memory gain to run even when the mill's gate is false.
     expect(compiled.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")).toMatchObject({
       actions: [
         {
@@ -83,11 +75,9 @@ describe("EX10-040 DemiDevimon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Exact endpoints: the top 2 of each deck moved, in top-first order, into each trash.
     expect(ids(s.state.players[0]!.trash)).toEqual([s.inst("my0").instanceId, s.inst("my1").instanceId]);
     expect(ids(s.state.players[1]!.trash).slice(8)).toEqual([s.inst("op0").instanceId, s.inst("op1").instanceId]);
     expect(s.state.players[1]!.trash).toHaveLength(10);
-    // The gate is re-read AFTER the mill: 8 + 2 = 10 is "10 or more", so memory is gained.
     expect(s.state.memory).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
 
@@ -103,8 +93,6 @@ describe("EX10-040 DemiDevimon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // FAILS WHEN REVERTED: nesting the memory gain inside the mill's condition (or aborting
-    // the action list on a failed gate) leaves memory at 0 here.
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(11);
     expect(ids(s.state.players[1]!.deck).slice(0, 2)).toEqual([s.inst("op0").instanceId, s.inst("op1").instanceId]);
@@ -209,8 +197,6 @@ describe("EX10-040 DemiDevimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("demi").topCard?.instanceId === dobermonId);
 
-    // The printed Purple Lv.3 requirement at cost 2 was paid, and DemiDevimon is now the
-    // digivolution card beneath Dobermon.
     expect(s.state.memory).toBe(1);
     expect(ids(s.perm("demi").stack)).toEqual([demiId]);
     expect(s.perm("demi").currentDP).toBe(getCardDefinition(PURPLE_LV4)!.dp);
@@ -280,17 +266,12 @@ describe("EX10-040 DemiDevimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 1);
 
-    // Exactly one card left each deck. The opponent's trash also holds the checked security
-    // card, so it is asserted as the mill plus that one card.
     expect(ids(s.state.players[0]!.trash)).toEqual([s.inst("my0").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(myDeckBefore - 1);
     expect(s.state.players[1]!.deck).toHaveLength(opponentDeckBefore - 1);
     expect(s.state.players[1]!.trash.length).toBe(opponentTrashBefore + 2);
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    // [Once Per Turn] resets on the NEXT own turn: the attacker unsuspends and the mill runs
-    // a second time. The same-turn refusal cannot be reached through public intents — the
-    // attacker is suspended and no fixture card can unsuspend it, so it is not asserted here.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });

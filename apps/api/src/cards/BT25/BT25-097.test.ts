@@ -29,7 +29,6 @@ describe("BT25-097 Guardian Palace", () => {
     expect(s.state.players[0]!.security).toContainEqual(
       expect.objectContaining({ instanceId: palaceId, faceUp: true }),
     );
-    // Pay 3 to use Guardian Palace, then 2 for Aegiomon (printed 5 - 3).
     expect(s.state.memory).toBe(5);
   });
 

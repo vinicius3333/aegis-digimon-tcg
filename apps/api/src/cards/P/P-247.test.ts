@@ -7,8 +7,6 @@ import { internalsOf } from "../../engine/testkit/internals.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-247.js";
 
-// Hand fixtures, one per accepted trait. All four are printed-vanilla or keyword-only, so
-// trashing them from hand cannot open a decision or change the result.
 const traitCostFixtures = [
   { trait: "Dark Animal", card: "BT4-082" },
   { trait: "Shaman", card: "BT1-057" },
@@ -168,7 +166,6 @@ describe("P-247 Nyaromon", () => {
       {
         0: {
           battleArea: [{ card: "BT2-067", as: "host", under: ["P-247"] }],
-          // BT1-009 is [Mini Dragon]; BT1-028 is [Mammal]. Neither is an accepted trait.
           hand: [
             { card: "BT1-009", as: "wrongTraitOne" },
             { card: "BT1-028", as: "wrongTraitTwo" },
@@ -284,8 +281,6 @@ describe("P-247 Nyaromon", () => {
     await finishAttack(1);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstTarget").instanceId);
 
-    // A real unsuspend restores attack eligibility (Comprehensive Rules §11-2-3), so the second
-    // declaration is legal and the only thing that can stop the deletion is [Once Per Turn].
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(s.perm("host").isSuspended).toBe(false);
     expect(
@@ -350,8 +345,6 @@ describe("P-247 Nyaromon", () => {
       {
         0: {
           breeding: { card: "P-247", as: "egg" },
-          // BT2-067 DemiDevimon digivolves from a Purple Lv.2 for 0 memory; BT4-082 Dobermon
-          // digivolves from a Purple Lv.3 for 2 memory. Both are printed-vanilla.
           hand: [
             { card: "BT2-067", as: "level3" },
             { card: "BT4-082", as: "level4" },

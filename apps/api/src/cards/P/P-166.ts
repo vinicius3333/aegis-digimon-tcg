@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -49,9 +46,6 @@ const compiled: CompiledCard = {
             kind: "isYourTurn",
             raw: "it's your turn",
           },
-          // The reduction applies to this effect's own digivolution. A sibling
-          // wouldDigivolve replacement would only be installed after this action
-          // resolves, so it could never affect the payment.
           reduceCostScaling: {
             per: 1,
             unit: "cards",

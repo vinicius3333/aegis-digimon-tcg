@@ -15,7 +15,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-037.js";
 
-/** Seat 0's battle-area permanent whose top card is `instanceId`, or undefined. */
 function permanentWithTop(s: EngineSetup, instanceId: string): Permanent | undefined {
   return s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === instanceId);
 }
@@ -24,7 +23,6 @@ function definitionOf(cardId: string): CardDefinition {
   return getCardDefinition(cardId) as CardDefinition;
 }
 
-/** Printed text with the catalog's non-breaking spaces normalised, so a literal can match. */
 function printedText(text: string | undefined): string {
   return (text ?? "").replaceAll("\u00a0", " ");
 }
@@ -93,11 +91,6 @@ describe("BT23-037 Tentomon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  // Q5299. The digivolve intent selects the cost path: without `useAlternateCost` the engine
-  // prices the printed EvoCost, with it the printed [Digivolve] Lv.3 w/[CS] route. `BT23-020`
-  // is off-colour, so only its alternate route matches either way. `BT1-051` is a same-colour
-  // level-4 Digimon WITHOUT the [CS] trait: the printed condition, not the route, gates the
-  // reduction. In the breeding area the reduction never applies.
   it.each([
     ["battle area, CS, ordinary route", "battleArea", "BT23-041", false, 1, 2],
     ["breeding, CS, ordinary route", "breeding", "BT23-041", false, 0, 3],
@@ -139,16 +132,12 @@ describe("BT23-037 Tentomon", () => {
       expect(s.state.memory).toBe(5 - expectedCost);
       expect(s.perm("tentomon").topCard.instanceId).toBe(intoId);
       expect(s.perm("tentomon").stack.map((card) => card.instanceId)).toEqual([tentomonId]);
-      // One evolution bonus draw: the deck lost exactly its top card and the hand holds it.
       expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
       expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
       assertNoLoudGap(s);
     },
   );
 
-  // The turn owner is moved by the production turn loop, never by writing `turnSeat`. Digivolving
-  // is legal only in the owner's Main phase, so the [Your Turn] qualifier has no public intent of
-  // its own; the reduction is therefore read on each seat's real Main phase.
   it("offers no CS reduction on the opponent's turn", async () => {
     const s = setupEngine(
       {
@@ -216,8 +205,6 @@ describe("BT23-037 Tentomon", () => {
     expect(illegal.state.memory).toBe(3);
   });
 
-  // The inherited clause. `BT23-050` Ankylomon is a legal level-4 host over a level-3 [CS]
-  // Tentomon, so the digivolution stack under test has a real public route.
   const inheritedBoard = (): { 0: SeatSpec & { battleArea: PermanentSpec[]; hand: CardSpec[] }; 1: SeatSpec } => ({
     0: {
       battleArea: [{ card: "BT23-050", as: "host", under: [{ card: "BT23-037", as: "tentomon" }] }],
@@ -253,7 +240,6 @@ describe("BT23-037 Tentomon", () => {
     expect(played).toBeDefined();
     expect(played!.stack).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
-    // Every other candidate is refused: too expensive, no [Hudie] trait, a Tamer, or in trash.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("tooExpensive").instanceId, s.inst("notHudie").instanceId, s.inst("hudieTamer").instanceId].sort(),
     );
@@ -299,8 +285,6 @@ describe("BT23-037 Tentomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tooExpensive").instanceId);
     expect(s.state.memory).toBe(8);
 
-    // Same card, same route, a Seadramon this effect did not play: the block is bound to the
-    // played instance, not to the card id.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -378,7 +362,6 @@ describe("BT23-037 Tentomon", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    // Nothing was played, so nothing is deleted and the host survives both boundaries.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("host").permanentId,
     ]);
@@ -409,7 +392,6 @@ describe("BT23-037 Tentomon", () => {
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === playedId)).toBe(false);
     expect(s.state.players[0]!.trash.filter((card) => card.instanceId === playedCardId)).toHaveLength(1);
-    // The host that carried the inherited effect is untouched, with its Tentomon source intact.
     expect(s.perm("host").topCard.instanceId).toBe(hostCardId);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("tentomon").instanceId]);
     assertNoLoudGap(s);
@@ -418,7 +400,6 @@ describe("BT23-037 Tentomon", () => {
     await loop;
   });
 
-  // Q5300: the newly played Digimon is a legal ＜Alliance＞ ally for the same attack.
   it("offers the newly played Digimon to a pending Alliance on the attacking host", async () => {
     const board = inheritedBoard();
     const s = setupEngine(
@@ -460,17 +441,8 @@ describe("BT23-037 Tentomon", () => {
     await loop;
   });
 
-  // Q5300: the played Digimon may be chosen as the ＜Alliance＞ ally, and its DP is then added
-  // to the attacking host for the battle. 6000 base + 3000 from BT23-041's own [When
-  // Attacking] "for the turn" grant + the 5000-DP ally = 14000 during the battle. The
-  // ＜Alliance＞ bonus is UntilEndBattle. Attacking hands memory to the opponent here, so the
-  // turn ends with the attack and the post-attack board proves nothing about grant tiers;
-  // BT23-041.test.ts "expires the grant at the turn boundary and triggers again on the next
-  // turn" is where the "for the turn" survival is asserted.
   it("adds the played ally's DP to the attacking host", async () => {
     const board = inheritedBoard();
-    // The ＜Alliance＞ DP exists only DURING the battle, so it is read from inside the engine's
-    // own call stack (every emitted event) rather than after the attack has finished.
     let hostDpDuringBattle = 0;
     const s = setupEngine(
       {
@@ -510,13 +482,6 @@ describe("BT23-037 Tentomon", () => {
     await loop;
   });
 
-  // Q5565, both halves. The first half (the played Digimon IS deleted at the deletion timing)
-  // is proved by the boundary test above. The second half needs a prevention to fire against
-  // this card's own delayed deletion: BT23-073 Eater Bit prevents a [Hudie] ally from leaving
-  // the battle area by deleting itself. Its printed text has no "opponent's effect" qualifier,
-  // so the prevention also answers a deletion the controller's own card scheduled.
-  // Q5565 answers that the prohibition is a lasting effect on the surviving Digimon: it is not
-  // cleared by the prevented deletion.
   it("keeps the evolution prohibition when the deletion is prevented", async () => {
     const board = inheritedBoard();
     const s = setupEngine(
@@ -527,9 +492,6 @@ describe("BT23-037 Tentomon", () => {
           battleArea: [...board[0].battleArea, { card: "BT23-073", as: "eaterBit" }],
         },
       },
-      // `autoChooseOption` answers Eater Bit's alternative-cost prompt ("delete this Digimon"
-      // or "place it under [Mother Eater]"); without it the prevention prompt stalls the
-      // end-of-turn boundary and seat 0's Main phase never reopens.
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     const loop = s.engine.startTurnLoop();
@@ -548,7 +510,6 @@ describe("BT23-037 Tentomon", () => {
     expect(played).toBeDefined();
     expect(played!.topCard.instanceId).toBe(s.inst("eligible").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("eligible").instanceId);
-    // Eater Bit paid the prevention with itself: it left the battle area for the trash.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("eaterBit").instanceId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).not.toContain(
       s.inst("eaterBit").instanceId,
@@ -572,10 +533,6 @@ describe("BT23-037 Tentomon", () => {
     await loop;
   });
 
-  // Q5566, part 1: the pending deletion and the opponent's [End of Your Turn] effect resolve
-  // at the SAME boundary. BT23-036 BanchoLeomon grants ＜Raid＞ and attacks; the played Digimon
-  // is still on the board when that attack picks its target, so ＜Raid＞ redirects onto it and
-  // the security stack is untouched.
   it("resolves the deletion at the same end-of-turn boundary as the opponent's effect", async () => {
     const board = inheritedBoard();
     const s = setupEngine(
@@ -604,7 +561,6 @@ describe("BT23-037 Tentomon", () => {
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
-    // The redirected attack reached the played Digimon, so no security card was checked.
     expect(
       s.decisions.some(
         (decision) =>
@@ -623,10 +579,6 @@ describe("BT23-037 Tentomon", () => {
     await loop;
   });
 
-  // Q5566, part 2. The delayed deletion is pending processing scheduled by seat 0's card, and
-  // BanchoLeomon's [End of Your Turn] is seat 1's System-A timing effect. They are simultaneous,
-  // and the TURN PLAYER (seat 1) chooses the processing order across that controller boundary.
-  // See docs/audits/BT23.md#end-turn-ordering.
   it("offers the turn player the end-of-turn processing order", async () => {
     const board = inheritedBoard();
     const s = setupEngine(

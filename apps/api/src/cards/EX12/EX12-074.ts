@@ -1,25 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX12-074 (Genshi Continent & Ashino Island).
-// [Security][Your Turn][Once Per Turn]: the printed text is ONE compound-timed effect
-//   (active while this card sits in the security stack, only during the controller's
-//   turn), not two independent trigger channels. The prior split into a "Security"-
-//   trigger effect and a "YourTurn"-trigger effect double-fired: staticModifier's
-//   on-field base guard never holds for a plain Option (it never sits on the battle
-//   area), so the "YourTurn" copy was actually dead, while the "Security" copy fired on
-//   EITHER player's turn (turnOwnerGuard has no case for trigger "Security"). Folded
-//   into a single effect matching the sibling P-181 pattern: trigger "YourTurn" (so
-//   turnOwnerGuard ANDs in the your-turn gate) + isSecurity:true (routes timing/builder
-//   through the security window regardless of trigger name — see timingForTrigger /
-//   builderForTrigger in interpreter.ts). Digivolve target corrected: the attacking Digimon
-//   (the trigger subject) digivolves into a [Shambala] trait Digimon from the hand, with cost
-//   reduced by 1.
-// [Main] play action: the separate Replacement action was wrong; fold the cost
-//   reduction into the PlayWithoutCost directly via reduceCostBy:3 + payCost:true.
-//   Remove the standalone Replacement action.
-// [Security] PlayWithoutCost: added playCost ≤ 5 restriction (text: "play cost 5
-//   or lower").
 const compiled: CompiledCard = {
   effects: [
     {
@@ -31,15 +12,6 @@ const compiled: CompiledCard = {
           condition: {
             kind: "youHave",
             filter: {
-              // CR 16-42-3: ＜Use Req.＞ lets a player ignore the color requirements with the
-              // specified DIGIMON AND/OR TAMERS on the field. CR 3-4-6 defines "the field" as
-              // BOTH the battle area and the breeding area, so — unlike free-text pre-keyword
-              // color-requirement waivers (CR 3-4-7-8, e.g. EX7-074/LIBERATOR), which can't
-              // reference breeding-area info at all — the keyworded ＜Use Req.＞ is satisfied by
-              // a matching Digimon sitting in the breeding area too. Without the kind gate below
-              // the youHave count also accepted a matching OPTION permanent — reachable in EX12,
-              // where Options such as this one are PLACED IN THE BATTLE AREA and keep their
-              // traits, so one resident Option wrongly satisfied the next one's Use Req.
               kind: ["Digimon", "Tamer"],
               zone: ["battleArea", "breeding"],
               controllerDefault: "mine",

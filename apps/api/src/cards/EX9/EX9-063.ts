@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override (runtime-effect fix). The ＜Scapegoat＞ play cost "by trashing this
-// Digimon's bottom face-down digivolution card" trashes from THIS Digimon's digivolution
-// stack (zone:"digivolutionCards"); the previous isSelfRef wrongly trashed the Digimon
-// itself. (playCostLte:4 on the play target was already correct.)
 export const compiled: CompiledCard = {
   effects: [
     {

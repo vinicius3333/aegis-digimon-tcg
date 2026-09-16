@@ -1,13 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4849: the [Device] Option card is placed into the battle area (not stacked under this
-// Digimon); it can later be trashed by this card's second [When Digivolving]/[When Attacking] effect.
 const compiled: CompiledCard = {
   effects: [
     {
-      // [When Digivolving] By placing 1 Option card with the [Device] trait from your hand
-      // or trash into the battle area, this Digimon gets +3000 DP until your opponent's turn ends.
       trigger: "WhenDigivolving",
       actions: [
         {
@@ -39,9 +35,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [When Digivolving] [When Attacking] [Once Per Turn]
-      // By trashing 1 of your Option cards in the battle area, delete 1 opponent Digimon
-      // with play cost 9 or less.
       trigger: "WhenDigivolving",
       actions: [
         {

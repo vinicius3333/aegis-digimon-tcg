@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-validated effect IR for BT6-017 (MagnaKidmon), including Q1410's
-// player-controlled "use the Option or delete" branch.
 const compiled: CompiledCard = {
   effects: [
     {

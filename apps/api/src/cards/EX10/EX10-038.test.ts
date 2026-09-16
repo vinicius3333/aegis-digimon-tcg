@@ -6,35 +6,15 @@ import "../index.js";
 
 const CARD_ID = "EX10-038";
 
-/**
- * EX10-038 Copipemon (Purple Lv.3, [Copy & Paste]/[Leviathan], [Appmon] form).
- *
- * Printed clauses:
- *  C1 [Digivolve] Lv.2 w/[Appmon] trait: Cost 0  (alternate route, any colour)
- *  C2 [On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Appmon] trait
- *     and 1 card with the [Leviathan] trait among them to the hand. Return the rest to
- *     the bottom of the deck.
- *  C3 [Link] [Appmon] trait: Cost 1, link DP +2000
- *  C4 (link) [When Attacking] By trashing 1 of this Digimon's link cards, you may return
- *     1 [Appmon] trait Digimon card from your trash to the hand.
- *
- * Catalog fact used throughout: every card with the [Leviathan] trait also carries the
- * [Appmon] trait, so the two add slots always compete for the same revealed cards. The
- * [Appmon] slot resolves first, so the player must spend a non-Leviathan Appmon on it to
- * fill both slots.
- */
-
 const INERT = "BT1-009";
-const APPMON_ONLY = "BT21-009"; // Gatchmon: [Appmon] form, no [Leviathan] type.
-const APPMON_LEVIATHAN = "BT23-009"; // Coachmon: [Appmon] form and [Leviathan] type.
-const APPMON_EGG_OFF_COLOUR = "BT21-005"; // Swipemon: Green Lv.2 Digi-Egg with [Appmon].
-const PLAIN_EGG_OFF_COLOUR = "BT1-007"; // Tanemon: Green Lv.2 Digi-Egg, no [Appmon].
+const APPMON_ONLY = "BT21-009";
+const APPMON_LEVIATHAN = "BT23-009";
+const APPMON_EGG_OFF_COLOUR = "BT21-005";
+const PLAIN_EGG_OFF_COLOUR = "BT1-007";
 const APPMON_HOST = "BT21-009";
-const APPMON_IN_TRASH = "EX10-029"; // Warpmon: Digimon with the [Appmon] trait.
-// Dantemon prints ＜Link +6＞, so a host can legally carry two link cards; the default
-// link maximum of 1 would otherwise have the rule sweep trash the extra one at the attack.
+const APPMON_IN_TRASH = "EX10-029";
 const MULTI_LINK_HOST = "BT26-086";
-const SPARE_LINK = "BT26-010"; // Roleplaymon: a second [Appmon] link card for the same host.
+const SPARE_LINK = "BT26-010";
 
 describe("EX10-038 Copipemon", () => {
   it("records the exact catalog, Appmon evolution, and Link requirement", () => {
@@ -49,8 +29,6 @@ describe("EX10-038 Copipemon", () => {
       types: ["Copy & Paste", "Leviathan"],
       linkDp: 2000,
     });
-    // The catalog prints a non-breaking space (U+00A0) inside the Link requirement, so the
-    // comparison normalizes whitespace rather than hiding the discrepancy behind a substring.
     expect(getCardDefinition(CARD_ID)!.linkRequirement?.replace(/\s/g, " ")).toBe("[Link] [Appmon] trait: Cost 1");
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 1 }]);
   });
@@ -80,8 +58,6 @@ describe("EX10-038 Copipemon", () => {
     });
   });
 
-  // --- C2 [On Play], proved by playing the card from hand with the public intent -------
-
   it("On Play from hand adds one Appmon and one Leviathan and bottoms the rest", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -99,8 +75,6 @@ describe("EX10-038 Copipemon", () => {
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    // Answer the [Appmon] slot with the card that is NOT also a Leviathan, then the
-    // [Leviathan] slot with the dual-trait card: the only ordering that fills both slots.
     preferred.push(s.inst("appmon").instanceId, s.inst("leviathan").instanceId);
     s.state.memory = 3;
     const copipemonId = s.inst("copipemon").instanceId;
@@ -198,8 +172,6 @@ describe("EX10-038 Copipemon", () => {
     );
 
     const player = s.state.players[0]!;
-    // Played Copipemon left the hand, the dual-trait card entered it: net hand size is
-    // unchanged, which is only true when the card was added exactly once.
     expect(player.hand).toHaveLength(handBefore);
     expect(player.hand.filter(({ instanceId }) => instanceId === s.inst("dual").instanceId)).toHaveLength(1);
     expect(player.deck.map(({ instanceId }) => instanceId)).toEqual([
@@ -208,8 +180,6 @@ describe("EX10-038 Copipemon", () => {
       s.inst("restB").instanceId,
     ]);
   });
-
-  // --- C1 alternate digivolution ------------------------------------------------------
 
   it("digivolves in breeding from an off-colour Lv.2 [Appmon] egg for 0 memory", async () => {
     const s = setupEngine({
@@ -239,7 +209,6 @@ describe("EX10-038 Copipemon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.breeding?.permanentId).toBe(permanentId);
     expect(s.state.players[0]!.breeding?.stack.map(({ instanceId }) => instanceId)).toEqual([eggId]);
-    // The digivolution bonus draw replaces the spent Copipemon with the top deck card.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
   });
 
@@ -269,8 +238,6 @@ describe("EX10-038 Copipemon", () => {
     expect(s.state.players[0]!.breeding?.topCard?.instanceId).toBe(eggId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([copipemonId]);
   });
-
-  // --- C3 link requirement -------------------------------------------------------------
 
   it("links only to an [Appmon] Digimon for 1 memory and contributes +2000 DP", async () => {
     const s = setupEngine({
@@ -303,8 +270,6 @@ describe("EX10-038 Copipemon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("appmon").currentDP).toBe(baseDp + 2000);
   });
-
-  // --- C4 link [When Attacking] --------------------------------------------------------
 
   it("Q5117/Q5118 returns an Appmon by trashing itself or another link card of the same host", async () => {
     for (const costAlias of ["copipemon", "sameHost"] as const) {
@@ -343,8 +308,6 @@ describe("EX10-038 Copipemon", () => {
 
       expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst(costAlias).instanceId);
       expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("appmon").instanceId);
-      // Q5118 boundary: only the attacking Digimon's own link cards are payable, so the
-      // neighbouring Digimon's link card is untouched.
       expect(s.perm("neighbor").linked.map(({ instanceId }) => instanceId)).toEqual([
         s.inst("neighborLink").instanceId,
       ]);
@@ -393,11 +356,6 @@ describe("EX10-038 Copipemon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
   });
 
-  /**
-   * Q5117 taken to its edge: the link card paid as the cost reaches the trash before the
-   * return resolves, so when the trash holds no other [Appmon] Digimon, Copipemon itself is
-   * the only legal return target and comes straight back to the hand.
-   */
   it("returns the cost card itself when the trash holds no other [Appmon] Digimon", async () => {
     const s = setupEngine(
       {
@@ -435,7 +393,6 @@ describe("EX10-038 Copipemon", () => {
     expect(s.perm("host").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("sameHost").instanceId]);
     expect(player.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("copipemon").instanceId]);
     expect(player.hand).toHaveLength(handBefore + 1);
-    // The pre-existing non-Appmon trash card was never a legal target.
     expect(player.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("plain").instanceId]);
   });
 });

@@ -5,30 +5,13 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// BT19-082 Yao Qinglan (Blue Tamer, cost 4, [LIBERATOR]).
-//
-//   [Start of Your Turn] If you have 2 memory or less, set your memory to 3.
-//   [Your Turn] When any of your Digimon with [Aqua]/[Sea Animal] in one of its traits attack,
-//     by suspending this Tamer, you may place 1 level 5 or lower Digimon card with
-//     [Aqua]/[Sea Animal] in one of its traits from your hand as that Digimon's bottom
-//     digivolution card.
-//   [Security] Play this card without paying the cost.
-//
-// Rulings: none. `node tools/kb/query.mjs card BT19-082` reports no knowledge-base entries and
-// docs/audits/BT19.md#knowledge-base-index lists 0 Q&A for this card.
-//
-// "in one of its traits" is a SUBSTRING match. No card in the catalog carries a trait spelled
-// exactly "Aqua": the printed reference reaches [Aquatic], [Aquabeast] and [Ancient Aquabeast].
-// Every [Aquatic] fixture below is therefore a live proof of the substring semantics — under the
-// exact `match: "trait"` form this module used to carry, none of them would qualify.
-
 const YAO = "BT19-082";
-const AQUATIC_ATTACKER = "BT2-024"; // Seadramon, Blue L4 4000 DP, [Aquatic] — inert
-const AQUATIC_HAND = "BT9-022"; // Ebidramon, Blue L4, [Aquatic] — inert
-const SEA_ANIMAL_HAND = "BT1-033"; // Dolphmon, Blue L4, [Sea Animal]
-const AQUATIC_LV6 = "BT7-028"; // KingWhamon, Blue L6, [Sea Animal] — over the level gate
-const PLAIN = "BT1-009"; // Monodramon, [Mini Dragon] — no [Aqua*]/[Sea Animal] trait
-const WALL = "BT1-013"; // Muchomon, 5000 DP — a suspended opponent wall to attack into
+const AQUATIC_ATTACKER = "BT2-024";
+const AQUATIC_HAND = "BT9-022";
+const SEA_ANIMAL_HAND = "BT1-033";
+const AQUATIC_LV6 = "BT7-028";
+const PLAIN = "BT1-009";
+const WALL = "BT1-013";
 const FILLER = ["BT1-009", "BT1-010", "BT1-012", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-012", "BT1-013"];
 
@@ -43,7 +26,6 @@ describe("BT19-082 Yao Qinglan", () => {
       types: ["LIBERATOR"],
       effectText:
         "[Start of Your Turn] If you have 2 memory or less, set your memory to 3.\n" +
-        // NOTE: the catalog separates "[Sea Animal]" from "in one of its traits" with U+00A0.
         "[Your Turn] When any of your Digimon with [Aqua]/[Sea Animal]\u00A0in one of its traits attack, by suspending " +
         "this Tamer, you may place 1 level 5 or lower Digimon card with [Aqua]/[Sea Animal]\u00A0in one of its traits " +
         "from your hand as that Digimon's bottom digivolution card.",
@@ -69,7 +51,6 @@ describe("BT19-082 Yao Qinglan", () => {
             sourceFilter: {
               controller: "mine",
               kind: ["Digimon"],
-              // "in one of its traits" is a SUBSTRING gate, not "with the [X] trait".
               nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
             },
             actions: [
@@ -98,8 +79,6 @@ describe("BT19-082 Yao Qinglan", () => {
     ]);
   });
 
-  // --- play cost ------------------------------------------------------------------------
-
   it("costs 4 memory to play from hand in a real Main phase", async () => {
     const s = setupEngine(
       {
@@ -124,8 +103,6 @@ describe("BT19-082 Yao Qinglan", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [Start of Your Turn] -------------------------------------------------------------
-
   it("[Start of Your Turn] raises memory from 2 to 3, read inside the open Main phase", async () => {
     const s = setupEngine(
       {
@@ -143,7 +120,6 @@ describe("BT19-082 Yao Qinglan", () => {
     await s.ready();
 
     const turn = s.engine.runOneTurn();
-    // Read INSIDE the open Main phase; after the turn passes, memory is the post-pass value.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(3);
     expect(s.perm("yao").isSuspended).toBe(false);
@@ -171,13 +147,11 @@ describe("BT19-082 Yao Qinglan", () => {
 
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.state.memory).toBe(6); // NOT lowered to 3 — the clause only raises
+    expect(s.state.memory).toBe(6);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
     assertNoLoudGap(s);
   });
-
-  // --- [Your Turn] attack-triggered placement --------------------------------------------
 
   it("suspends the Tamer and places an [Aquatic] hand card as the attacker's BOTTOM digivolution card", async () => {
     const s = setupEngine(
@@ -186,7 +160,6 @@ describe("BT19-082 Yao Qinglan", () => {
           battleArea: [
             { card: YAO, as: "yao" },
             { card: AQUATIC_ATTACKER, as: "attacker", dp: 20_000, under: [{ card: PLAIN, as: "existingUnder" }] },
-            // A second [Aquatic] Digimon that does NOT attack: "that Digimon's" must not reach it.
             { card: AQUATIC_ATTACKER, as: "bystander", dp: 20_000 },
           ],
           hand: [{ card: AQUATIC_HAND, as: "material" }, PLAIN],
@@ -212,9 +185,8 @@ describe("BT19-082 Yao Qinglan", () => {
     await settle(() => s.perm("attacker").stack.some((c) => c.instanceId === materialId));
     await settle();
 
-    // Bottom-most first: the placed card sits BELOW the card already in the stack.
     expect(s.perm("attacker").stack.map((c) => c.instanceId)).toEqual([materialId, existingId]);
-    expect(s.perm("yao").isSuspended).toBe(true); // the printed suspend cost was paid
+    expect(s.perm("yao").isSuspended).toBe(true);
     expect(s.perm("bystander").stack.map((c) => c.instanceId)).toEqual([]);
     expect(s.state.players[0]!.hand.map((c) => c.cardId)).toEqual([PLAIN]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -287,7 +259,7 @@ describe("BT19-082 Yao Qinglan", () => {
 
     expect(s.perm("attacker").stack.map((c) => c.instanceId)).toEqual([]);
     expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(tooBigId);
-    expect(s.perm("yao").isSuspended).toBe(false); // no payload, so no cost was paid
+    expect(s.perm("yao").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
 
@@ -297,7 +269,6 @@ describe("BT19-082 Yao Qinglan", () => {
         0: {
           battleArea: [
             { card: YAO, as: "yao" },
-            // BT1-009 Monodramon is [Mini Dragon]: neither printed trait, exact or substring.
             { card: PLAIN, as: "attacker", dp: 20_000 },
           ],
           hand: [{ card: AQUATIC_HAND, as: "material" }, PLAIN],
@@ -405,7 +376,6 @@ describe("BT19-082 Yao Qinglan", () => {
     expect(s.perm("first").stack.map((c) => c.instanceId)).toEqual([materialA, firstUnder]);
     expect(s.perm("yao").isSuspended).toBe(true);
 
-    // The second attack finds the Tamer already suspended: the cost cannot be paid again.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -455,18 +425,16 @@ describe("BT19-082 Yao Qinglan", () => {
     expect(s.perm("yao").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // The opponent's real turn runs, then ours comes back around with a real unsuspend phase.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.turnSeat).toBe(1);
-    expect(s.perm("yao").isSuspended).toBe(true); // still suspended on THEIR turn
+    expect(s.perm("yao").isSuspended).toBe(true);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.turnSeat).toBe(0);
-    expect(s.perm("yao").isSuspended).toBe(false); // our unsuspend phase stood it back up
+    expect(s.perm("yao").isSuspended).toBe(false);
     expect(s.perm("attacker").isSuspended).toBe(false);
 
-    // Seat 1's wall stood up too, so it is attackable again.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -517,15 +485,12 @@ describe("BT19-082 Yao Qinglan", () => {
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("theirs").permanentId,
-        // Seat 0's Digimon is unsuspended, so it is not a legal battle target; attack the
-        // player instead. Either way seat 1's [Aquatic] Digimon is the one attacking.
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("theirs").isSuspended);
     await settle();
 
-    // Seat 0's [Aquatic] Digimon was attacked, not attacking, and it is the opponent's turn.
     expect(s.perm("mine").stack.map((c) => c.instanceId)).toEqual([]);
     expect(s.perm("theirs").stack.map((c) => c.instanceId)).toEqual([]);
     expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(materialId);
@@ -534,8 +499,6 @@ describe("BT19-082 Yao Qinglan", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // --- [Security] -----------------------------------------------------------------------
 
   it("[Security] plays itself for free through a real security check", async () => {
     const s = setupEngine(
@@ -568,7 +531,6 @@ describe("BT19-082 Yao Qinglan", () => {
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual([yaoId]);
     expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([fillerId]);
     expect(s.state.players[1]!.trash.map((c) => c.instanceId)).not.toContain(yaoId);
-    // Nothing paid its cost of 4.
     expect(s.state.memory).toBe(3);
     expect(s.perm("attacker").isSuspended).toBe(true);
     assertNoLoudGap(s);

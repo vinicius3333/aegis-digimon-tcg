@@ -164,8 +164,6 @@ describe("BT20-006 DemiMeramon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === bakemonInstance)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === eggInstance)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-063")).toBe(true);
-    // The deleted top card left the trash before its own pending inherited effect could activate;
-    // Q5905 therefore forbids treating this as a second activation opportunity.
   });
 
   it("Q4286: egg recovery of Ghostmon preserves the deleted host's inherited memory", async () => {

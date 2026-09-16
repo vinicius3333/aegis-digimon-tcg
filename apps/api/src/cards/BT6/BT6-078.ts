@@ -1,6 +1,3 @@
-// Hand-authored override for BT6-078 (SkullGreymon).
-// runtime-effect fix: correct SubTrigger event (whenTrashedFromHand not whenTrashedFromDigivolutionCards),
-// add optional+position to PlaceUnder, DP gain conditional on trash cost, duration forTheTurn.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

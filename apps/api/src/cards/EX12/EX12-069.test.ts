@@ -121,8 +121,6 @@ describe("EX12-069 Virus Busters", () => {
   });
 
   it("is a color waiver, not a VB gate: a yellow non-VB Digimon alone still lets the option be used", async () => {
-    // Comprehensive rules 16-42: <Use Req.> only lets the player IGNORE the color requirement.
-    // Meeting the ordinary yellow requirement without any [VB] card must still allow the play.
     const s = setupEngine(
       {
         0: {
@@ -175,8 +173,6 @@ describe("EX12-069 Virus Busters", () => {
   });
 
   it("reads the attacker's runtime traits, not only its printed ones", async () => {
-    // The watcher's [VB] predicate must resolve through effectiveTraits, so a granted [VB] trait
-    // on an otherwise non-VB level 4 attacker satisfies it (KB Q6881's trigger-time reading).
     const s = setupEngine(
       {
         0: {

@@ -5,14 +5,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-074.js";
 import "../index.js";
 
-// EX5-074 (Fanglongmon) behavioral evidence: security trash scaling, trash recovery with
-// per-card DP reduction, and the Digimon-effect immunity scope.
-
 const FANGLONGMON = "EX5-074";
-const FOUR_SOVS = "BT6-029"; // Azulongmon — [Four Sovereigns] Digimon
-const DEVA = "BT10-079"; // Sandiramon — [Deva] Digimon
-const VANILLA = "BT1-009"; // Monodramon — no trait, filler
-const OPP_DIGIMON = "BT1-024"; // Koromon (Lv.2) → we'll set DP manually
+const FOUR_SOVS = "BT6-029";
+const DEVA = "BT10-079";
+const VANILLA = "BT1-009";
+const OPP_DIGIMON = "BT1-024";
 
 describe("EX5-074 [When Attacking] trashes opponent security equal to owner's [Four Sovereigns] count", () => {
   it("matches the catalog and complete IR coverage", () => {
@@ -62,7 +59,6 @@ describe("EX5-074 [When Attacking] trashes opponent security equal to owner's [F
 
     await settle(() => p1.security.length === secBefore - 2);
 
-    // 2 [Four Sovereigns] → exactly 2 security cards trashed while attacking a Digimon.
     expect(secBefore - p1.security.length).toBe(2);
   });
 
@@ -107,17 +103,15 @@ describe("EX5-074 [On Play] returns Deva/FourSovereigns from trash to deck, -400
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const p0 = s.state.players[0] as PlayerState;
-    s.state.memory = 15; // Fanglongmon play cost
+    s.state.memory = 15;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fanglongmon").instanceId })).toEqual({
       ok: true,
     });
 
-    // Both trash cards returned → DP drops by 8000.
     await settle(() => s.perm("oppDigimon").currentDP <= 10000 - 8000);
 
     expect(s.perm("oppDigimon").currentDP).toBe(2000);
-    // Trash should now be empty (returned to deck bottom).
     expect(p0.trash.some((c) => c.instanceId === s.inst("trashDeva").instanceId)).toBe(false);
     expect(p0.trash.some((c) => c.instanceId === s.inst("trashFourSovs").instanceId)).toBe(false);
   });

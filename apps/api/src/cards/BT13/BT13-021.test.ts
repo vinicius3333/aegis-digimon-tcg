@@ -74,7 +74,6 @@ describe("BT13-021 Gaomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 1 && s.state.players[1]!.hand.length === 9);
     const hostId = s.perm("host").topCard.instanceId;
-    // Supplemental repeat dispatch checks the consumed budget; public attacks prove activation/reset.
     const ownHandAfterFirst = s.state.players[0]!.hand.length;
     const opponentHandAfterFirst = s.state.players[1]!.hand.length;
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {

@@ -6,14 +6,6 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { hasRegisteredCompiledCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./index.js";
 
-/**
- * Collection gate for the LM (Liberator/Limited) set, run alongside the 62 per-card suites.
- *
- * The individual card files remain the behavioral source of truth; this guard fails the build
- * if a card silently drops out of the runtime registry, stops owning an inline compiled record,
- * or regains an incomplete-coverage marker — the three properties the card-by-card audit
- * asserts one file at a time.
- */
 const LM_CARDS = allCards().filter((card) => /^LM-\d+$/.test(card.cardId));
 
 describe("LM collection gate", () => {

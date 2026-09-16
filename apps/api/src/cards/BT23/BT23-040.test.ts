@@ -6,16 +6,6 @@ import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../en
 import "../index.js";
 import { compiled } from "./BT23-040.js";
 
-/**
- * Assemble Wormmon's only legal source stack with public intents alone, and stop with the
- * controller's Main phase open so [Start of Your Main Phase] has already resolved.
- *
- * Wormmon's printed alternate requirement is "Lv.2 w/[CS] trait", and every Lv.2 card is a
- * Digi-Egg, so the stack has to start in the breeding area. Turn 1 digivolves the hand Wormmon
- * onto the breeding egg in the real Main phase; the opponent's turn passes; on seat 0's next turn
- * the production Breeding phase moves the stack to the battle area. `memory` is arranged in that
- * Breeding phase, before the start-of-main timing runs, so the clause pays out of a known total.
- */
 async function raiseWormmonToOwnMain(
   s: EngineSetup,
   { memory = 5, evolveMemory = 5 }: { memory?: number; evolveMemory?: number } = {},
@@ -40,8 +30,6 @@ async function raiseWormmonToOwnMain(
   advance(s.engine).endMainPhaseIfOpen(1);
 
   await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
-  // Arranged while the Breeding phase is still open, so the start-of-main timing that follows
-  // pays out of this total instead of racing the write.
   s.state.memory = memory;
   expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
     ok: true,
@@ -52,7 +40,6 @@ async function raiseWormmonToOwnMain(
 
 const loops = new Map<EngineSetup, Promise<unknown>>();
 
-/** Close the production turn loop this test started, if any. */
 async function closeTurn(s: EngineSetup): Promise<void> {
   const loop = loops.get(s);
   if (loop === undefined) return;
@@ -121,9 +108,6 @@ describe("BT23-040 Wormmon", () => {
         host: "self",
       },
     });
-    // The printed clause names one exact card, so the reference must not be satisfied by a
-    // longer name that merely contains it. No such card is printed today, which is why this
-    // regression is asserted at the matching seam rather than through a board fixture.
     const exactErika: NameOrTraitRef = { tokens: ["Erika Mishima"], match: "nameExact" };
     const substringErika: NameOrTraitRef = { tokens: ["Erika Mishima"], match: "name" };
     const impostor = { nameEn: "Erika Mishima & Ryuji Mishima" };
@@ -160,19 +144,12 @@ describe("BT23-040 Wormmon", () => {
 
     await raiseWormmonToOwnMain(s);
 
-    // Erika is the bottom digivolution card, below the cards the stack already held.
     expect(s.perm("egg").stack.map((card) => card.instanceId)).toEqual([erikaInstanceId, eggInstanceId, wormmonId]);
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT23-084", "BT23-002", "BT23-040"]);
     expect(s.perm("egg").topCard?.instanceId).toBe(hudiemonId);
-    // Erika left the battle area, so the card under her is trashed (CR 4-6-8) instead of
-    // riding along into the new stack.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === erikaPermanentId)).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([underErikaId]);
-    // Printed green Lv.3 requirement costs 5; the clause reduces it to 3. Memory starts the
-    // Main phase at 5 and Erika's own [Start of Your Main Phase] gain resolves first (+1).
     expect(s.state.memory).toBe(3);
-    // Three draws over the two own turns: the turn-1 digivolution bonus, the turn-2 draw phase
-    // and this clause's own digivolution bonus. Both played cards left the hand.
     expect(cardIds(s.state.players[0]!.hand)).toEqual(["BT1-010", "BT1-011", "BT1-012"]);
     assertNoLoudGap(s);
     await closeTurn(s);
@@ -197,7 +174,6 @@ describe("BT23-040 Wormmon", () => {
     await raiseWormmonToOwnMain(s);
 
     expect(s.perm("egg").topCard?.cardId).toBe("BT23-101");
-    // "[Digivolve] Lv.3 w/[CS] trait: Cost 4" less 2, against the same +1 from Erika.
     expect(s.state.memory).toBe(4);
     assertNoLoudGap(s);
     await closeTurn(s);
@@ -251,7 +227,6 @@ describe("BT23-040 Wormmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handErika").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("hudiemon").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("trashErika").instanceId]);
-    // No activation is offered at all: the cost has no legal battle-area source.
     expect(s.decisions.slice(decisionsBefore).filter((d) => d.req.kind === "optional")).toEqual([]);
     expect(s.state.memory).toBe(5);
     assertNoLoudGap(s);
@@ -314,7 +289,6 @@ describe("BT23-040 Wormmon", () => {
     expect(erika?.stack.map((card) => card.instanceId)).toEqual([s.inst("underErika").instanceId]);
     expect(cardIds(s.state.players[0]!.trash)).toEqual([]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("hudiemon").instanceId);
-    // Only Erika's own +1 moved memory; nothing was paid.
     expect(s.state.memory).toBe(6);
     assertNoLoudGap(s);
     await closeTurn(s);
@@ -361,8 +335,6 @@ describe("BT23-040 Wormmon", () => {
         },
         1: { deck: ["BT1-010", "BT1-011", "BT1-012"] },
       },
-      // Declined on the first pass so the same board survives into the opponent's turn; the
-      // turn owner is moved only by the production turn loop, never by writing `turnSeat`.
       { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await raiseWormmonToOwnMain(s);
@@ -370,12 +342,10 @@ describe("BT23-040 Wormmon", () => {
     const startOfMainTriggers = (): number =>
       s.events.filter((event) => event.kind === "effectTriggered" && event.effectKey === "BT23-040/ir-1-0").length;
 
-    // `raiseWormmonToOwnMain` already left the production turn loop on seat 0's Main phase.
     expect(s.state.turnSeat).toBe(0);
     expect(startOfMainTriggers()).toBe(1);
     expect(s.perm("egg").topCard?.cardId).toBe("BT23-040");
 
-    // The opponent's Main phase: no trigger at all, and the board is still untouched.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.turnSeat).toBe(1);
@@ -387,7 +357,6 @@ describe("BT23-040 Wormmon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === erikaPermanentId)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("hudiemon").instanceId);
 
-    // The controller's own next Main phase triggers it again.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(startOfMainTriggers()).toBe(2);
@@ -431,7 +400,6 @@ describe("BT23-040 Wormmon", () => {
         target: { kind: "permanent", permanentId: s.perm("bigBlocker").permanentId },
       }),
     ).toEqual({ ok: true });
-    // BT23-101 prints Alliance; refuse it so the battle is the carrier alone.
     await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
     expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === carrierPermanentId));

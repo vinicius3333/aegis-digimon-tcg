@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// RB1-032 Hiro Amanokawa
-// [Start of Your Main Phase] By placing 1 Digimon card with [Gammamon] in its name
-//   from your hand as 1 of your Digimon's bottom digivolution card, gain 1 memory and <Draw 1>.
-// [Your Turn] When one of your Digimon digivolves into a Digimon with [Gammamon] in its text,
-//   by suspending this Tamer, that Digimon gets +2000 DP for the turn.
-// [Security] Play this Tamer without paying its cost.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -64,8 +58,6 @@ const compiled: CompiledCard = {
             {
               kind: "ModifyDP",
               target: {
-                // The digivolving Digimon itself: `filter.triggerSubject` was never read, so the
-                // buff landed on an arbitrary candidate. `sourceRef` is the typed construct.
                 filter: {},
                 count: 1,
                 sourceRef: "triggerSubject",

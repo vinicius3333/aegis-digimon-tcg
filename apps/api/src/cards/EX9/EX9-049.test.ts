@@ -116,10 +116,8 @@ describe("EX9-049", () => {
       expect(stack.slice(3).map(({ cardId }) => cardId)).toEqual(["EX9-046", "EX9-049"]);
       expect(s.perm("source").topCard.cardId).toBe("EX9-074");
       expect(s.state.players[0]!.trash).toHaveLength(0);
-      // The starting player's first turn skips its normal draw; this is the evolution bonus draw.
       expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
       expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-048"]);
-      // Passing sets memory to -3; Kimeramon's normal level-4 evolution then costs 5.
       expect(s.state.memory).toBe(-8);
       expect(s.state.pendingDecision).toBeUndefined();
     },

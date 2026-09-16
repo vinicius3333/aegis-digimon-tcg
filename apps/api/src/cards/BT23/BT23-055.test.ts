@@ -6,12 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-055.js";
 
-/**
- * Public route to an Option card in the battle area: BT23-100 Hudie Net Cafe's
- * [Main] "＜Draw 1＞ Then, place this card in the battle area". Per KB Q5320 that
- * placement is the only way an Option card is ever in the battle area, so it is
- * also the only legal fixture for Cyberdramon's prevention cost.
- */
 async function placeNetCafe(s: EngineSetup, alias: string): Promise<string> {
   const instanceId = s.inst(alias).instanceId;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId })).toEqual({ ok: true });
@@ -126,7 +120,6 @@ describe("BT23-055 Cyberdramon", () => {
     expect(s.state.memory).toBe(2);
     expect(s.perm("cyber").topCard?.cardId).toBe("BT23-055");
     expect(s.perm("cyber").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
-    // Digivolving draws 1: the played card left the hand and the draw replaced it.
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(battleAreaCardIds(s, 1)).toEqual([]);
     assertNoLoudGap(s);
@@ -157,8 +150,6 @@ describe("BT23-055 Cyberdramon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.memory === 2);
 
-      // The printed [Digivolve] Lv.4 w/[CS] alternate costs the same 3 as the black
-      // Lv.4 route, so neither branch is cheaper — both must charge exactly 3.
       expect(s.state.memory).toBe(2);
       expect(s.perm("cyber").topCard?.cardId).toBe("BT23-055");
     }
@@ -210,7 +201,6 @@ describe("BT23-055 Cyberdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // 7000 DP into 10000 DP: Cyberdramon loses and would leave, and pays instead.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === cyberId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([optionId]);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === spareOptionId)).toBe(
@@ -283,8 +273,6 @@ describe("BT23-055 Cyberdramon", () => {
     const spareOptionId = await placeNetCafe(s, "spareOption");
     const cyberId = s.perm("cyber").permanentId;
 
-    // Suspend Cyberdramon with a real attack on its own turn; the opponent's Active phase
-    // unsuspends only their own board, so it is still a legal attack target on their turn.
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: cyberId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
@@ -315,8 +303,6 @@ describe("BT23-055 Cyberdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === cyberId));
 
-    // The once-per-turn use is spent, so the second removal resolves with the spare
-    // Option untouched — the refusal is the frequency gate, not a missing cost.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === spareOptionId)).toBe(
       true,
     );
@@ -367,7 +353,6 @@ describe("BT23-055 Cyberdramon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === cyberId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([optionId]);
 
-    // Cyberdramon suspended itself by attacking; seat 1's Active phase leaves it suspended.
     expect(s.perm("cyber").isSuspended).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -382,8 +367,6 @@ describe("BT23-055 Cyberdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === spareOptionId));
 
-    // A new turn, a fresh use: the second removal is prevented too, at the cost of
-    // the second placed Option.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === cyberId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([optionId, spareOptionId]);
     expect(battleAreaCardIds(s, 0)).toEqual(["BT23-055"]);
@@ -408,8 +391,6 @@ describe("BT23-055 Cyberdramon", () => {
     const optionId = await placeNetCafe(s, "option");
     const hostId = s.perm("host").permanentId;
 
-    // No public intent deletes an own Digimon outright, so the effect-driven delete
-    // primitive stands in for an opponent removal effect here.
     expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
@@ -464,7 +445,6 @@ describe("BT23-055 Cyberdramon", () => {
     await s.ready();
     const optionId = await placeNetCafe(s, "option");
 
-    // "When THIS Digimon ... would leave": the inherited clause guards its own host only.
     expect(await advance(s.engine).verb.deletePermanent([s.perm("otherCs").permanentId], "byEffect")).toBe(1);
     expect(await advance(s.engine).verb.deletePermanent([s.perm("opponentCs").permanentId], "byEffect")).toBe(1);
 

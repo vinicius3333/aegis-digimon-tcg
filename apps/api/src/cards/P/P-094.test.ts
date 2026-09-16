@@ -3,18 +3,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
-// A3 for P-094 (Destromon) — [On Play] delete opponent Digimon/Tamers with a total play cost of
-// 3 (+1 per [Vemmon] digivolution card). source: documented behavior (budget multi-delete).
-//
-// FAILS-WHEN-REVERTED: with a single eligible opponent target whose play cost is within the
-// budget, selectAndDeleteWithBudget auto-deletes it. A no-op leaves it on the field.
-
 describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 budget", () => {
   it("deletes the single eligible opponent Digimon (play cost within budget)", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "P-094", as: "destromon" }] },
-        // One eligible opponent Digimon, play cost 2 (<= budget 3, no Vemmon under P-094).
         1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -23,7 +16,7 @@ describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 bu
     const target = s.perm("target");
     const targetPermanentId = target.permanentId;
     const targetTop = target.topCard!;
-    s.state.memory = 10; // exact play cost
+    s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("destromon").instanceId })).toEqual({
       ok: true,
@@ -77,7 +70,6 @@ describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 bu
     expect(s.state.players[0]!.deck.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(2);
     expect(s.perm("galacticmon").stack.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(2);
 
-    // A second attack in the same opponent turn cannot pay/redirect again.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -88,7 +80,6 @@ describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 bu
     await settle(() => s.state.players[0]!.security.length === 1);
     expect(s.state.players[0]!.deck.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(2);
 
-    // End both turns through the real turn loop; the once-per-turn identity must reset.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });

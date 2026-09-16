@@ -1,11 +1,6 @@
 import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override (runtime-effect fix). "This effect can't play [Omnimon] or
-// [Gankoomon]" is an exact-name play-target exclusion on the PlayWithoutCost filter,
-// NOT a separate Restrict action — the prior `cannotPlay:...` restriction string was not
-// a recognized RestrictionKind and was inert. Source zones for the played card are the
-// trash (Sistermon) and breeding-area digivolution cards (Royal Knight).
 const playFromTrashOrBreeding = () =>
   [
     {

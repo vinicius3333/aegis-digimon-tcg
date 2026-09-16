@@ -1,15 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4116: effect is voluntary.
-// KB Q4117: need at least 3 cards in deck to activate.
-// KB Q4118: can only use once per attack (not stackable).
-// KB Q4122: inherited effect is mandatory once activated (can't place cards then skip Draw).
 const compiled: CompiledCard = {
   effects: [
     {
-      // [When Attacking] If you have a blue Tamer, you may trash the top 3 cards
-      // of your deck to give this Digimon +2000 DP for the turn.
       trigger: "WhenAttacking",
       actions: [
         {
@@ -47,11 +41,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [Inherited] [When Attacking] You may place 3 non-Digi-Egg cards from your trash at the
-      // bottom of your deck in any order to activate <Draw 1>.
-      // non-Digi-Egg = Digimon, Tamer, or Option kinds (Digi-Egg has kind "DigiEgg")
-      // KB Q4120: can only activate with 3+ non-Digi-Egg in trash.
-      // KB Q4122: once activated, you must also draw (not optional).
       trigger: "WhenAttacking",
       actions: [
         {

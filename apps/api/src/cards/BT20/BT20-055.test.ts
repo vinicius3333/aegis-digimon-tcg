@@ -173,8 +173,6 @@ describe("BT20-055 Invisimon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      // Player-directed, unblocked attacks resolve through a security check rather than
-      // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
       await settle(() => s.events.some((event) => event.kind === "securityChecked"));
       const placed = s.state.players[0]!.security.at(-1);
       expect(placed?.cardId).toBe(accept ? "BT20-055" : undefined);
@@ -211,8 +209,6 @@ describe("BT20-055 Invisimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Player-directed, unblocked attacks resolve through a security check rather than
-    // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.state.players[0]!.security.map((card) => card.cardId)).not.toContain("BT20-055");
     expect(s.perm("invisimon").topCard.cardId).toBe("BT20-055");
@@ -285,8 +281,6 @@ describe("BT20-055 Invisimon", () => {
     expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT20-055");
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-055")).toBe(false);
-    // Once the only underlying card is a Tamer, the permanent is no longer a Digimon
-    // permanent; the public engine removes the stale attacker and trashes the exposed Tamer.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT15-086");
   });

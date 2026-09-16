@@ -1,13 +1,6 @@
-// Hand-preserved override (not generator-owned): identical IR to what
-// runtime effect records currently emits for EX6-044, but `compiled` is exported
-// because EX6-044.test.ts imports it directly (`import { compiled as EX6_044 }`).
-// `export` on this const, so a plain regeneration would silently break that test.
-// Keep this file in sync with the effects.json entry for EX6-044 by hand.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it.
 export const compiled: CompiledCard = {
   effects: [
     {

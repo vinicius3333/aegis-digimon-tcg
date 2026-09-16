@@ -1,22 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT20-052 Oblivimon:
-// [Security][End of Opponent's Turn] Play this card without paying the cost.
-// [When Digivolving] Flip your opponent's top face-down security card face-up.
-// [Your Turn] When your Digimon checks a face-up security card, you may place
-//   the top card of this Digimon face-up at the bottom of the security stack.
-// [Your Turn][Inherited] This Digimon's attack target can't be switched.
-//
-// KB Q4375: flipFaceUp targets the next face-down card (from top), not a specified one.
-// KB Q4381: placing top card to security bottom triggers end-of-attack effects.
-//
-// Migration note: the face-up gate was originally encoded as a raw fireCondition on a
-// "whenChecksSecurity" SubTrigger — a name declared in SubTriggerEventName but never fired
-// anywhere. The already-live "whenCheckedFaceUpSecurity" event covers exactly this case
-// natively (securityCheck.ts fires it precisely when the checked card was ALREADY face-up),
-// so the raw workaround condition is gone and the event is renamed.
-
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -26,7 +26,6 @@ describe("BT5-029 WereGarurumon: Sagittarius Mode", () => {
           {
             card: "BT5-029",
             as: "sagittarius",
-            // BT5-020 (Lv.3) -> BT5-024 (Lv.4) -> BT1-040 (Lv.5) -> BT5-029 (Lv.5).
             under: ["BT5-020", "BT5-024", "BT1-040"],
           },
         ],

@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Digivolve] [Maquinamon]: Cost 2
-// [When Moving] [When Digivolving]: You may link 1 [Maquinamon] from your hand or this Digimon's
-//   digivolution cards to 1 of your Digimon without paying the cost.
-// [Your Turn][Once Per Turn]: When this Digimon gets linked (KB Q5832: NOT for <Mind Link>),
-//   if you have 1 or fewer Tamers, you may play 1 [Unchained] from your hand or trash without
-//   paying the cost.
-// Inherited: <Piercing>
 const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
@@ -85,9 +78,6 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
-          // "When THIS Digimon gets linked": `whenLinked` is a board-wide bus, and an unfiltered
-          // watcher fires for every link on the board. `isSelfRef` binds it to this permanent,
-          // matching the peer idiom (BT23-016, BT24-006).
           sourceFilter: {
             isSelfRef: true,
           },

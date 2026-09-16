@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX12-035.
-// TrashDigivolution: changed count:1 + amount:4 to scope:"acrossDigimon" + amount:4 so the
-// controller picks 4 cards from across ALL opponent Digimon's stacks (not just 1 Digimon).
-// AllTurns SubTrigger uses `whenAnyDigivolves`; its source filter is intentionally `any` so
-// the watcher fires for either player's Digimon, matching the printed "when any Digimon" text.
-// CR 16-36-1 scopes Decode to "THAT Digimon's digivolution cards", so each replacement's
-// PlayWithoutCost carries `hostFilter: { isSelfRef: true }`; without it the
-// `from: ["digivolutionCards"]` pool spans every stack the controller owns.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -1,16 +1,3 @@
-/**
- * BT13-008 TreatAs Tamer-as-Digimon — A3 behavioral test (HARD-01/HARD-02).
- *
- * Proves that a Tamer permanent granted Digimon kind via `grantKind` is recognized
- * as a Digimon by the combat-legality system (`canAttackerDeclare`), while an
- * ungranted Tamer of the same card ID is not. The FAILS-WHEN-REVERTED lever proves
- * the grant is causal, not coincidental.
- *
- * FAILS-WHEN-REVERTED: stub grantKind to no-op (don't call addKindGrant). The
- * Tamer stays a pure Tamer — `canAttackerDeclare` returns "illegal-target" for it,
- * proving the grant is the causal difference.
- */
-
 import { describe, it, expect } from "vitest";
 import {
   CardKind,
@@ -25,7 +12,6 @@ import { GameStateAccess } from "../../engine/state/access.js";
 import { canAttackerDeclare, type ContinuousLegalityReader } from "../../engine/combat/legality.js";
 import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 
-/** Minimal CardDefinition for a Marcus Damon Tamer. */
 function _marcusDamonDef(): CardDefinition {
   return {
     cardId: "BT12-092",
@@ -49,7 +35,6 @@ function fakeState(tamerA: Permanent, tamerB: Permanent): GameState {
   } as unknown as GameState;
 }
 
-/** Build a minimal Tamer permanent in the battle area. */
 function fakeTamer(permanentId: string, seat: Seat): Permanent {
   const top = new CardInstance();
   top.cardId = "BT12-092";
@@ -87,7 +72,6 @@ describe("BT13-008 TreatAs A3 (HARD-02)", () => {
 
   it("a Tamer without Digimon kind grant cannot attack (returns illegal-target)", () => {
     const ledger = new ContinuousEffectLedger();
-    // Tamer B has NO grant
     const reader: ContinuousLegalityReader = {
       hasRestriction: () => false,
       hasKeyword: () => false,
@@ -98,11 +82,7 @@ describe("BT13-008 TreatAs A3 (HARD-02)", () => {
   });
 
   it("FAILS-WHEN-REVERTED: without grantKind, Tamer A also cannot attack", () => {
-    // The lever: grantKind is the causal difference.
-    // When grantKind is a no-op (no addKindGrant call), the Tamer stays a pure Tamer
-    // and canAttackerDeclare returns "illegal-target".
     const ledger = new ContinuousEffectLedger();
-    // No call to addKindGrant — simulating grantKind being stubbed to no-op
     const reader: ContinuousLegalityReader = {
       hasRestriction: () => false,
       hasKeyword: () => false,
@@ -115,7 +95,6 @@ describe("BT13-008 TreatAs A3 (HARD-02)", () => {
   it("after duration sweep, the Digimon grant expires and the Tamer can no longer attack", () => {
     const ledger = new ContinuousEffectLedger();
     ledger.addKindGrant("tamer-A", [CardKind.Digimon], EffectDuration.UntilEachTurnEnd);
-    // Sweep at eachTurnEnd for the owner's seat (0)
     ledger.sweep(state, "eachTurnEnd", 0 as Seat);
     const reader: ContinuousLegalityReader = {
       hasRestriction: () => false,

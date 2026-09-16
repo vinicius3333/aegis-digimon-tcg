@@ -7,14 +7,12 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-065.js";
 
-/** The printed `[Hand] [Main]` effect key, read through the public card-source seam. */
 function handMainEffectKey(s: EngineSetup, instance: CardInstance): string {
   const source = observe(s.engine).cardSource(instance);
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT23-065/"))!
     .effectKey;
 }
 
-/** Board for the `[Hand] [Main]` clause: a Ghostmon host, a trashed Bakemon, and a hand Phantomon. */
 function handMainBoard(ghostmonCardId: string, withTamer: boolean): BoardSpec {
   return {
     0: {
@@ -43,7 +41,6 @@ describe("BT23-065 Phantomon", () => {
       attributes: ["Virus"],
       types: ["Ghost", "LIBERATOR"],
     });
-    // The catalog prints a non-breaking space in "[Ghost]\u00a0trait"; compare on normalized text.
     const printed = (text: string | undefined) => (text ?? "").replace(/\u00a0/g, " ");
     expect(printed(getCardDefinition("BT23-065")!.effectText)).toBe(
       "[Hand] [Main] If you have [Violet Inboots], by placing 1 [Bakemon] from your trash as any of your [Ghostmon]'s bottom digivolution card, it digivolves into this card for a digivolution cost of 3, ignoring digivolution requirements.\n[On Deletion] You may play 1 level 4 or lower Digimon card with the [Ghost] trait from your trash without paying the cost.",
@@ -55,13 +52,7 @@ describe("BT23-065 Phantomon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  // ---------------------------------------------------------------------------
-  // C1 — [Hand] [Main]
-  // ---------------------------------------------------------------------------
-
   it("places Bakemon under Ghostmon, digivolves into itself and pays the printed 3", async () => {
-    // BT23-061 Ghostmon has no cost-reduction effect, so the memory delta is the raw
-    // `costOverride: 3`.
     const s = setupEngine(handMainBoard("BT23-061", true), {
       autoSelectCards: true,
       autoDeclineOptional: true,
@@ -81,8 +72,6 @@ describe("BT23-065 Phantomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("ghostmon").topCard?.instanceId === phantomonId);
 
-    // The Lv.3 Ghostmon is not a legal printed source for a Lv.5 Ultimate: this route only
-    // exists because the clause ignores digivolution requirements.
     expect(getCardDefinition("BT23-061")!.level).toBe(3);
     expect([...s.perm("ghostmon").stack, s.perm("ghostmon").topCard!].map((card) => card.instanceId)).toEqual([
       bakemonId,
@@ -97,8 +86,6 @@ describe("BT23-065 Phantomon", () => {
   });
 
   it("pays 2 when the Ghostmon host reduces the cost (Q5334)", async () => {
-    // BT21-065 Ghostmon: "[Your Turn] When this Digimon would digivolve into a card with the
-    // [Ghost] trait, reduce the digivolution cost by 1." Phantomon has the [Ghost] trait.
     const s = setupEngine(handMainBoard("BT21-065", true), {
       autoSelectCards: true,
       autoDeclineOptional: true,
@@ -126,8 +113,6 @@ describe("BT23-065 Phantomon", () => {
   });
 
   it("lets the controller pick which of two [Ghostmon] hosts receives Bakemon and Phantomon", async () => {
-    // "any of your [Ghostmon]'s bottom digivolution card": with two hosts the controller
-    // chooses, and only the chosen stack changes.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -163,10 +148,8 @@ describe("BT23-065 Phantomon", () => {
     expect(
       [...s.perm("secondGhostmon").stack, s.perm("secondGhostmon").topCard!].map((card) => card.instanceId),
     ).toEqual([bakemonId, secondId, phantomonId]);
-    // Both hosts were genuinely offered, so the outcome is the controller's choice.
     expect(
       s.decisions.some(({ req }) => {
-        // The host decision lists permanents, so it carries permanent ids.
         const candidates = req.options?.candidateInstanceIds ?? [];
         return (
           candidates.includes(s.perm("firstGhostmon").permanentId) &&
@@ -174,7 +157,6 @@ describe("BT23-065 Phantomon", () => {
         );
       }),
     ).toBe(true);
-    // The untouched host keeps its own single-card stack.
     expect(s.perm("firstGhostmon").topCard!.instanceId).toBe(firstId);
     expect(s.perm("firstGhostmon").stack).toHaveLength(0);
     expect(s.state.memory).toBe(2);
@@ -236,7 +218,6 @@ describe("BT23-065 Phantomon", () => {
     const s = setupEngine(
       {
         0: {
-          // A Ghost-trait LIBERATOR Digimon that is not named Ghostmon.
           battleArea: [
             { card: "BT23-064", as: "notGhostmon" },
             { card: "BT23-087", as: "violet" },
@@ -271,7 +252,6 @@ describe("BT23-065 Phantomon", () => {
             { card: "BT23-087", as: "violet" },
           ],
           hand: [{ card: "BT23-065", as: "phantomon" }],
-          // Dracmon is a purple Digimon in the trash, but it is not named [Bakemon].
           trash: [{ card: "BT23-062", as: "notBakemon" }],
         },
       },
@@ -293,13 +273,6 @@ describe("BT23-065 Phantomon", () => {
   });
 
   it("refuses activation while another digivolving effect is resolving (Q5335)", async () => {
-    // Q5335: this clause cannot be activated at the same time as an effect such as
-    // P-108 [Wisdom Training] that digivolves. The engine enforces it in
-    // `GameEngine.applyIntent`'s `mainActionWhileResolving` gate: while another effect is
-    // resolving, every main-phase verb (activateEffect included) is refused. The reason names
-    // the most specific cause: here the first activation is parked on its own selection
-    // decision, so the verb's decision gate reports `decision-pending` (the same answer
-    // BT25-089 / BT25-098 assert); an effect resolving with no decision open is `wrong-phase`.
     const s = setupEngine({
       0: {
         battleArea: [
@@ -314,7 +287,6 @@ describe("BT23-065 Phantomon", () => {
     s.state.memory = 5;
     const phantomonKey = handMainEffectKey(s, s.inst("phantomon"));
 
-    // No auto-responders: the first activation parks on its own selection decision.
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -335,8 +307,6 @@ describe("BT23-065 Phantomon", () => {
   });
 
   it("matches bracketed card names exactly, not by substring", () => {
-    // [Violet Inboots], [Bakemon] and [Ghostmon] are bracketed names, so they are exact
-    // references. `match: "name"` is a substring test in the matcher; `nameExact` is equality.
     const near = [
       { cardId: "TEST-001", nameEn: "Bakemon X", token: "Bakemon" },
       { cardId: "TEST-002", nameEn: "DarkGhostmon", token: "Ghostmon" },
@@ -371,19 +341,13 @@ describe("BT23-065 Phantomon", () => {
     expect((main as { isFromHand?: boolean }).isFromHand).toBe(true);
   });
 
-  // ---------------------------------------------------------------------------
-  // C2 / C3 — [On Deletion]
-  // ---------------------------------------------------------------------------
-
   it("plays a level-4 Ghost from trash for free after a real combat deletion", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT23-065", as: "phantomon" }],
           trash: [
-            // BT4-080 Bakemon is a Lv.4 [Ghost] with no printed effect, so nothing else moves.
             { card: "BT4-080", as: "ghost" },
-            // BT20-072 Phantomon is Lv.5 with the [Ghost] trait: it fails only the level bound.
             { card: "BT20-072", as: "tooHigh" },
           ],
         },
@@ -410,8 +374,6 @@ describe("BT23-065 Phantomon", () => {
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === ghostId);
     expect(played).toBeDefined();
     expect(played!.stack.map((card) => card.instanceId)).toEqual([]);
-    // The play is free: BT4-080's printed play cost is 5, and attacking a Digimon moves no
-    // memory, so memory must be untouched.
     expect(getCardDefinition("BT4-080")!.playCost).toBe(5);
     expect(s.state.memory).toBe(3);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("wall").instanceId)).toBe(true);
@@ -448,8 +410,6 @@ describe("BT23-065 Phantomon", () => {
   });
 
   it("runs the inherited On Deletion from under a host after a real combat deletion", async () => {
-    // The host is an inert Digimon with no On Deletion of its own, so the only trigger that
-    // can play the trashed Ghost is the inherited BT23-065 clause.
     const s = setupEngine(
       {
         0: {

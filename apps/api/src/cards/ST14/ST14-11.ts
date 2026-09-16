@@ -57,7 +57,6 @@ const compiled: CompiledCard = {
           raw: "suspend this Tamer to gain 1 memory",
           actions: [
             {
-              // Q803: this clause resolves even with no hand card; return one whenever able.
               kind: "Return",
               target: {
                 filter: { zone: "hand", controller: "mine" },

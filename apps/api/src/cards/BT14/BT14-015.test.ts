@@ -65,8 +65,6 @@ describe("BT14-015", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveId)).toBe(true);
 
-    // A natural second attack proves the inherited Once Per Turn gate without injecting
-    // another OnUseAttack timing directly.
     await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
     expect(
       s.engine.applyIntent(0, {

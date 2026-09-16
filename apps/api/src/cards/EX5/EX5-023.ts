@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -30,7 +27,6 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 2 cards in your hand",
           },
-          // The Return is a Then clause: an unpaid head must stop this action list.
           abortOnDecline: true,
         },
         {

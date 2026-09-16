@@ -1,20 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT22-042 (Nyabootmon).
-// Text:
-//   ＜Overclock ([Puppet] Trait)＞
-//   [When Digivolving] You may play 1 level 4 or lower [Puppet] trait Digimon card from
-//   your hand without paying the cost. Then, to 1 of your opponent's Digimon, give -3000
-//   DP until their turn ends for each of your Digimon.
-//   [All Turns] [Once Per Turn] When any of your other Digimon are deleted, you may
-//   activate 1 of this Digimon's [When Digivolving] effects.
-// Fixes vs AUTO-GENERATED:
-//   - ModifyDP: removed optional:true — text says "Then, give -3000 DP" (mandatory)
-//   - ActivateEffect target: self (isSelfRef:true) not opponent's Digimon — text says
-//     "activate 1 of THIS DIGIMON's [When Digivolving] effects"
-//   - Alternate evolution: requires [Chaperomon] and a controlled [Arisa Kinosaki],
-//     rather than treating both names as interchangeable base cards.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -53,9 +53,6 @@ describe("BT13-051 Mikemon", () => {
       ["BT13-053", 7000],
       ["BT13-046", 13000],
     ] as const) {
-      // Mihiramon is a legal Holy Beast Lv.5 host for the inherited Lv.4 Mikemon source.
-      // The Royal Knight case intentionally seeds the source under the host to
-      // exercise the typed-trait aura independently of an evolution route.
       const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT13-051"] }] } });
       await s.ready();
       expect(s.perm("host").currentDP).toBe(baseDP + 2000);

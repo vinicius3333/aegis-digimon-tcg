@@ -141,7 +141,6 @@ describe("BT1-008 Frimon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
     await advance(s.engine).waitForMainPhase(0);
-    // The opponent's turn-start unsuspended both Digimon; make the two legal targets suspended again.
     await advance(s.engine).verb.suspend([s.perm("firstSuspended").permanentId, s.perm("secondSuspended").permanentId]);
     const carrier = s.state.players[0]!.battleArea.find(({ stack }) =>
       stack.some(({ instanceId }) => instanceId === eggInstanceId),

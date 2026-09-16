@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1254-Q1255: the blocked trigger requires an actual Blocker block, and the
-// security aura remains live for Digimon entering play afterward.
 export const compiled: CompiledCard = {
   effects: [
     {

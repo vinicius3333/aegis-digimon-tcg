@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX7-060 Nidhoggmon
-// [Trash] [Main] If you have 4 or fewer cards in your hand, you may play this card from your
-//   trash with the play cost reduced by 4.
-// <Blocker>
-// [On Deletion] You may play 1 level 5 or lower Digimon card with the [Dark Dragon]/
-//   [Evil Dragon] trait from your trash without paying the cost.
-// Note: The "trait trait" duplicate in effectText is a typo; card has a single trait filter.
 export const compiled: CompiledCard = {
   effects: [
     {

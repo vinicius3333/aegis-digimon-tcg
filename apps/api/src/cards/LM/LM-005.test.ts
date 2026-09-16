@@ -67,7 +67,6 @@ describe("LM-005 Amphimon", () => {
     });
     await settle(() => s.state.players[1]!.trash.length === 2, 2000);
 
-    // One stack card came off each opposing permanent, not the permanents themselves.
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-029")).toHaveLength(2);
     expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-027", "BT1-045"]);
   });

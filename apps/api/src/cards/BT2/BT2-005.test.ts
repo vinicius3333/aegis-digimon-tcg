@@ -11,7 +11,6 @@ describe("BT2-005 Kapurimon", () => {
   it("gives +1000 DP during its turn while its host has Reboot", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT2-065", as: "host", under: ["BT2-005"] }] } });
     await s.engine.recomputeContinuousEffects();
-    // BT2-065 has Reboot as a top-level keyword, so Kapurimon's inherited buff is active.
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
 
@@ -52,7 +51,6 @@ describe("BT2-005 Kapurimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT20-047");
     expect(s.state.players[0]!.breeding!.stack.map((card) => card.cardId)).toEqual(["BT2-005"]);
-    // BT20-047's Reboot is inherited, so it is not active while Solarmon is the top card.
     await s.engine.recomputeContinuousEffects();
     expect(s.state.players[0]!.breeding!.currentDP).toBe(s.state.players[0]!.breeding!.baseDP);
     expect(

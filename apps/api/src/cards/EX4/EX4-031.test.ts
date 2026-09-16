@@ -167,8 +167,6 @@ describe("EX4-031 Cherubimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP !== 10_000);
 
-    // Declaring the attack suspends Cherubimon itself, so it counts toward its own scaling
-    // alongside the two Digimon already suspended before the attack.
     expect(s.perm("target").currentDP).toBe(1_000);
   });
 

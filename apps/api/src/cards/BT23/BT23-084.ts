@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT23-084 (Erika Mishima).
-// [End of Your Turn]: cost = suspend self AND return 1 [Hudie] Digimon to hand.
-// PlayWithoutCost destination is the breeding area (not battle area).
-// Q5357: [On Play] of the played card does NOT trigger (placed in breeding area).
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -34,9 +30,6 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              // Comprehensive rules 3-4-5-8: information on cards in the breeding area
-              // can't be referenced, so a [CS] Digimon in breeding must not satisfy this
-              // condition. `youHave` counts breeding when the filter carries no zone.
               zone: "battleArea",
               kind: ["Digimon"],
               nameOrTrait: [
@@ -74,8 +67,6 @@ export const compiled: CompiledCard = {
           payCost: false,
           breeding: true,
           requiresEmpty: "breedingArea",
-          // CR 15-7-5: the optional processing cost remains payable when the
-          // subsequent play cannot resolve because the breeding area is full.
           allowCostWithoutTarget: true,
           cost: {
             kind: "compound",

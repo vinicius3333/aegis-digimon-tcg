@@ -130,9 +130,6 @@ describe("EX11-007 Agumon", () => {
       },
       { autoSelectCards: true, preferInstanceIds },
     );
-    // BT1-024 MetalTyrannomon carries [Tyrannomon] in its NAME but only the [Cyborg] trait, so
-    // it is eligible through the name branch alone; BT1-009 Monodramon ([Mini Dragon]) matches
-    // neither branch.
     preferInstanceIds.push(s.perm("nameOnly").permanentId);
     s.state.memory = 10;
 
@@ -143,7 +140,6 @@ describe("EX11-007 Agumon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("nameOnly"), "Raid")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("nameOnly"))).toBe(true);
-    // "1 of your Digimon" is a single selection: the other eligible Reptile gets nothing.
     expect(observe(s.engine).hasKeyword(s.perm("reptile"), "Raid")).toBe(false);
     expect(observe(s.engine).hasPierce(s.perm("reptile"))).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("nonMatching"), "Raid")).toBe(false);

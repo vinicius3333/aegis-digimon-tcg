@@ -135,7 +135,6 @@ describe("EX7-074 Vortex Resonance", () => {
     });
     await settle(() => s.perm("host").topCard?.cardId === "BT1-084");
     expect(s.perm("host").topCard?.cardId).toBe("BT1-084");
-    // Option 3 + (printed evolution 6 - reduction 4) = 5 memory paid.
     expect(s.state.memory).toBe(5);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT8-017"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX7-074");

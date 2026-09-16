@@ -72,8 +72,6 @@ describe("BT8-083 MaloMyotismon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    // With only 4 (not 5+) Myotismon in trash, neither On Play action's condition is
-    // met, so the effect has nothing to do and never even triggers.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT8-083")).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

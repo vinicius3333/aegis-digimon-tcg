@@ -134,8 +134,6 @@ describe("EX10-016 Mirrormon", () => {
   });
 
   it("suspends 1 only when this Digimon gets linked, refuses a second use, and resets next own turn", async () => {
-    // A live bias array: each step names the ONE opposing Digimon a firing would suspend, so a
-    // refused use cannot be confused with a use that re-suspended an already suspended target.
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -169,11 +167,8 @@ describe("EX10-016 Mirrormon", () => {
     const suspendedOpponents = () => s.state.players[1]!.battleArea.filter((permanent) => permanent.isSuspended).length;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // The turn loop hands the turn player its own memory; top it up so the link declarations
-    // below never drive memory to zero and hand the turn over mid-test.
     s.state.memory = 8;
 
-    // A card linked to a NEIGHBOUR is not this Digimon getting linked: the watcher stays quiet.
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -189,7 +184,6 @@ describe("EX10-016 Mirrormon", () => {
     s.state.memory = 8;
     preferred.length = 0;
     preferred.push(s.perm("firstTarget").permanentId);
-    // First link onto Mirrormon: one opposing Digimon is suspended.
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -201,8 +195,6 @@ describe("EX10-016 Mirrormon", () => {
     expect(s.perm("mirrormon").linked).toHaveLength(1);
     expect(suspendedOpponents()).toBe(1);
 
-    // Second link in the SAME turn, through a real ＜Link +1＞ grant and a real link intent:
-    // the once-per-turn gate refuses the second use, so the suspend count does not move.
     await advance(s.engine).verb.grantLinkMax(s.perm("mirrormon").permanentId, 1, EffectDuration.UntilEachTurnEnd);
     s.state.memory = 8;
     preferred.length = 0;
@@ -218,8 +210,6 @@ describe("EX10-016 Mirrormon", () => {
     expect(s.perm("secondTarget").isSuspended).toBe(false);
     expect(suspendedOpponents()).toBe(1);
 
-    // Round-trip the real turn loop. The opponent unsuspends on their own turn, so the board
-    // is clean again and any suspension seen afterwards is a fresh use of the reset gate.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
@@ -268,8 +258,6 @@ describe("EX10-016 Mirrormon", () => {
     const breedingPermanentId = s.state.players[0]!.breeding!.permanentId;
     const eggInstanceId = s.state.players[0]!.breeding!.topCard!.instanceId;
 
-    // The green Lv.2 route is the printed evolution cost, taken inside breeding where it costs
-    // no memory. The stack identity below is what makes this a real build, not a seeded board.
     s.state.phase = Phase.Main;
     const memoryBeforeDigivolve = s.state.memory;
     expect(
@@ -296,8 +284,6 @@ describe("EX10-016 Mirrormon", () => {
     expect(bred.stack.map(({ cardId }) => cardId)).toEqual(["BT1-007"]);
     expect(bred.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
 
-    // The self-linked watcher fires on the bred permanent, so the clause is proved on the card
-    // as it is actually built rather than on a seeded permanent.
     s.state.memory = 1;
     expect(
       s.engine.applyIntent(0, {
@@ -365,7 +351,6 @@ describe("EX10-016 Mirrormon", () => {
     preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
     await s.ready();
 
-    // Natural origin: a public attack intent opens the [When Attacking] window.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

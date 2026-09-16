@@ -6,20 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-032.js";
 
-// BT19-032 Airdramon — Yellow Lv.4 Champion, 4000 DP, play cost 4, digivolves from a
-// Yellow Lv.3 for 2.
-//   [On Deletion] 1 of your opponent's Digimon gains ＜Security Attack -1＞until the end of
-//                 their turn. Then, if you have 2 or fewer security cards, ＜Recovery +1 (Deck)＞.
-//   Inherited: ＜Barrier＞.
-//
-// Knowledge base: `node tools/kb/query.mjs card BT19-032` reports no Q&A entries, matching
-// docs/audits/BT19.md#knowledge-base-index (0 rulings). Nothing to cover.
-//
-// Fixtures (all inert main-deck Digimon, never Digi-Eggs, in deck or security):
-//   BT1-045 Tsukaimon  — inert Yellow Lv.3, the legal digivolution source.
-//   BT1-009 Monodramon — inert Red Lv.3, the illegal digivolution source.
-//   BT1-050 Liollmon / BT1-047 Tinkermon — inert opposing Digimon; only one may be picked.
-//   BT1-013 / BT1-014 — inert security filler.
 describe("BT19-032 Airdramon", () => {
   it("matches the catalog printing", () => {
     expect(getCardDefinition("BT19-032")).toMatchObject({
@@ -48,7 +34,6 @@ describe("BT19-032 Airdramon", () => {
           kind: "GainKeyword",
           target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
           keyword: { keyword: "SecurityAttack", amount: -1 },
-          // "until the end of THEIR turn" — the opponent's turn end, a real EffectDurationRef.
           duration: "untilOpponentTurnEnd",
         },
         {
@@ -69,10 +54,6 @@ describe("BT19-032 Airdramon", () => {
     expect(compiled.effects).toHaveLength(2);
     expect(compiled.coverage).toBe("full");
   });
-
-  // ---------------------------------------------------------------------------
-  // Digivolution routes
-  // ---------------------------------------------------------------------------
 
   it("digivolves from a Yellow Lv.3 for 2 with the bonus draw", async () => {
     const s = setupEngine({
@@ -133,10 +114,6 @@ describe("BT19-032 Airdramon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Deletion] ＜Security Attack -1＞ on exactly one opposing Digimon
-  // ---------------------------------------------------------------------------
-
   it("gives exactly one opposing Digimon Security Attack -1 and never one of yours", async () => {
     const s = setupEngine(
       {
@@ -167,7 +144,6 @@ describe("BT19-032 Airdramon", () => {
     const reduced = opposing.filter((permanent) => observe(s.engine).keywordAmount(permanent, "SecurityAttack") === -1);
     expect(reduced).toHaveLength(1);
     expect(observe(s.engine).keywordAmount(s.perm("ownPeer"), "SecurityAttack")).toBe(0);
-    // 3 security is above the threshold: no ＜Recovery +1 (Deck)＞.
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("deckTop").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -194,7 +170,6 @@ describe("BT19-032 Airdramon", () => {
     await settle(() => s.state.players[0]!.security.length === 3);
 
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
-    // ＜Recovery＞ places the deck's top card on TOP of security (CR §16-6).
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("recovered").instanceId,
       s.inst("secTop").instanceId,
@@ -225,14 +200,7 @@ describe("BT19-032 Airdramon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT19-032"]);
   });
 
-  // ---------------------------------------------------------------------------
-  // The whole clause through a real battle deletion and a real turn boundary
-  // ---------------------------------------------------------------------------
-
   it("fires On Deletion from a real battle loss and the reduction expires at the opponent's turn end", async () => {
-    // Seat 0's Airdramon (4000 DP) attacks the opposing 4000 DP Liollmon: mutual deletion
-    // (CR §11-4). The [On Deletion] then lands ＜Security Attack -1＞ on the opponent's other
-    // Digimon, and seat 1's own turn end is what expires it.
     const s = setupEngine(
       {
         0: {
@@ -272,7 +240,6 @@ describe("BT19-032 Airdramon", () => {
     ).toEqual({ ok: true });
 
     await settle(() => s.state.players[0]!.security.length === 3);
-    // Both 4000 DP Digimon died in the battle; the survivor carries the reduction.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
       survivorInstanceId,
@@ -284,7 +251,6 @@ describe("BT19-032 Airdramon", () => {
       s.inst("secBottom").instanceId,
     ]);
 
-    // Run seat 1's whole turn; its end is the duration boundary.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).keywordAmount(s.perm("survivor"), "SecurityAttack")).toBe(-1);
@@ -297,13 +263,7 @@ describe("BT19-032 Airdramon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited ＜Barrier＞ (comprehensive 16-8)
-  // ---------------------------------------------------------------------------
-
   it("grants Barrier only to a host that really carries BT19-032 underneath", async () => {
-    // A realistic stack: BT19-032 (Yellow Lv.4) digivolved into BT19-037 Taomon (Yellow Lv.5).
-    // The near-miss peer is the same Taomon with an inert Yellow Lv.4 underneath instead.
     const s = setupEngine({
       0: {
         battleArea: [

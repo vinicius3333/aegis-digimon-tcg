@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Digivolving]: if you have Matt Ishida Tamer → Draw 1.
-// If you don't → you may play 1 Matt Ishida Tamer from hand with play cost reduced by 3.
-// [When Attacking] (inherited) [Once Per Turn]: Draw 1.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -91,7 +91,6 @@ describe("P-175 Hina Kurihara", () => {
 
     expect(s.perm("hina").isSuspended).toBe(true);
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("evolution").instanceId);
-    // BT2-016's level-4 evolution cost is 2; Hina's replacement reduces it to 0.
     expect(s.state.memory).toBe(6);
   });
 

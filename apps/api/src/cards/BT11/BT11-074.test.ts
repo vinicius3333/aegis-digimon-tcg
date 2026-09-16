@@ -94,7 +94,6 @@ describe("BT11-074 BlackWarGreymon X", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([highestId]);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds);
 
-    // The remaining lower-DP Digimon is the new highest, but the watcher is once per turn.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -195,7 +194,6 @@ describe("BT11-074 BlackWarGreymon X", () => {
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.instanceId)).toEqual([expensiveId]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([lowestId]);
 
-    // A second real unsuspend during the same opponent turn is suppressed.
     await advance(s.engine).verb.suspend([s.perm("expensive").permanentId]);
     await advance(s.engine).verb.unsuspend([s.perm("expensive").permanentId]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([lowestId]);
@@ -203,7 +201,6 @@ describe("BT11-074 BlackWarGreymon X", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await firstTurn;
 
-    // A complete neutral turn resets the opponent-turn watcher budget.
     s.state.turnSeat = 0;
     s.state.memory = 3;
     const neutralTurn = s.engine.runOneTurn();

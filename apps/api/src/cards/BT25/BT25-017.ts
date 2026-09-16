@@ -47,8 +47,6 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
-          // The printed "by" processing condition may be performed even when no
-          // eligible opponent Digimon exists; the deletion then resolves to zero.
           allowCostWithoutTarget: true,
         },
       ],

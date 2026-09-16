@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1836: check is by either exact card name, not trait or name substring.
-// [When Digivolving]: the same scaled DP reduction applies to battle-area Digimon
-// and Security Digimon. These are distinct runtime modifier channels.
-// [End of Attack]: "You may add the top security card to hand TO unsuspend" —
-// the security add is the cost that enables the unsuspend (cost kind securityToHand).
 export const compiled: CompiledCard = {
   effects: [
     {

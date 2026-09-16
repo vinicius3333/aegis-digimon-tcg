@@ -113,7 +113,6 @@ describe("BT5-017 ZeigGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT5-017");
     expect(s.state.memory).toBe(0);
-    // At exactly 0 the opponent has no memory, so the optional Blitz window must not open.
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

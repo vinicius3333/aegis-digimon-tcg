@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// "You may digivolve this card from your hand onto one of your black Tamers as if
-// the Tamer is a level 3 black Digimon." — alternate digivolution onto a Tamer;
-// captured entirely by digivolutionRequirement; no separate active effect.
 const compiled: CompiledCard = {
   effects: [
     {

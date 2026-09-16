@@ -47,8 +47,6 @@ describe("BT5-024 Garurumon", () => {
           {
             card: "BT5-086",
             as: "host",
-            // BT5-020 (Lv.3) -> BT5-024 (Lv.4) -> BT1-040 (Lv.5) ->
-            // BT5-031 (Lv.6) -> BT5-086 (Lv.7).
             under: ["BT5-020", "BT5-024", "BT1-040", "BT5-031"],
           },
         ],

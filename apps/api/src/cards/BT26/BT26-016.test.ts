@@ -150,11 +150,6 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    // "recovery" (BT1-012) is the only explicitly-seeded deck card, so it is what the
-    // effect's own preceding draw step takes to hand — the security recovery step then
-    // pulls from what remains of the deck (the harness's auto-filled padding), not
-    // "recovery" itself. The real milestone is the security count the later assertion
-    // already checks.
     await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -184,8 +179,6 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Player-directed attack: it resolves through a security check, not a Digimon-vs-Digimon
-    // battle, so "combatResolved" (only emitted by resolveDigimonBattle) never fires.
     await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -406,8 +399,6 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
-    // The prevention prompt carries the installing clause's timing so the client
-    // shows only the [All Turns] protection, not the whole printed card.
     const preventPrompt = s.decisions.find(
       ({ req }) => req.kind === "optional" && req.promptText === "Prevent leaving the battle area?",
     );

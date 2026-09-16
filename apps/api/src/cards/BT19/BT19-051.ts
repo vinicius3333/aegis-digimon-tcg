@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play] / [When Digivolving]: 1 of your Digimon gets +3000 DP + can't be returned to
-// hand or deck until opponent's turn end (both encoded on same selected target).
-// [On Deletion]: Place 1 Digimon card with [Xros Heart]/[Blue Flare] trait from hand or trash
-// under any of your Tamers.
-// Static GrantStatic "name" for Ballistamon is scoped to DigiXros only per Q&A Q3105.
 export const compiled: CompiledCard = {
   effects: [
     {

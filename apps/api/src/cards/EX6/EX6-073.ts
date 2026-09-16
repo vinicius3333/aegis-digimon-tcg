@@ -5,7 +5,6 @@ const generated = getCompiledCard("EX6-073")!;
 const deletedCountSource = "ex6-073-deleted";
 const placedCountSource = "ex6-073-placed";
 
-/** EX6-073 — Ogudomon, with the 7-minus-deleted security count structured. */
 export const compiled: CompiledCard = {
   ...generated,
   effects: generated.effects.map((effect): CardEffect => ({

@@ -3,7 +3,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST14-09.js";
-// BT19-071 is the neutral production producer for the deck-mill trigger below.
 import "../../cards/BT19/BT19-071.js";
 
 describe("ST14-09 BeelStarmon", () => {

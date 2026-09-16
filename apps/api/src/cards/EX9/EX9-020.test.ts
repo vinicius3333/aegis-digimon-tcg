@@ -323,9 +323,6 @@ describe("EX9-020", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    // The host's attackTargetChange restriction (inherited from EX9-020) also blocks
-    // the Blocker keyword's redirect, so no block window ever opens — the attack goes
-    // straight through to security.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(

@@ -328,7 +328,6 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // §8-3-2-1 trashes the Burst top and promotes the former top.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(burstInstance);
     expect(s.perm("base").topCard.instanceId).toBe(priorTop);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

@@ -36,7 +36,6 @@ describe("BT6-096 Forbidden Trident", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "rookie", under: ["BT1-010", "BT1-011"] },
-            // A level-4 bystander proves the granted attack targets only level 3.
             { card: "BT6-044", as: "tooHigh" },
           ],
           security: ["BT1-001"],

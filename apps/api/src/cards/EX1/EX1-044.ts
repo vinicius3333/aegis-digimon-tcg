@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q3231 (binding): "same name as this Digimon" refers to the name of the Digimon this card
-// has digivolved into (the host's top-card name), NOT the name [Keramon].
-// Scaling filter uses isSameName:true to compare each candidate with the live source top card.
 const compiled: CompiledCard = {
   effects: [
     {

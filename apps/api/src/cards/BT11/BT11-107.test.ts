@@ -37,8 +37,8 @@ describe("BT11-107 Hades Force", () => {
         },
         1: {
           battleArea: [
-            { card: "ST1-02", as: "digimon" }, // play cost 2
-            { card: "BT1-088", as: "tamer" }, // play cost 2
+            { card: "ST1-02", as: "digimon" },
+            { card: "BT1-088", as: "tamer" },
           ],
         },
       },
@@ -55,7 +55,7 @@ describe("BT11-107 Hades Force", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0, 400);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.memory).toBe(5); // the X Antibody reduction lowers Hades Force from 7 to 5
+    expect(s.state.memory).toBe(5);
   });
 
   it("registers the complete IR", () => {

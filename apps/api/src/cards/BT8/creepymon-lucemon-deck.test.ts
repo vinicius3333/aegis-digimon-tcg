@@ -62,8 +62,6 @@ describe("BT8 Creepymon Lucemon toolbox", () => {
     );
 
     expect(s.state.players[0]!.trash).toHaveLength(20);
-    // The digivolution continuation also recomputes persistent effects. Wait for that
-    // production pass before starting a second main-phase verb.
     await s.engine.recomputeContinuousEffects();
     const baseDP = s.perm("creepymonBase").baseDP;
     expect(

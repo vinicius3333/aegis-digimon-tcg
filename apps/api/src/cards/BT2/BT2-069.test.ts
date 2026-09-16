@@ -85,8 +85,6 @@ describe("BT2-069 Gabumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.hand.length === 1);
 
-    // The deleted host stack contributes three cards, and Gabumon's inherited
-    // effect trashes one of the two cards it draws.
     expect(s.state.players[1]!.trash).toHaveLength(4);
   });
 

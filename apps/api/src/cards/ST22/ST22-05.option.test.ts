@@ -48,9 +48,6 @@ describe("ST22-05 Sakuyamon Option-use windows", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sakuyamon").instanceId })).toEqual({
       ok: true,
     });
-    // Accept the token creation, then decline the Option use — a blanket
-    // autoDeclineOptional would also decline the (also optional) token creation, so both
-    // prompts are answered explicitly here.
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const createToken = s.state.pendingDecision!;
     expect(
@@ -60,8 +57,6 @@ describe("ST22-05 Sakuyamon Option-use windows", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    // describeAction leaves an unmapped action kind as its bare identifier on purpose: the
-    // client replaces that with its own generic prompt over the printed clause (e136a94b5).
     await settle(
       () =>
         s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.promptText === "UseOptionWithoutCost",

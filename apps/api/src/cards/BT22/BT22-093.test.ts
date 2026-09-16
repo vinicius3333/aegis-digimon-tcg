@@ -4,22 +4,8 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import { compiled } from "./BT22-093.js";
 import "./index.js";
 
-// A3 for BT22-093 (Ami Aiba) — [Start of Your Main Phase]:
-//   "If your opponent has a Digimon, gain 1 memory."
-//
-// FAILS-WHEN-REVERTED: with BT22-093 on the battle area and an opponent Digimon present,
-// firing OnStartMainPhase on seat 0's turn gains 1 memory. Without the hand-written
-// module the IR's StartOfYourMainPhase GainMemory + opponentHas condition works via the
-// interpreter, but the [Your Turn] CS digivolve-chain clause is RawUnparsed (inert).
-// Our test proves the [Start of Main Phase] memory gain is implemented, which is the
-// correct condition-check path (requires opponent to have a Digimon).
-//
-// Two proofs:
-//   1. Positive: opponent has a Digimon → gain 1 memory.
-//   2. Negative: opponent has no Digimon → no memory gain.
-
 const AMI_AIBA = "BT22-093";
-const OPPONENT_DIGIMON = "BT1-009"; // Monodramon — any Digimon works
+const OPPONENT_DIGIMON = "BT1-009";
 
 it("registers exclusive compiled IR for the same-level CS chain", () => {
   expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
@@ -51,9 +37,7 @@ function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string
 describe("BT22-093 [Start of Main Phase] gain 1 memory if opponent has Digimon", () => {
   it("gains 1 memory when opponent has a Digimon in their battle area", async () => {
     const s = setupEngine({
-      // Ami Aiba on seat 0's battle area.
       0: { battleArea: [{ card: AMI_AIBA, dp: 0 }] },
-      // Opponent has a Digimon (canActivate condition).
       1: { battleArea: [{ card: OPPONENT_DIGIMON, dp: 3000 }] },
     });
 
@@ -70,7 +54,6 @@ describe("BT22-093 [Start of Main Phase] gain 1 memory if opponent has Digimon",
       0: { battleArea: [{ card: AMI_AIBA, dp: 0 }] },
     });
 
-    // Opponent has no Digimon.
     const memBefore = s.state.memory;
 
     await fireTiming(s, EffectTiming.OnStartMainPhase, {});
@@ -87,14 +70,12 @@ describe("BT22-093 [Your Turn] CS digivolution chain", () => {
         0: {
           battleArea: [
             { card: AMI_AIBA, as: "ami" },
-            // The Lv.4 Flame/CS base already has a Lv.5 card in its stack. The first
-            // public evolution creates a Lv.5 CS Digimon with a same-level stack card.
             { card: "BT22-010", under: ["BT22-011"], as: "subject" },
           ],
           hand: [
             { card: "BT22-011", as: "first" },
             { card: "BT22-013", as: "second" },
-          ], // Lv.5 then Lv.6 [CS] Digimon.
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -65,8 +65,6 @@ describe("EX1-017 WereGarurumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // With fewer than 8 cards in hand the condition fails before the effect ever triggers, so
-    // there is no `effectResolved` to wait on.
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX1-017")).toBe(false);
     expect(s.state.memory).toBe(5);
@@ -100,8 +98,6 @@ describe("EX1-017 WereGarurumon", () => {
     await settle(() => !s.perm("host").isSuspended);
     const memoryAfterUnsuspend = s.state.memory;
     expect(attack()).toEqual({ ok: true });
-    // Once-per-turn: the second attack does not re-trigger EX1-017 at all, so there is no
-    // second `effectResolved` to wait on — the proof is that memory never changes again.
     await drainMicrotasks();
     expect(
       s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-017"),

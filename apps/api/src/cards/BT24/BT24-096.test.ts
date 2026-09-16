@@ -205,7 +205,7 @@ describe("BT24-096 Seventh Graviton", () => {
     await settle(() => s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("graviton").instanceId));
     await settle(() => s.state.players[1]!.trash.length === 3);
 
-    expect(s.state.memory).toBe(8); // BT24-078's alternate [Creepymon] evolution cost is 2.
+    expect(s.state.memory).toBe(8);
     expect(s.perm("creepymon").topCard?.cardId).toBe("BT24-078");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT24-096")).toBe(false);
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT24-096");

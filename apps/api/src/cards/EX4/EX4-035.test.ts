@@ -135,12 +135,10 @@ describe("EX4-035 Alliance attack", () => {
     await s.ready();
     const baseDP = s.perm("host").currentDP;
 
-    // Effect-suspending the host itself is excluded by "another".
     await advance(s.engine).verb.suspend([s.perm("host").permanentId], 0);
     expect(s.perm("host").currentDP).toBe(baseDP);
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
 
-    // The watcher is scoped to one of your Digimon, not an opponent's.
     await advance(s.engine).verb.suspend([s.perm("opponent").permanentId], 0);
     expect(s.perm("host").currentDP).toBe(baseDP);
   });

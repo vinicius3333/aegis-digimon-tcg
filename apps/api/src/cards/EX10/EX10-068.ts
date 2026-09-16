@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored fix:
-// (1) PlayWithoutCost: added from:["hand","trash"] — text says "from your hand or trash".
-// (2) PlayWithoutCost: added optional:true — text says "you may play".
-// (3) PlayWithoutCost cost.target: already has zone:trash + controller:opponent ✓;
-//     added to:"deckBottom" — text says "to the bottom of the deck".
-// (4) PlayWithoutCost target filter: added sameColorAsReturned:true — text says
-//     "with the same color as the card this effect returned". This is a new engine
-//     capability; see historical migration ledger CAP-LB-02.
-// (5) Delete target already has playCostLte:5 ✓.
 export const compiled: CompiledCard = {
   effects: [
     {

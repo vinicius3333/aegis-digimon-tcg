@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX3-061 Dinobeemon
-//
-// The declarative effect record lost the DNA-only gate on the When Digivolving effect and
-// approximated the inherited attack permission as Vortex. Vortex also creates
-// an end-of-turn attack, so it is not equivalent to "can also attack ...
-// unsuspended Digimon". Both clauses use their dedicated structured seams.
 const compiled: CompiledCard = {
   effects: [
     {

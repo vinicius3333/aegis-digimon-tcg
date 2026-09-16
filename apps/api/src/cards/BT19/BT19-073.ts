@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [All Turns]: While [LordKnightmon]/[X Antibody] is in this Digimon's digivolution cards,
-// all your Digimon with [Knightmon] in its text gain <Alliance> and get +3000 DP.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -28,10 +26,6 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        // KB Q3134: ONE opponent Digimon is chosen for the whole clause, and ＜De-Digivolve 1＞ is
-        // then applied to THAT Digimon once per your Digimon. The scaling on DeDigivolve is a
-        // repetition count (Q4568), and each repetition re-resolves its target, so the choice is
-        // bound first and reused — otherwise every repetition could pick a different Digimon.
         {
           kind: "SelectBind",
           target: {

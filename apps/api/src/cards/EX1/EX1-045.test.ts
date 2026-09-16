@@ -87,8 +87,6 @@ describe("EX1-045 Hagurumon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hagurumon").instanceId })).toEqual({
       ok: true,
     });
-    // With no Machine/Cyborg card in hand to pay the cost, the optional effect never triggers
-    // at all — there is no `effectResolved` to wait on.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX1-045")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongTrait").instanceId)).toBe(true);

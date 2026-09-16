@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT20-078 Reapermon.
-// Q4401/Q4402: the All Turns watcher is an effect-driven digivolution event, not a
-// generic play or rule-based Tamer-as-Digimon transition.
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [], keywords: [{ keyword: "Collision", raw: "＜Collision＞" }] },

@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1815: "[Gallantmon] or [X Antibody]" checks card names, not traits.
-// The selfDigivolutionStackHasTrait condition with match:"name" is name-based,
-// which satisfies the ruling.
-// KB Q1812: "if no Digimon is deleted by this effect" = ifThisEffectDidNotDelete.
 export const compiled: CompiledCard = {
   effects: [
     {

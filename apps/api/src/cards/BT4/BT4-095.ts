@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1247: the reduction applies to any Digimon with Digi-Burst, not only one
-// with a When Digivolving clause.
 export const compiled: CompiledCard = {
   effects: [
     {

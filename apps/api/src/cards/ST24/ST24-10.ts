@@ -1,8 +1,6 @@
 import type { CardEffect, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST24-10 Lilamon. The specialized cost pools the bottom face-down card from
-// each eligible Tamer, allowing two cards to be paid across one or more Tamers.
 const compiled: CompiledCard = {
   effects: [
     ...(["OnPlay", "WhenDigivolving", "WhenAttacking"] as const).map((trigger): CardEffect => ({

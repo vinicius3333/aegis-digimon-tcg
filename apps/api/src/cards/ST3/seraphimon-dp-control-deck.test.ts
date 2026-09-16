@@ -42,9 +42,6 @@ describe("ST3 Seraphimon DP-control deck gauntlet", () => {
       }),
     ).toEqual({ ok: true });
 
-    // ST3-11 (-4000) plus ST3-08 (-1000) delete the 5000-DP target by the rules. Q635/Q638
-    // require the attack to end without becoming a security attack, while ST3-01 and ST3-04
-    // still see the 0-DP deletion and ST3-05 still rewards the attack declaration.
     await settle(
       () => !observe(s.engine).isAttacking() && s.state.players[1]!.battleArea.length === 0 && s.state.memory === 2,
       3000,

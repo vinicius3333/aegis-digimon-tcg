@@ -117,7 +117,6 @@ describe("BT21-088 Tagiru Akashi", () => {
       expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(
         !eligible,
       );
-      // Seat 0 skips its ordinary draw on the first turn; only Tagiru draws here.
       expect(s.state.players[0]!.deck).toHaveLength(eligible ? 1 : 2);
     },
   );
@@ -333,7 +332,7 @@ describe("BT21-088 Tagiru Akashi", () => {
     });
     await settle(() => s.perm("host").topCard.instanceId === s.inst("evolution").instanceId);
 
-    expect(s.state.memory).toBe(5); // The non-active controller pays 2 toward the active player.
+    expect(s.state.memory).toBe(5);
     expect(s.perm("tagiru").isSuspended).toBe(false);
     expect(s.perm("tagiru").stack.map((card) => card.instanceId)).toEqual([s.inst("material").instanceId]);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-063"]);

@@ -116,8 +116,6 @@ describe("BT1-033 Dolphmon", () => {
     expect(s.perm("base").topCard.cardId).toBe("BT1-033");
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-029"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-030");
-    // The inherited text is active while BT1-033 is under a host; as the top
-    // card after this evolution, it contributes only its printed 4000 DP.
     expect(s.perm("base").currentDP).toBe(4000);
   });
 

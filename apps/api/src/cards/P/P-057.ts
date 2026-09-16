@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-maintained: both bonuses are continuous owner-turn auras; the inherited gate is level 6+.
 const compiled: CompiledCard = {
   effects: [
     {

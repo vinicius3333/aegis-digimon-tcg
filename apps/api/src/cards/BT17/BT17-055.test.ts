@@ -29,9 +29,6 @@ describe("BT17-055 Infermon", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
 
-    // Clause 1: [When Digivolving] De-Digivolve 1 (ANY opponent Digimon, no cost filter,
-    // floored at level 3); THEN restrict 1 opponent Digimon with play cost <= 8 from
-    // attacking players until the end of their turn.
     expect(compiled.effects[0]).toEqual({
       trigger: "WhenDigivolving",
       actions: [
@@ -55,8 +52,6 @@ describe("BT17-055 Infermon", () => {
       ],
     });
 
-    // Inherited: "with [Diaboromon] IN ITS NAME" is a SUBSTRING reference, so `match: "name"`
-    // is correct here (unlike a bracketed exact `[Name]` reference, which needs `nameExact`).
     const inherited = compiled.effects[1]!;
     expect(inherited.trigger).toBe("AllTurns");
     expect(inherited.isInherited).toBe(true);
@@ -114,8 +109,6 @@ describe("BT17-055 Infermon", () => {
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // KB Q2809: the target digivolves on its own turn into a play-cost-12 Digimon. The
-    // restriction was locked to the permanent when it resolved, so it still can't attack players.
     s.state.turnSeat = 1;
     s.state.memory = 10;
     expect(
@@ -140,8 +133,6 @@ describe("BT17-055 Infermon", () => {
           security: [{ card: "BT1-009" }, { card: "BT1-010" }],
         },
         1: {
-          // `small` is the only opponent Digimon at play cost <= 8, so the Restrict target is
-          // deterministic; `big` stays at play cost 12 even after a De-Digivolve trashes its top.
           battleArea: [
             { card: "BT17-025", under: ["BT17-053"], as: "small" },
             { card: "BT4-035", under: ["BT4-035"], as: "big", dp: 20_000 },
@@ -163,13 +154,11 @@ describe("BT17-055 Infermon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("small"), "attackPlayers"));
 
     expect(observe(s.engine).isRestricted(s.perm("small"), "attackPlayers")).toBe(true);
-    // Peer comparison: the cost-12 Digimon is outside "play cost 8 or less" and is unrestricted.
     expect(observe(s.engine).isRestricted(s.perm("big"), "attackPlayers")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
 
     s.state.turnSeat = 1;
     s.state.memory = 3;
-    // An attack on a Digimon needs a SUSPENDED defender.
     s.perm("base").isSuspended = true;
     expect(
       s.engine.applyIntent(1, {
@@ -180,7 +169,6 @@ describe("BT17-055 Infermon", () => {
     ).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.state.players[0]!.security).toHaveLength(2);
 
-    // "can't attack players" leaves a Digimon-directed attack legal.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -190,7 +178,6 @@ describe("BT17-055 Infermon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("small").isSuspended);
 
-    // The unrestricted peer may still attack the player.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -224,11 +211,9 @@ describe("BT17-055 Infermon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("lvThree"), "attackPlayers"));
 
-    // ＜De-Digivolve1＞ cannot trash past level 3: the lone level-3 top card stays put.
     expect(s.perm("lvThree").topCard?.cardId).toBe("BT17-053");
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    // The second clause still resolves on the same (play cost 3) Digimon.
     expect(observe(s.engine).isRestricted(s.perm("lvThree"), "attackPlayers")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -265,7 +250,6 @@ describe("BT17-055 Infermon", () => {
     expect(s.perm("target").topCard?.cardId).toBe("BT17-025");
     const secondTopId = s.perm("target").topCard!.instanceId;
 
-    // Same turn: [Once Per Turn] refuses the second Diaboromon's play.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -276,7 +260,6 @@ describe("BT17-055 Infermon", () => {
     expect(s.perm("target").topCard?.instanceId).toBe(secondTopId);
     expect(s.state.players[1]!.trash).toHaveLength(1);
 
-    // The next own turn resets the gate: playing another Diaboromon de-digivolves again.
     const revived = s.give(0, Zone.Hand, { card: "BT17-059", as: "thirdDiaboromon" });
     const mainPhase = s.state.phase;
     s.state.memory = 3;

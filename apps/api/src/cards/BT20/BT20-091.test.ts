@@ -5,20 +5,10 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-091.js";
 import "./index.js";
 
-// A3 for BT20-091 (Cool Boy) — [Your Turn] Tamer: when your Digimon are played or
-// digivolve, if any of them have the [Royal Knight] trait, by suspending this Tamer,
-// <Draw 1> and gain 1 memory.
-//
-// Public proofs below play and digivolve a Royal Knight through the engine's normal actions,
-// and play a non-Royal Knight as the negative controller. This keeps the trigger-subject and
-// Your Turn gates on their real lifecycle paths.
-
-// AD1-008 (Gallantmon) has types: ["Holy Warrior", "Royal Knight"].
-// BT3-073 (WereGarurumon) has types: ["Warrior", "Virus"] — no Royal Knight.
-const ROYAL_KNIGHT_CARD = "AD1-008"; // Gallantmon — Royal Knight trait
-const NON_ROYAL_KNIGHT_CARD = "BT3-073"; // WereGarurumon — no Royal Knight
+const ROYAL_KNIGHT_CARD = "AD1-008";
+const NON_ROYAL_KNIGHT_CARD = "BT3-073";
 const COOL_BOY = "BT20-091";
-const OMEKAMON = "BT20-083"; // Omekamon printing
+const OMEKAMON = "BT20-083";
 
 describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to draw+memory", () => {
   it("encodes all printed clauses without residuals", () => {
@@ -90,7 +80,7 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     expect(s.perm("coolBoy").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.length).toBe(handBefore);
     expect(s.state.players[0]!.deck).toHaveLength(1);
-    expect(s.state.memory).toBe(-1); // 10 - printed play cost 12 + Cool Boy's 1.
+    expect(s.state.memory).toBe(-1);
   });
 
   it("publicly evolves into a [Royal Knight] and pays Cool Boy's suspension cost", async () => {
@@ -124,7 +114,7 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     expect(s.state.players[0]!.hand).toHaveLength(handBefore + 1);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-010"]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
-    expect(s.state.memory).toBe(1); // 4 - printed evolution cost 4 + Cool Boy's 1.
+    expect(s.state.memory).toBe(1);
   });
 
   it("does NOT draw when a played Digimon has no [Royal Knight] trait", async () => {
@@ -152,19 +142,10 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     expect(s.perm("coolBoy").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand).toHaveLength(handBefore - 1);
     expect(s.state.players[0]!.deck).toHaveLength(2);
-    expect(s.state.memory).toBe(-1); // 10 - printed play cost 11; no Cool Boy gain.
+    expect(s.state.memory).toBe(-1);
   });
 });
 
-// A3 for BT20-091's [Opponent's Turn][Once Per Turn] leave-play clause: "When any of your
-// Digimon with the [Royal Knight] trait would leave the battle area, you may play 1
-// [Omekamon] from your hand without paying the cost."
-//
-// FAILS-WHEN-REVERTED: with BT20-091 on the battle area (subscription installed when it
-// entered) and a [Royal Knight] Digimon deleted on the opponent's turn, Omekamon is played
-// from hand for free. Reverting either the `mode: "instead"` dispatch in leavePrevention.ts
-// or this card's `subscribeReplacement` install makes the clause inert — the leaving
-// permanent still dies (rule DP-0 deletion), but Omekamon never enters play.
 describe("BT20-091 [Opponent's Turn][Once Per Turn] play Omekamon when a Royal Knight leaves", () => {
   it("plays Omekamon from hand when a [Royal Knight] Digimon is deleted on the opponent's turn", async () => {
     const s = setupEngine(
@@ -185,8 +166,6 @@ describe("BT20-091 [Opponent's Turn][Once Per Turn] play Omekamon when a Royal K
     const royalKnightId = s.perm("royalKnight").permanentId;
     const omekamonInstanceId = s.inst("omekamon").instanceId;
 
-    // Leave 3 memory after playing Cool Boy so the public pass-turn bonus ends the
-    // preceding turn at the neutral gauge before the next seat starts.
     s.state.memory = 7;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("coolBoy").instanceId })).toEqual({
@@ -196,16 +175,11 @@ describe("BT20-091 [Opponent's Turn][Once Per Turn] play Omekamon when a Royal K
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("coolBoy").instanceId),
     );
 
-    // Cross the turn boundary through the public turn loop, then delete the Royal Knight by effect
-    // during the opponent's main phase so the replacement's turn gate is live naturally.
     const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
 
-    // runOneTurn drives one complete turn but intentionally does not switch seats; hand the
-    // turn and re-frame the memory after the real seat-0 End phase, preserving the natural
-    // phase lifecycle for the opponent's turn.
     s.state.turnSeat = 1;
     s.state.memory = -s.state.memory;
     const opponentTurn = s.engine.runOneTurn();
@@ -215,10 +189,7 @@ describe("BT20-091 [Opponent's Turn][Once Per Turn] play Omekamon when a Royal K
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
-    // The Royal Knight actually left (the "instead" reaction does NOT prevent the leave).
     expect(p0?.battleArea.some((p) => p.permanentId === royalKnightId)).toBe(false);
-    // Omekamon was played from hand without paying its cost — no longer in hand, now on the
-    // battle area.
     expect(p0?.hand.some((c) => c.instanceId === omekamonInstanceId)).toBe(false);
     expect(p0?.battleArea.some((p) => p.topCard?.cardId === OMEKAMON)).toBe(true);
   });
@@ -251,11 +222,9 @@ describe("BT20-091 [Opponent's Turn][Once Per Turn] play Omekamon when a Royal K
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("coolBoy").instanceId),
     );
 
-    // Still seat 0's own turn when the Royal Knight leaves by effect.
     await advance(s.engine).verb.deletePermanent([royalKnightId], "byEffect");
 
     expect(p0?.battleArea.some((p) => p.permanentId === royalKnightId)).toBe(false);
-    // Omekamon stayed in hand: the clause is [Opponent's Turn] only.
     expect(p0?.hand.some((c) => c.instanceId === omekamonInstanceId)).toBe(true);
   });
 });

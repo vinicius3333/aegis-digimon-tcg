@@ -146,11 +146,6 @@ describe("BT23-011 Birdramon", () => {
     expect(s.state.memory).toBe(3);
   });
 
-  /**
-   * The inherited [On Deletion] reached through a real battle: seat 1 attacks the suspended
-   * host, the host loses the battle and is deleted, and the trigger resolves from the stack.
-   * `host` is an effect-free Lv.4 so the only trigger in flight belongs to BT23-011.
-   */
   async function battleDeleteHost(tamer: string, opts: { decline?: boolean }) {
     const s = setupEngine(
       {
@@ -172,8 +167,6 @@ describe("BT23-011 Birdramon", () => {
     const hostId = s.perm("host").permanentId;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // The host must be suspended for seat 1 to target it, and seat 0's unsuspend phase has
-    // already cleared the board spec's flag — so suspend it the public way, by attacking.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

@@ -6,7 +6,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-030.js";
 import "./index.js";
 
-/** Inert main-deck Digimon used as neutral security/deck filler. */
 const INERT = ["BT1-009", "BT1-013", "BT1-014", "BT1-012"] as const;
 
 describe("BT17-030", () => {
@@ -136,7 +135,6 @@ describe("BT17-030", () => {
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(recoveredId);
     expect(s.perm("pulsemon").stack.map((card) => card.instanceId)).toEqual([leonId]);
-    // The low-security branch pays the same placement cost but grants no memory.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
 
@@ -144,8 +142,6 @@ describe("BT17-030", () => {
     await turn;
   });
 
-  // Q2777: the "by placing" cost is not optional-with-a-fallback — skipping it aborts the
-  // whole effect, so the Recovery never activates.
   it("Q2777: does not recover when the placement cost is declined", async () => {
     const s = setupEngine(
       {
@@ -180,8 +176,6 @@ describe("BT17-030", () => {
     await turn;
   });
 
-  // The placement cost is the only way in: with no [Leon Alexander] in hand neither branch
-  // can activate, so the low-security board stays untouched.
   it("does not fire when no Leon Alexander is in hand", async () => {
     const s = setupEngine(
       {

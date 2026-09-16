@@ -150,8 +150,6 @@ describe("EX3-033 AeroVeedramon", () => {
     respond(s, { kind: "selectCards", instanceIds: [s.inst("secondTrial").instanceId] });
     await digivolve;
 
-    // The effect-driven primitive intentionally bypasses payment; direct public
-    // digivolution coverage below proves the printed 3-memory cost.
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX3-031"]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(

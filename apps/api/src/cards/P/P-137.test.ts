@@ -158,7 +158,6 @@ describe("P-137 Flamedramon", () => {
     await attack();
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("security1").instanceId)).toBe(true);
 
-    // Prepare a second legal attack in the same turn without changing any trigger ledger.
     await advance(s.engine).verb.unsuspend([s.perm("flamedramon").permanentId, s.perm("blocker2").permanentId]);
     await attack();
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("security2").instanceId)).toBe(false);

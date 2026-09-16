@@ -6,12 +6,7 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-014.js";
-// BT12-088 [Takuya Kanbara] is the digivolution source whose inherited "[Your Turn] +2000 DP"
-// this file asserts; without its module the card is inert on the board.
 import "../BT12/BT12-088.js";
-// The two cards the cost places under the host also print "[Your Turn] This Digimon gets
-// +2000 DP" as inherited text, so they have to be registered too or the asserted DP depends on
-// whichever other BT17 test file happened to load them first (vitest runs with `isolate: false`).
 import "./BT17-011.js";
 import "./BT17-012.js";
 
@@ -49,7 +44,6 @@ describe("BT17-014", () => {
       "[Your Turn] While this Digimon has the [Hybrid]/[Ten Warriors] trait, it doesn't activate " +
         "[Security] effects on option cards it checks.",
     );
-    // The catalog carries a single U+00A0 (after "trait,"); assert its exact position.
     expect([...inherited].map((ch, i) => (ch.charCodeAt(0) === 0xa0 ? i : -1)).filter((i) => i >= 0)).toEqual([62]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -105,26 +99,17 @@ describe("BT17-014", () => {
 
     await settle(() => s.perm("takuya").topCard.cardId === "BT17-014");
 
-    // Q6561: the Tamer becomes a digivolution card underneath, bottom-most.
     expect(s.perm("takuya").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT17-011", "BT17-012", "BT12-088"]),
     );
     expect(s.perm("takuya").stack.at(-1)?.cardId).toBe("BT12-088");
     expect(s.perm("takuya").stack.map(({ instanceId }) => instanceId)).toContain(takuyaInstanceId);
-    // Cost 3 paid (Q2742), fixed at 3 rather than the standard cost of 4.
     expect(s.state.memory).toBe(0);
-    // Q6559: a digivolution bonus draw happens even digivolving from a Tamer.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(drawnId);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === aldamon.instanceId)).toBe(false);
-    // [When Digivolving]: the 3000 DP opponent (<= 6000) is deleted.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  // Q6563: a Digimon gains the inherited (lower-text) effect of a Tamer sitting in its
-  // digivolution cards. GameEngine.runContinuousPass collects continuous effects from every stack
-  // instance, so BT12-088's "[Your Turn] This Digimon gets +2000 DP" reaches the host. The earlier
-  // red was a fixture defect, not an engine seam: BT12-088's module was never imported here, so
-  // the card was inert on the board. See docs/audits/BT17.md#test-fixture-card-registration.
   it("gains the digivolution-card Tamer's inherited effect after digivolving, per Q6563", async () => {
     const s = setupEngine(
       {
@@ -155,10 +140,6 @@ describe("BT17-014", () => {
     await settle(() => s.perm("takuya").topCard.cardId === "BT17-014");
     await s.engine.recomputeContinuousEffects();
 
-    // Aldamon prints 8000 DP. Every one of the three digivolution cards grants "[Your Turn] This
-    // Digimon gets +2000 DP" from its inherited text — [Agunimon] and [BurningGreymon] placed by
-    // the cost, and Takuya (BT12-088), the TAMER the card digivolved from, which is the conferral
-    // Q6563 is about: 8000 + 2000 + 2000 + 2000.
     expect(s.perm("takuya").currentDP).toBe(14000);
   });
 
@@ -220,17 +201,13 @@ describe("BT17-014", () => {
   });
 
   it("suppresses only Option security effects, and only under a Hybrid or Ten Warriors host", async () => {
-    // Hybrid host (Agunimon) carrying BT17-014 as an inherited source.
     const matching = setupEngine({
       0: { battleArea: [{ card: "BT17-011", as: "host", under: ["BT17-014"] }] },
     });
     await matching.engine.recomputeContinuousEffects();
-    // Option security card: effect suppressed.
     expect(observe(matching.engine).suppressesSecurityEffect(matching.perm("host"), "BT2-107")).toBe(true);
-    // Q2741: a non-Option (Tamer) security card is NOT suppressed.
     expect(observe(matching.engine).suppressesSecurityEffect(matching.perm("host"), "BT12-088")).toBe(false);
 
-    // Non-Hybrid host (Rookie Monodramon) carrying the same source: no suppression.
     const other = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT17-014"] }] },
     });

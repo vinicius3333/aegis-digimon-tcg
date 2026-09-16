@@ -154,7 +154,6 @@ describe("BT20-033 LoaderLeomon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
 
-    // The first evolution occurs during the opponent's turn while the restriction is active.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     const firstOpponentTurn = s.engine.runOneTurn();
@@ -171,7 +170,6 @@ describe("BT20-033 LoaderLeomon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await firstOpponentTurn;
 
-    // End the intervening own turn so the next opponent turn is after the printed duration.
     s.state.turnSeat = 0;
     s.state.memory = 3;
     const interveningOwnTurn = s.engine.runOneTurn();

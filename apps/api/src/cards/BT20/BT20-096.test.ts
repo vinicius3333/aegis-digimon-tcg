@@ -89,8 +89,6 @@ describe("BT20-096 Black Sabbath", () => {
     );
     const targetId = s.perm("target").permanentId;
     const tooHighId = s.perm("tooHigh").permanentId;
-    // `autoSelectCards` sees both opposing candidates; put the level-4 target first.
-    // The level-5 peer is the printed upper-bound negative and must survive.
     preferred.push(targetId);
     s.state.memory = 2;
 

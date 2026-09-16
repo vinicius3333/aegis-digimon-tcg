@@ -1,21 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT25-073 Dragomon
-// ＜Jamming＞
-// [On Play] [When Digivolving] By trashing 1 of your Digimon's link cards, you may
-//   play or use 1 [TS] trait card with a play or use cost of 5 or less from your
-//   hand without paying the cost.
-// [inherited] [All Turns] By trashing 1 of its link cards, this Digimon doesn't leave play.
-//
-// Audit fixes:
-// 1. Cost filter must target a link card (zone:"linked") of a Digimon — not any Digimon.
-//    zone:"linked" is a new vocabulary; see LANE_C.md for LinkedZone capability spec.
-//    The cost raw field describes the intent; the filter is the faithful shape.
-// 2. "play or use" is represented by a Modal choosing between a free permanent play and a free
-//    Option use, both restricted to TS cards with cost 5 or less.
-// 3. The inherited Replacement cost targets "its link cards" — the linked zone of the
-//    Digimon that would leave play (self-ref Digimon's linked cards).
 export const compiled: CompiledCard = {
   effects: [
     {

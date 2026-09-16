@@ -1,7 +1,6 @@
 import type { CompiledCard, Cost } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-corrected IR for BT9-102 (Attack of the Heavy Mobile Digimon!).
 const handCost: Cost = {
   kind: "trash",
   target: {

@@ -8,7 +8,6 @@ import { compiled } from "./EX13-012.js";
 
 const CARD_ID = "EX13-012";
 
-/** Fire the [When Attacking] window on a permanent without running a whole combat. */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm(alias), {
     attackerPermanentId: s.perm(alias).permanentId,
@@ -108,7 +107,6 @@ describe("EX13-012 SaviorHuckmon", () => {
       sharedUseKey: "ir-shared-0",
       actions: [body],
     });
-    // One printed [Once Per Turn] governs both timings, so both windows share one ledger key.
     expect(compiled.effects[1]?.sharedUseKey).toBe(compiled.effects[2]?.sharedUseKey);
 
     expect(compiled.digivolutionRequirement).toEqual([{ level: 4, texts: ["Huckmon"], cost: 3, isAlternate: true }]);
@@ -142,7 +140,6 @@ describe("EX13-012 SaviorHuckmon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseInstanceId]);
     expect(s.perm("base").currentDP).toBe(7000);
-    // The card left the hand; the single card there is the digivolution bonus draw.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("savior").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -152,7 +149,6 @@ describe("EX13-012 SaviorHuckmon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT10-085 Sistermon Ciel: White, Lv.4, and its printed text carries [Huckmon].
           battleArea: [{ card: "BT10-085", as: "base" }],
           hand: [{ card: CARD_ID, as: "savior" }],
           deck: ["BT1-009", "BT1-010"],
@@ -218,7 +214,6 @@ describe("EX13-012 SaviorHuckmon", () => {
           battleArea: [{ card: "BT1-014", as: "base" }],
           hand: [
             { card: CARD_ID, as: "savior" },
-            // ST12-13 Sistermon Ciel: white, printed cost 4, [Huckmon] in its text.
             { card: "ST12-13", as: "ciel" },
             { card: "BT1-010", as: "spare" },
           ],
@@ -242,9 +237,7 @@ describe("EX13-012 SaviorHuckmon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 5 memory - 3 (digivolve) - (4 - 3) for Sistermon Ciel = 1.
     expect(s.state.memory).toBe(1);
-    // Spare untouched plus the digivolution bonus draw; Sistermon Ciel left the hand.
     const handIds = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     expect(handIds).toContain(s.inst("spare").instanceId);
     expect(handIds).not.toContain(s.inst("ciel").instanceId);
@@ -289,7 +282,6 @@ describe("EX13-012 SaviorHuckmon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "savior" }],
           hand: [
-            // BT23-099 The Sistermon Sisters Training Gym: white Option, cost 2, [Huckmon] in text.
             { card: "BT23-099", as: "option" },
             { card: "BT1-010", as: "spare" },
           ],
@@ -307,12 +299,10 @@ describe("EX13-012 SaviorHuckmon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed use cost 2, reduced by 3, floors at 0: memory is untouched.
     expect(s.state.memory).toBe(2);
     const handIds = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     expect(handIds).toContain(s.inst("spare").instanceId);
     expect(handIds).not.toContain(s.inst("option").instanceId);
-    // The Option resolved its own [Main] body: ＜Draw 1＞, then place itself in the battle area.
     expect(handIds).toHaveLength(2);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
       s.perm("savior").topCard.instanceId,
@@ -327,11 +317,8 @@ describe("EX13-012 SaviorHuckmon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "savior" }],
           hand: [
-            // White but prints no [Huckmon] token.
             { card: "BT16-082", as: "whiteNoToken" },
-            // Prints [Huckmon] (it IS Huckmon) but is red only.
             { card: "BT13-009", as: "redToken" },
-            // White AND prints [Huckmon]: the only legal choice.
             { card: "ST12-13", as: "match" },
           ],
           deck: ["BT1-009", "BT1-010"],
@@ -426,7 +413,6 @@ describe("EX13-012 SaviorHuckmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // [When Digivolving] spends the shared use.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -443,14 +429,12 @@ describe("EX13-012 SaviorHuckmon", () => {
     expect(afterDigivolve).toContain(s.inst("second").instanceId);
     expect(afterDigivolve).not.toContain(s.inst("first").instanceId);
 
-    // Same turn, the [When Attacking] window: the SHARED gate refuses it.
     s.state.memory = 4;
     await attackWindow(s, "base");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(afterDigivolve);
 
-    // A real opponent turn passes; the gate reopens on the controller's next turn.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -501,7 +485,6 @@ describe("EX13-012 SaviorHuckmon", () => {
     });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Alliance suspends the ally and adds one security check on top of the base one.
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.perm("savior").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(3);
@@ -516,7 +499,6 @@ describe("EX13-012 SaviorHuckmon", () => {
         0: {
           battleArea: [
             { card: "BT1-014", as: "host", under: [{ card: CARD_ID, as: "savior" }] },
-            // The same card with nothing under it: the keyword comes from the stack, not BT1-014.
             { card: "BT1-014", as: "bareHost" },
           ],
           deck: ["BT1-009", "BT1-010"],
@@ -583,7 +565,6 @@ describe("EX13-012 SaviorHuckmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("savior").instanceId);
     await settle(() => s.state.pendingDecision === undefined);
-    // The [When Digivolving] offer was declined, so only the digivolve cost was paid.
     expect(s.state.memory).toBe(3);
     const handIds = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     expect(handIds).toContain(s.inst("ciel").instanceId);
@@ -600,7 +581,6 @@ describe("EX13-012 SaviorHuckmon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 7000 DP beats the 1000 DP defender; the once-per-turn offer was declined again.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").isSuspended).toBe(true);

@@ -47,9 +47,6 @@ describe("BT23-044 Lilamon", () => {
     assertNoLoudGap(s);
   });
 
-  // Comprehensive rules 3-4-5-8: information on cards in breeding areas can't be referenced.
-  // The generated IR left the `youHave` filter zone-less, and the zone-less scan also walks the
-  // breeding area, so a hatched CS Digimon wrongly paid for the reduction.
   it("ignores a CS Digimon in the breeding area when checking the cost-reduction condition", async () => {
     const s = setupEngine({
       0: { breeding: { card: "BT23-041", as: "hatched" }, hand: [{ card: "BT23-044", as: "lilamon" }] },
@@ -64,7 +61,6 @@ describe("BT23-044 Lilamon", () => {
     expect(s.state.players[0]!.breeding?.topCard?.instanceId).toBe(s.inst("hatched").instanceId);
   });
 
-  // Q5305: the suspend cost accepts either player's Digimon.
   it("pays the entry cost by suspending an opponent's Digimon and offers no Tamer as a candidate", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -87,9 +83,6 @@ describe("BT23-044 Lilamon", () => {
 
     expect(s.perm("theirDigimon").isSuspended).toBe(true);
     expect(s.perm("yuuko").isSuspended).toBe(false);
-    // The suspend cost offers either player's Digimon, and no Tamer. Lilamon is the only
-    // eligible protection target ("1 of your Digimon"), so that choice needs no decision:
-    // the [CS] trait Tamer is not a candidate.
     const targetDecisions = s.decisions.filter((entry) => entry.req.kind === "chooseTargets");
     expect(targetDecisions).toHaveLength(1);
     expect(targetDecisions[0]!.req.options?.candidateInstanceIds).toEqual(
@@ -98,15 +91,10 @@ describe("BT23-044 Lilamon", () => {
     expect(targetDecisions[0]!.req.options?.candidateInstanceIds).not.toContain(s.perm("yuuko").permanentId);
     expect(observe(s.engine).isRestricted(s.perm("lilamon"), "beReturned")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("yuuko"), "beReturned")).toBe(false);
-    // Yuuko is on the board, so the play still costs 4.
     expect(s.state.memory).toBe(6);
     assertNoLoudGap(s);
   });
 
-  // "with [Vegetation], [Plant] or [Fairy] in any of its traits or the [CS] trait" mixes two
-  // match modes. BT1-071 Vegiemon is [Carnivorous Plant] — a substring hit that must qualify.
-  // BT16-039 Pulsemon is [Beastkin]/[Abadin Electronics]; "Electronics" contains "cs", so an
-  // accidental substring match on the bracket trait [CS] would wrongly offer it.
   it("protects a Digimon whose trait merely contains Plant, but not one whose trait merely contains CS", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -133,7 +121,6 @@ describe("BT23-044 Lilamon", () => {
 
     expect(observe(s.engine).isRestricted(s.perm("carnivorousPlant"), "beReturned")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("abadin"), "beReturned")).toBe(false);
-    // Neither board Digimon carries the exact [CS] trait, so the play cost is not reduced.
     expect(s.state.memory).toBe(3);
 
     const protectionDecision = s.decisions.filter((entry) => entry.req.kind === "chooseTargets").at(-1)!.req;
@@ -177,7 +164,6 @@ describe("BT23-044 Lilamon", () => {
           deck: ["BT1-011", "BT1-011"],
         },
         1: {
-          // Full Moon Meteor Impact is Blue; the Blue Digimon meets its colour requirement.
           battleArea: [{ card: "BT1-027", as: "blueAlly" }],
           hand: [{ card: "BT13-105", as: "bounce" }],
           deck: ["BT1-011", "BT1-011"],
@@ -204,12 +190,10 @@ describe("BT23-044 Lilamon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").topCard?.instanceId).toBe(lilamonId);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT23-041"]);
-    // Bonus draw for digivolving: the Lilamon card left the hand and one card replaced it.
     expect(s.state.players[0]!.hand).toHaveLength(handBeforeDigivolve);
     expect(s.perm("base").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("base"), "beReturned")).toBe(true);
 
-    // The opponent's [Main] "return 1 of your opponent's Digimon to the hand" cannot move it.
     const lilamonPermanentId = s.perm("base").permanentId;
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
@@ -223,7 +207,6 @@ describe("BT23-044 Lilamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === lilamonId)).toBe(false);
     assertNoLoudGap(s);
 
-    // The protection lapses when that opponent turn ends.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).isRestricted(s.perm("base"), "beReturned")).toBe(false);
@@ -240,7 +223,6 @@ describe("BT23-044 Lilamon", () => {
           deck: ["BT1-011", "BT1-011"],
         },
         1: {
-          // Full Moon Meteor Impact is Blue; the Blue Digimon meets its colour requirement.
           battleArea: [{ card: "BT1-027", as: "blueAlly" }],
           hand: [{ card: "BT13-105", as: "bounce" }],
           deck: ["BT1-011", "BT1-011"],
@@ -278,7 +260,6 @@ describe("BT23-044 Lilamon", () => {
     await loop;
   });
 
-  // "their effects can't return" — only the OPPONENT's effects are prohibited.
   it("still lets its own controller return the protected Digimon with their own effect", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -286,8 +267,6 @@ describe("BT23-044 Lilamon", () => {
         0: {
           battleArea: [
             { card: "BT23-041", as: "base" },
-            // Aqua Viper is Blue; a Blue Digimon in play meets its colour requirement. It has
-            // none of the protected traits, so it is never the Restrict target.
             { card: "BT1-027", as: "blueAlly" },
           ],
           hand: [
@@ -395,7 +374,6 @@ describe("BT23-044 Lilamon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === topSecurityId)).toBe(true);
   });
 
-  // Q5306: no activation when this Digimon and the opponent's Digimon are deleted together.
   it("does not trash security when both battling Digimon are deleted", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-080", as: "host", under: ["BT23-044"] }] },
@@ -448,9 +426,6 @@ describe("BT23-044 Lilamon", () => {
     await s.ready();
     const hostPermanentId = s.perm("host").permanentId;
 
-    // Suspend the host the ordinary way — it attacks the opponent on its own turn — so the
-    // opponent can legally attack it next turn. Beating a Security Digimon is not "deletes
-    // your opponent's Digimon in battle", so the once-per-turn gate is still unused.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(
@@ -479,7 +454,6 @@ describe("BT23-044 Lilamon", () => {
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).not.toContain(s.inst("sec1").instanceId);
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    // Second battle-deletion in the same turn: the [Once Per Turn] gate refuses it.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -493,7 +467,6 @@ describe("BT23-044 Lilamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // The next turn resets the gate: the same host deletes again and trashes security.
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 3;
     const victim = s.putOnBoard(1, { card: "BT1-009", as: "victim", suspended: true });
@@ -558,7 +531,6 @@ describe("BT23-044 Lilamon", () => {
               or: [
                 {
                   kind: ["Tamer"],
-                  // Printed [Yuuko Kamishiro] is a bracket name: exact, not substring.
                   nameOrTrait: [{ tokens: ["Yuuko Kamishiro"], match: "nameExact" }],
                 },
                 {
@@ -581,9 +553,7 @@ describe("BT23-044 Lilamon", () => {
         target: {
           filter: {
             controller: "mine",
-            // "1 of your Digimon": a [CS] trait Tamer is not an eligible protection target.
             kind: ["Digimon"],
-            // Substring for the first three traits, exact for the bracket trait [CS].
             or: [{ traitContains: ["Vegetation", "Plant", "Fairy"] }, { traits: ["CS"] }],
           },
           count: 1,

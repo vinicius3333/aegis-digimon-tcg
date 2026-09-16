@@ -39,7 +39,7 @@ describe("BT11-100 Megalo Spark", () => {
       ok: true,
     });
     await settle(() => s.perm("target").currentDP === 2000);
-    expect(s.state.memory).toBe(1); // printed cost 5, reduced to 4
+    expect(s.state.memory).toBe(1);
     expect(s.perm("other").currentDP).toBe(10000);
   });
 

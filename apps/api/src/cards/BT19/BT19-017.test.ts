@@ -6,7 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-017.js";
 
-/** Inert filler so neither seat decks out or auto-passes during a real turn loop. */
 const FILLER = ["BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013"];
 
 function hand(s: ReturnType<typeof setupEngine>): string[] {
@@ -42,8 +41,6 @@ describe("BT19-017 Sangomon", () => {
   });
 
   it("compiles the printed clauses into the expected IR", () => {
-    // "[Aqua]/[Sea Animal] in ANY of its traits" is a substring gate (`traitContains`);
-    // "with the [LIBERATOR] trait" is the exact-trait form (`match: "trait"`).
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "OnPlay",
       actions: [
@@ -82,9 +79,6 @@ describe("BT19-017 Sangomon", () => {
   });
 
   it("adds one Aqua-trait card and one LIBERATOR card when played from hand, bottoming the near-miss", async () => {
-    // Public route only: `playCard` pays the printed cost of 3 and opens the real On Play window.
-    // BT1-030 Gomamon is the near-miss peer: its [Sea Beast] trait contains neither "Aqua" nor
-    // "Sea Animal" and it has no [LIBERATOR] trait, so it must be the card returned to the bottom.
     const s = setupEngine(
       {
         0: {
@@ -110,8 +104,6 @@ describe("BT19-017 Sangomon", () => {
   });
 
   it("still adds every card it can when only one category is present (Q3072)", async () => {
-    // Q3072: the add is mandatory and maximal — with no [Aqua]/[Sea Animal] card among the
-    // three revealed, the single [LIBERATOR] card must still be added rather than skipped.
     const s = setupEngine(
       {
         0: {
@@ -150,7 +142,6 @@ describe("BT19-017 Sangomon", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sango").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
-    // Drain fully: the assertion is that NOTHING was added, which a predicate cannot wait for.
     await settle();
 
     expect(hand(s)).toEqual(["BT1-013"]);
@@ -160,9 +151,6 @@ describe("BT19-017 Sangomon", () => {
   });
 
   it("does not add one dual-qualifying revealed card twice", async () => {
-    // BT19-019 Shellmon carries BOTH [Aquatic] (an "Aqua" substring) and the exact [LIBERATOR]
-    // trait. It satisfies either half of the clause but is a single card, so exactly one card
-    // moves to the hand.
     const s = setupEngine(
       {
         0: {
@@ -203,12 +191,6 @@ describe("BT19-017 Sangomon", () => {
   });
 
   it("is selected by another card's [Aqua]-trait filter on the strength of the Rule alone (Q3073)", async () => {
-    // Cross-card consequence. BT19-028 Xiangpengmon's [When Digivolving] pays "by placing 1 of
-    // your other Digimon with [Aqua]/[Sea Animal] in one of its traits as this Digimon's bottom
-    // digivolution card" to gain 3 memory. Sangomon's other traits are [Mollusk] and
-    // [LIBERATOR] — neither contains "Aqua" nor "Sea Animal" — so it can only be a legal cost
-    // BECAUSE of the [Rule] line. BT1-030 Gomamon ([Sea Beast]) is the near-miss that must stay
-    // on the board, and the whole thing runs off the public `digivolve` intent.
     const s = setupEngine(
       {
         0: {
@@ -242,19 +224,15 @@ describe("BT19-017 Sangomon", () => {
 
     const merged = s.perm("base");
     expect(merged.topCard?.cardId).toBe("BT19-028");
-    // "as this Digimon's bottom digivolution card": Sangomon goes UNDER the Lv.5 source.
     expect(merged.stack.map((card) => card.instanceId)).toEqual([sangoId, baseId]);
-    // The Sea Beast peer is not a legal cost, so it is still its own permanent.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(gomamonId);
     expect(board(s)).toEqual(["BT1-030", "BT19-028"]);
-    // 10 - 5 for the digivolve, + 3 for the placement.
     expect(s.state.memory).toBe(8);
     expect(hand(s).sort()).toEqual(["BT1-009", "BT1-013"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("refuses an illegal digivolution source and accepts the printed Blue Lv.2 route", async () => {
-    // Printed requirement: Blue, Lv.2, cost 0. A red Lv.2 egg is an illegal source.
     const s = setupEngine({
       0: {
         breeding: { card: "BT1-001", as: "redEgg" },
@@ -296,14 +274,10 @@ describe("BT19-017 Sangomon", () => {
 
     expect(legal.state.players[0]!.breeding!.stack.map((card) => card.instanceId)).toEqual([eggId]);
     expect(legal.state.memory).toBe(3);
-    // Digivolving in breeding costs 0 here and grants the 1 bonus draw.
     expect(legal.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-013"]);
   });
 
   it("gains 1 memory at End of Attack from under a real Shellmon host, once per turn", async () => {
-    // Peer/stack case: the realistic Sangomon (Lv.3) -> Shellmon (Lv.4) stack. Only the BURIED
-    // BT19-017 contributes; BT19-019's identical inherited clause is inert as the top card, so a
-    // second point of memory here would mean the top card's inherited effect leaked.
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT19-019", as: "host", dp: 20_000, under: ["BT19-017"] }],
@@ -332,7 +306,6 @@ describe("BT19-017 Sangomon", () => {
     expect(s.state.memory).toBe(before + 1);
     expect(s.state.players[1]!.security).toHaveLength(4);
 
-    // Same turn, second attack by the same host: [Once Per Turn] is spent.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(s.perm("host").isSuspended).toBe(false);
     expect(
@@ -345,7 +318,6 @@ describe("BT19-017 Sangomon", () => {
     await settle(() => s.state.players[1]!.security.length === 3);
     expect(s.state.memory).toBe(before + 1);
 
-    // Hand the turn over and come back: the next own turn resets the once-per-turn counter.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);

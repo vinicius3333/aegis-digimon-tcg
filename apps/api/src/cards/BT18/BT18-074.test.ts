@@ -130,7 +130,6 @@ describe("BT18-074 AncientWisemon", () => {
         0: {
           battleArea: [{ card: "BT18-068", as: "base" }],
           hand: [{ card: "BT18-074", as: "ancient" }],
-          // The normal digivolution draw consumes the first card before the reveal window.
           deck: ["BT1-028", "BT18-064", "BT1-028", "BT1-028"],
         },
       },

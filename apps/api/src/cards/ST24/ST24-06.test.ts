@@ -89,9 +89,6 @@ describe("ST24-06 RizeGreymon", () => {
           ],
           hand: [
             { card: "ST24-06", as: "rizeGreymon" },
-            // A single-color DATA SQUAD Option, cost 5 (<=5), that trashes normally after
-            // use (P-235/ST24-15 place themselves in the battle area instead).
-            // Multicolor DATA SQUAD Options are also legal when their use requirements hold.
             { card: "BT26-098", as: "option" },
           ],
         },

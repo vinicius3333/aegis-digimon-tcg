@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT22-018 Sangomon
-// Fix: [On Play] cost places self under own Digimon with Aqua/Sea Animal trait;
-//   target gains <Blocker> and can't be deleted in battle until opponent's turn ends.
-//   Prior IR had wrong controller (opponent), wrong duration (permanent), missing battle protection.
 export const compiled: CompiledCard = {
   effects: [
     {

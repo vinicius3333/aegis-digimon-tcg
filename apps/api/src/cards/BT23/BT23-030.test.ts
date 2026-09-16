@@ -6,7 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-030.js";
 
-/** The public effect key BT23-030 advertises for its [Main] activation. */
 function mainEffectKey(s: ReturnType<typeof setupEngine>): string {
   const advertised = JSON.parse(s.perm("etemon").activatableEffectsJson ?? "[]") as Array<{ effectKey?: string }>;
   const key = advertised.find((effect) => effect.effectKey?.startsWith("BT23-030/"))?.effectKey;
@@ -113,8 +112,6 @@ describe("BT23-030 Etemon", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "Main")!;
     expect(effect.frequency).toBe("OncePerTurn");
     const block = effect.actions[0]!;
-    // CR 15-8-4-4-1 / Q5273: the "by paying" cost is NOT declinable once the [Main]
-    // activation is declared, so the block carries neither `optional` nor `abortOnDecline`.
     expect(block).not.toHaveProperty("optional");
     expect(block).not.toHaveProperty("abortOnDecline");
     expect(block).toMatchObject({
@@ -183,8 +180,6 @@ describe("BT23-030 Etemon", () => {
         effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
-    // Exactly ONE optional prompt is offered: the printed "you may play". The memory payment
-    // is never put to the player once activation is declared.
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(s.state.memory).toBe(4);
     expect(
@@ -211,7 +206,6 @@ describe("BT23-030 Etemon", () => {
           deck: ["BT1-010", "BT1-011"],
         },
       },
-      // Decline every optional prompt: only the hand play may be refused, never the cost.
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -226,7 +220,6 @@ describe("BT23-030 Etemon", () => {
     await settle(() => s.state.pendingDecision === undefined && s.state.memory === 4);
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
-    // Q5274: the "then" tail runs because the cost was paid, even with the play declined.
     expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Blocker")).toBe(true);
   });
@@ -243,7 +236,6 @@ describe("BT23-030 Etemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // MEMORY_MIN is -10, so this seat has zero payable cost headroom.
     s.state.memory = -10;
     const advertised = JSON.parse(s.perm("etemon").activatableEffectsJson ?? "[]") as Array<{ effectKey?: string }>;
     const key = advertised.find((effect) => effect.effectKey?.startsWith("BT23-030/"))?.effectKey;
@@ -295,7 +287,6 @@ describe("BT23-030 Etemon", () => {
       s.inst("next").instanceId,
     ]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT23-030"]);
-    // The cost was still paid and the mandatory tail still landed on Etemon itself.
     expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Blocker")).toBe(true);
   });

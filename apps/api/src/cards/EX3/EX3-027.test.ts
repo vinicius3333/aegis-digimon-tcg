@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX3-027.js";
 import "./EX3-035.js";
 import "./EX3-069.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 describe("EX3-027 Agumon", () => {
   it("has the official identity, inherited text, and digivolves from yellow level 2 for 0", async () => {
@@ -192,7 +192,6 @@ describe("EX3-027 Agumon", () => {
         s.state.players[0]!.deck.length === 2,
     );
 
-    // Trial always draws 1 itself; the inherited effect contributes exactly 1 total.
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
@@ -238,7 +237,6 @@ describe("EX3-027 Agumon", () => {
     });
     await settle(() => s.state.players[0]!.deck.length === 0);
 
-    // The real turn machine also performs this turn's normal draw before the inherited draw.
     expect(s.state.players[0]!.deck).toHaveLength(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
@@ -276,8 +274,6 @@ describe("EX3-027 Agumon", () => {
         s.state.players[0]!.deck.length === 2,
     );
 
-    // Two inherited copies draw twice from the first event. Trial draws only its own 1 later;
-    // both inherited ledgers are already spent, and recomputation did not duplicate either.
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
@@ -286,8 +282,6 @@ describe("EX3-027 Agumon", () => {
       0: {
         battleArea: [{ card: "BT1-050", under: [{ card: "EX3-027" }], as: "host" }],
         hand: [
-          // [Four Great Dragons] Digimon whose own printed effects never touch the deck, so
-          // the deck count below measures Agumon's inherited draw alone.
           { card: "BT3-029", as: "firstDragon" },
           { card: "BT3-029", as: "secondDragon" },
           { card: "BT1-049", as: "unrelated" },

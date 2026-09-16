@@ -53,7 +53,6 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
       true,
     );
     expect(s.perm("base").topCard?.cardId).toBe("BT6-011");
-    // Only the digivolution cost of 2 was paid: the 3-cost Sistermon Blanc came for free.
     expect(s.state.memory).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -90,8 +89,6 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === sistermonId)).toBe(true);
   });
 
-  // Seat 1 owns the placed Option; seat 0 (the turn player) digivolves into Huckmon, so this
-  // is an opponent's evolution on the opponent's own turn — no turnSeat write needed.
   it("ignores an opponent's public Huckmon evolution", async () => {
     const s = setupEngine(
       {
@@ -177,13 +174,10 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
 
-    // <Draw 1> took exactly the top card of the deck.
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
-    // Then the option itself sits in the battle area rather than the trash.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
-    // Its printed cost of 2 was paid.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -191,7 +185,6 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
   it("refuses the off-color play without a Huckmon and allows it once one is on the field", async () => {
     const s = setupEngine({
       0: {
-        // A red Digimon with no [Huckmon] in its name: no white source, no waiver.
         battleArea: [{ card: "BT1-009", as: "monodramon" }],
         hand: [{ card: "BT23-099", as: "option" }],
         deck: ["BT1-010", "BT1-011"],
@@ -248,14 +241,11 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     expect(s.perm("base").topCard?.cardId).toBe("ST12-10");
     const ciel = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === cielId)!;
     expect(ciel).toBeDefined();
-    // The 4-cost Ciel left the trash without paying: only the digivolution cost moved memory.
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === cielId)).toBe(false);
-    // BT23-077 carries the (Rule) alias, so it answers to [Sistermon Noir] as well.
     expect(observe(s.engine).grantedNames(ciel)).toEqual(["sistermon noir"]);
     expect(observe(s.engine).effectiveNames(ciel)).toEqual(
       expect.arrayContaining(["sistermon ciel", "sistermon noir"]),
     );
-    // The Delay was consumed: the option is in the trash.
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -297,8 +287,6 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // The security card's owner is seat 1 here, so the real attacker is the turn player seat 0
-  // and no turnSeat write is needed to reach a genuine security check.
   it("free-plays a Sistermon from hand and stays in the battle area when checked from security", async () => {
     const s = setupEngine(
       {
@@ -320,7 +308,6 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Keep the attacking seat off zero memory so the attack does not also end the turn.
     s.state.memory = 3;
     const memoryBefore = s.state.memory;
 
@@ -333,14 +320,11 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === blancId));
 
-    // The 3-cost Sistermon Blanc arrived from hand without paying.
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === blancId)).toBe(true);
-    // No playCard memory movement: the printed 3-cost was never paid.
     expect(
       s.events.filter((event) => event.kind === "memoryChanged" && "reason" in event && event.reason === "playCard"),
     ).toEqual([]);
     expect(s.state.memory).toBe(memoryBefore);
-    // "Then, place this card in the battle area" — the checked option is not trashed.
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(false);

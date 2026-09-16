@@ -14,35 +14,8 @@ import {
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
-// Self-register every card module so the engine drives the REGISTERED BT3-056 hand-override
-// (its ＜Digisorption＞ Replacement + redirector registration) rather than a hand-built ledger.
 import { compiled } from "./BT3-056.js";
 import "../BT2/BT2-050.js";
-
-/**
- * A3 — BT3-056 Ceresmon: interactive ＜Digisorption -3＞ with the [Your Turn][Once Per Turn]
- * opponent-redirect.
- *
- * source (documented behavior) + printed text + KB:
- *   1. ＜Digisorption -3＞ (Comprehensive Rules §16-10): digivolving into this card from hand,
- *      you MAY suspend 1 of YOUR Digimon to reduce the digivolution cost by 3. INTERACTIVE —
- *      declining pays the full cost. (documented behavior BeforePayCost rule implementation.)
- *   2. [Your Turn][Once Per Turn] When suspending for a ＜Digisorption＞ skill, you may suspend
- *      your OPPONENT's Digimon instead (documented behavior rule implementation). Per
- *      KB Q4703 this redirect needs THIS card already on the battle area — it does NOT apply to
- *      its OWN digivolve-into. So the redirect is exercised with a SEPARATE BT3-056 already in
- *      play while digivolving into a new BT3-056.
- *
- * The cost is read off the shared memory gauge across the REAL digivolve intent. The suspend is
- * paid through the real engine (primitives.suspend, which fires the whenSuspended window).
- *
- * FAILS-WHEN-REVERTED levers (each reverts a distinct claim to RED):
- *   - Neuter the redirect (digisorptionSuspendCandidates drops the opponent branch, or BT3-056
- *     stops registering as a redirector): the opponent's Digimon can no longer be chosen → the
- *     redirect test can't suspend the opponent (it suspends own / pays full) → RED.
- *   - Remove the interactive payment (payDigisorption returns 0): the cost stops dropping on the
- *     accept path → the "pays 2 (5-3)" assertions go RED.
- */
 
 let seq = 0;
 function instance(cardId: string, seat: Seat): CardInstance {
@@ -75,11 +48,6 @@ interface Setup {
   events: ServerEvent[];
 }
 
-/**
- * Build an engine whose decision responder ACCEPTS the ＜Digisorption＞ optional (or declines
- * when `acceptDigisorption` is false) and, for the suspend selection, picks the candidate top-card
- * instance id matching `chooseInstanceId` (else the first offered).
- */
 function setup(opts: { acceptDigisorption: boolean; chooseInstanceId?: () => string | undefined }): Setup {
   const state = new GameState();
   const events: ServerEvent[] = [];
@@ -128,8 +96,6 @@ function setup(opts: { acceptDigisorption: boolean; chooseInstanceId?: () => str
   return { engine, state, events };
 }
 
-// BT3-056 printed EvoCost: Green / Lv.6 / cost 5. AD1-011 is a Lv.5 Green base (used by the
-// BT2/BT3 Digisorption oracle fixtures), so digivolving into BT3-056 onto it pays a base 5.
 const BASE_CARD = "AD1-011";
 const BASE_DP = 8000;
 
@@ -169,12 +135,11 @@ describe("A3 BT3-056 — interactive ＜Digisorption -3＞ + opponent redirect",
     await s.engine.recomputeContinuousEffects();
     const before = s.state.memory;
     s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: evolving.instanceId });
-    // Settle until the digivolve fully completes (memory paid AFTER the ＜Digisorption＞ decision).
     await settle(() => s.state.memory !== before);
 
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT3-056")).toBe(true);
-    expect(before - s.state.memory).toBe(5); // full cost, no reduction
-    expect(own.isSuspended).toBe(false); // declined => nothing suspended
+    expect(before - s.state.memory).toBe(5);
+    expect(own.isSuspended).toBe(false);
   });
 
   it("accepting + suspending your OWN Digimon reduces the cost by 3 (5 - 3 = 2)", async () => {
@@ -196,8 +161,8 @@ describe("A3 BT3-056 — interactive ＜Digisorption -3＞ + opponent redirect",
     await settle(() => own.isSuspended && s.state.memory !== before);
 
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT3-056")).toBe(true);
-    expect(own.isSuspended).toBe(true); // paid by suspending own Digimon
-    expect(before - s.state.memory).toBe(2); // 5 - 3
+    expect(own.isSuspended).toBe(true);
+    expect(before - s.state.memory).toBe(2);
   });
 
   it("with a BT3-056 already in play, the redirect suspends the OPPONENT's Digimon instead", async () => {
@@ -206,13 +171,10 @@ describe("A3 BT3-056 — interactive ＜Digisorption -3＞ + opponent redirect",
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
-    // A SEPARATE BT3-056 already on the controller's battle area = the redirector (KB Q4703).
     const redirector = permanent(0, "BT3-056", 12000);
     p0.battleArea.push(redirector);
-    // The controller's own Digimon (must NOT be the one suspended when the opponent is chosen).
     const own = permanent(0, "ST1-02", 3000);
     p0.battleArea.push(own);
-    // The opponent's Digimon — the redirect target.
     const opp = permanent(1, "ST1-03", 2000);
     oppInstanceId = opp.topCard!.instanceId;
     p1.battleArea.push(opp);
@@ -229,11 +191,9 @@ describe("A3 BT3-056 — interactive ＜Digisorption -3＞ + opponent redirect",
     await settle(() => opp.isSuspended && s.state.memory !== before);
 
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT3-056" && p.permanentId === base.permanentId)).toBe(true);
-    expect(opp.isSuspended).toBe(true); // redirect: the OPPONENT's Digimon was suspended
-    expect(own.isSuspended).toBe(false); // not the controller's own
-    // The suspend ran through the real seam (primitives.suspend), which fires OnTappedAnyone /
-    // whenSuspended for the opponent's permanent — observable as the suspend transition above.
-    expect(before - s.state.memory).toBe(2); // 5 - 3, reduction still applied via the redirect
+    expect(opp.isSuspended).toBe(true);
+    expect(own.isSuspended).toBe(false);
+    expect(before - s.state.memory).toBe(2);
   });
 
   it("resets native redirect usage on the next own turn", async () => {

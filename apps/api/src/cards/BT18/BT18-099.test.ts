@@ -93,8 +93,6 @@ describe("BT18-099 Fist of Athena", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    // During Option resolution the card is intentionally held in the transient
-    // resolving slot, so lookup by alias is unavailable until placement finishes.
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === optionInstanceId));
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === optionInstanceId)).toBe(true);

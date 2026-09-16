@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4132: the Option can be used without a Patamon; the Main effect then moves nothing.
 const compiled: CompiledCard = {
   effects: [
     {

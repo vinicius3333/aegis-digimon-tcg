@@ -149,8 +149,6 @@ describe("EX11-072 Unique Emblem: Guardian Vortex", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("shoto").isSuspended);
     expect(s.perm("shoto").isSuspended).toBe(true);
-    // The public suspension is reactive; the intrinsic Delay watcher resolves at the event
-    // itself when a legal Bird Dragon + LIBERATOR base remains on the field.
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX11-072")).toBe(true);
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX11-074")).toBe(false);
     expect(s.perm("birdDragonBase").topCard?.cardId).toBe("EX11-074");

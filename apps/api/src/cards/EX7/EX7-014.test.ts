@@ -425,7 +425,6 @@ describe("EX7-014 Volcanicdramon", () => {
     await stopLoop(blocked, blockedLoop);
   });
 
-  // Retained red: Q3835 currently moves P-143 into breeding despite the active restriction.
   it("Q3835/Q6509: blocks both an end-turn move and an effect play into breeding", async () => {
     const s = setupEngine(
       {

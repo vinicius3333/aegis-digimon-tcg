@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-135 ShoeShoemon
-// [When Digivolving] Until the end of your opponent's turn, 1 of their Digimon can't
-//   attack Digimon and gains <Security Attack -1>.
-// [Your Turn] While you have [Arisa Kinosaki], this Digimon gains <Jamming>.
-// [When Attacking] (inherited) [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP
-//   for the turn.
-//
 const compiled: CompiledCard = {
   effects: [
     {

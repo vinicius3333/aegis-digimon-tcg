@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -37,9 +34,6 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
-            // Printed: "DNA digivolve into [Shakkoumon] IN THE HAND". The zone lives on the
-            // result filter; the previous top-level `from: ["hand"]` is not a field of
-            // DnaDigivolveAction and was silently ignored (it only agreed with the default).
             zone: "hand",
             nameOrTrait: [
               {
@@ -78,9 +72,6 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
-            // Printed: "DNA digivolve into [Shakkoumon] IN THE HAND". The zone lives on the
-            // result filter; the previous top-level `from: ["hand"]` is not a field of
-            // DnaDigivolveAction and was silently ignored (it only agreed with the default).
             zone: "hand",
             nameOrTrait: [
               {

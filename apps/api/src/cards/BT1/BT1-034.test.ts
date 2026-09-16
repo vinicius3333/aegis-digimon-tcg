@@ -121,8 +121,6 @@ describe("BT1-034 Ikkakumon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-029"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-030");
-    // The inherited text is active when BT1-034 is under a host, not while it
-    // is the top card of the just-evolved Digimon.
     expect(observe(s.engine).hasRestriction(s.perm("base"), "cantBeBlockedByNoDigivolution")).toBe(false);
   });
 

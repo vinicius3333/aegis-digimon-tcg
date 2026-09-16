@@ -9,7 +9,6 @@ describe("EX2-001 Gigimon", () => {
     const s = setupEngine(
       {
         0: {
-          // A legal EX2 evolution stack: Gigimon -> Guilmon -> Growlmon -> WarGrowlmon -> Gallantmon.
           battleArea: [{ card: "EX2-011", as: "host", under: ["EX2-001", "EX2-008", "EX2-009", "EX2-010"] }],
           deck: [
             { card: "BT1-009", as: "drawn" },
@@ -105,8 +104,6 @@ describe("EX2-001 Gigimon", () => {
           deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010"],
           security: ["BT1-011"],
         },
-        // Keep an actionable neutral permanent so the production loop exposes seat 1's Main
-        // phase to waitForMainPhase before that turn is ended.
         1: {
           battleArea: ["BT1-009"],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009"],
@@ -152,9 +149,6 @@ describe("EX2-001 Gigimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
-    // EX2-008 is 1,000 DP and ties the 1,000-DP security Digimon, so the real security
-    // battle deletes the host. The inherited EX2-001 source is trashed with it: CR §3-1-3-9
-    // redirects a Digi-Egg only into private areas, and the trash is public.
     expect(s.state.players[0]!.eggDeck).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === eggInstanceId)).toBe(true);
 

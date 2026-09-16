@@ -7,27 +7,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled as EX13_074 } from "./EX13-074.js";
 import "../index.js";
 
-// Fixtures
-//   ST13-12  Knightmon (Lv.5 Black/Red, 7000 DP) — NO printed text at all: the "[Knightmon] text"
-//            subject that matches purely by NAME, and an inert battle body.
-//   EX4-042  DarkMaildramon (Lv.4 Black/Blue, 4000 DP) — NOT named Knightmon; its only printed
-//            clause merely MENTIONS "[Knightmon]", so it is the text-not-name discriminator.
-//            (REVIEW-NOTES' false-green trap does not apply: it is not "treated as" [Knightmon].)
-//   BT18-058 Kotemon (Lv.3) — a [Knightmon] text CARD used only as a placement target; placing
-//            never fires its [On Play].
-//   EX10-026 SkullKnightmon — a [Knightmon] text card via its "[Digivolve] Lv.3 w/[Knightmon] in
-//            text" header, proving the gate counts requirement-header text too.
-//   BT5-045  LordKnightmon (Yellow Lv.6, play cost 13) — the exact-named digivolve destination,
-//            deliberately the QUIETEST LordKnightmon in the catalog (its clauses are [When
-//            Attacking] and a passive DP bump), and a color/level combination no printed
-//            requirement could ever reach from a Purple/Black Tamer.
-//   BT19-073 LordKnightmon (X Antibody) — the nameExact NEAR-match negative.
-//   EX13-064 LordKnightmon — this card's own set-mate, which prints "[Digivolve] While you have 3
-//            or fewer security cards, [Rie Kishibe]: Cost 5"; used to prove the printed cost-3
-//            override is what gets paid.
-//   BT1-009  Monodramon / BT1-010 / BT1-011 — inert non-[Knightmon] fixtures and spare hand cards.
-//   BT1-024  MetalTyrannomon (10000 DP, no text) — the inert battle body that kills a 7000 DP
-//            attacker so a DELETION happens through a public attack intent.
 const CARD_ID = "EX13-074";
 
 function mainEffectKey(s: ReturnType<typeof setupEngine>, alias = "rie"): string {
@@ -66,15 +45,12 @@ describe("EX13-074 Rie Kishibe", () => {
     expect(EX13_074.coverage).toBe("full");
     expect(EX13_074.residual).toEqual([]);
 
-    // Clause 1.
     expect(EX13_074.effects.find((effect) => effect.trigger === "StartOfYourTurn")?.actions[0]).toMatchObject({
       kind: "SetMemory",
       value: 3,
       condition: { kind: "memoryAtMost", value: 2 },
     });
 
-    // Clause 2: one [All Turns] [Once Per Turn] window holding both event forms, which share a
-    // single per-turn budget through one `oncePerTurnKey`.
     const watcher = EX13_074.effects.find((effect) => effect.trigger === "AllTurns");
     expect(watcher?.frequency).toBe("OncePerTurn");
     expect(watcher?.actions).toMatchObject([
@@ -116,7 +92,6 @@ describe("EX13-074 Rie Kishibe", () => {
     expect(keys[0]).toBeDefined();
     expect(keys[0]).toBe(keys[1]);
 
-    // Clause 3.
     const main = EX13_074.effects.find((effect) => effect.trigger === "Main");
     expect(main?.frequency).toBe("OncePerTurn");
     expect(main?.condition).toMatchObject({
@@ -135,16 +110,11 @@ describe("EX13-074 Rie Kishibe", () => {
       optional: true,
     });
 
-    // Security.
     expect(EX13_074.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { filter: { isSelfRef: true } } }],
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // Clause 1 — [Start of Your Turn] If you have 2 or less memory, set it to 3.
-  // ---------------------------------------------------------------------------
 
   it("raises the memory floor to 3 through a real turn when at 2 or less", async () => {
     const s = setupEngine({
@@ -215,12 +185,6 @@ describe("EX13-074 Rie Kishibe", () => {
     await turn;
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 2 — [All Turns] [Once Per Turn] When any of your [Knightmon] text
-  // Digimon are played or deleted, by placing 1 such card from your hand or
-  // trash under this Tamer, ＜Draw 1＞
-  // ---------------------------------------------------------------------------
-
   it("places a [Knightmon] text card from hand under itself and draws 1 when such a Digimon is played", async () => {
     const s = setupEngine(
       {
@@ -245,8 +209,6 @@ describe("EX13-074 Rie Kishibe", () => {
     await settle(() => s.perm("rie").stack.length === 1);
     await settle();
 
-    // Exact endpoints: the placed card is now a face-down card under the Tamer, the drawn card
-    // left the deck for the hand, and the played Knightmon is the only new permanent.
     expect(s.perm("rie").stack.map((card) => card.instanceId)).toEqual([s.inst("kotemon").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
@@ -254,7 +216,6 @@ describe("EX13-074 Rie Kishibe", () => {
       "EX13-074",
       "ST13-12",
     ]);
-    // Play cost 5 out of 8 memory; the clause itself costs nothing but the placement.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -281,7 +242,6 @@ describe("EX13-074 Rie Kishibe", () => {
     await settle(() => s.perm("rie").stack.length === 1);
     await settle();
 
-    // The placed card came from the TRASH half of "from your hand or trash".
     expect(s.perm("rie").stack.map((card) => card.instanceId)).toEqual([s.inst("skullKnightmon").instanceId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
@@ -334,7 +294,6 @@ describe("EX13-074 Rie Kishibe", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    // The gauge is read turn-relative: during seat 1's turn a positive value is seat 1's memory.
     s.state.memory = 8;
     await s.ready();
 
@@ -374,7 +333,6 @@ describe("EX13-074 Rie Kishibe", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // 7000 DP into 10000 DP: the attacker loses the battle and is deleted.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -399,12 +357,6 @@ describe("EX13-074 Rie Kishibe", () => {
         0: {
           battleArea: [
             { card: CARD_ID, as: "rie" },
-            // Printed top card: MetalTyrannomon, no [Knightmon] anywhere in its own information.
-            // Its digivolution cards include a Knightmon — effects are inherited, text is not
-            // (comprehensive §4-23-2), so this deletion must NOT fire the clause. Mutation note:
-            // dropping `printedTextOnly` leaves this test green, because the deletion watcher
-            // reads the deleted card's definition rather than the live permanent's stack text —
-            // the assertion is of the printed outcome, not of that flag.
             { card: "BT1-024", as: "carrier", under: ["ST13-12"] },
           ],
           hand: [
@@ -426,7 +378,6 @@ describe("EX13-074 Rie Kishibe", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // 10000 DP into 12000 DP: the carrier is deleted in battle.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -502,7 +453,6 @@ describe("EX13-074 Rie Kishibe", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // First event this turn: a PLAY. The use is spent.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondKnightmon").instanceId })).toEqual({
       ok: true,
     });
@@ -510,7 +460,6 @@ describe("EX13-074 Rie Kishibe", () => {
     await settle();
     expect(s.perm("rie").stack.map((card) => card.instanceId)).toEqual([s.inst("firstPlacement").instanceId]);
 
-    // Second event, the OTHER form (a deletion) in the same turn: refused by the shared budget.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -529,7 +478,6 @@ describe("EX13-074 Rie Kishibe", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
 
-    // The opponent's turn, then back to ours: the use resets and the clause fires again.
     s.state.turnSeat = 1;
     s.state.memory = 8;
     await advance(s.engine).runTurn(1);
@@ -540,8 +488,6 @@ describe("EX13-074 Rie Kishibe", () => {
 
     const anotherKnightmon = s.state.players[0]!.hand.find((card) => card.cardId === "ST13-12");
     expect(anotherKnightmon).toBeUndefined();
-    // Re-arm with a fresh play: the Knightmon drawn back is not available, so delete-fire is
-    // proven instead by playing the remaining [Knightmon] text card from hand.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlacement").instanceId })).toEqual({
       ok: true,
     });
@@ -552,12 +498,6 @@ describe("EX13-074 Rie Kishibe", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
   });
-
-  // ---------------------------------------------------------------------------
-  // Clause 3 — [Main] [Once Per Turn] If this Tamer has 3 or more [Knightmon]
-  // text cards under it, it may digivolve into [LordKnightmon] in the hand or
-  // trash for a digivolution cost of 3, ignoring digivolution requirements.
-  // ---------------------------------------------------------------------------
 
   it("digivolves itself into [LordKnightmon] for exactly 3, ignoring every printed requirement", async () => {
     const s = setupEngine(
@@ -578,15 +518,9 @@ describe("EX13-074 Rie Kishibe", () => {
     await settle(() => s.perm("rie").topCard?.cardId === "BT5-045");
     await settle();
 
-    // A Yellow Lv.6 with a printed "Lv.5" EvoCost onto a PURPLE/BLACK Tamer: no printed route
-    // exists, so the digivolve is proof of `ignoreRequirements`, and 6 -> 3 proves the printed
-    // "digivolution cost of 3" was what was paid.
     expect(s.state.memory).toBe(3);
     expect(s.perm("rie").topCard?.instanceId).toBe(s.inst("lord").instanceId);
-    // Source identity survives: the Tamer sits directly beneath the new top card, with the three
-    // placed cards still under it in their original order.
     expect(s.perm("rie").stack.map((card) => card.cardId)).toEqual(["ST13-12", "BT18-058", "EX10-026", "EX13-074"]);
-    // The digivolve's rules-mandated bonus draw replaces the card that left the hand.
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -611,8 +545,6 @@ describe("EX13-074 Rie Kishibe", () => {
     await settle(() => s.perm("rie").topCard?.cardId === "EX13-064");
     await settle();
 
-    // EX13-064's own header offers "[Rie Kishibe]: Cost 5" while this clause prints 3; the
-    // gauge says which one the engine charged.
     expect(s.state.memory).toBe(3);
     expect(s.perm("rie").topCard?.instanceId).toBe(s.inst("lord").instanceId);
   });
@@ -635,7 +567,6 @@ describe("EX13-074 Rie Kishibe", () => {
     activateMain(s);
     await settle(() => false, 300);
 
-    // Whether the gate refuses the intent or resolves to nothing, the board must be untouched.
     expect(s.perm("rie").topCard?.cardId).toBe(CARD_ID);
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("lord").instanceId]);
@@ -645,8 +576,6 @@ describe("EX13-074 Rie Kishibe", () => {
     const s = setupEngine(
       {
         0: {
-          // None of these three is NAMED Knightmon: two carry it in a [Digivolve] header /
-          // effect line, one merely mentions it. The gate still counts three.
           battleArea: [{ card: CARD_ID, as: "rie", under: ["BT18-058", "EX10-026", "EX4-042"] }],
           hand: [{ card: "BT5-045", as: "lord" }],
           deck: ["BT1-010", "BT1-011"],
@@ -713,9 +642,6 @@ describe("EX13-074 Rie Kishibe", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.memory).toBe(6);
 
-    // [Once Per Turn] cannot be distinguished from "the source left the battle area" here: a
-    // successful activation turns the Tamer into a digivolution card, so nothing can activate the
-    // clause a second time. The refusal below is the only observable endpoint.
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: tamerInstanceId, effectKey: key }).ok,
     ).toBe(false);
@@ -723,10 +649,6 @@ describe("EX13-074 Rie Kishibe", () => {
     expect(s.perm("rie").topCard?.cardId).toBe("BT5-045");
     expect(s.state.memory).toBe(6);
   });
-
-  // ---------------------------------------------------------------------------
-  // [Security] Play this card without paying the cost.
-  // ---------------------------------------------------------------------------
 
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: CARD_ID, as: "rie" }] } });

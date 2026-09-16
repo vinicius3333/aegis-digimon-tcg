@@ -1,26 +1,17 @@
 import { describe, it, expect } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-// Self-register every card module so the engine drives the REGISTERED BT11-059
-// hand-override (not a hand-built ledger — Pitfall 3).
 import "../index.js";
 import { compiled } from "./BT11-059.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { definitionMatches } from "../../engine/effects/interpreter/matching/definition.js";
 
-/**
- * Drive the REAL digivolve into BT11-059 over `tamerCardIds` green/black Tamers and return
- * the memory paid (the shared gauge delta). BT11-059's printed EvoCost is Green/Lv.5/cost 5.
- */
 async function paidToEvolveIntoBT11059(tamerCardIds: string[]) {
   const s = setupEngine({
     0: {
-      battleArea: [
-        { card: "BT1-075", dp: 5000, as: "base" }, // Lv.5 Green base
-        ...tamerCardIds.map((id) => ({ card: id, dp: 0 })),
-      ],
-      hand: [{ card: "BT11-059", faceUp: false, as: "evolving" }], // the digivolution target
+      battleArea: [{ card: "BT1-075", dp: 5000, as: "base" }, ...tamerCardIds.map((id) => ({ card: id, dp: 0 }))],
+      hand: [{ card: "BT11-059", faceUp: false, as: "evolving" }],
     },
   });
   const p0 = s.state.players[0] as PlayerState;
@@ -74,15 +65,14 @@ describe("A3 BT11-059 — digivolve cost reduced per green/black Tamer (Q2092 du
   });
 
   it("2 distinct green/black Tamers reduce the cost by 2 (5 - 2 = 3)", async () => {
-    const { paid, evolved } = await paidToEvolveIntoBT11059(["BT1-088", "BT10-092"]); // 1 Green, 1 Black
+    const { paid, evolved } = await paidToEvolveIntoBT11059(["BT1-088", "BT10-092"]);
     expect(evolved).toBe(true);
     expect(paid).toBe(3);
   });
 
   it("Q2092: one green+black DUAL-color Tamer counts as 1, reducing by exactly 1 (5 - 1 = 4)", async () => {
-    const { paid, evolved } = await paidToEvolveIntoBT11059(["BT23-083"]); // dual Green+Black Tamer
+    const { paid, evolved } = await paidToEvolveIntoBT11059(["BT23-083"]);
     expect(evolved).toBe(true);
-    // NOT 3 (would be the wrong double-count of a 2-color Tamer): exactly 1 reduction.
     expect(paid).toBe(4);
   });
 });
@@ -173,8 +163,6 @@ describe("BT11-059 battle deletion trigger", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("rust").isSuspended).toBe(true);
 
-    // The next victim survives a real opponent attack to the player and is left suspended
-    // for RustTyrannomon's next own turn.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     const opponentTurn = s.engine.runOneTurn();

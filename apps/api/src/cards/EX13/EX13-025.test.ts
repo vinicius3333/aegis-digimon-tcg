@@ -9,16 +9,6 @@ import "../index.js";
 
 const CARD_ID = "EX13-025";
 
-// Fixtures.
-//   BT18-036 Wizardmon — YELLOW Lv.4 whose printed TYPES are ["Wizard","Witchelny"]: the
-//     [Witchelny]-in-text hand card the placement clause is printed for, and the positive host
-//     for the inherited replacement.
-//   BT19-029 Tapirmon — YELLOW Lv.3 whose printed TEXT mentions [Witchelny] although its TYPE is
-//     not [Witchelny]. It is the discriminator that separates `match: "text"` from
-//     `match: "trait"`: a trait reading would refuse it.
-//   BT9-035 Starmon — YELLOW Lv.4, ["Star"], NO printed text: the negative host, and the hand
-//     card the placement clause must NOT take.
-//   BT1-009..BT1-014 are the inert main-deck Digimon used as security and deck filler.
 const WITCHELNY_TYPE_CARD = "BT18-036";
 const WITCHELNY_TEXT_ONLY_CARD = "BT19-029";
 const NON_WITCHELNY_CARD = "BT9-035";
@@ -52,8 +42,6 @@ describe("EX13-025 Candlemon", () => {
     expect(compiled.effects).toHaveLength(3);
     expect(compiled.digivolutionRequirement).toBeUndefined();
 
-    // The "3 or more security cards" gate is ONE ConditionalBranch evaluated before any process
-    // runs, because the first process itself removes a security card.
     expect(compiled.effects[0]).toMatchObject({
       trigger: "StartOfYourMainPhase",
       actions: [
@@ -91,7 +79,6 @@ describe("EX13-025 Candlemon", () => {
       actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Witchelny"] }],
     });
 
-    // "by YOUR OPPONENT'S effects" is the narrow cause, not "other than by your effects".
     expect(compiled.effects[2]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
@@ -144,19 +131,14 @@ describe("EX13-025 Candlemon", () => {
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
     await settle(() => s.state.players[0]!.security.length === 3);
 
-    // "Security Top" is option index 0, which `autoChooseOption` takes: the TOP card is trashed,
-    // the rest of the stack keeps its printed order, and the [Witchelny] hand card is appended as
-    // the new BOTTOM card.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("middle").instanceId,
       s.inst("bottom").instanceId,
       s.inst("witchelny").instanceId,
     ]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("top").instanceId);
-    // Nothing in the printed sentence reveals the placed card: it goes in face down.
     expect(s.state.players[0]!.security.at(-1)?.faceUp).not.toBe(true);
 
-    // ＜Draw 1＞ and "gain 1 memory".
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("spare").instanceId,
@@ -180,7 +162,6 @@ describe("EX13-025 Candlemon", () => {
         },
         1: { security: [INERT], deck: DECK },
       },
-      // "Security Bottom" is option index 1 of the top-or-bottom prompt.
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
     s.state.memory = 0;
@@ -222,7 +203,6 @@ describe("EX13-025 Candlemon", () => {
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
     await settle(() => s.state.memory === 1);
 
-    // The first sentence is mandatory and still ran; only the placement was refused.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("middle").instanceId,
       s.inst("bottom").instanceId,
@@ -253,7 +233,6 @@ describe("EX13-025 Candlemon", () => {
     );
     s.state.memory = 0;
     await s.ready();
-    // Its printed TYPE is not [Witchelny]; only its printed sentence names it.
     expect(getCardDefinition(WITCHELNY_TEXT_ONLY_CARD)?.types).not.toContain("Witchelny");
 
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
@@ -261,7 +240,6 @@ describe("EX13-025 Candlemon", () => {
 
     const securityIds = s.state.players[0]!.security.map((card) => card.instanceId);
     expect(securityIds[securityIds.length - 1]).toBe(s.inst("textOnly").instanceId);
-    // The only other hand card never mentions [Witchelny], so it stays in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonMatch").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -288,8 +266,6 @@ describe("EX13-025 Candlemon", () => {
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
     await settle();
 
-    // No trash, no draw, no memory, and — because the "Then" chains off the gated sentence — no
-    // placement either, although the stack is already at 2.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("top").instanceId,
       s.inst("bottom").instanceId,
@@ -318,7 +294,6 @@ describe("EX13-025 Candlemon", () => {
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
     await settle(() => s.state.memory === 1);
 
-    // 4 - 1 trashed = 3, which is above the "2 or fewer" gate, so the hand card stays put.
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("witchelny").instanceId);
@@ -355,7 +330,6 @@ describe("EX13-025 Candlemon", () => {
     });
     await s.ready();
 
-    // The catalog prints only [Flame], so every [Witchelny] read comes from the Rule clause.
     expect(getCardDefinition(CARD_ID)?.types).toEqual(["Flame"]);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("candlemon"), "Flame")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("candlemon"), "Witchelny")).toBe(true);
@@ -410,7 +384,6 @@ describe("EX13-025 Candlemon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    // The security stack is untouched: the replacement never engaged, so nothing was paid.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
   });
 
@@ -456,7 +429,6 @@ describe("EX13-025 Candlemon", () => {
     advance(noSecurity.engine).verb.leaveEffectResolution();
     await settle(() => noSecurity.state.pendingDecision === undefined);
 
-    // A "by" condition can never be paid partly (manual §1), so the host leaves.
     expect(noSecurity.state.players[0]!.battleArea).toHaveLength(0);
   });
 
@@ -486,12 +458,9 @@ describe("EX13-025 Candlemon", () => {
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The quota was spent, so the second departure goes through and no second security card is
-    // paid.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(2);
 
-    // A fresh host and a real turn in between restore the budget.
     const revived = s.putOnBoard(0, { card: WITCHELNY_TYPE_CARD, as: "host2", under: [CARD_ID] });
     await s.ready();
     s.state.turnSeat = 1;
@@ -504,7 +473,6 @@ describe("EX13-025 Candlemon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(revived.permanentId);
-    // A third security card was paid for the reopened prevention.
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });

@@ -5,25 +5,12 @@ import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interp
 import type { CompiledCard } from "@aegis/shared";
 import "../index.js";
 
-// A3 for BT11-112 (Rina Shinomiya) — [On Play] "1 of your Digimon with [Veemon] or
-// [Veedramon] in its name gains <Blocker> and <Evade>".
-//
-// Lane R5's dead-clause family (third variant): `hasNameCandidate()` in BT11-112.ts read
-// `def.names`, which does not exist on the real `CardDefinition`
-// (packages/shared/src/cards/types.ts exposes only `nameEn`), so `canActivate` always saw
-// zero candidates and this [On Play] clause silently no-oped even with a legal
-// [Veemon]-named Digimon on the board. Fixed by delegating to the shared
-// `matchNameOrTrait` (interpreter.ts) with a substring match ("with [X] in its name" per
-// Comprehensive Rules manual — NOT the bare-bracket exact-name form).
-//
-// FAILS-WHEN-REVERTED: with `hasNameCandidate` back to reading `def.names`, no candidate is
-// ever found, so the Veemon permanent never receives the Blocker/Evade grants (test RED).
 describe("BT11-112 [On Play] grant Blocker + Evade to a [Veemon]/[Veedramon] Digimon", () => {
   it("grants Blocker and Evade to the owner's Veemon-named Digimon", async () => {
     const s = setup(
       {
         0: {
-          battleArea: [{ card: "BT11-023", dp: 1000, as: "veemon" }], // nameEn "Veemon"
+          battleArea: [{ card: "BT11-023", dp: 1000, as: "veemon" }],
           hand: [{ card: "BT11-112", as: "card" }],
         },
       },
@@ -31,11 +18,11 @@ describe("BT11-112 [On Play] grant Blocker + Evade to a [Veemon]/[Veedramon] Dig
     );
     const veemon = s.perm("veemon");
     const card = s.inst("card");
-    s.state.memory = 3; // exactly the printed play cost
+    s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
 
-    await settle(() => false, 60); // flush the on-play resolution
+    await settle(() => false, 60);
 
     const rejected = s.events.find((e) => e.kind === "actionRejected");
     expect(rejected).toBeUndefined();
@@ -46,18 +33,7 @@ describe("BT11-112 [On Play] grant Blocker + Evade to a [Veemon]/[Veedramon] Dig
   });
 });
 
-// A3 for BT11-112's [All Turns] clause: "When one of your Digimon with [Veedramon] in its
-// name becomes suspended, by suspending this Tamer, that Digimon activates 1 of its [When
-// Digivolving] effects." (KB Q2142/Q2143.)
-//
-// FAILS-WHEN-REVERTED: without this clause the [All Turns] timing (OnTappedAnyone) returns no
-// effects for BT11-112, so suspending the Veedramon-named Digimon never re-fires its [When
-// Digivolving] effect and this Tamer never suspends either.
-//
-// EX3-031 (a real, cataloged Veedramon-named Digimon) is overridden with a synthetic [When
-// Digivolving] effect (gain 1 memory) so the assertion is a simple, self-contained memory
-// delta rather than depending on EX3-031's own printed [When Digivolving] behavior.
-const TARGET_CARD = "EX3-031"; // Veedramon — a real, cataloged Lv.4 Digimon
+const TARGET_CARD = "EX3-031";
 
 describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate its [When Digivolving]", () => {
   const original = runtimeCompiledCard(TARGET_CARD);
@@ -94,9 +70,7 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
 
     await settle(() => s.state.memory > 5, 400);
 
-    // The Veedramon-named Digimon's [When Digivolving] effect re-fired (gain 1 memory).
     expect(s.state.memory).toBeGreaterThan(5);
-    // The cost was paid: this Tamer is now suspended.
     expect(kouji.isSuspended).toBe(true);
   });
 
@@ -106,7 +80,6 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
         0: {
           battleArea: [
             { card: "BT11-112", dp: 0, as: "rina" },
-            // BT11-027 is a cataloged Veedramon with no [When Digivolving] effect.
             { card: "BT11-027", dp: 6000, as: "veedramon" },
           ],
         },
@@ -121,8 +94,6 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
     await advance(s.engine).verb.suspend([veedramon.permanentId]);
     await settle(() => false, 60);
 
-    // Q2142: paying the “by suspending this Tamer” cost is still legal even though
-    // there is no borrowed When Digivolving effect to activate afterward.
     expect(rina.isSuspended).toBe(true);
     expect(veedramon.isSuspended).toBe(true);
     expect(s.state.memory).toBe(5);
@@ -164,7 +135,6 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
         0: {
           battleArea: [
             { card: "BT11-112", dp: 0, as: "kouji" },
-            // BT3-073 (WereGarurumon) has no [Veedramon] in its name.
             { card: "BT3-073", dp: 6000, as: "other" },
           ],
         },
@@ -209,7 +179,6 @@ describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory",
     await settle(() => s.state.memory === 4, 200);
     expect(s.state.memory).toBe(4);
 
-    // The frequency is shared by both trigger routes during this turn.
     await advance(s.engine).verb.suspend([s.perm("blue").permanentId]);
     await advance(s.engine).verb.unsuspend([s.perm("blue").permanentId]);
     await settle(() => false, 60);
@@ -217,7 +186,6 @@ describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory",
     advance(s.engine).endMainPhaseIfOpen(0);
     await firstTurn;
 
-    // On the opponent's turn, the same unsuspend event does not satisfy [Your Turn].
     s.state.turnSeat = 1;
     s.state.memory = 3;
     const opponentTurn = s.engine.runOneTurn();
@@ -229,7 +197,6 @@ describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory",
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
-    // The once-per-turn window resets for the next turn of the Tamer's controller.
     s.state.turnSeat = 0;
     s.state.memory = 3;
     const nextTurn = s.engine.runOneTurn();

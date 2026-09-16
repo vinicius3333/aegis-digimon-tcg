@@ -1,12 +1,3 @@
-// HAND-FIXED IR for BT24-077 (Revivemon) — do not regenerate over this file.
-//
-// runtime-effect fix: "[When Digivolving] [On Deletion] You may link 1 level 4 or lower
-// Digimon card from your trash or this Digimon's digivolution cards to 1 of your
-// Digimon without paying the cost" is the LINK mechanic (a card attached under a
-// chosen recipient Digimon, KB Q5654: a card without <Link> can't be linked this way),
-// not PlayWithoutCost (which plays the card as its own new battle-area permanent). Both
-// clauses recompiled to the Link action kind with a level<=4 filter, a recipient target
-// ("to 1 of your Digimon"), and from:["trash","digivolutionCards"].
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

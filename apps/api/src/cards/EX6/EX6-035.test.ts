@@ -160,7 +160,6 @@ describe("EX6-035 Cherubimon", () => {
       (event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-055" && event.timing === "OnPlay",
     );
     expect(parentResolved).toBeGreaterThanOrEqual(0);
-    // Q5726/Q5727: the parent's Then and zero-DP sweep complete before the played card's On Play.
     expect(targetDeleted).toBeGreaterThan(parentResolved);
     expect(childOnPlayResolved).toBeGreaterThan(targetDeleted);
   });

@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited IR for EX3-021. "Any 2" means the effect controller chooses two
-// individual cards anywhere in one stack (Q3393), rather than trashing the top two.
 const compiled: CompiledCard = {
   effects: [
     {

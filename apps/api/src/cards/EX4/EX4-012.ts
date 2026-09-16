@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX4-012 (VictoryGreymon).
-// runtime-effect fixes:
-// - [When Digivolving] Delete: raiseCeiling scaling is now a property on the Delete action itself
-//   (dpCeiling + dpCeilingScaling) rather than a separate CostModifier action.
-//   Base ceiling is 6000 DP; each opponent Digimon in play (battleArea) adds 2000.
-// - dpCeilingScaling filter zone: "battleArea" added to restrict to Digimon in play.
-// - [All Turns] SubTrigger: "you have a Tamer in play" is a precondition on the SubTrigger itself
-//   (condition on the outer SubTrigger), not on the inner Delete action.
-// - Tamer condition filter: zone "battleArea" added.
 export const compiled: CompiledCard = {
   effects: [
     {

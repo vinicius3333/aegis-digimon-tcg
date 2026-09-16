@@ -7,27 +7,10 @@ import "../index.js";
 
 const CARD_ID = "EX10-047";
 
-/**
- * EX10-047 Arukenimon (Purple/Red, Lv.5 Ultimate, [Dark Animal], 6000 DP, play cost 6).
- *
- * [On Play] By trashing 1 card in your hand, delete up to 6000 DP total worth of your
- * opponent's Digimon.
- * [On Deletion] You may play 1 Tamer card with [Myotismon] in its text from your trash
- * without paying the cost. This effect can't play cards with the same name as any of
- * your Tamers.
- *
- * Every behavioural case below drives a public intent: `playCard` for [On Play] and a
- * real losing `attack` for [On Deletion]. No injected timing is used.
- */
-
-/** Own Tamer on the field whose name blocks the same-named copy in the trash. */
-const OWN_TAMER = "EX10-065"; // Yukio Oikawa — [Myotismon] in its text.
-/** Trash Tamer sharing OWN_TAMER's name: matched by the text filter, blocked by the name rule. */
-const SAME_NAME_TAMER = "BT8-093"; // Yukio Oikawa.
-/** Trash Tamer with no [Myotismon] anywhere in its text: never a candidate. */
-const OFF_TEXT_TAMER = "ST3-12"; // T.K. Takaishi.
-/** Trash Tamer that is eligible: [Myotismon] in its effect text, name unused by our Tamers. */
-const ELIGIBLE_TAMER = "BT16-089"; // Arukenimon & Mummymon.
+const OWN_TAMER = "EX10-065";
+const SAME_NAME_TAMER = "BT8-093";
+const OFF_TEXT_TAMER = "ST3-12";
+const ELIGIBLE_TAMER = "BT16-089";
 
 describe("EX10-047 Arukenimon", () => {
   it("records the exact catalog", () => {
@@ -45,8 +28,6 @@ describe("EX10-047 Arukenimon", () => {
       forms: ["Ultimate"],
       attributes: ["Virus"],
       types: ["Dark Animal"],
-      // Catalog quirk, reported not edited: the space after "[Myotismon]" is a
-      // non-breaking space (U+00A0) in cards.json. Spelled out so the assertion is exact.
       effectText:
         "[On Play] By trashing 1 card in your hand, delete up to 6000 DP total worth of your opponent's Digimon.\n[On Deletion] You may play 1 Tamer card with [Myotismon]\u00a0in its text from your trash without paying the cost. This effect can't play cards with the same name as any of your Tamers.",
     });
@@ -133,14 +114,10 @@ describe("EX10-047 Arukenimon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // The budget is 6000 DP total and the greedy pass takes the cheapest first: 3000 + 3000
-    // exactly fills it, so the 4000 no longer fits and survives.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([survivorId]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-009"]);
-    // Exactly the one hand card was paid; the hand is now empty and it is in MY trash.
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
-    // Play cost 6 came out of memory; nothing else moved.
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-014", "BT1-014"]);
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -179,8 +156,6 @@ describe("EX10-047 Arukenimon", () => {
 
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([tooBigId]);
     expect(s.state.players[1]!.trash).toHaveLength(0);
-    // "By trashing" is a processing condition of a used effect: the cost is paid even though
-    // the greedy budget pass could select nothing.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
     expect(s.state.memory).toBe(5);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -248,8 +223,6 @@ describe("EX10-047 Arukenimon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // "Up to" allows selecting zero, so using the effect with no opposing Digimon is legal
-    // and still pays: the hand card goes to the trash and nothing else happens.
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -261,7 +234,6 @@ describe("EX10-047 Arukenimon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT1-014 Kokatorimon: inert Red Lv.4, 4000 DP — a legal printed route source.
           battleArea: [{ card: "BT1-014", as: "base", dp: 4000 }],
           hand: [{ card: CARD_ID, as: "arukenimon" }],
           deck: [
@@ -288,19 +260,14 @@ describe("EX10-047 Arukenimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === CARD_ID && s.state.pendingDecision === undefined);
 
-    // Same permanent, new top card: the printed Red Lv.4 route for 4 memory.
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([basePermanentId]);
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("arukenimon").instanceId);
     expect(s.state.memory).toBe(0);
-    // Source-stack identity: `Permanent.stack` holds only the cards beneath the top card.
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseInstanceId]);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-014"]);
-    // DP is now Arukenimon's printed 6000, not the source's 4000.
     expect(s.perm("base").currentDP).toBe(6000);
-    // The evolution bonus drew exactly the aliased top card of the deck.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonus").instanceId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("next").instanceId]);
-    // Digivolving is not playing: [On Play] never fired, so nothing was trashed or deleted.
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -309,7 +276,6 @@ describe("EX10-047 Arukenimon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT1-013 Muchomon: inert Red, but level 3 — one level short of both routes.
           battleArea: [{ card: "BT1-013", as: "tooLow", dp: 5000 }],
           hand: [{ card: CARD_ID, as: "arukenimon" }],
           deck: [{ card: "BT1-009", as: "top" }],
@@ -320,7 +286,6 @@ describe("EX10-047 Arukenimon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // Ample memory, so the refusal can only be the source requirement, not the cost.
     s.state.memory = 10;
     const tooLowInstanceId = s.perm("tooLow").topCard.instanceId;
 
@@ -370,7 +335,6 @@ describe("EX10-047 Arukenimon", () => {
     const memoryBefore = s.state.memory;
     const arukenimonInstanceId = s.perm("arukenimon").topCard.instanceId;
 
-    // Real combat deletion: 6000 DP into a suspended 20000 DP wall.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -384,7 +348,6 @@ describe("EX10-047 Arukenimon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Arukenimon lost and is in the trash; the wall survived.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([OWN_TAMER, ELIGIBLE_TAMER]);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
@@ -392,9 +355,7 @@ describe("EX10-047 Arukenimon", () => {
       s.inst("sameName").instanceId,
       arukenimonInstanceId,
     ]);
-    // The eligible Tamer left the trash and is on the board as that exact instance.
     expect(s.state.players[0]!.battleArea.at(-1)!.topCard.instanceId).toBe(s.inst("eligible").instanceId);
-    // Free play: no memory moved for the Tamer's cost of 4 (attacking does not move memory here).
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -441,7 +402,6 @@ describe("EX10-047 Arukenimon", () => {
     );
     await settle(() => false, 30);
 
-    // ST3-12 has no [Myotismon] anywhere; BT8-093 shares the field Tamer's name. Nothing plays.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([OWN_TAMER]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("offText").instanceId,

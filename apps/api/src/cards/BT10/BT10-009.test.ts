@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-009.js";
 import "./BT10-087.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 describe("BT10-009 Shoutmon X4", () => {
   it("draws two cards on play", async () => {

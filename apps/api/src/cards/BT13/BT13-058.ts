@@ -1,10 +1,3 @@
-// HAND-FIXED IR for BT13-058 (Leopardmon: Leopard Mode) — do not regenerate over this file.
-// Printed text: "[When Digivolving] Suspend 1 of your opponent's Digimon. Until the end of
-// your opponent's turn, 1 of your opponent's Digimon doesn't unsuspend." The generator
-// mistranslated the negative "doesn't unsuspend" restriction as a literal Unsuspend action —
-// the opposite effect, which immediately undid the preceding Suspend. Fixed to Restrict
-// (restriction: "unsuspend", duration: "untilOpponentTurnEnd"), the same shape already used
-// by the sibling cards BT13-059/BT13-060 for this exact family ability.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

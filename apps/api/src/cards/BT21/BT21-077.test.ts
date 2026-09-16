@@ -137,7 +137,6 @@ describe("BT21-077 Regulusmon", () => {
     });
     await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Collision"));
     const regulusmonId = s.perm("regulusmon").permanentId;
-    // Resolve Collision through its public block decision on the opponent turn.
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
     s.state.turnSeat = 1;
@@ -146,7 +145,6 @@ describe("BT21-077 Regulusmon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(observe(s.engine).hasKeyword(targetId, "Collision")).toBe(true);
-    // Collision grants every defending Digimon Blocker and requires blocking if possible.
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
     expect(s.perm("target").isSuspended).toBe(true);

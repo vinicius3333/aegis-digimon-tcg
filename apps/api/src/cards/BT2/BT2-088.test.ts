@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT2-088.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 describe("BT2-088 Taiga", () => {
   it("grants Piercing and may suspend to reduce a Tyrannomon digivolution cost by 1", async () => {
@@ -95,8 +95,6 @@ describe("BT2-088 Taiga", () => {
             { card: "BT2-088", as: "taiga" },
             { card: "BT2-043", as: "base" },
           ],
-          // A non-Tyrannomon Lv.4 Green card with the same cost-2 digivolve and no cost
-          // reduction of its own — Argomon's ＜Digisorption -2＞ would mask the result.
           hand: [{ card: "BT1-072", as: "woodmon" }],
         },
       },

@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX1-049 MetalTyrannomon
-// KB Q3234: The reveal is optional ("You may"), but once you reveal you must perform
-// the rest (add + trash remaining cards) to the best of your ability.
-// Fix: rest was wrongly "deckBottom"; text says "Trash the remaining cards" → "trash".
 const compiled: CompiledCard = {
   effects: [
     {

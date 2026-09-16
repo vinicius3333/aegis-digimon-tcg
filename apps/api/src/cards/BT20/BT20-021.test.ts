@@ -349,8 +349,6 @@ describe("BT20-021 Jesmon GX", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Placing a card as a digivolution card assigns it a fresh instance identity, so the
-    // hand's `nextKnight` instanceId does not survive the move; count the cardId instead.
     await settle(() => s.perm("host").stack.filter((card) => card.cardId === "BT20-017").length === 2);
     expect(s.perm("host").stack.filter((card) => card.cardId === "BT20-017")).toHaveLength(2);
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);

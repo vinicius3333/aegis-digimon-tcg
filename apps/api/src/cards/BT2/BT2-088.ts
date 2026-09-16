@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Your Turn]: When digivolving one of your Digimon (in the BATTLE AREA only — per KB Q1038
-// breeding-area digivolve doesn't activate this) into a Tyrannomon-named card in hand,
-// you MAY suspend this Tamer to reduce the digivolution cost by 1.
-// The effect is optional (you may suspend), so cost is opt-in.
 const compiled: CompiledCard = {
   effects: [
     {

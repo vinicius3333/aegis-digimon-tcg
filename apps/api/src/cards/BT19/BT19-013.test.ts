@@ -4,20 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-// BT19-013 Shoutmon X5 — Lv.5 Red/Black, play cost 10, DP 10000, [Composite]/[Xros Heart].
-//
-// Printed text:
-//   [All Turns] When this Digimon would leave the battle area, you may place up to 3 Digimon
-//   cards with the [Xros Heart] trait from this Digimon's digivolution cards under 1 of your
-//   Tamers.
-//   [On Deletion] You may play 1 play cost 4 or lower Digimon card with the [Xros Heart] trait
-//   from under your Tamers without paying the cost.
-//   [DigiXros -2] [Shoutmon] x [Ballistamon] x [Dorulumon] x [Starmons] x [Sparrowmon]
-//
-// The [All Turns] clause spells its source out ("from this Digimon's digivolution cards"), so it
-// is NOT the ＜Save＞ keyword (comprehensive 16-20): the IR carries `hostFilter: { isSelfRef: true }`
-// and no keyword entry.
-
 const INERT_SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 
 describe("BT19-013 Shoutmon X5", () => {
@@ -61,10 +47,7 @@ describe("BT19-013 Shoutmon X5", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-013"));
 
-      // 10 printed - 5 materials x 2 = 0, so memory does not move (7-2-2-1).
       expect(s.state.memory).toBe(0);
-      // `Permanent.stack` runs bottom-to-top, so the last entry sits directly under the top
-      // card: [Shoutmon], the leftmost name of the recipe, is on top (7-2-2-8).
       expect(s.perm("x5").stack.map((card) => card.cardId)).toEqual([
         "BT10-060",
         "BT10-029",
@@ -104,7 +87,6 @@ describe("BT19-013 Shoutmon X5", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-013"));
 
-      // 10 - 3 x 2 = 4 memory paid from 0.
       expect(s.state.memory).toBe(-4);
       expect(s.perm("x5").stack).toHaveLength(3);
       expect(s.state.players[0]!.hand).toHaveLength(0);
@@ -125,8 +107,6 @@ describe("BT19-013 Shoutmon X5", () => {
       s.state.memory = 10;
       await s.ready();
 
-      // BT5-014 OmniShoutmon prints no "also treated as [Shoutmon] for a DigiXros" line, so it
-      // fills no slot of this recipe.
       expect(
         s.engine.applyIntent(0, {
           type: "playCard",
@@ -137,7 +117,6 @@ describe("BT19-013 Shoutmon X5", () => {
       expect(s.state.players[0]!.battleArea).toHaveLength(0);
       expect(s.state.memory).toBe(10);
 
-      // BT19-012 OmniShoutmon does print it (KB Q3068) and fills the [Shoutmon] slot.
       expect(
         s.engine.applyIntent(0, {
           type: "playCard",
@@ -147,7 +126,6 @@ describe("BT19-013 Shoutmon X5", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-013"));
       expect(s.perm("x5").stack.map((card) => card.cardId)).toEqual(["BT19-012"]);
-      // 10 - 1 x 2 = 8 paid from 10.
       expect(s.state.memory).toBe(2);
       expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT5-014"]);
     });
@@ -159,8 +137,6 @@ describe("BT19-013 Shoutmon X5", () => {
         {
           0: {
             battleArea: [
-              // Four [Xros Heart] sources, all play cost 5 or more, so the [On Deletion]
-              // clause cannot play any of them back out from under the Tamer.
               { card: "BT19-013", as: "x5", under: ["BT19-051", "BT19-038", "BT19-035", "BT19-012"] },
               { card: "BT19-079", as: "tamer" },
             ],
@@ -179,7 +155,6 @@ describe("BT19-013 Shoutmon X5", () => {
       const savedIds = s.perm("tamer").stack.map((card) => card.cardId);
       expect(new Set(savedIds).size).toBe(3);
       for (const cardId of savedIds) expect(["BT19-051", "BT19-038", "BT19-035", "BT19-012"]).toContain(cardId);
-      // The fourth eligible source and Shoutmon X5 itself are trashed by the deletion.
       expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT19-013");
       expect(s.state.players[0]!.trash).toHaveLength(2);
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-079"]);
@@ -191,8 +166,6 @@ describe("BT19-013 Shoutmon X5", () => {
         {
           0: {
             battleArea: [
-              // BT19-009 Growlmon is [Dark Dragon] only; BT19-051 AtlurBallistamon is
-              // [Xros Heart] and costs 7, so the [On Deletion] clause leaves it under the Tamer.
               { card: "BT19-013", as: "x5", under: ["BT19-009", "BT19-051"] },
               { card: "BT19-079", as: "tamer" },
             ],
@@ -306,8 +279,6 @@ describe("BT19-013 Shoutmon X5", () => {
       await advance(s.engine).verb.deletePermanent([s.perm("x5").permanentId]);
       await settle(() => s.perm("tamer").stack.length === 1);
 
-      // Only Shoutmon X5's own source moves; the other stack's [Xros Heart] card is untouched.
-      // BT19-012 costs 7, so the [On Deletion] clause cannot play it back out.
       expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT19-012"]);
       expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT19-008"]);
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([
@@ -353,8 +324,6 @@ describe("BT19-013 Shoutmon X5", () => {
           0: {
             battleArea: [
               { card: "BT19-013", as: "x5" },
-              // BT19-051 AtlurBallistamon is [Xros Heart] but costs 7; BT19-009 Growlmon costs 5
-              // and has no [Xros Heart] trait.
               { card: "BT19-079", as: "tamer", under: ["BT19-051", "BT19-009"] },
             ],
             security: INERT_SECURITY,
@@ -380,7 +349,6 @@ describe("BT19-013 Shoutmon X5", () => {
           0: {
             battleArea: [
               { card: "BT19-013", as: "x5" },
-              // BT19-008 Shoutmon: play cost 4, [Xros Heart].
               { card: "BT19-079", as: "tamer", under: ["BT19-008"] },
             ],
             security: INERT_SECURITY,

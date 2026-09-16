@@ -60,7 +60,6 @@ describe("EX9-070", () => {
       await settle(() => s.state.pendingDecision?.kind === "optional");
       const choice = s.state.pendingDecision!;
       expect(choice.kind).toBe("optional");
-      // Accept Meat, then refuse the evolved card's unrelated optional body.
       options.autoDeclineOptional = true;
       expect(
         s.engine.applyIntent(0, {
@@ -218,7 +217,6 @@ describe("EX9-070", () => {
       options,
     );
     options.preferInstanceIds.push(s.inst("cost").instanceId);
-    // Established Delay Options were placed by their effects on an earlier turn.
     s.perm("first").placedByEffect = true;
     s.perm("second").placedByEffect = true;
     s.state.memory = 3;
@@ -251,7 +249,6 @@ describe("EX9-070", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").topCard.cardId).toBe("EX9-063");
-    // Base 4, one face-down source reduces by 1, this Meat reduces by 2.
     expect(s.state.memory).toBe(2);
     expect(s.perm("second").topCard.instanceId).toBe(secondId);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX9-070")).toHaveLength(1);

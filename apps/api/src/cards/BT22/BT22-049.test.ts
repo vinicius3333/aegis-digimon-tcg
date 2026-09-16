@@ -62,10 +62,6 @@ describe("BT22-049 Vegiemon", () => {
     await endCurrentTurn(s);
     await settle(() => s.perm("vegiemon").topCard?.cardId === "EX9-018");
 
-    // EX9-018 has no cost-reduction effect, so the printed cost 2/normal evolution
-    // cost remains observable after the three face-down cards are placed.
-    // Ending the turn crosses the gauge from +3 to -3; EX9-018's normal cost 3
-    // then pays exactly three more memory.
     expect(s.state.memory).toBe(-6);
   });
 

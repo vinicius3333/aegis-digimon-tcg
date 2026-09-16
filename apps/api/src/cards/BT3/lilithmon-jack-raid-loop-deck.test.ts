@@ -80,8 +80,6 @@ describe("BT3 Lilithmon Jack Raid loop deck gauntlet", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === secondJackRaidId));
 
-    // Q1278: the second Jack Raid sees only 9 cards before it moves to trash, so it gains 0.
-    // Lilithmon's trigger is also once per turn, leaving the first use's +2 unchanged.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash).toHaveLength(10);
     assertNoLoudGap(s);

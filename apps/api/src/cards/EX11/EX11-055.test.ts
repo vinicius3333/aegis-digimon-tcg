@@ -222,9 +222,6 @@ describe("EX11-055 Chitose Horaiji", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "AD1-006"));
 
-    // Monodramon is neither [Gazimon] nor [Gizamon], so nothing may be played. (Whether the
-    // suspend cost should still be consumed is an engine-level preflight question, not this
-    // card's contract, so it is deliberately not asserted here.)
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notGazimon").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
     assertNoLoudGap(s);

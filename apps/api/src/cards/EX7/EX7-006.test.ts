@@ -143,8 +143,6 @@ describe("EX7-006 Yaamon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT21-077", "BT3-081"]);
 
-    // CR §11-2-3 permits one attack per declaration; this harness verb supplies the otherwise
-    // unavailable extra attack so the public attack intent can prove the same-turn Once Per Turn refusal.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(attackPlayer(s, "host")).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);

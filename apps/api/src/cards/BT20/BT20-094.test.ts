@@ -179,9 +179,6 @@ describe("BT20-094 Emperor Dragon of Calamity", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      // These attacks are player-directed and unblocked, so they resolve through a security
-      // check rather than `combatResolved` (that event only fires for a resolved
-      // Digimon-vs-Digimon battle; see combat/controller.ts's `completedCombat`).
       await settle(
         () => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking(),
       );

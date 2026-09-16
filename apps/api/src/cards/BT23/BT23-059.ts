@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT23-059 Justimon: Blitz Arm
-// Fix: trash cost targets ANY effect-placed Option in battle area (no controller restriction).
-//   [All Turns] unsuspend + immunity moved inside SubTrigger(whenOptionInBattleAreaTrashed).
-//   New event `whenOptionInBattleAreaTrashed` specified in LANE_H.md (CAP-H-06).
-//   Q5323: the trash targets Option cards placed by "place this card in the battle area" effects.
 export const compiled: CompiledCard = {
   effects: [
     {

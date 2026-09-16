@@ -7,27 +7,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 import "./BT19-070.js";
 
-// BT19-070 Kimeramon (Red/Purple, Lv.5 Ultimate/Data/[Composite], DP 8000, play 8,
-// EvoCost Purple Lv.4 / Red Lv.4 for 4).
-//   [Digivolve]Lv.4 w/[Composite] trait: Cost 3
-//   [On Play] [When Digivolving] By deleting 1 of your Digimon, delete 1 of your opponent's
-//     level 3 Digimon, 1 of their level 4 Digimon, and 1 of their level 5 Digimon.
-//   [On Deletion] By deleting 1 of your level 4 or lower purple or red Digimon, you may play
-//     1 [Machinedramon] from your trash without paying the cost.
-//   [DigiXros -1] 3 Lv.4 [Composite] trait Digimon cards w/different card numbers
-//   Inherited: ＜Security Attack +1＞.
-//
-// KB Q3131 (2024-09-20): the [On Play] [When Digivolving] cost may delete this Digimon itself.
-// KB Q3132 (2024-09-20): the [On Deletion] condition is "1 of your level 4 or lower PURPLE
-//   Digimon or 1 of your level 4 or lower RED Digimon" — colour and level both gate it.
-// Comprehensive 15-7-4: a "by …," processing condition is the controller's choice.
-//
-// Fixtures — inert main-deck Digimon so nothing but the card under test speaks:
-//   BT1-009 Monodramon (Red Lv.3), BT1-014 Kokatorimon (Red Lv.4), BT1-020 Groundramon
-//   (Red Lv.5), BT3-089 Boltmon (Purple Lv.6, the "level 5 or lower" near miss),
-//   BT3-083 Meramon (Purple Lv.4), BT1-071 Vegiemon (GREEN Lv.4 — the Q3132 colour near miss).
-//   DigiXros materials: BT6-012 Deltamon, BT19-068 Shademon, BT19-069 Deltamon, BT25-068
-//   Deltamon — four Lv.4 [Composite] Digimon with different card numbers.
 const inertDeck = ["BT1-009", "BT1-013", "BT1-012", "BT1-014"];
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-012"];
 
@@ -72,7 +51,6 @@ describe("BT19-070 Kimeramon", () => {
             kind: "Delete",
             target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [3] } },
             cost: { kind: "deleteOwn", target: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } } },
-            // Comprehensive 15-7-4: the "by deleting" condition is declinable.
             optional: true,
             abortOnDecline: true,
           },
@@ -88,7 +66,6 @@ describe("BT19-070 Kimeramon", () => {
             from: ["trash"],
             payCost: false,
             optional: true,
-            // Printed `[Machinedramon]` is exact, not a substring gate.
             target: { count: 1, filter: { nameOrTrait: [{ tokens: ["Machinedramon"], match: "nameExact" }] } },
             cost: {
               kind: "deleteOwn",
@@ -108,8 +85,6 @@ describe("BT19-070 Kimeramon", () => {
       { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "SecurityAttack", amount: 1 }] },
     ]);
     expect(card?.digivolutionRequirement).toEqual([{ level: 4, traits: ["Composite"], cost: 3, isAlternate: true }]);
-    // The DigiXros recipe the SERVER reads comes from the shared override table
-    // (`DIGIXROS_REQUIREMENT_OVERRIDES`), which shadows this module's own field.
     expect(digiXrosRequirementFor("BT19-070")).toEqual([
       {
         materials: [
@@ -124,10 +99,6 @@ describe("BT19-070 Kimeramon", () => {
       },
     ]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] — one deletion per printed level
-  // ---------------------------------------------------------------------------
 
   it("[On Play] pays with one of your Digimon and deletes exactly one Lv.3, Lv.4 and Lv.5", async () => {
     const preferInstanceIds: string[] = [];
@@ -168,10 +139,8 @@ describe("BT19-070 Kimeramon", () => {
     await settle();
 
     expect(s.state.memory).toBe(1);
-    // The cost took the seeded Digimon, not the freshly played Kimeramon.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-070"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
-    // One per printed level; the Lv.6 is not named by the clause and survives.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
       s.perm("level6").topCard!.instanceId,
     ]);
@@ -216,7 +185,6 @@ describe("BT19-070 Kimeramon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // Kimeramon was the only Digimon its controller had, so the cost took itself.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([kimeramonId]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -271,10 +239,6 @@ describe("BT19-070 Kimeramon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Evolution routes
-  // ---------------------------------------------------------------------------
-
   it("[Digivolve] Lv.4 w/[Composite] costs 3 and fires [When Digivolving]", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -316,7 +280,6 @@ describe("BT19-070 Kimeramon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // Cost 3 through the [Composite] route, not the 4 of the printed Purple Lv.4 EvoCost.
     expect(s.state.memory).toBe(7);
     expect(s.perm("composite").topCard?.cardId).toBe("BT19-070");
     expect(s.perm("composite").stack.map((card) => card.instanceId)).toEqual([baseId]);
@@ -387,10 +350,6 @@ describe("BT19-070 Kimeramon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kimeramon").instanceId]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Deletion] — Q3132
-  // ---------------------------------------------------------------------------
-
   it("[On Deletion] deletes a red Lv.4 to revive [Machinedramon] from the trash", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -431,12 +390,10 @@ describe("BT19-070 Kimeramon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-065"));
     await settle();
 
-    // 8000 DP into a 20 000 DP wall: Kimeramon dies, pays with the red Lv.4, revives free.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([machinedramonId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
       [kimeramonId, s.inst("redLv4").instanceId, s.inst("control").instanceId].sort(),
     );
-    // Play cost 11 was never charged.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -476,8 +433,6 @@ describe("BT19-070 Kimeramon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === kimeramonId));
     await settle();
 
-    // Neither the wrong-colour Lv.4 nor the too-high-level Purple can be the cost, so nothing
-    // is deleted and Machinedramon stays in the trash.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual([
       "BT1-071",
       "BT3-089",
@@ -529,10 +484,6 @@ describe("BT19-070 Kimeramon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT19-070", "BT3-083"]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [DigiXros -1] 3 Lv.4 [Composite] with different card numbers
-  // ---------------------------------------------------------------------------
-
   it("DigiXroses for 5 with three different Lv.4 [Composite] cards", async () => {
     const s = setupEngine(
       {
@@ -566,10 +517,8 @@ describe("BT19-070 Kimeramon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     await settle();
 
-    // Printed cost 8 minus 3 materials at -1 each, paid from 8.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.battleArea[0]!.topCard?.cardId).toBe("BT19-070");
-    // Each material is placed at the bottom in turn, so `stack` (bottom-first) reads reversed.
     expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.instanceId)).toEqual([...materialIds].reverse());
     expect(s.state.players[0]!.hand).toHaveLength(0);
 
@@ -604,7 +553,6 @@ describe("BT19-070 Kimeramon", () => {
     s.state.memory = 8;
     const kimeramonId = s.inst("kimeramon").instanceId;
 
-    // "with different card numbers".
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -619,7 +567,6 @@ describe("BT19-070 Kimeramon", () => {
       }),
     ).toEqual({ ok: false, reason: "invalid-material" });
 
-    // A Lv.4 Digimon without the [Composite] trait is not a material.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -630,7 +577,6 @@ describe("BT19-070 Kimeramon", () => {
       }),
     ).toEqual({ ok: false, reason: "invalid-material" });
 
-    // "3 cards" is a cap, so a fourth qualifying material cannot buy an extra -1.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -653,10 +599,6 @@ describe("BT19-070 Kimeramon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited ＜Security Attack +1＞ under a real host
-  // ---------------------------------------------------------------------------
 
   it("gives the host it sits under a second security check, while a bare peer checks one", async () => {
     const s = setupEngine(
@@ -689,7 +631,6 @@ describe("BT19-070 Kimeramon", () => {
     await settle(() => s.state.players[1]!.security.length === 2);
     await settle();
 
-    // Two security cards checked instead of one; both lost to the 20 000 DP attacker.
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-012", "BT1-014"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-013"]);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);

@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The 50-copy rule is represented by the catalog's maxCountInDeck: 50. The remaining printed
-// clauses are registered as executable IR so the interpreter does not fall back to residual data.
 export const compiled: CompiledCard = {
   effects: [
     {

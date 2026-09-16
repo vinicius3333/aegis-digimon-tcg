@@ -78,15 +78,6 @@ describe("EX11-047 Impmon", () => {
     assertNoLoudGap(s);
   });
 
-  /**
-   * Smallest legal stack that reaches this card: the in-set Digi-Egg EX11-005 [Yaamon] in the
-   * breeding area. Both routes match a Yaamon base — the printed `Purple/Red Lv.2: Cost 1`
-   * evoCost and the alternate `[Yaamon]: Cost 0` — so per CR 8-1-2-1 the declaring player picks
-   * one. The manual digivolve intent carries that declaration in `useAlternateCost` (the
-   * `chooseOption` route prompt exists only on the effect-driven path).
-   * FAILS-WHEN-REVERTED: dropping `{ namesExact: ["Yaamon"], cost: 0 }` makes the alternate route
-   * unavailable, so the alternate case falls back to the printed cost and reads -1, not 0.
-   */
   it("digivolves from a [Yaamon] Digi-Egg by either route, charging 0 or 1, and keeps Yaamon as its source", async () => {
     const evolveFromYaamon = async (useAlternateCost: boolean) => {
       const s = setupEngine(
@@ -111,18 +102,10 @@ describe("EX11-047 Impmon", () => {
       return s.state.memory;
     };
 
-    expect(await evolveFromYaamon(true)).toBe(0); // alternate [Yaamon] route: cost 0
-    expect(await evolveFromYaamon(false)).toBe(-1); // printed Purple/Red Lv.2 route: cost 1
+    expect(await evolveFromYaamon(true)).toBe(0);
+    expect(await evolveFromYaamon(false)).toBe(-1);
   });
 
-  /**
-   * CR 1-3-2: "If a player is requested to perform an impossible action, that action will not be
-   * carried out. If only some of those actions are impossible, the player performs as many of the
-   * required actions as possible." "Trash 1 card in your hand. Then, gain 1 memory." is plain
-   * sequencing — not a §15-6 processing condition ("if"/"while") and not a §15-7 optional
-   * processing condition ("by X, Y") — so an empty hand skips only the trash and the memory is
-   * still gained. This case pins the reading the engine implements.
-   */
   it("still gains 1 memory when the hand is empty (CR 1-3-2)", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: cardId, as: "source" }] } }, { autoSelectCards: true });
     s.state.memory = 0;

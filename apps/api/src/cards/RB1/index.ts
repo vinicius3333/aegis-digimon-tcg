@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./RB1-001.js";
 import "./RB1-002.js";
 import "./RB1-003.js";

@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// effectText: Digivolve 3 from Lv.4 2-color w/green
-// Digivolution parenthetical: <Alliance> (by suspending 1 of your other Digimon, this
-//   Digimon adds the suspended Digimon's DP and gains <Security Attack +1> for the attack).
-// [End of Attack] (non-inherited): If you have 3 or fewer security cards, place the top
-//   card of your deck on top of your security stack.
-// inheritedEffectText: [End of Attack][Once Per Turn] If you have another suspended Digimon
-//   in play, 1 of your opponent's Digimon gets -2000 DP for the turn.
-//
 export const compiled: CompiledCard = {
   effects: [
     {

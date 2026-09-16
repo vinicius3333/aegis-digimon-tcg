@@ -326,8 +326,6 @@ describe("BT18-055 AncientTroymon", () => {
     ).combat;
     for (let tick = 0; tick < 500 && !combat.hasOpenAllianceDecision; tick += 1) await Promise.resolve();
     expect(combat.hasOpenAllianceDecision).toBe(true);
-    // Q3968 starts with Alliance already activated. Install AncientTroymon at that exact
-    // open decision boundary so its OPT observes the ally's payment, not attack declaration.
     s.putOnBoard(1, { card: "BT18-055", as: "ancient" });
     await advance(s.engine).recompute();
     expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: ally.permanentId })).toEqual({

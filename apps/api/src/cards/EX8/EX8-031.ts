@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5511-Q5515: triggers when you USE an Option card with use cost 2+; does not
-// trigger for Security activations or Delay activations. Card-level use-cost changes
-// affect the threshold; reductions to only the paid amount do not.
 export const compiled: CompiledCard = {
   effects: [
     {

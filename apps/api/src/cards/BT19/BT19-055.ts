@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB rulings (binding):
-//   Q3113: must add as many as possible to hand and place under Tamer.
-//   Q3114: if only 1 applicable card is revealed, add it to hand only —
-//          cannot place under a Tamer unless 2+ applicable cards are found.
-// The second add (placeUnder Tamer) is thus conditional: only applies when 2 or
-// more applicable cards are available. Encoded as requiresMinRevealed:2 on the second add.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -6,27 +6,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-066.js";
 
-/**
- * Fixture vocabulary used across this suite:
- * - BT23-063 Sangloupmon — Purple Lv.4 [Dark Animal]/[CS], play cost 4. Its printed
- *   [When Attacking] ("This Digimon may digivolve into a Digimon card with the [Undead]
- *   or [CS] trait in the trash") is the only public route that puts Matadormon into play
- *   BY DIGIVOLVING FROM THE TRASH, which is what the conditional tail requires.
- * - BT23-062 Dracmon — Purple Lv.3 [Undead]/[CS], play cost 3: the one eligible tail target.
- * - BT23-064 Bakemon — Purple Lv.4 [Ghost]/[LIBERATOR], play cost 4: fails BOTH tail gates.
- * - BT23-065 Phantomon — Purple Lv.5: the level-gate control for the delete.
- * - BT3-089 Boltmon — Purple Lv.6 with NO printed effect and a Purple Lv.5 cost-2 evo cost:
- *   a legal, inert carrier for a Matadormon digivolution card.
- */
-
 const FILLER_DECK = ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-027", "BT1-028", "BT1-045"];
 
-/**
- * Hand the turn to seat 1 through the real turn loop, suspending `suspendAlias` publicly by
- * attacking with it first, so an opponent-turn battle never needs a direct `turnSeat` write or a
- * Board Spec `suspended: true` (the Unsuspend phase of seat 0's turn would clear that).
- * Returned inside a wrapper: awaiting a promise that resolves TO the loop promise would hang.
- */
 async function passTurnToOpponent(s: EngineSetup, suspendAlias?: string): Promise<{ loop: Promise<void> }> {
   const loop = s.engine.startTurnLoop();
   await advance(s.engine).waitForMainPhase(0);
@@ -75,7 +56,6 @@ describe("BT23-066 Matadormon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  // C1 — [Digivolve] Lv.4 w/[CS] trait: Cost 3
   it("digivolves for 3 off an off-color level-4 [CS] base and for 3 off the printed Purple level-4 route", async () => {
     const alternate = setupEngine({
       0: {
@@ -124,7 +104,6 @@ describe("BT23-066 Matadormon", () => {
     expect(printed.state.memory).toBe(2);
   });
 
-  // C1 negative — same colour family and level, but no [CS] trait.
   it("rejects an off-color level-4 base without the [CS] trait", async () => {
     const s = setupEngine({
       0: {
@@ -149,7 +128,6 @@ describe("BT23-066 Matadormon", () => {
     expect(s.perm("base").topCard?.cardId).toBe("BT23-052");
   });
 
-  // C3 + C4 negative — played from the hand, so the trash tail must not run.
   it("deletes exactly one opposing level 4 or lower Digimon on play and leaves the trash untouched", async () => {
     const s = setupEngine(
       {
@@ -186,13 +164,11 @@ describe("BT23-066 Matadormon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === matadormonId)).toBe(true);
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([safePermanentId]);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetCardId)).toBe(true);
-    // The tail is gated on digivolving from the trash: this was a play from the hand.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([dracmonId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // C3 zone boundary — "your opponent's Digimon" is the battle area, never the breeding area.
   it("does not reach an opponent's breeding-area Digimon", async () => {
     const s = setupEngine(
       {
@@ -223,7 +199,6 @@ describe("BT23-066 Matadormon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // C3 + C4 negative — digivolved from the HAND, so the trash tail must not run.
   it("deletes on digivolving from the hand but still skips the trash tail", async () => {
     const s = setupEngine(
       {
@@ -266,7 +241,6 @@ describe("BT23-066 Matadormon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // C3 + C4 positive — the only public "digivolve from the trash" route on this set.
   it("plays a free cost-3 [Undead]/[CS] card when it digivolves out of the trash", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -302,8 +276,6 @@ describe("BT23-066 Matadormon", () => {
     const attackerCardId = s.perm("attacker").topCard!.instanceId;
     const targetPermanentId = s.perm("target").permanentId;
     const safePermanentId = s.perm("safe").permanentId;
-    // Sangloupmon's own [When Attacking] offers every [Undead]/[CS] card in the trash;
-    // steer it at Matadormon so the clause under test is the one that resolves.
     preferInstanceIds.push(matadormonId);
 
     expect(
@@ -320,14 +292,11 @@ describe("BT23-066 Matadormon", () => {
         !observe(s.engine).isAttacking(),
     );
 
-    // Digivolved out of the trash onto the attacking Sangloupmon, paying the cost-3 route.
     expect(s.perm("attacker").topCard?.instanceId).toBe(matadormonId);
     expect(s.perm("attacker").stack.map((card) => card.instanceId)).toEqual([attackerCardId]);
     expect(s.state.memory).toBe(2);
-    // Delete clause.
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([safePermanentId]);
     expect(s.state.players[1]!.battleArea.every((p) => p.permanentId !== targetPermanentId)).toBe(true);
-    // Tail clause: only the cost-3 [Undead]/[CS] card leaves the trash, and it costs nothing.
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === dracmonId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([tooExpensiveId, wrongTraitId]),
@@ -336,7 +305,6 @@ describe("BT23-066 Matadormon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // C4 boundary — nothing eligible in the trash means nothing is played and nothing is asked.
   it("plays nothing when the trash holds no eligible card after a trash digivolution", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -385,7 +353,6 @@ describe("BT23-066 Matadormon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // C2 — printed ＜Scapegoat＞ (comprehensive rules §16-32).
   it("survives a lost battle by sacrificing another of your Digimon, and dies when the sacrifice is declined", async () => {
     const accepted = setupEngine(
       {
@@ -447,9 +414,6 @@ describe("BT23-066 Matadormon", () => {
       },
       { autoDeclineOptional: true },
     );
-    // ＜Scapegoat＞ asks for its sacrifice with an OPTIONAL card selection (min 0), not a
-    // yes/no prompt, so the refusal branch is an empty selection. `autoSelectCards` would
-    // always take the maximum and never refuse; answer this one decision by hand.
     const answered = new Set<string>();
     const refuseSacrifice = (): void => {
       for (const { seat, req } of declined.decisions) {
@@ -486,7 +450,6 @@ describe("BT23-066 Matadormon", () => {
     await finishTurnLoop(declined, declinedLoop);
   });
 
-  // C5 — inherited [All Turns] leave-play replacement, on a stack built by a real digivolve.
   it("as a digivolution card, deletes its carrier so another of your Digimon does not leave play", async () => {
     const s = setupEngine(
       {
@@ -510,8 +473,6 @@ describe("BT23-066 Matadormon", () => {
     const matadormonCardId = s.perm("matadormon").topCard!.instanceId;
     const boltmonId = s.inst("boltmon").instanceId;
 
-    // Build the digivolution stack publicly: Boltmon (Purple Lv.6, no printed effect) over
-    // Matadormon for its printed Purple Lv.5 cost-2 route.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -527,8 +488,6 @@ describe("BT23-066 Matadormon", () => {
     const allyPermanentId = s.perm("ally").permanentId;
     const allyCardId = s.perm("ally").topCard!.instanceId;
 
-    // The 3000 DP ally loses its battle and would be deleted; the inherited replacement
-    // deletes the carrier instead.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -550,7 +509,6 @@ describe("BT23-066 Matadormon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // C5 refusal branch — declining the cost lets the ally leave.
   it("lets the ally leave play when the carrier's sacrifice is declined", async () => {
     const s = setupEngine(
       {
@@ -598,7 +556,6 @@ describe("BT23-066 Matadormon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // IR shape — the printed wording each behavioral test above pins.
   it("compiles ＜Scapegoat＞, both delete triggers, the trash-gated tail and the inherited replacement", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Static")?.keywords).toEqual([
       { keyword: "Scapegoat", raw: "＜Scapegoat＞" },

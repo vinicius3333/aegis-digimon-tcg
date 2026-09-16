@@ -12,8 +12,6 @@ import "./BT13-094.js";
 
 describe("BT13-010 Biyomon", () => {
   it("keeps Garudamon and Kristy Damon bracket references exact", () => {
-    // The Kristy return is the clause's leading optional action, not the Digivolve's cost
-    // (Q2269: it is offered even with no [Garudamon] in hand).
     const returnAction = compiled.effects[0]?.actions[0];
     const action = compiled.effects[0]?.actions[1];
     expect(returnAction?.kind).toBe("Return");
@@ -72,8 +70,6 @@ describe("BT13-010 Biyomon", () => {
 
     const garudamon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT13-014")!;
     expect(garudamon.stack.some((card) => card.cardId === "BT13-010")).toBe(true);
-    // Garudamon's registered When Digivolving effect immediately replays the
-    // returned 3-cost red Tamer, proving Kristy first left her original permanent.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === kristyId)).toBe(true);
     await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);

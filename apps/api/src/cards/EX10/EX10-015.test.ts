@@ -56,8 +56,6 @@ describe("EX10-015 Psychemon", () => {
       keywords: [{ keyword: "Piercing" }],
     });
     expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
-    // No printed [Digivolve] header: the only legal routes are the cards.json EvoCost rows.
-    // A restated EvoCost row here would register a second, unprinted alternate path.
     expect(compiled.digivolutionRequirement).toBeUndefined();
   });
 
@@ -67,8 +65,6 @@ describe("EX10-015 Psychemon", () => {
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "psychemon" }],
-          // BT12-006 Monimon carries ＜Save＞ ONLY in its inherited text: Q5044's union
-          // (name ∪ traits ∪ effect text ∪ inherited text) is what makes it a legal cost.
           hand: [
             { card: "BT12-006", as: "saveText" },
             { card: "BT1-009", as: "spare" },
@@ -84,8 +80,6 @@ describe("EX10-015 Psychemon", () => {
           battleArea: [
             { card: "BT1-009", as: "chosen" },
             { card: "BT1-010", as: "other" },
-            // "1 of your opponent's DIGIMON": a Tamer on the same board must never be a
-            // candidate, so the suspended count below stays at exactly 1.
             { card: "BT1-085", as: "theirTamer" },
           ],
           hand: ["BT1-009"],
@@ -103,8 +97,6 @@ describe("EX10-015 Psychemon", () => {
 
     const p0 = s.state.players[0]!;
     expect(p0.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("saveText").instanceId);
-    // The opening turn skips the Draw phase card, so exactly one card left the deck: this
-    // effect's ＜Draw 1＞.
     expect(p0.hand.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("spare").instanceId,
       s.inst("deckA").instanceId,
@@ -147,7 +139,6 @@ describe("EX10-015 Psychemon", () => {
     await settle(() => false, 20);
 
     const p0 = s.state.players[0]!;
-    // No card left the deck: the clause never activated, so there was no ＜Draw 1＞.
     expect(p0.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("noSave").instanceId]);
     expect(p0.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("deckA").instanceId,
@@ -249,8 +240,6 @@ describe("EX10-015 Psychemon", () => {
             security: ["BT1-010", "BT1-010"],
           },
           1: {
-            // Suspended so it is a legal attack target; 3000 DP beats Psychemon's 1000 DP,
-            // so the attacker is deleted in battle — the production [On Deletion] route.
             battleArea: [{ card: "BT1-009", as: "killer", suspended: true }],
             hand: ["BT1-009"],
             deck: ["BT1-012", "BT1-013"],
@@ -315,7 +304,6 @@ describe("EX10-015 Psychemon", () => {
       await settle(() => s.perm("base").topCard.cardId === CARD_ID);
       expect(s.state.memory).toBe(0);
       expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain(baseCard);
-      // Digivolution bonus draw: the single deck card is now in hand and the deck is empty.
       expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("bonus").instanceId);
       expect(s.state.players[0]!.deck).toHaveLength(0);
     }
@@ -363,8 +351,6 @@ describe("EX10-015 Psychemon", () => {
       digiXros: { materialInstanceIds: [s.inst("noSave").instanceId] },
     });
     expect(invalidResult).toEqual(expect.objectContaining({ ok: false }));
-    // The printed slot is "1 DIGIMON card with ＜Save＞ in text": a Tamer whose text carries
-    // ＜Save＞ satisfies the text half and must still be rejected by the Digimon-only guard.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",

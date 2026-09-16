@@ -141,7 +141,6 @@ describe("EX11-057 Suzune Kazuki", () => {
     const s = setupEngine(
       {
         0: {
-          // EX11-015 has [Ice-Snow]; BT1-011's [Dinosaur] is the non-matching control.
           battleArea: ["EX11-015", "BT1-011"],
           hand: [{ card: "EX11-057", as: "suzune" }],
         },

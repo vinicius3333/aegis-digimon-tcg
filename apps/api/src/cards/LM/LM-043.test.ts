@@ -51,7 +51,6 @@ describe("LM-043 Darkdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
 
-    // De-Digivolve leaves BT1-009 on top, and it is then the lowest play cost on the board.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT14-064"]);
     expect(s.perm("base").topCard?.cardId).toBe("LM-043");

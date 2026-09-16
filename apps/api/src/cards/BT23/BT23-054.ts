@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -91,9 +88,6 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      // Printed "[Veemon]" is a bracketed card name, so it is an EXACT-name gate. `names` is
-      // matched as a SUBSTRING in cardData.matchGatedRequirement, which let ExVeemon and
-      // DemiVeemon take this route.
       namesExact: ["Veemon"],
       cost: 3,
       isAlternate: true,

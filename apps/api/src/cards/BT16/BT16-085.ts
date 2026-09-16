@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-IR override for BT16-085. The DNA-only trash clause is part of the same
-// "by suspending this Tamer" sequence as the memory gain; KB Q2678 confirms that
-// declining the suspend means the rest of the effect does not activate.
 export const compiled: CompiledCard = {
   effects: [
     {

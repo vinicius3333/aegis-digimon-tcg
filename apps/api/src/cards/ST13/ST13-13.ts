@@ -1,6 +1,3 @@
-// Hand-fixed: inherited DnaDigivolve needs 2 materials (self + one other in play),
-// into must be from hand and have DNA digivolution requirement (KB Q787-789).
-// [Opponent's Turn] restriction effect: no [Main] tag — static passive, finding #1 is FP.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

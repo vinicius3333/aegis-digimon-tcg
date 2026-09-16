@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Cost for both OnPlay/WhenDigivolving and AllTurns Replacement: "1 of your Tokens
-// or other [Puppet] trait Digimon" — uses or-filter with isToken:true.
-// Replacement is prevent mode with leaveCause:otherThanYourEffect.
 export const compiled: CompiledCard = {
   effects: [
     {

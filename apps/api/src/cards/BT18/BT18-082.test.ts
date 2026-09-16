@@ -143,7 +143,6 @@ describe("BT18-082 Lucemon: Chaos Mode", () => {
       0: {
         battleArea: [{ card: "BT18-034", as: "lucemon" }],
         hand: [{ card: "BT18-082", as: "chaos" }],
-        // Digivolution draws the first card; the fallback Recovery card is next.
         deck: ["BT1-010", "BT1-011"],
         security: ["BT1-012"],
       },

@@ -57,8 +57,6 @@ describe("BT9 Gallantmon X versus Craniamon control gauntlet", () => {
         s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT9-017"),
     );
 
-    // Q1814: a tied lowest-DP Digimon that can't be deleted remains a legal choice. The failed
-    // deletion restands Gallantmon X and does not trigger its deletion-based security trash.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
       expect.arrayContaining([protectedId, unprotectedId]),
     );

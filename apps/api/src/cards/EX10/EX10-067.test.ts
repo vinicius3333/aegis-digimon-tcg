@@ -8,28 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-067";
 
-/**
- * EX10-067 Ryoma Mogami (Purple Tamer, [Hunter], play cost 4).
- *
- * [Start of Your Turn] If you have 2 or less memory, set it to 3.
- * [Your Turn] When any of your Digimon digivolve into a Digimon with <Save> in its text,
- *   by suspending this Tamer and placing 1 Digimon card with <Save> in its text from under
- *   your Tamers as that Digimon's bottom digivolution card, that Digimon gains <Alliance>
- *   for the turn.
- * [Security] Play this card without paying the cost.
- *
- * Every clause below is driven through public intents and the production turn loop:
- * the start-of-turn clause fires from `startTurnLoop`, the watcher from a real `digivolve`
- * intent, and the Security clause from a real attack that checks security.
- *
- * Fixtures:
- *   BT2-067 DemiDevimon  - Purple Lv.3, no text at all: the digivolution base.
- *   BT10-076 Troopmon    - Purple Lv.4 from Purple Lv.3 for 2, carries <Save> in its text,
- *                          and its only clause is an [Opponent's Turn] watcher, so
- *                          digivolving into it on your own turn opens no window.
- *   BT4-080 Bakemon      - Purple Lv.4 from Purple Lv.3 for 2, no text: the non-<Save> control.
- *   BT11-077 Chikurimon  - Purple Lv.3 Digimon card with <Save> in its text: the banked card.
- */
 describe("EX10-067 Ryoma Mogami", () => {
   it("records the exact catalog and the complete cost/recipient contract", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -42,8 +20,6 @@ describe("EX10-067 Ryoma Mogami", () => {
       forms: ["-"],
       attributes: ["-"],
       types: ["Hunter"],
-      // The catalog prints a NON-BREAKING space after each ＜Save＞ token; asserted verbatim so
-      // a silent catalog rewrite of the printed text is caught here rather than in the IR.
       effectText:
         "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Your Turn] When any of your Digimon digivolve into a Digimon with ＜Save＞ in its text, by suspending this Tamer and placing 1 Digimon card with ＜Save＞ in its text from under your Tamers as that Digimon's bottom digivolution card, that Digimon gains ＜Alliance＞ for the turn.",
       securityEffectText: "[Security] Play this card without paying the cost.",
@@ -70,10 +46,7 @@ describe("EX10-067 Ryoma Mogami", () => {
                   from: ["underTamers"],
                 },
                 destination: "digivolutionStack",
-                // "as that Digimon's BOTTOM digivolution card": without `position: "bottom"`
-                // the placed card lands directly beneath the top card instead.
                 position: "bottom",
-                // "that Digimon" is the digivolution's subject, not this Tamer.
                 host: "triggerSource",
               },
             ],
@@ -124,7 +97,6 @@ describe("EX10-067 Ryoma Mogami", () => {
     expect(high.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await highLoop;
 
-    // A Tamer in the trash is not in play: no clause of it may run.
     const trashed = setupEngine({
       0: { trash: [{ card: CARD_ID, as: "ryoma" }], hand: ["BT1-009"], deck: ["BT1-013", "BT1-014"] },
       1: { hand: ["BT1-009"], deck: ["BT1-013", "BT1-014"] },
@@ -138,10 +110,6 @@ describe("EX10-067 Ryoma Mogami", () => {
   });
 
   it("suspends itself, banks a saved card at the subject's BOTTOM, and grants that subject Alliance for the turn", async () => {
-    // FAILS-WHEN-REVERTED: drop the `suspend` cost and `ryoma` stays unsuspended; drop
-    // `position: "bottom"` and the banked card lands above DemiDevimon; drop `host:
-    // "triggerSource"` and it lands under the Tamer instead of under the digivolved Digimon;
-    // drop the `GainKeyword` and Alliance is absent.
     const s = setupEngine(
       {
         0: {
@@ -166,7 +134,6 @@ describe("EX10-067 Ryoma Mogami", () => {
     s.state.memory = 0;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // The start-of-turn clause already fired: 0 memory became 3.
     expect(s.state.memory).toBe(3);
     const baseInstanceId = s.inst("base").instanceId;
 
@@ -182,16 +149,13 @@ describe("EX10-067 Ryoma Mogami", () => {
 
     const subject = s.perm("base");
     expect(subject.topCard.cardId).toBe("BT10-076");
-    // Bottom-most first: the banked <Save> card sits UNDER the Lv.3 the Digimon digivolved from.
     expect(subject.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("savedA").instanceId, baseInstanceId]);
     expect(subject.stack.map(({ cardId }) => cardId)).toEqual(["BT11-077", "BT2-067"]);
     expect(observe(s.engine).hasKeyword(subject, "Alliance")).toBe(true);
 
-    // Exactly one card left the Tamer; the other stays banked.
     expect(s.perm("ryoma").isSuspended).toBe(true);
     expect(s.perm("ryoma").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("savedB").instanceId]);
 
-    // Endpoints: digivolving BT10-076 from a Lv.3 costs 2 memory and draws 1.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-013"]);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-014"]);
@@ -199,7 +163,6 @@ describe("EX10-067 Ryoma Mogami", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
 
-    // "for the turn": the grant is gone once the turn has actually ended.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(false);
@@ -248,8 +211,6 @@ describe("EX10-067 Ryoma Mogami", () => {
   });
 
   it("ignores a digivolution into a Digimon without <Save> in its text", async () => {
-    // FAILS-WHEN-REVERTED: drop `keywords: ["Save"]` from the sourceFilter and Bakemon
-    // triggers the watcher too.
     const s = setupEngine(
       {
         0: {
@@ -288,9 +249,6 @@ describe("EX10-067 Ryoma Mogami", () => {
   });
 
   it("pays nothing when the bank is empty, holds a non-<Save> card, or sits under a Digimon", async () => {
-    // FAILS-WHEN-REVERTED: drop `keywords: ["Save"]` from the place cost and the DemiDevimon
-    // bank pays; drop `zone: "underTamers"` / `from: ["underTamers"]` and the card banked under
-    // a Digimon pays.
     for (const fixture of [
       { label: "no bank at all", ryomaUnder: [] as string[], extra: [] as { card: string; under: string[] }[] },
       { label: "bank holds a card without <Save>", ryomaUnder: ["BT2-067"], extra: [] },
@@ -373,7 +331,6 @@ describe("EX10-067 Ryoma Mogami", () => {
     s.state.memory = 0;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // No Ryoma is in play, so the start-of-turn clause did not run either.
     expect(s.state.memory).toBe(0);
 
     expect(
@@ -471,7 +428,6 @@ describe("EX10-067 Ryoma Mogami", () => {
     await settleAcrossTimers(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
     await settle(() => false, 40);
 
-    // The Tamer left security and entered the battle area; its play cost of 4 was not paid.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[0]!.trash).toHaveLength(0);

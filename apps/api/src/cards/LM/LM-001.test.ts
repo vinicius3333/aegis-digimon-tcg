@@ -6,7 +6,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-001.js";
 
-// Legal yellow level 3 → yellow/blue level 4 → red/yellow level 5 source stack.
 const threeColorBase = { card: "BT8-015", as: "base", under: ["BT1-045", "BT13-040"] };
 
 describe("LM-001 Siriusmon", () => {
@@ -18,8 +17,6 @@ describe("LM-001 Siriusmon", () => {
       },
       { autoDeclineOptional: true },
     );
-    // The waiver is only offered inside the defending seat's §11-3 counter window, so the
-    // opponent has to be mid-attack for the intent to be legal at all.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await s.ready();
@@ -178,7 +175,6 @@ describe("LM-001 Siriusmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1, 2000);
     expect(s.state.memory).toBe(2);
 
-    // A second deletion in the same turn is outside the [Once Per Turn] allowance.
     const memoryAfterFirst = s.state.memory;
     s.engine.applyIntent(0, {
       type: "attack",

@@ -1,11 +1,6 @@
 import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// AD1-023 J.P., Koji, & Koichi.
-// Q6113: "different colors" is an assignment of one distinct color to each selected card;
-// the IR targeting filter enforces that rule, including for multicolor cards.
-// Q6114: the four-Hybrid threshold is checked independently of whether this activation placed
-// a card, so the Draw clause alone is gated by ifThisEffectActed.
 const placeHybridBody = (): Action[] => [
   {
     kind: "PlaceUnder",

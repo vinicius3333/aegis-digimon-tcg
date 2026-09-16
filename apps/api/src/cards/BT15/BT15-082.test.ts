@@ -8,18 +8,6 @@ import "../index.js";
 import "./BT15-082.js";
 import { compiled } from "./BT15-082.js";
 
-// A3 for BT15-082 (Sora Takenouchi) — Red Tamer.
-//
-// [Start of Your Turn] If you have 2 memory or less, set your memory to 3.
-// [All Turns] When a red Digimon card returns from your trash to the hand, by returning
-//   this Tamer to the hand, you may play 1 Digimon card with [Avian]/[Bird]/[Beast]/
-//   [Animal]/[Sovereign] (not [Sea Animal]) from your hand without paying the cost.
-//   DP cap: 13000 - 2000 × opponent security count. (KB Q2581)
-// [Security] Play this card without paying the cost.
-//
-// FAILS-WHEN-REVERTED: remove the staticModifier body — subscribeSubTrigger is never
-// called, so the watcher is never installed.
-
 interface Call {
   verb: string;
   args: unknown[];

@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX10-073 (Deusmon).
-// runtime-effect fix: both Link actions previously defaulted to hand+digivolutionCards
-// combined — letting each pull from either zone. Text specifies the first link comes "from
-// your hand" and the second "from this Digimon's digivolution cards" (both [When Digivolving]
-// and [End of Opponent's Turn] repeat the same two-link sequence).
-// The [All Turns] SubTrigger event must stay "whenLinkTrashed" with the isSelfRef+Digimon
-// sourceFilter: "whenLinkTrashed" is the only link-card-trash event the engine's `trash`
-// primitive actually fires (apps/api/src/engine/effects/primitives.ts); "whenLinkCardTrashed"
-// is a distinct catalog alias nothing ever fires, and dropping the sourceFilter would fire on
-// ANY Digimon's link-card trash instead of only THIS Digimon's (per the printed "this
-// Digimon's link cards" text).
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -26,9 +15,6 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          // ＜Security A. +1＞. `securityStrikeCount` (GameEngine.ts) reads `amount ?? 1`, so an
-          // omitted amount already resolved to +1; the explicit value matches the house shape
-          // (EX11-010, BT25-057) and keeps the printed magnitude auditable instead of implicit.
           keyword: {
             keyword: "SecurityAttack",
             amount: 1,

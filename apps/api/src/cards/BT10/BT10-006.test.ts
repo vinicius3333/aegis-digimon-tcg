@@ -3,19 +3,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, drainMicrotasks } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT10-006.js";
 
-// A3 for BT10-006 (Tokomon) â€” inherited rider:
-//   "[Opponent's Turn] When an effect trashes this digivolution card, Draw 1."
-// source: documented behavior (EffectTiming.OnDigivolutionCardDiscarded, isSelfRef).
-//
-// The override installs a SubTrigger watcher on `onDigivolutionCardDiscarded` under the
-// `OpponentsTurn` turn-gate; trashDigivolutionCards fires that event per card trashed.
-//
-// FAILS-WHEN-REVERTED:
-//   - Positive draws 0 if the SubTrigger consumer is removed or the onDigivolutionCardDiscarded
-//     fire seam (primitives.ts trashDigivolutionCards) is dropped.
-//   - Negative draws 1 if the `OpponentsTurn` turnOwnerGuard is removed (the watcher would arm
-//     on the controller's OWN turn too).
-
 describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†’ Draw 1", () => {
   it("requires an effect-driven stack discard rather than a rule-driven discard", () => {
     expect(compiled.effects[0]).toMatchObject({
@@ -32,7 +19,6 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
             card: "BT1-009",
             dp: 3000,
             as: "host",
-            // BT10-006 sits as a digivolution card under the host â€” the inherited effect source.
             under: [{ card: "BT10-006", as: "digiCard", faceUp: true }],
           },
         ],
@@ -40,7 +26,7 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
       },
     });
     const p0 = s.state.players[0]!;
-    s.state.turnSeat = 1; // opponent's turn relative to p0 (the host's controller)
+    s.state.turnSeat = 1;
 
     const host = s.perm("host");
     const digiCard = s.inst("digiCard");
@@ -50,7 +36,7 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
     await advance(s.engine).verb.trashDigivolutionCards(host.permanentId, [digiCard.instanceId], 1);
     await settle(() => p0.deck.length < deckBefore);
 
-    expect(p0.deck.length).toBe(deckBefore - 1); // Draw 1 fired
+    expect(p0.deck.length).toBe(deckBefore - 1);
   });
 
   it("does NOT draw when trashed during the CONTROLLER's own turn (negative â€” OpponentsTurn gate)", async () => {
@@ -68,7 +54,7 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
       },
     });
     const p0 = s.state.players[0]!;
-    s.state.turnSeat = 0; // host controller's own turn â€” [Opponent's Turn] gate must reject
+    s.state.turnSeat = 0;
 
     const host = s.perm("host");
     const digiCard = s.inst("digiCard");
@@ -78,7 +64,7 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
     await advance(s.engine).verb.trashDigivolutionCards(host.permanentId, [digiCard.instanceId], 0);
     await drainMicrotasks(50);
 
-    expect(p0.deck.length).toBe(deckBefore); // no draw on own turn
+    expect(p0.deck.length).toBe(deckBefore);
   });
 
   it("draws when the controller's own effect trashes it during the opponent's turn (Q1931)", async () => {

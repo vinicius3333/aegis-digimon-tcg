@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override (runtime-effect fix). [Your Turn] "When one of your Digimon digivolves
-// into a black level 6 Digimon, IT gains ＜Blocker＞" — the grant targets the digivolving
-// Digimon (sourceRef:"triggerSubject"), NOT this Tamer (the previous isSelfRef was wrong).
 export const compiled: CompiledCard = {
   effects: [
     {

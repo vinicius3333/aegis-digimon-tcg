@@ -181,8 +181,6 @@ describe("EX2-037 Reapermon", () => {
     });
     await settle(() => s.perm("target").stack.length === 1);
     expect(s.perm("target").stack).toHaveLength(1);
-    // The live top card is not part of `stack`; de-digivolve removes the previous
-    // top (EX2-031), promoting the first source (EX2-032).
     expect(s.perm("target").topCard.cardId).toBe("EX2-031");
     expect(s.perm("target").stack[0]?.cardId).toBe("EX2-032");
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -259,8 +257,6 @@ describe("EX2-037 Reapermon", () => {
         },
         1: {
           battleArea: [
-            // Override DP so this source-free Digimon survives the public security
-            // attack used to create the first unsuspend transition.
             { card: "EX2-014", as: "noSource", dp: 12000, suspended: true },
             { card: "EX2-037", as: "stacked", under: ["EX2-032", "EX2-031"], suspended: true },
           ],
@@ -308,8 +304,6 @@ describe("EX2-037 Reapermon", () => {
     await settle(() => !s.perm("stacked").isSuspended);
     expect(s.perm("noSource").topCard.cardId).toBe("EX2-014");
     expect(s.perm("noSource").stack).toHaveLength(0);
-    // The source-free first event consumes the once-per-turn trigger; the second
-    // unsuspend is therefore a true no-op and its two-card source stack is unchanged.
     expect(s.perm("stacked").stack).toHaveLength(2);
     expect(s.perm("stacked").topCard.cardId).toBe("EX2-037");
     expect(s.perm("stacked").stack.map((card) => card.cardId)).toEqual(["EX2-032", "EX2-031"]);

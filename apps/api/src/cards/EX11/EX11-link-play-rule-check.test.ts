@@ -19,8 +19,6 @@ describe("EX11 playing link cards and rule checks (Q5850/Q5878)", () => {
       );
       const host = s.perm("host");
       const materialId = s.inst("material").instanceId;
-      // Isolate the pre-existing DP reduction in the ruling; drive the actual card's
-      // evolution window after laying out the resulting level-5 stack.
       await advance(s.engine).verb.modifyDP(host.permanentId, -7000, EffectDuration.UntilEachTurnEnd);
       await advance(s.engine).recompute();
       expect(host.currentDP).toBe(2000);

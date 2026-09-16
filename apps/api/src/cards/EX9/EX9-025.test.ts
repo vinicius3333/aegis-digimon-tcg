@@ -107,8 +107,6 @@ describe("EX9-025", () => {
         target: { kind: "permanent", permanentId: target.permanentId },
       }),
     ).toEqual({ ok: true });
-    // §15-7-4 permits choosing the processing condition even with an empty deck.
-    // Payment cannot succeed, so the reduction does not resolve.
     await drainMicrotasks();
 
     expect(s.decisions.filter((entry) => entry.req.kind === "optional")).toHaveLength(1);

@@ -107,7 +107,6 @@ describe("BT21-016 Shoutmon (King Version)", () => {
     ).toEqual({ ok: true });
     await settle(() => legal.perm("base").topCard.cardId === "BT21-016");
     expect(legal.perm("base").topCard.cardId).toBe("BT21-016");
-    // Shoutmon reduces this Xros Heart/Hero evolution by a further 1.
     expect(legal.state.memory).toBe(1);
 
     const illegal = setupEngine({

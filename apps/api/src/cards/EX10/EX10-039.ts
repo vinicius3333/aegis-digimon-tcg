@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored fix:
-// (1) Source zones: hand + trash only (removed digivolutionCards — not in text).
-// (2) Target kind: Digimon only (removed Tamer — text says "1 Digimon card").
-// (3) underFilter: must be a [Bagra Army] Digimon OR [Bagra Army] Tamer, encoded as
-//     `Filter.or` — the key the interpreter reads. An earlier revision used `orFilters`
-//     (a Target/cost key, not a Filter key), which left the destination filter with no
-//     recognized constraint at all, so every permanent on the board qualified as a host.
-// (4) position: bottom — text says "bottom digivolution cards" for Digimon dest;
-//     KB Q5119 confirms bottom ordering for Tamer dest too.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -66,10 +57,6 @@ const compiled: CompiledCard = {
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
-          // Comprehensive Rules 4-3 and KB Q5119: a card placed under a Tamer that already
-          // has cards under it goes to the BOTTOM. `runPlaceUnder` reads
-          // `belowTop: action.position !== "bottom"`, so a positionless ＜Save＞ would tuck the
-          // saved card directly beneath the Tamer instead. Matches EX10-026 / EX10-027.
           position: "bottom",
           optional: true,
         },

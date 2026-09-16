@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Compiled effect IR for EX6-006 (Gate of Deadly Sins).
-// The breeding-area effects and mutually exclusive inherited cost reductions are represented
-// directly in the runtime record.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -9,21 +9,6 @@ import { compiled } from "./EX13-060.js";
 
 const CARD_ID = "EX13-060";
 
-// Fixtures, and why each one is here:
-//   BT9-064  Grademon    Black Lv.5 [Warrior]/[X Antibody] with NO [Chronicle]: the header's NAME
-//                        half only.
-//   BT20-015 Hisyaryumon RED/Black Lv.5 [Chronicle]: the colourless trait half only, on a colour
-//                        no printed EvoCost on this card admits. Also the Lv.5 Assembly material.
-//   BT2-061  Andromon    a plain Black Lv.5 that is neither: the illegal-source negative.
-//   BT20-051 Raptordramon / BT20-048 Dorumon — the Lv.4 and Lv.3 [Chronicle] Assembly materials.
-//   BT13-066 Dorugamon   Black Lv.4 [X Antibody] with NO [Chronicle]: the illegal Assembly slot.
-//   EX13-072 Kota Domoto a [Chronicle] TAMER, play cost 4 — the "or Tamers" half of the watcher
-//                        and the cheap [End of Your Turn] play.
-//   BT20-095 Fellowship of Hope's Keepers — a [Chronicle] OPTION: the kind-less play pool is
-//                        proven to reach Digimon and Tamers but NOT Options (§6-5 play vs use).
-//   BT20-056 Alphamon    a Lv.6 [Chronicle] Digimon card WITH [Alphamon] in its name: the printed
-//                        exclusion on the [End of Your Turn] clause.
-//   BT1-009..BT1-014     inert main-deck Digimon — deck filler, victims and attack fodder.
 const NAME_ONLY_SOURCE = "BT9-064";
 const TRAIT_ONLY_SOURCE = "BT20-015";
 const NEITHER_SOURCE = "BT2-061";
@@ -55,7 +40,6 @@ describe("EX13-060 Alphamon", () => {
       effectText:
         "[Digivolve] [Grademon]/Lv.5 w/[Chronicle] trait: Cost 4 \n[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Chronicle] trait\n\n[When Digivolving] 1 of your opponent's Digimon gets -8000 DP until their turn ends. Then, if they have 5 or more memory, gain 2 memory.\n[Your Turn] [Once Per Turn] When any of your [Chronicle] trait Digimon or Tamers are played, 1 of your Digimon may attack. Then, you may activate 1 of this Digimon's [When Digivolving] effects.\n[End of Your Turn] [Once Per Turn] You may play 1 [Chronicle] trait card without [Alphamon] in its name from your hand with the cost reduced by 6. It gains ＜Rush＞ for the turn. ",
     });
-    // No inherited and no security text is printed.
     expect(getCardDefinition(CARD_ID)?.inheritedEffectText ?? "").toBe("");
   });
 
@@ -66,14 +50,12 @@ describe("EX13-060 Alphamon", () => {
       { namesExact: ["Grademon"], cost: 4, isAlternate: true },
       { level: 5, traits: ["Chronicle"], cost: 4, isAlternate: true },
     ]);
-    // "Lv.5 × Lv.4 × Lv.3, all w/[Chronicle] trait": printed order, exact trait, no colour.
     expect(assemblyRequirementFor(CARD_ID)).toEqual([
       {
         reduceCost: 5,
         materials: [5, 4, 3].map((level) => ({ count: 1, level, traits: ["Chronicle"] })),
       },
     ]);
-    // Nothing is printed as inherited.
     expect(compiled.effects.some((effect) => effect.isInherited === true)).toBe(false);
 
     const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")!;
@@ -134,13 +116,8 @@ describe("EX13-060 Alphamon", () => {
       },
       { kind: "GainKeyword", keyword: { keyword: "Rush" }, duration: "forTheTurn" },
     ]);
-    // "1 ... card", not "1 Digimon card": the play filter must not narrow by card kind.
     expect((endOfYourTurn.actions[0] as { target: { filter: { kind?: unknown } } }).target.filter.kind).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // [Digivolve] [Grademon]/Lv.5 w/[Chronicle] trait: Cost 4
-  // ---------------------------------------------------------------------------
 
   it("takes the [Grademon] half for 4 and refuses the [Chronicle] half on the same source", async () => {
     const s = setupEngine(
@@ -169,7 +146,6 @@ describe("EX13-060 Alphamon", () => {
     await settle(() => s.perm("base").topCard.cardId === CARD_ID);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 8 - 4 = 4; the opponent holds -4, which is below the printed "5 or more", so no memory gain.
     expect(s.state.memory).toBe(4);
     expect(s.perm("victim").currentDP).toBe(4000);
 
@@ -295,10 +271,6 @@ describe("EX13-060 Alphamon", () => {
     expect(printedRoute.state.memory).toBe(3);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Chronicle] trait
-  // ---------------------------------------------------------------------------
-
   it("plays through Assembly for 8, stacking the Lv.5 material closest to the played card", async () => {
     const s = setupEngine(
       {
@@ -332,10 +304,7 @@ describe("EX13-060 Alphamon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     const alphamon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CARD_ID)!;
-    // 13 - 5 = 8 paid from 8.
     expect(s.state.memory).toBe(0);
-    // §7-3-2-6: the leftmost listed material (Lv.5) ends closest to the played card, i.e. last in
-    // a bottom-to-top stack.
     expect(alphamon.stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("m3").instanceId,
       s.inst("m4").instanceId,
@@ -379,12 +348,7 @@ describe("EX13-060 Alphamon", () => {
     expect(s.state.memory).toBe(8);
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Digivolving] -8000 until their turn ends, then the conditional 2 memory.
-  // ---------------------------------------------------------------------------
-
   it("gains 2 memory only when the opponent holds 5 or more, and the debuff survives to their turn end", async () => {
-    // Opponent at 5: on seat 0's turn, `state.memory === -5` is the opponent holding 5.
     const rich = setupEngine(
       {
         0: {
@@ -415,7 +379,6 @@ describe("EX13-060 Alphamon", () => {
     expect(rich.state.memory).toBe(-3);
     assertNoLoudGap(rich);
 
-    // Opponent at 4: the gate fails and the gauge is untouched by the second action.
     const poor = setupEngine(
       {
         0: {
@@ -467,7 +430,6 @@ describe("EX13-060 Alphamon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("victim").currentDP).toBe(4000);
 
-    // "until their turn ends": still in force once the opponent's Main phase is open.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     const theirTurn = s.engine.runOneTurn();
@@ -479,10 +441,6 @@ describe("EX13-060 Alphamon", () => {
 
     expect(s.perm("victim").currentDP).toBe(12_000);
   });
-
-  // ---------------------------------------------------------------------------
-  // [Your Turn] [Once Per Turn] When any of your [Chronicle] Digimon or Tamers are played.
-  // ---------------------------------------------------------------------------
 
   it("lets a Digimon attack and re-runs the [When Digivolving] body when a [Chronicle] TAMER is played", async () => {
     const preferred: string[] = [];
@@ -510,18 +468,12 @@ describe("EX13-060 Alphamon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     await settle(() => s.perm("alphamon").isSuspended);
 
-    // "1 of your Digimon may attack": the only Digimon on board attacked, so it is suspended,
-    // and its attack on the player checked the opponent's single security card.
     expect(s.perm("alphamon").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID, CHRONICLE_TAMER]);
     assertNoLoudGap(s);
   });
 
-  // "Then, you may activate 1 of this Digimon's [When Digivolving] effects" on a watcher woken
-  // by a [Chronicle] TAMER. The Tamer's own play drives a continuous recompute that is still in
-  // flight while this watcher body resolves, so the body's one-shot -8000 must still be tagged
-  // as a triggered modifier rather than a continuous one.
   it("re-runs the [When Digivolving] body on a Tamer-driven watcher", async () => {
     const s = setupEngine(
       {
@@ -581,14 +533,12 @@ describe("EX13-060 Alphamon", () => {
     expect(hit).toHaveLength(1);
     const other = ["victim", "second"].find((alias) => alias !== hit[0])!;
 
-    // A second [Chronicle] play in the same turn: the once-per-turn gate refuses the whole body.
     expect(
       chronicle.engine.applyIntent(0, { type: "playCard", instanceId: chronicle.inst("secondDorumon").instanceId }),
     ).toEqual({ ok: true });
     await settle(() => chronicle.state.pendingDecision === undefined);
     expect(chronicle.perm(other).currentDP).toBe(12_000);
 
-    // A play with no [Chronicle] trait never wakes the watcher at all.
     const plain = setupEngine(
       {
         0: {
@@ -636,7 +586,6 @@ describe("EX13-060 Alphamon", () => {
     });
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Both halves are printed "may": nothing attacked, nothing was re-run.
     expect(s.perm("alphamon").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("victim").currentDP).toBe(12_000);
@@ -661,8 +610,6 @@ describe("EX13-060 Alphamon", () => {
             { card: "BT1-012", as: "other", dp: 12_000 },
           ],
           deck: ["BT1-013", "BT1-011", "BT1-012"],
-          // Three security cards: the two attacks this test drives must not win the game before
-          // the turn loop can close seat 0's Main phase.
           security: ["BT1-014", "BT1-013", "BT1-011"],
         },
       },
@@ -676,8 +623,6 @@ describe("EX13-060 Alphamon", () => {
     const firstHit = ["victim", "other"].filter((alias) => s.perm(alias).currentDP === 4000);
     expect(firstHit).toHaveLength(1);
 
-    // A real opponent turn, then a real own turn: the per-turn ledger key is cleared and the
-    // second [Chronicle] play wakes the watcher again.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -695,10 +640,6 @@ describe("EX13-060 Alphamon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
   });
-
-  // ---------------------------------------------------------------------------
-  // [End of Your Turn] [Once Per Turn] play 1 [Chronicle] card with the cost reduced by 6.
-  // ---------------------------------------------------------------------------
 
   it("plays a [Chronicle] Digimon from hand for 6 less and gives it ＜Rush＞", async () => {
     const s = setupEngine(
@@ -721,13 +662,11 @@ describe("EX13-060 Alphamon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === TRAIT_ONLY_SOURCE)!;
-    // BT20-015's printed play cost is 7, reduced by 6 to 1, paid from 8.
     expect(s.state.memory).toBe(7);
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     assertNoLoudGap(s);
 
-    // "for the turn": a real opponent turn passes and the grant is gone.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -757,17 +696,10 @@ describe("EX13-060 Alphamon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID, CHRONICLE_TAMER]);
-    // EX13-072's printed play cost is 4, reduced by 6 and floored at 0: the gauge is untouched.
     expect(s.state.memory).toBe(8);
     assertNoLoudGap(s);
   });
 
-  // The kind-less "1 [Chronicle] trait card" pool deliberately EXCLUDES Option cards.
-  // Comprehensive rules §6-5 separate the Main-phase actions "play a Digimon card or a Tamer card
-  // from the hand" from "USE an Option card from the hand", so a printed "play 1 card" never
-  // reaches an Option; the printed rider "It gains ＜Rush＞ for the turn" reads the same way,
-  // because only a Digimon can hold the keyword. `playableCandidates` in
-  // `apps/api/src/engine/effects/interpreter/actions/play.ts` encodes exactly that reading.
   it("never plays a [Chronicle] OPTION, while the same pool reaches a [Chronicle] Digimon", async () => {
     const board = (hand: { card: string; as: string }[]) =>
       setupEngine(
@@ -783,7 +715,6 @@ describe("EX13-060 Alphamon", () => {
         { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
       );
 
-    // An Option is the ONLY [Chronicle] card in hand: the window finds no legal pick at all.
     const optionOnly = board([{ card: CHRONICLE_OPTION, as: "option" }]);
     optionOnly.state.memory = 8;
     await optionOnly.ready();
@@ -793,11 +724,6 @@ describe("EX13-060 Alphamon", () => {
     expect(optionOnly.state.players[0]!.battleArea).toHaveLength(1);
     expect(optionOnly.state.memory).toBe(8);
 
-    // The [Chronicle] TAMER half of the pool is proven by the neighbouring test; it cannot be
-    // paired with the Option fixture here, because EX13-072 Kota Domoto's own printed clause
-    // uses a [Chronicle] Option from hand when a [Chronicle] Digimon attacks, and this card's
-    // [Your Turn] watcher makes exactly that attack happen.
-    // Beside a [Chronicle] DIGIMON the Digimon is taken and the Option is left behind.
     const withDigimon = board([
       { card: CHRONICLE_OPTION, as: "option" },
       { card: CHRONICLE_LV3, as: "dorumon" },
@@ -835,7 +761,6 @@ describe("EX13-060 Alphamon", () => {
     expect(nonChronicle.state.players[0]!.battleArea).toHaveLength(1);
     expect(nonChronicle.state.memory).toBe(8);
 
-    // "You may": declining leaves the legal [Chronicle] pick in hand and the gauge untouched.
     const declined = setupEngine(
       {
         0: {
@@ -882,7 +807,6 @@ describe("EX13-060 Alphamon", () => {
     expect(excluded.state.players[0]!.battleArea).toHaveLength(1);
     expect(excluded.state.memory).toBe(12);
 
-    // [Once Per Turn]: a second window in the same turn plays nothing more.
     const twice = setupEngine(
       {
         0: {

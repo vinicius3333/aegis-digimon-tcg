@@ -62,8 +62,6 @@ describe("BT7-098 Ultra Turbulence", () => {
     ).toEqual({ ok: true });
     await settle(() => p1.security.length === 0);
 
-    // BT1-009 is a 3000-DP Security Digimon. Ultra Turbulence lowers it to 0,
-    // so the 2000-DP attacker survives the production security-battle resolver.
     expect(p0.battleArea.some((permanent) => permanent.permanentId === attacker.permanentId)).toBe(true);
     assertNoLoudGap(s);
 

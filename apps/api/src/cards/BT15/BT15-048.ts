@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT15-048: the "[Togemon]/[X Antibody] is in this Digimon's
-// digivolution cards" gate was an inert raw condition; expressed via the
-// digivolution-stack name match.
 const compiled: CompiledCard = {
   effects: [
     {

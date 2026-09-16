@@ -49,7 +49,6 @@ describe("BT5 Shoutmon DX historical deck gauntlet", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Q1299: accepting Blitz first does not skip the other When Digivolving effect.
     expect(s.state.memory).toBe(-1);
     expect(s.state.phase).toBe(Phase.Main);
     expect(s.perm("omniShoutmon").stack.map(({ cardId }) => cardId)).toEqual(["BT5-014", "BT5-014"]);

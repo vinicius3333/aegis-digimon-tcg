@@ -1,10 +1,3 @@
-// Hand-authored override — do not regenerate.
-// [Main]: Reveal top 3. Optionally digivolve 1 of your Digimon into an X Antibody card
-//   among them without paying memory cost. Trash the rest.
-//   Then place 1 X Antibody card from trash under 1 of your X Antibody Digimon.
-// KB Q1911: digivolve bonus draw fires when card is stacked; remaining effects complete after.
-// KB Q5976: can't activate WhenDigivolving of the digivolved card before trashing the rest.
-// Encoding: RevealAdd.add handles the digivolve (optional), rest:trash handles the remaining.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

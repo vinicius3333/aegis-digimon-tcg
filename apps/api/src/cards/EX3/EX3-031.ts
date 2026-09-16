@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited IR for EX3-031 (errata 2022-11-11, Q3408/Q3409).
 const compiled: CompiledCard = {
   effects: [
     {

@@ -110,11 +110,6 @@ describe("BT23-012 Garudamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Raid")).toBe(true);
   });
 
-  /**
-   * Reach an [On Deletion] through a real battle: seat 0 attacks into security to suspend the
-   * host (its own unsuspend phase clears a board-spec suspension), then seat 1 attacks and wins
-   * the battle. Returns once the host has actually left the battle area.
-   */
   async function battleDeleteHost(
     host: { card: string; under?: string[] },
     hand: { card: string; as: string }[],
@@ -194,8 +189,6 @@ describe("BT23-012 Garudamon", () => {
       expect(definitionMatches(filter, { ...base, types: [trait] })).toBe(true);
     }
     expect(definitionMatches(filter, { ...base, types: ["Sea Animal"] })).toBe(false);
-    // Q5220: [Sea Animal] is excluded from the [Animal] reading only. A card that also
-    // carries [Beast] still has [Beast] in its traits, so it remains playable.
     expect(definitionMatches(filter, { ...base, types: ["Sea Animal", "Beast"] })).toBe(true);
     expect(definitionMatches(filter, { ...base, types: ["Machine"] })).toBe(false);
   });

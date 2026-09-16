@@ -177,8 +177,6 @@ describe("EX5-045 Chuumon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-045"));
-    // RevealAdd models the printed "you may play" as an optional bounded card
-    // selection (min 0), not a separate yes/no prompt.
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const revealPlay = s.state.pendingDecision!;
     expect(revealPlay.decisionId).not.toBe(securityPlay.decisionId);

@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT22-086 Yao Qinglan.
-// Q4956: the "Then" clause is unavailable unless the "by" return cost is paid.
 export const compiled: CompiledCard = {
   effects: [
     {

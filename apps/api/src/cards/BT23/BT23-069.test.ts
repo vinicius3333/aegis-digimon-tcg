@@ -15,36 +15,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled as bt23069 } from "./BT23-069.js";
 
-/**
- * A3 for BT23-069 Necromon's [All Turns] delete-outcome-conditional clause (plan 08-03),
- * consuming the Wave-1 (08-01) effect-RESULT-BINDING (ctx.lastDeleteCount -> the
- * `ifThisEffectDidNotDelete` gating Condition):
- *
- *   "[All Turns] When another Digimon attacks, by deleting this Digimon, delete 1 of your
- *    opponent's level 6 or lower Digimon. If this effect didn't delete your opponent's
- *    Digimon, you may end that attack."   (documented behavior OnAllyAttack)
- *
- * KB authority (node tools/kb/query.mjs card BT23-069):
- *   Q5337: if the opponent has a Lv.<=6 Digimon you MUST choose and delete it (the delete is
- *     not skippable to fake the "didn't delete" branch).
- *   Q5338: choosing a deletion-IMMUNE Lv.<=6 target satisfies "didn't delete" (count 0) — so
- *     the gate reads the count ACTUALLY removed, not whether a target was chosen.
- *   Q5339/Q5340: "end the attack" changes the TIMING, not the Digimon.
- *
- * The REAL authored card IR is resolved through the interpreter; its AllTurns clause installs a
- * `whenAttacking` SubTrigger watcher whose body is [Delete (cost: delete self), EndAttack gated
- * on ifThisEffectDidNotDelete]. We capture the installed `run` body and run it through the REAL
- * interpreter with a fake fx whose `deletePermanent` reports a controlled removal count — driving
- * the two outcome branches:
- *   - the opponent Digimon is actually deleted (count 1) => the gate is FALSE => the attack
- *     CONTINUES (endAttack is NOT requested).
- *   - the chosen target is deletion-immune (count 0, Q5338) => the gate is TRUE => endAttack runs.
- *
- * FAILS-WHEN-REVERTED: hard-code the EndAttack gate to "always end" (drop the
- * `ifThisEffectDidNotDelete` condition on the EndAttack action in BT23-069.ts) => the
- * deleted-target case wrongly ends the attack => the "endAttack NOT requested" assertion RED.
- */
-
 let seq = 0;
 
 function makeDefinition(cardId: string): CardDefinition {
@@ -99,7 +69,6 @@ function makeContext(opts: {
   self: Permanent;
   opponentBattleArea: Permanent[];
   recorder: Recorder;
-  /** What the fake deletePermanent reports as the count actually removed (Q5338 immune => 0). */
   deleteCount: (ids: string[]) => number;
   installed: SubTriggerInstall[];
 }): EffectContext {
@@ -130,7 +99,6 @@ function makeContext(opts: {
       opts.recorder.endAttacks += 1;
       return true;
     },
-    // The card's Static "Execute" GainKeyword resolves at EffectTiming.None too; a no-op satisfies it.
     grantKeyword: () => {},
   } as unknown as Primitives;
   const ask: DecisionApi = {
@@ -143,7 +111,6 @@ function makeContext(opts: {
   return { source: makeSource(opts.self), trigger: {}, game, fx, ask, selections: new Map<string, string>() };
 }
 
-/** Resolve BT23-069's real AllTurns clause and return the installed whenAttacking watcher. */
 async function installWatcher(ctx: EffectContext, installed: SubTriggerInstall[]): Promise<SubTriggerInstall> {
   const module = irCardModule("BT23-069-test", bt23069);
   const effects = module.effectsForTiming(EffectTiming.None, ctx.source);
@@ -286,16 +253,14 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
       self,
       opponentBattleArea: [oppLow],
       recorder,
-      deleteCount: (ids) => ids.length, // a genuine delete: the opponent Digimon left the field
+      deleteCount: (ids) => ids.length,
       installed,
     });
     const watcher = await installWatcher(ctx, installed);
 
     await watcher.run(ctx);
 
-    // The opponent Lv.<=6 Digimon was deleted (count 1) => ifThisEffectDidNotDelete is FALSE.
     expect(ctx.lastDeleteCount).toBe(1);
-    // FAILS-WHEN-REVERTED: hard-code the EndAttack to always-end => endAttacks becomes 1 here.
     expect(recorder.endAttacks).toBe(0);
   });
 
@@ -308,7 +273,6 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
       self,
       opponentBattleArea: [oppImmune],
       recorder,
-      // A target WAS chosen, but it is deletion-immune => 0 actually removed (Q5338).
       deleteCount: (ids) => (ids.includes(self.permanentId) ? ids.length : 0),
       installed,
     });
@@ -317,17 +281,10 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
     await watcher.run(ctx);
 
     expect(ctx.lastDeleteCount).toBe(0);
-    // The gate is TRUE (nothing was deleted) => the optional EndAttack runs (ask.optional => yes).
     expect(recorder.endAttacks).toBe(1);
   });
 });
 
-/**
- * Answer `optional` decisions one prompt at a time, so a single flow can accept the
- * self-deletion cost and still decline the trailing "end that attack" choice. The harness's
- * `autoAcceptOptional` / `autoDeclineOptional` flags answer every prompt the same way, which
- * cannot separate the two branches of this card.
- */
 async function answerOptionals(
   s: EngineSetup,
   decide: (promptText: string) => boolean,
@@ -354,19 +311,11 @@ const SELF_DELETE_PROMPT = "by deleting this Digimon";
 
 const FILLER_DECK = ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-027", "BT1-028", "BT1-045"];
 
-/**
- * Hand the turn to seat 1 through the real turn loop, so an opponent-turn attack never needs a
- * direct `turnSeat` write. Returned inside a wrapper: awaiting a promise that resolves TO the
- * loop promise would flatten onto the loop and hang the test.
- */
 async function passTurnToOpponent(s: EngineSetup): Promise<{ loop: Promise<void> }> {
   const loop = s.engine.startTurnLoop();
   await advance(s.engine).waitForMainPhase(0);
   await settle(() => s.state.pendingDecision === undefined);
   expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-  // Decline every optional raised while the turn changes hands. ＜Execute＞ offers an
-  // [End of Your Turn] attack that deletes this Digimon at the end of it, which would empty the
-  // board before the opponent's turn ever starts.
   await answerOptionals(
     s,
     () => false,
@@ -406,12 +355,10 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: necromonId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === ghostId));
 
-    // The Ghost arrived from the trash and only Necromon's own play cost was paid.
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual(
       expect.arrayContaining([necromonId, ghostId]),
     );
     expect(s.state.memory).toBe(0);
-    // BT1-028 is level 3 but has no [Ghost] trait, so it stays in the trash.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([notGhostId]);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
@@ -446,8 +393,6 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
       {
         0: {
           hand: [{ card: "BT23-069", as: "necromon" }],
-          // A second Necromon has the [Ghost] trait but is level 6 (fails the level test), and
-          // BT1-028 is level 3 with the [Mammal] trait (fails the trait test).
           trash: [
             { card: "BT23-069", as: "tooHigh" },
             { card: "BT1-028", as: "notGhost" },
@@ -493,10 +438,8 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Necromon did not delete itself and did not delete the opponent's Digimon.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetPermanentId)).toBe(true);
-    // The attack ran normally: one security card was checked.
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
@@ -536,10 +479,8 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
       () => s.state.players[1]!.battleArea.length === 0,
     );
 
-    // Necromon paid itself and deleted the only level 6 or lower opponent Digimon: the attacker.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerPermanentId)).toBe(false);
-    // The attacker is gone, so no security card of mine was ever checked.
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
     expect(observe(s.engine).isAttacking()).toBe(false);
@@ -575,9 +516,6 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetPermanentId)).toBe(false);
-    // The only optional prompt raised by Necromon is the "by deleting this Digimon" cost. The
-    // opponent deletion is mandatory, so it never asks — a player cannot decline into the
-    // "didn't delete" branch (Q5337).
     const necromonPrompts = s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT23-069");
     expect(necromonPrompts.map(({ req }) => req.promptText)).toEqual([SELF_DELETE_PROMPT]);
   });
@@ -591,10 +529,6 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
           deck: [...FILLER_DECK],
           security: ["BT1-009", "BT1-010"],
         },
-        // BT14-062: "[All Turns] This Digimon can't be deleted by your opponent's effects."
-        // It is level 5, so it IS the mandatory choice, and it attacks while unaffected by my
-        // effects — the attack still ends, because ending an attack changes the timing, not the
-        // Digimon (Q5340).
         1: {
           battleArea: [{ card: "BT14-062", as: "immuneAttacker" }],
           hand: [{ card: "BT1-009", as: "spare1" }],
@@ -622,10 +556,8 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
       () => !observe(s.engine).isAttacking() && s.state.players[0]!.battleArea.length === 0,
     );
 
-    // The self-deletion cost was paid, the chosen target survived, so nothing was deleted.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerPermanentId)).toBe(true);
-    // Q5339: the timing jumped straight to end-of-attack — no security check, no block window.
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
     expect(observe(s.engine).isAttacking()).toBe(false);
@@ -642,7 +574,6 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
             { card: "BT23-061", as: "attacker" },
           ],
         },
-        // No opponent Digimon at all, so the gate is TRUE and the optional EndAttack is offered.
         1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoSelectCards: true },
@@ -657,7 +588,6 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Accept the self-deletion cost; decline the trailing "end that attack".
     await answerOptionals(
       s,
       (promptText) => promptText === SELF_DELETE_PROMPT,
@@ -665,11 +595,8 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
     );
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(false);
-    // The attack was NOT ended: it checked security.
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
-    // The gate did open the choice — the attack continued because it was declined, not
-    // because the branch was never reached.
     expect(
       s.decisions.some(
         ({ req }) =>

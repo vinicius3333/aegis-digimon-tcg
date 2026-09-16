@@ -89,8 +89,6 @@ describe("BT17-010", () => {
 
     expect(s.perm("rookie").topCard.cardId).toBe("BT17-010");
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // Q2718: the delete is mandatory with a legal target, so the "didn't delete" branch
-    // never fires and the Digimon stays at its printed 5000 DP.
     expect(s.perm("rookie").currentDP).toBe(5000);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -179,8 +177,6 @@ describe("BT17-010", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("rookie").currentDP === 8000);
 
-    // The only legal DP target can't be deleted by opponent effects; it is still a legal
-    // choice, the deletion does nothing, and the "if this effect didn't delete" branch fires.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("protected").topCard.cardId).toBe("BT14-062");
     expect(s.perm("rookie").currentDP).toBe(8000);
@@ -211,8 +207,6 @@ describe("BT17-010", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("growlmon").topCard.cardId === "BT17-013");
 
-    // Memory ends at 2 (own side), so the inherited condition fails and WarGrowlmon's
-    // printed 6000 maximum is not raised to 8000: the 7000-DP Digimon survives.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("target").currentDP).toBe(7000);
@@ -247,12 +241,7 @@ describe("BT17-010", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("wargrowlmon").topCard.cardId === "BT17-017");
 
-    // Memory is 0, so the inherited effect is live, but AncientGreymon deletes "with as much
-    // or less DP than this Digimon" - no printed numeric maximum, so no +2000 (Q2722).
-    // 13000 > 12000 keeps the target alive.
     expect(s.state.memory).toBe(0);
-    // Positive control: the 12000-DP Digimon is inside the relative threshold and dies,
-    // proving the effect resolved; the 13000-DP one is outside it and is never reachable.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("target").currentDP).toBe(13_000);
     expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-010");

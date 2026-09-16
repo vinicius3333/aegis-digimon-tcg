@@ -52,9 +52,6 @@ describe("BT12-066 Mercurymon", () => {
         instanceId: s.inst("mercury").instanceId,
       }),
     ).toEqual({ ok: true });
-    // The [When Digivolving] Blocker grant may target any friendly Digimon, including the
-    // Digimon that just digivolved. Answer the prompt explicitly to prove it can also reach
-    // an ally, instead of leaving the choice to autoSelectCards's arbitrary pick.
     await settle(() => s.decisions.some(({ req }) => req.sourceCardId === "BT12-066" && req.kind === "chooseTargets"));
     const grant = s.decisions.find(({ req }) => req.sourceCardId === "BT12-066" && req.kind === "chooseTargets")!.req;
     expect(

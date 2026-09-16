@@ -148,7 +148,6 @@ describe("BT22-009 Effecmon", () => {
       0: { battleArea: [{ card: "BT22-035", linked: [{ card: "BT22-009", as: "linkedEffecmon" }], as: "host" }] },
     });
     await s.ready();
-    // BT22-035 Entermon prints 8000 DP; the linked Effecmon adds its printed 3000 link DP.
     expect(s.perm("host").currentDP).toBe(11000);
     expect(s.perm("host").linked.some((card) => card.instanceId === s.inst("linkedEffecmon").instanceId)).toBe(true);
   });

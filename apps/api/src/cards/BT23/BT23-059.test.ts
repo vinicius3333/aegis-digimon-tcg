@@ -7,12 +7,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-059.js";
 
-/**
- * Board Spec used by the behavioral runs. Seat 0 holds Justimon: Blitz Arm plus a
- * BT23-100 Hudie Net Cafe in hand; playing that Option publicly places it in the battle
- * area by its own [Main] effect, which is the only legal way to have a battle-area Option
- * to pay the trash cost with (Q5323).
- */
 function playHudieNetCafe(s: EngineSetup, alias: string): string {
   const optionId = s.inst(alias).instanceId;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
@@ -23,7 +17,6 @@ function optionIsOnBoard(s: EngineSetup, seat: 0 | 1, optionId: string): boolean
   return s.state.players[seat]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId);
 }
 
-/** Non-throwing permanent lookup by top-card instance id, safe inside a `settle` predicate. */
 function permanentWithTopCard(s: EngineSetup, seat: 0 | 1, instanceId: string) {
   return s.state.players[seat]!.battleArea.find((permanent) => permanent.topCard?.instanceId === instanceId);
 }
@@ -71,11 +64,8 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
         abortOnDecline: true,
       });
       expect(action.optional).toBe(true);
-      // The printed text says "in the battle area", not "in your battle area": the cost
-      // filter must not carry a controller restriction.
       expect(action.cost.target.filter.controller).toBeUndefined();
     }
-    // One printed [Once Per Turn] shared by the three windows, not three independent uses.
     expect(sharedKeys.size).toBe(1);
   });
 
@@ -119,7 +109,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("justimon").permanentId }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    // The blocker fought instead of security: the 3000 DP attacker dies, security is untouched.
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === attackerCardId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.perm("justimon").isSuspended).toBe(true);
@@ -156,10 +145,8 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
       ).toEqual({ ok: true });
       await settle(() => permanentWithTopCard(s, 0, blitzId) !== undefined);
       expect(s.state.memory).toBe(6 - route.cost);
-      // Source-stack identity: the base card is now the digivolution card under Blitz Arm.
       expect(s.perm("blitz").topCard!.instanceId).toBe(blitzId);
       expect(s.perm("blitz").stack.map((card) => card.instanceId)).toEqual([baseCardId]);
-      // Digivolving draws 1 and the hand loses Blitz Arm: net unchanged.
       expect(s.state.players[0]!.hand).toHaveLength(handBefore);
     }
   });
@@ -174,8 +161,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     });
     illegal.state.memory = 6;
     await illegal.ready();
-    // BT1-039 Cerberusmon is a Blue Lv.5 with no [CS] trait and neither Justimon name, so it
-    // satisfies neither the printed Black Lv.5 evoCost nor either alternate requirement.
     expect(
       illegal.engine.applyIntent(0, {
         type: "digivolve",
@@ -187,10 +172,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     expect(illegal.state.memory).toBe(6);
     expect(illegal.state.players[0]!.hand).toHaveLength(1);
 
-    // The alternate routes are also taken WITHOUT the flag when they are the only match
-    // (apps/api/src/engine/actions/digivolve.ts "when only one path matches, that path is
-    // always used"), so the flag cannot change the cost for this card: BT10-067 costs 1 either
-    // way, and no source matches both a printed evoCost and an alternate route.
     const noFlag = setupEngine({
       0: {
         battleArea: [{ card: "BT10-067", as: "base" }],
@@ -259,13 +240,10 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     );
 
     expect(s.state.memory).toBe(3);
-    // Cost: the battle-area Option left the board for the trash.
     expect(optionIsOnBoard(s, 0, cafeId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === cafeId)).toBe(true);
-    // Effect: only the cost-2 Monodramon died; the cost-7 MetalTyrannomon stayed.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([expensiveCardId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([cheapCardId]);
-    // [All Turns] rider: the trashed Option granted opponent-Digimon-effect immunity.
     expect(observe(s.engine).isRestrictedByEffect(s.perm("blitz"), "beAffected", "Digimon")).toBe(true);
     expect(s.perm("blitz").isSuspended).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -350,7 +328,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
         s.state.pendingDecision === undefined && permanentWithTopCard(s, 0, s.inst("blitz").instanceId) !== undefined,
     );
 
-    // An Option in hand or trash is not "in the battle area" and cannot pay the cost.
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cafeInHand").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cafeInTrash").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cheapPermanentId)).toBe(true);
@@ -358,8 +335,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // Q5323: the cost trashes an Option placed in a battle area by a "place this card in the
-  // battle area" effect, with no restriction on whose battle area it sits in.
   it("accepts an Option in the OPPONENT's battle area as the trash cost", async () => {
     const s = setupEngine(
       {
@@ -378,8 +353,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     );
     s.state.memory = 9;
     await s.ready();
-    // No public intent puts an Option into the OPPONENT's battle area during seat 0's turn,
-    // so the production placement verb stands in for their own earlier [Main] placement.
     const theirCafeId = s.inst("theirCafe").instanceId;
     await advance(s.engine).verb.placeOptionAsPermanent(theirCafeId);
     expect(optionIsOnBoard(s, 1, theirCafeId)).toBe(true);
@@ -434,22 +407,12 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === cafeId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cheapPermanentId)).toBe(false);
-    // Attacking suspended it; the [All Turns] rider unsuspended it again before the attack ended.
     expect(s.perm("blitz").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("blitz"), "beAffected", "Digimon")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // Q5324: "effects don't affect" means the printed consequence never lands — a chosen -3000 DP
-  // leaves the DP untouched.
-  // Q5326 / Q5328 / Q5329 are the same ruling read from three other angles (a granted keyword is
-  // not counted, the effect applies again once the immunity drops, a granted trigger does not fire
-  // while the immunity is up). None of them is reachable from this card through a public flow:
-  // Blitz Arm's immunity lasts only "for the turn" and only covers the opponent's DIGIMON effects,
-  // and no opponent Digimon effect in the corpus grants this card a keyword or a trigger inside
-  // that same turn. The shared seam they all run through (`isRestrictedByEffect(..., "beAffected",
-  // "Digimon")`) is asserted below and in the Q5325 and Q5327 cases.
   it("ignores an opponent Digimon's DP reduction once the Option trash grants immunity (Q5324)", async () => {
     const run = async (placeOption: boolean): Promise<{ dp: number; immune: boolean }> => {
       const s = setupEngine(
@@ -460,8 +423,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
             deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
           },
           1: {
-            // A deletion target so the When Attacking effect has somewhere to land; without
-            // one the whole clause aborts and the Option is never trashed.
             battleArea: [{ card: "BT1-009", as: "cheap" }],
             security: [{ card: "BT23-028", as: "coordemon" }],
             deck: ["BT1-013", "BT1-014"],
@@ -488,7 +449,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
           !observe(s.engine).isAttacking() &&
           s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === coordemonId),
       );
-      // Coordemon's Security effect replayed it, and its On Play -3000 DP resolved.
       expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === coordemonId)).toBe(
         true,
       );
@@ -548,7 +508,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     const cheapOnePermanentId = s.perm("cheapOne").permanentId;
     const cheapTwoPermanentId = s.perm("cheapTwo").permanentId;
 
-    // First window this turn: the shared Once Per Turn fires.
     expect(attackPlayer()).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === cafeOneId)).toBe(true);
@@ -557,7 +516,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     );
     expect(optionIsOnBoard(s, 0, cafeTwoId)).toBe(true);
 
-    // Second attack in the same turn: the shared use is spent, so nothing is trashed or deleted.
     expect(attackPlayer()).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(optionIsOnBoard(s, 0, cafeTwoId)).toBe(true);
@@ -571,7 +529,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
-    // Next own turn: the use has reset and the second Option pays for a second delete.
     expect(attackPlayer()).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === cafeTwoId)).toBe(true);
@@ -606,8 +563,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     );
     s.state.memory = 6;
     await s.ready();
-    // Bias the opponent's "-3000 DP to 1 of your opponent's Digimon" choice onto the immune
-    // Blitz Arm: Q5325 is only observable when the immune card is the one actually chosen.
     preferInstanceIds.push(s.perm("blitz").topCard!.instanceId);
     const spareDpBefore = s.perm("spare").currentDP;
 
@@ -627,7 +582,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
         s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === coordemonId),
     );
 
-    // The immunity is up, and Coordemon's On Play still offered the immune Blitz Arm.
     expect(observe(s.engine).isRestrictedByEffect(s.perm("blitz"), "beAffected", "Digimon")).toBe(true);
     const blitzPermanentId = s.perm("blitz").permanentId;
     const blitzInstanceId = s.perm("blitz").topCard!.instanceId;
@@ -637,7 +591,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
         (req.options?.candidateInstanceIds ?? []).some((id) => id === blitzPermanentId || id === blitzInstanceId),
     );
     expect(offeredBlitz).toBe(true);
-    // Chosen, and unaffected: the -3000 landed nowhere, not on the untouched spare.
     expect(s.perm("blitz").currentDP).toBe(11000);
     expect(s.perm("spare").currentDP).toBe(spareDpBefore);
   });
@@ -666,8 +619,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     const cafeId = playHudieNetCafe(s, "cafe");
     await settle(() => optionIsOnBoard(s, 0, cafeId));
 
-    // A throwaway attacker takes the security check, so Coordemon replays and reduces Blitz
-    // Arm's DP BEFORE any immunity exists — the ordering Q5327 needs.
     const coordemonId = s.inst("coordemon").instanceId;
     expect(
       s.engine.applyIntent(0, {
@@ -684,7 +635,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     expect(observe(s.engine).isRestrictedByEffect(s.perm("blitz"), "beAffected", "Digimon")).toBe(false);
     expect(s.perm("blitz").currentDP).toBe(8000);
 
-    // Blitz Arm now attacks, trashes the Option and gains the immunity: the reduction ends.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

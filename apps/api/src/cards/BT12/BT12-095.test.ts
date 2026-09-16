@@ -119,7 +119,7 @@ describe("BT12-095 compiled IR module", () => {
     await settle(() => s.perm("host").topCard.cardId === "BT12-042");
 
     expect(s.perm("tai").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(2); // 5 - 4 for RizeGreymon, +1 from Tai.
+    expect(s.state.memory).toBe(2);
   });
 
   it("plays Tai from security without paying its memory cost", async () => {

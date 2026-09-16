@@ -107,8 +107,6 @@ describe("EX9-028", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-046"]);
-    // Ending Main voluntarily frames the incoming player at -3, then the printed Ver.4
-    // evolution cost moves memory another 3 toward that player.
     expect(s.state.memory).toBe(-6);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -244,7 +242,6 @@ describe("EX9-028", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-019"]);
     await advance(s.engine).runTurn(0);
-    // The test seam runs one turn at a time; pass the turn exactly as the production loop does.
     s.state.turnSeat = 1;
     s.state.memory = -s.state.memory;
     await s.ready();

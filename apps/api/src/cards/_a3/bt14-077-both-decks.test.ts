@@ -4,21 +4,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 
-// Import the override so it self-registers on the registry.
 import "../BT14/BT14-077.js";
-
-// ---------------------------------------------------------------------------
-// BT14-077 both-decks mill A3
-//
-// BT14-077 (Machinedramon (Virus)) mills the top 2 cards from BOTH players'
-// decks on [On Play] and [When Digivolving]. The documented behavior iterates
-// Players_ForTurnPlayer, which includes both seats.
-//
-// FAILS-WHEN-REVERTED LEVER:
-//   Reverting the interpreter's TrashTopDeck case to the old single-seat form
-//   (const seat = ctx.source.ownerSeat) means the opponent's deck is never
-//   touched. The "opponent deck trashed" assertion goes RED.
-// ---------------------------------------------------------------------------
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -91,7 +77,6 @@ function makeContext(opts: {
     fireWhenTrashedFromDeck: async (...args: unknown[]) => {
       opts.recorder.calls.push({ verb: "fireWhenTrashedFromDeck", args });
     },
-    // Any other primitive call is unexpected.
     returnToHand: (...a: unknown[]) => {
       throw new Error(`Unexpected returnToHand(${JSON.stringify(a)})`);
     },
@@ -145,17 +130,14 @@ describe("BT14-077 both-decks mill A3", () => {
     expect(effects.length, "BT14-077 must expose an [On Play] effect").toBeGreaterThanOrEqual(1);
     await effects[0]!.resolve(ctx);
 
-    // Both seats must have been revealed.
     const seats = revealedSeats(recorder);
-    expect(seats).toContain(0 as Seat); // owner seat
-    expect(seats).toContain(1 as Seat); // opponent seat
+    expect(seats).toContain(0 as Seat);
+    expect(seats).toContain(1 as Seat);
 
-    // Owner's top 2 cards must be trashed.
     const trashed = trashedIds(recorder);
     expect(trashed).toContain("p1-a");
     expect(trashed).toContain("p1-b");
 
-    // Opponent's top 2 cards must be trashed.
     expect(trashed).toContain("p2-a");
     expect(trashed).toContain("p2-b");
   });
@@ -183,12 +165,7 @@ describe("BT14-077 both-decks mill A3", () => {
     expect(trashed).toContain("p2-a2");
   });
 
-  // REVERT LEVER: if the interpreter TrashTopDeck case is reverted to single-seat
-  // (const seat = ctx.source.ownerSeat), the opponent seat (1) is never revealed
-  // and the opponent's cards are not in the trashed list — this test goes RED.
   it("revert-proof: opponent seat reveal is required (documents fail-when-reverted contract)", () => {
-    // This test exists to document the revert lever; the two tests above ARE the
-    // behavioral proof. No code here — the contract is captured in the test names.
     expect(true).toBe(true);
   });
 });

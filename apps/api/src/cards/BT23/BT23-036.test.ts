@@ -32,8 +32,6 @@ describe("BT23-036 BanchoLeomon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  // C1: printed evolution routes. Each case asserts the exact source instance stays in the
-  // stack, the exact memory paid, and the digivolution bonus draw's exact instance.
   it.each([
     ["ordinary yellow level 5", "BT1-057", undefined, 4],
     ["ordinary red level 5", "BT1-024", undefined, 4],
@@ -96,7 +94,6 @@ describe("BT23-036 BanchoLeomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([banchoId]);
   });
 
-  // C2: the would-be-played replacement.
   it("pays the reduced play cost at the exact 10000-DP opponent boundary", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT23-036", as: "bancho" }] },
@@ -130,7 +127,6 @@ describe("BT23-036 BanchoLeomon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  // C3 / Q5297: the free digivolution offered to one OTHER Digimon, on both printed timings.
   it.each([
     ["Leomon name", "BT23-044", "BT4-061"],
     ["CS trait", "BT23-031", "BT23-034"],
@@ -161,7 +157,6 @@ describe("BT23-036 BanchoLeomon", () => {
 
     expect(s.perm("recipient").topCard?.instanceId).toBe(destinationId);
     expect(s.perm("recipient").stack.map((card) => card.instanceId)).toEqual([recipientId]);
-    // Only the 12-memory play cost is paid: the effect digivolution itself is free.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === banchoId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -205,7 +200,6 @@ describe("BT23-036 BanchoLeomon", () => {
     expect(s.perm("recipient").topCard?.instanceId).toBe(destinationId);
     expect(s.perm("recipient").stack.map((card) => card.instanceId)).toEqual([recipientId]);
     expect(s.state.memory).toBe(0);
-    // Two digivolutions happened, so two bonus draws landed; the destination left the hand.
     expect(s.state.players[0]!.hand).toHaveLength(2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(destinationId);
@@ -365,12 +359,6 @@ describe("BT23-036 BanchoLeomon", () => {
     expect(s.perm("recipient").stack).toHaveLength(0);
   });
 
-  // C4 / Q5298: end of your turn, through the production turn loop.
-  //
-  // The `＜Raid＞` grant lasts `forTheTurn`, and the turn ends the instant the effect
-  // finishes, so the grant is only observable while the "may attack" prompt is still
-  // pending. These tests therefore leave the optional prompt unanswered, assert the live
-  // state, then answer it publicly.
   async function pendingOptionalAttack(s: ReturnType<typeof setupEngine>): Promise<string> {
     await settle(() => s.state.pendingDecision !== undefined);
     const pending = s.decisions.at(-1);
@@ -496,7 +484,6 @@ describe("BT23-036 BanchoLeomon", () => {
     await loop;
   });
 
-  // IR shape guards. These pin the compiled clause the behavioral tests exercise.
   it("reduces its play cost when the opponent has a 10000+ DP Digimon", () => {
     const replacement = (compiled.effects.find((entry) => entry.trigger === "Static") as any).actions[0];
     expect(replacement).toMatchObject({

@@ -4,12 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX13-009.js";
 
-// Reveal fixtures, chosen so every filter axis of the two `add` slots is exercised:
-//   BT13-013 BaoHuckmon  — Digimon, [Huckmon] in its NAME.
-//   BT13-019 Gankoomon   — Digimon, [Sistermon] only inside its printed effect text.
-//   EX13-075 Mon         — Tamer, [Huckmon] inside its printed effect text.
-//   ST12-14  Aus Generics — Option, [Huckmon] inside its printed effect text.
-//   BT1-009..BT1-014     — inert Digimon with no printed text at all.
 const inertDeck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
 
 describe("EX13-009 Huckmon", () => {
@@ -112,7 +106,6 @@ describe("EX13-009 Huckmon", () => {
     ]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX13-009"]);
     expect(s.state.memory).toBe(2);
-    // Exactly the two printed add slots prompted, and nothing else.
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(2);
   });
 
@@ -147,8 +140,6 @@ describe("EX13-009 Huckmon", () => {
     ]);
   });
 
-  // "in its text" is comprehensive rules §4-22-1, so a Digimon that names [Sistermon] only
-  // inside an effect still matches. `match: "name"` would leave it in the deck.
   it("adds a Digimon whose only [Sistermon] mention sits inside its effect text", async () => {
     const s = setupEngine(
       {
@@ -180,8 +171,6 @@ describe("EX13-009 Huckmon", () => {
     ]);
   });
 
-  // The two slots are per category, not a pooled union: two matching Digimon still yield one
-  // added card, because the second slot only accepts a Tamer or an Option.
   it("takes only one card when both matches are Digimon", async () => {
     const s = setupEngine(
       {
@@ -203,8 +192,6 @@ describe("EX13-009 Huckmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("huckmon").instanceId })).toEqual({
       ok: true,
     });
-    // Settle on the end of the whole reveal (no revealed card left face up) rather than on the
-    // hand size, so a second wrongly added card cannot hide behind an intermediate state.
     await settle(() => s.state.players[0]!.deck.every(({ faceUp }) => !faceUp));
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(3);
@@ -216,9 +203,6 @@ describe("EX13-009 Huckmon", () => {
     );
   });
 
-  // The mirror of the previous case: the first slot only accepts a Digimon, so a revealed
-  // matching Tamer AND a revealed matching Option still yield one added card — the Tamer/Option
-  // union is a single slot, not one slot each.
   it("takes only one card when both matches are a Tamer and an Option", async () => {
     const s = setupEngine(
       {
@@ -292,8 +276,6 @@ describe("EX13-009 Huckmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => eligible.perm("redEgg").topCard.instanceId === eligible.inst("huckmon").instanceId);
-    // Digivolving is not playing, so the [On Play] reveal must stay silent: the only card that
-    // reaches hand is the single digivolution bonus draw, and the deck loses exactly that card.
     expect(eligible.state.memory).toBe(0);
     expect(eligible.state.players[0]!.hand).toHaveLength(1);
     expect(eligible.state.players[0]!.hand[0]!.cardId).toBe(inertDeck[0]);
@@ -372,7 +354,6 @@ describe("EX13-009 Huckmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     expect(s.state.memory).toBe(8);
 
-    // Second white Digimon in the same turn: the printed cost only, no +1.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondWhite").instanceId })).toEqual({
       ok: true,
     });

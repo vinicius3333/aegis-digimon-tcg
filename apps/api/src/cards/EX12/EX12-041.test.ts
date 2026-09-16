@@ -136,8 +136,6 @@ describe("EX12-041 Thundermon", () => {
     const s = setupEngine(
       {
         0: {
-          // ST23-06 supplies the green color requirement and the [BEATBREAK] use requirement
-          // that ST23-09 prints; ST23-09 itself is a Green/Black [Mutant] Option costing 5.
           battleArea: [
             { card: "EX12-041", as: "source" },
             { card: "ST23-06", as: "enabler" },

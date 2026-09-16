@@ -67,8 +67,6 @@ describe("BT1-090 Gravity Crush", () => {
     expect(s.state.memory).toBe(2);
     await advance(s.engine).runTurn(0);
 
-    // Voluntarily ending with positive memory first passes the marker to -3. The
-    // deferred loss still resolves afterward, taking it another 2 points to -5.
     expect(s.state.memory).toBe(-5);
   });
 });

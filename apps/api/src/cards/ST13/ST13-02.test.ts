@@ -9,9 +9,6 @@ describe("ST13-02 Zubamon", () => {
         0: {
           battleArea: [{ card: "ST13-05", as: "host" }],
           hand: [{ card: "ST13-02", as: "zubamon" }],
-          // Ludomon: a Digimon with the [Legend-Arms] trait and a play cost of 3 — eligible
-          // for Zubamon's "play it without paying its memory cost" reveal (ST13-07 has no
-          // [Legend-Arms] trait and would go to hand instead, per the third test below).
           deck: ["ST13-09"],
         },
       },

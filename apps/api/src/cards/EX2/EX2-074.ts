@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX2-074 Beelzemon: Blast Mode
-// Text: "When this card is trashed from your deck, delete 1 of your opponent's level 4 or lower
-//   Digimon."
-// Text: "[When Digivolving] Delete all of your opponent's Digimon with the highest level."
-// Text: "[Your Turn] For every 10 cards in your trash, this Digimon gains <Security Attack +1>."
-// KB Q3368: "when trashed from the deck" ONLY fires when directly trashed from the deck,
-//   NOT when revealed or searched.
-// Fixes:
-//   - First effect: Static → AllTurns SubTrigger "whenTrashedFromDeck" (mirrors EX2-044 pattern)
-//   - Added level 4 or lower filter (levelComparison lte 4) on delete target
 export const compiled: CompiledCard = {
   effects: [
     {

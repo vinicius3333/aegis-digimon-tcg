@@ -7,10 +7,6 @@ const overclockKeyword = {
   raw: "＜Overclock ([Puppet] Trait)＞",
 } satisfies KeywordRef & { qualifier: string };
 
-// Hand-authored override for BT22-040 (Cendrillmon).
-// <Overclock ([Puppet] Trait)> is a Static keyword, not an EndOfYourTurn grant.
-// The keyword means: at end of your turn, delete 1 of your Tokens or other [Puppet]
-// trait Digimon → this Digimon attacks a player without suspending.
 export const compiled: CompiledCard = {
   effects: [
     {

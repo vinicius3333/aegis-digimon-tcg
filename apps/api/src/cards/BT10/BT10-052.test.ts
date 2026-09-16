@@ -108,8 +108,6 @@ describe("BT10-052 Cherrymon", () => {
           battleArea: [{ card: "BT10-052", as: "cherrymon", suspended: true }],
           security: ["BT1-001"],
         },
-        // Keep the attacker neutral: this case isolates Cherrymon's redirect window
-        // from unrelated [When Attacking] effects registered by the full-set gate.
         1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
       },
       {

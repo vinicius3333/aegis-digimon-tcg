@@ -25,9 +25,6 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          // The printed "by suspending ... and trashing ..." is one indivisible
-          // processing condition. Keeping both payments in one compound cost lets
-          // canPayCost reject a suspended Asuna before any Option is trashed.
           kind: "CostGatedBlock",
           cost: {
             kind: "compound",

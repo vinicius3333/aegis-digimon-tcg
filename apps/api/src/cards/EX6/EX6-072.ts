@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main] DNA digivolve: 1 level-6 Digimon on field + 1 hand card → level-7 in hand.
-// KB Q3822: cannot ignore DNA digivolve requirements.
-// Uses the W7-E-2 array form of DnaDigivolveAction.materials (CAPABILITIES-BACKLOG.md),
-// each entry resolving independently in its own zone (field, then hand).
 export const compiled: CompiledCard = {
   effects: [
     {

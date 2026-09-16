@@ -96,11 +96,6 @@ describe("BT17-049 Antylamon", () => {
         },
         1: { security: ["BT1-009"] },
       },
-      // Both End of Attack effects (this card's inherited one and the host BT17-050's own
-      // "place this Digimon under another Digimon") trigger simultaneously, and their
-      // controller orders them. Resolve the inherited Antylamon effect first; letting
-      // BT17-050 move itself under another Digimon first would legitimately remove the
-      // Digimon whose stack carries this effect.
       { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT17-049"] },
     );
     const beastId = s.perm("costBeast").topCard!.instanceId;
@@ -287,8 +282,6 @@ describe("BT17-049 Antylamon", () => {
     const secondCostPermanentId = s.perm("secondCost").permanentId;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // The turn's own unsuspend step clears the seeded suspension, so re-suspend the two
-    // candidate cost Digimon through the production verb before the attack.
     await advance(s.engine).verb.suspend([firstCostPermanentId, secondCostPermanentId]);
 
     expect(
@@ -305,8 +298,6 @@ describe("BT17-049 Antylamon", () => {
       false,
     );
 
-    // Second attack in the same turn: the once-per-turn inherited effect is spent, so the
-    // other suspended Beast survives and nothing new leaves the trash.
     await advance(s.engine).verb.unsuspend([hostPermanentId]);
     const trashBefore = s.state.players[0]!.trash.map((card) => card.instanceId).sort();
     expect(

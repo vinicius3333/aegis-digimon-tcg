@@ -170,8 +170,6 @@ describe("BT25-101 Divine Arms Version Ω", () => {
     expect(
       s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
     ).toEqual({ ok: true });
-    // The hand cost is the clause's only question, so it is asked as the selection
-    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const decision = s.state.pendingDecision!;
     expect(

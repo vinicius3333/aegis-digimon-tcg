@@ -89,13 +89,10 @@ describe("BT17-066 HippoGryphonmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId));
 
-    // The source stack keeps its identity: same permanent, Darcmon underneath.
     expect(s.perm("darcmon").permanentId).toBe(darcmonPermanentId);
     expect(s.perm("darcmon").topCard.instanceId).toBe(hippoId);
     expect(s.perm("darcmon").stack.map(({ instanceId }) => instanceId)).toEqual([darcmonInstanceId]);
-    // Cost 3 alternate route, not the printed 4.
     expect(s.state.memory).toBe(0);
-    // Digivolving draws 1.
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
     expect(
@@ -211,7 +208,6 @@ describe("BT17-066 HippoGryphonmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
-    // 7000 DP beats the 6000 DP attacker; security is untouched because the block intercepted.
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-019"]);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT17-066"]);
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-009"]);

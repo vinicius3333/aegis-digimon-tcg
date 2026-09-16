@@ -1,5 +1,3 @@
-// EX7-024 Shoemon: KB Q3845 confirms [Your Turn] does not fire from the breeding area.
-// The explicit source-zone gate keeps that ruling visible in the compiled replacement.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

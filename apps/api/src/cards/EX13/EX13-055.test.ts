@@ -9,20 +9,6 @@ import { compiled } from "./EX13-055.js";
 
 const CARD_ID = "EX13-055";
 
-// Fixtures, and why each one is here:
-//   BT13-063 Dorumon      Black Lv.3 [Beast]/[X Antibody], NO [Chronicle], no printed text. It
-//                         matches the header's NAME half only, so it separates the two compiled
-//                         requirements.
-//   BT20-010 Ryudamon     RED/Black Lv.3 [Chronicle]. The mirror image: it matches the colourless
-//                         "Lv.3 w/[Chronicle] trait" half and is not named [Dorumon]. Red is a
-//                         colour no printed EvoCost on this card admits, which is exactly what
-//                         the colourless compiled entry is for.
-//   BT2-052  Hagurumon    Black Lv.3, no [Chronicle], not named [Dorumon], no printed text — the
-//                         illegal-source negative that the printed EvoCost still reaches.
-//   BT20-053 Grademon     Black/Yellow Lv.5 [Chronicle] — the legal [When Attacking] destination.
-//   BT9-064  Grademon     Black Lv.5 [Warrior]/[X Antibody] with NO [Chronicle] — the near miss:
-//                         same name, same level, same colour, wrong trait.
-//   BT1-009..BT1-014      inert main-deck Digimon — deck filler, hosts and attack victims.
 const NAME_ONLY_SOURCE = "BT13-063";
 const TRAIT_ONLY_SOURCE = "BT20-010";
 const NEITHER_SOURCE = "BT2-052";
@@ -30,7 +16,6 @@ const CHRONICLE_LV5 = "BT20-053";
 const NON_CHRONICLE_LV5 = "BT9-064";
 const NON_MATCH = "BT1-009";
 
-/** Fire this card's own [When Attacking] window through the injected timing seam. */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm(alias), {
     attackerPermanentId: s.perm(alias).permanentId,
@@ -65,7 +50,6 @@ describe("EX13-055 Raptordramon", () => {
 
     expect(digivolutionRequirementsFor(CARD_ID)).toEqual([
       { namesExact: ["Dorumon"], cost: 2, isAlternate: true },
-      // Deliberately colourless: the printed header names no colour.
       { level: 3, traits: ["Chronicle"], cost: 2, isAlternate: true },
     ]);
     expect(compiled.assemblyRequirement).toBeUndefined();
@@ -83,7 +67,6 @@ describe("EX13-055 Raptordramon", () => {
       expect(effect.actions).toMatchObject([debuff]);
     }
 
-    // No [Once Per Turn] is printed on the [When Attacking] clause, so it carries no frequency.
     const attacking = compiled.effects.find((effect) => effect.trigger === "WhenAttacking")!;
     expect(attacking.frequency).toBeUndefined();
     expect(attacking.actions).toMatchObject([
@@ -109,10 +92,6 @@ describe("EX13-055 Raptordramon", () => {
       keywords: [{ keyword: "Barrier" }],
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // [Digivolve] [Dorumon]/Lv.3 w/[Chronicle] trait: Cost 2
-  // ---------------------------------------------------------------------------
 
   it("takes the [Dorumon] half for 2 and refuses the [Chronicle] half on the same source", async () => {
     const s = setupEngine(
@@ -143,7 +122,6 @@ describe("EX13-055 Raptordramon", () => {
 
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("base").instanceId]);
-    // The [When Digivolving] half of the shared clause resolved on the way in.
     expect(s.perm("victim").currentDP).toBe(6000);
 
     const wrongHalf = setupEngine({
@@ -196,14 +174,10 @@ describe("EX13-055 Raptordramon", () => {
     await settle(() => s.perm("base").topCard.cardId === CARD_ID);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 5 - 2 + 1: BT20-010 prints its own "[Your Turn] When this Digimon would digivolve into ...
-    // a Digimon card with the [Chronicle] trait, reduce the digivolution cost by 1", and this
-    // card carries [Chronicle], so the header's 2 is charged as 1.
     expect(s.state.memory).toBe(4);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("base").instanceId]);
     expect(s.perm("victim").currentDP).toBe(6000);
 
-    // The name half refuses the same source: "Ryudamon" is not "Dorumon".
     const wrongHalf = setupEngine({
       0: {
         battleArea: [{ card: TRAIT_ONLY_SOURCE, as: "base" }],
@@ -278,10 +252,6 @@ describe("EX13-055 Raptordramon", () => {
     expect(printedRoute.state.memory).toBe(2);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.
-  // ---------------------------------------------------------------------------
-
   it("drops exactly one opposing Digimon by 3000 on play, never its own board, and expires at turn end", async () => {
     const s = setupEngine(
       {
@@ -316,15 +286,10 @@ describe("EX13-055 Raptordramon", () => {
     expect(s.state.memory).toBe(1);
     assertNoLoudGap(s);
 
-    // "for the turn": a real opponent turn passes and the debuff is gone.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect([s.perm("first").currentDP, s.perm("second").currentDP]).toEqual([9000, 9000]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [When Attacking] digivolve into a [Chronicle] Digimon card in the hand or trash.
-  // ---------------------------------------------------------------------------
 
   it("digivolves mid-attack into a [Chronicle] card in HAND and keeps the attacker's stack", async () => {
     const s = setupEngine(
@@ -347,12 +312,10 @@ describe("EX13-055 Raptordramon", () => {
     await settle(() => s.perm("raptor").topCard.cardId === CHRONICLE_LV5);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Same permanent, one card taller: the attacker digivolved in place.
     expect(s.perm("raptor").permanentId).toBe(raptorId);
     expect(s.perm("raptor").stack).toHaveLength(2);
     expect(s.perm("raptor").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", CARD_ID]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain(CHRONICLE_LV5);
-    // `payCost: true`: the destination's printed Black Lv.4 EvoCost of 4 was charged from 6.
     expect(s.state.memory).toBe(2);
     assertNoLoudGap(s);
   });
@@ -413,13 +376,10 @@ describe("EX13-055 Raptordramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("raptor").topCard.cardId === CHRONICLE_LV5);
 
-    // BT20-053's own [When Digivolving] resolved mid-attack: Dorumon reached the empty breeding
-    // area, and its "during an attack" +5000 DP landed on the 7000 DP Grademon.
     await settle(() => s.state.players[0]!.breeding !== undefined);
     expect(s.state.players[0]!.breeding!.topCard.cardId).toBe(NAME_ONLY_SOURCE);
     expect(s.perm("raptor").currentDP).toBe(12000);
 
-    // The attack was never cancelled: it resolved into the opponent's security.
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("raptor").permanentId).toBe(raptorId);
     expect(s.perm("raptor").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", CARD_ID]);
@@ -478,10 +438,6 @@ describe("EX13-055 Raptordramon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("grademon").instanceId]);
     expect(s.state.memory).toBe(6);
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited ＜Barrier＞
-  // ---------------------------------------------------------------------------
 
   it("grants inherited ＜Barrier＞ only from inside another Digimon's stack", async () => {
     const s = setupEngine({

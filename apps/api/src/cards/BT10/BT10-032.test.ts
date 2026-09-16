@@ -145,8 +145,6 @@ describe("BT10-032 Renamon", () => {
     await settle(() => s.perm("target").currentDP === 3000);
     expect(s.perm("target").currentDP).toBe(3000);
 
-    // Resolve the alias ONCE: a card in flight between zones is momentarily in none of
-    // them, and `inst` throws when it polls at exactly that moment.
     const secondOptionId = s.inst("secondOption").instanceId;
     expect(
       s.engine.applyIntent(0, {
@@ -249,9 +247,6 @@ describe("BT10-032 Renamon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    // Q1956 is about the existing card-level adjusted-cost seam. Arm that production
-    // ledger directly so this test remains scoped to Option-use event propagation;
-    // BT2-099's legacy self-reducer is finalized later and is independently covered.
     advance(s.engine).ledgers.modifiers.addPlayCostAdjustment(({ def }) => def.cardId === "BT2-099", -8, false);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("burst").instanceId })).toEqual({
@@ -259,8 +254,6 @@ describe("BT10-032 Renamon", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT2-099"));
 
-    // Printed 9 becomes use cost 1. Glorious Burst's Main leaves 3000 DP; Renamon
-    // must not trigger, or its subsequent -2000 would leave only 1000 DP.
     expect(s.state.memory).toBe(9);
     expect(s.perm("target").currentDP).toBe(3000);
   });
@@ -285,7 +278,7 @@ describe("BT10-032 Renamon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("taomon"));
     await settle(() => s.perm("target").currentDP === 13000);
 
-    expect(s.state.memory).toBe(0); // Taomon reduced the amount paid from 2 to 0.
+    expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
     expect(s.perm("target").currentDP).toBe(13000);
   });
@@ -312,7 +305,6 @@ describe("BT10-032 Renamon", () => {
 
     expect(s.state.memory).toBe(-3);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("option").instanceId);
-    // Shock Plasma -6000, then Renamon -2000: printed use cost 3 is preserved despite free use.
     expect(s.perm("target").currentDP).toBe(6000);
   });
 

@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX11-059 (Reina Oumi).
-// runtime-effect fixes: the [All Turns] DNA digivolve needs TWO materials from two different
-// zones — "1 of your [NSo] trait Digimon" (battle area) and "1 [NSo] trait Digimon card in
-// the trash" — not a single trash-only filter with a duplicated nameOrTrait entry.
-// - `materials`: battle-area [NSo] Digimon (mine).
-// - `looseMaterials`: trash [NSo] Digimon card (mine) — the BT18-073 two-zone DnaDigivolve
-//   pattern.
-// - `into`: restricted to `zone: "hand"` per the text ("into a Digimon card ... in the hand").
-// `payCost: true` is unchanged (the text has no "without paying the cost" clause); the
-// separate `cost` (suspending this Tamer) is a normal per-action cost the interpreter already
-// pays generically before any action — including DnaDigivolve — runs.
 export const compiled: CompiledCard = {
   effects: [
     {

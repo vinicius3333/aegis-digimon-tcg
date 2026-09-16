@@ -405,7 +405,6 @@ describe("EX9-018", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    // Decline the separate On Play cost so the reducer's trash payment remains observable.
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-017"]);
     expect(s.state.pendingDecision?.kind).toBe("optional");
     expect(

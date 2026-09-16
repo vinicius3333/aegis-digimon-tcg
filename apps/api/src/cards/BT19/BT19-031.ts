@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// OnDeletion: play 1 ShootingStarmon from under Tamers (optional); then place
-// 1 Starmons AND 1 Pickmons from trash as bottom digivolution cards of the
-// played ShootingStarmon (Q&A: place whichever is available).
-
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -27,9 +23,6 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              // This dedicated alias both enumerates and restricts the stack to
-              // cards beneath Tamers; using the generic digivolutionCards zone
-              // would not match the explicit source alias during resolution.
               zone: "digivolutionCardsUnderTamers",
               nameOrTrait: [
                 {

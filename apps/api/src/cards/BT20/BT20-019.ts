@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4717: the attack after "then" can be processed even if condition is not met.
-// So condition only gates the GrantStatic (immuneToOpponentEffects), not the Attack.
-// [Your Turn] grants <Piercing> AND can also attack unsuspended Digimon to [Sistermon]/[Royal Knight].
-// Inherited [Your Turn] while this Digimon is [Jesmon GX]: all Digimon gain <Piercing> + attack unsuspended.
 export const compiled: CompiledCard = {
   effects: [
     {

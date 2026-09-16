@@ -1,19 +1,3 @@
-// Hand-fixed IR for EX4-061 (Matt Ishida & Tai Kamiya).
-// Text: "[Your Turn][Once Per Turn] When one of your Digimon digivolves, if you have
-// 1 or fewer Digimon, you may play 1 [Gabumon] if that Digimon has [Greymon] in its
-// name or 1 [Agumon] if it has [Garurumon] in its name from your hand or trash without
-// paying the cost."
-//
-// Fixes:
-// 1. The single PlayWithoutCost target filter allowed any card matching Gabumon/Greymon/
-//    Agumon/Garurumon name tokens, letting Greymon/Garurumon cards themselves be played
-//    and dropping the name-linkage entirely — split into two mutually exclusive branches,
-//    each targeting only the correct card name.
-// 2. Neither branch checked the digivolving Digimon's name; added a
-//    `triggerSubjectMatchesFilter` gate (reads the whenOneOfYoursDigivolves subject's
-//    top-card name, same pattern used elsewhere for TriggerInfo.subjectPermanentId reads).
-// 3. The board-size gate used `youHave` (>= 1, i.e. "1 or more"), inverted from the
-//    printed "1 or fewer" — replaced with `permanentCount` op "lte" value 1.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

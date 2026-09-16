@@ -7,7 +7,6 @@ import { compiled } from "./BT23-057.js";
 
 const TOKEN_CARD_ID = "TOKEN-Hinukamuy-Token";
 
-/** The three trash cards the play-cost reduction accepts: one [Huckmon], one [Sistermon], one [Jesmon]. */
 const NAMED_TRASH = ["BT13-009", "BT10-085", "BT13-017"] as const;
 
 function tokenOf(state: GameState): Permanent[] {
@@ -68,20 +67,16 @@ describe("BT23-057 Gankoomon", () => {
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: gankoomonId })).toEqual({ ok: true });
       await settle(() => s.state.memory === 5 && s.state.pendingDecision === undefined);
 
-      // Play cost 11 - 5 = 6, paid out of 11 memory.
       expect(s.state.memory).toBe(5);
       expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === gankoomonId)).toBe(
         true,
       );
-      // All three named cards left the trash for the deck; the unrelated card stayed put.
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([unrelatedId]);
       const deckIds = s.state.players[0]!.deck.map((card) => card.instanceId);
       expect(s.state.players[0]!.deck).toHaveLength(5);
-      // The chosen end of the deck holds exactly the three returned cards.
       const landing = where === "top" ? deckIds.slice(0, 3) : deckIds.slice(-3);
       expect([...landing].sort()).toEqual([...returnedIds].sort());
       expect(s.state.players[0]!.hand).toHaveLength(0);
-      // The token and the mandatory deletion still resolved on the reduced play.
       expect(tokenOf(s.state)).toHaveLength(1);
       expect(s.state.players[1]!.battleArea).toHaveLength(0);
       expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-039"]);
@@ -109,7 +104,6 @@ describe("BT23-057 Gankoomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: gankoomonId })).toEqual({ ok: true });
     await settle(() => s.state.memory === 0 && s.state.pendingDecision === undefined);
 
-    // The full 11 was paid: a partial return can never satisfy the "by" condition.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === gankoomonId)).toBe(
       true,
@@ -146,7 +140,6 @@ describe("BT23-057 Gankoomon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash).toHaveLength(3);
     expect(s.state.players[0]!.deck).toHaveLength(2);
-    // The token is the same "you may", so declining leaves the board with Gankoomon alone.
     expect(tokenOf(s.state)).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
@@ -175,7 +168,6 @@ describe("BT23-057 Gankoomon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
 
     expect(tokenOf(s.state)).toHaveLength(0);
-    // Cost 7 is above the unraised ceiling of 6, so only the cost-6 Digimon could be chosen.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([cost7Id]);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cost6Id)).toBe(false);
     expect(s.state.players[1]!.trash).toHaveLength(1);
@@ -209,7 +201,6 @@ describe("BT23-057 Gankoomon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
 
-    // Token (a Digimon) + the pre-existing ally => ceiling 6 + 3 + 3 = 12.
     const tokens = tokenOf(s.state);
     expect(tokens).toHaveLength(1);
     const token = tokens[0]!;
@@ -217,7 +208,6 @@ describe("BT23-057 Gankoomon", () => {
     expect(observe(s.engine).hasKeyword(token, "Alliance")).toBe(true);
     expect(observe(s.engine).hasKeyword(token, "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(token, "Blocker")).toBe(true);
-    // Cost 11 is inside the raised ceiling; cost 15 is not.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([cost15Id]);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cost11Id)).toBe(false);
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
@@ -245,7 +235,6 @@ describe("BT23-057 Gankoomon", () => {
     });
     await settle(() => s.state.memory === 0 && s.state.pendingDecision === undefined);
 
-    // Breeding-area cards can't be referenced (comprehensive rules 3-4-5-8), so the ceiling stays 6.
     expect(tokenOf(s.state)).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([cost7Id]);
     expect(s.state.players[1]!.trash).toHaveLength(0);
@@ -277,14 +266,11 @@ describe("BT23-057 Gankoomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
 
-    // Blue AeroVeedramon is not on the printed Black/Red evolution table, so cost 3 can only be
-    // the [CS] alternate route. 4 - 3 = 1 memory, and the digivolve draw refills the hand.
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("gankoomon").instanceId);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT22-023"]);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
-    // [When Digivolving] runs the same body: token, then the deletion.
     expect(tokenOf(s.state)).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cost6Id)).toBe(false);
   });

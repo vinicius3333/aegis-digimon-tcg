@@ -111,9 +111,6 @@ describe("BT20-087 Kota Domoto & Yuji Musya", () => {
         0: {
           battleArea: [
             { card: "BT20-087", as: "tamer" },
-            // A second legal Dorumon recipient forces a public target choice, so this
-            // proof explicitly selects the breeding-area permanent rather than relying
-            // on the harness' default target order.
             { card: "BT20-048", as: "attacker" },
           ],
           breeding: { card: "BT20-048", as: "breedingBase" },

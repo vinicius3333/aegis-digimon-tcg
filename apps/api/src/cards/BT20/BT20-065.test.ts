@@ -3,21 +3,8 @@ import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-// Self-register every card module so the engine drives the REGISTERED BT20-065 IR.
 import "./index.js";
 import { compiled } from "./BT20-065.js";
-
-/**
- * A3 — Q1f: BT20-065 (Purple Digimon) "[On Play] By trashing 1 card in your hand, give 1 of
- * your opponent's Digimon '[On Deletion] Lose 1 memory.' until the end of their turn."
- *
- * This card exercises the shared "[On Deletion] Lose 1 memory." library entry and the generic
- * cost-paying wrapper (`action.cost`/`optional`/`abortOnDecline`): the grant must depend on the
- * trash cost actually being payable.
- *
- * FAILS-WHEN-REVERTED: reverting the interpreter's routing branch or the library entry makes
- * the grant either throw when the recipient is deleted, or silently install nothing.
- */
 
 describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () => {
   it("publishes the printed stats and both zero-cost evolution routes", () => {
@@ -126,7 +113,7 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
 
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fodder").instanceId));
 
-    s.state.memory = 5; // isolate the granted effect's delta from the play/cost's own changes
+    s.state.memory = 5;
 
     expect(
       s.engine.applyIntent(0, {
@@ -137,7 +124,7 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     ).toEqual({ ok: true });
     await settle(() => !p1.battleArea.some((p) => p.permanentId === recipient.permanentId) && s.state.memory === 6);
 
-    expect(s.state.memory).toBe(6); // 5 + 1
+    expect(s.state.memory).toBe(6);
   });
 
   it("may decline the by-trash condition even when a legal hand card is available", async () => {
@@ -159,8 +146,6 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wormmon").instanceId })).toEqual({
       ok: true,
     });
-    // The hand cost is the clause's only question, so it is asked as the selection
-    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     expect(
       s.engine.applyIntent(0, {
@@ -190,7 +175,7 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
         0: {
           battleArea: [{ card: "BT20-069", dp: 5000, as: "attacker" }],
           hand: [{ card: "BT20-065", as: "wormmon" }],
-        }, // nothing left to trash after playing it
+        },
         1: { battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "recipient" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -266,8 +251,6 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     expect(
       s.engine.applyIntent(1, { type: "attack", attackerPermanentId: recipientId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    // A player-directed, unblocked attack resolves through a security check rather than
-    // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);

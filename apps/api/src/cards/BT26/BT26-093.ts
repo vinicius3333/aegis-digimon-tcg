@@ -32,8 +32,6 @@ const attackBody: Action[] = [
         position: "bottom",
         faceDown: true,
       },
-      // One chosen Digimon gains BOTH keywords; two separate GainKeyword actions would open
-      // two independent target choices and could split the grants across two Digimon.
       {
         kind: "GainKeyword",
         target: beatbreak,

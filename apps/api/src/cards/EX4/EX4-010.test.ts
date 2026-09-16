@@ -191,8 +191,6 @@ describe("EX4-010 BlackWarGrowlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => atThreshold.state.players[1]!.battleArea.length === 0);
 
-    // The six milled cards make the combined trash count 20 (11 + 9), so Q3446 grants +4000;
-    // the deleted target is then the 21st trash card.
     expect(atThreshold.state.players[0]!.trash.length + atThreshold.state.players[1]!.trash.length).toBe(21);
     expect(atThreshold.state.players[1]!.battleArea).toHaveLength(0);
   });

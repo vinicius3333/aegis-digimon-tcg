@@ -7,20 +7,6 @@ import { compiled } from "./EX13-047.js";
 
 const CARD_ID = "EX13-047";
 
-// Reveal fixtures, chosen so each slot is proven to DISCRIMINATE rather than merely fire:
-//   BT1-084  Omnimon      — ["Holy Warrior","Royal Knight"], no ＜Blocker＞ anywhere: slot 1 only.
-//   BT20-047 Solarmon     — ["Machine"], printed text is exactly "＜Blocker＞.": slot 2 only.
-//   BT13-040 Magnamon     — ["Holy Warrior","Royal Knight"] AND printed ＜Blocker＞: qualifies for
-//                           both slots, so it proves one card cannot fill both.
-//   BT1-079  Lillymon     — prints ＜Blocker＞ ONLY in its inherited effect, which official manual
-//                           §1 counts as part of "with XX in its text": slot 2.
-//   BT18-044 FunBeemon    — ["Insectoid","X Antibody","Royal Base"]: the trait near-match. A
-//                           containment reading of [Royal Knight] would still reject it, but a
-//                           containment reading of "Royal" would not — and it carries no
-//                           ＜Blocker＞, so it must stay in the deck.
-//   BT13-016 SaviorHuckmon — names the [Royal Knight] trait inside its inherited TEXT but does not
-//                           have the trait: the trait-vs-text near-match.
-//   BT1-009 / BT1-013     — inert Digimon with no printed text at all: plain non-matches.
 const ROYAL_KNIGHT = "BT1-084";
 const BLOCKER = "BT20-047";
 const ROYAL_KNIGHT_BLOCKER = "BT13-040";
@@ -104,11 +90,6 @@ describe("EX13-047 Gotsumon", () => {
     expect(compiled.digivolutionRequirement).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Royal Knight] trait and
-  // 1 card with ＜Blocker＞ among them to the hand. Return the rest to the bottom of the deck.
-  // ---------------------------------------------------------------------------
-
   it("reveals exactly 3, adds one [Royal Knight] and one ＜Blocker＞ card, and bottoms the rest", async () => {
     const s = setupEngine(
       {
@@ -141,13 +122,10 @@ describe("EX13-047 Gotsumon", () => {
     ]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.state.memory).toBe(2);
-    // Exactly the two printed add slots prompted, and nothing else.
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(2);
     assertNoLoudGap(s);
   });
 
-  // The slots are per category, not a pooled union: a single card matching BOTH qualifiers is
-  // consumed by the first slot and cannot also satisfy the second.
   it("lets one [Royal Knight] ＜Blocker＞ card fill a single slot while a second card fills the other", async () => {
     const s = setupEngine(
       {
@@ -181,9 +159,6 @@ describe("EX13-047 Gotsumon", () => {
     ]);
   });
 
-  // The mirror case: the ONLY qualifying card is the dual one, so exactly one card is added —
-  // a pooled-union reading would still take one, but a "one per qualifier" reading would wrongly
-  // take it twice, and a slot-2-first reading would leave it for the blocker slot.
   it("adds the dual card exactly once when it is the only match", async () => {
     const s = setupEngine(
       {
@@ -214,8 +189,6 @@ describe("EX13-047 Gotsumon", () => {
     ]);
   });
 
-  // Official manual §1: "with XX in its text" spans the INHERITED effect too, so a card whose
-  // only ＜Blocker＞ icon sits in its inherited line qualifies for the second slot.
   it("accepts a card whose only ＜Blocker＞ icon sits in its inherited effect", async () => {
     const s = setupEngine(
       {
@@ -244,9 +217,6 @@ describe("EX13-047 Gotsumon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(3);
   });
 
-  // The exact-trait reading, proven to discriminate: [Royal Base] shares the word "Royal" and
-  // SaviorHuckmon names the [Royal Knight] trait inside its own text, yet neither HAS the trait,
-  // and neither prints ＜Blocker＞ — so all three revealed cards go to the bottom untouched.
   it("rejects a [Royal Base] card and a card that only names [Royal Knight] in its text", async () => {
     const s = setupEngine(
       {
@@ -309,10 +279,6 @@ describe("EX13-047 Gotsumon", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  // ---------------------------------------------------------------------------
-  // ＜Blocker＞
-  // ---------------------------------------------------------------------------
-
   it("opens a real block window and intercepts an attack with ＜Blocker＞", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: INERT, as: "attacker", dp: 1000 }], deck: inertDeck },
@@ -338,8 +304,6 @@ describe("EX13-047 Gotsumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
 
-    // The 1000 DP attacker loses to 3000 DP, the blocker survives, and the security stack the
-    // attack was aimed at is untouched.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("gotsumon").permanentId,
@@ -347,15 +311,9 @@ describe("EX13-047 Gotsumon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Attacking] Lose 2 memory.
-  // ---------------------------------------------------------------------------
-
   it("loses 2 memory on its own public attack, with no condition on the target", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: CARD_ID, as: "gotsumon" }], deck: inertDeck },
-      // BT1-011 Agumon Expert is a 1000 DP security Digimon with no Security effect, so the
-      // security battle is decided by DP alone and Gotsumon survives to be inspected.
       1: { security: [{ card: "BT1-011", as: "topSecurity" }], deck: inertDeck },
     });
     s.state.memory = 5;
@@ -375,7 +333,6 @@ describe("EX13-047 Gotsumon", () => {
       s.perm("gotsumon").permanentId,
     ]);
     expect(s.perm("gotsumon").isSuspended).toBe(true);
-    // The attack performed its single security check: the revealed card was trashed.
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("topSecurity").instanceId]);
     assertNoLoudGap(s);
@@ -400,13 +357,8 @@ describe("EX13-047 Gotsumon", () => {
 
     expect(s.state.memory).toBe(3);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // A Digimon battle performs no security check.
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
-
-  // ---------------------------------------------------------------------------
-  // Evolution routes: the catalog Black Lv.2 EvoCost for 0
-  // ---------------------------------------------------------------------------
 
   it("digivolves for 0 from a black level-2 Digi-Egg and rejects an off-color egg", async () => {
     const eligible = setupEngine({
@@ -427,8 +379,6 @@ describe("EX13-047 Gotsumon", () => {
     ).toEqual({ ok: true });
     await settle(() => eligible.perm("blackEgg").topCard.instanceId === eligible.inst("gotsumon").instanceId);
 
-    // Digivolving is not playing, so the [On Play] reveal stays silent: the only card leaving the
-    // deck is the single digivolution bonus draw, and the cost was 0.
     expect(eligible.state.memory).toBe(0);
     expect(eligible.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([inertDeck[0]]);
     expect(eligible.state.players[0]!.deck).toHaveLength(inertDeck.length - 1);
@@ -451,10 +401,6 @@ describe("EX13-047 Gotsumon", () => {
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
-
-  // ---------------------------------------------------------------------------
-  // [Inherited] [Opponent's Turn] This Digimon gets +2000 DP.
-  // ---------------------------------------------------------------------------
 
   it("survives as a source card under a level-4 Digimon and keeps its inherited line live", async () => {
     const s = setupEngine({
@@ -479,8 +425,6 @@ describe("EX13-047 Gotsumon", () => {
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
     expect(s.perm("host").topCard.cardId).toBe("BT2-056");
     expect(s.state.memory).toBe(4);
-    // The host's printed ＜Blocker＞ is gone with Gotsumon buried, and the [When Attacking]
-    // memory loss with it — only the inherited line survives the transition.
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
     expect(s.perm("host").currentDP).toBe(getCardDefinition("BT2-056")!.dp);
   });
@@ -512,8 +456,6 @@ describe("EX13-047 Gotsumon", () => {
     await loop;
   });
 
-  // The inherited clause is the SOURCE card's, not the top card's: a Gotsumon standing on its own
-  // in the battle area gets no +2000 DP on the opponent's turn (its own printed text grants none).
   it("does not buff itself on the opponent's turn while it is the top card", async () => {
     const s = setupEngine({
       0: {

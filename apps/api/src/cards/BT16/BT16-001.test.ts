@@ -34,8 +34,6 @@ describe("BT16-001", () => {
       { autoSelectCards: true },
     );
 
-    // Capture both ids before the attack: the deleted permanent is off the board afterwards,
-    // so `perm("atLimit")` can no longer resolve it.
     const aboveLimitId = s.perm("aboveLimit").permanentId;
     const atLimitInstanceId = s.perm("atLimit").topCard.instanceId;
 

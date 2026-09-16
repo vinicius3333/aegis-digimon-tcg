@@ -90,7 +90,6 @@ describe("BT17-006", () => {
         0: {
           battleArea: [{ card: "BT17-062", under: ["BT17-006"], as: "host" }],
           hand: [{ card: "BT1-085", as: "tamer" }],
-          // Lv5 SoC: legal only from a Lv4 host, so the Lv3 host has no legal route.
           trash: [{ card: "BT17-067", as: "tooHigh" }],
         },
       },
@@ -113,7 +112,6 @@ describe("BT17-006", () => {
         0: {
           battleArea: [{ card: "BT17-062", under: ["BT17-006"], as: "host" }],
           hand: [{ card: "BT1-085", as: "tamer" }],
-          // Bakemon is Lv4 Purple from a Lv3 Purple host for 2 — a legal route, but no [SoC].
           trash: [
             { card: "BT4-080", as: "nonSoC" },
             { card: "BT17-065", as: "socTarget" },
@@ -198,8 +196,6 @@ describe("BT17-006", () => {
     await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("tamerC").instanceId]);
     await settle(() => s.perm("host").topCard?.cardId === "BT17-067");
     expect(s.perm("host").topCard?.instanceId).toBe(s.inst("socLv5").instanceId);
-    // Placed Tamers sit directly beneath the top card; the two digivolution sources
-    // and the original egg remain in printed order at the bottom of the stack.
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([
       "BT1-085",
       "BT1-085",

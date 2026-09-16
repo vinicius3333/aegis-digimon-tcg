@@ -1,8 +1,3 @@
-// HAND-AUTHORED IR for BT25-041 Murasamemon.
-//
-// The printed effect offers two independent cost choices (add the top security card to hand or
-// trash a bottom face-down card under a Tamer), followed by a choice to play a Digimon/Tamer or use
-// an Option. The nested modals preserve both choices instead of tying one cost to one card kind.
 import type { CompiledCard, Cost } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

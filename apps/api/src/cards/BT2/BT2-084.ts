@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override. KB Q1036: "give THAT Digimon +2000 DP" applies to the
-// attacking red Digimon, and the player-target condition is checked at declaration.
 const compiled: CompiledCard = {
   effects: [
     {

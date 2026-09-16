@@ -284,8 +284,6 @@ describe("BT26-028 Medicmon", () => {
           trash: ["BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      // Chronomon carries ＜Engage＞, whose free attack would fire its [When Attacking] half
-      // as a side effect of the digivolution. Decline it so this proof drives each timing by hand.
       { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Attack"] },
     );
     s.state.memory = 3;

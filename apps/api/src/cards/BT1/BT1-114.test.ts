@@ -140,7 +140,6 @@ describe("BT1-114 MetalGreymon", () => {
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-015", "BT1-114"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn2").instanceId);
-    // BT1-025 base 11000 + BT1-015 inherited 2000 + BT1-114 inherited 3000.
     expect(s.perm("base").currentDP).toBe(16000);
   });
 

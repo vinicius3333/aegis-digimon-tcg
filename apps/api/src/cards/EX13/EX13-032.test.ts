@@ -9,36 +9,17 @@ import { compiled } from "./EX13-032.js";
 
 const cardId = "EX13-032";
 
-// Inert neutral fixtures (main-deck Digimon, no printed effects of any kind).
-const SENTINEL = "BT1-009"; // Red Lv.3, 3000 DP
-const NEUTRAL_LV4 = "BT1-014"; // Red Lv.4, 4000 DP — also the illegal evolution source
+const SENTINEL = "BT1-009";
+const NEUTRAL_LV4 = "BT1-014";
 
-// Evolution-source fixtures.
-//   BT1-051 Reppamon      — Yellow Lv.4 [Holy Beast], NO printed effects: the catalog's printed
-//                           Yellow Lv.4 route.
-//   BT25-023 Gaogamon     — BLUE Lv.4 [Beast]/[DATA SQUAD]: only the printed
-//                           "[Digivolve] Lv.4 w/[DATA SQUAD] trait: Cost 3" alternate route can
-//                           reach Chirinmon from it, because its color does not match.
-//   BT1-014 Kokatorimon   — RED Lv.4 with no [DATA SQUAD] trait: the negative that pins the
-//                           trait gate (same level, same "wrong colour" as Gaogamon).
 const YELLOW_LV4 = "BT1-051";
 const DATA_SQUAD_LV4 = "BT25-023";
 
-// "any of your Tamers": BT13-098 Richard Sampson's own effects are [Start of Your Main Phase],
-// [Main] and a security-trash trigger, so none of them fire inside these scenarios.
 const TAMER = "BT13-098";
 
-// Inherited-clause hosts for "with [Kentaurosmon] in its name".
-//   BT3-043  Kentaurosmon — the match.
-//   BT22-037 Chirinmon    — the NEAR-match: it prints "[Kentaurosmon]" inside its own effect
-//                           TEXT but not in its name, so `match: "name"` must refuse it.
-//   BT1-009  Monodramon   — the plain non-match.
 const KENTAUROSMON = "BT3-043";
 const TEXT_ONLY_KENTAUROSMON = "BT22-037";
 
-// Opponent pair for the [When Digivolving] lock: BT20-031 Liamon's own [When Digivolving] gives
-// 1 of ITS controller's opponent's Digimon -3000 DP for the turn, so whether that effect
-// activated is observable on the board.
 const OPPONENT_LV3 = "BT20-030";
 const OPPONENT_LV4 = "BT20-031";
 
@@ -70,7 +51,6 @@ describe("EX13-032 Chirinmon", () => {
     ]);
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
 
-    // One printed sentence under two timings: identical bodies, one shared Once Per Turn budget.
     const costs = [
       { kind: "trashSecurityTop", controller: "mine", raw: "By trashing your top security card" },
       {
@@ -132,7 +112,6 @@ describe("EX13-032 Chirinmon", () => {
         cost: leaveCost,
       },
     ]);
-    // No printed leave cause, so every cause is covered.
     expect((ownLeave.actions[0] as { leaveCause?: string }).leaveCause).toBeUndefined();
 
     const inherited = compiled.effects.find(({ isInherited }) => isInherited === true)!;
@@ -152,10 +131,6 @@ describe("EX13-032 Chirinmon", () => {
       ],
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // [Digivolve] Lv.4 w/[DATA SQUAD] trait: Cost 3, beside the printed Yellow Lv.4 route.
-  // ---------------------------------------------------------------------------
 
   it("digivolves over the printed Yellow Lv.4 route for 3 with the bonus draw and source identity", async () => {
     const s = setupEngine({
@@ -184,7 +159,6 @@ describe("EX13-032 Chirinmon", () => {
     expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual([YELLOW_LV4]);
     expect(s.perm("base").currentDP).toBe(7000);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
-    // No cost was chosen, so nothing was trashed for the [When Digivolving] clause.
     expect(s.state.players[0]!.security).toHaveLength(2);
   });
 
@@ -228,18 +202,11 @@ describe("EX13-032 Chirinmon", () => {
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
     expect(illegal.perm("base").topCard.cardId).toBe(NEUTRAL_LV4);
-    // The route was refused, not silently charged (REVIEW-NOTES: useAlternateCost is a preference).
     expect(illegal.state.memory).toBe(3);
     expect(illegal.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
       illegal.inst("chirinmon").instanceId,
     ]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [When Digivolving] [When Attacking] [Once Per Turn] By trashing your top security card or the
-  // bottom face-down card from under any of your Tamers, this Digimon unsuspends. After, 1 of
-  // your opponent's Digimon can't activate [When Digivolving] effects until their turn ends.
-  // ---------------------------------------------------------------------------
 
   it("trashes the top security card on digivolution to unsuspend and lock one opposing Digimon", async () => {
     const s = setupEngine(
@@ -304,7 +271,6 @@ describe("EX13-032 Chirinmon", () => {
     await settle(() => !s.perm("chirinmon").isSuspended);
 
     expect(s.perm("chirinmon").isSuspended).toBe(false);
-    // The Tamer half was chosen, so the security stack is untouched.
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("securityTop").instanceId,
     ]);
@@ -337,7 +303,6 @@ describe("EX13-032 Chirinmon", () => {
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("securityTop").instanceId,
     ]);
-    // §15-7-2: nothing after the declined optional processing condition happens.
     expect(s.perm("chirinmon").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("victim"), "cannotActivateWhenDigivolving")).toBe(false);
   });
@@ -396,7 +361,6 @@ describe("EX13-032 Chirinmon", () => {
     await settle(() => s.perm("base").topCard.cardId === cardId && !s.perm("base").isSuspended);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("secondCost").instanceId]);
 
-    // The [When Attacking] copy shares the spent budget: the second security card survives.
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("base"), {
       attackerPermanentId: s.perm("base").permanentId,
     });
@@ -472,7 +436,6 @@ describe("EX13-032 Chirinmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("locked").topCard.cardId === OPPONENT_LV4);
     await settle();
-    // The locked Digimon's -3000 DP [When Digivolving] effect never activated.
     expect(s.perm("chirinmon").currentDP).toBe(7000);
 
     s.state.memory = 4;
@@ -487,11 +450,6 @@ describe("EX13-032 Chirinmon", () => {
     await settle(() => s.perm("chirinmon").currentDP === 4000);
     expect(s.perm("chirinmon").currentDP).toBe(4000);
   });
-
-  // ---------------------------------------------------------------------------
-  // [All Turns] When this Digimon would leave the battle area, by placing its top stacked card
-  // as the top security card, it doesn't leave.
-  // ---------------------------------------------------------------------------
 
   it("stays in the battle area by promoting its stack and placing itself on top of security", async () => {
     const s = setupEngine(
@@ -527,7 +485,6 @@ describe("EX13-032 Chirinmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
-  // One board, two other printed leave causes: the clause names none, so each is covered.
   const seedStackedChirinmon = (): ReturnType<typeof setupEngine> =>
     setupEngine(
       {
@@ -621,17 +578,11 @@ describe("EX13-032 Chirinmon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("promoted").instanceId);
 
-    // Second leave in the SAME turn: the promoted Reppamon has no such clause, so it leaves —
-    // but the Chirinmon copy now in the stack does not gate the first prevention either.
     expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(1);
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security[0]!.cardId).toBe(cardId);
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited [All Turns] [Once Per Turn] "this Digimon with [Kentaurosmon] in its name".
-  // ---------------------------------------------------------------------------
 
   it("keeps a [Kentaurosmon] host in play once per turn and lets the second leave resolve", async () => {
     const s = setupEngine(
@@ -659,11 +610,8 @@ describe("EX13-032 Chirinmon", () => {
       hostInstanceId,
       s.inst("oldTop").instanceId,
     ]);
-    // The promoted top card is the Chirinmon that granted the prevention.
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe(cardId);
 
-    // Second leave in the same turn: the Once Per Turn budget is spent, and the promoted
-    // Chirinmon's OWN clause pays with its remaining stack card instead.
     expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(0);
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("bottomStack").instanceId);
@@ -674,9 +622,6 @@ describe("EX13-032 Chirinmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Stack, bottom-most first: the granting Chirinmon, then a second Kentaurosmon, so the
-          // promoted top card still satisfies "with [Kentaurosmon] in its name". Only the printed
-          // [Once Per Turn] can stop the second prevention.
           battleArea: [{ card: KENTAUROSMON, as: "host", under: [cardId, { card: KENTAUROSMON, as: "spare" }] }],
           security: [{ card: SENTINEL, as: "oldTop" }],
           deck: [SENTINEL, SENTINEL],
@@ -694,7 +639,6 @@ describe("EX13-032 Chirinmon", () => {
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("spare").instanceId);
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(firstHostInstanceId);
 
-    // Same turn, same granting Chirinmon, still a [Kentaurosmon]-named host: the budget is spent.
     expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(1);
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);

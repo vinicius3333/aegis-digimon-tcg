@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4259: a card with the [X Antibody] trait alone does not satisfy the exception. The
-// exception is a card named [Gotsumon] or the named card [X Antibody].
 const compiled: CompiledCard = {
   effects: [
     {
@@ -11,8 +9,6 @@ const compiled: CompiledCard = {
       keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
     {
-      // [Your Turn] This Digimon without a [Gotsumon]-named or [X Antibody]-named card in its
-      // digivolution cards can't attack.
       trigger: "YourTurn",
       actions: [
         {
@@ -35,8 +31,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [Opponent's Turn] [Once Per Turn] When an attack target is switched,
-      // you may unsuspend 1 of your Digimon with <Blocker>.
       trigger: "OpponentsTurn",
       actions: [
         {
@@ -61,7 +55,6 @@ const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
     {
-      // [Inherited] [All Turns] All of your Digimon with <Blocker> get +1000 DP.
       trigger: "AllTurns",
       actions: [
         {

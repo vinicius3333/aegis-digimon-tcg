@@ -321,7 +321,7 @@ describe("BT23-016 Dokamon", () => {
     const handBefore = s.state.players[0]!.hand.length;
     expect(link("firstLink")).toEqual({ ok: true });
     await settle(() => s.perm("dokamon").linked.some((card) => card.instanceId === s.inst("firstLink").instanceId));
-    expect(s.state.players[0]!.hand.length).toBe(handBefore - 2); // link leaves hand and Eri is played for free
+    expect(s.state.players[0]!.hand.length).toBe(handBefore - 2);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstEri").instanceId)).toBe(
       true,
     );
@@ -336,7 +336,7 @@ describe("BT23-016 Dokamon", () => {
     expect(link("thirdLink")).toEqual({ ok: true });
     await settle(() => s.perm("dokamon").linked.some((card) => card.instanceId === s.inst("thirdLink").instanceId));
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT23-079")).toHaveLength(2);
-    expect(s.state.memory).toBe(2); // the next turn begins at 3 memory, then pays the 1 link cost
+    expect(s.state.memory).toBe(2);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });

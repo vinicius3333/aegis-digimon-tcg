@@ -27,11 +27,6 @@ const compiled: CompiledCard = {
                 raw: "By trashing 1 card in your hand",
               },
             },
-            // "＜Draw 1＞ AND gain 1 memory" are both results of the same paid processing
-            // condition; the printed text has no "if you do" between them. Declining or
-            // failing the hand-trash cost aborts the Draw with `abortOnDecline`, which stops
-            // this sequence before the memory gain, so no extra gate is needed — and gating on
-            // `ifThisEffectActed` would wrongly withhold the memory when the deck is empty.
             {
               kind: "GainMemory",
               amount: 1,

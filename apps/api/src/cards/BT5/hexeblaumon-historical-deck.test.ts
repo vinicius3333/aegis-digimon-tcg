@@ -53,7 +53,6 @@ describe("BT5 Hexeblaumon historical deck gauntlet", () => {
       5000,
     );
 
-    // Q1310: Jamming is evaluated after the source trash, during this same attack.
     expect(
       s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("hexeblaumon").permanentId),
     ).toBe(true);

@@ -157,8 +157,6 @@ describe("BT1-085 Tai Kamiya", () => {
       0: {
         battleArea: [
           { card: "BT1-085", as: "tai" },
-          // A plain Lv.5 attacker: BT1-025 WarGreymon would suppress the [Security] skill this
-          // case depends on ("doesn't activate [Security] skills on Option cards it checks").
           { card: "BT1-024", as: "attacker", dp: 20000, under: ["BT1-001", "BT1-010", "BT1-015", "BT1-020"] },
         ],
       },

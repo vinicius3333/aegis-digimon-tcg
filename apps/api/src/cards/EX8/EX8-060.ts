@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q3941-Q3944: [Your Turn] fires when this card itself is played or digivolved into.
-// DNA digivolve triggers, then that DNA'd Digimon may attack (not a new attack declaration
-// during an existing attack — KB Q3943). [When Attacking] + [When Digivolving] trigger
-// simultaneously when DNA'd Digimon attacks (KB Q3944).
 export const compiled: CompiledCard = {
   effects: [
     {

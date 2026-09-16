@@ -146,7 +146,7 @@ describe("BT25-075 Vulcanusmon", () => {
       ok: true,
     });
     await settle(() => tied.state.players[0]!.battleArea.some((p) => p.topCard.cardId === CARD_ID));
-    expect(tied.state.memory).toBe(-5); // full printed play cost 12, no strict-fewer reduction
+    expect(tied.state.memory).toBe(-5);
   });
 
   it("grants Rush and Link +1 only to own TS Digimon, including the source itself", async () => {
@@ -197,7 +197,6 @@ describe("BT25-075 Vulcanusmon", () => {
     expect(s.perm("vulcanusmon").linked.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("firstLink").instanceId, s.inst("secondLink").instanceId]),
     );
-    // Two linked cards each apply De-Digivolve 1, removing two sources while the legal Lv3 base remains.
     expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

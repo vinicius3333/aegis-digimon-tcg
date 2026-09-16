@@ -133,8 +133,6 @@ describe("BT5-056 Rafflesimon", () => {
     });
     await s.ready();
     const discardedIds = s.perm("opponentBurst").stack.map(({ instanceId }) => instanceId);
-    // No legal player intent can activate the opponent's Main effect during seat 0's turn;
-    // fire the same production event bus with the opponent's real stacked host and cards.
     await advance(s.engine).fireSubTrigger("onDigiBurstCardDiscarded", {
       subjectPermanentId: s.perm("opponentBurst").permanentId,
       trashedDigivolutionInstanceIds: discardedIds,

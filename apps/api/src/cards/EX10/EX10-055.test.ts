@@ -7,23 +7,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-055";
 
-/**
- * EX10-055 Tactimon (Lv.6 Purple/Black, [Wizard]/[Bagra Army], play cost 12).
- *
- * "[On Play] [When Digivolving] You may choose 1 of your Digimon. Delete the chosen Digimon
- *  and 1 of your opponent's Digimon with as high or lower a level as it.
- *  [All Turns] [Once Per Turn] When any of your [Bagra Army] trait Digimon would leave the
- *  battle area by effects, by trashing any 2 of this Digimon's digivolution cards, they don't leave.
- *  [DigiXros -2] 2 Digimon cards w/[Bagra Army] trait"
- *
- * Fixture notes: EX10-026 SkullKnightmon and EX10-027 DeadlyAxemon are Black/Purple
- * [Bagra Army] Lv.4s used only as DigiXros material (placed under, never played, so their
- * [On Play] never fires); their inherited text is ＜Blocker＞ / ＜Retaliation＞, which opens no
- * decision here. EX10-045 Tuwarmon is a third genuine [Bagra Army] material, used to prove
- * the 2-material cap rather than a trait mismatch. BT10-064 Gogmamon is an inert Black Lv.5
- * (no main and no inherited text) used as the digivolution source. BT1-009 Monodramon is the
- * inert non-[Bagra Army] card.
- */
 describe("EX10-055 Tactimon", () => {
   it("records the exact catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -90,8 +73,6 @@ describe("EX10-055 Tactimon", () => {
     });
   });
 
-  // --- DigiXros: sources, per-material reduction, cap, refusal (all through playCard) ---
-
   it("DigiXroses from hand: 2 [Bagra Army] materials reduce the cost by 2 each and land in the stack", async () => {
     const s = setupEngine(
       {
@@ -116,13 +97,10 @@ describe("EX10-055 Tactimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 12 printed - 2 per material x 2 materials = 8 paid.
     expect(s.state.memory).toBe(4);
     const played = s.state.players[0]!.battleArea;
     expect(played).toHaveLength(1);
     expect(played[0]!.topCard!.cardId).toBe(CARD_ID);
-    // `stack` is bottom-first and each loose material is placed at the bottom, so the
-    // second material ends up beneath the first.
     expect(played[0]!.stack.map(({ cardId }) => cardId)).toEqual(["EX10-027", "EX10-026"]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -151,7 +129,6 @@ describe("EX10-055 Tactimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 12 printed - 2 for the one material = 10 paid; a flat -2 total would leave memory at 4.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(["EX10-026"]);
   });
@@ -189,7 +166,6 @@ describe("EX10-055 Tactimon", () => {
     expect(board[0]!.permanentId).not.toBe(fieldPermanentId);
     expect(board[0]!.topCard!.cardId).toBe(CARD_ID);
     expect(board[0]!.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["EX10-026", "EX10-027"]));
-    // Only the top card of a battle-area material joins the stack (§7-2-2-7); what was under it is trashed.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("shed").instanceId]);
   });
 
@@ -248,8 +224,6 @@ describe("EX10-055 Tactimon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
-  // --- [On Play] / [When Digivolving] and the [All Turns] replacement, through public intents ---
-
   it("[On Play] via DigiXros: Q5141 keeps the self-chosen Tactimon by trashing its 2 materials", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -267,8 +241,6 @@ describe("EX10-055 Tactimon", () => {
     );
     s.state.memory = 12;
     await s.ready();
-    // The played card keeps its hand instance id once it reaches the battle area, so binding
-    // "A" to Tactimon itself is expressible before the play.
     preferred.push(s.inst("tactimon").instanceId);
     const victimId = s.perm("victim").permanentId;
 
@@ -285,8 +257,6 @@ describe("EX10-055 Tactimon", () => {
         !s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId),
     );
 
-    // Tactimon chose itself, so it "would leave by effects"; the [All Turns] replacement paid
-    // its 2 digivolution cards and it stayed. The opponent's Lv.3 was still deleted.
     const board = s.state.players[0]!.battleArea;
     expect(board).toHaveLength(1);
     expect(board[0]!.topCard!.cardId).toBe(CARD_ID);
@@ -307,8 +277,6 @@ describe("EX10-055 Tactimon", () => {
           hand: [{ card: CARD_ID, as: "tactimon" }],
           battleArea: [
             { card: "BT10-064", as: "source", under: [{ card: "BT1-009", as: "beneath" }] },
-            // A non-[Bagra Army] sacrifice: SkullKnightmon here would be saved by Tactimon's
-            // own [All Turns] replacement, which is proved separately.
             { card: "BT1-014", as: "sacrifice" },
           ],
         },
@@ -323,8 +291,6 @@ describe("EX10-055 Tactimon", () => {
     );
     s.state.memory = 4;
     await s.ready();
-    // Bind "A" to the Lv.4 Kokatorimon: only the opponent's Lv.3 is then a legal delete,
-    // never their Lv.5 DarkKnightmon.
     preferred.push(s.perm("sacrifice").topCard!.instanceId, s.perm("low").topCard!.instanceId);
     const sacrificeId = s.perm("sacrifice").permanentId;
     const highId = s.perm("high").permanentId;
@@ -347,7 +313,6 @@ describe("EX10-055 Tactimon", () => {
     expect(evolved.topCard!.cardId).toBe(CARD_ID);
     expect(evolved.stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT10-064"]);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(sacrificeId);
-    // The Lv.5 opponent Digimon was never a legal target for a Lv.4 sacrifice.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([highId]);
   });
 
@@ -383,15 +348,11 @@ describe("EX10-055 Tactimon", () => {
         !s.state.players[0]!.battleArea.some((p) => p.permanentId === outsiderId),
     );
 
-    // A non-[Bagra Army] Digimon is outside the replacement's filter, so the cost was never paid.
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(outsiderId);
     expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT10-064"]);
   });
 
   it("Q5139 prevents every simultaneous [Bagra Army] departure for one 2-card payment", async () => {
-    // Structural: no public intent in the card pool deletes two of my own Digimon at once by
-    // effect (Tactimon's own clause deletes exactly one). The simultaneity itself is injected;
-    // the payment and the "all, without choosing" reading of Q5139 are what this asserts.
     const s = setupEngine(
       {
         0: {
@@ -432,16 +393,11 @@ describe("EX10-055 Tactimon", () => {
     await advance(s.engine).verb.deletePermanent([id], "byEffect");
     await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === id));
 
-    // The whole card went to the trash: the "by trashing any 2" condition was never met, so
-    // nothing was trashed as a cost either.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("only").instanceId);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
   });
 
   it("[Once Per Turn]: a second by-effect departure in the same turn is not prevented", async () => {
-    // Structural companion to the public-intent proof below ("the opponent's two Option
-    // plays ..."), kept for the injected-timing path. Four digivolution cards make the
-    // second payment affordable, so a departure that is not prevented can only be the gate.
     const s = setupEngine(
       {
         0: {
@@ -466,17 +422,9 @@ describe("EX10-055 Tactimon", () => {
     await advance(s.engine).verb.deletePermanent([secondAllyId], "byEffect");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(secondAllyId);
-    // The gate, not the cost: 2 digivolution cards were still available and untouched.
     expect(s.perm("tactimon").stack).toHaveLength(2);
   });
   it("the opponent's two Option plays in one turn: the first departure is prevented, the second is not, and the gate resets next turn", async () => {
-    // Public-intent proof of the [Once Per Turn] gate. Catalog search for a second public
-    // by-effect departure (packages/shared/src/cards/data/cards.json): Option cards whose
-    // [Main] reads "Delete 1 of your opponent's Digimon" with play cost <= 4 returns 16 cards.
-    // BT2-091 Volcanic Flare (Red, cost 3, "Delete 1 of your opponent's Digimon with 4000 DP
-    // or less") is the only single-clause one with no rider, and both [Bagra Army] allies here
-    // are exactly 4000 DP. The opponent holds three copies and plays them under the real turn
-    // loop, so every departure comes from a public playCard intent.
     const s = setupEngine(
       {
         0: {
@@ -490,8 +438,6 @@ describe("EX10-055 Tactimon", () => {
           security: ["BT1-009", "BT1-013"],
         },
         1: {
-          // BT1-013 Muchomon is an inert Red Lv.3 at 5000 DP: it supplies the Red color the
-          // Option requires and is itself out of range of that Option's own 4000 DP filter.
           battleArea: [{ card: "BT1-013", as: "redSource" }],
           hand: [
             { card: "BT2-091", as: "firstOption" },
@@ -517,7 +463,6 @@ describe("EX10-055 Tactimon", () => {
     expect(s.state.turnSeat).toBe(1);
     expect(s.perm("tactimon").stack).toHaveLength(4);
 
-    // First by-effect departure of the turn: prevented, paid with 2 digivolution cards.
     s.state.memory = 9;
     const firstOptionId = s.inst("firstOption").instanceId;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: firstOptionId })).toEqual({ ok: true });
@@ -528,8 +473,6 @@ describe("EX10-055 Tactimon", () => {
     expect(p0.battleArea).toHaveLength(3);
     expect(s.perm("tactimon").stack).toHaveLength(2);
 
-    // Second by-effect departure in the SAME turn: the gate is spent, so it goes through even
-    // though 2 digivolution cards are still there to pay with.
     const secondOptionId = s.inst("secondOption").instanceId;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: secondOptionId })).toEqual({ ok: true });
     await settle(
@@ -540,10 +483,8 @@ describe("EX10-055 Tactimon", () => {
       ({ permanentId }) => permanentId !== s.perm("tactimon").permanentId,
     )!.permanentId;
     expect([allyId, secondAllyId]).toContain(survivorId);
-    // The gate, not the cost: the payment was still affordable and was not taken.
     expect(s.perm("tactimon").stack).toHaveLength(2);
 
-    // Next turn cycle: the once-per-turn use has reset, so the third Option is prevented again.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -558,7 +499,6 @@ describe("EX10-055 Tactimon", () => {
     );
     expect(p0.battleArea.map(({ permanentId }) => permanentId)).toContain(survivorId);
     expect(p0.battleArea).toHaveLength(2);
-    // Reset proved by the payment: the remaining 2 digivolution cards were spent this turn.
     expect(s.perm("tactimon").stack).toHaveLength(0);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

@@ -13,13 +13,11 @@ describe("EX12-072 Metal Empire", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
-      // CR 16-42-3 scopes ＜Use Req.＞ to Digimon and Tamers on the field.
       condition: {
         kind: "youHave",
         filter: { kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["ME"], match: "trait" }] },
       },
     });
-    // The live Guard holder owns prevention/payment; face-up security only grants it.
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns" && effect.isSecurity)).toMatchObject({
       actions: [
         {
@@ -245,9 +243,6 @@ describe("EX12-072 Metal Empire", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
   });
 
-  // EX12-073 Giant Meat carries the [ME] trait but is an Option, and Options are USED, never
-  // played — so a "play 1 [ME] trait card" effect cannot reach it. The trash target here is
-  // the cheapest [ME] Digimon instead.
   it("also plays a qualifying ME card from the trash", async () => {
     const s = setupEngine(
       {
@@ -295,10 +290,6 @@ describe("EX12-072 Metal Empire", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("security").instanceId);
   });
 
-  // Mutation guard for the CR 16-42-3 kind gate on the ＜Use Req.＞ condition: EX12-073 is an
-  // OPTION whose colors never satisfy this card's colour requirement, yet it carries the [ME]
-  // trait and EX12 Options sit in the battle area. Remove `kind: ["Digimon", "Tamer"]` from the
-  // youHave filter and this play is wrongly allowed.
   it("is not enabled by a resident Option carrying the Use Req. trait", () => {
     const s = setupEngine({
       0: {

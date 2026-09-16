@@ -551,11 +551,6 @@ describe("BT25-039 Sirenmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The redirect switches the target to firstRedirect, but Ceresmon's own "when any
-    // Digimon suspend" reaction fires first (on the attacker's own suspension) and, with
-    // three suspended Digimon on the board, drops the attacker's DP to 0 or below before a
-    // battle can happen. The attacker is deleted by that state-based check, not by combat,
-    // so no combatResolved event is ever published and firstRedirect is never touched.
     await settle(
       () =>
         s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstAttacker").instanceId) &&
@@ -712,8 +707,6 @@ describe("BT25-039 Sirenmon", () => {
     s.state.phase = Phase.End;
     const own = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    // The controller's turn restores the first target; suspend only the distinct
-    // second target so the reset proof cannot redirect to the stale target.
     s.perm("firstTarget").isSuspended = false;
     s.perm("secondTarget").isSuspended = true;
     advance(s.engine).endMainPhaseIfOpen(0);

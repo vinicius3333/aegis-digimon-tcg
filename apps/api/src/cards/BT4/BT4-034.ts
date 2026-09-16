@@ -1,4 +1,3 @@
-// KB Q1201: the draw and memory happen only when a bottom source was actually trashed.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

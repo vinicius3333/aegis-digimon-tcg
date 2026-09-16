@@ -183,14 +183,6 @@ describe("BT17-059 Diaboromon", () => {
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.currentDP === 3000)).toHaveLength(2);
   });
 
-  // REMOVED by engine lane E2: "declines the whole optional effect: no clock placed, no tokens"
-  // asserted the pre-ruling endpoint on exactly the fixture and decision path the Q2813 test below
-  // now covers. Q2813 says the placement is an activation cost, paid whether or not the tokens are
-  // played, so "no clock placed" is unreachable. See PAY-THEN-MAY-MECHANISM.md.
-
-  // Q2813 also lets the player pay the "by placing" cost yet decline to play the Tokens. The
-  // module sets `payCostBeforeOptional`, so `runActionInner` places the clock first and offers only
-  // the token play. See docs/audits/BT17.md#pay-then-may-mechanism.
   it("can place Doomsday Clock while declining the token play (Q2813)", async () => {
     const s = setupEngine(
       {
@@ -294,8 +286,6 @@ describe("BT17-059 Diaboromon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
 
-    // Second opponent attack the same turn: the once-per-turn window is spent, so no switch —
-    // the attack lands on the 0-security player and ends the game.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",

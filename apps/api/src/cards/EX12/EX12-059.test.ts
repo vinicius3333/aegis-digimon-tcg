@@ -43,8 +43,6 @@ describe("EX12-059 Machinedramon ACE", () => {
               destination: "digivolutionStack",
               position: "bottom",
               host: "self",
-              // Printed over "cards", so no kind gate: a level 5 or lower Digi-Egg with a
-              // matching trait is legal material too.
               target: {
                 count: 2,
                 from: ["hand", "trash"],
@@ -95,8 +93,6 @@ describe("EX12-059 Machinedramon ACE", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "source" }],
           hand: [{ card: "EX12-055", as: "handMaterial" }],
-          // EX12-003 Kapurimon is a Lv.2 Digi-Egg with the [ME] trait; the printed cost takes
-          // "cards", so it qualifies alongside the Lv.5 Digimon.
           trash: [{ card: "EX12-003", as: "digiEggMaterial" }],
         },
         1: { battleArea: [{ card: "EX12-058", as: "opponent", under: ["EX12-055", "EX12-055", "EX12-055"] }] },

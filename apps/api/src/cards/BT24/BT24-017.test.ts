@@ -119,9 +119,6 @@ describe("BT24-017 Medusamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT24-017");
-    // The engine appends each selected card at the physical deck bottom; its
-    // tail therefore reads reverse insertion order while preserving the
-    // activating player's [second, first] choices.
     expect(s.state.players[1]!.deck.slice(-2).map((card) => card.instanceId)).toEqual([
       s.inst("first").instanceId,
       s.inst("second").instanceId,

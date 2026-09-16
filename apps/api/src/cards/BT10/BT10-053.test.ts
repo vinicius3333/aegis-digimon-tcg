@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT10-053.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 describe("BT10-053 Ajatarmon", () => {
   it("matches its catalog and exact Main plus inherited IR", () => {
@@ -175,9 +175,6 @@ describe("BT10-053 Ajatarmon", () => {
         !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking &&
         s.state.players[1]!.security.length === 1,
     );
-    // Attacking alone never feeds Ajatarmon's inherited "gain 1 memory" clause: the gauge did
-    // not move toward the controller. (It moved the other way, from the board's own effects,
-    // so the suspensions below are read as a DELTA against this point.)
     const memoryAfterAttack = s.state.memory;
     expect(memoryAfterAttack).toBeLessThanOrEqual(0);
 

@@ -68,7 +68,7 @@ describe("BT25-078 Gazimon", () => {
         0: {
           hand: [{ card: CARD_ID, as: "gazimon" }],
           deck: [
-            { card: "BT24-088", as: "textMatch" }, // Tamer: [Three Musketeers] appears only in its effect text.
+            { card: "BT24-088", as: "textMatch" },
             { card: "BT25-081", as: "fillerOne" },
             { card: "BT25-079", as: "fillerTwo" },
           ],
@@ -188,7 +188,6 @@ describe("BT25-078 Gazimon", () => {
           ],
         },
       },
-      // A stale client cannot force the trait-only destination: the server filters it by card definition.
       { autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1, preferInstanceIds: [] },
     );
     s.state.memory = 3;
@@ -315,8 +314,6 @@ describe("BT25-078 Gazimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
-    // The low-DP evolved stack loses the battle and its inherited Retaliation removes the
-    // otherwise-winning opponent as well.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

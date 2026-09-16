@@ -3,7 +3,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX6-071")!;
 
-/** EX6-071 — Pandemonium Lost, with opponent hand cost and post-cost level boundary structured. */
 export const compiled: CompiledCard = {
   ...generated,
   effects: generated.effects.map((effect) =>

@@ -3,20 +3,9 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-// P-250 registers itself on import; `../index.js` supplies every peer module the fixtures use.
-// (`../index.js` does not list P-250 yet — wiring it in is a coordinator-owned step.)
 import { compiled } from "./P-250.js";
 import "../index.js";
 
-// Neutral fixtures. Every friendly host/recipient below is printed blank or carries only an
-// [On Play] clause, which a pre-seeded battle-area permanent never fires — so no fixture can
-// open a decision or move a card and steal the assertion.
-//  BT3-078 Shamanmon   Purple Lv.3 [Demon]    — blank text, legal Purple Lv.3 base.
-//  BT3-076 Candlemon   Purple Lv.3 [Flame]    — blank text, the near-miss trait.
-//  BT1-057 Sirenmon    Yellow Lv.5 [Shaman]   — blank text.
-//  BT3-084 Raremon     Purple Lv.4 [Undead]   — [On Play] only, play cost 5.
-//  BT11-051 Ogremon    Green  Lv.4 [Demon]    — blank text, the named alternate-path base.
-//  BT1-080 Titamon     Green  Lv.6 [Shaman]   — blank text, play cost 10.
 const HAND_FIVE = ["BT3-076", "BT3-076", "BT3-076", "BT3-076", "BT3-076"];
 
 describe("P-250 Ogremon (X Antibody)", () => {
@@ -48,7 +37,6 @@ describe("P-250 Ogremon (X Antibody)", () => {
     expect(compiled.digivolutionRequirement).toEqual([
       { namesExact: ["Ogremon", "Fugamon", "Hyogamon"], cost: 1, isAlternate: true },
     ]);
-    // A substring match would wrongly accept relatives of those names.
     expect(JSON.stringify(compiled.digivolutionRequirement)).not.toContain('"names"');
   });
 
@@ -62,7 +50,6 @@ describe("P-250 Ogremon (X Antibody)", () => {
       },
       into: { controller: "mine", zone: "trash", isSelfRef: true, kind: ["Digimon"] },
       from: ["trash"],
-      // P-250 does NOT print "without paying the cost" (contrast BT24-080, which does).
       payCost: true,
       optional: true,
       condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 },
@@ -135,8 +122,6 @@ describe("P-250 Ogremon (X Antibody)", () => {
     const baseId = s.perm("demon").topCard.instanceId;
     const hostId = s.perm("demon").permanentId;
     const sourceId = s.inst("ogremonX").instanceId;
-    // The voluntary pass frames the outgoing turn at -3 before its EndOfYourTurn window;
-    // the exact memoryChanged receipt below proves the normal Purple Lv.3 payment.
     s.state.memory = 6;
     await s.ready();
 
@@ -144,8 +129,6 @@ describe("P-250 Ogremon (X Antibody)", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     let evolvedAtNaturalEnd = false;
-    // This is a real EndOfYourTurn proof: the source is collected from the trash during the
-    // natural boundary and pays the ordinary Purple Lv.3 cost against the outgoing gauge.
     await settle(() => {
       if (s.perm("demon").topCard.instanceId === sourceId) evolvedAtNaturalEnd = true;
       return evolvedAtNaturalEnd;
@@ -157,10 +140,7 @@ describe("P-250 Ogremon (X Antibody)", () => {
     expect(s.perm("demon").topCard.instanceId).toBe(sourceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(sourceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("grantCost").instanceId);
-    // Purple Lv.3 -> P-250 costs 3 memory; the printed text grants no waiver. The event
-    // receipt is sampled after the natural window, so it does not depend on a transient gauge.
     expect(s.events).toContainEqual({ kind: "memoryChanged", from: -3, to: -6, reason: "digivolve" });
-    // 5 in hand, +1 from the digivolution draw, -1 trashed for the [When Digivolving] grant cost.
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(observe(s.engine).hasKeyword(s.perm("demon"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("demon"), "Retaliation")).toBe(true);
@@ -264,7 +244,6 @@ describe("P-250 Ogremon (X Antibody)", () => {
     await advance(s.engine).fireForInstance(EffectTiming.EndOfYourTurn, s.inst("ogremonX"));
     await settle(() => s.perm("ogremonBase").topCard.cardId === "P-250");
 
-    // BT11-051 is named Ogremon, so the cost-1 alternate path applies even from the trash.
     expect(s.perm("ogremonBase").topCard.cardId).toBe("P-250");
     expect(s.state.memory).toBe(2);
   });
@@ -295,7 +274,6 @@ describe("P-250 Ogremon (X Antibody)", () => {
 
     expect(s.perm("ogremon").stack.map((card) => card.instanceId)).toEqual([baseId]);
     expect(s.state.memory).toBe(2);
-    // 1 card left after P-250 leaves, +1 digivolution draw, -1 trashed for the grant cost.
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("ogremon"), "Blocker")).toBe(true);
@@ -362,10 +340,8 @@ describe("P-250 Ogremon (X Antibody)", () => {
 
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(true);
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Retaliation")).toBe(true);
-      // One target, not one per keyword: the near-miss trait never receives either grant.
       expect(observe(s.engine).hasKeyword(s.perm("flame"), "Blocker")).toBe(false);
       expect(observe(s.engine).hasKeyword(s.perm("flame"), "Retaliation")).toBe(false);
-      // The cost trashed exactly 1 hand card.
       expect(s.state.players[0]!.hand).toHaveLength(0);
       expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("fodder").instanceId);
       expect(card).toBe(s.perm(alias).topCard.cardId);
@@ -602,7 +578,6 @@ describe("P-250 Ogremon (X Antibody)", () => {
     await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cheapId));
 
-    // BT3-078 play cost 3 is deletable; BT1-080 play cost 10 is not a legal choice.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([dearId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(cheapInstanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sourceId);

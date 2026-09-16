@@ -208,8 +208,6 @@ describe("BT16-102", () => {
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.perm("magna").isSuspended).toBe(false);
 
-    // The second security removal is a natural event in the same turn; re-suspend only
-    // to make a second activation observable without injecting the event bus.
     s.perm("magna").isSuspended = true;
     expect(
       s.engine.applyIntent(0, {

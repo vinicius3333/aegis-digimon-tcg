@@ -129,7 +129,6 @@ describe("BT23-026 Lopmon", () => {
     const beforeMemory = s.state.memory;
     const beforeHand = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     const beforeTrash = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
-    // Printed hand permission must not authorize a different loose zone.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -429,7 +428,6 @@ describe("BT23-026 Lopmon", () => {
     await s.ready();
     s.state.memory = 3;
     const lopmon = s.perm("lopmon");
-    // A Green Lv.5 print whose own [Digivolve] requirement a Lv.3 Lopmon cannot satisfy.
     expect(s.inst("otherAntylamon").digivolveTargetPermanentIds).toContain(lopmon.permanentId);
     expect(s.inst("musclemon").digivolveTargetPermanentIds ?? []).not.toContain(lopmon.permanentId);
     expect(
@@ -450,7 +448,6 @@ describe("BT23-026 Lopmon", () => {
   it("ignores the carrier's own public suspension and reacts only to another friendly one", async () => {
     const s = setupEngine({
       0: {
-        // A keyword-free carrier, so only the inherited BT23-026 clause can react.
         battleArea: [
           { card: "BT23-018", as: "carrier", under: ["BT23-026"] },
           { card: "BT23-018", as: "other" },
@@ -464,7 +461,6 @@ describe("BT23-026 Lopmon", () => {
       },
     });
     const base = s.perm("target").currentDP;
-    // "any of your OTHER Digimon": the carrier suspending itself must not fire the reaction.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

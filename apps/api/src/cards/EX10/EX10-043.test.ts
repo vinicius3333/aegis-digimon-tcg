@@ -7,25 +7,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-043";
 
-/**
- * EX10-043 Sakusimon (Purple Lv.4 [Sup.]/[Appmon], DP 5000, play cost 5,
- * [Digivolve] Purple Lv.3: Cost 2, link DP +3000, [Link] [Appmon] trait: Cost 2).
- *
- * Printed clauses:
- *  1. [On Play] [When Digivolving] Delete 1 of your opponent's level 3 Digimon.
- *  2. [All Turns] [Once Per Turn] When effects trash any of this Digimon's link cards,
- *     gain 1 memory.
- *  3. Link effect: [When Attacking] By trashing 1 of this Digimon's link cards, delete 1
- *     of your opponent's level 4 or lower Digimon.
- *
- * Q&A covered: Q5123 (the link effect may trash this card itself), Q5124 (a rule-driven
- * link replacement does not trigger the [All Turns] clause), Q5125 (with ＜Link +X＞ the
- * link effect may trash a DIFFERENT link card of the same host).
- *
- * Fixtures: BT1-013 (inert Lv.3), BT1-014 (inert Lv.4), BT1-020 (inert Lv.5), ST6-05
- * (inert Purple Lv.3, the digivolution source), BT26-086 Dantemon (＜Link +6＞ [Appmon]
- * multi-link host), EX10-038 Copipemon ([Appmon] Lv.3, a legal link card).
- */
 describe("EX10-043 Sakusimon", () => {
   it("records the exact catalog and Link requirement", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -41,8 +22,6 @@ describe("EX10-043 Sakusimon", () => {
       types: ["Simulation", "Leviathan"],
       linkDp: 3000,
     });
-    // The catalog stores a U+00A0 after the bracketed keyword (a repo-wide scrape artifact),
-    // so the printed requirement is compared with whitespace normalized.
     expect(getCardDefinition(CARD_ID)!.linkRequirement!.replace(/\s+/gu, " ")).toBe("[Link] [Appmon] trait: Cost 2");
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);
     expect(compiled.coverage).toBe("full");
@@ -85,10 +64,6 @@ describe("EX10-043 Sakusimon", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 1 — [On Play] / [When Digivolving] delete 1 opposing level 3 Digimon
-  // ---------------------------------------------------------------------------
-
   it("[On Play] played from hand deletes exactly 1 opposing level-3 Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -115,7 +90,6 @@ describe("EX10-043 Sakusimon", () => {
 
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([level4Id]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
-    // Play cost 5 paid from 5 memory; nothing else touches memory on this line.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual([CARD_ID]);
@@ -181,13 +155,10 @@ describe("EX10-043 Sakusimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // The evolved permanent keeps its identity: Sakusimon on top, ST6-05 as the only
-    // digivolution card beneath it.
     expect(s.perm("source").topCard?.cardId).toBe(CARD_ID);
     expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([sourceInstanceId]);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([level4Id]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
-    // Digivolution cost 2 paid, then the bonus draw took the only deck card.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-013", "BT1-014"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -215,10 +186,6 @@ describe("EX10-043 Sakusimon", () => {
     expect(s.perm("red").topCard?.cardId).toBe("BT1-009");
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
-
-  // ---------------------------------------------------------------------------
-  // Link requirement
-  // ---------------------------------------------------------------------------
 
   it("links only onto an [Appmon] host, costs 2 memory and contributes +3000 DP", async () => {
     const s = setupEngine({
@@ -255,10 +222,6 @@ describe("EX10-043 Sakusimon", () => {
     expect(s.perm("plain").linked).toHaveLength(0);
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 3 — link effect [When Attacking]
-  // ---------------------------------------------------------------------------
-
   it("Q5123 the link effect trashes this card itself to delete an opposing level-4 Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -290,12 +253,9 @@ describe("EX10-043 Sakusimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
 
-    // The cost trashed the link card itself; the level 5 Digimon is out of range.
     expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(sakusimonInstanceId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([level5Id]);
-    // The security card checked by the attack lands in the same trash, so only the deleted
-    // Digimon is asserted here.
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-014");
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -330,7 +290,6 @@ describe("EX10-043 Sakusimon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    // Steer the cost onto the OTHER link card, and the deletion onto the level 4 Digimon.
     preferred.push(s.inst("other").instanceId, s.perm("level4").topCard!.instanceId, s.perm("level4").permanentId);
     const sakusimonInstanceId = s.inst("sakusimon").instanceId;
     const otherInstanceId = s.inst("other").instanceId;
@@ -348,7 +307,6 @@ describe("EX10-043 Sakusimon", () => {
     expect(s.perm("host").linked.map(({ instanceId }) => instanceId)).toEqual([sakusimonInstanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(otherInstanceId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([level5Id]);
-    // Another Digimon's link card is never a legal cost for this host's link effect.
     expect(s.perm("neighbor").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("neighborLink").instanceId]);
   });
 
@@ -408,14 +366,7 @@ describe("EX10-043 Sakusimon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 2 — [All Turns] [Once Per Turn] gain 1 memory on an effect link trash
-  // ---------------------------------------------------------------------------
-
   it("gains 1 memory when an effect trashes its own link card, through the natural attack window", async () => {
-    // Sakusimon hosts a second Sakusimon as its link card. Attacking fires the LINK copy's
-    // [When Attacking] effect, whose cost trashes a link card of the host — a genuine
-    // effect trash of "this Digimon's link cards", so the host's [All Turns] clause pays out.
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -448,9 +399,6 @@ describe("EX10-043 Sakusimon", () => {
   });
 
   it("Q5124 a rule-driven link replacement trashes the old link card without gaining memory", async () => {
-    // Linking a second card onto a Digimon already at its limit puts the board over the
-    // link cap; CR §4-9-5 rule processing trashes the EXISTING link card. That trash is
-    // rule processing, not an effect, so the [All Turns] clause must not pay out.
     const s = setupEngine({
       0: {
         battleArea: [{ card: CARD_ID, as: "sakusimon", linked: [{ card: "EX10-038", as: "oldLink" }] }],
@@ -476,7 +424,6 @@ describe("EX10-043 Sakusimon", () => {
     );
 
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([oldLinkInstanceId]);
-    // Link cost 3 for BT26-010 paid from 3 memory. No memory was gained by the rule trash.
     expect(s.state.memory).toBe(0);
   });
 
@@ -500,10 +447,6 @@ describe("EX10-043 Sakusimon", () => {
   });
 
   it("[Once Per Turn]: a second effect link trash in the same turn gains no further memory", async () => {
-    // Structural note on the fixture: Sakusimon prints no ＜Link +X＞ and no public
-    // affordance grants one (seam `testkit-link-grant-affordance`), so a board with two
-    // link cards on one Sakusimon can only be seeded. Nothing here runs rule processing,
-    // so CR §4-9-5 never trims the seeded pair. Injected origin, structural credit only.
     const s = setupEngine({
       0: {
         battleArea: [
@@ -555,7 +498,6 @@ describe("EX10-043 Sakusimon", () => {
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
-    // Re-arm the board: EX10-038 links onto the [Appmon] Sakusimon for 1 memory.
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -567,8 +509,6 @@ describe("EX10-043 Sakusimon", () => {
 
     const beforeSecond = s.state.memory;
     await advance(s.engine).verb.trash([s.inst("secondLink").instanceId]);
-    // FAILS WHEN REVERTED: a once-per-game gate (or a gate that never resets) leaves this
-    // at `beforeSecond`.
     expect(s.state.memory).toBe(beforeSecond + 1);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

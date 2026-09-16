@@ -6,27 +6,19 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-058.js";
 
-/**
- * BT23-058 Craniamon. The knowledge base carries no Q&A for this card
- * (`node tools/kb/query.mjs card BT23-058` -> no entries), so every assertion below is
- * anchored on the printed text and the comprehensive rules.
- */
-/** Fixtures, named so each board reads as the rules situation it sets up. */
 const CRANIAMON = "BT23-058";
-const FILLER = "BT1-009"; // Monodramon Lv.3 Red, cost 2, 3000 DP — inert main-deck body.
-const CHEAP = "BT1-009"; // The opponent's lowest play cost (2) for the suspend sweep.
-const MID = "BT3-060"; // Black Lv.3, cost 3, 5000 DP — inert, above the lowest play cost.
-const HIGH = "BT4-065"; // Black Lv.3, cost 4, 6000 DP — inert, the opponent's attacker.
-const ALLY = "BT1-027"; // Armadillomon Lv.3 Blue, 4000 DP — inside Volcanic Flare's 4000 DP band.
-const ALLY_TIED = "BT1-050"; // Liollmon Lv.3 Yellow, 4000 DP — ties ALLY for lowest DP.
-const PURPLE_ALLY = "BT2-067"; // Purple Lv.3, 3000 DP — the colour requirement for SELF_DELETE.
-const RED_TAMER = "ST1-12"; // Tai Kamiya — the opponent's red colour requirement; a Tamer, so the
-// lowest-play-cost Digimon sweep never removes the enabler mid-test.
-const FLARE = "BT2-091"; // Volcanic Flare — [Main] Delete 1 of your opponent's Digimon with 4000 DP or less.
-const SWEEP = "BT6-095"; // Happy Bullet Showering — [Main] Delete all of your opponent's Digimon with the lowest DP.
-const SELF_DELETE = "BT7-107"; // [Main] Delete 1 of your Digimon. Then, return up to 2 purple Digimon cards to hand.
+const FILLER = "BT1-009";
+const CHEAP = "BT1-009";
+const MID = "BT3-060";
+const HIGH = "BT4-065";
+const ALLY = "BT1-027";
+const ALLY_TIED = "BT1-050";
+const PURPLE_ALLY = "BT2-067";
+const RED_TAMER = "ST1-12";
+const FLARE = "BT2-091";
+const SWEEP = "BT6-095";
+const SELF_DELETE = "BT7-107";
 
-/** Hand the turn to seat 1 through the production turn loop and open its Main phase. */
 async function openOpponentMain(s: ReturnType<typeof setupEngine>): Promise<void> {
   advance(s.engine).endMainPhaseIfOpen(0);
   await advance(s.engine).waitForMainPhase(1);
@@ -86,9 +78,6 @@ describe("BT23-058 Craniamon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Attacking is the public way to suspend on the own turn: the own Active phase has already
-    // run, so the next unsuspension can only come from the OPPONENT's Active phase, which is
-    // exactly what Reboot changes.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -99,7 +88,6 @@ describe("BT23-058 Craniamon", () => {
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     await settle();
     expect(s.perm("craniamon").isSuspended).toBe(true);
-    // The attack's suspension also consumed this turn's once-per-turn sweep.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
 
     await openOpponentMain(s);
@@ -154,12 +142,9 @@ describe("BT23-058 Craniamon", () => {
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     await settle();
 
-    // The block kept security intact and 11000 DP beat the 6000 + 1000 DP attacker.
     expect(s.state.players[0]!.security).toHaveLength(securityBefore);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([CRANIAMON]);
     expect(s.perm("craniamon").isSuspended).toBe(true);
-    // Blocking suspended Craniamon, so the deletion removed the cost-2 Digimon and spared the
-    // cost-3 and cost-4 ones (the blocked attacker died to the battle, not to the sweep).
     const remaining = s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId);
     expect(remaining).not.toContain(cheapId);
     expect(remaining).not.toContain(attackerId);
@@ -182,9 +167,6 @@ describe("BT23-058 Craniamon", () => {
           { card: "BT1-039", as: "mid" },
           { card: "BT23-068", as: "high" },
         ],
-        // Play cost 2 — strictly cheaper than every battle-area Digimon. If the deletion
-        // filter leaked into the raising area this card would be the sole "lowest" and the
-        // cost-3 pair below would survive.
         breeding: { card: "BT1-009", as: "breeder" },
         security: ["BT1-009", "BT1-010", "BT1-011"],
       },
@@ -220,7 +202,6 @@ describe("BT23-058 Craniamon", () => {
     expect(trashedIds).toContain(low1InstanceId);
     expect(trashedIds).toContain(low2InstanceId);
     expect(trashedIds).not.toContain(breederInstanceId);
-    // One trashed card is the checked security card; the two deletions are the rest.
     expect(s.state.players[1]!.trash).toHaveLength(3);
     expect(s.state.players[1]!.security).toHaveLength(securityBefore - 1);
     expect(s.perm("craniamon").isSuspended).toBe(true);
@@ -264,7 +245,6 @@ describe("BT23-058 Craniamon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([secondId, survivorId]);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(firstId);
 
-    // A second suspend in the SAME turn must not delete again: the cost-3 Digimon survives.
     await advance(s.engine).verb.unsuspend([s.perm("craniamon").permanentId]);
     expect(s.perm("craniamon").isSuspended).toBe(false);
     expect(attackPlayer()).toEqual({ ok: true });
@@ -277,7 +257,6 @@ describe("BT23-058 Craniamon", () => {
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
-    // The own Active phase unsuspended Craniamon and the once-per-turn counter reset.
     expect(s.perm("craniamon").isSuspended).toBe(false);
     expect(attackPlayer()).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
@@ -322,8 +301,6 @@ describe("BT23-058 Craniamon", () => {
     const highId = s.perm("high").permanentId;
     await openOpponentMain(s);
 
-    // The opponent's own Option is the effect that would make the ally leave: no verb, no
-    // injected timing.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flare").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
     await settle();
@@ -331,7 +308,6 @@ describe("BT23-058 Craniamon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(allyId);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.perm("craniamon").isSuspended).toBe(true);
-    // Suspending chained into "delete all of your opponent's Digimon with the lowest play cost".
     const remaining = s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId);
     expect(remaining).not.toContain(cheapId);
     expect(remaining).toContain(highId);
@@ -375,8 +351,6 @@ describe("BT23-058 Craniamon", () => {
     await openOpponentMain(s);
     s.state.memory = 7;
 
-    // "Delete all of your opponent's Digimon with the lowest DP" threatens both 4000 DP allies
-    // at once; Craniamon saves exactly 1 of them.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("sweep").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
     await settle();
@@ -413,7 +387,6 @@ describe("BT23-058 Craniamon", () => {
     const cheapId = s.perm("cheap").permanentId;
     s.state.memory = 1;
 
-    // Seat 0's own Option deletes its own Digimon: "by your opponent's effects" does not match.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
@@ -463,7 +436,6 @@ describe("BT23-058 Craniamon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(allyId);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([ALLY]);
     expect(s.perm("craniamon").isSuspended).toBe(false);
-    // Declining also means the suspend never happened, so nothing was swept.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(cheapId);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -501,7 +473,6 @@ describe("BT23-058 Craniamon", () => {
     const allyId = s.perm("ally").permanentId;
     await openOpponentMain(s);
 
-    // Block the opponent's attack: Craniamon suspends, so its protection cost is unpayable.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",

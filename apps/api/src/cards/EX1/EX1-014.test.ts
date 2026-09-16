@@ -42,8 +42,6 @@ describe("EX1-014 ExVeemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    // `attackerDeleted` reports whether the attacker actually LEFT, after battle protection
-    // resolves — ＜Jamming＞ spares it, so the losing DP compare still reports false here.
     expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
       battle: { attackerDeleted: false },
     });

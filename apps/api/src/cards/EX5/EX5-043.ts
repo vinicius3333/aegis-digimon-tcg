@@ -5,8 +5,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const generated = getCompiledCard("EX5-043")!;
 export const compiled: CompiledCard = structuredClone(generated);
 
-// The generated record already contains the printed play trigger; attach the
-// supported dynamic DP ceiling and retire its stale residual marker.
 const playTrigger = compiled.effects.find((effect) => effect.trigger === "YourTurn" && !effect.isInherited);
 for (const effect of compiled.effects ?? []) {
   if (effect.trigger !== "Main" && effect.trigger !== "WhenDigivolving") continue;

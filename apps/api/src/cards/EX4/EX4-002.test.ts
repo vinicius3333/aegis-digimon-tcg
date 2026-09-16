@@ -49,8 +49,6 @@ describe("EX4-002 Kokomon", () => {
       1: { deck: ["BT1-013", "BT1-014"], security: ["BT1-010"] },
     });
     await s.ready();
-    // This route intentionally exercises both the ordinary Draw phase and the mandatory
-    // digivolution bonus draw; the harness otherwise starts on the first player's draw-skip turn.
     s.state.isFirstPlayersFirstTurn = false;
     const loop = s.engine.startTurnLoop();
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
@@ -121,9 +119,6 @@ describe("EX4-002 Kokomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // This attack targets the player directly with no blocker in play, so it resolves
-    // through the security-check path rather than a Digimon-vs-Digimon battle;
-    // combatResolved is only emitted for the latter, so it never fires here.
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);
@@ -158,8 +153,6 @@ describe("EX4-002 Kokomon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    // Keep the first-turn draw in this route so the separate digivolution bonus draw remains
-    // observable as a second card, matching the public-route peer fixtures.
     s.state.isFirstPlayersFirstTurn = false;
     await s.ready();
     const loop = s.engine.startTurnLoop();
@@ -216,8 +209,6 @@ describe("EX4-002 Kokomon", () => {
     await settle(() => host.isSuspended);
 
     expect(host.isSuspended).toBe(true);
-    // The real turn loop's Draw phase legitimately adds one card before Start of Main; Q3438's
-    // forced attack must not add another draw when its rule-caused suspension is observed.
     expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([
       ...handBeforeStartMain,
       normalTurnDraw,

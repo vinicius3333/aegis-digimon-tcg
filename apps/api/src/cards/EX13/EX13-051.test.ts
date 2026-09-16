@@ -9,21 +9,6 @@ import { compiled } from "./EX13-051.js";
 
 const CARD_ID = "EX13-051";
 
-// Fixtures, and why each one is here:
-//   BT20-047 Solarmon    BLACK Lv.3, 2000 DP, printed "＜Blocker＞." and inherited "＜Reboot＞." —
-//                        the protected ALLY (a real other Digimon with ＜Blocker＞), the legal
-//                        Black Lv.3 digivolution source, and the inherited-effect witness that
-//                        proves the source card survives the digivolve into this card.
-//   ST19-07 Tobucatmon   YELLOW Lv.4, 5000 DP, printed "＜Jamming＞." — the NEAR-MATCH negative:
-//                        it carries a printed keyword, just not ＜Blocker＞, so a filter that
-//                        merely checked "has some keyword" would wrongly protect it. Its
-//                        ＜Barrier＞ is INHERITED text, inert while it is a top card.
-//   BT1-013 Muchomon     inert RED Lv.3, 5000 DP — the plain no-keyword negative and the
-//                        illegal (wrong-colour) digivolution source.
-//   BT1-014 Kokatorimon  inert RED Lv.4, 4000 DP — the neutral HOST that carries this card as a
-//                        digivolution card for the inherited clause, with no keyword or effect of
-//                        its own to confound the unsuspend.
-//   BT1-009..BT1-012     inert red main-deck Digimon — neutral deck, security and hand bulk.
 const ALLY_BLOCKER = "BT20-047";
 const NEAR_MATCH_KEYWORD = "ST19-07";
 const NO_KEYWORD = "BT1-013";
@@ -34,7 +19,6 @@ function combatOf(s: ReturnType<typeof setupEngine>) {
   return (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean; hasOpenCounterWindow: boolean } }).combat;
 }
 
-/** The controller's board, laid so the leave replacement is live and payable. */
 function boardWith(allies: { card: string; as: string }[], opts?: { hostSuspended?: boolean }) {
   return {
     0: {
@@ -74,7 +58,6 @@ describe("EX13-051 Guardromon", () => {
     expect(definition.inheritedEffectText).toBe(
       "[Opponent's Turn] [Once Per Turn] When any of your Digimon suspend, this Digimon may unsuspend.",
     );
-    // No security effect is printed; nothing in the module may claim one.
     expect(definition.securityEffectText ?? "").toBe("");
   });
 
@@ -107,7 +90,6 @@ describe("EX13-051 Guardromon", () => {
         },
       ],
     });
-    // No [Once Per Turn] is printed on the leave clause.
     expect(compiled.effects[1]!.frequency).toBeUndefined();
 
     expect(compiled.effects[2]).toMatchObject({
@@ -123,7 +105,6 @@ describe("EX13-051 Guardromon", () => {
         },
       ],
     });
-    // No security clause and no digivolution/assembly override: the catalog EvoCost is the only route.
     expect(compiled.effects.some((effect) => effect.isSecurity === true)).toBe(false);
     expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.assemblyRequirement).toBeUndefined();
@@ -131,10 +112,6 @@ describe("EX13-051 Guardromon", () => {
     expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
     expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
-
-  // ---------------------------------------------------------------------------
-  // ＜Blocker＞
-  // ---------------------------------------------------------------------------
 
   it("＜Blocker＞ switches it in as the defender of an opposing attack", async () => {
     const s = setupEngine(
@@ -163,17 +140,10 @@ describe("EX13-051 Guardromon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The block replaced the security check: 5000 DP beat the 3000 DP attacker, and blocking
-    // suspended the blocker.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.perm("guardromon").isSuspended).toBe(true);
   });
-
-  // ---------------------------------------------------------------------------
-  // [All Turns] When any of your other Digimon with ＜Blocker＞ would leave the battle area other
-  // than by your effects, by suspending this Digimon, they don't leave.
-  // ---------------------------------------------------------------------------
 
   it("saves an ally ＜Blocker＞ from the opponent's effect by suspending itself", async () => {
     const s = setupEngine(boardWith([{ card: ALLY_BLOCKER, as: "ally" }]), {
@@ -193,7 +163,6 @@ describe("EX13-051 Guardromon", () => {
       expect.arrayContaining([allyId, s.perm("guardromon").permanentId]),
     );
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    // The printed cost: this Digimon, and only this Digimon, suspended.
     expect(s.perm("guardromon").isSuspended).toBe(true);
     expect(s.perm("ally").isSuspended).toBe(false);
   });
@@ -236,7 +205,6 @@ describe("EX13-051 Guardromon", () => {
 
       expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
       expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([victim]);
-      // Nothing was charged for a Digimon the filter never watched.
       expect(s.perm("guardromon").isSuspended).toBe(false);
     }
   });
@@ -257,8 +225,6 @@ describe("EX13-051 Guardromon", () => {
     await s.ready();
     const theirsId = s.perm("theirs").permanentId;
 
-    // Seat 1 deleting its own Digimon by its own effect is still "not by seat 0's effects", so only
-    // the printed "your" keeps this leave unprotected.
     advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
     expect(await advance(s.engine).verb.deletePermanent([theirsId], "byEffect")).toBe(1);
     advance(s.engine).verb.leaveEffectResolution();
@@ -283,7 +249,6 @@ describe("EX13-051 Guardromon", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([ALLY_BLOCKER]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
-    // The surviving ally was never suspended: nothing paid for a leave the clause did not watch.
     expect(s.perm("ally").isSuspended).toBe(false);
   });
 
@@ -372,7 +337,6 @@ describe("EX13-051 Guardromon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("guardromon").isSuspended).toBe(true);
 
-    // Unsuspend the host so the cost is payable again; the clause itself has no per-turn budget.
     await advance(s.engine).verb.unsuspend([s.perm("guardromon").permanentId]);
     await settle(() => s.state.pendingDecision === undefined);
 
@@ -386,12 +350,6 @@ describe("EX13-051 Guardromon", () => {
     expect(s.perm("guardromon").isSuspended).toBe(true);
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited: [Opponent's Turn] [Once Per Turn] When any of your Digimon suspend, this Digimon
-  // may unsuspend.
-  // ---------------------------------------------------------------------------
-
-  /** The host carrying this card as a digivolution card, plus one other Digimon to suspend. */
   function inheritedBoard(opts?: { allySuspended?: boolean }) {
     return {
       0: {
@@ -460,7 +418,6 @@ describe("EX13-051 Guardromon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.perm("host").isSuspended === false);
 
-    // The block suspended the blocker; the inherited clause woke on that suspension.
     expect(s.perm("blocker").isSuspended).toBe(true);
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(2);
@@ -524,7 +481,6 @@ describe("EX13-051 Guardromon", () => {
     await settle(() => s.perm("host").isSuspended === false);
     expect(s.perm("host").isSuspended).toBe(false);
 
-    // Same opponent turn: re-suspend both, and the spent use does not come back.
     await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
     await advance(s.engine).verb.unsuspend([s.perm("ally").permanentId]);
     await settle(() => s.state.pendingDecision === undefined);
@@ -534,7 +490,6 @@ describe("EX13-051 Guardromon", () => {
     await settle();
     expect(s.perm("host").isSuspended).toBe(true);
 
-    // A real turn of the controller's own passes, then the next opponent turn reopens the use.
     s.state.turnSeat = 0;
     s.state.memory = 3;
     await advance(s.engine).runTurn(0);
@@ -547,10 +502,6 @@ describe("EX13-051 Guardromon", () => {
     await settle(() => s.perm("host").isSuspended === false);
     expect(s.perm("host").isSuspended).toBe(false);
   });
-
-  // ---------------------------------------------------------------------------
-  // Evolution: the printed catalog EvoCost (Black Lv.3 for 2) is the only route.
-  // ---------------------------------------------------------------------------
 
   it("digivolves from a Black Lv.3 for 2 with the bonus draw, keeping the source as a digivolution card", async () => {
     const s = setupEngine(
@@ -580,14 +531,10 @@ describe("EX13-051 Guardromon", () => {
     await settle(() => s.perm("source").topCard.cardId === CARD_ID);
 
     expect(s.state.memory).toBe(3);
-    // One card left the hand, the bonus draw put one back: net unchanged.
     expect(s.state.players[0]!.hand).toHaveLength(handSize);
     expect(s.perm("source").topCard.cardId).toBe(CARD_ID);
-    // `Permanent.stack` holds only the cards beneath the top card.
     expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([sourceInstanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    // Source identity survives: Solarmon's inherited ＜Reboot＞ now rides the Guardromon permanent,
-    // alongside Guardromon's own printed ＜Blocker＞.
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
   });

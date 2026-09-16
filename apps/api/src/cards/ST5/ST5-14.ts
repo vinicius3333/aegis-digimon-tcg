@@ -1,9 +1,3 @@
-// Hand-authored override for ST5-14 (Tai Kamiya, Tamer).
-// Fix: trigger fires specifically when the player uses <Blocker> to suspend one of
-// their Digimon, not on a generic OpponentsTurn. The combat controller fires the
-// "whenBlockerActivated" SubTrigger after a legal blocker is declared.
-// The "you may suspend this Tamer" is a cost (kind:"suspend" on self).
-// KB Q669: the Unsuspend target need not be the blocking Digimon.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

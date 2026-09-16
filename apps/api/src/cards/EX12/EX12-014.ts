@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited IR. Decode is represented both by its visible keyword and by an executable
-// would-leave replacement in each printed placement.
-//
-// CR 16-36-1 scopes Decode to "THAT Digimon's digivolution cards", so the replacement's
-// PlayWithoutCost carries `hostFilter: { isSelfRef: true }`; without it the
-// `from: ["digivolutionCards"]` pool spans every stack the controller owns.
-//
-// CR 15-6-2: separate processes in one effect do not inherit each other's conditions, and the
-// printed text does not say "if you did", so the optional PlaceUnder must NOT abort the
-// following "Then, 1 of your Digimon may attack" when declined or unavailable.
 const compiled: CompiledCard = {
   effects: [
     {

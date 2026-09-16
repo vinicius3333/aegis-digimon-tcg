@@ -7,9 +7,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./LM-026.js";
 import "./LM-021.js";
 import "../BT17/BT17-018.js";
-// BT17-010 supplies the numeric DP-based deletion this inherited modifier raises.
 import "../BT17/BT17-010.js";
-// AD1-002 supplies the DP-relative deletion Q4032 says this modifier must not raise.
 import "../AD1/AD1-002.js";
 
 describe("LM-026 Megidramon", () => {
@@ -222,7 +220,6 @@ describe("LM-026 Megidramon", () => {
     );
     await withMegidramon.ready();
 
-    // BT17-010 deletes a 4000-DP-or-lower Digimon; the inherited modifier lifts that to 9000.
     await advance(withMegidramon.engine).fire(EffectTiming.WhenDigivolving, withMegidramon.perm("host"));
     await settle(() => withMegidramon.state.players[1]!.battleArea.length === 0, 2000);
     expect(withMegidramon.state.players[1]!.battleArea).toHaveLength(0);
@@ -251,8 +248,6 @@ describe("LM-026 Megidramon", () => {
     );
     await s.ready();
 
-    // Aldamon has 8000 DP. LM-026 adds only to printed numeric DP ceilings, not to
-    // "as much or less DP as this Digimon"; Q4032 therefore leaves the 10000-DP target in play.
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("host"));
     await settle(() => s.state.pendingDecision == null);
 

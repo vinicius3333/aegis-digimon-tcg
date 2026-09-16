@@ -82,7 +82,7 @@ describe("EX8-044", () => {
     });
     await settle(() => player.battleArea.some((p) => p.topCard?.cardId === "EX8-044") && s.state.memory === 5);
 
-    expect(s.state.memory).toBe(5); // 10 - 6 play cost + 1 newly suspended opponent.
+    expect(s.state.memory).toBe(5);
     expect(s.perm("alreadySuspended").isSuspended).toBe(true);
     expect(s.perm("freshOpponent").isSuspended).toBe(true);
   });
@@ -110,7 +110,7 @@ describe("EX8-044", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("opponent").isSuspended);
     expect(s.perm("opponent").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(8); // 10 - 3 digivolution cost + 1 suspended opponent.
+    expect(s.state.memory).toBe(8);
     expect(s.perm("host").topCard.cardId).toBe("EX8-044");
     expect(s.perm("host").stack.map((card) => card.cardId)).toContain("EX7-022");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-045"]);
@@ -271,7 +271,7 @@ describe("EX8-044", () => {
     expect(s.perm("base").topCard?.cardId).toBe("EX8-044");
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.perm("other").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(-1); // seat 1 gains one memory for suspending seat 0's other Digimon.
+    expect(s.state.memory).toBe(-1);
   });
 
   it("suspends an own Digimon without counting it for opposing-Digimon memory", async () => {
@@ -294,7 +294,7 @@ describe("EX8-044", () => {
 
     expect(s.perm("ownAlly").isSuspended).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(5); // 10 - 6 play cost + 1 for only the opposing suspension.
+    expect(s.state.memory).toBe(5);
   });
 
   it("keeps its suspension buff through its turn and expires it at the opponent turn end", async () => {

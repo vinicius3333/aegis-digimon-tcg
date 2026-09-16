@@ -7,9 +7,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT10-025.js";
 
 const CYBERDRAMON = "BT10-025";
-const BLUE_FLARE_HOST = "BT10-024"; // MetalGreymon — in-cutoff Digimon with the [Blue Flare] trait
+const BLUE_FLARE_HOST = "BT10-024";
 
-/** The OnDeclaration effectKey BT10-025 surfaces for its [Hand][Main] clause, if any. */
 function handMainEffectKey(s: EngineSetup, instance: CardInstance): string | undefined {
   const source = (s.engine as unknown as { cardSourceOf(i: CardInstance): CardSource }).cardSourceOf(instance);
   return effectsOf(EffectTiming.OnDeclaration, source).find((e) => e.effectKey.startsWith(`${CYBERDRAMON}/`))
@@ -74,7 +73,7 @@ describe("BT10-025 — [Hand][Main] activates only while the card is in hand (CR
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("otherBlueFlare").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === cyber.instanceId)).toBe(false);
-    expect(s.state.memory).toBe(0); // "by paying 3 memory"
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not pay memory or move itself when only a non-Blue-Flare host exists", async () => {
@@ -149,8 +148,6 @@ describe("BT10-025 — [Hand][Main] activates only while the card is in hand (CR
     s.state.memory = 3;
     const cyber = s.perm("cyber").topCard!;
 
-    // The effect is still SURFACED at the activation window (it is the card's only [Main]
-    // clause); what the residency guard denies is triggering it from the wrong zone.
     const effectKey = handMainEffectKey(s, cyber);
     expect(effectKey).toBeDefined();
 
@@ -161,11 +158,9 @@ describe("BT10-025 — [Hand][Main] activates only while the card is in hand (CR
     });
     expect(res.ok).toBe(false);
 
-    await settle(() => false, 20); // flush any stray continuation
+    await settle(() => false, 20);
     expect(s.perm("host").stack.some((c) => c.instanceId === cyber.instanceId)).toBe(false);
-    expect(s.state.memory).toBe(3); // no cost paid — the effect never ran
-    // REVERT-CONFIRM-RED: drop the `isFromHand` branch in `activated`'s base guard (builders.ts)
-    // => the on-field copy passes the guard => `res.ok` is true and the host is unsuspended.
+    expect(s.state.memory).toBe(3);
   });
 });
 

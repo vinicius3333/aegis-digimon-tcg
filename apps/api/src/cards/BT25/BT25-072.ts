@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Keep the catalog-derived IR as the source of truth for the ordinary timing clauses;
-// the registered wrapper below adds Shutmon's linked-card face, which the IR cannot express.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -33,8 +31,6 @@ export const compiled: CompiledCard = {
                 },
               ],
             },
-            // The host-qualified branch is only for this Digimon's stack. The
-            // alternate branch keeps the same trait/Link gates for cards in trash.
             orFilters: [
               {
                 controller: "mine",

@@ -250,7 +250,6 @@ export const compiled: CompiledCard = {
             controller: "mine",
             kind: ["Digimon"],
           },
-          // The Option-side text specifies the host's bottom digivolution card.
           position: "bottom",
           optional: true,
         },

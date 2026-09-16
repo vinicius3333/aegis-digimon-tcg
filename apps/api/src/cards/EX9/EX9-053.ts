@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4807: can play Digimon or Tamer cards.
-// Base play cost max is 4; scales +1 per face-down digivolution card of this Digimon.
-// KB Q4807 confirms both Digimon and Tamer are eligible — kind filter is omitted.
 export const compiled: CompiledCard = {
   effects: [
     {

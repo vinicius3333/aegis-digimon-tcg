@@ -6,10 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-024.js";
 
-/**
- * Hand the turn to seat 1 through the real turn loop instead of writing `state.turnSeat`.
- * The loop is returned inside an object so `await` does not chain onto it.
- */
 async function toOpponentMain(s: EngineSetup): Promise<{ loop: Promise<void> }> {
   await s.ready();
   const loop = s.engine.startTurnLoop();
@@ -308,8 +304,6 @@ describe("BT23-024 Poseidomon", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // The public attack fires [When Attacking], which links Musclemon; the linked reaction
-    // then pays its own cost by unsuspending Poseidomon and arms the restriction.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -362,7 +356,6 @@ describe("BT23-024 Poseidomon", () => {
           deck: ["BT1-009", "BT1-013", "BT1-027", "BT1-028"],
         },
         1: {
-          // Two tied play-cost-3 Digimon: per Q5249 both are exempt while they are tied.
           battleArea: [
             { card: "BT23-017", as: "tiedA" },
             { card: "BT23-017", as: "tiedB" },
@@ -405,7 +398,6 @@ describe("BT23-024 Poseidomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tiedA").topCard?.instanceId === s.inst("higher").instanceId);
     await s.engine.recomputeContinuousEffects();
-    // Seadramon's play cost 5 now beats Betamon's 3, so only the digivolved stack stays exempt.
     expect(observe(s.engine).isRestricted(s.perm("tiedA"), "suspend")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("tiedB"), "suspend")).toBe(true);
     expect(

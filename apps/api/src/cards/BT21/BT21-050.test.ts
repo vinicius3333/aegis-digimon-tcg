@@ -91,7 +91,6 @@ describe("BT21-050 Cherrymon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     const redirectTargetId = s.perm("cherrymon").permanentId;
-    // Falcomon suspends Cherrymon before the same attack can redirect to it.
     preferred.push(s.perm("cherrymon").topCard.instanceId);
     s.state.turnSeat = 1;
     s.state.memory = 0;

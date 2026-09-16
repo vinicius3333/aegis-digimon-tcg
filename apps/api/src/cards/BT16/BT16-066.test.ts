@@ -44,7 +44,6 @@ describe("BT16-066", () => {
       },
       { autoDeclineOptional: true },
     );
-    // The normal digivolution costs 1; declining then gains that 1 back.
     s.state.memory = 1;
     await s.ready();
 

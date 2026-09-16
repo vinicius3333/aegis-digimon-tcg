@@ -86,7 +86,6 @@ describe("BT17-075 Eosmon", () => {
     ]);
   });
 
-  // Q2843: the <De-Digivolve 1> fires even when neither player plays a Tamer.
   it("De-Digivolves once for two in-play Tamers with no Tamer played (Q2843)", async () => {
     const s = setupEngine(
       {
@@ -267,7 +266,6 @@ describe("BT17-075 Eosmon", () => {
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === eosmonId)).toBe(true);
   });
 
-  // Q2842: the redirect may switch onto an UNSUSPENDED [Eosmon].
   it("redirects a natural opponent attack onto an unsuspended Eosmon (Q2842)", async () => {
     const s = setupEngine(
       {
@@ -293,7 +291,6 @@ describe("BT17-075 Eosmon", () => {
     expect(s.perm("eosmon").isSuspended).toBe(false);
   });
 
-  // The printed text carries no suspension restriction: a SUSPENDED Eosmon is a legal redirect target.
   it("redirects a natural opponent attack onto a suspended Eosmon", async () => {
     const s = setupEngine(
       {

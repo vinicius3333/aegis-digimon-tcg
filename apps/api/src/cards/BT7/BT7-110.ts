@@ -1,18 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT7-110 Evolution Ancient (Option Card)
-// Static (prerequisite): if you have a Digimon with [Hybrid] in its traits in play,
-//   you may use this Option without meeting its color requirements. (WaiveColorRequirement)
-// [Main] Your level 4 Digimon can digivolve into 1 Digimon card in your hand with
-//   matching colors and [Ten Warriors] in its traits for its digivolution cost,
-//   ignoring its level.
-//   - target: level 4 Digimon (yours)
-//   - into: Ten Warriors trait, matching colors, from hand
-//   - payCost: true (for its digivolution cost)
-//   - ignoreLevelRequirement: true (ignoring its level — only level req bypassed,
-//     color requirements still apply via standard digivolution rules)
-// See LANE_E.md CAP-E-01 for ignoreLevelRequirement capability spec.
 const compiled: CompiledCard = {
   effects: [
     {

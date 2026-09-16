@@ -1,18 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT7-062 (Dorugamon).
-//
-// Audit fixes:
-//
-// 1. Aura target was filtering for Digimon with [X-Antibody] — wrong. The target is
-//    THIS Digimon (self). The Blocker is granted to this Digimon, not to X-Antibody Digimon.
-//
-// 2. The 'while' condition must be an OR of two subconditions:
-//    (a) you have ANOTHER Digimon in play with [X-Antibody] in its traits
-//    (b) a card with [X-Antibody] in its traits is in THIS Digimon's digivolution cards
-//    The original only checked (a).
-
 const compiled: CompiledCard = {
   effects: [
     {

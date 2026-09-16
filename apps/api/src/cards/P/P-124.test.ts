@@ -60,7 +60,6 @@ describe("P-124 Davis Motomiya", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-    // A voluntary pass establishes 3 memory for the incoming player; Davis then gains 1.
     expect(s.state.memory).toBe(4);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

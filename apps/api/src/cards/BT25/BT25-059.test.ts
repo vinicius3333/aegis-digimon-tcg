@@ -110,7 +110,7 @@ describe("BT25-059 Ceresmon", () => {
       noReduction.engine.applyIntent(0, { type: "playCard", instanceId: noReduction.inst("ceresmon").instanceId }),
     ).toEqual({ ok: true });
     await settle(() => noReduction.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-059"));
-    expect(noReduction.state.memory).toBe(-5); // one suspended Digimon is below the two-card threshold
+    expect(noReduction.state.memory).toBe(-5);
   });
 
   it("On Play suspends up to two Digimon from either side, then protects all own suspended TS/Vegetation Digimon", async () => {
@@ -308,9 +308,6 @@ describe("BT25-059 Ceresmon", () => {
           response: { kind: "chooseTargets", instanceIds: [s.perm(targetAlias).permanentId] },
         }),
       ).toEqual({ ok: true });
-      // The optional DnaDigivolve tail has no legal materials when the opponent controls no
-      // Digimon (this scenario), so no further decision follows the target choice — drain
-      // instead of asserting one exists; the loop below already handles both cases.
       await settle();
       while (s.state.pendingDecision !== undefined) {
         const followup = s.state.pendingDecision;
@@ -446,15 +443,15 @@ describe("BT25-059 Ceresmon", () => {
     await s.ready();
     await advance(s.engine).verb.suspend([s.perm("toSuspend").permanentId]);
     await settle(() => s.perm("target").currentDP === 3000);
-    expect(s.perm("target").currentDP).toBe(3000); // 12000 - (3 suspended Digimon × 3000)
+    expect(s.perm("target").currentDP).toBe(3000);
 
     await advance(s.engine).verb.unsuspend([s.perm("toSuspend").permanentId]);
     await advance(s.engine).verb.suspend([s.perm("toSuspend").permanentId]);
     await settle(() => s.state.pendingDecision === undefined);
-    expect(s.perm("target").currentDP).toBe(3000); // Once Per Turn: no second -9000
+    expect(s.perm("target").currentDP).toBe(3000);
 
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
-    expect(s.perm("target").currentDP).toBe(12000); // untilOpponentTurnEnd expires after seat 1's turn
+    expect(s.perm("target").currentDP).toBe(12000);
   });
 });

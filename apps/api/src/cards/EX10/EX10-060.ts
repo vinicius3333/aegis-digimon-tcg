@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5170-Q5171 (binding):
-//   - Multiple effects trigger simultaneously on digivolve; player chooses order.
-//   - The [Once Per Turn] effect counts toward its limit even if the opponent didn't delete.
-// [On Play][When Digivolving] cost: play 1 [Lucemon: Larva] from trash to EMPTY breeding area
-//   without cost — the play is the gating action; the following delete checks if it acted.
-// [When Digivolving][When Attacking]: opponent may delete 1 of their Digimon OR Tamers (kind fixed);
-//   if no delete occurred → trash opponent's top security card AND unsuspend self.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -32,9 +25,6 @@ export const compiled: CompiledCard = {
           payCost: false,
           breeding: true,
           requiresEmpty: "breedingArea",
-          // CR 15-7-4: "By playing 1 [Lucemon: Larva] ..." is a declinable processing condition,
-          // not a mandatory step. Declining aborts the trailing deletion, which the
-          // `ifThisEffectActed` gate also enforces when the breeding area is not empty.
           optional: true,
           abortOnDecline: true,
         },
@@ -77,9 +67,6 @@ export const compiled: CompiledCard = {
           payCost: false,
           breeding: true,
           requiresEmpty: "breedingArea",
-          // CR 15-7-4: "By playing 1 [Lucemon: Larva] ..." is a declinable processing condition,
-          // not a mandatory step. Declining aborts the trailing deletion, which the
-          // `ifThisEffectActed` gate also enforces when the breeding area is not empty.
           optional: true,
           abortOnDecline: true,
         },

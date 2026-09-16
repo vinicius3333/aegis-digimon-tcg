@@ -93,9 +93,6 @@ describe("EX12-033 Amphimon", () => {
           amount: 4,
           scope: "acrossDigimon",
           fromTop: false,
-          // The pooled scope reads every eligible host, so the target count is "all". The
-          // effects.json snapshot still carries the compiler's "any", a value `Target.count`
-          // (number | "all") does not admit; that record needs regenerating from this module.
           target: { count: "all" },
         },
         {
@@ -194,9 +191,6 @@ describe("EX12-033 Amphimon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    // The Return clause's candidates include every opponent permanent left with no
-    // digivolution cards (both emptied Digimon plus the already-empty Tamer): bias the
-    // selection toward the Tamer so the test proves the printed "returns a Tamer" text.
     preferred.push(s.perm("emptyTamer").topCard.instanceId);
 
     expect(

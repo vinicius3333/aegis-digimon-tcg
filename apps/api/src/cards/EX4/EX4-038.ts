@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Fixes:
-// 1. rest: "deckTop" (not deckBottom) — place remaining revealed cards on top in any order.
-// 2. Second add nameOrTrait: all three names ([Gabumon], [Garurumon], [Omnimon]) in a
-//    single OR-match entry as they are a single target clause.
-// Q&A Q3487: must add as many applicable cards as possible (both if both present).
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -15,9 +15,6 @@ const playFromTamer: Action = {
   payCost: false,
   optional: true,
 };
-// Both cost names are printed bracketed ([Shoutmon EX6], [ShootingStarmon]), so they are
-// EXACT name gates (`nameExact`), not the substring `match: "name"` reserved for
-// "w/[Name] in its name" wording.
 const compiled: CompiledCard = {
   effects: [
     {

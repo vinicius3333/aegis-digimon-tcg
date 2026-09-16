@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** EX6-001 — inherited Once Per Turn Legend-Arms stack-placement watcher. */
 export const compiled: CompiledCard = {
   effects: [
     {

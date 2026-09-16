@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-corrected IR for BT9-080 (Raguelmon).
-// [On Play] Play 1 purple or yellow Digimon card with 6000 DP or less from your trash.
-// If you have 1 or fewer security cards, you may play 1 level 6 or lower Digimon card
-// with [Angel] or [Fallen Angel] in its traits from your trash instead.
-// KB Q1873: the "instead" choice is available when security ≤ 1.
-// KB Q1874: the alternative play is also from your trash.
-//
-// [End of Your Turn] You may DNA digivolve this Digimon and one of your other Digimon
-// in play into a Digimon card in your hand for its DNA digivolve cost.
-// Encoded: materials.isSelf = true triggers the self+1-other pickup in runDnaDigivolve.
 export const compiled: CompiledCard = {
   effects: [
     {

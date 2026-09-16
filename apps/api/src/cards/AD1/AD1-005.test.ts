@@ -112,7 +112,6 @@ describe("AD1-005 Gaiamon", () => {
     const invalidNoLinkId = s.inst("invalidNoLink").instanceId;
     const firstTargetId = s.perm("firstTarget").permanentId;
 
-    // Enter Main through the production turn loop, then use the normal digivolve intent.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     const firstTurn = s.state.turnCount;

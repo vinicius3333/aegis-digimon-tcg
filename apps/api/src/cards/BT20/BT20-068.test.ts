@@ -77,10 +77,6 @@ describe("BT20-068 Bakemon", () => {
           instanceId: s.inst("bakemon").instanceId,
         }),
       ).toEqual({ ok: true });
-      // With 2+ Tamers the action's own condition fails, so the WhenDigivolving trigger
-      // never enters at all (no `effectTriggered`/`effectResolved` for BT20-068) — this is
-      // a real "nothing happens" outcome, not a no-op resolution to wait on. Settle on the
-      // digivolve landing instead, which happens either way.
       await settle(() =>
         tamerCount <= 1
           ? s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-088")

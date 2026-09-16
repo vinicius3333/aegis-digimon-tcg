@@ -23,8 +23,6 @@ export const compiled: CompiledCard = {
           position: "bottom",
           underFilter: {
             controller: "mine",
-            // Q2896: cards can't be placed under tokens, so the [Diaboromon] Token this same
-            // clause just played is never a legal destination.
             excludeToken: true,
             nameOrTrait: [{ tokens: ["Diaboromon"], match: "nameExact" }],
             excludeCardsNamed: ["Doomsday Clock"],

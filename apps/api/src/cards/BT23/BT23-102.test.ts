@@ -6,11 +6,6 @@ import { compiled } from "./BT23-102.js";
 import "../index.js";
 import { observe } from "../../engine/testkit/observe.js";
 
-// Fixture cards used as the printed DNA materials and the named Partition sources:
-//   ST10-05  Angewomon   — Yellow Lv.5, [Angewomon]
-//   BT23-067 LadyDevimon — Purple Lv.5, [LadyDevimon], [CS] trait
-//   BT22-023 AeroVeedramon — Blue Lv.5 with the [CS] trait: the alternate-cost-5 base
-//   BT1-040  WereGarurumon — Blue Lv.5 with NO [CS] trait: the illegal base
 describe("BT23-102 Mastemon", () => {
   it("matches every catalog field, keyword, and complete compiled clause", () => {
     expect(getCardDefinition("BT23-102")).toMatchObject({
@@ -34,8 +29,6 @@ describe("BT23-102 Mastemon", () => {
   });
 
   it("carries both printed cost headers and publishes them to the shared requirement readers", () => {
-    // "[Digivolve] Lv.5 w/[CS] trait: Cost 5" and "[DNA Digivolve] Yellow Lv.5 + purple Lv.5: Cost 0".
-    // `traits` is EXACT (CR 2-3-2-3): a substring gate would also accept "Abadin Electronics".
     expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["CS"], cost: 5, isAlternate: true }]);
     expect(compiled.dnaDigivolveRequirement).toEqual([
       {
@@ -86,8 +79,6 @@ describe("BT23-102 Mastemon", () => {
     });
   });
 
-  // --- Public evolution routes -------------------------------------------------------
-
   it("DNA digivolves publicly from a yellow Lv.5 and a purple Lv.5 at cost 0, and the two Lv.5 sources trim both security stacks to 3", async () => {
     const s = setupEngine(
       {
@@ -125,9 +116,7 @@ describe("BT23-102 Mastemon", () => {
     const merged = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === mastemonId)!;
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(merged.stack.map(({ instanceId }) => instanceId).sort()).toEqual([yellowId, purpleId].sort());
-    // Printed DNA cost 0: the merge pays nothing.
     expect(s.state.memory).toBe(0);
-    // The DNA stack holds two Lv.5 cards, so the conditional tail trims both stacks to 3.
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[1]!.security).toHaveLength(3);
   });
@@ -140,8 +129,6 @@ describe("BT23-102 Mastemon", () => {
             battleArea: [{ card: "BT22-023", as: "base" }],
             hand: [{ card: "BT23-102", as: "mastemon" }],
             deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010"],
-            // FIVE cards, not three: a stack that already sits at 3 could not tell "no trim"
-            // apart from "trimmed to 3".
             security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           },
           1: {
@@ -152,8 +139,6 @@ describe("BT23-102 Mastemon", () => {
         { autoDeclineOptional: true, autoSelectCards: true },
       );
 
-    // Memory 7 -> 2 pins the paid amount at exactly 5 (a "to zero" assertion would pass for
-    // any cost >= the starting memory: the rules let memory go negative).
     const s = board();
     await s.ready();
     s.state.memory = 7;
@@ -172,9 +157,7 @@ describe("BT23-102 Mastemon", () => {
     expect(s.perm("base").topCard.cardId).toBe("BT23-102");
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseId]);
     expect(s.state.memory).toBe(2);
-    // Digivolution draws 1.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
-    // One Lv.5 card in the stack is not a same-level PAIR: no trim, both stacks stay at 5.
     expect(s.state.players[0]!.security).toHaveLength(5);
     expect(s.state.players[1]!.security).toHaveLength(5);
   });
@@ -225,8 +208,6 @@ describe("BT23-102 Mastemon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.memory).toBe(10);
   });
-
-  // --- [When Digivolving]: the free play ---------------------------------------------
 
   function dnaBoard(
     seatZero: Record<string, unknown>,
@@ -281,7 +262,6 @@ describe("BT23-102 Mastemon", () => {
     await dnaInto(s);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId)).toBe(true);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(playedId);
-    // "Without paying the cost": BT23-031 costs 7, memory stays where the DNA merge left it.
     expect(s.state.memory).toBe(0);
   });
 
@@ -305,7 +285,6 @@ describe("BT23-102 Mastemon", () => {
   it("refuses a level 6 card and an off-color card, and still performs the mandatory trim", async () => {
     const s = dnaBoard(
       {
-        // BT23-034 is level 6; BT23-046 is green. Neither matches "level 5 or lower yellow or purple".
         hand: [
           { card: "BT23-102", as: "mastemon" },
           { card: "BT23-034", as: "tooHigh" },
@@ -325,10 +304,7 @@ describe("BT23-102 Mastemon", () => {
     expect(
       s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId).filter((id) => id === highId || id === offId),
     ).toEqual([]);
-    // The trim is not optional: it runs even though the optional play found nothing.
     expect(s.state.players[1]!.security).toHaveLength(3);
-    // Its own trim removes cards from security, so Mastemon's [All Turns] watcher opens and
-    // (auto-accepted here) places Mastemon itself at the bottom: 3 kept cards + itself.
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(mastemonId);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
@@ -352,8 +328,6 @@ describe("BT23-102 Mastemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[1]!.security).toHaveLength(3);
   });
-
-  // --- The trim's security-count boundaries ------------------------------------------
 
   it.each([
     [2, 2],
@@ -423,8 +397,6 @@ describe("BT23-102 Mastemon", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(ids.theirTop);
   });
 
-  // --- [All Turns] [Once Per Turn] placement -----------------------------------------
-
   it("offers the placement on a natural security check during its controller's turn", async () => {
     const preferredIds: string[] = [];
     const s = setupEngine(
@@ -456,7 +428,6 @@ describe("BT23-102 Mastemon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The opponent's security card was checked and removed, which fires the watcher.
     expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).not.toContain(theirCardId);
     const placed = s.state.players[0]!.security.concat(s.state.players[1]!.security);
     expect(placed.map(({ instanceId }) => instanceId)).toContain(attackerId);
@@ -468,8 +439,6 @@ describe("BT23-102 Mastemon", () => {
       {
         0: {
           battleArea: [{ card: "BT23-102", as: "mastemon" }],
-          // 2000-DP security Digimon: a 3000-DP attacker survives every security battle, so the
-          // only thing that removes an attacker from the board is Mastemon's own placement.
           security: [
             { card: "BT1-010", as: "first" },
             { card: "BT1-012", as: "second" },
@@ -509,7 +478,6 @@ describe("BT23-102 Mastemon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(attackerAId);
 
-    // Second removal in the SAME turn: the once-per-turn cap refuses another placement.
     preferredIds.length = 0;
     preferredIds.push(s.perm("attackerB").permanentId, s.perm("attackerB").topCard.instanceId);
     const attackerBId = s.perm("attackerB").topCard.instanceId;
@@ -526,7 +494,6 @@ describe("BT23-102 Mastemon", () => {
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).not.toContain(attackerBId);
     expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).not.toContain(attackerBId);
 
-    // Next turn the use resets: a fresh removal accepts a placement again.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -559,9 +526,6 @@ describe("BT23-102 Mastemon", () => {
           security: [{ card: "BT1-009", as: "mine" }],
           deck: ["BT1-011", "BT1-012"],
         },
-        // BT24-039 Ceresmon: "[Security] If your opponent has a level 6 or higher Digimon,
-        // play this card without battling and without paying the cost." — a [Security] effect
-        // that activates IMMEDIATELY on the check. Mastemon is the required level 6.
         1: { security: [{ card: "BT24-039", as: "securityCard" }], deck: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },
@@ -581,11 +545,8 @@ describe("BT23-102 Mastemon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The [Security] effect activated without pending activation: Ceresmon is on its own board.
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === securityCardId)).toBe(true);
-    // Mastemon's removal watcher still resolved, placing the attacker at the bottom of security.
     expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(attackerId);
-    // Precedence: the [Security] play is emitted BEFORE the removal watcher triggers.
     const securityPlayIndex = s.events.findIndex(
       (event) => event.kind === "cardPlayed" && (event as { cardId?: string }).cardId === "BT24-039",
     );
@@ -599,17 +560,12 @@ describe("BT23-102 Mastemon", () => {
     expect(watcherIndex).toBeGreaterThan(securityPlayIndex);
   });
 
-  // Q5391: either player's Digimon may be placed. Public route: seat 1 attacks the player, the
-  // security check removes a card from SEAT 0's stack, and Mastemon's watcher places seat 1's
-  // other (non-attacking) Digimon as the bottom card of seat 0's stack.
   it("places the opponent's Digimon into the chosen security stack, moving the physical card out of the battle area (Q5391)", async () => {
     const preferredIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT23-102", as: "mastemon" }],
-          // 2000-DP security bodies: the 3000-DP attacker survives, so only the placement
-          // removes a Digimon from seat 1's board.
           security: [
             { card: "BT1-010", as: "ownTop" },
             { card: "BT1-012", as: "ownBottom" },
@@ -648,7 +604,6 @@ describe("BT23-102 Mastemon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(opponentId);
-    // The physical card moved out of the battle area and never passed through the trash.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.instanceId)).not.toContain(opponentId);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(opponentId);
 
@@ -656,8 +611,6 @@ describe("BT23-102 Mastemon", () => {
     await loop;
   });
 
-  // Q5392: placing THIS card itself does not trigger its own <Partition>. Mastemon carries real
-  // [Angewomon] and [LadyDevimon] sources here, so a Partition replacement would be visible.
   it("can place itself in its controller's security without opening a Partition replacement (Q5392)", async () => {
     const preferredIds: string[] = [];
     const s = setupEngine(
@@ -700,10 +653,8 @@ describe("BT23-102 Mastemon", () => {
 
     expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(mastemonId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(mastemonId);
-    // No <Partition> replay: neither source card is back in the battle area.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("ST10-05");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT23-067");
-    // The digivolution cards are trashed as the Digimon leaves the battle area.
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["ST10-05", "BT23-067"]),
     );
@@ -711,8 +662,6 @@ describe("BT23-102 Mastemon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // --- Keywords ----------------------------------------------------------------------
 
   it("exposes Barrier and Partition on a public Mastemon permanent", async () => {
     const direct = setupEngine({ 0: { battleArea: [{ card: "BT23-102", as: "direct" }] } });
@@ -722,9 +671,6 @@ describe("BT23-102 Mastemon", () => {
   });
 
   it("uses Barrier in real combat by trashing exactly one security card", async () => {
-    // Paying ＜Barrier＞ removes a card from this player's own security stack, which reaches the
-    // "when security stacks are removed from" bus and offers Mastemon's own [All Turns] option.
-    // Decline it: this test is about the Barrier cost.
     const s = setupEngine(
       {
         0: {
@@ -745,8 +691,6 @@ describe("BT23-102 Mastemon", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // The Active phase unsuspends the board at the start of each own turn, so arm the
-    // suspension AFTER the opponent's Main phase opens: an attack needs a suspended target.
     s.perm("mastemon").isSuspended = true;
     const barrierCostId = s.inst("barrierCost").instanceId;
     const mastemonId = s.perm("mastemon").topCard.instanceId;
@@ -818,9 +762,6 @@ describe("BT23-102 Mastemon", () => {
     await loop;
   });
 
-  // <Partition ([Angewomon] & [LadyDevimon])>: when this Digimon would be deleted by an
-  // opponent's effect, it is replaced by its two named sources. Public route: seat 1 plays
-  // ST1-16 Gaia Force ("[Main] Delete 1 of your opponent's Digimon.") on its own turn.
   it("uses Partition to replay exact Angewomon and LadyDevimon sources when an opponent Option deletes it", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -830,7 +771,6 @@ describe("BT23-102 Mastemon", () => {
           deck: Array(10).fill("BT1-011"),
         },
         1: {
-          // A red permanent satisfies the Option's colour requirement.
           battleArea: [{ card: "BT1-021", as: "redEnabler" }],
           hand: [{ card: "ST1-16", as: "gaia" }],
           deck: Array(10).fill("BT1-011"),

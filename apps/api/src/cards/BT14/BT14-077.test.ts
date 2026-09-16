@@ -78,8 +78,6 @@ describe("BT14-077", () => {
     );
 
     expect(s.perm("base").topCard?.cardId).toBe("BT14-077");
-    // The public digivolution draw takes BT1-009 first; [When Digivolving]
-    // then mills exactly the next two cards from the own deck.
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[0]!.trash.slice(-2).map((card) => card.cardId)).toEqual(["BT1-009", "BT1-009"]);
@@ -153,7 +151,6 @@ describe("BT14-077", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The second mill left seven cards; the intervening draw left six before this mill of three.
     await settle(
       () => s.state.players[1]!.deck.length === 3 && s.state.players[1]!.security.length === 1 && s.state.memory === 5,
     );

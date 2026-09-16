@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-205 Insane Synthetic Monster (option card).
-// [Static] If you have a Digimon or Tamer with DM trait, you may play this at 0 color cost.
-// [Main] Draw 2, trash 2 from hand, then place this card in the battle area.
-// <Delay> [Main] By deleting 1 of your Digimon with play cost 7 or lower,
-//   you may play 1 Digimon with [Kimeramon] or [Millenniummon] in name from trash, reducing cost by 3.
-// [Security] Draw 2, trash 2 from hand, then place this card in the battle area.
-// KB Q5200: if deleted Digimon leaves while pending, that card's OnDeletion cannot fire.
-// KB Q5397: DigiXros/Assembly can further reduce the play cost.
 const compiled: CompiledCard = {
   effects: [
     {

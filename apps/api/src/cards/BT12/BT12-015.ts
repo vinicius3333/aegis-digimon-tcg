@@ -7,9 +7,6 @@ const compiled: CompiledCard = {
       effectKey: "BT12-015/hand-main-stack-and-digivolve",
       trigger: "Main",
       isFromHand: true,
-      // This whole-effect gate preserves the printed atomic material requirement.  The
-      // requiredNamesExact selection below remains authoritative if the board changes between
-      // declaration and resolution, so a stale decision cannot place only one material.
       condition: {
         kind: "allOf",
         conditions: [

@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Compiled effect IR for EX6-007 (Zubamon; Red Lv.3 Digimon).
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -34,8 +34,6 @@ describe("EX11-045 Metatromon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 5, texts: ["Maquinamon"], cost: 3, isAlternate: true }]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
-    // Printed ＜Blocker＞ lives on the keyword line, the shape registration reads for printed
-    // keywords (peers EX11-035 / EX11-073).
     expect(compiled.effects.filter(({ trigger }) => trigger === "Static").flatMap(({ keywords }) => keywords)).toEqual(
       expect.arrayContaining([expect.objectContaining({ keyword: "Blocker" })]),
     );
@@ -159,7 +157,6 @@ describe("EX11-045 Metatromon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.perm("target").topCard.cardId === "EX11-029");
     expect(s.perm("target").topCard.cardId).toBe("EX11-029");
-    // The gauge changes perspective when the turn passes; no digivolution payment event is emitted.
     expect(s.state.memory).toBe(-3);
     expect(
       s.events.some((event) => event.kind === "memoryChanged" && "reason" in event && event.reason === "digivolve"),

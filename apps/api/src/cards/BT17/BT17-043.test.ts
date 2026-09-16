@@ -19,11 +19,6 @@ function suspendedOpponentCount(s: ReturnType<typeof setupEngine>): number {
   return s.state.players[1]!.battleArea.filter((permanent) => permanent.isSuspended).length;
 }
 
-/**
- * Answer seat 0's `optional` ("use this effect?") prompts by hand, accepting every one
- * except BT17-043's suspend. `autoDeclineOptional` cannot express this: it would also
- * decline the play that has to happen for the suspend prompt to exist at all.
- */
 async function declineOnlyTheSuspend(s: ReturnType<typeof setupEngine>): Promise<void> {
   for (let step = 0; step < 8; step += 1) {
     await settle();
@@ -231,7 +226,6 @@ describe("BT17-043 Terriermon", () => {
     expect(s.state.memory).toBe(4);
     expect(suspendedOpponentCount(s)).toBe(1);
 
-    // Second effect-play the same turn: [Once Per Turn] refuses a second suspend.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -341,8 +335,6 @@ describe("BT17-043 Terriermon", () => {
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
 
-    // Seat 1 deletes seat 0's Gargomon; its [On Deletion] plays a [Terriermon] from
-    // seat 0's trash — an own effect-play, but on the opponent's turn.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -355,7 +347,7 @@ describe("BT17-043 Terriermon", () => {
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId)).toBe(true);
     expect(s.perm("bystander").isSuspended).toBe(false);
-    expect(suspendedOpponentCount(s)).toBe(1); // The attacker, suspended by attacking.
+    expect(suspendedOpponentCount(s)).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
 
     s.engine.applyIntent(1, { type: "endPhase" });
@@ -393,7 +385,6 @@ describe("BT17-043 Terriermon", () => {
       }),
     ).toEqual({ ok: true });
 
-    // Accept BT17-049's optional play, then decline BT17-043's optional suspend.
     await declineOnlyTheSuspend(s);
     await settle();
 
@@ -430,7 +421,6 @@ describe("BT17-043 Terriermon", () => {
     await settle(() => s.perm("host").isSuspended);
     await settle();
 
-    // The peer carries no BT17-043 under it and is the control for the aura.
     expect(s.perm("host").currentDP).toBe(7000);
     expect(s.perm("peer").currentDP).toBe(6000);
 

@@ -4,24 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-// A3 for ST2-15 (Kaiser Nail — Option card):
-//   "[Main] Choose a Digimon digivolution card placed under 1 of your Digimon and
-//    play it as another Digimon without paying its memory cost."
-//
-// Observable: after playing Kaiser Nail as an Option, a Digimon digi-card from under
-// one of the controller's Digimon is played as a new Digimon on the battle area.
-//
-// FAILS-WHEN-REVERTED: without the [Main] body, no card is played from the digi-stack;
-// the battle area count and trash remain unchanged.
-//
-// KB Q627: the played card comes into play unsuspended (a new Digimon, not inheriting state).
-// KB Q626: Digimon digi-cards only — not Digi-Eggs or Tamers.
-//
-// Card IDs used:
-//   ST2-15   — Kaiser Nail (Option, the card under test)
-//   ST2-10   — Plesiomon (Lv.6 Digimon, used as the host on the field)
-//   BT10-074 — Lv.4 Purple Digimon, placed as a digi-card under the host (legal play target)
-
 describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your Digimon", () => {
   it("loads the complete shared IR artifact without residual clauses", () => {
     const definition = getCardDefinition("ST2-15");
@@ -66,7 +48,6 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
       {
         0: {
           battleArea: [
-            // A Digimon on p0's battle area with a Digimon digi-card (BT10-074) in its stack.
             {
               card: "ST2-10",
               as: "baseDigimon",
@@ -77,7 +58,7 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
                 { card: "BT10-074", as: "digiCard" },
               ],
             },
-            { card: "BT1-027", dp: 3000 }, // §4-21 color-requirement source (Blue)
+            { card: "BT1-027", dp: 3000 },
           ],
           hand: [{ card: "ST2-15", as: "kaiserNail" }],
         },
@@ -88,24 +69,20 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     const baseDigimon = s.perm("baseDigimon");
     const digiCardId = s.inst("digiCard").instanceId;
 
-    // Pay only Kaiser Nail's printed cost of 4.
     s.state.memory = 4;
 
     await advance(s.engine).verb.modifyDP(baseDigimon.permanentId, 4000, EffectDuration.UntilEachTurnEnd);
     expect(baseDigimon.currentDP).toBe(baseDigimon.baseDP + 4000);
     const initialBattleCount = p0.battleArea.length;
 
-    // Play Kaiser Nail as an Option card.
     const result = s.engine.applyIntent(0, {
       type: "playCard",
       instanceId: s.inst("kaiserNail").instanceId,
     });
     expect(result.ok).toBe(true);
 
-    // Wait for the [Main] effect to play BT10-074 as a new Digimon.
     await settle(() => p0.battleArea.length > initialBattleCount);
 
-    // A new Digimon should appear on the battle area (BT10-074 played from digi-stack).
     expect(p0.battleArea.length).toBeGreaterThan(initialBattleCount);
     const played = p0.battleArea.find((p) => p.topCard?.cardId === "BT10-074")!;
     expect(played).toBeDefined();
@@ -116,7 +93,6 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     expect(p0.battleArea).toHaveLength(initialBattleCount + 1);
     expect(s.state.memory).toBe(0);
 
-    // The digi-card should no longer be under the base Digimon's stack.
     expect(baseDigimon.stack.some((c) => c.instanceId === digiCardId)).toBe(false);
     expect(baseDigimon.stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("eggSource").instanceId,
@@ -224,9 +200,8 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
       {
         0: {
           battleArea: [
-            // Digimon on battle area with NO digi-cards in stack.
             { card: "BT1-009", dp: 6000, as: "baseDigimon" },
-            { card: "BT1-027", dp: 3000 }, // §4-21 color-requirement source (Blue)
+            { card: "BT1-027", dp: 3000 },
           ],
           hand: [{ card: "ST2-15", as: "kaiserNail" }],
         },
@@ -247,7 +222,6 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     await settle(() => p0.trash.some((card) => card.instanceId === s.inst("kaiserNail").instanceId));
     expect(p0.trash.some((card) => card.instanceId === s.inst("kaiserNail").instanceId)).toBe(true);
 
-    // No new Digimon was played (no valid target).
     expect(p0.battleArea.length).toBe(initialBattleCount);
   });
 

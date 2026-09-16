@@ -20,7 +20,6 @@ describe("BT5-044 Sakuyamon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("mover"), "SecurityAttack")).toBe(-3);
     expect(observe(s.engine).keywordAmount(s.perm("other"), "SecurityAttack")).toBe(0);
 
-    // The grant is only for the turn in which the opposing Digimon moved.
     await advance(s.engine).runTurn(1);
     expect(observe(s.engine).keywordAmount(s.perm("mover"), "SecurityAttack")).toBe(0);
   });

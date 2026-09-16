@@ -66,8 +66,6 @@ describe("EX13-067 Nokia Shiramine", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-    // The turn transition restores the shared memory gauge before Nokia's next trigger;
-    // the second trigger is therefore observed as 3 -> 4, independently of the first turn.
     expect(s.state.memory).toBe(4);
     await settle();
   });

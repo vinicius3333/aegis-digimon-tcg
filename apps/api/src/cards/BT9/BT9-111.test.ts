@@ -127,8 +127,6 @@ describe("BT9-111 Alphamon: Ouryuken", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT6-111", "BT8-069", "BT9-064"]),
     );
-    // "You may return" is the one optional choice. Once cards were returned,
-    // "if you do, gain" is mandatory and must not create a second UI prompt.
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
     expect(s.decisions.filter(({ req }) => req.kind === "orderCards")).toHaveLength(1);
   });

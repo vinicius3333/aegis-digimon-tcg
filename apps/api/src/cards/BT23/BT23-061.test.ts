@@ -6,24 +6,12 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-061.js";
 
-/**
- * Printed text (BT23, official card list):
- *   [On Play] [On Deletion] 1 of your Digimon with the [Ghost] trait gains <Blocker>
- *   until your opponent's turn ends.
- *   Inherited: [On Deletion] Gain 1 memory.
- *
- * `node tools/kb/query.mjs card BT23-061` returns no knowledge-base entries, so there is no
- * Q&A or errata to cover; the clauses below are proven against the comprehensive rules only.
- */
-
-/** Permanents on `seat` that currently hold a Blocker grant. */
 function blockerHolders(s: EngineSetup, seat: 0 | 1): string[] {
   return s.state.players[seat]!.battleArea.filter((p) => observe(s.engine).hasKeyword(p, "Blocker")).map(
     (p) => p.permanentId,
   );
 }
 
-/** Candidate ids of the first target/select decision, resolved to permanent ids where possible. */
 function candidatePermanentIds(s: EngineSetup, req: DecisionRequest): string[] {
   const ids = req.options?.candidateInstanceIds ?? [];
   const all = [
@@ -144,7 +132,6 @@ describe("BT23-061 Ghostmon", () => {
     expect(candidates).toContain(s.perm("ghostmon").permanentId);
     expect(candidates).not.toContain(s.perm("nonGhost").permanentId);
     expect(candidates).not.toContain(s.perm("opponentGhost").permanentId);
-    // CR 3-4-5-3: cards in the breeding area cannot be affected by effects that do not name it.
     expect(candidates).not.toContain(s.perm("breedingGhost").permanentId);
 
     expect(blockerHolders(s, 0)).toEqual([s.perm("otherGhost").permanentId]);
@@ -184,7 +171,6 @@ describe("BT23-061 Ghostmon", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // Still armed through the whole of the opponent's turn.
     expect(blockerHolders(s, 0)).toEqual([recipient]);
 
     advance(s.engine).endMainPhaseIfOpen(1);
@@ -296,7 +282,6 @@ describe("BT23-061 Ghostmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("ghostmon").topCard!.instanceId === bakemonId);
-    // Cost 2 paid, Ghostmon is now the digivolution card, and the digivolve draw landed.
     expect(s.state.memory).toBe(0);
     expect(s.perm("ghostmon").stack.map((card) => card.instanceId)).toEqual([ghostmonInstanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
@@ -316,8 +301,6 @@ describe("BT23-061 Ghostmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([bakemonId, ghostmonInstanceId]),
     );
-    // Bakemon has no top-card On Deletion clause, and Ghostmon's own top-card clause is
-    // inactive as a digivolution card, so the whole memory swing is the inherited +1.
     expect(s.state.memory).toBe(1);
     expect(blockerHolders(s, 0)).toEqual([]);
     assertNoLoudGap(s);

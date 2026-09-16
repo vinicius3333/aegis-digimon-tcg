@@ -6,31 +6,19 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-029.js";
 
-/**
- * Decline the ＜Alliance＞ prompt an attacking Alliance Digimon opens. The engine has no
- * default answer for it, and an unanswered prompt keeps `CombatController.resolving` true,
- * which makes every later attack in the test reject with `wrong-phase`.
- */
 async function declineAlliance(s: ReturnType<typeof setupEngine>): Promise<void> {
   const seen = s.events.filter((event) => event.kind === "alliancePrompt").length;
   await settle(() => s.events.filter((event) => event.kind === "alliancePrompt").length > seen);
   expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
 }
 
-/**
- * Hand the turn to seat 1 through the production turn loop instead of writing `turnSeat`.
- * Returns the loop promise; end it with a `surrender` intent.
- */
 async function handTurnToOpponent(s: ReturnType<typeof setupEngine>): Promise<{ loop: Promise<void> }> {
-  // Seat 0 needs at least one legal Main action, or the entry finalizer auto-passes its turn
-  // and the open-and-idle window `waitForMainPhase` looks for never appears.
   s.state.memory = 3;
   const loop = s.engine.startTurnLoop();
   await advance(s.engine).waitForMainPhase(0);
   advance(s.engine).endMainPhaseIfOpen(0);
   await advance(s.engine).waitForMainPhase(1);
   expect(s.state.turnSeat).toBe(1);
-  // Wrapped: returning the promise itself would make `await` here wait for the whole turn loop.
   return { loop };
 }
 
@@ -299,9 +287,6 @@ describe("BT23-029 Antylamon", () => {
     });
   });
 
-  // The printed clause says "any of your cards", so the pool mixes both trait families and
-  // both card kinds: Beast Digimon (vanilla and keyword-only), Beastkin Digimon, CS Digimon,
-  // and a CS Tamer. Each play must restrict exactly one of the two opposing Digimon.
   const traitPool: Array<[string, string]> = [
     ["Beast Digimon AD1-010", "AD1-010"],
     ["Beast Digimon BT1-049", "BT1-049"],
@@ -415,9 +400,6 @@ describe("BT23-029 Antylamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // BT23-041 carries ＜Alliance＞. Nothing answers that prompt automatically, and an
-    // unanswered one leaves the attack resolving forever, so decline it explicitly: this
-    // test is about Antylamon's inherited -4000, not about using Alliance.
     await declineAlliance(s);
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("target").currentDP).toBe(base - 4000);
@@ -655,9 +637,6 @@ describe("BT23-029 Antylamon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving"));
     expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
 
-    // The duration is "until the end of your opponent's turn", so the restriction must survive
-    // this player's own turn end and the whole opponent turn, and must be gone before the next
-    // own turn opens.
     const phaseLog = () =>
       s.events
         .filter((event) => event.kind === "phaseChanged")
@@ -670,8 +649,6 @@ describe("BT23-029 Antylamon", () => {
     expect(phaseLog().slice(beforeOpponentTurn)).toContain("0:End");
     expect(restricted()).toBe(true);
 
-    // Nothing has cleared it yet: it survived this player's own end-of-turn sweep and the
-    // opponent's Active, Draw and Breeding phases.
     const beforeOpponentEnd = phaseLog().length;
     advance(s.engine).endMainPhaseIfOpen(1);
     let flipAfter: string[] | undefined;
@@ -680,8 +657,6 @@ describe("BT23-029 Antylamon", () => {
       return flipAfter !== undefined;
     });
     expect(flipAfter).toBeDefined();
-    // The clear lands on the opponent's End phase: the first phase observed after their Main
-    // is their End, and no second opponent turn has begun.
     expect(flipAfter![0]).toBe("1:End");
     expect(flipAfter!.filter((entry) => entry.startsWith("1:"))).toEqual(["1:End"]);
 
@@ -733,7 +708,6 @@ describe("BT23-029 Antylamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT23-028");
     await settle();
-    // Coordemon's [When Digivolving] "-3000 DP" never activated (Q5266, Q5268).
     expect(s.perm("dpWitness").currentDP).toBe(witnessDp);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-047"]);
     expect(s.state.pendingDecision).toBeUndefined();

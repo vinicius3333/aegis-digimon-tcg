@@ -6,12 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-038.js";
 
-/**
- * Answer the successive `chooseTargets` decisions of one effect with named permanents, in
- * order. The printed clause picks a suspension target and then a SEPARATE lockout target, so a
- * blanket auto-responder cannot express "suspend this one, lock that one" — and the recorded
- * candidate sets are themselves evidence about who was eligible.
- */
 function scriptTargets(s: EngineSetup, picks: string[][]) {
   const answered = new Set<string>();
   const seen: { candidates: string[]; picked: string[] }[] = [];
@@ -37,7 +31,6 @@ function scriptTargets(s: EngineSetup, picks: string[][]) {
   };
 }
 
-/** Every id a scripted pick may legitimately name for one permanent. */
 function idsOf(s: EngineSetup, alias: string): string[] {
   const permanent = s.perm(alias);
   return [permanent.permanentId, permanent.topCard!.instanceId];
@@ -79,8 +72,6 @@ describe("BT19-038 JaegerDorulumon", () => {
   it("digivolves for 3 from an off-color Lv.4 with the [Xros Heart] trait, which no printed evoCost allows", async () => {
     const s = setupEngine({
       0: {
-        // BT10-063 Hi-VisionMonitamon is BLACK Lv.4 with the [Xros Heart] trait: the printed
-        // Yellow/Green Lv.4 evoCosts cannot cover it, so only the alternate route can.
         battleArea: [{ card: "BT10-063", as: "source" }],
         hand: [{ card: "BT19-038", as: "jaeger" }, { card: "BT1-013" }],
         deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010", "BT1-011"],
@@ -102,7 +93,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === jaegerId));
 
-    // The engine selects the printed route itself, and it costs 3, not the printed evoCost 4.
     expect(
       s.events.some((event) => event.kind === "digivolved" && "mechanic" in event && event.mechanic === "alternate"),
     ).toBe(true);
@@ -116,9 +106,7 @@ describe("BT19-038 JaegerDorulumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          // Red Lv.4, no [Xros Heart]: neither the printed evoCosts nor the alternate route.
           { card: "BT1-014", as: "illegal" },
-          // Yellow Lv.4, no [Xros Heart]: the normal route only, at cost 4.
           { card: "BT10-033", as: "nearMiss" },
         ],
         hand: [{ card: "BT19-038", as: "jaeger" }, { card: "BT19-038", as: "jaegerTwo" }, { card: "BT1-013" }],
@@ -144,8 +132,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     expect(s.state.memory).toBe(4);
 
     const jaegerTwoId = s.inst("jaegerTwo").instanceId;
-    // `useAlternateCost` on a source the alternate route does not cover silently falls back to
-    // the normal route, so only the memory delta discriminates: 4, not 3.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -177,7 +163,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     s.state.memory = 4;
     await s.ready();
 
-    // BT19-039 has no "also treated as" line, so it fills no slot of X4's recipe.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -209,13 +194,10 @@ describe("BT19-038 JaegerDorulumon", () => {
         .stack.map((card) => card.instanceId)
         .sort(),
     ).toEqual([s.inst("shoutmon").instanceId, s.inst("jaeger").instanceId].sort());
-    // Play cost 8 reduced by 2 per placed card.
     expect(s.state.memory).toBe(0);
   });
 
   it("is not [Dorulumon] outside a DigiXros: ＜Material Save＞ saves the real Dorulumon only (Q3094)", async () => {
-    // BT10-013 Shoutmon X5 carries ＜Material Save 3＞ and names [Dorulumon] in its DigiXros
-    // requirement. Q3094: the alias does not make BT19-038 one of those specified cards.
     const s = setupEngine(
       {
         0: {
@@ -291,7 +273,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     expect(observe(s.engine).isRestricted(s.perm("victim"), "cannotActivateWhenDigivolving")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("victim"), "unsuspend")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("mine"), "unsuspend")).toBe(false);
-    // Neither decision ever offered my own Digimon.
     const mineIds = idsOf(s, "mine");
     for (const { candidates } of script.seen) {
       expect(candidates.some((id) => mineIds.includes(id))).toBe(false);
@@ -301,9 +282,6 @@ describe("BT19-038 JaegerDorulumon", () => {
   });
 
   it("may choose an ALREADY suspended Digimon for the suspension", async () => {
-    // Nothing in the printed text says "unsuspended", and comprehensive 15-15-5-1 shows a card
-    // that cannot even be affected still being chosen for "Suspend 1 of your opponent's
-    // Digimon". The observable: the unsuspended peer is left alone.
     const s = setupEngine({
       0: {
         hand: [{ card: "BT19-038", as: "jaeger" }, { card: "BT1-013" }],
@@ -362,7 +340,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     const loop = s.engine.startTurnLoop();
 
     await advance(s.engine).waitForMainPhase(0);
-    // The [When Digivolving] half, reached by the printed alternate route for 3.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -377,13 +354,11 @@ describe("BT19-038 JaegerDorulumon", () => {
     });
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // The opponent's own unsuspend phase runs for real.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("locked").isSuspended).toBe(true);
     expect(s.perm("peer").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // "until the end of their turn": my turn, then their next unsuspend phase frees it.
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -396,9 +371,6 @@ describe("BT19-038 JaegerDorulumon", () => {
   });
 
   it("stops a locked Digimon's [When Digivolving] effect and its 'by' condition (Q5541, Q5544)", async () => {
-    // The opponent digivolves BT19-039 SkullBaluchimon, whose [When Digivolving] reads "By
-    // trashing your top security card, delete ... and gain 1 memory". Q5544: the "by" condition
-    // is not processed either, so their security stack is untouched.
     const s = setupEngine(
       {
         0: {
@@ -431,7 +403,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     const loop = s.engine.startTurnLoop();
 
     await advance(s.engine).waitForMainPhase(0);
-    // The [When Digivolving] half, reached by the printed alternate route for 3.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -466,8 +437,6 @@ describe("BT19-038 JaegerDorulumon", () => {
       ["BT19-038", "BT1-051"].sort(),
     );
 
-    // Positive control on the same board, on their next turn (the cost-4 digivolve above spent
-    // this turn's memory): the unlocked peer pays the security cost and deletes.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -489,9 +458,6 @@ describe("BT19-038 JaegerDorulumon", () => {
   });
 
   it("still lets a locked Digimon's [When Attacking] half of a shared clause activate (Q5542, Q5545)", async () => {
-    // BT14-080 Ghoulmon prints one "[When Digivolving][When Attacking][Once Per Turn]" clause:
-    // "For every 10 cards in your trash, trash the top 3 cards of your opponent's deck". Under
-    // the lock the digivolve half does nothing; the attack half still runs afterwards.
     const trashPile = Array.from({ length: 10 }, () => "BT1-009");
     const s = setupEngine(
       {
@@ -504,8 +470,6 @@ describe("BT19-038 JaegerDorulumon", () => {
         1: {
           battleArea: [
             { card: "BT2-075", as: "locked" },
-            // The suspension and the lockout are separate choices; the decoy absorbs the former
-            // so the locked Digimon can still be attacked with once it digivolves.
             { card: "BT1-013", as: "decoy" },
           ],
           hand: [{ card: "BT14-080", as: "ghoulmon" }, { card: "BT1-013" }],
@@ -548,7 +512,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     await settle(() =>
       s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ghoulmonId),
     );
-    // The [When Digivolving] half was blocked: my deck is untouched.
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckBefore);
 
     expect(
@@ -560,7 +523,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.length === deckBefore.length - 3);
 
-    // Q5542/Q5545: the shared clause still had its per-turn use available for the attack.
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckBefore.slice(3));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining(deckBefore.slice(0, 3)),
@@ -597,7 +559,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    // The destination Tamer is chosen first ("any of your Tamers"), then the card to place.
     const script = scriptTargets(s, [idsOf(s, "tamerTwo")]);
     const answeredSelects = new Set<string>();
     const driveSelects = (): void => {
@@ -605,7 +566,6 @@ describe("BT19-038 JaegerDorulumon", () => {
         if (req.kind !== "selectCards" || answeredSelects.has(req.decisionId)) continue;
         answeredSelects.add(req.decisionId);
         const candidates = req.options?.candidateInstanceIds ?? [];
-        // Only the [Xros Heart] card may be offered; BT1-051 Reppamon has neither trait.
         expect(candidates).not.toContain(s.inst("nearMiss").instanceId);
         s.engine.applyIntent(seat, {
           type: "respondDecision",
@@ -688,7 +648,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          // [Xros Heart] host, and a same-colour peer whose traits (Undead/X Antibody) miss.
           { card: "BT19-010", as: "xrosHost", under: ["BT19-038"] },
           { card: "BT19-039", as: "plainHost", under: ["BT19-038"] },
         ],
@@ -712,7 +671,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     const loop = s.engine.startTurnLoop();
 
     await advance(s.engine).waitForMainPhase(0);
-    // The [Xros Heart] host wins its battle and the excess reaches security.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -723,7 +681,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(3);
 
-    // The non-[Xros Heart] host wins its battle and stops there.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -735,7 +692,6 @@ describe("BT19-038 JaegerDorulumon", () => {
     expect(s.state.players[1]!.security).toHaveLength(3);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // [Your Turn]: the grant is gone once the real turn loop hands the turn over.
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasPierce(s.perm("xrosHost"))).toBe(false);
 

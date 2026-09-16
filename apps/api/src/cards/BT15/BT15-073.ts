@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Digivolving][On Deletion] (Draw 1 card from your deck). Then, trash 1 card in your hand.
-// The inherited effect is scoped to the battle deletion payload and resolves against the
-// per-instance battle-opponent binding captured by the combat resolver.
 const compiled: CompiledCard = {
   effects: [
     {

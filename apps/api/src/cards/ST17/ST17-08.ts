@@ -1,10 +1,3 @@
-// HAND-FIXED — generator must preserve this file (was AUTO-GENERATED FROM IR).
-// Fix 1: Suspend+Restrict payload moved from [Hand]/[Counter] to WhenDigivolving
-//   (KB Q828-Q830: it is this card's WHEN DIGIVOLVING effect).
-// Fix 2: "[When Digivolving][End of Attack][Once Per Turn] You may unsuspend this Digimon"
-//   is ONE effect with two trigger windows sharing a single once-per-turn limit.
-//   Two effects with separate OncePerTurn would allow two unsuspensions per turn.
-//   Use sharedUseKey:"ir-shared-0" on both to enforce a shared limit.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

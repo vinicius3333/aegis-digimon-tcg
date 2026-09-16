@@ -156,7 +156,7 @@ describe("BT11-061 Vemmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT11-070");
-    expect(s.state.memory).toBe(6); // printed 5, reduced to 4
+    expect(s.state.memory).toBe(6);
 
     expect(
       s.engine.applyIntent(0, {
@@ -166,7 +166,7 @@ describe("BT11-061 Vemmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT11-111");
-    expect(s.state.memory).toBe(0); // printed 6; the once-per-turn reduction was consumed
+    expect(s.state.memory).toBe(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     s.state.turnSeat = 1;
     s.state.memory = 10;
@@ -197,7 +197,7 @@ describe("BT11-061 Vemmon", () => {
         s.perm("host").topCard.instanceId === s.inst("nextGalacticmon").instanceId &&
         s.state.pendingDecision === undefined,
     );
-    expect(s.state.memory).toBe(5); // printed 6, same inherited source reset and reduces to 5
+    expect(s.state.memory).toBe(5);
     expect(s.perm("host").stack.map((c) => c.instanceId)).toContain(inheritedSourceId);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;

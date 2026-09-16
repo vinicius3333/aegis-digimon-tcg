@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// CR 15-7-5 permits suspending Owen even when no Reptile/Dragonkin can receive Piercing.
-// Pay the optional processing cost before binding the shared grant/attack target.
 export const compiled: CompiledCard = {
   effects: [
     {

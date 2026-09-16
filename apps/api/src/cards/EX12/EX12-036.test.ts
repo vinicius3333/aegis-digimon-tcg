@@ -8,30 +8,6 @@ import "../index.js";
 
 const cardId = "EX12-036";
 
-/**
- * A3 for EX12-036's `[All Turns][Once Per Turn]` watcher: "When any Digimon are played or
- * digivolve, 1 of your opponent's Digimon can't activate [When Digivolving] effects until
- * their turn ends."
- *
- * Q1e (regression contract): the committed corpus compiled this restriction to a bare
- * `"activate"` — not the interpreter's actual declared RestrictionKind
- * `"cannotActivateWhenDigivolving"` (ir.ts; read by context.ts's canTrigger gate, KB
- * BT19-038 Q5541-Q5545). `"activate"` has NO consumer at all, so the restriction was
- * silently inert: the targeted Digimon could still activate its [When Digivolving]
- * effects. `restrictionFromVerb` now recognizes "activate [When Digivolving] effects" and
- * emits the real, read RestrictionKind. The same bug affected BT20-034's corpus entry
- * (compiled to the differently-wrong "activateWhenDigivolving" typo) — this card is used
- * for the behavioral proof because its trigger (`whenPlayed`) is a simple, direct fire,
- * unlike BT20-034's `onAddDigivolutionCards` watcher, whose OWN separate, pre-existing
- * sourceFilter gap (its `kind: ["Tamer"]` checks the RECEIVER Digimon, not the placed
- * card — see primitives.ts's `fireSubTrigger("onAddDigivolutionCards", ...)`, which passes
- * no placed-card-kind data at all) means it can never fire regardless of this fix. That is
- * a separate, deeper bug this pass does not attempt to fix — flagged in the report.
- *
- * FAILS-WHEN-REVERTED: recompiling with the pre-fix `restrictionFromVerb` reinstates the
- * bare `"activate"` string, and `hasRestriction(..., "cannotActivateWhenDigivolving")`
- * goes back to false even right after the watcher fires.
- */
 describe("EX12-036 Ryugumon", () => {
   it("maps the evolution, keywords, shared once-per-turn timing, and both printed restrictions", () => {
     const card = getCardDefinition(cardId);

@@ -86,7 +86,7 @@ describe("BT20-011 ExVeemon", () => {
       expect.arrayContaining(["BT20-011", "ST6-06"]),
     );
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-016");
-    expect(s.state.memory).toBe(0); // play cost 4, then the printed DNA cost 0
+    expect(s.state.memory).toBe(0);
   });
 
   it("publicly triggers deletion and paid DNA on When Digivolving during its owner's turn", async () => {
@@ -125,7 +125,7 @@ describe("BT20-011 ExVeemon", () => {
       expect.arrayContaining(["BT20-007", "BT20-011", "ST6-06"]),
     );
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("dnaCandidate").instanceId);
-    expect(s.state.memory).toBe(8); // evolution costs 2, then the selected DNA target costs 0
+    expect(s.state.memory).toBe(8);
   });
 
   it("excludes its DNA branch on the opponent's turn through a public battle-deletion trigger", async () => {
@@ -229,7 +229,6 @@ describe("BT20-011 ExVeemon", () => {
             { card: "BT20-011", as: "exVeemon" },
             { card: "BT20-016", as: "dnaCandidate" },
           ],
-          // Keep both players' security non-empty with legal non-Digi-Egg cards.
           security: ["BT20-010"],
         },
         1: {
@@ -239,8 +238,6 @@ describe("BT20-011 ExVeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
-    // EX10-052's public would-leave replacement chooses the resolving ExVeemon as
-    // its opponent deletion target. The ordered BT20-011 effect must still continue.
     preferredInstanceIds.push(s.inst("exVeemon").instanceId);
     s.state.memory = 10;
 

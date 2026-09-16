@@ -70,7 +70,7 @@ describe("BT25-062 Kokuwamon", () => {
     expect(s.perm("koku").stack.map((card) => card.cardId)).toEqual(["BT25-062"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-061"]);
     expect(observe(s.engine).hasKeyword(s.perm("koku"), "Blocker")).toBe(true);
-    expect(s.perm("koku").currentDP).toBe(6000); // Guardromon 5000 + inherited Kokuwamon +1000
+    expect(s.perm("koku").currentDP).toBe(6000);
   });
 
   it.each([

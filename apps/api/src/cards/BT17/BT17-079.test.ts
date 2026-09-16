@@ -54,7 +54,6 @@ describe("BT17-079 Takuya Kanbara", () => {
     ).toEqual({ ok: true });
     await settle(() => security.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-079"));
     expect(security.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-079")).toBe(true);
-    // Printed play cost is 3; [Security] plays it for free, so no payCost memory event fires.
     expect(
       security.events.some(
         (event) => event.kind === "memoryChanged" && "reason" in event && event.reason === "payCost",

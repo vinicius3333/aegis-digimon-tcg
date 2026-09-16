@@ -166,8 +166,6 @@ describe("BT1-002 Bebydomon", () => {
     expect(carrier.topCard?.cardId).toBe("BT6-010");
     expect(carrier.stack.map(({ cardId }) => cardId)).toEqual(["BT1-002"]);
 
-    // BT1-016 is the legal red Lv.4 continuation. Taiga supplies Piercing to its
-    // Tyrannomon-named host, making Q867 observable through the real egg stack.
     s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {
@@ -178,8 +176,6 @@ describe("BT1-002 Bebydomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-016"));
     const evolvedCarrier = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT1-016")!;
-    // BT2-088's optional Taiga reduction is accepted by the harness, so the printed
-    // Lv.3-to-Lv.4 cost 2 is paid as 1 and the Tamer suspends.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("battleDrawn").instanceId);
     expect(evolvedCarrier.stack.map(({ cardId }) => cardId)).toEqual(["BT1-002", "BT6-010"]);
@@ -187,8 +183,6 @@ describe("BT1-002 Bebydomon", () => {
     expect(observe(s.engine).hasPierce(evolvedCarrier)).toBe(true);
     expect(evolvedCarrier.currentDP).toBe(6000);
 
-    // The opponent's intervening turn unsuspends the target; re-suspend it through the
-    // named production test seam so the battle comparison is legal.
     await advance(s.engine).verb.suspend([s.perm("target").permanentId]);
     const targetInstanceId = s.perm("target").topCard!.instanceId;
     expect(

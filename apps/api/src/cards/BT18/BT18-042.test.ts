@@ -72,8 +72,6 @@ describe("BT18-042 MagnaGarurumon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT18-042");
     await settle(() => s.perm("base").stack.length === 1);
     s.state.turnSeat = 1;
-    // Fire the second printed timing inside the same tracker turn. Starting a
-    // complete new turn would correctly reset every once-per-turn budget.
     await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
 
     expect(s.perm("base").stack).toHaveLength(1);

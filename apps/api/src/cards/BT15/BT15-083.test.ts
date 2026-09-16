@@ -7,20 +7,6 @@ import type { Primitives } from "../../engine/effects/EffectContext.js";
 import "../index.js";
 import { compiled } from "./BT15-083.js";
 
-// A3 for BT15-083 (Matt Ishida) — Blue Tamer.
-//
-// [On Play] Reveal the top 3 cards of your deck. Add 1 card with [Gabumon]/[Garurumon]
-//   in its name to the hand. Return the rest to the bottom of the deck.
-// [Your Turn] When one of your Digimon's effects adds cards to your hand, by suspending
-//   this Tamer, gain 1 memory. (KB Q2582)
-// [Security] Play this card without paying the cost.
-//
-// FAILS-WHEN-REVERTED:
-//   [On Play]: remove the reveal+returnToDeck body — neither reveal nor returnToDeck is
-//     called.
-//   [Your Turn]: remove the staticModifier body — subscribeSubTrigger is never called,
-//     so the watcher is never installed.
-
 interface Call {
   verb: string;
   args: unknown[];
@@ -76,7 +62,6 @@ function makeRevealContext(
       (_, verb: string) =>
       (...args: unknown[]) => {
         recorder.calls.push({ verb, args });
-        // reveal returns the fake deck instances
         if (verb === "reveal") return Promise.resolve(deckInstances);
         if (verb === "returnToHand") return Promise.resolve([]);
         if (verb === "returnToDeck") return Promise.resolve([]);
@@ -164,7 +149,7 @@ describe("BT15-083 Matt Ishida", () => {
 
       const revealCall = recorder.calls.find((c) => c.verb === "reveal");
       expect(revealCall, "reveal must be called").toBeDefined();
-      expect(revealCall!.args[0]).toBe(0); // ownerSeat
+      expect(revealCall!.args[0]).toBe(0);
       expect(revealCall!.args[1]).toBe(3);
     });
 
@@ -218,7 +203,6 @@ describe("BT15-083 Matt Ishida", () => {
       const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
       await effects[0]!.resolve(ctx as never);
 
-      // No returnToHand since no Gabumon/Garurumon match.
       expect(recorder.calls.find((c) => c.verb === "returnToHand")).toBeUndefined();
       const returnToDeckCall = recorder.calls.find((c) => c.verb === "returnToDeck");
       expect(returnToDeckCall).toBeDefined();

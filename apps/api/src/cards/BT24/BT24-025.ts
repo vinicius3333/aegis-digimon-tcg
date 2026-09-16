@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT24-025 Shellmon
-// Fix: [Your Turn] effect must fire when another blue TS Digimon unsuspends (SubTrigger),
-//   not on every YourTurn. This Digimon digivolves into [Venusmon] from hand ignoring level.
-//   Q5603: "ignoring level" only bypasses the level requirement; digivolution requirements
-//   (color/trait) still apply and the player chooses which to use (Q5604).
-//   New capability `ignoreLevelRequirement` on DigivolveAction specified in LANE_H.md (CAP-H-08).
 export const compiled: CompiledCard = {
   effects: [
     {

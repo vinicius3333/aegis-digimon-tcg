@@ -82,7 +82,6 @@ describe("BT17-029 Agumon", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([drawnId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([keptId]);
-    // The 1000 DP attacker loses to the 2000 DP security Digimon it revealed.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([agumonInstanceId]);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
@@ -164,7 +163,6 @@ describe("BT17-029 Agumon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // 6000 DP security Digimon reduced to 3000 loses to the 5000 DP attacker.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(0);

@@ -86,7 +86,7 @@ describe("BT20-044 Breakdramon", () => {
     await settle(() => s.perm("first").isSuspended && s.perm("second").isSuspended);
     expect(s.perm("third").isSuspended).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("breakdramon"), "Blocker")).toBe(true);
-    expect(s.state.memory).toBe(-2); // play cost 12 from the legal 10-memory gauge
+    expect(s.state.memory).toBe(-2);
   });
 
   it("deletes a second suspended opponent after a qualifying ally wins a battle", async () => {
@@ -174,9 +174,6 @@ describe("BT20-044 Breakdramon", () => {
         target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
       }),
     ).toEqual({ ok: true });
-    // Breakdramon has ＜Blocker＞ and is eligible, so a block window opens. The block-window
-    // contract is a first-class intent (not a `respondDecision` round-trip), so it needs an
-    // explicit decline here; nothing in the harness auto-answers it.
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
@@ -249,8 +246,6 @@ describe("BT20-044 Breakdramon", () => {
       s.state.memory = -s.state.memory;
       const opponentTurn = s.engine.runOneTurn();
       await advance(s.engine).waitForMainPhase(1);
-      // Publicly attack with the two surviving suspended candidates so they
-      // remain suspended after the opponent's unsuspend phase.
       for (const alias of ["battle3", "effect2"] as const) {
         expect(
           s.engine.applyIntent(1, {
@@ -268,10 +263,6 @@ describe("BT20-044 Breakdramon", () => {
           blockDeclineResult = s.engine.applyIntent(0, { type: "declineBlock" });
         }
         expect(blockDeclineResult).toEqual({ ok: true });
-        // Both attacks here are player-directed (unblocked, no Digimon battle), so they
-        // resolve through a security check rather than `combatResolved` (that event only
-        // fires for a resolved Digimon-vs-Digimon battle; see combat/controller.ts's
-        // `completedCombat`).
         await settle(
           () =>
             !observe(s.engine).isAttacking() &&

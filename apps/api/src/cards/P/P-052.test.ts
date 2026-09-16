@@ -209,9 +209,6 @@ describe("P-052 Vikemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // A player-directed attack never emits `combatResolved` — that event is only
-    // raised for a Digimon-vs-Digimon battle. The real per-attack milestone here is
-    // the security check completing (one card removed per unblocked attack).
     await settle(
       () =>
         s.state.players[1]!.hand.some((card) => card.instanceId === firstTopId) &&

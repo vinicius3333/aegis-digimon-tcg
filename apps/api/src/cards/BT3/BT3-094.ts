@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1124: security Digimon are not considered Digimon — effect doesn't activate.
-// KB Q1125: deleting Digimon must be your green or blue Digimon (sourceFilter).
-// whenDeletesInBattle: implies the deleting Digimon survives (battle won) and the
-// deleted target is a non-security opponent Digimon.
 const compiled: CompiledCard = {
   effects: [
     {

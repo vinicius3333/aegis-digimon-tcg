@@ -60,8 +60,6 @@ describe("historical multicolor control options", () => {
     });
     await settle(() => s.perm("boss").currentDP === 3000);
 
-    // Bifrost contributes -3000 first; Spiral Masquerade then contributes
-    // -3000 for each of the four Digimon in play.
     expect(s.perm("boss").currentDP).toBe(3000);
     expect(observe(s.engine).keywordAmount(s.perm("boss"), "SecurityAttack")).toBe(-1);
   });

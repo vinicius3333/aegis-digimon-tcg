@@ -34,10 +34,6 @@ describe("BT19-011 WarGrowlmon", () => {
       isFromHand: true,
       keywords: [{ keyword: "BlastDigivolve" }],
     });
-    // The aggregate deletion and its "then" memory gain are one action list, fired by both
-    // printed timings. `budgetBonus` carries no zone: `countMatching`'s default scan is the
-    // battle area only, which is what "for each of your opponent's Digimon" means — a
-    // breeding-area Digimon must not raise the maximum.
     for (const index of [1, 2] as const) {
       expect(compiled.effects?.[index]).toMatchObject({
         trigger: index === 1 ? "OnPlay" : "WhenDigivolving",
@@ -56,7 +52,6 @@ describe("BT19-011 WarGrowlmon", () => {
         ],
       });
     }
-    // Printed "[All Turns]" is the AllTurns trigger, not Static.
     expect(compiled.effects?.[3]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
@@ -65,13 +60,7 @@ describe("BT19-011 WarGrowlmon", () => {
     expect(compiled.effects).toHaveLength(4);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] [When Digivolving] Delete any of your opponent's Digimon with DP adding
-  // up to 3000; +2000 per opponent Digimon; then gain 1 memory per Digimon deleted.
-  // ---------------------------------------------------------------------------
-
   it("deletes the whole opposing board within the scaled budget and gains 1 memory per deletion", async () => {
-    // 3 opponent Digimon: 3000 + 3 x 2000 = 9000, and 2000 + 3000 + 4000 = 9000 exactly.
     const s = setupEngine(
       {
         0: {
@@ -98,9 +87,7 @@ describe("BT19-011 WarGrowlmon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
-    // The controller's own 1000 DP Digimon is not a candidate: the filter is opponent-only.
     expect(s.perm("ownDigimon").topCard?.cardId).toBe("BT1-009");
-    // 10 - 5 (play cost) + 3 (one per Digimon deleted by this effect) = 8.
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-014"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -110,7 +97,6 @@ describe("BT19-011 WarGrowlmon", () => {
     [5000, true],
     [6000, false],
   ])("pins the single-Digimon maximum at exactly 5000 (target %i DP)", async (dp, deletes) => {
-    // One opponent Digimon: 3000 + 1 x 2000 = 5000.
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT19-011", as: "warGrowlmon" }, { card: "BT1-014" }] },
@@ -130,14 +116,11 @@ describe("BT19-011 WarGrowlmon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(
       deletes ? [] : ["BT1-009"],
     );
-    // No deletion, no memory: the "then" clause scales by what this effect actually deleted.
     expect(s.state.memory).toBe(deletes ? 6 : 5);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("counts only battle-area Digimon for the +2000, not the opponent's breeding Digimon", async () => {
-    // Battle area holds 1 opponent Digimon, so the maximum is 3000 + 2000 = 5000. Counting the
-    // breeding Digimon too would make it 7000 and delete the 7000 DP target.
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT19-011", as: "warGrowlmon" }, { card: "BT1-014" }] },
@@ -179,7 +162,6 @@ describe("BT19-011 WarGrowlmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // Lv.3 Shoutmon is not a Red Lv.4: the printed requirement rejects it.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -200,17 +182,12 @@ describe("BT19-011 WarGrowlmon", () => {
     expect(s.perm("base").topCard?.cardId).toBe("BT19-011");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT19-009"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // 5 - 3 (Red Lv.4 route) + 1 (one deletion) = 3, and the digivolve bonus draw arrived.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("finishes the 'then' clause even when the source leaves mid-resolution (Q6016)", async () => {
-    // BT6-064 Mamemon's [On Deletion] "delete 1 of your opponent's Digimon with a play cost of
-    // 7 or less" fires from inside the deletion this effect performs and removes WarGrowlmon
-    // (play cost 5) before the "then, gain 1 memory" step runs. Q6016: the effect is still
-    // resolved in full. Budget = 3000 + 2 x 2000 = 7000, so only the 6000 DP Mamemon fits.
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT19-011", as: "warGrowlmon" }, { card: "BT1-014" }] },
@@ -232,17 +209,11 @@ describe("BT19-011 WarGrowlmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
-    // WarGrowlmon left the battle area during the deletion step.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT19-011"]);
-    // 10 - 5 (play cost) + 1 (the memory gain still resolved) - 3 (ACE Overflow ＜3＞) = 3.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // [Hand] [Counter] ＜Blast Digivolve＞
-  // ---------------------------------------------------------------------------
 
   it("blast digivolves from hand in the opponent's counter window without paying the cost", async () => {
     const s = setupEngine(
@@ -279,8 +250,6 @@ describe("BT19-011 WarGrowlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isAttacking());
 
-    // ＜Blast Digivolve＞ is answered through the open [Counter] window, never as a bare
-    // `digivolve` intent — the printed clause is [Hand] [Counter].
     expect(
       s.engine.applyIntent(0, {
         type: "respondCounter",
@@ -293,26 +262,17 @@ describe("BT19-011 WarGrowlmon", () => {
 
     expect(s.perm("base").topCard?.cardId).toBe("BT19-011");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT19-009"]);
-    // The memory cost was waived entirely; only the [When Digivolving] deletion moved the
-    // gauge, and the attacker at 20000 DP was out of the 5000 maximum, so nothing died.
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
-    // The digivolve bonus draw still happened.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [All Turns] Add 3000 to this Digimon's DP deletion effects' maximums.
-  // ---------------------------------------------------------------------------
-
   it.each([
     ["BT19-011", 0],
     ["BT1-009", 1],
   ])("raises a host's printed numeric maximum only from under it (%s)", async (underCardId, survivors) => {
-    // BT19-015 Gallantmon's printed [When Digivolving] "delete 1 of your opponent's Digimon
-    // with 8000 DP or less" reached through the real digivolve intent: 8000 + 3000 = 11000.
     const s = setupEngine(
       {
         0: {
@@ -344,8 +304,6 @@ describe("BT19-011 WarGrowlmon", () => {
   });
 
   it("stacks the inherited +3000 onto its own aggregate maximum", async () => {
-    // WarGrowlmon on top of WarGrowlmon: the inherited copy adds 3000 to the top card's own
-    // DP-based deletion effect, so one opponent Digimon gives 3000 + 2000 + 3000 = 8000.
     const s = setupEngine(
       {
         0: {

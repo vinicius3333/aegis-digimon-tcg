@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -117,8 +114,6 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
-                  // CR 16-36-1: ＜Decode＞ plays from THAT Digimon's digivolution cards. Without
-                  // this host gate the loose-card resolver pools every stack the controller owns.
                   hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [{ tokens: ["Holy Beast", "NSp", "VB"], match: "trait" }],

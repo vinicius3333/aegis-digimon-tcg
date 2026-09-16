@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [All Turns] triggered when a [Composite]/[Twilight] Digimon with DigiXros requirements
-// would be played. Cost: suspend this Tamer. Effect: also allows 1 card from under any
-// Tamer AND 1 card from trash as DigiXros materials (KB Q3153-Q3157: these are additive
-// per Tamer copy; you may place from just one area).
-// CAP-H-05 implemented: sourceFilter now carries hasDigiXrosRequirement: true, restricting
-// the replacement to [Composite]/[Twilight] Digimon that actually have DigiXros requirements
-// (defined in their IR registry entry), not merely any Digimon with those traits.
 const compiled: CompiledCard = {
   effects: [
     {

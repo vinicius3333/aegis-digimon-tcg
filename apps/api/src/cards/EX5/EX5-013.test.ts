@@ -305,8 +305,6 @@ describe("EX5-013 Zhuqiaomon", () => {
       },
     });
     await s.ready();
-    // Structural phase setup only; the public BT2-018 play and all resulting deletion effects
-    // still resolve through production intents/interpreter paths.
     s.state.phase = Phase.Main;
     s.state.turnSeat = 1;
     s.state.memory = 20;

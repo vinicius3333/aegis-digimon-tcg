@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q4389: this breeding-area digivolution does not activate the digivolved
-// card's [When Digivolving] effect.
 const recoveryAndBreedingDigivolve: Pick<CompiledCard["effects"][number], "actions"> = {
   actions: [
     { kind: "Recover", amount: 1 },

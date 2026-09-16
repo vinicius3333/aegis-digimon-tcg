@@ -6,8 +6,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { compiled } from "./EX4-003.js";
 import "../index.js";
 
-// EX4-003 is supplied only by an eggDeck and hatched through the public flow. No Digi-Egg is
-// illegally seeded in a deck or security fixture below.
 const inertSecurity = ["BT1-013", "BT1-012"];
 const inertOpponentDeck = ["BT1-013", "BT1-012"];
 
@@ -93,8 +91,6 @@ describe("EX4-003 Tsunomon — public stack behavior", () => {
     });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT10-058");
 
-    // The host's own evolution is excluded by “other”; the egg remains the source card in the
-    // stack, and the level-2-to-level-3 Black route costs 0 memory.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.breeding!.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
 

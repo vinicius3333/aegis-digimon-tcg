@@ -2,20 +2,13 @@ import { describe, it, expect } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-023.js";
 
-// A3 for P-023 (Patamon's Confession, Option) — [Main] if you have [T.K. Takaishi] in play, place
-// 1 of your [Patamon] at the bottom of your security stack face down, then trash that Digimon's
-// digivolution cards. source: documented behavior.
-//
-// FAILS-WHEN-REVERTED: the selected Patamon's top card lands in the controller's own security and
-// its digivolution cards go to trash. A no-op leaves the Patamon on the field with its stack.
-
 describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivolution cards", () => {
   it("requires T.K. Takaishi, then places the Patamon to security and trashes its stack", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            "BT1-087", // T.K. Takaishi (gate)
+            "BT1-087",
             {
               card: "BT1-048",
               as: "patamon",
@@ -34,7 +27,7 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
     const digiCard = s.inst("digiCard");
     const securityBefore = p0.security.length;
 
-    s.state.memory = 1; // cost-0 option
+    s.state.memory = 1;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
@@ -42,10 +35,8 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
 
     await settle(() => p0.security.some((c) => c.instanceId === patamonTop.instanceId));
 
-    // The Patamon's top card was placed onto the controller's own security stack.
     expect(p0.security.some((c) => c.instanceId === patamonTop.instanceId)).toBe(true);
     expect(p0.security.length).toBe(securityBefore + 1);
-    // Its digivolution card was trashed.
     expect(p0.trash.some((c) => c.instanceId === digiCard.instanceId)).toBe(true);
   });
 

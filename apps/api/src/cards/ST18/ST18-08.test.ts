@@ -96,9 +96,6 @@ describe("ST18-08 Galemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // A player-directed attack with no Digimon defender resolves through
-    // `checkSecurity`, not a Digimon-vs-Digimon battle — no `combatResolved` event is
-    // ever emitted for it; `securityChecked` is the real end-of-attack milestone here.
     await settle(
       () =>
         s.events.some((event) => event.kind === "securityChecked") &&

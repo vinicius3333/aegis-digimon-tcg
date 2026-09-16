@@ -224,7 +224,6 @@ describe("BT20-027 Slayerdramon", () => {
       expect(surrenderResult).toEqual({ ok: true });
       if (!accept) return;
 
-      // The second qualifying removal is in the same turn: the printed OPT must refuse it.
       expect(
         s.engine.applyIntent(0, {
           type: "attack",
@@ -310,7 +309,6 @@ describe("BT20-027 Slayerdramon", () => {
     expect(s.perm("firstMatch")).toBeDefined();
     expect(s.perm("host").isSuspended).toBe(true);
 
-    // Re-open the cost source, then prove the once-per-turn replacement is consumed.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     preferred.length = 0;
     preferred.push(s.perm("secondMatch").permanentId);

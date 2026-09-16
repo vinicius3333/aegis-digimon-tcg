@@ -232,7 +232,6 @@ describe("BT13-075 Alphamon", () => {
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("source").instanceId);
 
     expect(s.state.memory).toBe(2);
-    // A second eight-cost play crosses memory only after its removal resolves.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: secondGaiaId })).toEqual({
       ok: true,
     });

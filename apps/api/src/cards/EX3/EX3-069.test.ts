@@ -185,7 +185,6 @@ describe("EX3-069 Trial of the Four Great Dragons", () => {
     await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-069"));
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX3-069");
-    // Azulongmon's own On Play recognizes Trial provenance and gains 2 memory.
     expect(s.state.memory).toBe(2);
     assertNoLoudGap(s);
   });

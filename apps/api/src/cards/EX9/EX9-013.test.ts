@@ -49,8 +49,6 @@ describe("EX9-013", () => {
     await settle();
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
 
-    // Alter-S's End of Attack effect truthfully moves its two DNA materials
-    // back to the battle area and itself to the top of its owner's security.
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
       expect.arrayContaining(["EX9-013", "EX9-020"]),

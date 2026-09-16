@@ -241,7 +241,6 @@ describe("EX4-023 Agumon Expert", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await firstOpponentTurn;
 
-    // A real owner turn resets the once-per-turn watcher before the next opponent turn.
     s.state.turnSeat = 0;
     s.state.memory = -s.state.memory;
     await passTurn(s, 0);

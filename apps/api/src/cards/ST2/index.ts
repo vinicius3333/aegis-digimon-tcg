@@ -1,5 +1,3 @@
-// Set barrel: one import per card so each module self-registers.
-// Card modules for this set.
 import "./ST2-01.js";
 import "./ST2-02.js";
 import "./ST2-03.js";

@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./ST8-01.js";
 import "./ST8-02.js";
 import "./ST8-03.js";

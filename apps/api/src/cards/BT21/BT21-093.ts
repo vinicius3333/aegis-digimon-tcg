@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-093 Raging Serpentine — manually verified against the printed card text.
-// The use-cost reduction is a replacement-style cost modifier, while the
-// security-removal clause arms a genuine Delay payload (rather than resolving
-// the digivolution immediately when security is removed).
 export const compiled: CompiledCard = {
   effects: [
     {

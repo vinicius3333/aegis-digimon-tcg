@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -101,10 +98,6 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          // "When any of your [Eater] trait Digimon would leave the battle area other than by
-          // your effects, you may place them as this Digimon's bottom digivolution cards."
-          // A leave REPLACEMENT, not a post-hoc watcher: the leaving Digimon is redirected
-          // under this card instead of leaving, so it must run in the wouldLeavePlay window.
           kind: "Replacement",
           event: "wouldLeavePlay",
           mode: "instead",

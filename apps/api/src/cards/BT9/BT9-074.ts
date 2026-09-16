@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q1868: the inherited color count uses the host's effective colors, including
-// colors granted by continuous effects before deletion.
 export const compiled: CompiledCard = {
   effects: [
     {

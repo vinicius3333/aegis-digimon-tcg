@@ -6,44 +6,19 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-/**
- * BT19-065 Machinedramon — Black/Purple Lv.6 Mega, 11000 DP, play cost 11,
- * evo cost 3 from a Black or Purple Lv.5.
- *
- * Printed clauses:
- *   1. [On Play] [When Digivolving] Delete 1 level 5 or lower Digimon.        (main)
- *   2. [On Deletion] You may play 1 level 5 or lower Digimon card with the [Cyborg]/
- *      [Composite] trait from your trash without paying the cost.             (main)
- *   3. [Rule] Trait: Has the [Composite] type.                                (main)
- *   4. [DigiXros -1] 5 Lv.5 or lower [Cyborg]/[Composite] trait Digimon cards
- *      w/different card numbers                                               (header)
- *   5. [Opponent's Turn] [Once Per Turn] When any of your opponent's Digimon attack, you
- *      may change the attack target to 1 of your Digimon with the [Composite]/
- *      [Wicked God] trait.                                                    (inherited)
- *
- * KB (`node tools/kb/query.mjs card BT19-065`):
- *   Q3128 — clause 1 may delete YOUR OWN Digimon (the filter carries no controller gate).
- *   Q3129 — clause 5 may redirect onto a Digimon that is unaffected by effects.
- *
- * Comprehensive rules for clause 4: §7-2-2-1 reduces the play cost by the printed amount
- * for EACH card placed (so `count: 1` is the per-material discount, not a material count),
- * and §7-2-2-4 lets the player place ANY number of the specified cards — there is no
- * minimum beyond one, which is why the IR caps with `maxMaterials: 5` and sets no floor.
- */
-
-const LV5_CYBORG = "ST5-10"; // MetalTyrannomon: Black Lv.5 9000 DP [Cyborg], no effects
-const LV5_CYBORG_B = "BT2-060"; // Megadramon: Black Lv.5 9000 DP [Cyborg], no effects
-const LV5_PURPLE = "BT5-077"; // Vajramon: Purple Lv.5 8000 DP, no effects
-const LV5_GREEN = "ST4-09"; // Okuwamon: Green Lv.5 7000 DP, no effects — illegal source
-const LV5_PLAIN = "BT10-064"; // Gogmamon: Black Lv.5 8000 DP [Rock] — near-miss, wrong trait
-const LV6_CYBORG = "BT2-064"; // HiAndromon: Black Lv.6 12000 DP [Cyborg] — near-miss, wrong level
-const LV6_WALL = "BT1-080"; // Titamon: Green Lv.6 12000 DP, no effects
-const COMPOSITE_LV4 = "BT6-012"; // Deltamon: Red Lv.4 7000 DP [Composite]
-const CYBORG_LV3 = "BT3-059"; // Commandramon: Black Lv.3 [Cyborg]
-const CYBORG_LV3_B = "ST5-05"; // Commandramon: same NAME, different card number [Cyborg]
-const CYBORG_LV4 = "BT3-067"; // Tankmon: Black Lv.4 [Cyborg]
-const PLAIN_LV3 = "BT1-009"; // Monodramon: Red Lv.3 [Dragonkin], no effects
-const PLAIN_LV4 = "BT1-014"; // Kokatorimon: Red Lv.4, no effects
+const LV5_CYBORG = "ST5-10";
+const LV5_CYBORG_B = "BT2-060";
+const LV5_PURPLE = "BT5-077";
+const LV5_GREEN = "ST4-09";
+const LV5_PLAIN = "BT10-064";
+const LV6_CYBORG = "BT2-064";
+const LV6_WALL = "BT1-080";
+const COMPOSITE_LV4 = "BT6-012";
+const CYBORG_LV3 = "BT3-059";
+const CYBORG_LV3_B = "ST5-05";
+const CYBORG_LV4 = "BT3-067";
+const PLAIN_LV3 = "BT1-009";
+const PLAIN_LV4 = "BT1-014";
 const INERT_SECURITY = "BT1-010";
 const DECK = ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"];
 
@@ -65,8 +40,6 @@ describe("BT19-065 Machinedramon", () => {
         { color: "Purple", level: 5, memoryCost: 3 },
       ],
     });
-    // The catalog stores this line with a NON-BREAKING SPACE (U+00A0) before "you may change";
-    // normalize before comparing (reported as a cosmetic catalog discrepancy, not edited here).
     expect(getCardDefinition("BT19-065")?.inheritedEffectText?.replace(/\u00A0/g, " ")).toBe(
       "[Opponent's Turn] [Once Per Turn] When any of your opponent's Digimon attack, you may change the attack target to 1 of your Digimon with the [Composite]/[Wicked God] trait.",
     );
@@ -77,7 +50,6 @@ describe("BT19-065 Machinedramon", () => {
     const card = runtimeCompiledCard("BT19-065");
     expect(card).toMatchObject({ coverage: "full", residual: [] });
     expect(card?.effects).toMatchObject([
-      // Q3128: no `controller` predicate — either player's Digimon is a legal target.
       ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
         trigger,
         actions: [
@@ -97,7 +69,6 @@ describe("BT19-065 Machinedramon", () => {
                 controller: "mine",
                 kind: ["Digimon"],
                 levelComparison: { op: "lte", value: 5 },
-                // "with the [X]/[Y] trait" is an EXACT trait match.
                 nameOrTrait: [{ tokens: ["Cyborg", "Composite"], match: "trait" }],
               },
               count: 1,
@@ -108,7 +79,6 @@ describe("BT19-065 Machinedramon", () => {
           },
         ],
       },
-      // A printed "[Rule] Trait: ..." line needs a Rule/GrantStatic node, not a plain comment.
       { trigger: "Rule", actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Composite"] }] },
       {
         trigger: "OpponentsTurn",
@@ -311,8 +281,6 @@ describe("BT19-065 Machinedramon", () => {
     });
     await s.ready();
 
-    // Cross-card consequence: the trait the [Rule] line grants is the one the
-    // [Composite]/[Wicked God] redirect filter and the DigiXros recipe both read.
     expect(observe(s.engine).hasEffectiveTrait(s.perm("machine"), "Composite")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("plain"), "Composite")).toBe(false);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("plain"), "Rock")).toBe(true);
@@ -344,7 +312,6 @@ describe("BT19-065 Machinedramon", () => {
     const wrongLevelId = s.inst("wrongLevel").instanceId;
     const wrongTraitId = s.inst("wrongTrait").instanceId;
 
-    // 11000 DP into a 12000 DP wall: Machinedramon is deleted in battle.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -359,7 +326,6 @@ describe("BT19-065 Machinedramon", () => {
     expect(played?.topCard?.cardId).toBe(LV5_CYBORG_B);
     expect(played?.stack).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual([LV5_CYBORG_B]);
-    // Both near-miss cards are still in the trash, alongside the deleted Machinedramon.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([wrongLevelId, wrongTraitId]),
     );
@@ -438,14 +404,11 @@ describe("BT19-065 Machinedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // 11 printed - 5 materials x 1 = 6.
     expect(s.state.memory).toBe(0);
     const machine = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === machineId);
     expect(machine?.topCard?.cardId).toBe("BT19-065");
-    // All five materials landed under the played card (the engine stacks them top-down).
     expect(machine?.stack.map((card) => card.instanceId).sort()).toEqual([...materialIds].sort());
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([PLAIN_LV3]);
-    // The DigiXros play is still a play: [On Play] fired and deleted the opposing Lv.5.
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual([LV5_PLAIN]);
   });
 
@@ -478,13 +441,9 @@ describe("BT19-065 Machinedramon", () => {
     const five = ["m1", "m2", "m3", "m4", "m5"].map(id);
 
     const rejected: [string, string[]][] = [
-      // maxMaterials: 5 is the printed cap.
       ["six materials", [...five, id("m6")]],
-      // "w/different card numbers": two prints of the same cardId are not allowed together.
       ["duplicate card number", [id("m1"), id("m1dup"), id("m2"), id("m3"), id("m4")]],
-      // The single-slot recipe requires every material to carry [Cyborg] or [Composite].
       ["wrong trait", [id("m1"), id("m2"), id("m3"), id("m4"), id("wrongTrait")]],
-      // Lv.5 or lower.
       ["wrong level", [id("m1"), id("m2"), id("m3"), id("m4"), id("wrongLevel")]],
     ];
     for (const [, materialInstanceIds] of rejected) {
@@ -505,8 +464,6 @@ describe("BT19-065 Machinedramon", () => {
           battleArea: [
             { card: PLAIN_LV4, as: "carrier", dp: 4000, under: ["BT19-065"] },
             { card: COMPOSITE_LV4, as: "composite", dp: 7000 },
-            // Deliberately WEAKER than the attacker: if the filter wrongly accepted a
-            // non-[Composite] Digimon, this one would be deleted instead of winning.
             { card: PLAIN_LV4, as: "nearMiss", dp: 2000 },
           ],
           security: [
@@ -548,8 +505,6 @@ describe("BT19-065 Machinedramon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // The attack was moved off the player onto the 7000-DP [Composite] Digimon, which won:
-    // no security card was checked, and the near-miss peer was never a candidate.
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toEqual(
@@ -558,7 +513,6 @@ describe("BT19-065 Machinedramon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
     expect(s.state.players[0]!.trash).toHaveLength(0);
 
-    // [Once Per Turn]: the second attack this turn is not redirected and reaches security.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -604,8 +558,6 @@ describe("BT19-065 Machinedramon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
 
-    // Arm the "unaffected by effects" state the ruling is about through the production
-    // restriction primitive, then check the redirect is unaffected by it.
     await advance(s.engine).verb.restrict(
       s.perm("composite").permanentId,
       "beAffected",

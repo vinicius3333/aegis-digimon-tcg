@@ -217,11 +217,6 @@ describe("BT20-052 Oblivimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The inherited "attack target can't be switched" restriction makes a block itself an
-    // illegal attack-target switch (see combat/legality.ts's `attackTargetChange` check), so
-    // no eligible blocker exists and the window never opens at all — it is not merely that a
-    // declared block gets rejected. Drain the queue and prove the negative directly: no
-    // window event fires, and the attack proceeds straight through to security.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(

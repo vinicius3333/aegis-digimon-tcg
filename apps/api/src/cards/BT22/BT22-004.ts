@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT22-004 Wanyamon — manually verified inherited effect.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -10,7 +9,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          // "When effects place" excludes normal/manual stack additions.
           sourceFilter: { controllerDefault: "mine", byEffect: true },
           triggerFilter: { isSelfRef: true },
           addedDigivolutionCardFilter: {

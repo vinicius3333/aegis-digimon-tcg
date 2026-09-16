@@ -260,8 +260,6 @@ describe("BT25-057 Monarchlizamon / Final Judgment", () => {
     expect(
       s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
     ).toEqual({ ok: true });
-    // Final Judgment's printed [Main] text grants a flat "+5000 DP for the turn" (no errata
-    // changes the amount), so BT1-010's base 2000 DP becomes 7000, not 9000.
     await settle(() => s.perm("target").currentDP === 7000);
     expect(s.state.memory).toBe(0);
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Rush")).toBe(true);

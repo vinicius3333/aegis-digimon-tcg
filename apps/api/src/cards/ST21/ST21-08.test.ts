@@ -45,7 +45,6 @@ describe("ST21-08", () => {
 
     const evolved = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "ST21-09");
     expect(evolved?.stack.some(({ instanceId }) => instanceId === togemonId)).toBe(true);
-    // Both ready ADVENTURE Tamers reduce the initial play by 1; the follow-up evolution is free.
     expect(s.state.memory).toBe(2);
   });
 });

@@ -43,8 +43,6 @@ export const compiled: CompiledCard = {
                 kind: "deleteOwn",
                 target: {
                   filter: {
-                    // "other Digimon" has no controller restriction. Q2075 explicitly
-                    // permits the opponent's Sukamon, but a friendly one is legal too.
                     controller: "any",
                     excludeSelf: true,
                     kind: ["Digimon"],

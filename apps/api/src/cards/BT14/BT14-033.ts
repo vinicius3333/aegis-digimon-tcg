@@ -1,22 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT14-033 (Patamon). Printed text: "[Start of Your Main Phase]
-// Search your security stack. This Digimon may digivolve into a yellow Digimon card with the
-// [Vaccine] trait among them without paying the cost. Then, shuffle your security stack. If
-// digivolved by this effect, you may place 1 yellow [Vaccine] card from your hand at the bottom
-// of your security stack." (KB Q2407: the digivolve is optional; declining still shuffles.)
-//
-// The Digivolve source is the SECURITY STACK, not the default hand/trash — `from:["security"]`
-// plus `faceDownSecurityOk:true` (Search reveals the whole stack to the controller regardless of
-// orientation, and a digivolve may pick any of the revealed cards, matching BT16-024's identical
-// "digivolve among the revealed security" pattern). A prior plain-compiler regen dropped both
-// fields, silently reducing the Digivolve to a no-candidate no-op (this file's own regression).
-//
-// The trailing placeAsSecurity step's condition text is normalized to the ONE phrase the
-// interpreter's `raw` condition kind recognizes for the digivolve-result binding
-// ("this effect digivolved" — see interpreter.ts's `evaluateCondition` "raw" case); the printed
-// order ("digivolved by this effect") does not match that regex and silently never fires.
 export const compiled: CompiledCard = {
   effects: [
     {

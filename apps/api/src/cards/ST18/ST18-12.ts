@@ -1,21 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST18-12 Zephagamon — hand-fixed IR.
-// <Vortex> (At the end of your turn, this Digimon may attack an opponent's Digimon.
-//   With this effect, it can attack the turn it was played.)
-// [When Digivolving] Suspend 1 Digimon. Then, unsuspend 1 Digimon.
-// [All Turns][Once Per Turn] When a Digimon is unsuspended, this Digimon is unaffected
-//   by your opponent's Digimon's effects, and gets +3000 DP for the turn.
-// [Rule] Trait: Has the [Bird Dragon] type.
-//
-// KB Q848: Either player's Digimon can be targeted for suspend AND unsuspend.
-// KB Q849: [All Turns] effect triggers when EITHER player's Digimon is unsuspended.
-//
-// "Unaffected by opponent's Digimon's effects" = Restrict(self, "beAffected", forTheTurn).
-// Note: "beAffected" restriction covers all opponent effects; text specifies only
-//   The interpreter's source-kind-qualified restriction represents the printed
-//   "Digimon's effects" scope exactly.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -29,8 +14,6 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      // [When Digivolving] Suspend 1 Digimon. Then, unsuspend 1 Digimon.
-      // KB Q848: either player's Digimon can be targeted for both actions.
       trigger: "WhenDigivolving",
       actions: [
         {
@@ -58,9 +41,6 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      // [All Turns][Once Per Turn] When a Digimon is unsuspended, this Digimon is
-      // unaffected by your opponent's Digimon's effects, and gets +3000 DP for the turn.
-      // KB Q849: fires for EITHER player's Digimon being unsuspended.
       trigger: "AllTurns",
       actions: [
         {

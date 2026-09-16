@@ -4,27 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../index.js"; // register compiled cards so the real OnPlay / OnEndTurn paths run
-
-/**
- * A3 for EX11-022 Karakurumon:
- *
- *   [On Play] [When Digivolving] You may play 1 [Puppet] trait Digimon card with 4000 DP or less
- *             from your hand or trash without paying the cost. At turn end, delete the Digimon
- *             this effect played.
- *
- * The delayed delete compiled to a SubTrigger whose Delete carried `filter.playedByThisEffect`
- * (count "all") — a field no engine source reads, so at turn end the effect deleted EVERY
- * permanent instead of the one it played. It now uses the wired `DelayedDelete` action, which
- * arms the engine's turn-end delete watcher on `ctx.lastPlayedPermanentIds`.
- *
- * documented behavior — AddSelfDeleteEffect(playedPermanent, DeleteTiming.AtTurnEnd).
- * KB Q5809: "Do I delete the Digimon that was played by this card's [On Play] [When Digivolving]
- * effect at the end of the turn? — Yes."
- *
- * Card ids: BT13-035 PawnChessmon (Lv.3 [Puppet], 1000 DP — the play target); AD1-001 Greymon
- * (a plain bystander Digimon that must survive the turn-end delete).
- */
+import "../index.js";
 
 function onField(s: EngineSetup, instanceId: string): boolean {
   return s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === instanceId);
@@ -155,13 +135,6 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
   });
 
-  // Q5810: the delayed deletion and any other end-of-turn effect trigger simultaneously, so the
-  // turn player chooses the order. The partner must be an end-of-turn effect the resolver can
-  // actually offer: `canActivateEffect` drops an effect whose every action is gated and
-  // impossible, which is why EX11-070's [End of Your Turn] (a DNA digivolve into an
-  // [ExMaquinamon] that is not in hand, plus a ＜Mind Link＞ with no [Maquinamon]-text Digimon)
-  // never entered the group and left a single trigger key. P-185's "[End of Your Turn] This
-  // Digimon unsuspends" is ungated, so both effects compete for the next slot.
   it("offers the turn player an ordering choice with another simultaneous end-of-turn effect (Q5810)", async () => {
     const s = setupEngine(
       {
@@ -217,7 +190,6 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
         }),
       ]),
     );
-    // Both simultaneous effects resolved, in the order the turn player chose.
     expect(s.perm("otherEndOfTurn").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });

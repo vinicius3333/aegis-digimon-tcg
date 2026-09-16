@@ -5,18 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT19-045.js";
 import "../index.js";
 
-// BT19-045 FunBeemon (Green/Black, Lv.3, Rookie/Virus, DP 1000, play 3,
-// digivolve Green Lv.2 cost 1 / Black Lv.2 cost 1)
-//   [Digivolve] Lv.2 w/[Royal Base] trait: Cost 0
-//   [Security] [All Turns] All of your [Royal Base] trait Digimon get +1000 DP.
-//   [Your Turn] When this Digimon would digivolve into a [Royal Base] trait Digimon,
-//               reduce the digivolution cost by 1.
-//   Inherited: [All Turns] This Digimon gets +1000 DP.
-//
-// Peers: BT19-048 ForgeBeemon carries the [Royal Base] trait; BT8-038 Magnamon carries
-// [Royal Knight] (the near-miss trait token) and BT1-013 Muchomon carries neither.
-// "[X] trait" is EXACT token equality, so neither near miss may match.
-
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-012"];
 const inertDeck = ["BT1-009", "BT1-013", "BT1-012", "BT1-014"];
 
@@ -113,10 +101,8 @@ describe("BT19-045 FunBeemon", () => {
 
     expect(s.perm("royalOne").currentDP).toBe(5000);
     expect(s.perm("royalTwo").currentDP).toBe(9000);
-    // Near miss on the trait token: [Royal Knight] is not [Royal Base].
     expect(s.perm("royalKnight").currentDP).toBe(7000);
     expect(s.perm("plain").currentDP).toBe(5000);
-    // "All of YOUR": the opponent's Royal Base Digimon is untouched.
     expect(s.perm("theirRoyal").currentDP).toBe(4000);
   });
 
@@ -173,14 +159,12 @@ describe("BT19-045 FunBeemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => royal.perm("puroromon").topCard?.cardId === "BT19-045");
-    // Cost 0, not the printed Green Lv.2 cost of 1: the memory delta is what discriminates.
     expect(royal.state.memory).toBe(3);
     expect(royal.perm("puroromon").stack.map((card) => card.instanceId)).toEqual([puroromonId]);
     expect(royal.state.players[0]!.hand.some((card) => card.cardId === "BT19-045")).toBe(false);
 
     const plain = setupEngine({
       0: {
-        // BT1-007 Tanemon is a green Lv.2 WITHOUT the [Royal Base] trait: normal route only.
         breeding: { card: "BT1-007", as: "tanemon" },
         hand: [{ card: "BT19-045", as: "fun" }],
         deck: inertDeck,
@@ -199,7 +183,6 @@ describe("BT19-045 FunBeemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => plain.perm("tanemon").topCard?.cardId === "BT19-045");
-    // `useAlternateCost` silently falls back to the normal route when none matches.
     expect(plain.state.memory).toBe(2);
   });
 
@@ -256,7 +239,6 @@ describe("BT19-045 FunBeemon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 8;
 
-    // Into [Royal Base] ForgeBeemon: printed green Lv.3 cost 3, reduced to 2.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -268,7 +250,6 @@ describe("BT19-045 FunBeemon", () => {
     expect(s.state.memory).toBe(6);
     expect(s.perm("royalRoute").stack.map((card) => card.cardId)).toEqual(["BT19-045"]);
 
-    // Into Chamblemon, which has no [Royal Base] trait: the printed cost 2 stands.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -307,7 +288,6 @@ describe("BT19-045 FunBeemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("fun").topCard?.cardId === "BT19-048");
-    // Q3097: the [Your Turn] effect does not trigger in the breeding area — full cost 3.
     expect(s.state.memory).toBe(2);
     expect(s.perm("fun").stack.map((card) => card.cardId)).toEqual(["BT19-045"]);
   });

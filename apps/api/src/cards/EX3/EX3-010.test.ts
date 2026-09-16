@@ -174,7 +174,6 @@ describe("EX3-010 Paildramon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-010");
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCardId]);
     expect(s.state.memory).toBe(2);
-    // A normal digivolve does not trigger EX3-010's DNA-only Dinobeemon effect.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-010")).toBe(false);
 

@@ -82,7 +82,6 @@ describe("LM-002 Jellymon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
 
-    // The first draw puts the hand at 8, so the second copy's condition no longer holds.
     expect(s.state.players[0]!.hand).toHaveLength(8);
   });
 
@@ -135,7 +134,6 @@ describe("LM-002 Jellymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length >= 8, 2000);
 
-    // The first inherited activation takes the hand from 7 to 8, making the second ineligible.
     expect(s.state.players[0]!.hand).toHaveLength(8);
   });
 

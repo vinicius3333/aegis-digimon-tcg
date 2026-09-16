@@ -1,4 +1,3 @@
-// Hand-fixed IR for P-153 — faithful text encoding.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,8 +11,6 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        // These queued actions all resolve before the effect settles; each level
-        // has its own one-card quota, preserving the printed one-each requirement.
         ...([3, 4, 5] as const).map((level) => ({
           kind: "Return" as const,
           target: { filter: { controller: "opponent" as const, levels: [level] }, count: 1 },
@@ -22,10 +19,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [End of Attack] By placing this Digimon's top card as your top security card,
-      // unsuspend this Digimon or Tamer.
-      // The existing detachPermanentTop seam promotes the visible top card from
-      // this permanent to the top of its owner's security stack.
       trigger: "EndOfAttack",
       actions: [
         {

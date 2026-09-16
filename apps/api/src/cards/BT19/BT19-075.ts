@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Manual audit corrections:
-// - the number of Tamers deleted is based on cards trashed from the opponent's hand by this
-//   effect, not on the opponent's total board/card count;
-// - the [Digivolve] route is a bracketed exact-name gate (`namesExact`), not a substring one.
-// The All Turns watcher observes other Digimon/Tamers regardless of controller, then trashes
-// the opponent's top security card (not an arbitrary opponent permanent).
-
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -122,10 +112,6 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          // Keep the watcher announcement tied to THIS second [All Turns] clause.  A bare
-          // `onDeletionOf` description only identifies the event bus, so the client otherwise
-          // selects the first [All Turns] paragraph (the would-leave replacement) for its
-          // narration.
           raw: "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
           effectTextPart:
             "[All Turns] [Once Per Turn] When other Digimon or Tamers are deleted, trash your opponent's top security card.",
@@ -150,8 +136,6 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      // Printed `[Digivolve][Millenniummon]` is a BRACKETED exact-name route, so the gate is
-      // `namesExact`; the substring `names` form would also admit ZeedMillenniummon.
       namesExact: ["Millenniummon"],
       cost: 2,
       isAlternate: true,

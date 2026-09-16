@@ -113,8 +113,6 @@ describe("BT12-089", () => {
         .stack.map(({ instanceId }) => instanceId)
         .slice(0, 3),
     ).toEqual(requestedOrder);
-    // The activated clause adds +2000; the required Guilmon and Growlmon
-    // sources each add their own printed +2000 once Gallantmon is on top.
     expect(s.perm("guilmon").currentDP).toBe(s.perm("guilmon").baseDP + 6000);
     expect(s.state.memory).toBe(0);
   });

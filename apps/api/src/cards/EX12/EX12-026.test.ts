@@ -202,8 +202,6 @@ describe("EX12-026 Shellmon", () => {
           },
         ],
       });
-      // Q6753: the prohibition survives later digivolution cards, so it must not be
-      // re-evaluated against the target filter or gated on a continuous condition.
       const restrict = compiled.effects.find((effect) => effect.trigger === trigger)!.actions[1]!;
       expect(restrict).not.toHaveProperty("while");
       expect(restrict).not.toHaveProperty("whileMatchesTargetFilter");

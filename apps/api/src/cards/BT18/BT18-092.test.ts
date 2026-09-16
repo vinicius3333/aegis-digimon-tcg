@@ -64,7 +64,6 @@ describe("BT18-092 Zenith", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
-    // runTurn finishes by passing priority and normalizing memory.
     expect(s.state.memory).toBe(-3);
   });
 
@@ -95,7 +94,6 @@ describe("BT18-092 Zenith", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Drain the complete attack/effect queue before inspecting the de-digivolved host.
     await settle();
 
     expect(s.perm("zenith").isSuspended).toBe(true);

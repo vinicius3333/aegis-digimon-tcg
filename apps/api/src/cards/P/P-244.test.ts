@@ -92,13 +92,11 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
       {
         0: {
           battleArea: [
-            // BT21-062 is legally over BT11-065 through its printed [Snatchmon] alternate route (cost 9).
             { card: "BT21-062", as: "galacticmon", under: ["BT11-065"] },
             { card: "BT11-061", as: "vemmon" },
           ],
           hand: [
             { card: "P-244", as: "emblem" },
-            // EX11-046 uses its printed [Galacticmon] alternate route (cost 5), reduced by 3 to 2.
             { card: "EX11-046", as: "evolution" },
           ],
           trash: [{ card: "BT11-061", as: "seedVemmon" }],

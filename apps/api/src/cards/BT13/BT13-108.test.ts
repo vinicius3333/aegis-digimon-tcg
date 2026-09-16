@@ -89,7 +89,6 @@ describe("BT13-108 Waltz's End", () => {
     await settle();
     const targetRequests = s.decisions.filter(({ seat, req }) => seat === 0 && req.kind === "chooseTargets");
     expect(targetRequests).toHaveLength(1);
-    // BT13-108 is an Option: it resolves its Main effect and is trashed, not placed on the field.
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionInstanceId));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionInstanceId)).toBe(true);
     expect(s.state.memory).toBe(4);
@@ -130,7 +129,6 @@ describe("BT13-108 Waltz's End", () => {
     const sourceInstanceId = s.perm("suspender").topCard.instanceId;
     const hostDP = s.perm("host").currentDP;
     const otherDP = s.perm("other").currentDP;
-    // Supplemental Q2361 source-kind windows: the protected seat cannot declare a normal attack during this opponent turn.
     const hostSecurity = advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("waltzHost"));
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const securityHostDecision = s.state.pendingDecision!;
@@ -156,7 +154,6 @@ describe("BT13-108 Waltz's End", () => {
     await otherSecurity;
     expect(s.perm("other").currentDP).toBe(otherDP - 3000);
     expect(otherDP).toBe(12000);
-    // Supplemental Q2362 precondition: Option immunity must not block the granted Digimon deletion.
     await advance(s.engine).verb.restrict(s.perm("low").permanentId, "beAffected", EffectDuration.UntilEachTurnEnd, {
       fromSourceKind: ["Option"],
     });
@@ -225,7 +222,6 @@ describe("BT13-108 Waltz's End", () => {
     s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
-    // Ikkakumon costs 5 with 3000 DP; Greymon costs 4 with 4000 DP. The selection must use play cost.
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     expect(

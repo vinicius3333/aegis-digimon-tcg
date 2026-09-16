@@ -5,8 +5,6 @@ const dm: Filter = {
   controller: "mine",
   nameOrTrait: [{ tokens: ["DM"], match: "trait" }],
 };
-// CR 16-42-3/3-4-6: <Use Req.> is satisfied by a matching Digimon/Tamer anywhere on "the
-// field", which includes the breeding area (unlike free-text pre-keyword waivers, CR 3-4-7-8).
 const dmOnField: Filter = { ...dm, kind: ["Digimon", "Tamer"], zone: ["battleArea", "breeding"] };
 const dmDigimon: Filter = { ...dm, kind: ["Digimon"] };
 const dmLevelSix: Filter = { ...dmDigimon, levelComparison: { op: "lte", value: 6 } };

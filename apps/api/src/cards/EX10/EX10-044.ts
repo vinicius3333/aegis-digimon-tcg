@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play]: By placing 1 [Bagra Army] trait Digimon card from your hand or trash
-//   under any of your Tamers, draw 1.
-//   - place cost: from: ["hand","trash"], underFilter: any of your Tamers.
-// [On Deletion]: You may play 1 [Tuwarmon] with play cost ≤7 from under your Tamers
-//   without paying the cost. Then, <Save> (the keyword itself is optional).
-//   - PlayWithoutCost: from: ["underTamers"].
-//   - PlaceUnder: optional, as defined by <Save>.
-// Inherited: whenTrashedFromDigivolutionCards → Draw 1.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -85,10 +77,6 @@ const compiled: CompiledCard = {
             kind: ["Tamer"],
             excludeToken: true,
           },
-          // Comprehensive Rules 4-3: a card placed under a card that already has cards
-          // stacked under it goes to the BOTTOM. `runPlaceUnder` reads
-          // `belowTop: action.position !== "bottom"`, so a positionless ＜Save＞ would tuck
-          // this card directly beneath the Tamer instead of under the existing cards.
           position: "bottom",
           optional: true,
         },

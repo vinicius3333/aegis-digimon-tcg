@@ -34,7 +34,6 @@ describe("EX13-054 Nanimon", () => {
     expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.effects).toHaveLength(5);
 
-    // [Security] At the end of the battle, play this card without paying the cost.
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Security",
       timing: "endOfBattle",
@@ -49,7 +48,6 @@ describe("EX13-054 Nanimon", () => {
       ],
     });
 
-    // [On Play] [On Deletion] 1 of your opponent's Digimon can't attack players until their turn ends.
     for (const index of [1, 2]) {
       expect(compiled.effects[index]).toMatchObject({
         trigger: index === 1 ? "OnPlay" : "OnDeletion",
@@ -64,13 +62,11 @@ describe("EX13-054 Nanimon", () => {
       });
     }
 
-    // [Rule] Trait: Has [Mutant] Type.
     expect(compiled.effects[3]).toMatchObject({
       trigger: "Rule",
       actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Mutant"], duration: "permanent" }],
     });
 
-    // Inherited: [All Turns] This Digimon gets +1000 DP.
     expect(compiled.effects[4]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
@@ -102,7 +98,6 @@ describe("EX13-054 Nanimon", () => {
     });
     await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers"));
 
-    // Exactly one of the two opposing Digimon is restricted, and only from attacking players.
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "attack")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("free"), "attackPlayers")).toBe(false);
@@ -147,7 +142,6 @@ describe("EX13-054 Nanimon", () => {
     expect(refused.ok).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(2);
 
-    // The same Digimon may still attack a Digimon: only the player attack is cut off.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -158,7 +152,6 @@ describe("EX13-054 Nanimon", () => {
     await settle();
     expect(s.state.players[0]!.security).toHaveLength(2);
 
-    // And the opponent's other Digimon is untouched: its player attack goes through.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -187,7 +180,6 @@ describe("EX13-054 Nanimon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers"));
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers")).toBe(true);
 
-    // A full opponent turn through the real turn loop — "until their turn ends".
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -256,9 +248,6 @@ describe("EX13-054 Nanimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === nanimonInstanceId));
 
-    // The 2000 DP attacker lost the security battle against the 3000 DP checked card. That
-    // outcome is already settled when Nanimon enters play, so its [On Play] can only reach the
-    // Digimon that survived — proof the play is deferred past the battle, not run during the check.
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerInstanceId);
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(nanimonInstanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(nanimonInstanceId);
@@ -288,17 +277,13 @@ describe("EX13-054 Nanimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === nanimonInstanceId));
 
-    // The security battle ran to completion first: the 9000 DP attacker survived it, and the
-    // checked card it trashed is no longer in the trash — it is on the board.
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toContain(
       s.perm("attacker").topCard.instanceId,
     );
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(nanimonInstanceId);
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(nanimonInstanceId);
-    // The play is free: the defender's memory gauge is untouched by it.
     expect(s.state.memory).toBe(memoryBeforeCheck);
-    // [On Play] then fires from the board against the post-battle opponent board.
     expect(observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers")).toBe(true);
   });
 

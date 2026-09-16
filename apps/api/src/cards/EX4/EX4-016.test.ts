@@ -4,15 +4,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-// EX4-016 Greymon — Blue Lv.4 Champion, play 4, 4000 DP; evolves from Blue Lv.3
-// or Black Lv.3 for 3.
-// [On Play] Reveal the top 3 cards. Add 1 [Kiriha Aonuma] and 1 blue or black card
-// with DigiXros requirements among them; trash the rest.
-// [On Deletion] ＜Save＞ (you may place this card under one of your Tamers).
-// Inherited [When Attacking] Draw 1.
-// KB: Q3457 (one available target is still added), Q3458 (both available targets
-// must be added; the player cannot choose only one).
-
 const INERT_DECK = ["BT1-010", "BT1-011", "BT1-012", "BT1-013"];
 const INERT_SECURITY = ["BT1-009", "BT1-014"];
 
@@ -224,7 +215,6 @@ describe("EX4-016 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          // The inherited clause is active only while EX4-016 is a source card.
           battleArea: [{ card: "BT1-009", as: "host", under: ["EX4-016"] }],
           deck: ["BT1-010"],
           security: INERT_SECURITY,

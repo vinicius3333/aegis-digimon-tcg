@@ -9,33 +9,6 @@ import { compiled } from "./EX13-043.js";
 
 const cardId = "EX13-043";
 
-// Fixtures, and why each one is here:
-//   BT4-057  GrapLeomon      GREEN Lv.5 [Beastkin], 6000 DP, play cost 7. Its only printed clause
-//                            is "[When Attacking] Gain 1 memory", which never fires in these
-//                            flows, so it triples as the printed-EvoCost base, the Assembly Lv.5
-//                            slot and the play-branch hand card whose cost 7 makes every
-//                            reduction arithmetic visible.
-//   BT8-052  Drimogemon      GREEN Lv.4 [Beast], 5000 DP, cost 5, no printed text — Assembly Lv.4
-//                            slot, and the second trait of the printed disjunction.
-//   BT9-045  Elecmon         GREEN Lv.3 [Mammal], 4000 DP, cost 3, no printed text — Assembly Lv.3
-//                            slot, and the first trait of the printed disjunction.
-//   BT4-050  Liollmon        GREEN Lv.3 [Holy Beast], 5000 DP, no printed text — the NEAR-match
-//                            trait negative: "Beast" sits INSIDE its trait, which exact
-//                            "w/[Beast] trait" matching must still refuse.
-//   BT1-065  Mushroomon      GREEN Lv.3 [Vegetation], no printed text — the plain trait negative.
-//   BT1-045  Tsukaimon       YELLOW Lv.3 [Mammal], no printed text — the Assembly COLOUR negative.
-//   BT13-058 Leopardmon:     GREEN Lv.6, the exact [Digivolve] name route's only printing. Its own
-//            Leopard Mode    clauses all need a timing window none of these flows opens.
-//   BT13-056 Leopardmon      GREEN Lv.6 — the substring negative: "Leopardmon" is a prefix of
-//                            "Leopardmon: Leopard Mode", and `namesExact` must still refuse it.
-//   EX2-052  ADR-06 Horn     WHITE Digimon, 7000 DP, inert without a [Mother D-Reaper] — the white
-//            Striker         colour source an Option's colour requirement needs (context.ts
-//                            `optionColorRequirementMet`).
-//   BT13-110 Royal Knights   WHITE Option, use cost 6, [Royal Knight] trait — the only printed
-//            of the Purge    trait on the use side of this clause with a cost above the flat -4,
-//                            which is what makes the reduction observable in memory.
-//   BT1-009..BT1-014         inert red main-deck Digimon — neutral deck, security, hand bulk and
-//                            DP bodies. None of them carries any of the four printed traits.
 const GREEN_BEASTKIN_LV5 = "BT4-057";
 const GREEN_BEAST_LV4 = "BT8-052";
 const GREEN_MAMMAL_LV3 = "BT9-045";
@@ -48,7 +21,6 @@ const WHITE_SOURCE = "EX2-052";
 const ROYAL_KNIGHT_OPTION = "BT13-110";
 const DECK = ["BT1-011", "BT1-012", "BT1-013"];
 
-/** Fire the [When Attacking] window on a permanent without running a whole combat (EX13-012). */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm(alias), {
     attackerPermanentId: s.perm(alias).permanentId,
@@ -115,7 +87,6 @@ describe("EX13-043 Leopardmon", () => {
     ];
     expect(compiled.effects[0]).toMatchObject({ trigger: "OnPlay", actions: suspendAndBounce });
     expect(compiled.effects[1]).toMatchObject({ trigger: "WhenDigivolving", actions: suspendAndBounce });
-    // No [Once Per Turn] is printed on the suspend/bounce line.
     expect(compiled.effects[0]!.frequency).toBeUndefined();
     expect(compiled.effects[1]!.frequency).toBeUndefined();
 
@@ -165,7 +136,6 @@ describe("EX13-043 Leopardmon", () => {
         actions: playOrUse,
       });
     }
-    // ONE printed [Once Per Turn] governs both timings, so both windows share one ledger key.
     expect(compiled.effects[2]!.sharedUseKey).toBe(compiled.effects[3]!.sharedUseKey);
 
     expect(compiled.effects[4]).toMatchObject({
@@ -206,11 +176,6 @@ describe("EX13-043 Leopardmon", () => {
     expect(assemblyRequirementFor(cardId)).toEqual(compiled.assemblyRequirement);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] [When Digivolving] You may suspend 1 Digimon. Then, you may return 1 of your
-  // opponent's lowest DP Digimon to the bottom of the deck.
-  // ---------------------------------------------------------------------------
-
   it("suspends a chosen Digimon on play, then bounces the opponent's LOWEST DP body to the deck bottom", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -232,7 +197,6 @@ describe("EX13-043 Leopardmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    // Bias the suspend onto the opponent's big body so the bounce choice stays unambiguous.
     preferred.push(s.perm("biggest").topCard.instanceId);
     s.state.memory = 10;
     await s.ready();
@@ -244,13 +208,11 @@ describe("EX13-043 Leopardmon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("biggest").isSuspended).toBe(true);
-    // 3000 DP is the lowest, so that is the body that left; the 10000 DP one is still standing.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
       s.perm("biggest").topCard.instanceId,
     ]);
     expect(s.state.players[1]!.deck.map(({ cardId: id }) => id)).toEqual(["BT1-014", "BT1-013"]);
     expect(s.state.players[1]!.trash).toHaveLength(0);
-    // Printed play cost 12 off a gauge of 10.
     expect(s.state.memory).toBe(-2);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
@@ -282,7 +244,6 @@ describe("EX13-043 Leopardmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The controller's OWN Digimon took the suspension — the combo this card is built around.
     expect(s.perm("ally").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
@@ -352,22 +313,13 @@ describe("EX13-043 Leopardmon", () => {
     await settle(() => s.perm("base").topCard?.cardId === cardId);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The source survived the transition as the single digivolution card under the new top card.
     expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual([GREEN_BEASTKIN_LV5]);
     expect(s.perm("base").currentDP).toBe(12_000);
-    // The opponent's only Digimon was both the suspend pick and the lowest-DP bounce, so the
-    // suspension resolved first and the bounce then removed it.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.map(({ cardId: id }) => id)).toEqual(["BT1-014", "BT1-013"]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolutionDraw").instanceId);
     assertNoLoudGap(s);
   });
-
-  // ---------------------------------------------------------------------------
-  // [When Digivolving] [When Attacking] [Once Per Turn] You may play or use 1 [Mammal], [Beast],
-  // [Beastkin] or [Royal Knight] trait card from your hand with the cost reduced by 4. For each
-  // suspended Digimon, further reduce it by 1.
-  // ---------------------------------------------------------------------------
 
   it("plays a [Beastkin] hand card for 4 less while no Digimon is suspended", async () => {
     const s = setupEngine(
@@ -393,7 +345,6 @@ describe("EX13-043 Leopardmon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed play cost 7, reduced by the flat 4 with zero suspended Digimon: 5 - 3 = 2.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("spare").instanceId]);
     assertNoLoudGap(s);
@@ -429,7 +380,6 @@ describe("EX13-043 Leopardmon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Three suspended Digimon (two mine, one theirs): 7 - 4 - 3 = 0, so memory is untouched.
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("spare").instanceId]);
     assertNoLoudGap(s);
@@ -459,7 +409,6 @@ describe("EX13-043 Leopardmon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 7 - 4 - 1 = 2: one step cheaper than the zero-suspended case above.
     expect(s.state.memory).toBe(3);
     assertNoLoudGap(s);
   });
@@ -470,7 +419,6 @@ describe("EX13-043 Leopardmon", () => {
         0: {
           battleArea: [{ card: cardId, as: "leopardmon" }],
           hand: [
-            // "Holy Beast" merely CONTAINS "Beast": exact trait matching must refuse it.
             { card: NEAR_TRAIT_LV3, as: "nearMiss" },
             { card: NO_TRAIT_LV3, as: "noTrait" },
             { card: GREEN_BEAST_LV4, as: "match" },
@@ -490,7 +438,6 @@ describe("EX13-043 Leopardmon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Only the [Beast] Drimogemon was eligible: cost 5 - 4 = 1.
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("nearMiss").instanceId,
@@ -558,7 +505,6 @@ describe("EX13-043 Leopardmon", () => {
         0: {
           battleArea: [
             { card: cardId, as: "leopardmon" },
-            // A white permanent is what lets a white Option meet its colour requirement.
             { card: WHITE_SOURCE, as: "whiteSource" },
           ],
           hand: [
@@ -581,7 +527,6 @@ describe("EX13-043 Leopardmon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed use cost 6, reduced by the flat 4: 5 - 2 = 3.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("option").instanceId);
   });
@@ -728,7 +673,6 @@ describe("EX13-043 Leopardmon", () => {
     assertNoLoudGap(s);
   });
 
-  // Supplemental explicit timing seam; public attack boundaries are above.
   it("applies the per-suspended-Digimon reduction to the Option USE branch too", async () => {
     const s = setupEngine(
       {
@@ -781,7 +725,6 @@ describe("EX13-043 Leopardmon", () => {
     s.state.memory = 8;
     await s.ready();
 
-    // [When Digivolving] spends the shared use (printed EvoCost 3, then Drimogemon for 5 - 4 = 1).
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -797,14 +740,12 @@ describe("EX13-043 Leopardmon", () => {
     expect(afterDigivolve).toContain(s.inst("second").instanceId);
     expect(afterDigivolve).not.toContain(s.inst("first").instanceId);
 
-    // Same turn, the other printed window: the SHARED use is already spent.
     s.state.memory = 6;
     await attackWindow(s, "base");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(afterDigivolve);
 
-    // Through the real turn loop, the opponent's turn clears the ledger.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -814,17 +755,12 @@ describe("EX13-043 Leopardmon", () => {
     await attackWindow(s, "base");
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Elecmon, printed cost 3, reduced by 4 and floored at 0.
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("second").instanceId);
     expect(
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("second").instanceId),
     ).toBe(true);
   });
-
-  // ---------------------------------------------------------------------------
-  // [Digivolve] [Leopardmon: Leopard Mode]: Cost 1
-  // ---------------------------------------------------------------------------
 
   it("digivolves from [Leopardmon: Leopard Mode] for 1 with the bonus draw", async () => {
     const s = setupEngine(
@@ -857,7 +793,6 @@ describe("EX13-043 Leopardmon", () => {
 
     expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual([LEOPARD_MODE]);
     expect(s.perm("base").currentDP).toBe(12_000);
-    // Cost 1, not the printed Green Lv.5 EvoCost of 3: a Lv.6 source cannot use that route anyway.
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolutionDraw").instanceId);
     assertNoLoudGap(s);
@@ -891,7 +826,6 @@ describe("EX13-043 Leopardmon", () => {
         }).ok,
       ).toBe(false);
     }
-    // No printed EvoCost covers a Lv.6 source either, so nothing moved and nothing was charged.
     expect(s.perm("base").topCard?.cardId).toBe(PLAIN_LEOPARDMON);
     expect(s.state.memory).toBe(5);
   });
@@ -914,8 +848,6 @@ describe("EX13-043 Leopardmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // `useAlternateCost` is a PREFERENCE: with no matching alternate route the engine silently
-    // falls back to the printed EvoCost and still reports success, so the proof is the memory.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -929,10 +861,6 @@ describe("EX13-043 Leopardmon", () => {
 
     expect(s.state.memory).toBe(2);
   });
-
-  // ---------------------------------------------------------------------------
-  // [Assembly -5] Lv.5 × Lv.4 × Lv.3, all Green w/[Mammal]/[Beast]/[Beastkin] trait
-  // ---------------------------------------------------------------------------
 
   it("plays by Assembly -5, stacking the three trash materials leftmost-closest for a cost of 7", async () => {
     const s = setupEngine(
@@ -969,11 +897,8 @@ describe("EX13-043 Leopardmon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === cardId)!;
-    // §7-3-2-6: the leftmost listed material (the Lv.5) ends up closest to the played card, so it
-    // is LAST in `stack`, which holds only the cards beneath the top card.
     expect(played.stack.map(({ cardId: id }) => id)).toEqual([GREEN_MAMMAL_LV3, GREEN_BEAST_LV4, GREEN_BEASTKIN_LV5]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    // Printed play cost 12 reduced by the flat Assembly -5: 8 - 7 = 1.
     expect(s.state.memory).toBe(1);
     assertNoLoudGap(s);
   });
@@ -983,7 +908,6 @@ describe("EX13-043 Leopardmon", () => {
       {
         0: {
           hand: [{ card: cardId, as: "leopardmon" }],
-          // Two Lv.3 and one Lv.4 matching material: the Lv.5 slot has nothing to fill it.
           trash: [
             { card: GREEN_MAMMAL_LV3, as: "lv3a" },
             { card: "BT9-045", as: "lv3b" },
@@ -1047,11 +971,6 @@ describe("EX13-043 Leopardmon", () => {
     }
   });
 
-  // ---------------------------------------------------------------------------
-  // [All Turns] [Once Per Turn] When any of your suspended Digimon would leave the battle area
-  // other than by your effects, by unsuspending 1 of your Digimon, they don't leave.
-  // ---------------------------------------------------------------------------
-
   it("saves a suspended ally from the opponent's effect by unsuspending one of your Digimon", async () => {
     const s = setupEngine(
       {
@@ -1075,7 +994,6 @@ describe("EX13-043 Leopardmon", () => {
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Nothing left, and exactly one of the controller's Digimon paid by unsuspending.
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
       expect.arrayContaining([victimId, s.perm("leopardmon").permanentId]),
     );
@@ -1132,7 +1050,6 @@ describe("EX13-043 Leopardmon", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual([GREEN_MAMMAL_LV3]);
-    // The suspended host never paid for a leave the replacement did not watch.
     expect(s.perm("leopardmon").isSuspended).toBe(true);
   });
 
@@ -1160,7 +1077,6 @@ describe("EX13-043 Leopardmon", () => {
     await settle();
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
-    // "other than by your effects": no unsuspend cost was charged.
     expect(s.perm("leopardmon").isSuspended).toBe(true);
   });
 
@@ -1195,15 +1111,12 @@ describe("EX13-043 Leopardmon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
 
-    // Same turn: the budget is spent, so a second suspended Digimon is not protected even though
-    // a suspended payer is still available.
     advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
     expect(await advance(s.engine).verb.deletePermanent([secondId], "byEffect")).toBe(1);
     advance(s.engine).verb.leaveEffectResolution();
     await settle();
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(secondId);
 
-    // A real opponent turn clears the ledger; re-suspend the host and retry.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);

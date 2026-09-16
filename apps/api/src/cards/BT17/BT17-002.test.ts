@@ -149,11 +149,6 @@ describe("BT17-002 Xiaomon", () => {
   });
 
   it("carries the inherited draw through the real Digi-Egg route: hatch -> digivolve -> battle area", async () => {
-    // Peer/stack case. Public intents only for every zone change: `hatchEgg` puts BT17-002 in
-    // the breeding area, the Blue Lv.3 BT1-028 digivolves onto it there (Lv.2 Blue, cost 0),
-    // `moveFromBreeding` carries the stack to the battle area on the next own turn. Only then
-    // does the inherited watcher fire, and only for a Digimon: a Tamer played out of the same
-    // digivolution cards is the near-miss that must NOT draw.
     const s = setupEngine(
       {
         0: {
@@ -206,14 +201,11 @@ describe("BT17-002 Xiaomon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 5;
 
-    // Near-miss card kind: a Tamer played out of the same digivolution cards is not "one of
-    // your Digimon", so the watcher stays silent.
     await advance(s.engine).verb.placeUnder(carrier.permanentId, [s.inst("peerTamer").instanceId]);
     const deckBeforeTamer = s.state.players[0]!.deck.length;
     await advance(s.engine).verb.playInstances([s.inst("peerTamer").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(deckBeforeTamer);
 
-    // A Digimon from the same digivolution cards: the watcher fires from under BT1-028 once.
     await advance(s.engine).verb.placeUnder(carrier.permanentId, [s.inst("hostFodder").instanceId]);
     const deckBeforeHost = s.state.players[0]!.deck.length;
     await advance(s.engine).verb.playInstances([s.inst("hostFodder").instanceId]);

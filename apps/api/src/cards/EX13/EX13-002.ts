@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// DemiVeemon (Digi-Egg).
-//
-// [Rule] Name: Not treated as including [Vee].
-//   Executed by shared nameIncludesToken's standardized English name exclusions.
-//
-// [Your Turn] [Once Per Turn] inherited: when any of your blue Tamers are played, the
-// host Digimon with [Veedramon] in its name may unsuspend. "[Veedramon] in its name" is
-// a substring ref, so AeroVeedramon/UlforceVeedramon hosts qualify and a plain Veemon
-// host does not.
 export const compiled: CompiledCard = {
   effects: [
     {

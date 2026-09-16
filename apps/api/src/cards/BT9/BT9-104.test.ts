@@ -84,7 +84,6 @@ describe("BT9-104 X Digivolution!", () => {
         s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("miss").instanceId),
     );
 
-    // The Option itself costs 3; only the revealed digivolution is free.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
     expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("placedUnder").instanceId)).toBe(true);
@@ -146,9 +145,6 @@ describe("BT9-104 X Digivolution!", () => {
       return decision?.kind === "selectCards" && decision.sourceCardId === "BT9-064";
     });
 
-    // KB Q1911/Q5976: the bonus draw comes from the unrevealed deck, the
-    // non-X-Antibody remainder is trashed, and the unchosen X Antibody is
-    // placed under the evolved Digimon before Grademon's When Digivolving opens.
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("initialMiss").instanceId);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("incompatibleX").instanceId);

@@ -1,7 +1,3 @@
-// Hand-authored override for BT4-075 (Blastmon).
-// runtime-effect fix: WhenAttacking should encode a single optional RedirectAttack where the opponent
-// may choose 1 of their unsuspended Digimon (Q1224: opponent decides whether to switch; if they do,
-// must target an unsuspended Digimon). Removed the two-step broken encoding.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

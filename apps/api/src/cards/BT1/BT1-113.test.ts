@@ -90,8 +90,6 @@ describe("BT1-113 Forbidden Temptation", () => {
         observe(s.engine).isRestricted(s.perm("target"), "block"),
     );
 
-    // Advance to the opponent's otherwise ordinary Main window. Its attack intent is
-    // rejected by the restriction, not merely annotated in a ledger.
     s.state.turnSeat = 1;
     expect(
       s.engine.applyIntent(1, {
@@ -101,8 +99,6 @@ describe("BT1-113 Forbidden Temptation", () => {
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
 
-    // Re-open player 0's normal attack flow and verify that the same target is not
-    // an eligible blocker. `declareBlock` is the UI-facing response for that window.
     s.state.turnSeat = 0;
     expect(
       s.engine.applyIntent(0, {

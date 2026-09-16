@@ -35,8 +35,6 @@ describe("BT15-039", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 2, 1_500);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // Memory is stored relative to the active (seat 0) player. The opponent's loss of 1
-    // therefore moves the shared gauge from 1 (after Bombermon's play cost) to 2.
     expect(s.state.memory).toBe(2);
   });
   it("grants Gammamon-related effects on all turns and inherited all turns", () => {
@@ -78,8 +76,6 @@ describe("BT15-039", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // The physically inherited BT8-008 effect deletes one target. Excluding inherited
-    // effects from Bombermon's borrowed copy prevents a second activation deleting both.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

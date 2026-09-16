@@ -94,9 +94,6 @@ export const compiled: CompiledCard = {
               ignoreRequirements: true,
               optional: true,
             },
-            // "After, you may place ... as any of your [Jupitermon]'s top digivolution card":
-            // sequencing, not a consequence of the digivolution. It reads any Jupitermon the
-            // controller has, so declining the evolution does not cancel it.
             {
               kind: "PlaceUnder",
               target: { filter: aegiocHusmon, count: 1 },

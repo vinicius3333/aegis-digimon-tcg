@@ -5,25 +5,13 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-/**
- * BT19-067 Impmon — Purple Lv.3 Rookie, 2000 DP, play cost 4, evo cost 0 from a Purple Lv.2.
- *
- * Printed clauses:
- *   1. [On Play] If you have 1 or fewer Tamers, you may play 1 purple Tamer with a play
- *      cost of 4 or less from your trash without paying the cost.            (main)
- *   2. ＜Retaliation＞                                                        (inherited)
- *
- * KB: `node tools/kb/query.mjs card BT19-067` reports no knowledge-base entries — no Q&A,
- * errata or banlist row, matching docs/audits/BT19.md#knowledge-base-index (0 references).
- */
-
-const PURPLE_TAMER_4 = "BT18-093"; // Violet Inboots: Purple Tamer, play cost 4 — the boundary hit
-const PURPLE_TAMER_2 = "BT3-096"; // Mimi Tachikawa: Purple Tamer, play cost 2 — quiet, no [On Play]
-const PURPLE_TAMER_5 = "BT11-094"; // Mirei Mikagura: Purple/Yellow Tamer, play cost 5 — over the cap
-const RED_TAMER_2 = "ST1-12"; // Tai Kamiya: Red Tamer, play cost 2 — wrong colour
-const PURPLE_EGG = "BT2-007"; // Pagumon: Purple Lv.2 Digi-Egg — the legal evolution source
-const GREEN_EGG = "BT1-007"; // Tanemon: Green Lv.2 Digi-Egg — illegal source
-const PLAIN_LV3 = "BT1-009"; // Monodramon: Red Lv.3, no effects
+const PURPLE_TAMER_4 = "BT18-093";
+const PURPLE_TAMER_2 = "BT3-096";
+const PURPLE_TAMER_5 = "BT11-094";
+const RED_TAMER_2 = "ST1-12";
+const PURPLE_EGG = "BT2-007";
+const GREEN_EGG = "BT1-007";
+const PLAIN_LV3 = "BT1-009";
 const INERT_SECURITY = "BT1-010";
 const DECK = ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"];
 
@@ -54,9 +42,6 @@ describe("BT19-067 Impmon", () => {
         actions: [
           {
             kind: "PlayWithoutCost",
-            // A trash-zone (loose card) matcher reads the scalar `playCostLte` key; the object
-            // `playCost: {op,value}` form is silently dropped for loose cards
-            // (interpreter/matching/definition.ts).
             target: { filter: { controller: "mine", kind: ["Tamer"], colors: ["Purple"], playCostLte: 4 } },
             from: ["trash"],
             payCost: false,
@@ -95,7 +80,6 @@ describe("BT19-067 Impmon", () => {
     const tamer = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === violetId);
     expect(tamer?.topCard?.cardId).toBe(PURPLE_TAMER_4);
     expect(tamer?.stack).toHaveLength(0);
-    // Only Impmon's own play cost of 4 was paid; the Tamer came down for free.
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(violetId);
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId).sort()).toEqual(
@@ -248,11 +232,9 @@ describe("BT19-067 Impmon", () => {
     });
     await s.ready();
 
-    // Stack proof: identical printed cards, differing only by the digivolution card underneath.
     expect(observe(s.engine).hasKeyword(s.perm("carrier"), "Retaliation")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("bare"), "Retaliation")).toBe(false);
 
-    // The carrier loses the battle 3000 vs 5000; ＜Retaliation＞ deletes the winning defender too.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -266,7 +248,6 @@ describe("BT19-067 Impmon", () => {
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    // Control: the bare peer loses the same battle and the defender survives.
     const wallTwoId = s.perm("wallTwo").permanentId;
     expect(
       s.engine.applyIntent(0, {
@@ -304,7 +285,6 @@ describe("BT19-067 Impmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard?.cardId === "BT19-067");
 
-    // Evo cost 0, plus the mandatory digivolution draw.
     expect(s.state.memory).toBe(5);
     expect(s.perm("egg").stack.map((card) => card.instanceId)).toEqual([eggId]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-011"]);

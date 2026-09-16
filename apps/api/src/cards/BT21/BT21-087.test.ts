@@ -104,8 +104,6 @@ describe("BT21-087 Zenith", () => {
     expect(setup.state.memory).toBe(0);
   });
 
-  // The revealed cards are still in the deck, which no client's state carries: the prompt is
-  // the only channel that can name them, and a card it leaves unnamed is drawn as a card back.
   it("names every revealed card in the prompt that offers them", async () => {
     const setup = setupEngine(
       {

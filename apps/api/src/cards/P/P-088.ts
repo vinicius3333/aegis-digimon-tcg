@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4180: When this Digimon has 12000+ DP and opponent has 2+ Digimon with <=6000 DP,
-// you MUST delete 2 (can't choose to delete only 1).
-// "delete 2 such Digimon instead" = replacement: at 12000+ DP delete 2 (<=6000 DP targets),
-// not 1. Modeled as conditional count on a single Delete action.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -40,8 +36,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [When Attacking] Delete 1 (or 2 if this Digimon has 12000+ DP) opponent Digimon
-      // with 6000 DP or less. "Delete 2 such Digimon instead" = 2 targets of the same filter.
       trigger: "WhenAttacking",
       actions: [
         {

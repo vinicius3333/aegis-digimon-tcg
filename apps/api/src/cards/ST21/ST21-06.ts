@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST21-06 MagnaAngemon
-// [Digivolve] Lv.4 w/[ADVENTURE] trait: Cost 3
-// [On Play][When Digivolving] Place 1 of your opponent's ≤6000 DP Digimon as the top
-//   security card. For every 2 colors your Tamers have, add 2000 to this effect's DP max.
-// [Your Turn][Once Per Turn] When your other Digimon are played or digivolve,
-//   if any of them have the [ADVENTURE] trait, 1 of your Digimon gains <Alliance> for
-//   the turn. Then, 1 of your Digimon may attack.
-// [Inherited] <Alliance>
 const compiled: CompiledCard = {
   effects: [
     {

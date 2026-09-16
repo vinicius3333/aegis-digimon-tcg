@@ -197,7 +197,6 @@ describe("EX8-001", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await thirdTurn;
 
-    // A fresh production turn clears the inherited Once Per Turn ledger.
     s.state.memory = 0;
     const fourthTurn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Main && s.state.turnSeat === 0 && s.state.turnCount === 4);

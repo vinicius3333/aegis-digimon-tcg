@@ -86,7 +86,6 @@ describe("BT8-084 Kimeramon", () => {
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("kimeramon"));
 
-    // White (printed) + blue (face-up stack) = -2000; hidden red must not count.
     expect(s.perm("target").currentDP).toBe(4000);
   });
 
@@ -111,7 +110,6 @@ describe("BT8-084 Kimeramon", () => {
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("kimeramon"));
 
-    // BT8-084 is treated as its digivolution-card colors only during Your Turn.
     expect(s.perm("target").currentDP).toBe(5000);
   });
 

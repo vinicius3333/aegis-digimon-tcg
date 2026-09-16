@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT24-060 (Hisyaryumon).
-// [When Attacking]: RevealAdd top 3 — may digivolve into a [DigiPolice]/[SEEKERS] Digimon
-//   among the revealed cards without cost; return the rest to top OR bottom (choice).
-// [All Turns]: SubTrigger whenAddDigivolutionCards (Tamer) → suspend 1 opp Digimon.
-//   Then THIS Digimon may attack opponent's Digimon (optional).
-// Inherited [All Turns]: Replacement wouldLeavePlay for [DigiPolice]/[SEEKERS] Digimon —
-//   cost is PlayWithoutCost of a [DigiPolice]/[SEEKERS] Tamer from THIS Digimon's digivolution cards;
-//   they don't leave (Prevent action). Q5782: affects ALL DigiPolice/SEEKERS Digimon simultaneously.
 export const compiled: CompiledCard = {
   effects: [
     {

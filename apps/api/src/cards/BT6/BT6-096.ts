@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Return performs the printed rules cleanup for attached digivolution cards. It must
-// not be modeled as TrashDigivolution because Q1399 says that cleanup does not trigger
-// effects watching for a digivolution card trashed by an effect.
 const compiled: CompiledCard = {
   effects: [
     {

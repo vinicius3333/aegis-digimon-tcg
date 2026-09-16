@@ -55,9 +55,6 @@ describe("EX10-058 Lilithmon", () => {
   it("proves the granted turn-end deletion, the shared once-per-turn watcher pair, and DigiXros", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    // The printed Purple/Lv.5/cost-3 EvoCost row is NOT restated here: every
-    // `digivolutionRequirement` entry is read as an ALTERNATE route, and this card prints no
-    // `[Digivolve]` header.
     expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.digiXrosRequirement).toEqual([
       { materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2, maxMaterials: 2 },
@@ -242,9 +239,6 @@ describe("EX10-058 Lilithmon", () => {
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX10-044")).toBe(true);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("otherSource").instanceId);
-    // EX10-044's inherited Draw 1 is checked at the discard window. Because the card has already
-    // moved from trash onto the battle area as Lilithmon's same effect resolves, Q5160 says it
-    // cannot activate; the deck card therefore remains in the deck.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("draw").instanceId);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("draw").instanceId);
   });
@@ -376,8 +370,6 @@ describe("EX10-058 Lilithmon", () => {
     await settle(() => s.perm("lilithmon").stack.length === 2);
     expect(s.perm("lilithmon").stack).toHaveLength(2);
 
-    // The second event this turn is the OTHER printed form ("are played"). It shares the same
-    // once-per-turn key, so it must not pay a second time.
     await advance(s.engine).fireSubTrigger("whenPlayed", {
       subjectPermanentId: s.perm("entrant").permanentId,
       entryCause: "play",
@@ -417,7 +409,6 @@ describe("EX10-058 Lilithmon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(1);
 
-    // The opponent's public attack deletes its small attacker against Lilithmon.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -429,8 +420,6 @@ describe("EX10-058 Lilithmon", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("attacker").instanceId);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT10-071");
 
-    // The same opponent turn now plays another Digimon. The shared key was spent by the
-    // battle deletion, so this second event must not trash another source or play the second payoff.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("laterPlay").instanceId })).toEqual({
       ok: true,
     });
@@ -478,7 +467,6 @@ describe("EX10-058 Lilithmon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
 
-    // First opponent play this turn: the shared use is spent, 2 sources pay, 1 card returns.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstEntrant").instanceId })).toEqual({
       ok: true,
     });
@@ -486,7 +474,6 @@ describe("EX10-058 Lilithmon", () => {
     expect(s.perm("lilithmon").stack).toHaveLength(2);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
 
-    // Second opponent play in the SAME turn: the once-per-turn use is gone, nothing is paid.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondEntrant").instanceId })).toEqual({
       ok: true,
     });
@@ -494,7 +481,6 @@ describe("EX10-058 Lilithmon", () => {
     expect(s.perm("lilithmon").stack).toHaveLength(2);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
 
-    // Round-trip through the real turn loop: seat 0's turn, then seat 1's next turn.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -531,7 +517,6 @@ describe("EX10-058 Lilithmon", () => {
     s.state.memory = 11;
     await s.ready();
 
-    // EX10-040 DemiDevimon is purple but carries the [Evil] trait, not [Bagra Army].
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -539,7 +524,6 @@ describe("EX10-058 Lilithmon", () => {
         digiXros: { materialInstanceIds: [s.inst("bagraFirst").instanceId, s.inst("outsider").instanceId] },
       }),
     ).toMatchObject({ ok: false, reason: "invalid-material" });
-    // The refused declaration is inert: no memory spent, nothing left hand.
     expect(s.state.memory).toBe(11);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand).toHaveLength(4);
@@ -568,23 +552,18 @@ describe("EX10-058 Lilithmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // "Unaffected by your opponent's effects", arranged before the grant is given.
     await advance(s.engine).verb.restrict(s.perm("immune").permanentId, "beAffected", EffectDuration.Permanent);
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("lilithmon"));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Q5158 first half: the grant CAN be given to such a Digimon.
     expect(observe(s.engine).subscriptions("endOfTurn", s.perm("immune").permanentId)).toHaveLength(1);
 
-    // Q5158 second half: it is still unaffected at the trigger timing, so nothing is deleted.
     s.state.turnSeat = 1;
     await advance(s.engine).fireSubTrigger("endOfTurn");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.trash).toHaveLength(0);
 
-    // Control on the same driver: without the immunity the very same end-of-turn window
-    // DOES delete, so the assertion above is about the immunity, not about a dead timing.
     const control = setupEngine(
       {
         0: { battleArea: [{ card: CARD_ID, as: "lilithmon" }] },
@@ -619,8 +598,6 @@ describe("EX10-058 Lilithmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
 
-    // 11 printed - (1 material x 2) = 9. The two-material run above pays 7, so the discount
-    // is per placed card (CR 7-2-2-1), not a flat reduction.
     expect(s.state.memory).toBe(2);
     expect(s.perm("lilithmon").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("onlyMaterial").instanceId]);
   });
@@ -649,8 +626,6 @@ describe("EX10-058 Lilithmon", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
-    // CR 7-2-2-7: only the TOP card of the battle-area material is placed; its own
-    // digivolution cards are trashed.
     expect(s.perm("lilithmon").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("fieldMaterial").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("shed").instanceId]);
   });
@@ -706,8 +681,6 @@ describe("EX10-058 Lilithmon", () => {
           security: ["BT1-009", "BT1-014"],
         },
       },
-      // The granted deletion is mandatory; declining answers only the [All Turns] "you may
-      // play" prompt, keeping this test on the [On Play] clause.
       { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds },
     );
     const loop = s.engine.startTurnLoop();
@@ -723,25 +696,18 @@ describe("EX10-058 Lilithmon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).subscriptions("endOfTurn", s.perm("recipient").permanentId).length === 1);
 
-    // The grant lands on the OPPONENT's permanent, never on the caster's own board.
     expect(observe(s.engine).subscriptions("endOfTurn", s.perm("recipient").permanentId)).toHaveLength(1);
     expect(observe(s.engine).subscriptions("endOfTurn", s.perm("bystander").permanentId)).toHaveLength(0);
 
-    // Paying 7 (11 - 2 x 2) from 3 memory drops the gauge below zero, so seat 0's turn ends
-    // and seat 1's begins without any hand-laid turn state.
     await advance(s.engine).waitForMainPhase(1);
     const opponentBefore = s.state.players[1]!.battleArea.length;
     advance(s.engine).endMainPhaseIfOpen(1);
     await settleAcrossTimers(() => s.state.players[1]!.battleArea.length < opponentBefore);
 
-    // Q5159: the granted effect resolves as the OPPONENT's own effect at the end of THEIR
-    // turn, deleting one of their own Digimon.
     expect(s.state.players[1]!.battleArea).toHaveLength(opponentBefore - 1);
     expect(s.state.players[1]!.trash.filter(({ cardId }) => cardId === "BT1-009" || cardId === "BT1-013").length).toBe(
       1,
     );
-    // The [All Turns] clause saw that deletion and offered its optional cost; declining leaves
-    // both DigiXros materials under Lilithmon and nothing replayed from the trash.
     expect(s.perm("lilithmon").stack.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("bagraFirst").instanceId, s.inst("bagraSecond").instanceId]),
     );
@@ -790,27 +756,18 @@ describe("EX10-058 Lilithmon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).subscriptions("endOfTurn", s.perm("recipient").permanentId).length === 1);
 
-    // The grant lands on the OPPONENT's permanent, never on the caster's own board.
     expect(observe(s.engine).subscriptions("endOfTurn", s.perm("recipient").permanentId)).toHaveLength(1);
     expect(observe(s.engine).subscriptions("endOfTurn", s.perm("bystander").permanentId)).toHaveLength(0);
 
-    // Paying 7 (11 - 2 x 2) from 3 memory drops the gauge below zero, so seat 0's turn ends
-    // and seat 1's begins without any hand-laid turn state.
     await advance(s.engine).waitForMainPhase(1);
     const opponentBefore = s.state.players[1]!.battleArea.length;
     advance(s.engine).endMainPhaseIfOpen(1);
     await settleAcrossTimers(() => s.state.players[1]!.battleArea.length < opponentBefore);
 
-    // Q5159: the granted effect resolves as the OPPONENT's own effect at the end of THEIR
-    // turn, deleting one of their own Digimon.
     expect(s.state.players[1]!.battleArea).toHaveLength(opponentBefore - 1);
     expect(s.state.players[1]!.trash.filter(({ cardId }) => cardId === "BT1-009" || cardId === "BT1-013").length).toBe(
       1,
     );
-    // Q5168: that deletion is itself "any of your opponent's Digimon are deleted", so the
-    // [All Turns] clause triggers off the board change this card's own effect caused. It pays
-    // by trashing BOTH DigiXros materials and replays one of them (EX10-027 DeadlyAxemon,
-    // purple Lv.4) from the trash without paying its cost.
     expect(s.perm("lilithmon").stack).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(["EX10-027", CARD_ID]);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);

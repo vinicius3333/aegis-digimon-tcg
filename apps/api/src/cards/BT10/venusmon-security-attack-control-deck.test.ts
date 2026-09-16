@@ -45,8 +45,6 @@ describe("BT10 Venusmon security-attack control deck gauntlet", () => {
         observe(s.engine).keywordAmount(s.perm("plainAttacker"), "SecurityAttack") === -1,
     );
 
-    // X5 has printed SA+1 and Venusmon's SA-1. The numeric total is zero, but Q1966 says
-    // it still HAS Security Attack; both it and the plain body that received SA-1 are gated.
     expect(observe(s.engine).keywordAmount(s.perm("shoutmonX5"), "SecurityAttack")).toBe(0);
 
     s.state.turnSeat = 1;
@@ -66,7 +64,6 @@ describe("BT10 Venusmon security-attack control deck gauntlet", () => {
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
 
-    // The same affected attacker may attack a different suspended Digimon.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -76,8 +73,6 @@ describe("BT10 Venusmon security-attack control deck gauntlet", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // A separately affected body may still attack the player: Venusmon never says
-    // "can't attack", only "can't attack this Digimon".
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -87,7 +82,6 @@ describe("BT10 Venusmon security-attack control deck gauntlet", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("plainAttacker").isSuspended).toBe(true);
-    // Its SA-1 correctly makes the legal player attack perform zero security checks.
     expect(s.state.players[0]!.security).toHaveLength(3);
     const endPhaseResult = opponentMain.isOpen ? s.engine.applyIntent(1, { type: "endPhase" }) : { ok: true };
     expect(endPhaseResult).toEqual({ ok: true });

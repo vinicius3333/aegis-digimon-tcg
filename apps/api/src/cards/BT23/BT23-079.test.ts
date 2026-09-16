@@ -6,12 +6,6 @@ import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harn
 import "../index.js";
 import { compiled } from "./BT23-079.js";
 
-/**
- * Eri's App Fuse tail chains several prompts (the fuse offer, the material choice, and the
- * result card's own When Digivolving offer). The production DecisionManager exposes one at a
- * time, so the public path is driven by answering whatever is pending until the board settles.
- * `declineSourceCardIds` refuses the optional prompts a fixture wants left unused.
- */
 async function answerPrompts(
   s: EngineSetup,
   options: {
@@ -97,9 +91,7 @@ describe("BT23-079 Eri Karan", () => {
     });
   });
 
-  // Clause 1: [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
   it("gains exactly 1 memory at the start of its own Main phase when the opponent has a Digimon", async () => {
-    // Both fixtures keep a spare playable card so the production Main phase stays open.
     const withOpponent = setupEngine({
       0: { battleArea: [{ card: "BT23-079", as: "eri" }], hand: ["BT1-009"], deck: Array(10).fill("BT1-009") },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: Array(10).fill("BT1-010") },
@@ -133,24 +125,19 @@ describe("BT23-079 Eri Karan", () => {
         deck: Array(10).fill("BT1-010"),
       },
     });
-    // Reach seat 1's Main through the real turn loop; seat 0 opens first and passes.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Seat 0 does gain: the opponent has a Digimon and it is Eri's controller's turn.
     expect(s.state.memory).toBe(1);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.turnSeat).toBe(1);
-    // Seat 1 opens on the plain passed-turn memory: Eri's [Start of YOUR Main Phase] stayed silent.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 
-  // Clause 2: [Your Turn] When any of your Digimon get linked, by suspending this Tamer, those
-  // Digimon get +3000 DP until your opponent's turn ends.
   it("suspends Eri and boosts the naturally linked host by exactly 3000 through the opponent's turn", async () => {
     const s = setupEngine(
       {
@@ -182,7 +169,6 @@ describe("BT23-079 Eri Karan", () => {
     await settle(() => s.perm("host").linked.length === 1);
     await settle(() => s.perm("eri").isSuspended);
 
-    // Musclemon 1000 + Perorimon's link DP 2000 + Eri's 3000.
     const boosted = s.perm("host").currentDP;
     expect(s.perm("eri").isSuspended).toBe(true);
     expect(boosted).toBe(6000);
@@ -190,12 +176,10 @@ describe("BT23-079 Eri Karan", () => {
     expect(s.state.memory).toBe(4);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
 
-    // Still boosted throughout the opponent's turn.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").currentDP).toBe(6000);
 
-    // Expired once the opponent's turn ended.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").currentDP).toBe(3000);
@@ -215,7 +199,6 @@ describe("BT23-079 Eri Karan", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // Reach seat 1's Main through the real turn loop rather than writing `turnSeat`.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -272,7 +255,6 @@ describe("BT23-079 Eri Karan", () => {
     await settle(() => s.perm("host").linked.length === 1);
     await settle(() => s.state.pendingDecision === undefined, 200);
 
-    // The link itself succeeded (1000 + 2000 link DP); Eri's 3000 was never added.
     expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("link").instanceId]);
     expect(s.perm("host").currentDP).toBe(3000);
     expect(s.perm("eri").isSuspended).toBe(true);
@@ -281,7 +263,6 @@ describe("BT23-079 Eri Karan", () => {
     expect(s.events.some((event) => event.kind === "digivolved")).toBe(false);
   });
 
-  // Q5354: refusing the suspend also refuses the "Then, ... app fuse" tail.
   it("Q5354: declining the suspend cost aborts both the DP boost and the App Fuse", async () => {
     const s = setupEngine(
       {
@@ -317,18 +298,15 @@ describe("BT23-079 Eri Karan", () => {
     await settle(() => s.state.pendingDecision === undefined, 200);
 
     expect(s.perm("eri").isSuspended).toBe(false);
-    // Only the link's own 2000 DP, never Eri's 3000.
     expect(s.perm("host").currentDP).toBe(3000);
     expect(s.perm("host").topCard?.instanceId).toBe(hostTopId);
     expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("link").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(dosukomonId);
-    // No App Fusion happened, so no procedure draw either.
     expect(s.state.players[0]!.hand).toHaveLength(handBefore - 1);
     expect(s.events.some((event) => event.kind === "digivolved")).toBe(false);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
-  // Clause 2 tail: Then, 1 of your Digimon may app fuse into a Digimon card in the hand.
   it("accepting the suspend then app fuses the boosted host into the hand Digimon and draws", async () => {
     const s = setupEngine({
       0: {
@@ -358,15 +336,11 @@ describe("BT23-079 Eri Karan", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
-    // Decline only Dosukomon's own When Digivolving Link offer; accept Eri's suspend and fuse.
     await answerPrompts(s, {
       declineSourceCardIds: ["BT23-021"],
       until: () => s.perm("host").topCard?.cardId === "BT23-021",
     });
     await settle(() => s.perm("host").topCard?.cardId === "BT23-021", 1000);
-    // App Fusion lands Dosukomon (BT23-021) as the new top, which immediately offers its OWN
-    // [When Digivolving] "may link" prompt (same source card, a later decision than the one
-    // `answerPrompts` above stopped watching for). Decline it too, out of scope for this test.
     await answerPrompts(s, {
       declineSourceCardIds: ["BT23-021"],
       until: () => s.state.pendingDecision === undefined,
@@ -376,20 +350,16 @@ describe("BT23-079 Eri Karan", () => {
     expect(s.perm("eri").isSuspended).toBe(true);
     expect(s.perm("host").topCard?.instanceId).toBe(dosukomonId);
     expect(s.perm("host").enteredByEffect).toBe(true);
-    // The old top and the consumed link become digivolution cards, bottom-most first.
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([oldTopId, linkId]);
     expect(s.perm("host").linked).toHaveLength(0);
     expect(s.events).toContainEqual(
       expect.objectContaining({ kind: "digivolved", mechanic: "appFusion", cardId: "BT23-021" }),
     );
-    // The link declaration costs 1; the printed App Fusion cost is 0.
     expect(s.state.memory).toBe(4);
-    // One evolution draw: BT1-010 off the top of the deck.
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
-  // Clause 3: [Security] Play this card without paying the cost.
   it("plays itself from Security without paying its cost of 3", async () => {
     async function runSecurityCheck(securityCardId: string): Promise<{ setup: EngineSetup; revealedId: string }> {
       const s = setupEngine(
@@ -404,7 +374,6 @@ describe("BT23-079 Eri Karan", () => {
         { autoAcceptOptional: true, autoSelectCards: true },
       );
       const revealedId = s.inst("revealed").instanceId;
-      // Reach the attacking seat's turn through the real turn loop rather than writing `turnSeat`.
       const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
       expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -424,7 +393,6 @@ describe("BT23-079 Eri Karan", () => {
     }
 
     const eri = await runSecurityCheck("BT23-079");
-    // BT1-009 has no Security effect, so its memory line is the free-of-charge baseline.
     const control = await runSecurityCheck("BT1-009");
 
     expect(
@@ -432,8 +400,6 @@ describe("BT23-079 Eri Karan", () => {
     ).toBe(true);
     expect(eri.setup.state.players[0]!.security).toHaveLength(0);
     expect(eri.setup.state.players[0]!.trash.some((card) => card.instanceId === eri.revealedId)).toBe(false);
-    // Playing the cost-3 Tamer from Security charged nothing: the memory line matches the
-    // control run where the revealed card had no Security effect at all.
     expect(eri.setup.state.memory).toBe(control.setup.state.memory);
     expect(eri.setup.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });

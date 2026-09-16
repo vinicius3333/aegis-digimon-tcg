@@ -92,8 +92,6 @@ describe("EX9-006", () => {
 
     expect(s.perm("source").topCard?.cardId).toBe("EX9-010");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
-    // EX9-010 costs 2 (reduced by 1), then EX9-071's [Security] effect gains 1 memory
-    // for the defending player, moving the gauge from 2 to 1 for player 0.
     expect(s.state.memory).toBe(1);
     expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["EX9-006", "EX9-007"]);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-010")).toBe(false);

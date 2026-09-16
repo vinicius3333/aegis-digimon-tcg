@@ -133,9 +133,6 @@ describe("EX10-014 Weatherdramon", () => {
     }
     expect(ledger.grantedKeywords(s.perm("third").permanentId)).toEqual([]);
 
-    // "Until their turn ends": the grant must survive MY turn end and still be there through the
-    // opponent's whole turn, then be gone once that turn ends. Both turn ends are real ones
-    // driven by the turn loop, not a direct ledger sweep.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     for (const alias of ["first", "second"]) {
@@ -267,11 +264,6 @@ describe("EX10-014 Weatherdramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(accepted.inst("otherLink").instanceId);
-    // Model an external ＜Link +1＞ grant so this is a legal two-link Appmon stack, through the
-    // Advance Surface verb (`fx.grantLinkMax`, what every printed ＜Link +N＞ compiles to) rather
-    // than a reach into `engine.continuous`. Using an Appmon host is important: the rule-check
-    // sweep correctly trashes Weatherdramon when its host no longer satisfies Weatherdramon's
-    // printed [Appmon] link requirement.
     await advance(accepted.engine).verb.grantLinkMax(
       accepted.perm("host").permanentId,
       1,
@@ -330,8 +322,6 @@ describe("EX10-014 Weatherdramon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    // Bias the selection toward the OTHER host's link card. A correct `isSelfRef` cost filter
-    // never offers it, so the only payable cost stays this Digimon's own link card.
     preferred.push(s.inst("foreignLink").instanceId);
     await s.ready();
 

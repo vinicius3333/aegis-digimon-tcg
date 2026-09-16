@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main]: Play 1 each of WarGrowlmon Token, Taomon Token, Rapidmon Token (3 tokens total).
-// Cannot play tokens whose names match Digimon you already have (pre-check condition).
-// Then 1 of your level 5 Digimon gains <Alliance> TWICE (count:2) for the turn and MUST
-// attack (KB Q3163: the Digimon must attack if possible, so mandatory Attack action follows).
-// Q3162: tokens played by this effect don't have a level and can't be chosen for the "then" part.
-// Q3160/Q3164: the bracketed [WarGrowlmon]/[Taomon]/[Rapidmon] refs are EXACT card names, so
-// both the colour waiver and the [Security] play use `nameExact`. A substring `match: "name"`
-// would also accept BlackWarGrowlmon / BlackRapidmon (BT5-079, EX4-036).
 const compiled: CompiledCard = {
   effects: [
     {
@@ -40,8 +32,6 @@ const compiled: CompiledCard = {
           effectTextPart:
             "[Main] Play 1 [WarGrowlmon] Token (Digimon/Red/6000 DP), [Taomon] Token (Digimon/Yellow/6000 DP), and 1 [Rapidmon] Token (Digimon/Green/6000 DP). This effect can't play tokens with the same names as your Digimon.",
           kind: "PlayToken",
-          // Token registry names include the printed "Token" suffix; the card-name
-          // conditions below intentionally remain the unsuffixed names.
           tokens: ["WarGrowlmon Token"],
           count: 1,
           payCost: false,

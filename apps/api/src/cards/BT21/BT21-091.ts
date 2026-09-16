@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Preserved override (no AUTO-GENERATED header → the generator will not overwrite it).
-// The [Main] effect's cost is trashing 1 [Hybrid] card; once paid, "Then, place this
-// card in the battle area" is a forced consequence — the Draw carries abortOnDecline,
-// so PlaceInBattleAreaSelf only runs when the cost was paid and must not be optional.
 export const compiled: CompiledCard = {
   effects: [
     {

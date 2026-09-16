@@ -133,8 +133,6 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
       ),
     );
 
-    // "with [Tai Kamiya]/[Kari Kamiya] in its name" is a substring match, so Yolei Inoue & Kari
-    // Kamiya qualifies and Marcus Damon does not.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("marcus").instanceId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).not.toContain(
       s.inst("marcus").instanceId,
@@ -167,8 +165,6 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("vTamer").instanceId),
     );
 
-    // "Tai Kamiya (V-Tamer)" contains [Tai Kamiya], so the substring match takes it; Akari
-    // Hinomoto is a Tamer of the same cost with neither printed name and stays in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nearMiss").instanceId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).not.toContain(
       s.inst("nearMiss").instanceId,
@@ -203,8 +199,6 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
       ),
     );
 
-    // Q2878: the copy arrives after the [End of Your Turn] timing has passed, so it stays in the
-    // battle area, is not returned to the bottom of the deck, and draws nothing more.
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).not.toContain(s.inst("replacement").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("unreachableDraw").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("unreachableDraw").instanceId);
@@ -212,13 +206,6 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
       1,
     );
   });
-
-  // Q2877 ("play into an empty space in your breeding area without paying the cost" is not
-  // hatching) is carried by the IR event name: the SubTrigger listens to `whenHatch`, which the
-  // engine raises only from the `hatchEgg` intent, and no play-into-breeding action raises it.
-  // No behavioural negative was added: every printed card that plays a Digimon into the breeding
-  // area does so from an [End of Your Turn] effect, which would race this card's own end-of-turn
-  // clause and prove nothing cleanly. Reported as a residual gap.
 
   it("records complete compiled coverage for the hatch trigger", () => {
     const compiled = runtimeCompiledCard("BT17-093")!;

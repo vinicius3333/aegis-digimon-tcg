@@ -128,9 +128,6 @@ describe("EX1-030 Angewomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTakeru").instanceId })).toEqual({
       ok: true,
     });
-    // Each Takeru play also triggers its own public Recovery, which puts the recovered
-    // security card back into hand — hand size never reaches 0, so wait on the decision idling
-    // instead of a hand count that was never going to hit zero.
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("target").currentDP).toBe(3000);
   });

@@ -8,8 +8,6 @@ describe("ST8-03 Dracomon", () => {
       {
         0: {
           hand: [{ card: "ST8-03", as: "dracomon" }],
-          // "miss1" must not itself be a [Dramon] hit: BT1-009 (Monodramon) matches the name
-          // filter, so ST1-02 (Biyomon) stands in as the genuine miss.
           deck: [
             { card: "ST1-02", as: "miss1" },
             { card: "ST8-02", as: "miss2" },

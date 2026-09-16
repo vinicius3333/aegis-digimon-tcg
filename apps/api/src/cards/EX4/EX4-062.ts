@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX4-062 — Kiriha Aonuma & Nene Amano.
 const compiled: CompiledCard = {
   effects: [
     {

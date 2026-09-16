@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EndOfAttack: deletes self as cost, then deletes 1 opponent Digimon with DP <= self's DP.
-// OnDeletion: plays [Gammamon] from trash in suspended state.
 export const compiled: CompiledCard = {
   effects: [
     {

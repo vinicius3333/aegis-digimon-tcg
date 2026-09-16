@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -46,11 +43,6 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing 3 [Mineral] or [Rock] trait cards from any of your Digimon's digivolution cards",
           },
-          // The clause has TWO results: delete a Digimon AND trash the top security card. When
-          // the opponent controls no Digimon only the deletion is impossible, and Comprehensive
-          // Rules §1-3-2 still performs the rest, so the cost must stay payable. Without this the
-          // interpreter's no-target preflight (`runAction.ts`, the `action.kind === "Delete"`
-          // guard) aborts the whole effect and the security card survives.
           allowCostWithoutTarget: true,
           optional: true,
           abortOnDecline: true,
@@ -91,11 +83,6 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing 3 [Mineral] or [Rock] trait cards from any of your Digimon's digivolution cards",
           },
-          // The clause has TWO results: delete a Digimon AND trash the top security card. When
-          // the opponent controls no Digimon only the deletion is impossible, and Comprehensive
-          // Rules §1-3-2 still performs the rest, so the cost must stay payable. Without this the
-          // interpreter's no-target preflight (`runAction.ts`, the `action.kind === "Delete"`
-          // guard) aborts the whole effect and the security card survives.
           allowCostWithoutTarget: true,
           optional: true,
           abortOnDecline: true,

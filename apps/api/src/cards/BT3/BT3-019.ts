@@ -1,6 +1,3 @@
-// HAND-FIXED IR for BT3-019 — do not regenerate.
-// WhenDigivolving: PlaceUnder added from:["hand"], underFilter:self, position:top.
-// Added GainMemory 3 action gated on PlaceUnder.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

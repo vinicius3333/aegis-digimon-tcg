@@ -1,4 +1,3 @@
-// HAND-FIXED IR for BT5-109 (Mega Digimon Fusion!) — do not regenerate over this file.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

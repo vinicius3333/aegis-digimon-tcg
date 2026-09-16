@@ -311,8 +311,6 @@ describe("EX6-070 Phantom Pain", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-070"));
 
-    // The immunity expires at the end of seat 0's turn. The granted text belongs
-    // to the recipient, so its "End of Your Turn" window is seat 1's turn end.
     advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 0);
     s.state.turnSeat = 1;
     await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);

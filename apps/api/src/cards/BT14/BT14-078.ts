@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Deletion]: trash up to 3 (optional "you may"), then delete is mandatory (no "you may").
-// The deletion ceiling is driven by the preceding hand-trash count.
 export const compiled: CompiledCard = {
   effects: [
     {

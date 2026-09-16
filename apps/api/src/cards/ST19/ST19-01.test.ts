@@ -83,9 +83,6 @@ describe("ST19-01 Kyaromon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      // A player-directed attack with no Digimon defender resolves through
-      // `checkSecurity`, not a Digimon-vs-Digimon battle — `combatResolved` is never
-      // emitted for it; `securityChecked` is the real end-of-attack milestone here.
       await settle(() => s.events.some((event) => event.kind === "securityChecked"));
       await settle(() => s.perm("attacker").isSuspended);
       if (i === 0) {

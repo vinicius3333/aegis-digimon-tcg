@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * BT3-030 — Leopardmon.
- *
- * The free-play pool spans the controller's Digimon stacks, including this
- * Digimon's own stack (Q1065). The Jamming grant is reevaluated against its
- * original level filter so a recipient immediately loses it after becoming
- * level 5 or higher (Q1066).
- */
 export const compiled: CompiledCard = {
   effects: [
     {

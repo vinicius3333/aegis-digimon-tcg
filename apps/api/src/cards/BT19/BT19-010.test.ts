@@ -50,7 +50,6 @@ describe("BT19-010 Shoutmon X4", () => {
                 filter: {
                   zone: "digivolutionCards",
                   kind: ["Digimon"],
-                  // "from this Digimon's digivolution cards" — not every friendly stack.
                   hostFilter: { isSelfRef: true },
                   nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }],
                 },
@@ -89,7 +88,6 @@ describe("BT19-010 Shoutmon X4", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-010"));
 
-    // Play cost 8, reduced by 2 for each of the 4 placed cards (comprehensive 7-2-2-1).
     expect(
       s
         .perm("x4")
@@ -129,13 +127,10 @@ describe("BT19-010 Shoutmon X4", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-010"));
 
     expect(s.perm("x4").stack).toHaveLength(3);
-    // 8 - (3 x 2) = 2 memory paid, from 2 down to 0.
     expect(s.state.memory).toBe(0);
   });
 
   it("refuses a near-miss material whose name only CONTAINS a required name", async () => {
-    // BT5-014 OmniShoutmon has "Shoutmon" as a substring of its name and no
-    // "treated as [Shoutmon]" clause, so it is not the [Shoutmon] the requirement names.
     const s = setupEngine({
       0: {
         hand: [
@@ -164,8 +159,6 @@ describe("BT19-010 Shoutmon X4", () => {
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.state.memory).toBe(0);
 
-    // Positive control on the same board: BT19-012 OmniShoutmon prints "This card is also
-    // treated as [Shoutmon] for a DigiXros", so the same slot accepts it.
     const omni = s.give(0, Zone.Hand, { card: "BT19-012", as: "treatedAsShoutmon" });
     await s.ready();
     expect(
@@ -189,8 +182,6 @@ describe("BT19-010 Shoutmon X4", () => {
   });
 
   it("saves up to 3 Xros Heart Digimon from its own stack when deleted in battle (Q3067)", async () => {
-    // Realistic route: X4 attacks a bigger Digimon and loses the battle, so the
-    // would-leave replacement runs off a real deletion, not an injected verb.
     const s = setupEngine(
       {
         0: {
@@ -198,7 +189,6 @@ describe("BT19-010 Shoutmon X4", () => {
             {
               card: "BT19-010",
               as: "x4",
-              // 3 Xros Heart Digimon + BT19-009 Growlmon (Dark Dragon) as the near-miss source.
               under: ["BT19-008", "BT19-012", "BT19-009", "BT19-031"],
             },
             { card: "BT19-079", as: "tamer" },
@@ -237,7 +227,6 @@ describe("BT19-010 Shoutmon X4", () => {
         .stack.map((card) => card.instanceId)
         .sort(),
     ).toEqual([...xrosIds].sort());
-    // The cap is 3: the Growlmon source and X4 itself go to the trash.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([growlmonId, x4InstanceId]),
     );

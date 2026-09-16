@@ -59,7 +59,6 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
     expect(registered).toMatchObject({ coverage: "full", residual: [] });
     expect(registered.effects[0]).toMatchObject({
       trigger: "Static",
-      // CR 16-42-3 scopes ＜Use Req.＞ to Digimon and Tamers on the field.
       actions: [
         {
           kind: "WaiveColorRequirement",
@@ -386,12 +385,6 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("security").instanceId);
   });
 
-  // Seat scoping for the [Security] free play: only the CHECKED card's security effect
-  // activates, so this copy sitting face up in the ATTACKER's own security must stay put
-  // while the defender's security is checked. The candidate is a [Shambala] TAMER on
-  // purpose: a Digimon candidate would also satisfy this card's other, legitimate
-  // [Security][Your Turn] "when one of your [Shambala] Digimon attacks" digivolve, which
-  // does fire here and would mask the scoping this case guards.
   it("does not use the Security effect when a different seat's security is checked", async () => {
     const s = setupEngine(
       {
@@ -426,10 +419,6 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
     ]);
   });
 
-  // Mutation guard for the CR 16-42-3 kind gate on the ＜Use Req.＞ condition: EX12-071 is an
-  // OPTION whose colors never satisfy this card's colour requirement, yet it carries the [Shambala]
-  // trait and EX12 Options sit in the battle area. Remove `kind: ["Digimon", "Tamer"]` from the
-  // youHave filter and this play is wrongly allowed.
   it("is not enabled by a resident Option carrying the Use Req. trait", () => {
     const s = setupEngine({
       0: {

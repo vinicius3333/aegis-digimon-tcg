@@ -98,11 +98,6 @@ describe("BT19-002 Puyoyomon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-028")).toBe(true);
   });
   it("carries the inherited bounce through the real Digi-Egg route and only up to the returned level", async () => {
-    // Peer/stack case, all public intents: `hatchEgg` takes BT19-002 off the egg deck, the Blue
-    // Lv.3 [Sea Animal] BT6-020 digivolves onto it in breeding (Lv.2 Blue, cost 0),
-    // `moveFromBreeding` carries the stack into the battle area, and only then does the
-    // [Opponent's Turn] clause answer a real opponent attack. `preferInstanceIds` biases the
-    // bounce toward the Lv.4 peer, so a missing level bound would return the wrong Digimon.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -131,7 +126,6 @@ describe("BT19-002 Puyoyomon", () => {
     preferInstanceIds.push(s.perm("levelFourPeer").topCard!.instanceId);
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1 (seat 0): hatch, then digivolve the Sea Animal Lv.3 onto the egg in breeding.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT19-002");
@@ -151,7 +145,6 @@ describe("BT19-002 Puyoyomon", () => {
     expect(s.state.players[0]!.breeding!.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Turn 2 (seat 1): the stack is still in breeding, so an opponent attack must not fire it.
     await advance(s.engine).waitForMainPhase(1);
     const opponentHandInBreedingTurn = s.state.players[1]!.hand.map(({ instanceId }) => instanceId);
     expect(
@@ -167,7 +160,6 @@ describe("BT19-002 Puyoyomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(3);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 3 (seat 0): move the raised stack into the battle area.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
@@ -178,7 +170,6 @@ describe("BT19-002 Puyoyomon", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Turn 4 (seat 1): the opponent attacks and the inherited clause answers from the stack.
     await advance(s.engine).waitForMainPhase(1);
     const levelThreeInstanceId = s.perm("levelThreePeer").topCard!.instanceId;
     const levelFourPermanentId = s.perm("levelFourPeer").permanentId;
@@ -205,8 +196,6 @@ describe("BT19-002 Puyoyomon", () => {
     await loop;
   });
   it("cannot pay the cost when its host lacks the [Aqua]/[Sea Animal] traits", async () => {
-    // Near-miss peer for the trait gate: BT19-016 is a Blue Lv.3 whose traits are
-    // [Reptile]/[Blue Flare], so the self-referential cost has no legal payment.
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT19-016", as: "host", under: ["BT19-002"] }] },

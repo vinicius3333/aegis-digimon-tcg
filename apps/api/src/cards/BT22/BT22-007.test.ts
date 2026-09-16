@@ -9,25 +9,9 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "../BT9/BT9-047.js";
 
-/**
- * A3 for BT22-007's {Breeding}[Start of Your Main Phase] cluster (KB BT22-007; documented behavior):
- *  - place-as-TOP-from-egg-deck: the Digi-Egg-deck top, IF a [Mother Eater], is placed (revealed)
- *    as this Digimon's TOP digivolution card (placeAsTopFromEggDeck; Q4856).
- *  - raw-10+-digivolution condition: the play-3 tail runs only when this Digimon has 10+
- *    digivolution cards (selfDigivolutionCountAtLeast 10; Q4858).
- *  - play-from-own-digivolution-cards: play 3 (as many as possible, up to 3) [Mother Eater]s from
- *    THIS card's OWN digivolution stack (fromOwnDigivolutionStack; Q4859/Q4860).
- *
- * Driven through the REAL interpreter (real runPlaceUnder asTop, real evaluateCondition for the
- * 10+ gate, real PlayWithoutCost own-stack path) with a fake fx recording the verbs.
- *
- * FAILS-WHEN-REVERTED: drop below 10 digivolution cards (or force the 10+ condition false) => the
- * play-3 clause never runs (no playInstances of [Mother Eater]).
- */
-
 let seq = 0;
 
-const MOTHER_EATER = "BT22-007"; // [Mother Eater]
+const MOTHER_EATER = "BT22-007";
 const OTHER = "X-OTHER";
 
 function makeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
@@ -161,15 +145,13 @@ describe("BT22-007 — place-as-top + 10+-condition + play-from-own-stack", () =
     const h = makeHarness({ stackSize: 10, motherEatersInStack: 3, eggTopIsMotherEater: true });
     await runStartMain(h);
     expect(h.placeTopCalls).toBe(1);
-    // 3 [Mother Eater]s played from this card's own stack (Q4860: exactly 3 when 3 are available).
     expect(h.playedInstanceIds.length).toBe(3);
   });
 
   it("with FEWER than 10 digivolution cards => the play-3 clause does NOT run (10+ gate)", async () => {
     const h = makeHarness({ stackSize: 9, motherEatersInStack: 3, eggTopIsMotherEater: true });
     await runStartMain(h);
-    expect(h.placeTopCalls).toBe(1); // the place-as-top still happens (egg top is Mother Eater)
-    // FAILS-WHEN-REVERTED: make the >=10 condition always-true and these 3 wrongly play.
+    expect(h.placeTopCalls).toBe(1);
     expect(h.playedInstanceIds.length).toBe(0);
   });
 
@@ -193,7 +175,6 @@ describe("BT22-007 — place-as-top + 10+-condition + play-from-own-stack", () =
       inBreeding: false,
     });
     await runStartMain(h);
-    // In the battle area the {Breeding} base guard is false => nothing fires.
     expect(h.placeTopCalls).toBe(0);
     expect(h.playedInstanceIds.length).toBe(0);
   });
@@ -227,8 +208,6 @@ describe("BT22-007 inherited leave-play replacement", () => {
         nameOrTrait: [{ tokens: ["Eater"], match: "trait" }],
       },
     });
-    // The LEAVING Digimon is what moves, and it lands under THIS card — not the other way
-    // round, and not under an arbitrary permanent the controller owns.
     expect(watcher.actions[0]).toMatchObject({
       kind: "PlaceUnder",
       target: { filter: { useTriggerSource: true } },

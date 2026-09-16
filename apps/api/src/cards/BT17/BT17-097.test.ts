@@ -150,9 +150,6 @@ describe("BT17-097 Return to the Primogenitor", () => {
     });
     await settle(() => s.perm("freeTarget").topCard?.cardId === "BT12-030");
 
-    // The prevention prompt is player-facing: it must ask a plain-language question and carry
-    // the card's printed clause as provenance, never the internal replacement event name
-    // (this card's compiled Replacement stores "wouldBeDeleted" in its `raw`).
     const preventPrompt = s.decisions.find(
       (decision) => decision.req.kind === "optional" && decision.req.promptText === "Prevent leaving the battle area?",
     );
@@ -302,7 +299,6 @@ describe("BT17-097 Return to the Primogenitor", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT12-028"));
-    // 1 digivolution saves exactly 1 Digimon; the other Free Digimon is still deleted.
     const survivors = s.state.players[0]!.battleArea.filter(
       (permanent) => permanent.topCard?.cardId === "BT12-030" || permanent.topCard?.cardId === "BT12-028",
     );
@@ -347,7 +343,6 @@ describe("BT17-097 Return to the Primogenitor", () => {
     await settle(() => s.perm("redFree").topCard?.cardId === "EX3-063");
 
     expect(s.perm("redFree").topCard?.cardId).toBe("EX3-063");
-    // Only the turn player may attack, so the saved Digimon cannot attack on the opponent's turn.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -419,14 +414,11 @@ describe("BT17-097 Return to the Primogenitor", () => {
     });
     await settle(() => s.perm("paildramon").topCard?.cardId === "BT12-030");
 
-    // The Delay digivolve prevented the deletion, so ＜Partition＞ is negated: both specified
-    // digivolution cards stay in the stack and neither is played to the battle area.
     expect(s.perm("paildramon").stack.map((card) => card.cardId)).toEqual(["BT2-024", "BT10-047", "BT16-025"]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual([
       "BT12-030",
       "BT17-019",
     ]);
-    // The Option itself is the ＜Delay＞ cost, so it moves from the battle area to the trash.
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT17-097"]);
   });
 
@@ -468,10 +460,6 @@ describe("BT17-097 Return to the Primogenitor", () => {
     ]);
   });
 
-  // Q2889: ＜Partition＞ granted by a digivolution card carries its specifier on THAT card, not on
-  // the top card. `partitionCandidates` now falls back to the stack when the top card prints no
-  // marker, and `partitionSpecOf` reads the inherited copy of the text as well as the printed one.
-  // See docs/audits/BT17.md#inherited-partition-specifier-mechanism.
   it("Q2889: Partition from a BT16-025 in the digivolution cards still plays its cards", async () => {
     const s = setupEngine(
       {

@@ -6,34 +6,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// BT19-086 Ryo Akiyama — Black Tamer, play cost 3.
-//   [Start of Your Main Phase] By placing 1 Option card with the [Device] trait FROM YOUR HAND
-//     in the battle area, <Draw 1>
-//   [Main] By suspending this Tamer and trashing 4 of your Option cards with the [Device] trait
-//     in the battle area, you may play 1 [Cyberdramon] from your hand or trash without paying
-//     the cost.
-//   [Security] Play this card without paying the cost.
-//
-// KB Q3151 (2024-09-20): "Can I use this card's [Main] effect to trash Option cards in the
-// battle area, but then choose to not play [Cyberdramon]?" — "Yes, you can." The play is
-// therefore `optional: true` even though it follows a paid "by ..." condition.
-//
-// Fixture vocabulary:
-//   P-155 Pawn Device — Red Option, [Device] trait, cost 2. Prints NO
-//     "when this card is trashed in your battle area" clause, so three of them are silent
-//     payment fodder. Four copies is a legal deck count (maxCountInDeck 4).
-//   BT19-095 Knight Device — Green Option, [Device] trait. Prints
-//     "When this card is trashed in your battle area, 1 of your Digimon gains <Piercing> and
-//     gets +4000 DP for the turn" (a `whenTrashedFromBattleArea` effect). It is the CONSEQUENCE
-//     probe: the [Main] cost is a real battle-area trash, not a silent removal.
-//   ST3-13 Heaven's Gate — Yellow Option with NO trait: the [Device] trait near-miss, both in
-//     hand (placement cost) and in the battle area (trash cost).
-//   EX3-050 Cyberdramon — Black Lv.5, NO printed effect text: the exact-name play target.
-//   EX8-052 Cyberdramon (X Antibody) — the NAME near-miss: "Cyberdramon" is a substring of its
-//     name, but the printed reference is the bracketed exact `[Cyberdramon]`.
-//   BT1-009/BT1-013/BT1-012/BT1-014 — inert RED main-deck Digimon: deck and security padding
-//     and the board Digimon the Knight Device grant lands on. No Digi-Egg is seeded anywhere.
-
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-012"];
 const inertDeck = ["BT1-009", "BT1-013", "BT1-012", "BT1-014"];
 
@@ -46,7 +18,6 @@ const battleAreaCardIds = (s: EngineSetup, seat: 0 | 1 = 0): (string | undefined
 const trashCardIds = (s: EngineSetup, seat: 0 | 1 = 0): string[] =>
   s.state.players[seat]!.trash.map((card) => card.cardId).sort();
 
-/** Seat 0 with Ryo, four Devices and a Digimon; seat 1 padded so nothing trips a win check. */
 const mainBoard = (opts?: { devices?: string[]; extraOptions?: string[]; hand?: string[]; trash?: string[] }) => ({
   0: {
     battleArea: [
@@ -87,8 +58,6 @@ describe("BT19-086 Ryo Akiyama — catalog and IR", () => {
       dp: 0,
       evoCosts: [],
       maxCountInDeck: 4,
-      // The catalog stores NON-BREAKING SPACES (U+00A0) after both "[Device]" tokens; the
-      // official printing uses ordinary spaces. Recorded as a catalog discrepancy, not edited.
       effectText:
         "[Start of Your Main Phase] By placing 1 Option card with the [Device] trait from your hand in the battle area, ＜Draw 1＞ \n[Main] By suspending this Tamer and trashing 4 of your Option cards with the [Device] trait in the battle area, you may play 1 [Cyberdramon] from your hand or trash without paying the cost.",
       securityEffectText: "[Security] Play this card without paying the cost.",
@@ -108,7 +77,6 @@ describe("BT19-086 Ryo Akiyama — catalog and IR", () => {
             amount: 1,
             cost: {
               kind: "place",
-              // "from your hand" — the hand is the ONLY legal source for this placement cost.
               target: {
                 filter: {
                   zone: "hand",
@@ -151,8 +119,6 @@ describe("BT19-086 Ryo Akiyama — catalog and IR", () => {
             },
             actions: [
               {
-                // Bracketed `[Cyberdramon]` is an EXACT-name reference (`nameExact`), and the
-                // play stays `optional` per KB Q3151.
                 kind: "PlayWithoutCost",
                 target: {
                   filter: { controller: "mine", nameOrTrait: [{ tokens: ["Cyberdramon"], match: "nameExact" }] },
@@ -223,16 +189,12 @@ describe("BT19-086 Ryo Akiyama — [Start of Your Main Phase] place a Device, dr
     await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
-    // Read INSIDE the open Main phase.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId).sort()).toEqual(
       [s.inst("ryo").instanceId, s.inst("device").instanceId].sort(),
     );
-    // The drawn card is the one that was on top of the deck; the Device left the hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("spare").instanceId, s.inst("drawn").instanceId].sort(),
     );
-    // The placement is the whole cost: no memory is spent for the Device's own play cost,
-    // and the clause grants none of its own.
     expect(s.state.memory).toBe(0);
     expect(s.perm("ryo").isSuspended).toBe(false);
 
@@ -294,8 +256,6 @@ describe("BT19-086 Ryo Akiyama — [Start of Your Main Phase] place a Device, dr
     await advance(s.engine).waitForMainPhase(0);
     await settle();
 
-    // FAILS-WHEN-REVERTED (`from: ["hand"]` / `zone: "hand"`): a trash-sourced payment would
-    // place the Device and draw here.
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("trashedDevice").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("spare").instanceId]);
@@ -328,7 +288,6 @@ describe("BT19-086 Ryo Akiyama — [Start of Your Main Phase] place a Device, dr
     await advance(s.engine).waitForMainPhase(0);
     await settle();
 
-    // FAILS-WHEN-REVERTED (trait gate): dropping the [Device] trait filter places Heaven's Gate.
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("spare").instanceId, s.inst("plainOption").instanceId].sort(),
@@ -350,14 +309,11 @@ describe("BT19-086 Ryo Akiyama — [Main] suspend + trash 4 Devices, play [Cyber
     expect(activateRyo(s)).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX3-050"));
 
-    // Cost half 1: the Tamer is suspended.
     expect(s.perm("ryo").isSuspended).toBe(true);
-    // Cost half 2: all four Devices left the battle area and are in the trash, by instance id.
     expect(battleAreaCardIds(s)).toEqual(["BT1-009", "BT19-086", "EX3-050"]);
     for (const instanceId of deviceInstances) {
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === instanceId)).toBe(true);
     }
-    // Payload: Cyberdramon is on the board and NOTHING was paid for it (play cost 6).
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("hand0").instanceId)).toBe(true);
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand).toHaveLength(0);
@@ -373,11 +329,6 @@ describe("BT19-086 Ryo Akiyama — [Main] suspend + trash 4 Devices, play [Cyber
     expect(activateRyo(s)).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX3-050"));
 
-    // BT19-095 Knight Device prints "When this card is trashed in your battle area, 1 of your
-    // Digimon gains <Piercing> and gets +4000 DP for the turn". Its resolution is the proof
-    // that the cost is a real battle-area trash and not a silent removal.
-    // Pinned by permanent identity: the only Digimon on the board while the cost is being
-    // paid is `host`, so the grant cannot have landed anywhere else.
     expect(s.perm("host").currentDP).toBe(baseDP + 4000);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
   });
@@ -388,8 +339,6 @@ describe("BT19-086 Ryo Akiyama — [Main] suspend + trash 4 Devices, play [Cyber
     await s.ready();
     const deviceInstances = [0, 1, 2, 3].map((n) => s.inst(`device${n}`).instanceId);
 
-    // Declaring Main commits its processing condition; only the trailing
-    // Cyberdramon play remains optional (CR 15-8-4-4-1 / Q3151).
     expect(activateRyo(s)).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(s.perm("ryo").isSuspended).toBe(true);
@@ -406,12 +355,10 @@ describe("BT19-086 Ryo Akiyama — [Main] suspend + trash 4 Devices, play [Cyber
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The cost was paid in full...
     expect(s.perm("ryo").isSuspended).toBe(true);
     for (const instanceId of deviceInstances) {
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === instanceId)).toBe(true);
     }
-    // ... and Cyberdramon stayed in hand.
     expect(handCardIds(s)).toEqual(["EX3-050"]);
     expect(battleAreaCardIds(s)).toEqual(["BT1-009", "BT19-086"]);
   });
@@ -441,10 +388,8 @@ describe("BT19-086 Ryo Akiyama — [Main] suspend + trash 4 Devices, play [Cyber
     await settle(() => s.perm("ryo").isSuspended);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // FAILS-WHEN-REVERTED (`nameExact`): a substring `match: "name"` gate would play it.
     expect(battleAreaCardIds(s)).toEqual(["BT1-009", "BT19-086"]);
     expect(handCardIds(s)).toEqual(["EX8-052"]);
-    // The cost still resolved (the play is the optional part).
     expect(s.perm("ryo").isSuspended).toBe(true);
   });
 
@@ -457,8 +402,6 @@ describe("BT19-086 Ryo Akiyama — [Main] suspend + trash 4 Devices, play [Cyber
     await s.ready();
     const before = battleAreaCardIds(s);
 
-    // FAILS-WHEN-REVERTED (count 4 + [Device] trait gate): with the trait filter dropped the
-    // fourth Option (Heaven's Gate) would complete the cost and the effect would be offered.
     expect(JSON.parse(s.perm("ryo").activatableEffectsJson || "[]")).toEqual([]);
     await settle(() => s.state.pendingDecision === undefined);
 
@@ -485,8 +428,6 @@ describe("BT19-086 Ryo Akiyama — [Main] suspend + trash 4 Devices, play [Cyber
     const afterFirst = battleAreaCardIds(s);
     expect(s.state.players[0]!.trash).toHaveLength(4);
 
-    // Second activation in the same turn: the Tamer is already suspended, so the suspend half
-    // of the compound cost is unpayable and the effect is no longer offered at all.
     expect(JSON.parse(s.perm("ryo").activatableEffectsJson || "[]")).toEqual([]);
     await settle(() => s.state.pendingDecision === undefined);
 
@@ -522,9 +463,6 @@ describe("BT19-086 Ryo Akiyama — [Main] suspend + trash 4 Devices, play [Cyber
     await s.ready();
     expect(s.perm("ryo").isSuspended).toBe(true);
 
-    // Reach seat 0's real Main phase; the unsuspend step stands Ryo up. The hand holds no
-    // [Device] Option, so the Start-of-Main clause cannot pay and only the [Main] activation
-    // below moves the board.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("ryo").isSuspended).toBe(false);

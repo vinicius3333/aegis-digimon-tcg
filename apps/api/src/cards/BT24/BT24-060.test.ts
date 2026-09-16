@@ -24,8 +24,6 @@ describe("BT24-060 Hisyaryumon", () => {
 
   it("captures the printed reveal, suspension, attack, and replacement structure", () => {
     const attack = BT24_060.effects?.find((entry) => entry.trigger === "WhenAttacking");
-    // The digivolve rides on the reveal as `digivolveOption` (the shape runRevealAdd consumes),
-    // not as a second action: it is the same decision window as the reveal, not a later one.
     expect(attack?.actions?.[0]).toMatchObject({
       kind: "RevealAdd",
       revealCount: 3,

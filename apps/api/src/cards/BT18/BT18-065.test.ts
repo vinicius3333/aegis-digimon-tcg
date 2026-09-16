@@ -138,7 +138,6 @@ describe("BT18-065 Snatchmon", () => {
     ).toEqual({ ok: true });
     await s.ready();
 
-    // The original base becomes a source; refusal must not add the opposing Vemmon.
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("base").instanceId]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT18-060"]);
@@ -159,8 +158,6 @@ describe("BT18-065 Snatchmon", () => {
     await accepted.ready();
     await advance(accepted.engine).runTurn(0);
     expect(accepted.perm("qualified").topCard?.instanceId).toBe(accepted.inst("destromon").instanceId);
-    // Passing sets memory to -3. Four inherited Vemmon reductions lower the 5-cost
-    // evolution to 1, so the outgoing gauge finishes at -4.
     expect(accepted.state.memory).toBe(-4);
 
     const refused = setupEngine(
@@ -176,7 +173,6 @@ describe("BT18-065 Snatchmon", () => {
     await refused.ready();
     await advance(refused.engine).runTurn(0);
     expect(refused.perm("qualified").topCard?.cardId).toBe("BT18-065");
-    // Refusing leaves the outgoing turn's pass marker at -3 in the next-player frame.
     expect(refused.state.memory).toBe(-3);
     assertNoLoudGap(accepted);
     assertNoLoudGap(refused);

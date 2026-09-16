@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4172: the 2 trashed digivolution cards must share a level with each other,
-// not with this Digimon. Q4173 confirms the MetalGreymon name is an always-on rule.
 const compiled: CompiledCard = {
   effects: [
     {

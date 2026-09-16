@@ -15,7 +15,6 @@ import { compiled } from "./EX13-014.js";
 const CARD_ID = "EX13-014";
 const TOKEN_ID = "TOKEN-AthoRenePor-Token";
 
-/** Fire the [When Attacking] window on a permanent without running a whole combat. */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm(alias), {
     attackerPermanentId: s.perm(alias).permanentId,
@@ -46,7 +45,6 @@ describe("EX13-014 Jesmon", () => {
     expect(text).toContain(
       "[All Turns] [Once Per Turn] When any of your Digimon are played, you may delete 1 of your opponent's lowest DP Digimon. Then, if you don't have [Atho or René & Por], you may play 1 [Atho, René & Por] Token.",
     );
-    // No printed inherited or security text, so the module declares neither.
     expect((getCardDefinition(CARD_ID)?.inheritedEffectText ?? "").trim()).toBe("");
     expect((getCardDefinition(CARD_ID)?.securityEffectText ?? "").trim()).toBe("");
     expect(compiled.effects.every((effect) => effect.isInherited !== true)).toBe(true);
@@ -87,10 +85,8 @@ describe("EX13-014 Jesmon", () => {
       sharedUseKey: "ir-shared-0",
       actions: [optionBody],
     });
-    // One printed [Once Per Turn] governs both timings, so both windows share one ledger key.
     expect(compiled.effects[0]?.sharedUseKey).toBe(compiled.effects[1]?.sharedUseKey);
 
-    // The watcher prints its OWN [Once Per Turn] on a separate line: no shared key.
     expect(compiled.effects[2]).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",
@@ -98,7 +94,6 @@ describe("EX13-014 Jesmon", () => {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          // No printed "other", so the watcher carries no excludeSelf.
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
           actions: [
             {
@@ -153,7 +148,6 @@ describe("EX13-014 Jesmon", () => {
         reduceCost: 5,
       },
     ]);
-    // The engine-canonical identity this card's token condition and PlayToken both name.
     expect(getCardDefinition(TOKEN_ID)).toMatchObject({
       cardId: TOKEN_ID,
       nameEn: "AthoRenePor Token",
@@ -168,7 +162,6 @@ describe("EX13-014 Jesmon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT1-020 Groundramon: red Lv.5, and its card prints no [Huckmon] token at all.
           battleArea: [{ card: "BT1-020", as: "base" }],
           hand: [{ card: CARD_ID, as: "jesmon" }],
           deck: ["BT1-009", "BT1-010"],
@@ -193,7 +186,6 @@ describe("EX13-014 Jesmon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseInstanceId]);
     expect(s.perm("base").currentDP).toBe(12000);
-    // The card left the hand; the one card there is the digivolution bonus draw.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("jesmon").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -203,7 +195,6 @@ describe("EX13-014 Jesmon", () => {
     const alternate = setupEngine(
       {
         0: {
-          // EX13-012 SaviorHuckmon: Lv.5 and prints [Huckmon] in its text.
           battleArea: [{ card: "EX13-012", as: "base" }],
           hand: [{ card: CARD_ID, as: "jesmon" }],
           deck: ["BT1-009", "BT1-010"],
@@ -230,17 +221,12 @@ describe("EX13-014 Jesmon", () => {
     expect(alternate.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseInstanceId]);
     expect(alternate.state.players[0]!.hand).toHaveLength(1);
 
-    // The alternate header is what the engine READS for this route. Its widening — any Lv.5
-    // carrying the token, not only a red one — cannot be isolated behaviourally today: every
-    // Lv.5 [Huckmon]-text card in the catalog is red, so it also satisfies the printed EvoCost.
     expect(digivolutionRequirementsFor(CARD_ID)).toEqual(
       expect.arrayContaining([{ level: 5, texts: ["Huckmon"], cost: 3, isAlternate: true }]),
     );
   });
 
   it("refuses illegal digivolution sources on both routes", async () => {
-    // BT20-013 BaoHuckmon: right token, wrong level (Lv.4).
-    // BT1-038 Monzaemon: right level (Lv.5), wrong colour and no token.
     for (const base of ["BT20-013", "BT1-038"] as const) {
       const s = setupEngine(
         {
@@ -306,11 +292,9 @@ describe("EX13-014 Jesmon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CARD_ID)!;
-    // Printed play cost 12 reduced by 5 = 7: the whole gauge is spent.
     expect(s.state.memory).toBe(0);
     expect(played.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["ST12-08", "ST12-06", "ST12-04"]));
     expect(played.stack).toHaveLength(3);
-    // Comprehensive §7-3: the materials come OUT of the trash.
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
@@ -346,8 +330,6 @@ describe("EX13-014 Jesmon", () => {
   });
 
   it("reads [Huckmon] 'in text' as the full printed union, not the name alone", async () => {
-    // BT23-076 Sistermon Blanc is a Lv.3 card whose NAME has no [Huckmon]; only its printed
-    // effect text carries the token. It must satisfy the Lv.3 Assembly slot.
     const s = setupEngine(
       {
         0: {
@@ -385,7 +367,6 @@ describe("EX13-014 Jesmon", () => {
     expect(played.stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["ST12-08", "ST12-06", "BT23-076"]),
     );
-    // BT1-011 Agumon Expert prints a bracketed name token that is NOT [Huckmon]: still refused.
     expect((getCardDefinition("BT1-011")?.effectText ?? "").includes("[Agumon]")).toBe(true);
   });
 
@@ -396,7 +377,6 @@ describe("EX13-014 Jesmon", () => {
           battleArea: [{ card: "EX13-012", as: "base" }],
           hand: [
             { card: CARD_ID, as: "jesmon" },
-            // BT6-093 Judgement of the Blade: red Option, use cost 1, [Huckmon] in its text.
             { card: "BT6-093", as: "option" },
             { card: "BT1-010", as: "spare" },
           ],
@@ -418,12 +398,10 @@ describe("EX13-014 Jesmon", () => {
     await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT6-093"));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 5 - 3 for the digivolve; the Option itself is free (payCost: false).
     expect(s.state.memory).toBe(2);
     const handIds = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     expect(handIds).toContain(s.inst("spare").instanceId);
     expect(handIds).not.toContain(s.inst("option").instanceId);
-    // Spare + the digivolution bonus draw.
     expect(handIds).toHaveLength(2);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("option").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -435,7 +413,6 @@ describe("EX13-014 Jesmon", () => {
         0: {
           battleArea: [
             { card: CARD_ID, as: "jesmon", under: [{ card: "BT6-093", as: "stackOption" }] },
-            // A neighbour holding the same Option: `source: "thisDigimon"` must not reach it.
             { card: "BT1-020", as: "neighbour", under: [{ card: "BT6-093", as: "foreignOption" }] },
           ],
           hand: [{ card: "BT1-010", as: "spare" }],
@@ -489,9 +466,7 @@ describe("EX13-014 Jesmon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "jesmon" }],
           hand: [
-            // BT1-091 Scrap Claw: red Option, cost 3, no [Huckmon] anywhere.
             { card: "BT1-091", as: "noToken" },
-            // ST12-16: prints [Huckmon] but its use cost is 7, above the printed cap of 5.
             { card: "ST12-16", as: "overCap" },
           ],
           deck: ["BT1-009", "BT1-010"],
@@ -564,8 +539,6 @@ describe("EX13-014 Jesmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // [When Digivolving] spends the shared use. EX13-012's own shared window also fires here;
-    // it can only play or use a WHITE [Huckmon]-text card, and there is none in this hand.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -578,12 +551,10 @@ describe("EX13-014 Jesmon", () => {
     const usedFirst = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
     expect(usedFirst).toHaveLength(1);
 
-    // Same turn, the [When Attacking] window: the SHARED gate refuses it.
     await attackWindow(s, "base");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(usedFirst);
 
-    // A real opponent turn passes; the gate reopens on the controller's next turn.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -626,7 +597,6 @@ describe("EX13-014 Jesmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === TOKEN_ID));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Only the single lowest-DP permanent left; the superlative never widens to the rest.
     const opponentIds = s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId);
     expect(opponentIds).toEqual([middleId, highestId]);
     expect(opponentIds).not.toContain(lowestId);
@@ -636,7 +606,6 @@ describe("EX13-014 Jesmon", () => {
     expect(observe(s.engine).hasKeyword(token, "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(token, "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(token, "Decoy")).toBe(true);
-    // Jesmon, the played Digimon and the token; nothing else entered.
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -666,7 +635,6 @@ describe("EX13-014 Jesmon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([highestId]);
-    // Jesmon plus the token it produced.
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
   });
 
@@ -697,7 +665,6 @@ describe("EX13-014 Jesmon", () => {
 
     const tokens = s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === TOKEN_ID);
     expect(tokens.map(({ permanentId }) => permanentId)).toEqual([existingId]);
-    // Jesmon, the pre-existing token and the played Digimon: no second token.
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
   });
 
@@ -765,14 +732,12 @@ describe("EX13-014 Jesmon", () => {
     const tokensAfterFirst = s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === TOKEN_ID).length;
     expect(tokensAfterFirst).toBe(1);
 
-    // Second play, same turn: the printed [Once Per Turn] refuses it.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => false, 60);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([secondTargetId]);
 
-    // A real opponent turn passes; the watcher reopens on the controller's next turn.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -792,7 +757,6 @@ describe("EX13-014 Jesmon", () => {
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "jesmon" }],
-          // BT20-090 Yuuki is a Tamer, not a Digimon.
           hand: [{ card: "BT20-090", as: "tamer" }],
           deck: ["BT1-009", "BT1-010"],
         },
@@ -838,7 +802,6 @@ describe("EX13-014 Jesmon", () => {
     await settle(() => opponent.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-010"));
     await settle(() => opponent.state.pendingDecision === undefined);
 
-    // The opponent's play belongs to the opponent's seat: `controller: "mine"` never sees it.
     expect(opponent.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(mineId);
     expect(opponent.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === TOKEN_ID)).toBe(false);
   });

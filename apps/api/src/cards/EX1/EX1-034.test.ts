@@ -49,7 +49,6 @@ describe("EX1-034 Palmon", () => {
         target: { kind: "permanent", permanentId: s.perm("palmon").permanentId },
       }),
     ).toEqual({ ok: true });
-    // ownCandidate stays behind — only palmon is deleted, leaving the other Digimon in play.
     await settle(() => s.state.players[0]!.battleArea.length === 1 && s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("ownCandidate").isSuspended).toBe(false);

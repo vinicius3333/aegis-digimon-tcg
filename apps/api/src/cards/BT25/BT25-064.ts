@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT25-064 ToyAgumon. The two reveal slots are independent but a physical card can
-// only be added once; remaining revealed cards keep controller-chosen bottom order.
 export const compiled: CompiledCard = {
   effects: [
     {

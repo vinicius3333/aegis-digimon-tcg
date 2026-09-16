@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT24-079 (Hadesmon).
-// [When Digivolving] play level 4 or lower [System]/[Life] Digimon from trash without cost;
-// then you may link 1 [Appmon] card from hand or this Digimon's digi-stack without cost.
-// [All Turns] [Once Per Turn] When OTHER Digimon (either player's) are deleted, you may
-// activate 1 of THIS Digimon's [When Digivolving] effects.
-// KB Q5659: cannot link a card without <Link>.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -61,8 +55,6 @@ export const compiled: CompiledCard = {
         {
           effectTextPart:
             "Then, you may link 1 [Appmon] trait Digimon card from your hand or this Digimon's digivolution cards to 1 of your Digimon without paying the cost.",
-          // Link 1 [Appmon] card from hand or this Digimon's digi-stack to 1 of your Digimon.
-          // KB Q5659: cannot link a card that doesn't have <Link>.
           kind: "Link",
           target: {
             filter: {
@@ -97,14 +89,12 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          // "other Digimon" = any Digimon (either player's) except this Digimon
           sourceFilter: {
             excludeSelf: true,
             kind: ["Digimon"],
           },
           actions: [
             {
-              // Activate 1 of THIS Digimon's [When Digivolving] effects
               kind: "ReactivateEffect",
               fromTrigger: "WhenDigivolving",
               count: 1,

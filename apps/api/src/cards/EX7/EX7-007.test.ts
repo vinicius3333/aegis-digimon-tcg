@@ -128,8 +128,6 @@ describe("EX7-007 Vorvomon", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX7-039"));
 
-    // EX7-039 is a Machine Dragon alternate-trait match; EX3-065 is the exact Hina name;
-    // BT23-084 is a Tamer near-miss and must remain at deck bottom.
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX7-039", "EX3-065"]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT23-084"]);
   });
@@ -174,8 +172,6 @@ describe("EX7-007 Vorvomon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-002"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([drawnInstanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
-    // A breeding-area stack is a legal source transition, but the inherited [Your Turn]
-    // DP modifier is not active until the Digimon is in the battle area.
     expect(s.perm("base").currentDP).toBe(1000);
   });
 

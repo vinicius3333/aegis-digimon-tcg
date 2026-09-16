@@ -3,10 +3,6 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT2-097.js";
 
-// BT2-097 Lightning Paw errata:
-//   [Main] 3 of your opponent's level 3 Digimon get -4000 DP for the turn.
-//   [Security] Activate this card's [Main] effect.
-
 describe("BT2-097 Lightning Paw", () => {
   it("publishes the errata contract as full compiled IR", () => {
     expect(compiled).toMatchObject(getCompiledCard("BT2-097")!);

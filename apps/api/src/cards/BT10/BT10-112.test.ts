@@ -199,8 +199,6 @@ describe("BT10-112 Jesmon GX", () => {
         ) &&
         s.state.pendingDecision === undefined,
     );
-    // Jesmon X and the played Sistermon can still enqueue optional clauses after the
-    // Blitz confirmation; let the same production decision loop drain them before attacking.
     await settle(() => false, 100);
     expect(s.state.pendingDecision).toBeUndefined();
 

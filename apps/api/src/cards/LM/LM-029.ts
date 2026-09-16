@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main]: 1 yellow Digimon may digivolve with -3 cost, then place this card in battle area.
-// [Start of Your Turn]: The <Delay> activation. If opponent has a Digimon, execute the
-// two bullet-point actions: Return a yellow Digimon from trash to deck top, then optionally
-// play a yellow Digimon ≤2000 DP from trash if you have no Digimon.
-// The whole Delay block is optional per the rules (the condition gates whether it fires).
 const compiled: CompiledCard = {
   effects: [
     {

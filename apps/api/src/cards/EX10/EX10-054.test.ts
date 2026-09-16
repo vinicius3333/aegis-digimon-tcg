@@ -8,23 +8,17 @@ import "../index.js";
 
 const CARD_ID = "EX10-054";
 
-// Level 5 cost candidates for "[Myotismon] in its text" (KB Q5137: name ∪ traits ∪ every
-// printed text, not just the name).
-const MYOTISMON_BY_NAME = "BT2-075"; // Myotismon, Lv.5 Purple, no printed text at all.
-const MYOTISMON_BY_EFFECT_TEXT = "EX10-047"; // Arukenimon, Lv.5 — [Myotismon] only in its effect text.
-const GREEN_LV5 = "BT11-053"; // Digitamamon, Lv.5 Green 10000, inert — the second printed evo route.
-const NO_MYOTISMON_LV5 = "BT10-079"; // Sandiramon, Lv.5 Purple, inert: never a legal cost.
+const MYOTISMON_BY_NAME = "BT2-075";
+const MYOTISMON_BY_EFFECT_TEXT = "EX10-047";
+const GREEN_LV5 = "BT11-053";
+const NO_MYOTISMON_LV5 = "BT10-079";
 
-// Inert fixtures. No printed or inherited text, so nothing they do can open a decision.
-const INERT_LV3 = "BT1-013"; // Muchomon, Red 5000.
-const INERT_LV4 = "BT1-014"; // Kokatorimon, Red 4000.
-const SPARE_HAND_CARD = "ST1-02"; // Biyomon — keeps Main from auto-passing.
+const INERT_LV3 = "BT1-013";
+const INERT_LV4 = "BT1-014";
+const SPARE_HAND_CARD = "ST1-02";
 
-// Opposing Tamers. No inert Tamer exists in the catalog; these two carry only static DP
-// clauses that cannot fire in these fixtures (seat 1 never attacks security here, and
-// "[Your Turn]" is inactive while seat 0 holds the turn).
-const TAMER_A = "ST1-12"; // Tai Kamiya — "[Your Turn] All of your Digimon get +1000 DP".
-const TAMER_B = "ST3-12"; // T.K. Takaishi — "[Opponent's Turn] ... Security Digimon get +2000 DP".
+const TAMER_A = "ST1-12";
+const TAMER_B = "ST3-12";
 
 const neutralSeat = () => ({
   hand: [SPARE_HAND_CARD],
@@ -34,15 +28,6 @@ const neutralSeat = () => ({
 
 type Selection = DecisionRequest & { options?: { candidateInstanceIds?: string[] } };
 
-/**
- * Answer the next N card/target selections by hand.
- *
- * `autoSelectCards` sorts every selection with the SAME preference list, so it cannot
- * express "suspend these two, restrict those two" — exactly the independence KB Q5138
- * asks about. This driver answers each selection from its own picker instead, and asserts
- * the candidate set it was offered, so a wrong filter fails loudly rather than silently
- * landing on another candidate.
- */
 function answerSelections(s: EngineSetup, pickers: ((candidates: string[]) => string[])[]): Promise<void> {
   let cursor = 0;
   const isSelection = (req: DecisionRequest): boolean => req.kind === "selectCards" || req.kind === "chooseTargets";
@@ -68,13 +53,11 @@ function answerSelections(s: EngineSetup, pickers: ((candidates: string[]) => st
   return run();
 }
 
-/** The decision ids a permanent can be offered under: its permanent id or its top card. */
 function idsOf(s: EngineSetup, alias: string): string[] {
   const permanent = s.perm(alias);
   return [permanent.permanentId, permanent.topCard?.instanceId].filter((id): id is string => id !== undefined);
 }
 
-/** Pick exactly the named permanents out of a candidate list, asserting each was offered. */
 function choose(s: EngineSetup, aliases: string[]): (candidates: string[]) => string[] {
   return (candidates) =>
     aliases.map((alias) => {
@@ -84,9 +67,6 @@ function choose(s: EngineSetup, aliases: string[]): (candidates: string[]) => st
     });
 }
 
-// The interpreter's stable key for the card's single [Main] clause, asserted in the
-// positive path below and reused by the negative so it drives the same effect.
-// A [Main] clause is registered under the OnDeclaration window (see registration/module.ts).
 const trashMainEffectKey = `${CARD_ID}/ir-${EffectTiming.OnDeclaration}-0`;
 
 describe("EX10-054 VenomMyotismon", () => {
@@ -110,9 +90,6 @@ describe("EX10-054 VenomMyotismon", () => {
     const definition = getCardDefinition(CARD_ID)!;
     expect(definition.inheritedEffectText ?? "").toBe("");
     expect(definition.securityEffectText ?? "").toBe("");
-    // CATALOG DEFECT (reported, not edited): the stored text holds a NON-BREAKING SPACE
-    // (U+00A0) between "[Myotismon]" and "in its text". Harmless for matching — the compiled
-    // token is "Myotismon" — but it makes an exact-text comparison fail confusingly.
     expect(definition.effectText).toContain("[Myotismon]\u00a0in its text");
     expect(definition.effectText!.replace(/\u00a0/g, " ")).toBe(
       "[Trash] [Main] By deleting 1 of your level 5 Digimon with [Myotismon] in its text, " +
@@ -125,7 +102,6 @@ describe("EX10-054 VenomMyotismon", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
 
-    // "[Myotismon] in its text" is the full-text union, so match must be "text", not "name".
     expect(compiled.effects?.find((effect) => effect.trigger === "Main")).toMatchObject({
       isFromTrash: true,
       actions: [
@@ -150,8 +126,6 @@ describe("EX10-054 VenomMyotismon", () => {
         },
       ],
     });
-    // Q5138: the restriction carries its OWN target, not a `sameTarget` continuation of the
-    // suspend, which is what lets the two halves land on different cards.
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
@@ -164,7 +138,6 @@ describe("EX10-054 VenomMyotismon", () => {
             kind: "Restrict",
             target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2 },
             restriction: "unsuspend",
-            // "until their turn ends" from the controller's seat = the opponent's turn end.
             duration: "untilOpponentTurnEnd",
           },
         ],
@@ -196,7 +169,6 @@ describe("EX10-054 VenomMyotismon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    // Steer the cost onto the text-only match; Sandiramon must never be offered at all.
     preferred.push(s.perm("byText").topCard!.instanceId, s.perm("byText").permanentId);
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -216,14 +188,11 @@ describe("EX10-054 VenomMyotismon", () => {
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("venom").instanceId),
     );
 
-    // Play cost 12 - 7 = 5, paid in full out of memory.
     expect(s.events).toContainEqual({ kind: "memoryChanged", from: 5, to: 0, reason: "playCard" });
-    // The cost deleted Arukenimon (text match) and left Sandiramon (no match) alone.
     const board = s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId);
     expect(board).toContain(NO_MYOTISMON_LV5);
     expect(board).not.toContain(MYOTISMON_BY_EFFECT_TEXT);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(MYOTISMON_BY_EFFECT_TEXT);
-    // VenomMyotismon arrived as a fresh permanent with no digivolution cards.
     const venom = s.perm("venom");
     expect(venom.stack).toHaveLength(0);
     expect(venom.currentDP).toBe(12000);
@@ -249,10 +218,8 @@ describe("EX10-054 VenomMyotismon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 5;
 
-    // The cost has no legal candidate, so the effect is never offered on the trashed card.
     const offered = JSON.parse(s.inst("venom").activatableEffectsJson || "[]") as { effectKey: string }[];
     expect(offered).toEqual([]);
-    // Activating it anyway, with the key the positive path used, is refused outright.
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -282,8 +249,6 @@ describe("EX10-054 VenomMyotismon", () => {
           battleArea: [
             { card: INERT_LV3, as: "standingA" },
             { card: INERT_LV4, as: "standingB" },
-            // Already suspended, so a restriction on them is observable at the next
-            // unsuspend phase without this effect having to suspend them itself.
             { card: TAMER_A, as: "tamerA", suspended: true },
             { card: TAMER_B, as: "tamerB", suspended: true },
           ],
@@ -295,13 +260,11 @@ describe("EX10-054 VenomMyotismon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 12;
 
-    // Suspend the two STANDING Digimon; restrict the two ALREADY-SUSPENDED Tamers.
     const answered = answerSelections(s, [choose(s, ["standingA", "standingB"]), choose(s, ["tamerA", "tamerB"])]);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venom").instanceId })).toEqual({ ok: true });
     await answered;
     await settle(() => s.perm("standingA").isSuspended && s.perm("standingB").isSuspended);
 
-    // The two halves landed on different cards (Q5138).
     expect(s.perm("standingA").isSuspended).toBe(true);
     expect(s.perm("standingB").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("standingA"), "unsuspend")).toBe(false);
@@ -309,7 +272,6 @@ describe("EX10-054 VenomMyotismon", () => {
     expect(observe(s.engine).isRestricted(s.perm("tamerA"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamerB"), "unsuspend")).toBe(true);
 
-    // Seat 1's unsuspend phase: the unrestricted pair wakes up, the restricted pair does not.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("standingA").isSuspended).toBe(false);
@@ -317,7 +279,6 @@ describe("EX10-054 VenomMyotismon", () => {
     expect(s.perm("tamerA").isSuspended).toBe(true);
     expect(s.perm("tamerB").isSuspended).toBe(true);
 
-    // "until their turn ends": the restriction is gone by seat 1's NEXT unsuspend phase.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -358,7 +319,6 @@ describe("EX10-054 VenomMyotismon", () => {
     s.state.memory = 4;
     const sourceInstanceId = s.perm("source").topCard!.instanceId;
 
-    // Illegal source: a Lv.4 satisfies neither printed requirement (Purple Lv.5 / Green Lv.5).
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -380,7 +340,6 @@ describe("EX10-054 VenomMyotismon", () => {
     await answered;
     await settle(() => s.perm("venom").topCard?.cardId === CARD_ID && s.perm("theirB").isSuspended);
 
-    // Evolution paid 4 memory (12 -> ... -> 4 - 4 = 0) and stacked the Lv.5 source underneath.
     const venom = s.perm("venom");
     expect(venom.topCard?.cardId).toBe(CARD_ID);
     expect(venom.stack.map(({ instanceId }) => instanceId)).toEqual([sourceInstanceId]);
@@ -427,8 +386,6 @@ describe("EX10-054 VenomMyotismon", () => {
 
     expect(s.perm("theirA").isSuspended).toBe(false);
     expect(s.perm("theirB").isSuspended).toBe(false);
-    // The restriction clause after "Then," is a separate process, not an optional processing
-    // condition, so declining the "may" does not suppress it (CR 15-6-2 / 15-7-1 boundary).
     expect(observe(s.engine).isRestricted(s.perm("theirA"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("theirB"), "unsuspend")).toBe(true);
 
@@ -445,8 +402,6 @@ describe("EX10-054 VenomMyotismon", () => {
           hand: [{ card: CARD_ID, as: "venom" }, SPARE_HAND_CARD],
           battleArea: [{ card: MYOTISMON_BY_NAME, as: "source" }],
         },
-        // No opposing permanent at all: both halves of the [When Digivolving] clause have
-        // nothing to resolve against, so this route needs no decision to reach its endpoints.
         1: neutralSeat(),
       },
       { autoDeclineOptional: true },
@@ -470,7 +425,6 @@ describe("EX10-054 VenomMyotismon", () => {
     expect(venom.stack.map(({ instanceId }) => instanceId)).toEqual([sourceInstanceId]);
     expect(venom.currentDP).toBe(12000);
     expect(s.state.memory).toBe(0);
-    // The hand card left for the evolution and the digivolution bonus draw replaced it.
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([SPARE_HAND_CARD, INERT_LV3]);
 
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -496,8 +450,6 @@ describe("EX10-054 VenomMyotismon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // Seat 1 attacks directly: no turn loop, so the seeded suspended Tamer is never woken by
-    // an unsuspend phase and stays on the board as the "Digimon only" negative control.
     s.state.turnSeat = 1;
     await s.ready();
     const venomPermanentId = s.perm("venom").permanentId;
@@ -512,12 +464,10 @@ describe("EX10-054 VenomMyotismon", () => {
     await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === venomPermanentId));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The 5000 DP attacker beat the 1000 DP VenomMyotismon, suspended itself to attack, and
-    // was then the only legal target of "1 of your opponent's suspended Digimon".
     const theirBoard = s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId);
     expect(theirBoard).not.toContain(INERT_LV3);
-    expect(theirBoard).toContain(INERT_LV4); // standing Digimon: not a legal target
-    expect(theirBoard).toContain(TAMER_A); // suspended TAMER: not a Digimon, not a legal target
+    expect(theirBoard).toContain(INERT_LV4);
+    expect(theirBoard).toContain(TAMER_A);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain(INERT_LV3);
   });
 });

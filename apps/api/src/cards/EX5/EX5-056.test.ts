@@ -105,14 +105,11 @@ describe("EX5-056 Syakomon", () => {
       effectPlay.engine.applyIntent(0, { type: "playCard", instanceId: effectPlay.inst("firstEffect").instanceId }),
     ).toEqual({ ok: true });
     await settle(() => effectPlay.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-009"));
-    // The real memory ceiling is 10. The seven-cost play therefore leaves 3,
-    // and Syakomon's inherited watcher adds exactly one memory.
     expect(effectPlay.state.memory).toBe(4);
     expect(
       effectPlay.engine.applyIntent(0, { type: "playCard", instanceId: effectPlay.inst("secondEffect").instanceId }),
     ).toEqual({ ok: true });
     await settle(() => effectPlay.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-010"));
-    // The second EX5-060 still costs 7, but the inherited Once Per Turn use is spent.
     expect(effectPlay.state.memory).toBe(-3);
     expect(effectPlay.state.players[1]!.trash).toHaveLength(0);
     expect(effectPlay.state.pendingDecision).toBeUndefined();

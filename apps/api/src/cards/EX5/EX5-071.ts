@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main]: player picks 1 card with [Deva]/[Four Sovereigns] trait from revealed 3 and
-// places it as the bottom digivolution card of 1 of their Digimon OR adds it to hand.
-// Encoded as a RevealAdd slot with an alternate disposition; the interpreter
-// prompts for place-under versus hand after the card is selected.
 export const compiled: CompiledCard = {
   effects: [
     {

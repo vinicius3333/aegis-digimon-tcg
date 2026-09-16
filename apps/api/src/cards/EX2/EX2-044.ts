@@ -1,20 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX2-044 Beelzemon
-// Text: "When this card is trashed from your deck, you may play 1 [Impmon] from your trash
-//   without paying its memory cost."
-// Text: "[When Digivolving][When Attacking] You may trash the top 2 cards of your deck.
-//   Then, delete 1 of your opponent's level 3 or lower Digimon. For every 10 cards in your
-//   trash, add 1 to the maximum level of the Digimon you can choose with this effect."
-// KB Q3340: "when trashed from the deck" ONLY fires when directly trashed from the deck,
-//   NOT when revealed or searched.
-// Fixes:
-//   - Static trigger replaced with AllTurns SubTrigger "whenTrashedFromDeck" (like BT19-097)
-//   - nameOrTrait["Impmon"] corrected to proper tokens/match object
-//   - TrashTopDeck made abortOnDecline (if declined, Delete doesn't fire)
-//   - CostModifier with invalid costType "level" replaced with scaling on Delete's levelCeiling
-//     (new capability — see LANE_E.md)
 export const compiled: CompiledCard = {
   effects: [
     {

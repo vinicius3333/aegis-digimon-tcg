@@ -166,8 +166,6 @@ describe("BT22-005 Tsumemon", () => {
     });
     await s.ready();
 
-    // No suitable public effect-driven opponent play exists in this fixture set;
-    // this is the production-provenance sub-trigger seam with an opponent subject.
     await advance(s.engine).fireSubTrigger("whenPlayed", {
       subjectPermanentId: s.perm("opponentSubject").permanentId,
     });

@@ -198,7 +198,6 @@ describe("EX3-003 Sunarizamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.state.players[0]!.breeding?.topCard.cardId === "EX3-003");
-    // Permanent.stack contains only cards below the top card; the evolved card is topCard.
     expect(legal.state.players[0]!.breeding?.stack.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
     expect(legal.state.memory).toBe(0);
 

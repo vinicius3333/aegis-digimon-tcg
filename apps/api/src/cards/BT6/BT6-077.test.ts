@@ -5,20 +5,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine as setup, type EngineSetup as Setup } from "../../engine/testkit/harness.js";
 import "./BT6-077.js";
 
-/**
- * A3 for BT6-077 (Rebellimon) — [All Turns] "This Digimon is also treated as black."
- *
- * KB (binding — `tools/kb/query.mjs card BT6-077`):
- *   - Q1466: the color treatment is load-bearing for digivolution color requirements and
- *     (unlike BT3-014/BT3-040's [Your Turn] variant) is NOT restricted to either player's
- *     turn — it holds "[All Turns]" while the card is on the battle area.
- *
- * Mirrors the BT3-040 color-derivation oracle (engine/continuousColor.test.ts): read the
- * engine's effective-color accessor rather than asserting "the primitive was called".
- *
- * FAILS-WHEN-REVERTED: removing the [All Turns] color clause drops
- * "Black" from `effectiveColorsOf` on both turns.
- */
 describe("BT6-077 [All Turns] color grant — also treated as black (KB Q1466)", () => {
   function place(): Setup {
     return setup({ 0: { battleArea: [{ card: "BT6-077", dp: 8000, as: "base" }] } });
@@ -49,7 +35,7 @@ describe("BT6-077 [All Turns] color grant — also treated as black (KB Q1466)",
 
     const colors = effectiveColors(s, base);
     expect(colors).toContain("Purple");
-    expect(colors).toContain("Black"); // still granted — this clause is not turn-gated
+    expect(colors).toContain("Black");
   });
 
   it("may trash a hand card to gain Blocker and Retaliation when digivolving", async () => {

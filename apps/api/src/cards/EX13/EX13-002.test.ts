@@ -10,8 +10,6 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { compiled } from "./EX13-002.js";
 import "../index.js";
 
-// The serial worker may already have loaded an engine bound to real lookups.
-// Reload its module graph before installing this file's test-only lookup overlay.
 vi.hoisted(() => vi.resetModules());
 vi.mock("@aegis/shared", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@aegis/shared")>();
@@ -30,7 +28,6 @@ afterEach(() => {
   syntheticDefinitions.clear();
 });
 
-/** A board whose only moving part is the seeded host and the Tamer in hand. */
 function hostBoard(host: { card: string; as: string }) {
   return {
     0: {
@@ -79,7 +76,6 @@ describe("EX13-002 DemiVeemon", () => {
         },
       ],
     });
-    // The shared standardized-name matcher executes the printed exclusion.
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
   });
@@ -263,7 +259,6 @@ describe("EX13-002 DemiVeemon", () => {
     await settle(() => !s.perm("host").isSuspended);
     expect(s.perm("host").isSuspended).toBe(false);
 
-    // Re-suspend the host by hand so the second Tamer has something to undo.
     s.perm("host").isSuspended = true;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTamer").instanceId })).toEqual({
       ok: true,
@@ -272,7 +267,6 @@ describe("EX13-002 DemiVeemon", () => {
     expect(s.perm("host").isSuspended).toBe(true);
     expect(s.state.memory).toBe(4);
 
-    // A full opponent turn, then the owner's next turn, through the real turn loop.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -325,7 +319,6 @@ describe("EX13-002 DemiVeemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.instanceId === s.inst("veemon").instanceId);
-    // Digi-Egg -> Lv.3 costs 0 and draws 1.
     expect(s.state.memory).toBe(10);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("firstDraw").instanceId)).toBe(true);
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["EX13-002"]);
@@ -489,7 +482,6 @@ describe("EX13-002 DemiVeemon", () => {
     },
   );
 
-  // Supplemental matcher boundaries; public synthetic-consumer proof is above.
   it("does not treat DemiVeemon's name as including [Vee]", () => {
     const definition = getCardDefinition("EX13-002")!;
     expect(matchNameOrTrait(definition, { tokens: ["Vee"], match: "name" })).toBe(false);

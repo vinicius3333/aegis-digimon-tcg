@@ -4,31 +4,13 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// Fixture vocabulary.
-// EX2-007 Mother D-Reaper: the only card named [Mother D-Reaper]. A White Digi-Egg with
-//   15000 printed DP, so `primitives.ts:614-615` keeps it on the battle area instead of
-//   sweeping it as an illegal permanent; its digivolution cards are what both scaled
-//   clauses count. Its own text is inert here ("can't attack / isn't affected by your
-//   opponent's effects" plus a [Main] and a play-cost reducer).
-// EX2-051 ADR-07 Palates Head: White [D-Reaper] Digimon, play cost 6, with only a [Main]
-//   activated ability — inert during the opponent's turn. Used as the suspended wall and
-//   as the free-play hit.
-// EX2-054 ADR-09 Gatekeeper: White [D-Reaper] Digimon, play cost 11 — the PLAY COST
-//   near-miss for the [Security] check clause.
-// BT1-012 Biyomon: inert Red Lv.3, play cost 3, no [D-Reaper] trait — the TRAIT near-miss.
-// BT1-024 MetalTyrannomon: inert Red Lv.5, 10000 DP — the attacker.
-// BT19-087 Nene Amano: a Tamer WITHOUT the [D-Reaper] trait — the Q3176 near-miss peer.
-// BT1-009 Monodramon / BT1-013 Muchomon: inert Red Lv.3 main-deck Digimon — deck, security
-//   and digivolution-card padding (no Digi-Egg may sit in a deck or a security stack).
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
-/** Every card id currently in a seat's hand. */
 function hand(s: EngineSetup, seat: 0 | 1): string[] {
   return s.state.players[seat]!.hand.map((card) => card.cardId).sort();
 }
 
-/** Card ids of a seat's security stack, top first. */
 function security(s: EngineSetup, seat: 0 | 1): string[] {
   return s.state.players[seat]!.security.map((card) => card.cardId);
 }
@@ -48,9 +30,6 @@ describe("BT19-100 D-Reaper Zone — catalog and IR", () => {
       forms: ["D-Reaper"],
       maxCountInDeck: 4,
     });
-    // Catalog discrepancy (reported, not edited): both text fields store a U+00A0 NO-BREAK
-    // SPACE where the printed card has a plain space — after "trait," in the [Security]
-    // [Opponent's Turn] clause and after "[D-Reaper]" in the security-check clause.
     const definition = getCardDefinition("BT19-100")!;
     expect(definition.effectText).toContain("\u00a0");
     expect(definition.securityEffectText).toContain("\u00a0");
@@ -67,9 +46,6 @@ describe("BT19-100 D-Reaper Zone — catalog and IR", () => {
     expect(card).toMatchObject({ coverage: "full", residual: [] });
     expect(card?.effects).toMatchObject([
       {
-        // `[Security][Opponent's Turn]` compiles to the SECURITY-RESIDENT builder
-        // (`effect.ts:56-64` -> `builders.ts:securityStatic`), whose base guard is
-        // "the source is in the security stack" — comprehensive 15-14-5-1.
         trigger: "OpponentsTurn",
         isSecurity: true,
         actions: [
@@ -78,8 +54,6 @@ describe("BT19-100 D-Reaper Zone — catalog and IR", () => {
             event: "whenOpponentAttacks",
             fireCondition: {
               kind: "allYoursMatchFilter",
-              // Q3176/Q3177/Q3178: unqualified text means the BATTLE AREA only, and both
-              // kinds are gated on the EXACT trait (`match: "trait"`, not a substring).
               filter: {
                 kind: ["Digimon", "Tamer"],
                 nameOrTrait: [{ tokens: ["D-Reaper"], match: "trait" }],
@@ -88,14 +62,12 @@ describe("BT19-100 D-Reaper Zone — catalog and IR", () => {
             actions: [
               {
                 kind: "ModifyDP",
-                // The ATTACKING Digimon only — bound to the trigger subject, not re-chosen.
                 target: { sourceRef: "triggerSubject", count: 1 },
                 amount: -1000,
                 duration: "forTheTurn",
                 scaling: {
                   per: 1,
                   unit: "digivolutionCardsOfFiltered",
-                  // `[Mother D-Reaper]` is a bracketed name: exact, never a substring.
                   filter: { controller: "mine", nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }] },
                 },
               },
@@ -117,7 +89,6 @@ describe("BT19-100 D-Reaper Zone — catalog and IR", () => {
         ],
       },
       {
-        // The one-shot security-check skill (`effect.ts:65` -> EffectTiming.SecuritySkill).
         trigger: "Security",
         isSecurity: true,
         actions: [
@@ -125,7 +96,6 @@ describe("BT19-100 D-Reaper Zone — catalog and IR", () => {
             kind: "PlayWithoutCost",
             from: ["hand"],
             payCost: false,
-            // Printed "You may play": this inner action is the only optional part.
             optional: true,
             target: {
               count: 1,
@@ -147,15 +117,6 @@ describe("BT19-100 D-Reaper Zone — catalog and IR", () => {
   });
 });
 
-/**
- * Clause 1 board: seat 1 owns the D-Reaper engine and the face-up [D-Reaper Zone] in its
- * security stack; seat 0 is the turn player and attacks into seat 1's suspended wall, so no
- * security check runs and the -1000-per-digivolution-card clause is isolated.
- *
- * The wall is DP 9000 against a 10000 DP attacker: with the reduction the attacker loses the
- * battle and is deleted, without it the wall is. The battle outcome is the endpoint; the
- * exact DP is read through `onEvent` while the modifier is live.
- */
 function attackBoard(opts: {
   underMother?: string[];
   extraDefenderCards?: string[];
@@ -205,7 +166,6 @@ function attackBoard(opts: {
 
 describe("BT19-100 D-Reaper Zone — [Security][Opponent's Turn] scaled attacker debuff", () => {
   it("gives the attacking Digimon -1000 per digivolution card of a [Mother D-Reaper] and spares the bystander", async () => {
-    // Mother D-Reaper carries 2 digivolution cards: 10000 - 2000 = 8000 < the 9000 DP wall.
     const { s, attackerDp } = attackBoard({});
     await s.ready();
     const bystanderDp = s.perm("bystander").currentDP;
@@ -220,15 +180,11 @@ describe("BT19-100 D-Reaper Zone — [Security][Opponent's Turn] scaled attacker
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-024"));
 
-    // The modifier was live during the battle at exactly -2000.
     expect(Math.min(...attackerDp)).toBe(8000);
-    // The attacker lost the battle it would otherwise have won; the wall survived.
     expect(permanentIds(s, 0)).toEqual(["BT1-024"]);
     expect(s.state.players[0]!.battleArea[0]!.permanentId).not.toBe(attackerId);
     expect(s.perm("wall").topCard!.cardId).toBe("EX2-051");
-    // Only the attacking Digimon is touched: the identical bystander is untouched.
     expect(s.perm("bystander").currentDP).toBe(bystanderDp);
-    // The face-up Option is still sitting in security (Q3180): it is a watcher, not a cost.
     expect(security(s, 1)).toEqual(["BT19-100", "BT1-013", "BT1-009"]);
     expect(s.state.players[1]!.security[0]!.faceUp).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -258,7 +214,6 @@ describe("BT19-100 D-Reaper Zone — [Security][Opponent's Turn] scaled attacker
       }),
     ).toEqual({ ok: true });
     await settle(() => none.s.state.players[1]!.trash.some((card) => card.cardId === "EX2-051"));
-    // No digivolution cards to count: the attacker keeps 10000 and wins the battle.
     expect(Math.min(...none.attackerDp)).toBe(10000);
     expect(none.s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === wallId)).toBe(false);
   });
@@ -277,8 +232,6 @@ describe("BT19-100 D-Reaper Zone — [Security][Opponent's Turn] scaled attacker
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "EX2-051"));
 
-    // "All of your Digimon and Tamers" includes the Tamer: the condition fails, the DP is
-    // untouched and the 10000 DP attacker deletes the 9000 DP wall.
     expect(Math.min(...attackerDp)).toBe(10000);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === wallId)).toBe(false);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
@@ -298,7 +251,6 @@ describe("BT19-100 D-Reaper Zone — [Security][Opponent's Turn] scaled attacker
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-024"));
 
-    // Unqualified text means the battle area: the breeding-area Biyomon is invisible to it.
     expect(Math.min(...attackerDp)).toBe(8000);
     expect(s.perm("wall").topCard!.cardId).toBe("EX2-051");
   });
@@ -316,8 +268,6 @@ describe("BT19-100 D-Reaper Zone — [Security][Opponent's Turn] scaled attacker
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-024"));
 
-    // The clause is mandatory: no "use this effect?" prompt was raised for it, and the
-    // reduction landed anyway.
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toEqual([]);
     expect(Math.min(...attackerDp)).toBe(8000);
     expect(s.perm("wall").topCard!.cardId).toBe("EX2-051");
@@ -342,13 +292,10 @@ describe("BT19-100 D-Reaper Zone — [Security][Opponent's Turn] scaled attacker
   });
 });
 
-/** Seat 0's own turn: play the Option from hand. Seat 0 needs a White permanent on board. */
 function mainBoard(opts: { faceUpSecurity?: boolean; whiteOnBoard?: boolean; decline?: boolean }) {
   return setupEngine(
     {
       0: {
-        // Only a Digimon or Tamer satisfies an Option's colour requirement (CR 4-21-2), so
-        // the White source is ADR-07 Palates Head; the near-miss board is a Red Digimon.
         battleArea: [{ card: opts.whiteOnBoard === false ? "BT1-024" : "EX2-051", as: "colorSource" }],
         hand: [
           { card: "BT19-100", as: "zone" },
@@ -380,15 +327,12 @@ describe("BT19-100 D-Reaper Zone — [Main] face-up security placement", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: zoneId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === zoneId));
 
-    // The Option itself became the top security card, face up (Q3180).
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       zoneId,
       s.inst("secondSecurity").instanceId,
     ]);
     expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
-    // The cost really moved the old top card to the trash, and the Option did NOT follow it.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([trashedId]);
-    // Playing the Option still cost its printed 3 memory; the clause pays no memory itself.
     expect(s.state.memory).toBe(7);
     expect(hand(s, 0)).toEqual(["BT1-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -401,7 +345,6 @@ describe("BT19-100 D-Reaper Zone — [Main] face-up security placement", () => {
     const zoneId = s.inst("zone").instanceId;
     const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
 
-    // Q3179: the card CAN be used from hand; only its condition fails.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: zoneId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === zoneId));
 
@@ -419,7 +362,6 @@ describe("BT19-100 D-Reaper Zone — [Main] face-up security placement", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zone").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT19-100"));
 
-    // Comprehensive 15-7-4: paying a "by doing X" condition is the controller's choice.
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(securityBefore);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT19-100"]);
@@ -445,10 +387,6 @@ describe("BT19-100 D-Reaper Zone — [Main] face-up security placement", () => {
   });
 });
 
-/**
- * Clause 3 board: seat 0 attacks the PLAYER, so seat 1's real security check flips
- * [D-Reaper Zone] and fires its one-shot [Security] skill (Q3182/Q3183).
- */
 function securityCheckBoard(opts: { underMother: string[]; zoneFaceUp?: boolean; decline?: boolean }) {
   return setupEngine(
     {
@@ -487,12 +425,6 @@ describe("BT19-100 D-Reaper Zone — [Security] free play scaled by digivolution
     });
   }
 
-  /**
-   * The optional `PlayWithoutCost` preflight in `runAction.ts` now folds `playCostLteScaling`
-   * into `playCostLte` through the same `materializePlayCostLteScaling` helper the resolver uses
-   * (`actions/play.ts`), so the clause is judged at the scaled ceiling instead of the printed 0.
-   * See docs/audits/BT19.md#play-cost-scaling-preflight-mechanism.
-   */
   it("plays a [D-Reaper] card whose cost fits the digivolution-card count, for free", async () => {
     const s = securityCheckBoard({ underMother: SIX_UNDER });
     s.state.memory = 3;
@@ -502,15 +434,11 @@ describe("BT19-100 D-Reaper Zone — [Security] free play scaled by digivolution
     expect(attackPlayer(s)).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT19-100"));
 
-    // The eligible card is on the board; the TRAIT near-miss (Biyomon, cost 3) and the PLAY
-    // COST near-miss (ADR-09 Gatekeeper, cost 11) both stayed in hand.
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("eligible").instanceId)).toBe(
       true,
     );
     expect(hand(s, 1)).toEqual(["BT1-012", "EX2-054"]);
-    // Free: no memory moved for the printed play cost of 6.
     expect(s.state.memory).toBe(memoryBefore);
-    // The checked card left the security stack as a normal security check does.
     expect(security(s, 1)).toEqual(["BT1-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -529,11 +457,6 @@ describe("BT19-100 D-Reaper Zone — [Security] free play scaled by digivolution
   });
 
   it("triggers its [Security] skill on a real check whether the card was face down or FACE UP (Q3182/Q3183)", async () => {
-    // `hasSecurityEffect` on `securityRevealed` is the engine's own answer to "does this
-    // card's [Security] effect activate under this attacker?" — `GameEngine.securityEffectsFor`
-    // collects EffectTiming.SecuritySkill and runs `canTrigger`. It is independent of the
-    // resolution seam the two reds above cover, so it proves the trigger itself for both
-    // orientations: Q3182 (the check runs on a revealed card) and Q3183 (it still triggers).
     for (const zoneFaceUp of [false, true]) {
       const s = securityCheckBoard({ underMother: SIX_UNDER, zoneFaceUp });
       s.state.memory = 3;
@@ -547,16 +470,12 @@ describe("BT19-100 D-Reaper Zone — [Security] free play scaled by digivolution
         (event) => event.kind === "securityRevealed" && event.revealedCardId === "BT19-100",
       );
       expect(revealed).toMatchObject({ kind: "securityRevealed", hasSecurityEffect: true, isDigimon: false });
-      // The checked Option is trashed after its skill, and the stack shrank by exactly one.
       expect(security(s, 1)).toEqual(["BT1-009"]);
       expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT19-100"]);
     }
   });
 
   it("plays nothing when every [D-Reaper] card in hand costs more than the digivolution-card count", async () => {
-    // 2 digivolution cards: ADR-07 (6) and ADR-09 (11) are both out of reach, and Biyomon
-    // fails the trait gate. (This control also passes under the seam above; it becomes a real
-    // discriminator once the preflight applies `playCostLteScaling`.)
     const s = securityCheckBoard({ underMother: ["BT1-009", "BT1-013"] });
     s.state.memory = 3;
     await s.ready();

@@ -63,8 +63,6 @@ describe("BT4-045 Maycrackmon", () => {
         s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === evolutionPermanentId)?.topCard
           .cardId === "BT4-045",
     );
-    // The card reaches the top before the asynchronous digivolution pipeline has
-    // finished its timing windows and trailing continuous recompute.
     await settle();
 
     s.state.turnSeat = 1;

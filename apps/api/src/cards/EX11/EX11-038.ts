@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5865: the trash cost can target a digivolution card from any of your Digimon's stacks.
-// [When Moving][On Play] trash cost: from hand OR digivolutionCards (any card with
-//   Mineral/Rock trait in either zone). No kind restriction — hand cards with those
-//   traits aren't limited to Digimon kind (could be Option/Tamer).
-// Inherited: whenTrashedFromDigivolutionCards sourceFilter restricts to host Digimon
-//   with Mineral or Rock trait (the Digimon whose digivolution stack this card was in).
 const compiled: CompiledCard = {
   digivolutionRequirement: [],
   effects: [

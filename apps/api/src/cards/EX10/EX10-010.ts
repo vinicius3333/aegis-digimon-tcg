@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The [All Turns] clause is gated by "While your opponent has a Digimon with 13000 DP or more".
-// `ModifyDPAction` / `GrantImmunityAction` carry no `while` field; the shared per-action gate in
-// `runAction` reads `action.condition ?? action.while`, so `condition` is the typed spelling of
-// exactly the same gate. Both actions are re-resolved on every continuous pass, which is what
-// KB Q5026 requires: the moment the 13000+ DP Digimon leaves, the grant lapses.
 const compiled: CompiledCard = {
   effects: [
     {

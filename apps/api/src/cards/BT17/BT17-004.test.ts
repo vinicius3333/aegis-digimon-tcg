@@ -83,8 +83,6 @@ describe("BT17-004 Argomon", () => {
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: hostId })).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // The block redirected the attack: security is untouched and the 5000 DP attacker
-    // lost the battle against the 20000 DP blocker.
     expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-013"]);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
@@ -114,16 +112,10 @@ describe("BT17-004 Argomon", () => {
     );
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Unblocked: the top security card was checked, leaving only the second one.
     expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
   });
 
   it("carries ＜Blocker＞ through the real Digi-Egg route beside a non-[Argomon] peer stack", async () => {
-    // Peer/stack case, public intents only for every zone change: `hatchEgg` puts BT17-004 in
-    // the breeding area, the Green Lv.3 [Argomon] BT17-042 digivolves onto it there, and
-    // `moveFromBreeding` carries the stack into the battle area on the next own turn. Beside it
-    // stands a Terriermon carrying the same Digi-Egg — same colour, same egg, wrong name — and
-    // only the [Argomon] stack gains ＜Blocker＞ on the opponent's turn.
     const s = setupEngine(
       {
         0: {
@@ -170,12 +162,10 @@ describe("BT17-004 Argomon", () => {
     const carrier = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT17-042")!;
     expect(carrier.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
 
-    // Own turn: neither stack blocks.
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).hasKeyword(carrier, "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("peer"), "Blocker")).toBe(false);
 
-    // Opponent's turn: only the [Argomon] carrier gains the keyword.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(carrier, "Blocker")).toBe(true);

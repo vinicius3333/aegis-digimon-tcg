@@ -13,25 +13,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 
-// Import the compiled IR so it self-registers on the registry.
 import "../BT13/BT13-049.js";
-
-// ---------------------------------------------------------------------------
-// BT13-049 conditional digivolve-cost reduction A3
-//
-// BT13-049's [Your Turn] ability reduces its OWN digivolution cost by 1 "if you have
-// a green Tamer", compiled as a nested `Replacement{mode:"reduceCost", condition:youHave}`
-// hoisted under an outer `wouldDigivolve` Replacement wrapper. `runReplacement`'s
-// nestedReduceCost heuristic (interpreter.ts) hoists the nested action's mode/amount to
-// install the cost-reduction subscription but used to DROP the nested action's own
-// `condition` — installing the discount UNCONDITIONALLY regardless of whether a green
-// Tamer is actually in play.
-//
-// FAILS-WHEN-REVERTED LEVER:
-//   If the `nestedReduceCost.condition` guard is removed from runReplacement, this test's
-//   "WITHOUT a green Tamer" case installs the reduceCost subscription anyway (subs.length
-//   becomes 1 with amount:1 instead of 0 subscriptions) — RED.
-// ---------------------------------------------------------------------------
 
 function fakeDefinition(cardId: string, over: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -126,7 +108,6 @@ async function runYourTurnReduceCost(opts: { withGreenTamer: boolean }) {
 
   const module = getEffectModule("BT13-049");
   expect(module, "BT13-049 must self-register on import").toBeDefined();
-  // "YourTurn" is a continuous/static trigger — timingForTrigger maps it to EffectTiming.None.
   const effects = module!.effectsForTiming(EffectTiming.None, source);
   expect(effects.length, "BT13-049 must expose a [Your Turn] reduceCost effect").toBeGreaterThanOrEqual(1);
   for (const effect of effects) await effect.resolve(ctx);
@@ -142,8 +123,6 @@ describe("BT13-049 conditional digivolve-cost reduceCost A3", () => {
     expect(reduceCostSubs[0]!.amount).toBe(1);
   });
 
-  // FAILS-WHEN-REVERTED: without the nestedReduceCost.condition guard, this installs the
-  // reduceCost subscription anyway — the discount would apply with no green Tamer present.
   it("does NOT install the reduceCost subscription WITHOUT a green Tamer in play", async () => {
     const subs = await runYourTurnReduceCost({ withGreenTamer: false });
     const reduceCostSubs = subs.filter((s) => s.mode === "reduceCost");

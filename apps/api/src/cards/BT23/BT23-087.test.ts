@@ -7,9 +7,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-087.js";
 
-/** Enough neutral cards for the draw phase plus a spare playable card so Main stays open. */
 const neutralDeck = Array(12).fill("BT1-009") as string[];
-/** Three inert main-deck Digimon: the numeric `security: n` form seeds a Digi-Egg. */
 const neutralSecurity = ["BT1-010", "BT1-011", "BT1-012"];
 
 describe("BT23-087 Violet Inboots", () => {
@@ -124,14 +122,13 @@ describe("BT23-087 Violet Inboots", () => {
 
     const mine = s.state.players[0]!;
     expect(mine.deck.at(-1)?.instanceId).toBe(fieldId);
-    expect(mine.deck).toHaveLength(deckSize + 1); // the first turn skips the draw; only the return added a card
+    expect(mine.deck).toHaveLength(deckSize + 1);
     expect(mine.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual(
       expect.arrayContaining([handId, ghostId]),
     );
     expect(mine.battleArea.some((permanent) => permanent.topCard?.instanceId === fieldId)).toBe(false);
     expect(mine.hand.some((card) => card.instanceId === handId)).toBe(false);
     expect(mine.trash.some((card) => card.instanceId === ghostId)).toBe(false);
-    // Both plays are free: a cost-3 Tamer and a cost-3 Ghostmon moved no memory at all.
     expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
 
@@ -243,8 +240,6 @@ describe("BT23-087 Violet Inboots", () => {
   });
 
   it("still plays the Ghostmon when the only Digimon sits in the breeding area", async () => {
-    // Comprehensive rules 3-4-5-8: information on cards in the breeding area can't be
-    // referenced, so a breeding Digimon does not satisfy "you have a Digimon".
     const s = setupEngine(
       {
         0: {
@@ -265,7 +260,6 @@ describe("BT23-087 Violet Inboots", () => {
 
     await s.ready();
     const loop = s.engine.startTurnLoop();
-    // A movable breeding Digimon holds the breeding window open; skip it publicly.
     await settle(() => s.state.phase === Phase.Breeding);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
@@ -301,7 +295,6 @@ describe("BT23-087 Violet Inboots", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: ghostId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === ghostId));
-    // Freshly played: summoning sick, so it cannot attack yet.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -377,8 +370,6 @@ describe("BT23-087 Violet Inboots", () => {
   });
 
   it("does not react to a Ghost digivolution inside the breeding area", async () => {
-    // Comprehensive rules 3-4-5-3: cards in the breeding area can't be affected by effects,
-    // so the Rush grant must not reach a breeding Digimon that digivolves.
     const s = setupEngine(
       {
         0: {
@@ -433,8 +424,6 @@ describe("BT23-087 Violet Inboots", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Keep memory positive so the turn does not end on the digivolve cost and the grant
-    // can be observed while its own turn is still running.
     s.state.memory = 5;
     const bakemonId = s.inst("bakemon").instanceId;
 
@@ -452,7 +441,7 @@ describe("BT23-087 Violet Inboots", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("ghostmon"), "Rush")).toBe(false);
-    expect(s.perm("violet").isSuspended).toBe(true); // the Tamer unsuspends on its own next turn
+    expect(s.perm("violet").isSuspended).toBe(true);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
@@ -493,17 +482,11 @@ describe("BT23-087 Violet Inboots", () => {
     expect(observe(s.engine).hasKeyword(s.perm("ghostmon"), "Rush")).toBe(false);
   });
 
-  // "any of YOUR Digimon": the watcher is controller-scoped, so the opponent's own Ghost
-  // digivolution never arms it. The printed [Your Turn] window is unreachable separately —
-  // no Ghost-trait card in the catalog can digivolve during the opponent's turn — so the
-  // turn gate itself is verified structurally (trigger "YourTurn") in the IR test above.
   it("does not react to the opponent's own Ghost digivolution", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT23-087", as: "fieldViolet" }],
-          // A hand copy so seat 0's own [Start of Your Main Phase] resolves cleanly and
-          // leaves an unsuspended Violet Inboots watching the opponent's turn.
           hand: [
             { card: "BT23-087", as: "handViolet" },
             { card: "BT1-009", as: "spare" },
@@ -547,7 +530,6 @@ describe("BT23-087 Violet Inboots", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("opponentGhost").topCard?.instanceId === bakemonId && !s.state.pendingDecision);
 
-    // Seat 0's Tamer stays unsuspended and grants nothing for the opponent's own digivolution.
     expect(violetOnBoard().isSuspended).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opponentGhost"), "Rush")).toBe(false);
 
@@ -588,7 +570,6 @@ describe("BT23-087 Violet Inboots", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === violetId)).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === violetId)).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(0);
-    // Played without paying its cost of 3: attacking and checking security move no memory.
     expect(s.state.memory).toBe(memoryBefore);
   });
 });

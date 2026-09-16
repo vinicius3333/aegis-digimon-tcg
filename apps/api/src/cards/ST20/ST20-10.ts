@@ -1,7 +1,3 @@
-// Hand-authored override for ST20-10.
-// Fix: [Your Turn] effect has OR condition — "opponent has 10000+ DP Digimon, OR
-// your Tamers have 3+ total colors". The declarative effect record only encoded the first
-// branch; the second (zoneColorCount) was missing.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

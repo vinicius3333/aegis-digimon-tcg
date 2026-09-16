@@ -173,7 +173,7 @@ describe("EX8-019", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-045"));
     expect(s.perm("base").topCard.cardId).toBe("BT1-037");
-    expect(s.state.memory).toBe(1); // Gorillamon's printed cost is 1, with no Ice-Snow discount.
+    expect(s.state.memory).toBe(1);
   });
 
   it("uses the Hiyarimon alternate route for 0 and rejects another off-color egg", async () => {

@@ -1,25 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-230 Unique Emblem: Honeycomb Commander (Option)
-// [Main] Reveal the top 3 cards of your deck. Add 1 card with [Royal Base] in
-//   its text and 1 [LIBERATOR] trait card among them to your hand. Place the
-//   rest at the bottom of your deck in any order. Place this card in the battle
-//   area.
-// [Your Turn] When any of your [Winr]s are played, <Delay>
-//   ・1 of your Digimon may digivolve into a level 6 or lower [LIBERATOR] trait
-//   card in the hand with the digivolution cost reduced by 3.
-// [Security] Activate this card's [Main] effects.
-//
-// Q&A (Q5964): "X in its text" = name, traits, effects, etc.
-//
-// Fixes vs prior IR:
-// - [Winr] is a TRAIT, not a name — sourceFilter uses match:"trait".
-// - <Delay>: the digivolve body belongs in a separate Main+Delay effect, not
-//   inline in the YourTurn SubTrigger. The SubTrigger body only grants <Delay>
-//   to self; the digivolve is the Delay-activated effect.
-// - RevealAdd tracks taken revealed instances between add slots, so the two
-//   entries select distinct cards even when their filters overlap.
 const compiled: CompiledCard = {
   effects: [
     {

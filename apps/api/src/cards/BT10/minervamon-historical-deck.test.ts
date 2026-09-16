@@ -78,7 +78,6 @@ describe("BT10 Minervamon historical deck gauntlet", () => {
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("labramon").instanceId),
     );
 
-    // Labramon's On Play draw/discard is suppressed by Minervamon.
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(0);
 

@@ -37,9 +37,6 @@ describe("BT25-093 Ignition Flare", () => {
     });
   });
 
-  // CR 3-4-6: "the field" (what CR 16-42-3 scopes <Use Req.> to) is the battle area AND the
-  // breeding area, so a TS Digimon in breeding satisfies it. A TS Option placed in the battle
-  // area still doesn't (it's not a Digimon or Tamer — CR 16-42-3 names only those two kinds).
   it("is enabled by a breeding TS Digimon but not by a TS Option in the battle area", async () => {
     const breeding = setupEngine(
       {

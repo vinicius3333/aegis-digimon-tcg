@@ -25,14 +25,6 @@ const protectionCases = [
   },
 ] as const;
 
-// A3 for P-214 (Betamon X Antibody) — [On Play] by placing this Digimon as the bottom
-// digivolution card of a friendly [Seadramon]-text Digimon, return 1 opponent Digimon with a
-// level <= a chosen friendly [Seadramon]'s level to the bottom of the deck.
-// source: documented behavior.
-//
-// FAILS-WHEN-REVERTED: the level-bounded opponent Digimon is returned to the deck (leaves the
-// battle area) only because the level-comparison-via-reference resolves. A no-op leaves it.
-
 describe("P-214 [On Play] tuck under a friendly [Seadramon], return a level-bounded opponent Digimon", () => {
   it.each(["play", "evolve"] as const)(
     "fires the public %s hook, pays its printed cost, tucks P-214, and returns a bounded opponent Digimon",
@@ -41,14 +33,12 @@ describe("P-214 [On Play] tuck under a friendly [Seadramon], return a level-boun
       const board = {
         0: {
           battleArea: [
-            // The evolution route reaches P-214 through the printed free alternate Betamon route.
             ...(isEvolution ? [{ card: "BT15-022", as: "base" }] : []),
             { card: "BT15-031", as: "seadramon", dp: 12000 },
           ],
           hand: [{ card: "P-214", as: "betamon" }],
         },
         1: {
-          // Opponent Lv.3 Digimon (<= Lv.6) — eligible for the return.
           battleArea: [{ card: "BT1-009", dp: 3000, as: "oppDigimon" }],
         },
       };
@@ -95,8 +85,6 @@ describe("P-214 [On Play] tuck under a friendly [Seadramon], return a level-boun
         hostStackBefore,
       );
 
-      // Accepted Decode plays the exact former base from its digivolution cards before P-214
-      // is placed under Seadramon; that source's own On Play resolves afterward.
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === evolutionBaseId)).toBe(false);
       expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === evolutionBaseId)).toBe(
         isEvolution,

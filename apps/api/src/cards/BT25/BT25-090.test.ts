@@ -221,7 +221,7 @@ describe("BT25-090 Tomoro Tenma", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.hand.every((card) => card.instanceId !== secondId));
-    expect(s.state.memory).toBe(5); // 3-1 for the first use, full 3 for the second.
+    expect(s.state.memory).toBe(5);
     expect(s.perm("tomoro").stack).toHaveLength(1);
   });
 

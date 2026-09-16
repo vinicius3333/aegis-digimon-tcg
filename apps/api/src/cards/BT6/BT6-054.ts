@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT6-054 (AncientTroymon).
-// Fixes:
-// 1. Suspend target: text says "without <Blocker>" — excludeKeywords:["Blocker"]
-//    and controller:"opponent" ensure only their non-Blocker Digimon qualify.
-// 2. PlayWithoutCost target: added forms:["Hybrid"] for the printed "Hybrid in its
-//    form" requirement. A form-qualified clause must not broaden to attributes/types.
 const compiled: CompiledCard = {
   effects: [
     {

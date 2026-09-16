@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Compiled effect IR for EX6-029.
-// SecurityManipulation uses `leaveCount: 4`, not `amount: null` + `until:
-// {securityCount: 4}` (an unread shape): the printed text is "trash cards from the
-// top of your opponent's security stack UNTIL IT HAS 4 LEFT" (packages/shared
-// cards.json), which is exactly what the interpreter's leaveCount already computes
-// (`max(0, security.length - leaveCount)`). `until` is a re-encoding of a concept the
-// engine already reads under a different key, not a new capability.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -124,8 +124,6 @@ describe("BT1-105 Blast Fire", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").topCard.cardId === "ST1-11");
 
-    // The override belongs to the permanent, not the old top card. Shadow Wing's
-    // +3000 therefore still adds to Blast Fire's 3000 after digivolution.
     expect(s.perm("target").currentDP).toBe(6000);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await opponentTurn;

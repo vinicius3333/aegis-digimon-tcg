@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -14,9 +11,6 @@ export const compiled: CompiledCard = {
           revealCount: 3,
           add: [
             {
-              // "1 Tamer card OR 1 level 4 or lower black card": two independent branches. As one
-              // filter it demanded all three at once — a black Tamer of level 4 or lower — and a
-              // Tamer carries no level, so nothing could ever be placed.
               filter: {
                 controllerDefault: "mine",
                 kind: ["Tamer"],

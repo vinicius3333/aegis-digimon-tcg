@@ -113,8 +113,6 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                // `source: thisDigimon` below narrows only the hosted branch while
-                // retaining the printed controller-trash alternative.
                 zone: ["trash", "digivolutionCards"],
                 kind: ["Digimon"],
                 nameOrTrait: [

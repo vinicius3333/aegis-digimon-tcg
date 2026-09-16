@@ -6,21 +6,17 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-073.js";
 
-const EATER_BIT = "BT23-073"; // Eater Bit: [Hudie]/[CS], play cost 3, DP 1000.
-const HUDIE_ALLY = "BT23-048"; // Gotsumon: level 3, [Hudie], DP 1000.
-const HUDIE_PLAYABLE = "BT23-037"; // Tentomon: level 3, [Hudie], play cost 3 (<= 5).
-const HUDIE_HOST = "BT23-050"; // Ankylomon: level 4, [Hudie], legal Gotsumon-inherited host.
-const MOTHER_EATER = "BT22-007"; // Mother Eater: the breeding host the second cost names.
-const PLAIN_LEVEL_3 = "BT1-009"; // Monodramon: level 3, DP 3000, no [Eater]/[Hudie].
-const PLAIN_LEVEL_4 = "BT23-101"; // Hudiemon: level 4, so the On Play must not touch it.
-const NEUTRAL_PLAYABLE = "BT1-010"; // Agumon: keeps a turn-loop fixture from auto-passing Main.
+const EATER_BIT = "BT23-073";
+const HUDIE_ALLY = "BT23-048";
+const HUDIE_PLAYABLE = "BT23-037";
+const HUDIE_HOST = "BT23-050";
+const MOTHER_EATER = "BT22-007";
+const PLAIN_LEVEL_3 = "BT1-009";
+const PLAIN_LEVEL_4 = "BT23-101";
+const NEUTRAL_PLAYABLE = "BT1-010";
 
 const allTurnsReplacement = (compiled.effects.find((entry) => entry.trigger === "AllTurns") as any).actions[0];
 
-/**
- * Hands the turn to seat 1 through the real turn loop instead of writing `turnSeat`:
- * seat 0 opens its own Main and ends the phase publicly.
- */
 async function handTurnToOpponent(s: ReturnType<typeof setupEngine>): Promise<{ loop: Promise<unknown> }> {
   const loop = s.engine.startTurnLoop();
   await advance(s.engine).waitForMainPhase(0);
@@ -71,8 +67,6 @@ describe("BT23-073 Eater Bit", () => {
         nameOrTrait: [{ tokens: ["Eater", "Hudie"], match: "trait" }],
       },
     });
-    // The printed clause has no "other than by your effects" / "by your opponent's effects"
-    // wording, so no cause gate may be compiled: `causeAllows` must stay at "any".
     expect(allTurnsReplacement.leaveCause).toBeUndefined();
     expect(allTurnsReplacement.sourceFilter.leaveReason).toBeUndefined();
     const prevent = allTurnsReplacement.actions[0];
@@ -144,7 +138,6 @@ describe("BT23-073 Eater Bit", () => {
     const allyId = s.perm("ally").permanentId;
     const bitInstance = s.perm("bit").topCard!.instanceId;
 
-    // The opponent's own Eater Bit deletes my level 3 [Hudie] ally through its [On Play].
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("theirBit").instanceId })).toEqual({
       ok: true,
     });
@@ -178,8 +171,6 @@ describe("BT23-073 Eater Bit", () => {
     const playedInstance = s.inst("played").instanceId;
     const bitInstance = s.perm("bit").topCard!.instanceId;
 
-    // Gotsumon's inherited [When Attacking] plays the Hudie free; the engine schedules its
-    // own DelayedDelete for the end of the OPPONENT's turn — a deletion resolved by seat 0.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -193,15 +184,12 @@ describe("BT23-073 Eater Bit", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedInstance)).toBe(true);
 
-    // The delayed deletion lands at the end of seat 1's turn.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
-    // Eater Bit paid with itself; the played Digimon never left the battle area.
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedInstance)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([bitInstance]);
 
-    // Q5565/Q5567 second half: the "can't digivolve" restriction survives the prevention.
     const survivor = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === playedInstance)!;
     s.give(0, Zone.Hand, { card: "BT23-041", as: "evo" });
     s.state.memory = 5;
@@ -240,7 +228,6 @@ describe("BT23-073 Eater Bit", () => {
     const blockerId = s.perm("blocker").permanentId;
     const bitInstance = s.perm("bit").topCard!.instanceId;
 
-    // 1000 DP into 3000 DP: the attacker loses the battle and would be deleted by battle.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -290,7 +277,6 @@ describe("BT23-073 Eater Bit", () => {
     );
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([allyId]);
-    // "bottom digivolution card": index 0 is the bottom of the stack.
     expect(s.perm("mother").stack[0]!.instanceId).toBe(bitInstance);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     await closeLoop(s, loop);
@@ -408,13 +394,13 @@ describe("BT23-073 Eater Bit", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
-    expect(s.state.memory).toBe(3); // printed 3, reduced to 2.
+    expect(s.state.memory).toBe(3);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
-    expect(s.state.memory).toBe(0); // second copy pays the full 3: once per turn.
+    expect(s.state.memory).toBe(0);
   });
 
   it("gives no play-cost reduction while the same stack sits in the battle area (Q5350 [Breeding] gate)", async () => {
@@ -434,6 +420,6 @@ describe("BT23-073 Eater Bit", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bit").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
-    expect(s.state.memory).toBe(2); // full printed cost 3.
+    expect(s.state.memory).toBe(2);
   });
 });

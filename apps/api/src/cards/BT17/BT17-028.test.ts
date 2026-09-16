@@ -164,11 +164,6 @@ describe("BT17-028", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  // The [Your Turn] effect carries two SubTrigger buses sharing one oncePerTurnKey:
-  // whenEffectAddsToOpponentHand (above) and whenEffectAddsToHand (here). Both fire.
-  // The earlier red was a fixture defect, not an engine seam: BT1-029 (the effect Draw
-  // that feeds your own hand) was never imported, so its IR was unregistered and playing
-  // it drew nothing. See docs/audits/BT17.md#test-fixture-card-registration.
   it("moves the opponent's top security to hand when an effect adds to your own hand", async () => {
     const s = setupEngine(
       {
@@ -230,21 +225,18 @@ describe("BT17-028", () => {
     s.state.memory = 18;
     await s.ready();
 
-    // BT17-028's own On Play adds to the opponent's hand: the watcher fires once (3 -> 2).
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.security.length === 2);
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    // Same turn, a second opponent-hand add (BT19-021) is refused by Once Per Turn (stays 2).
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bounce1").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    // The controller's next turn resets the once-per-turn budget: it fires again (2 -> 1).
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
 

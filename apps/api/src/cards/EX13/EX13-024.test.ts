@@ -4,29 +4,10 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-024.js";
-// The whole registry, so public fixtures (ST2-16's bounce, the evolution sources) carry their
-// own implementations; EX13-024 itself is registered by the import above.
 import "../index.js";
 
 const cardId = "EX13-024";
 
-// Fixtures, and why each one is here:
-//   ST8-03   Dracomon      Blue Lv.3 2000 DP — [Dracomon] by NAME. Only ever seeded, never played,
-//                          so its own [On Play] reveal cannot add noise.
-//   BT20-023 Coredramon    Blue/Red Lv.4 5000 DP — [Dracomon]/[Examon] only in its EFFECT text,
-//                          so it proves `match: "text"` reaches past the name.
-//   BT20-025 Wingdramon    Blue/Red Lv.5 7000 DP — the [Wingdramon] alternate route AND an
-//                          [Examon]-in-text Assembly Lv.5 material.
-//   EX3-041  Groundramon   mono-GREEN Lv.5 — the [Groundramon] alternate route on a color with no
-//                          printed EvoCost, proving the header is wider than the catalog EvoCosts.
-//   BT1-038  Monzaemon     mono-Blue Lv.5, no text — satisfies the printed Blue Lv.5 EvoCost but
-//                          NOT the alternate route: the `useAlternateCost` fallback negative.
-//   BT3-053  JewelBeemon   mono-Green Lv.5, no text — neither route: the illegal-source negative.
-//   BT1-009  Monodramon    Red Lv.3 3000 DP, no text — the NEAR MISS: its name contains "dramon"
-//                          but not "Dracomon", so every text filter must refuse it.
-//   BT1-013  Muchomon      Red Lv.3 5000 DP, no text — the plain non-matching control.
-//   BT1-010..BT1-014       inert red main-deck Digimon — digivolution-card and deck filler.
-//   ST2-16   bounce Option — a public opponent effect that makes a Digimon leave the battle area.
 const NAME_MATCH = "ST8-03";
 const TEXT_MATCH = "BT20-023";
 const NEAR_MISS = "BT1-009";
@@ -60,8 +41,6 @@ describe("EX13-024 Slayerdramon", () => {
       ],
     });
 
-    // [On Play] [When Digivolving]: one pooled trash scaled by the source's own stack, then the
-    // optional return of every tied fewest-stack opponent Digimon.
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.frequency).toBeUndefined();
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
@@ -89,8 +68,6 @@ describe("EX13-024 Slayerdramon", () => {
       });
     }
 
-    // The leave prevention is printed twice — main text and inherited text — each with its own
-    // [Once Per Turn] and no shared use key.
     const preventions = compiled.effects.filter((effect) =>
       effect.actions.some((action) => action.kind === "Replacement"),
     );
@@ -132,7 +109,6 @@ describe("EX13-024 Slayerdramon", () => {
         ],
       });
       expect(effect.sharedUseKey).toBeUndefined();
-      // No printed "other than in battle", so no leave-cause narrowing at all.
       expect(effect.actions[0]).not.toHaveProperty("leaveCause");
     }
 
@@ -151,7 +127,6 @@ describe("EX13-024 Slayerdramon", () => {
     ]);
   });
 
-  // [Digivolve] [Wingdramon]/[Groundramon]: Cost 3
   it("takes both named alternate routes for 3, the printed EvoCost for 4, and rejects an illegal source", async () => {
     for (const [baseCardId, useAlternateCost, memory] of [
       ["BT20-025", true, 3],
@@ -179,15 +154,11 @@ describe("EX13-024 Slayerdramon", () => {
       await settle(() => s.perm("base").topCard.cardId === cardId);
 
       expect(s.state.memory).toBe(0);
-      // Source-stack identity survives the transition: the Lv.5 is now the single stack card.
       expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual([baseCardId]);
       expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(true);
       expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
     }
 
-    // `useAlternateCost` is a preference, not a gate: a mono-Blue Lv.5 that is neither
-    // [Wingdramon] nor [Groundramon] silently falls back to the printed Blue Lv.5 EvoCost, so the
-    // proof is the memory actually charged (4, not the alternate route's 3) — never `ok: false`.
     const fallback = setupEngine(
       { 0: { battleArea: [{ card: "BT1-038", as: "base" }], hand: [{ card: cardId, as: "slayer" }] } },
       { autoDeclineOptional: true },
@@ -205,7 +176,6 @@ describe("EX13-024 Slayerdramon", () => {
     await settle(() => fallback.perm("base").topCard.cardId === cardId);
     expect(fallback.state.memory).toBe(0);
 
-    // A mono-GREEN Lv.5 with no matching name satisfies neither route at all.
     const illegal = setupEngine({
       0: { battleArea: [{ card: "BT3-053", as: "base" }], hand: [{ card: cardId, as: "slayer" }] },
     });
@@ -221,8 +191,6 @@ describe("EX13-024 Slayerdramon", () => {
     expect(illegal.state.memory).toBe(4);
   });
 
-  // [On Play] For each of this Digimon's digivolution cards, trash any 1 digivolution card from
-  // your opponent's Digimon.
   it.each([
     [1, 1],
     [3, 3],
@@ -261,14 +229,11 @@ describe("EX13-024 Slayerdramon", () => {
         (s.state.players[1]!.battleArea.find((p) => p.permanentId === s.perm("shallow").permanentId)?.stack.length ??
           0);
       expect(stackCardsAfter).toBe(stackCardsBefore - expectedTrashed);
-      // The optional return was declined, so both Digimon are still on the board.
       expect(s.state.players[1]!.battleArea).toHaveLength(2);
       expect(s.state.players[1]!.deck).toHaveLength(0);
     },
   );
 
-  // Then, you may return ALL of their Digimon with the fewest digivolution cards to the bottom of
-  // the deck — every tied extremum, and a source-free Digimon counts as "fewest".
   it("returns every tied fewest-stack opponent Digimon to the deck bottom and leaves deeper stacks", async () => {
     const s = setupEngine(
       {
@@ -291,10 +256,8 @@ describe("EX13-024 Slayerdramon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(deepId);
 
-    // One stack card trashed off the only Digimon with digivolution cards...
     expect(s.state.players[1]!.trash).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(2);
-    // ...and BOTH source-free Digimon returned, without a choice prompt narrowing it to one.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-014"]);
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => bareIds.includes(permanentId))).toBe(false);
     expect(s.state.players[1]!.deck.map(({ cardId: id }) => id)).toEqual(
@@ -321,8 +284,6 @@ describe("EX13-024 Slayerdramon", () => {
     expect(s.state.players[1]!.deck).toHaveLength(0);
   });
 
-  // [When Digivolving] runs the same pair through a real public digivolve, where the stack size
-  // that drives the scaling is the route's own source card.
   it("runs the removal pair on a public When Digivolving with the route's stack as the multiplier", async () => {
     const s = setupEngine(
       {
@@ -345,15 +306,12 @@ describe("EX13-024 Slayerdramon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual(["BT20-025"]);
-    // Exactly one stack card trashed for the one card under Slayerdramon.
     expect(s.state.players[1]!.trash).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-014"]);
     expect(s.state.players[1]!.deck.map(({ cardId: id }) => id)).toEqual([NON_MATCH]);
     expect(s.state.memory).toBe(0);
   });
 
-  // [All Turns] [Once Per Turn] When any of your [Dracomon] or [Examon] text Digimon would leave
-  // the battle area, by suspending 1 of your such Digimon, they don't leave.
   it("prevents every matching Digimon from leaving at once, paid by suspending one matching ally", async () => {
     const s = setupEngine(
       {
@@ -371,14 +329,12 @@ describe("EX13-024 Slayerdramon", () => {
     await s.ready();
     const matchingIds = [s.perm("nameMatch").permanentId, s.perm("textMatch").permanentId];
 
-    // Both matching Digimon are named in ONE deletion, so Q4319's "all of those Digimon" applies.
     expect(await advance(s.engine).verb.deletePermanent(matchingIds, "byEffect")).toBe(0);
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.isSuspended));
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
       expect.arrayContaining(matchingIds),
     );
-    // Exactly one matching ally paid the suspend cost.
     expect(s.state.players[0]!.battleArea.filter((p) => p.isSuspended)).toHaveLength(1);
     const payer = s.state.players[0]!.battleArea.find((p) => p.isSuspended)!;
     expect([s.perm("slayer").permanentId, ...matchingIds]).toContain(payer.permanentId);
@@ -404,7 +360,6 @@ describe("EX13-024 Slayerdramon", () => {
       await settle();
 
       expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
-      // No cost was charged for a leave the replacement never watched.
       expect(s.perm("slayer").isSuspended).toBe(false);
     }
   });
@@ -422,7 +377,6 @@ describe("EX13-024 Slayerdramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
     );
     await s.ready();
-    // Bias the suspend cost onto the ally so the proof is that Slayerdramon itself survives.
     const preferred = [s.perm("payer").topCard.instanceId];
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("slayer").permanentId], "byEffect")).toBe(0);
@@ -454,8 +408,6 @@ describe("EX13-024 Slayerdramon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
   });
 
-  // No "other than in battle" is printed, so battle deletion is watched too — this is the one
-  // clause that differs from BT20-027's otherwise identical inherited sentence.
   it("prevents a battle deletion as well, which BT20-027's 'other than in battle' wording would not", async () => {
     const s = setupEngine(
       {
@@ -479,17 +431,13 @@ describe("EX13-024 Slayerdramon", () => {
         target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
       }),
     ).toEqual({ ok: true });
-    // Slayerdramon's printed ＜Blocker＞ parks the attack on this seat's block window; decline it
-    // so the battle actually reaches the suspended Dracomon.
     await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // The 2000 DP Dracomon lost the battle outright, yet it is still on the board.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(
       expect.arrayContaining([cardId, NAME_MATCH]),
     );
-    // Slayerdramon paid by suspending itself; the 2000 DP Dracomon was already suspended.
     expect(s.perm("slayer").isSuspended).toBe(true);
   });
 
@@ -517,13 +465,11 @@ describe("EX13-024 Slayerdramon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.isSuspended));
     const payerId = s.state.players[0]!.battleArea.find((p) => p.isSuspended)!.permanentId;
 
-    // Re-open a legal cost source, then prove the same-turn second attempt is refused anyway.
     await advance(s.engine).verb.unsuspend([payerId]);
     expect(await advance(s.engine).verb.deletePermanent([secondId], "byEffect")).toBe(1);
     await settle();
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === secondId)).toBe(false);
 
-    // Run the real turn loop back round to this controller's own turn, then it is armed again.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -552,8 +498,6 @@ describe("EX13-024 Slayerdramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // The host itself is inert red filler with no matching text, so it can neither be protected
-    // nor pay the cost; only the Dracomon can.
     expect(await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect")).toBe(0);
     await settle(() => s.perm("victim").isSuspended);
 
@@ -602,7 +546,6 @@ describe("EX13-024 Slayerdramon", () => {
     await loop;
   });
 
-  // ＜Raid＞: switch the attack onto the opponent's unsuspended highest-DP Digimon (§16-23).
   it("redirects its attack onto the unsuspended highest-DP Digimon with Raid", async () => {
     const s = setupEngine(
       {
@@ -629,13 +572,10 @@ describe("EX13-024 Slayerdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === raidTargetId));
 
-    // The attack went to the unsuspended 10000 DP Digimon, not the player and not the suspended
-    // 1000 DP one, so security is untouched.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([NEAR_MISS]);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  // ＜Blocker＞: §16-4.
   it("blocks an opponent's attack on the player and wins the battle", async () => {
     const s = setupEngine(
       {
@@ -668,7 +608,6 @@ describe("EX13-024 Slayerdramon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
-  // [Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Dracomon]/[Examon] in text
   it("assembles for 7 from one trash material per printed level and enforces each slot", async () => {
     const valid = setupEngine(
       {
@@ -701,16 +640,12 @@ describe("EX13-024 Slayerdramon", () => {
     await settle(() => valid.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
 
     expect(valid.state.memory).toBe(0);
-    // §7-3-2-6: the header's left-to-right reading fixes the stack, left-most on top.
     const assembled = valid.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === cardId)!;
     expect(assembled.stack.map(({ cardId: id }) => id)).toEqual([NAME_MATCH, TEXT_MATCH, "BT20-025"]);
 
     for (const materials of [
-      // Slot 0 needs Lv.5: a second Lv.4 text card does not satisfy it.
       [TEXT_MATCH, TEXT_MATCH, NAME_MATCH],
-      // Lv.5 without [Dracomon]/[Examon] anywhere in its text.
       ["BT1-038", TEXT_MATCH, NAME_MATCH],
-      // The near miss in the Lv.3 slot: "Monodramon" is not "Dracomon".
       ["BT20-025", TEXT_MATCH, NEAR_MISS],
     ]) {
       const s = setupEngine({

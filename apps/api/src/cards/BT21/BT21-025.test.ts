@@ -381,9 +381,6 @@ describe("BT21-025 Lamiamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
 
-    // The inherited watcher was reached by a real public security removal. Confirm that its
-    // optional decision was actually opened, then decline the zero-cost play; every candidate
-    // remains in hand and memory does not move.
     await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length === 1);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
     expect(s.state.memory).toBe(5);

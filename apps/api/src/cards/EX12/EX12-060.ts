@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX12-060 Chaosdramon — hand-fixed override (not auto-generated).
-// <Piercing> <Security Attack +1> <Fragment (2)> <Engage>
-// [OnPlay/WhenDigivolving/WhenAttacking][Once Per Turn] De-Digivolve all opponent Digimon by 2,
-//   then delete 2 with play cost no higher than this Digimon's digivolution-card count,
-//   by placing exactly 2 Lv.5 or lower [Machine]/[Cyborg]/[ME] trait cards from hand/trash.
-// <Engage> = [End of Your Turn] this Digimon may attack (optional self-attack at EndOfYourTurn).
 const sharedOncePerTurn = "ir-shared-0";
 
 const compiled: CompiledCard = {

@@ -1,4 +1,3 @@
-// Hand-authored audit fix: preserve the selected opponent binding and Lotosmon's granted effect.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Digivolving]:
-// 1. 1 opponent Digimon gets <Security Attack -1> until end of opponent's turn.
-// 2. If [Angewomon] or [X Antibody] (by name, KB Q1834) is in this Digimon's
-//    digivolution cards AND you have 5 or fewer security cards: <Recovery +1 (Deck)>.
-// Condition is allOf: selfDigivolutionStackHasTrait (nameExact) AND zoneCount<=5.
-// Recovery uses GainKeyword action (not SecurityManipulation): the engine calls
-// recoverToSecurity when a Recovery keyword is granted.
 export const compiled: CompiledCard = {
   effects: [
     {

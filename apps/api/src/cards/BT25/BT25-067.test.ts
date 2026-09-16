@@ -94,8 +94,8 @@ describe("BT25-067 Sealsdramon", () => {
 
     expect(evolved.topCard?.cardId).toBe("BT25-074");
     expect(evolved.stack.map((card) => card.cardId)).toContain(CARD_ID);
-    expect(s.state.memory).toBe(0); // play 4, then Tankdramon's 4-cost evolution reduced by 2
-    expect(evolved.currentDP).toBe(8000); // Tankdramon 7000 + Sealsdramon inherited +1000
+    expect(s.state.memory).toBe(0);
+    expect(evolved.currentDP).toBe(8000);
   });
 
   it("accepts an ACCEL-only play as the OR trigger, but never a trait near-match", async () => {
@@ -104,7 +104,7 @@ describe("BT25-067 Sealsdramon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "seals" }],
           hand: [
-            { card: "BT20-031", as: "accelTrigger" }, // ACCEL, but not D-Brigade
+            { card: "BT20-031", as: "accelTrigger" },
             { card: "BT25-074", as: "tank" },
           ],
         },
@@ -121,7 +121,7 @@ describe("BT25-067 Sealsdramon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "seals" }],
           hand: [
-            { card: "BT25-072", as: "nearMatch" }, // Tool/Appmon, no D-Brigade or ACCEL trait
+            { card: "BT25-072", as: "nearMatch" },
             { card: "BT25-074", as: "tank" },
           ],
         },

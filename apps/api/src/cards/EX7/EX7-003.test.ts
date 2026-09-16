@@ -48,15 +48,12 @@ describe("EX7-003 Kyaromon", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009"));
     assertNoLoudGap(s);
 
-    // A 2000 attacker survives the 3000-DP Security Digimon only because EX7-003 reduces it
-    // to 1000 DP. The opposing battle-area Digimon remains exactly 3000 DP.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("digimonAttacker").permanentId)).toBe(
       true,
     );
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(battleTarget.currentDP).toBe(3000);
 
-    // The second check proves the same reduction applies to another Security Digimon.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -69,8 +66,6 @@ describe("EX7-003 Kyaromon", () => {
       s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("secondDigimonAttacker").permanentId),
     ).toBe(true);
 
-    // The third check reveals a Tamer, not a Security Digimon. Its Security effect plays it,
-    // and the third attacker is unaffected by the security-only modifier.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

@@ -1,19 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT9-100 (Grandis Scissor).
-//
-// Audit fixes:
-//
-// 1. Unsuspend is now the trigger for an Attack action on the same Digimon
-//    (using selectionRef to bind which Insectoid was unsuspended then attack with it).
-//    The Unsuspend and Attack are sequenced: the Digimon unsuspended attacks and
-//    suspends normally as part of declaring that new attack.
-//
-// `attackPlayer:false` restricts the forced attack to an opponent Digimon (Q1904),
-// while forceAttack reuses canonical target legality and therefore excludes a
-// "can't be attacked" defender (Q1905).
-
 export const compiled: CompiledCard = {
   effects: [
     {

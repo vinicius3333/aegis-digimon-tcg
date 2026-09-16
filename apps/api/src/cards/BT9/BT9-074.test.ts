@@ -3,23 +3,8 @@ import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 import "../BT3/BT3-014.js";
-// Self-registers every card module (boot side-effect) so the engine can look up
-// BT9-074's [On Deletion] effect.
 import { compiled } from "./BT9-074.js";
 
-/**
- * A3 for BT9-074 — [On Deletion] (inherited) "If this Digimon has 2 or more colors, gain
- * 2 memory."
- *
- * [On Deletion] is unrestricted-turn: this Digimon can be deleted on EITHER player's
- * turn (e.g. losing a battle when the OPPONENT attacks it), so `turnSeat` at the moment
- * of deletion is not necessarily this card's own controller. `ctx.fx.gainMemory` credits
- * `state.turnSeat`, which is wrong whenever the deletion happens on the opponent's turn.
- *
- * FAILS-WHEN-REVERTED: reverting `ctx.fx.gainMemoryForSeat(source.ownerSeat, 2)` back to
- * `ctx.fx.gainMemory(2)` flips this test's memory assertions (the attacker, not
- * BT9-074's own controller, would gain the memory).
- */
 describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacking turn player", () => {
   it("matches catalog and Q1868 security and inherited IR", () => {
     expect(getCardDefinition("BT9-074")).toMatchObject({
@@ -95,11 +80,6 @@ describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacki
   });
 
   it("deleted in battle on the OPPONENT's turn; the memory goes to BT9-074's own controller", async () => {
-    // "(inherited)" effects only fire while the card is a DIGIVOLUTION-STACK card under
-    // another Digimon (engine/effects/kernel.ts passesPlacementGuard) -- not while it is
-    // a permanent's own top card. So BT9-074 must die as MATERIAL under a host Digimon,
-    // which loses the upcoming battle with low DP. It is seat 1's turn; seat 1 attacks it
-    // directly.
     const s = setup(
       {
         0: {
@@ -108,7 +88,7 @@ describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacki
               card: "BT9-076",
               dp: 1000,
               as: "target",
-              suspended: true, // a permanent-target attack requires a suspended defender
+              suspended: true,
               under: [{ card: "BT9-074", as: "material" }],
             },
           ],
@@ -123,11 +103,7 @@ describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacki
     const material = s.inst("material");
     const attacker = s.perm("attacker");
 
-    // memoryFor mirrors MemoryGauge.memoryFor: state.memory is stored relative to
-    // turnSeat, so reading a seat's own-perspective value must account for whose turn
-    // it is -- asserting on the raw sign of state.memory would silently pass for
-    // whichever seat happens to be turnSeat, which is exactly the bug being caught here.
-    const memoryFor = (seat: 0 | 1): number => (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0; // normalize -0 -> 0
+    const memoryFor = (seat: 0 | 1): number => (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0;
     expect(memoryFor(0)).toBe(0);
     expect(memoryFor(1)).toBe(0);
 
@@ -142,11 +118,8 @@ describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacki
     await settle(() => !p0.battleArea.some((p) => p.permanentId === target.permanentId));
     await settle(() => memoryFor(0) !== 0 || memoryFor(1) !== 0, 60);
 
-    // BT9-074 actually died (moved to trash) along with its host.
     expect(p0.trash.some((c) => c.instanceId === material.instanceId)).toBe(true);
 
-    // BT9-074's own controller (seat 0) gains the memory -- not seat 1, even though
-    // seat 1 is turnSeat when the deletion happens.
     expect(memoryFor(0)).toBe(2);
     expect(memoryFor(1)).toBe(-2);
     assertNoLoudGap(s);

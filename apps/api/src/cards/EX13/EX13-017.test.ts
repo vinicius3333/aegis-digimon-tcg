@@ -33,7 +33,6 @@ describe("EX13-017 Veemon", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["CS"], cost: 0, isAlternate: true }]);
 
-    // The same clause is printed under two timings, so both carry the identical action.
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect.isInherited).toBeUndefined();
@@ -70,12 +69,6 @@ describe("EX13-017 Veemon", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] Reveal the top 3 cards of your deck. Add 1 card with [Veedramon] in its
-  // text or the [Royal Knight] trait among them to the hand. Return the rest to the
-  // bottom of the deck.
-  // ---------------------------------------------------------------------------
-
   it("adds a Veedramon-named card to hand and bottoms the other two revealed cards", async () => {
     const s = setupEngine(
       {
@@ -100,7 +93,6 @@ describe("EX13-017 Veemon", () => {
     await settle(() => s.state.players[0]!.hand.some(({ cardId: id }) => id === "BT22-022"));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("veedramon").instanceId]);
-    // Only the top 3 were revealed: the 4th card stays on top, the rest go underneath it.
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("untouched").instanceId,
       s.inst("firstRest").instanceId,
@@ -210,8 +202,6 @@ describe("EX13-017 Veemon", () => {
       {
         0: {
           hand: [{ card: cardId, as: "source" }],
-          // FunBeemon carries [Royal Base], the near-miss trait; neither other card prints
-          // [Veedramon]. "the [Royal Knight] trait" is exact, so nothing qualifies.
           deck: [
             { card: "BT18-044", as: "royalBase" },
             { card: "BT1-009", as: "plain" },
@@ -270,10 +260,6 @@ describe("EX13-017 Veemon", () => {
     assertNoLoudGap(s);
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Moving] — the same clause on the public breeding-move route.
-  // ---------------------------------------------------------------------------
-
   it("fires the same clause when it moves out of breeding", async () => {
     const s = setupEngine(
       {
@@ -303,7 +289,6 @@ describe("EX13-017 Veemon", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("royalKnight").instanceId);
-    // The 4th card is never revealed, so it stays on top and the two unwanted cards go under it.
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("drawn").instanceId,
       s.inst("restA").instanceId,
@@ -316,18 +301,12 @@ describe("EX13-017 Veemon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve] Lv.2 w/[CS] trait: Cost 0, alongside the printed blue Lv.2 route.
-  // ---------------------------------------------------------------------------
-
   it("exposes only the CS alternate as an extra requirement", () => {
     expect(digivolutionRequirementsFor(cardId)).toEqual([{ level: 2, traits: ["CS"], cost: 0, isAlternate: true }]);
   });
 
   it("digivolves for 0 by the printed blue route and by the off-color CS alternate", async () => {
     for (const [baseCardId, useAlternateCost] of [
-      // BT12-002 DemiVeemon is the blue Lv.2 printed route; BT22-004 Wanyamon is GREEN with
-      // the [CS] trait, so only the alternate makes it a legal base.
       ["BT12-002", false],
       ["BT22-004", true],
     ] as const) {
@@ -357,7 +336,6 @@ describe("EX13-017 Veemon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard?.cardId === cardId);
 
-      // Cost 0 on both routes, plus the digivolution bonus draw.
       expect(s.state.memory).toBe(0);
       expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([baseCardId]);
       expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
@@ -404,18 +382,10 @@ describe("EX13-017 Veemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === cardId);
 
-    // The breeding area holds no [On Play]/[When Moving] timing, so the reveal has not run yet.
     expect(s.state.players[0]!.breeding?.stack.map((card) => card.cardId)).toEqual(["EX13-002"]);
-    // The digivolution bonus draw is the only card that moves: the reveal has not run, since the
-    // breeding area holds no [On Play]/[When Moving] timing.
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited [All Turns] [Once Per Turn] When this Digimon with [Veedramon] in its name
-  // would leave the battle area by your opponent's effects, by suspending it, it doesn't leave.
-  // ---------------------------------------------------------------------------
 
   it("suspends a Veedramon host to prevent one opponent-effect deletion but not a second", async () => {
     const s = setupEngine(
@@ -425,8 +395,6 @@ describe("EX13-017 Veemon", () => {
     await s.ready();
     const hostId = s.perm("host").permanentId;
 
-    // No player Intent produces an opponent-effect deletion; the public advance verb drives the
-    // same production leave event.
     advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
     try {
       expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
@@ -471,8 +439,6 @@ describe("EX13-017 Veemon", () => {
     }
     expect(s.perm("host").isSuspended).toBe(true);
 
-    // A full opponent turn, then the owner's next turn, through the real turn loop. The host
-    // unsuspends at the start of its controller's turn, so the suspension cost is payable again.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);

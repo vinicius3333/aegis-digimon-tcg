@@ -1,9 +1,3 @@
-// HAND-FIXED IR for BT19-024 — do not regenerate.
-// Added AllTurns Replacement implementing <Decode (Blue Lv.4)>: when this Digimon
-// would leave the battle area other than by battle, play 1 Blue Lv.4 from its
-// digivolution cards without paying the cost (per comprehensive rules §16-36-1).
-// The "return 1 opponent Lv.≤5 Digimon to hand" seen in Q&A Q3058 is the OnPlay
-// of the Blue Lv.4 card being played, not part of this card's Decode effect.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

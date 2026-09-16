@@ -98,8 +98,6 @@ describe("P-147 Pal", () => {
     const s = setupEngine(
       {
         0: {
-          // An earlier P-147 placement can leave another level-4 card underneath.
-          // BT16-043 would also gain memory; only the new P-150 may activate.
           battleArea: [{ card: "P-147", as: "pal", under: [{ card: "BT16-043", as: "oldPulse" }] }],
           hand: [{ card: "P-150", as: "newPulse" }],
           security: ["BT1-009", "BT1-009", "BT1-028"],

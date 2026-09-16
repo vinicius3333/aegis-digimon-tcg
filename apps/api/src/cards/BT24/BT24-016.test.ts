@@ -161,7 +161,6 @@ describe("BT24-016 Lamiamon", () => {
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("placed").instanceId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("trashed").instanceId]);
-    // The count ends where it began, so the seat on the add is all a client has to narrate it.
     expect(s.events).toContainEqual({
       kind: "cardsMoved",
       instanceIds: [s.inst("placed").instanceId],

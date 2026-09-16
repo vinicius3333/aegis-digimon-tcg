@@ -311,7 +311,6 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("target").isSuspended).toBe(false);
 
-    // The lock lasts through the opponent's turn, then expires at its end.
     s.state.turnSeat = 1;
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);

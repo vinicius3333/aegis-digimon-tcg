@@ -7,8 +7,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// Inert main-deck Digimon used for security, decks and near-miss peers. BT1-009 Monodramon
-// has no printed effect; no Digi-Egg is ever seeded in security or in the main deck.
 const INERT = "BT1-009";
 
 describe("BT19-101 ZeedMillenniummon", () => {
@@ -48,8 +46,6 @@ describe("BT19-101 ZeedMillenniummon", () => {
     ]);
   });
 
-  // ---------------------------------------------------------------- evolution routes
-
   it("takes the printed [Digivolve]MoonMillenniummon route for exactly cost 2 and draws 1", async () => {
     const s = setupEngine(
       {
@@ -80,16 +76,11 @@ describe("BT19-101 ZeedMillenniummon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-101"));
 
-    // Alternate route cost is 2, not the printed Lv6 evoCost of 6 (lane-9 fallback check).
     expect(s.state.memory).toBe(0);
-    // Digivolution draw of 1: hand had zeed only, which left the hand for the stack.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(handBefore).toBe(1);
-    // Source-stack identity: MoonMillenniummon sits beneath Zeed.
     expect(s.perm("moon").topCard?.instanceId).toBe(s.inst("zeed").instanceId);
     expect(s.perm("moon").stack.map((card) => card.instanceId)).toEqual([s.inst("moon").instanceId]);
-    // [When Digivolving]: cost returned the trashed Digimon to the top of their deck, the
-    // payload returned their battle-area Digimon to the bottom.
     expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([
       s.inst("cost").instanceId,
       s.inst("sentinel").instanceId,
@@ -129,8 +120,6 @@ describe("BT19-101 ZeedMillenniummon", () => {
   });
 
   it("rejects a near-name base for the exact MoonMillenniummon route", () => {
-    // No printed card other than BT19-075 contains "MoonMillenniummon", so only a synthetic
-    // definition separates `namesExact` from a substring `names` gate.
     const nearName = {
       cardId: "TEST-MOON-VARIANT",
       set: "TEST",
@@ -151,8 +140,6 @@ describe("BT19-101 ZeedMillenniummon", () => {
       } as unknown as CardDefinition),
     ).toMatchObject({ cost: 2 });
   });
-
-  // ------------------------------------------------- On Play / When Digivolving / When Attacking
 
   it("resolves the accepted optional On Play return through the public play intent", async () => {
     const s = setupEngine(
@@ -211,7 +198,6 @@ describe("BT19-101 ZeedMillenniummon", () => {
       s.inst("sentinel").instanceId,
       s.inst("target").instanceId,
     ]);
-    // A Zeed WITH digivolution cards suspends normally when it declares an attack.
     expect(s.perm("zeed").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
@@ -262,8 +248,6 @@ describe("BT19-101 ZeedMillenniummon", () => {
     expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sentinel").instanceId]);
   });
 
-  // ------------------------------------------------------- [All Turns] with no digivolution cards
-
   it("refuses a normal attack by a Zeed with no digivolution cards (can't be suspended)", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT19-101", as: "zeed" }], deck: [INERT] },
@@ -283,8 +267,6 @@ describe("BT19-101 ZeedMillenniummon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
-  // Q3185: the [All Turns] "can't be suspended" clause does not stop <Overclock>, because
-  // Overclock attacks WITHOUT suspending.
   it("Q3185: Overclock still attacks a player at end of turn while unsuspendable", async () => {
     const s = setupEngine(
       {
@@ -309,18 +291,14 @@ describe("BT19-101 ZeedMillenniummon", () => {
     await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT19-070"));
 
-    // Overclock's cost: the other [Composite] trait Digimon is deleted.
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("composite").instanceId)).toBe(true);
     const zeed = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT19-101");
     expect(zeed).toBeDefined();
-    // Attacked a player without suspending, and one security card was checked.
     expect(zeed!.isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("keeps a no-source Zeed unaffected by an opponent's Suspend effect on their real turn", async () => {
-    // The suspension must be read INSIDE the opponent's turn: seat 0's next unsuspend phase
-    // would stand any suspended permanent back up and make the assertion vacuous.
     let suspendedAtResolve: boolean | undefined;
     const s = setupEngine(
       {
@@ -360,8 +338,6 @@ describe("BT19-101 ZeedMillenniummon", () => {
     await loop;
   });
 
-  // Control run for the protection above (protections apply where the effect lands, not at
-  // targeting): the same Suspend effect DOES suspend an unprotected peer.
   it("control: the same opponent Suspend effect suspends an unprotected peer", async () => {
     let suspendedAtResolve: boolean | undefined;
     const s = setupEngine(
@@ -401,7 +377,6 @@ describe("BT19-101 ZeedMillenniummon", () => {
     await loop;
   });
 
-  // Stack case: with a digivolution card underneath, neither [All Turns] clause applies.
   it("drops both [All Turns] clauses once Zeed has a digivolution card", async () => {
     let suspendedAtResolve: boolean | undefined;
     const s = setupEngine(

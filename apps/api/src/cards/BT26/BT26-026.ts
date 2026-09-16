@@ -19,8 +19,6 @@ const useGlowingDawn = (cost: Cost): Action => ({
       from: ["hand"],
       payCost: true,
       reduceCostBy: 2,
-      // The printed "By ... you may use ..." cost must not be paid when no
-      // eligible Option exists. Keep the use optional after this preflight.
       selectionRequired: true,
       optional: true,
     },

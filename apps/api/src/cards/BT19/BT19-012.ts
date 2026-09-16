@@ -1,7 +1,3 @@
-// HAND-FIXED IR for BT19-012 — do not regenerate.
-// OnDeletion PlaceUnder: removed spurious colors:["Blue"] (not in card text).
-// GrantStatic name "Shoutmon": KB Q3068 — only treated as Shoutmon FOR DigiXros.
-// The engine carries this alias in the DigiXros-only name ledger, not ordinary name matching.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -148,8 +144,6 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      // "[Digivolve][Shoutmon]" is a BRACKETED name: exact, never the `names` substring gate
-      // (which would let Shoutmon X4 / X5 take the cheaper named route).
       namesExact: ["Shoutmon"],
       cost: 4,
       isAlternate: true,

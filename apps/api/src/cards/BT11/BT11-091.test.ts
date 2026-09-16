@@ -42,7 +42,7 @@ describe("BT11-091 Taiga", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT1-083");
-    expect(s.state.memory).toBe(7); // printed 4 reduced to 3
+    expect(s.state.memory).toBe(7);
     expect(s.perm("taiga").isSuspended).toBe(true);
   });
 

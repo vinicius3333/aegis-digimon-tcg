@@ -31,8 +31,6 @@ describe("BT16-018", () => {
           hand: [{ card: "BT16-018", as: "source" }],
         },
         1: {
-          // AD1-001 is a 5000-DP Security Digimon; the 2000-DP ally loses the battle unless
-          // the production restriction is specifically applied to battle deletion.
           security: ["AD1-001"],
         },
       },

@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main]: Delete 1 of your opponent's Digimon with 5000 DP or less.
-// If you have a red Tamer in play, delete 1 with 8000 DP or less INSTEAD (not an additional option).
 const compiled: CompiledCard = {
   effects: [
     {

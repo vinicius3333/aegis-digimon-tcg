@@ -74,9 +74,6 @@ describe("BT3-096 Mimi Tachikawa", () => {
 
     expect([s.perm("firstMimi").isSuspended, s.perm("secondMimi").isSuspended]).toEqual([true, true]);
 
-    // Hammer Spark gains 1, then each independently ready Mimi may pay its suspend
-    // cost exactly once for another +1. Duplicate watcher registrations must not
-    // grant memory again after that copy is already suspended.
     expect(s.state.memory).toBe(3);
 
     const mimiPrompts = s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT3-096");

@@ -91,8 +91,6 @@ describe("EX12-060 Chaosdramon", () => {
               target: {
                 count: 2,
                 from: ["hand", "trash"],
-                // The printed cost takes "cards", not Digimon: a level 5 or lower Digi-Egg
-                // with a matching trait is legal material, so the filter must carry no kind gate.
                 filter: {
                   controller: "mine",
                   levelComparison: { op: "lte", value: 5 },
@@ -145,9 +143,6 @@ describe("EX12-060 Chaosdramon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "source" }],
           hand: [{ card: "EX12-055", as: "materialOne" }],
-          // EX12-003 Kapurimon is a Lv.2 Digi-Egg with the [ME] trait, and the cost is printed
-          // over "cards". FAILS-WHEN-REVERTED: restore `kind: ["Digimon"]` on the place-cost
-          // filter and only one legal material remains, so the payment cannot be made.
           trash: [{ card: "EX12-003", as: "digiEggMaterial" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "low" }] },

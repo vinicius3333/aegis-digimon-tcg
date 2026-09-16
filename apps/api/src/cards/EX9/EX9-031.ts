@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Digivolving][When Attacking] cost: trash the bottom face-down digivolution card
-// of this Digimon (zone:"digivolutionCards", not isSelfRef which would target the Digimon).
-// KB Q4785: trash the 1st face-down digivolution card from the bottom.
-// Action: <Recovery +1 (Deck)> = SecurityManipulation op:addTop from:deck amount:1.
 export const compiled: CompiledCard = {
   effects: [
     {

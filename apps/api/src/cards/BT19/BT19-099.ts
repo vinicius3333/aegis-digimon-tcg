@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main] plays Composite Digimon from trash at cost -4, then places this Option in battle area.
-// [All Turns] <Delay>: when a Millenniummon would leave, activate the Delay re-activation:
-// play 1 Wicked God Digimon from hand/trash at cost = (leaving Digimon's playCost + 1).
-// Player may pick 1 Millenniummon to base cost on when multiple would leave simultaneously (Q&A Q3175).
 const compiled: CompiledCard = {
   effects: [
     {

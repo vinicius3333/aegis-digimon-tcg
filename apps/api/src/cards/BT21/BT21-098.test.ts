@@ -101,9 +101,6 @@ describe("BT21-098 Ragnarok Cannon", () => {
     const highId = s.perm("high").permanentId;
     const optionId = s.perm("option").topCard.instanceId;
     await s.ready();
-    // Board Specs lay the permanent directly, bypassing the real on-play resolution that marks
-    // it `placedByEffect` and ages it past the turn it entered — both required for its `<Delay>`
-    // to be legally activatable (see the "publicly ages a placed Option" test below).
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
     s.perm("option").placedByEffect = true;
     expect(
@@ -146,7 +143,6 @@ describe("BT21-098 Ragnarok Cannon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
     expect(s.state.memory).toBe(4);
 
-    // A public turn boundary ages the Option; no field-turn metadata is injected.
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 0;
@@ -211,30 +207,20 @@ describe("BT21-098 Ragnarok Cannon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
 
-    // The one-card fallback must resolve before the attack's ordinary security checks.
-    // Otherwise Galacticmon's normal checks could also explain the reduction from three
-    // security cards to one without proving the Delay branch.
     const firstSecurityCheck = s.events.findIndex((event) => event.kind === "securityChecked");
     const firstSecurityTrash = s.events.findIndex(
       (event) => event.kind === "cardsMoved" && event.from === "security" && event.to === "trash",
     );
     expect(firstSecurityTrash).toBeGreaterThanOrEqual(0);
-    // The public settle point can precede the attack's eventual ordinary check. If
-    // that check is already present, its event must follow the fallback move.
     expect(firstSecurityCheck === -1 || firstSecurityTrash < firstSecurityCheck).toBe(true);
   });
 
-  /**
-   * FAILS-WHEN-REVERTED: the Security filter named no card kind, so the "play 1 card with
-   * [Vemmon] in its text" prompt also offered Option cards. Only Digimon and Tamers are
-   * ever PLAYED — Options are used — so an Option-only candidate must leave the pool empty.
-   */
   it("never offers an Option card to the Security play", async () => {
     const s = setup(
       {
         0: {
           security: [{ card: "BT21-098", as: "option" }],
-          trash: [{ card: "BT11-105", as: "vemmonOption" }], // Fusionize — Option, cost 1, [Vemmon] in text
+          trash: [{ card: "BT11-105", as: "vemmonOption" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

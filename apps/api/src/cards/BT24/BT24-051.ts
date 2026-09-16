@@ -1,20 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT24-051 (Merukimon).
-// Text:
-//   [Digivolve] Lv.5 w/[Beastkin]/[TS] trait: Cost 3
-//   When this card would be played, if there are 3 or more Digimon, reduce the play cost
-//   by 5.
-//   [On Play] [When Digivolving] Suspend 2 of your opponent's Digimon or Tamers. Then, 1
-//   of your Digimon may get +5000 DP for the turn and attack your opponent's Digimon.
-//   [When Digivolving] [When Attacking] [Once Per Turn] 1 of your Digimon may unsuspend.
-//   [Your Turn] All of your [Iliad] trait Digimon gain ＜Rush＞ and ＜Piercing＞
-// KB Q5641: The Digimon that gets +5000 DP must attack if possible (not optional).
-// Fixes vs AUTO-GENERATED:
-//   - OnPlay/WhenDigivolving: added Attack action after ModifyDP (mandatory, target same Digimon)
-//   - The ModifyDP+Attack is optional as a unit (you may choose whether to buff+attack),
-//     but once you choose to buff, the attack is mandatory per KB Q5641.
 export const compiled: CompiledCard = {
   effects: [
     {

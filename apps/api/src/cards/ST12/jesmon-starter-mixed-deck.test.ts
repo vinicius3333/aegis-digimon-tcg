@@ -44,7 +44,6 @@ describe("ST12 Jesmon starter — mixed archetype flow", () => {
     );
     s.state.memory = 10;
 
-    // The hatched red egg is the only red source needed to use ST12-15.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -57,8 +56,6 @@ describe("ST12 Jesmon starter — mixed archetype flow", () => {
       expect.arrayContaining([s.inst("revealMissA").instanceId, s.inst("revealMissB").instanceId]),
     );
 
-    // Delay becomes legal on a later turn and reduces SaviorHuckmon's 3-cost
-    // evolution to 2. Its When Digivolving grant then permits the unsuspended target.
     const delay = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST12-15")!;
     s.state.turnCount += 1;
     await s.engine.recomputeContinuousEffects();
@@ -102,9 +99,6 @@ describe("ST12 Jesmon starter — mixed archetype flow", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // A second established line evolves to Jesmon and inherits ST12-08. Its attack plays one
-    // Sistermon from hand while the inherited effect plays the other from trash.
-    // Huckmon gains memory only once; Jesmon's own effect buffs only once.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

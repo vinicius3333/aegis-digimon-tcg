@@ -73,9 +73,6 @@ describe("BT16-033 Harpymon", () => {
     expect(s.state.players[0]?.deck).toHaveLength(0);
   });
 
-  // KB Q6085/Q2221/Q4284: the revealed [Security] effect activates immediately, before every
-  // other effect that triggered on the check. Once it has deleted Harpymon, Harpymon is a new
-  // card in the trash and its pending check effect can no longer activate (CR 15-4-4-3).
   it("loses its check effect when the revealed Security effect deletes it first", async () => {
     const s = setupEngine({
       0: {

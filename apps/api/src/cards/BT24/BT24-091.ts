@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT24-091 "Tidal Stream". The return action binds its result
-// so the unsuspend leg only resolves when a Digimon was returned.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -88,8 +88,6 @@ describe("BT17-019", () => {
   });
 
   it("treats [Matt Ishida] as a substring of the Tamer name", async () => {
-    // BT17-081 raises optional prompts of its own once the whole BT17 set is registered in the
-    // worker; decline them so this flow is deterministic regardless of registration order.
     const s = setupEngine(
       {
         0: {

@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override (runtime-effect fix). KB Q1732: the [Your Turn] effect triggers only
-// when one of your OTHER Digimon digivolves (excludeSelf), and "you may unsuspend it"
-// targets that digivolving Digimon (sourceRef:"triggerSubject"), NOT this card. The
-// WhenAttacking cost trashes the top of YOUR security stack (zone made explicit).
 const compiled: CompiledCard = {
   effects: [
     {

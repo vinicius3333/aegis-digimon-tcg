@@ -5,20 +5,14 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
-// EX13/index.ts is coordinator-owned and does not list this module yet, so the test registers it.
 import "./EX13-011.js";
 
 const CARD_ID = "EX13-011";
 const MON = "EX13-075";
-/** A Tamer whose name merely CONTAINS "Mon" — the near miss for the `nameExact` filter. */
 const MONICA = "BT25-091";
-/** Red Lv.3 without [Huckmon] in its text: the primary (non-alternate) evolution base. */
 const RED_BASE = "EX13-007";
-/** White Lv.3 WITH [Huckmon] in its text: only the alternate route accepts it. */
 const HUCKMON_TEXT_BASE = "BT7-082";
-/** Blue Lv.3 with neither red nor [Huckmon] in text: both routes must refuse it. */
 const ILLEGAL_BASE = "BT1-027";
-/** Inert filler with no [Huckmon] text, so Mon's own reveal adds nothing. */
 const FILLER = "BT1-012";
 
 describe("EX13-011 BaoHuckmon", () => {
@@ -91,7 +85,6 @@ describe("EX13-011 BaoHuckmon", () => {
 
     expect(s.perm("base").topCard.cardId).toBe(CARD_ID);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([RED_BASE]);
-    // Digivolving charges 2 memory; the free play charges nothing on top of it.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([FILLER]);
     expect(
@@ -166,7 +159,6 @@ describe("EX13-011 BaoHuckmon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === MON));
 
-    // 5 memory less BaoHuckmon's printed play cost of 5; Mon (cost 4) is free.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(

@@ -8,7 +8,6 @@ import { compiled } from "./EX13-019.js";
 
 const CARD_ID = "EX13-019";
 
-/** Fire the [When Attacking] window on a permanent without running a whole combat. */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm(alias), {
     attackerPermanentId: s.perm(alias).permanentId,
@@ -48,7 +47,6 @@ describe("EX13-019 Veedramon", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects).toHaveLength(3);
 
-    // Printed ＜Jamming＞: a main copy (this Digimon only) and an inherited copy (passes down).
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Static",
       actions: [],
@@ -84,10 +82,8 @@ describe("EX13-019 Veedramon", () => {
       ],
     });
     expect(compiled.effects[1]?.isInherited).toBeUndefined();
-    // One printed timing owns the single [Once Per Turn], so there is no shared ledger key.
     expect(compiled.effects[1]?.sharedUseKey).toBeUndefined();
 
-    // "w/[CS] trait" is the exact trait reading, and the level is printed.
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["CS"], cost: 2, isAlternate: true }]);
   });
 
@@ -95,7 +91,6 @@ describe("EX13-019 Veedramon", () => {
     const s = setupEngine(
       {
         0: {
-          // EX13-017 Veemon: Blue, Lv.3, [CS] trait.
           battleArea: [{ card: "EX13-017", as: "base" }],
           hand: [{ card: CARD_ID, as: "veedramon" }],
           deck: ["BT1-009", "BT1-010"],
@@ -120,7 +115,6 @@ describe("EX13-019 Veedramon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseInstanceId]);
     expect(s.perm("base").currentDP).toBe(6000);
-    // The card left the hand; the single card there is the digivolution bonus draw.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("veedramon").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -130,7 +124,6 @@ describe("EX13-019 Veedramon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT22-008 Agumon: Red (so the blue EvoCost cannot reach it), Lv.3, [CS] trait.
           battleArea: [{ card: "BT22-008", as: "base" }],
           hand: [{ card: CARD_ID, as: "veedramon" }],
           deck: ["BT1-009", "BT1-010"],
@@ -196,7 +189,6 @@ describe("EX13-019 Veedramon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "veedramon" }],
           hand: [
-            // EX13-069 Rina Shinomiya: blue Tamer, printed cost 3, prints [Veedramon].
             { card: "EX13-069", as: "rina" },
             { card: "BT1-010", as: "spare" },
           ],
@@ -214,7 +206,6 @@ describe("EX13-019 Veedramon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed cost 3, reduced by 2: exactly 1 memory is paid.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("spare").instanceId]);
     const played = s.state.players[0]!.battleArea.find(
@@ -231,7 +222,6 @@ describe("EX13-019 Veedramon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "veedramon" }],
           hand: [
-            // P-012 Tai Kamiya (V-Tamer): blue Tamer, printed cost 2, prints [Veedramon].
             { card: "P-012", as: "tai" },
             { card: "BT1-010", as: "spare" },
           ],
@@ -249,7 +239,6 @@ describe("EX13-019 Veedramon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 2 - 2 = 0: memory is untouched.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("spare").instanceId]);
   });
@@ -260,12 +249,8 @@ describe("EX13-019 Veedramon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "veedramon" }],
           hand: [
-            // A Tamer whose text prints "[Vee]" and never "Veedramon": "Vee" is a prefix of
-            // "Veedramon", not the other way round, so this must NOT qualify.
             { card: "BT2-086", as: "veeOnlyTamer" },
-            // Prints [Veedramon] in its text but is a Digimon, not a Tamer.
             { card: "EX13-017", as: "digimonWithToken" },
-            // Tamer AND prints [Veedramon]: the only legal choice.
             { card: "EX13-069", as: "match" },
           ],
           deck: ["BT1-009", "BT1-010"],
@@ -366,7 +351,6 @@ describe("EX13-019 Veedramon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("second").instanceId]);
 
-    // Same turn, second attack window: the printed [Once Per Turn] refuses it.
     await attackWindow(s, "veedramon");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("second").instanceId]);
@@ -374,7 +358,6 @@ describe("EX13-019 Veedramon", () => {
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("second").instanceId),
     ).toBe(false);
 
-    // A real opponent turn passes; the gate reopens on the controller's next turn.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
 
@@ -398,7 +381,6 @@ describe("EX13-019 Veedramon", () => {
           deck: Array(10).fill("BT1-009"),
           security: Array(3).fill("BT1-009"),
         },
-        // BT1-081 HerculesKabuterimon: 10000 DP, well above this card's 6000.
         1: { deck: Array(10).fill("BT1-010"), security: ["BT1-081"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -414,7 +396,6 @@ describe("EX13-019 Veedramon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Jamming: the 10000 DP Security Digimon does not delete it.
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === attackerPermanentId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
@@ -459,7 +440,6 @@ describe("EX13-019 Veedramon", () => {
         0: {
           battleArea: [
             { card: "BT1-014", as: "host", under: [{ card: CARD_ID, as: "veedramon" }] },
-            // The same top card with nothing under it: the keyword comes from the stack.
             { card: "BT1-014", as: "bareHost" },
             { card: "BT1-013", as: "bystander" },
           ],
@@ -548,7 +528,6 @@ describe("EX13-019 Veedramon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 6000 DP beats the 1000 DP defender, and the attack window played Rina for 3 - 2 = 1.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").isSuspended).toBe(true);

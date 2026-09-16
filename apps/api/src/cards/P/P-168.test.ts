@@ -79,8 +79,6 @@ describe("P-168 Yao Qinglan", () => {
     await settle(() => s.perm("host").topCard.cardId === "BT7-027");
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("placed").instanceId)).toBe(true);
     expect(s.perm("yao").isSuspended).toBe(true);
-    // Shellmon costs 4 to play and Whamon costs 3 to digivolve; Yao's reaction
-    // reduces that actual digivolution payment by 1.
     expect(s.state.memory).toBe(4);
   });
 

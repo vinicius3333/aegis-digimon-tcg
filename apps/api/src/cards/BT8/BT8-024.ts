@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// "[Your Turn] When this Digimon would digivolve, if you have 3 or fewer security
-// cards, <Recovery +1 (Deck)>." — fires once during the digivolve declaration;
-// the Replacement.actions run at that moment (KB Q1714: after declaring, before paying).
-// SecurityManipulation is the executable Recovery primitive: it places the top deck card
-// onto the controller's security stack and evaluates the printed condition at activation.
 const compiled: CompiledCard = {
   effects: [
     {

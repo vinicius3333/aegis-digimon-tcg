@@ -160,7 +160,6 @@ describe("BT1-106 Symphony No.1 <Polyphony>", () => {
     const fifthTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 5;
-    // The moved stack is the intended capped target; the peer proves count:1 and opponent filtering.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });

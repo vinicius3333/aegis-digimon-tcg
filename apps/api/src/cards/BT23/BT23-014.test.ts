@@ -54,10 +54,6 @@ describe("BT23-014 Gallantmon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  /**
-   * Public scaled-ceiling proofs. The opponent fields one Digimon and one Tamer, so
-   * Q5229's maximum is 8000 + 2 x 2000 = 12000: a 12000-DP Digimon dies, a 13000-DP one lives.
-   */
   it("deletes at the scaled 12000-DP ceiling from a public play", async () => {
     const s = setupEngine(
       {
@@ -167,7 +163,6 @@ describe("BT23-014 Gallantmon", () => {
       ok: true,
     });
     await settle();
-    // One opponent Digimon on the board raises the ceiling to 10000, so a 10000-DP body dies.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
   });
@@ -302,8 +297,6 @@ describe("BT23-014 Gallantmon", () => {
           ],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-013", "BT1-014", "BT1-027", "BT1-028", "BT1-045"],
         },
-        // A single level-6 body: AeroVeedramon's mandatory "return 1 level 4 or lower" finds no
-        // target, so only Gallantmon's own deletion can change this board.
         1: { battleArea: [{ card: "BT1-080", dp: 10000, as: "target" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -337,22 +330,17 @@ describe("BT23-014 Gallantmon", () => {
         step.cardId,
       ).toEqual({ ok: true });
       await settle(() => s.perm("veemon").topCard?.instanceId === instanceId);
-      // Source-stack identity: every earlier source stays beneath, bottom-most first.
       expect(
         s.perm("veemon").stack.map((card) => card.cardId),
         step.cardId,
       ).toEqual(step.stack);
       expect(s.perm("veemon").topCard!.cardId).toBe(step.cardId);
       expect(s.perm("veemon").currentDP, step.cardId).toBe(step.dp);
-      // Bonus draw: one card leaves the deck and the net hand size is unchanged
-      // (one card spent on the digivolution, one drawn).
       expect(s.state.players[0]!.deck.length, step.cardId).toBe(deckBefore - 1);
       expect(s.state.players[0]!.hand.length, step.cardId).toBe(handBefore);
       if (step.alias === "gallantmon") expect(s.state.memory, step.cardId).toBe(8 - 3);
     }
 
-    // Gallantmon's own [When Digivolving] deletion is the only thing that can clear the board:
-    // one opponent permanent raises the 8000 ceiling to exactly 10000.
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);

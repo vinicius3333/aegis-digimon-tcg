@@ -133,9 +133,6 @@ describe("BT1-101 Howling Crusher", () => {
           security: ["BT1-101", "BT1-009"],
         },
       },
-      // BT1-081's own [EndOfAttack] optional Unsuspend prompt is unrelated to what this
-      // test proves (BT1-101's Q1311 behavior); decline it so its own decision never
-      // stalls the settle below.
       { autoDeclineOptional: true },
     );
     advance(s.engine).ledgers.continuous.addKeywordGrant(

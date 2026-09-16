@@ -173,7 +173,6 @@ describe("BT23-015 Phoenixmon", () => {
     const phoenixId = s.inst("phoenix").instanceId;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Suspend Phoenixmon the public way so seat 1 has a legal battle target next turn.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -400,14 +399,11 @@ describe("BT23-015 Phoenixmon", () => {
     await loop;
   });
 
-  /** Drive the loop to seat 1's Main so the opponent can attack into seat 0's security. */
   async function openOpponentMain(s: ReturnType<typeof setupEngine>) {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // Wrapped: returning the promise bare would make `await openOpponentMain(...)` wait on
-    // the whole turn loop.
     return { loop };
   }
 
@@ -429,7 +425,6 @@ describe("BT23-015 Phoenixmon", () => {
     );
     const phoenixId = s.inst("phoenix").instanceId;
     const { loop } = await openOpponentMain(s);
-    // Q5231: a card placed face up stays revealed in the stack until it is checked.
     expect(s.state.players[0]!.security.map((card) => card.faceUp)).toEqual([true]);
 
     expect(

@@ -68,9 +68,7 @@ describe("BT17-039 ShineGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === marcusId));
 
-    // Played without paying its cost: the digivolve cost alone moved memory.
     expect(s.state.memory).toBe(0);
-    // `[Marcus Damon]` is exact, so "Marcus Damon & Agumon" (AD1-021) stays in hand.
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("comboMarcus").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
   });
@@ -159,7 +157,6 @@ describe("BT17-039 ShineGreymon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === firstTamerId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shineId)).toBe(true);
 
-    // [Once Per Turn]: the second opponent-effect deletion this turn is not prevented.
     await advance(s.engine).verb.deletePermanent([shineId], "byEffect");
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shineId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === secondTamerId)).toBe(false);
@@ -194,7 +191,6 @@ describe("BT17-039 ShineGreymon", () => {
     await advance(s.engine).verb.deletePermanent([shineId], "byEffect");
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === firstTamerId));
 
-    // Real turn loop ends the turn; the next opponent turn may prevent again.
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();

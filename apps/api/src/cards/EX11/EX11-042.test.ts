@@ -29,8 +29,6 @@ describe("EX11-042 MockingBirdmon", () => {
         from: ["hand", "linked"],
         payCost: false,
         optional: true,
-        // FAILS-WHEN-REVERTED: "THIS Digimon's digivolution cards" — without hostFilter the
-        // pool spans every friendly Digimon's stack.
         target: { filter: { hostFilter: { isSelfRef: true } } },
       });
     }

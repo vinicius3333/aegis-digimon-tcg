@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4123: this [Main] effect is activated during the main phase, not as an interrupt.
-// KB Q4124: the Veedramon-name requirement checks only the battle area.
-// KB Q4126: the +1000 DP recipient may be any of the controller's Digimon.
 const compiled: CompiledCard = {
   effects: [
     {

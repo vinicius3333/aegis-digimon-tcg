@@ -239,9 +239,6 @@ describe("EX7-005 Kapurimon", () => {
     s.state.memory = -2;
     await advance(s.engine).recompute();
 
-    // No public card in this lane opens an opponent-turn placement under this host. Use the
-    // named production provenance seam to model an effect-owned placement; the Your Turn
-    // gate must still reject it while the opponent owns the turn.
     const driver = advance(s.engine);
     driver.verb.enterEffectResolution(0, ["Digimon"], s.perm("host").permanentId);
     try {

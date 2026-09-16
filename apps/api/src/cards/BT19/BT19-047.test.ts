@@ -6,16 +6,6 @@ import { drainMicrotasks, setupEngine, settle, settleAcrossTimers } from "../../
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// Fixtures (inert main-deck Digimon only; no Digi-Egg may sit in a deck or in security):
-//   BT1-009 Monodramon      Lv3 Red  3000, no text        — deck/security filler
-//   BT1-013 Muchomon        Lv3 Red  5000, no text        — deck/security filler
-//   BT1-064 Goblimon        Lv3 Green 3000, no text       — legal Green Lv3 evolution source
-//   BT2-052 Hagurumon       Lv3 Black 3000, no text       — legal Black Lv3 evolution source
-//   BT1-071 Vegiemon        Lv4 Green 6000, no text       — ILLEGAL source (Lv4) / non-Xros host
-//   BT19-051 AtlurBallistamon  Lv5 Green/Black, Xros Heart — the exact [AtlurBallistamon]
-//   BT10-049 Ballistamon       Lv4 Green,  Xros Heart     — NAME NEAR MISS: "Ballistamon" is a
-//            substring of "AtlurBallistamon", so a substring gate would wrongly accept it
-//   BT19-081 Kiriha Aonuma     Blue Tamer                 — the Tamer the sources sit under
 const DECK = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
@@ -49,7 +39,6 @@ describe("BT19-047 Ballistamon", () => {
       actions: [
         {
           kind: "Digivolve",
-          // "[AtlurBallistamon]" is bracketed, so the gate must be exact, never a substring.
           into: { nameOrTrait: [{ tokens: ["AtlurBallistamon"], match: "nameExact" }] },
           from: ["digivolutionCardsUnderTamers"],
           payCost: false,
@@ -57,8 +46,6 @@ describe("BT19-047 Ballistamon", () => {
         },
       ],
     });
-    // ＜Save＞ must carry the keyword so `withSavePlacementDefaults` puts the card at the
-    // BOTTOM of the Tamer's stack (CR 4-3-2 / comprehensive 16-20-3, optional).
     expect(compiled?.effects[1]).toMatchObject({
       trigger: "OnDeletion",
       keywords: [{ keyword: "Save" }],
@@ -71,17 +58,11 @@ describe("BT19-047 Ballistamon", () => {
         {
           kind: "Aura",
           effect: { kind: "keyword", keyword: { keyword: "Blocker" } },
-          // "with the [Xros Heart] trait" is an EXACT trait match, not `traitContains`.
           while: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] } },
         },
       ],
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] This Digimon may digivolve into [AtlurBallistamon] under your Tamers
-  // without paying the cost.
-  // ---------------------------------------------------------------------------
 
   it("digivolves into the AtlurBallistamon under a Tamer for free on a public play, drawing the bonus card", async () => {
     const s = setupEngine(
@@ -108,13 +89,9 @@ describe("BT19-047 Ballistamon", () => {
 
     const evolved = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT19-051")!;
     expect(evolved.topCard!.instanceId).toBe(atlurId);
-    // The played Ballistamon became the single digivolution card beneath it.
     expect(evolved.stack.map((card) => card.instanceId)).toEqual([s.inst("ballista").instanceId]);
-    // The Tamer gave up its saved card and holds nothing else.
     expect(s.perm("tamer").stack).toHaveLength(0);
-    // Only the play cost of 4 was paid; the digivolution itself was free.
     expect(s.state.memory).toBe(6);
-    // Digivolving still draws the bonus card.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
@@ -215,10 +192,6 @@ describe("BT19-047 Ballistamon", () => {
     expect(s.state.memory).toBe(6);
   });
 
-  // ---------------------------------------------------------------------------
-  // Evolution routes: Green Lv.3 cost 3 / Black Lv.3 cost 3, and an illegal source.
-  // ---------------------------------------------------------------------------
-
   it.each([
     ["Green Lv.3", "BT1-064"],
     ["Black Lv.3", "BT2-052"],
@@ -281,10 +254,6 @@ describe("BT19-047 Ballistamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-047"]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Deletion] ＜Save＞.
-  // ---------------------------------------------------------------------------
-
   it("places the deleted Ballistamon at the BOTTOM of a Tamer's stack after a real battle loss", async () => {
     const s = setupEngine(
       {
@@ -318,7 +287,6 @@ describe("BT19-047 Ballistamon", () => {
     await settle(() => s.perm("tamer").stack.length === 2);
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // CR 4-3-2 / comprehensive 16-21-6: the new card goes to the BOTTOM of the stack.
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([
       s.inst("ballista").instanceId,
       s.inst("alreadySaved").instanceId,
@@ -363,10 +331,6 @@ describe("BT19-047 Ballistamon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("ballista").instanceId]);
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited: [Opponent's Turn] This Digimon with the [Xros Heart] trait gains ＜Blocker＞.
-  // ---------------------------------------------------------------------------
-
   it("gives a real Xros Heart host ＜Blocker＞ that actually blocks on the opponent's real turn, but not a non-Xros host", async () => {
     const s = setupEngine(
       {
@@ -392,18 +356,15 @@ describe("BT19-047 Ballistamon", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
 
-    // Our own turn: the clause is scoped to the opponent's turn, so neither host has it.
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).hasKeyword(s.perm("xrosHost"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("plainHost"), "Blocker")).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // The opponent's real turn: only the [Xros Heart] host gains it.
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("xrosHost"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plainHost"), "Blocker")).toBe(false);
 
-    // Prove the keyword by its rules consequence: a real block of a real attack.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -417,7 +378,6 @@ describe("BT19-047 Ballistamon", () => {
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // The blocker took the attack: 7000 vs 3000, so the attacker died and no security was checked.
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-013")).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(SECURITY.length);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("xrosHost").permanentId)).toBe(true);

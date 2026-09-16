@@ -22,8 +22,6 @@ export const compiled: CompiledCard = {
               from: ["hand"],
             },
             raw: "By placing 1 [Royal Knight] trait Digimon card from your hand as the bottom digivolution card of any of your [King Drasil_7D6]s on the field",
-            // CR 2-3-1-2: a bracketed name references only cards with exactly that name.
-            // CR 3-4-6: "the field" is the breeding area plus the battle area.
             underFilter: {
               controller: "mine",
               nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "nameExact" }],
@@ -50,9 +48,6 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Omnimon (X Antibody)"], match: "nameExact" }],
-              // The card may be played from hand (unrestricted) or from under one
-              // of your King Drasil_7D6s. A top-level hostFilter would incorrectly
-              // reject the hand branch.
               or: [
                 { zone: "hand" },
                 {
@@ -72,8 +67,6 @@ export const compiled: CompiledCard = {
           condition: { kind: "securityAtMost", controller: "mine", value: 1 },
           bindResultAs: "playedOmnimonX",
         },
-        // "Then, place this card ..." is mandatory once the play resolved; it must not open a
-        // second "you may". With no play it resolves to no host and quietly does nothing.
         {
           effectTextPart: "Then, place this card as the played Digimon's bottom digivolution card.",
           kind: "PlaceUnder",

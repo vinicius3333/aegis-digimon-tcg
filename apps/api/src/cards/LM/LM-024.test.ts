@@ -24,7 +24,6 @@ describe("LM-024 Shivamon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
 
-    // Suspended by the first half, then returned by the second.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "LM-024")!.currentDP).toBe(14000);
@@ -110,7 +109,6 @@ describe("LM-024 Shivamon", () => {
     const shivamonId = s.perm("shivamon").permanentId;
     expect(observe(s.engine).isRestrictedByEffect(shivamonId, "beAffected", "Digimon")).toBe(true);
 
-    // Q4028: once it unsuspends the protection is gone, so it is affected again.
     s.perm("shivamon").isSuspended = false;
     await advance(s.engine).recompute();
     expect(observe(s.engine).isRestrictedByEffect(shivamonId, "beAffected", "Digimon")).toBe(false);

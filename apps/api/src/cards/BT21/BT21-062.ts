@@ -13,8 +13,6 @@ export const compiled: CompiledCard = {
           filter: {
             controller: "mine",
             kind: ["Option"],
-            // The printed clause names Ragnarok Cannon without a play-cost cap.
-            // UseOptionWithoutCost otherwise defaults to 5, while BT21-098 costs 6.
             playCostLte: 99,
             nameOrTrait: [{ tokens: ["Ragnarok Cannon"], match: "nameExact" }],
           },

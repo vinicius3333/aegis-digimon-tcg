@@ -25,8 +25,6 @@ describe("LM-007 Publimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "effectResolved"), 3000);
 
-    // Played for free out of security, then its own mandatory [End of Attack] puts it back
-    // on top of the stack — so the checked card is never trashed and costs no memory.
     expect(s.events.map((event) => event.kind)).toContain("cardPlayed");
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["LM-007"]);

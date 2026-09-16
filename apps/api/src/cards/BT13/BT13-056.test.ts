@@ -211,8 +211,6 @@ describe("BT13-056 Leopardmon", () => {
   });
 
   it("grants Blocker to existing and newly played green Digimon through the opponent's turn (Q2301)", async () => {
-    // Mikemon's own [On Play] asks for a Piercing target; auto-select it so Leopardmon's
-    // whenPlayed grant, queued behind that decision, resolves.
     const s = setupEngine(
       {
         0: {

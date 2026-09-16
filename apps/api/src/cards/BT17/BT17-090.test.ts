@@ -9,7 +9,7 @@ import "./BT17-086.js";
 import "./index.js";
 
 const TOMONORI = "BT17-090";
-const SECURITY_DIGIMON = "AD1-001"; // attacker with enough DP to force a security check
+const SECURITY_DIGIMON = "AD1-001";
 
 describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
   it("matches the immutable catalog identity and preserves full IR coverage", () => {
@@ -157,7 +157,6 @@ describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
   });
 
   it("[Security] plays this Tamer to the battle area when hit as a security card", async () => {
-    // Seat 1 is the turn player attacking into seat 0's security.
     const s = setupEngine({
       0: { security: [{ card: TOMONORI, as: "tamerCard" }] },
       1: { battleArea: [{ card: SECURITY_DIGIMON, dp: 12000, as: "attacker" }] },
@@ -174,13 +173,10 @@ describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
     });
     expect(res.ok).toBe(true);
 
-    // Wait until Tomonori leaves the security stack (checked/played).
     await settle(() => !p0?.security.some((c) => c.instanceId === tamerId), 800);
 
-    // Tomonori should now be in seat 0's battle area (played without cost by [Security]).
     const inBattleArea = p0?.battleArea.some((p) => p.topCard?.instanceId === tamerId);
     expect(inBattleArea).toBe(true);
-    // And not in trash (was not trashed — it was played).
     expect(p0?.trash.some((c) => c.instanceId === tamerId)).toBe(false);
     assertNoLoudGap(s);
   });
@@ -192,9 +188,6 @@ describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
     expect(runtime.residual).toEqual([]);
   });
   it("Q2873: refuses a trash [Dex] card whose digivolution requirement the host does not meet", async () => {
-    // Pulsemon is a yellow/green Lv.3 with a Tamer underneath, so it is a legal *target* of the
-    // effect, but DexDorugamon requires a purple or black Lv.3 source — the digivolution
-    // requirement is NOT waived (only the cost is), so nothing may digivolve.
     const s = setupEngine(
       {
         0: {

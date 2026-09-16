@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Split the play into mutually exclusive branches so Eiji Nagasumi in the
-// digivolution cards raises the level ceiling from 3 to 4.
 export const compiled: CompiledCard = {
   effects: [
     {

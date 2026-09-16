@@ -37,8 +37,6 @@ describe("EX13-010 Growlmon", () => {
       expect(effect.isInherited).toBeUndefined();
       expect(effect.actions).toHaveLength(3);
 
-      // "Delete 1 of your opponent's Digimon with 4000 DP or less" — mandatory, one target,
-      // opponent-only, printed numeric maximum.
       expect(effect.actions[0]).toMatchObject({
         kind: "Delete",
         target: {
@@ -49,8 +47,6 @@ describe("EX13-010 Growlmon", () => {
       expect(irNode(effect.actions[0]).optional).toBeUndefined();
       expect(irNode(effect.actions[0]).condition).toBeUndefined();
 
-      // Both follow-ups are gated on the structured "didn't delete" condition and both target
-      // this Digimon itself, so no selection decision is raised.
       expect(effect.actions[1]).toMatchObject({
         kind: "GainKeyword",
         keyword: { keyword: "Raid" },
@@ -72,13 +68,8 @@ describe("EX13-010 Growlmon", () => {
       trigger: "AllTurns",
       actions: [{ kind: "DeletionMaxDpModifier", amount: 2000, scope: "self", duration: "permanent" }],
     });
-    // No "while ..." is printed on the inherited clause, so it carries no condition.
     expect(irNode(inherited.actions[0]).condition).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // [When Digivolving] Delete 1 of your opponent's Digimon with 4000 DP or less.
-  // ---------------------------------------------------------------------------
 
   it("deletes a 4000 DP opponent Digimon on the public digivolve route and gains nothing", async () => {
     const s = setupEngine(
@@ -107,16 +98,13 @@ describe("EX13-010 Growlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 20);
 
-    // Source-stack identity survives: Monodramon sits beneath Growlmon, which is now the top.
     expect(s.perm("base").topCard?.cardId).toBe(cardId);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-009"]);
-    // Cost 2 off a gauge of 3, plus the standard 1-card bonus draw on digivolution.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(["BT1-010", "BT1-011"]);
     expect(s.state.players[0]!.deck.map(({ cardId: id }) => id)).toEqual([]);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual([]);
     expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toEqual(["BT1-014"]);
-    // The deletion happened, so the "didn't delete" branch is skipped entirely.
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(false);
     expect(s.perm("base").currentDP).toBe(6000);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -144,8 +132,6 @@ describe("EX13-010 Growlmon", () => {
       },
       { autoSelectCards: true, preferInstanceIds },
     );
-    // Point the selection at the out-of-range Digimon: it must not even be offered, so the
-    // 4000 DP one is the only candidate and is deleted anyway.
     preferInstanceIds.push(s.perm("outOfRange").permanentId);
     s.state.memory = 3;
     await s.ready();
@@ -168,10 +154,6 @@ describe("EX13-010 Growlmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
-
-  // ---------------------------------------------------------------------------
-  // If this effect didn't delete, this Digimon gains ＜Raid＞ and +3000 DP for the turn.
-  // ---------------------------------------------------------------------------
 
   it("gains Raid and +3000 DP when every opponent Digimon is above the maximum", async () => {
     const s = setupEngine(
@@ -202,7 +184,6 @@ describe("EX13-010 Growlmon", () => {
 
     expect(s.perm("base").topCard?.cardId).toBe(cardId);
     expect(s.perm("base").currentDP).toBe(9000);
-    // The out-of-range Digimon is untouched and the grant is self-only.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.instanceId)).toEqual([
       s.inst("survivor").instanceId,
     ]);
@@ -272,18 +253,12 @@ describe("EX13-010 Growlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Raid"), 20);
 
-    // The own Digimon is never deleted, so the "didn't delete" branch fires instead.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual([cardId, "BT1-014"]);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual([]);
     expect(s.perm("base").currentDP).toBe(9000);
     expect(observe(s.engine).hasKeyword(s.perm("ownSmall"), "Raid")).toBe(false);
     assertNoLoudGap(s);
   });
-
-  // ---------------------------------------------------------------------------
-  // [When Moving] — the same clause on the public breeding-move route, plus the
-  // "for the turn" duration expiring through the real turn loop.
-  // ---------------------------------------------------------------------------
 
   it("fires the same clause when it moves out of breeding, and the grants expire at turn end", async () => {
     const s = setupEngine(
@@ -320,7 +295,6 @@ describe("EX13-010 Growlmon", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main");
 
-    // "for the turn" expires at the end of the turn it was granted on.
     expect(observe(s.engine).hasKeyword(s.perm("mover"), "Raid")).toBe(false);
     expect(s.perm("mover").currentDP).toBe(6000);
 
@@ -363,10 +337,6 @@ describe("EX13-010 Growlmon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Evolution legality: the printed requirement is a red Lv3 for cost 2.
-  // ---------------------------------------------------------------------------
-
   it("refuses an illegal source: a red Lv4 is not a red Lv3", async () => {
     const s = setupEngine(
       {
@@ -394,17 +364,11 @@ describe("EX13-010 Growlmon", () => {
     ).toMatchObject({ ok: false });
     await drainMicrotasks(20);
 
-    // No digivolution, so neither branch of the clause resolved.
     expect(s.perm("lv4Base").topCard?.cardId).toBe("BT1-014");
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-014"]);
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited [All Turns] Add 2000 to this Digimon's DP deletion effects' maximums.
-  // Comprehensive 15-15-4-1: the bonus adds to the value SHOWN IN TEXT.
-  // ---------------------------------------------------------------------------
 
   it("raises a host's printed 8000 deletion maximum to 10000 from the digivolution cards", async () => {
     const s = setupEngine(
@@ -468,12 +432,6 @@ describe("EX13-010 Growlmon", () => {
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-009"]);
   });
 
-  // ---------------------------------------------------------------------------
-  // Cross-card / stack proof: EX13-007 Guilmon prints the identical inherited clause, so a
-  // Guilmon beneath this Growlmon raises ITS OWN printed 4000 maximum to 6000 — and the
-  // raised deletion then suppresses the Raid branch.
-  // ---------------------------------------------------------------------------
-
   it("raises its own 4000 maximum to 6000 with EX13-007 Guilmon in the digivolution cards", async () => {
     const s = setupEngine(
       {
@@ -512,7 +470,6 @@ describe("EX13-010 Growlmon", () => {
       s.inst("stillOutOfRange").instanceId,
     ]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("nowInRange").instanceId]);
-    // A deletion happened at the raised maximum, so the Raid/+3000 branch stays shut.
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(false);
     expect(s.perm("base").currentDP).toBe(6000);
     expect(s.state.pendingDecision).toBeUndefined();

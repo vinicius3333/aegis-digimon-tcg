@@ -59,10 +59,6 @@ async function playSubjectCard(s: BehaviorState, alias: string) {
   await settle(() => !s.state.players[0]!.hand.some((entry) => entry.instanceId === card.instanceId));
 }
 
-/**
- * Shared EX4 behavioral suite. Each case uses the production harness and asserts
- * an effect-specific state transition; callers keep one invocation in each card test.
- */
 export function ex4CardBehaviorTests(cardId: string): void {
   it(`${cardId} resolves an observable printed effect`, async () => {
     let s: BehaviorState;
@@ -1065,11 +1061,6 @@ export function ex4CardBehaviorTests(cardId: string): void {
   });
 }
 
-/**
- * Put an EX4 card through the public play intent with neutral, established fixtures.
- * Individual card tests still assert their own effect-specific result; this helper only
- * provides the live engine setup and proves that the card leaves hand for a legal play.
- */
 export async function playEx4Card(cardId: string): Promise<EngineSetup> {
   const s = setupEngine(
     {

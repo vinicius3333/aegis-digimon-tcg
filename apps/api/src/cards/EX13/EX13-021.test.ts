@@ -52,7 +52,6 @@ describe("EX13-021 Wingdramon", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects).toHaveLength(5);
 
-    // ＜Jamming＞ is printed on the main text only — the inherited box carries the unsuspend clause.
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Static",
       actions: [],
@@ -60,7 +59,6 @@ describe("EX13-021 Wingdramon", () => {
     });
     expect(compiled.effects[0]?.isInherited).toBeUndefined();
 
-    // Both printed timings carry the same pair of actions, and neither is once-per-turn.
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect).toMatchObject({
@@ -81,12 +79,9 @@ describe("EX13-021 Wingdramon", () => {
         ],
       });
       expect(effect?.frequency).toBeUndefined();
-      // No `ifThisEffectActed` gate: the first sentence is a mandatory trash, not a
-      // "by X, Y" optional processing condition (comprehensive §15-7-1/§15-7-2).
       expect(effect?.actions[1]).not.toHaveProperty("condition");
     }
 
-    // The field-only [Slayerdramon] alias plus the Examon-scoped level treatment.
     expect(
       compiled.effects.find((entry) => entry.trigger === "AllTurns" && entry.isInherited === undefined),
     ).toMatchObject({
@@ -133,14 +128,12 @@ describe("EX13-021 Wingdramon", () => {
     expect(matchNameOrTrait({ nameEn: "Coredramon X" }, coredramon)).toBe(false);
     expect(matchNameOrTrait({ nameEn: "Coredramonmon" }, coredramon)).toBe(false);
 
-    // "in its text" is the full card-information union, so three distinct routes qualify and
-    // a merely similar "…dramon" name does not.
     const dracomonText = { tokens: ["Dracomon", "Examon"], match: "text" as const };
-    expect(matchNameOrTrait(getCardDefinition("ST1-04")!, dracomonText)).toBe(true); // named Dracomon
-    expect(matchNameOrTrait(getCardDefinition("EX13-018")!, dracomonText)).toBe(true); // prints the token
-    expect(matchNameOrTrait(getCardDefinition("BT20-045")!, dracomonText)).toBe(true); // named Examon
-    expect(matchNameOrTrait(getCardDefinition("BT1-009")!, dracomonText)).toBe(false); // Monodramon
-    expect(matchNameOrTrait(getCardDefinition("BT1-013")!, dracomonText)).toBe(false); // Muchomon
+    expect(matchNameOrTrait(getCardDefinition("ST1-04")!, dracomonText)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("EX13-018")!, dracomonText)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("BT20-045")!, dracomonText)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("BT1-009")!, dracomonText)).toBe(false);
+    expect(matchNameOrTrait(getCardDefinition("BT1-013")!, dracomonText)).toBe(false);
   });
 
   it("plays for 7, trashes exactly the bottom two sources, and locks a second opposing permanent", async () => {
@@ -164,8 +157,6 @@ describe("EX13-021 Wingdramon", () => {
     );
     const stackedId = s.perm("stacked").permanentId;
     const lockedId = s.perm("locked").permanentId;
-    // Two independent chooseTargets prompts draw from overlapping candidate pools, so bias
-    // dynamically: the trash must land on the stacked Digimon, the lock on the other one.
     preferred.includes = (id: string) => (s.perm("stacked").stack.length === 3 ? id === stackedId : id === lockedId);
     s.state.memory = 10;
     await s.ready();
@@ -176,16 +167,12 @@ describe("EX13-021 Wingdramon", () => {
     await settle(() => s.perm("stacked").stack.length === 1 && observe(s.engine).isRestricted(lockedId, "beSuspended"));
 
     expect(s.state.memory).toBe(3);
-    // "the BOTTOM 2": seeded bottom-to-top as BT1-009, BT1-010, BT1-011, so the two lowest go
-    // and the highest source card stays.
     expect(s.perm("stacked").stack.map((card) => card.cardId)).toEqual(["BT1-011"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
     expect(s.perm("stacked").topCard.cardId).toBe("BT1-014");
 
-    // "can't suspend" is BOTH halves: the effect-facing prohibition and the combat one.
     expect(observe(s.engine).isRestricted(lockedId, "beSuspended")).toBe(true);
     expect(observe(s.engine).isRestricted(lockedId, "suspend")).toBe(true);
-    // The Digimon whose sources were trashed is a separate choice and is NOT locked.
     expect(observe(s.engine).isRestricted(stackedId, "suspend")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("wingdramon"), "Jamming")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -266,22 +253,16 @@ describe("EX13-021 Wingdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("coredramon").topCard.cardId === CARD_ID && s.perm("stacked").stack.length === 0);
 
-    // Cost 3, not the catalog EvoCost 4 — the alternate [Coredramon] route was taken.
     expect(s.state.memory).toBe(0);
-    // Source-stack identity survives the transition: Coredramon is now the single source card.
     expect(s.perm("coredramon").stack.map((card) => card.cardId)).toEqual(["EX13-018"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
     expect(observe(s.engine).isRestricted(lockedId, "suspend")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("coredramon"), "Jamming")).toBe(true);
-    // The inherited +2000 DP of EX13-018 now rides under a 7000-DP Wingdramon.
     expect(s.perm("coredramon").currentDP).toBe(9000);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("falls back to the printed EvoCost for a non-Coredramon level-4 source and refuses a level-3 one", async () => {
-    // REVIEW-NOTES: `useAlternateCost: true` is a preference, not a gate — with no matching
-    // alternate route the engine silently charges the printed EvoCost and still returns ok.
-    // The proof is therefore the memory charged (4, not 3), never `ok: false`.
     const fallback = setupEngine(
       { 0: { battleArea: [{ card: "EX13-019", as: "veedramon" }], hand: [{ card: CARD_ID, as: "wingdramon" }] } },
       { autoSelectCards: true },
@@ -300,7 +281,6 @@ describe("EX13-021 Wingdramon", () => {
     expect(fallback.state.memory).toBe(0);
     expect(fallback.perm("veedramon").stack.map((card) => card.cardId)).toEqual(["EX13-019"]);
 
-    // A level-3 source matches neither the bracketed [Coredramon] route nor the level-4 EvoCost.
     const illegal = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "monodramon" }], hand: [{ card: CARD_ID, as: "wingdramon" }] },
     });
@@ -324,7 +304,6 @@ describe("EX13-021 Wingdramon", () => {
     expect(observe(field.engine).effectiveNames(field.perm("wingdramon"))).toEqual(
       expect.arrayContaining(["wingdramon", "slayerdramon"]),
     );
-    // The level treatment is Examon-scoped, never a blanket "this is a Lv.6".
     expect(field.perm("wingdramon").topCard.cardId).toBe(CARD_ID);
     expect(getCardDefinition(CARD_ID)?.level).toBe(5);
 
@@ -378,7 +357,6 @@ describe("EX13-021 Wingdramon", () => {
     );
     const merged = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-045");
     expect(merged).toBeDefined();
-    // Wingdramon answered the [Slayerdramon] material slot and its own source stack survived.
     expect(merged!.stack.map((card) => card.cardId)).toEqual(["EX13-018", CARD_ID, "BT20-044"]);
     expect(s.state.players[0]!.hand.some((card) => ["BT20-044", "BT20-045"].includes(card.cardId))).toBe(false);
   });
@@ -411,7 +389,6 @@ describe("EX13-021 Wingdramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // BT20-044 prints ＜Blocker＞, so the block window must be answered before the attack resolves.
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
@@ -451,7 +428,6 @@ describe("EX13-021 Wingdramon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // First attack this turn: the declaration suspends the host, the inherited clause unsuspends it.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -463,15 +439,12 @@ describe("EX13-021 Wingdramon", () => {
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
 
-    // Second attack in the SAME turn: the once-per-turn gate is spent, so the host stays suspended.
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     expect(s.perm("host").isSuspended).toBe(true);
 
-    // A real opponent turn passes through the live turn machine, then the controller's own
-    // unsuspend phase brings the host back and the gate reopens.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
@@ -488,7 +461,6 @@ describe("EX13-021 Wingdramon", () => {
     await loop;
   });
 
-  /** Suspend a seeded host, fire the board-wide `whenSuspended` bus, and report its final state. */
   async function suspendAndFire(host: string): Promise<boolean> {
     const s = setupEngine(
       { 0: { battleArea: [{ card: host, dp: 20_000, suspended: true, as: "host", under: [CARD_ID] }] } },
@@ -504,17 +476,12 @@ describe("EX13-021 Wingdramon", () => {
   }
 
   it("offers the inherited unsuspend to hosts whose own printed text carries [Dracomon] or [Examon]", async () => {
-    expect(await suspendAndFire("ST1-04")).toBe(false); // named Dracomon
-    expect(await suspendAndFire("EX13-018")).toBe(false); // prints the [Dracomon]/[Examon] tokens
+    expect(await suspendAndFire("ST1-04")).toBe(false);
+    expect(await suspendAndFire("EX13-018")).toBe(false);
   });
 
   it("refuses the inherited unsuspend to a host with neither token in its own printed text", async () => {
-    // `printedTextOnly: true` on `hostFilter` is what makes this pass: without it,
-    // `permanentMatchesFilter` would also read EX13-021's own inherited text (which prints
-    // "[Dracomon] or [Examon]") off the host's digivolution stack, matching every host
-    // unconditionally. Comprehensive §4-23-1/§4-23-2 scope "with XX in its text" to the
-    // information printed on the host's OWN card, not effects or text it merely carries.
-    expect(await suspendAndFire("BT1-009")).toBe(true); // Monodramon: "dramon", not "Dracomon"
-    expect(await suspendAndFire("BT1-013")).toBe(true); // Muchomon: no route at all
+    expect(await suspendAndFire("BT1-009")).toBe(true);
+    expect(await suspendAndFire("BT1-013")).toBe(true);
   });
 });

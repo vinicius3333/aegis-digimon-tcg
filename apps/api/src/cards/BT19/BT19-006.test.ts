@@ -4,19 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-// BT19-006 Pagumon — Purple Digi-Egg, Lv.2 In-Training, Lesser.
-// Inherited: "[On Deletion] If deleted other than by battle, return 1 level 3 purple Digimon
-// card from your trash to the hand."
-//
-// Trash fixtures pair the one legal candidate against a near-miss on each filter axis:
-//   BT10-071 Gazimon    — Purple, Lv3, Digimon  -> matches
-//   ST6-07   Youkomon   — Purple, Lv4, Digimon  -> wrong level
-//   BT1-028  Elecmon    — Blue,   Lv3, Digimon  -> wrong colour
-//   BT19-006 Pagumon    — Purple, Lv2, Digi-Egg -> wrong level and kind
-//   seat 1's BT2-067    — Purple, Lv3, Digimon  -> not YOUR trash
-// The host in the isolating tests is BT3-083 Meramon (Purple Lv4), which is NOT itself a candidate;
-// the lifecycle test uses the real route host BT2-067 DemiDevimon (Purple Lv3, digivolves from a
-// Purple Lv2 at cost 0), which IS a candidate once trashed — see the dedicated test for that.
 const hand = (s: { state: { players: PlayerState[] } }) => s.state.players[0]!.hand.map(({ cardId }) => cardId);
 const trash = (s: { state: { players: PlayerState[] } }, seat: 0 | 1) =>
   s.state.players[seat]!.trash.map(({ cardId }) => cardId);
@@ -40,11 +27,9 @@ describe("BT19-006 Pagumon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle(() => hand(s).includes("BT10-071"));
 
-    // Exact endpoints: only the matching card moved; every near-miss stayed put.
     expect(hand(s)).toEqual(["BT10-071"]);
     expect(trash(s, 0).sort()).toEqual(["BT19-006", "BT19-006", "BT1-028", "BT3-083", "ST6-07"].sort());
     expect(trash(s, 1)).toEqual(["BT2-067"]);
-    // The whole stack — top card and the Pagumon beneath it — is in your trash.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([eggInstanceId, hostInstanceId]),
     );
@@ -53,9 +38,6 @@ describe("BT19-006 Pagumon", () => {
   });
 
   it("counts a multicolour purple level 3 Digimon and still returns only one card", async () => {
-    // "purple Digimon card" is satisfied by any card whose colours include Purple, so the
-    // Green/Purple BT16-040 Wormmon is a legal candidate. Two candidates are available; the
-    // clause returns 1.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -100,9 +82,6 @@ describe("BT19-006 Pagumon", () => {
   });
 
   it("can return the host's own card, which reaches your trash before the effect resolves", async () => {
-    // §4-14-1/4-14-2: deletion trashes the card first, then the [On Deletion] effect written on
-    // the digivolution card resolves. BT2-067 DemiDevimon is itself a level 3 purple Digimon, so
-    // with an otherwise empty trash it is the only candidate and comes straight back to the hand.
     const s = setupEngine(
       {
         0: {
@@ -158,12 +137,6 @@ describe("BT19-006 Pagumon", () => {
   });
 
   it("carries the return through the real Digi-Egg route: hatch -> digivolve in breeding -> battle area", async () => {
-    // Peer/stack case. Every zone change is a public intent: `hatchEgg` takes BT19-006 off the
-    // egg deck in the production Breeding window, the Purple Lv3 BT2-067 digivolves onto it in
-    // the breeding area (Purple Lv2, cost 0), and `moveFromBreeding` carries the stack into the
-    // battle area on the next own turn. Only then does the inherited [On Deletion] clause fire
-    // from under the real host. The just-trashed host BT2-067 is itself a legal candidate, so
-    // `preferInstanceIds` names the Gazimon to keep the endpoint unambiguous.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -185,7 +158,6 @@ describe("BT19-006 Pagumon", () => {
     preferInstanceIds.push(s.inst("gazimon").instanceId);
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1 (seat 0): hatch the Digi-Egg.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.state.players[0]!.breeding).toBeUndefined();
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
@@ -194,7 +166,6 @@ describe("BT19-006 Pagumon", () => {
     const eggPermanentId = s.state.players[0]!.breeding!.permanentId;
     expect(s.state.players[0]!.eggDeck).toHaveLength(0);
 
-    // Digivolve the Purple Lv3 onto the egg inside the breeding area.
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -211,7 +182,6 @@ describe("BT19-006 Pagumon", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 3 (seat 0): move the raised stack into the battle area.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);

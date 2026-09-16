@@ -1,25 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX10-031 DarkKnightmon
-// Text: [On Play] [When Digivolving] Until your opponent's turn ends, their <De-Digivolve>
-// effects don't affect 1 of your Digimon, and it gets +3000 DP.
-// Text: [All Turns] [Once Per Turn] When this Digimon would leave the battle area, you may
-// play 1 play cost 4 or lower card from its digivolution cards without paying the cost.
-// Text: [DigiXros -1] [SkullKnightmon] x [DeadlyAxemon]
-// KB Q5090: "w/[Knightmon] in text" includes any card with Knightmon in name/traits/effects.
-// Fixes: added the <De-Digivolve> protection; added DeadlyAxemon to DigiXros materials;
-// added kind filter to PlayWithoutCost target.
-// Audit fix (EX10 card-by-card): the protection and the +3000 DP are ONE selected Digimon. The
-// previous shape bound the choice with `GrantStatic.selectionRef` and read it back with an
-// action-level `ModifyDP.fromSelectionRef` — neither key is read by the interpreter (`selectionRef`
-// appears nowhere in grantStatic.ts; `fromSelectionRef` lives on `Target`, not on the action), so
-// the DP buff ran a SECOND independent selection and could land on a different Digimon. Rebuilt on
-// the SelectBind + `Target.fromSelectionRef` pair the same set's EX10-029 already proves, which is
-// also the only typed encoding. `byOpponentEffectsOnly` records the printed "THEIR <De-Digivolve>
-// effects": primitives.ts `peelStackTops` reads the restriction through `isRestricted`, which
-// derives `byOpponentEffect` from the acting seat, so the controller's own <De-Digivolve> still
-// works on the protected Digimon. Proved behaviourally in the colocated test.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -113,11 +94,6 @@ const compiled: CompiledCard = {
                   controller: "mine",
                   kind: ["Digimon", "Tamer", "Option"],
                   playCostLte: 4,
-                  // "from ITS digivolution cards": scope the pool to this Digimon's own stack.
-                  // Without a host gate the loose-card search offers every controlled Digimon's
-                  // stack: interpreter/targeting/loose.ts self-scopes only on an explicit
-                  // hostFilter, and interpreter/actions/play.ts adds one by default for
-                  // ＜Decode＞ plays only (applyDecodeHostScope).
                   hostFilter: { isSelfRef: true },
                 },
                 count: 1,

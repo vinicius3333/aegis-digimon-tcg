@@ -17,8 +17,6 @@ export const compiled: CompiledCard = {
               mode: "reduceCost",
               amount: 5,
               condition: {
-                // The printed clause says "if there is a Digimon", without a
-                // controller qualifier: count both players' battle areas.
                 kind: "totalDigimonCount",
                 op: "gte",
                 value: 1,

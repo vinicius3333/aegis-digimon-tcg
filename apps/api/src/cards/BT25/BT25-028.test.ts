@@ -121,7 +121,6 @@ describe("BT25-028 Dianamon", () => {
     const entrant = s.putOnBoard(1, { card: "BT1-009", as: "entrant", under: ["BT1-001"] });
     await s.ready();
     await advance(s.engine).verb.suspend([entrant.permanentId]);
-    // KB Q6294: a Digimon entering after resolution is affected while it has at most 1 source.
     expect(entrant.isSuspended).toBe(false);
 
     const initial = s.perm("initial");
@@ -137,7 +136,6 @@ describe("BT25-028 Dianamon", () => {
     ).toEqual({ ok: true });
     await settle(() => initial.topCard.cardId === "BT1-014");
     await advance(s.engine).verb.suspend([initial.permanentId]);
-    // The legal egg -> level 3 -> level 4 stack now has two sources and is released.
     expect(initial.isSuspended).toBe(true);
 
     expect(
@@ -149,7 +147,6 @@ describe("BT25-028 Dianamon", () => {
     ).toEqual({ ok: true });
     await settle(() => initial.topCard.cardId === "BT1-020");
     await advance(s.engine).verb.suspend([initial.permanentId]);
-    // KB Q6295: after two legal evolutions, the Digimon can suspend with 2 sources.
     expect(initial.isSuspended).toBe(true);
 
     const stacked = s.putOnBoard(1, {
@@ -396,8 +393,6 @@ describe("BT25-028 Dianamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103"));
 
-    // The first selected trigger is the All Turns watcher: four sources are trashed and GraceNovamon enters.
-    // KB Q6293 requires the simultaneously pending On Play branch to be unavailable afterward.
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103")).toBe(true);
     expect(s.state.players[1]!.deck).toContainEqual(expect.objectContaining({ instanceId: victimTrashId }));
     expect(s.state.players[1]!.trash).not.toContainEqual(expect.objectContaining({ instanceId: victimKeepId }));
@@ -534,7 +529,6 @@ describe("BT25-028 Dianamon", () => {
     expect(target.isSuspended).toBe(false);
     expect(tamer.isSuspended).toBe(true);
 
-    // If a second use were incorrectly available, selection would now restrict the Tamer.
     preferred.push(tamer.permanentId);
     await advance(s.engine).verb.unsuspend([tamer.permanentId]);
     expect(tamer.isSuspended).toBe(false);
@@ -551,8 +545,6 @@ describe("BT25-028 Dianamon", () => {
     await advance(s.engine).verb.suspend([tamer.permanentId]);
     expect(tamer.isSuspended).toBe(true);
 
-    // The inherited restriction lasts through the opponent's current turn only.
-    // Run that turn publicly, then verify the previously protected Digimon can suspend.
     s.state.turnSeat = 1;
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);

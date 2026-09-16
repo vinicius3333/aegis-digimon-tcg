@@ -1,10 +1,3 @@
-// Hand-authored override for BT5-092 (Nokia Shiramine).
-// runtime-effect fix: second effect is a Main-activated cost reduction for digivolving into
-// named cards (Garurumon/Omnimon/Greymon family, excluding DoruGreymon/BurningGreymon/
-// DexDoruGreymon). The CostModifier is consumed at the live digivolution-cost check, including
-// digivolution performed by an effect.
-// Encoded as CostModifier with restriction:suspendThisTamer, optional:true, with
-// an into filter restricting the digivolve target to the named cards.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

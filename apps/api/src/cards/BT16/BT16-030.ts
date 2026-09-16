@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Start of Your Main Phase] [On Play]: fires at both timings independently (correct per TCG rules).
-// KB Q2626: digivolution requirements must be met (no ignoreReqs).
-// Two separate effects for the two timings is the established convention (cf. EX6-063).
 const compiled: CompiledCard = {
   effects: [
     {

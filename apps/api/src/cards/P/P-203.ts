@@ -1,28 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-203 Justimon: Accel Arm
-// [Digivolve] [Justimon: Blitz Arm]/[Justimon: Critical Arm]: Cost 1
-// [Digivolve] Lv.5 w/[Cyberdramon] in name: Cost 3
-//
-// [On Play][When Digivolving][When Attacking][Once Per Turn]
-//   <De-Digivolve 1> 1 of your opponent's Digimon.
-//   Then, by trashing 1 Option card in the battle area,
-//   this Digimon gains <Piercing> and <Security Attack +1> for the turn.
-//
-// [All Turns][Once Per Turn] When Option cards in the battle area are trashed,
-//   1 of your opponent's Digimon can't digivolve or attack players until their turn ends.
-//
-// Q&A (Q5197): The trashed Option can belong to either player.
-// Q&A (Q5198): The [All Turns] trigger activates when Option cards in the battle area
-//   belonging to either player are trashed.
-//
-// Fixes:
-// - [All Turns] watches the engine's canonical whenOptionInBattleAreaTrashed event, which covers
-//   either controller (Q5198), rather than running as an unconditional continuous effect.
-// - Restrict target is Digimon only (not Option).
-// - Two separate Restrict actions for "digivolve" and "attackPlayers".
-// - Option cost in OnPlay/WhenDigivolving/WhenAttacking has no controller restriction.
 const compiled: CompiledCard = {
   effects: [
     {

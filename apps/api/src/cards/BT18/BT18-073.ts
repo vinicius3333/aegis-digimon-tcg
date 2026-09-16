@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR correction: On Deletion DNA digivolves Kimeramon in play plus
-// Machinedramon in trash into a Millenniummon in hand that has DNA Digivolution.
 export const compiled: CompiledCard = {
   effects: [
     {

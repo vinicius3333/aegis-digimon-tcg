@@ -80,9 +80,6 @@ describe("BT26-015 compiled fidelity", () => {
         permanentId: legal.perm("tsEgg").permanentId,
       }),
     ).toEqual({ ok: true });
-    // `moveFromBreeding` relocates the permanent into the battle area; it does not itself
-    // drive the turn state machine, so the phase stays exactly what the test forced it to
-    // (Breeding) — check the real milestone (battle-area membership) instead.
     await settle(() => legal.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-015"));
 
     const illegal = setupEngine({
@@ -255,16 +252,11 @@ describe("BT26-015 compiled fidelity", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // This is a player-directed attack: it resolves through a security check, not a
-    // Digimon-vs-Digimon battle, so "combatResolved" (only emitted by resolveDigimonBattle)
-    // never fires here — "securityChecked" is the real end-of-attack milestone.
     await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.perm("attacker").currentDP).toBe(10000);
-    // CR 11-2-4: the reactive attack is mandatory only when possible. This trigger
-    // occurs during sourceHost's open attack, so another declaration can't be made.
     expect(s.perm("attacker").isSuspended).toBe(false);
     expect(s.perm("sourceHost").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);

@@ -1,21 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [AllTurns]: RestrictDigivolveInto (not generic Restrict) — text says "can only digivolve into [Apocalymon]".
-// [OnDeletion]: condition "no green face-up security cards" needs zone:security + faceUp:true on filter.
-// [Security]: "if this card was face-up" — raw condition kept (EX10-035 precedent).
 const compiled: CompiledCard = {
   effects: [
     {
-      // Hand-corrected (dead-IR sweep): the printed [Hand][Main] clause is an ACTIVATED effect
-      // that plays THIS card from hand for its play cost minus 5 and arms a turn-end delete on
-      // the permanent it just played — the same shape as its proven sibling EX10-035 (see
-      // EX10-035.test.ts). The declarative effect record modelled it as a bare wouldBePlayed cost-reduction
-      // Replacement plus a SubTrigger whose Delete carried the never-read `playedByThisEffect`
-      // filter, so nothing played the card and the turn-end Delete matched every permanent.
-      // UntilOwnerTurnEndEffects + OnEndTurn gated on IsOwnerTurn => `DelayedDeletePlayed`.
-      // KB Q5732/Q5733 (and Q5036: the delete still applies after the played card digivolves,
-      // which the permanent-anchored watcher honors).
       trigger: "Main",
       isFromHand: true,
       condition: {

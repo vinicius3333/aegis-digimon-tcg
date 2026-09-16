@@ -6,12 +6,9 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-081.js";
 
-/** Reach seat 0's first production Main phase and report the memory the start-of-main window left. */
 async function memoryAtOwnMain(board: BoardSpec): Promise<number> {
   const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true });
   const loop = s.engine.startTurnLoop();
-  // A seeded breeding area keeps the production Breeding phase open until the turn player
-  // skips it; an empty one auto-skips. Close it publicly so Main can open either way.
   await settleAcrossTimers(() => s.state.phase === Phase.Breeding || s.state.phase === Phase.Main);
   const skipped = s.state.phase === Phase.Breeding ? s.engine.applyIntent(0, { type: "endPhase" }) : { ok: true };
   expect(skipped).toEqual({ ok: true });
@@ -37,8 +34,6 @@ describe("BT23-081 Chitose Imai", () => {
       types: ["Hudie", "CS"],
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
-    // The catalog carries typographic spacing the official list uses; compare the printed
-    // clauses on collapsed whitespace so a non-breaking space is not read as a text change.
     const printed = (getCardDefinition("BT23-081")?.effectText ?? "").replace(/\s+/g, " ").trim();
     expect(printed).toBe(
       "[Start of Your Main Phase] If you have a Digimon with the [CS] trait, gain 1 memory. " +
@@ -79,8 +74,6 @@ describe("BT23-081 Chitose Imai", () => {
   });
 
   it("reads [CS] as an exact trait: an [Abadin Electronics] near-miss grants nothing", async () => {
-    // "Abadin Electronics" contains "cs" as a substring, so a `traitContains` match would
-    // wrongly satisfy the gate. BT17-034 Bulkmon carries it and no [CS] trait.
     const nearMissOnly = await memoryAtOwnMain({
       0: {
         battleArea: [
@@ -107,14 +100,10 @@ describe("BT23-081 Chitose Imai", () => {
       1: { deck: ["BT1-009", "BT1-010", "BT1-011"], security: ["BT1-009", "BT1-010"] },
     });
 
-    // Only the real [CS] carrier moves the gauge, and it moves it exactly once.
     expect(nearMissPlusReal).toBe(nearMissOnly + 1);
   });
 
   it("ignores a CS Digimon that is only in the breeding area", async () => {
-    // Comprehensive rules 3-4-5-8: breeding-area cards are not referenced unless the
-    // effect names the breeding area, so "if you have a Digimon with the [CS] trait"
-    // reads the battle area only.
     const breedingOnly = await memoryAtOwnMain({
       0: {
         battleArea: [{ card: "BT23-081", as: "chitose" }],
@@ -383,9 +372,6 @@ describe("BT23-081 Chitose Imai", () => {
   });
 
   it("also fires on the opponent's turn when a Hudie blocker suspends", async () => {
-    // [All Turns]: BT23-050 Ankylomon carries printed <Blocker> and the [Hudie] trait, so
-    // blocking on the opponent's turn is a public route to "any of your [Hudie] trait
-    // Digimon suspend".
     const s = setupEngine(
       {
         0: {
@@ -436,8 +422,6 @@ describe("BT23-081 Chitose Imai", () => {
   });
 
   it("offers every eligible [Hudie] Digimon from a mixed hand and plays exactly the chosen one", async () => {
-    // Mixed pool: two qualifying ([Hudie], cost 3 and cost 4), one right-trait/wrong-cost
-    // (BT23-032 Shakkoumon, cost 8), one right-cost/wrong-trait (BT1-028 Elecmon, cost 2).
     const prefer: string[] = [];
     const s = setupEngine(
       {
@@ -457,8 +441,6 @@ describe("BT23-081 Chitose Imai", () => {
     );
     s.state.memory = 6;
     await s.ready();
-    // Steer the selection to the SECOND qualifying card: a filter that only ever saw the
-    // first one could not honour this.
     const midId = s.inst("hudieMid").instanceId;
     prefer.push(midId);
     const cheapId = s.inst("hudieCheap").instanceId;
@@ -471,7 +453,6 @@ describe("BT23-081 Chitose Imai", () => {
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === midId));
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === midId)).toBe(true);
-    // Exactly one card was played: the other eligible copy and both near-misses stay in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [cheapId, expensiveId, nonHudieId].sort(),
     );
@@ -481,8 +462,6 @@ describe("BT23-081 Chitose Imai", () => {
   });
 
   it("reads the current top card of a real two-step evolution stack, not its base", async () => {
-    // BT1-047 Tinkermon (no [Hudie]) digivolves into BT23-041 Kabuterimon and then into
-    // BT23-032 Shakkoumon, both [Hudie]. The watcher must fire off the live top card.
     const s = setupEngine(
       {
         0: {
@@ -516,9 +495,6 @@ describe("BT23-081 Chitose Imai", () => {
       ok: true,
     });
     await settle(() => s.perm("base").topCard?.instanceId === kabuterimonId && s.state.pendingDecision === undefined);
-    // BT23-032 has two live routes from this stack: the printed Yellow Lv.4 cost 4 and the
-    // reduced "[Digivolve] Lv.4 w/[CS] trait: Cost 3". Kabuterimon carries [CS], so take the
-    // reduced one explicitly.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -529,8 +505,6 @@ describe("BT23-081 Chitose Imai", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.instanceId === shakkoumonId && s.state.pendingDecision === undefined);
 
-    // Yellow Lv.3 route (3) then the reduced [CS] route (3): 8 - 3 - 3 = 2, with both
-    // source cards under the new top card.
     expect(s.state.memory).toBe(2);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId, kabuterimonId]);
     expect(s.perm("base").topCard?.instanceId).toBe(shakkoumonId);

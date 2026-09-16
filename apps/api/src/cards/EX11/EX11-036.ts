@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5858-Q5860 (binding):
-//   - "X in its text" includes name, traits, effects, inherited, digivolve reqs, etc.
-//   - [On Play][When Digivolving][When Attacking]: can suspend different cards from the unsuspend-restricted one.
-// [EndOfYourTurn] Digivolve action: "from:['hand']" already restricts source zone to hand;
-//   the "into" filter describes card characteristics only (no zone redundancy needed).
 const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 5, texts: ["Maquinamon"], cost: 3, isAlternate: true }],
   effects: [

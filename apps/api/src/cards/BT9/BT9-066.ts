@@ -1,5 +1,3 @@
-// HAND-FIXED IR for BT9-066 — do not regenerate.
-// YourTurn: removed spurious Trash targeting opponent level-3 Digimon (not in text).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

@@ -94,7 +94,6 @@ describe("LM-010 Chamblemon", () => {
     await s.ready();
     await advance(s.engine).recompute();
 
-    // Printed 3000 plus 1000 for each of the two suspended Tamers.
     expect(s.perm("chamblemon").currentDP).toBe(5000);
   });
 

@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR correction: the Your Turn effect's "then" attack belongs inside
-// each play/digivolve watcher and remains optional even when the [ADVENTURE] gate fails.
 export const compiled: CompiledCard = {
   effects: [
     {

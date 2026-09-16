@@ -1,23 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// RB1-018 Monzaemon
-// Digivolve: 3 from Lv.4 w/[Numemon] in name
-//
-// [On Play] By placing 1 Digimon card with [Numemon] in its name from your trash
-//   as this Digimon's bottom digivolution card, gain 2 memory.
-// [On Play][When Digivolving] 1 of your opponent's Digimon gets -3000 DP and
-//   gains <Security Attack -1> until the end of their turn.
-// [Inherited][Your Turn] While this Digimon has [Monzaemon] or [Numemon] in its
-//   name, it gains <Security Attack +1>.
-//
-// Fixes vs prior IR:
-// - GainMemory optional:true (the place cost is an optional "By..." cost, player
-//   may decline; if they decline they don't get the memory either).
-// - ModifyDP and GainKeyword target the SAME opponent Digimon (text: "1 of your
-//   opponent's Digimon gets -3000 DP and gains <Security Attack -1>"): a leading
-//   SelectBind picks the permanent once, both actions then reference it via
-//   fromSelectionRef so only one target prompt is shown.
 const compiled: CompiledCard = {
   effects: [
     {

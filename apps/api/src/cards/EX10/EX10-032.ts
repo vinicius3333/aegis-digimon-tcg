@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX10-032 Proganomon
-// Audit fixes (EX10 card-by-card):
-//  - `into` and every `fromSelectionRef` target now carry the required `filter`/`count`. The
-//    interpreter ignores `DigivolveViaPlacement.into` entirely and reads `Target.fromSelectionRef`
-//    before any candidate search, so these are typing repairs with no behavior change.
-//  - `placeCost.hostFilter` gained `controller: "mine"` + `kind: ["Digimon"]`. It is resolved by
-//    `resolvePermanentTargets`, which scans BOTH seats without a controller, so the printed
-//    "any of YOUR [Sunarizamon]" could have placed the Landramon under the opponent's copy.
-//  - the "If you have [Close]" gate gained `kind: ["Digimon", "Tamer"]` (CR 16-42-3): `youHave`
-//    counts every battle-area permanent, Options included, when the filter names no kind.
 const compiled: CompiledCard = {
   effects: [
     {

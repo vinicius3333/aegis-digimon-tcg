@@ -116,12 +116,6 @@ describe("EX11-053 Omekamon", () => {
     assertNoLoudGap(s);
   });
 
-  // Once Omekamon lands under the played Omnimon (X Antibody), BT20-102's own deferred
-  // [On Play] sees [X Antibody] in its digivolution cards (exactly what Q5907 asserts) and
-  // deletes every OTHER Digimon — here King Drasil. `preferred` makes the survivor choice the
-  // played Omnimon so the assertions below observe Omekamon's placement rather than the
-  // collateral. Without it, the harness keeps the first candidate (King Drasil) and deletes
-  // the very Digimon this case exists to observe.
   it("can also play Omnimon (X Antibody) from under King Drasil", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -153,8 +147,6 @@ describe("EX11-053 Omekamon", () => {
       ),
     );
 
-    // The played permanent carries the exact instance that sat under King Drasil, so the card
-    // came out of that stack rather than from a second copy.
     const played = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard?.instanceId === s.inst("omnimonX").instanceId,
     );

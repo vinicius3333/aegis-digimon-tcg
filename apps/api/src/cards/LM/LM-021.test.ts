@@ -43,7 +43,6 @@ describe("LM-021 Agumon - Bond of Bravery", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bond"));
     await settle(() => s.state.pendingDecision == null);
 
-    // 5000 DP exceeds the source's live 4000 DP budget, so nothing is deleted.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 

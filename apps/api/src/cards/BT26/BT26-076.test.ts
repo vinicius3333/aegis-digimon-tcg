@@ -60,8 +60,6 @@ describe("BT26-076 Crowmon", () => {
   });
 
   it("distinguishes the exact-name, exact-trait, and substring-trait references it prints", () => {
-    // "[Ravemon]" is a bracket-only card reference (rules 2-3-1-2): exact name, so
-    // "Ravemon: Burst Mode" is not a legal reactive digivolution target.
     const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(irNode(irNode(watcher.actions[0]!).actions[0]).into).toMatchObject({
       filter: {
@@ -71,8 +69,6 @@ describe("BT26-076 Crowmon", () => {
         ],
       },
     });
-    // "[Avian] or [Bird] in any of its traits" is the substring form (rules 2-3-2-4);
-    // "the [DATA SQUAD] trait" stays an exact trait identity (rules 2-3-2-3).
     expect(compiled.effects.find((effect) => effect.trigger === "OnDeletion")).toMatchObject({
       isInherited: true,
       actions: [

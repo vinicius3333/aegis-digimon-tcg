@@ -52,8 +52,6 @@ describe("ST22-04 Taomon", () => {
     ).toEqual({ ok: true });
     await settle(() => opponent.topCard?.cardId === "AD1-001");
 
-    // AD1-001 would delete the opposing 2000-DP Digimon on [When Digivolving].
-    // Taomon's restriction is proven by that Digimon remaining in the battle area.
     expect(s.perm("victim").currentDP).toBe(2000);
   });
   it("pays the top security once to unsuspend its Sakuyamon host after a completed attack", async () => {

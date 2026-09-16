@@ -1,9 +1,6 @@
-// HAND-VERIFIED IR for EX3-057 Growlmon — preserve the errata timing and delete-outcome branch.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The shared interpreter executes this reviewed IR; removing the generated header
-// keeps the compiler from restoring the pre-audit watcher.
 const compiled: CompiledCard = {
   effects: [
     {

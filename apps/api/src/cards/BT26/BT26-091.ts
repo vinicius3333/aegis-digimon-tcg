@@ -12,9 +12,6 @@ const startCost = {
   position: "bottom",
   faceDown: true,
 } satisfies Action["cost"];
-// One filter with three trait tokens, not a filter plus `orFilters`: the engine unions the
-// PRIMARY filter with its alternatives, so an unrestricted primary would admit every Digimon
-// card in hand and make the printed trait restriction vacuous.
 const digivolveInto: Filter = {
   nameOrTrait: [{ tokens: ["Vegetation", "Fairy", "DATA SQUAD"], match: "trait" }],
   kind: ["Digimon"],

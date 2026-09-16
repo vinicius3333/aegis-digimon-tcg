@@ -1,28 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-219 Flame Inferno (Option, cost 9)
-//
-// "When this card would be used, if your opponent has 10 or more cards in their
-//   trash, reduce the use cost by 3."
-// [Main] Delete 1 of your opponent's level 6 or lower Digimon.
-//   Then, by deleting 1 of your [Evil] or [Fallen Angel] trait Digimon, you may
-//   play 1 [Creepymon] from your trash without paying the cost.
-//   The Digimon this effect played gains <Rush> and <Blocker> until your
-//   opponent's turn ends.
-// [Security] Activate this card's [Main] effects.
-//
-// Fixes vs prior IR:
-// - Static CostModifier: conditional on opponent.trash >= 10; amount 3 (was 5);
-//   target is self; costType "use" (Option card use cost).
-// - Main effect is unchanged (was already faithful).
-// - Security ActivateMain unchanged.
 const compiled: CompiledCard = {
   effects: [
     {
-      // The source is still in hand while its use cost is calculated.  A hand-resident
-      // BeforePayCost effect is the live cost seam; a field Static effect would never run
-      // before this Option is used.
       trigger: "BeforePayCost",
       actions: [
         {

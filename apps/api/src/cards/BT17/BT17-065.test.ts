@@ -27,7 +27,6 @@ describe("BT17-065 DexDorugamon", () => {
     expect(printed).toContain(
       "[When Digivolving] Trash 1 card in your hand. Then, ＜Draw 1＞. If [Dorugamon] is in this Digimon's digivolution cards or this digivolved from the trash, delete 1 of your opponent's Digimon with a play cost of 4 or less instead.",
     );
-    // Printed "[Digivolve][Dorugamon]: Cost 0" carries no "in name", so the route name is exact.
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Dorugamon"], cost: 0, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -107,9 +106,7 @@ describe("BT17-065 DexDorugamon", () => {
     expect(evolved?.topCard.cardId).toBe("BT17-065");
     expect(evolved?.stack.some((card) => card.cardId === "BT7-062")).toBe(true);
     expect(s.state.memory).toBe(0);
-    // Delete branch fired (Dorugamon in stack): the play-cost-2 Digimon is gone, the cost-7 one stays.
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highCostId)).toBe(true);
-    // The mandatory hand trash still happened; the effect did not draw instead.
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-011")).toBe(true);
     expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT1-012")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -152,9 +149,7 @@ describe("BT17-065 DexDorugamon", () => {
     const evolved = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === dorumonId);
     expect(evolved?.topCard.cardId).toBe("BT17-065");
     expect(s.state.memory).toBe(0);
-    // Bonus draw plus the effect Draw 1 empties the two-card deck; the mandatory hand trash adds one card.
     expect(s.state.players[0]!.trash.length).toBe(trashBefore + 1);
-    // Draw branch: the opponent's Digimon is untouched.
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === safeId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });

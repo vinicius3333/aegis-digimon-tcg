@@ -129,7 +129,6 @@ describe("BT13-080 ProtoGizmon", () => {
 
   it("returns two Gizmon cards before playing Gizmon: AT from the trash", async () => {
     const preferInstanceIds: string[] = [];
-    // Gizmon: AT's own [On Play] draws 2, so the deck needs cards above the returned pair.
     const s = setupEngine(
       {
         0: {

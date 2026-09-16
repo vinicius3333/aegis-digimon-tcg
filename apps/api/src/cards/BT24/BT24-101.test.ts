@@ -68,9 +68,6 @@ describe("BT24-101 Jupitermon", () => {
     s.state.memory = 10;
     await s.engine.recomputeContinuousEffects();
 
-    // Printed: Yellow Lv.5 costs 5, the [TS] path 3, the [Aegiochusmon] path 1. The static
-    // sets them all to 1 per security card, so with 3 security every route is worth 3 — the
-    // client must label what the gauge will actually move, on every path it offers.
     const routes = [...s.inst("jupitermon").digivolveRoutes];
     const basePermanentId = s.perm("base").permanentId;
     expect(routes.map((route) => route.permanentId)).toEqual(routes.map(() => basePermanentId));

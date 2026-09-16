@@ -1,20 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT18-098 Dragon's Roar — Option card
-// [Static] When this card is trashed from the security stack, activate its [Security] effects.
-// [Static] While you have a yellow Digimon with the [Data]/[Witchelny] trait, you may ignore
-//          this card's color requirements.
-// [Main]   By trashing your top security card, 1 of your opponent's Digimon gets -6000 DP
-//          until the end of their turn. Then, if you have 2 or fewer security cards, place
-//          this card as your bottom security card.
-// [Security] Delete 1 of your opponent's Digimon with 6000 DP or less.
-//            If you have 0 security cards, <Recovery +1 (Deck)>.
-// KB Q3050: can't process the "then" clause without trashing a security card.
-// EffectTiming.OnDiscardSecurity replaces the previous dead Static→SubTrigger(whenTrashedFromSecurity)
-// wrapper — it fires only from the effect-driven trash-from-security seam
-// (GameEngine.fireDiscardedFromSecurity), matching "when this card is trashed from the security
-// stack" without needing a byEffect/sourceFilter gate.
 export const compiled: CompiledCard = {
   effects: [
     {

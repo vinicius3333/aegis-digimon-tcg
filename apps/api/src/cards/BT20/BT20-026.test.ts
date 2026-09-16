@@ -229,7 +229,7 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
       ),
     ).toBe(true);
     expect(unprotectedHost.events.some((event) => event.kind === "combatResolved")).toBe(true);
-    expect(unprotectedHost.state.players[1]!.security).toHaveLength(0); // Slayerdramon Piercing still checks after deleting the Blocker.
+    expect(unprotectedHost.state.players[1]!.security).toHaveLength(0);
   });
 
   it("prevents the selected opponent from suspending to attack until its turn ends", async () => {

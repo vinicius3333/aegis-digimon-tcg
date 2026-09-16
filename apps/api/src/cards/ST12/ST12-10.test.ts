@@ -7,7 +7,7 @@ import "../BT6/BT6-015.js";
 import "./ST12-10.js";
 import "./ST12-11.js";
 import "./ST12-12.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 describe("ST12-10 Jesmon", () => {
   it("gains Blitz when digivolving", async () => {

@@ -112,8 +112,6 @@ describe("BT1-099 Hearts Attack", () => {
       s.perm("emptyTarget").permanentId,
       loadedTarget.permanentId,
     ]);
-    // GameScreen derives sourceCount from this synchronized permanent state while
-    // the decision is open, so identical artwork is exposed as 0 versus 3 sources.
     expect(s.perm("emptyTarget").stack).toHaveLength(0);
     expect(loadedTarget.stack).toHaveLength(3);
 

@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// DNA Digivolve (Yellow Lv.6 + Black Lv.6, cost 0), unsuspended.
-// <Barrier> <Blocker> <Partition (yellow Lv.6 & black Lv.6)>
-// [When Digivolving] De-Digivolve 3 on 1 opponent Digimon. Then 1 of their Digimon gets -8000 DP.
-// [End of Opponent's Turn] Trash top card of BOTH players' security stacks.
-// (Rule) Trait: Has [Boss] and [D-Brigade] permanently.
 const compiled: CompiledCard = {
   effects: [
     {

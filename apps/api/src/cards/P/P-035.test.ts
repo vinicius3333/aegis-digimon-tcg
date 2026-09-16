@@ -3,7 +3,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { memoryBoostTests } from "./memoryBoostTestSupport.js";
 import "./P-035.js";
 
-// audit-cases: 5
 memoryBoostTests({
   cardId: "P-035",
   name: "Red Memory Boost!",

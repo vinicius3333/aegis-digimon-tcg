@@ -6,16 +6,10 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-080.js";
 
-// BT23-006 Huckmon is a Lv.3 [CS] Digimon; its only effect is [On Play], so a seeded
-// board copy stays inert and makes a clean deletion subject.
 const CS_SUBJECT = "BT23-006";
-// BT1-026 Breakdramon is a vanilla Lv.6 11000 DP <Piercing> attacker (Q5355).
 const PIERCER = "BT1-026";
-// A suspended vanilla 3000 DP opponent Digimon: a legal attack target the 5000 DP defenders below survive,
-// so the defender can be suspended by attacking on its own turn instead of by a state write.
 const BAIT = { card: "BT1-009", as: "bait", suspended: true } as const;
 
-/** Suspend one of seat 0's Digimon the public way: attack the suspended bait on seat 0's turn. */
 async function suspendByAttacking(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   expect(
     s.engine.applyIntent(0, {
@@ -39,7 +33,6 @@ describe("BT23-080 Yu Nogi", () => {
       types: ["CS"],
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
-    // The catalog text carries non-breaking spaces, so compare on normalized whitespace.
     expect(getCardDefinition("BT23-080")!.effectText!.replace(/\s+/g, " ")).toBe(
       "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory. " +
         "[All Turns] When any of your Digimon with the [CS] trait would be deleted, by returning this Tamer " +
@@ -100,8 +93,6 @@ describe("BT23-080 Yu Nogi", () => {
     });
   });
 
-  // --- Clause 1: [Start of Your Main Phase] --------------------------------------------
-
   it.each([
     ["opposing Digimon present", true],
     ["opponent board empty", false],
@@ -136,9 +127,6 @@ describe("BT23-080 Yu Nogi", () => {
   });
 
   it("ignores an opponent Digimon that is only in the breeding area", async () => {
-    // Comprehensive rules 3-4-5-8: information on cards in the breeding area can't be
-    // referenced, so a lone breeding-area Digimon does not satisfy "your opponent has a
-    // Digimon".
     const s = setupEngine(
       {
         0: {
@@ -193,16 +181,12 @@ describe("BT23-080 Yu Nogi", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
     await advance(s.engine).waitForMainPhase(1);
-    // Seat 1 opened its main phase with the passed-turn memory only: Yu's clause is
-    // [Start of YOUR Main Phase] and must stay silent here.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // --- Clause 2: [All Turns] deletion replacement ---------------------------------------
 
   it("Q5355: replaces battle deletion of a [CS] Digimon, so the attacker's <Piercing> never checks security", async () => {
     const s = setupEngine(
@@ -231,8 +215,6 @@ describe("BT23-080 Yu Nogi", () => {
     const piercerPermanentId = s.perm("piercer").permanentId;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // An attack may only target a suspended Digimon. Suspend the defender the public way:
-    // it attacks the suspended 1000 DP bait on its own turn and survives.
     await suspendByAttacking(s, "subject");
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -249,18 +231,13 @@ describe("BT23-080 Yu Nogi", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length > securityBefore.length);
 
-    // The subject left the battle area, but as a security placement, not a deletion.
     expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === subjectPermanentId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === subjectCardId)).toBe(false);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([subjectCardId, ...securityBefore]);
-    // Q5355: no security check happened, so the defender's own security is untouched
-    // beneath the newly placed card and nothing was trashed from it.
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
-    // Cost paid: Yu left the battle area for the BOTTOM of the deck.
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === yuCardId)).toBe(false);
     expect(s.state.players[0]!.deck).toHaveLength(deckSizeBefore + 1);
     expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(yuCardId);
-    // The attacker survived and stays suspended after its attack.
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === piercerPermanentId)).toBe(true);
     expect(s.perm("piercer").isSuspended).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -296,8 +273,6 @@ describe("BT23-080 Yu Nogi", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // An attack may only target a suspended Digimon. Suspend the defender the public way:
-    // it attacks the suspended 1000 DP bait on its own turn and survives.
     await suspendByAttacking(s, "subject");
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -315,10 +290,8 @@ describe("BT23-080 Yu Nogi", () => {
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === subjectPermanentId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === subjectCardId)).toBe(true);
-    // Yu stays on the battle area: the cost was never paid.
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === yuCardId)).toBe(true);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === yuCardId)).toBe(false);
-    // <Piercing> fired: exactly one security card was checked off the top.
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(securityBefore.slice(1));
     expect(s.state.pendingDecision).toBeUndefined();
@@ -381,8 +354,6 @@ describe("BT23-080 Yu Nogi", () => {
     await loop;
   });
 
-  // --- Clause 3: [Security] --------------------------------------------------------------
-
   it("plays itself from security without paying its 4 cost", async () => {
     const s = setupEngine(
       {
@@ -420,7 +391,6 @@ describe("BT23-080 Yu Nogi", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === yuCardId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === yuCardId)).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(2);
-    // The 4 play cost was not paid: memory only moved by the attacker's own security check.
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.pendingDecision).toBeUndefined();
 

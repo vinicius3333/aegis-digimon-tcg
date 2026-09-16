@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR: executable Decode plus the ordered return/bound-level sequence.
 export const compiled: CompiledCard = {
   effects: [
     {

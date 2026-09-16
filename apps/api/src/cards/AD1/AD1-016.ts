@@ -1,4 +1,3 @@
-// hand-authored override for AD1-016
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

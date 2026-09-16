@@ -98,7 +98,6 @@ describe("BT26-080 compiled behavior", () => {
   });
 
   it("uses Succession to gain the topmost Bacchusmon card's On Play effect", async () => {
-    // Engine seam: no public intent currently declares inherited Succession timing from a seeded stack.
     const s = setupEngine(
       {
         0: {

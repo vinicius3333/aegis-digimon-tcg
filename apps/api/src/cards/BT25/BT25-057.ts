@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT25-057 Monarchlizamon / Final Judgment. Audited against catalog erratum 2026-05-15
-// and KB Q6341-Q6344. Its two [When Digivolving] effects are simultaneous; its battle is
-// a standard rules battle; Final Judgment's grants last only for the turn.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -103,9 +100,6 @@ export const compiled: CompiledCard = {
       description: "[When Digivolving] This Digimon may battle 1 of your opponent's Digimon.",
     },
     {
-      // Option side, "Final Judgment": [Main] 1 of your Digimon gains ＜Rush＞, ＜Security A. +1＞
-      // and +5000 DP for the turn. Then, it may attack. `sameTarget` keeps all four actions on the
-      // one Digimon chosen by the first.
       trigger: "Main",
       actions: [
         {

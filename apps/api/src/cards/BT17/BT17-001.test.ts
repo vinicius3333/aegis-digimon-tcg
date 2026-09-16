@@ -81,12 +81,6 @@ describe("BT17-001 Gigimon", () => {
   });
 
   it("carries the inherited deletion through the real Digi-Egg route: hatch -> digivolve -> battle area", async () => {
-    // Peer/stack case. Every zone change is a public intent: `hatchEgg` takes BT17-001 off the
-    // egg deck in the production Breeding window, the Red Lv.3 BT17-007 digivolves onto it in
-    // the breeding area (Lv.2 Red, cost 0), `moveFromBreeding` carries the stack into the
-    // battle area on the next own turn, and only then does the inherited [When Attacking]
-    // clause fire from under the real host — hitting the 3000 DP peer while the 4000 DP peer
-    // beside it is left alone.
     const s = setupEngine(
       {
         0: {
@@ -108,7 +102,6 @@ describe("BT17-001 Gigimon", () => {
     );
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1 (seat 0): hatch.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.state.players[0]!.breeding).toBeUndefined();
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
@@ -117,7 +110,6 @@ describe("BT17-001 Gigimon", () => {
     const eggPermanentId = s.state.players[0]!.breeding!.permanentId;
     expect(s.state.players[0]!.eggDeck).toHaveLength(0);
 
-    // Digivolve onto the egg inside the breeding area; the egg becomes the stack.
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -134,7 +126,6 @@ describe("BT17-001 Gigimon", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 3 (seat 0): move the raised stack into the battle area.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);

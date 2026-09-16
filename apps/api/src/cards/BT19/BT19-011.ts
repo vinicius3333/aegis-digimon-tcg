@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// DeleteByDPBudget: delete opponent Digimon whose total DP is within the budget.
-// Budget starts at 3000, increases by 2000 per opponent Digimon on field at resolution.
-// Inherited effect also adds 3000 to this card's DP deletion budget via AddToDPDeleteBudget.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -4,12 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX13-046.js";
 
-// Reveal fixtures, chosen so every axis of the two `add` slots is exercised:
-//   BT8-106  Senbon Dokkan — Option, [Mamemon] only inside its printed effect text, NOT [Mutant].
-//   BT12-058 Zenimon       — Digimon with the exact [Mutant] trait, no [Mamemon] anywhere.
-//   BT8-061  Thundermon    — satisfies BOTH qualifiers ([Mutant] trait + [Mamemon] in its text).
-//   BT12-071 AncientWisemon— near-miss: its trait is [Ancient Mutant], and no [Mamemon] at all.
-//   BT1-009..BT1-014       — inert Digimon matching neither qualifier.
 const inertDeck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
 
 describe("EX13-046 Kokuwamon", () => {
@@ -109,14 +103,10 @@ describe("EX13-046 Kokuwamon", () => {
     ]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX13-046"]);
     expect(s.state.memory).toBe(2);
-    // Exactly the two printed add slots prompted, and nothing else.
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // "in its text" is comprehensive rules §4-22-1, so an Option whose only [Mamemon] mention
-  // sits inside its printed effect text still matches. `match: "name"` would leave it in the
-  // deck, and the slot prints no card kind, so a non-Digimon is legal here.
   it("adds an Option whose only [Mamemon] mention sits inside its effect text", async () => {
     const s = setupEngine(
       {
@@ -150,9 +140,6 @@ describe("EX13-046 Kokuwamon", () => {
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
   });
 
-  // "with the [Mutant] trait" is the exact-trait form: a matching trait, a near-matching
-  // [Ancient Mutant] and a wholly unrelated trait are revealed together, and only the exact
-  // match leaves the deck. `traitContains` here would wrongly add AncientWisemon.
   it("discriminates the exact [Mutant] trait from [Ancient Mutant] and from an unrelated trait", async () => {
     const s = setupEngine(
       {
@@ -182,13 +169,9 @@ describe("EX13-046 Kokuwamon", () => {
       s.inst("nearMiss").instanceId,
       s.inst("unrelated").instanceId,
     ]);
-    // Only the [Mutant] slot could fire: AncientWisemon prints no [Mamemon] either.
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
   });
 
-  // The two slots are per qualifier, not a pooled union, but one card cannot fill both: the
-  // first slot consumes Thundermon ([Mutant] trait AND [Mamemon] in its text), leaving the
-  // second slot with nothing, so exactly one card reaches the hand.
   it("lets one card fill only the first slot when it satisfies both qualifiers", async () => {
     const s = setupEngine(
       {
@@ -272,8 +255,6 @@ describe("EX13-046 Kokuwamon", () => {
     ).toEqual({ ok: true });
     await settle(() => eligible.perm("blackEgg").topCard.instanceId === eligible.inst("kokuwamon").instanceId);
 
-    // Digivolving is not playing, so the [On Play] reveal must stay silent: the only card that
-    // reaches hand is the single digivolution bonus draw, and the deck loses exactly that card.
     expect(eligible.state.memory).toBe(0);
     expect(eligible.state.players[0]!.hand).toHaveLength(1);
     expect(eligible.state.players[0]!.hand[0]!.cardId).toBe(inertDeck[0]);
@@ -352,9 +333,6 @@ describe("EX13-046 Kokuwamon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     await settle();
 
-    // Numemon (3000 DP) loses to Tankmon (6000 DP); both its own card and the Kokuwamon
-    // source card hit the trash, and the inherited [On Deletion] then trashes exactly the
-    // attacker's top card, leaving its single source card as the new top.
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT2-056", "EX13-046"]);
     expect(s.perm("attacker").topCard.cardId).toBe("BT1-009");
     expect(s.perm("attacker").stack).toHaveLength(0);
@@ -363,10 +341,6 @@ describe("EX13-046 Kokuwamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // A 2-deep opponent stack whose upper source is itself level 4 pins the printed "1", not
-  // merely "some": exactly the top card is trashed and both source cards stay put. With
-  // `amount: 2` the promoted Blimpmon would be peeled too (the level-3 floor of
-  // `peelStackTops` only stops a repeat once a level-3 card is on top).
   it("trashes exactly one card from the opponent's stack and spares the controller's own", async () => {
     const s = setupEngine(
       {
@@ -393,7 +367,6 @@ describe("EX13-046 Kokuwamon", () => {
     expect(s.perm("opponentStack").topCard.cardId).toBe("BT4-069");
     expect(s.perm("opponentStack").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT3-067"]);
-    // The controller's own stack is untouched.
     expect(s.perm("ownStack").topCard.cardId).toBe("BT3-067");
     expect(s.perm("ownStack").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -421,8 +394,6 @@ describe("EX13-046 Kokuwamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // The inherited line must not fire from the top card: Kokuwamon deleted while it is itself
-  // the top card of a stack leaves the opponent's stack alone.
   it("does not fire from the top card of a stack", async () => {
     const s = setupEngine(
       {

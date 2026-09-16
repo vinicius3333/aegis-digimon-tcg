@@ -58,8 +58,6 @@ describe("BT24-037 Silphymon", () => {
       expect(actions[2]).toMatchObject({
         kind: "GainKeyword",
         duration: "forTheTurn",
-        // The gate is the structured isDnaDigivolving condition, which evaluateCondition reads;
-        // a "raw" kind would be treated as unmet and the bonus would never apply.
         condition: { kind: "isDnaDigivolving", raw: "DNA digivolving" },
       });
       expect(irNode(actions[3]!).target).toMatchObject({ sameTarget: true });

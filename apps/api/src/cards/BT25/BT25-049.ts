@@ -1,9 +1,3 @@
-// Hand-authored override for BT25-049 (Armalizamon).
-// runtime-effect fix:
-// - YourTurn Replacement: sourceFilter adds kind:["Option"] + Glowing Dawn trait restriction.
-// - cost target: digivolution cards (face-down cards) under a Tamer (zone:"digivolutionCards" +
-//   hostFilter kind:["Tamer"]), not the Tamer itself.
-// - Replacement mode: reduceCost amount:3 (was missing).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

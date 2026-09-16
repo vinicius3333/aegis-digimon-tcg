@@ -55,7 +55,7 @@ describe("P-020 VenomMyotismon", () => {
     await settle();
 
     expect(s.state.players[0]!.deck).toHaveLength(3);
-    expect(s.state.players[0]!.trash).toHaveLength(1); // Only the deleted P-020.
+    expect(s.state.players[0]!.trash).toHaveLength(1);
   });
 
   it("cannot revive a level 5 Digimon or a non-purple Digimon", async () => {

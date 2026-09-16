@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Compiled effect IR for BT10-083.
-// Fix vs auto-generated: "play 1 purple level 5 or lower Digimon card or 1
-// [Mervamon]" is a within-target union (any purple level<=5 Digimon, OR any
-// Mervamon regardless of color/level), not a single filter requiring both
-// purple AND named Mervamon. Uses `orFilters` for the alternative, same as
-// BT17-074.
 const compiled: CompiledCard = {
   effects: [
     {

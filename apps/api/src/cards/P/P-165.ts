@@ -1,10 +1,3 @@
-// Hand-fixed: PlayToken uses "Familiar Token" name (matching tokens.ts).
-// The token's printed [On Deletion] effect is registered by ST19-12's synthetic
-// TOKEN-Familiar-Token module; duplicating it on this parent would apply -6000 DP.
-// "delete that token" is bound to the token THIS effect played (bindResultAs/boundRef), so a
-// second Familiar Token already in play is untouched.
-// [Security] finding 1 is a false positive (no [Main] in card text).
-// endOfOpponentTurn is correct standard timing (KB Q5756 confirms deletion).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

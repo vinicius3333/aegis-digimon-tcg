@@ -60,10 +60,8 @@ describe("BT4 Nidhoggmon historical deck gauntlet", () => {
     );
 
     expect(s.state.memory).toBe(0);
-    // Evolving adds Lilamon as a fifth source; Digi-Burst must consume exactly four.
     expect(s.perm("lilamon").stack).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("highUnsuspended").permanentId);
-    // Q1219: an already-suspended Digimon is returned even when its DP is above 5000.
     expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT1-012", "BT1-010", "BT1-084"]),
     );

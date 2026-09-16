@@ -99,8 +99,6 @@ describe("EX6-061 Leviamon", () => {
     const stackedPermanentId = s.perm("stacked").permanentId;
     const stacklessPermanentId = s.perm("stackless").permanentId;
     const playPromise = advance(s.engine).verb.playInstances([s.inst("played").instanceId]);
-    // The hand-trash cost asks its own question now (see `costIsAskedAsSelection`): picking the
-    // card is how it is paid, and this test pays it.
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     expect(
       s.engine.applyIntent(0, {

@@ -56,8 +56,6 @@ describe("BT12-055 Dinobeemon", () => {
       {
         0: {
           battleArea: [
-            // Neutral legal DNA materials make the assertion independent of
-            // ExVeemon and Stingmon's own DNA-memory replacement effects.
             { card: "BT1-032", as: "blue" },
             { card: "BT1-069", as: "green" },
           ],

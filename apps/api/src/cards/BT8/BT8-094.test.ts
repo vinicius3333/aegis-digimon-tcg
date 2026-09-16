@@ -61,13 +61,12 @@ describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's 
   it("fires when the opponent moves a level 3 Digimon from breeding to battle on their own turn", async () => {
     const s = setup({
       0: { battleArea: [{ card: "BT8-094", dp: 0, as: "tamer" }] },
-      // Lv3 Rookie with DP -- legally movable
       1: { breeding: { card: "BT1-009", dp: 3000, as: "mover" } },
     });
     const mover = s.perm("mover");
 
     s.state.phase = Phase.Breeding;
-    s.state.turnSeat = 1; // the opponent's (seat 1's) own turn, relative to BT8-094's owner (seat 0)
+    s.state.turnSeat = 1;
     s.state.memory = 0;
 
     expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: mover.permanentId })).toEqual({ ok: true });

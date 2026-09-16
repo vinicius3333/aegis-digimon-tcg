@@ -8,20 +8,6 @@ import "../BT14/BT14-086.js";
 import "../BT14/BT14-017.js";
 import "../BT19/BT19-089.js";
 
-/**
- * A3 — Q1f: EX1-068 (Ice Wall!) [Main] "All of your opponent's Digimon gain '[When Attacking]
- * Lose 2 memory' until the end of their next turn."
- *
- * Same Q1f malformed-`GrantAuraToOpponents`-shape gap as BT6-102/BT15-068/ST15-16/BT12-105 (see
- * BT6-102's header for the full writeup). Proves the SHARED "[When Attacking] Lose 2 memory"
- * library entry (also granted by EX4-018) — KB Q3255 confirms the OPPONENT (the grantee's own
- * controller) loses the memory when the granted Digimon attacks, matching `GainMemory`'s
- * seatless form resolving via `ctx.source.ownerSeat`.
- *
- * FAILS-WHEN-REVERTED: reverting the interpreter's routing branch or the library entry makes
- * the grant install with no effect, so attacking with the recipient never moves memory.
- */
-
 describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
   it("keeps the timed aura live for opposing Digimon that enter later (Q3256)", () => {
     expect(compiled.effects?.find((effect) => effect.trigger === "Main")?.actions?.[0]).toMatchObject({

@@ -6,26 +6,12 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-/**
- * BT19-066 Gizamon — Purple/Black Lv.3 Rookie, 1000 DP, play cost 3,
- * evo cost 1 from a Purple or Black Lv.2.
- *
- * Printed clauses:
- *   1. [Digivolve][Pagumon]: Cost 0                                          (main, header)
- *   2. [On Play] By trashing 1 card with the [Composite]/[Wicked God] trait in your hand,
- *      ＜Draw 2＞.                                                            (main)
- *   3. ＜Blocker＞                                                            (inherited)
- *
- * KB: `node tools/kb/query.mjs card BT19-066` reports no knowledge-base entries — no Q&A,
- * errata or banlist row, matching docs/audits/BT19.md#knowledge-base-index (0 references).
- */
-
-const COMPOSITE_CARD = "BT6-012"; // Deltamon: Red Lv.4 [Composite], no effects
-const WICKED_GOD_CARD = "BT19-075"; // MoonMillenniummon: Purple Lv.7 [Wicked God]
-const NO_TRAIT_CARD = "BT1-009"; // Monodramon: Red Lv.3 [Dragonkin], no effects — near-miss
-const PAGUMON = "BT2-007"; // Pagumon: Purple Lv.2 Digi-Egg — the named alternate source
-const PURPLE_EGG = "BT2-008"; // Yaamon: Purple Lv.2 Digi-Egg — near-miss, normal route only
-const GREEN_EGG = "BT1-007"; // Tanemon: Green Lv.2 Digi-Egg — illegal source
+const COMPOSITE_CARD = "BT6-012";
+const WICKED_GOD_CARD = "BT19-075";
+const NO_TRAIT_CARD = "BT1-009";
+const PAGUMON = "BT2-007";
+const PURPLE_EGG = "BT2-008";
+const GREEN_EGG = "BT1-007";
 const PLAIN_LV3 = "BT1-009";
 const INERT_SECURITY = "BT1-010";
 const DECK = ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"];
@@ -67,7 +53,6 @@ describe("BT19-066 Gizamon", () => {
                 filter: {
                   zone: "hand",
                   controller: "mine",
-                  // "with the [X] trait" is an EXACT trait match, not a substring.
                   nameOrTrait: [{ tokens: ["Composite", "Wicked God"], match: "trait" }],
                 },
                 count: 1,
@@ -79,7 +64,6 @@ describe("BT19-066 Gizamon", () => {
       },
       { trigger: "Static", isInherited: true, keywords: [{ keyword: "Blocker" }] },
     ]);
-    // A bracketed [Digivolve][Name] route is an exact-name gate.
     expect(card?.digivolutionRequirement).toEqual([{ namesExact: ["Pagumon"], cost: 0, isAlternate: true }]);
   });
 
@@ -106,7 +90,6 @@ describe("BT19-066 Gizamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giza").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 3);
 
-    // Spare + the two drawn deck cards; the [Composite] card paid the cost.
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([PLAIN_LV3, "BT1-011", "BT1-012"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(spareId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([costId]);
@@ -225,7 +208,6 @@ describe("BT19-066 Gizamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("pagumon").topCard?.cardId === "BT19-066");
 
-    // The [Pagumon] name gate makes this evolution free: no memory moved at all.
     expect(s.state.memory).toBe(8);
     expect(s.perm("pagumon").stack.map((card) => card.instanceId)).toEqual([pagumonId]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-011"]);
@@ -244,8 +226,6 @@ describe("BT19-066 Gizamon", () => {
     await s.ready();
     const yaamonId = s.perm("yaamon").topCard!.instanceId;
 
-    // `useAlternateCost: true` with no matching alternate route silently uses the normal
-    // route; only the memory delta (1, not 0) discriminates.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -310,7 +290,6 @@ describe("BT19-066 Gizamon", () => {
     });
     await s.ready();
 
-    // Stack proof: identical printed cards, differing only by the digivolution card underneath.
     expect(observe(s.engine).hasKeyword(s.perm("carrier"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("bare"), "Blocker")).toBe(false);
 
@@ -329,7 +308,6 @@ describe("BT19-066 Gizamon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).blockingSeat() === 0);
 
-    // The bare peer has no ＜Blocker＞ and cannot answer the window.
     expect(
       s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("bare").permanentId }),
     ).not.toEqual({ ok: true });
@@ -338,7 +316,6 @@ describe("BT19-066 Gizamon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // The 3000-DP attacker died against the 9000-DP blocker; security was never checked.
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);

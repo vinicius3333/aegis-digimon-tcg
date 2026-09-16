@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./ST20-01.js";
 import "./ST20-02.js";
 import "./ST20-03.js";

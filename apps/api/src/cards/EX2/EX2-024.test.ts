@@ -9,8 +9,6 @@ import "./EX2-066.js";
 import "../BT4/BT4-104.js";
 import "../BT1/BT1-102.js";
 
-// These ordinary main-deck Digimon have no printed or inherited effects. They keep
-// draw/security resolution inert while avoiding Digi-Eggs and numeric security forms.
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const INERT_SECURITY = ["BT1-009", "BT1-013"];
 

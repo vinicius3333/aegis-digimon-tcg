@@ -52,9 +52,6 @@ describe("EX9-035", () => {
         0: {
           battleArea: [{ card: "EX9-034", as: "host" }],
           hand: [{ card: "EX9-035", as: "source" }],
-          // The first revealed card is the only DM card and is also Ver.4.
-          // The other two revealed cards are neither DM nor Ver.4; no catalog
-          // card provides a Ver.4 trait without DM for an independent placement.
           deck: ["EX9-035", "BT1-009", "BT1-010", "BT1-011"],
         },
       },

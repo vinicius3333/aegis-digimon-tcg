@@ -306,9 +306,6 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
     );
     await s.ready();
 
-    // The Advance verb stands in for the deck-add instruction inside a resolving effect; the
-    // production primitive publishes the same effect-attributed event used by compound effects
-    // that remove cards from a deck and then add cards back (Q7085).
     await advance(s.engine).verb.returnToDeck([s.inst("ownReturn").instanceId]);
 
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("ownReturn").instanceId);

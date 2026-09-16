@@ -25,7 +25,6 @@ async function openAfterStartOfTurn(s: ReturnType<typeof setupEngine>): Promise<
 
 async function closeTurn(s: ReturnType<typeof setupEngine>, turn: Promise<void>): Promise<void> {
   const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-  // Production may auto-end the Main phase; ending an already-closed one is not an assertion.
   if (mainPhase.isOpen) {
     const ended = s.engine.applyIntent(0, { type: "endPhase" });
     if (!ended.ok) throw new Error(`Could not end the Main phase: ${ended.reason}`);
@@ -125,7 +124,6 @@ describe("LM-027 Red Scramble", () => {
     s.state.isFirstPlayersFirstTurn = true;
     const { turn } = await openAfterStartOfTurn(s);
 
-    // Nothing to return, and no Digimon to play from an empty trash — but the clause still ran.
     expect(s.state.players[0]!.deck).toHaveLength(0);
     await closeTurn(s, turn);
   });
@@ -140,7 +138,6 @@ describe("LM-027 Red Scramble", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // 2 to use the Option, then 0 for the reduced Greymon digivolution (printed cost 3).
     s.state.memory = 2;
     await s.ready();
 

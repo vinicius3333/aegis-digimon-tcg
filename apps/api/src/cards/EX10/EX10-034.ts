@@ -1,32 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX10-034 Blastmon
-// Q5101: gained attack effects still exist on unaffected Digimon, but only
-// trigger if that Digimon can resolve effects. Q5102 requires exactly two
-// digivolution cards; Q5103 watches attacks by either player.
-//
-// Audit fixes (EX10 card-by-card):
-//  - the gained "[Start of Your Main Phase] This Digimon attacks" carried `{ kind: "Attack" }`
-//    with no subject. `runCombatAction` returns immediately when `attacker ?? subject ?? target`
-//    is undefined, so the granted effect fired and did nothing. The subject is the granted
-//    permanent, which is the watcher's own source — the persisted record's `isSelfRef` target.
-//  - the two [On Play]/[When Digivolving] windows were produced by `.map` over a string array,
-//    which widened `trigger` to `string` and lost `CardEffect` checking for their whole body.
-//  - duration `"untilOwnerTurnEnd"` is not an `EffectDurationRef`. `toDuration` falls through to
-//    `UntilEachTurnEnd`, so a buff taken on the OPPONENT's turn (this is an [All Turns] watcher,
-//    Q5103) expired at that turn's end instead of lasting to the end of the controller's turn.
-//    The printed "until your turn ends" is `untilYourTurnEnd` (UntilOwnerTurnEnd).
-//  - the "by trashing any 2 ..." processing condition is declinable (CR 15-7-4), so the action
-//    is `optional` + `abortOnDecline`. Q5102 still forbids paying with only 1 card, which the
-//    exact `count: 2` (no `upTo`) enforces.
-//  - `digivolutionRequirement` rows are the printed EvoCost rows, not alternate routes:
-//    `isAlternate: false`.
-//  - DigiXros: `count` is the PER-MATERIAL discount and `maxMaterials` is the printed material
-//    count (EX3-014, EX12-015). `costReduction` is read only for a `count: "∞"` recipe, so it was
-//    inert, and with a single slot and no `maxMaterials` the play path caps materials at "every
-//    candidate" — any number of [Bagra Army] cards could be placed for -2 each.
-
 const compiled: CompiledCard = {
   effects: [
     {

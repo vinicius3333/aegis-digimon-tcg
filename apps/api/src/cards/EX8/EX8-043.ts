@@ -1,17 +1,6 @@
-// HAND-FIXED — KB Q3928: the [On Play]/[When Digivolving] suspend may target EITHER player's
-// Digimon (controllerDefault "any", no possessive in the printed text), and the "if this Digimon
-// is suspended" gate is the structured selfIsSuspended condition. Also encodes the
-// "isn't returned to hand or deck by an opponent's effect, and isn't affected by
-// <De-Digivolve> effects until the end of your opponent's turn" protection as two
-// Restrict actions (beReturned + cantBeDeDigivolved, untilOpponentTurnEnd), gated by
-// the same selfIsSuspended condition as the <De-Digivolve1> in the same sentence
-// (precedent: BT21-074). Do not regenerate over this file.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {

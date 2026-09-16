@@ -36,8 +36,6 @@ describe("ST8 UlforceVeedramon hand-threshold deck gauntlet", () => {
       }),
     ).toEqual({ ok: true });
 
-    // KB Q702/Q704: Veemon's [When Attacking] draw reaches eight before the other
-    // effects resolve, so AeroVeedramon applies to this attack and Ulforce unsuspends.
     await settle(
       () =>
         !observe(s.engine).isAttacking() &&

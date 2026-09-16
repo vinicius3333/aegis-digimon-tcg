@@ -174,7 +174,6 @@ describe("BT17-034 Bulkmon", () => {
     expect(s.perm("liollmon").topCard.instanceId).toBe(liollmonId);
     expect(s.state.memory).toBe(5);
 
-    // The same fixture's Pulsemon accepts the very route Liollmon refused.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -389,7 +388,6 @@ describe("BT17-034 Bulkmon", () => {
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(recovery1);
     expect(s.state.players[0]!.trash).toHaveLength(1);
 
-    // Second trash in the SAME turn: the once-per-turn gate refuses the second Recovery.
     await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
     await settle(() => s.state.players[0]!.trash.length >= 2, 400);
 

@@ -154,10 +154,6 @@ describe("BT23-035 Dynasmon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("future").instanceId)).toBe(true);
   });
 
-  // Q5293: a Digimon reduced to 0 DP is deleted by the rule check that runs BEFORE its
-  // pending [On Play] effect activates, so that effect never resolves. The opponent can only
-  // play a Digimon during the turn player's turn through an effect, so the play is driven
-  // through the effect-play verb rather than a `playCard` intent.
   it("deletes a later-played 0-DP opposing Digimon before its On Play effect can activate", async () => {
     const s = setupEngine(
       {
@@ -177,8 +173,6 @@ describe("BT23-035 Dynasmon", () => {
     const dynasmonPermanentId = s.perm("dynasmon").permanentId;
     expect(s.perm("dynasmon").isSuspended).toBe(false);
 
-    // BT1-070 Kuwagamon is a 4000 DP Lv.4 whose [On Play] suspends 1 of its controller's
-    // opponent's Digimon. With -6000 DP it is at 0 and the rule check deletes it first.
     await advance(s.engine).verb.playInstances([s.inst("kuwagamon").instanceId]);
     await settle(() => s.state.pendingDecision === undefined);
 
@@ -305,7 +299,6 @@ describe("BT23-035 Dynasmon", () => {
       1: { security: [{ card: "BT1-011", as: "opposingSecurity" }] },
     });
 
-    // The opponent's stack losing a card is not "your security stack is removed from".
     await advance(s.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
     expect(observe(s.engine).keywordAmount(s.perm("dynasmon"), "SecurityAttack")).toBe(0);
     expect(s.state.players[0]!.deck).toHaveLength(2);
@@ -323,8 +316,6 @@ describe("BT23-035 Dynasmon", () => {
   });
 
   it("skips Recovery while more than 3 security cards remain but still grants Security Attack +1", async () => {
-    // Public flow: the opponent attacks the player, so one of this controller's security
-    // cards is checked and removed. Five cards become four, above the Recovery threshold.
     const s = setupEngine(
       {
         0: {
@@ -367,9 +358,6 @@ describe("BT23-035 Dynasmon", () => {
     await loop;
   });
 
-  // Q5295: the [Once Per Turn] cap is per turn. A gain taken on the opponent's turn does
-  // not block a second gain on the controller's own next turn, and the earlier grant is
-  // still live then because "until your turn ends" means the controller's own turn end.
   it("caps the security-removal trigger per turn and re-arms it on the next own turn", async () => {
     const s = setupEngine({
       0: {
@@ -395,15 +383,11 @@ describe("BT23-035 Dynasmon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
 
-    // Opponent's turn, first removal: 5 security cards become 4, so Recovery's
-    // "3 or fewer" condition is false and only the keyword lands.
     await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
     expect(observe(s.engine).keywordAmount(s.perm("dynasmon"), "SecurityAttack")).toBe(1);
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.deck).toHaveLength(3);
 
-    // Second removal in the same turn: capped. Neither the keyword nor Recovery repeats,
-    // even though the stack is now at 3 cards and would otherwise qualify.
     await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
     expect(observe(s.engine).keywordAmount(s.perm("dynasmon"), "SecurityAttack")).toBe(1);
     expect(s.state.players[0]!.security).toHaveLength(3);
@@ -416,8 +400,6 @@ describe("BT23-035 Dynasmon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // The opponent-turn grant survives into the controller's own turn (it expires at the
-    // END of that turn), and the per-turn cap has reset.
     expect(observe(s.engine).keywordAmount(s.perm("dynasmon"), "SecurityAttack")).toBe(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("turnDraw").instanceId]);
 
@@ -431,10 +413,6 @@ describe("BT23-035 Dynasmon", () => {
     await loop;
   });
 
-  // Q5294: on a security check a [Security] effect activates immediately, ahead of the
-  // "when a card is removed from the security stack" watchers that triggered at the same
-  // time. ST22-08's [Security] effect deletes the attacker; Dynasmon's own removal trigger
-  // must still resolve afterwards.
   it("resolves the checked Security effect before its own security-removal trigger", async () => {
     const s = setupEngine(
       {
@@ -485,10 +463,6 @@ describe("BT23-035 Dynasmon", () => {
     await loop;
   });
 
-  // Q5296: ＜Barrier＞ trashes the controller's top security card to prevent a battle
-  // deletion, including a battle against a Security Digimon. That trash removes a card from
-  // the controller's own security stack, so the [All Turns] trigger fires and the extra
-  // ＜Security A. +1＞ is read before the check loop decides on the next card.
   it("checks an extra security card after Barrier trashes its own security", async () => {
     const s = setupEngine(
       {
@@ -516,22 +490,16 @@ describe("BT23-035 Dynasmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // BT10-055 Gryphonmon is a 13000 DP Security Digimon: the 12000 DP attacker would be
-    // deleted, which opens the ＜Barrier＞ prompt.
     await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
     expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: dynasmonPermanentId, accept: true })).toEqual(
       { ok: true },
     );
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
 
-    // Barrier paid: the top own security card is trashed and Dynasmon survives.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("barrierCost").instanceId]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([dynasmonPermanentId]);
-    // The Barrier trash removed a card from the controller's own security stack, so the
-    // [All Turns] trigger granted ＜Security A. +1＞ and, at 0 security cards, Recovery.
     expect(observe(s.engine).keywordAmount(s.perm("dynasmon"), "SecurityAttack")).toBe(1);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("deckTop").instanceId]);
-    // The extra check consumed the opponent's second security card too.
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([
       s.inst("bigSecurity").instanceId,
       s.inst("secondSecurity").instanceId,

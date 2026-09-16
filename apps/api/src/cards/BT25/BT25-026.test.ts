@@ -73,7 +73,6 @@ interface Harness {
   installs: SubTriggerInstall[];
   digivolveCalls: number;
   ctx: EffectContext;
-  /** Build a freshly bound sub-context for a fired event whose subject is `subjectId`. */
   subCtxFor(subjectId: string): EffectContext;
 }
 
@@ -112,7 +111,6 @@ function makeHarness(turnSeat: Seat): Harness {
       security: [],
       hand: [],
       deck: [],
-      // A [Dianamon] in trash so the digivolve has a source to find.
       trash: [{ instanceId: "t-dianamon", cardId: DIANAMON, ownerSeat: 0 as Seat, faceUp: false }],
     },
     { seat: 1, battleArea: [opponentRedSubject], security: [], hand: [], deck: [], trash: [] },
@@ -147,8 +145,6 @@ function makeHarness(turnSeat: Seat): Harness {
       harness.digivolveCalls += 1;
       return makePermanent({ cardId: DIANAMON });
     },
-    // The inherited [Restrict attackTargetChange] effect also resolves at EffectTiming.None;
-    // no-op it so installing the [Your Turn] watchers does not throw.
     restrict: () => {},
   } as unknown as Primitives;
   const ask: DecisionApi = {
@@ -175,12 +171,9 @@ function makeHarness(turnSeat: Seat): Harness {
   return harness;
 }
 
-/** Subscribe the card's [Your Turn] SubTrigger watchers through the REAL interpreter. */
 async function installWatchers(h: Harness): Promise<void> {
   const module = getEffectModule("BT25-026")!;
   const effects = module.effectsForTiming(EffectTiming.None, h.ctx.source);
-  // The [Your Turn] SubTrigger effects live in the continuous/static window (EffectTiming.None);
-  // resolve every one so each SubTrigger watcher is installed.
   for (const e of effects) await e.resolve(h.ctx);
 }
 
@@ -217,7 +210,6 @@ describe("BT25-026 — SubTrigger fire-time source-color gate", () => {
     const h = makeHarness(0 as Seat);
     await installWatchers(h);
     const install = h.installs.find((i) => i.matches !== undefined)!;
-    // FAILS-WHEN-REVERTED: drop the triggerSubjectHasColor conjunct and this blue subject matches.
     expect(install.matches!(h.subCtxFor("subj-blue"))).toBe(false);
   });
 
@@ -230,7 +222,7 @@ describe("BT25-026 — SubTrigger fire-time source-color gate", () => {
   });
 
   it("a red subject on the OPPONENT's turn => the your-turn conjunct blocks the gate", async () => {
-    const h = makeHarness(1 as Seat); // opponent's turn
+    const h = makeHarness(1 as Seat);
     await installWatchers(h);
     const install = h.installs.find((i) => i.matches !== undefined)!;
     expect(install.matches!(h.subCtxFor("subj-red"))).toBe(false);

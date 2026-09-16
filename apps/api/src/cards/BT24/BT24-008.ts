@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT24-008 Elizamon (hand-authored override of the runtime record IR).
-//
-// + conditional rule implementation shape the prose compiler misses (see BT24-009). Authored as a Draw 2 carrying
-// an optional trash-from-hand cost (engine payCost hand branch).
-//
-// EqualsTraits("Reptile"|"Dragonkin"|"LIBERATOR"), maxCount 1, canNoSelect:true; `if (cardSources>0)`
-// runs rule implementation(owner, 2). The inherited [Your Turn][Once Per Turn] gain-memory ESS compiled correctly
-// and is carried through unchanged.
 export const compiled: CompiledCard = {
   effects: [
     {

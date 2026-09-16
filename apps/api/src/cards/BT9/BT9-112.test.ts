@@ -5,21 +5,9 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-112.js";
 import "./BT9-112.js";
 
-// A3 for BT9-112 (DeathXmon) — self ＜when played＞ cost reduction SCALED by a matching-card count
-// (no payment, no condition — the fourth reducer shape this fix unlocks):
-//   "When you would play this card from your hand, reduce its memory cost by 3 for each Digimon
-//   and Tamer card your opponent has in play." (KB Q1928: total count, not pairs)
-//
-// Before the fix, `wouldBePlayedSelfReducersFor` only ever captured a structured-Cost reducer; a
-// scaling-only reducer with no cost/condition at all was never extracted, so this shape was fully
-// inert. The fix adds a dedicated automatic condition/scaling branch consulting `scaleFactor`.
-//
-// FAILS-WHEN-REVERTED: without the fix the scaling is never applied and the FULL cost (20) is
-// paid regardless of the opponent's board.
-
-const BT9_112 = "BT9-112"; // cost 20
-const OPP_DIGIMON = "BT1-030"; // Gomamon
-const OPP_TAMER = "BT10-093"; // Yuu Amano
+const BT9_112 = "BT9-112";
+const OPP_DIGIMON = "BT1-030";
+const OPP_TAMER = "BT10-093";
 
 describe("BT9-112 ＜when played＞ cost reduction (-3 per opponent Digimon/Tamer, automatic)", () => {
   it("matches catalog values and scaled cost, mass-effect, and end-turn IR", () => {
@@ -98,7 +86,7 @@ describe("BT9-112 ＜when played＞ cost reduction (-3 per opponent Digimon/Tame
       },
     });
     const p0 = s.state.players[0]!;
-    s.state.memory = 14; // exactly the reduced cost — no decision requests wired at all
+    s.state.memory = 14;
 
     const card = s.inst("card");
     const res = s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId });
@@ -113,7 +101,7 @@ describe("BT9-112 ＜when played＞ cost reduction (-3 per opponent Digimon/Tame
   it("plays at the full cost (20) with an empty opponent board", async () => {
     const s = setupEngine({ 0: { hand: [{ card: BT9_112, as: "card" }] } });
     const p0 = s.state.players[0]!;
-    s.state.memory = 20; // the FULL cost, not the reduced one
+    s.state.memory = 20;
 
     const card = s.inst("card");
     const res = s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId });

@@ -1,5 +1,3 @@
-// HAND-FIXED IR for BT22-082 — do not regenerate.
-// OnPlay/WhenDigivolving Delete: added playCost lte 7 (text: "play cost 7 or lower").
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

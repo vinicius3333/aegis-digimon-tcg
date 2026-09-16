@@ -135,8 +135,6 @@ describe("BT20-007 Dracomon", () => {
       );
       await settle(() => s.state.pendingDecision === undefined);
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst(alternative.as).instanceId);
-      // The first player skips the ordinary first-turn draw; the effect therefore draws the
-      // deck's first card directly rather than the second card.
       expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-010");
       expect(s.state.memory).toBe(4);
       expect(s.state.phase).toBe(Phase.Main);

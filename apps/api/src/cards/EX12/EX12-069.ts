@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX12-069 (Virus Busters option).
-// [Security][Your Turn] is represented as one YourTurn effect with isSecurity:true so the
-// interpreter applies both the security-zone scope and the controller-turn guard.
-// Cost reduction: replaced standalone Replacement action with reduceCostBy:3 directly
-//   on the PlayWithoutCost (payCost:true) per EX12-074 pattern.
-// "of the same level" filter: sameLevelAsAttacker:true added to both SubTrigger play targets.
-// [Main] SecurityManipulation: toTop:false is the bottom placement signal. The self form omits
-// `source` because the Option is in the transient resolvingOption slot, not a permanent; the
-// interpreter resolves the physical self instance through ctx.source.instanceId.
-// [Security] (isSecurity) play effect: kept as-is (play free from hand/trash).
 const compiled: CompiledCard = {
   effects: [
     {

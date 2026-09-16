@@ -9,8 +9,6 @@ describe("BT12-022 ExVeemon", () => {
       0: {
         battleArea: [
           { card: "BT12-022", as: "exveemon" },
-          // A neutral green Lv.4 keeps this proof scoped to ExVeemon's
-          // replacement effect instead of also resolving Stingmon's +1 memory.
           { card: "BT1-069", as: "stingmon" },
         ],
         hand: [{ card: "BT12-028", as: "paildramon" }],

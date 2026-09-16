@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX12-063 (Karakurumon).
-// digivolutionRequirement: added baseColors (all non-white) for "Non-white Lv.4" restriction.
-// Suspend+Restrict pattern (count:1 on Restrict target) matches BT19-050 — correct.
 const compiled: CompiledCard = {
   effects: [
     {

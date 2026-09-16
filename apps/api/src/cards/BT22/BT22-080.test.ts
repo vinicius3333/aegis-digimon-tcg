@@ -136,7 +136,6 @@ describe("BT22-080 Eater (Human Form)", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT22-079"));
 
-    // BT22-079 costs 3; the inherited reduction leaves 1 memory after paying it.
     expect(s.decisions).toHaveLength(1);
     expect(s.state.memory).toBe(1);
   });

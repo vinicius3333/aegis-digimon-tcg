@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./LM-001.js";
 import "./LM-002.js";
 import "./LM-003.js";

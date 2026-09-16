@@ -230,10 +230,6 @@ describe("EX5-061 Cerberusmon (X Antibody)", () => {
         s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069") &&
         s.state.pendingDecision === undefined,
     );
-    // ActivateForeignEffect resolves the lender's On Play body inline under EX5-061;
-    // it does not emit a separate top-level effectTriggered event for P-065. The
-    // printed P-065 source card and its public deletion endpoint are the provenance
-    // proof here, while EX5-061's own revival is asserted independently below.
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === victimId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discard").instanceId)).toBe(true);

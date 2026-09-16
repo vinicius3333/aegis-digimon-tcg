@@ -6,11 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-039.js";
 
-/**
- * Count the optional ("use this effect?") prompts raised so far. The inherited clause is
- * [Once Per Turn], so the number of prompts is the observable that separates "the watcher
- * fired once" from "it fired on every security reduction".
- */
 function optionalPrompts(s: EngineSetup): DecisionRequest[] {
   return (s.decisions as { seat: Seat; req: DecisionRequest }[])
     .map(({ req }) => req)
@@ -38,8 +33,6 @@ describe("BT19-039 SkullBaluchimon", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    // The memory gain sits after the optional processing condition, so it is mandatory once
-    // the security card is trashed (comprehensive 15-7-1/15-7-2 plus 15-9-1).
     expect(compiled.effects?.[0]?.actions?.[1]).toEqual({ kind: "GainMemory", amount: 1 });
     expect(compiled.effects?.[1]?.actions?.[1]).toEqual({ kind: "GainMemory", amount: 1 });
   });
@@ -73,14 +66,12 @@ describe("BT19-039 SkullBaluchimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 2 && s.state.memory === 4);
 
-    // Play cost 7 (10 -> 3), then the effect's own +1.
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("secSecond").instanceId,
       s.inst("secThird").instanceId,
     ]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("secTop").instanceId]);
-    // The level 5 near-miss peer stays: only "level 4 or lower" is deletable.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-057"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-051"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -120,14 +111,12 @@ describe("BT19-039 SkullBaluchimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // Yellow Lv.4 route costs 4 (4 -> 0), then the effect's own +1.
     expect(s.state.memory).toBe(1);
     expect(s.perm("skull").topCard?.cardId).toBe("BT19-039");
     expect(s.perm("skull").stack.map((card) => card.instanceId)).toEqual([sourceId]);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("secSecond").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("secTop").instanceId]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT3-037"]);
-    // The digivolution bonus draw still happens.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -157,7 +146,6 @@ describe("BT19-039 SkullBaluchimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-039"));
 
-    // Only the play cost moved the gauge: 10 - 7 = 3, with no +1 (comprehensive 15-7-2).
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("secTop").instanceId,
@@ -188,7 +176,6 @@ describe("BT19-039 SkullBaluchimon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    // A real attack the attacker loses: 7000 DP into a 12000 DP wall.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -237,7 +224,6 @@ describe("BT19-039 SkullBaluchimon", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
 
-    // --- My turn: attacking suspends the host for real, and reduces the OPPONENT's security.
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -248,11 +234,9 @@ describe("BT19-039 SkullBaluchimon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 3);
     expect(s.perm("host").isSuspended).toBe(true);
-    // "When YOUR security is reduced": the opponent's loss must not arm it.
     expect(optionalPrompts(s)).toHaveLength(0);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // --- Opponent's turn: two security reductions, one unsuspend.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").isSuspended).toBe(true);
     expect(
@@ -273,11 +257,9 @@ describe("BT19-039 SkullBaluchimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 3);
-    // [Once Per Turn]: the second reduction in the same turn raises no further prompt.
     expect(optionalPrompts(s)).toHaveLength(1);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // --- My turn again: suspend the host once more.
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -289,7 +271,6 @@ describe("BT19-039 SkullBaluchimon", () => {
     await settle(() => !observe(s.engine).isAttacking() && s.perm("host").isSuspended);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // --- Opponent's turn again: the per-turn use has reset.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").isSuspended).toBe(true);
     expect(
@@ -301,7 +282,6 @@ describe("BT19-039 SkullBaluchimon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && !s.perm("host").isSuspended);
     expect(optionalPrompts(s)).toHaveLength(2);
-    // The peer with no BT19-039 in its stack never gains the watcher.
     expect(s.perm("peer").isSuspended).toBe(false);
 
     advance(s.engine).endMainPhaseIfOpen(1);

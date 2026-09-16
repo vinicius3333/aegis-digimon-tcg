@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q744: whole RevealAdd is optional (must trash 1 hand card to activate).
-// Q745: both yellow and purple adds require [Angel], [Archangel], or [Fallen Angel] trait.
 const compiled: CompiledCard = {
   effects: [
     {

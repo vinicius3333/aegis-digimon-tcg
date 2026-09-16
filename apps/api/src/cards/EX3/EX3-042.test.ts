@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX3-042.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 const whenDigivolving = "[When Digivolving] If this Digimon is suspended, suspend 1 of your opponent's Digimon.";
 const inherited =
@@ -446,8 +446,6 @@ describe("EX3-042 Toropiamon", () => {
     expect(s.perm("secondTarget").isSuspended).toBe(true);
     expect(observe(s.engine).subscriptions("whenEffectSuspends")).toHaveLength(2);
     const ex3042Decisions = s.decisions.filter(({ req }) => req.sourceCardId === "EX3-042");
-    // Both copies watch the same event, so they are simultaneous triggers of one player and
-    // the controller picks which resolves first before either body asks for its target.
     expect(ex3042Decisions.map(({ req }) => req.kind)).toEqual(["orderTriggers", "chooseTargets"]);
   });
 });

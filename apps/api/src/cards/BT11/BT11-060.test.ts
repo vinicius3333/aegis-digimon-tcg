@@ -85,7 +85,6 @@ describe("BT11-060 Monmon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
     s.state.turnSeat = 0;
-    // Unsourced return control: the restriction applies only to opponent effects.
     await advance(s.engine).verb.returnToHand([monmonId]);
     expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toEqual([monmonId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);

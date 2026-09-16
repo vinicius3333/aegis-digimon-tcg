@@ -1,7 +1,3 @@
-// Hand-authored override (errata 2022-11-11): "When A Digimon with [Dramon]/[Examon]...
-// becomes unsuspended" -> "When THIS Digimon with [Dramon] or [Examon]... becomes
-// unsuspended, +1000 DP". The trigger is scoped to THIS Digimon, so the +1000 DP target
-// is self-ref. Fired via the whenUnsuspended SubTrigger gated on the self source.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

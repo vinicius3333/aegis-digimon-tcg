@@ -79,8 +79,6 @@ describe("EX8-015", () => {
         deck: ["BT1-045"],
         battleArea: [
           { card: "BT1-024", as: "boundary" },
-          // Neutral 15000-DP fixture: avoids unrelated optional effects that historically
-          // caused this boundary proof to time out when AD1-004 was registered.
           { card: "BT1-084", as: "above" },
         ],
       },
@@ -138,7 +136,7 @@ describe("EX8-015", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("meramon").topCard.instanceId === s.inst("xWarGrowlmon").instanceId);
 
-    expect(s.perm("meramon").currentDP).toBe(13000); // 8000 + 3000 effect + 2000 inherited Meramon.
+    expect(s.perm("meramon").currentDP).toBe(13000);
     expect(observe(s.engine).isRestricted(s.perm("meramon"), "beReturned")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });

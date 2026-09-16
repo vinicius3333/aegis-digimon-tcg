@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST24-15 DNA Charge
-// <Use Req. ([DATA SQUAD] trait)>
-// [Main] You may play 1 [DATA SQUAD] trait card with a play cost of 4 or less from your hand
-//   or trash without paying the cost. Then, place this card in the battle area.
-// [Start of Your Main Phase] By placing this card from the battle area face down under any of
-//   your [DATA SQUAD] trait Tamers, <Draw 1> and gain 1 memory.
-// [Security] Activate this card's [Main] effect.
-//
-// Fix: "You may play...Then, place this card" — placement is mandatory if play is chosen.
-// PlayWithoutCost gets abortOnDecline:true; PlaceInBattleAreaSelf is not independently optional.
 const compiled: CompiledCard = {
   effects: [
     {

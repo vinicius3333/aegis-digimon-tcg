@@ -17,8 +17,6 @@ describe("BT16-058", () => {
         abortOnDecline: true,
         cost: { kind: "trash" },
       });
-      // "Then, ..." after a paid cost is mandatory: the aura is gated by the [SoC] condition
-      // alone, never by a second confirmation prompt.
       expect(effect.actions?.[1]).toMatchObject({
         kind: "GrantAuraToOpponents",
         condition: { kind: "selfDigivolutionStackMatchesFilter", filter: { kind: ["Tamer"] } },

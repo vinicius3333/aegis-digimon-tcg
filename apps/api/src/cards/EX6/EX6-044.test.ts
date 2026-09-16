@@ -20,33 +20,8 @@ import type { EffectContext, RemovalCause } from "../../engine/effects/EffectCon
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
-// The REAL authored IR (a hand-override exports it so the A3 asserts against the on-disk source).
 import { compiled as EX6_044 } from "./EX6-044.js";
 import "../index.js";
-
-/**
- * Full-machinery A3 for EX6-044 BryweLudramon's conditional-leave-prevention (plan 08-04),
- * composing the EXISTING Replacement-prevent path (leavePrevention.ts / interpreter.ts):
- *
- *   ESS (inherited): "[Opponent's Turn] [RagnaLoardmon] can't leave the battle area other than
- *    by your effects or by deletion."  (documented behavior — inherited rule implementation,
- *    CanUseProtectionCondition = IsOpponentTurn && !IsByEffect(owner's own effect).)
- *
- * KB authority (node tools/kb/query.mjs card EX6-044): Q3771 — a deletion effect activated by the
- * opponent DOES delete a [RagnaLoardmon] carrying this card as a digivolution. So the prevention
- * blocks a MOVE/bounce/return but must NOT block deletion.
- *
- * Open question 4 (resolved): the documented behavior is opponent's-turn-only + inherited; modeled as an
- * `[Opponent's Turn]` inherited Replacement prevent (leaveCause:"otherThanYourEffect",
- * exceptDeletion:true). The opponent's-turn gate is the turnOwnerGuard the IR derives from the
- * "OpponentsTurn" trigger; this harness exercises the prevent subscription directly.
- *
- * FAILS-WHEN-REVERTED:
- *   - change leaveCause "otherThanYourEffect" -> "any": the OWNER's-own-effect bounce is then
- *     wrongly prevented => the "owner bounce allowed" assertion goes RED.
- *   - drop exceptDeletion: a deletion is then wrongly prevented => the "deletion still dies"
- *     (Q3771) assertion goes RED.
- */
 
 let seq = 0;
 function card(cardId: string, seat: Seat): CardInstance {
@@ -73,11 +48,10 @@ interface Harness {
   installPrevent(sourcePermanent: Permanent): Promise<void>;
 }
 
-/** `turnSeat` decides whose turn it is; the prevent only installs on the opponent's turn. */
 function harness(opts?: { turnSeat?: Seat }): Harness {
   seq = 0;
   const state = new GameState();
-  state.turnSeat = opts?.turnSeat ?? 1; // default: opponent's (seat 1) turn so the ESS is active
+  state.turnSeat = opts?.turnSeat ?? 1;
   state.memory = 0;
   for (const seat of [0, 1] as Seat[]) {
     const player = new PlayerState();
@@ -165,8 +139,6 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
     consult: (ids, cause, resolvingSeat, o) =>
       consultLeavePrevention(host, ids, cause, resolvingSeat, { isBounce: o?.isBounce, reentryGuard }),
     installPrevent: async (sourcePermanent) => {
-      // The ESS prevent is filed under the continuous/static window (EffectTiming.None) by the
-      // "OpponentsTurn" trigger; resolving it installs the prevent subscription.
       const module = irCardModule("EX6-044", EX6_044);
       const src = createCardSource(sourcePermanent.topCard!, stateLookup);
       const effects = module.effectsForTiming(EffectTiming.None, src);
@@ -175,10 +147,6 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
   };
 }
 
-/**
- * A RagnaLoardmon permanent on seat 0 carrying EX6-044 as a digivolution source (so the inherited
- * ESS is active). topCard name must contain "RagnaLoardmon" for the prevent's self/name gate.
- */
 function ragnaLoardmon(state: GameState): Permanent {
   const p = new Permanent();
   p.permanentId = "p-ragna";
@@ -187,7 +155,7 @@ function ragnaLoardmon(state: GameState): Permanent {
   p.topCard = top;
   p.baseDP = 8000;
   p.currentDP = 8000;
-  const ess = card("EX6-044", 0); // the inherited source supplying the protection
+  const ess = card("EX6-044", 0);
   p.stack.push(ess);
   state.players[0]!.battleArea.push(p);
   return p;
@@ -213,14 +181,12 @@ describe("EX6-044 BryweLudramon — conditional leave-prevention (documented beh
   });
 
   it("PREVENTS an opponent's bounce on the opponent's turn (can't leave other than by your effect)", async () => {
-    const h = harness({ turnSeat: 1 }); // opponent's turn
+    const h = harness({ turnSeat: 1 });
     const ragna = ragnaLoardmon(h.state);
     await h.installPrevent(ragna);
 
-    // Opponent (seat 1) returns/bounces RagnaLoardmon to hand.
     await h.fx.returnToHand([ragna.topCard!.instanceId]);
 
-    // Still on the battle area; not in seat 0's hand.
     expect(h.state.players[0]!.battleArea.some((p) => p.permanentId === "p-ragna")).toBe(true);
     expect(h.state.players[0]!.hand.length).toBe(0);
   });
@@ -230,7 +196,6 @@ describe("EX6-044 BryweLudramon — conditional leave-prevention (documented beh
     const ragna = ragnaLoardmon(h.state);
     await h.installPrevent(ragna);
 
-    // The owner (seat 0) bounces it via their own effect (resolvingSeat = 0).
     const prevented = await h.consult([ragna.permanentId], "byEffect", 0, { isBounce: true });
     expect(prevented.has(ragna.permanentId)).toBe(false);
   });
@@ -240,7 +205,6 @@ describe("EX6-044 BryweLudramon — conditional leave-prevention (documented beh
     const ragna = ragnaLoardmon(h.state);
     await h.installPrevent(ragna);
 
-    // Opponent deletes it: a deletion is NOT a "leave other than by deletion" -> not prevented.
     await h.fx.deletePermanent([ragna.permanentId]);
 
     expect(h.state.players[0]!.battleArea.some((p) => p.permanentId === "p-ragna")).toBe(false);

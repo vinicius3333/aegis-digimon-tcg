@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-030 Lobomon — hand-corrected IR.
-// [When Digivolving] Digivolve into AncientGarurumon (cost 1, ignore requirements);
-//   if it does, delete this Digimon at end of turn.
-// [Your Turn] (inherited) When digivolving into AncientGarurumon, reduce cost by 2.
-// KB Q4141: must delete even if further digivolutions occur before end of turn.
 const compiled: CompiledCard = {
   effects: [
     {

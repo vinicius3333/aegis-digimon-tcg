@@ -90,8 +90,6 @@ describe("EX9-009", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    // CR15-7-4 permits choosing the processing condition even with an empty deck;
-    // failed payment leaves the payload unexecuted.
     await drainMicrotasks();
 
     expect(s.decisions.filter((entry) => entry.req.kind === "optional")).toHaveLength(1);

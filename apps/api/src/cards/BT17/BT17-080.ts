@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -62,9 +59,6 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           ignoreRequirements: true,
           optional: true,
-          // Q2853: "By placing this Tamer and 1 [Growlmon] and 1 [WarGrowlmon] ..., you may
-          // digivolve ..." — the placement is an activation cost, paid whether or not the
-          // digivolve is taken.
           payCostBeforeOptional: true,
           cost: {
             kind: "place",

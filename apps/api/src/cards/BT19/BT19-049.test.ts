@@ -6,16 +6,6 @@ import { drainMicrotasks, setupEngine, settle, settleAcrossTimers } from "../../
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// Fixtures (inert main-deck Digimon only; no Digi-Egg in a deck or in security):
-//   BT1-009 Monodramon    Lv3 Red   3000, no text  — deck/security filler
-//   BT1-013 Muchomon      Lv3 Red   5000, no text  — deck/security filler
-//   BT1-064 Goblimon      Lv3 Green 3000, no text  — legal Green Lv3 evolution source
-//   BT1-071 Vegiemon      Lv4 Green 6000, no text  — ILLEGAL source (Lv4)
-//   BT1-012 Biyomon       Lv3 Red   2000, no text  — ILLEGAL source (wrong colour)
-//   BT19-085 Henry Wong             Green Tamer     — the exact [Henry Wong]
-//   EX4-063 Henry Wong & Shu-Chong Wong  Green/Yellow Tamer — Q3104 NAME NEAR MISS
-//   BT19-081 Kiriha Aonuma          Blue Tamer      — an unrelated Tamer for the count
-//   BT19-050 Rapidmon     Lv5 Green 8000            — realistic inherited host
 const DECK = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 
@@ -48,7 +38,6 @@ describe("BT19-049 Gargomon", () => {
           kind: "PlayWithoutCost",
           payCost: false,
           optional: true,
-          // "[Henry Wong]" is bracketed, so the gate must be exact (Q3104).
           target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Henry Wong"], match: "nameExact" }] } },
           from: ["hand"],
           condition: { kind: "permanentCount", op: "lte", value: 1, filter: { controller: "mine", kind: ["Tamer"] } },
@@ -62,11 +51,6 @@ describe("BT19-049 Gargomon", () => {
       actions: [{ kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // [When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Henry Wong]
-  // from your hand without paying the cost.
-  // ---------------------------------------------------------------------------
 
   it.each([
     ["no Tamer", [] as string[]],
@@ -102,9 +86,7 @@ describe("BT19-049 Gargomon", () => {
 
     expect(s.perm("base").topCard?.cardId).toBe("BT19-049");
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
-    // Only the digivolution cost of 2; the Tamer play was free.
     expect(s.state.memory).toBe(3);
-    // The digivolution bonus draw is the only card left in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
     const henry = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT19-085");
     expect(henry?.topCard!.instanceId).toBe(s.inst("henry").instanceId);
@@ -178,8 +160,6 @@ describe("BT19-049 Gargomon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT19-049");
     await drainMicrotasks(120);
 
-    // "Henry Wong" is a SUBSTRING of "Henry Wong & Shu-Chong Wong"; the bracketed
-    // reference is exact, so the pair Tamer stays in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("pair").instanceId,
       s.inst("evoDraw").instanceId,
@@ -257,10 +237,6 @@ describe("BT19-049 Gargomon", () => {
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT19-085")).toHaveLength(0);
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited: [When Attacking] [Once Per Turn] Suspend 1 of your opponent's Digimon.
-  // ---------------------------------------------------------------------------
-
   it("suspends exactly one opponent Digimon per turn from a real host and resets on the next own turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -301,10 +277,8 @@ describe("BT19-049 Gargomon", () => {
 
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(false);
-    // Printed "Digimon" only: an opponent Tamer is never a candidate.
     expect(s.perm("tamer").isSuspended).toBe(false);
 
-    // Same turn, second attack by the same host: [Once Per Turn] refuses.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     preferred.length = 0;
     preferred.push(s.perm("second").permanentId, s.perm("second").topCard!.instanceId);
@@ -319,12 +293,10 @@ describe("BT19-049 Gargomon", () => {
     expect(s.perm("second").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // The opponent's real turn passes; nothing fires on it.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("second").isSuspended).toBe(false);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // Our next own turn: the allowance is fresh and the second Digimon is taken.
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -375,9 +347,6 @@ describe("BT19-049 Gargomon", () => {
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // Suspending a suspended Digimon is a legal, no-change choice: the engine OFFERED it and
-    // the scripted answer took it, so the fresh peer was never touched.
-    // `candidateInstanceIds` carries PERMANENT ids for a permanent target.
     const offered = s.decisions.filter(
       (entry) =>
         entry.req.kind === "chooseTargets" &&

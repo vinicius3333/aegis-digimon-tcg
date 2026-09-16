@@ -4,14 +4,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-056.js";
 import "../index.js";
 
-// A3 for BT16-056 (Publimon) — [On Play] you may place the top card of 1 of your opponent's
-// [Vaccine] Digimon on top of their security stack (trashing its digivolution cards).
-// source: documented behavior.
-//
-// FAILS-WHEN-REVERTED: the opponent's top card moves to their SECURITY stack (their security
-// count grows by 1 and the moved card is the one that was on top of the Digimon) only because
-// the override runs the place-top-card-to-security clause. A no-op leaves security unchanged.
-
 describe("BT16-056 [On Play] place top card of an opponent [Vaccine] Digimon onto their security", () => {
   it("uses the same optional placement on play and digivolution and watches opponent security once per turn", () => {
     expect(compiled.effects[0]?.actions[0]).toMatchObject({
@@ -43,7 +35,6 @@ describe("BT16-056 [On Play] place top card of an opponent [Vaccine] Digimon ont
           hand: [{ card: "BT16-056", as: "publimon", faceUp: false }],
         },
         1: {
-          // Opponent Vaccine Digimon (Greymon) with one digivolution card under it.
           battleArea: [{ card: "BT1-015", as: "oppDigimon", dp: 4000, under: [{ card: "BT1-009", faceUp: false }] }],
         },
       },
@@ -54,7 +45,7 @@ describe("BT16-056 [On Play] place top card of an opponent [Vaccine] Digimon ont
     const oppTopId = s.perm("oppDigimon").topCard!.instanceId;
     const securityBefore = p1.security.length;
 
-    s.state.memory = 4; // exact play cost
+    s.state.memory = 4;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("publimon").instanceId })).toEqual({
       ok: true,
@@ -62,7 +53,6 @@ describe("BT16-056 [On Play] place top card of an opponent [Vaccine] Digimon ont
 
     await settle(() => p1.security.length > securityBefore);
 
-    // The opponent's former top card is now on their security stack.
     expect(p1.security.length).toBe(securityBefore + 1);
     expect(p1.security.some((c) => c.instanceId === oppTopId)).toBe(true);
   });

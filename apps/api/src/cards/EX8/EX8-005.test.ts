@@ -51,8 +51,6 @@ describe("EX8-005", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(sourceId);
     expect(s.perm("host").stack).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId)).toBe(true);
-    // Frigimon costs 5 and gains 1 after removing the last source. Tumblemon's
-    // opposing-controller memory gain subtracts 1 only for Mineral/Rock hosts.
     expect(s.state.memory).toBe(memory);
     expect(s.state.pendingDecision).toBeUndefined();
   });

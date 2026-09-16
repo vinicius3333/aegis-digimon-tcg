@@ -1,12 +1,3 @@
-// HAND-FIXED IR for BT20-011 (ExVeemon) — do not regenerate over this file.
-//
-// The generator miscompiled the printed clause "Then, if it's your turn, 2 of your
-// Digimon may DNA digivolve into a Digimon card with [Imperialdramon] in its name or
-// the [Free] trait in the hand" into TWO sibling actions: a plain `Digivolve` (which
-// digivolved one material in place instead of merging two) plus a `DnaDigivolve`
-// (documented behavior) drives a single Jogress: CanSelectCardCondition gates the result on
-// `IsDigimon && (CardTraits.Contains("Free") || ContainsCardName("Imperialdramon"))`
-// and calls DNADigivolvePermanentsIntoHandOrTrashCard(payCost:true, isHand:true).
 import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

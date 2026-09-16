@@ -85,8 +85,6 @@ describe("BT18-013 Deltamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deltamon").instanceId })).toEqual({
       ok: true,
     });
-    // The hand cost is the clause's only question, so it is asked as the selection
-    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     expect(
       s.engine.applyIntent(0, {

@@ -7,21 +7,11 @@ import { compiled } from "./EX13-037.js";
 import "../index.js";
 
 const CARD_ID = "EX13-037";
-// [Witchelny]-text Digimon by level, verified against the catalog:
-//   BT18-039 Mistymon   Lv.5 Yellow
-//   BT18-036 Wizardmon  Lv.4 Yellow
-//   BT18-030 Candlemon  Lv.3 Yellow
 const WITCHELNY_LV5 = "BT18-039";
 const WITCHELNY_LV4 = "BT18-036";
 const WITCHELNY_LV3 = "BT18-030";
-// BT1-020 Groundramon: Lv.5 Red, no printed text and no [Witchelny] token — refused by the
-// Assembly Lv.5 slot, though the printed RED EvoCost still reaches this card from it.
 const PLAIN_LV5 = "BT1-020";
-// BT1-038: Lv.5 BLUE with no printed text — off-colour for both printed EvoCosts and carrying no
-// [Witchelny] token, so it is legal on NO route into this card.
 const OFF_COLOUR_LV5 = "BT1-038";
-// BT8-017: printed 13000 DP with no printed text — survives the -12000 with 1000 DP left, so the
-// modifier is observable rather than lethal. A harness-seeded `dp` would not survive a recompute.
 const BIG_VICTIM = "BT8-017";
 
 describe("EX13-037 Dynasmon", () => {
@@ -81,7 +71,6 @@ describe("EX13-037 Dynasmon", () => {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
-          // PLURAL "security stackS" ⇒ either player's stack arms it.
           sourceFilter: { controller: "any" },
           actions: [
             {
@@ -149,7 +138,6 @@ describe("EX13-037 Dynasmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.perm("dynasmon").currentDP).toBe(printedDp + 10000);
-    // 4 security left ⇒ "3 or fewer" fails, so their stack is untouched.
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
@@ -170,8 +158,6 @@ describe("EX13-037 Dynasmon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dynasmon"));
     await settle();
 
-    // Own stack: 2 -> 1 by this clause's own trash, then back to 2 because that removal armed this
-    // card's own [All Turns] watcher, whose "3 or fewer" gate then fired the printed ＜Recovery +1＞.
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[1]!.security).toHaveLength(1);
@@ -204,7 +190,6 @@ describe("EX13-037 Dynasmon", () => {
     await settle(() => s.state.players[0]!.trash.length > 0);
     await settle();
 
-    // The controller's own top security card was trashed as the attack was declared.
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.perm("dynasmon").currentDP).toBeGreaterThanOrEqual(printedDp + 10000);
   });
@@ -232,12 +217,10 @@ describe("EX13-037 Dynasmon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("dynasmon"));
     await settle();
 
-    // Still one trash, one buff: the printed [Once Per Turn] is shared by all three windows.
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.trash).toHaveLength(1);
     expect(s.perm("dynasmon").currentDP).toBe(getCardDefinition(CARD_ID)!.dp! + 10000);
 
-    // A real turn through the production turn loop refills the quota.
     s.state.turnSeat = 0;
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 0;
@@ -250,8 +233,6 @@ describe("EX13-037 Dynasmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Suspended so its printed ＜Blocker＞ cannot intercept the attack: this scenario is
-          // about the security removal, not about blocking.
           battleArea: [{ card: CARD_ID, as: "dynasmon", suspended: true }],
           deck: [{ card: "BT1-012", as: "recovered" }, "BT1-010"],
           security: ["BT1-013"],
@@ -282,9 +263,7 @@ describe("EX13-037 Dynasmon", () => {
     );
     await settle();
 
-    // ＜Recovery +1＞ put the deck's top card on top of the controller's stack.
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("recovered").instanceId);
-    // -12000 DP landed on exactly one of the opponent's Digimon; the choice itself is free.
     const dropped = ["attacker", "victim"].filter(
       (alias) => s.perm(alias).currentDP === (alias === "victim" ? 1000 : 8000),
     );
@@ -295,8 +274,6 @@ describe("EX13-037 Dynasmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Dynasmon watches from the sidelines: a separate attacker keeps this scenario to ONE
-          // security removal — the OPPONENT's, which is the direction under test.
           battleArea: [
             { card: CARD_ID, as: "dynasmon", suspended: true },
             { card: "BT1-019", as: "attacker", dp: 20_000 },
@@ -326,7 +303,6 @@ describe("EX13-037 Dynasmon", () => {
     await settle();
 
     expect(s.perm("victim").currentDP).toBe(1000);
-    // Own stack was 1 card ⇒ the gate holds and Recovery +1 fires from the controller's deck.
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("recovered").instanceId);
   });
 
@@ -349,9 +325,6 @@ describe("EX13-037 Dynasmon", () => {
         type: "digivolve",
         permanentId: legal.perm("base").permanentId,
         instanceId: legal.inst("dynasmon").instanceId,
-        // Every printed [Witchelny]-text Lv.5 in the catalog is Yellow, so the alternate header and
-        // the printed Yellow EvoCost always both match on this card; the flag is how a client names
-        // the cheaper header route.
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
@@ -419,7 +392,6 @@ describe("EX13-037 Dynasmon", () => {
     expect(played.stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining([WITCHELNY_LV5, WITCHELNY_LV4, WITCHELNY_LV3]),
     );
-    // Printed play cost 12 reduced by 5 = 7, paid from 8.
     expect(s.state.memory).toBe(1);
   });
 
@@ -457,8 +429,6 @@ describe("EX13-037 Dynasmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     await settle();
 
-    // The block happened: the attack never reached security, and the 12000 blocker lost the battle
-    // to the 20000 attacker instead.
     expect(s.state.players[0]!.security).toHaveLength(securityBefore);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
@@ -470,8 +440,6 @@ describe("EX13-037 Dynasmon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "dynasmon" }],
           deck: ["BT1-010", "BT1-012"],
-          // 5 cards: after the [When Attacking] trash the stack is 4, so the "3 or fewer" tails of
-          // BOTH printed clauses stay shut and this test is only about the two keywords.
           security: ["BT1-013", "BT1-011", "BT1-012", "BT1-010", "BT1-009"],
         },
         1: {
@@ -495,13 +463,9 @@ describe("EX13-037 Dynasmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // ＜Raid＞ redirected an attack that was DECLARED at the player onto their only unsuspended
-    // Digimon...
     expect(s.events.some((event) => event.kind === "attackDeclared" && event.target.kind === "player")).toBe(true);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain(BIG_VICTIM);
-    // ...and ＜Piercing＞ then sent the surplus through as a security check.
     expect(s.state.players[1]!.security).toHaveLength(1);
-    // The own-stack tail never opened: 5 - 1 (the [When Attacking] trash) = 4.
     expect(s.state.players[0]!.security).toHaveLength(4);
   });
 
@@ -519,14 +483,10 @@ describe("EX13-037 Dynasmon", () => {
     await settle();
 
     expect(s.perm("dynasmon").currentDP).toBe(getCardDefinition(CARD_ID)!.dp! + 10000);
-    // Nothing to trash on either side; the empty stacks simply no-op.
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
 
-  // "until your opponent's turn ends" spans two turn boundaries when the clause resolves on the
-  // controller's own turn: it must survive the controller's own turn end and expire at the
-  // opponent's. Each boundary needs its own engine; a hand-laid turn cannot be chained.
   it.each([
     ["the +10000 DP survives the controller's own turn end", 0 as const, 22_000],
     ["the +10000 DP expires at the opponent's turn end", 1 as const, 12_000],
@@ -559,7 +519,6 @@ describe("EX13-037 Dynasmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Suspended: this scenario is about the security removals, not about blocking.
           battleArea: [{ card: CARD_ID, as: "dynasmon", suspended: true }],
           deck: [{ card: "BT1-012", as: "recovered" }, "BT1-010"],
           security: ["BT1-013", "BT1-011", "BT1-012", "BT1-010", "BT1-009"],
@@ -589,11 +548,8 @@ describe("EX13-037 Dynasmon", () => {
     await settle(() => s.state.players[0]!.security.length === 4);
     await settle();
 
-    // The -12000 target is a free choice, so measure the whole opposing board: 20000 + 20000 +
-    // 13000 = 53000 printed/seeded, minus exactly one 12000 debuff.
     const opposingDP = () => s.state.players[1]!.battleArea.reduce((total, { currentDP }) => total + currentDP, 0);
 
-    // 4 security left ⇒ the "3 or fewer" tail is shut, so the -12000 landed but Recovery did not.
     expect(opposingDP()).toBe(53_000 - 12_000);
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("recovered").instanceId);
@@ -608,8 +564,6 @@ describe("EX13-037 Dynasmon", () => {
     await settle(() => s.state.players[0]!.security.length === 3);
     await settle();
 
-    // A second removal in the SAME turn: the [Once Per Turn] watcher is spent, so no further
-    // -12000 and no Recovery even though the gate would now hold at 3.
     expect(opposingDP()).toBe(53_000 - 12_000);
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("recovered").instanceId);
@@ -637,15 +591,11 @@ describe("EX13-037 Dynasmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("dynasmon").instanceId);
 
-    // The alternate header needs [Witchelny] in the source's text, so this Red Lv.5 pays the
-    // printed 4, not the header's 3.
     expect(s.state.memory).toBe(4);
   });
 
   it.each([
-    // Right levels, but the Lv.5 slot's card prints no [Witchelny] token.
     ["a material without the [Witchelny] token", [PLAIN_LV5, WITCHELNY_LV4, WITCHELNY_LV3]],
-    // The header fixes a level per slot, so a Lv.5 in the Lv.3 slot is refused.
     ["the wrong level in a slot", [WITCHELNY_LV5, WITCHELNY_LV4, WITCHELNY_LV5]],
   ])("rejects Assembly with %s", (_why, materials) => {
     const s = setupEngine({

@@ -211,12 +211,9 @@ describe("BT24-097 Soul Fear", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // Turn-relative -5 means the opponent has 5 memory, satisfying BT24-085's use-cost ceiling.
     s.state.memory = -5;
     await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.perm("danAndKanan").topCard!);
-    // 2 deleted Digimon (BT1-080, BT1-020) plus 1 checked security card land in trash; the
-    // other security card stays face down (asserted below as the remaining 1).
     await settle(() => s.state.players[1]!.trash.length === 3);
 
     expect(s.perm("danAndKanan").isSuspended).toBe(true);

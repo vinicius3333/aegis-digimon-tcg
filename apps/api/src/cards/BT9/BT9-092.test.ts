@@ -69,11 +69,6 @@ describe("BT9-092 Cool Boy", () => {
   });
 
   it("suspends, gains memory, and draws after a same-level X Antibody digivolution", async () => {
-    // BT9-008 (used previously) carries its own [WhenDigivolving] deck-reveal, racing
-    // Cool Boy's post-trigger draw over the same top-of-deck cards. BT2-009 (Guilmon)
-    // digivolving into BT9-009 (Guilmon (X Antibody)) is the same same-level, 0-cost,
-    // X-Antibody alternate-digivolution shape, but BT9-009's own [WhenDigivolving] only
-    // deletes an opponent Digimon (none present here), so it never touches the deck.
     const s = setupEngine(
       {
         0: {

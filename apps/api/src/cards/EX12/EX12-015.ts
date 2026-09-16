@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX12-015 Gokuumon
-// [Digivolve] Lv.4 w/[Shambala] trait: Cost 3
-// <Raid>
-// [On Play][When Digivolving] 1 of your opponent's Digimon gets -4000 DP until their
-//   turn ends. Then, 1 of your other Digimon with the [SW] trait may gain <Alliance>
-//   and attack.
-// [Inherited][When Attacking][Once Per Turn] You may delete 1 of your opponent's
-//   Digimon with 6000 DP or less.
-//
-// "may gain <Alliance> and attack": choosing the Alliance recipient is optional, but
-// that same Digimon must attack if possible (Q6737).
 const compiled: CompiledCard = {
   effects: [
     {

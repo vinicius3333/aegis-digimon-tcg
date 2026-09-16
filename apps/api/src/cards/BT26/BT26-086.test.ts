@@ -232,8 +232,6 @@ describe("BT26-086 compiled behavior", () => {
     expect(s.perm("dantemon").linked).toHaveLength(7);
     expect(s.perm("neighbor").stack.map(({ cardId }) => cardId)).toEqual(["BT26-019"]);
     expect(s.perm("dantemon").isSuspended).toBe(false);
-    // The seven-link Dantemon attack checks one security, then its linked reaction returns
-    // the top security card to deck bottom, leaving one of the original three.
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

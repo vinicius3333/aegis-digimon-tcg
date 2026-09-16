@@ -6,21 +6,10 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-078.js";
 
-/**
- * Gorou Matayoshi, Red Tamer, play cost 3, [CS].
- *
- * [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
- * [Your Turn] When your Digimon are played or digivolve, if any of them have [Avian], [Bird],
- * [Beast], [Animal] or [Sovereign] in any of their traits (other than [Sea Animal]) or the [CS]
- * trait, by returning this Tamer to the hand, 1 of your Digimon gets +3000 DP for the turn.
- * Then, 1 of your Digimon may attack.
- * [Security] Play this card without paying the cost.
- */
 const START_MAIN = compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase");
 const YOUR_TURN = compiled.effects.find((effect) => effect.trigger === "YourTurn");
 const SECURITY = compiled.effects.find((effect) => effect.trigger === "Security");
 
-/** Count the one-memory gains a turn produced; the turn-start reset is a larger jump. */
 function singleMemoryGains(events: ServerEvent[]): number {
   return events.filter((event) => event.kind === "memoryChanged" && event.to - event.from === 1).length;
 }
@@ -73,7 +62,6 @@ describe("BT23-078 Gorou Matayoshi", () => {
             optional: true,
             abortOnDecline: true,
             cost: { kind: "return", target: { filter: { isSelfRef: true }, isSelf: true, count: 1 } },
-            // "1 of your Digimon" is the battle area, never the breeding area (CR 3-4-5-8).
             target: { filter: { controller: "mine", zone: "battleArea", kind: ["Digimon"] }, count: 1 },
           },
           {
@@ -150,7 +138,6 @@ describe("BT23-078 Gorou Matayoshi", () => {
         deck: ["BT1-011", "BT1-012"],
       },
     });
-    // Reach seat 1's Main through the real turn loop: seat 0 takes its turn and passes.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -195,13 +182,11 @@ describe("BT23-078 Gorou Matayoshi", () => {
     );
     await s.ready();
 
-    // Play cost 3 for Biyomon; the Tamer's return costs no memory.
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(gorouId);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-078")).toBe(false);
     expect(s.perm("ally").currentDP).toBe(6000);
     expect(s.perm("ally").isSuspended).toBe(true);
-    // The attack went through to the player: one security card was checked away.
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(observe(s.engine).isAttacking()).toBe(false);
@@ -364,7 +349,6 @@ describe("BT23-078 Gorou Matayoshi", () => {
     const evolved = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === hostPermanentId)!;
     expect(evolved.topCard?.instanceId).toBe(mikemonId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(gorouId);
-    // 8 memory after the cost-2 digivolve, then +3000 on the 4000 DP Mikemon.
     expect(s.state.memory).toBe(8);
     expect(evolved.currentDP).toBe(7000);
   });
@@ -427,7 +411,6 @@ describe("BT23-078 Gorou Matayoshi", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === gorouId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === gorouId)).toBe(false);
-    // The security play pays nothing: only the attacker's own turn memory stands.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });

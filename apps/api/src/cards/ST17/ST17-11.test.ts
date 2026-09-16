@@ -128,8 +128,6 @@ describe("ST17-11 Double Typhoon", () => {
         0: {
           battleArea: [{ card: "ST17-03" }],
           hand: [{ card: "ST17-11", as: "option" }],
-          // ST17-03 is the legal green Digimon; BT1-085 is a red Tamer and
-          // must remain in the deck; BT1-009 is the unrelated remainder.
           deck: ["ST17-03", "BT1-085", "BT1-009"],
         },
       },

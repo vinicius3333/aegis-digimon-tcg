@@ -195,8 +195,6 @@ describe("EX8-023", () => {
     expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "cannotActivateWhenDigivolving")).toBe(true);
     expect(s.perm("victim").stack).toHaveLength(0);
-    // EX8-022 would gain memory here if its When Digivolving effect were allowed to
-    // activate. The restriction blocks the timing entirely (Q3884-Q3888).
     expect(s.state.memory).toBe(0);
 
     s.state.memory = 0;

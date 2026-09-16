@@ -6,11 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-025.js";
 
-/**
- * Inert main-deck filler (BT1-009/013/014 print no effect text) so neither seat decks out
- * and neither Main phase auto-passes for want of a legal action. No Digi-Egg is ever seeded
- * into a deck or into security.
- */
 const FILLER = ["BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013", "BT1-014"];
 
@@ -41,7 +36,6 @@ describe("BT19-025 MetalGreymon", () => {
     expect(definition.effectText!.replaceAll("\u00A0", " ")).toContain(
       "[DigiXros -2] Blue [Greymon] x [MailBirdramon]",
     );
-    // The catalog stores U+00A0 in place of several ordinary spaces; normalize before comparing.
     expect(definition.inheritedEffectText!.replaceAll("\u00A0", " ")).toBe(
       "[End of Attack] [Once Per Turn] You may play 1 level 4 or lower Digimon card with the [Blue Flare] trait from under any of your Tamers without paying the cost.",
     );
@@ -54,7 +48,6 @@ describe("BT19-025 MetalGreymon", () => {
       ["WhenAttacking", false],
       ["EndOfAttack", true],
     ]);
-    // "[Blue Flare] trait" is an EXACT trait reference in both the main and inherited clause.
     expect(compiled.effects?.[2]?.actions?.[1]).toMatchObject({
       kind: "Digivolve",
       payCost: false,
@@ -81,8 +74,6 @@ describe("BT19-025 MetalGreymon", () => {
     });
   });
 
-  // --- Evolution routes -----------------------------------------------------------------
-
   it("digivolves from a Blue/Black Lv.4 for 4 memory with the bonus draw, keeping the source in the stack", async () => {
     const s = setupEngine({
       0: {
@@ -107,7 +98,6 @@ describe("BT19-025 MetalGreymon", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("source").stack.map((card) => card.instanceId)).toEqual([sourceInstanceId]);
-    // 1 card of hand spent, 1 bonus draw: hand is the spare filler plus the drawn card.
     expect(s.state.players[0]!.hand).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(FILLER.length - 1);
   });
@@ -194,7 +184,6 @@ describe("BT19-025 MetalGreymon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    // Red [Greymon]: the name matches exactly but the slot's Blue colour gate does not.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -203,7 +192,6 @@ describe("BT19-025 MetalGreymon", () => {
       }),
     ).toEqual({ ok: false, reason: "invalid-material" });
 
-    // [MetalGreymon] contains "Greymon" as a substring; the DigiXros slot is an EXACT name.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -216,12 +204,7 @@ describe("BT19-025 MetalGreymon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  // --- ＜Material Save 2＞ ----------------------------------------------------------------
-
   it("＜Material Save 2＞ rescues both specified materials into a Tamer when it loses a real battle", async () => {
-    // Comprehensive 16-21-1: only cards specified in the top card's OWN DigiXros requirement
-    // are eligible. BT1-015 is a Red [Greymon] — the exact name, the wrong colour — so it is
-    // the near-miss that must still be trashed with the rest of the permanent.
     const s = setupEngine(
       {
         0: {
@@ -270,8 +253,6 @@ describe("BT19-025 MetalGreymon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // --- [On Play] ＜Rush＞ -----------------------------------------------------------------
-
   it("[On Play] ＜Rush＞ lets it attack the turn it is played, where a plain peer cannot", async () => {
     const s = setupEngine(
       {
@@ -294,7 +275,6 @@ describe("BT19-025 MetalGreymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("metal"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("peer"), "Rush")).toBe(false);
 
-    // The Rush consequence: a Digimon played this turn may attack. The peer may not.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -345,16 +325,12 @@ describe("BT19-025 MetalGreymon", () => {
     await loop;
   });
 
-  // --- [When Attacking] -----------------------------------------------------------------
-
   it("[When Attacking] de-digivolves 1 opposing Digimon by 1, then digivolves into a [Blue Flare] card from under a Tamer", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT19-025", as: "metal" },
-            // BT19-021 (Blue, Avian/Aquatic) is the near-miss: it is a Digimon card under the
-            // Tamer, but it does not carry the [Blue Flare] trait, so it can never be the route.
             { card: "BT19-081", as: "tamer", under: ["BT19-021", "BT19-026"] },
           ],
           hand: ["BT1-013"],
@@ -383,10 +359,8 @@ describe("BT19-025 MetalGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("metal").topCard?.cardId === "BT19-026");
 
-    // ＜De-Digivolve 1＞: the Lv.5 top card is trashed and the Lv.4 beneath it becomes the top.
     expect(s.perm("victim").topCard?.cardId).toBe("BT19-021");
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT19-023");
-    // The free digivolve used the [Blue Flare] BT19-026 only; the near-miss BT19-021 stayed put.
     expect(s.perm("metal").topCard?.instanceId).toBe(zeigId);
     expect(s.perm("metal").stack.map((card) => card.instanceId)).toEqual([metalInstanceId]);
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([xiqueUnderTamerId]);
@@ -430,13 +404,7 @@ describe("BT19-025 MetalGreymon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // --- Inherited [End of Attack] [Once Per Turn] -----------------------------------------
-
   it("inherited [End of Attack] plays one Lv.4-or-lower [Blue Flare] from under a Tamer, once per turn, under a real host", async () => {
-    // Realistic stack: MetalGreymon (Lv.5) digivolved into ZeigGreymon (Lv.6). Only the BURIED
-    // BT19-025 contributes the End of Attack clause. Under the Tamer sit two eligible cards
-    // (BT19-020, BT19-022 — Lv.4 [Blue Flare]) and two near-misses: BT19-021 (Lv.4, no
-    // [Blue Flare] trait) and BT19-025 itself (Lv.5 [Blue Flare] — right trait, wrong level).
     const s = setupEngine(
       {
         0: {
@@ -474,7 +442,6 @@ describe("BT19-025 MetalGreymon", () => {
     expect(afterFirst).toHaveLength(3);
     expect(afterFirst.filter((id) => ["BT19-020", "BT19-022"].includes(id))).toHaveLength(1);
 
-    // Same turn, second attack: [Once Per Turn] is spent, so nothing else leaves the Tamer.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -487,7 +454,6 @@ describe("BT19-025 MetalGreymon", () => {
     expect(s.perm("tamer").stack).toHaveLength(3);
     expect(boardIds(s, 0)).toEqual(afterFirst);
 
-    // Hand the turn over and come back: the next own turn resets the counter.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
@@ -503,8 +469,6 @@ describe("BT19-025 MetalGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.length === 2);
 
-    // Both eligible [Blue Flare] Lv.4 cards are now on the board; only the two near-misses
-    // remain under the Tamer, proving the level and trait gates.
     expect(boardIds(s, 0).sort()).toEqual(["BT19-020", "BT19-022", "BT19-026", "BT19-081"]);
     expect(
       s
@@ -546,15 +510,7 @@ describe("BT19-025 MetalGreymon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // --- Q3085 ----------------------------------------------------------------------------
-
   it("performs the DigiXros at the moment BT19-027's ＜Decode＞ plays MetalGreymon (Q3085)", async () => {
-    // Q3085 asks about BT19-027 Ryugumon: its [End of Your Turn] returns Ryugumon itself to the
-    // bottom of the deck, ＜Decode (Blue Lv.5)＞ plays BT19-025 from under it, and the DigiXros is
-    // performed AT THAT PLAY, before the pending [End of Your Turn] return is chosen. The
-    // would-leave replacement is driven here through the production return verb because the
-    // owning clause belongs to BT19-027; what this card owes is that its DigiXros recipe is
-    // satisfied from the board at the instant Decode plays it.
     const s = setupEngine(
       {
         0: {

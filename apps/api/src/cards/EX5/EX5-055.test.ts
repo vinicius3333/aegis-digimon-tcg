@@ -194,9 +194,6 @@ describe("EX5-055 HeavyLeomon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === sourceInstanceId));
     const replayed = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.instanceId === sourceInstanceId)!;
     expect(replayed.stack).toHaveLength(0);
-    // Fortitude replays the deleted HeavyLeomon once; its printed On Deletion still
-    // resolves in that original deletion window. Capture the permanent identity before
-    // resolution because the target is then de-digivolved and bottom-decked.
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === targetPermanentId)).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetTopInstanceId)).toBe(true);
     expect(targetStackInstanceIds).toHaveLength(1);

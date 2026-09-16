@@ -224,7 +224,7 @@ describe("BT20-043 Varodurumon", () => {
         s.state.players[1]!.battleArea.length === 0,
     );
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.memory).toBe(-3); // End Main passes the gauge; DNA itself costs 0.
+    expect(s.state.memory).toBe(-3);
   });
 
   it("publicly declines the optional End of Your Turn DNA evolution", async () => {

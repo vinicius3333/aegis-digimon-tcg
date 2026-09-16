@@ -8,7 +8,6 @@ const CARD_ID = "EX10-025";
 const INERT_DECK = ["BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013", "BT1-014"];
 const INERT_SECURITY = ["BT1-009", "BT1-013", "BT1-014"];
 
-/** The next unanswered decision of `kind`, once the engine has published it. */
 async function nextDecision(
   s: EngineSetup,
   kind: DecisionRequest["kind"],
@@ -35,7 +34,6 @@ describe("EX10-025 Sunarizamon", () => {
       forms: ["Rookie"],
       attributes: ["Virus"],
       types: ["Reptile", "LIBERATOR", "Mineral"],
-      // The catalog stores a NON-BREAKING space (U+00A0) before each "trait" — reported, not edited.
       effectText:
         "[On Play] You may place 2 cards with the [Mineral] or [Rock]\u00a0trait from your trash as 1 of your [Mineral] or [Rock]\u00a0trait Digimon's bottom digivolution cards.",
       inheritedEffectText:
@@ -106,7 +104,6 @@ describe("EX10-025 Sunarizamon", () => {
     });
     await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === sunariId);
 
-    // Printed evolution requirement is "Black Lv.2: Cost 0", plus the standard bonus draw.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.breeding!.stack.map((card) => card.instanceId)).toEqual([eggId]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
@@ -139,8 +136,6 @@ describe("EX10-025 Sunarizamon", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  // Q5078: with 2 or more eligible trash cards the placement is not a free choice of how many —
-  // exactly 2 must be placed. Proved by the engine REFUSING a 1-card answer to the selection.
   it("Q5078: played from hand, the placement demands 2 cards and refuses a 1-card answer", async () => {
     const answered = new Set<string>();
     const s = setupEngine({
@@ -177,8 +172,6 @@ describe("EX10-025 Sunarizamon", () => {
       }),
     ).toEqual({ ok: true });
 
-    // The host is chosen among this player's [Mineral]/[Rock] Digimon only: the seeded
-    // Landramon and the just-played Sunarizamon, never the plain [Mini Dragon] Monodramon.
     const host = await nextDecision(s, "chooseTargets", answered);
     const hostCandidates = host.options?.candidateInstanceIds ?? [];
     expect(hostCandidates).toContain(hostPermanentId);
@@ -195,7 +188,6 @@ describe("EX10-025 Sunarizamon", () => {
     const selection = await nextDecision(s, "selectCards", answered);
     expect(selection.options?.min).toBe(2);
     expect(selection.options?.max).toBe(2);
-    // Only the [Mineral]/[Rock] cards are offered; the [Avian] card in the same trash is not.
     expect(selection.options?.candidateInstanceIds?.slice().sort()).toEqual(
       [s.inst("mineral").instanceId, s.inst("rockA").instanceId, s.inst("rockB").instanceId].sort(),
     );
@@ -222,7 +214,6 @@ describe("EX10-025 Sunarizamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("mineralHost").stack.length === 3 && s.state.pendingDecision === undefined);
 
-    // Both placed cards sit BELOW the host's pre-existing source (index 0 is the stack bottom).
     const stack = s.perm("mineralHost").stack.map((card) => card.instanceId);
     expect(stack).toHaveLength(3);
     expect(stack.slice(0, 2).sort()).toEqual([s.inst("mineral").instanceId, s.inst("rockA").instanceId].sort());
@@ -239,7 +230,6 @@ describe("EX10-025 Sunarizamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // Q5079: only 1 eligible card in the trash — placing that single card is legal.
   it("Q5079: with a single eligible trash card the effect places just that one card", async () => {
     const s = setupEngine(
       {
@@ -339,9 +329,6 @@ describe("EX10-025 Sunarizamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // The inherited clause, driven by a real opposing card effect: the opponent plays
-  // BT3-100 Death Parade Blaster ("[Main] Trash up to 2 digivolution cards from the bottom
-  // of all of your opponent's Digimon"), which effect-trashes this card off both hosts at once.
   it("inherited: deletes a cost-4-or-less opposing Digimon only from a [Mineral]/[Rock] host", async () => {
     const s = setupEngine(
       {
@@ -355,9 +342,6 @@ describe("EX10-025 Sunarizamon", () => {
         },
         1: {
           hand: [{ card: "BT3-100", as: "blaster" }],
-          // Two deletable Digimon (play cost 2 and 3), so a second, wrongly-firing watcher
-          // would have a legal target too: exactly one of them may be gone at the end.
-          // BT15-027 is the Blue Digimon that lets its controller play the Blue Option.
           battleArea: [
             { card: "BT1-009", as: "lowA" },
             { card: "BT1-013", as: "lowB" },
@@ -381,8 +365,6 @@ describe("EX10-025 Sunarizamon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 2 && s.state.pendingDecision === undefined, 120);
 
-    // Both copies were trashed by the same effect, but only the one under the [Mineral] host
-    // may delete — exactly 1 Digimon goes, and the play-cost-6 Digimon is never eligible.
     expect(s.perm("mineralHost").stack).toHaveLength(0);
     expect(s.perm("plainHost").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
@@ -396,8 +378,6 @@ describe("EX10-025 Sunarizamon", () => {
   });
 
   it("inherited: stays silent when the same effect trashes OTHER cards off a [Mineral] host", async () => {
-    // Printed: "when effects trash THIS CARD". BT3-100 takes the bottom 2 sources, which here
-    // are the two inert cards; this card stays in the stack and nothing is deleted.
     const s = setupEngine(
       {
         0: {
@@ -417,7 +397,6 @@ describe("EX10-025 Sunarizamon", () => {
         },
         1: {
           hand: [{ card: "BT3-100", as: "blaster" }],
-          // BT3-100 is a Blue Option, so its controller needs a Blue Digimon in play to play it.
           battleArea: [
             { card: "BT1-009", as: "low" },
             { card: "BT15-027", as: "blue" },

@@ -3,23 +3,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const stopAtLevel3 = { stopAtLevel: 3 };
 
-// Hand-fixed IR for EX4-036 (BlackRapidmon).
-// Text:
-//   [Main] Digivolve from Lv.4 w/[Gargomon] in name (cost 3) or 2-color w/green Lv.4 (cost 3).
-//   [End of Attack] Trash digivolution cards from the top of 1 of your opponent's Digimon
-//                   until you reach a level 3 card or trash the last card. Then <De-Digivolve 1>
-//                   targeting 1 of your opponent's Digimon.
-//   Inherited [Your Turn][Once Per Turn] When an effect suspends another Digimon
-//             (not this one), this Digimon gains <Piercing> for the turn.
-//
-// KB Q3482: <De-Digivolve 1> targets 1 of your opponent's Digimon.
-// KB Q3483: Gaining <Piercing> after the battle doesn't help with security checks.
-// KB Q3484: Both digivolution paths require a Lv.4 Digimon.
-// KB note on names:[Gargomon] — text says "w/[Gargomon] in name" meaning name contains "Gargomon"
-//           (substring match), not exact match.
-//
-// Digivolution fix: multicolor:true requires exactly 2+ colors AND must include green.
-// The existing IR uses multicolor:true + colors:['Green'] which is correct for "2-color w/green".
 export const compiled: CompiledCard = {
   effects: [
     {

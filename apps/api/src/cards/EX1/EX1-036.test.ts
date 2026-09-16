@@ -130,8 +130,6 @@ describe("EX1-036 Togemon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
       ok: true,
     });
-    // "controller: opponent" is relative to the player who plays the suspender, so player1's
-    // own suspend card targets player0's host, not player1's own opponentTarget.
     await settle(() => s.perm("host").isSuspended);
     expect(s.perm("host").currentDP).toBe(3000);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

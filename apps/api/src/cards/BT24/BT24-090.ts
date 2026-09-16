@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT24-090 Abyss Sanctuary: Throne Room
-// Fix: [Security][All Turns] now includes conditional <Alliance> grant for Neptunemon/Venusmon.
-//   [Main] cost reduction integrated into PlayWithoutCost (reduceCostBy: 3), not separate Replacement.
-//   SecurityManipulation toHand now specifies position: "bottom" for the bottom security card.
 export const compiled: CompiledCard = {
   effects: [
     {

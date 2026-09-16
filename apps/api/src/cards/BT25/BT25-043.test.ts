@@ -365,8 +365,6 @@ describe("BT25-043 Habakirimon", () => {
       } as never),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    // -8000 has already resolved while the optional security-funded action is pending.
-    // The target is genuinely at zero DP, but remains in play until the whole Option effect ends.
     expect(s.perm("target").currentDP).toBe(0);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
     const cost = s.state.pendingDecision!;

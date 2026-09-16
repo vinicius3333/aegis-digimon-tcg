@@ -7,27 +7,20 @@ import "../index.js";
 import { compiled } from "./BT23-067.js";
 
 const LADYDEVIMON = "BT23-067";
-const ANGEWOMON = "BT23-031"; // exact name [Angewomon]
-const ANGEWOMON_X = "BT9-040"; // "Angewomon (X Antibody)" — a different printed name
-const MIREI = "BT22-089"; // Tamer [Mirei Mikagura]
-const OPPONENT_LOW = "BT23-063"; // Sangloupmon, purple Lv.4 with [CS]
-const OPPONENT_HIGH = "BT23-068"; // GranDracmon, purple Lv.6
-const NEUTRAL = "BT1-009"; // Monodramon, a legal main-deck security/deck filler
+const ANGEWOMON = "BT23-031";
+const ANGEWOMON_X = "BT9-040";
+const MIREI = "BT22-089";
+const OPPONENT_LOW = "BT23-063";
+const OPPONENT_HIGH = "BT23-068";
+const NEUTRAL = "BT1-009";
 
 const FILLER_DECK = ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-027", "BT1-028", "BT1-045"];
 
-/**
- * Hand the turn to seat 1 through the real turn loop, so an opponent-turn attack never needs a
- * direct `turnSeat` write. Returns the loop promise; end it with `finishTurnLoop`.
- */
 async function passTurnToOpponent(s: EngineSetup, suspendAlias?: string): Promise<{ loop: Promise<void> }> {
   const loop = s.engine.startTurnLoop();
   await advance(s.engine).waitForMainPhase(0);
   await settle(() => s.state.pendingDecision === undefined);
   if (suspendAlias !== undefined) {
-    // Suspend publicly: the Digimon attacks the opponent on its own turn and stays suspended into
-    // the opponent's turn, which a Board Spec `suspended: true` could not survive (the Unsuspend
-    // phase of seat 0's turn would clear it).
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -41,8 +34,6 @@ async function passTurnToOpponent(s: EngineSetup, suspendAlias?: string): Promis
   expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
   await advance(s.engine).waitForMainPhase(1);
   expect(s.state.turnSeat).toBe(1);
-  // Returned inside a wrapper: awaiting a promise that resolves TO the loop promise would
-  // flatten onto the loop and hang the test.
   return { loop };
 }
 
@@ -51,7 +42,6 @@ async function finishTurnLoop(s: EngineSetup, loop: Promise<void>): Promise<void
   await loop;
 }
 
-/** Play LadyDevimon from hand with `memory` available; card-selection prompts answer themselves. */
 function playFromHand(memory: number, board: BoardSpec) {
   const s = setupEngine(board, { autoSelectCards: true });
   s.state.memory = memory;
@@ -100,8 +90,6 @@ describe("BT23-067 LadyDevimon", () => {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              // Bracket-only references are exact names (comprehensive rules 2-3-1-2); the
-              // breeding area can't be referenced (3-4-5-8).
               zone: "battleArea",
               nameOrTrait: [{ tokens: ["Angewomon", "Mirei Mikagura"], match: "nameExact" }],
             },
@@ -130,8 +118,6 @@ describe("BT23-067 LadyDevimon", () => {
     expect(staticEffects.find((entry) => entry.isInherited)?.keywords?.[0]?.keyword).toBe("Scapegoat");
     expect(staticEffects.find((entry) => entry.keywords?.[0]?.keyword === "Blocker")?.isInherited).toBeUndefined();
   });
-
-  // --- the play-cost reduction ---
 
   it("costs 4 instead of 7 when you control an exact [Angewomon]", async () => {
     const s = playFromHand(10, {
@@ -190,8 +176,6 @@ describe("BT23-067 LadyDevimon", () => {
       expect(s.state.memory).toBe(3);
     }
   });
-
-  // --- the On Play / When Digivolving deletion ---
 
   it("deletes the opponent's level 4 Digimon on play and leaves the level 6 alone", async () => {
     const s = playFromHand(10, {
@@ -254,8 +238,6 @@ describe("BT23-067 LadyDevimon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
 
-  // --- evolution routes ---
-
   for (const [label, source, cost] of [
     ["purple Lv.4", "BT11-078", 3],
     ["yellow Lv.4", "BT1-055", 3],
@@ -305,7 +287,7 @@ describe("BT23-067 LadyDevimon", () => {
   it("refuses a level 3 source that matches neither printed nor alternate requirement", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-046", as: "host" }], // yellow Lv.3, no [CS] trait
+        battleArea: [{ card: "BT1-046", as: "host" }],
         hand: [{ card: LADYDEVIMON, as: "lady" }],
         deck: [NEUTRAL, "BT1-010"],
       },
@@ -323,8 +305,6 @@ describe("BT23-067 LadyDevimon", () => {
     expect(s.perm("host").topCard?.instanceId).toBe(s.inst("host").instanceId);
     expect(s.state.memory).toBe(5);
   });
-
-  // --- ＜Blocker＞ ---
 
   it("blocks an attack on the player and wins the battle", async () => {
     const s = setupEngine({
@@ -371,8 +351,6 @@ describe("BT23-067 LadyDevimon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("carrier"), "Blocker")).toBe(false);
   });
-
-  // --- inherited ＜Scapegoat＞ (comprehensive rules 16-32) ---
 
   it("lets a carrier delete another own Digimon instead of being deleted in battle", async () => {
     const s = setupEngine(
@@ -444,7 +422,6 @@ describe("BT23-067 LadyDevimon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === carrierId), 5000);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    // The whole stack goes to the trash: the carrier plus its LadyDevimon digivolution card.
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain(LADYDEVIMON);
     await finishTurnLoop(s, loop);

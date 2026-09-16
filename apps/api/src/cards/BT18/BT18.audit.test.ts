@@ -22,7 +22,7 @@ describe("BT18 collection registration and IR audit", () => {
   it("keeps every declarative BT18 runtime record fully covered and residual-free", () => {
     for (const cardId of BT18_IDS) {
       const compiled = runtimeCompiledCard(cardId);
-      if (compiled === undefined) continue; // Hand-authored modules are audited by their module tests.
+      if (compiled === undefined) continue;
       expect(compiled.coverage, `${cardId} coverage`).toBe("full");
       expect(compiled.residual, `${cardId} residual`).toEqual([]);
       expect(containsRawUnparsed(compiled), `${cardId} contains RawUnparsed IR`).toBe(false);

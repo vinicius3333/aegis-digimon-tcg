@@ -144,14 +144,11 @@ describe("BT17-026", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("victim"), "suspend"));
 
     expect(s.perm("koji").topCard?.cardId).toBe("BT17-026");
-    // Q6569: a digivolution bonus draw is performed even when digivolving from a Tamer.
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === bonusId)).toBe(true);
-    // The When Digivolving cost returns exactly one Hybrid digivolution card to the hand.
     const returnedMaterials = s.state.players[0]!.hand.filter((card) => materialIds.includes(card.instanceId));
     expect(returnedMaterials).toHaveLength(1);
     expect(s.perm("koji").stack.some((card) => materialIds.includes(card.instanceId))).toBe(true);
 
-    // "Can't suspend": blocked from effect suspends and from suspending to attack.
     expect(observe(s.engine).isRestricted(s.perm("victim"), "beSuspended")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("victim"), "suspend")).toBe(true);
     await advance(s.engine).verb.suspend([s.perm("victim").permanentId]);
@@ -196,7 +193,6 @@ describe("BT17-026", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("koji").topCard?.cardId === "BT17-026");
 
-    // Q6571: a Tamer placed under a Digimon is a digivolution card, trashed when the Digimon leaves.
     await advance(s.engine).verb.deletePermanent([s.perm("koji").permanentId]);
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === kojiId));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === kojiId)).toBe(true);

@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST23-03 Cougarmon
-// [Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2
-// [On Play] [When Digivolving] Add your top security card to the hand. Then, <Recovery +1>
-//   (Q6165: if 0 security, skip the add-to-hand step and just do Recovery +1)
-// [Your Turn] When this Digimon would digivolve into a [Glowing Dawn] trait Digimon card,
-//   by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 2.
-// [Inherited] <Barrier>
 const compiled: CompiledCard = {
   effects: [
     {

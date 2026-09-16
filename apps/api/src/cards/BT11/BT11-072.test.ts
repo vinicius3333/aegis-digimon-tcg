@@ -89,8 +89,6 @@ describe("BT11-072 Machinedramon", () => {
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("replacement").instanceId),
     );
 
-    // The returned Analogman is immediately revealed by the replacement
-    // Machinedramon's [On Play] effect and added back to hand.
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT11-092")).toBe(true);
     expect(
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("replacement").instanceId),

@@ -1,5 +1,3 @@
-// HAND-FIXED IR for BT10-060 — do not regenerate.
-// OpponentsTurn Unsuspend: added condition (same as Aura while — only when Shoutmon/Mervamon in name).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

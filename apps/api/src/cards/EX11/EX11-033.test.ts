@@ -180,8 +180,6 @@ describe("EX11-033 Maneuvermon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-034"));
-    // The target exceeds EX11-034's 8-cost public DeleteBudget, so it is deleted by the
-    // actual battle after the security-choice prompt and emits whenDeletesInBattle.
     expect(s.state.players[1]!.trash.some(({ cardId: trashedId }) => trashedId === "EX11-034")).toBe(true);
     expect(s.perm("host").isSuspended).toBe(false);
     assertNoLoudGap(s);

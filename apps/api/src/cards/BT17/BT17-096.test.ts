@@ -55,7 +55,6 @@ describe("BT17-096 Crimson Savior", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT9-009")).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nearName").instanceId);
-    // Only the Option's own 3 memory is spent; nothing was played for free.
     expect(s.state.memory).toBe(7);
   });
 
@@ -125,8 +124,6 @@ describe("BT17-096 Crimson Savior", () => {
           hand: [
             { card: "BT17-096", as: "option" },
             { card: "BT17-016", as: "gallantmon" },
-            // Q2884: the Delay digivolution does not ignore digivolution requirements, so
-            // Gallantmon: Crimson Mode (Lv.6 source) is not a legal target from WarGrowlmon.
             { card: "BT17-018", as: "crimsonMode" },
           ],
         },
@@ -134,8 +131,6 @@ describe("BT17-096 Crimson Savior", () => {
           hand: [{ card: "BT17-013", as: "opponentLevel5" }],
         },
       },
-      // Do not auto-answer the Delay activation while checking that the event watcher
-      // granted it. The activation is accepted explicitly below.
       { autoSelectCards: true },
     );
     const optionId = s.inst("option").instanceId;

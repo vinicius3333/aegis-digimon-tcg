@@ -197,7 +197,7 @@ describe("BT25-088 Kyo Sawashiro", () => {
     await settle(() => s.state.players[0]!.hand.every((card) => card.instanceId !== firstId));
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: secondId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.every((card) => card.instanceId !== secondId));
-    expect(s.state.memory).toBe(3); // First costs 3, second costs its full 4.
+    expect(s.state.memory).toBe(3);
     expect(s.perm("kyo").stack).toHaveLength(1);
   });
 

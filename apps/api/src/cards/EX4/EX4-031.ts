@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The printed "2-color w/green" gate is carried as multicolor:true + colors:['Green'] plus
-// colorCount:2, consumed by the shared requirement matcher as an exact color cardinality gate.
-// text in the printed effectText is the rules reminder for Alliance, not a separate effect).
 export const compiled: CompiledCard = {
   effects: [
     {

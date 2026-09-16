@@ -183,7 +183,7 @@ describe("EX5-073 GraceNovamon", () => {
     expect(opponentBattle).toHaveLength(1);
     expect(opponentBattle[0]!.topCard?.instanceId).toBe(s.inst("other").instanceId);
     expect(opponentBattle[0]!.stack).toHaveLength(6);
-    expect(s.state.players[1]!.trash).toHaveLength(9); // 8 trashed sources plus the deleted Digimon.
+    expect(s.state.players[1]!.trash).toHaveLength(9);
   });
 
   it("trashes as many as possible when fewer than eight opponent sources exist", async () => {

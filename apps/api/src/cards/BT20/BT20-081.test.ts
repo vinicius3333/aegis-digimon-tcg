@@ -141,9 +141,6 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
         },
         1: {
           battleArea: [
-            // Use printed-DP vanilla Digimon: `ready()` and the digivolve seam recompute
-            // currentDP from the authoritative card definition, so a fixture-only `dp: 20000`
-            // override would be lost before the -10000 effect resolves.
             { card: "BT10-055", as: "first" },
             { card: "BT8-017", as: "second" },
             { card: "BT1-080", as: "third" },
@@ -208,8 +205,6 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 2);
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011"]);
-    // The reactivated When Digivolving effect applies its second -10000/delete pass,
-    // so both opposing Digimon are gone after the attack.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
@@ -288,8 +283,6 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
   it("requires exact named materials and a battle-area field material", async () => {
     for (const setup of [
       {
-        // The result names [Fenriloogamon] exactly; its near-name
-        // [Fenriloogamon: Takemikazuchi] must not fill that material slot.
         battleArea: [{ card: "BT17-101", as: "nearName" }],
         hand: [
           { card: "BT20-035", as: "handMaterial" },

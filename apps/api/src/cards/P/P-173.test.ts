@@ -216,9 +216,6 @@ describe("P-173 RustTyrannomon", () => {
         0: { battleArea: [{ card: "P-173", as: "rust" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
-      // Deleting the attacker in the block battle offers rust's own optional
-      // unsuspend; decline it so the assertion below sees the ordinary suspended
-      // Blocker outcome.
       { autoDeclineOptional: true },
     );
     s.state.turnSeat = 1;

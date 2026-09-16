@@ -1,28 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST22-06 Sakuyamon: Maid Mode
-// [Digivolve] [Sakuyamon]: Cost 1
-// [On Play] [When Digivolving] You may use 1 Option card with the [Onmyōjutsu] or
-//   [Plug-In] trait from your hand or under your Tamers without paying the cost.
-// [All Turns] [Once Per Turn] When you use Option cards or your security stack is
-//   removed from, by placing 1 of your opponent's Digimon with the lowest DP as the
-//   bottom security card, trash their top security card.
-//
-// KB Q5421: used Option card from under Tamer is trashed after activation.
-// KB Q5422: "when you use an Option card" fires after the Option's [Main] effect.
-// KB Q5423: "when you use an Option card" does NOT trigger if activated by [Security]
-//   or <Delay> — only fires on a manual use action.
-// KB Q5424: [Security] effects take precedence; other triggered effects follow turn-player order.
-// KB Q5425: if the Digimon can't leave (prevented), the security card is NOT trashed.
-// KB Q5426: [Once Per Turn] count occurs as soon as you choose to activate the effect.
-//
-// Fixes vs prior IR:
-// - UseOptionWithoutCost carries `filter`/`from` at the action level: the interpreter
-//   reads those first, and the printed clause has no use-cost ceiling.
-// - OnPlay/WhenDigivolving: changed Trash+activate to UseOptionWithoutCost with proper
-//   trait filters and "from hand or under Tamers" (from:["hand","underTamers"]).
-// - AllTurns: added missing whenOptionUsed SubTrigger alongside whenSecurityRemoved.
 const compiled: CompiledCard = {
   effects: [
     {

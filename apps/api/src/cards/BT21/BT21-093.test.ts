@@ -133,12 +133,10 @@ describe("BT21-093 Raging Serpentine", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1);
 
-    // Delay cannot activate in the same turn the Option entered the battle area.
     expect(s.perm("eligible1").topCard.instanceId).toBe(s.inst("eligible1").instanceId);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("destination").instanceId)).toBe(true);
 
-    // Cross complete production turns, then make a second public security attack.
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 0;
@@ -274,7 +272,6 @@ describe("BT21-093 Raging Serpentine", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
 
-    // Age the Delay source through a complete opponent turn and return to own Main.
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 0;

@@ -24,7 +24,7 @@ describe("ST3-15 Holy Flame", () => {
     await advance(s.engine).runTurn(0);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-3);
     s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory; // Production passTurn changes the active player's memory perspective.
+    s.state.memory = -s.state.memory;
     await advance(s.engine).runTurn(1);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
   });

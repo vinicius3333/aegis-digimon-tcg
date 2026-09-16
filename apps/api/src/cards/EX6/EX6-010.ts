@@ -10,7 +10,6 @@ if (generatedMainAction?.kind !== "Delete") {
   throw new Error("EX6-010 expected its generated Main action to be Delete");
 }
 
-/** EX6-010 — Durandamon, with its placement cost and security-disable clause structured. */
 export const compiled: CompiledCard = {
   ...generated,
   effects: generated.effects.map((effect): CardEffect => {
@@ -56,8 +55,6 @@ export const compiled: CompiledCard = {
                 raw: "and placing this card as the bottom digivolution card of 1 of your Digimon that's level 6 or has the [Legend-Arms] trait",
               },
             ],
-            // The printed payment and self-placement form one activation condition.
-            // Do not let the dependent Delete resolve if either half cannot be paid.
             abortOnDecline: true,
             raw: "By paying 3 cost and placing this card as the bottom digivolution card of 1 of your Digimon that's level 6 or has the [Legend-Arms] trait, delete 1 of your opponent's Digimon with as much or less DP as that Digimon.",
           },

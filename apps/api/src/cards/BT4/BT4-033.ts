@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT6-002 Q1399: the source-trash sentence is explanatory rule teardown, so the
-// return must use the canonical Return primitive without emitting a source-trash event.
 const compiled: CompiledCard = {
   effects: [
     {

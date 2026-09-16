@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX10-008 (MetalGreymon).
-// runtime-effect fixes:
-// - [On Play]/[When Digivolving]: text grants BOTH <Collision> AND "[Start of Your Main
-//   Phase] This Digimon attacks." — the IR only granted <Collision>. Added a
-//   `GainTriggeredEffect` action (BT21-077 pattern) with `sameTarget: true` so it applies
-//   to the SAME opponent's Digimon chosen for <Collision>, not an independently re-chosen one.
-// - Inherited [Opponent's Turn] condition: replaced the raw, malformed string ("... in its
-//   name in its name") with a structured `selfHasNameContaining` condition (BT20-080 pattern).
 const compiled: CompiledCard = {
   effects: [
     {

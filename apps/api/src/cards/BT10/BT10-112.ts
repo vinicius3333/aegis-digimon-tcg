@@ -1,7 +1,3 @@
-// HAND-FIXED IR for BT10-112 — do not regenerate.
-// WhenDigivolving PlaceUnder: added from:["hand","trash"]; underFilter:{isSelfRef:true}.
-// ActivateEffect: corrected target controller from opponent to mine.
-// AllTurns: added SecurityAttack +1 Aura (per Royal Knight in digivolution cards).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

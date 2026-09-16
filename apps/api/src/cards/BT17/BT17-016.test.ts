@@ -162,8 +162,6 @@ describe("BT17-016", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  // Q2744: the deletion is mandatory while a legal target exists — declining every optional
-  // prompt still deletes, and the +3000 DP / ＜Blocker＞ branch stays off.
   it("cannot decline the deletion on attack while a legal target exists (Q2744)", async () => {
     const s = setupEngine(
       {
@@ -191,9 +189,6 @@ describe("BT17-016", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // Q2745: a deletion-proof target is still a legal choice, and choosing it takes the
-  // "didn't delete" branch. BT14-062 Datamon is 6000 DP and can't be deleted by opponent
-  // effects; the plain 8000 DP Digimon beside it proves the pick was a real choice.
   it("gains DP and Blocker when the chosen target cannot be deleted (Q2745)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -271,9 +266,6 @@ describe("BT17-016", () => {
     expect(observe(s.engine).hasKeyword(s.perm("gallant"), "Blocker")).toBe(false);
   });
 
-  // [Your Turn] While you have 0 or less memory, this Digimon isn't affected by your
-  // opponent's effects. The opponent effect is ST22-08's [Security] "delete the lowest-DP
-  // Digimon", reached through a real attack and security check.
   it("ignores an opponent security effect at 0 memory but not at 1 memory", async () => {
     const board = () => ({
       0: {
@@ -318,10 +310,6 @@ describe("BT17-016", () => {
     expect(exposed.state.players[0]!.trash.some(({ cardId }) => cardId === "BT17-016")).toBe(true);
   });
 
-  // Q2746: ST7-05's inherited "gain 1 memory" resolves before ＜Retaliation＞, so memory
-  // reaches 1 and the [Your Turn] immunity is gone by the time Retaliation deletes.
-  // BT5-080 Zanbamon is 10000 DP, out of the [When Attacking] delete range, so the
-  // "didn't delete" branch pushes Gallantmon to 14000 and it wins the battle.
   it("is deleted by Retaliation once an inherited memory gain lifts memory above 0 (Q2746)", async () => {
     const withGrowlmon = setupEngine(
       {
@@ -355,8 +343,6 @@ describe("BT17-016", () => {
     expect(withGrowlmon.state.players[0]!.trash.some(({ cardId }) => cardId === "BT17-016")).toBe(true);
     expect(withGrowlmon.state.memory).toBe(1);
 
-    // Comparative case: the same battle without the inherited memory gain leaves memory at
-    // 0, so the immunity holds and ＜Retaliation＞ cannot delete this Digimon.
     const withoutGrowlmon = setupEngine(
       {
         0: {

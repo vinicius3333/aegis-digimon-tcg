@@ -88,8 +88,6 @@ describe("BT11-111 Galacticmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    // If the host filter regresses to a broad own-Digimon selector, this preference makes
-    // the unrelated neighbor the selected host and fails the stack assertions below.
     preferred.push(s.perm("neighbor").permanentId);
     const opponentTargetId = s.perm("opponentTarget").topCard.instanceId;
     const trashVemmonIds = ["trashVemmon1", "trashVemmon2", "trashVemmon3", "trashVemmon4"]

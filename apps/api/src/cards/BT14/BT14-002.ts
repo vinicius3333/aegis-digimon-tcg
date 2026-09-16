@@ -1,6 +1,3 @@
-// Hand-authored override (errata 2023-12-15): "...no Digimon with MORE digivolution
-// cards..." -> "...AS MANY OR MORE digivolution cards AS this Digimon..." (>=, encoded
-// as `gte`). Inherited [Your Turn] <Jamming> self-grant gated on the corrected guard.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

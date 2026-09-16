@@ -114,9 +114,6 @@ describe("EX1-023 Elecmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // The seeded egg deck makes every one of seat 0's breeding phases hatchable, so the
-    // window really opens and has to be skipped publicly before Main can be awaited.
-    // (The deleted host's own Digi-Egg is no help here: it goes to the trash, CR §4-15-1.)
     const skipBreeding = () =>
       settle(() => {
         if (s.state.phase !== Phase.Breeding) return false;

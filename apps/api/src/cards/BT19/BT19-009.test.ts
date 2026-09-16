@@ -25,7 +25,6 @@ describe("BT19-009 Growlmon", () => {
   });
 
   it("compiles both printed clauses", () => {
-    // "[Takato Matsuki]" is a bracketed name: exact, never substring.
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
@@ -42,8 +41,6 @@ describe("BT19-009 Growlmon", () => {
         },
       ],
     });
-    // "[All Turns] While you have 0 or less memory": the gauge is read from THIS card's
-    // owner's side (KB Q3064), so the condition must be controller-scoped.
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
@@ -58,11 +55,6 @@ describe("BT19-009 Growlmon", () => {
       ],
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // [When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Takato Matsuki]
-  // from your hand without paying the cost.
-  // ---------------------------------------------------------------------------
 
   it.each([0, 1])("plays Takato for free through the digivolve intent with %i Tamer(s)", async (tamerCount) => {
     const tamers = Array.from({ length: tamerCount }, () => ({ card: "BT19-081" }));
@@ -92,7 +84,6 @@ describe("BT19-009 Growlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-080"));
 
-    // Only the digivolution cost of 2 was paid: Takato (play cost 3) came down for free.
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").topCard?.cardId).toBe("BT19-009");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT19-007"]);
@@ -101,7 +92,6 @@ describe("BT19-009 Growlmon", () => {
         (permanent) => permanent.topCard?.instanceId === s.inst("takato").instanceId,
       ),
     ).toHaveLength(1);
-    // Only the digivolve bonus draw is left in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -200,15 +190,6 @@ describe("BT19-009 Growlmon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [All Turns] +2000 to this Digimon's DP-deletion maximums.
-  // KB Q3064 (memory gauge), Q3065 (printed numeric maximum), Q3066 (DP-relative negative).
-  // ---------------------------------------------------------------------------
-
-  // The deletion effect under test is BT19-015 Gallantmon's own [When Digivolving]
-  // "Delete 1 of your opponent's Digimon with 8000 DP or less" — a real printed numeric
-  // maximum reached through the public digivolve intent, with Growlmon sitting in the
-  // digivolution cards beneath it. 8000 + 2000 = 10000 covers a 9000 DP target.
   it.each([
     [0, true],
     [1, false],
@@ -224,8 +205,6 @@ describe("BT19-009 Growlmon", () => {
       },
       { autoSelectCards: true },
     );
-    // The Gallantmon route costs 4, so the gauge lands on exactly `memory` when the
-    // [When Digivolving] effect resolves: the 0 edge and the 1 edge of Q3064.
     s.state.memory = memory + 4;
     await s.ready();
 
@@ -239,8 +218,6 @@ describe("BT19-009 Growlmon", () => {
     if (deletes) await settle(() => s.state.players[1]!.battleArea.length === 0, 20);
     else await drainMicrotasks(20);
 
-    // Gallantmon's own [Your Turn] [Once Per Turn] "when an opponent's Digimon is deleted,
-    // gain 2 memory" fires only on the branch where the raised maximum actually deleted.
     expect(s.state.memory).toBe(deletes ? memory + 2 : memory);
     expect(s.perm("base").topCard?.cardId).toBe("BT19-015");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT19-009", "BT19-012"]);
@@ -251,8 +228,6 @@ describe("BT19-009 Growlmon", () => {
   });
 
   it("leaves the printed 8000 maximum alone without Growlmon in the digivolution cards", async () => {
-    // Same board, same route, but an inert Lv3 under the stack instead of Growlmon:
-    // the 9000 DP target survives, so the deletion above is Growlmon's doing.
     const s = setupEngine(
       {
         0: {
@@ -281,7 +256,6 @@ describe("BT19-009 Growlmon", () => {
   });
 
   it("still raises the printed maximum for a target the bonus alone brings into range", async () => {
-    // 8000 printed, 8000 + 2000 = 10000: a 10000 DP target is deleted, an 11000 one is not.
     const s = setupEngine(
       {
         0: {
@@ -314,9 +288,6 @@ describe("BT19-009 Growlmon", () => {
   });
 
   it("does not add to a DP maximum that references the source Digimon's DP (Q3066)", async () => {
-    // BT19-014 Shoutmon EX6's [When Attacking] "delete 1 of your opponent's Digimon with as
-    // much or less DP as this Digimon" shows no printed number, so the +2000 cannot apply:
-    // its own 12000 DP must not become 14000 against a 13000 DP target.
     const s = setupEngine(
       {
         0: {
@@ -327,8 +298,6 @@ describe("BT19-009 Growlmon", () => {
       },
       { autoSelectCards: true },
     );
-    // Keep memory on the active player's side: negative memory is already the
-    // opponent's Blitz window, so the attack intent is rejected before combat.
     s.state.memory = 0;
     s.state.turnSeat = 0;
     await s.ready();

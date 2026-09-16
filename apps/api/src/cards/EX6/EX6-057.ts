@@ -42,8 +42,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          // "another Digimon" includes either player's Digimon; only this source
-          // itself is excluded (same wording as EX9-033/BT24-079).
           sourceFilter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
         },

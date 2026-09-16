@@ -1,7 +1,3 @@
-// Hand-authored override for EX3-006.
-// Hand-authored runtime fix: encode the printed trait gate structurally instead of as
-// a raw string. Per KB Q3371 [Dragonkin] is also included alongside [Dragon], [saur],
-// and [Ceratopsian].
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

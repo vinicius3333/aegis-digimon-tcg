@@ -1,19 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-030 Shoutmon X7: Superior Mode — hand-authored IR override.
-//
-// When played: by placing 1 [Shoutmon] under it, reduce play cost by 1 AND cards in
-// your trash can also be placed for DigiXros (in addition to hand).
-//
-// [On Play] / [When Digivolving]: Trash the top 10 stacked cards of 1 opponent's Digimon.
-// KB Q4540: trash from the current top downward, retaining the bottom card.
-// Q4541/Q4542: an exposed non-DP or Option top is then removed by rule processing.
-//
-// [When Attacking] [Once Per Turn]: You may return 1 of your opponent's Digimon with
-// NO digivolution cards to the bottom of the deck.
-//
-// DigiXros -1: ∞ Digimon cards with [Xros Heart] or [Blue Flare] trait & different card numbers.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT23-013 (Jesmon).
-// [When Digivolving][When Attacking]: Modal choice between playing [Atho/René/Por] Token or
-//   a [Sistermon]-name card from hand/trash. Restriction is effect-scoped (not permanent).
-// [Your Turn]: SubTrigger whenPlayed (another Digimon), then this Digimon may attack
-//   — text says "may attack" (normal attack with suspending). Q5223 confirms attack IS
-//   declared normally.
-// digivolutionRequirement: SaviorHuckmon by name or a level 5 CS card, cost 3.
-//   Also: Huckmon cost 5 but only while opponent has ≥10000 DP Digimon (conditional reqs).
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -44,7 +44,6 @@ describe("EX9-044", () => {
     expect(s.perm("blue2").topCard.cardId).toBe("BT1-044");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-045", "BT1-009", "BT1-010"]);
     const choicesBefore = s.decisions.filter(({ req }) => req.kind === "optional").length;
-    // Effect-play a WG card from trash after the first DNA has completely resolved.
     await advance(s.engine).verb.playInstances([s.inst("later").instanceId]);
     await settle();
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX9-045")).toHaveLength(1);
@@ -78,7 +77,6 @@ describe("EX9-044", () => {
     s.state.turnSeat = turn;
     s.state.memory = 3;
     await s.ready();
-    // Effect play is permitted on either turn; a normal play intent cannot open the off-turn case.
     await advance(s.engine).verb.playInstances([s.inst("played").instanceId]);
     await settle();
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-044", "BT1-044", card]);
@@ -107,7 +105,6 @@ describe("EX9-044", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-045"]);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.memory).toBe(-6);
-    // The play-time reduction offer and the later DNA offer were both declined.
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -242,7 +239,6 @@ describe("EX9-044", () => {
     await settle();
     expect(s.state.memory).toBe(-6);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    // Its own play also opens the optional DNA response after On Play resolves.
     expect(s.state.pendingDecision?.kind).toBe("optional");
     expect(
       s.engine.applyIntent(0, {

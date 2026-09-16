@@ -5,26 +5,9 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as EX13_069 } from "./EX13-069.js";
 import "../index.js";
 
-// Fixtures
-//   BT3-021  Veemon (Blue, Lv.3, 2000 DP, prints only ＜Jamming＞, no inherited text) — the
-//            [Veemon] substring positive and the legal digivolution base for ST8-05.
-//   EX1-014  ExVeemon (Blue, Lv.4, ＜Jamming＞) — proves "[Veemon] in its name" is a
-//            SUBSTRING match, not the bare-bracket exact-name form.
-//   BT18-060 Vemmon (Black, Lv.3) — the near-match negative: one letter off "Veemon", so a
-//            substring match must still refuse it.
-//   ST8-05   Veedramon (Blue, Lv.4, no main effect; EvoCost Blue Lv.3 for 2) — the
-//            [Veedramon]-named hand card the digivolve tail reaches for.
-//   BT3-025  ExVeemon (Blue, Lv.4, EvoCost Blue Lv.3 for 2) — a legal digivolution
-//            destination that is NOT [Veedramon]-named: the `into` filter negative.
-//   BT1-009  Monodramon (Red, Lv.3, no text) / BT1-011..014 — inert neutral fixtures.
 const CARD_ID = "EX13-069";
 
-// Both digivolve tests open their turn on this gauge value, high enough that a partially
-// reduced cost still leaves the turn player in positive memory.
 const STARTING_MEMORY = 3;
-// Memory after the ST8-05 run: STARTING_MEMORY, minus a digivolution cost of 2 - 2 = 0, plus
-// the 1 clause 1 adds at the start of the main phase. The BT1-115 sibling reads the same
-// board with a printed EvoCost of 3 instead.
 const MEMORY_AFTER_FREE_DIGIVOLVE = STARTING_MEMORY + 1;
 
 describe("EX13-069 Rina Shinomiya", () => {
@@ -78,10 +61,6 @@ describe("EX13-069 Rina Shinomiya", () => {
 
     expect(EX13_069.effects.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
   });
-
-  // ---------------------------------------------------------------------------
-  // Clause 1 — [Start of Your Main Phase] conditional gain 1 memory
-  // ---------------------------------------------------------------------------
 
   it("gains 1 memory at the start of your main phase with a [Veemon]-named Digimon out", async () => {
     const s = setupEngine(
@@ -182,8 +161,6 @@ describe("EX13-069 Rina Shinomiya", () => {
     s.state.memory = 1;
     await s.ready();
 
-    // Fired directly: a seeded breeding-area Digimon parks the turn loop in the breeding
-    // phase awaiting a hatch/move action, which this test has no interest in.
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("rina"));
     await settle();
 
@@ -218,10 +195,6 @@ describe("EX13-069 Rina Shinomiya", () => {
     await turn;
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 2 — [Your Turn] when any of your Digimon unsuspend
-  // ---------------------------------------------------------------------------
-
   it("suspends itself, draws 1 and digivolves a Digimon into a [Veedramon] card for 2 less", async () => {
     const s = setupEngine(
       {
@@ -249,13 +222,9 @@ describe("EX13-069 Rina Shinomiya", () => {
     await settle();
 
     const board = s.state.players[0]!;
-    // The base kept its permanent identity; the Veedramon sits on top of it.
     expect(s.perm("veemon").topCard.instanceId).toBe(s.inst("veedramon").instanceId);
     expect(s.perm("veemon").stack.map((card) => card.instanceId)).toEqual([s.inst("veemon").instanceId]);
-    // The cost was paid.
     expect(s.perm("rina").isSuspended).toBe(true);
-    // Two cards left the 3-card deck: the clause's own ＜Draw 1＞ plus the digivolution
-    // bonus draw. The hand nets 2 + 2 drawn - 1 Veedramon played = 3.
     expect(board.deck).toHaveLength(1);
     expect(board.hand).toHaveLength(3);
     expect(board.hand.map((card) => card.instanceId)).not.toContain(s.inst("veedramon").instanceId);
@@ -293,9 +262,6 @@ describe("EX13-069 Rina Shinomiya", () => {
     await settle();
 
     expect(s.perm("veemon").topCard.instanceId).toBe(s.inst("veedramon").instanceId);
-    // Same board as the ST8-05 run, whose EvoCost of 2 was reduced to 0 and left memory at
-    // MEMORY_AFTER_FREE_DIGIVOLVE; BT1-115's printed EvoCost of 3 is reduced to 1, so the
-    // gauge lands exactly 1 lower. Neither "no reduction" (2 lower) nor "free" (equal) fits.
     expect(s.state.memory).toBe(MEMORY_AFTER_FREE_DIGIVOLVE - 1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
@@ -359,7 +325,6 @@ describe("EX13-069 Rina Shinomiya", () => {
     await settle();
 
     expect(s.perm("rina").isSuspended).toBe(true);
-    // BT3-025 is a legal Lv.3 -> Lv.4 blue route, but it is not [Veedramon]-named.
     expect(s.perm("veemon").topCard.instanceId).toBe(s.inst("veemon").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("exVeemon").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -450,8 +415,6 @@ describe("EX13-069 Rina Shinomiya", () => {
     );
     await s.ready();
 
-    // Seat 0 is the turn player, so the [Your Turn] scope is satisfied; only the
-    // "your Digimon" source filter can refuse this unsuspend.
     await advance(s.engine).verb.unsuspend([s.perm("theirVeemon").permanentId]);
     await settle();
 
@@ -481,8 +444,6 @@ describe("EX13-069 Rina Shinomiya", () => {
     );
     await s.ready();
 
-    // Mid-turn unsuspend of one Digimon only, with the Tamer left suspended: the cost is
-    // unpayable, so neither the draw nor the digivolve happens.
     await advance(s.engine).verb.unsuspend([s.perm("veemon").permanentId]);
     await settle();
 
@@ -491,10 +452,6 @@ describe("EX13-069 Rina Shinomiya", () => {
     expect(s.state.players[0]!.deck).toHaveLength(3);
     expect(s.perm("veemon").topCard.instanceId).toBe(s.inst("veemon").instanceId);
   });
-
-  // ---------------------------------------------------------------------------
-  // Clause 3 — [Security] Play this card without paying the cost.
-  // ---------------------------------------------------------------------------
 
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: CARD_ID, as: "rina" }] } });

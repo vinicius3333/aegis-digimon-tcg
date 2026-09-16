@@ -4,8 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-// Inert main-deck Digimon (no printed or inherited text) for deck/security padding: no
-// Digi-Egg may sit in either zone, and a numeric `security: n` form is forbidden.
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
@@ -58,8 +56,6 @@ describe("BT19-034 Kyubimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT19-083"));
 
-    // Endpoints: cost 2 paid, evolution bonus draw taken, source under the new top card,
-    // Rika on the board and out of hand, and no memory spent playing her.
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").topCard?.instanceId).toBe(s.inst("kyubi").instanceId);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-050"]);
@@ -229,7 +225,6 @@ describe("BT19-034 Kyubimon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: pinned },
     );
-    // Pin the -2000 on one named opponent Digimon so "exactly one" is asserted by identity.
     pinned.push(s.perm("target").topCard!.instanceId);
     s.state.memory = 10;
     await s.ready();
@@ -250,7 +245,6 @@ describe("BT19-034 Kyubimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT1-057");
-    // The stack really carries Kyubimon under a Lv5 host, bottom-most first.
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-050", "BT19-034"]);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstOption").instanceId })).toEqual({
@@ -259,9 +253,8 @@ describe("BT19-034 Kyubimon", () => {
     await settle(() => s.perm("target").currentDP === 4000);
     await settle();
     expect(s.perm("target").currentDP).toBe(4000);
-    expect(s.perm("bystander").currentDP).toBe(5000); // BT1-013's printed DP, untouched
+    expect(s.perm("bystander").currentDP).toBe(5000);
 
-    // [Once Per Turn]: a second cost-2 Option in the same turn changes nothing.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondOption").instanceId })).toEqual({
       ok: true,
     });
@@ -305,13 +298,11 @@ describe("BT19-034 Kyubimon", () => {
     expect(s.perm("target").currentDP).toBe(4000);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    // The opponent's real turn: "for the turn" expires and nothing re-applies it.
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(s.perm("target").currentDP).toBe(6000);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // Back on our own turn the once-per-turn allowance is fresh.
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondOption").instanceId })).toEqual({
@@ -325,10 +316,6 @@ describe("BT19-034 Kyubimon", () => {
   });
 
   it("ignores an Option whose own use cost is below 2 and fires once it is 2 or more (Q5466)", async () => {
-    // BT7-100's use cost IS the number of your security cards - a card-level change to the
-    // use cost itself, so the threshold reads the changed value (Q5466). Its own [Main]
-    // effect always gives an opponent Digimon -3000 DP, which is the control: only the extra
-    // -2000 belongs to Kyubimon.
     const cheap = setupEngine(
       {
         0: {
@@ -355,8 +342,8 @@ describe("BT19-034 Kyubimon", () => {
     });
     await settle(() => cheap.perm("target").currentDP === 3000);
     await settle();
-    expect(cheap.state.memory).toBe(5); // paid the changed use cost of 1
-    expect(cheap.perm("target").currentDP).toBe(3000); // only BT7-100's own -3000
+    expect(cheap.state.memory).toBe(5);
+    expect(cheap.perm("target").currentDP).toBe(3000);
 
     const costly = setupEngine(
       {
@@ -383,15 +370,11 @@ describe("BT19-034 Kyubimon", () => {
       ok: true,
     });
     await settle(() => costly.perm("target").currentDP === 1000);
-    expect(costly.state.memory).toBe(3); // paid the changed use cost of 3
-    expect(costly.perm("target").currentDP).toBe(1000); // -3000 from BT7-100, -2000 from Kyubimon
+    expect(costly.state.memory).toBe(3);
+    expect(costly.perm("target").currentDP).toBe(1000);
   });
 
   it("still fires when only the cost to pay was reduced, after the Option's own effect (Q5464, Q5467)", async () => {
-    // BT21-093 keeps a printed use cost of 8 and reduces only what is PAID (by 4 while the
-    // opponent has 3 or fewer security cards), so the threshold still reads 8. Its [Main]
-    // deletes the opponent's highest-DP Digimon first, so the -2000 can only land on the
-    // survivor - which is also the Q5464 ordering proof.
     const s = setupEngine(
       {
         0: {
@@ -424,14 +407,12 @@ describe("BT19-034 Kyubimon", () => {
     });
     await settle(() => s.perm("survivor").currentDP === 2000);
 
-    expect(s.state.memory).toBe(2); // use cost 8 printed, 4 actually paid
+    expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-014"]);
     expect(s.perm("survivor").currentDP).toBe(2000);
   });
 
   it("fires for an Option used without paying its cost at all (Q5468)", async () => {
-    // BT4-089's [When Digivolving] USES a purple Option from hand without paying it. The
-    // printed use cost of 2 still arms the watcher even though no memory changes hands.
     const s = setupEngine(
       {
         0: {
@@ -465,7 +446,7 @@ describe("BT19-034 Kyubimon", () => {
     await settle(() => s.perm("target").currentDP === 4000);
     await settle();
 
-    expect(s.state.memory).toBe(6); // only the digivolution cost of 4; the Option was free
+    expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT2-108")).toBe(true);
     expect(s.perm("target").currentDP).toBe(4000);
   });
@@ -506,7 +487,6 @@ describe("BT19-034 Kyubimon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-102"));
     await settle();
 
-    // The security Option's effect resolved without being "used", and it is not our turn.
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-102")).toBe(false);
     expect(s.perm("attacker").currentDP).toBe(6000);
 

@@ -15,20 +15,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-085.js";
 import { compiled } from "./BT7-112.js";
 
-// BT7-112 (Susanoomon)
-// Chosen KB clauses:
-//   1. [When Digivolving] "Delete 1 of your opponent's Digimon" — fires ONLY at
-//      WhenDigivolving; targets exactly 1 opponent Digimon.
-//      Q2048: the inherited effect does NOT activate when this card is trashed by the
-//      rules instead of digivolving, confirming the trigger is WhenDigivolving not OnPlay.
-//   2. The condition gate for the Delete effect uses "youHave" (mine-side) in the IR,
-//      IsPermanentExistsOnOpponentBattleAreaDigimon. The interpreter's evaluateCondition
-//      for "youHave" overrides the filter controller to "mine", so the gate always fails
-//      when the controller has no Digimon. This is a runtime record IR bug.
-//   3. The first effect (return 10 Tamer/Hybrid cards to unlock Tamer digivolution) is
-//      mis-modelled as Replacement/reduceCost in the IR. Q1681/Q1684 confirm it is a
-//      gated alternate digivolution path, not a cost reduction.
-
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
 }
@@ -104,8 +90,6 @@ function makeContext(opts: { recorder: Recorder; opponentDigimon?: Permanent[] }
       opts.recorder.calls.push({ verb, args });
       return undefined as never;
     };
-  // Only the verbs the Delete clause can reach need real bodies; everything else throws
-  // so accidental dispatch surfaces immediately.
   const fx = {
     deletePermanent: record("deletePermanent"),
   } as unknown as Primitives;
@@ -144,19 +128,12 @@ describe("BT7-112 (Susanoomon)", () => {
   });
 
   it("routes [When Digivolving] delete to WhenDigivolving, not to OnPlay", () => {
-    // Q2048: the When Digivolving delete only fires during an actual digivolution;
-    // when BT7-112 is trashed by rules (not an effect), this timing never fires.
-    // Wrong timing windows must return no effect for this clause.
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source).length).toBeGreaterThanOrEqual(1);
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
   });
 
   it("[When Digivolving] deletes 1 opponent Digimon when one is available", async () => {
-    // Q1684: the effect fires when there is an opponent Digimon to target; the documented behavior
-    // coroutine calls Destroy. Now PASSES: the IR override gates the Delete with
-    // kind:"opponentHas" (was the runtime record's contradictory kind:"youHave" +
-    // controller:"opponent", which evaluateCondition collapsed to controller:"mine").
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
     const deleteEffect = effects.find((e) => e.description.includes("Delete"));
@@ -171,8 +148,6 @@ describe("BT7-112 (Susanoomon)", () => {
   });
 
   it("[When Digivolving] deletes exactly 1 (not 2) when opponent has multiple Digimon", async () => {
-    // The effect card text says "Delete 1" — exactly 1. Now PASSES with the
-    // kind:"opponentHas" gate fix (same root cause as above).
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
     const deleteEffect = effects.find((e) => e.description.includes("Delete"));
@@ -183,21 +158,12 @@ describe("BT7-112 (Susanoomon)", () => {
     await deleteEffect!.resolve(ctx);
     const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
     expect(deleteCalls).toHaveLength(1);
-    // Exactly one permanent id was passed.
     expect(deleteCalls[0]!.args[0] as string[]).toHaveLength(1);
   });
 
   it("[Static] first clause should be an alternate digivolution path, not a cost reduction", async () => {
-    // Q1681, Q1684: the first effect is a gated ALTERNATE digivolution path
-    // (return 10 Tamer/Hybrid cards unlocks digivolving from a Tamer treated as Lv6).
-    // The runtime record incorrectly modelled this as Replacement/reduceCost:"wouldDigivolve"
-    // at Static timing. The hand-fixed IR removes that wrong Replacement action; the
-    // alternate path is represented by `digivolutionRequirement: [{ isAlternate: true }]`.
-    // The assertion below checks that there is NO Replacement action in the Static
-    // (None) effects.
     const source = makeSource();
     const noneEffects = module!.effectsForTiming(EffectTiming.None, source);
-    // A correct port has NO Replacement at None (only SecurityAttack keyword grant).
     const hasReplacementAtNone = noneEffects.some((e) => e.description.toLowerCase().includes("replacement"));
     expect(hasReplacementAtNone).toBe(false);
   });
@@ -240,7 +206,6 @@ describe("BT7-112 (Susanoomon)", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(10);
-    // Susanoomon's +2 combines with Takuya's inherited +1 at 10000+ DP.
     expect(observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack")).toBe(3);
 
     expect(

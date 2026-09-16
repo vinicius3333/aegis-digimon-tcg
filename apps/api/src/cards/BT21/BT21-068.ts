@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 4000 DP or less.
-// If this effect didn't delete, trash the top 2 cards of your deck.
-// KB Q4575: if opponent has a Digimon with 4000 DP or less, you MUST choose and delete it.
-// KB Q4576: if chosen target has deletion protection, that counts as "didn't delete".
-// Inherited [On Deletion]: Gain 1 memory.
 export const compiled: CompiledCard = {
   effects: [
     {

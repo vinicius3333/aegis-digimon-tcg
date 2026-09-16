@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX3-019 (Paledramon).
-// runtime-effect fixes:
-// - [When Digivolving] restricts the host choice to Digimon with sources, then lets the
-//   controller choose any one card from that host's stack.
-// - [Opponent's Turn] Inherited Replacement: corrected mode from "reduceCost" / amount -1 to
-//   "increaseCost" / amount 1 — the text says "increase the digivolution cost by 1".
-// - Source filter: Digimon with no digivolution cards (digivolutionCards: "none") is preserved per text.
 export const compiled: CompiledCard = {
   effects: [
     {

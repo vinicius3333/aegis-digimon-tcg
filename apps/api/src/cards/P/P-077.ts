@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-maintained: the self-resolving whenTrashedFromDeck seam reads registered IR for the
-// loose card after it reaches trash. A static hand-written watcher cannot be installed from deck.
 const compiled: CompiledCard = {
   effects: [
     {

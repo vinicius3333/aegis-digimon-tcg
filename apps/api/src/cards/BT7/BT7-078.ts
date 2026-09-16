@@ -1,19 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT7-078 (AncientSphinxmon).
-//
-// Audit fix:
-// [When Digivolving] The Delete target filter must restrict opponent's Digimon to those
-// whose level is ≤ the deleted Digimon's level. The prior IR had no levelComparison on
-// the target at all. Fix: add levelComparison { op: "lte", relativeTo: "lastDeleted" }
-// (per BT13-109 precedent; interpreter captures the deleted level in ctx.lastDeletedLevel
-// via the deleteOwn cost handler).
-//
-// KB Q1642: You may delete this card itself to delete a Lv.6 or lower opponent Digimon
-// (this card is Lv.6, so the deleted-level bound permits Lv.6). No filter change needed
-// beyond the levelComparison relativeTo lastDeleted.
-
 const compiled: CompiledCard = {
   effects: [
     {

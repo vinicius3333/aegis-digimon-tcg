@@ -110,9 +110,6 @@ describe("BT13-112 Omnimon", () => {
     const blockedId = s.inst("blockedMagnamon").instanceId;
     const playableId = s.inst("playableGallantmon").instanceId;
     const hostId = s.perm("drasil").topCard!.instanceId;
-    // A restriction that blocks the 7000-DP Magnamon but permits the 13000-DP Gallantmon means
-    // Magnamon is not a card that can be played. Q2367 therefore requires the playable Gallantmon
-    // to enter, followed by the printed cleanup of the breeding host and remaining stack.
     advance(s.engine).ledgers.continuous.addPlayProhibition(
       0,
       1,

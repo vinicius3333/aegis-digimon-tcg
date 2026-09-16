@@ -147,7 +147,6 @@ describe("BT17-054 Trailmon", () => {
       eligibleBlockerIds: [s.perm("blocker").permanentId],
       mustBlock: true,
     });
-    // Collision makes the block mandatory: declining is rejected while a blocker exists.
     expect(s.engine.applyIntent(1, { type: "declineBlock" }).ok).toBe(false);
     expect(
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),

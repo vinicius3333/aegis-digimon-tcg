@@ -79,9 +79,6 @@ describe("EX2-027 Rapidmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Use an inert green Lv.4 source: EX2-026 has its own printed green-Tamer
-          // evolution reduction, which would make this Rapidmon cost proof depend on
-          // whether the full collection has loaded EX2-026's module yet.
           battleArea: [{ card: "BT1-071", as: "base" }, "EX2-061"],
           hand: [{ card: "EX2-027", as: "evolution" }],
           deck: [{ card: "BT1-009", as: "drawn" }, ...FILLER],

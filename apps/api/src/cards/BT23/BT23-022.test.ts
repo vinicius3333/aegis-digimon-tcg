@@ -91,7 +91,6 @@ describe("BT23-022 Oujamon", () => {
     await settle(() => s.perm("host").topCard?.instanceId === s.inst("oujamon").instanceId);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([oldTopId, coachmonId]);
     expect(s.perm("host").linked).toHaveLength(0);
-    // Printed cost 0, and App Fusion still draws the digivolution bonus card.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
     expect(s.events).toContainEqual(
@@ -373,8 +372,6 @@ describe("BT23-022 Oujamon", () => {
     await advance(s.engine).waitForMainPhase(0);
     const oujamonId = s.perm("oujamon").permanentId;
 
-    // First attack: [When Attacking] links Musclemon for free, and the linked reaction
-    // unsuspends Oujamon in the same window.
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: oujamonId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
@@ -383,8 +380,6 @@ describe("BT23-022 Oujamon", () => {
     expect(s.perm("oujamon").linked.map((card) => card.instanceId)).toEqual([s.inst("linkA").instanceId]);
     expect(s.state.players[1]!.security).toHaveLength(5);
 
-    // Second attack in the same turn: both Once Per Turn uses are spent, so nothing links
-    // and the manual link that follows leaves Oujamon suspended.
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: oujamonId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
@@ -402,7 +397,6 @@ describe("BT23-022 Oujamon", () => {
     await settle(() => s.perm("oujamon").linked.some((card) => card.instanceId === s.inst("linkB").instanceId));
     expect(s.perm("oujamon").isSuspended).toBe(true);
 
-    // Next own turn: both Once Per Turn uses have reset.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });

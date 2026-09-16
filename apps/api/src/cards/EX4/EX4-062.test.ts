@@ -8,13 +8,9 @@ import "../index.js";
 import "../BT1/BT1-009.js";
 import "../BT1/BT1-010.js";
 
-// A3 for EX4-062 (Nene Amano & Kiriha Aonuma) — DigiXros source-zone expander:
-//   "by suspending this Tamer, you may place DigiXros materials from your trash and from under your
-//    Tamers" for a [Blue Flare]/[Twilight] DigiXros play (documented behavior — trash max 1, under-Tamer max 1).
-//
 const EX4_062 = "EX4-062";
-const BLUE_FLARE_DIGIMON = "BT11-030"; // [Blue Flare] L5 DigiXros card, recipe incl. [MetalGreymon]; cost 8
-const METALGREYMON = "BT10-024"; // "MetalGreymon" Blue L5
+const BLUE_FLARE_DIGIMON = "BT11-030";
+const METALGREYMON = "BT10-024";
 
 describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", () => {
   it("registers full residual-free IR with the suspend-paid zone expansion", () => {
@@ -53,7 +49,7 @@ describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", ()
     const tamer = s.perm("tamer");
     const trashMat = s.inst("trashMat");
     const xros = s.inst("xros");
-    s.state.memory = 6; // cost 8 - 1×2 = 6
+    s.state.memory = 6;
 
     const res = s.engine.applyIntent(0, {
       type: "playCard",

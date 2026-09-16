@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT2-041 suspends all yellow Tamers and applies a separate -4000 DP choice for each Tamer
-// suspended; its inherited effect grants +1000 DP per yellow Tamer in play.
 const compiled: CompiledCard = {
   effects: [
     {

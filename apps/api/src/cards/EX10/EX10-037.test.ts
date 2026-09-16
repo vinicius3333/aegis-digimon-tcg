@@ -7,20 +7,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-037";
 
-/**
- * EX10-037 Impmon (Purple, Lv.3 Rookie, [Evil]).
- *
- * Main text:
- *   1. "When this card is trashed from the top of the deck, you may delete 1 of your
- *      opponent's level 4 or lower Digimon."
- *   2. "[Start of Your Main Phase] Trash the top 2 cards of your deck."
- * Inherited:
- *   3. "[Your Turn] For every 10 cards in your trash, this Digimon gets +1000 DP."
- *
- * Clause 2 is the public route into clause 1: the real turn loop opens Main, the resident
- * Impmon mills two cards, and a second Impmon among them fires its own deck-trash watcher.
- * No injected timing is used for any behavioural claim below.
- */
 describe("EX10-037 Impmon", () => {
   it("records the exact catalog and printed text", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -89,7 +75,6 @@ describe("EX10-037 Impmon", () => {
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "source", dp: 20_000 }],
-          // The opening turn of the loop has no draw phase, so the top two cards are milled.
           deck: [{ card: CARD_ID, as: "milledImpmon" }, { card: "BT1-009", as: "milledInert" }, "BT1-009", "BT1-009"],
           hand: ["BT1-013"],
           security: ["BT1-009", "BT1-013"],
@@ -113,15 +98,12 @@ describe("EX10-037 Impmon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === lv4Id));
 
     const p0 = s.state.players[0]!;
-    // Both milled cards reached the trash; only the Impmon among them fired.
     expect(p0.trash.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("milledImpmon").instanceId,
       s.inst("milledInert").instanceId,
     ]);
     expect(p0.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-009"]);
-    // The opening turn skips the draw phase: the hand is untouched.
     expect(p0.hand.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
-    // The level-4 ceiling: the Lv.5 was never a legal candidate and survives.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([lv5Id]);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -223,9 +205,6 @@ describe("EX10-037 Impmon", () => {
   });
 
   it("Q5116: revealing this card from the deck is not a deck trash, so nothing is deleted", async () => {
-    // BT11-046 [On Play]: "Reveal the top 4 cards of your deck. Add 1 Tamer card among them to
-    // your hand. Place the rest at the bottom of your deck in any order." The deck holds no
-    // Tamer, so every revealed card — Impmon included — goes back to the bottom untouched.
     const s = setupEngine(
       {
         0: {
@@ -253,8 +232,6 @@ describe("EX10-037 Impmon", () => {
   });
 
   it("public digivolution route: a purple Lv.4 digivolves onto Impmon, paying 1 and drawing 1", async () => {
-    // BT3-083 Meramon is a purple Lv.4 with no effect text and no inherited text, so every
-    // endpoint below belongs to the route or to Impmon's inherited clause.
     const s = setupEngine({
       0: {
         battleArea: [
@@ -276,7 +253,6 @@ describe("EX10-037 Impmon", () => {
     const impmonInstanceId = s.inst("impmon").instanceId;
     const impmonPermanentId = s.perm("impmon").permanentId;
 
-    // Illegal source: BT1-009 is a RED Lv.3, and Meramon's only evolution cost is purple Lv.3.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -289,7 +265,6 @@ describe("EX10-037 Impmon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT3-083", "BT1-013"]);
 
-    // Legal source: Impmon is purple Lv.3, so the printed cost of 1 applies.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -300,10 +275,8 @@ describe("EX10-037 Impmon", () => {
     await settle(() => s.perm("impmon").topCard?.cardId === "BT3-083");
 
     const carrier = s.perm("impmon");
-    // Stack identity: the exact Impmon instance is now the digivolution card beneath Meramon.
     expect(carrier.stack.map(({ instanceId }) => instanceId)).toEqual([impmonInstanceId]);
     expect(carrier.permanentId).toBe(impmonPermanentId);
-    // Cost: 3 - 1. Bonus draw: the named top deck card is now in hand.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("spare").instanceId,
@@ -311,14 +284,11 @@ describe("EX10-037 Impmon", () => {
     ]);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-009"]);
 
-    // The inherited clause now runs on a carrier built by a public route: 20 trash -> +2000.
     expect(carrier.currentDP).toBe(getCardDefinition("BT3-083")!.dp! + 2000);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("an opponent's effect that mills my deck also fires the deck-trash clause", async () => {
-    // BT14-077 SkullSatamon [On Play]: "Trash the top 2 cards of both players' decks." The
-    // printed clause carries no attribution, so my milled Impmon fires on the opponent's mill.
     const s = setupEngine(
       {
         0: {
@@ -344,7 +314,6 @@ describe("EX10-037 Impmon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === lv4Id));
     await settle(() => false, 30);
 
-    // My deck was milled by THEIR effect, and the milled Impmon deleted their Lv.4.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("milledImpmon").instanceId,
       s.inst("milledInert").instanceId,
@@ -352,7 +321,6 @@ describe("EX10-037 Impmon", () => {
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[0]!.security).toHaveLength(2);
-    // Their own deck lost its top 2 as well, and the deleted Lv.4 followed them into the trash.
     expect(s.state.players[1]!.deck).toHaveLength(1);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-009", "BT1-014"]);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard!.cardId)).toEqual(["BT14-077"]);
@@ -378,13 +346,11 @@ describe("EX10-037 Impmon", () => {
     const base = getCardDefinition("BT1-014")!.dp!;
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
 
-    // 19 cards is one complete group of ten: +1000, not +1900.
     expect(s.perm("host").currentDP).toBe(base + 1000);
     s.give(0, Zone.Trash, "BT1-009");
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(base + 2000);
 
-    // The buff is turn-scoped: it is gone once the opponent's turn is authoritatively open.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").currentDP).toBe(base + 2000);

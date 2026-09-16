@@ -139,8 +139,6 @@ describe("BT17-015", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
-    // The inherited effect trashes one card, then the attack's normal check removes the
-    // remaining security card.
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
@@ -168,7 +166,6 @@ describe("BT17-015", () => {
     expect(definition.inheritedEffectText).toBe(
       "[When Attacking] [Once Per Turn] If this Digimon has [Omnimon]\u00a0in its name, trash the top card of your opponent's security stack.",
     );
-    // The printed route says "in its name", so the compiled requirement is the substring form.
     expect(compiled.digivolutionRequirement).toEqual([{ level: 5, names: ["Greymon"], cost: 3, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -193,7 +190,6 @@ describe("BT17-015", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-015"));
 
-    // "Kari Kamiya" contains "Kamiya" but not "Tai Kamiya": no reduction, so all 11 memory is spent.
     expect(s.state.memory).toBe(0);
   });
 
@@ -260,7 +256,6 @@ describe("BT17-015", () => {
     expect(s.perm("source").topCard.cardId).toBe("BT17-015");
     expect(s.perm("source").stack.map((card) => card.instanceId)).toEqual([sourceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
-    // [When Digivolving] shares the [On Play] modal: the 3000 DP Digimon is deleted.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
@@ -290,7 +285,6 @@ describe("BT17-015", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("blackMetalGreymon").topCard.cardId === "BT17-015");
 
-    // The black source has no red Lv5 evoCost match, so only the printed route can pay.
     expect(s.state.memory).toBe(0);
     expect(s.perm("blackMetalGreymon").stack.map((card) => card.instanceId)).toEqual([sourceId]);
   });
@@ -338,7 +332,6 @@ describe("BT17-015", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 2);
 
-    // Only the attack's own security check removed a card.
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
@@ -367,13 +360,11 @@ describe("BT17-015", () => {
       });
 
     expect(attackPlayer()).toEqual({ ok: true });
-    // Inherited trash (1) plus the attack's security check (1).
     await settle(() => s.state.players[1]!.security.length === 4);
     expect(s.state.players[1]!.security).toHaveLength(4);
 
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(attackPlayer()).toEqual({ ok: true });
-    // [Once Per Turn] is spent, so only the security check removes a card.
     await settle(() => s.state.players[1]!.security.length === 3);
     expect(s.state.players[1]!.security).toHaveLength(3);
 

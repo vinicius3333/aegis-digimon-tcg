@@ -7,23 +7,6 @@ import { compiled } from "./EX13-071.js";
 import "./EX13-071.js";
 import "../index.js";
 
-// EX13-071 Richard Sampson — behavioural proof.
-//
-// Fixtures used and why:
-//   BT1-046  Kudamon           — Lv.3 Yellow [Holy Beast]. The printed `[Kudamon]` base. Chosen
-//                                over EX13-026 because EX13-026 also carries [DATA SQUAD], which
-//                                makes BOTH Kentaurosmon routes legal at once and opens an extra
-//                                `chooseOption` prompt unrelated to what is being proven.
-//   BT3-043  Kentaurosmon      — Lv.6 Yellow, printed EvoCost Yellow Lv.5 for 3, no alternate
-//                                digivolution header. Its [When Digivolving] only touches the
-//                                OPPONENT's Digimon, so an empty opposing board keeps it silent.
-//   BT1-051  Reppamon          — Lv.4 Yellow [Holy Beast], no printed text. The level-4 material.
-//   BT3-038  Antylamon         — Lv.5 Yellow [Holy Beast], no printed text. The level-5 material.
-//   BT3-037  Turuiemon         — Lv.4 Yellow [Beastkin], no printed text. NEAR MATCH: its trait
-//                                CONTAINS "Beast" but is not exactly [Holy Beast].
-//   EX2-015  Seasarmon         — Lv.4 BLUE [Holy Beast]. NEAR MATCH on trait, wrong colour.
-//   BT1-009..BT1-014           — inert main-deck Digimon used as neutral face-down / deck filler.
-
 const CARD_ID = "EX13-071";
 
 const THREE_FACE_DOWN = [
@@ -33,10 +16,6 @@ const THREE_FACE_DOWN = [
 ];
 
 describe("EX13-071 Richard Sampson", () => {
-  // -------------------------------------------------------------------------
-  // Catalog + IR shape
-  // -------------------------------------------------------------------------
-
   it("matches the printed catalog entry and compiles every printed clause", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
       nameEn: "Richard Sampson",
@@ -49,7 +28,6 @@ describe("EX13-071 Richard Sampson", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
 
-    // Clause 1 is printed once under two timings, so both effects carry the same body.
     for (const trigger of ["OnPlay", "StartOfYourMainPhase"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
@@ -58,7 +36,6 @@ describe("EX13-071 Richard Sampson", () => {
         ],
       });
     }
-    // "You may" scopes the placement only: the memory clause must NOT be aborted by a decline.
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions[0]).not.toHaveProperty(
       "abortOnDecline",
     );
@@ -131,10 +108,6 @@ describe("EX13-071 Richard Sampson", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Clause 1 — [Start of Your Main Phase] [On Play]
-  // -------------------------------------------------------------------------
-
   it("on play places the deck's top card face down under itself and gains 1 memory", async () => {
     const s = setupEngine(
       {
@@ -155,7 +128,6 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sampson").instanceId })).toEqual({
       ok: true,
     });
-    // 5 memory - 4 play cost = 1, then the mandatory "gain 1 memory" clause -> 2.
     await settle(() => s.state.memory === 2);
 
     const tamer = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === CARD_ID);
@@ -177,7 +149,6 @@ describe("EX13-071 Richard Sampson", () => {
             { card: "BT1-010", as: "deckSecond" },
           ],
         },
-        // A lone opposing TAMER is not "a Digimon": the memory clause must stay silent.
         1: { battleArea: [{ card: "ST24-13", as: "theirTamer" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -255,10 +226,6 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  // -------------------------------------------------------------------------
-  // Clause 2 — [Main] [Once Per Turn] the Kudamon -> Kentaurosmon route
-  // -------------------------------------------------------------------------
-
   it("trashes 3 face-down cards, stacks a level 4 and a level 5 Holy Beast under Kudamon, and digivolves into Kentaurosmon for 2", async () => {
     const s = setupEngine(
       {
@@ -296,14 +263,8 @@ describe("EX13-071 Richard Sampson", () => {
     await settle(() => s.perm("kudamon").topCard.cardId === "BT3-043");
     await settle();
 
-    // The Kudamon permanent survived as the same permanent, now topped by Kentaurosmon.
     const evolved = s.perm("kudamon");
     expect(evolved.topCard.instanceId).toBe(s.inst("kentaurosmon").instanceId);
-    // Source-stack identity: both placed materials sit UNDER the former Kudamon top card.
-    // `stack[0]` is the bottom-most card, and each component places at the CURRENT bottom, so
-    // the level-5 card (placed second) ends up below the level-4 one. The printed sentence
-    // fixes neither material's position relative to the other — only that both are bottom
-    // digivolution cards of the same [Kudamon], which is what this asserts.
     expect(evolved.stack.map((card) => card.cardId)).toEqual(["BT3-038", "BT1-051", "BT1-046"]);
     expect(evolved.stack.map((card) => card.instanceId)).toEqual([
       s.inst("lv5Material").instanceId,
@@ -312,12 +273,10 @@ describe("EX13-071 Richard Sampson", () => {
     ]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("lv4Material").instanceId);
 
-    // The full 3-card face-down cost was paid off the Tamer.
     expect(s.perm("sampson").stack).toHaveLength(0);
     const trashIds = s.state.players[0]!.trash.map((card) => card.instanceId);
     for (const alias of ["fd1", "fd2", "fd3"]) expect(trashIds).toContain(s.inst(alias).instanceId);
 
-    // Printed digivolution cost 3, reduced by 1 -> 2 memory spent.
     expect(s.state.memory).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -383,14 +342,11 @@ describe("EX13-071 Richard Sampson", () => {
     s.state.memory = 3;
     await s.ready();
 
-    // Public activation eligibility must reject the incomplete compound before any component
-    // can move; this is deliberately observed without firing a primitive timing seam.
     expect(observe(s.engine).activatableEffects(s.perm("sampson"))).toHaveLength(0);
     await settle();
 
     expect(s.perm("kudamon").topCard.cardId).toBe("BT1-046");
     expect(s.perm("kudamon").stack).toHaveLength(0);
-    // An unpayable "by ..." cost pays nothing at all: the two face-down cards stay put.
     expect(s.perm("sampson").stack).toHaveLength(2);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("lv4Material").instanceId, s.inst("lv5Material").instanceId]),
@@ -445,8 +401,6 @@ describe("EX13-071 Richard Sampson", () => {
             { card: "BT1-009", as: "spare" },
           ],
           trash: [
-            // Level 4 near-misses only: [Beastkin] merely CONTAINS "Beast"; the Seasarmon is a
-            // true [Holy Beast] but BLUE. Neither may stand in for the level-4 material.
             { card: "BT3-037", as: "beastkin" },
             { card: "EX2-015", as: "blueHolyBeast" },
             { card: "BT3-038", as: "lv5Material" },
@@ -478,7 +432,6 @@ describe("EX13-071 Richard Sampson", () => {
         0: {
           battleArea: [
             { card: CARD_ID, as: "sampson", under: THREE_FACE_DOWN },
-            // Tsukaimon: Lv.3 Yellow, but not named [Kudamon].
             { card: "BT1-045", as: "notKudamon" },
           ],
           hand: [
@@ -540,7 +493,6 @@ describe("EX13-071 Richard Sampson", () => {
     const untouched = hosts.find(({ topCard }) => topCard.cardId !== "BT3-043");
     expect(evolved).toBeDefined();
     expect(untouched).toBeDefined();
-    // Both materials went under ONE host; the other Kudamon received nothing and did not evolve.
     expect(evolved!.stack.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("lv4Material").instanceId, s.inst("lv5Material").instanceId]),
     );
@@ -603,7 +555,6 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.perm("sampson").stack).toHaveLength(3);
     expect(s.state.memory).toBe(6);
 
-    // Second activation in the SAME turn: refused outright, no cost paid.
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("sampson"));
     await settle();
 
@@ -611,7 +562,6 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.perm("sampson").stack).toHaveLength(3);
     expect(s.state.memory).toBe(6);
 
-    // The opponent's whole turn, then the controller's own next turn through the real loop.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -622,8 +572,6 @@ describe("EX13-071 Richard Sampson", () => {
     await advance(s.engine).waitForMainPhase(0);
     await settle();
 
-    // [Start of Your Main Phase] placed one more deck card face down; the once-per-turn
-    // budget is refreshed, so the Main clause activates a second time.
     const faceDownBeforeSecondUse = s.perm("sampson").stack.length;
     expect(faceDownBeforeSecondUse).toBeGreaterThanOrEqual(3);
     const memoryBeforeSecondUse = s.state.memory;
@@ -641,10 +589,6 @@ describe("EX13-071 Richard Sampson", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
   });
-
-  // -------------------------------------------------------------------------
-  // Clause 3 — [Security] Play this card without paying the cost.
-  // -------------------------------------------------------------------------
 
   it("plays itself from security without paying its 4 memory play cost", async () => {
     const s = setupEngine(
@@ -674,7 +618,6 @@ describe("EX13-071 Richard Sampson", () => {
     );
     expect(tamer).toBeDefined();
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(s.inst("sampson").instanceId);
-    // Free play (no -4), then the [On Play] clause's mandatory memory gain.
     expect(s.state.memory).toBe(1);
     expect(tamer!.stack.map((card) => card.instanceId)).toEqual([s.inst("deckTop").instanceId]);
   });

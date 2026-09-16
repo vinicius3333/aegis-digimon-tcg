@@ -155,7 +155,6 @@ describe("BT25-071 Orochimon", () => {
     const originalDeck = s.state.players[0]!.deck.map((card) => card.cardId);
     await s.ready();
 
-    // A different own permanent suspending must not satisfy “this Digimon suspends”.
     await advance(s.engine).verb.suspend([s.perm("other").permanentId]);
     await settle();
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(originalDeck);

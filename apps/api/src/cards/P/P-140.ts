@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-140 MegaKabuterimon.
-// digivolutionRequirement names:["Insectoid"] is substring match (any card with "Insectoid" in name).
-// AllTurns immunity condition uses raw since no structured isSuspended condition kind exists.
 const compiled: CompiledCard = {
   effects: [
     {

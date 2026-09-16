@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Inherited [When Attacking]: cost trashes this Digimon's bottom face-down digivolution card
-// — zone:"digivolutionCards" targets the card under this Digimon, not the Digimon itself.
-// KB Q4748: can digivolve into a card just trashed by this effect.
 export const compiled: CompiledCard = {
   effects: [
     {

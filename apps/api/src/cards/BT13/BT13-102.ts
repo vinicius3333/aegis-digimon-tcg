@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play]: opponent MAY trash 1 Tamer or Option. If they don't, gain 1 memory + Draw 1.
-// [Opponent's Turn]: when an EFFECT plays a Digimon (not DigiXros), by suspending this Tamer, gain 1 memory.
 export const compiled: CompiledCard = {
   effects: [
     {

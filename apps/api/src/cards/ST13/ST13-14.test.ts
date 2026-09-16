@@ -12,9 +12,6 @@ describe("ST13-14 BryweLudramon", () => {
         0: {
           battleArea: [{ card: "ST13-13", as: "base" }],
           hand: [{ card: "ST13-14", as: "brywe" }],
-          // Ludomon: a Digimon with the [Legend-Arms] trait and a play cost of 3 — eligible
-          // for the reveal-and-play. ST13-07 has no [Legend-Arms] trait (used as the
-          // uniformly-ineligible reveal in the decline test below).
           deck: ["BT1-009", "ST13-09", "BT1-010", "BT1-011"],
         },
       },

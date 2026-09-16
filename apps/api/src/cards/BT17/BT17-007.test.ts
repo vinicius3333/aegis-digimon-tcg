@@ -361,11 +361,6 @@ describe("BT17-007", () => {
   });
 
   it("counts a Tamer with [Tai Kamiya] inside a longer name but not a different Tamer", async () => {
-    // Comparative peer: BT17-081 is "Tai Kamiya & Matt Ishida", so the printed substring
-    // gate ("with [Tai Kamiya] in its name") must accept it, while the near-miss peer
-    // BT1-086 "Matt Ishida" sits on the same board and must not enable anything.
-    // BT17-081 raises optional prompts of its own once the whole BT17 set is registered in the
-    // worker; decline them so this flow is deterministic regardless of registration order.
     const s = setupEngine(
       {
         0: {

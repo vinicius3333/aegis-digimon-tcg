@@ -96,7 +96,6 @@ describe("BT17-009", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.battleArea[0]!.topCard?.cardId).toBe("BT17-083");
-    // Played without paying the cost: the free play moved no memory and emptied the hand.
     expect(s.state.memory).toBe(memoryBeforeDeletion);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
@@ -153,7 +152,6 @@ describe("BT17-009", () => {
       {
         0: {
           hand: [{ card: "BT17-009", as: "flamemon" }],
-          // BT1-085 Tai Kamiya carries a [Security] effect and no inherited effect.
           deck: ["BT17-023", "BT1-085", "BT1-009", "BT1-010", "BT1-011"],
         },
       },
@@ -176,7 +174,6 @@ describe("BT17-009", () => {
       {
         0: {
           battleArea: [{ card: "BT17-010", as: "host", under: ["BT17-001", "BT17-009"], suspended: true }],
-          // Tai Kamiya is a Tamer with no inherited effect, so it is not a legal free play.
           hand: [{ card: "BT1-085", as: "securityTamer" }],
           deck: [{ card: "BT1-009", as: "drawn" }],
         },

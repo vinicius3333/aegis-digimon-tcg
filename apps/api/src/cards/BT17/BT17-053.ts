@@ -1,5 +1,3 @@
-// SpawnToken target), not the base "Diaboromon"; the play is gated on this Digimon having
-// had the [Unidentified] trait (evaluated against its card definition).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

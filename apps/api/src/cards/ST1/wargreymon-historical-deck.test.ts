@@ -91,8 +91,6 @@ describe("ST1 WarGreymon historical deck gauntlet", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Four consecutive checks each open their own security/loss timing windows. Wait for the
-    // complete attack, rather than asserting against the first visible security mutation.
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1, 3000);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
@@ -112,8 +110,6 @@ describe("ST1 WarGreymon historical deck gauntlet", () => {
     });
     await s.ready();
 
-    // KB Q605: three sources only count as one complete pair for ST1-11. Greymon's
-    // inherited Security Attack +1 remains a separate grant, for a total modifier of +2.
     expect(observe(s.engine).keywordAmount(s.perm("wargreymon"), "SecurityAttack")).toBe(2);
   });
 });

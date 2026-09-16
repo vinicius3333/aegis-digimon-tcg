@@ -7,19 +7,8 @@ import { compiled } from "./BT21-062.js";
 import "./BT21-098.js";
 import "../index.js";
 
-// A3 for BT21-062 (Galacticmon) — [Start of Your Main Phase]:
-//   "Delete 1 of your opponent's Digimon."
-//
-// FAILS-WHEN-REVERTED: with BT21-062 on the field, firing OnStartMainPhase on seat 0's
-// turn deletes one of seat 1's Digimon. The IR's StartOfYourMainPhase Delete action and
-// the [When Digivolving] Option-use clause both run through the interpreter.
-//
-// The [When Digivolving] Ragnarok Cannon clause (placing 4 Vemmon-in-text from trash
-// to digivolution stack, then using Ragnarok Cannon from hand/trash free) is also
-// tested to verify the Option-use path is executable.
-
 const GALACTICMON = "BT21-062";
-const PLAIN_DIGIMON = "BT1-009"; // Monodramon — playCost 2, opponent target for delete
+const PLAIN_DIGIMON = "BT1-009";
 const module = getEffectModule(GALACTICMON)!;
 
 function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
@@ -55,9 +44,7 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
   it("deletes one of the opponent's Digimon on start of main phase", async () => {
     const s = setupEngine(
       {
-        // Galacticmon on seat 0's battle area.
         0: { battleArea: [{ card: GALACTICMON, dp: 12000 }] },
-        // Seat 1 has a Digimon to be deleted.
         1: { battleArea: [{ card: PLAIN_DIGIMON, dp: 3000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -68,7 +55,6 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
     await fireTiming(s, EffectTiming.OnStartMainPhase, {});
     for (let i = 0; i < 400 && p1?.battleArea.length !== 0; i++) await Promise.resolve();
 
-    // Opponent's Digimon was deleted and moved to trash.
     expect(p1?.battleArea.length).toBe(0);
     expect(p1?.trash.length).toBeGreaterThanOrEqual(1);
   });
@@ -106,13 +92,12 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1; // opponent's turn
+    s.state.turnSeat = 1;
     const p1 = s.state.players[1];
 
     await fireTiming(s, EffectTiming.OnStartMainPhase, {});
     for (let i = 0; i < 50; i++) await Promise.resolve();
 
-    // Opponent's Digimon should NOT be deleted (it's not seat 0's turn).
     expect(p1?.battleArea.length).toBe(1);
   });
 

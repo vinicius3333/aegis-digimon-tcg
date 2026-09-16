@@ -8,21 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-050";
 
-/**
- * EX10-050 Baalmon (Purple/Black, Lv.5 Ultimate, [Wizard]/[Bagra Army], 7000 DP).
- *
- * [Digivolve] Lv.4 w/[Wizard] trait: Cost 3
- * [On Play] [When Digivolving] Trash the top 3 cards of your deck. Then, if you have 5 or
- *   more cards in your trash, this Digimon gains <Reboot> and <Blocker> until your
- *   opponent's turn ends.
- * [On Deletion] If you have 10 or more cards in your trash, you may play 1 [Beelzemon]
- *   from your trash without paying the cost.
- * Inherited: [All Turns] For every 10 cards in your trash, this Digimon gets +1000 DP.
- *
- * Fixtures: ST10-10 Wizardmon is a fully inert Lv.4 [Wizard] (no main, inherited or
- * security text) and BT2-111 Beelzemon is the only [Beelzemon] with no [On Play] clause,
- * so neither fixture can open a decision that would confuse the assertions below.
- */
 describe("EX10-050 Baalmon", () => {
   it("records the exact catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -66,8 +51,6 @@ describe("EX10-050 Baalmon", () => {
         ],
       });
     }
-    // "[Beelzemon]" is a bracketed exact-name reference, so the filter must be `nameExact`;
-    // `name` is substring matching and would also offer "Beelzemon: Blast Mode".
     expect(compiled.effects?.find((effect) => effect.trigger === "OnDeletion")).toMatchObject({
       actions: [
         {
@@ -116,7 +99,6 @@ describe("EX10-050 Baalmon", () => {
     const baalmon = p0.battleArea.find(({ topCard }) => topCard?.cardId === CARD_ID)!;
     expect(baalmon.topCard!.instanceId).toBe(s.inst("baalmon").instanceId);
     expect(baalmon.currentDP).toBe(7000);
-    // The top 3 of the deck went to the trash, bottom-of-deck order preserved.
     expect(p0.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-014"]);
     expect(p0.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(s.state.memory).toBe(1);
@@ -179,7 +161,6 @@ describe("EX10-050 Baalmon", () => {
       ).toEqual({ ok: true });
       await settle(() => p0.trash.length === 5);
 
-      // Cost paid to zero from the route's own price, plus the digivolve bonus draw.
       expect(s.state.memory).toBe(0);
       expect(p0.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
       expect(s.perm("base").topCard!.cardId).toBe(CARD_ID);
@@ -190,8 +171,6 @@ describe("EX10-050 Baalmon", () => {
       expect(s.state.pendingDecision).toBeUndefined();
     }
 
-    // BT1-014 Kokatorimon is Lv.4 but Red and non-[Wizard]: neither the printed
-    // Purple/Black route nor the alternate [Wizard] route accepts it.
     const invalid = setupEngine({
       0: { battleArea: [{ card: "BT1-014", as: "base" }], hand: [{ card: CARD_ID, as: "baalmon" }], deck: ["BT1-009"] },
     });
@@ -238,7 +217,6 @@ describe("EX10-050 Baalmon", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // Still granted throughout the opponent's turn — that is when <Blocker> matters.
     expect(observe(s.engine).hasKeyword(s.perm("baalmon"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("baalmon"), "Blocker")).toBe(true);
 
@@ -265,8 +243,6 @@ describe("EX10-050 Baalmon", () => {
     );
     await s.ready();
     const p0 = s.state.players[0]!;
-    // 6 in the trash before the battle: the condition can only be met by counting the
-    // deleted Baalmon plus its 3 digivolution cards (Q5133).
     expect(p0.trash).toHaveLength(6);
 
     expect(
@@ -280,7 +256,6 @@ describe("EX10-050 Baalmon", () => {
 
     expect(p0.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([s.inst("beelzemon").instanceId]);
     expect(p0.battleArea[0]!.stack).toHaveLength(0);
-    // Baalmon and its 3 digivolution cards landed in the trash; Beelzemon left it.
     expect(p0.trash.map((card) => card.cardId).sort()).toEqual(
       ["BT1-009", "BT1-009", "BT1-009", "BT1-013", "BT1-013", "BT1-013", "BT1-014", "BT1-014", "EX10-050"].sort(),
     );
@@ -417,10 +392,8 @@ describe("EX10-050 Baalmon", () => {
 
     const host = s.perm("base");
     expect(host.stack.map((card) => card.cardId)).toEqual(["ST10-10", CARD_ID]);
-    // 23 cards in the trash: two complete tens.
     expect(host.currentDP).toBe(getCardDefinition("BT2-111")!.dp! + 2000);
 
-    // The bonus is continuous, not a snapshot: a seventh card past the next ten adds 1000.
     for (let n = 0; n < 7; n += 1) s.give(0, Zone.Trash, "BT1-009");
     await s.ready();
     await settle(() => s.perm("base").currentDP === getCardDefinition("BT2-111")!.dp! + 3000, 200);

@@ -160,8 +160,6 @@ describe("EX7-011 Megadramon", () => {
     });
     await settle(() => s.perm("megadramon").topCard?.cardId === "EX7-011");
 
-    // §15-7-5 permits paying the `by` condition even when the following deletion has no
-    // eligible target. The Option is placed while the 7000-DP target remains alive.
     expect(s.state.memory).toBe(3);
     expect(s.perm("megadramon").stack.map((card) => card.cardId)).toEqual(["EX7-071"]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);

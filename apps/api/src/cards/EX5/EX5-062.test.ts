@@ -4,15 +4,9 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./EX5-062.js";
 
-// EX5-062 (Anubismon): [When Digivolving] [Main] [Once Per Turn] may trash up
-// to 3 cards, then may play a purple Digimon from trash with its play cost
-// reduced by 3 plus 1 for each card trashed. During your turn, when an effect
-// plays one of your Digimon, delete one opposing level 5 or lower Digimon; if
-// that did not delete, draw 1.
-
 const ANUBIS = "EX5-062";
 const BASE = "EX5-060";
-const CANDIDATE = "BT10-080"; // Purple Lv.5, play cost 7, no On Play effect.
+const CANDIDATE = "BT10-080";
 const OPP_LV5 = "BT1-058";
 const OPP_LV6 = "BT2-018";
 
@@ -86,7 +80,7 @@ describe("EX5-062 Anubismon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 8; // 4 memory for the evolution plus 4 for CANDIDATE (7 - 3).
+    s.state.memory = 8;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -116,7 +110,7 @@ describe("EX5-062 Anubismon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 2; // 7 - (3 base + 2 trashed) = 2.
+    s.state.memory = 2;
     await s.ready();
     activateMain(s, "anubis");
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CANDIDATE));

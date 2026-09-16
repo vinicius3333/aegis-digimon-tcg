@@ -110,6 +110,6 @@ describe("P-056 Rosemon", () => {
     await settle(() => s.perm("digisorption-cost").isSuspended && s.state.memory === 8);
 
     expect(s.perm("digisorption-cost").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(8); // Printed cost 4, reduced by Digisorption -2.
+    expect(s.state.memory).toBe(8);
   });
 });

@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT25-060 (Rebootmon).
-// Fixes:
-// 1. AllTurns SubTrigger: added GrantStatic immuneToOpponentDigimonEffects action
-//    — text says "opponent's Digimon effects don't affect it" (KB Q6358/Q6363).
-// 2. AllTurns SubTrigger: added a second SubTrigger for "whenUnsuspended" (the text
-//    fires on "gets linked OR unsuspends").
-// 3. KB Q6357: the linked card must itself carry <Link>; the link is modeled as an explicit
-//    free Link action followed by the dependent unsuspend.
 const compiled: CompiledCard = {
   effects: [
     {

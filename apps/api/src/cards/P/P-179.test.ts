@@ -203,7 +203,6 @@ describe("P-179 Justimon: Critical Arm", () => {
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.perm("base").topCard.cardId).toBe("P-179");
     expect(s.perm("base").topCard.instanceId).toBe(criticalInstanceId);
-    // The real next turn starts at 3 memory; this effect has no memory cost.
     expect(s.state.memory).toBe(3);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
@@ -242,7 +241,6 @@ describe("P-179 Justimon: Critical Arm", () => {
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT12-083", "P-155"]);
     assertNoLoudGap(s);
 
-    // An accepted attack with only an opponent's Option available cannot pay this own-Option cost.
     const attack = setupEngine(
       {
         0: { battleArea: [{ card: "P-179", as: "critical" }], security: ["BT1-009"] },

@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Audited IR for BT2-082. The generated form treated the battle-deletion clause as an
-// "instead" side effect: it deleted another Diaboromon but did not prevent this Digimon's
-// deletion. Q1031/Q1034 require a genuine prevention replacement, and its cause is battle only.
 const compiled: CompiledCard = {
   effects: [
     {

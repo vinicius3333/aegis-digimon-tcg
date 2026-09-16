@@ -70,7 +70,6 @@ describe("BT17-046 Gargomon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === terriermonId),
     );
 
-    // Played without paying: memory is untouched by the free play.
     expect(s.state.memory).toBe(memoryBefore);
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === terriermonId)!;
     expect(played.stack).toHaveLength(0);
@@ -117,7 +116,6 @@ describe("BT17-046 Gargomon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("gargomon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT17-046"));
 
-    // [Terriermon] is an exact name (§2-3-1-2): neither near-name card may be played.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT16-038", "BT17-046", "BT5-046"]);
   });

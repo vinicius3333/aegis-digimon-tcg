@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** BT25-087 Thomas H. Norstein — audited against the catalog and KB Q6409-Q6414. */
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -5,23 +5,6 @@ import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/ha
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// Fixture vocabulary.
-// BT19-002 Puyoyomon: the Blue Digi-Egg whose inherited [Opponent's Turn] effect returns its
-//   host to the bottom of the deck. It is the public route to a NON-battle leave, and it is
-//   the exact scenario of Q3058 — so it drives ＜Decode＞ without any injected timing.
-// BT19-019 Shellmon: Blue Lv.4 [Aquatic] — the ＜Decode (Blue Lv.4)＞ payload and the legal
-//   evolution source for MarineBullmon (Blue Lv.4, memory 3).
-// BT19-018 Swimmon: Blue Lv.3 [Aquatic] — the LEVEL near-miss for ＜Decode＞ and the eligible
-//   card for the inherited [End of Attack] clause.
-// BT1-014 Kokatorimon: Red Lv.4 — the COLOUR near-miss for ＜Decode＞ and an illegal evolution
-//   source. BT1-009 Monodramon: inert Red Lv.3 [Mini Dragon] — the trait near-miss and inert
-//   security.
-// BT19-021 Xiquemon: Blue Lv.4 [Aquatic] with no ＜Blocker＞ — the neighbouring stack that
-//   ＜Decode＞ must not reach into.
-//
-// Catalog note: no card in the catalog carries a bare [Aqua] trait; the printed [Aqua] tokens
-// are exported as "Aquatic" (61 cards). That is why the IR matches "Aqua"/"Sea Animal" with
-// `traitContains` (substring, case-insensitive) rather than an exact trait match.
 const board = (s: ReturnType<typeof setupEngine>, seat: 0 | 1): (string | undefined)[] =>
   s.state.players[seat]!.battleArea.map((permanent) => permanent.topCard?.cardId);
 const hand = (s: ReturnType<typeof setupEngine>, seat: 0 | 1): string[] =>
@@ -76,7 +59,6 @@ describe("BT19-024 MarineBullmon — [On Play] / [When Digivolving] bottom place
     });
     await settle(() => s.perm("other").stack.length === 2);
 
-    // "bottom digivolution card": Swimmon lands BELOW the Shellmon already in the stack.
     expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT19-018", "BT19-019"]);
     expect(hand(s, 0)).toEqual(["BT1-009"]);
     expect(board(s, 0).sort()).toEqual(["BT19-021", "BT19-024"]);
@@ -141,7 +123,6 @@ describe("BT19-024 MarineBullmon — [On Play] / [When Digivolving] bottom place
 
     expect(s.perm("base").topCard?.cardId).toBe("BT19-024");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT19-018", "BT19-019"]);
-    // Blue Lv.4 route: memory cost 3, plus the digivolve draw.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -201,7 +182,6 @@ describe("BT19-024 MarineBullmon — [Rule] Trait: Has the [Aquatic] type (Q3078
     });
     await settle(() => s.perm("other").stack.length === 1);
 
-    // Cross-card consequence: a second MarineBullmon qualifies as an [Aqua]-trait Digimon card.
     expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT19-024"]);
     expect(hand(s, 0)).toEqual([]);
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT19-024")!;
@@ -248,17 +228,13 @@ describe("BT19-024 MarineBullmon — ＜Decode (Blue Lv.4)＞", () => {
     await settle(() => s.state.players[0]!.security.length === 0);
     await settle();
 
-    // MarineBullmon paid Puyoyomon's cost to the BOTTOM of the deck ...
     const deck = s.state.players[0]!.deck;
     expect(deck[deck.length - 1]!.instanceId).toBe(marineInstanceId);
     expect(deck).toHaveLength(3);
-    // ... ＜Decode＞ still played Shellmon out of its digivolution cards, for free ...
     expect(board(s, 0)).toEqual(["BT19-019"]);
     expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
-    // ... the Digi-Egg left underneath went to the trash (alongside the checked security card) ...
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT19-002"]);
     expect(s.state.players[0]!.security).toHaveLength(0);
-    // ... and Puyoyomon's own payload returned a level 5 or lower opposing Digimon to hand.
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([bouncedInstanceId]);
     expect(board(s, 1)).toEqual(["BT1-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -280,8 +256,6 @@ describe("BT19-024 MarineBullmon — ＜Decode (Blue Lv.4)＞", () => {
           security: ["BT1-009"],
         },
       },
-      // No blanket optional responder: this run must say YES to Puyoyomon's inherited effect
-      // and NO to ＜Decode＞, which one shared auto-responder cannot express.
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
@@ -311,8 +285,6 @@ describe("BT19-024 MarineBullmon — ＜Decode (Blue Lv.4)＞", () => {
 
     const deck = s.state.players[0]!.deck;
     expect(deck[deck.length - 1]!.instanceId).toBe(marineInstanceId);
-    // ＜Decode＞ declined: Shellmon follows the rest of the stack into the trash and no
-    // permanent is left behind.
     expect(board(s, 0)).toEqual([]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT19-002", "BT19-019"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -384,13 +356,10 @@ describe("BT19-024 MarineBullmon — ＜Decode (Blue Lv.4)＞", () => {
     await settle(() => s.state.players[0]!.deck.length === 3);
     await settleAcrossTimers(() => s.state.players[0]!.trash.length === 3);
 
-    // The Blue Lv.3 and the Red Lv.4 in its own stack are both near-misses, and the Blue Lv.4
-    // sitting under the NEIGHBOUR is out of reach: nothing is played.
     expect(board(s, 0)).toEqual(["BT19-021"]);
     expect(s.perm("neighbour").stack.map((card) => card.cardId)).toEqual(["BT19-019"]);
     const deck = s.state.players[0]!.deck;
     expect(deck[deck.length - 1]!.instanceId).toBe(marineInstanceId);
-    // Every card that was under MarineBullmon went to the trash: ＜Decode＞ played none of them.
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-014", "BT19-002", "BT19-018"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -425,17 +394,11 @@ describe("BT19-024 MarineBullmon — inherited [End of Attack] [Once Per Turn]",
     await settle(() => board(s, 0).includes("BT19-018"));
     await settle();
 
-    // Exactly one of the two eligible Swimmon left the stack; the Red [Mini Dragon] Monodramon
-    // and the level 5 MarineBullmon itself are near-misses that were never candidates.
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT19-024", "BT19-018", "BT1-009"]);
     expect(board(s, 0).sort()).toEqual(["BT19-018", "BT19-021"]);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // CR §11-2-3 caps a Digimon at one attack per turn, so the same-turn refusal of an
-    // [End of Attack] [Once Per Turn] clause is unreachable from public intents without an
-    // extra-attack grant. What IS provable through the real turn loop is the reset: the
-    // opponent's whole turn passes, then my own attack fires the clause a second time.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 0;

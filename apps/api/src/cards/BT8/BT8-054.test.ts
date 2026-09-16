@@ -19,9 +19,6 @@ describe("BT8-054 Pistmon", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    // The suspend cost's "1 of your Digimon" filter includes the digivolving base
-    // itself; bias selection toward the intended target ("cost") so the test
-    // proves the effect on the card it names.
     preferred.push(s.perm("cost").topCard!.instanceId);
     expect(
       s.engine.applyIntent(0, {

@@ -57,8 +57,6 @@ describe("ST13-16 Legend-Arms Alliance", () => {
       },
       { autoDeclineOptional: true, autoChooseOption: true, autoOrderCards: false },
     );
-    // Model the card's printed Main effect having placed this Option in the Battle Area;
-    // otherwise the state-based rule process correctly trashes a pure Option permanent.
     s.perm("alliance").placedByEffect = true;
     const allianceInstanceId = s.perm("alliance").topCard.instanceId;
     await s.ready();
@@ -68,8 +66,6 @@ describe("ST13-16 Legend-Arms Alliance", () => {
     const startingTurn = s.state.turnCount;
     await advance(s.engine).runTurn(1);
     expect(s.state.turnCount).toBeGreaterThan(startingTurn);
-    // runOneTurn intentionally stops at End; hand the completed turn to the owner before
-    // querying the next Main window, matching the production loop's passTurn step.
     s.state.turnSeat = 0;
     s.state.phase = "Main" as typeof s.state.phase;
     await s.engine.recomputeContinuousEffects();

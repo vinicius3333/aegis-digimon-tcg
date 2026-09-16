@@ -83,8 +83,6 @@ describe("BT6 Dynasmon and Pulsemon security deck gauntlet", () => {
       () => s.state.players[0]!.security.length === 3 && s.state.memory === 4 && s.state.pendingDecision === undefined,
     );
 
-    // Dynasmon already recovered from its own digivolution cost this turn. Pulsemon's
-    // later security removal gains memory, but cannot consume the sentinel for Recovery.
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("oncePerTurnSentinel").instanceId,

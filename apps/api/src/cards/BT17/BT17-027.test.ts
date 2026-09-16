@@ -53,8 +53,6 @@ describe("BT17-027", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT17-078", as: "host", under: ["BT17-027"] }] },
-        // A non-empty security stack prevents the player-directed attack from
-        // ending the match before the inherited unsuspend settles.
         1: { security: ["BT1-011"] },
       },
       { autoAcceptOptional: true },
@@ -122,8 +120,6 @@ describe("BT17-027", () => {
   });
 
   it("digivolves via the Garurumon route, draws its bonus, and restricts through the When Digivolving modal", async () => {
-    // BT1-040 WereGarurumon is a Blue Lv.5 whose name contains "Garurumon", so it is a
-    // legal source for the printed [Digivolve]Lv.5 w/[Garurumon] in its name: Cost 3 route.
     const s = setupEngine(
       {
         0: {
@@ -197,7 +193,6 @@ describe("BT17-027", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: metalId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === metalId));
 
-    // Q2773: the option is selectable with no [Agumon]; it ends without anything happening.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === metalId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === wargreymonId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-015")).toBe(false);
@@ -226,7 +221,6 @@ describe("BT17-027", () => {
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").isSuspended);
-    // Second attack this turn: the Once Per Turn inherited unsuspend is spent, so it stays suspended.
     expect(s.perm("host").isSuspended).toBe(true);
     expect(s.state.memory).toBe(0);
   });

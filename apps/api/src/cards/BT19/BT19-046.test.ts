@@ -6,18 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT19-046.js";
 import "../index.js";
 
-// BT19-046 Chamblemon (Green, Lv.4, Champion/Virus/Vegetation, DP 3000, play 4,
-// digivolve Green Lv.3 cost 2)
-//   [On Play] [When Digivolving] Suspend 1 of your opponent's Digimon. Then, 1 of your
-//   opponent's [Data] trait Digimon can't be unsuspended until the end of their turn.
-//   No inherited effect.
-//
-// [Data] is an attribute, which the engine counts as a trait (cardData.staticTraitsOf).
-// Data peers: BT1-013 Muchomon, BT1-028 Elecmon. Near misses: BT1-009 Monodramon (Vaccine)
-// and BT1-045 Tsukaimon (Virus). KB Q845 (ST18-10) allows choosing an already-suspended
-// Digimon for a suspending effect; KB Q2088 (BT11-055) confirms the "can't unsuspend"
-// target may be the Digimon this very effect just suspended.
-
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-012"];
 const inertDeck = ["BT1-009", "BT1-013", "BT1-012", "BT1-014"];
 
@@ -36,8 +24,6 @@ describe("BT19-046 Chamblemon", () => {
       types: ["Vegetation"],
       evoCosts: [{ color: "Green", level: 3, memoryCost: 2 }],
     });
-    // The catalog string carries a stray NON-BREAKING SPACE (U+00A0); normalise it before
-    // comparing so the printed clause is asserted and the quirk stays recorded here.
     expect(getCardDefinition("BT19-046")?.effectText?.replace(/\u00a0/g, " ")).toBe(
       "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon. Then, 1 of your opponent's [Data] trait Digimon can't be unsuspended until the end of their turn.",
     );
@@ -69,7 +55,6 @@ describe("BT19-046 Chamblemon", () => {
         ],
       });
     }
-    // Neither filter carries `suspended: false`: the printed text restricts neither choice.
     expect(JSON.stringify(compiled)).not.toContain("suspended");
     expect(compiled.effects).toHaveLength(2);
     expect(compiled.coverage).toBe("full");
@@ -119,7 +104,6 @@ describe("BT19-046 Chamblemon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT19-046")).toBe(false);
     expect(s.state.memory).toBe(0);
 
-    // Q2088: the same Digimon may take both halves of the clause.
     expect(s.perm("chosenData").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("chosenData"), "unsuspend")).toBe(true);
     for (const alias of ["otherData", "vaccine", "virus"]) {
@@ -146,7 +130,6 @@ describe("BT19-046 Chamblemon", () => {
         1: {
           battleArea: [
             { card: "BT1-013", as: "locked" },
-            // The control: suspended, [Data], but never chosen — it stands up normally.
             { card: "BT1-028", as: "control", suspended: true },
           ],
           deck: inertDeck,
@@ -168,15 +151,12 @@ describe("BT19-046 Chamblemon", () => {
     expect(s.perm("locked").isSuspended).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    // The opponent's own turn: their unsuspend phase runs for real.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("control").isSuspended).toBe(false);
     expect(s.perm("locked").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(true);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // "Until the end of THEIR turn": the restriction is gone once that turn ends, and the
-    // Digimon is still suspended because our turn does not unsuspend it.
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(false);
     expect(s.perm("locked").isSuspended).toBe(true);
@@ -222,7 +202,6 @@ describe("BT19-046 Chamblemon", () => {
     await settle();
 
     expect(s.perm("already").isSuspended).toBe(true);
-    // The already-suspended Digimon absorbed the suspension: the fresh peer is untouched.
     expect(s.perm("fresh").isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("fresh"), "unsuspend")).toBe(false);
 
@@ -326,8 +305,6 @@ describe("BT19-046 Chamblemon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("chamble").instanceId)).toBe(false);
-    // The suspension went to the preferred non-Data Digimon; the restriction can only land
-    // on the [Data] one.
     expect(s.perm("vaccine").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("vaccine"), "unsuspend")).toBe(false);
     expect(s.perm("data").isSuspended).toBe(false);
@@ -341,7 +318,6 @@ describe("BT19-046 Chamblemon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT1-010 Agumon is a RED Lv.3: no printed route reaches this green Lv.4.
           battleArea: [{ card: "BT1-010", as: "redBase" }],
           hand: [{ card: "BT19-046", as: "chamble" }],
           deck: inertDeck,
@@ -372,8 +348,6 @@ describe("BT19-046 Chamblemon", () => {
   });
 
   it("contributes nothing as a digivolution card under a later host", async () => {
-    // A realistic stack: Palmon -> Chamblemon -> BT19-052 Vespamon (green Lv.5 from Lv.4).
-    // Chamblemon has no inherited effect, so the host's attack must not suspend anything.
     const s = setupEngine(
       {
         0: {

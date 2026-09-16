@@ -63,11 +63,11 @@ describe("BT11-029 AeroVeedramon", () => {
           { card: "BT1-009", as: "spare" },
         ],
         deck: [
-          "BT1-009", // first-turn draw
+          "BT1-009",
           { card: "BT11-090", as: "blue1" },
           { card: "BT11-112", as: "blue2" },
           { card: "BT1-009", as: "rest" },
-          "BT1-009", // second-turn draw
+          "BT1-009",
           { card: "BT11-090", as: "blue3" },
           { card: "BT11-112", as: "blue4" },
           { card: "BT1-009", as: "rest2" },

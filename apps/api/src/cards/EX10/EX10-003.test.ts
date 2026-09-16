@@ -38,8 +38,6 @@ describe("EX10-003 Tumblemon", () => {
         },
       ],
     });
-    // The printed cost is "3 [Mineral] or [Rock] trait CARDS". A `kind` gate would silently
-    // exclude the Digi-Egg at the bottom of the stack.
     const costFilter = irNode(effect).actions?.[0]?.actions?.[0]?.cost?.target?.filter;
     expect(costFilter).toBeDefined();
     expect(costFilter?.kind).toBeUndefined();
@@ -89,8 +87,6 @@ describe("EX10-003 Tumblemon", () => {
   });
 
   it("counts the [Rock] Digi-Egg itself toward the cost and skips a non-matching stack card", async () => {
-    // FAILS-WHEN-REVERTED: with `kind: ["Digimon"]` back on the cost filter only 2 of these 4
-    // stack cards qualify, the cost is unpayable, and the security check resolves.
     const s = setupEngine(
       {
         0: {
@@ -130,7 +126,6 @@ describe("EX10-003 Tumblemon", () => {
   });
 
   it("cannot pay with 2 matching sources and does not partially trash the stack", async () => {
-    // KB Q5007: a "by" condition is unmet unless every required card is trashed.
     const s = setupEngine(
       {
         0: {
@@ -228,8 +223,6 @@ describe("EX10-003 Tumblemon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.perm("host").stack.length === 1);
 
-    // The blocker is eligible, so a block window would have opened had the attack survived
-    // the declaration timing.
     expect(s.perm("blocker").isSuspended).toBe(false);
     expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
@@ -237,10 +230,6 @@ describe("EX10-003 Tumblemon", () => {
   });
 
   it("Q5009: ends the attack of an attacker unaffected by the opponent's Digimon effects", async () => {
-    // EX8-029 keeps its controller's [DS] trait Digimon — itself included — unaffected by the
-    // opponent's Digimon effects while that player has 1 or more memory. "End the attack"
-    // changes the timing rather than affecting the attacker, so the inherited effect still
-    // ends the attack.
     const s = setupEngine(
       {
         0: {
@@ -288,8 +277,6 @@ describe("EX10-003 Tumblemon", () => {
               as: "host",
               under: [
                 { card: "EX10-003", as: "tumblemon" },
-                // Inert [Mineral]/[Rock] fixtures: EX10-025 carries an inherited "when effects
-                // trash this card" deletion that would remove the second attacker mid-test.
                 { card: "BT10-062", as: "m1" },
                 { card: "BT10-064", as: "r1" },
                 { card: "BT10-062", as: "m2" },
@@ -329,8 +316,6 @@ describe("EX10-003 Tumblemon", () => {
     await settle(() => s.perm("host").stack.length === 4);
     expect(s.state.players[0]!.security).toHaveLength(2);
 
-    // Second attack on the SAME opponent's turn: the once-per-turn gate refuses, so nothing
-    // is trashed and the security check resolves.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -364,12 +349,6 @@ describe("EX10-003 Tumblemon", () => {
     await loop;
   });
   it("hatches from the egg deck, grows in breeding, moves to the battle area and ends an attack there", async () => {
-    // The full public Digi-Egg route. Every zone change is an intent: `hatchEgg` takes the egg
-    // out of the egg deck, three `digivolve` intents build the stack in the breeding area
-    // ([Rock] egg -> [Rock] Lv.3 -> [Mineral] Lv.4 -> [Rock] Lv.5 top), `moveFromBreeding`
-    // carries that stack into the battle area, and only then does the opponent attack.
-    // One breeding action is legal per turn (Comprehensive Rules 6-4-1), so the hatch and the
-    // move sit on different turns of the real turn loop.
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -413,7 +392,6 @@ describe("EX10-003 Tumblemon", () => {
 
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1 (seat 0): hatch, then digivolve the hatched egg into the Lv.3.
     await ownBreedingWindow();
     expect(p0.eggDeck).toHaveLength(1);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
@@ -423,8 +401,6 @@ describe("EX10-003 Tumblemon", () => {
     expect(p0.breeding!.stack).toHaveLength(0);
     expect(s.events.some((event) => event.kind === "hatched")).toBe(true);
     const eggPermanentId = p0.breeding!.permanentId;
-    // The hatch spent this turn's single breeding action: the window is closed and Main is
-    // open, so a move in the same turn is refused.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({
       ok: false,
@@ -433,13 +409,11 @@ describe("EX10-003 Tumblemon", () => {
     await digivolveInBreeding("gotsumon");
     expect(p0.breeding!.stack.map(({ cardId }) => cardId)).toEqual(["EX10-003"]);
 
-    // Turn 3 (seat 0): skip the breeding window, digivolve to the Lv.4.
     await passOpponentTurn();
     await ownBreedingWindow();
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await digivolveInBreeding("golemon");
 
-    // Turn 5 (seat 0): skip again, digivolve to the Lv.5 top so three cards sit underneath.
     await passOpponentTurn();
     await ownBreedingWindow();
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -447,7 +421,6 @@ describe("EX10-003 Tumblemon", () => {
     expect(p0.breeding!.stack.map(({ cardId }) => cardId)).toEqual(["EX10-003", "BT4-065", "BT10-062"]);
     expect(p0.battleArea).toHaveLength(0);
 
-    // Turn 7 (seat 0): move the stack to the battle area.
     await passOpponentTurn();
     await ownBreedingWindow();
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
@@ -460,8 +433,6 @@ describe("EX10-003 Tumblemon", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Turn 8 (seat 1): the opponent attacks the player and the inherited clause fires on the
-    // carrier the route built.
     await advance(s.engine).waitForMainPhase(1);
     const securityBefore = p0.security.length;
     const trashBefore = p0.trash.map(({ instanceId }) => instanceId);

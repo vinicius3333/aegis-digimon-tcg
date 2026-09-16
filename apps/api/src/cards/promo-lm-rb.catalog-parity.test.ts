@@ -7,8 +7,6 @@ import "./LM/index.js";
 import "./RB1/index.js";
 
 const auditedCards = allCards().filter((card) => ["P", "LM", "RB1"].includes(card.set));
-// registerIrCard replaces the in-memory shared record. Read the persisted artifact
-// independently so registration cannot hide stale data shipped to the client.
 const persistedEffects = JSON.parse(
   readFileSync(new URL("../../../../packages/shared/src/effects/effects.json", import.meta.url), "utf8"),
 ) as Record<string, CompiledCard>;

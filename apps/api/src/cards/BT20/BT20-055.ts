@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play][When Digivolving]: De-Digivolve 2, flip opponent's top face-down security card
-// face up, then delete 1 of opponent's Digimon with 1 or fewer digivolution cards.
-// [Your Turn] (inherited context): when your Digimon checks a face-up security card,
-// you may place the top card of this Digimon face-up at the bottom of your security stack.
-// Capabilities needed: see LANE_H.md
-//   - Filter.digivolutionCardsAtMost: number (for "1 or fewer digivolution cards")
-//   - SubTrigger event "whenCheckedFaceUpSecurity" (for "when your Digimon checks a face-up security card")
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -332,10 +332,7 @@ describe("BT20-036 BanchoLeomon", () => {
     const firstPartnerCardId = s.perm("firstPartner").topCard.instanceId;
     const secondBanchoCardId = s.perm("second").topCard.instanceId;
     const secondPartnerCardId = s.perm("secondPartner").topCard.instanceId;
-    // Both partners are preferred in board order; the first is consumed before
-    // the second selection, leaving the second pair available during combat.
     preferred.push(s.perm("firstPartner").permanentId, s.perm("secondPartner").permanentId);
-    // End Main passes at -3: first P-221 pays 5, then printed BT16 DNA costs 0.
     s.state.memory = 3;
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
@@ -382,14 +379,14 @@ describe("BT20-036 BanchoLeomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
     );
-    s.state.memory = 3; // Paying DNA cost 5 crosses the gauge and completes this turn.
+    s.state.memory = 3;
     await s.ready();
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
-    expect(s.state.players[1]!.security).toHaveLength(2); // choose before the first check removes anything
+    expect(s.state.players[1]!.security).toHaveLength(2);
     const firstRequest = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
     if (firstRequest.kind !== "orderTriggers") throw new Error("DNA attack trigger order decision missing");
     expect(firstRequest.options?.triggerCardIds).toEqual(["P-221", "P-221", "P-221"]);
@@ -417,9 +414,6 @@ describe("BT20-036 BanchoLeomon", () => {
       }),
     ).toEqual({ ok: true });
     advance(s.engine).endMainPhaseIfOpen(0);
-    // This is a player-directed attack (unblocked, no Digimon battle), so it resolves through
-    // a security check rather than emitting `combatResolved` (that event only fires for a
-    // resolved Digimon-vs-Digimon battle; see combat/controller.ts's `completedCombat`).
     await settle(
       () => s.state.pendingDecision === undefined && s.events.some((event) => event.kind === "securityChecked"),
     );

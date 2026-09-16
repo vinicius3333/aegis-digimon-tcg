@@ -6,8 +6,8 @@ import { compiled } from "./EX10-060.js";
 import "../index.js";
 
 const CARD_ID = "EX10-060";
-const LARVA = "BT18-086"; // Lucemon: Larva — the exact name the On Play / When Digivolving cost demands.
-const CHAOS_MODE = "BT7-111"; // Lucemon: Chaos Mode — no inherited text, so the stack stays quiet.
+const LARVA = "BT18-086";
+const CHAOS_MODE = "BT7-111";
 const INERT_DECK = ["BT1-013", "BT1-014", "BT1-009", "BT1-051", "BT1-020"];
 const INERT_SECURITY = ["BT1-009", "BT1-013", "BT1-014"];
 
@@ -77,8 +77,6 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
       ]);
   });
 
-  // --- [On Play], through the public playCard intent -------------------------------------
-
   it("On Play from hand: plays Larva to the empty breeding area and deletes only the highest level", async () => {
     const s = setupEngine(
       {
@@ -112,10 +110,8 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     expect(s.state.players[0]!.breeding?.topCard?.instanceId).toBe(larvaId);
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe(LARVA);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(larvaId);
-    // Only the Lv.5 is "the highest level"; both lower Digimon survive untouched.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([lv4Id, lv3Id]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-020"]);
-    // Play cost 16 paid in full from memory 10.
     expect(s.state.memory).toBe(-6);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([CARD_ID]);
@@ -210,8 +206,6 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([lv5Id]);
   });
 
-  // --- Digivolution routes, through the public digivolve intent ---------------------------
-
   it("digivolves for 6 from the exactly named Lucemon: Chaos Mode and keeps the source in the stack", async () => {
     const s = setupEngine(
       {
@@ -243,9 +237,8 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
 
     expect(s.perm("chaos").topCard?.cardId).toBe(CARD_ID);
     expect(s.perm("chaos").stack.map((card) => card.instanceId)).toEqual([chaosInstanceId]);
-    // Cost 6 paid, plus the digivolution bonus draw.
     expect(s.state.memory).toBe(4);
-    expect(s.state.players[0]!.hand).toHaveLength(handBefore); // -1 played, +1 drawn
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(INERT_DECK.slice(1));
   });
 
@@ -269,7 +262,6 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     const satanId = s.inst("satan").instanceId;
     s.state.memory = 10;
 
-    // A Red Lv.5 matches neither the printed Purple Lv.6 route nor the named route.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -291,8 +283,6 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     expect(s.perm("purpleLv6").topCard?.cardId).toBe(CARD_ID);
     expect(s.state.memory).toBe(4);
   });
-
-  // --- Q5170: both When Digivolving effects trigger together -----------------------------
 
   it("Q5170: both When Digivolving effects trigger at once and the controller orders them", async () => {
     const s = setupEngine(
@@ -329,18 +319,13 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     await settle(() => s.state.players[0]!.breeding?.topCard !== undefined && s.state.pendingDecision === undefined);
     await settle(() => false, 30);
 
-    // The engine offered an ordering decision to the controller (seat 0), which is what
-    // Q5170 requires: the two [When Digivolving] effects trigger simultaneously.
     const ordering = s.decisions.filter(({ req, seat }) => req.kind === "orderTriggers" && seat === 0);
     expect(ordering.length).toBeGreaterThan(0);
     expect(ordering[0]!.req.options?.triggerKeys?.length).toBeGreaterThan(1);
 
-    // Both clauses resolved: Larva reached breeding, the Lv.5 died to the highest-level
-    // sweep, and the opponent's own deletion took the remaining Lv.3.
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe(LARVA);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-020"]);
-    // The opponent DID delete, so no security card is trashed by the second effect.
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(INERT_SECURITY);
   });
 
@@ -374,7 +359,6 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
 
-    // A Tamer has no level, so this proves the target kind boundary, not just another Digimon.
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["EX10-062"]);
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(INERT_SECURITY);
   });
@@ -415,8 +399,6 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
-  // --- Q5171: the attack branch, its unsuspend, and the shared [Once Per Turn] ------------
-
   it("Q5171: When Attacking with nothing to delete trashes security, unsuspends, and burns the use", async () => {
     const s = setupEngine(
       {
@@ -442,13 +424,9 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
     await settle(() => false, 30);
 
-    // Effect trashed the top card, then the attack checked the next one: 4 -> 3 -> 2.
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-014", "BT1-051"]);
-    // "this Digimon unsuspends" — it survives its own attack unsuspended.
     expect(s.perm("satan").isSuspended).toBe(false);
 
-    // Second attack, same turn: the shared [Once Per Turn] use is spent even though the
-    // opponent never deleted anything (Q5171), so only the security check happens.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -500,7 +478,6 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
     await settle(() => false, 30);
 
-    // Only the security check ran: the When Attacking copy shares the spent use.
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-014", "BT1-051"]);
     expect(s.perm("satan").isSuspended).toBe(true);
   });
@@ -554,7 +531,6 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
 
-    // Both the effect trash and the check ran again: the use reset on the new own turn.
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-020", "BT1-027"]);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-validated effect IR for BT5-063 (Kurisarimon).
 export const compiled: CompiledCard = {
   effects: [
     {

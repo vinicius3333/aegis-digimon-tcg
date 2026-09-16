@@ -2,18 +2,6 @@ import { describe, it, expect } from "vitest";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./P-097.js";
 
-// A3 for P-097 (Zubamon) — two effects:
-//   (1) [On Play] (optional) By placing this card under 1 of your other Digimon as its
-//       bottom digivolution card, reveal top 3 of deck and choose their destination/order.
-//       Then, if a [Legend-Arms] trait Digimon is in play, gain 2 memory.
-//   (2) [Your Turn][Inherited] While you have a [Legend-Arms] OR black Digimon in play,
-//       this Digimon gains ＜Raid＞. source: documented behavior.
-//
-// FAILS-WHEN-REVERTED:
-//   (1) Without the onPlay effect, the 3 revealed cards are not reordered at the chosen
-//       deck edge after playing P-097 with another Digimon in play.
-//   (2) Without the staticModifier, no Raid keyword is granted on the inherited permanent.
-
 interface LedgerReader {
   hasKeyword(permanentId: string, keyword: string): boolean;
 }
@@ -22,18 +10,15 @@ function ledgerOf(s: EngineSetup): LedgerReader {
   return (s.engine as unknown as { continuous: LedgerReader }).continuous;
 }
 
-// P-097 Zubamon — Red Lv.3, playCost 3, owned digivolution target: BT3-008 Zubamon (Legend-Arms).
-// BT3-008 Zubamon is a Red Lv.3 with [Legend-Arms] type — used as the "other Digimon" host.
 const ZUBAMON = "P-097";
-const LEGEND_ARMS_HOST = "BT3-008"; // Legend-Arms Red Lv.3 Zubamon
-const BLACK_NON_LEGEND_ARMS = "BT2-055"; // ToyAgumon, Black Lv.3, Puppet
+const LEGEND_ARMS_HOST = "BT3-008";
+const BLACK_NON_LEGEND_ARMS = "BT2-055";
 
 describe("P-097 [On Play] places self under another Digimon and reorders the revealed cards", () => {
   it("exposes top/bottom and ordering decisions, then puts the chosen order on top", async () => {
     const s = setupEngine(
       {
         0: {
-          // The host Digimon that P-097 will be placed under.
           battleArea: [{ card: LEGEND_ARMS_HOST, dp: 3000, as: "host" }],
           hand: [{ card: ZUBAMON, as: "zubamon" }],
           deck: [
@@ -103,14 +88,11 @@ describe("P-097 [On Play] places self under another Digimon and reorders the rev
         s.state.memory === 9,
     );
 
-    // P-097 is now under the host Digimon as a digivolution card.
-    // P-097 should no longer be on the battle area as a standalone permanent
-    // (it was placed under the host, not played to a new slot).
     expect(p0.battleArea.some((p) => p.topCard?.instanceId === zubamonId)).toBe(false);
     expect(s.perm("host").stack.some((c) => c.instanceId === zubamonId)).toBe(true);
     expect(p0.deck.length).toBe(5);
     expect(p0.deck.slice(0, 3).map((card) => card.instanceId)).toEqual(chosenOrder);
-    expect(s.state.memory).toBe(9); // 10 - play cost 3 + Legend-Arms memory 2
+    expect(s.state.memory).toBe(9);
   });
 
   it("may decline the By-cost without moving itself or revealing the deck", async () => {
@@ -145,24 +127,20 @@ describe("P-097 [On Play] places self under another Digimon and reorders the rev
 
 describe("P-097 [Your Turn][Inherited] gains ＜Raid＞ with Legend-Arms or Black Digimon in play", () => {
   it("grants Raid on the host permanent when a Legend-Arms Digimon is in play (inherited)", async () => {
-    // Build: P-097 as a digivolution card under a Legend-Arms host.
     const s = setupEngine({
       0: { battleArea: [{ card: LEGEND_ARMS_HOST, dp: 3000, as: "host", under: [ZUBAMON] }] },
     });
 
     await s.engine.recomputeContinuousEffects();
 
-    // The inherited static effect should grant Raid on the host permanent.
     expect(ledgerOf(s).hasKeyword(s.perm("host").permanentId, "Raid")).toBe(true);
   });
 
   it("grants Raid when a black Digimon (non-Legend-Arms) is in play", async () => {
-    // Two permanents: a host carrying P-097 (Red) + a separate Black Digimon.
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-015", dp: 4000, as: "host", under: [ZUBAMON] }, // Greymon Lv.4 Red (not Legend-Arms)
-          // A separate black Digimon with no Legend-Arms trait proves the color-only branch.
+          { card: "BT1-015", dp: 4000, as: "host", under: [ZUBAMON] },
           { card: BLACK_NON_LEGEND_ARMS, dp: 3000, as: "blackDigimon" },
         ],
       },
@@ -174,14 +152,12 @@ describe("P-097 [Your Turn][Inherited] gains ＜Raid＞ with Legend-Arms or Blac
   });
 
   it("does NOT grant Raid when no Legend-Arms or Black Digimon is in play", async () => {
-    // Host carrying P-097, but no Legend-Arms or black Digimon on the field.
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-015", dp: 4000, as: "host", under: [ZUBAMON] }] }, // Red Greymon only
+      0: { battleArea: [{ card: "BT1-015", dp: 4000, as: "host", under: [ZUBAMON] }] },
     });
 
     await s.engine.recomputeContinuousEffects();
 
-    // Guard fails → no Raid grant.
     expect(ledgerOf(s).hasKeyword(s.perm("host").permanentId, "Raid")).toBe(false);
   });
 
@@ -189,11 +165,10 @@ describe("P-097 [Your Turn][Inherited] gains ＜Raid＞ with Legend-Arms or Blac
     const s = setupEngine({
       0: { battleArea: [{ card: LEGEND_ARMS_HOST, dp: 3000, as: "host", under: [ZUBAMON] }] },
     });
-    s.state.turnSeat = 1; // opponent's turn
+    s.state.turnSeat = 1;
 
     await s.engine.recomputeContinuousEffects();
 
-    // [Your Turn] gate fails → no Raid grant.
     expect(ledgerOf(s).hasKeyword(s.perm("host").permanentId, "Raid")).toBe(false);
   });
 });

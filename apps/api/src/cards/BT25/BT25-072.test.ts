@@ -64,8 +64,8 @@ describe("BT25-072 Shutmon", () => {
     const shutmon = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === CARD_ID)!;
     expect(shutmon.linked.map((card) => card.cardId)).toEqual([VALID_LINK]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([NEAR_TRAIT_LINK, NO_LINK_TOOL]);
-    expect(s.state.memory).toBe(0); // play 7; the link's printed cost 1 is reduced by 2 to 0
-    expect(shutmon.currentDP).toBe(9000); // 7000 + BT21-041's 2000 link DP
+    expect(s.state.memory).toBe(0);
+    expect(shutmon.currentDP).toBe(9000);
   });
 
   it("does not link from On Play during the opponent's turn", async () => {

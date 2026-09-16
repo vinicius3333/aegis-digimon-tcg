@@ -98,8 +98,6 @@ describe("EX11-074 Vortexdramon", () => {
   });
 
   it("refuses the alternate route without a [Shoto Kazama] on the board", async () => {
-    // The Tamer is a `controllerControls` availability gate, not an evolution base: a level 5
-    // GrandGalemon has no ordinary route into this level 7 card.
     const s = setupEngine(
       {
         0: {
@@ -124,9 +122,6 @@ describe("EX11-074 Vortexdramon", () => {
   });
 
   it("refuses the alternate route from a level 5 base that is not [GrandGalemon]", async () => {
-    // EX11-033 is the same colour and level as GrandGalemon and shares [LIBERATOR], and the
-    // Shoto Kazama gate is satisfied — only `namesExact` separates the two bases. It has no
-    // ordinary route into a level 7 card either, so nothing else can carry the digivolution.
     const s = setupEngine(
       {
         0: {
@@ -189,8 +184,6 @@ describe("EX11-074 Vortexdramon", () => {
     expect(observe(s.engine).hasPierce(s.perm("source"))).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Vortex")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
-    // Shoto remains on the board after the required alternate evolution and grants this
-    // Vortex Warriors Digimon an additional +3000 DP, so the printed +6000 resolves to 23000.
     expect(s.perm("source").currentDP).toBe(23000);
     expect(observe(s.engine).hasRestriction(s.perm("source"), "beAffected", "Digimon")).toBe(true);
     assertNoLoudGap(s);

@@ -32,9 +32,6 @@ describe("EX11-006 Flickmon", () => {
 
   it("requires a linked card before its inherited attack digivolution", () => {
     const effect = runtimeCompiledCard("EX11-006")!.effects[0]!;
-    // The gate must be a condition kind the interpreter actually evaluates. The previous
-    // encoding used the invented kind "hostHasLinkedWith", which falls through
-    // evaluateCondition's `default: return false` arm and made the whole clause dead.
     expect(effect).toMatchObject({
       trigger: "WhenAttacking",
       isInherited: true,
@@ -89,16 +86,10 @@ describe("EX11-006 Flickmon", () => {
     await settle(() => s.perm("host").topCard.instanceId === s.inst("turbomon").instanceId);
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId), 5000);
 
-    // FAILS-WHEN-REVERTED: with the dead "hostHasLinkedWith" gate nothing digivolved, yet the
-    // previous assertions (stack ["EX11-006"], memory 10) were satisfied by that no-op. Assert
-    // the new top card and the grown stack so the positive path cannot pass vacuously.
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("turbomon").instanceId);
-    // Turbomon's own [When Digivolving] may then relink the stacked Maquinamon, so only
-    // Flickmon's continued presence in the stack is asserted here.
     expect(s.perm("host").stack.map((card) => card.cardId)).toContain("EX11-006");
     expect(s.perm("host").linked.map((card) => card.cardId)).toContain("EX11-027");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("turbomon").instanceId);
-    // reduceCost 2 against Turbomon's printed [Digivolve] [Maquinamon]: Cost 2 leaves 0.
     expect(s.state.memory).toBe(10);
     assertNoLoudGap(s);
   });

@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Security]: play this card without paying the cost.
-// [Start of Your Main Phase]: by trashing 1 [Machine]/[Cyborg]/[SoC] card from hand, gain 1 memory.
-// [Main] <Mind Link>: place this Tamer as bottom digivolution card of 1 of your [Machine]/[Cyborg]/[SoC] Digimon
-//   if there are no Tamer cards in its digivolution cards.
-// Inherited [All Turns]: while this Digimon has [Machine]/[Cyborg]/[SoC] trait, gains <Jamming> and <Blocker>.
-// Inherited [End of All Turns]: you may play 1 [Marvin Jackson] from this Digimon's digivolution cards without cost.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -131,8 +131,6 @@ describe("EX1-015 Garurumon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.perm("attacker").isSuspended);
     expect(attack()).toEqual({ ok: true });
-    // Once-per-turn: the second attack does not re-trigger EX1-015 at all, so there is no
-    // second `effectResolved` to wait on — the proof is that the card never fires again.
     await drainMicrotasks();
     expect(
       s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"),

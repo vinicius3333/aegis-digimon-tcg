@@ -1,24 +1,17 @@
 import { describe, it, expect } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 
-// "Digivolve from one of your <color> Tamers" family (Frontier Hybrid/Spirit cards). The documented behavior
-// parser dropped it (no bracket name; the compiler can't emit baseIsTamer/baseColors). Restored
-// via ALTERNATE_DIGIVOLUTION_OVERRIDES. These tests assert the Tamer-color path is now legal at
-// the documented behavior cost, is rejected for an off-color Tamer, and that the named alternate paths still resolve.
-
-// One mono-color Tamer per color (avoids accidental multi-color matches).
 const TAMER = {
-  Red: "BT1-085", // Tai Kamiya
-  Blue: "BT1-086", // Matt Ishida
-  Green: "BT1-088", // Izzy Izumi
-  Yellow: "BT1-087", // T.K. Takaishi
-  Black: "BT10-092", // Nene Amano
-  Purple: "BT10-093", // Yuu Amano
+  Red: "BT1-085",
+  Blue: "BT1-086",
+  Green: "BT1-088",
+  Yellow: "BT1-087",
+  Black: "BT10-092",
+  Purple: "BT10-093",
 } as const;
 
 type Color = keyof typeof TAMER;
 
-// card → { tamerCost, tamerColors } extracted from the documented behavior Tamer-base PermanentCondition.
 const TAMER_PATH: Record<string, { cost: number; colors: Color[] }> = {
   "BT21-013": { cost: 2, colors: ["Red"] },
   "BT21-014": { cost: 3, colors: ["Red"] },
@@ -61,8 +54,6 @@ describe("Frontier Tamer-base digivolution paths", () => {
       const offColors = ALL_COLORS.filter((c) => !colors.includes(c));
       for (const color of offColors) {
         const req = matchingAlternateDigivolutionRequirement(cardId, TAMER[color]);
-        // Either no alternate matches, or it is NOT the Tamer-color path (e.g. a named path
-        // that happens to gate on a Digimon — never a baseIsTamer match for the wrong color).
         if (req?.baseIsTamer) {
           expect.fail(`${cardId} should not digivolve from a ${color} Tamer`);
         }
@@ -71,7 +62,7 @@ describe("Frontier Tamer-base digivolution paths", () => {
   }
 
   it("BT21-014: still resolves the named Agunimon path (cost 1)", () => {
-    const req = matchingAlternateDigivolutionRequirement("BT21-014", "BT12-012"); // Agunimon (Digimon)
+    const req = matchingAlternateDigivolutionRequirement("BT21-014", "BT12-012");
     expect(req).toBeDefined();
     expect(req?.cost).toBe(1);
     expect(req?.baseIsTamer).toBeUndefined();

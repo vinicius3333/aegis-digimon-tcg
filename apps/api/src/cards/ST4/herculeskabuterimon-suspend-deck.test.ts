@@ -17,8 +17,6 @@ describe("ST4 HerculesKabuterimon suspend deck gauntlet", () => {
             {
               card: "ST4-13",
               as: "hercules",
-              // `under` is bottom-first; Digi-Burst trashes the top two fillers and leaves
-              // the three inherited effects needed by the ensuing battle on the host.
               under: ["ST4-01", "ST4-04", "ST4-11", "ST4-03", "ST4-08"],
             },
             { card: "ST4-14", as: "izzy" },

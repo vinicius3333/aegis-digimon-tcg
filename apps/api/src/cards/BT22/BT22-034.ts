@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT22-034 Reppamon
-// Fix: "When effects trash this card from security" was encoded as a dead Static→SubTrigger
-//   (whenTrashedFromSecurity never fires); corrected to EffectTiming.OnDiscardSecurity, which
-//   fires only from the effect-driven trash-from-security seam (GameEngine.fireDiscardedFromSecurity)
-//   — self-scoped and effect-only by construction. The "instead" clause is optional cost: pay
-//   trash top security to replace -3000 DP with -6000 DP (KB Q4880: "instead" means the
-//   alternate processing replaces the standard processing when cost is paid).
 export const compiled: CompiledCard = {
   effects: [
     {

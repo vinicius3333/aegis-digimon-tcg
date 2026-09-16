@@ -172,9 +172,6 @@ describe("BT24-071 Raidramon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    // Raidramon's own [System] App Name attribute also matches the "System/Life/Transmutation
-    // trait" filter, so it is itself a legal target alongside "life"; bias the pick so the test
-    // proves the effect can reach ANOTHER qualifying Digimon, not just itself.
     preferred.push(s.inst("life").instanceId);
     s.state.memory = 5;
     await s.ready();

@@ -3,20 +3,8 @@ import { type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { compiled } from "./BT16-020.js";
-import "../index.js"; // side-effect: registers cards + the @aegis/shared override
+import "../index.js";
 
-// BT16-020 (GaoGamon, Blue Lv.4) alternate digivolution path:
-//   "[Digivolve] Lv.3 w/[Night Claw]/[Light Fang] trait: Cost 2" (documented behavior).
-// The alternate path bypasses the printed color requirement: any Lv.3 Digimon carrying the
-// [Night Claw] or [Light Fang] trait is a legal base, regardless of color.
-//
-// Real fixtures from cards.json:
-//   BT16-020  GaoGamon — Blue Lv.4 (the evolving card; normal evo cost = Lv.3 Blue : 2)
-//   BT16-029  — Lv.3 YELLOW [Light Fang] (off-color: the printed EvoCost path REJECTS it, so
-//               ONLY the alternate trait-gated requirement can accept it)
-//   BT22-069  — Lv.3 [Night Claw]
-//   BT1-009   — Lv.3 Digimon WITHOUT either trait (illegal alternate base)
-//   BT22-072  — Lv.4 [Night Claw] (wrong level — illegal alternate base)
 const GAOGAMON = "BT16-020";
 const LV3_LIGHTFANG_YELLOW = "BT16-029";
 const LV3_NIGHTCLAW = "BT22-069";
@@ -78,10 +66,6 @@ describe("BT16-020 alternate digivolution requirement (cardData matcher)", () =>
 });
 
 describe("BT16-020 [Digivolve] alternate path onto an off-color [Light Fang] base (full engine)", () => {
-  // FAILS-WHEN-REVERTED: the base is a Lv.3 YELLOW Digimon; GaoGamon is Blue, so the printed
-  // EvoCost path rejects it on color. Only the alternate trait-gated requirement (added in
-  // ALTERNATE_DIGIVOLUTION_OVERRIDES) accepts it. Remove the override and the digivolve intent
-  // is rejected — GaoGamon never lands and neither player draws.
   it("digivolves at cost 2, fires [When Digivolving] (both draw + gain memory when opp hand >= 8)", async () => {
     const s = setupEngine({
       0: {
@@ -91,13 +75,13 @@ describe("BT16-020 [Digivolve] alternate path onto an off-color [Light Fang] bas
       },
       1: {
         deck: Array.from({ length: 3 }, () => LV3_NO_TRAIT),
-        hand: Array.from({ length: 8 }, () => LV3_NO_TRAIT), // opp hand >= 8 → memory gate passes
+        hand: Array.from({ length: 8 }, () => LV3_NO_TRAIT),
       },
     });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
-    s.state.memory = ALT_COST; // exact alternate cost
+    s.state.memory = ALT_COST;
     const p0DeckBefore = p0.deck.length;
 
     const res = s.engine.applyIntent(0, {
@@ -108,20 +92,14 @@ describe("BT16-020 [Digivolve] alternate path onto an off-color [Light Fang] bas
     });
     expect(res).toEqual({ ok: true });
 
-    // Settle on the LAST step of the chain (the memory gain) so the [When Digivolving] draws
-    // for both players have fully resolved before asserting.
     await settle(() => s.perm("base").topCard?.cardId === GAOGAMON && s.state.memory === 1);
 
-    // GaoGamon stacked onto the off-color base via the alternate requirement.
     expect(s.perm("base").topCard?.cardId).toBe(GAOGAMON);
     expect(s.perm("base").stack.some((c) => c.cardId === LV3_LIGHTFANG_YELLOW)).toBe(true);
 
-    // [When Digivolving] both players drew 1. p0 also drew 1 from the standard digivolve-draw
-    // rule (-2 total); the OPPONENT's draw (8 → 9) is purely BT16-020's "both players draw 1".
     expect(p0.deck.length).toBe(p0DeckBefore - 2);
     expect(p1.hand.length).toBe(9);
 
-    // Memory gate passed (opp hand >= 8): +1 memory over the post-payment baseline (paid 2 from 2 → 0).
     expect(s.state.memory).toBe(1);
   });
 

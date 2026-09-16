@@ -1,18 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT7-076 Orochimon
-// effectText: When you trash THIS card in your hand using one of your effects, Draw 1.
-// inheritedEffectText: [When Attacking][Once Per Turn] You may trash 1 card in your hand to gain 1 memory.
-//
-// The main effect is a self-watcher: fires only when this specific card instance is
-// trashed from hand. sourceFilter.isSelfRef gates on "this card".
-// The inherited [When Attacking] is "You may trash 1 hand card" (cost) → "gain 1 memory".
-//
-// Migration note: was the dead "whenHandCardTrashed" name with the wrong field key
-// (triggerFilter, which only `onAddDigivolutionCards`-family events read) — collapsed onto the
-// already-live "whenTrashedFromHand" (per-card hand-trash event) with the correct
-// "sourceFilter" key its own gate reads.
 const compiled: CompiledCard = {
   effects: [
     {

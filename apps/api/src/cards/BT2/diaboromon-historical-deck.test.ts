@@ -48,10 +48,8 @@ describe("BT2 Diaboromon historical deck gauntlet", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 4 && !observe(s.engine).isAttacking());
 
-    // Q1034: the token made before the security battle may replace this deletion.
     expect(s.perm("infermon").topCard.instanceId).toBe(s.inst("classicDiaboromon").instanceId);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "TOKEN-Diaboromon")).toBe(false);
-    // Tokens cease to exist when leaving the battle area; they never enter the trash.
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "TOKEN-Diaboromon")).toBe(false);
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-084")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(4);

@@ -10,7 +10,7 @@ import "./BT17-017.js";
 import "./index.js";
 
 const MEPHISTOMON = "BT17-068";
-const GULFMON = "BT17-070"; // Gulfmon Lv6 — eligible for [On Deletion]
+const GULFMON = "BT17-070";
 
 describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => {
   it("keeps the Gulfmon-or-level-6-Dark-Masters alternatives distinct", () => {
@@ -42,13 +42,10 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
     await advance(s.engine).verb.deletePermanent([mephPermId], "byEffect");
     await settle(() => !p0?.battleArea.some((p) => p.permanentId === mephPermId), 1000);
 
-    // Verify Mephistomon was actually deleted (not still alive).
     expect(p0?.battleArea.some((p) => p.permanentId === mephPermId)).toBe(false);
 
-    // Wait for [On Deletion] to resolve (Gulfmon played to battle area).
     await settle(() => p0?.battleArea.some((p) => p.topCard?.cardId === GULFMON) ?? false, 400);
 
-    // Mephistomon was deleted in battle; [On Deletion] fired and played Gulfmon.
     const gulfInBattle = p0?.battleArea.some((p) => p.topCard?.instanceId === gulfId);
     expect(gulfInBattle).toBe(true);
   });
@@ -206,7 +203,7 @@ describe("BT17-068 Mephistomon — revealed level", () => {
   });
 });
 
-const APOCALYMON = "BT15-102"; // level 7 [Apocalymon] — the return-cost target
+const APOCALYMON = "BT15-102";
 
 describe("BT17-068 Mephistomon — play-cost reduction", () => {
   it("reduces the hand play cost by 3 by returning 1 [Apocalymon] from trash to deck bottom", async () => {
@@ -223,15 +220,13 @@ describe("BT17-068 Mephistomon — play-cost reduction", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 8; // full printed cost is 8; reduced cost is 5
+    s.state.memory = 8;
     const apocId = s.inst("apoc").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("meph").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === MEPHISTOMON));
 
-    // Cost 8 reduced by 3 leaves memory at 3, proving the reduction actually applied.
     expect(s.state.memory).toBe(3);
-    // The returned [Apocalymon] left the trash and sits at the bottom of the deck.
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === apocId)).toBe(false);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(apocId);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === MEPHISTOMON)).toBe(true);
@@ -255,7 +250,6 @@ describe("BT17-068 Mephistomon — play-cost reduction", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("meph").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === MEPHISTOMON));
 
-    // No [Apocalymon] to return, so the reduction cost cannot be paid: full cost 8 leaves memory at 0.
     expect(s.state.memory).toBe(0);
   });
 });

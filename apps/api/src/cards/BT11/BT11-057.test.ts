@@ -66,7 +66,7 @@ describe("BT11-057 Titamon", () => {
         s.state.players[1]!.battleArea.every(({ isSuspended }) => isSuspended),
     );
     expect(s.state.players[1]!.battleArea.every(({ isSuspended }) => isSuspended)).toBe(true);
-    expect(s.state.memory).toBe(9); // the printed evolution cost is 4, then all three opposing Digimon count
+    expect(s.state.memory).toBe(9);
     expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
   });
 
@@ -98,7 +98,7 @@ describe("BT11-057 Titamon", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT11-057");
 
     expect(s.perm("target").isSuspended).toBe(false);
-    expect(s.state.memory).toBe(6); // evolution cost only; no trash cost means no memory gain
+    expect(s.state.memory).toBe(6);
   });
 
   it("still gains memory after trashing when every opposing Digimon was already suspended", async () => {
@@ -126,6 +126,6 @@ describe("BT11-057 Titamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("discard").instanceId));
 
-    expect(s.state.memory).toBe(7); // evolution cost 4, then 1 for the already-suspended Digimon
+    expect(s.state.memory).toBe(7);
   });
 });

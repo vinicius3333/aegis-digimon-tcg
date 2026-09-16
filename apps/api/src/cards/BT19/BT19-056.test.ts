@@ -5,24 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// BT19-056 Monodramon (Black, Lv.3, Vaccine, Mini Dragon, DP 1000, play 3,
-// evolve Black Lv.2 for 0)
-//   [On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Dragonkin]/[Cyborg]
-//   trait and 1 [Ryo Akiyama] or 1 [Device] trait Option card among them to the hand.
-//   Return the rest to the bottom of the deck.
-//   Inherited: [All Turns] This Digimon gets +1000 DP.
-// KB Q3115: must add as many as possible.
-// KB Q3116: the two categories are (a) [Dragonkin] or [Cyborg] trait, (b) a card NAMED
-//           [Ryo Akiyama] OR an Option card with the [Device] trait.
-//
-// Fixture identities:
-//   BT19-052 Vespamon    -> [Cyborg] trait          (category a)
-//   BT19-060 Strikedramon-> [Dragonkin] trait       (category a)
-//   BT19-086 / EX2-062   -> named "Ryo Akiyama"     (category b, exact name)
-//   BT19-095 Knight Device -> Option, [Device] trait (category b)
-//   BT1-009 Monodramon   -> [Mini Dragon], NOT [Dragonkin] -> near-miss for (a)
-//   BT19-089 Red Card    -> Option with no [Device] trait  -> near-miss for (b)
-
 describe("BT19-056 Monodramon", () => {
   it("matches the catalog print", () => {
     const definition = getCardDefinition("BT19-056")!;
@@ -126,9 +108,6 @@ describe("BT19-056 Monodramon", () => {
             { card: "BT19-056", as: "mono" },
             { card: "BT1-010", as: "spare" },
           ],
-          // BT1-009 Monodramon: [Mini Dragon], not [Dragonkin]/[Cyborg].
-          // BT19-089 Red Card: an Option with no [Device] trait.
-          // EX2-062 Ryo Akiyama: a DIFFERENT printing of the exact name — must still match.
           deck: ["BT1-009", "BT19-089", "EX2-062", "BT1-012"],
           security: ["BT1-013"],
         },
@@ -270,7 +249,6 @@ describe("BT19-056 Monodramon", () => {
     const monoInstanceId = s.perm("host").topCard!.instanceId;
     s.state.memory = 5;
 
-    // Build the stack for real: Monodramon -> Strikedramon (Black Lv.3 base, cost 2).
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -281,13 +259,10 @@ describe("BT19-056 Monodramon", () => {
     await settle(() => s.perm("host").topCard?.cardId === "BT19-060");
 
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([monoInstanceId]);
-    // Printed 5000 + inherited 1000 on our own turn.
     expect(s.perm("host").currentDP).toBe(6000);
-    // Near-miss peer: the same Strikedramon with nothing under it stays at its printed DP.
     expect(s.perm("peerNoMonodramon").currentDP).toBe(5000);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // [All Turns], not [Your Turn]: still live inside the opponent's own open Main phase.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.turnSeat).toBe(1);
     expect(s.perm("host").currentDP).toBe(6000);

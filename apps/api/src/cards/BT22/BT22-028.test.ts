@@ -85,8 +85,6 @@ describe("BT22-028 Ariemon", () => {
             {
               card: "BT22-028",
               as: "ariemon",
-              // Gizamon supplies the level-3 Sea Animal bucket without an On Play effect
-              // that immediately moves the newly played Digimon back under Ariemon.
               under: ["BT14-008", "BT22-021", "BT22-024", "BT22-027"],
             },
           ],

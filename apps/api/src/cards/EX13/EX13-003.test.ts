@@ -6,9 +6,6 @@ import { compiled } from "./EX13-003.js";
 import "../index.js";
 import "../AD1/AD1-017.js";
 
-// AD1-017 Dynasmon pays "[On Play] By trashing your top or bottom security card" — the public
-// route that removes your OWN security stack during your OWN turn. Its play cost drops from 11
-// to 6 with four [Lucemon]/[Witchelny] text cards in the trash.
 const dynasmonTrash = ["AD1-018", "BT13-087", "BT13-090", "BT18-034"];
 const automation = { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true };
 
@@ -75,7 +72,6 @@ describe("EX13-003 Kyaromon", () => {
     });
     await settle(() => s.perm("host").topCard.cardId === "BT1-051");
 
-    // Reppamon (Holy Beast) was taken; the near-matching [Beast] card and the [Mutant] card stay.
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("holyBeast").instanceId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX13-003", "BT1-046"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
@@ -83,10 +79,8 @@ describe("EX13-003 Kyaromon", () => {
       s.inst("nonMatch").instanceId,
       s.state.players[0]!.hand[2]!.instanceId,
     ]);
-    // Digivolution bonus draw from the deck.
     expect(s.state.players[0]!.hand[2]!.cardId).toBe("BT1-011");
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
-    // 10 - 6 (Dynasmon, reduced) - 1 (Reppamon cost 2 reduced by 1).
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -118,7 +112,6 @@ describe("EX13-003 Kyaromon", () => {
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("kentaurosmon").instanceId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX13-003", "BT1-046", "BT13-041"]);
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
-    // 10 - 6 (Dynasmon, reduced) - 2 (Kentaurosmon cost 3 reduced by 1).
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -147,9 +140,6 @@ describe("EX13-003 Kyaromon", () => {
     });
     await settle(() => s.state.players[0]!.security.length === 1);
 
-    // Starmon is a legal yellow Lv.4 evolution over Kudamon, but it is neither a
-    // [Kentaurosmon]-named nor a [Holy Beast] card, so the inherited effect must
-    // leave it in hand and avoid charging its reduced evolution cost.
     expect(s.perm("host").topCard.cardId).toBe("BT1-046");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nearMatch").instanceId);
     expect(s.state.memory).toBe(4);
@@ -287,7 +277,6 @@ describe("EX13-003 Kyaromon", () => {
     });
     await drainMicrotasks();
 
-    // Second own-security removal in the same turn: the Once Per Turn watcher refuses.
     expect(s.perm("host").topCard.cardId).toBe("BT1-051");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEvolution").instanceId);
     expect(s.state.players[0]!.security).toHaveLength(2);

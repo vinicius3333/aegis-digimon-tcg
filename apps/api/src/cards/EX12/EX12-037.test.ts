@@ -158,8 +158,6 @@ describe("EX12-037 Omnimon", () => {
   });
 
   it("counts a Digi-Egg digivolution card toward the five-source scaling", async () => {
-    // A stack raised through breeding keeps its Digi-Egg at the bottom. The scaling filter is
-    // empty, so every digivolution card counts: egg + 4 Digimon reaches the five-source step.
     const preferred: string[] = [];
     const s = setupEngine(
       {

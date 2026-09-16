@@ -6,18 +6,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 
-// A3 for BT17-102 (Greymon, White Lv.4):
-//   [When Digivolving] If this Digimon's name is [Koromon], it gains +3000 DP for the
-//     turn. Then, delete 1 of your opponent's Digimon with as much or less DP as this
-//     Digimon. (KB Q4713: delete fires even if Koromon condition is not met)
-//   [All Turns] gains the names of level 3 and lower cards in its stack.
-//   [On Deletion] You may play 1 Tamer with [Tai Kamiya] or [Kari Kamiya] in its name
-//     from your hand without paying cost, OR hatch in your breeding area.
-//
-// Test: [When Digivolving] deletes an opponent Digimon with DP ≤ Greymon's DP (5000).
-
 const GREYMON = "BT17-102";
-// Lv.3 Agumon (Red) — a valid digivolve base for BT17-102 ("from Lv.3 w/ [Agumon] in name, cost 2").
 const AGUMON_LV3 = "BT1-010";
 
 describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4713)", () => {
@@ -55,14 +44,9 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
     const s = setupEngine(
       {
         0: {
-          // Lv.3 Agumon as the digivolve base for p0.
           battleArea: [{ card: AGUMON_LV3, dp: 1000, as: "agumon" }],
-          // Greymon in p0's hand; digivolve onto Agumon (cost 2, p0 needs ≥2 memory).
           hand: [{ card: GREYMON, as: "greymon" }],
         },
-        // Opponent has a Digimon with DP ≤ 5000 — eligible to be deleted. (BT1-009 Monodramon —
-        // BT1-007 Tanemon is a DigiEgg, not a Digimon, and can never satisfy the [Digimon]-kind
-        // filter this effect requires.)
         1: { battleArea: [{ card: "BT1-009", dp: 4000, as: "oppTarget" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -83,13 +67,10 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
     });
     expect(res.ok).toBe(true);
 
-    // Wait for Greymon to leave p0's hand (digivolve completed).
     await settle(() => !p0?.hand.some((c) => c.instanceId === greymonId), 600);
 
-    // Wait for the [When Digivolving] effect: opponent's target Digimon should be deleted.
     await settle(() => !p1?.battleArea.some((p) => p.permanentId === oppPermId), 800);
 
-    // The opponent's Digimon with 4000 DP (≤ Greymon's 5000 DP) was deleted.
     expect(p1?.battleArea.some((p) => p.permanentId === oppPermId)).toBe(false);
   });
 
@@ -146,8 +127,6 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
         },
         1: { battleArea: [{ card: "BT1-009", dp: 12000, as: "attacker" }] },
       },
-      // Prefer the first offered entry: the unavailable Tamer branch must be filtered,
-      // leaving Hatch as the only selectable option.
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     const p0 = s.state.players[0];
@@ -288,8 +267,6 @@ describe("BT17-102 Greymon — evolution routes", () => {
   it("does not grant the 2-memory route to a Lv.3 without [Agumon] in its name", async () => {
     const s = setupEngine({
       0: {
-        // Monodramon is Lv.3 Red, so the catalog colour route is legal but the printed
-        // [Digivolve] route (Lv.3 w/[Agumon] in its name) must not be.
         battleArea: [{ card: "BT1-009", as: "monodramon" }],
         hand: [{ card: GREYMON, as: "greymon" }],
         deck: ["BT1-012"],
@@ -300,9 +277,6 @@ describe("BT17-102 Greymon — evolution routes", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // `useAlternateCost` only selects the printed route when that route actually matches
-    // the base; Monodramon fails the [Agumon]-in-name gate, so the digivolve falls back
-    // to the catalog Red Lv.3 route at its full 3 memory.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -345,8 +319,6 @@ describe("BT17-102 Greymon — [When Digivolving] boundaries (KB Q4713, Q2902)",
     ).toEqual({ ok: true });
     await settle(() => s.perm("agumon").topCard?.cardId === GREYMON);
 
-    // No [Koromon] in the stack: the DP boost half of the clause does nothing, so the
-    // 6000 DP opponent stays above Greymon's printed 5000 DP and survives.
     expect(s.perm("agumon").currentDP).toBe(5000);
     expect(s.state.players[1]?.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("tooBig").permanentId,
@@ -409,7 +381,6 @@ describe("BT17-102 Greymon — [All Turns] names survive the breeding move (KB Q
 
     const moved = s.perm("greymon");
     expect(s.state.players[0]?.battleArea.map((permanent) => permanent.permanentId)).toEqual([moved.permanentId]);
-    // Q2901: the moved Digimon is the one carrying [Greymon]/[Agumon]/[Koromon].
     expect(observe(s.engine).effectiveNames(moved)).toEqual(expect.arrayContaining(["greymon", "agumon", "koromon"]));
   });
 });

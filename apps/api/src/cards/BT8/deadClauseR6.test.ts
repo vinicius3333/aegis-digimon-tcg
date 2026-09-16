@@ -15,25 +15,11 @@ import "../BT19/BT19-097.js";
 import "../BT20/BT20-080.js";
 import { advance } from "../../engine/testkit/advance.js";
 
-// Lane R6 (silent-dead-clause find): behavioral proof that the SubTriggerEvent renames in
-// this lane wake up a REAL, previously-dead watcher, not merely a type-valid one — driving
-// the real GameEngine end to end (not a mock), per the four cards below.
-//
-// Each fixed string was verified two ways before being trusted:
-//  1. It is a member of the engine's authoritative SubTriggerEventName union
-//     (apps/api/src/engine/effects/EffectContext.ts).
-//  2. Something in the engine actually calls `fireSubTrigger(..., "<event>", ...)` for it —
-//     confirmed by grepping every literal fireSubTrigger call site in apps/api/src/engine.
-//     Several of the compiler's own "did you mean" suggestions (e.g. "whenUnsuspended" ->
-//     "whenSuspended", "whenTrashedFromDigivolution" -> "whenTrashedFromDigivolutionCards")
-//     FAIL step 2 — they are type-valid strings nothing ever fires — and were deliberately
-//     NOT applied; see the lane report for the missing-capability list.
-
 function playBT19097(s: ReturnType<typeof setup>): void {
   const p0 = s.state.players[0] as PlayerState;
   const card = instance("BT19-097", 0, true);
   p0.hand.push(card);
-  s.state.memory = 3; // BT19-097's printed play cost
+  s.state.memory = 3;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({
     ok: true,
   });
@@ -43,11 +29,8 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
   it("BT8-006: '[Your Turn] when a card is trashed from your deck, Draw 1' (onDiscardLibrary, controller:mine)", async () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
-    s.state.turnSeat = 0; // "[Your Turn]" — the watcher's own controller's turn
+    s.state.turnSeat = 0;
 
-    // BT8-006's ability is INHERITED (an In-Training DigiEgg's ability only lives on while
-    // it is a digivolution-stack card under a later Digimon, per placementGuard's isInherited
-    // rule — kernel.ts's passesPlacementGuard requires isTop === false). Bury it under a host.
     const host = digimon(0, 5000, "AD1-001");
     host.stack.push(instance("BT8-006", 0, true));
     p0.battleArea.push(host);
@@ -55,15 +38,12 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     for (let i = 0; i < 5; i++) p0.deck.push(instance("AD1-001", 0, false));
     const deckBefore = p0.deck.length;
 
-    p0.battleArea.push(digimon(0, 3000, "BT10-079")); // §4-21 color-requirement source (Purple, for BT19-097)
+    p0.battleArea.push(digimon(0, 3000, "BT10-079"));
     playBT19097(s);
-    // BT19-097's [Main] mills 2 (deck -2); if BT8-006's Draw 1 fires, a 3rd card leaves the
-    // deck for hand (deck -3 total). Deck-count is the robust signal — hand length also drops
-    // by 1 when BT19-097 itself leaves hand to resolve, which would mask a hand-length check.
     await settle(() => p0.deck.length <= deckBefore - 3, 200);
     await settle(() => false, 40);
 
-    expect(deckBefore - p0.deck.length).toBe(3); // 2 milled + 1 drawn
+    expect(deckBefore - p0.deck.length).toBe(3);
     assertNoLoudGap(s);
   });
 
@@ -72,25 +52,14 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
-    // BT20-080's ability is INHERITED (kernel.ts's passesPlacementGuard: an isInherited effect
-    // only activates from a digivolution-STACK position, never as the top card) — bury a copy
-    // under a host whose TOP card is ALSO named Fenriloogamon: the card's own
-    // "selfHasNameContaining" condition reads `ctx.source.permanent()?.topCard` (the PERMANENT's
-    // current top-card name), not the buried source card's own name — see
-    // interpreter.ts's selfHasNameContaining case.
-    //
-    // The host is deliberately NOT the attacker: BT20-080 also prints ＜Scapegoat＞ (a battle-
-    // deletion replacement — "instead of deleting the Digimon that lost, trash a security card"),
-    // which would itself prevent defender's deletion and produce a false-positive security trash
-    // via a completely different mechanism. Keeping the watcher passive isolates onDeletionOf.
-    const watcherHost = digimon(0, 3000, "BT20-080"); // Fenriloogamon top card
-    watcherHost.stack.push(instance("BT20-080", 0, true)); // the inherited-effect-bearing copy
+    const watcherHost = digimon(0, 3000, "BT20-080");
+    watcherHost.stack.push(instance("BT20-080", 0, true));
     p0.battleArea.push(watcherHost);
-    const attacker = digimon(0, 9000, "BT1-009"); // vanilla attacker — defender really dies
+    const attacker = digimon(0, 9000, "BT1-009");
     attacker.enterFieldTurnCount = -1;
     p0.battleArea.push(attacker);
 
-    const defender = digimon(1, 5000, "BT1-013"); // dies to the 9000 attacker -> onDeletionOf fires
+    const defender = digimon(1, 5000, "BT1-013");
     defender.isSuspended = true;
     p1.battleArea.push(defender);
     for (let i = 0; i < 3; i++) p1.security.push(instance("AD1-001", 1, false));
@@ -106,8 +75,8 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
 
     await settle(() => p1.security.length < securityBefore, 200);
     await settle(() => false, 200);
-    expect(p1.battleArea.some((p) => p.permanentId === defender.permanentId)).toBe(false); // defender deleted
-    expect(p1.security.length).toBe(securityBefore - 1); // BT20-080's trash-top-security fired
+    expect(p1.battleArea.some((p) => p.permanentId === defender.permanentId)).toBe(false);
+    expect(p1.security.length).toBe(securityBefore - 1);
     assertNoLoudGap(s);
   });
 
@@ -115,10 +84,10 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
-    s.state.turnSeat = 1; // "[Opponent's Turn]" relative to seat 0's watcher
+    s.state.turnSeat = 1;
 
     const watcher = digimon(0, 8000, "BT15-054");
-    watcher.stack.push(instance("BT1-082", 0, true)); // [Rosemon] in the face-up digivolution cards
+    watcher.stack.push(instance("BT1-082", 0, true));
     p0.battleArea.push(watcher);
 
     const suspendCandidate = digimon(1, 4000);
@@ -137,7 +106,7 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     await settle(() => suspendCandidate.isSuspended, 200);
     await settle(() => false, 40);
 
-    expect(suspendCandidate.isSuspended).toBe(true); // BT15-054's opponent-suspend fired
+    expect(suspendCandidate.isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -145,7 +114,7 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
-    s.state.turnSeat = 1; // seat 1 is attacking
+    s.state.turnSeat = 1;
 
     const watcherHost = digimon(0, 3000);
     p0.battleArea.push(watcherHost);
@@ -163,12 +132,6 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
       },
       description: "test: whenOpponentAttacks fire count",
     });
-    // The card's ORIGINAL (wrong) string, "whenAttacks", is no longer even a member of
-    // SubTriggerEventName (it had zero real dependents once BT12-111 was fixed to
-    // whenOpponentAttacks, so it was deleted outright rather than left as a permanent trap) —
-    // a `.subscribe({ event: "whenAttacks", ... })` arm here would now be a TYPE ERROR, not
-    // just a silent no-op, which is the stronger guarantee this test used to demonstrate
-    // manually.
 
     expect(
       s.engine.applyIntent(1, {
@@ -180,7 +143,7 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
 
     await settle(() => correctFired > 0, 200);
 
-    expect(correctFired).toBe(1); // GREEN: the fixed event is real and fires
+    expect(correctFired).toBe(1);
     assertNoLoudGap(s);
   });
 });

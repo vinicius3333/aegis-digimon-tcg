@@ -4,15 +4,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      // Hand-corrected (dead-IR sweep): the printed [Hand][Main] clause is an ACTIVATED effect
-      // that plays THIS card from hand for its play cost minus 5 and arms a turn-end delete on
-      // the permanent it just played — the same shape as its proven sibling EX10-035 (see
-      // EX10-035.test.ts). The declarative effect record modelled it as a bare wouldBePlayed cost-reduction
-      // Replacement plus a SubTrigger whose Delete carried the never-read `playedByThisEffect`
-      // filter, so nothing played the card and the turn-end Delete matched every permanent.
-      // UntilOwnerTurnEndEffects + OnEndTurn gated on IsOwnerTurn => `DelayedDeletePlayed`.
-      // KB Q5732/Q5733 (and Q5036: the delete still applies after the played card digivolves,
-      // which the permanent-anchored watcher honors).
       trigger: "Main",
       isFromHand: true,
       condition: {

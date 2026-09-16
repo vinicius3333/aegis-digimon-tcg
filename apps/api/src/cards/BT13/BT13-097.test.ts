@@ -35,8 +35,6 @@ describe("BT13-097 Thomas H. Norstein", () => {
           raw: "by suspending this Tamer",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         },
-        // Paying the suspend cost is the controller's choice, and declining it must also
-        // cancel the opponent's draw below.
         optional: true,
         abortOnDecline: true,
       },

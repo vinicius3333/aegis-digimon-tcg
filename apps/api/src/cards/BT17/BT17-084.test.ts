@@ -245,8 +245,6 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
     assertNoLoudGap(s);
   });
 
-  // Q2864: the played level-4 card leaves the digivolution cards before its inherited
-  // <Retaliation> can activate, so it cannot delete the battled opponent's Digimon.
   it("does not fire the played card's inherited Retaliation against the battled opponent", async () => {
     const s = setupEngine(
       {
@@ -279,9 +277,6 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
     assertNoLoudGap(s);
   });
 
-  // Q2866: with two copies of this Tamer and two unsuspended [Free] Digimon, both
-  // [End of Your Turn] effects trigger, but a new attack cannot be declared during an
-  // attack, so exactly one Free Digimon attacks.
   it("performs only one attack when two copies trigger with two Free Digimon", async () => {
     const s = setupEngine(
       {

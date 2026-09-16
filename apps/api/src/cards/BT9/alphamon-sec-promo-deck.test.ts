@@ -61,10 +61,6 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
       }),
     ).toEqual({ ok: true });
 
-    // With a single legal digivolve-into card in hand (Ouryuken), the loose-target
-    // resolver auto-picks it (see `pickLoose`'s single-candidate shortcut) instead of
-    // raising a further `selectCards` decision, so accepting the optional above already
-    // completes the digivolution.
     await settle(
       () =>
         s.perm("alphamon").topCard.cardId === "BT9-111" &&

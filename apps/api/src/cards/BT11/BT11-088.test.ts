@@ -20,22 +20,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { cite } from "../../engine/conformance/_kb.js";
 import { assertNoLoudGap, setupEngine, settle as settleEngine } from "../../engine/testkit/harness.js";
 
-// A3 for BT11-088 (Bagramon — Purple Lv.6 Digimon).
-//
-// [On Play] / [When Digivolving]: If the opponent has 1 or fewer Digimon in play, trash 1 card
-// from their hand. If they have 2 or more, place 1 of their Digimon under another of their Digimon as its bottom source.
-// (Q2113: the source leaves their field and its own sources are trashed.)
-//
-// FAILS-WHEN-REVERTED: The original stub left both effects inert.
-//   Test 1: opponent has 1 Digimon in play → a card is trashed from their hand.
-//   Test 2: opponent has 2+ Digimon in play → 1 opponent Digimon is placed under their other Digimon.
-//
-// Cards:
-//   BT11-088  — Bagramon (Purple Lv.6, playCost 14)
-//   AD1-001   — Greymon (Red Lv.4) — opponent's Digimon
-//   BT1-038   — Monzaemon (Blue Lv.5) — another opponent Digimon for the 2+ test
-//   BT1-009   — filler hand card
-
 let seq = 0;
 
 function inst(cardId: string, seat: Seat): CardInstance {
@@ -210,7 +194,6 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
-    // Opponent has 2 Digimon.
     const oppDigimon1 = perm("AD1-001", 1, 3000);
     const oppDigimon2 = perm("BT1-038", 1, 5000);
     p1.battleArea.push(oppDigimon1, oppDigimon2);
@@ -228,10 +211,8 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
 
     expect(result).toEqual({ ok: true });
 
-    // Wait until the effect resolves: the source opponent Digimon leaves the battle area.
     await settle(() => p1.battleArea.length < 2);
 
-    // The placed Digimon leaves the battle area and becomes a card under the opponent's other Digimon.
     const opponentLostDigimon = p1.battleArea.length < 2;
     const opponentDigimonHasStack = p1.battleArea.some((p) => p.stack.length > 0);
 
@@ -566,9 +547,6 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
     expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds);
     expect(s.state.memory).toBe(-4);
 
-    // Q2114's inherited [Your Turn] suspension window is unavailable here: Marcus's
-    // temporary Digimon treatment expires at the end of this opponent turn before its
-    // controller receives a turn. This assertion proves the public gain/loss boundary.
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
     expect(observe(s.engine).canUseInheritedEffect(s.perm("marcus"), "BT12-038")).toBe(false);

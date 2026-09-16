@@ -101,7 +101,6 @@ describe("BT11-045 ClavisAngemon", () => {
     ).toEqual({ ok: true });
     await settle(() => attacker.currentDP === 0);
 
-    // MetalGreymon's printed Security Attack +2 removes three cards during this attack.
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(attacker.currentDP).toBe(0);
     expect(

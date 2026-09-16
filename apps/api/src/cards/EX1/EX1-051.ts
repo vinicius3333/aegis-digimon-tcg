@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Opponent's Turn][Once Per Turn] When an opponent's Digimon digivolves into a level 5 or higher
-// Digimon (NOT in the breeding area per KB Q3236), gain 1 memory.
-// [All Turns] inherited: all of your OTHER Digimon with the same name as the HOST Digimon
-// (the top card of the stack that includes this card, per KB Q3237) get +2000 DP.
 const compiled: CompiledCard = {
   effects: [
     {

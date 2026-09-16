@@ -148,7 +148,7 @@ describe("EX8-045", () => {
     expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(true);
     await settle(() => observe(s.engine).hasPierce(s.perm("callismon")));
 
-    expect(s.perm("callismon").currentDP).toBe(15000); // three distinct source colors, not source-card count/other-Digimon colors.
+    expect(s.perm("callismon").currentDP).toBe(15000);
     expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(1);
     s.state.turnSeat = 1;
@@ -243,7 +243,7 @@ describe("EX8-045", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
-    expect(s.state.players[1]!.security).toHaveLength(1); // two checks from base +1 Security Attack.
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("evolves, suspends one opponent and bottoms a different suspended Tamer", async () => {

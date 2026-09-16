@@ -321,8 +321,6 @@ describe("BT17-085 Rika Nonaka", () => {
     s.state.memory = 4;
     await s.ready();
 
-    // CR 15-7-5 permits the payable placements even without a legal
-    // evolution destination; exact destination matching still prevents evolution.
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -344,8 +342,6 @@ describe("BT17-085 Rika Nonaka", () => {
     assertNoLoudGap(s);
   });
 
-  // Q2868 excludes Kuzuhamon from exact Sakuyamon evolution; it does not
-  // prohibit paying the independent placements under CR 15-7-5.
   it("Q2868: pays placements but does not evolve into Kuzuhamon as exact Sakuyamon", async () => {
     const s = setupEngine(
       {

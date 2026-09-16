@@ -25,7 +25,6 @@ describe("BT18-037 Lobomon", () => {
           battleArea: [{ card: "BT7-087", as: "koji" }],
           hand: [{ card: "BT18-037", as: "lobomon" }],
           security: [{ card: "BT12-009", as: "hybrid", faceUp: true }, "BT1-009"],
-          // Digivolution draws the first card; Recovery should take the next.
           deck: ["BT1-011", "BT1-010"],
         },
       },
@@ -93,8 +92,6 @@ describe("BT18-037 Lobomon", () => {
         s.state.memory === 4,
     );
 
-    // 5 - 2 (cost) + 1 (Koji's inherited "effect adds a card to your hand"). BT16-049's "when one
-    // of your other Digimon digivolves" stays silent: a Tamer digivolves as a Tamer (KB Q2957).
     expect(s.state.memory).toBe(4);
     expect(s.perm("koji").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("koji").instanceId]);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolutionDraw").instanceId)).toBe(
@@ -130,7 +127,6 @@ describe("BT18-037 Lobomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("koji").topCard?.instanceId === s.inst("lobomon").instanceId);
 
-    // Declining the optional add does not suppress the normal evolution draw.
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.security).toHaveLength(2);

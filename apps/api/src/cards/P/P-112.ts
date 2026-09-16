@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play]: Reveal top 3 of deck. Add 1 [Eosmon] and 1 [Menoa Bellucci] among them to hand.
-// KB Q4216: can add just 1 if only one type revealed.
-// KB Q4217: MUST add as many as possible — if both revealed, must add both.
-// The two add entries (each count:1) model the mandatory-max behavior correctly.
-// Then, by placing this Digimon as 1 of your [Eosmon]'s bottom digivolution card,
-// you may play 1 [Menoa Bellucci] from hand without cost.
-// Inherited [Your Turn]: when another [Eosmon] is played, this Digimon may digivolve
-// into [Eosmon] from hand (cost-3). KB Q4218: cannot ignore digivolution requirements.
 const compiled: CompiledCard = {
   effects: [
     {

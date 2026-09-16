@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Digivolving]: Suspend 1 opponent Digimon AND 1 opponent Tamer; they can't unsuspend until end of their turn.
-// KB Q2538: must suspend as many as possible (both if both exist).
-// [Opponent's Turn][Once Per Turn]: when opponent's Digimon is played, you may suspend 1 of their Digimon.
-// [Opponent's Turn][Once Per Turn]: when opponent's Digimon moves from breeding to battle, if [Rosemon]/[X Antibody]
-//   is in this Digimon's digivolution cards, you may suspend 1 of their Digimon.
 const compiled: CompiledCard = {
   effects: [
     {

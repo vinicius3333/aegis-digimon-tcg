@@ -8,21 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-023";
 
-/**
- * EX10-023 Quartzmon (ACE, Lv.7 Green/Black, 15000 DP, ＜Overflow＞5).
- *
- * Printed text:
- *   [Digivolve] While you have [Ryoma Mogami], [Astamon]: Cost 7
- *   [Hand] [Counter] ＜Blast Digivolve＞
- *   [On Play] [When Digivolving] Suspend all other Digimon and Tamers.
- *   [When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's
- *     suspended Digimon.
- *   [All Turns] Other than this Digimon, no Digimon or Tamers can unsuspend in the
- *     unsuspend phase.
- *
- * Every clause below is proved through public intents and the production turn loop.
- * Injected timing (`advance.fire*`) is not used anywhere in this suite.
- */
 describe("EX10-023 Quartzmon", () => {
   it("matches the catalog and compiles the printed clause set", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -117,8 +102,6 @@ describe("EX10-023 Quartzmon", () => {
   });
 
   it("the cost-7 alternate route needs an [Astamon] base AND [Ryoma Mogami] in play", async () => {
-    // FAILS-WHEN-REVERTED: drop `controllerControls` and the second negative below passes the
-    // route with no Ryoma Mogami; drop `namesExact` and the third negative accepts any base.
     const legal = setupEngine({
       0: {
         battleArea: [
@@ -139,7 +122,6 @@ describe("EX10-023 Quartzmon", () => {
       }),
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => legal.perm("astamon").topCard.cardId === CARD_ID);
-    // The reduced route was actually taken: 7 memory paid, not the printed 5.
     expect(legal.state.memory).toBe(0);
     expect(legal.perm("astamon").stack.map(({ cardId }) => cardId)).toEqual(["EX10-018"]);
 
@@ -168,8 +150,6 @@ describe("EX10-023 Quartzmon", () => {
   });
 
   it("[On Play] played from hand suspends every other Digimon and Tamer on both sides", async () => {
-    // FAILS-WHEN-REVERTED: drop `excludeSelf` and Quartzmon suspends itself; drop
-    // `controllerDefault: "any"` and the opponent's board stays standing.
     const s = setupEngine({
       0: {
         battleArea: [
@@ -212,8 +192,6 @@ describe("EX10-023 Quartzmon", () => {
   });
 
   it("[When Digivolving] suspends the board and deletes 1 suspended opposing Digimon", async () => {
-    // FAILS-WHEN-REVERTED: drop the `suspended: true` filter and a standing Digimon becomes a
-    // legal target; drop `controller: "opponent"` and the deleter can hit its own side.
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -252,8 +230,6 @@ describe("EX10-023 Quartzmon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // The suspend clause hit both opposing permanents and the Tamer; exactly one suspended
-    // Digimon was deleted, and the Tamer — never a legal delete target — survived.
     expect(s.perm("base").isSuspended).toBe(false);
     expect(s.perm("survivor").isSuspended).toBe(true);
     expect(s.perm("tamer").isSuspended).toBe(true);
@@ -265,11 +241,6 @@ describe("EX10-023 Quartzmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // Seam 9, fixed: a MANDATORY board-targeted triggered effect is collected even when the board
-  // holds no candidate right now (CR 15-4-2), so the delete clause shares an activation tier
-  // with the suspend clause and the controller orders the two. Before the fix
-  // `canActivateEffect` gated the delete on a live suspended opposing Digimon, which no pass-1
-  // board has, and the two clauses resolved in registration order with no player choice.
   it("Q5074 raises an orderTriggers decision for the two simultaneous [When Digivolving] effects", async () => {
     const s = setupEngine(
       {
@@ -301,8 +272,6 @@ describe("EX10-023 Quartzmon", () => {
   });
 
   it("[Once Per Turn] is shared: the digivolve use blocks the same turn's attack use, and resets next turn", async () => {
-    // FAILS-WHEN-REVERTED: remove `sharedUseKey` and the [When Attacking] clause deletes a
-    // second Digimon in the same turn; remove `frequency` and it deletes on every attack.
     const s = setupEngine(
       {
         0: {
@@ -328,7 +297,6 @@ describe("EX10-023 Quartzmon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 5;
 
-    // Use 1 (this turn): the [When Digivolving] delete.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -341,7 +309,6 @@ describe("EX10-023 Quartzmon", () => {
     );
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
 
-    // Same turn, [When Attacking]: the shared gate is spent, so nothing else is deleted.
     const survivorsAfterDigivolve = s.state.players[1]!.battleArea.length;
     expect(
       s.engine.applyIntent(0, {
@@ -353,14 +320,11 @@ describe("EX10-023 Quartzmon", () => {
     await settleAcrossTimers(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.battleArea).toHaveLength(survivorsAfterDigivolve);
 
-    // Round the turn loop: opponent's turn, then back to seat 0. The gate resets.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // The [All Turns] lock kept the opponent's Digimon suspended across both unsuspend
-    // phases, so they are still legal targets for the reset use.
     expect(s.state.players[1]!.battleArea.every((p) => p.isSuspended)).toBe(true);
     expect(s.perm("base").isSuspended).toBe(false);
 
@@ -379,10 +343,6 @@ describe("EX10-023 Quartzmon", () => {
   });
 
   it("[All Turns] Q5075: no other Digimon or Tamer unsuspends in either player's unsuspend phase", async () => {
-    // The lock is proved through the PRODUCTION unsuspend phase (`startTurnLoop`), on both
-    // seats' turns, not by reading the restriction ledger.
-    // FAILS-WHEN-REVERTED: drop the AllTurns Restrict effect and every suspended permanent
-    // below unsuspends on its controller's turn.
     const s = setupEngine({
       0: {
         battleArea: [
@@ -398,7 +358,6 @@ describe("EX10-023 Quartzmon", () => {
         battleArea: [
           { card: "BT1-013", as: "theirs", suspended: true },
           { card: "BT1-085", as: "theirTamer", suspended: true },
-          // ＜Reboot＞ would otherwise unsuspend on the OPPONENT's unsuspend phase too.
           { card: "AD1-013", as: "reboot", suspended: true },
         ],
         hand: ["BT1-013"],
@@ -409,7 +368,6 @@ describe("EX10-023 Quartzmon", () => {
     const lockedAliases = ["mine", "myTamer", "theirs", "theirTamer", "reboot"];
     const loop = s.engine.startTurnLoop();
 
-    // Seat 0's unsuspend phase: only Quartzmon itself flips.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("quartz").isSuspended).toBe(false);
     expect(lockedAliases.map((alias) => [alias, s.perm(alias).isSuspended])).toEqual(
@@ -418,7 +376,6 @@ describe("EX10-023 Quartzmon", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Seat 1's unsuspend phase: their own Digimon and Tamer stay suspended too.
     await advance(s.engine).waitForMainPhase(1);
     expect(lockedAliases.map((alias) => [alias, s.perm(alias).isSuspended])).toEqual(
       lockedAliases.map((alias) => [alias, true]),
@@ -452,7 +409,6 @@ describe("EX10-023 Quartzmon", () => {
 
     expect(s.perm("mine").isSuspended).toBe(false);
     expect(s.perm("myTamer").isSuspended).toBe(false);
-    // ＜Reboot＞ unsuspends on the opponent's unsuspend phase (§16-11).
     expect(s.perm("reboot").isSuspended).toBe(false);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -460,7 +416,6 @@ describe("EX10-023 Quartzmon", () => {
   });
 
   it("[All Turns] leaves effect-driven unsuspension outside the unsuspend phase alone", async () => {
-    // The restriction is phase-scoped: an effect that unsuspends during Main is unaffected.
     const s = setupEngine({
       0: { battleArea: [{ card: CARD_ID, as: "quartz" }] },
       1: { battleArea: [{ card: "BT1-013", as: "theirs", suspended: true }] },
@@ -471,8 +426,6 @@ describe("EX10-023 Quartzmon", () => {
   });
 
   it("[Hand] [Counter] ＜Blast Digivolve＞ digivolves from hand for free in the counter window", async () => {
-    // FAILS-WHEN-REVERTED: drop the Counter/BlastDigivolve effect and the card never appears
-    // in `eligibleCounters`.
     const s = setupEngine(
       {
         0: {
@@ -520,9 +473,6 @@ describe("EX10-023 Quartzmon", () => {
 
     expect(s.perm("base").topCard.cardId).toBe(CARD_ID);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["AD1-024"]);
-    // The blast waived the cost outright: the digivolution moved no memory. The attacker is
-    // then deleted in the battle it started (3000 DP into 15000), which is the only memory
-    // movement in the flow, so the marker is read on the untouched bystander instead.
     expect(s.perm("bystander").isSuspended).toBe(true);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-085"]);
   });
@@ -555,8 +505,6 @@ describe("EX10-023 Quartzmon", () => {
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => s.state.players[1]!.battleArea.length === 0);
 
-    // CR §4-18-2: the ACE's own controller (seat 1) loses 5 memory, so the marker moves 5
-    // toward seat 0 from wherever it stood.
     expect(s.state.memory).toBe(memoryBefore + 5);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
   });

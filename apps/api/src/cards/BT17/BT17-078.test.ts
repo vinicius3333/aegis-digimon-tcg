@@ -4,8 +4,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-078.js";
 import "./index.js";
 
-// The re-opened block window Omnimon's own ＜Blocker＞ raises while an attack is still resolving:
-// decline it so the flow the test is watching runs to completion.
 async function declineOpenBlock(s: ReturnType<typeof setupEngine>) {
   const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
   await drainMicrotasks(500);
@@ -59,8 +57,6 @@ describe("BT17-078 Omnimon", () => {
     });
   });
 
-  // Q2851: the "Then, delete" step resolves even when the "if DNA Digivolving" branch does not,
-  // so a hard-played (non-DNA) Omnimon still deletes 1 opponent Digimon and returns nothing.
   it("deletes one opposing Digimon after a natural non-DNA play and returns nothing", async () => {
     const s = setupEngine(
       {
@@ -88,12 +84,7 @@ describe("BT17-078 Omnimon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  // Headline route: [Hand] [Counter] ＜Blast DNA Digivolve ([WarGreymon] + [MetalGarurumon])＞.
-  // A field WarGreymon plus a hand MetalGarurumon DNA digivolve into Omnimon during the opponent's
-  // attack, at no memory cost, drawing one; the On Play / When Digivolving effect then fires under
-  // the DNA condition (return the chosen level, delete a remaining target).
   it("Blast DNA Digivolves from a Counter window, draws one, and runs the DNA effect", async () => {
-    // Bias the count:1 return-level bind onto a Lv.6 so the same-level sweep is deterministic.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -166,8 +157,6 @@ describe("BT17-078 Omnimon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-043")).toBe(false);
   });
 
-  // Waiving the memory cost never waives the recipe: a pair that is not WarGreymon + MetalGarurumon
-  // cannot DNA digivolve into Omnimon.
   it("refuses DNA materials that miss the printed recipe", async () => {
     const s = setupEngine({
       0: {
@@ -191,10 +180,6 @@ describe("BT17-078 Omnimon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT17-078"]);
   });
 
-  // The printed recipe brackets [WarGreymon] and [MetalGarurumon] as EXACT names.
-  // DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES["BT17-078"] (packages/shared/src/effects/data.ts) now
-  // stores them as `namesExact`, matching the BT13-059 precedent in the same file, so a near-name
-  // such as BlackWarGreymon is refused by matchingDnaDigivolveCost.
   it("rejects a near-name (BlackWarGreymon) that only substring-matches the recipe", async () => {
     const s = setupEngine({
       0: {
@@ -217,8 +202,6 @@ describe("BT17-078 Omnimon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
-  // ＜Blocker＞ (and ＜Raid＞) are conferred by the printed text. A seeded Omnimon blocks an incoming
-  // player-directed attack, redirecting it onto Omnimon, whose 15000 DP deletes the 3000-DP attacker.
   it("blocks an attack with ＜Blocker＞ and survives, keeping ＜Raid＞ too", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },

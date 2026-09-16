@@ -1,11 +1,6 @@
-// HAND-FIXED — the [When Digivolving] "if this Digimon is suspended" gate is the structured
-// selfIsSuspended condition, not the raw fallback the compiler emitted. Do not regenerate over
-// this file.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited IR: the inherited watcher explicitly observes any of the controller's Digimon,
-// while the When Digivolving gate reads this permanent's live suspended state.
 export const compiled: CompiledCard = {
   effects: [
     {

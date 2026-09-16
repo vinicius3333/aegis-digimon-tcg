@@ -94,8 +94,6 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      // Printed "[Digivolve][Koji Minamoto]: Cost 2" carries no "in name", so the base name
-      // must equal (not merely contain) "Koji Minamoto" (coordinator route-name decision).
       namesExact: ["Koji Minamoto"],
       cost: 2,
       isAlternate: true,

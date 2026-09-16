@@ -158,7 +158,7 @@ describe("EX4-015 Gaomon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("first").instanceId),
     );
-    expect(s.state.memory).toBe(6); // -3 play cost, +1 inherited memory.
+    expect(s.state.memory).toBe(6);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
@@ -166,7 +166,7 @@ describe("EX4-015 Gaomon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("second").instanceId),
     );
-    expect(s.state.memory).toBe(3); // The second effect addition is blocked this turn.
+    expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.hand).toHaveLength(2);
@@ -247,7 +247,7 @@ describe("EX4-015 Gaomon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("second").instanceId),
     );
-    expect(s.state.memory).toBe(beforeSecondPlay - 2); // -3 cost and a fresh +1 inherited trigger.
+    expect(s.state.memory).toBe(beforeSecondPlay - 2);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

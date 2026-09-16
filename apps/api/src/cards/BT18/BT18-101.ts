@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Digivolving]: By playing 1 [Lucemon: Larva] from trash to your EMPTY breeding area
-// without paying the cost, delete 1 of your opponent's Digimon or Tamers.
-// [End of All Turns] [Once Per Turn]: Trash top security of opponent's security stack.
-// If this effect DIDN'T trash (opponent has no security), delete 1 Digimon and 1 Tamer instead.
 export const compiled: CompiledCard = {
   effects: [
     {

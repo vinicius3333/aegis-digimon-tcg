@@ -1,22 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT20-100 (The Last Guardian).
-// Fixes:
-// 1. AllTurns Replacement: the GainKeyword action was spurious — <Delay> is not a
-//    sub-action within the replacement; it is the delay-activation keyword on the
-//    AllTurns effect block itself.
-// 2. AllTurns Replacement: restructured as a single Replacement with mode:"prevent"
-//    and sourceFilter matching Omnimon Digimon in battle area that would leave.
-//    The "Prevent" action kind does not exist in the interpreter — the prevention is
-//    encoded as mode:"prevent" on the Replacement itself.
-// 3. leaveCause not restricted to otherThanBattle per text (text says "would leave the
-//    battle area" with no battle exclusion); the <Delay> mechanism means this fires from
-//    the delay zone — all leave-play triggers fire, prevention selects 1 Digimon.
-// 4. Security PlaceInBattleAreaSelf is mandatory (text: "Then, place this card");
-//    optional:true removed from that action (only the PlayWithoutCost is optional).
-// KB Q4905 confirms the AllTurns triggers simultaneously with other leave-prevention
-// effects and the player chooses activation order.
 export const compiled: CompiledCard = {
   effects: [
     {

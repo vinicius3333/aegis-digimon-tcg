@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT16-074 Climbmon. Q2661 requires both security branches at exactly 3;
-// Q5532 binds the played Digimon to the next opponent-turn-end deletion.
 export const compiled: CompiledCard = {
   effects: [
     {

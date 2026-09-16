@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * BT1-112 — Dimension Scissor.
- *
- * `whenDeletesInBattle` is emitted only after the attacking Digimon survives and
- * deletes the Digimon it battled. GainTriggeredEffect additionally binds the
- * watcher to the selected attacker, matching Q984-Q987.
- */
 export const compiled: CompiledCard = {
   effects: [
     {

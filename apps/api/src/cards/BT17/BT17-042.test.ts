@@ -64,7 +64,6 @@ describe("BT17-042 Argomon", () => {
   });
 
   it("adds the revealed Argomon and Rhythm and bottoms the remainder (Q2796)", async () => {
-    // No autoAcceptOptional: the add is mandatory, so both cards must move with no prompt.
     const s = setupEngine(
       {
         0: {
@@ -163,7 +162,6 @@ describe("BT17-042 Argomon", () => {
   });
 
   it("adds only one of two revealed [Argomon] cards, alongside the [Rhythm]", async () => {
-    // Comparative peer case: two same-name candidates for a count:1 slot.
     const s = setupEngine(
       {
         0: {
@@ -257,7 +255,6 @@ describe("BT17-042 Argomon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    // The alternate route falls back to the catalog route, so the memory delta is the proof.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -303,7 +300,6 @@ describe("BT17-042 Argomon", () => {
   });
 
   it("does not give memory when the Argomon under a survivor is untouched", async () => {
-    // Comparative negative for the inherited clause: no deletion, no memory.
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT17-045", as: "attacker", under: ["BT17-042"], dp: 20000 }],

@@ -136,8 +136,6 @@ describe("BT22-015 Omnimon", () => {
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("omnimon"));
 
-    // Only the two face-up level-4 sources form one readable pair; the two hidden EX9-039 sources
-    // contribute no level information and therefore cannot create a second pair.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.deck).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -350,8 +348,6 @@ describe("BT22-015 Omnimon", () => {
     );
     await s.ready();
 
-    // No player Intent currently produces an opponent-effect deletion; this named advance verb
-    // is the public test seam for the production leave event (as used by other Decode tests).
     advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
     try {
       expect(await advance(s.engine).verb.deletePermanent([s.perm("omnimon").permanentId], "byEffect")).toBe(1);

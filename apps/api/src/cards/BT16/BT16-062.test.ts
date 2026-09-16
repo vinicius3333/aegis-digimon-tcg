@@ -48,9 +48,6 @@ describe("BT16-062", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zan").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // The ＜De-Digivolve 1＞ trashes the stacked Digimon's top card; the follow-up deletion then
-    // takes a play-cost-3-or-less Digimon, which either survivor satisfies — so assert the
-    // de-digivolution and the net board rather than a particular victim.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-015")).toBe(true);
   });
@@ -73,8 +70,6 @@ describe("BT16-062", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
 
-    // BT10-078 is a legal level-4 Gammamon source and contributes inherited Retaliation;
-    // the natural losing battle proves that the copied inherited keyword is executable.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

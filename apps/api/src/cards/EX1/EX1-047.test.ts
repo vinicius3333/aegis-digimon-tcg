@@ -89,8 +89,6 @@ describe("EX1-047 Guardromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // With no Machine/Cyborg card in hand to pay the cost, the optional effect never triggers
-    // at all — there is no `effectResolved` to wait on.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX1-047")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongTrait").instanceId)).toBe(true);

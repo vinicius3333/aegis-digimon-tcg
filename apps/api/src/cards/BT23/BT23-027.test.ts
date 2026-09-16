@@ -7,7 +7,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-027.js";
 
-/** A level 3 base whose name only CONTAINS the bracketed route name, and which has no [CS] trait. */
 function nearName(nameEn: string): CardDefinition {
   return {
     cardId: `TEST-${nameEn}`,
@@ -53,10 +52,8 @@ describe("BT23-027 Angemon", () => {
     const result = s.state.players[0]!.battleArea.find((card) => card.topCard?.cardId === "BT23-032");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
     expect(result).toBeDefined();
-    // A DNA result always arrives unsuspended, even when a material was suspended (Q5257).
     expect(result?.isSuspended).toBe(false);
     expect(result?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT23-027", "BT23-050"]));
-    // Play cost 5 only: the printed DNA route into Shakkoumon costs 0.
     expect(s.state.memory).toBe(5);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -77,7 +74,6 @@ describe("BT23-027 Angemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    // The first player skips the initial Draw phase; only Angemon will draw here.
     expect(s.state.players[0]!.deck).toHaveLength(3);
     expect(
       s.engine.applyIntent(0, {
@@ -105,9 +101,6 @@ describe("BT23-027 Angemon", () => {
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("nextDeck").instanceId);
     expect(s.perm("host").topCard.cardId).toBe("BT23-018");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT23-017"]);
-    // `setupEngine` lays a board without starting a turn loop, so seat 1's Main phase can
-    // never open here. Assert instead that the attack's whole window closed cleanly on the
-    // attacking seat, which is the property the old turn-handoff wait was reaching for.
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.turnSeat).toBe(0);
@@ -179,9 +172,6 @@ describe("BT23-027 Angemon", () => {
   );
 
   it("refuses the DNA option when the only Shakkoumon is in the deck", async () => {
-    // The printed result zone is the HAND. A copy in the deck must not qualify, which is
-    // what `into.zone: "hand"` pins (the module previously carried an ignored top-level
-    // `from: ["hand"]` that the DnaDigivolve action type does not define).
     const s = setupEngine(
       {
         0: {
@@ -246,13 +236,6 @@ describe("BT23-027 Angemon", () => {
   });
 
   it("reproduces Q5257 through two public Alliance triggers and derived DNA evolution", async () => {
-    // Q5257 end to end: Hudiemon with Erika Mishima underneath carries TWO ＜Alliance＞
-    // instances, which trigger simultaneously with its [When Attacking] effect. Order:
-    // 1st Alliance suspends Ankylomon, [When Attacking] replays Hudiemon's [On Play] to
-    // play this Angemon for free, Angemon's derived [On Play] draws and DNA digivolves
-    // Angemon + the suspended Ankylomon into Shakkoumon, and the 2nd Alliance can then
-    // suspend that Shakkoumon because it arrives unsuspended. The DP from the 1st
-    // Alliance stays on Hudiemon even though its ally became a digivolution card.
     let attackerDpDuringBattle = 0;
     let attackerPermanentId = "";
     const prefer: string[] = [];
@@ -301,8 +284,6 @@ describe("BT23-027 Angemon", () => {
     const angemonId = s.inst("angemon").instanceId;
     const allyCardId = s.perm("ally").topCard.instanceId;
     const shakkoumonId = s.inst("shakkoumon").instanceId;
-    // Hudiemon + Ankylomon is also a legal Shakkoumon recipe; bias the material pick to the
-    // pair the ruling describes so the attacker itself is never consumed.
     prefer.push(angemonId, allyCardId);
     const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
     const takeTrigger = async (match: (key: string) => boolean): Promise<string[]> => {
@@ -335,27 +316,21 @@ describe("BT23-027 Angemon", () => {
       }),
     ).toEqual({ ok: true });
 
-    // Both ＜Alliance＞ instances and the [When Attacking] effect are offered in one window.
     const keys = await takeTrigger((key) => key.includes("/alliance/"));
     expect(new Set(keys).size).toBe(keys.length);
     expect(keys.filter((key) => key.includes("/alliance/"))).toHaveLength(2);
     expect(keys.filter((key) => !key.includes("/alliance/"))).toHaveLength(1);
 
-    // 1st ＜Alliance＞: suspend Ankylomon for +5000 DP and an extra security check.
     await answerAlliance(s.perm("ally").permanentId);
     await settle(() => s.perm("ally").isSuspended);
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.perm("hudiemon").currentDP).toBe(12000);
 
-    // [When Attacking]: return the CS Tamer, replay [On Play], play Angemon for free.
-    // Angemon's own [On Play] then draws and DNA digivolves before the 2nd ＜Alliance＞.
     await takeTrigger((key) => !key.includes("/alliance/"));
     await settle(() => shakkoumonPermanent() !== undefined);
     const merged = shakkoumonPermanent();
     expect(merged).toBeDefined();
     expect(merged!.stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([angemonId, allyCardId]));
-    // The ruling's core claim: the DNA result arrives UNSUSPENDED, so it is still a legal
-    // ally for the remaining ＜Alliance＞ instance.
     expect(merged!.isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("playDraw").instanceId, s.inst("dnaDraw").instanceId, s.inst("tamer").instanceId]),
@@ -363,18 +338,14 @@ describe("BT23-027 Angemon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamer").instanceId)).toBe(
       false,
     );
-    // The 1st Alliance's DP survives its ally becoming a digivolution card.
     expect(s.perm("hudiemon").currentDP).toBe(12000);
 
-    // 2nd ＜Alliance＞ suspends the new Shakkoumon for a further +8000 DP.
     await answerAlliance(merged!.permanentId);
     await settle(() => shakkoumonPermanent()?.isSuspended === true);
     expect(shakkoumonPermanent()!.isSuspended).toBe(true);
 
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
-    // 7000 printed + 5000 (Ankylomon) + 8000 (Shakkoumon) from the two Alliance bonuses.
     expect(attackerDpDuringBattle).toBe(20000);
-    // One base security check plus one per Alliance instance: 5 - 3 = 2.
     expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sec3").instanceId,
       s.inst("sec4").instanceId,
@@ -383,12 +354,6 @@ describe("BT23-027 Angemon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // Q6250 (was the `barrier-then-source-play` seam, now fixed — see
-  // docs/audits/BT23.md#barrier-source-play). With Angemon among
-  // Shakkoumon's digivolution cards, the controller may activate ＜Barrier＞ to prevent the
-  // battle deletion FIRST and still use Shakkoumon's [All Turns] effect to play a Digimon —
-  // including that Angemon — from its digivolution cards. `consultLeavePrevention` now runs
-  // the sibling "instead" replacement for exactly the permanents Barrier saved.
   it("publicly accepts Barrier before playing the Angemon source from Shakkoumon", async () => {
     const s = setupEngine(
       {
@@ -410,7 +375,6 @@ describe("BT23-027 Angemon", () => {
     const sourceId = s.perm("host").stack[0]!.instanceId;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Suspend the host through its own public attack, so the opponent may legally target it.
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
@@ -666,11 +630,6 @@ describe("BT23-027 Angemon", () => {
   });
 
   it("publicly enters play on the opponent's turn, draws, and never offers the DNA option", async () => {
-    // The only public way onto the board during the opponent's turn is a [Counter]:
-    // ＜Blast Digivolve＞ Cherubimon over Antylamon while the opponent attacks, whose
-    // [When Digivolving] plays this level-4 yellow Angemon for free. Angemon and the
-    // waiting Ankylomon are a legal Shakkoumon recipe (yellow Lv.4 + black Lv.4) and the
-    // [Shakkoumon] card is in hand, so "it's your turn" is the only failing condition.
     const s = setupEngine(
       {
         0: {
@@ -714,8 +673,6 @@ describe("BT23-027 Angemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isAttacking());
-    // ＜Blast Digivolve＞ is answered through the open [Counter] window, not as a bare
-    // `digivolve` intent: only `respondCounter` closes the window and lets the attack finish.
     expect(
       s.engine.applyIntent(0, {
         type: "respondCounter",
@@ -724,23 +681,18 @@ describe("BT23-027 Angemon", () => {
       } as never),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === angemonId));
-    // The new arrivals make a block window open; decline it so the attack resolves normally.
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
     expect(s.state.turnSeat).toBe(1);
     expect(observe(s.engine).isAttacking()).toBe(false);
-    // The unblocked attack still checked one security card.
     expect(s.state.players[0]!.security).toHaveLength(2);
-    // Angemon is on the board and drew, so its [On Play] resolved on the opponent's turn.
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === angemonId)).toBe(true);
-    // Two draws: the ＜Blast Digivolve＞ evolution bonus, then Angemon's own [On Play].
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("evoDraw").instanceId, s.inst("playDraw").instanceId]),
     );
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 2);
-    // The DNA half was skipped: both materials are untouched and Shakkoumon stays in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(shakkoumonId);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === allyCardId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-032")).toBe(false);
@@ -775,7 +727,6 @@ describe("BT23-027 Angemon", () => {
       const targetId = s.perm("target").permanentId;
       const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
-      // Public suspension: the defender attacks on its own turn before handing the turn over.
       expect(
         s.engine.applyIntent(0, { type: "attack", attackerPermanentId: targetId, target: { kind: "player" } }),
       ).toEqual({ ok: true });
@@ -797,9 +748,6 @@ describe("BT23-027 Angemon", () => {
       await settleAcrossTimers(() => !observe(s.engine).isAttacking());
       await settle();
       let replacementResponse = { ok: true };
-      // Accepting ＜Barrier＞ prevents the deletion but does NOT cancel Shakkoumon's sibling
-      // "play 1 Digimon from this Digimon's digivolution cards" replacement on the same event
-      // (KB Q6250), so a decision is offered on BOTH branches here and both must decline it.
       while (s.state.pendingDecision) {
         const response: DecisionResponse =
           s.state.pendingDecision.kind === "selectCards"
@@ -823,10 +771,6 @@ describe("BT23-027 Angemon", () => {
     }
   });
 
-  // Exact-name sweep (session 2). The printed route brackets the base name
-  // ("[Patamon]/Lv.3 w/[CS] trait: Cost 2"), so it is an equality gate. `names` is a
-  // SUBSTRING gate in engine/cards/cardData.ts matchGatedRequirement; no released card's name
-  // merely contains "Patamon" today, so the negative uses a synthetic near-name base.
   it("gates the printed route on the exact base name, not a substring", () => {
     expect(matchingAlternateDigivolutionRequirement("BT23-027", "BT1-048")).toMatchObject({
       namesExact: ["Patamon"],

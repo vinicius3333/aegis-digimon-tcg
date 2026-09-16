@@ -9,16 +9,6 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import "./BT12-083.js";
 
-// A3 for BT12-083 (Arresterdramon: Superior Mode):
-//   [End of Your Turn][Once Per Turn] If there are 4 or more digivolution cards under this
-//   Digimon, you may attack with this Digimon without suspending it.
-//
-// FAILS-WHEN-REVERTED: the generated implementation did not execute this action.
-// executed. With the hand-written module, `forceAttack` is called with `{withoutSuspending: true}`
-// when the stack has 4+ cards. Without the module (IR path), getEffectModule returns undefined
-// and effectsForTiming yields 0 effects at OnEndTurn timing. The `forceAttackCalls` assertion
-// proves the end-of-turn attack is wired.
-
 function fakeDef(cardId: string, kind: CardKind = CardKind.Digimon): CardDefinition {
   return {
     cardId,
@@ -167,7 +157,7 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
 
   it("calls forceAttack(withoutSuspending: true) when stack has 4+ digivolution cards", async () => {
     const forceAttackCalls: ForceAttackCall[] = [];
-    const selfPerm = makeStackedPerm(4); // exactly 4 cards
+    const selfPerm = makeStackedPerm(4);
 
     const ctx = makeCtx({ forceAttackCalls, selfPerm });
 
@@ -175,12 +165,10 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
     expect(mod).toBeDefined();
 
     const effects = mod!.effectsForTiming(EffectTiming.OnEndTurn, makeSource(selfPerm as Permanent));
-    // FAILS-WHEN-REVERTED: no hand-written effect is registered at this timing.
     expect(effects.length).toBeGreaterThan(0);
 
     await effects[0]!.resolve(ctx);
 
-    // forceAttack must be called with withoutSuspending: true.
     expect(forceAttackCalls).toHaveLength(1);
     expect(forceAttackCalls[0]!.withoutSuspending).toBe(true);
     expect(forceAttackCalls[0]!.permanentId).toBe("self-perm");
@@ -188,14 +176,13 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
 
   it("does NOT call forceAttack when stack has fewer than 4 digivolution cards", async () => {
     const forceAttackCalls: ForceAttackCall[] = [];
-    const selfPerm = makeStackedPerm(3); // only 3 cards — below threshold
+    const selfPerm = makeStackedPerm(3);
 
     const ctx = makeCtx({ forceAttackCalls, selfPerm });
 
     const mod = getEffectModule("BT12-083");
     const effects = mod!.effectsForTiming(EffectTiming.OnEndTurn, makeSource(selfPerm as Permanent));
 
-    // Effect should not activate (canActivate returns false for <4 cards).
     for (const eff of effects) {
       const canAct = eff.canActivate?.(ctx);
       if (canAct !== false) await eff.resolve(ctx);

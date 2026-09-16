@@ -5,15 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// Fixture vocabulary.
-// BT19-021 Xiquemon: Blue Lv.4 — the legal evolution source. Its own [On Play]/[When
-//   Digivolving] belongs to Xiquemon, not to Huankunmon, so seating it as an established
-//   base fires nothing; its inherited ＜Jamming＞ is inert for a defending Digimon.
-// BT19-018 Swimmon: Blue Lv.3 — the level near-miss for the evolution requirement.
-// BT1-014 Kokatorimon: Red Lv.4 — the colour near-miss for the evolution requirement.
-// BT1-009 Monodramon: inert Red Lv.3, 3000 DP — the unprotected peer and inert security.
-// BT19-022 MailBirdramon: printed ＜Blocker＞ — the opposing blocker used to prove that the
-//   inherited [Your Turn] clause forbids a block (CR §12-1-1: a block IS a target switch).
 const board = (s: ReturnType<typeof setupEngine>, seat: 0 | 1): (string | undefined)[] =>
   s.state.players[seat]!.battleArea.map((permanent) => permanent.topCard?.cardId);
 
@@ -62,7 +53,6 @@ describe("BT19-023 Huankunmon — ＜Blocker＞", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
 
-    // Near-miss: the 3000 DP Monodramon peer has no ＜Blocker＞, so it may not answer the window.
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("peer").permanentId }).ok).toBe(
       false,
     );
@@ -71,7 +61,6 @@ describe("BT19-023 Huankunmon — ＜Blocker＞", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
 
-    // 7000 vs 3000: the redirected battle deletes the attacker and Huankunmon survives suspended.
     expect(board(s, 1)).toEqual([]);
     expect(board(s, 0).sort()).toEqual(["BT1-009", "BT19-023"]);
     expect(s.perm("huankun").isSuspended).toBe(true);
@@ -131,7 +120,6 @@ describe("BT19-023 Huankunmon — [On Play] / [When Digivolving] battle-deletion
     expect(observe(s.engine).hasRestriction(s.perm("exposed"), "beDeletedInBattle")).toBe(false);
     expect(observe(s.engine).hasRestriction(s.perm("huankun"), "beDeletedInBattle")).toBe(false);
 
-    // Real battles on the opponent's turn: 3000 DP loses to 12000 DP both times.
     s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
@@ -143,8 +131,6 @@ describe("BT19-023 Huankunmon — [On Play] / [When Digivolving] battle-deletion
         target: { kind: "permanent", permanentId: s.perm("shielded").permanentId },
       }),
     ).toEqual({ ok: true });
-    // Huankunmon has ＜Blocker＞, so every attack opens a block window; decline it so the
-    // declared battle is the one under test.
     await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
@@ -164,7 +150,6 @@ describe("BT19-023 Huankunmon — [On Play] / [When Digivolving] battle-deletion
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 1);
 
-    // The unprotected peer is deleted by the identical battle; only the chosen one survived.
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(board(s, 0).sort()).toEqual(["BT1-009", "BT19-023"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -200,7 +185,6 @@ describe("BT19-023 Huankunmon — [On Play] / [When Digivolving] battle-deletion
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasRestriction(s.perm("shielded"), "beDeletedInBattle"));
 
-    // Blue Lv.4 route: memory cost 3 and the digivolve draw.
     expect(s.state.memory).toBe(2);
     expect(s.perm("base").topCard?.cardId).toBe("BT19-023");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT19-021"]);
@@ -208,7 +192,6 @@ describe("BT19-023 Huankunmon — [On Play] / [When Digivolving] battle-deletion
     expect(observe(s.engine).hasRestriction(s.perm("shielded"), "beDeletedInBattle")).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("base"), "beDeletedInBattle")).toBe(false);
 
-    // Still armed while the opponent's turn is open, gone once that turn has ended.
     s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
@@ -267,7 +250,6 @@ describe("BT19-023 Huankunmon — inherited [Your Turn] attack target can't be s
     expect(observe(s.engine).hasRestriction(s.perm("host"), "attackTargetChange")).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("plain"), "attackTargetChange")).toBe(false);
 
-    // The restricted host: no block window ever opens, so the attack goes straight to security.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -280,7 +262,6 @@ describe("BT19-023 Huankunmon — inherited [Your Turn] attack target can't be s
     expect(s.perm("blocker").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
 
-    // The identical host WITHOUT BT19-023 underneath: the same blocker may switch the target.
     const before = s.events.length;
     expect(
       s.engine.applyIntent(0, {
@@ -295,7 +276,6 @@ describe("BT19-023 Huankunmon — inherited [Your Turn] attack target can't be s
     ).toEqual({ ok: true });
     await settle(() => s.events.slice(before).some(({ kind }) => kind === "combatResolved"));
 
-    // 12000 vs 5000: the blocker is deleted and the second security card is untouched.
     expect(board(s, 1)).toEqual([]);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

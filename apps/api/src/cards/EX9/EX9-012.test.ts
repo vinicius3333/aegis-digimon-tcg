@@ -295,7 +295,6 @@ describe("EX9-012", () => {
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
     expect(s.state.memory).toBe(7);
     expect(s.state.pendingDecision).toBeUndefined();
-    // The remaining Greymon is a legal evolution, so lack of a candidate cannot explain the refusal.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

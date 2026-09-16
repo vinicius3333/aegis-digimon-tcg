@@ -26,8 +26,6 @@ describe("BT5-002 Tsunomon", () => {
           {
             card: "BT4-114",
             as: "host",
-            // BT5-002 (Lv.2) -> BT1-029 (Lv.3) -> BT1-036 (Lv.4) ->
-            // BT1-040 (Lv.5) -> BT4-114 (Lv.6), all on blue requirements.
             under: ["BT5-002", "BT1-029", "BT1-036", "BT1-040"],
           },
         ],

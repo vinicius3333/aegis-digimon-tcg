@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The [Hand][Main] clause's cost was auto-generated as a raw string with no structured
-// destination filter (same defect fixed on EX6-007/EX6-009). It is now structured:
-//   - cost: payMemory(1) — "By paying 1 cost".
-//   - additionalCosts: a "place" cost that moves THIS card (isSelfRef, from hand) under a
-//     chosen destination Digimon matching level 3 OR the [Legend-Arms] trait (underFilter +
-//     underOrFilters). Unlike EX6-007/EX6-009, the Draw doesn't reference the destination
-//     Digimon, so no bindHostAs/fromSelectionRef is needed.
 export const compiled: CompiledCard = {
   effects: [
     {

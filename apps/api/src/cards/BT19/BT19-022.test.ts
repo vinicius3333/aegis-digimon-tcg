@@ -6,22 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-022.js";
 
-// BT19-022 MailBirdramon — Blue/Black Lv.4 Champion, 5000 DP, play cost 5,
-// digivolves from a Blue Lv.3 or a Black Lv.3 for 3.
-//   ＜Blocker＞
-//   [On Deletion] You may place 1 Digimon card with the [Blue Flare] trait from your trash
-//   under any of your Tamers. Then, ＜Save＞.
-//   Inherited: ＜Blocker＞.
-//
-// The KB has no ruling for this card (`node tools/kb/query.mjs card BT19-022` →
-// "no knowledge-base entries"), so the audit rests on the printed text plus the general
-// ＜Save＞ / placement rules (comprehensive 16-20-3 and 4-3-2).
-//
-// Fixtures: BT1-028 Elecmon (inert Blue Lv.3) and BT2-052 Hagurumon (inert Black Lv.3) are
-// the legal digivolution sources, BT1-064 Goblimon (inert Green Lv.3) the illegal one.
-// Trash near-misses for "1 Digimon card with the [Blue Flare] trait": BT19-081
-// Kiriha Aonuma carries the [Blue Flare] trait but is a TAMER, and BT19-009 Growlmon is a
-// Digimon without the trait.
 describe("BT19-022 MailBirdramon", () => {
   it("matches the catalog printing", () => {
     expect(getCardDefinition("BT19-022")).toMatchObject({
@@ -41,7 +25,6 @@ describe("BT19-022 MailBirdramon", () => {
       ],
       inheritedEffectText: "＜Blocker＞.",
     });
-    // The catalog once dropped the word "trait" here; corrected in the BT19 re-audit.
     expect(getCardDefinition("BT19-022")?.effectText).toBe(
       "＜Blocker＞ \n[On Deletion] You may place 1 Digimon card with the [Blue Flare] trait from your trash under any of your Tamers. Then, ＜Save＞.",
     );
@@ -51,7 +34,6 @@ describe("BT19-022 MailBirdramon", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Blocker" }] });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "OnDeletion",
-      // "Then, ＜Save＞" is the keyword; it also puts both placements at the stack bottom.
       keywords: [{ keyword: "Save" }],
       actions: [
         {
@@ -63,7 +45,6 @@ describe("BT19-022 MailBirdramon", () => {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              // "with the [X] trait" is an EXACT trait test, never a substring.
               nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }],
             },
           },
@@ -84,10 +65,6 @@ describe("BT19-022 MailBirdramon", () => {
     });
     expect(compiled.effects).toHaveLength(3);
   });
-
-  // ---------------------------------------------------------------------------
-  // Digivolution routes
-  // ---------------------------------------------------------------------------
 
   it.each([
     ["Blue Lv.3", "BT1-028"],
@@ -149,10 +126,6 @@ describe("BT19-022 MailBirdramon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-022"]);
   });
 
-  // ---------------------------------------------------------------------------
-  // ＜Blocker＞, printed and inherited
-  // ---------------------------------------------------------------------------
-
   it("actually blocks an opponent's player attack, while a plain peer may not", async () => {
     const s = setupEngine({
       0: {
@@ -178,7 +151,6 @@ describe("BT19-022 MailBirdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
 
-    // The peer without ＜Blocker＞ is refused; MailBirdramon is not.
     expect(
       s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("plainPeer").permanentId }).ok,
     ).toBe(false);
@@ -187,7 +159,6 @@ describe("BT19-022 MailBirdramon", () => {
     });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Security is untouched and the 5000 DP attacker lost to the 20 000 DP blocker.
     expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-013"]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([
       "BT19-022",
@@ -233,10 +204,6 @@ describe("BT19-022 MailBirdramon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Deletion] ... Then, ＜Save＞
-  // ---------------------------------------------------------------------------
-
   it("places the Blue Flare Digimon from trash and then Saves itself, both at the stack bottom", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -267,13 +234,11 @@ describe("BT19-022 MailBirdramon", () => {
     await settle(() => s.perm("tamer").stack.length === 3);
     await settle(() => false, 30);
 
-    // Both placements go to the bottom, newest first (comprehensive 4-3-2).
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([
       mailInstanceId,
       blueFlareInstanceId,
       olderInstanceId,
     ]);
-    // The non-matching Growlmon stays in the trash; MailBirdramon never reaches it.
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT19-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -286,13 +251,10 @@ describe("BT19-022 MailBirdramon", () => {
             { card: "BT19-022", as: "mail" },
             { card: "BT19-079", as: "tamer" },
           ],
-          // BT19-081 Kiriha Aonuma HAS the [Blue Flare] trait but is a Tamer, not a Digimon
-          // card; BT19-009 Growlmon is a Digimon without the trait.
           trash: [
             { card: "BT19-081", as: "blueFlareTamer" },
             { card: "BT19-009", as: "nonMatching" },
           ],
-          // A [Blue Flare] Digimon in the HAND is out of the named zone.
           hand: [{ card: "BT19-016", as: "wrongZone" }],
           deck: ["BT1-010", "BT1-011"],
           security: ["BT1-009", "BT1-013"],

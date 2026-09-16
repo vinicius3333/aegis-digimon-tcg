@@ -8,7 +8,6 @@ describe("BT7-037 Boutmon", () => {
   it("unsuspends before the block window so its Blocker host can block (Q1566)", async () => {
     const s = setupEngine({
       0: {
-        // Legal yellow stack: L5 Boutmon inherited effect under L6 SkullMammothmon Blocker.
         battleArea: [{ card: "BT6-043", under: ["BT7-037"], suspended: true, as: "host" }],
         security: ["BT1-101", "BT1-101", "BT1-101"],
       },
@@ -44,7 +43,6 @@ describe("BT7-037 Boutmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          // Legal yellow stack, without Blocker: L5 Boutmon under L6 Rasenmon.
           { card: "BT7-040", under: ["BT7-037"], suspended: true, as: "host" },
           { card: "BT1-010", suspended: true, as: "target", dp: 1_000 },
         ],

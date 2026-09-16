@@ -8,27 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-049";
 
-/**
- * EX10-049 SkullSatamon (Purple Lv.5 Ultimate, Virus, [Undead]/[Fallen Angel], 8000 DP).
- *
- * Main:      ＜Blocker＞
- *            [When Digivolving] [On Deletion] If your opponent has 10 or fewer cards in
- *            their trash, trash the top 3 cards of both players' decks. Then, delete 1 of
- *            your opponent's level 3 or lower Digimon. If your opponent has 10 or more
- *            cards in their trash, add 2 to this effect's level maximum.
- * Inherited: [When Attacking] [Once Per Turn] This Digimon gains ＜Security A. +1＞ for the
- *            turn. If your opponent has 10 or fewer cards in their trash, instead trash the
- *            top 2 cards of both players' decks.
- *
- * Every clause below is proved through public intents (digivolve, attack, declareBlock)
- * and the real turn loop. The trash thresholds are re-read at each process,
- * per comprehensive rules §15-6-2 and KB Q5395; the inherited "instead" is the exclusive
- * replacement KB Q5132 describes.
- *
- * Fixtures are fully inert main-deck Digimon: BT1-009 (Lv.3), BT1-013 (Lv.3), BT1-014
- * (Lv.4), BT1-020 (Lv.5), BT1-080 (Lv.6), BT4-080 Bakemon (Purple Lv.4, the legal
- * digivolution source).
- */
 describe("EX10-049 SkullSatamon", () => {
   it("records the exact catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -132,16 +111,12 @@ describe("EX10-049 SkullSatamon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     await settle(() => false, 30);
 
-    // Digivolving paid 3 memory and drew 1; the mill then took 3 more from my deck.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-080"]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-080"]);
-    // 6 seeded + 3 milled + the deleted Lv.3 (its whole stack) = 10.
     expect(s.state.players[1]!.trash).toHaveLength(10);
 
-    // The post-mill count is 9, still below 10, so the level maximum stays at 3: the Lv.5
-    // was never a legal target and survives.
     const survivors = s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId);
     expect(survivors).toEqual([lv5Id]);
     expect(survivors).not.toContain(lv3Id);
@@ -185,7 +160,6 @@ describe("EX10-049 SkullSatamon", () => {
 
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-080"]);
-    // 8 seeded + 3 milled = 11 when the delete is processed, so the Lv.5 is in range.
     expect(s.state.players[1]!.trash).toHaveLength(12);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lv5Id);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -225,13 +199,9 @@ describe("EX10-049 SkullSatamon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     await settle(() => false, 30);
 
-    // Neither deck was milled: the first process's condition failed. Only the digivolve draw
-    // moved a card out of my deck.
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-013", "BT1-014"]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-013", "BT1-014"]);
-    // 11 seeded + the deleted Lv.5 = 12.
     expect(s.state.players[1]!.trash).toHaveLength(12);
-    // The maximum is 5, not 7: the Lv.6 was never a legal target.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([lv6Id]);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lv5Id);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -308,10 +278,7 @@ describe("EX10-049 SkullSatamon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     await settle(() => false, 40);
 
-    // The block redirected the attack, so my security was never checked.
     expect(s.state.players[0]!.security).toHaveLength(2);
-    // 8000 lost to 20000: SkullSatamon was deleted, and [On Deletion] then milled 3 each
-    // (opponent trash 6 -> 9) and deleted their Lv.3.
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-020"]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-020"]);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lv3Id);
@@ -342,16 +309,12 @@ describe("EX10-049 SkullSatamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The opponent controls no ＜Blocker＞, so no block window opens and the attack runs
-    // straight through its [When Attacking] timing into the security check.
     await settle(() => s.state.players[1]!.security.length === 1);
     await settle(() => false, 40);
 
-    // The replacement branch ran: 2 cards off each deck, no Security Attack grant.
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-014"]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-014"]);
-    // Exactly 1 security card checked, so 1 remains.
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(observe(s.engine).isAttacking()).toBe(false);
@@ -381,7 +344,6 @@ describe("EX10-049 SkullSatamon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
     await settle(() => false, 40);
 
-    // Neither deck was milled; both security cards were checked instead.
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-013", "BT1-014"]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-013", "BT1-014"]);
     expect(s.state.players[1]!.security).toHaveLength(0);
@@ -420,16 +382,11 @@ describe("EX10-049 SkullSatamon", () => {
       await settle(() => false, 30);
     };
 
-    // The opponent's trash stays above 10 all game, so the standard ＜Security A. +1＞
-    // processing runs and the "instead" mill never applies.
     const myDeckBefore = s.state.players[0]!.deck.length;
     await attack(5);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
     expect(s.state.players[0]!.deck).toHaveLength(myDeckBefore);
 
-    // Same turn, same carrier. `verb.unsuspend` is the only seam that returns an attacker to
-    // unsuspended mid-turn; the attack itself is still the public intent. A second grant would
-    // stack to 2 — [Once Per Turn] holds it at 1.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     await attack(3);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
@@ -440,8 +397,6 @@ describe("EX10-049 SkullSatamon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // "for the turn" expired through the real turn loop, and the gate reset: the grant is
-    // re-applied to exactly 1, not carried over as 2.
     await attack(1);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();

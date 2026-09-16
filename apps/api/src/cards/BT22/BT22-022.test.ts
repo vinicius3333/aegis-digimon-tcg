@@ -62,8 +62,6 @@ describe("BT22-022 Veedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("veemon").topCard?.cardId === "BT22-022");
 
-    // BT22-019's resident Your Turn effect reduces Veedramon-name evolution by 1,
-    // composing with BT22-022's printed CS route (2 -> 1).
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-112")).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("invalidTamer").instanceId]);

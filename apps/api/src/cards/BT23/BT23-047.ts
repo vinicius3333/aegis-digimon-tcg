@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT23-047 (Examon).
-// [Your Turn][Once Per Turn] SubTrigger whenSecurityRemoved: watches the opponent's stack,
-// regardless of which of the controller's effects or attacks removed the card.
-// The [Once Per Turn] frequency on the outer effect gates the whole trigger.
 export const compiled: CompiledCard = {
   dnaDigivolveRequirement: [
     {

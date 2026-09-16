@@ -1,9 +1,6 @@
 import type { Action, CompiledCard, Condition, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const ELIGIBLE_COST_CARD: Filter = {
   controller: "mine",
   kind: ["Digimon"],
@@ -36,12 +33,6 @@ const HAS_ELIGIBLE_TRASH_CARD: Condition = {
   filter: ELIGIBLE_COST_CARD,
 };
 
-/**
- * KB Q5331: the "by placing" condition is not a free choice. Once the effect activates, the
- * controller must process it. A qualifying card in the public trash therefore forces the
- * placement; when only the hidden hand can pay, the controller may still decline. The two
- * branches are mutually exclusive on the same trash check, so exactly one ever resolves.
- */
 const returnByPlacement = (): Action[] =>
   structuredClone<Action[]>([
     {

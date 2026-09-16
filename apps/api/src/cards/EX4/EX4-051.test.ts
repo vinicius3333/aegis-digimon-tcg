@@ -358,8 +358,6 @@ describe("EX4-051 BlitzGreymon", () => {
           security: ["BT1-009", "BT1-013", "BT1-012", "BT1-010"],
         },
       },
-      // Decline EX4-073's own optional attack effect so it does not trash the inherited card
-      // before EX4-051's inherited watcher resolves in the same attack window.
       { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();

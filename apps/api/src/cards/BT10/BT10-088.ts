@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The zone-expander registry carries the card-specific "one Tamer" host scope used by the
-// DigiXros validator; this module remains the authoritative executable IR registration.
 export const compiled: CompiledCard = {
   effects: [
     {

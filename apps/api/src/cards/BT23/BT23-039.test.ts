@@ -5,13 +5,9 @@ import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harne
 import "../index.js";
 import { compiled } from "./BT23-039.js";
 
-/** Appmon trait only: no [Game] and no [Invincible] trait, so it fits only the first add slot. */
 const APPMON_ONLY = "BT21-009";
-/** [Appmon] plus the [Game] attribute: an overlapping candidate for both add slots. */
 const APPMON_AND_GAME = "BT23-016";
-/** [Appmon] plus the [Invincible] type: the second printed alternative. */
 const APPMON_AND_INVINCIBLE = "BT23-024";
-/** Neither trait; always part of the returned remainder. */
 const PLAIN = "BT1-009";
 
 describe("BT23-039 Perorimon", () => {
@@ -106,8 +102,6 @@ describe("BT23-039 Perorimon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: prefer },
     );
-    // Bias the first (Appmon) slot to the Appmon-only card so the overlapping
-    // [Game] card is still available for the second slot.
     prefer.push(s.inst("appmon").instanceId);
     const appmonId = s.inst("appmon").instanceId;
     const gameId = s.inst("game").instanceId;
@@ -275,7 +269,6 @@ describe("BT23-039 Perorimon", () => {
           battleArea: [{ card: APPMON_ONLY, as: "host" }],
           hand: [{ card: "BT23-039", as: "linker" }],
         },
-        // The opponent controls no Digimon, so the optional suspend has no legal target.
         1: { hand: [PLAIN] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -392,9 +385,6 @@ describe("BT23-039 Perorimon", () => {
     expect(s.perm("host").linked).toHaveLength(0);
   });
 
-  // The public Link route feeds the public App Fusion route: Perorimon is linked to a Dokamon
-  // host by the controller's own `linkCard` intent, and BT23-021 Dosukomon then consumes that
-  // exact linked card as an [App Fusion] material.
   it("is consumed as an App Fusion material after being linked publicly", async () => {
     const s = setupEngine(
       {
@@ -437,7 +427,6 @@ describe("BT23-039 Perorimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("dokamon").topCard.instanceId === dosukomonId);
 
-    // The printed App Fusion cost is 0, so the two memory left by the link are untouched.
     expect(s.state.memory).toBe(2);
     expect(s.perm("dokamon").stack.map((card) => card.instanceId)).toEqual([dokamonId, perorimonId]);
     expect(s.perm("dokamon").linked).toHaveLength(0);
@@ -456,7 +445,6 @@ describe("BT23-039 Perorimon", () => {
         deck: [{ card: PLAIN, as: "bonus" }, PLAIN],
       },
     });
-    // The egg is hatched in the production Breeding phase opened by the real turn loop.
     const legalLoop = legal.engine.startTurnLoop();
     await settle(() => legal.state.phase === Phase.Breeding);
     expect(legal.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
@@ -477,7 +465,6 @@ describe("BT23-039 Perorimon", () => {
     expect(breeding.topCard!.instanceId).toBe(legal.inst("perorimon").instanceId);
     expect(breeding.stack.map((card) => card.instanceId)).toEqual([legal.inst("egg").instanceId]);
     expect(legal.state.memory).toBe(0);
-    // The evolution bonus draw replaces the played card in hand.
     expect(legal.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([legal.inst("bonus").instanceId]);
     expect(legal.state.players[0]!.hand).toHaveLength(handBefore);
     assertNoLoudGap(legal);

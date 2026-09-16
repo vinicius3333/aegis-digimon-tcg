@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT16-048 (TyrantKabuterimon). "[When Digivolving] You may play 1
-// Digimon card with the [Insectoid] or [Larva] trait from your hand with the play cost reduced
-// by 8." The declarative effect record emitted `costReduction:{amount:8}` (an object) on the
-// PlayWithoutCost action — but interpreter.ts's PlayWithoutCost handler only reads
-// `action.reduceCostBy` (a plain number) to fold a reduction into the play verb's `costDelta`;
-// `costReduction` is a different (also-numeric per ir.ts) field that kind never wires up, so the
-// object value was silently ignored and the card played its target at full cost. Re-authored as
-// `reduceCostBy:8`, the field the handler actually reads.
 const compiled: CompiledCard = {
   effects: [
     {

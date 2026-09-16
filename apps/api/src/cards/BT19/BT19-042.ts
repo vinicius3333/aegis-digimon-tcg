@@ -1,14 +1,6 @@
 import type { CardEffect, CompiledCard, Condition, Cost } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards".
- *
- * `[Dynasmon]` is a BRACKETED name, so it is an EXACT match (`nameExact`); a substring `name`
- * would also accept "Dynasmon (X Antibody)" — which happens to carry the [X Antibody] trait
- * anyway, so the two arms are kept honest rather than collapsed. `[X Antibody]` is a trait
- * token, matched exactly.
- */
 const dynasmonOrXAntibodyUnder: Condition = {
   kind: "selfHasInDigivolutionCards",
   nameOrTrait: [
@@ -18,18 +10,6 @@ const dynasmonOrXAntibodyUnder: Condition = {
   raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
 };
 
-/**
- * Printed: "by trashing the top card of your security stack, trash the top card of your
- * opponent's security stack, and this Digimon gets +6000 DP".
- *
- * Only YOUR top security card is the cost — the opponent's trash is part of the payload, not a
- * second half of an atomic compound cost (contrast BT19-043, whose "by trashing BOTH players'
- * top security cards" is atomic and is confirmed so by KB Q3096). An empty opponent security
- * stack therefore does not stop the clause; an empty own stack does.
- *
- * "By doing X" is a mandatory processing condition (Official Rule Manual: text containing
- * "by doing" indicates a condition), so the cost is not optional.
- */
 const trashOwnTopSecurity: Cost = {
   kind: "trashSecurityTop",
   raw: "by trashing the top card of your security stack",
@@ -116,8 +96,6 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      // "[Digivolve][Dynasmon]" is a bracketed exact name: a substring `names` gate would let
-      // "Dynasmon (X Antibody)" itself take the cost-1 route.
       namesExact: ["Dynasmon"],
       cost: 1,
       isAlternate: true,

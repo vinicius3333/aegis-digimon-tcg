@@ -72,8 +72,6 @@ describe("BT20-045 Examon ACE", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    // Examon (1000 DP) loses this battle against the 5000 DP defender, which survives —
-    // only the attacker is deleted.
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.memory).toBe(-5);
@@ -130,7 +128,7 @@ describe("BT20-045 Examon ACE", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === slayerdramonId)).toBe(false);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-012"]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT20-010", "BT20-011"]);
-    expect(s.state.memory).toBe(4); // Printed Green Lv.6 + Blue Lv.6 DNA cost 0.
+    expect(s.state.memory).toBe(4);
   });
 
   it("rejects ordinary DNA when a material misses the printed level/color boundary", async () => {
@@ -346,7 +344,6 @@ describe("BT20-045 Examon ACE", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await evade.ready();
-    // Its attack suspends Examon, then its own once-per-turn effect unsuspends it before Security.
     expect(
       evade.engine.applyIntent(0, {
         type: "attack",
@@ -396,18 +393,12 @@ describe("BT20-045 Examon ACE", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      // Examon's own watcher can unsuspend it before the block window is evaluated (its
-      // trigger permanent suspends itself on attack declaration), which makes Examon's
-      // ＜Blocker＞ eligible when seat 1 attacks. The block-window contract is a first-class
-      // intent, not a `respondDecision` round-trip, so it needs an explicit decline here.
       let blockDeclineResult: unknown = { ok: true };
       if (suspendingSeat === 1) {
         await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
         blockDeclineResult = s.engine.applyIntent(0, { type: "declineBlock" });
       }
       expect(blockDeclineResult).toEqual({ ok: true });
-      // Player-directed, unblocked attacks resolve through a security check rather than
-      // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
       await settle(() => s.events.some((event) => event.kind === "securityChecked"));
       expect(s.perm("examon").isSuspended).toBe(false);
     }
@@ -441,8 +432,6 @@ describe("BT20-045 Examon ACE", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Player-directed, unblocked attacks resolve through a security check rather than
-    // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.perm("examon").isSuspended).toBe(false);
 
@@ -463,7 +452,7 @@ describe("BT20-045 Examon ACE", () => {
     s.state.memory = 10;
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.perm("examon").isSuspended).toBe(false); // own Unsuspend phase already readied it
+    expect(s.perm("examon").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
     s.state.turnSeat = 0;
@@ -478,7 +467,7 @@ describe("BT20-045 Examon ACE", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    expect(s.perm("examon").isSuspended).toBe(false); // self-suspension now gets a fresh use
+    expect(s.perm("examon").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
   });

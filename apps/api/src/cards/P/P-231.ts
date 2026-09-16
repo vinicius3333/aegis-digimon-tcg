@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-231 Unique Emblem: Invincibly Invisible (option card).
-// [Main] Reveal top 3; add 1 Cyborg/Machine Digimon and 1 LIBERATOR trait card to hand,
-//   rest to deck bottom. Then place this card in the battle area.
-// [Your Turn] When 1 of your Altea Digimon is played, you may digivolve 1 of your Digimon
-//   into a Lv 6 or lower LIBERATOR Digimon from your hand, reducing cost by 3.
-// [Security] Activate the [Main] effect.
 const compiled: CompiledCard = {
   effects: [
     {

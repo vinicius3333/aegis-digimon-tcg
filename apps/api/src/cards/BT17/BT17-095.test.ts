@@ -163,7 +163,6 @@ describe("BT17-095 Miraculous Mega Knight", () => {
     expect(result?.stack.some((card) => card.instanceId === s.inst("leavingWarGreymon").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
 
-    // Q4432: the DNA result is a different Digimon, so nothing left the battle area.
     const leavingId = s.inst("leavingWarGreymon").instanceId;
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === leavingId)).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === leavingId)).toBe(false);
@@ -182,7 +181,6 @@ describe("BT17-095 Miraculous Mega Knight", () => {
         0: {
           battleArea: ["BT17-007", "BT17-019"],
           hand: [{ card: "BT17-095", as: "option" }],
-          // ToyAgumon merely contains "Agumon"; "[Agumon]" is an exact-name reference.
           trash: [{ card: "BT2-055", as: "toyAgumon" }],
         },
       },
@@ -254,7 +252,6 @@ describe("BT17-095 Miraculous Mega Knight", () => {
           hand: [
             { card: "BT17-095", as: "option" },
             { card: "BT17-027", as: "looseMetalGarurumon" },
-            // BT1-084 Omnimon has no [DNA Digivolution] requirement to satisfy.
             { card: "BT1-084", as: "plainOmnimon" },
           ],
         },
@@ -298,7 +295,6 @@ describe("BT17-095 Miraculous Mega Knight", () => {
           ],
           hand: [
             { card: "BT17-095", as: "option" },
-            // Monodramon is not the blue Lv.6 EX4-060 requires as the second material.
             { card: "BT1-009", as: "wrongMaterial" },
             { card: "EX4-060", as: "omnimon" },
           ],

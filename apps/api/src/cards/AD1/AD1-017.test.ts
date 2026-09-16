@@ -162,7 +162,6 @@ describe("AD1-017 Dynasmon", () => {
       await settle(() => s.state.players[0]!.security.length === 2 - index);
     }
 
-    // Both removals happened during seat 1's same turn: only the first may delete.
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
 
     await advance(s.engine).waitForMainPhase(1);
@@ -170,7 +169,6 @@ describe("AD1-017 Dynasmon", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Seat 1's next turn resets the All Turns once-per-turn identity.
     await advance(s.engine).waitForMainPhase(1);
     const remainingAttacker = s.state.players[1]!.battleArea.find((permanent) => !permanent.isSuspended)!;
     expect(

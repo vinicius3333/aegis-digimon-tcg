@@ -1,8 +1,3 @@
-// Hand-authored override — do not regenerate.
-// [When Digivolving]: two effects, second gated on DNA digivolving condition.
-// 1) If you have 5 or fewer security cards: Recovery +1 (place top deck card on security).
-// 2) ONLY when DNA digivolving: return 1 opponent Digimon whose level ≤ your security count.
-//    Level filter uses kind:"securityAtMost" reference — engine resolves at time of targeting.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

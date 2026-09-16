@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q&A Q3719: If you don't add the security card to hand (the "by X" cost),
-// NEITHER the DP reduction NOR the placement activates. The cost gates the whole effect.
-// Encoded as a CostGatedBlock: all actions inside share the same cost — paying it once
-// enables both the ModifyDP and the SecurityManipulation.
 export const compiled: CompiledCard = {
   effects: [
     {

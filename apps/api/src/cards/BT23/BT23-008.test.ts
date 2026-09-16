@@ -176,9 +176,6 @@ describe("BT23-008 Greymon", () => {
     );
     s.state.memory = 5;
     const originalPermanentId = s.perm("greymon").permanentId;
-    // Q5219 proves a pending DP reduction does not make the restack cost illegal. This
-    // Greymon then contributes its printed inherited +2000, so -3000 is the exact aggregate
-    // reduction needed for the exposed 1000-DP Musclemon to reach the ruling's 0-DP boundary.
     await advance(s.engine).verb.modifyDP(originalPermanentId, -3000, EffectDuration.UntilEachTurnEnd);
 
     expect(
@@ -419,7 +416,6 @@ describe("BT23-008 Greymon", () => {
       expect(kimeramon.topCard.instanceId).toBe(firstSourceId);
       expect(s.state.turnSeat).toBe(0);
       expect(s.state.phase).toBe(Phase.Main);
-      // Monochromon crosses memory, so its completed effect passes the turn automatically.
       await advance(s.engine).waitForMainPhase(0);
       expect(
         s.engine.applyIntent(0, {

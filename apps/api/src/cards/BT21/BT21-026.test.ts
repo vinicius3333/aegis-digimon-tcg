@@ -273,8 +273,6 @@ describe("BT21-026 WarGreymon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstVictimId)).toBe(false);
     expect(s.perm("wargreymon").isSuspended).toBe(false);
 
-    // Spend the newly gained unsuspended state through a real player attack. The second
-    // opponent Digimon deletion then occurs in the same turn and must not unsuspend again.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

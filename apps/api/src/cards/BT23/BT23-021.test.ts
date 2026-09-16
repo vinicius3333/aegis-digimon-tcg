@@ -117,7 +117,6 @@ describe("BT23-021 Dosukomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT23-021", as: "dosukomon" }] },
-        // Surfimon has no printed text at all: a 13,000-DP Security Digimon and nothing else.
         1: { security: ["BT8-030", "BT1-009"], deck: ["BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -139,7 +138,6 @@ describe("BT23-021 Dosukomon", () => {
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    // It loses the security battle to the 13,000-DP Security Digimon and is not deleted.
     expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toContain(hostId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("host").instanceId);
     expect(s.state.players[1]!.security).toHaveLength(1);
@@ -475,8 +473,6 @@ describe("BT23-021 Dosukomon", () => {
       expect.objectContaining({ kind: "digivolved", mechanic: "appFusion", cardId: "BT23-021" }),
     );
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
-    // The link declaration costs one memory and the opponent's SnowAgumon tax adds one
-    // to the printed-zero App Fusion, so the five-memory fixture settles at three.
     expect(s.state.memory).toBe(3);
     expect(s.perm("host").linked).toHaveLength(0);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([oldTopId, s.inst("partner").instanceId]);

@@ -9,36 +9,6 @@ import { compiled } from "./EX13-064.js";
 
 const cardId = "EX13-064";
 
-// Fixtures, and why each one is here:
-//   BT5-042  Knightmon       YELLOW Lv.5 [Warrior], 7000 DP, cost 7, "Knightmon" in its NAME. The
-//                            colour-widening witness for "[Digivolve] Lv.5 w/[Knightmon] in text":
-//                            neither Purple nor Black, so the printed EvoCosts cannot reach it.
-//                            Its only window is [On Play], which a digivolve never opens.
-//   ST13-12  Knightmon       BLACK/RED Lv.5, 7000 DP, cost 5, completely INERT — a name match with
-//                            zero text noise. The play-branch positive and a grant recipient.
-//   BT7-059  DeadlyAxemon    BLACK Lv.4 [Dark Animal], 3000 DP, cost 4. Its NAME carries no
-//                            "Knightmon" but both its printed and its inherited line name
-//                            [Knightmon] (§4-23-3), so it is the TEXT-ONLY match that separates
-//                            `match: "text"` from `match: "name"`.
-//   ST13-10  Gladimon        BLACK Lv.4 [Warrior], 4000 DP, cost 4, INERT with no "Knightmon"
-//                            anywhere. The pure text-gate negative, the non-matching grant
-//                            recipient, and the "other Digimon played" trigger source.
-//   BT7-058  SkullKnightmon  BLACK Lv.4, cost 4, [Knightmon] in its name — the LEVEL-gate negative
-//                            for the "Lv.5 w/[Knightmon] in text" route.
-//   BT10-064 Gogmamon        INERT BLACK Lv.5, 8000 DP — satisfies the printed Black Lv.5 EvoCost
-//                            and fails the text gate, so it is the route's cost control.
-//   BT19-072 LordKnightmon   PURPLE/BLACK Lv.6, cost 11, [Knightmon] in its name — the play/use
-//                            COST-ceiling negative: it clears the text gate and fails "8 or lower".
-//   BT18-099 Fist of Athena  PURPLE/BLACK Option, use cost 3, [Knightmon] in its text. The
-//                            use-branch positive; it shares this host's colours, so §4-22-3 is
-//                            satisfied with or without its own colour waiver.
-//   BT22-090 Rie Kishibe     BLACK Tamer, cost 3, [CS] trait — the EXACT name the second
-//                            [Digivolve] header calls for, a Tamer play-branch target, and the
-//                            Tamer-played trigger source.
-//   BT10-092 Nene Amano      BLACK Tamer, cost 3 — the wrong-name Tamer negative for that route.
-//   BT1-014  Kokatorimon     INERT RED Lv.4, 4000 DP — the opponent's body: the ＜Collision＞
-//                            forced blocker and the ＜Piercing＞ battle victim.
-//   BT1-010..BT1-013         inert red main-deck Digimon — neutral deck, security and hand bulk.
 const TEXT_LV5_YELLOW = "BT5-042";
 const INERT_TEXT_LV5 = "ST13-12";
 const TEXT_ONLY_LV4 = "BT7-059";
@@ -57,16 +27,10 @@ const SECURITY_4 = ["BT1-013", "BT1-012", "BT1-011", "BT1-013"];
 
 type Setup = ReturnType<typeof setupEngine>;
 
-/** The combat controller's decision flags; none of them surface through `state.pendingDecision`. */
 function combatOf(s: Setup): { hasOpenAllianceDecision: boolean; hasOpenBlockWindow: boolean } {
   return (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean; hasOpenBlockWindow: boolean } }).combat;
 }
 
-/**
- * Every attacker in this file carries the host's granted ＜Alliance＞, so a real attack parks on an
- * alliance decision that `state.pendingDecision` does not show. Decline it (no `allyPermanentId`)
- * unless a test wants the ally suspension itself.
- */
 async function declineAlliance(s: Setup): Promise<void> {
   const combat = combatOf(s);
   await settle(() => combat.hasOpenAllianceDecision || !observe(s.engine).isAttacking());
@@ -94,7 +58,6 @@ describe("EX13-064 LordKnightmon", () => {
         { color: "Black", level: 5, memoryCost: 4 },
       ],
     });
-    // No inherited and no security effect are printed.
     expect((getCardDefinition(cardId)?.inheritedEffectText ?? "").trim()).toBe("");
     expect((getCardDefinition(cardId)?.securityEffectText ?? "").trim()).toBe("");
 
@@ -114,7 +77,6 @@ describe("EX13-064 LordKnightmon", () => {
   it("compiles every printed clause and nothing else", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.map((effect) => effect.trigger)).toEqual(["WhenDigivolving", "YourTurn", "YourTurn"]);
-    // Nothing on this card is inherited: the catalog prints no inherited text.
     for (const effect of compiled.effects) expect(effect.isInherited).toBeUndefined();
 
     const textGate = [{ tokens: ["Knightmon"], match: "text" }];
@@ -147,7 +109,6 @@ describe("EX13-064 LordKnightmon", () => {
         },
       ],
     });
-    // One printed window, no printed [Once Per Turn] on the play-or-use line.
     expect(compiled.effects[0]!.frequency).toBeUndefined();
 
     const grantTarget = { count: "all", filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: textGate } };
@@ -167,7 +128,6 @@ describe("EX13-064 LordKnightmon", () => {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          // "any of your OTHER Digimon or Tamers".
           sourceFilter: { controller: "mine", kind: ["Digimon", "Tamer"], excludeSelf: true },
           actions: [
             {
@@ -183,11 +143,9 @@ describe("EX13-064 LordKnightmon", () => {
         },
       ],
     });
-    // The printed attack is unqualified: neither `attackPlayer` nor `attackPlayerOnly` narrows it.
     const attack = (compiled.effects[2]!.actions[0] as { actions: unknown[] }).actions[3]!;
     expect(attack).not.toHaveProperty("attackPlayer");
     expect(attack).not.toHaveProperty("attackPlayerOnly");
-    // All three grant/attack steps read back the single printed choice.
     const bindAs = (compiled.effects[2]!.actions[0] as { actions: { target: { bindAs?: string } }[] }).actions[0]!
       .target.bindAs;
     for (const index of [1, 2, 3]) {
@@ -217,11 +175,6 @@ describe("EX13-064 LordKnightmon", () => {
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve] Lv.5 w/[Knightmon] in text: Cost 3
-  // ---------------------------------------------------------------------------
-
-  /** A digivolve board whose hand/trash hold nothing the [When Digivolving] clause can reach. */
   function routeBoard(base: string, extras: { security?: string[] } = {}) {
     return {
       0: {
@@ -257,7 +210,6 @@ describe("EX13-064 LordKnightmon", () => {
     await settle(() => s.perm("base").topCard?.cardId === cardId);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Cost 3, not the printed 4 — and Yellow is reachable by no printed EvoCost at all.
     expect(s.state.memory).toBe(2);
     expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual([TEXT_LV5_YELLOW]);
     expect(s.perm("base").currentDP).toBe(12_000);
@@ -274,8 +226,6 @@ describe("EX13-064 LordKnightmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // `useAlternateCost` is a PREFERENCE, not a gate: with no matching alternate route the engine
-    // falls back to the printed Black Lv.5 EvoCost, so the proof is the memory actually charged.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -313,10 +263,6 @@ describe("EX13-064 LordKnightmon", () => {
     }
   });
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve] While you have 3 or fewer security cards, [Rie Kishibe]: Cost 5
-  // ---------------------------------------------------------------------------
-
   it("digivolves onto the [Rie Kishibe] TAMER for 5 while you have 3 security cards", async () => {
     const s = setupEngine(routeBoard(RIE_KISHIBE, { security: SECURITY_3 }), {
       autoDeclineOptional: true,
@@ -337,8 +283,6 @@ describe("EX13-064 LordKnightmon", () => {
     await settle(() => s.perm("base").topCard?.cardId === cardId);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Cost 5 exactly, the Tamer is now an ordinary digivolution card (KB Q6705), and the Tamer
-    // route still draws the digivolution bonus card (KB Q6704).
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual([RIE_KISHIBE]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
@@ -354,7 +298,6 @@ describe("EX13-064 LordKnightmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // There is no fallback: a Tamer base satisfies neither printed Lv.5 EvoCost.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -386,12 +329,6 @@ describe("EX13-064 LordKnightmon", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Digivolving] You may play or use 1 play or use cost 8 or lower [Knightmon] text card
-  // from your hand or trash without paying the cost.
-  // ---------------------------------------------------------------------------
-
-  /** Digivolve onto the Yellow [Knightmon] for 3, which opens the printed window. */
   function whenDigivolvingBoard(seat0: { hand?: { card: string; as: string }[]; trash?: string[] }, seat1 = {}) {
     return {
       0: {
@@ -429,10 +366,7 @@ describe("EX13-064 LordKnightmon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Only the digivolve cost of 3 moved the gauge: the printed cost 5 was never paid.
     expect(s.state.memory).toBe(2);
-    // The digivolve's own bonus draw also landed in hand, so the proof is that the played card
-    // LEFT it while the spare stayed.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("knightmon").instanceId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("spare").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(2);
@@ -459,11 +393,8 @@ describe("EX13-064 LordKnightmon", () => {
     const s = setupEngine(
       whenDigivolvingBoard({
         hand: [
-          // Same cost 4 as a legal target, but no "Knightmon" anywhere in its printed information.
           { card: NO_TEXT_LV4, as: "noText" },
-          // [Knightmon] in its name, printed cost 11 — over the printed ceiling of 8.
           { card: TOO_EXPENSIVE, as: "tooExpensive" },
-          // "Knightmon" only in its printed TEXT, cost 4 — the one legal target (§4-23-3).
           { card: TEXT_ONLY_LV4, as: "match" },
         ],
       }),
@@ -477,7 +408,6 @@ describe("EX13-064 LordKnightmon", () => {
 
     const handAfter = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     expect(handAfter).not.toContain(s.inst("match").instanceId);
-    // Both rejected cards — and only they, plus the spare and the digivolve's bonus draw — stayed.
     expect(handAfter).toContain(s.inst("noText").instanceId);
     expect(handAfter).toContain(s.inst("tooExpensive").instanceId);
     expect(handAfter).toContain(s.inst("spare").instanceId);
@@ -497,7 +427,6 @@ describe("EX13-064 LordKnightmon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed Tamer cost 3, paid by nobody; only the digivolve's own 3 left the gauge.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("tamer").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(2);
@@ -512,7 +441,6 @@ describe("EX13-064 LordKnightmon", () => {
     await settle(() => s.state.players[0]!.trash.every(({ cardId: id }) => id !== KNIGHTMON_OPTION), 5000);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed use cost 3 and the gauge only moved by the digivolve's 3: "without paying the cost".
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).not.toContain(KNIGHTMON_OPTION);
   });
@@ -548,10 +476,6 @@ describe("EX13-064 LordKnightmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // [Your Turn] All of your [Knightmon] text Digimon gain ＜Alliance＞ and ＜Piercing＞
-  // ---------------------------------------------------------------------------
-
   it("grants ＜Alliance＞ and ＜Piercing＞ to every matching Digimon, but only on your own turn", async () => {
     const s = setupEngine({
       0: {
@@ -573,19 +497,14 @@ describe("EX13-064 LordKnightmon", () => {
 
     for (const alias of granted) {
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Alliance")).toBe(true);
-      // ＜Piercing＞ lands in the battle modifier ledger, not the keyword ledger that
-      // `hasKeyword` reads, so `hasPierce` is the only honest probe for it.
       expect(observe(s.engine).hasPierce(s.perm(alias))).toBe(true);
     }
-    // Gladimon shares the host's colour and the [Warrior] family and still misses: the only thing
-    // separating it from the others is the absence of "Knightmon" in its printed text.
     expect(observe(s.engine).hasKeyword(s.perm("noMatch"), "Alliance")).toBe(false);
     expect(observe(s.engine).hasPierce(s.perm("noMatch"))).toBe(false);
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // [Your Turn] only: the opponent's turn strips the grant from every one of them.
     for (const alias of [...granted, "noMatch"]) {
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Alliance")).toBe(false);
       expect(observe(s.engine).hasPierce(s.perm(alias))).toBe(false);
@@ -632,8 +551,6 @@ describe("EX13-064 LordKnightmon", () => {
       { autoSelectCards: true, autoDeclineOptional: true },
     );
     await s.ready();
-    // The host is not on the board as a permanent here — it is the Digimon UNDER nothing; instead
-    // put it in play so the grant exists, then attack with the text-only match.
     s.putOnBoard(0, { card: cardId, as: "lord" });
     await advance(s.engine).recompute();
     expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Alliance")).toBe(true);
@@ -652,7 +569,6 @@ describe("EX13-064 LordKnightmon", () => {
     });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // ＜Alliance＞ (§16-24): the ally is suspended and the attack checked 2 security cards.
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
@@ -692,7 +608,6 @@ describe("EX13-064 LordKnightmon", () => {
     await settle(() => !observe(hit.engine).isAttacking());
 
     expect(hit.state.players[1]!.battleArea).toHaveLength(0);
-    // ＜Piercing＞: the won battle also checked 1 security card.
     expect(hit.state.players[1]!.security).toHaveLength(1);
 
     const miss = setupEngine(board(NO_TEXT_LV4), { autoSelectCards: true, autoDeclineOptional: true });
@@ -710,11 +625,6 @@ describe("EX13-064 LordKnightmon", () => {
     expect(miss.state.players[1]!.battleArea).toHaveLength(0);
     expect(miss.state.players[1]!.security).toHaveLength(2);
   });
-
-  // ---------------------------------------------------------------------------
-  // [Your Turn] [Once Per Turn] When any of your other Digimon or Tamers are played, 1 of your
-  // [Knightmon] text Digimon may gain ＜Rush＞ and ＜Collision＞ for the turn and attack.
-  // ---------------------------------------------------------------------------
 
   function rushBoard(hand: { card: string; as: string }[], seat1: Record<string, unknown> = {}) {
     return {
@@ -742,13 +652,10 @@ describe("EX13-064 LordKnightmon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The host is the only [Knightmon]-text Digimon, so it is the chosen attacker.
     expect(observe(s.engine).hasKeyword(s.perm("lord"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("lord"), "Collision")).toBe(true);
     expect(s.perm("lord").isSuspended).toBe(true);
-    // The attack landed on the player: 1 security card checked.
     expect(s.state.players[1]!.security).toHaveLength(2);
-    // Only the played Gladimon's printed cost 4 left the gauge.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     assertNoLoudGap(s);
@@ -772,15 +679,12 @@ describe("EX13-064 LordKnightmon", () => {
     expect(opened && "eligibleBlockerIds" in opened ? opened.eligibleBlockerIds : []).toContain(
       s.perm("theirs").permanentId,
     );
-    // §16-30: with an eligible (Collision-granted) blocker on the board, declining is illegal.
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toMatchObject({ ok: false });
     expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("theirs").permanentId })).toEqual(
       { ok: true },
     );
     await settle(() => !observe(s.engine).isAttacking());
 
-    // The block happened, so no security was checked; 12000 DP beat 4000 DP, and the granted
-    // ＜Piercing＞ then checked exactly 1 security card off the won battle.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
@@ -827,7 +731,6 @@ describe("EX13-064 LordKnightmon", () => {
   });
 
   it("offers only [Knightmon]-text Digimon, and can be steered onto the TEXT-only match", async () => {
-    // A live array the harness reads when it answers the capped SelectBind choice.
     const prefer: string[] = [];
     const s = setupEngine(
       {
@@ -850,8 +753,6 @@ describe("EX13-064 LordKnightmon", () => {
     );
     s.state.memory = 6;
     await s.ready();
-    // Steer the single printed choice onto the TEXT-only match, which a `match: "name"` reading of
-    // the printed sentence would never offer at all (§4-23-3).
     prefer.push(s.perm("textMatch").topCard.instanceId);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("other").instanceId })).toEqual({ ok: true });
@@ -862,12 +763,9 @@ describe("EX13-064 LordKnightmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("textMatch"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("textMatch"), "Collision")).toBe(true);
     expect(s.perm("textMatch").isSuspended).toBe(true);
-    // The non-matching Gladimon was never a candidate: keyword-free and still unsuspended, even
-    // though it shares the colour, level family and DP of the body that was chosen.
     expect(observe(s.engine).hasKeyword(s.perm("noMatch"), "Rush")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("noMatch"), "Collision")).toBe(false);
     expect(s.perm("noMatch").isSuspended).toBe(false);
-    // Exactly one attack happened, so the host did not also attack.
     expect(s.perm("lord").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
@@ -891,7 +789,6 @@ describe("EX13-064 LordKnightmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.perm("lord").isSuspended).toBe(true);
 
-    // Same turn, a second play: the printed [Once Per Turn] is spent, so nothing attacks again.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
@@ -901,13 +798,11 @@ describe("EX13-064 LordKnightmon", () => {
     await settle();
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    // A full opponent turn through the production loop clears the per-turn ledger.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
 
     s.state.turnSeat = 0;
-    // `runTurn` leaves the loop parked past Main; a hand-laid next turn re-opens it (EX13-014).
     s.state.phase = Phase.Main;
     s.state.memory = 10;
     await advance(s.engine).verb.unsuspend([s.perm("lord").permanentId]);
@@ -952,8 +847,6 @@ describe("EX13-064 LordKnightmon", () => {
     );
     await settle();
 
-    // [Your Turn] plus `controller: "mine"`: neither gate is met, so nothing was granted and
-    // nothing attacked.
     expect(observe(s.engine).hasKeyword(s.perm("lord"), "Rush")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("lord"), "Collision")).toBe(false);
     expect(s.perm("lord").isSuspended).toBe(false);

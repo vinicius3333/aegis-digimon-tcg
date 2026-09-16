@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited IR: Decode is represented by executable would-leave replacements as well as
-// the visible keyword markers. Each printed Decode clause gets a distinct replacement, so
-// both legal color-pair pools remain available together when Omnimon leaves play other than
-// by battle (Q4870).
 export const compiled: CompiledCard = {
   effects: [
     {

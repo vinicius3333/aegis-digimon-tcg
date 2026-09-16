@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./TOKEN-KoHagurumon-Token.js";
 import "./BT16-001.js";
 import "./BT16-002.js";

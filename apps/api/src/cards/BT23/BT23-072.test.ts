@@ -16,7 +16,6 @@ import { compiled } from "./BT23-072.js";
 
 const KEYWORDS = ["Rush", "Raid", "Reboot", "Blocker"] as const;
 
-/** The [Hand] [Main] effect key, read off the real declaration window for the hand card. */
 function mainEffectKey(s: EngineSetup, alias = "handDrasil"): string {
   const source = (s.engine as any).cardSourceOf(s.inst(alias));
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT23-072/"))!
@@ -27,7 +26,6 @@ function keywordsOn(s: EngineSetup, alias: string): boolean[] {
   return KEYWORDS.map((keyword) => observe(s.engine).hasKeyword(s.perm(alias), keyword));
 }
 
-/** A board where seat 0 can publicly play cards through the real turn loop. */
 function playableBoard(seat0: SeatSpec, seat1: SeatSpec = {}): BoardSpec {
   return {
     0: { deck: ["BT1-011", "BT1-012", "BT1-013"], security: ["BT1-027", "BT1-028", "BT1-045"], ...seat0 },
@@ -78,8 +76,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
   });
-
-  // Clause 1 — [Hand] [Main].
 
   it("pays 3, places this hand card at the Mother Eater stack bottom, then draws 1", async () => {
     const s = setupEngine(
@@ -141,7 +137,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
   });
 
-  // Q5345: no [King Drasil_7D6] / [Mother Eater] in breeding means no activation at all.
   it("refuses activation with no King Drasil_7D6 or Mother Eater in the breeding area", async () => {
     const s = setupEngine(
       {
@@ -171,7 +166,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     expect(s.decisions).toHaveLength(0);
   });
 
-  // Q5345 sharpened: the empty breeding area is the same refusal, not a silent no-op draw.
   it("refuses activation with an empty breeding area", async () => {
     const s = setupEngine(
       {
@@ -227,7 +221,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     await closeLoop(s, loop);
   });
 
-  // Q5346: the "by" cost is all-or-nothing — declining pays nothing and draws nothing.
   it("pays no memory and draws nothing when the controller declines the placement", async () => {
     const s = setupEngine(
       {
@@ -258,8 +251,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // Clause 2 — [All Turns] played-Digimon watcher.
-
   it("suspends itself and grants all four keywords when an own CS Digimon is played", async () => {
     const { s, loop } = await openMain(
       playableBoard({
@@ -285,7 +276,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     await closeLoop(s, loop);
   });
 
-  // Q5347: the watcher also sees this card's own play (BT23-072 itself has the [CS] trait).
   it("triggers on its own play and grants the four keywords to itself", async () => {
     const { s, loop } = await openMain(
       playableBoard({
@@ -410,8 +400,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     await closeLoop(s, loop);
   });
 
-  // Clause 3 — inherited [Breeding] [Start of Your Main Phase].
-
   it("plays a King Drasil card from its own stack for free at six or more digivolution cards", async () => {
     const { s, loop } = await openMain(
       playableBoard({
@@ -469,7 +457,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     await closeLoop(s, loop);
   });
 
-  // Q5348: a {Breeding} effect cannot be activated outside the breeding area.
   it("does not fire while the same stack sits in the battle area", async () => {
     const { s, loop } = await openMain(
       playableBoard({
@@ -490,8 +477,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     expect(s.perm("host").stack).toHaveLength(6);
     await closeLoop(s, loop);
   });
-
-  // IR shape — the clauses the behavioral tests pin, stated once.
 
   it("compiles the [Hand] [Main] cost as an exact-name placement plus 3 memory", () => {
     const action = (compiled.effects.find((entry) => entry.trigger === "Main") as any).actions[0];

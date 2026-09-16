@@ -1,9 +1,6 @@
-// HAND-VERIFIED IR for EX3-055 Wormmon — preserve the official errata filters.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The shared interpreter executes this reviewed IR; removing the generated header
-// keeps the compiler from overwriting the verified errata behavior.
 export const compiled: CompiledCard = {
   effects: [
     {

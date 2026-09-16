@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored module (header removed so the generator preserves it). Re-classified from the
-// runtime record's inert `Restrict {restriction:"activateEffects"}` to the dedicated
-// `DisableTimingEffect` action — the timing half of the source rule implementation split.
-//
-// `card.Owner.MemoryForPlayer >= 1 && opponent permanent && !TopCard.CanNotBeAffected(...) &&
-// cardEffect.IsWhenDigivolving`. While owner memory is 1+, the opponent's Digimon do not
-// activate their [When Digivolving] effects — unless the affected Digimon carries effect
-// immunity (the `beAffected` exception, the source CanNotBeAffected gate).
 export const compiled: CompiledCard = {
   effects: [
     {

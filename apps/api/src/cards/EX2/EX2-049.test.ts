@@ -9,14 +9,6 @@ import "./EX2-046.js";
 const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-009"];
 
-// A3 for EX2-049 (ADR-02=Searcher) — [Main] by suspending this Digimon, reveal the top 5 cards of
-// your deck, place 1 [ADR-02 Searcher] among them under 1 of your [Mother D-Reaper]s as its bottom
-// digivolution card, return the rest to the deck bottom.
-// source: documented behavior.
-//
-// FAILS-WHEN-REVERTED: an [ADR-02 Searcher] from the revealed 5 becomes a digivolution card under
-// the Mother D-Reaper AND this Digimon is suspended (the cost). A no-op leaves both unchanged.
-
 describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Reaper, suspend self", () => {
   it("matches the catalog, Q&A, and compiled Main RevealAdd clause", () => {
     expect(getCardDefinition("EX2-049")).toMatchObject({
@@ -77,9 +69,8 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
         0: {
           battleArea: [
             { card: "EX2-049", dp: 2000, as: "searcher" },
-            { card: "EX2-007", dp: 13000, as: "mother" }, // Mother D-Reaper, the place-under host
+            { card: "EX2-007", dp: 13000, as: "mother" },
           ],
-          // Top 5 of deck includes an [ADR-02 Searcher] (EX2-046) to place under the Mother D-Reaper.
           deck: [{ card: "EX2-046", as: "adr" }, "BT1-009", "BT1-013", "BT1-009", "BT1-013"],
           security: inertSecurity,
         },
@@ -103,9 +94,7 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
     const adr = s.inst("adr");
     await settle(() => mother.stack.some((c) => c.instanceId === adr.instanceId));
 
-    // The ADR-02 Searcher is now a digivolution card under the Mother D-Reaper.
     expect(mother.stack.some((c) => c.instanceId === adr.instanceId)).toBe(true);
-    // The source paid its suspend cost.
     expect(searcher.isSuspended).toBe(true);
   });
 

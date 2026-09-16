@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-088.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 describe("P-088 Siriusmon", () => {
   it("places a Gammamon from hand at stack bottom to gain +2000 DP for the turn", async () => {
@@ -28,8 +28,6 @@ describe("P-088 Siriusmon", () => {
         instanceId: s.inst("siriusmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    // AD1-002 slides under as a digivolution card and its own inherited "[Your Turn] +4000 DP"
-    // applies too, so the placement's +2000 is read on top of that.
     const expectedDP = () => s.perm("base").baseDP + 2000 + 4000;
     await settle(
       () => s.perm("base").stack[0]?.instanceId === gammamonId && s.perm("base").currentDP === expectedDP(),

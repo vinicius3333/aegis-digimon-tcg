@@ -11,23 +11,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 
-// Import the override so it self-registers on the registry.
 import "../BT14/BT14-033.js";
-
-// ---------------------------------------------------------------------------
-// BT14-033 DigivolveFromSecurity A3
-//
-// BT14-033 (Jesmon GX) at [Start of Your Main Phase] may digivolve into a
-// yellow Vaccine Digimon from its security stack without paying the cost.
-// The documented behavior allows selecting face-down security cards (canLookReverseCard:true).
-//
-// FAILS-WHEN-REVERTED LEVER:
-//   If the Digivolve{from:["security"]} action is removed from BT14-033's IR
-//   (reverting to the SecurityManipulation-only original), the digivolveFromInstance
-//   call never happens. The "digivolveFromInstance called" assertion goes RED.
-//   Alternatively, removing faceDownSecurityOk:true causes the face-down security
-//   card to be filtered out — also RED (no candidates).
-// ---------------------------------------------------------------------------
 
 function fakeDefinition(cardId: string, over: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -36,15 +20,11 @@ function fakeDefinition(cardId: string, over: Partial<CardDefinition> = {}): Car
     nameEn: cardId,
     kinds: ["Digimon"] as never,
     colors: ["Yellow"] as never,
-    // The base must satisfy the into-card's printed requirement even when the cost is waived
-    // ("without paying the cost" waives memory, not the level/color requirement), so the fake
-    // base is level 4 and the digivolution target overrides to level 5.
     level: 4,
     playCost: 5,
     dp: 5000,
     evoCosts: [{ memoryCost: 3, level: 4, color: "Yellow" as never }],
     maxCountInDeck: 4,
-    // matchNameOrTrait reads types/forms/attributes (not traits) for trait matching.
     attributes: ["Vaccine"] as never,
     ...over,
   };
@@ -55,7 +35,6 @@ function fakeCardInstance(cardId: string, instanceId: string, faceUp = false): C
 }
 
 function fakeSecurityCard(cardId: string, instanceId: string): CardInstance {
-  // Security cards are face-down by default.
   return fakeCardInstance(cardId, instanceId, false);
 }
 
@@ -136,17 +115,15 @@ describe("BT14-033 DigivolveFromSecurity A3", () => {
     const fx = {
       digivolveFromInstance: async (targetPermanentId: string, sourceInstanceId: string, _opts: unknown) => {
         digivolveCalls.push({ target: targetPermanentId, source: sourceInstanceId });
-        return { permanentId: "new-perm" }; // non-undefined = success
+        return { permanentId: "new-perm" };
       },
       shuffleSecurity: (seat: Seat) => {
         shuffleCalls.push({ seat });
       },
-      // SecurityManipulation{placeAsSecurity} may call these
       securityToHand: () => [],
       trashFromSecurity: () => [],
       placeSecurity: () => undefined,
       addSecurity: () => undefined,
-      // Other primitives are not expected for this effect.
       reveal: () => Promise.resolve([]),
       trash: () => [],
       returnToHand: () => [],
@@ -167,26 +144,18 @@ describe("BT14-033 DigivolveFromSecurity A3", () => {
 
     const module = getEffectModule("BT14-033");
     expect(module, "BT14-033 must self-register on import").toBeDefined();
-    // StartOfYourMainPhase IR trigger maps to OnStartMainPhase engine timing.
     const effects = module!.effectsForTiming(EffectTiming.OnStartMainPhase, source);
     expect(effects.length, "BT14-033 must expose a [Start of Your Main Phase] effect").toBeGreaterThanOrEqual(1);
     await effects[0]!.resolve(ctx);
 
-    // The digivolveFromInstance call must have happened.
     expect(digivolveCalls.length, "digivolveFromInstance must be called").toBeGreaterThanOrEqual(1);
-    // The source of the digivolve must be the security card.
     expect(digivolveCalls[0]!.source).toBe("sec-01");
-    // The target must be the BT14-033 permanent.
     expect(digivolveCalls[0]!.target).toBe("perm-bt14-033");
 
-    // Security must be shuffled.
     expect(shuffleCalls.length, "shuffleSecurity must be called").toBeGreaterThanOrEqual(1);
     expect(shuffleCalls[0]!.seat).toBe(0 as Seat);
   });
 
-  // REVERT LEVER: removing faceDownSecurityOk:true from the BT14-033 Digivolve IR
-  // causes isFaceDownSecurityCard filter to exclude the face-down security card,
-  // leaving 0 candidates -> digivolveFromInstance is never called -> RED.
   it("revert-proof: face-down security card must be accessible (documents fail-when-reverted contract)", () => {
     expect(true).toBe(true);
   });

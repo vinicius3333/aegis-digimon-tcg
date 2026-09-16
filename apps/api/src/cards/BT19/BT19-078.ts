@@ -1,10 +1,6 @@
 import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// HAND-FIXED IR for BT19-078 — do not regenerate.
-// Re-audit fix: "[Mother D-Reaper]" and "[ADR-01 Jeri]" are bracketed EXACT name refs, so
-// `nameExact`. The `name` substring mode accepted any card merely containing those strings.
-
 const mother: Filter = {
   controller: "mine",
   nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],

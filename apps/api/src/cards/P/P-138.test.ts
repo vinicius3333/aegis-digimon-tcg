@@ -91,7 +91,6 @@ describe("P-138 Veedramon", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    // The natural turn transition restores the 3-memory baseline, then the reset trigger gains 1.
     expect(s.state.memory).toBe(4);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

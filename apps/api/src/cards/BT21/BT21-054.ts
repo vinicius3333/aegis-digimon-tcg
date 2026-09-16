@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4557 (binding): "X in its text" refers to cards containing the specified text in
-// name, traits, effects, inherited effects, requirements, etc.
-// The [On Play] cost trashes a card from any of your Digimon's digivolution cards (zone:
-// digivolutionCards), not a Digimon permanent from the battleArea.
 export const compiled: CompiledCard = {
   effects: [
     {

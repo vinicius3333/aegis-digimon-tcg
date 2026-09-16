@@ -21,7 +21,6 @@ describe("BT17-036 Boutmon", () => {
         { color: "Green", level: 4, memoryCost: 4 },
       ],
     });
-    // Catalog carries U+00A0 before "in its text" / "in its digivolution cards" / "in the hand".
     const printed = definition.effectText!.replace(/ /g, " ");
     expect(printed).toContain("[Digivolve]Lv.4 w/[Pulsemon] in its text: Cost 3");
     expect(printed).toContain(
@@ -90,7 +89,6 @@ describe("BT17-036 Boutmon", () => {
     });
   });
 
-  // Clause 1: [Digivolve]Lv.4 w/[Pulsemon] in its text: Cost 3
   it("digivolves from a Lv4 Pulsemon-text source for 3 through the alternate route and draws one", async () => {
     const s = setupEngine(
       {
@@ -164,7 +162,6 @@ describe("BT17-036 Boutmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // Red Lv4 without Pulsemon in text: neither the alternate nor the printed Lv4 route accepts it.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -174,7 +171,6 @@ describe("BT17-036 Boutmon", () => {
       }),
     ).not.toEqual({ ok: true });
 
-    // Lv3 Pulsemon: matches the text but fails the Lv.4 gate, and no printed route reaches Lv5.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -189,7 +185,6 @@ describe("BT17-036 Boutmon", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  // Clause 2: [All Turns][OPT] leave-prevention by opponent effect, cost trash security top
   it("trashes its top security card to prevent an opponent-effect deletion", async () => {
     const s = setupEngine(
       {
@@ -243,7 +238,6 @@ describe("BT17-036 Boutmon", () => {
     await settle(() => s.state.players[0]!.security.length === 2);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === boutmonId)).toBe(true);
 
-    // [Once Per Turn]: the second opponent-effect deletion this turn is not prevented.
     await advance(s.engine).verb.deletePermanent([boutmonId], "byEffect");
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === boutmonId));
     expect(s.state.players[0]!.security).toHaveLength(2);
@@ -276,7 +270,6 @@ describe("BT17-036 Boutmon", () => {
     await advance(s.engine).verb.deletePermanent([boutmonId], "byEffect");
     await settle(() => s.state.players[0]!.security.length === 1);
 
-    // Real turn loop ends the turn; the next opponent turn may prevent again.
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
@@ -287,8 +280,6 @@ describe("BT17-036 Boutmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === boutmonId)).toBe(true);
   });
 
-  // Clause 3: [All Turns][OPT] free digivolve into a Pulsemon-text card when a security card is
-  // trashed by an effect, only while [Leon Alexander] is in the digivolution cards.
   it("digivolves for free into a Pulsemon-text Digimon when an effect trashes its security with Leon underneath", async () => {
     const s = setupEngine(
       {
@@ -344,8 +335,6 @@ describe("BT17-036 Boutmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
-  // Inherited clause: [End of Attack][OPT] trash security to unsuspend, gated on the top card
-  // holding [Pulsemon] in its text.
   it("unsuspends the attacker at end of attack by trashing security when its top card has Pulsemon in text", async () => {
     const s = setupEngine(
       {
@@ -374,8 +363,6 @@ describe("BT17-036 Boutmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
-  // comprehensive.md §4-23-2: a Digimon does not gain a digivolution card's text, so "has [Pulsemon]
-  // in its text" reads the top card only and the unsuspend is correctly gated off here.
   it("does not unsuspend when Pulsemon is only on an underneath card", async () => {
     const s = setupEngine(
       {

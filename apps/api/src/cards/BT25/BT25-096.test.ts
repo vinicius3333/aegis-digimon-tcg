@@ -124,8 +124,6 @@ describe("BT25-096 Mirage Beast Knight", () => {
           battleArea: [{ card: "BT25-021", as: "gaomon" }],
         },
       },
-      // No face-down Tamer source exists here, so the "reduce the play cost" offer is
-      // irrelevant; it still poses a decision and must be answered for the option to resolve.
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await incomplete.ready();

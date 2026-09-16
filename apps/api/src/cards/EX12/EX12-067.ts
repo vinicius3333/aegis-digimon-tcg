@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX12-067 Kiyoshiro Higashimitarai.
-// Q6870: "with [Jellymon] in its text" includes names, traits, effects, inherited effects,
-// rules, and evolution/assembly requirements; the IR uses match:"text" rather than a name-only
-// predicate. The [DS] branch remains a trait predicate.
-// Q6871: the modal is one activation that uses one selected card; separate copies cannot consume
-// multiple cards simultaneously through this effect.
-// Q6872: cost reduction does not waive digivolution requirements, so no ignoreRequirements field
-// is present. A prohibition on reducing play costs may remove only the reduction.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Digivolving]: grant <Blitz> to self only (the +4000 DP is NOT part of WhenDigivolving).
-// [All Turns]: while opponent has 1+ memory, this Digimon gets +4000 DP AND opponent can't play Digimon ≤6000 DP.
-// KB Q2379: "while your opponent has 1 or more memory" = while memory >= 1 (opponent's side = positive).
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -55,8 +52,6 @@ export const compiled: CompiledCard = {
           filter: {
             kind: ["Digimon"],
             dpAtMost: 6000,
-            // Q2381 explicitly includes Digimon tokens, unlike the default token exemption
-            // used by generic RestrictPlay effects (Q3834).
             allowTokens: true,
           },
           mode: "play",

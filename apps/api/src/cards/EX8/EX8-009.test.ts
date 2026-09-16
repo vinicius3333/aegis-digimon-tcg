@@ -173,7 +173,6 @@ describe("EX8-009", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("opponent2").permanentId], "byEffect");
     expect(s.state.memory).toBe(1);
 
-    // The production turn loop clears the once-per-turn ledger at Active phase.
     s.state.phase = Phase.End;
     const nextTurn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Main && s.state.turnCount === 1);

@@ -56,7 +56,7 @@ describe("BT21-071 Scopemon", () => {
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("appmon").instanceId));
 
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(memoryBefore - 3); // play cost 4, then the optional placement gains 1 memory
+    expect(s.state.memory).toBe(memoryBefore - 3);
   });
 
   it("places a Three Musketeers card from trash at the true bottom and gains memory", async () => {
@@ -82,7 +82,7 @@ describe("BT21-071 Scopemon", () => {
 
     expect(s.perm("host").stack[0]?.instanceId).toBe(s.inst("musketeer").instanceId);
     expect(s.perm("host").stack.at(-1)?.instanceId).toBe(s.inst("existing").instanceId);
-    expect(s.state.memory).toBe(7); // play cost 4, then the optional placement gains 1 memory
+    expect(s.state.memory).toBe(7);
   });
 
   it.each([

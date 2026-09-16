@@ -14,8 +14,6 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
-              // Comprehensive rules 3-4-5-8: information on breeding-area cards can't be
-              // referenced, so a lone breeding [CS] Digimon must not satisfy this gate.
               zone: "battleArea",
               nameOrTrait: [
                 {

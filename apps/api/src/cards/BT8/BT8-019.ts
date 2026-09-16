@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1703: opponent chooses 1 of their Digimon; delete all Digimon (both players)
-// except this Digimon and opponent's chosen Digimon; gain 1 memory per deleted Digimon.
-// KB Q1704/Q1705: breeding area Digimon cannot be chosen or deleted → zone:"battleArea".
-// KB Q1706: if opponent has no Digimon, delete all other own Digimon; gain memory per deleted.
-// upTo:true is correct for Q1706 — opponent chooses 0 when they have no Digimon.
-// "excludeSelectionRef" on Target is a new capability (see LANE_H.md).
 const compiled: CompiledCard = {
   effects: [
     {

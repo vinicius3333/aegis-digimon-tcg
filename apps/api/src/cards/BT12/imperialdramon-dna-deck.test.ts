@@ -158,7 +158,7 @@ describe("BT12 Imperialdramon DNA deck", () => {
     });
 
     expect(s.state.memory).toBe(2);
-    expect(s.state.players[0]!.hand).toHaveLength(1); // DNA's rule draw.
+    expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT12-022", "BT12-050"]),
     );

@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT25-068 Deltamon. The suspension watcher must be anchored to this physical
-// Digimon and carry its own per-copy OPT ledger; `whenSuspended` is a board-wide bus.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -102,7 +102,6 @@ describe("BT21-068 Growlmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("growlmon").instanceId })).toEqual({
       ok: true,
     });
-    // The sole mandatory target is automatic; its controller chooses Armor Purge.
     await settle(() => s.state.pendingDecision !== undefined);
     const pending = s.state.pendingDecision;
     expect(pending?.kind).toBe("selectCards");
@@ -256,7 +255,6 @@ describe("BT21-068 Growlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    // Seat 0 gains memory while seat 1 is active: the active-seat gauge decreases.
     expect(s.state.memory).toBe(before - 1);
   });
 });

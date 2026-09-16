@@ -1,18 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST22-13 GrandGalemon
-// <Fortitude>
-// <Vortex>
-// [On Play][When Digivolving][When Attacking] You may suspend 1 Digimon. Then, this Digimon
-//   gains +3000 DP for the turn.
-// (inherited)[When Attacking][Once Per Turn] If your opponent has no unsuspended Digimon,
-//   unsuspend this Digimon.
-//
-// KB Q5445: either player's Digimon may be suspended.
-// Fix: Suspend is optional (player may decline), but if declined the DP gain is also skipped
-// (the "then" is contingent on the "you may"). Suspend gets abortOnDecline:true; ModifyDP
-// is not independently optional.
 const compiled: CompiledCard = {
   effects: [
     {

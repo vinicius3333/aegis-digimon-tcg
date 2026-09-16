@@ -25,7 +25,6 @@ describe("ST2-11 MetalGarurumon", () => {
   it("unsuspends after attacking and may attack again", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST2-11", as: "metalGarurumon" }], deck: ["BT1-030", "BT1-031", "BT1-032"] },
-      // Use legal Digimon security cards; Digi-Eggs cannot be placed in security.
       1: { security: ["BT1-030", "BT1-031", "BT1-032"], deck: ["BT1-033", "BT1-034", "BT1-035"] },
     });
     const attackerId = s.perm("metalGarurumon").permanentId;
@@ -50,7 +49,6 @@ describe("ST2-11 MetalGarurumon", () => {
     );
     expect(s.perm("metalGarurumon").isSuspended).toBe(true);
 
-    // The once-per-turn identity resets on the controller's next turn.
     s.state.turnSeat = 1;
     s.state.memory = -s.state.memory;
     await advance(s.engine).runTurn(1);

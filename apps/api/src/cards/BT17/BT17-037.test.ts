@@ -47,8 +47,6 @@ describe("BT17-037 RizeGreymon", () => {
               op: "placeAsSecurity",
               from: ["trash"],
               toTop: true,
-              // Printed `[Marcus Damon]` is an exact name reference: "Marcus Damon & Agumon"
-              // (AD1-021) must not qualify.
               source: {
                 filter: {
                   zone: "trash",
@@ -166,7 +164,6 @@ describe("BT17-037 RizeGreymon", () => {
 
     expect(s.perm("rize").currentDP).toBe(10_000);
     expect(observe(s.engine).hasPierce(s.perm("rize"))).toBe(true);
-    // Peer case: the aura is self-only, so the opposing Lv5 keeps its printed DP.
     expect(s.perm("foe").currentDP).toBe(6000);
     expect(observe(s.engine).hasPierce(s.perm("foe"))).toBe(false);
 
@@ -209,7 +206,6 @@ describe("BT17-037 RizeGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("yellowTamer").isSuspended);
 
-    // Cost filter is colour-scoped: only the yellow Tamer paid.
     expect(s.perm("redTamer").isSuspended).toBe(false);
     expect(s.perm("foe").currentDP).toBe(17_000);
   });
@@ -246,18 +242,15 @@ describe("BT17-037 RizeGreymon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("firstTamer").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.security[0]?.instanceId === marcusId);
 
-    // `[Marcus Damon]` is exact: "Marcus Damon & Agumon" stays in the trash.
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === comboId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(2);
 
     await advance(s.engine).verb.deletePermanent([s.perm("secondTamer").permanentId], "byEffect");
     await settle();
 
-    // [Once Per Turn]: the second deletion this turn places nothing.
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === comboId)).toBe(true);
 
-    // The real turn loop ends the turn; the once-per-turn use resets for the next one.
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 0;
     await advance(s.engine).recompute();

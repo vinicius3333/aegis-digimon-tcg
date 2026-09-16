@@ -18,8 +18,6 @@ const entranceActions = [
       count: 1,
       from: ["trash" as const],
     },
-    // "as this Digimon's BOTTOM digivolution card": no `underFilter`, so the host defaults to
-    // the source permanent, and the placement goes under the existing stack.
     position: "bottom" as const,
     optional: true,
   },
@@ -57,8 +55,6 @@ export const compiled: CompiledCard = {
               abortOnDecline: true,
               cost: {
                 kind: "deleteOwn",
-                // "by deleting 1 level 4 or lower Digimon" carries no possessive, so either
-                // player's Digimon can pay it.
                 target: { filter: { ...levelFourOrLower, controllerDefault: "any" as const }, count: 1 },
                 raw: "by deleting 1 level 4 or lower Digimon",
               },

@@ -47,9 +47,6 @@ describe("EX11-058 Yao Qinglan", () => {
     assertNoLoudGap(s);
   });
 
-  // No card carries a bare [Aqua] trait; the printed "in any of its traits" reaches [Aquatic],
-  // [Aquabeast] and [Ancient Aquabeast] (CR 2-3-2-4). An exact-trait filter matched none of
-  // them, so the whole Aqua half of this Tamer was inert.
   it("places an [Aquatic] card under an [Aquatic] Digimon (CR 2-3-2-4)", async () => {
     const s = setupEngine(
       {
@@ -275,8 +272,6 @@ describe("EX11-058 Yao Qinglan", () => {
     );
     expect(s.perm("decodeHost").topCard.cardId).toBe("EX11-018");
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT14-008")).toBe(true);
-    // The public Decode producer reaches the replacement play and its nested whenPlayed
-    // watcher resolves in the same combined entry window.
     expect(s.perm("yao").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "beSuspended")).toBe(true);
     assertNoLoudGap(s);
@@ -332,9 +327,7 @@ describe("EX11-058 Yao Qinglan", () => {
       ],
     });
     expect(evolved).toMatchObject({ actions: [{ kind: "Draw" }] });
-    // The digivolve watcher never carries the Decode clause (Q5912).
     expect((evolved as { actions: { kind: string }[] }).actions.some(({ kind }) => kind === "Restrict")).toBe(false);
-    // "1 level 5 or lower CARD": the placement payment is not narrowed to Digimon.
     const placeCost = compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions[0] as {
       cost?: { target?: { filter?: { kind?: string[]; nameOrTrait?: { match: string }[] } } };
     };

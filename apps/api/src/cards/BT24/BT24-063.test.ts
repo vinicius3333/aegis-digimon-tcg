@@ -292,8 +292,6 @@ describe("BT24-063 Locomon", () => {
         0: {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "BT24-063", as: "locomon" }],
-          // Digivolving draws 1 card first (engine step (6)), so the top deck card is drawn to
-          // hand before this reveal ever runs; the reveal itself sees whatever is under it.
           deck: [
             { card: "BT1-015", as: "bonusDraw" },
             { card: "BT24-083", as: "tamer" },

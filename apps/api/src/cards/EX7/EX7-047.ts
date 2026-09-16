@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play][When Digivolving]: "play up to 7 play cost's total worth" uses
-// totalPlayCostBudget:7 (not a card count). New capability — see LANE_E.md.
-// [End of Your Turn]: DnaDigivolve into [NSp] card must be from hand per text.
 export const compiled: CompiledCard = {
   effects: [
     {

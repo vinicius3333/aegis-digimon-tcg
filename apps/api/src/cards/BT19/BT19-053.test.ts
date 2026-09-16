@@ -5,47 +5,6 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// BT19-053 QueenBeemon (Green/Black, Lv.6 Mega/Virus, DP 12000, play cost 12,
-// digivolve Green Lv.5 cost 4 / Black Lv.5 cost 4).
-//
-//   [Digivolve] Lv.5 w/[Royal Base] trait: Cost 3
-//   ＜Alliance＞
-//   [When Attacking] [Once Per Turn] You may play 1 [Royal Base] trait Digimon card from
-//     your face-up security cards with the play cost reduced by 8.
-//   [All Turns] When any of your [Royal Base] trait Digimon would leave the battle area
-//     other than in battle, you may place those Digimon face-up at the bottom of your
-//     security stack.
-//   [Rule] Trait: Has the [Insectoid] type.
-//   No inherited effect.
-//
-// KB coverage (`node tools/kb/query.mjs card BT19-053`)
-//   Q3099  ForgeBeemon (BT19-048) saves the [Royal Base] Digimon first; QueenBeemon's
-//          [All Turns] may still place every Digimon the deletion effect affected.
-//   Q3106  the Digimon played by [When Attacking] may be chosen as the ＜Alliance＞ ally.
-//   Q3107  the [All Turns] clause also covers QueenBeemon herself.
-//   Q3108  every simultaneously-leaving [Royal Base] Digimon is placed; no choice is made.
-//   Q3109  cards placed face up in security stay revealed and are otherwise normal.
-//   Q3110  a security check on a face-up card runs as a normal check, card left revealed.
-//   Q3111  a [Security] effect on a face-up security card still triggers on the check.
-//   Q3112  shuffling a security stack turns every face-up card face down.
-//   Q5304  the mirror of Q3099 written on ForgeBeemon's own card.
-//
-// Fixture cards
-//   [Royal Base] peers: BT18-052 CannonBeemon (Lv.5 source), BT19-045 FunBeemon,
-//     BT19-052 Vespamon (play cost 8), BT19-048 ForgeBeemon (Q3099/Q5304).
-//   Near misses: BT1-066 Tentomon and BT1-076 MegaKabuterimon are Green [Insectoid]
-//     Digimon WITHOUT the [Royal Base] trait.
-//   BT2-018 MetalGreymon is the opponent's public mass deletion ("[On Play] Delete all of
-//     your opponent's Digimon with 4000 DP or less") — a real by-effect simultaneous leave.
-//   BT9-100 Grandis Scissor gives a second attack in the same turn for the once-per-turn
-//     proof, and its "[Insectoid] in its traits" filter is the [Rule] line's consequence.
-//   EX3-029 searches its own security stack (look, then shuffle) for Q3112.
-
-/**
- * ＜Alliance＞ opens a prompt on every attack QueenBeemon declares. Nothing else in the turn
- * proceeds until the attacking seat answers, so tests that keep playing after an attack pass
- * on it explicitly (`respondAlliance` with no ally is the public "no thanks").
- */
 async function passAlliance(s: ReturnType<typeof setupEngine>, seat: 0 | 1): Promise<void> {
   const outstanding = (): boolean =>
     s.events.filter((event) => event.kind === "alliancePrompt").length >
@@ -223,7 +182,6 @@ describe("BT19-053 QueenBeemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
-    // Play cost 12 reduced by 8 = 4 memory, not "free" and not the full 12.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === playedInstanceId)).toBe(
       true,
@@ -242,13 +200,7 @@ describe("BT19-053 QueenBeemon", () => {
           battleArea: [{ card: "BT19-053", as: "queen" }],
           hand: [{ card: "BT1-009", as: "spare" }],
           deck: inertDeck,
-          security: [
-            // Near miss: Green [Insectoid], face up, but no [Royal Base] trait.
-            { card: "BT1-066", faceUp: true },
-            // Right trait, wrong face.
-            { card: "BT19-052", faceUp: false },
-            ...inertSecurity,
-          ],
+          security: [{ card: "BT1-066", faceUp: true }, { card: "BT19-052", faceUp: false }, ...inertSecurity],
         },
         1: { hand: [{ card: "BT1-009", as: "spare1" }], deck: inertDeck, security: inertSecurity },
       },
@@ -316,12 +268,10 @@ describe("BT19-053 QueenBeemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
-    // Vespamon's play cost 8 reduced by 8 costs nothing.
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.security.filter((card) => card.cardId === "BT19-052")).toHaveLength(1);
     await passAlliance(s, 0);
 
-    // A second attack in the SAME turn, reached publicly through BT9-100.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scissor").instanceId })).toEqual({
       ok: true,
     });
@@ -333,7 +283,6 @@ describe("BT19-053 QueenBeemon", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // My next turn: the second face-up Vespamon can now be played.
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -351,8 +300,6 @@ describe("BT19-053 QueenBeemon", () => {
   });
 
   it("Q3106: the Digimon played by [When Attacking] can be chosen as the ＜Alliance＞ ally", async () => {
-    // The ＜Alliance＞ DP bonus lasts only until the end of the battle, so it is sampled from
-    // inside the engine's own call stack rather than read back after the flow settles.
     let live: ReturnType<typeof setupEngine> | undefined;
     const queenDp: number[] = [];
     const s = setupEngine(
@@ -408,7 +355,6 @@ describe("BT19-053 QueenBeemon", () => {
     });
     await settle(() => played.isSuspended, 3000);
     expect(played.isSuspended).toBe(true);
-    // 12000 + Vespamon's 8000 DP for the duration of this battle.
     expect(Math.max(...queenDp)).toBe(20_000);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
@@ -419,8 +365,6 @@ describe("BT19-053 QueenBeemon", () => {
     const s = setupEngine(
       {
         0: {
-          // dp is a fixture knob so the opponent's DP-limited mass deletion reaches
-          // QueenBeemon too; the clause itself does not read DP.
           battleArea: [
             { card: "BT19-053", as: "queen", dp: 4000 },
             { card: "BT19-045", as: "royal" },
@@ -464,7 +408,6 @@ describe("BT19-053 QueenBeemon", () => {
       s.inst("secTop").instanceId,
       s.inst("secBottom").instanceId,
     ]);
-    // Both [Royal Base] Digimon, QueenBeemon included, at the bottom and face up.
     expect(
       security
         .slice(2)
@@ -472,7 +415,6 @@ describe("BT19-053 QueenBeemon", () => {
         .sort(),
     ).toEqual([queenInstanceId, royalInstanceId].sort());
     expect(security.slice(2).every((card) => card.faceUp)).toBe(true);
-    // The near miss has no [Royal Base] trait: it goes to the trash like any deletion.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([nearMissInstanceId]);
     assertNoLoudGap(s);
 
@@ -536,7 +478,6 @@ describe("BT19-053 QueenBeemon", () => {
           security: inertSecurity,
         },
         1: {
-          // 20000 DP so the battle deletes QueenBeemon outright.
           battleArea: [{ card: "BT1-013", as: "attacker", dp: 20_000 }],
           hand: [{ card: "BT1-009", as: "spare1" }],
           deck: inertDeck,
@@ -550,7 +491,6 @@ describe("BT19-053 QueenBeemon", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Attacking suspends QueenBeemon, so she is a legal attack target next turn.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -585,15 +525,12 @@ describe("BT19-053 QueenBeemon", () => {
       {
         0: {
           battleArea: [
-            // Only Vespamon is within the opponent's 4000 DP deletion window.
             { card: "BT19-052", as: "vespa", dp: 4000 },
             { card: "BT19-053", as: "queen", dp: 20_000 },
             { card: "BT19-045", as: "survivor", dp: 20_000 },
           ],
           hand: [{ card: "BT1-009", as: "spare" }],
           deck: inertDeck,
-          // Empty on purpose: the placed card becomes the only security card, so the
-          // opponent's next check has to run on a face-up card (Q3110).
           security: [],
         },
         1: {
@@ -616,7 +553,6 @@ describe("BT19-053 QueenBeemon", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // Baseline on the opponent's turn, before anything is placed.
     expect(observe(s.engine).hasKeyword(s.perm("survivor"), "Blocker")).toBe(false);
 
     s.state.memory = 11;
@@ -625,20 +561,14 @@ describe("BT19-053 QueenBeemon", () => {
     });
     await settle(() => s.state.players[0]!.security.length === 1);
 
-    // Q3109: the placed card is a face-up security card and stays revealed.
     const placed = s.state.players[0]!.security[0]!;
     expect(placed.instanceId).toBe(vespaInstanceId);
     expect(placed.faceUp).toBe(true);
 
-    // Q3111: BT19-052's own "[Security] [Opponent's Turn]" clause now works from security —
-    // the placed card is a fully functional face-up security card, not an inert token.
     await settle(() => observe(s.engine).hasKeyword(s.perm("survivor"), "Blocker"));
     expect(observe(s.engine).hasKeyword(s.perm("survivor"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("queen"), "Blocker")).toBe(true);
 
-    // Q3110: the check on that face-up card is an ordinary security check — Vespamon's
-    // 8000 DP beats the 5000 DP attacker, so the attacker is deleted and the checked card
-    // goes to my trash exactly as a face-down security Digimon would.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -646,8 +576,6 @@ describe("BT19-053 QueenBeemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The Blocker grant this test just proved opens a real block window; decline it so the
-    // attack reaches the security check.
     await settle();
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
@@ -730,10 +658,6 @@ describe("BT19-053 QueenBeemon", () => {
     });
     await settle();
 
-    // ForgeBeemon paid first: it placed itself as the face-up bottom security card and the
-    // other [Royal Base] Digimon did not leave. QueenBeemon's [All Turns] then activates and
-    // may still place every Digimon the deletion effect affected — herself included — face
-    // up at the bottom. Nothing reaches the trash.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual([
       "BT1-009",

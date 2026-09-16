@@ -76,7 +76,7 @@ describe("BT20-041 Crowmon", () => {
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.perm("attacker").currentDP).toBe(9000);
-    expect(s.state.memory).toBe(4); // play cost 6 from a 10-memory gauge
+    expect(s.state.memory).toBe(4);
   });
 
   it("publicly evolves from a level-4 ACCEL Digimon and resolves the When Digivolving clauses when attack is declined", async () => {
@@ -163,7 +163,6 @@ describe("BT20-041 Crowmon", () => {
     const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Attack the opponent directly so the inherited effect can target a surviving Digimon.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -177,9 +176,6 @@ describe("BT20-041 Crowmon", () => {
     );
     expect(s.perm("target").currentDP).toBe(5000);
 
-    // A public BT1-036 play unsuspends the host for a second attack.  The second
-    // inherited trigger is once-per-turn, so the target must remain at 5000,
-    // rather than receiving another -4000 modifier.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({
       ok: true,
     });
@@ -201,7 +197,6 @@ describe("BT20-041 Crowmon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
 
-    // The for-the-turn modifier expires at the end of its controller's turn.
     s.state.turnSeat = 1;
     s.state.memory = -s.state.memory;
     const opponentTurn = s.engine.runOneTurn();
@@ -210,7 +205,6 @@ describe("BT20-041 Crowmon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
-    // On the next own turn, a new attack may use the once-per-turn trigger again.
     s.state.turnSeat = 0;
     s.state.memory = -s.state.memory;
     const nextOwnTurn = s.engine.runOneTurn();

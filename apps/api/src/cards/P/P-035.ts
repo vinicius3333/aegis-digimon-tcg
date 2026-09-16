@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-maintained: intrinsic Delay already trashes the source as its activation cost.
 const compiled: CompiledCard = {
   effects: [
     {

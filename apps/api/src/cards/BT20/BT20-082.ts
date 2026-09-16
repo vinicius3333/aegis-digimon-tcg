@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Keywords are permanent Static (no [Main] label in printed text).
-// [All Turns] "when this Digimon would leave the battle area by effects" — mode:prevent
-// with cost of returning 3 [Dex]/[DeathX] cards from trash to deck bottom.
-// [End of All Turns] [Once Per Turn] "Delete all Digimon with the lowest level" —
-// targets ALL Digimon (both players), superlative lowestLevel.
-// KB Q4408: the replacement requires exactly 3 returned cards.
 export const compiled: CompiledCard = {
   effects: [
     {

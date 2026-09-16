@@ -7,7 +7,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 const EX4_021 = "EX4-021";
-// Exact-name sources. Neither fixture uses a Digi-Egg.
 const BLUE_METALGREYMON = "EX4-020";
 const DARKKNIGHTMON = "BT7-063";
 const FILLER_DECK = ["BT1-010", "BT1-011", "BT1-012"];
@@ -173,7 +172,6 @@ describe("EX4-021 GreyKnightsmon", () => {
     });
 
     expect(s.perm("changing").topCard.cardId).toBe("EX4-019");
-    // Q3461: the restriction is dynamic, so the newly level-5 target is free to attack.
     expect(observe(s.engine).isRestricted(s.perm("changing"), "attack")).toBe(false);
     expect(observe(s.engine).isRestricted(newcomer, "attack")).toBe(true);
   });

@@ -9,14 +9,6 @@ type UnsupportedGainKeywordExtension = {
   };
 };
 
-// Hand-authored IR for BT24-028 (Divermon).
-// [On Play][When Digivolving]: cost = place Lv.5-or-lower blue [TS] Digimon from hand as
-//   this Digimon's bottom digivolution card. Effect: until opp turn ends, THIS Digimon
-//   can't be deleted in battle AND gains <Blocker>.
-// [Your Turn]: SubTrigger whenUnsuspended (this Digimon) → may digivolve into [Neptunemon] from hand.
-// Inherited [When Attacking]: play 1 level 4 or lower blue [TS] Digimon from THIS Digimon's
-//   digivolution cards without paying cost.
-// digivolutionRequirement: [Aqua] OR [Sea Animal] is ONE OR-condition; [TS] is separate alternate.
 export const compiled: CompiledCard = {
   effects: [
     {

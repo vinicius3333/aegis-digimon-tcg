@@ -126,7 +126,6 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
       expect(s.perm("base").topCard!.cardId).toBe(CARD_ID);
       expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([baseCard]);
       expect(s.state.memory).toBe(0);
-      // Digivolving draws 1.
       expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
       expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard!.instanceId)).toEqual([
         s.inst("standing").instanceId,
@@ -160,8 +159,6 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     await s.ready();
     s.state.memory = 6;
 
-    // "[Belphemon: Rage Mode]" shares the "Belphemon" prefix with the named requirement but is
-    // not the exact name, and Lv.6 fails the printed Lv.5 routes.
     const result = s.engine.applyIntent(0, {
       type: "digivolve",
       permanentId: s.perm("base").permanentId,
@@ -230,8 +227,6 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     preferred.push(s.perm("low4").topCard!.instanceId);
     const baseDp = s.perm("rage").currentDP;
 
-    // The already-suspended Lv.7 makes the Delete clause activatable at the same instant as
-    // the Suspend clause, so both compete for the next slot and the controller is asked.
     const loop = s.engine.startTurnLoop();
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
     const decision = s.state.pendingDecision!;
@@ -248,9 +243,7 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Hand is 6 (no draw on the opening turn), so the whole conditional buff applies.
     expect(s.state.players[0]!.hand).toHaveLength(6);
-    // Suspend resolved first, so the Lv.4 was a legal delete target and was chosen.
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("low4").instanceId]);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard!.instanceId)).toEqual([
       s.inst("low5").instanceId,
@@ -302,8 +295,6 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The Lv.4 was still standing when the delete resolved, so only the Lv.7 could be taken;
-    // the suspend clause then resolved and suspended the survivor.
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("high7").instanceId]);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard!.instanceId)).toEqual([
       s.inst("low4").instanceId,
@@ -340,9 +331,7 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.hand).toHaveLength(7);
-    // The suspend clause armed the delete clause, which then took the newly suspended Lv.4.
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("low4").instanceId]);
-    // The raising-area Lv.3 is neither suspended nor deleted: both clauses target the battle area.
     expect(s.state.players[1]!.breeding!.isSuspended).toBe(false);
     expect(s.state.players[1]!.breeding!.topCard!.instanceId).toBe(s.inst("raising").instanceId);
     expect(observe(s.engine).hasPierce(s.perm("rage"))).toBe(false);
@@ -380,7 +369,6 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.pendingDecision === undefined);
-    // The already-suspended Lv.4 survived: the delete took the other one.
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("blocked").instanceId]);
     expect(s.perm("rage").currentDP).toBe(17_000);
 
@@ -393,8 +381,6 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
 
-    // ＜Piercing＞ pushed the attack through to security after the battle deletion, and
-    // ＜Security Attack +2＞ made it check 3 cards instead of 1.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard!.cardId)).toEqual([CARD_ID]);
@@ -423,7 +409,6 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
         },
         1: { deck: ["BT1-013", "BT1-014"], hand: ["BT1-013"], security: ["BT1-009"] },
       },
-      // No optional prompt may gate this: the ruling makes the trash mandatory whenever possible.
       { autoDeclineOptional: true },
     );
     await s.ready();
@@ -474,8 +459,6 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // EX10-022's own printed text names "[Belphemon: Sleep Mode]" in its [Digivolve] line, so a
-    // `match: "text"` gate would wrongly fire on this host.
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("bottom").instanceId,
       s.inst("rageSource").instanceId,
@@ -515,8 +498,6 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Replayed by Fortitude: back on the battle area, with an empty stack, and the
-    // digivolution card it carried is in the trash.
     const replayed = s.state.players[0]!.battleArea.find(({ topCard }) => topCard!.instanceId === rageCardId)!;
     expect(replayed.stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("source").instanceId);

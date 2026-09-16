@@ -1,13 +1,3 @@
-// HAND-FIXED IR for EX7-019 (Sorcermon) — do not regenerate over this file.
-//
-// Two generator miscompiles fixed against the printed text:
-//   1. "[On Play] If your opponent has NO Digimon with digivolution cards, unsuspend 1
-//      of your Digimon" compiled the gate as a positive `opponentHas` (inverted) and
-//      dropped the with-digivolution-cards qualifier — now `opponentHasNone` +
-//      `digivolutionCards: "hasAny"`.
-//   2. The inherited "[When Attacking] [Once Per Turn] Trash the top digivolution card
-//      of 1 of your opponent's Digimon" compiled as a field `Trash` of the Digimon
-//      itself — now `TrashDigivolution` (amount 1, fromTop).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

@@ -5,11 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-096.js";
 
-/**
- * Comet Hammer's ＜De-Digivolve 4＞ never strips a stack to nothing: CR §16-12-4 stops the peel
- * once a level-3 card is the top. This stack is built so the floor is reached on the 4th peel —
- * level 6 -> 5 -> 4 -> level 3 Elizamon — leaving the hatched Digi-Egg untouched beneath it.
- */
 const LEVEL_FLOOR_STACK = [
   { card: "BT23-001", as: "stackEgg" },
   { card: "BT23-005", as: "stackLevel3" },
@@ -35,14 +30,11 @@ describe("BT23-096 Comet Hammer", () => {
     expect(compiled.residual).toEqual([]);
 
     const waiver = (compiled.effects.find((effect) => effect.trigger === "Static") as any).actions[0];
-    // Q5384: "on the field" is the battle area OR the breeding area.
     expect(waiver.condition.filter.zone).toEqual(["battleArea", "breeding"]);
     expect(waiver.condition.filter.kind).toEqual(["Digimon", "Tamer"]);
     expect(waiver.condition.filter.controllerDefault).toBe("mine");
-    // CR §2-3-2-3: "with the [CS] trait" is exact trait matching, not `traitContains`.
     expect(waiver.condition.filter.nameOrTrait).toEqual([{ tokens: ["CS"], match: "trait" }]);
 
-    // Every ＜De-Digivolve 4＞ on this card targets exactly 1 of the OPPONENT's Digimon.
     const deDigivolves = compiled.effects.flatMap((effect) =>
       effect.actions.flatMap((action: any) => (action.kind === "SubTrigger" ? action.actions : [action])),
     ) as any[];
@@ -136,8 +128,6 @@ describe("BT23-096 Comet Hammer", () => {
     const s = setupEngine(
       {
         0: {
-          // Black, non-CS: the colour requirement is met on its own, so this proves the [Main]
-          // payload rather than the waiver.
           battleArea: [{ card: "BT2-052", as: "blackSource" }],
           hand: [{ card: "BT23-096", as: "option" }],
         },
@@ -157,7 +147,6 @@ describe("BT23-096 Comet Hammer", () => {
     const placed = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === optionId);
     expect(placed).toBeDefined();
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
-    // Peels stop at the level-3 card (CR §16-12-4): 3 cards trashed, the Digi-Egg stays under it.
     expect(s.perm("target").topCard?.instanceId).toBe(s.inst("stackLevel3").instanceId);
     expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([s.inst("stackEgg").instanceId]);
     const opponentTrash = s.state.players[1]!.trash.map((card) => card.instanceId);
@@ -174,8 +163,6 @@ describe("BT23-096 Comet Hammer", () => {
         0: {
           battleArea: [
             { card: "BT2-052", as: "blackSource" },
-            // A high-DP CS attacker so the security battles it wins do not remove it before the
-            // second turn; the printed DP is irrelevant to the ＜Delay＞ arming filter.
             { card: "BT23-006", as: "csAttacker", dp: 15000 },
           ],
           hand: [{ card: "BT23-096", as: "option" }],
@@ -199,7 +186,6 @@ describe("BT23-096 Comet Hammer", () => {
     const placed = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === optionId)!;
     expect(placed.enterFieldTurnCount).toBe(s.state.turnCount);
 
-    // CR §16-17-3: ＜Delay＞ can't be activated the turn its card entered the battle area.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -227,7 +213,6 @@ describe("BT23-096 Comet Hammer", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
 
-    // The ＜Delay＞ cost is trashing the card itself (CR §16-17-1).
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
     expect(s.perm("target").topCard?.instanceId).toBe(s.inst("stackLevel3").instanceId);

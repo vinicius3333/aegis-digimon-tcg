@@ -65,9 +65,6 @@ describe("BT22-039 Ouranosmon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.appFuseInto(s.perm("ouranosmon").permanentId, s.inst("fusion").instanceId);
-    // When Digivolving plays Effecmon and reaches the All Turns watcher. Both recipe
-    // materials print "[Link] [Appmon] trait: Cost 3", so the count-1 link takes one of them
-    // from this Digimon's digivolution cards and leaves the other in the stack.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT22-009")).toBe(true);
     const linkedIds = [...s.state.players[0]!.battleArea].flatMap((permanent) =>
       [...permanent.linked].map((card) => card.cardId),
@@ -97,7 +94,6 @@ describe("BT22-039 Ouranosmon", () => {
     });
     await settle();
 
-    // Gaiamon has the [Appmon] trait but prints no ＜Link＞ header, so Q4892 excludes it.
     expect(s.state.players[0]!.battleArea.every((permanent) => permanent.linked.length === 0)).toBe(true);
     expect(s.perm("ouranosmon").stack.map((card) => card.cardId)).toEqual(["BT21-101"]);
   });

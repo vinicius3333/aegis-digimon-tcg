@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4649: cannot choose NOT to digivolve after declaring.
-// KB Q1627: can also digivolve onto a level 3 Digimon normally.
-// The Static effect block mirrors the BT4-025 (Lobomon) established pattern
-// for Tamer-onto digivolve; asLevel:3 treats the purple Tamer as level 3.
-// The digivolutionRequirement captures the alternate-base legality check.
 const compiled: CompiledCard = {
   effects: [
     {

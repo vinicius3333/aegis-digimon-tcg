@@ -12,29 +12,17 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-047.js";
 
-/**
- * Fixtures, chosen so every printed clause is isolated.
- *
- * - GREEN_LV5/GREEN_LV6 and BLUE_LV5/BLUE_LV6 print no effect text, so the public
- *   digivolution ladder that builds Examon's DNA materials adds no noise. They are also the
- *   exact cards ＜Partition (green Lv.5 & blue Lv.5)＞ names, and the DNA merge is the only
- *   public route that puts both of them under one permanent.
- * - CS_LV6 is black: it can never satisfy Examon's printed green/red/blue EvoCost, so a legal
- *   digivolution from it proves the [CS] alternate and nothing else.
- * - OFF_ROUTE_LV6 is yellow without the [CS] trait, failing both paths.
- */
-const GREEN_LV5 = "BT1-076"; // MegaKabuterimon
-const GREEN_LV6 = "BT1-080"; // Titamon
-const BLUE_LV5 = "BT1-038"; // Monzaemon
-const BLUE_LV6 = "ST2-10"; // Plesiomon
-const CS_LV6 = "BT23-058"; // Craniamon, black Lv.6 with the [CS] trait
-const OFF_ROUTE_LV6 = "ST3-10"; // Magnadramon, yellow Lv.6 without [CS]
-const PLAIN_LV3 = "BT1-009"; // Monodramon, 3000 DP, no effects
-const PLAIN_LV3_ALT = "BT1-010"; // Dracmon
-const PLAIN_LV4 = "BT1-019"; // no effects, used as an extra opposing body
-const OPTION_FROM_SECURITY = "P-035"; // Red Memory Boost!, [Security] places itself in the battle area
+const GREEN_LV5 = "BT1-076";
+const GREEN_LV6 = "BT1-080";
+const BLUE_LV5 = "BT1-038";
+const BLUE_LV6 = "ST2-10";
+const CS_LV6 = "BT23-058";
+const OFF_ROUTE_LV6 = "ST3-10";
+const PLAIN_LV3 = "BT1-009";
+const PLAIN_LV3_ALT = "BT1-010";
+const PLAIN_LV4 = "BT1-019";
+const OPTION_FROM_SECURITY = "P-035";
 
-/** Build the DNA-legal pair publicly: green Lv.5 -> Lv.6 and blue Lv.5 -> Lv.6. */
 async function buildDnaMaterials(s: ReturnType<typeof setupEngine>): Promise<void> {
   expect(
     s.engine.applyIntent(0, {
@@ -55,7 +43,6 @@ async function buildDnaMaterials(s: ReturnType<typeof setupEngine>): Promise<voi
   await settle();
 }
 
-/** End `from`'s main phase (the loop auto-passes a seat with no legal action) and open `to`'s. */
 async function passTurn(s: ReturnType<typeof setupEngine>, from: 0 | 1, to: 0 | 1) {
   const ended = s.state.turnSeat === from ? s.engine.applyIntent(from, { type: "endPhase" }) : { ok: true };
   expect(ended).toEqual({ ok: true });
@@ -82,7 +69,6 @@ describe("BT23-047 Examon", () => {
       attributes: ["Data"],
       types: ["Holy Warrior", "Royal Knight", "CS"],
     });
-    // The whole printed contract, clause for clause.
     expect(getCardDefinition("BT23-047")?.effectText?.replace(/\u00a0/g, " ")).toBe(
       "[Digivolve] Lv.6 w/[CS] trait: Cost 5\n" +
         "[DNA Digivolve] Green Lv.6 + blue Lv.6: Cost 0\n" +
@@ -289,8 +275,6 @@ describe("BT23-047 Examon", () => {
     await settle();
     const memoryBefore = s.state.memory;
 
-    // Without the printed DNA requirement the engine would fall back to a per-material EvoCost
-    // match and let a green Lv.6 pay 5. The requirement makes the colour half mandatory.
     expect(
       s.engine.applyIntent(0, {
         type: "dnaDigivolve",
@@ -413,18 +397,10 @@ describe("BT23-047 Examon", () => {
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId)).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === victimCardId)).toBe(true);
-    // ＜Piercing＞ (CR §16-7-1) makes the won battle check security. ＜Security A. +1＞ (CR §16-4-1)
-    // modifies the number of cards checked in every security check this Digimon performs, so the
-    // pierced check turns over two cards.
     expect(s.state.players[1]!.security).toHaveLength(securityBefore - 2);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-047")).toBe(true);
   });
 
-  /**
-   * Build Examon publicly through the DNA route on seat 0's real turn, then hand the turn to the
-   * opponent. The On Play "may attack" is declined so the flow under test is the only thing that
-   * touches security; the caller flips the responder flags afterwards.
-   */
   async function dnaIntoExamonThenPassTurn(
     s: ReturnType<typeof setupEngine>,
     options: { autoAcceptOptional?: boolean; autoDeclineOptional?: boolean; autoSelectCards?: boolean },
@@ -456,8 +432,6 @@ describe("BT23-047 Examon", () => {
   }
 
   it("replays the exact green Lv.5 and blue Lv.5 sources through ＜Partition＞ on an opposing effect deletion", async () => {
-    // The harness reads its responders live: the On Play attack is declined, then ＜Partition＞
-    // is accepted.
     const options = { autoDeclineOptional: true, autoSelectCards: true };
     const s = setupEngine(
       {
@@ -475,7 +449,6 @@ describe("BT23-047 Examon", () => {
           security: [PLAIN_LV3, PLAIN_LV3, PLAIN_LV3],
         },
         1: {
-          // A red Digimon on board is the colour requirement for playing the red Option.
           battleArea: [{ card: PLAIN_LV3, as: "redBody" }],
           hand: [{ card: "ST1-16", as: "gaiaForce" }],
           deck: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4, PLAIN_LV3, PLAIN_LV3_ALT],
@@ -491,8 +464,6 @@ describe("BT23-047 Examon", () => {
 
     const { loop, examonId } = await dnaIntoExamonThenPassTurn(s, options);
 
-    // ＜Partition＞ (CR §16-29-1) excludes the holder's OWN effects and battles, so the deletion
-    // comes from an opposing Option played on the opponent's own turn.
     s.state.memory = 8;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
       ok: true,
@@ -539,12 +510,9 @@ describe("BT23-047 Examon", () => {
       options,
     );
     const { loop, examonId, examonPermanentId } = await dnaIntoExamonThenPassTurn(s, options);
-    // Examon's own On Play locked this Digimon out of the opponent's NEXT unsuspend phase, so
-    // the battle has to wait for the turn after that.
     expect(s.perm("slayer").isSuspended).toBe(true);
     await passTurn(s, 1, 0);
 
-    // Examon attacks the still-suspended 20000 DP body and loses the battle.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -555,8 +523,6 @@ describe("BT23-047 Examon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // CR §16-29-1: "other than by one of your effects or a battle" — a battle deletion replays
-    // nothing, so the whole stack goes to the trash.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(examonId);
     expect(s.state.players[0]!.trash).toHaveLength(5);
@@ -588,7 +554,6 @@ describe("BT23-047 Examon", () => {
           security: [PLAIN_LV3, PLAIN_LV3, PLAIN_LV3],
         },
         1: {
-          // A red Digimon on board is the colour requirement for playing the red Option.
           battleArea: [{ card: PLAIN_LV3, as: "redBody" }],
           hand: [{ card: "ST1-16", as: "gaiaForce" }],
           deck: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4, PLAIN_LV3, PLAIN_LV3_ALT],
@@ -601,8 +566,6 @@ describe("BT23-047 Examon", () => {
     options.autoSelectCards = false;
 
     s.state.memory = 8;
-    // ＜Partition＞ is a "you may" (CR §16-29-3), offered as a 0..1 selection. Answer it with an
-    // empty selection — the refusal branch — instead of the harness's take-the-maximum default.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
       ok: true,
     });
@@ -665,7 +628,6 @@ describe("BT23-047 Examon", () => {
     for (const alias of ["one", "two", "three", "four", "five", "six"]) {
       expect(observe(s.engine).isRestricted(s.perm(alias), "unsuspend")).toBe(true);
     }
-    // The attack is a "may": declining leaves Examon unsuspended and opposing security intact.
     expect(s.perm("examon").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(3);
     expect(observe(s.engine).isAttacking()).toBe(false);
@@ -681,7 +643,6 @@ describe("BT23-047 Examon", () => {
           security: [PLAIN_LV3, PLAIN_LV3_ALT],
         },
         1: {
-          // No opposing Digimon, so the granted attack has only the player to attack.
           security: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4, PLAIN_LV3],
         },
       },
@@ -704,8 +665,6 @@ describe("BT23-047 Examon", () => {
     const s = setupEngine(
       {
         0: {
-          // Digivolving for 5 keeps memory positive, so the turn does not end on the spot and
-          // the armed restriction can be observed before the boundary.
           battleArea: [{ card: CS_LV6, as: "base" }],
           hand: [{ card: "BT23-047", as: "examon" }],
           deck: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4, PLAIN_LV3],
@@ -739,7 +698,6 @@ describe("BT23-047 Examon", () => {
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // Seat 1's unsuspend phase has run: the restriction held it suspended.
     expect(s.perm("locked").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(false);
 
@@ -748,7 +706,6 @@ describe("BT23-047 Examon", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // The next unsuspend phase is unrestricted, so the Digimon stands up again.
     expect(s.perm("locked").isSuspended).toBe(false);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
@@ -791,16 +748,12 @@ describe("BT23-047 Examon", () => {
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 2);
     await settle();
 
-    // Q5313/Q5315: the [Security] effect places P-035 in the battle area first, then the
-    // pending [Your Turn] effect trashes exactly that card.
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(false);
-    // Only the suspended Digimon is deletable.
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimPermanentId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === standingPermanentId)).toBe(true);
     const trashAfterFirst = s.state.players[1]!.trash.length;
 
-    // Same turn: a second security removal must not fire the [Once Per Turn] effect again.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -821,8 +774,6 @@ describe("BT23-047 Examon", () => {
         0: {
           battleArea: [
             { card: "BT23-047", as: "exa" },
-            // 12000 DP bodies, so a security Digimon never trades with the attacker and the
-            // board stays stable across the turns under test.
             { card: GREEN_LV6, as: "firstAttacker" },
             { card: BLUE_LV6, as: "secondAttacker" },
           ],
@@ -831,7 +782,6 @@ describe("BT23-047 Examon", () => {
         },
         1: {
           battleArea: [
-            // 12000 DP so the survivor's own attack into security does not trade it away.
             { card: PLAIN_LV3, as: "firstVictim", suspended: true, dp: 12_000 },
             { card: PLAIN_LV3_ALT, as: "secondVictim", suspended: true, dp: 12_000 },
           ],
@@ -857,7 +807,6 @@ describe("BT23-047 Examon", () => {
     await settle();
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    // Same turn: the second removal does not delete the remaining suspended Digimon.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -878,8 +827,6 @@ describe("BT23-047 Examon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     await passTurn(s, 1, 0);
 
-    // The opponent's unsuspend phase stood their Digimon up; it suspends itself again publicly by
-    // attacking on its own turn, so the reset can be observed on the next controller turn.
     const remaining = s.state.players[1]!.battleArea[0]!;
     expect([firstVictimId, secondVictimId]).toContain(remaining.permanentId);
     expect(remaining.isSuspended).toBe(true);
@@ -941,7 +888,6 @@ describe("BT23-047 Examon", () => {
         0: {
           battleArea: [
             { card: "BT23-047", as: "exa" },
-            // Yellow body: the colour requirement for the yellow Option below.
             { card: "BT1-045", as: "yellowBody" },
           ],
           hand: [{ card: "BT4-104", as: "blindingRay" }],
@@ -961,8 +907,6 @@ describe("BT23-047 Examon", () => {
     const suspendedId = s.perm("suspended").permanentId;
     const ownSecurityBefore = s.state.players[0]!.security.length;
 
-    // "[Main] Trash the top card of YOUR security stack" removes a card from the controller's
-    // own stack on the controller's own turn — the printed clause names the opponent's stack.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blindingRay").instanceId })).toEqual({
       ok: true,
     });

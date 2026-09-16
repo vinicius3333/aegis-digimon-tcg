@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q3258-Q3264 (binding):
-//   - Cost reduction is optional ("you may trash").
-//   - Applies to the NEXT digivolve this turn only (once-per-use, duration:nextDigivolveThisTurn).
-//   - Requires trashing 1 Digimon card from hand matching the digivolving Digimon's color.
-//   - Cannot reduce cost for Digimon in the breeding area (KB Q3259).
-//   - Color match uses all current colors (multicolor OK, DNA OK).
 const compiled: CompiledCard = {
   effects: [
     {

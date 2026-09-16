@@ -1,8 +1,3 @@
-// Hand-authored override for BT17-065 (DexDorugamon).
-// runtime-effect fix: [Trash] replacement digivolves the would-be-deleted Dorugamon
-// into this card from trash before preventing deletion. [When Digivolving] keeps
-// the mandatory hand trash, then branches Draw vs delete-4-or-less according to
-// the structured Dorugamon-in-stack / digivolved-from-trash condition (KB Q2820).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST23-11 Wolvermon
-// [Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2
-// <Blocker>
-// [Your Turn] When this Digimon would digivolve into a [Glowing Dawn] trait Digimon card, by
-//   trashing the bottom face-down card from under any of your Tamers, reduce the cost by 2.
-// (inherited) <Blocker>
-//
-// Fix: cost was "kind: trash" targeting a Tamer card directly. Should be
-// "kind: trashBottomFaceDownUnderTamer" — trash the face-down digivolution card under a Tamer,
-// per the BT25-027 pattern.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -71,9 +71,6 @@ describe("EX11-069 Yuuki", () => {
         },
         1: { battleArea: [{ card: "BT1-080", as: "defender", dp: 20_000 }], deck: ["BT1-009"] },
       },
-      // Keep exactly one legal trash destination in this behavior test. The route and destination
-      // boundary are asserted structurally below; the runtime proof must not depend on default
-      // ordering when several cards expose alternate evolution routes.
       { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     s.state.turnSeat = 0;
@@ -134,8 +131,6 @@ describe("EX11-069 Yuuki", () => {
 
   it("does not evolve when the attack starts with 5 cards in hand", async () => {
     const s = attackSetup(5);
-    // Keep Yuuki out of its own Start of Main window while establishing the exact five-card
-    // boundary; the attack itself then runs on the owner's turn.
     s.state.turnSeat = 1;
     s.state.memory = 5;
     await s.ready();

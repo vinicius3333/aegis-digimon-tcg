@@ -123,7 +123,7 @@ describe("BT25-092 Asuna Shiroki", () => {
         autoAcceptOptional: true,
         autoSelectCards: true,
         autoChooseOption: true,
-        preferOptionIndex: 0, // BT24-010 also has an alternate TS route; choose the printed route here.
+        preferOptionIndex: 0,
         preferInstanceIds: preferred,
       },
     );
@@ -146,7 +146,7 @@ describe("BT25-092 Asuna Shiroki", () => {
     await settle(() => s.perm("evolveHost").topCard.instanceId === s.inst("evolution").instanceId);
     expect(s.perm("asuna").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("sourceCost").instanceId);
-    expect(s.state.memory).toBe(0); // printed cost 3, reduced by exactly 1.
+    expect(s.state.memory).toBe(0);
   });
 
   it("Main can't activate with no complete suspend+Option cost, so two copies cannot pool a reduction (Q6434-Q6435)", async () => {

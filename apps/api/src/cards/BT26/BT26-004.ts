@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT26-004 Pagumon — inherited [When Attacking] [Once Per Turn]: by placing
-// one card from hand face-down under any [Glowing Dawn] Tamer, draw 1.
 export const compiled: CompiledCard = {
   effects: [
     {

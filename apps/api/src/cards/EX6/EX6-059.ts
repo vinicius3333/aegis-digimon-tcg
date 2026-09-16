@@ -3,7 +3,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX6-059")!;
 
-/** EX6-059 — Barbamon, with opponent-hand trash and dynamic purple play cap structured. */
 export const compiled: CompiledCard = {
   ...generated,
   effects: generated.effects.map((effect) =>

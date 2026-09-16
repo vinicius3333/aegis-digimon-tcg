@@ -5,8 +5,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-033.js";
 
-// "Black also meets this card's colour requirements" (Q4063/Q4064): the printed requirement
-// still has to be met — by Red or by Black — it is not waived outright.
 describe("LM-033 Garnet Memory Boost!", () => {
   it("reveals three, adds a red or black Digimon, bottoms the rest and places itself", async () => {
     const s = setupEngine(

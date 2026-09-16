@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-087 Ritsu Kodo — hand-corrected IR.
-// [Your Turn] When you would play a Pulsemon, by suspending this tamer:
-//   if security >= 3, Draw 1; if security <= 3, gain 1 memory.
-// KB Q4179: both effects activate when security == exactly 3.
 const compiled: CompiledCard = {
   effects: [
     {

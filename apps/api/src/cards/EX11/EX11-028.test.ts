@@ -119,9 +119,6 @@ describe("EX11-028 Galemon", () => {
     assertNoLoudGap(s);
   });
 
-  // KB Q5825: the [On Play] [When Digivolving] suspension may take EITHER player's Digimon, which
-  // is what `controllerDefault: "any"` encodes — a `controller: "mine"` filter would hide the
-  // opponent's Digimon from the offer.
   it("offers the opponent's Digimon to the On Play suspension (Q5825)", async () => {
     const s = setupEngine(
       {
@@ -157,8 +154,6 @@ describe("EX11-028 Galemon", () => {
     assertNoLoudGap(s);
   });
 
-  // "When any of YOUR Digimon suspend": the `whenSuspended` bus is board-wide, so the
-  // `sourceFilter: { controller: "mine" }` scope is what keeps an opponent's suspension out.
   it("does not play Shoto when an opponent's Digimon suspends", async () => {
     const s = setupEngine(
       {

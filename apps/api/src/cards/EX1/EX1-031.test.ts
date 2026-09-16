@@ -33,8 +33,6 @@ describe("EX1-031 Seraphimon", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.perm("base").topCard.cardId).toBe("EX1-031");
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX1-029"]);
-    // EX1-029's inherited [Your Turn] watcher is intentionally registered here: the
-    // Recovery add also grants its controller +1 memory, so the peer interaction ends at 2.
     expect(s.state.memory).toBe(2);
   });
 

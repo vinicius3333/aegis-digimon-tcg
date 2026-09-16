@@ -74,8 +74,6 @@ describe("BT11-042 Angewomon", () => {
           battleArea: [{ card: "BT11-039", as: "base" }],
           hand: [{ card: "BT11-042", as: "angewomon" }],
           security: [{ card: "BT11-038", as: "angel" }],
-          // Normal digivolution draws the first card before this optional effect resolves;
-          // leave the second card as the Recovery sentinel.
           deck: ["BT1-009", { card: "BT1-009", as: "recovery" }],
         },
       },

@@ -106,14 +106,12 @@ describe("BT25-074 Tankdramon", () => {
         ) && s.state.players[0]!.trash.length === 2,
     );
 
-    // BT14-060 costs 4, so the printed reduction of 5 floors its paid cost at 0.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("plain").instanceId, s.inst("option").instanceId]),
     );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
 
-    // The When Digivolving and When Attacking headers share one physical OPT budget.
     const deckBeforeAttack = s.state.players[0]!.deck.map((card) => card.instanceId);
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("base"), {
       attackerPermanentId: s.perm("base").permanentId,

@@ -32,8 +32,6 @@ describe("BT1-087 T.K. Takaishi", () => {
       {
         0: {
           hand: [{ card: "BT1-087", as: "takeru" }],
-          // The yellow card is deliberately not on top: this proves the effect searches the
-          // whole stack rather than silently taking the top card.
           security: [
             { card: "BT1-009", as: "topRed" },
             { card: "BT1-087", as: "yellowChoice" },
@@ -61,7 +59,7 @@ describe("BT1-087 T.K. Takaishi", () => {
     expect(player.hand.some((card) => card.instanceId === yellowChoiceId)).toBe(true);
     expect(player.security.some((card) => card.instanceId === yellowChoiceId)).toBe(false);
     expect(player.security.some((card) => card.instanceId === recoveryId)).toBe(true);
-    expect(player.security).toHaveLength(2); // selected card leaves, then Recovery +1 replaces it
+    expect(player.security).toHaveLength(2);
     expect(player.deck).toHaveLength(0);
   });
 

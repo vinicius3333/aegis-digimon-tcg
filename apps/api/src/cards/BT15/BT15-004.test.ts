@@ -5,19 +5,8 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import "../index.js";
 import { compiled } from "./BT15-004.js";
 
-// A3 for BT15-004 (Motimon) — Green Lv.2 Digi-Egg.
-//
-// [End of Your Turn] [Inherited] If this Digimon has the [Insectoid] trait, it may
-// attack an opponent's Digimon.  (documented behavior)
-//
-// KB Q2490 (binding): cannot attack with a suspended Digimon (CanAttack() check).
-// KB Q2491 (binding): two copies → each activation is independent; second fails
-//   if a new attack can't be declared during an active one.
-//
 const MOTIMON = "BT15-004";
-// BT1-066 = Tentomon, an Insectoid Lv.3 Digimon (def.types includes "Insectoid").
 const TENTOMON = "BT1-066";
-// Any Digimon the opponent can field as a blocked target.
 const DUMMY = "BT1-009";
 
 function fireTiming(s: EngineSetup, timing: EffectTiming): Promise<void> {
@@ -49,9 +38,7 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
     const s = setupEngine(
       {
         0: {
-          // Set up an Insectoid Digimon for seat 0 with BT15-004 (Motimon) in its digivolution stack.
           battleArea: [{ card: TENTOMON, dp: 4000, as: "tentomon", under: [MOTIMON] }],
-          // Security cards so the game doesn't end if the attack reaches the player.
           security: [
             { card: DUMMY, faceUp: true },
             { card: DUMMY, faceUp: true },
@@ -59,7 +46,6 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
           ],
         },
         1: {
-          // Opponent needs at least one Digimon for the canActivate check (and the attack target).
           battleArea: [{ card: DUMMY, dp: 3000, suspended: true }],
           security: [
             { card: DUMMY, faceUp: true },
@@ -73,11 +59,8 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
 
     expect(s.perm("tentomon").isSuspended).toBe(false);
 
-    // Fire the [End of Your Turn] timing window.
     const timing = fireTiming(s, EffectTiming.OnEndTurn);
 
-    // The optional "may attack" fires and auto-accepts (requestDecision mock above).
-    // An attack suspends the attacker.
     await settle(() => s.perm("tentomon").isSuspended, 400);
     await timing;
 
@@ -129,10 +112,7 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
     await fireTiming(s, EffectTiming.OnEndTurn);
     await settle(() => false, 50);
 
-    // Digimon was suspended before and stays so — but it must not somehow unsuspend+attack.
-    // The canActivate guard (isSuspended) blocks the effect.
     expect(s.perm("tentomon").isSuspended, "Tentomon stays suspended — attack not declared").toBe(true);
-    // Confirm the card is still in seat 0's battle area (not moved by the effect).
     const permanentId = s.perm("tentomon").permanentId;
     const p0 = s.state.players[0];
     expect(p0?.battleArea.some((perm) => perm.permanentId === permanentId)).toBe(true);
@@ -142,7 +122,6 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
     const s = setupEngine(
       {
         0: {
-          // A non-Insectoid Digimon with BT15-004 in its stack.
           battleArea: [{ card: DUMMY, dp: 3000, as: "nonInsectoid", under: [MOTIMON] }],
           security: [
             { card: DUMMY, faceUp: true },
@@ -167,7 +146,6 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
     await fireTiming(s, EffectTiming.OnEndTurn);
     await settle(() => false, 50);
 
-    // The canActivate guard (types must include "Insectoid") prevents the attack.
     expect(s.perm("nonInsectoid").isSuspended, "non-Insectoid must not be suspended").toBe(false);
   });
 

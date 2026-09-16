@@ -123,7 +123,6 @@ describe("BT21-009 Gatchmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-084"));
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    // The public DoGatchmon link costs 2; Gatchmon's selected Appmon/Hero alternate costs 0.
     expect(s.state.memory).toBe(2);
   });
 
@@ -163,7 +162,6 @@ describe("BT21-009 Gatchmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-084"));
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    // The public DoGatchmon link costs 2; Gatchmon's selected Appmon/Hero alternate costs 0.
     expect(s.state.memory).toBe(2);
   });
 

@@ -15,7 +15,6 @@ import { compiled } from "./BT23-045.js";
 const SECURITY = ["BT1-010", "BT1-011", "BT1-012"];
 const DECK = ["BT1-010", "BT1-011", "BT1-012", "BT1-013"];
 
-/** Open seat 0's real Main phase through the production turn loop with a known memory. */
 async function openMain(board: BoardSpec, opts: SetupEngineOptions, memory = 10) {
   const prefer: string[] = [];
   const s = setupEngine(board, { ...opts, preferInstanceIds: prefer });
@@ -33,13 +32,6 @@ async function openMain(board: BoardSpec, opts: SetupEngineOptions, memory = 10)
   };
 }
 
-/**
- * Suspend an ally the ordinary way: it attacks the opponent's security inside the open Main
- * phase. The turn loop's Active phase unsuspends everything, so a board-spec `suspended: true`
- * cannot survive into Main, and writing `isSuspended` by hand would arrange the very endpoint
- * these cases measure. BT1-009 Monodramon (3000 DP) beats every Digimon in `SECURITY`, so it
- * survives its own check and stays suspended.
- */
 async function suspendAllyByAttacking(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   const securityBefore = s.state.players[1]!.security.length;
   expect(
@@ -89,8 +81,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
     const counter = compiled.effects.find((entry) => entry.trigger === "Counter") as any;
     expect(counter).toMatchObject({ isFromHand: true, keywords: [{ keyword: "BlastDigivolve" }] });
   });
-
-  // --- [On Play] / [When Digivolving] by-placement -----------------------------------------
 
   it("On Play: pays the trash placement face up at security bottom and returns the exact eligible target", async () => {
     const { s, prefer, close } = await openMain(
@@ -389,8 +379,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
     await close();
   });
 
-  // --- [All Turns] when this Digimon suspends --------------------------------------------
-
   it("flips the top face-up security card face down to unsuspend one of your Digimon when it attacks", async () => {
     const { s, prefer, close } = await openMain(
       {
@@ -464,9 +452,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
     await close();
   });
 
-  // "Your top face-up security card" is read as the topmost face-up card in the stack, not as
-  // "the top card, and only while it is face up". No ruling settles the wording; this pins the
-  // engine's reading so a change to it is a deliberate one.
   it("flips the topmost face-up card even when a face-down card sits above it", async () => {
     const { s, prefer, close } = await openMain(
       {
@@ -542,10 +527,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
     await close();
   });
 
-  /**
-   * Open the opponent's (seat 1) attack through the real turn loop and stop with seat 0's
-   * [Counter] window open, so ＜Blast Digivolve＞ can be answered the public way.
-   */
   async function openCounterWindow(board: BoardSpec, prefer: string[]) {
     const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: prefer });
     await s.ready();
@@ -604,8 +585,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
     await settle(() => observe(s.engine).isAttacking());
     const memoryBefore = s.state.memory;
 
-    // ＜Blast Digivolve＞ is answered through the open [Counter] window, not as a bare
-    // `digivolve` intent: only `respondCounter` closes the window and lets the attack finish.
     expect(
       s.engine.applyIntent(0, {
         type: "respondCounter",
@@ -615,8 +594,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // Blast Digivolve costs no memory, and the attack ended without a security check because
-    // the [When Digivolving] return took the attacker off the board.
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.turnSeat).toBe(1);
     expect(observe(s.engine).isAttacking()).toBe(false);
@@ -682,15 +659,11 @@ describe("BT23-045 TigerVespamon ACE", () => {
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.perm("base").topCard!.cardId).toBe("BT23-045");
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(bystanderCardId);
-    // The attacker survived the counter, so the attack checked exactly one security card and the
-    // placed cost card stayed at the bottom of the stack.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([...securityBefore.slice(1), costId]);
     expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([attackerPermanentId]);
     expect(s.state.pendingDecision).toBeUndefined();
     await close();
   });
-
-  // --- face-up security rules the placement creates (Q5307-Q5310) -------------------------
 
   it("leaves the placed card revealed in the security stack across the turn boundary (Q5307)", async () => {
     const { s, close } = await openMain(
@@ -751,7 +724,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
       await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
       const endpoints = {
         securityLeftStack: s.state.players[1]!.security.some((card) => card.instanceId === securityId),
-        // ST22-08's [Security] effect deletes the attacking Digimon.
         attackerStillOnBoard: s.state.players[0]!.battleArea.some((perm) => perm.permanentId === attackerId),
         victimStillOnBoard: s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-012"),
         securityCount: s.state.players[1]!.security.length,
@@ -810,8 +782,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("tiger").permanentId], "byEffect");
     expect(s.state.memory).toBe(-4);
   });
-
-  // --- IR shape ---------------------------------------------------------------------------
 
   it("requires placing a Royal Base or Zaxon Digimon in security before returning an eligible opponent Digimon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {

@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT19-093 (Queen Device, Option card).
-// Fixes:
-// 1. Static effect only covers WaiveColorRequirement (the "While you don't have [Queen
-//    Device]" passive). The -3000 DP static was incorrect — it was bundled wrongly.
-// 2. Added missing "whenTrashedInBattleArea" SubTrigger effect: when an effect trashes
-//    this card in the battle area, until end of opponent's turn, 1 opponent Digimon
-//    gets -3000 DP and that Digimon can't activate [When Digivolving] effects.
-//    KB Q3166 confirms duration is "until end of your opponent's turn".
-// 3. Main effect: kept -3000 DP + Restrict cannotActivateWhenDigivolving + PlaceInBattleAreaSelf.
-//    Using Restrict action (restriction:"cannotActivateWhenDigivolving") which exists in engine.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -30,9 +20,6 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Queen Device"],
-                  // Bracketed [Queen Device] is an EXACT name reference; `match: "name"` is the
-                  // substring form and would let any card whose name merely contains
-                  // "Queen Device" suppress the waiver.
                   match: "nameExact",
                 },
               ],

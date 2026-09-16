@@ -5,15 +5,6 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-042.js";
 
-/**
- * Fixture identities used across the behavioral cases.
- * - BT23-038 FunBeemon: Lv.3 with both [Royal Base] and [CS] traits — a legal alternate source.
- * - BT23-083 Fei: a Tamer WITHOUT the [Royal Base] trait whose printed text names [Royal Base].
- *   This is the Q5303 positive: "in its text" spans name, traits and effect text.
- * - BT23-084 Erika Mishima: a Tamer with neither the trait nor the words in its text.
- * - BT1-009 Monodramon: a red Lv.3 with no [Royal Base]/[CS] trait — the illegal source.
- */
-
 describe("BT23-042 Waspmon", () => {
   it("matches every catalog field and complete compiled clause", () => {
     expect(getCardDefinition("BT23-042")).toMatchObject({
@@ -97,9 +88,6 @@ describe("BT23-042 Waspmon", () => {
     });
   });
 
-  // Both the printed Green/Black Lv.3 EvoCost (3) and the alternate [Royal Base]/[CS]
-  // requirement (2) match BT23-038, so the intent must name which path it pays.
-  // BT23-037 is CS-only and reduces its own CS digivolution cost by 1 (2 - 1 = 1).
   it.each([
     ["BT23-038", true, 1],
     ["BT23-038", false, 0],
@@ -137,8 +125,6 @@ describe("BT23-042 Waspmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // BT1-009 Monodramon is red, so it fails the printed Green/Black route on color and the
-  // alternate route on trait. Both routes must refuse it.
   it.each([
     ["the printed Green/Black route", false],
     ["the alternate [Royal Base]/[CS] route", true],
@@ -183,7 +169,6 @@ describe("BT23-042 Waspmon", () => {
     await s.ready();
     s.state.memory = 3;
     const feiId = s.inst("fei").instanceId;
-    // Q5303: Fei carries no [Royal Base] trait; only her printed text names it.
     expect(getCardDefinition("BT23-083")?.types).not.toContain("Royal Base");
     expect(getCardDefinition("BT23-083")?.effectText).toContain("[Royal Base]");
 
@@ -201,7 +186,6 @@ describe("BT23-042 Waspmon", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Only the digivolution cost of 2 was paid; the Tamer itself cost nothing.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === feiId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === feiId)).toBe(true);
@@ -348,7 +332,6 @@ describe("BT23-042 Waspmon", () => {
     s.state.memory = 3;
     const erikaId = s.inst("erika").instanceId;
     const trashedId = s.inst("trashedFei").instanceId;
-    // Erika names neither the trait nor the words; the trashed Tamer matches but is out of zone.
     expect(getCardDefinition("BT23-084")?.effectText).not.toContain("[Royal Base]");
 
     expect(
@@ -407,8 +390,6 @@ describe("BT23-042 Waspmon", () => {
     expect(s.perm("royalBase").currentDP).toBe(8000);
   });
 
-  // BT23-037 is the base here because it carries no inherited DP of its own, so the
-  // +1000 measured on the finished stack can only come from BT23-042.
   it("carries the inherited +1000 DP after a real evolution", async () => {
     const s = setupEngine(
       {
@@ -449,7 +430,6 @@ describe("BT23-042 Waspmon", () => {
     expect(s.perm("base").topCard?.cardId).toBe("BT23-043");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT23-037", "BT23-042"]);
     expect(s.perm("base").currentDP).toBe(9000);
-    // The opponent's identical Digimon has no BT23-042 in its stack, so it stays at printed DP.
     expect(s.perm("control").currentDP).toBe(8000);
   });
 });

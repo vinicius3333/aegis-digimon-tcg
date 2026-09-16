@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-030.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 function payload(s: EngineSetup): Record<string, unknown> {
   return JSON.parse(s.state.pendingDecision!.payloadJson) as Record<string, unknown>;
@@ -255,10 +255,6 @@ describe("EX3-030 Gatomon", () => {
   });
 
   it("excludes off-color Angels and every Three Great Angels overlap, then orders all revealed cards on deck bottom", async () => {
-    // The current catalog has no yellow Cherub card outside [Three Great Angels]. BT3-041
-    // therefore proves the meaningful live boundary: Cherub qualifies for the family token,
-    // but the errata's explicit exclusion wins. A future standalone yellow Cherub is covered by
-    // the same union filter already exercised by the other five accepted trait families above.
     expect(getCardDefinition("BT3-041")?.types).toEqual(expect.arrayContaining(["Cherub", "Three Great Angels"]));
     const s = setupEngine(
       {
@@ -416,8 +412,6 @@ describe("EX3-030 Gatomon", () => {
     await s.ready();
     await advance(s.engine).recompute();
     await advance(s.engine).recompute();
-    // Scoped to the two hosts: other registered cards on the board install their own
-    // `whenPlayed` watchers, which say nothing about these two inherited copies.
     expect(observe(s.engine).subscriptions("whenPlayed", s.perm("firstHost").permanentId)).toHaveLength(1);
     expect(observe(s.engine).subscriptions("whenPlayed", s.perm("secondHost").permanentId)).toHaveLength(1);
 

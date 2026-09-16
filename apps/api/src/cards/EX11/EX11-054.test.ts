@@ -187,7 +187,6 @@ describe("EX11-054 Owen Dreadnought", () => {
 
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     expect(s.perm("owen").isSuspended).toBe(false);
-    // The Reptile left the hand, and no <Draw 1> replaced it.
     expect(s.state.players[0]!.hand.length).toBe(handBefore - 1);
     assertNoLoudGap(s);
   });

@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Digivolving]: "Trash any 2 digivolution cards of your opponent's Digimon" means
-// 2 total divo cards spread across any opponent Digimon (not 2 from a single target).
-// The interpreter's acrossDigimon scope pools the opponent's stacks and lets
-// the controller choose exactly two cards across any number of Digimon.
-// fromTop is omitted (false by default) per card text — not top-specific.
-// Inherited [Your Turn]: target filter includes [Ice-Snow] trait per text
-// "this Digimon with the [Ice-Snow] trait gains".
 export const compiled: CompiledCard = {
   effects: [
     {

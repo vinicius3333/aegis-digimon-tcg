@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-229 Unique Emblem: Narrative Ronde — hand-fixed IR.
-// [Main] Reveal the top 3 cards of your deck. Add 1 [Puppet] trait Digimon card and
-//   1 [LIBERATOR] trait card among them to the hand. Return the rest to the bottom of the deck.
-//   Then, place this card in the battle area.
-// [Your Turn] When any of your [Mirai Kinosaki]s are played, <Delay>
-//   · 1 of your Digimon may digivolve into a level 6 or lower [LIBERATOR] trait card
-//     in the hand with the digivolution cost reduced by 3.
-// [Security] Activate this card's [Main] effect.
 const compiled: CompiledCard = {
   effects: [
     {

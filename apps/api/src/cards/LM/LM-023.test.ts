@@ -66,8 +66,6 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     s.state.memory = 10;
     await s.ready();
 
-    // Glorious Burst has printed use cost 9, reduced by one for each of four
-    // Yellow Tamers. Q5516 permits the resulting effective cost of 5.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maid").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT2-099"), 2000);
 
@@ -90,7 +88,6 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     s.state.memory = 10;
     await s.ready();
 
-    // Three Yellow Tamers reduce Glorious Burst from 9 to 6, so it remains ineligible.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maid").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision == null);
 
@@ -152,7 +149,6 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     await s.ready();
     const printed = getCardDefinition("BT1-080")!.dp!;
 
-    // The opponent's own stack growing arms the clause too — the text names "a security stack".
     await advance(s.engine).fireSubTrigger("whenAddSecurity", { addedToSecuritySeat: 1 });
     await settle(() => s.perm("victim").currentDP === printed - 6000, 2000);
 

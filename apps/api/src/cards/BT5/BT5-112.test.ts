@@ -8,13 +8,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
-// BT5-112 (Omnimon Zwart Defeat) is a hand-authored IR override. These tests
-// exercise the REGISTERED module (getEffectModule, i.e. what registerIrCard put in
-// the registry from the corrected TS literal), NOT effects.json (which still holds
-// the stale runtime record IR). They assert the three corrected clauses dispatch the
-// right primitives against the right seats/kinds, matching the oracle text + the
-// binding Q&A rulings (Q1395/Q1396/Q1397).
-
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
 }
@@ -127,7 +120,7 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
   });
 
   async function loadModule() {
-    await import("./BT5-112.js"); // self-registers via registerIrCard
+    await import("./BT5-112.js");
     const module = getEffectModule("BT5-112");
     expect(module, "BT5-112 must be registered").toBeDefined();
     return module!;
@@ -135,7 +128,6 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
 
   it("[Security] plays THIS card from security without paying its cost (Q1395)", async () => {
     const module = await loadModule();
-    // The card is a flipped security card: not yet a permanent.
     const source = makeSource({ permanent: () => undefined });
 
     const effects = module.effectsForTiming(EffectTiming.SecuritySkill, source);
@@ -146,12 +138,10 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
     const ctx = makeContext({ source, recorder });
     await effects[0]!.resolve(ctx);
 
-    // Must play THIS instance from security (not a filtered play from hand).
     const fromSecurity = recorder.calls.filter((c) => c.verb === "playFromSecurity");
     expect(fromSecurity).toHaveLength(1);
     expect(fromSecurity[0]!.args[0]).toBe("INST#1");
     expect(fromSecurity[0]!.args[1]).toEqual({ payCost: false });
-    // Regression guard: the stale IR fell through to a filtered play from the hand.
     expect(recorder.calls.some((c) => c.verb === "playFromHand")).toBe(false);
     expect(recorder.calls.some((c) => c.verb === "playInstances")).toBe(false);
   });
@@ -180,8 +170,6 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
     const ctx = makeContext({
       source,
       recorder,
-      // permanentById only spans the opponent set in the harness; that is fine — the
-      // own Tamer being excluded by controller scope is the assertion.
       opponentBattleArea: [oppTamer, oppDigimon],
       definitionOf: (id) =>
         id === "OPP-T" || id === "OWN-T"
@@ -189,7 +177,6 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
           : fakeDefinition({ kinds: ["Digimon"] as never }),
     });
 
-    // Make own Tamer visible to seat-0 enumeration so we can assert it is NOT targeted.
     (ctx.game.player(0) as { battleArea: Permanent[] }).battleArea = [ownTamer];
 
     const effects = module.effectsForTiming(EffectTiming.WhenDigivolving, source);
@@ -198,8 +185,6 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
 
     const deletes = recorder.calls.filter((c) => c.verb === "deletePermanent");
     expect(deletes).toHaveLength(1);
-    // Only the opponent's Tamer is a legal target (not the opponent's Digimon,
-    // not the controller's own Tamer). Q1397: a Digimon-on-Tamer is not a Tamer.
     expect(deletes[0]!.args[0]).toEqual(["OPP-TAMER"]);
   });
 
@@ -221,7 +206,6 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
       definitionOf: () => fakeDefinition({ kinds: ["Digimon"] as never }),
     });
 
-    // On Deletion routes to OnDestroyedAnyone.
     const effects = module.effectsForTiming(EffectTiming.OnDestroyedAnyone, source);
     expect(effects).toHaveLength(1);
     await effects[0]!.resolve(ctx);

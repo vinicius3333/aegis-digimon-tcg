@@ -23,8 +23,6 @@ describe("BT26-082 compiled behavior", () => {
       { namesExact: ["Crowmon"], cost: 3, isAlternate: true },
       { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
     ]);
-    // Q7117/Q7122: the printed clause is a {Security} [End of Opponent's Turn] effect, not the
-    // check-triggered [Security] tag, so no effect may be filed under the security-check timing.
     expect(compiled.effects.find((effect) => effect.trigger === "Security")).toBeUndefined();
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfOpponentsTurn")).toMatchObject({
       isSecurity: true,
@@ -330,8 +328,6 @@ describe("BT26-082 compiled behavior", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Player-directed attack: it resolves through a security check, not a Digimon-vs-Digimon
-    // battle, so "combatResolved" (only emitted by resolveDigimonBattle) never fires.
     await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
 
     expect(s.state.players[1]!.security).toHaveLength(0);
@@ -340,9 +336,6 @@ describe("BT26-082 compiled behavior", () => {
   });
 
   it("Q7122 loses after the end-of-turn attack succeeds with no security remaining", async () => {
-    // Real public flow: both the face-up Security end-of-opponent-turn effect and Execute's
-    // end-of-turn attack are resolved by the turn loop. Ravemon is played first, leaving zero
-    // security, then the attack succeeds and the owner loses under the empty-security rule.
     const s = setupEngine(
       {
         0: { security: [{ card: "BT26-082", as: "securityRavemon", faceUp: true }], deck: ["BT1-009", "BT1-010"] },

@@ -1,21 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX12-019 (Nezhamon).
-// runtime-effect fixes:
-// - 1st [All Turns]: text says "their Digimon effects don't affect this Digimon" (opponent
-//   Digimon-sourced effects only). `GrantImmunity`'s `immuneFrom: "opponentEffects"` blocks
-//   ALL opponent effects (Options/Tamers too), so it's replaced with the dedicated `Restrict`
-//   action + `fromSourceKind: ["Digimon"]` + `byOpponentEffectsOnly: true` (CAP-#8, see
-//   ex12Gap8Immunity.test.ts).
-// - 2nd [All Turns]: text says "When security stacks are removed from, this Digimon may
-//   unsuspend" — a triggered ability, not an unconditional per-turn Unsuspend on any of my
-//   Digimon. Wrapped in a `whenSecurityRemoved` SubTrigger (AD1-017 pattern) and the Unsuspend
-//   target narrowed to the source itself (isSelfRef).
-// - ＜Engage＞ ("[End of Your Turn] this Digimon may attack") was only recorded in `residual`
-//   with no behavior. Encoded as a `GainKeyword` marker plus an `EndOfYourTurn` ->
-//   `Attack(self, optional:true)` action, the established pattern for this keyword
-//   (EX12-060 and 21 other cards).
 const compiled: CompiledCard = {
   effects: [
     {

@@ -175,8 +175,6 @@ describe("EX9-042", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-044", "BT1-090"]);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
-    // This effect-play seam re-exposes the same source instance without changing turns;
-    // the peer's deletion requires DigiXros, which an effect play does not perform.
     await advance(s.engine).verb.playInstances([s.inst("devolve").instanceId]);
     await settle();
     expect(s.perm("watcher").topCard.cardId).toBe("EX9-042");
@@ -210,7 +208,6 @@ describe("EX9-042", () => {
       s.state.isFirstPlayersFirstTurn = false;
       await s.ready();
       const turn = s.engine.runOneTurn();
-      // Drain the old Main phase before waiting for this turn's Main window.
       await settle();
       await advance(s.engine).waitForMainPhase(1);
       expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-042", "BT1-048"]);

@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT23-053 (Strikedramon).
-// [Your Turn] When any of your Option cards are placed in the battle area, this Digimon
-// may digivolve into a Digimon with [Cyberdramon] in its name or the [CS] trait from hand
-// with the digivolution cost reduced by 2.
-// [Inherited] This Digimon gets +1000 DP.
 export const compiled: CompiledCard = {
   effects: [
     {

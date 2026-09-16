@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX3-063 Imperialdramon: Dragon Mode — official errata applied. The opponent
-// chooses the single survivor; both that choice and Blitz exist only after DNA.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -71,9 +69,6 @@ const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
-          // The printed clause is the Dragon Mode-specific route into Fighter Mode. The
-          // catalog stores Fighter Mode's ordinary Lv.5 requirements but not this effect's
-          // conditional name route; the self-scoped action supplies that missing requirement.
           ignoreReqs: true,
           useAlternateCost: true,
           costOverride: 2,

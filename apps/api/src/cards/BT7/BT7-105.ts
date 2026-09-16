@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main]: reveal 3, play 1 black ≤4-cost Digimon for free (optional), trash the rest,
-// then place this card in your battle area (PlaceInBattleAreaSelf).
-// [Main] <Delay>: the engine auto-injects "trash this card from battle area as cost +
-// can't activate the turn it enters play"; the payload is just gain 2 memory.
 const compiled: CompiledCard = {
   effects: [
     {

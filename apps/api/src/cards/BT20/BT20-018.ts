@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT20-018 Ouryumon:
-// <Piercing>
-// [On Play][When Digivolving] <De-Digivolve 2> 1 of your opponent's Digimon.
-//   Then, if during an attack, 1 of your Digimon in the breeding area may
-//   digivolve into a level 6 or lower [Chronicle] trait Digimon card in the
-//   hand or trash without paying the cost.
-// [All Turns][Once Per Turn] When security stacks are removed from, delete
-//   1 of your opponent's Digimon with the lowest DP.
-// [When Attacking][Once Per Turn] If this Digimon is [Alphamon: Ouryuken],
-//   trash your opponent's top security card.
-
 export const compiled: CompiledCard = {
   effects: [
     {

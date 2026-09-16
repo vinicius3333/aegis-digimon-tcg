@@ -38,8 +38,6 @@ describe("BT20-001 DemiVeemon", () => {
         ],
       },
       1: {
-        // A legal four-card stack: Lv.2 egg -> Lv.3 -> Lv.4 -> Lv.5 under a Lv.6 top.
-        // The non-DemiVeemon cards have no inherited DP effects, isolating this card's +2000.
         battleArea: [{ card: "BT1-025", as: "opponent", under: ["BT20-001", "BT1-009", "BT4-010", "BT1-020"] }],
         deck: ["BT1-009"],
       },

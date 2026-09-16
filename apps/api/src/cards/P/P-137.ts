@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// <Armor Purge>, <Raid> keywords.
-// [Your Turn] [Once Per Turn]: When THIS Digimon's attack target is switched,
-// opponent adds the top card of their security stack to hand.
-// Encoded as YourTurn SubTrigger(whenAttackTargetSwitched) → SecurityManipulation(toHand).
 const compiled: CompiledCard = {
   effects: [
     {

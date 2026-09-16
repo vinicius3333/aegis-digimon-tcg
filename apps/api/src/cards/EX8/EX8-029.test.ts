@@ -95,8 +95,6 @@ describe("EX8-029", () => {
     });
     await s.ready();
 
-    // Memory is signed from the turn player's perspective. At +3 on seat 1's turn,
-    // Aegisdramon's controller is at -3, which is inside the printed <=1 window.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).recompute();
@@ -125,8 +123,6 @@ describe("EX8-029", () => {
     s.state.memory = 1;
     await advance(s.engine).recompute();
 
-    // This is the production effect-resolution seam used by a real opposing Digimon
-    // effect; only the DS permanent should be immune to the suspend operation.
     const driver = advance(s.engine);
     driver.verb.enterEffectResolution(1, ["Digimon"], s.perm("opponent").permanentId);
     await driver.verb.suspend([s.perm("ds").permanentId, s.perm("nonDs").permanentId], 1);
@@ -220,9 +216,6 @@ describe("EX8-029", () => {
             { card: "EX8-029", as: "aegis" },
           ],
         },
-        // Plesiomon's own WhenPlayed effect DNA digivolves into a DS Digimon and then
-        // attacks; give the defender security so that incidental attack does not end
-        // the game before EX8-029's own WhenDigivolving effect gets to resolve.
         1: { security: 1 },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },

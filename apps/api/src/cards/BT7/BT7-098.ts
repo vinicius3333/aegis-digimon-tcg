@@ -1,8 +1,3 @@
-// Hand-authored override for BT7-098.
-// runtime-effect fix: the [Main] effect also lowers ALL opponent Security Digimon by -3000
-// for the turn ("1 of your opponent's Digimon AND all of your opponent's Security
-// Digimon get -3000 DP"). The declarative effect record dropped the Security half — added a
-// ModifySecurityDP action.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

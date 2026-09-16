@@ -46,10 +46,6 @@ describe("EX11-064 Altea", () => {
           security: [{ card: "BT1-090", faceUp: true }, { card: "BT1-091", faceUp: true }, "BT1-092"],
         },
       },
-      // EX11-039 matches EX11-037 on BOTH its printed evoCost (Black/Blue Lv.3, cost 3) and its
-      // alternate requirement (Lv.3 [Cyborg]/[Machine], cost 2), so the interpreter opens the
-      // route `chooseOption` prompt (digivolve.ts). Answer it with the printed route (index 0):
-      // 3 - 2 face-up opposing security = 1 memory.
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.turnSeat = 0;

@@ -1,5 +1,3 @@
-// HAND-FIXED IR for BT14-086 — do not regenerate.
-// AllTurns Aura target filters: added Numemon+Monzaemon names alongside [DigiPolice] trait.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

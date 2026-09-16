@@ -51,7 +51,6 @@ describe("P-100 Kuwagamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("digimon"), "unsuspend")).toBe(false);
 
-    // With no card left in hand, the production turn loop auto-closes this Main phase.
     await firstTurn;
 
     s.state.turnSeat = 1;
@@ -64,8 +63,6 @@ describe("P-100 Kuwagamon", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("digimon").isSuspended).toBe(false);
 
-    // The restriction expires at the end of this opponent turn. On their next Active phase,
-    // the formerly restricted Tamer can unsuspend normally again.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await opponentTurn;
 

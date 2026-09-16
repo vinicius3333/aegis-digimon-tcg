@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Your Turn] inherited: "This Digimon with the [TB] trait gains <Execute>".
 const compiled: CompiledCard = {
   effects: [
     {

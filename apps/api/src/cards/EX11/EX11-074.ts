@@ -31,13 +31,6 @@ const suspendAndProtect: Action[] = [
   },
 ];
 
-// KB Q5948 permits the first target on either field. Q5949-Q5954 scope the
-// conditional immunity to the opponent's Digimon effects. Q5955-Q5959 confirm
-// the All Turns battle is a direct battle, not another attack/security check.
-//
-// The shared consts carry explicit IR annotations on purpose: without them the object
-// literals widen (`kind: string`, `controller: string`) and stop satisfying `Action`/`Target`,
-// which is what hid the shape from the compiler while `@ts-nocheck` was in place.
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [], keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }] },
@@ -73,8 +66,6 @@ export const compiled: CompiledCard = {
       namesExact: ["GrandGalemon"],
       cost: 6,
       isAlternate: true,
-      // CR 16-4-2/16-4-3: controllerControls checks the card's effective kinds;
-      // Shoto Kazama is both a Tamer and a Digimon card in the catalog.
       controllerControls: { kind: ["Digimon", "Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
     },
   ],

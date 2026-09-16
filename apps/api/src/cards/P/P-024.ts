@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main]: If you have [Tai Kamiya] in play, you may place 1 of your [Agumon] cards
-// at the bottom of its owner's deck. If you do, <Draw 3> and trash all digivolution
-// cards of that Digimon.
-// KB Q4133: must have a card literally named "Tai Kamiya" (not "Tai Kamiya (V-Tamer)").
-// KB Q4134: must be literally named "Agumon" (not ToyAgumon etc).
-// Returning the Agumon permanent already trashes its digivolution cards through the engine's
-// permanent-return seam. Do not emit a second synthetic trash action after the permanent is gone.
 const compiled: CompiledCard = {
   effects: [
     {

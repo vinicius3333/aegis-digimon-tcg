@@ -6,18 +6,10 @@ import { compiled } from "./EX10-066.js";
 import "../index.js";
 
 const CARD_ID = "EX10-066";
-const RAGE = "EX10-022"; // Belphemon: Rage Mode (Lv.6)
-const SLEEP = "EX10-021"; // Belphemon: Sleep Mode (Lv.6), [Digivolve] [Belphemon: Rage Mode]: Cost 1
-const OTHER_RAGE = "BT13-091"; // Belphemon: Rage Mode with only the Purple Lv.5 requirement
+const RAGE = "EX10-022";
+const SLEEP = "EX10-021";
+const OTHER_RAGE = "BT13-091";
 
-/**
- * EX10-066 Akihiro Kurata (Purple Tamer, play cost 4).
- *
- * Every clause below is proved through the production turn loop and public intents:
- * `startTurnLoop` gives the real [Start of Your Turn] and [End of Your Turn] windows, and
- * the [Security] clause is proved through a real security check opened by an attack. No
- * injected timing (`advance.fire*`) is used anywhere in this file.
- */
 describe("EX10-066 Akihiro Kurata", () => {
   it("matches the catalog and the compiled IR", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -31,7 +23,6 @@ describe("EX10-066 Akihiro Kurata", () => {
       maxCountInDeck: 4,
       effectText:
         "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[End of Your Turn] If you have 6 or fewer cards in your hand, " +
-        // The catalog carries a non-breaking space after each "[Belphemon]".
         "by placing this Tamer as the bottom digivolution card of any of your Digimon with [Belphemon]\u00a0in their names, " +
         "that Digimon may digivolve into a Digimon card with [Belphemon]\u00a0in its name in the trash without paying the cost.",
       securityEffectText: "[Security] Play this card without paying the cost.",
@@ -56,8 +47,6 @@ describe("EX10-066 Akihiro Kurata", () => {
             kind: "place",
             targetIsPermanent: true,
             target: { filter: { isSelfRef: true }, isSelf: true },
-            // "with [Belphemon] in their names" is a SUBSTRING name match (`match: "name"`),
-            // not the exact-name `nameExact`.
             underFilter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -82,8 +71,6 @@ describe("EX10-066 Akihiro Kurata", () => {
     });
   });
 
-  // --- [Start of Your Turn] If you have 2 or less memory, set it to 3 -------------------
-
   it("sets memory to 3 at the real start of my turn from 2 or less, and leaves 4 alone", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: CARD_ID, as: "kurata" }], hand: ["BT1-009"], deck: ["BT1-013", "BT1-014", "BT1-009"] },
@@ -91,14 +78,11 @@ describe("EX10-066 Akihiro Kurata", () => {
     });
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1 opens with the gauge at 0, which is "2 or less": the Tamer sets it to 3.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(3);
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // Arrange the gauge so my next turn STARTS above the threshold: the opponent moving it
-    // 4 onto my side ends their turn and re-frames it as +4 for me.
     s.state.memory = -4;
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
@@ -109,8 +93,6 @@ describe("EX10-066 Akihiro Kurata", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // --- [End of Your Turn] place as bottom digivolution card, digivolve from trash -------
 
   it("plays for 4, then at my real turn end places itself under Belphemon and digivolves it from the trash", async () => {
     const s = setupEngine(
@@ -133,8 +115,6 @@ describe("EX10-066 Akihiro Kurata", () => {
     const rageInstanceId = s.perm("rage").topCard!.instanceId;
     const hostPermanentId = s.perm("rage").permanentId;
 
-    // Public play of the Tamer: 4 memory out of the 4 the start-of-turn clause is not
-    // responsible for (the gauge opened at 0 and this Tamer set it to 3, so top it up).
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: kurataInstanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
@@ -147,8 +127,6 @@ describe("EX10-066 Akihiro Kurata", () => {
 
     const host = s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === hostPermanentId)!;
     expect(host.topCard!.instanceId).toBe(sleepInstanceId);
-    // The Tamer is the BOTTOM digivolution card: below the two cards already under the host
-    // and below the Rage Mode it digivolved from.
     expect(host.stack.map(({ instanceId }) => instanceId)).toEqual([
       kurataInstanceId,
       host.stack[1]!.instanceId,
@@ -157,10 +135,8 @@ describe("EX10-066 Akihiro Kurata", () => {
     ]);
     expect(host.stack.map(({ cardId }) => cardId)).toEqual([CARD_ID, "BT1-009", "BT1-013", RAGE]);
 
-    // The Tamer left the battle area to pay the cost, and Sleep Mode left the trash.
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-014"]);
-    // Digivolving without paying the cost still draws the digivolution bonus card.
     expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
     expect(s.state.players[0]!.deck.length).toBe(deckBefore - 1);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -287,10 +263,6 @@ describe("EX10-066 Akihiro Kurata", () => {
     await noTargetLoop;
   });
 
-  // The digivolution requirements still have to be met (Official Rule Manual §5: "without
-  // paying the cost. (The digivolution requirements have to be met.)"). BT13-091 Belphemon:
-  // Rage Mode only prints a Purple Lv.5 requirement, so a Lv.6 Rage Mode host cannot reach
-  // it; EX10-021 Sleep Mode prints "[Digivolve] [Belphemon: Rage Mode]: Cost 1" and can.
   it("only digivolves into a trash Belphemon whose digivolution requirement the host meets", async () => {
     const s = setupEngine(
       {
@@ -321,8 +293,6 @@ describe("EX10-066 Akihiro Kurata", () => {
     await loop;
   });
 
-  // --- The Tamer is inert outside the battle area ---------------------------------------
-
   it("is inert in the trash and in the hand: no memory set, no turn-end digivolution", async () => {
     const s = setupEngine(
       {
@@ -339,7 +309,6 @@ describe("EX10-066 Akihiro Kurata", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // [Start of Your Turn] belongs to a Tamer on the battle area only: the gauge stays at 0.
     expect(s.state.memory).toBe(0);
 
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -354,8 +323,6 @@ describe("EX10-066 Akihiro Kurata", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // --- [Security] Play this card without paying the cost ---------------------------------
 
   it("plays itself for free from a real security check opened by the opponent's attack", async () => {
     const s = setupEngine(
@@ -392,7 +359,6 @@ describe("EX10-066 Akihiro Kurata", () => {
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CARD_ID)!;
     expect(played.topCard!.instanceId).toBe(kurataInstanceId);
     expect(played.topCard!.faceUp).toBe(true);
-    // Played from security, so it never went to the trash and its cost 4 was never paid.
     expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain(CARD_ID);
     expect(s.state.memory).toBe(memoryBefore);

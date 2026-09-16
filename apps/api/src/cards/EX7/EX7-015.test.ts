@@ -146,8 +146,6 @@ describe("EX7-015 Otamamon", () => {
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("gumdramon").instanceId),
     );
 
-    // Expected rules result: 10 - the printed play cost 4 = 6; materials remain legal and
-    // are still placed under the played Digimon even though their reduction is suppressed.
     expect(s.state.memory).toBe(6);
     expect(s.perm("gumdramon").stack.map((card) => card.instanceId)).toEqual([s.inst("material").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();

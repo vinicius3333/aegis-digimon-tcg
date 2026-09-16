@@ -135,7 +135,6 @@ describe("BT25-002 Wanyamon", () => {
       ok: true,
     });
     await settle();
-    // BT26-036 has its own reveal effect; the opponent's deck is the clean trigger witness.
     expect(s.state.players[1]!.deck).toHaveLength(2);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unrelatedTamer").instanceId })).toEqual({

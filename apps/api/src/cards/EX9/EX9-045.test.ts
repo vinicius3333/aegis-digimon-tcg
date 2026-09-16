@@ -360,7 +360,6 @@ describe("EX9-045", () => {
     });
     await settle();
 
-    // 15,000 DP loses to 16,000 without Alliance; the real +3,000 boost makes the attack win.
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
     ).toBe(true);

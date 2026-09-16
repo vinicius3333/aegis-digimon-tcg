@@ -3,8 +3,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 function sourceBoard() {
-  // A hand-laid six-color source stack keeps these focused tests about EX9-074's
-  // target assignment while the card itself is reached through public evolution.
   return {
     battleArea: [
       {
@@ -289,7 +287,6 @@ describe("EX9-074 six-color digivolution stack", () => {
             { card: "BT1-064", as: "green" },
             { card: "BT10-058", as: "black" },
             { card: "BT10-071", as: "purple" },
-            // Q5003 checks white too, although this six-color source stack has no white card.
             { card: "BT1-084", as: "white" },
           ],
         },

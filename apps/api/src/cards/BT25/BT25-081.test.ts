@@ -88,7 +88,7 @@ describe("BT25-081 Fangmon", () => {
     expect(s.perm("base").topCard.cardId).toBe(CARD_ID);
     expect(s.perm("opponentBlue").isSuspended).toBe(true);
     expect(s.perm("opponentMixed").isSuspended).toBe(false);
-    expect(s.state.memory).toBe(1); // Fangmon's All Turns effect sees the opponent Tamer suspend.
+    expect(s.state.memory).toBe(1);
   });
 
   it("publicly rejects the ordinary route from a wrong-color level-3 source", async () => {

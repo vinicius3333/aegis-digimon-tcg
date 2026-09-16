@@ -1,18 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5083: the trash cost can target a digivolution card from any of your Digimon's stacks.
-// KB Q5100: the inherited effect reads the final play cost (after reduction) to check the
-// 4-or-less threshold, so it interacts with cost-reduction effects.
-// [On Play][When Digivolving] cost: trash any 1 Mineral/Rock trait CARD from your Digimon's
-//   digivolution cards (filter is on the CARD being trashed, not the host Digimon).
-//   Effect: 1 of your Mineral/Rock trait Digimon gains <Reboot>, <Blocker>, and +3000 DP
-//   until opponent's turn ends. All three apply to the same chosen Digimon; use selectionRef.
-//   A `fromSelectionRef` target resolves straight to the bound permanent, so the `filter` and
-//   `count` the Target type requires are inert here and must stay inert: they exist only so
-//   the record typechecks (same shape as EX10-029's bound Restrict).
-// Inherited: whenTrashedFromDigivolutionCards — sourceFilter gates on the HOST Digimon
-//   having Mineral or Rock trait (the Digimon whose stack this card was in).
 const compiled: CompiledCard = {
   effects: [
     {

@@ -182,9 +182,6 @@ describe("LM-017 Regulusmon", () => {
       addedDigivolutionCardInstanceIds: [],
       byEffectSeat: 0,
     });
-    // The cost deletes one battlefield Digimon into trash while the effect plays one
-    // card out of trash, leaving trash at 2 (not 1): BT10-078 stays, and the deleted
-    // "first" (BT1-009) replaces the played LM-016.
     await settle(
       () =>
         s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009") &&

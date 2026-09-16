@@ -28,14 +28,11 @@ describe("EX10-007 Greymon", () => {
       types: ["Dinosaur"],
     });
 
-    // "w/[Agumon] in name" is a SUBSTRING gate, so `names`, never `namesExact`.
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, names: ["Agumon"], cost: 2, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
 
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      // toEqual, not toMatchObject: an added `controller` key on the filter would be a real
-      // regression against KB Q5012 (either player's Digimon), and toMatchObject would allow it.
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)?.actions).toEqual([
         {
           kind: "ModifyDP",
@@ -61,8 +58,6 @@ describe("EX10-007 Greymon", () => {
     });
   });
 
-  // C2 / Q5012: the On Play buff reaches an OPPONENT's Digimon, played through the public
-  // playCard intent rather than injected timing.
   it("Q5012: On Play from hand gives an opposing Digimon +3000 DP", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -122,7 +117,6 @@ describe("EX10-007 Greymon", () => {
     expect(s.perm("enemy").currentDP).toBe(enemyBase);
   });
 
-  // C2 duration: "until your opponent's turn ends" measured through the real turn loop.
   it("the +3000 DP lasts through the whole of the opponent's turn and expires when it ends", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -152,7 +146,6 @@ describe("EX10-007 Greymon", () => {
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // Still alive on the opponent's turn: the duration is "until your opponent's turn ends".
     expect(s.perm("ally").currentDP).toBe(allyBase + 3000);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
@@ -163,8 +156,6 @@ describe("EX10-007 Greymon", () => {
     await loop;
   });
 
-  // C1 / C2: the printed alternate route. "w/[Agumon] in name" is a substring gate, so both an
-  // exactly-named Agumon and a ToyAgumon are legal sources at the reduced cost of 2.
   it.each([
     ["an exactly named Agumon", "EX10-006"],
     ["a ToyAgumon, proving the name gate is a substring", "BT7-007"],
@@ -204,9 +195,7 @@ describe("EX10-007 Greymon", () => {
 
     expect(s.perm("source").topCard?.instanceId).toBe(greymonId);
     expect(s.perm("source").stack.map((card) => card.instanceId)).toEqual([sourceId]);
-    // Cost 2, not the printed EvoCost of 3.
     expect(s.state.memory).toBe(0);
-    // The digivolution bonus draw landed.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.perm("ally").currentDP).toBe(allyBase + 3000);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -221,7 +210,6 @@ describe("EX10-007 Greymon", () => {
       },
     });
     await s.ready();
-    // 5 memory covers even the printed EvoCost of 3, so the refusal is the name gate, not cost.
     s.state.memory = 5;
     const greymonId = s.inst("greymon").instanceId;
 
@@ -239,9 +227,6 @@ describe("EX10-007 Greymon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([greymonId]);
   });
 
-  // Q5013: buffing the opponent's EX10-010 to 15000 arms BOTH EX10-010s' [All Turns] clauses.
-  // The opponent's copy then becomes immune to this card's effect but keeps 15000 from its own
-  // clause, and both stay at 15000 after the buff expires.
   it("Q5013: settles both BlackWarGreymon ACEs at 15000 DP and keeps them there after expiry", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -282,7 +267,6 @@ describe("EX10-007 Greymon", () => {
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
-    // This card's +3000 is gone, but each ACE now holds the other at 13000+, so both stay 15000.
     expect(s.perm("theirs").currentDP).toBe(15_000);
     expect(s.perm("mine").currentDP).toBe(15_000);
 
@@ -297,7 +281,6 @@ describe("EX10-007 Greymon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(false);
-    // MetalGreymon prints 7000 DP; the inherited [All Turns] clause adds exactly 1000.
     expect(getCardDefinition("EX10-008")?.dp).toBe(7000);
     expect(s.perm("host").baseDP).toBe(7000);
     expect(s.perm("host").currentDP).toBe(8000);
@@ -305,7 +288,6 @@ describe("EX10-007 Greymon", () => {
     const standalone = setupEngine({ 0: { battleArea: [{ card: "EX10-007", as: "greymon" }] } });
     await standalone.ready();
     expect(observe(standalone.engine).hasKeyword(standalone.perm("greymon"), "Raid")).toBe(true);
-    // The inherited clause is not applied to the card while it is the top card.
     expect(standalone.perm("greymon").currentDP).toBe(4000);
   });
 });

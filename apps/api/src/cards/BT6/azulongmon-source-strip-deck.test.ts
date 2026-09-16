@@ -104,8 +104,6 @@ describe("BT6 Azulongmon source-strip deck gauntlet", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The phase check is load-bearing: the attack resolves before the engine has returned to
-    // Main, and declaring the next one in that window is refused as wrong-phase.
     await settle(
       () =>
         !observe(s.engine).isAttacking() &&

@@ -1,9 +1,6 @@
 import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Annotated as `Target` so `kind` and `match` keep their literal union types: an unannotated
-// object literal widens `kind: ["Digimon"]` to `string[]`, which the interpreter's Filter
-// rejects.
 const grantTarget: Target = {
   filter: {
     controller: "mine",
@@ -16,8 +13,6 @@ const grantTarget: Target = {
   count: 1,
 };
 
-// Both keywords belong to the same printed "1 of your Digimon" selection. Encode
-// Piercing as the additional keyword on the same action so target selection occurs once.
 const grantRaidAndPiercing = (): Action[] => [
   {
     kind: "GainKeyword",

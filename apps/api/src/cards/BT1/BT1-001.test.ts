@@ -60,8 +60,6 @@ describe("BT1-001 Yokomon", () => {
 
   it("does not gain DP in a security battle", async () => {
     const s = setupEngine({
-      // A plain host carrying Yokomon ties the 6000-DP Security Digimon and is deleted. If
-      // the inherited effect incorrectly fires for a player attack, 7000 DP would survive.
       0: { battleArea: [{ card: "BT1-019", as: "attacker", under: ["BT1-001"] }] },
       1: { security: ["BT1-020"] },
     });
@@ -148,13 +146,10 @@ describe("BT1-001 Yokomon", () => {
     expect(carrier.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
     expect(carrier.currentDP).toBe(carrier.baseDP);
 
-    // The opponent's turn-start unsuspends both targets. Re-suspend them so the following
-    // attack declarations are legal; otherwise the public attack intent returns illegal-target.
     expect(s.perm("peerTarget").isSuspended).toBe(false);
     expect(s.perm("carrierTarget").isSuspended).toBe(false);
     await advance(s.engine).verb.suspend([s.perm("peerTarget").permanentId, s.perm("carrierTarget").permanentId]);
 
-    // The source-less peer has only 5000 DP and cannot defeat a 5500-DP target.
     const peerPermanentId = s.perm("peer").permanentId;
     const peerTargetPermanentId = s.perm("peerTarget").permanentId;
     expect(
@@ -167,7 +162,6 @@ describe("BT1-001 Yokomon", () => {
     await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === peerPermanentId));
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === peerTargetPermanentId)).toBe(true);
 
-    // The real BT1-001 stack attacks the other opposing Digimon: 5000 + 1000 defeats 5500.
     const carrierTargetInstanceId = s.perm("carrierTarget").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {

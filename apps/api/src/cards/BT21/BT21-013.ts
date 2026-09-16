@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-corrected IR for BT21-013 (Agunimon). The declarative effect record dropped half of the
-// [When Digivolving] destination clause and widened the source zones:
-//   documented behavior CanSelectPermanent accepts the SOURCE permanent itself ("as this Digimon's
-//   bottom digivolution card") OR a red Tamer with inherited effects, and CanSelectSourceCard
-//   reads the hand and the trash only. With only the Tamer destination encoded, a controller
-//   with no red Tamer in play resolved the effect to nothing, with no card selection at all.
 export const compiled: CompiledCard = {
   effects: [
     {

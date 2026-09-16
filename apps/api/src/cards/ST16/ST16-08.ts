@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST16-08 Garurumon
-// [Security] Play 1 [Gabumon] OR 1 Tamer with [Matt Ishida] in name from hand or trash free.
-// KB Q823: only exact name [Gabumon] qualifies; not [Gabumon - Bond of Friendship] etc.
-// [When Digivolving] <Draw 1>, then trash 1 from hand.
-// (inherited) [When Attacking][Once Per Turn] <Draw 1>, then trash 1 from hand.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT22-102 Sayo
-// Fix: [Your Turn] SubTrigger actions were empty; corrected to Digivolve from trash
-//   with cost reduction 2. sourceFilter checks attacking Digimon has same-level stack.
-//   Q4977: "2 or more cards with the same level among all stacked cards" (minCount: 2).
 export const compiled: CompiledCard = {
   effects: [
     {

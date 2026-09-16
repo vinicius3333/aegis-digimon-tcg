@@ -4,21 +4,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 
-// Import the override so it self-registers on the registry.
 import "../BT7/BT7-072.js";
-
-// ---------------------------------------------------------------------------
-// BT7-072 Eyesmon scaling-DP A3
-//
-// BT7-072 (Eyesmon) grants itself +2000 DP for each [Eyesmon: Scatter Mode] in
-// the owner's trash while it is on the battle area during the owner's turn.
-// where count() = TrashCards.Count(cardNames.Contains("Eyesmon: Scatter Mode")).
-//
-// FAILS-WHEN-REVERTED LEVER:
-//   If the amount is reverted to a static 0 (or the scaling count is dropped),
-//   the modifyDP call is never made (or is 0), and the "modifyDP called with 6000"
-//   assertion goes RED.
-// ---------------------------------------------------------------------------
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -122,7 +108,6 @@ function makeContext(opts: { trashNames: string[]; recorder: Recorder; isOwnersT
     modifyDP: (id: string, amount: number, duration: unknown) => {
       opts.recorder.calls.push({ verb: "modifyDP", args: [id, amount, duration] });
     },
-    // Stub out primitives the PlayWithoutCost static clause may invoke.
     playInstances: async () => [],
     subscribeSubTrigger: () => {},
     grantKeyword: () => {},
@@ -154,7 +139,6 @@ describe("BT7-072 Eyesmon scaling-DP A3", () => {
     const effects = module!.effectsForTiming(EffectTiming.None, source);
     expect(effects.length, "BT7-072 must expose a [None] scaling-DP effect").toBeGreaterThanOrEqual(1);
 
-    // Run the static effect — find the scaling-DP effect
     for (const effect of effects) {
       if (effect.canTrigger(ctx)) {
         await effect.resolve(ctx);
@@ -189,8 +173,6 @@ describe("BT7-072 Eyesmon scaling-DP A3", () => {
     expect(amounts).toContain(2000);
   });
 
-  // REVERT LEVER: if the scaling is removed (amount set to static 0), modifyDP is
-  // never called (scale=0 => early return) and this assertion FAILS → RED confirmed.
   it("[None] does NOT call modifyDP when no Eyesmon: Scatter Mode is in trash", async () => {
     const recorder: Recorder = { calls: [] };
     const ctx = makeContext({

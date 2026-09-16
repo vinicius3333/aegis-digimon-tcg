@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5012: [On Play] [When Digivolving] effect can target ANY Digimon (yours OR opponent's).
-// controllerDefault removed from ModifyDP target so both players' Digimon are eligible.
 const compiled: CompiledCard = {
   effects: [
     {

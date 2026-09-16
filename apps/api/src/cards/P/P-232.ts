@@ -1,5 +1,3 @@
-// Hand-fixed: [Yuuki] sourceFilter uses the printed card name;
-// Digivolve action is inside the SubTrigger as the <Delay> payload.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

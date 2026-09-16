@@ -142,7 +142,6 @@ describe("EX11-071 Cool Boy", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // `abortOnDecline`: refusing the return must not still play the Royal Knight.
     expect(s.perm("cool").topCard.cardId).toBe("EX11-071");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("AD1-008");
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "AD1-008")).toBe(false);
@@ -151,15 +150,12 @@ describe("EX11-071 Cool Boy", () => {
   });
 
   it("leaves a revealed card matching neither add slot on the bottom of the deck", async () => {
-    // BT1-009 Monodramon is [Mini Dragon] with no LIBERATOR/Royal Knight trait and is not one
-    // of the two named cards, so neither slot may take it.
     const s = setupEngine(
       { 0: { hand: [{ card: "EX11-071", as: "cool" }], deck: ["BT1-009", "BT1-010", "BT1-011", "EX11-053"] } },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cool").instanceId })).toEqual({ ok: true });
-    // The three revealed cards go to the bottom, so the untouched fourth card surfaces.
     await settle(() => s.state.players[0]!.deck[0]?.cardId === "EX11-053");
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
@@ -174,7 +170,6 @@ describe("EX11-071 Cool Boy", () => {
 
   it("publishes full exclusive IR with the play floor and folded reduction", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    // Bracketed card-name refs are exact names (KB Q1231/Q1232), not substrings.
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([
       {
         kind: "RevealAdd",

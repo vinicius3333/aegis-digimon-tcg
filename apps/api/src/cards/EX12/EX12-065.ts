@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX12-065 (Kaguyamon).
-// [On Play]/[When Digivolving]/[When Attacking]: added playCostLte:5 to target filter
-//   (text: "play cost 5 or lower [Puppet] or [Shambala] trait card").
-// [All Turns] GainKeyword: trait filter uses [Puppet]/[TB] which matches the printed text
-//   ("[Puppet] or [TB] trait Digimon") — not a bug, TB is the trait abbreviation.
-// [On Deletion] superlative:lowestLevel is already correct.
 const compiled: CompiledCard = {
   effects: [
     {

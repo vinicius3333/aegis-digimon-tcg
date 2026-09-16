@@ -101,7 +101,6 @@ describe("BT17-044 Morphomon", () => {
 
     expect(s.state.memory).toBe(4);
     expect(s.perm("morphomon").stack.map((card) => card.cardId)).toEqual(["BT17-044"]);
-    // The spare, plus the one card the digivolution bonus draw added.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("spare").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(0);
@@ -137,7 +136,6 @@ describe("BT17-044 Morphomon", () => {
       return 5 - s.state.memory;
     }
 
-    // BT6-047 is a plain Morphomon (only an [On Deletion] effect): the control.
     const controlCost = await digivolveIntoEosmon("BT6-047");
     const reducedCost = await digivolveIntoEosmon("BT17-044");
 
@@ -201,7 +199,6 @@ describe("BT17-044 Morphomon", () => {
     expect(s.perm("host").topCard?.cardId).toBe("BT17-075");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT17-044", "BT17-074"]);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === evolvedEosmonId)).toBe(false);
-    // 6 memory - 4 to play the second Eosmon - (3 - 3) for the reduced digivolution.
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -245,7 +242,6 @@ describe("BT17-044 Morphomon", () => {
     );
     await settle();
 
-    // Not mine and not my turn: neither the controller nor the [Your Turn] gate passes.
     expect(s.perm("host").topCard?.cardId).toBe("BT17-074");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT17-044"]);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === evolvedEosmonId)).toBe(true);
@@ -287,7 +283,6 @@ describe("BT17-044 Morphomon", () => {
     expect(s.perm("host").topCard?.cardId).toBe("BT17-074");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT17-044"]);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === evolvedEosmonId)).toBe(true);
-    // Only the 4 memory the play itself cost.
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -299,7 +294,6 @@ describe("BT17-044 Morphomon", () => {
           battleArea: [{ card: "BT17-074", under: ["BT17-044"], as: "host" }],
           hand: [
             { card: "BT17-074", as: "playedEosmon" },
-            // Lv6 Eosmon: requires a Lv5 [Eosmon] source, which the Lv4 host is not.
             { card: "BT17-076", as: "illegalEosmon" },
             { card: "BT1-009", as: "spare" },
           ],
@@ -360,7 +354,6 @@ describe("BT17-044 Morphomon", () => {
     expect(s.perm("host").topCard?.cardId).toBe("BT17-075");
     expect(s.state.memory).toBe(6);
 
-    // The host is now a Lv5 [Eosmon], so BT17-076 is a legal route — but the effect is spent.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({
       ok: true,
     });

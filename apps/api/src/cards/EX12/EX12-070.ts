@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q6883: the Draw 2 and placement tail cannot resolve unless the [TB] hand card is trashed.
-// Q6884-Q6885: the Delay trigger and other simultaneous effects are ordered by the player;
-// the replacement keeps the intrinsic Delay cost and payload in one effect window.
 export const compiled: CompiledCard = {
   effects: [
     {

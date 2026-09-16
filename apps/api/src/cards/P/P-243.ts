@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The printed Delay effect is available at the start of your turn only while the
-// opponent has a Digimon, and returns a DM Digimon from trash to the deck top.
 const compiled: CompiledCard = {
   effects: [
     {

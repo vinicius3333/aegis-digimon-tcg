@@ -4,14 +4,6 @@ import { advance } from "../engine/testkit/advance.js";
 import { setupEngine } from "../engine/testkit/harness.js";
 import "./index.js";
 
-/**
- * "[Start of Your Main Phase]" is owner-gated: the window fires at BOTH players'
- * main-phase starts, so every clause registered at EffectTiming.OnStartMainPhase must
- * check `isOwnersTurn()` itself.
- *
- * FAILS-WHEN-REVERTED: drop `&& source.isOwnersTurn()` from any card's `when` below and
- * the opponent-turn case gains memory.
- */
 const OWNER_GATED_TAMERS = ["EX10-062", "EX11-057"];
 
 describe("[Start of Your Main Phase] fires only on its owner's turn", () => {

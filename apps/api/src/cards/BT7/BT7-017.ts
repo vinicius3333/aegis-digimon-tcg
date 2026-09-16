@@ -1,7 +1,3 @@
-// HAND-FIXED IR for BT7-017 — do not regenerate.
-// WhenDigivolving: PlaceUnder added from:["hand","trash"], underFilter:self, position:top;
-// removed misplaced scaling (it belongs on the Delete action). Added Delete action with
-// scaling by level 5 Cyborg digivolution cards, gated on PlaceUnder.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

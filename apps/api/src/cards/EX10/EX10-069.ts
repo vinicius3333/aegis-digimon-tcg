@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -68,11 +65,6 @@ export const compiled: CompiledCard = {
               into: {
                 controllerDefault: "mine",
                 kind: ["Digimon"],
-                // KB Q5183: the card must have BOTH traits. `traits` is a single OR-matched
-                // token list (matching/definition.ts routes it through one `matchNameOrTrait`
-                // whose tokens are `.some()`-matched), so `traits: ["Mineral","LIBERATOR"]`
-                // accepted a Mineral-only or LIBERATOR-only card. `nameOrTrait` and `traits`
-                // are separate conjunctive gates, which is the documented way to AND them.
                 nameOrTrait: [
                   {
                     tokens: ["Mineral"],
@@ -89,12 +81,6 @@ export const compiled: CompiledCard = {
           ],
         },
       ],
-      // ＜Delay＞ printed on a continuous window. `delayArmedIntrinsic` is a marker the
-      // interpreter SYNTHESIZES (`withIntrinsicDelayGate`, interpreter/effect.ts) for every
-      // SubTrigger/Replacement of a Delay-keyworded continuous effect; it is not part of the
-      // compiled IR, so the printed keyword is the encoding that belongs here. The registered
-      // effect still reaches `runSubTrigger` with the same gate: §16-17-1 trash-this-card cost,
-      // §16-17-3 no activation the turn it entered play.
       keywords: [
         {
           keyword: "Delay",

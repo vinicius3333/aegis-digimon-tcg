@@ -90,16 +90,9 @@ describe("BT20-035 Kazuchimon", () => {
     );
     const suspendId = s.perm("suspendTarget").permanentId;
     const restrictId = s.perm("restrictTarget").permanentId;
-    // The Suspend and Restrict candidates are the same pair of opponent permanents, so a
-    // static preference order would auto-select the same one for both. Bias dynamically
-    // instead: prefer whichever candidate the Suspend action has not already claimed, so
-    // the two independent chooseTargets prompts land on distinct cards and prove Q4343's
-    // "may be different cards" ruling deterministically.
     preferred.includes = (id: string) => (id === suspendId ? !s.perm("suspendTarget").isSuspended : id === restrictId);
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("kazuchimon"), "Fortitude")).toBe(true);
-    // The first When Digivolving choice suspends the Digimon; the second choice
-    // intentionally selects a different Tamer, proving Q4343's separate targets.
     await advance(s.engine).verb.placeUnder(s.perm("kazuchimon").permanentId, [s.inst("tamer").instanceId]);
     await settle(
       () =>
@@ -362,7 +355,6 @@ describe("BT20-035 Kazuchimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    // Own Draw consumed recovery2; opponent security loss must leave recovery3 in the deck.
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("recovery3").instanceId);
     advance(s.engine).endMainPhaseIfOpen(0);

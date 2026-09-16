@@ -7,27 +7,19 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./EX13-013.js";
 
-/**
- * EX13-013 WarGrowlmon. `node tools/kb/query.mjs card EX13-013` reports no knowledge-base
- * entries — EX13 is pre-release — so every assertion is anchored on the printed text and on
- * `data/kb/rules/comprehensive.md` (16-44 ＜Engage＞, §4-22-1 "in its text").
- */
 const CARD_ID = "EX13-013";
 
-// Inert fixtures. No printed text at all unless noted, so nothing below competes with the
-// card under test for a trigger window or a decision.
-const LV4_RED = "BT1-014"; // Kokatorimon, Red Lv.4, 4000 DP — the legal digivolution source.
-const LV3_RED = "BT1-009"; // Monodramon, Red Lv.3, 3000 DP — illegal source, and the security body.
-const LV5_BLUE = "BT1-038"; // Monzaemon, Blue Lv.5, 6000 DP — illegal source (wrong colour).
-const BODY = "BT1-013"; // Muchomon, Red Lv.3, 5000 DP — the resizable opposing body.
-const SECOND_SECURITY = "BT1-010"; // Agumon — [On Play] only, never reached from security here.
-const GALLANTMON = "BT2-020"; // Gallantmon Lv.6 — an inherited host WITH [Gallantmon] in its name.
-const FLARE = "BT2-091"; // Volcanic Flare — [Main] Delete 1 of your opponent's Digimon with 4000 DP or less.
+const LV4_RED = "BT1-014";
+const LV3_RED = "BT1-009";
+const LV5_BLUE = "BT1-038";
+const BODY = "BT1-013";
+const SECOND_SECURITY = "BT1-010";
+const GALLANTMON = "BT2-020";
+const FLARE = "BT2-091";
 
-// The [Guilmon]-in-its-text discrimination trio.
-const GUILMON_TAMER = "BT17-080"; // Takato Matsuki, Tamer, cost 3 — "[Guilmon]/[Growlmon]/[Gallantmon]" in its text.
-const PLAIN_TAMER = "BT12-088"; // Takuya Kanbara, Tamer, cost 4 — no [Guilmon] anywhere in its printing.
-const GUILMON_DIGIMON = "EX13-007"; // Guilmon — [Guilmon] in its NAME but a Digimon, not a Tamer card.
+const GUILMON_TAMER = "BT17-080";
+const PLAIN_TAMER = "BT12-088";
+const GUILMON_DIGIMON = "EX13-007";
 
 describe("EX13-013 WarGrowlmon", () => {
   it("matches the catalog printing", () => {
@@ -62,14 +54,11 @@ describe("EX13-013 WarGrowlmon", () => {
       "AllTurns",
     ]);
 
-    // ＜Engage＞: comprehensive rules 16-44 — an optional trigger-type effect at End of Your Turn.
     expect(compiled.effects[0]).toMatchObject({ keywords: [{ keyword: "Engage", raw: "＜Engage＞" }], actions: [] });
     expect(compiled.effects[1]).toMatchObject({
       actions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true }],
     });
 
-    // The delete/fallback body is printed once under two timings, with no [Once Per Turn], so
-    // each timing is an independent effect with no pooled use key.
     for (const trigger of ["WhenDigivolving", "WhenAttacking"] as const) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect.isInherited).toBeUndefined();
@@ -88,12 +77,9 @@ describe("EX13-013 WarGrowlmon", () => {
         },
         { kind: "ModifyDP", amount: 3000, duration: "forTheTurn", condition: { kind: "ifThisEffectDidNotDelete" } },
       ]);
-      // Mandatory delete: no `optional`, which is what makes "didn't delete" mean "could not".
       expect(effect.actions[0]).not.toHaveProperty("optional");
     }
 
-    // "1 Tamer card with [Guilmon] in its text from your hand or trash": the kind gate is the
-    // load-bearing half — EX13-007 Guilmon answers the text reference but is a Digimon card.
     for (const trigger of ["EndOfAttack", "OnDeletion"] as const) {
       expect(compiled.effects.find((candidate) => candidate.trigger === trigger)).toMatchObject({
         actions: [
@@ -133,10 +119,6 @@ describe("EX13-013 WarGrowlmon", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Digivolution: Red Lv.4 for 3 memory, plus the [When Digivolving] clause.
-  // ---------------------------------------------------------------------------
-
   it("digivolves from a Red Lv.4 source for 3 memory and deletes a 5000 DP Digimon", async () => {
     const s = setupEngine(
       {
@@ -168,13 +150,11 @@ describe("EX13-013 WarGrowlmon", () => {
 
     const war = s.perm("war");
     expect(war.topCard?.cardId).toBe(CARD_ID);
-    // `Permanent.stack` holds only the cards beneath the top card: the Lv.4 source survives.
     expect(war.stack.map((card) => card.cardId)).toEqual([LV4_RED]);
     expect(war.currentDP).toBe(8000);
     expect(observe(s.engine).hasPierce(war)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("victim").instanceId]);
-    // 10 - 3 (printed digivolution cost); the bonus draw is a card, not memory.
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
@@ -263,10 +243,6 @@ describe("EX13-013 WarGrowlmon", () => {
     assertNoLoudGap(s);
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Attacking] — the same body on the other printed timing — and [End of Attack].
-  // ---------------------------------------------------------------------------
-
   it("deletes a 5000 DP Digimon when it attacks and then plays a [Guilmon] Tamer from hand", async () => {
     const s = setupEngine(
       {
@@ -298,15 +274,12 @@ describe("EX13-013 WarGrowlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2 && !observe(s.engine).isAttacking());
 
-    // [When Attacking] found a legal 5000 DP target, so no Piercing / +3000 DP fallback.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("victim").instanceId);
     expect(s.perm("war").currentDP).toBe(8000);
     expect(observe(s.engine).hasPierce(s.perm("war"))).toBe(false);
-    // The security check consumed the top card only; the remaining stack keeps its order.
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("bottomSecurity").instanceId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
-    // [End of Attack] played the Tamer WITHOUT paying its printed cost of 3.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual(
       [CARD_ID, GUILMON_TAMER].sort(),
     );
@@ -348,22 +321,14 @@ describe("EX13-013 WarGrowlmon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId).sort()).toEqual(
       [s.perm("war").topCard!.instanceId, s.inst("takato").instanceId].sort(),
     );
-    // The near match (Guilmon in its NAME, wrong card kind) and the non match (a Tamer with no
-    // [Guilmon] in its printing) both stay in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("guilmonDigimon").instanceId, s.inst("takuya").instanceId].sort(),
     );
-    // No opposing Digimon existed, so the [When Attacking] fallback branch applied instead.
     expect(s.perm("war").currentDP).toBe(11000);
     expect(observe(s.engine).hasPierce(s.perm("war"))).toBe(true);
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Deletion] — proven on the opponent's turn, where [End of Attack] cannot fire
-  // because this Digimon is the defender rather than the attacker.
-  // ---------------------------------------------------------------------------
 
   it("plays one [Guilmon] Tamer from the trash when it is deleted defending on the opponent's turn", async () => {
     const s = setupEngine(
@@ -379,8 +344,6 @@ describe("EX13-013 WarGrowlmon", () => {
         },
         1: {
           battleArea: [{ card: BODY, as: "bruiser", dp: 20_000 }],
-          // A spare playable card: a seat with no legal main action is auto-passed before a
-          // test can act in its Main phase.
           hand: [{ card: LV3_RED, as: "spare" }],
           deck: [LV3_RED, LV3_RED],
           security: [LV3_RED],
@@ -392,8 +355,6 @@ describe("EX13-013 WarGrowlmon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    // The defender's seat cannot attack, so the opponent's real turn has to be open: the
-    // production turn loop is the only route to a Main phase for seat 1.
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     const memoryBeforeDeletion = s.state.memory;
@@ -409,29 +370,20 @@ describe("EX13-013 WarGrowlmon", () => {
     await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("war").instanceId);
-    // Exactly ONE Tamer left the trash: [On Deletion] fired once and [End of Attack] did not
-    // fire at all, because the deleted Digimon was the defender.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([GUILMON_TAMER]);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === GUILMON_TAMER)).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([BODY]);
-    // Played without paying: the Tamer's printed cost of 3 never moved memory.
     expect(s.state.memory).toBe(memoryBeforeDeletion);
     expect(s.state.pendingDecision).toBeUndefined();
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
   });
 
-  // ---------------------------------------------------------------------------
-  // ＜Engage＞ (comprehensive rules 16-44) through the real turn loop.
-  // ---------------------------------------------------------------------------
-
   it("attacks at the end of its controller's turn through Engage, and the +3000 DP expires with the turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "war" }],
-          // A spare playable card keeps Main from auto-passing; a plain Tamer is never a legal
-          // [End of Attack] candidate, so the Engage attack's own window stays quiet.
           hand: [{ card: PLAIN_TAMER, as: "spare" }],
           deck: [LV3_RED, LV3_RED],
           security: [LV3_RED],
@@ -451,21 +403,14 @@ describe("EX13-013 WarGrowlmon", () => {
 
     await advance(s.engine).runTurn(0);
 
-    // The Engage attack happened: the opponent's top security card was checked and trashed.
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("bottomSecurity").instanceId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
     expect(s.perm("war").isSuspended).toBe(true);
-    // "for the turn" is `forTheTurn`, so the [When Attacking] fallback buff is gone by now.
     expect(s.perm("war").currentDP).toBe(8000);
     expect(observe(s.engine).hasPierce(s.perm("war"))).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited: [All Turns] [Once Per Turn] When any of your opponent's Digimon are deleted,
-  // if this Digimon has [Gallantmon] in its name, trash their top security card.
-  // ---------------------------------------------------------------------------
 
   it("trashes the opponent's top security card once per turn under a [Gallantmon] host", async () => {
     const s = setupEngine(
@@ -508,11 +453,9 @@ describe("EX13-013 WarGrowlmon", () => {
       s.inst("middleSecurity").instanceId,
       s.inst("bottomSecurity").instanceId,
     ]);
-    // Security cards are face down in the stack and stay that way until checked.
     expect(s.state.players[1]!.security.every((card) => card.faceUp === false)).toBe(true);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
 
-    // Second deletion in the SAME turn: [Once Per Turn] refuses, so security is untouched.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondFlare").instanceId })).toEqual({
       ok: true,
     });
@@ -561,7 +504,6 @@ describe("EX13-013 WarGrowlmon", () => {
     await settle(() => s.state.players[1]!.security.length === 2);
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    // Through the real turn loop: the opponent's whole turn, then this controller's next one.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);

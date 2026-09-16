@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Start of Your Main Phase] / [When Digivolving] (single effect, dual trigger):
-// This Digimon may digivolve into [Coredramon] from your hand without paying the cost.
-// [End of Your Turn] inherited: May DNA digivolve this Digimon + any of your other Digimon
-// into a Digimon card in your hand (paying the cost).
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -9,27 +9,6 @@ import "../index.js";
 
 const CARD_ID = "EX13-029";
 
-// Fixtures.
-//   BT18-030 Candlemon — YELLOW Lv.3 whose printed MAIN box names [Witchelny] although its TYPE
-//     is [Flame]. It is the alternate header's source: the header reads the card's printed text,
-//     so this card reaches EX13-029 for the header's 2 rather than the catalog EvoCost's 3. Its
-//     own [On Play] never fires on a digivolution.
-//     (BT19-029 Tapirmon names [Witchelny] only in its INHERITED box, and the engine's `texts`
-//     predicate reads the main box, so it is NOT a header source — verified, not assumed.)
-//   BT1-045 Tsukaimon — YELLOW Lv.3, NO printed text at all: the header NEGATIVE. It is still a
-//     legal source through the catalog EvoCost, so the observable difference is the cost.
-//   BT1-064 Goblimon — GREEN Lv.3, NO printed text: the illegal source. Neither the Yellow/Red
-//     EvoCosts nor the header's Lv.3-with-[Witchelny]-text predicate admits it.
-//   BT18-036 Wizardmon — YELLOW Lv.4 whose printed TYPES are ["Wizard","Witchelny"]: the positive
-//     host for the inherited replacement. EX13-029 itself is deliberately NOT the host here: its
-//     own printed ＜Armor Purge＞ is a second deletion prevention and would confound every
-//     prevented/not-prevented assertion below.
-//   BT9-035 Starmon — YELLOW Lv.4, ["Mutant"], no printed text: the negative host for the inherited
-//     replacement.
-//   BT1-037 Gorillamon — BLUE Lv.4, 6000 DP, no printed text. At its printed DP, -4000 leaves
-//     2000, which the delete then removes THROUGH THE EFFECT rather than through the DP-zero rule;
-//     seeded at 9000 DP it survives at 5000, above the printed ceiling.
-//   BT1-009..BT1-014 are the inert main-deck Digimon used as security and deck filler.
 const WITCHELNY_TEXT_SOURCE = "BT18-030";
 const PLAIN_YELLOW_SOURCE = "BT1-045";
 const ILLEGAL_SOURCE = "BT1-064";
@@ -68,8 +47,6 @@ describe("EX13-029 FlameWizardmon", () => {
     expect(runtimeCompiledCard(CARD_ID)).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects).toHaveLength(5);
 
-    // "Lv.3 w/[Witchelny] in text: Cost 2" — a printed-text predicate, no colour, cheaper than
-    // both catalog EvoCosts.
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, texts: ["Witchelny"], cost: 2, isAlternate: true }]);
     expect(compiled.assemblyRequirement).toBeUndefined();
 
@@ -79,7 +56,6 @@ describe("EX13-029 FlameWizardmon", () => {
       keywords: [{ keyword: "Armor Purge", raw: "＜Armor Purge＞" }],
     });
 
-    // One printed [Once Per Turn] over two windows, so both share a use ledger.
     const [whenDigivolving, whenAttacking] = [compiled.effects[1], compiled.effects[2]];
     expect(whenDigivolving).toMatchObject({ trigger: "WhenDigivolving", frequency: "OncePerTurn" });
     expect(whenAttacking).toMatchObject({ trigger: "WhenAttacking", frequency: "OncePerTurn" });
@@ -107,7 +83,6 @@ describe("EX13-029 FlameWizardmon", () => {
           condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
         },
       ]);
-      // No "may" is printed on either process.
       expect(effect?.actions[0]).not.toHaveProperty("optional");
       expect(effect?.actions[1]).not.toHaveProperty("optional");
     }
@@ -173,19 +148,13 @@ describe("EX13-029 FlameWizardmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // The alternate header's 2, not either catalog EvoCost's 3.
     expect(s.state.memory).toBe(8);
-    // The "by" cost trashed the TOP security card.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("middle").instanceId,
       s.inst("bottom").instanceId,
     ]);
-    // The post-cost stack is 2 (<= 3), so the delete lands.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain(OPPONENT);
-    // 6000 - 4000 = 2000, which is above zero, so the removal is the printed DELETE and not the
-    // DP-reaching-zero rule. No fixture in this file is seeded at exactly 4000 DP, because a
-    // target the debuff drove to 0 would be swept by that rule and prove nothing here.
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -205,10 +174,6 @@ describe("EX13-029 FlameWizardmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    // This Lv.3 never names [Witchelny], so the header does not apply and the catalog EvoCost's
-    // 3 is what it pays. (`useAlternateCost` is a request, not a route: the engine falls back to
-    // the EvoCost when no alternate header matches, so the COST is the discriminator here and
-    // the outright refusal is proven by the green source below.)
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -275,8 +240,6 @@ describe("EX13-029 FlameWizardmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 4);
 
-    // 5 - 1 = 4, above the printed "3 or fewer" gate, so the DP debuff lands but the delete does
-    // not.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("victim").currentDP).toBe(2000);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -311,8 +274,6 @@ describe("EX13-029 FlameWizardmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
 
-    // The security gate passes (1 <= 3) and the debuff lands, but 9000 - 4000 = 5000 stays above
-    // the printed 4000 DP ceiling, so nothing is deleted.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("survivor").currentDP).toBe(5000);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -344,7 +305,6 @@ describe("EX13-029 FlameWizardmon", () => {
     await drainMicrotasks();
 
     expect(s.perm("source").topCard.cardId).toBe(CARD_ID);
-    // A "by" condition can never be paid partly (manual §1): no debuff and no delete.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("victim").currentDP).toBe(6000);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -382,8 +342,6 @@ describe("EX13-029 FlameWizardmon", () => {
     await settle(() => s.state.players[0]!.security.length === 2);
     const securityAfterDigivolve = s.state.players[0]!.security.length;
 
-    // The [When Attacking] window shares the SAME [Once Per Turn], already spent by the
-    // digivolution, so this attack pays no second security card.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -400,7 +358,6 @@ describe("EX13-029 FlameWizardmon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // Next own turn: the quota is back, so attacking pays a security card again.
     await advance(s.engine).verb.unsuspend([s.perm("source").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -422,7 +379,6 @@ describe("EX13-029 FlameWizardmon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("flameWizardmon"), "Armor Purge")).toBe(true);
-    // The catalog name is FlameWizardmon, so every [Wizardmon] read comes from the Rule clause.
     expect(getCardDefinition(CARD_ID)?.nameEn).toBe("FlameWizardmon");
     expect(observe(s.engine).grantedNames(s.perm("flameWizardmon"))).toContain("wizardmon");
   });
@@ -503,8 +459,6 @@ describe("EX13-029 FlameWizardmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 3);
 
-    // 4 - 1 = 3, exactly the printed gate, so the delete lands. The 5-card sibling above proves
-    // the other side of the boundary at 4.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain(OPPONENT);
   });
@@ -538,8 +492,6 @@ describe("EX13-029 FlameWizardmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // 8000 - 4000 = 4000, exactly the printed ceiling and far above zero, so this is the printed
-    // delete and not the DP-reaching-zero rule. The 9000 sibling proves the other side.
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain(OPPONENT);
   });
 
@@ -563,8 +515,6 @@ describe("EX13-029 FlameWizardmon", () => {
     advance(ownEffect.engine).verb.leaveEffectResolution();
     await settle(() => ownEffect.state.pendingDecision === undefined);
 
-    // "by your opponent's effects" only: the controller's own effect goes through unanswered and
-    // no security card is paid.
     expect(ownEffect.state.players[0]!.battleArea).toHaveLength(0);
     expect(ownEffect.state.players[0]!.security).toHaveLength(1);
 
@@ -587,7 +537,6 @@ describe("EX13-029 FlameWizardmon", () => {
     advance(noSecurity.engine).verb.leaveEffectResolution();
     await settle(() => noSecurity.state.pendingDecision === undefined);
 
-    // A "by" condition can never be paid partly (manual §1), so the host leaves.
     expect(noSecurity.state.players[0]!.battleArea).toHaveLength(0);
   });
 
@@ -617,7 +566,6 @@ describe("EX13-029 FlameWizardmon", () => {
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The single printed quota was spent, so the second departure goes through unpaid.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(2);
 
@@ -633,7 +581,6 @@ describe("EX13-029 FlameWizardmon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(revived.permanentId);
-    // A third security card was paid for the reopened prevention.
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });

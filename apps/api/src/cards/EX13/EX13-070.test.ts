@@ -214,8 +214,6 @@ describe("EX13-070 Davis Motomiya & Ken Ichijoji", () => {
     await settle(() => s.perm("source").topCard.cardId === "BT12-022");
     expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["BT12-021"]);
     expect(s.perm("tamer").isSuspended).toBe(true);
-    // Public phase progression passes the turn at -3 memory; the printed evolution cost of 2
-    // then resolves from that gauge.
     expect(s.state.memory).toBe(-5);
     await turn;
   });

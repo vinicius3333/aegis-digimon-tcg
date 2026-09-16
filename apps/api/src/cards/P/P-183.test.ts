@@ -205,8 +205,6 @@ describe("P-183 Gaiomon", () => {
     expect(s.state.players[1]!.security).toHaveLength(4);
     expect(s.perm("gaiomon").isSuspended).toBe(true);
 
-    // The second public attack is still this same turn; unsuspend only reopens the printed
-    // Blocker cost, while the Once Per Turn watcher must remain spent.
     await advance(s.engine).verb.unsuspend([gaiomonId]);
     await attack("attacker2", 2);
     expect(s.state.players[1]!.security).toHaveLength(4);
@@ -216,8 +214,6 @@ describe("P-183 Gaiomon", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // Reboot's natural opponent unsuspend phase made the same Gaiomon available again. The
-    // next turn's accepted attack/block is therefore a real once-per-turn reset proof.
     await attack("attacker3", 3);
     expect(s.state.players[1]!.security).toHaveLength(3);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

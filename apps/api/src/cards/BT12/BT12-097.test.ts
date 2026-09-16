@@ -90,17 +90,9 @@ describe("BT12-097 compiled IR module", () => {
   });
 });
 
-// BT12-097 Ryoma Mogami is the only card still running the handwritten Save-Tamer reducer:
-//   "[Your Turn] If one of your Digimon digivolves into a Digimon card with <Save> in its text,
-//    by suspending this Tamer and placing 1 card from under one of your Tamers under that
-//    Digimon as one of its digivolution cards, reduce the digivolution cost by 1."
-//
-// The engine activates every eligible interactive reduction on its own, so the only place the
-// controller can decline this cost is the card pick. Picking nothing must leave the Tamer
-// unsuspended and the digivolution at full price.
 const RYOMA = "BT12-097";
-const SAVE_DIGIMON = "BT10-075"; // Damemon — purple Lv.4 with <Save>, digivolves from purple Lv.3
-const PURPLE_LV3 = "BT10-071"; // Gazimon
+const SAVE_DIGIMON = "BT10-075";
+const PURPLE_LV3 = "BT10-071";
 
 function board() {
   return {
@@ -130,7 +122,7 @@ describe("BT12-097 Save digivolve reducer", () => {
     await settle(() => s.perm("ryoma").isSuspended);
 
     expect(s.perm("ryoma").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(-1); // printed cost 2, reduced to 1
+    expect(s.state.memory).toBe(-1);
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("underCard").instanceId)).toBe(true);
   });
 
@@ -158,7 +150,7 @@ describe("BT12-097 Save digivolve reducer", () => {
     await settle(() => s.state.memory === -2 && s.perm("host").topCard?.cardId === SAVE_DIGIMON);
 
     expect(s.perm("ryoma").isSuspended).toBe(false);
-    expect(s.state.memory).toBe(-2); // full printed cost 2
+    expect(s.state.memory).toBe(-2);
     expect(s.perm("ryoma").stack.some((card) => card.instanceId === s.inst("underCard").instanceId)).toBe(true);
   });
 });

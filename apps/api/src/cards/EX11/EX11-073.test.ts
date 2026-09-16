@@ -116,10 +116,6 @@ describe("EX11-073 ExMaquinamon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[0]!.battleArea[0]!.topCard?.cardId).toBe("EX11-073");
     const result = s.state.players[0]!.battleArea[0]!;
-    // The material link is trashed before the DNA stack is assembled, then is eligible to be
-    // linked again from trash by ExMaquinamon's own When Digivolving clause (Q5945). The final
-    // linked list alone cannot distinguish those two legal transitions, so retain the movement
-    // event as explicit public evidence.
     expect(result.linked.map(({ cardId }) => cardId)).toEqual(["EX11-027", "EX11-027", "EX11-027"]);
     expect(result.linked.some(({ instanceId }) => instanceId === s.inst("materialLink").instanceId)).toBe(true);
     expect(

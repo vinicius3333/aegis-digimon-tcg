@@ -23,10 +23,6 @@ const playFromSecurity: Action = { kind: "PlayWithoutCost", target: self, from: 
 
 export const compiled: CompiledCard = {
   effects: [
-    // KB Q7117/Q7122: this is a {Security} effect — activatable only while the card is FACE UP in
-    // the security stack — timed at [End of Opponent's Turn]. It is not the classic check-triggered
-    // [Security] tag (Q7120), which this card does not carry (no `securityEffectText` in the
-    // catalog), so a security check must trash it like any other security card instead of playing it.
     { trigger: "EndOfOpponentsTurn", isSecurity: true, actions: [playFromSecurity] },
     { trigger: "WhenDigivolving", actions: [altCostDelete] },
     { trigger: "EndOfAttack", actions: [altCostDelete] },

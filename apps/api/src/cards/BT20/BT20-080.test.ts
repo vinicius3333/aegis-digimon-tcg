@@ -265,8 +265,6 @@ describe("BT20-080 Fenriloogamon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT20-081 is the catalog-legal Fenriloogamon: Takemikazuchi DNA result;
-          // its materials are Fenriloogamon and Kazuchimon, bottom-most first.
           battleArea: [
             { card: "BT20-081", under: ["BT20-080", "BT20-035"], as: "host" },
             { card: "BT20-032", as: "sacrifice" },
@@ -312,8 +310,6 @@ describe("BT20-080 Fenriloogamon", () => {
           battleArea: [
             { card: "BT20-071", dp: 1000, suspended: true, as: "targetOne" },
             { card: "BT20-047", dp: 1000, suspended: true, as: "targetTwo" },
-            // Keep this target below the 9000-DP attacker so the next-own-turn public
-            // attack proves the once-per-turn reset rather than a failed battle.
             { card: "BT20-010", dp: 1000, suspended: true, as: "targetThree" },
           ],
           deck: ["BT20-010", "BT20-010", "BT20-010"],

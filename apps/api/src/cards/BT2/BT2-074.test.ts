@@ -76,8 +76,6 @@ describe("BT2-074 Devimon", () => {
         },
         1: { battleArea: [{ card: "BT1-084", as: "opponent" }], deck },
       },
-      // Omnimon's [When Attacking] effect is optional even with no level 6 digivolution card
-      // to return (Q943), so its attack opens a prompt this scenario must answer.
       { autoDeclineOptional: true },
     );
     const loop = s.engine.startTurnLoop();

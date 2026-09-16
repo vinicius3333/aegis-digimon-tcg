@@ -3,16 +3,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-010.js";
 import "./BT18-011.js";
 
-// A3 for BT18-010 (Bokomon) — [Your Turn][Once Per Turn]:
-//   "When any of your Digimon or Tamers digivolve into a Digimon with the [Hybrid]/[Ten Warriors]
-//    trait, gain 1 memory."
-//
-// gates on permanent.TopCard.HasHybridTenWarriorsTraits; DigivolveFromCondition is IsDigimon||IsTamer.
-//
-// FAILS-WHEN-REVERTED: removing the whenOneOfYoursDigivolves SubTrigger watcher from the
-// staticModifier resolve prevents the memory gain when a [Hybrid]-trait Digimon digivolves.
-// Without the watcher, memory stays unchanged → the "memory == 1" assertion is RED.
-
 describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1 memory", () => {
   it("has complete declarative coverage for both printed clauses", () => {
     expect(compiled.coverage).toBe("full");
@@ -57,7 +47,6 @@ describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1
     );
     const { engine, state } = s;
 
-    // Install SubTrigger watchers via the continuous-recompute pass.
     await engine.recomputeContinuousEffects();
 
     state.memory = 10;
@@ -107,7 +96,6 @@ describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT1-016" && state.memory === 8);
 
-    // No [Hybrid] trait → no memory gain beyond the printed evolution cost.
     expect(state.memory).toBe(8);
   });
 

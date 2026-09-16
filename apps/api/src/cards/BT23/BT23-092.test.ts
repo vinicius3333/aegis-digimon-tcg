@@ -6,13 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-092.js";
 
-// Fixture vocabulary:
-//   BT22-008 Agumon      — Red Lv3 [CS] Digimon: a NON-BLUE colour-waiver source.
-//   BT23-006 Huckmon     — Red Lv3 [CS] Digimon: the attacker that arms the ＜Delay＞ clause.
-//   BT1-009 Monodramon   — Red Lv3 vanilla Digimon: non-CS attacker and legal security filler.
-//   BT1-088 Izzy Izumi   — Tamer whose only ability is a player-activated [Main]: an inert
-//                          opposing Tamer for the "1 of their Tamers" target.
-
 const SECURITY_FILLER = ["BT1-009", "BT1-010", "BT1-011"];
 
 describe("BT23-092 Ice Archery", () => {
@@ -35,9 +28,6 @@ describe("BT23-092 Ice Archery", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
 
-    // Clause 1: the waiver is gated on "on the field" — the battle area OR the breeding area
-    // (Q5365, asked about this wording; it is the CR 3-4-7-8 "explicitly references breeding
-    // areas" exception). On MY side, a Digimon or Tamer, [CS] as an EXACT trait.
     const waiver = compiled.effects.find((effect) => effect.trigger === "Static") as any;
     expect(waiver.actions).toHaveLength(1);
     expect(waiver.actions[0]).toMatchObject({ kind: "WaiveColorRequirement" });
@@ -51,7 +41,6 @@ describe("BT23-092 Ice Archery", () => {
       },
     });
 
-    // Clauses 2 and 4 are the same body; the ＜Delay＞ bullet (clause 3) omits the placement.
     for (const trigger of ["Main", "Security"] as const) {
       const clause = compiled.effects.find((effect) => effect.trigger === trigger) as any;
       expect(clause.actions).toMatchObject([
@@ -115,16 +104,13 @@ describe("BT23-092 Ice Archery", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("targetTamer"), "beSuspended"));
 
-    // The blue colour requirement was waived by the RED [CS] Agumon.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    // "Then, place this card in the battle area" — not the trash, not the delay zone.
     const optionPermanent = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === optionId);
     expect(optionPermanent).toBeDefined();
     expect(optionPermanent!.placedByEffect).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
     expect(s.state.players[0]!.delayZone.some((card) => card.instanceId === optionId)).toBe(false);
-    // Exactly ONE of their Digimon, and one of their Tamers.
     expect(observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("otherDigimon"), "beSuspended")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("targetTamer"), "beSuspended")).toBe(true);
@@ -155,8 +141,6 @@ describe("BT23-092 Ice Archery", () => {
     expect(observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended")).toBe(false);
   });
 
-  // Q5365, asked about this printed wording, answers that "on the field" is the battle area
-  // OR the breeding area — the CR 3-4-7-8 "explicitly references breeding areas" exception.
   it("Q5365: a [CS] Digimon in the BREEDING area alone satisfies “on the field”", async () => {
     const s = setupEngine(
       {
@@ -217,8 +201,6 @@ describe("BT23-092 Ice Archery", () => {
     expect(observe(s.engine).isRestricted(s.perm("targetTamer"), "beSuspended")).toBe(true);
   });
 
-  // A Digimon's traits are the traits of its top card; a [CS] card in the digivolution
-  // cards beneath a non-[CS] top card is not a "[CS] trait Digimon".
   it("does not waive the color requirement from a [CS] card under a non-[CS] top card", async () => {
     const s = setupEngine({
       0: {
@@ -273,8 +255,6 @@ describe("BT23-092 Ice Archery", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "beSuspended"));
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    // The opponent's turn: the Active phase unsuspended everything, yet the restricted
-    // Digimon still cannot pay the implicit suspend that starts an attack.
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "beSuspended")).toBe(true);
     expect(s.perm("restricted").isSuspended).toBe(false);
@@ -283,10 +263,8 @@ describe("BT23-092 Ice Archery", () => {
       attackerPermanentId: s.perm("restricted").permanentId,
       target: { kind: "player" },
     });
-    // combat/legality.ts:206 — "can't suspend" blocks the tapping attack declaration.
     expect(blocked).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.perm("restricted").isSuspended).toBe(false);
-    // The unrestricted Digimon on the same board attacks normally.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -299,7 +277,6 @@ describe("BT23-092 Ice Archery", () => {
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "beSuspended")).toBe(true);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // "Until your opponent's turn ends" — gone by my next turn.
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "beSuspended")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("targetTamer"), "beSuspended")).toBe(false);
@@ -336,8 +313,6 @@ describe("BT23-092 Ice Archery", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended"));
 
-    // Same turn (§16-17-3): the ＜Delay＞ cannot be activated, so the [CS] attack leaves the
-    // Option on the board and the Tamer's [Main] restriction is the only one in force.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -353,7 +328,6 @@ describe("BT23-092 Ice Archery", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // My next turn: the [Main] restriction has expired and the ＜Delay＞ is now live.
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("targetTamer"), "beSuspended")).toBe(false);
@@ -367,7 +341,6 @@ describe("BT23-092 Ice Archery", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
 
-    // Trashing the card IS the activation cost (§16-17-1).
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended")).toBe(true);
@@ -402,8 +375,6 @@ describe("BT23-092 Ice Archery", () => {
     s.state.memory = 5;
     const optionId = s.inst("iceArchery").instanceId;
 
-    // The [Main] body is mandatory, so the Option still lands on the board while every
-    // optional prompt is answered "no".
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -515,7 +486,6 @@ describe("BT23-092 Ice Archery", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
 
-    // "Their" is the security card's controller's opponent — the attacking seat 0.
     expect(observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("targetTamer"), "beSuspended")).toBe(true);
     const placed = s.state.players[1]!.battleArea.find((p) => p.topCard?.instanceId === optionId);

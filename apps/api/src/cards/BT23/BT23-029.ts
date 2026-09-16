@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT23-029 (Antylamon).
-// [All Turns] [Once Per Turn] When any of your cards with [Beast], [Beastkin] or [CS]
-// trait are played, 1 of your opponent's Digimon can't activate [When Digivolving] effects
-// until the end of your opponent's turn.
-// KB Q5265: also triggers when this card itself is played.
-// KB Q5266-Q5270: restriction prevents all [When Digivolving] activations (direct & via effects).
 export const compiled: CompiledCard = {
   effects: [
     {

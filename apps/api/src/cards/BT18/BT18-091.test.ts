@@ -158,7 +158,6 @@ describe("BT18-091 J.P. Shibayama", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamer").instanceId)).toBe(
       false,
     );
-    // Raid redirects the attack to the opposing Digimon, so no security check occurs.
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 

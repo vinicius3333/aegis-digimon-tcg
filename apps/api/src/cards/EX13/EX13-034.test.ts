@@ -7,15 +7,8 @@ import { compiled } from "./EX13-034.js";
 import "../index.js";
 
 const CARD_ID = "EX13-034";
-// EX7-019 Sorcermon: Lv.4 BLUE with [Witchelny] in its printed text. Blue is exactly what the
-// alternate header widens past the catalog EvoCost (Yellow Lv.4 for 4).
 const WITCHELNY_LV4 = "EX7-019";
-// BT1-014: Lv.4 Red, no printed text at all — neither the alternate header nor the EvoCost.
 const PLAIN_LV4 = "BT1-014";
-// BT14-098 "DCD Bomb": [Main] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Its tail clause
-// needs 3 [D-Brigade]/[DigiPolice] cards returned from trash, which an empty trash cannot pay, so
-// the card reduces to a bare public ＜De-Digivolve＞ — the handle that proves "their
-// ＜De-Digivolve＞ effects don't affect it".
 const DE_DIGIVOLVE_OPTION = "BT14-098";
 
 describe("EX13-034 Wisemon", () => {
@@ -44,7 +37,6 @@ describe("EX13-034 Wisemon", () => {
 
     expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Barrier" }] });
 
-    // One printed [Once Per Turn] over three printed timings ⇒ one shared use ledger.
     const sharedKeys = new Set<string>();
     for (const [index, trigger] of (["OnPlay", "WhenDigivolving", "WhenAttacking"] as const).entries()) {
       const effect = compiled.effects[index + 1]!;
@@ -143,8 +135,6 @@ describe("EX13-034 Wisemon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wisemon"));
     await settle();
 
-    // Exactly one of the controller's Digimon received the whole bundle, and it is the same one
-    // for all three grants — the SelectBind contract.
     const withReboot = ["wisemon", "chosen", "other"].filter((alias) =>
       observe(s.engine).hasKeyword(s.perm(alias), "Reboot"),
     );
@@ -175,9 +165,6 @@ describe("EX13-034 Wisemon", () => {
     );
     await s.ready();
 
-    // The clause always opens a card selection ("1 of your Digimon"), so counting those decisions
-    // is the crisp signal for whether a window actually ran: re-granting the same keywords to the
-    // same Digimon would be invisible in board state.
     const selections = (): number =>
       s.decisions.filter(({ req }) => req.kind === "chooseTargets" || req.kind === "selectCards").length;
 
@@ -188,8 +175,6 @@ describe("EX13-034 Wisemon", () => {
       1,
     );
 
-    // Same turn, the other two printed timings: both refused, because the [Once Per Turn] is shared
-    // across all three windows.
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("wisemon"));
     await settle();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("wisemon"));
@@ -197,7 +182,6 @@ describe("EX13-034 Wisemon", () => {
     expect(selections()).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // A real turn through the production turn loop refills the quota.
     s.state.turnSeat = 0;
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 0;
@@ -229,8 +213,6 @@ describe("EX13-034 Wisemon", () => {
     await s.ready();
     s.state.turnSeat = 1;
     s.state.memory = 1;
-    // `autoSelectCards` otherwise picks an arbitrary legal candidate; the ＜De-Digivolve 1＞ peel is
-    // only observable on the Digimon that actually has a digivolution card under it.
     preferred.push(s.perm("victim").topCard.instanceId);
 
     expect(
@@ -243,13 +225,8 @@ describe("EX13-034 Wisemon", () => {
     await settle(() => s.state.players[0]!.security.length === 0);
     await settle();
 
-    // ＜De-Digivolve 1＞ peeled the chosen opposing Digimon's top card.
     expect(s.perm("victim").topCard.cardId).toBe(PLAIN_LV4);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-020");
-    // 0 security left ⇒ the "3 or fewer" gate holds and a digivolve lock lands.
-    // "1 of their Digimon" — exactly one of the opponent's board, never all of it, and never the
-    // controller's own Wisemon. The choice itself is free, so the assertion counts rather than
-    // names it.
     const locked = ["attacker", "victim"].filter((alias) => observe(s.engine).isRestricted(s.perm(alias), "digivolve"));
     expect(locked).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm("wisemon"), "digivolve")).toBe(false);
@@ -310,8 +287,6 @@ describe("EX13-034 Wisemon", () => {
     await s.ready();
     s.state.turnSeat = 1;
     s.state.memory = 1;
-    // `autoSelectCards` otherwise picks an arbitrary legal candidate; the ＜De-Digivolve 1＞ peel is
-    // only observable on the Digimon that actually has a digivolution card under it.
     preferred.push(s.perm("victim").topCard.instanceId);
 
     expect(
@@ -324,7 +299,6 @@ describe("EX13-034 Wisemon", () => {
     await settle(() => s.state.players[0]!.security.length === 4);
     await settle();
 
-    // The mandatory ＜De-Digivolve 1＞ still resolved; only the gated tail was skipped.
     expect(s.perm("victim").topCard.cardId).toBe(PLAIN_LV4);
     for (const alias of ["attacker", "victim"]) {
       expect(observe(s.engine).isRestricted(s.perm(alias), "digivolve")).toBe(false);
@@ -389,12 +363,8 @@ describe("EX13-034 Wisemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.perm("base").topCard.instanceId === legal.inst("wisemon").instanceId);
-    // Cost 3 off the alternate header, not the Yellow-only EvoCost's 4.
     expect(legal.state.memory).toBe(5);
     expect(legal.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
-    // The [When Digivolving] window ran off the PUBLIC digivolve intent, not an injected timing:
-    // the only Digimon on the controller's board is the freshly digivolved Wisemon, so it is the
-    // one that had to take the grant.
     await settle();
     expect(observe(legal.engine).hasKeyword(legal.perm("base"), "Reboot")).toBe(true);
     expect(observe(legal.engine).hasKeyword(legal.perm("base"), "Blocker")).toBe(true);
@@ -435,8 +405,6 @@ describe("EX13-034 Wisemon", () => {
           security: ["BT1-013"],
         },
         1: {
-          // A black Digimon on their board: an Option can only be played with a Digimon or Tamer
-          // of its own color in play, and BT3-107 is black. BT3-059 is a vanilla black Lv.3.
           battleArea: [{ card: "BT3-059", as: "blackAnchor" }],
           hand: [
             { card: DE_DIGIVOLVE_OPTION, as: "optionA" },
@@ -456,8 +424,6 @@ describe("EX13-034 Wisemon", () => {
     expect(observe(s.engine).isRestricted(s.perm("guarded"), "cantBeDeDigivolved")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("control"), "cantBeDeDigivolved")).toBe(false);
 
-    // The opponent aims their ＜De-Digivolve＞ at the protected Digimon: the restriction is
-    // enforced when the mutation resolves, so the stack comes through untouched.
     s.state.turnSeat = 1;
     s.state.memory = 0;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("optionA").instanceId })).toEqual({
@@ -468,8 +434,6 @@ describe("EX13-034 Wisemon", () => {
     expect(s.perm("guarded").stack.map((card) => card.cardId)).toEqual([PLAIN_LV4]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT1-020");
 
-    // Same effect, unprotected Digimon: it peels. The protection is target-scoped, not a blanket
-    // "no ＜De-Digivolve＞ this turn".
     preferred.length = 0;
     preferred.push(s.perm("control").topCard.instanceId);
     s.state.memory = 0;
@@ -506,8 +470,6 @@ describe("EX13-034 Wisemon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Reboot")).toBe(true);
 
     await advance(s.engine).runTurn(0);
-    // Suspended going INTO the opponent's turn: ＜Reboot＞ is only observable at their unsuspend
-    // phase, and seat 0's own unsuspend phase (just run above) would have cleared it anyway.
     s.perm("ally").isSuspended = true;
     s.state.turnSeat = 1;
     s.state.memory = 0;
@@ -521,7 +483,6 @@ describe("EX13-034 Wisemon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
-    // "Until your opponent's turn ends" — all three parts of the one grant expire together.
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Reboot")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("ally"), "cantBeDeDigivolved")).toBe(false);
@@ -562,8 +523,6 @@ describe("EX13-034 Wisemon", () => {
     await settle(() => s.state.players[0]!.security.length === 0);
     await settle();
 
-    // A stackless Digimon survives untouched: ＜De-Digivolve＞ trashes digivolution cards, and
-    // there are none — this is not a rule deletion.
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === bareInstanceId)).toBe(
       true,
     );
@@ -601,8 +560,6 @@ describe("EX13-034 Wisemon", () => {
     s.state.memory = 0;
     preferred.push(s.perm("locked").topCard.instanceId);
 
-    // Their whole turn runs on the production loop, so "until their turn ends" is judged by the
-    // real end-of-turn sweep rather than by a hand-set phase.
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
 
@@ -616,20 +573,15 @@ describe("EX13-034 Wisemon", () => {
     await settle(() => s.state.players[0]!.security.length === 0);
     await settle();
 
-    // "1 of their Digimon" — exactly one of the two, and the choice itself is free (it is a fresh
-    // selection, not necessarily the ＜De-Digivolve＞d one), so the test reads which one it was.
     const lockedAliases = ["attacker", "locked"].filter((alias) =>
       observe(s.engine).isRestricted(s.perm(alias), "digivolve"),
     );
     expect(lockedAliases).toHaveLength(1);
     const lockedAlias = lockedAliases[0]!;
     const freeAlias = lockedAlias === "attacker" ? "locked" : "attacker";
-    // Both sides are still Lv.4 Red after the peel, so either is a legal BT1-020 digivolve source
-    // and the refusal can only come from the restriction.
     expect(s.perm(lockedAlias).topCard.cardId).toBe(PLAIN_LV4);
     expect(s.perm(freeAlias).topCard.cardId).toBe(PLAIN_LV4);
 
-    // Public digivolve intent on the locked Digimon: refused, and nothing leaves hand or memory.
     s.state.memory = 0;
     const lockedTopInstanceId = s.perm(lockedAlias).topCard.instanceId;
     const refused = s.engine.applyIntent(1, {
@@ -642,7 +594,6 @@ describe("EX13-034 Wisemon", () => {
     expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evoA").instanceId);
     expect(s.state.memory).toBe(0);
 
-    // Their OTHER Digimon still digivolves normally.
     expect(
       s.engine.applyIntent(1, {
         type: "digivolve",
@@ -652,7 +603,6 @@ describe("EX13-034 Wisemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm(freeAlias).topCard.cardId === "BT1-020");
 
-    // "until their turn ends".
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
     expect(observe(s.engine).isRestricted(s.perm(lockedAlias), "digivolve")).toBe(false);
@@ -687,7 +637,6 @@ describe("EX13-034 Wisemon", () => {
     await settle(() => declining.state.players[0]!.security.length === 0);
     await settle();
 
-    // "may" — declined, so the host stays suspended.
     expect(declining.perm("host").isSuspended).toBe(true);
 
     const opt = setupEngine(
@@ -722,7 +671,6 @@ describe("EX13-034 Wisemon", () => {
     await settle();
     expect(opt.perm("host").isSuspended).toBe(false);
 
-    // Second removal in the SAME turn: the [Once Per Turn] budget is spent.
     opt.perm("host").isSuspended = true;
     expect(
       opt.engine.applyIntent(1, {

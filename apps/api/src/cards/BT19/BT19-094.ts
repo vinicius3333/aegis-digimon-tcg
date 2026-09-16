@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR correction: model the trash-trigger branch outcome and the
-// Main delete-until-security-count clause with structured result conditions.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -16,8 +14,6 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Lucemon (X Antibody)"],
-                // Bracketed exact name: the substring form would also fire on a hypothetical
-                // longer name containing it.
                 match: "nameExact",
               },
             ],
@@ -98,8 +94,6 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Lucemon"],
-                  // [Lucemon] is exact: "Lucemon: Chaos Mode" and "Lucemon (X Antibody)" are
-                  // different cards and must not be playable off this [Security] effect.
                   match: "nameExact",
                 },
               ],

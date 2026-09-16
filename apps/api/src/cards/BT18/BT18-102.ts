@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT18-102 (Susanoomon).
-// Fixes:
-// 1. digivolutionRequirement adds requiredDigivolutionCardCount:{trait:'Hybrid',min:10}
-//    (KB Q3055/Q3056 confirm it can still digivolve if >= 10 and cannot via Blast Digivolve).
-//    New capability needed — see LANE_E.md: requiredDigivolutionCardCount.
-// 2. Deletion scaling now lives on each Delete action so target resolution sees the dynamic
-//    ceiling (text: "For each color in this Digimon's digivolution cards").
-// 3. Second WhenAttacking: cost places Tamer only (not Digimon+Tamer).
-// 4. Second WhenAttacking: cost uses the supported addBottom loose-card path,
-//    bound to this Digimon's host stack, then a named-count SecurityManipulation trash
-//    scaled by cards actually placed.
 export const compiled: CompiledCard = {
   effects: [
     {

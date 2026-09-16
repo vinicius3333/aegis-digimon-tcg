@@ -227,8 +227,6 @@ describe("BT17-088 Willis", () => {
         (permanent) => permanent.topCard?.instanceId === s.inst("playedTerriermon").instanceId,
       ),
     ).toBe(true);
-    // BT17-046 Gargomon costs 2 off a Lv.3 green base; "reduced by 2" makes it free, so the
-    // digivolution must not move memory at all after the played Terriermon's own cost.
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });

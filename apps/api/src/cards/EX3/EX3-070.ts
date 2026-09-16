@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main] Normally: choose 1 of the two bullet effects.
-// If you have a Digimon with [Examon] in its name in play: activate ALL effects below.
-// Bullet 1: Suspend 1 of your opponent's Digimon AND 1 of your Digimon gains <Piercing> for the turn.
-// Bullet 2: Unsuspend 1 of your Digimon.
-// [Security] Suspend 1 of your opponent's Digimon AND unsuspend 1 of your Digimon.
-// Q&A Q3435: [Security] activates even if one side has no Digimon (just skip that part).
 const compiled: CompiledCard = {
   effects: [
     {

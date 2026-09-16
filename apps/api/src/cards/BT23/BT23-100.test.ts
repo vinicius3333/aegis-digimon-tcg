@@ -6,18 +6,17 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-100.js";
 
-const CAFE = "BT23-100"; // White Option, cost 3, [Hudie]/[CS]
-const CS_DIGIMON_LV3 = "BT22-008"; // Red Lv.3 Agumon with the [CS] trait
-const CS_DIGIMON_LV3_ALT = "BT23-006"; // Red Lv.3 Huckmon with the [CS] trait
-const CS_DIGIMON_LV4 = "BT23-053"; // Black Lv.4 Strikedramon with the [CS] trait — wrong level
-const PLAIN_DIGIMON_LV3 = "BT1-009"; // Red Lv.3 Monodramon, no [CS] trait — wrong trait
-const CS_TAMER = "BT23-082"; // Yellow Tamer with the [CS] trait, cost 3
-const PLAIN_TAMER = "BT1-087"; // Red Tamer without the [CS] trait
-const NEUTRAL = "BT1-020"; // Red Lv.5 vanilla; keeps a Main phase from auto-passing
+const CAFE = "BT23-100";
+const CS_DIGIMON_LV3 = "BT22-008";
+const CS_DIGIMON_LV3_ALT = "BT23-006";
+const CS_DIGIMON_LV4 = "BT23-053";
+const PLAIN_DIGIMON_LV3 = "BT1-009";
+const CS_TAMER = "BT23-082";
+const PLAIN_TAMER = "BT1-087";
+const NEUTRAL = "BT1-020";
 
 const DECK = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"];
 
-/** BT23-100 carries exactly one ＜Delay＞ clause, so it is index 0 of its OnDeclaration bucket. */
 const DELAY_KEY = `${CAFE}/ir-${EffectTiming.OnDeclaration}-0`;
 
 describe("BT23-100 Hudie Net Café", () => {
@@ -40,11 +39,8 @@ describe("BT23-100 Hudie Net Café", () => {
     );
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    // Four printed clauses: the colour waiver, the [Main] body, the ＜Delay＞ bullet, the [Security].
     expect(compiled.effects).toHaveLength(4);
   });
-
-  // --- colour waiver (Q5388: "on the field" = battle area or breeding area) ----------------
 
   it("waives its colour requirement while a [CS] Digimon or Tamer is in either field area", () => {
     const waive = compiled.effects.find((effect) => effect.trigger === "Static")?.actions?.[0] as any;
@@ -57,7 +53,6 @@ describe("BT23-100 Hudie Net Café", () => {
           controllerDefault: "mine",
           kind: ["Digimon", "Tamer"],
           zone: ["battleArea", "breeding"],
-          // The printed "[CS] trait" is an exact trait match (CR 2-3-2-3), never a substring.
           nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
         },
       },
@@ -125,11 +120,6 @@ describe("BT23-100 Hudie Net Café", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  /**
-   * The negative control for the waiver: the same off-colour board with a Digimon that has no
-   * [CS] trait leaves the printed White requirement (§4-21-2) in force, so the play is refused
-   * and nothing moves. Without the waiver clause the two tests above would fail this way too.
-   */
   it("refuses the play when the only field Digimon has no [CS] trait", async () => {
     const s = setupEngine({
       0: {
@@ -152,8 +142,6 @@ describe("BT23-100 Hudie Net Café", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.memory).toBe(3);
   });
-
-  // --- [Main] ＜Draw 1＞ Then, place this card in the battle area ---------------------------
 
   it("draws exactly the top deck card, then places itself as a battle-area permanent", async () => {
     const s = setupEngine({
@@ -180,8 +168,6 @@ describe("BT23-100 Hudie Net Café", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
-
-  // --- [Main] ＜Delay＞ ・You may play 1 Tamer card with the [CS] trait from your hand -------
 
   it("compiles the ＜Delay＞ bullet as an optional free Tamer play from hand", () => {
     const delay = compiled.effects.find(
@@ -229,7 +215,6 @@ describe("BT23-100 Hudie Net Café", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
     const optionPermanent = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === optionId)!;
 
-    // Same turn: the ＜Delay＞ is not even offered (CR 16-17-3), and forcing the intent changes nothing.
     const memoryAfterPlay = s.state.memory;
     expect(memoryAfterPlay).toBe(8 - 3);
     expect(observe(s.engine).activatableEffects(optionPermanent)).toEqual([]);
@@ -239,13 +224,11 @@ describe("BT23-100 Hudie Net Café", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === csTamerId)).toBe(true);
     expect(s.state.memory).toBe(memoryAfterPlay);
 
-    // Hand back to the opponent, let their turn run, and come back to this seat's own Main.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
-    // Memory resets with the turn change, so the free-play baseline is this turn's value.
     const memoryBeforeDelay = s.state.memory;
     const offered = observe(s.engine).activatableEffects(s.perm("option"));
     expect(offered.map((entry) => entry.effectKey)).toContain(DELAY_KEY);
@@ -254,10 +237,8 @@ describe("BT23-100 Hudie Net Café", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === csTamerId));
 
-    // The option is the activation cost: it leaves the battle area for the trash.
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
-    // The [CS] Tamer arrives for free; the plain Tamer was never an eligible target.
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === csTamerId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === plainTamerId)).toBe(true);
     expect(s.state.memory).toBe(memoryBeforeDelay);
@@ -303,7 +284,6 @@ describe("BT23-100 Hudie Net Café", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
 
-    // Declining the "You may" leaves the Tamer in hand, but the ＜Delay＞ cost is still paid.
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === csTamerId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === csTamerId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(false);
@@ -313,8 +293,6 @@ describe("BT23-100 Hudie Net Café", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // --- [Security] --------------------------------------------------------------------------
 
   it("compiles the [Security] clause as an optional free level-3 [CS] play then a mandatory self-placement", () => {
     const security = compiled.effects.find((effect) => effect.trigger === "Security") as any;
@@ -336,12 +314,9 @@ describe("BT23-100 Hudie Net Café", () => {
       optional: true,
     });
     expect(security.actions[1]).toMatchObject({ kind: "PlaceInBattleAreaSelf" });
-    // "Then, place this card in the battle area" is mandatory, not part of the "You may".
     expect(security.actions[1].optional).toBeUndefined();
   });
 
-  // In all four security scenarios the checked card belongs to seat 1, so the attacker is the
-  // default turn player (seat 0) and no turnSeat write is needed.
   it("free-plays a level-3 [CS] Digimon from hand and places itself when the opponent checks it", async () => {
     const s = setupEngine(
       {
@@ -375,12 +350,10 @@ describe("BT23-100 Hudie Net Café", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
 
-    // The security card's controller is the defending seat: both cards land on seat 1's board.
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === csDigimonId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("neutral").instanceId]);
-    // "without paying the cost": the free play moves no memory beyond the attack itself.
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
@@ -455,11 +428,6 @@ describe("BT23-100 Hudie Net Café", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
   });
 
-  /**
-   * Both halves of the printed filter, each violated by exactly one hand card: a Lv.4 [CS]
-   * Digimon (right trait, wrong level) and a Lv.3 Digimon without the trait (right level,
-   * wrong trait). Neither is playable, and the mandatory self-placement still happens.
-   */
   it("plays neither a level-4 [CS] Digimon nor a level-3 Digimon without the trait", async () => {
     const s = setupEngine(
       {

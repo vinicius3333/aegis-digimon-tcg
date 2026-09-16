@@ -97,7 +97,6 @@ it("trashes exactly the top three sources, then optionally plays a blue Free Dig
   await settle(() => s.perm("target").stack.length === 1);
   await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-027"));
 
-  // Stack storage is bottom-to-top, so trashing the top three leaves the original bottom card.
   expect(s.perm("target").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
   expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-027")).toBe(true);
 });

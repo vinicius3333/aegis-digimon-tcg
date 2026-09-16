@@ -7,11 +7,10 @@ import "../index.js";
 import { compiled } from "./EX13-030.js";
 
 const CARD_ID = "EX13-030";
-const SAMPSON = "BT13-098"; // Richard Sampson (Tamer, Yellow, cost 3)
-const SAMPSON_EX13 = "EX13-071"; // the set's own [Richard Sampson] printing, same exact name
-const OTHER_TAMER = "BT13-094"; // a Tamer whose name is NOT [Richard Sampson]
+const SAMPSON = "BT13-098";
+const SAMPSON_EX13 = "EX13-071";
+const OTHER_TAMER = "BT13-094";
 
-/** Fire the [When Attacking] window on a permanent without running a whole combat. */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm(alias), {
     attackerPermanentId: s.perm(alias).permanentId,
@@ -50,7 +49,6 @@ describe("EX13-030 Reppamon", () => {
     expect((getCardDefinition(CARD_ID)?.inheritedEffectText ?? "").trim()).toBe("＜Barrier＞");
     expect((getCardDefinition(CARD_ID)?.securityEffectText ?? "").trim()).toBe("");
     expect(compiled.effects.every((effect) => effect.isSecurity !== true)).toBe(true);
-    // Both catalog printings of the exact name are legal targets of the printed clause.
     expect(getCardDefinition(SAMPSON)?.nameEn).toBe("Richard Sampson");
     expect(getCardDefinition(SAMPSON_EX13)?.nameEn).toBe("Richard Sampson");
     expect(getCardDefinition(OTHER_TAMER)?.nameEn).not.toBe("Richard Sampson");
@@ -86,7 +84,6 @@ describe("EX13-030 Reppamon", () => {
     for (const window of windows) {
       expect(window).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0", actions: [playBody] });
     }
-    // One printed [Once Per Turn] governs all three timings, so they share one ledger key.
     expect(new Set(windows.map((effect) => effect.sharedUseKey)).size).toBe(1);
 
     const barriers = compiled.effects.filter((effect) => effect.keywords !== undefined);
@@ -100,8 +97,6 @@ describe("EX13-030 Reppamon", () => {
   it("digivolves for 2 over an off-colour Lv.3 [DATA SQUAD] source and keeps the source identity", async () => {
     const s = setupEngine({
       0: {
-        // BT26-036 Lalamon: GREEN Lv.3 with the [DATA SQUAD] trait. The catalog EvoCost needs a
-        // yellow Lv.3, so only the printed alternate header can reach this card from here.
         battleArea: [{ card: "BT26-036", as: "lalamon" }],
         hand: [{ card: CARD_ID, as: "reppamon" }],
         deck: ["BT1-009", "BT1-010", "BT1-011"],
@@ -122,17 +117,16 @@ describe("EX13-030 Reppamon", () => {
     await settle(() => s.perm("lalamon").topCard.cardId === CARD_ID);
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.state.memory).toBe(3); // the printed alternate cost of 2
+    expect(s.state.memory).toBe(3);
     expect(s.perm("lalamon").stack.map(({ cardId }) => cardId)).toEqual(["BT26-036"]);
     expect(s.perm("lalamon").currentDP).toBe(5000);
-    expect(s.state.players[0]!.deck.length).toBe(deckBefore - 1); // the digivolution draw
+    expect(s.state.players[0]!.deck.length).toBe(deckBefore - 1);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
   });
 
   it("still digivolves over the printed yellow Lv.3 route without the [DATA SQUAD] trait", async () => {
     const s = setupEngine({
       0: {
-        // BT1-050 Liollmon: YELLOW Lv.3 [Holy Beast], no [DATA SQUAD] trait — printed EvoCost only.
         battleArea: [{ card: "BT1-050", as: "liollmon" }],
         hand: [{ card: CARD_ID, as: "reppamon" }],
         deck: ["BT1-009", "BT1-010"],
@@ -156,10 +150,7 @@ describe("EX13-030 Reppamon", () => {
 
   it("refuses a near-matching [Data] trait Lv.3 and a trait-less Lv.3, both off-colour", async () => {
     for (const [card, alias] of [
-      // P-061 Jellymon: blue Lv.3 whose only trait is [Data] — a substring of [DATA SQUAD] under a
-      // case-insensitive read, but NOT the exact printed trait.
       ["P-061", "jellymon"],
-      // BT1-009 Monodramon: red Lv.3 [Mini Dragon], no relation to either route.
       ["BT1-009", "monodramon"],
     ] as const) {
       const s = setupEngine({
@@ -180,7 +171,7 @@ describe("EX13-030 Reppamon", () => {
           useAlternateCost: true,
         }),
       ).toEqual(expect.objectContaining({ ok: false }));
-      expect(s.state.memory).toBe(5); // nothing charged on either route
+      expect(s.state.memory).toBe(5);
       expect(s.perm(alias).topCard.cardId).toBe(card);
     }
   });
@@ -212,7 +203,6 @@ describe("EX13-030 Reppamon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === SAMPSON));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Reppamon's own play cost of 5 is the only memory movement: the Tamer came in for free.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID, SAMPSON]);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("remaining").instanceId]);
@@ -308,7 +298,6 @@ describe("EX13-030 Reppamon", () => {
     });
     await settle(() => s.state.pendingDecision === undefined);
 
-    // manual §1: a "by" condition can never be paid partly, so the whole clause does nothing.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sampson").instanceId,
@@ -339,14 +328,6 @@ describe("EX13-030 Reppamon", () => {
     await attackWindow(s, "reppamon");
     await settle(() => s.state.pendingDecision === undefined);
 
-    // `abortOnDecline: true` keeps a declined window from paying anything: the cost is part of
-    // the same optional clause. Whether the [Once Per Turn] quota itself survives the decline is
-    // NOT asserted here — comprehensive §15-14-1-1 ("each activation counts toward 1 use") and
-    // manual §1 ("once the player chooses to perform the 'by' condition, it will count toward 1
-    // use") read differently, no KB ruling exists for this pre-release card, and the engine's
-    // trigger-level accounting (`effects/stack.ts` `resolveOne`, which registers the use after
-    // the body runs) treats the window as spent. P-187, the identical printed sentence, is
-    // encoded the same way.
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("paid").instanceId]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sampson").instanceId,
@@ -388,13 +369,11 @@ describe("EX13-030 Reppamon", () => {
     const playedFirst = s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === SAMPSON);
     expect(playedFirst).toHaveLength(1);
 
-    // Same turn, the [When Attacking] window: the SHARED gate refuses it.
     await attackWindow(s, "reppamon");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === SAMPSON)).toHaveLength(1);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("secondPaid").instanceId]);
 
-    // A real opponent turn passes; the gate reopens on the controller's next turn.
     seedTurnLoop(s);
     s.state.turnSeat = 1;
     s.state.memory = 3;
@@ -413,9 +392,6 @@ describe("EX13-030 Reppamon", () => {
     const s = setupEngine(
       {
         0: {
-          // ST24-02 Gaomon: BLUE Lv.3 [DATA SQUAD], so only the alternate header reaches
-          // Reppamon. Its inherited "[When Attacking] [Once Per Turn] If your hand has 7 or
-          // fewer cards, ＜Draw 1＞" is the observable proof that the source survives underneath.
           battleArea: [{ card: "ST24-02", as: "gaomon" }],
           hand: [
             { card: CARD_ID, as: "reppamon" },
@@ -448,7 +424,6 @@ describe("EX13-030 Reppamon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("paid").instanceId]);
 
-    // The inherited window of the card now underneath still fires for the new top card.
     const deckBefore = s.state.players[0]!.deck.length;
     await attackWindow(s, "gaomon");
     await settle(() => s.state.players[0]!.deck.length === deckBefore - 1);
@@ -466,7 +441,6 @@ describe("EX13-030 Reppamon", () => {
           ],
           deck: ["BT1-011", "BT1-012"],
         },
-        // BT1-080 Titamon: inert green Lv.6 with 12000 DP, a guaranteed battle win over 5000 DP.
         1: { battleArea: [{ card: "BT1-080", as: "attacker" }], deck: ["BT1-009"], security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -545,7 +519,6 @@ describe("EX13-030 Reppamon", () => {
     );
     await s.ready();
 
-    // The printed main clause is not an inherited effect: the host's attack must not reach it.
     await attackWindow(s, "host");
     await settle(() => s.state.pendingDecision === undefined);
 

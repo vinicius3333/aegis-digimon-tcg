@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Start of Your Main Phase] "Add your top face-DOWN security card to the hand." The printed
-// wording skips face-up security cards, which this very card (and EX11-030) create by placing a
-// [Royal Base] Digimon face up. `faceDownOnly` is the security seam's face-state filter; without
-// it the effect takes the literal top card even when an effect left it revealed (KB Q5812/Q5813).
 const compiled: CompiledCard = {
   effects: [
     {

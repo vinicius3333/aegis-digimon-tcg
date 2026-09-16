@@ -6,10 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-043.js";
 
-/**
- * Delete `permanentIds` as seat `seat`'s effect, so the "other than by your effects"
- * cause gate sees the real resolving controller instead of falling back to the turn seat.
- */
 async function deleteByEffectOf(s: ReturnType<typeof setupEngine>, seat: 0 | 1, permanentIds: string[]) {
   const verbs = advance(s.engine).verb;
   verbs.enterEffectResolution(seat);
@@ -20,11 +16,6 @@ async function deleteByEffectOf(s: ReturnType<typeof setupEngine>, seat: 0 | 1, 
   }
 }
 
-/**
- * Hand the turn to the opponent through the real turn loop instead of writing
- * `state.turnSeat`: run seat 0's turn, end its Main, and stop inside seat 1's Main.
- * Returns `{ loop }` — awaiting the loop promise itself would hang until the game ends.
- */
 async function passTurnToOpponent(s: ReturnType<typeof setupEngine>): Promise<{ loop: Promise<void> }> {
   const loop = s.engine.startTurnLoop();
   await advance(s.engine).waitForMainPhase(0);
@@ -33,11 +24,6 @@ async function passTurnToOpponent(s: ReturnType<typeof setupEngine>): Promise<{ 
   return { loop };
 }
 
-/**
- * Suspend seat 0's `alias` the ordinary way — it attacks the opponent's security on its own
- * turn — and then hand the turn to the opponent, who can now legally attack it.
- * Seat 1 must hold at least one security card for that attack's check.
- */
 async function suspendByAttackingThenPassTurn(
   s: ReturnType<typeof setupEngine>,
   alias: string,
@@ -59,7 +45,6 @@ async function suspendByAttackingThenPassTurn(
   return { loop };
 }
 
-/** End a turn loop that a test opened, so no engine work outlives the test. */
 async function endLoop(s: ReturnType<typeof setupEngine>, seat: 0 | 1, loop: Promise<void>): Promise<void> {
   expect(s.engine.applyIntent(seat, { type: "surrender" })).toEqual({ ok: true });
   await loop;
@@ -97,11 +82,6 @@ describe("BT23-043 CannonBeemon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Security] [Opponent's Turn] All of your Digimon with the [Royal Base] trait
-  // gain <Blocker>
-  // ---------------------------------------------------------------------------
-
   it("grants Blocker to all of your Royal Base Digimon in Security", () => {
     const security = compiled.effects.find((entry) => entry.trigger === "OpponentsTurn") as any;
     expect(security).toMatchObject({
@@ -135,7 +115,6 @@ describe("BT23-043 CannonBeemon", () => {
       1: { battleArea: [{ card: "BT23-045", as: "opposingRoyalBase" }], deck: ["BT1-011", "BT1-012"] },
     });
     await s.ready();
-    // On the controller's own turn the [Opponent's Turn] grant is inert.
     expect(observe(s.engine).hasKeyword(s.perm("royalBase"), "Blocker")).toBe(false);
 
     const { loop } = await passTurnToOpponent(s);
@@ -194,8 +173,6 @@ describe("BT23-043 CannonBeemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // The block replaced the security check: TigerVespamon survived, the attacker died,
-    // and both of the defender's security cards are untouched.
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -221,9 +198,6 @@ describe("BT23-043 CannonBeemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // No legal blocker exists (a non-Royal-Base Digimon can't block on this card's strength),
-    // so the engine never opens a block window at all; drain instead of waiting on an event
-    // that will never fire, then prove the attacker is legally refused a block.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("other").permanentId }).ok).toBe(
@@ -231,12 +205,6 @@ describe("BT23-043 CannonBeemon", () => {
     );
     await endLoop(s, 1, loop);
   });
-
-  // ---------------------------------------------------------------------------
-  // [All Turns] [Once Per Turn] When this Digimon would leave the battle area
-  // other than by your effects, by flipping your top face-up security card face
-  // down, it doesn't leave.
-  // ---------------------------------------------------------------------------
 
   it("prevents this Digimon from leaving except by its owner's effects", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "AllTurns") as any;
@@ -376,8 +344,6 @@ describe("BT23-043 CannonBeemon", () => {
       { instanceId: s.inst("secondCost").instanceId, faceUp: true },
     ]);
 
-    // Same turn, same instance: the once-per-turn clause refuses and the spare
-    // face-up security card is not spent.
     expect(await deleteByEffectOf(s, 1, [cannonPermanentId])).toBe(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === cannonPermanentId)).toBe(false);
     expect(securityFaces(s, 0)).toEqual([
@@ -404,7 +370,6 @@ describe("BT23-043 CannonBeemon", () => {
     await s.ready();
     const cannonPermanentId = s.perm("cannon").permanentId;
 
-    // Seat 1's effect on seat 0's own turn is still "other than by your effects".
     expect(await deleteByEffectOf(s, 1, [cannonPermanentId])).toBe(0);
     expect(securityFaces(s, 0)).toEqual([
       { instanceId: s.inst("firstCost").instanceId, faceUp: false },
@@ -422,12 +387,6 @@ describe("BT23-043 CannonBeemon", () => {
       { instanceId: s.inst("secondCost").instanceId, faceUp: false },
     ]);
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited: [All Turns] [Once Per Turn] When any of your [Royal Base] trait
-  // Digimon would leave the battle area other than by your effects, by flipping
-  // your top face-up security card face down, 1 of those Digimon doesn't leave.
-  // ---------------------------------------------------------------------------
 
   it("inherits protection for one qualifying Royal Base Digimon", () => {
     const effect = compiled.effects.find((entry) => entry.isInherited) as any;
@@ -506,7 +465,6 @@ describe("BT23-043 CannonBeemon", () => {
     const survivors = s.state.players[0]!.battleArea.map((p) => p.permanentId);
     expect(survivors).toContain(s.perm("carrier").permanentId);
     expect([firstId, secondId].filter((id) => survivors.includes(id))).toHaveLength(1);
-    // The once-per-turn clause paid exactly one security card.
     expect(securityFaces(s, 0)).toEqual([
       { instanceId: s.inst("firstCost").instanceId, faceUp: false },
       { instanceId: s.inst("secondCost").instanceId, faceUp: true },
@@ -549,11 +507,6 @@ describe("BT23-043 CannonBeemon", () => {
     expect(s.state.players[0]!.security[0]).toMatchObject({ faceUp: true });
   });
 
-  // ---------------------------------------------------------------------------
-  // The same clause through the public flow: an ordinary lost battle on the
-  // opponent's turn. BT1-024 MetalTyrannomon is an inert Lv.5 10000-DP attacker.
-  // ---------------------------------------------------------------------------
-
   it("survives a lost battle on the opponent's turn by flipping its top face-up security card", async () => {
     const s = setupEngine(
       {
@@ -588,8 +541,6 @@ describe("BT23-043 CannonBeemon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // The battle was lost but the replacement paid: nothing reached the trash, and only the
-    // top FACE-UP card flipped — the face-down card above it is untouched.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === cannonId)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(securityFaces(s, 0)).toEqual([
@@ -640,8 +591,6 @@ describe("BT23-043 CannonBeemon", () => {
   });
 
   it("saves another Royal Base Digimon from a lost battle through the inherited effect", async () => {
-    // BT1-024 is the carrier because it has no text of its own, so the only reaction on the
-    // board is the BT23-043 sitting in its digivolution cards.
     const s = setupEngine(
       {
         0: {
@@ -680,11 +629,6 @@ describe("BT23-043 CannonBeemon", () => {
     await endLoop(s, 1, loop);
   });
 
-  // ---------------------------------------------------------------------------
-  // Q5304: All Delete + QueenBeemon. An earlier CannonBeemon prevention must not
-  // erase QueenBeemon's later security placement for the other Royal Base Digimon.
-  // ---------------------------------------------------------------------------
-
   it("leaves QueenBeemon's security placement available for the Digimon it did not save (Q5304)", async () => {
     const s = setupEngine(
       {
@@ -707,9 +651,6 @@ describe("BT23-043 CannonBeemon", () => {
     const queenInstanceId = s.perm("queen").topCard!.instanceId;
     const otherInstanceId = s.perm("otherRoyalBase").topCard!.instanceId;
 
-    // Q5304's scenario: the controller resolves CannonBeemon's prevention FIRST, so the
-    // ordering decision must offer both reactions and let the prevention win for this
-    // permanent. QueenBeemon's placement must still be available for the rest.
     const answered = new Set<string>();
     const answerOrdering = () => {
       for (const { seat, req } of s.decisions) {
@@ -736,14 +677,9 @@ describe("BT23-043 CannonBeemon", () => {
       return s.state.players[0]!.security.length > 1;
     });
 
-    // No Royal Base Digimon was deleted: CannonBeemon's prevention paid its cost by
-    // flipping the only face-up security card face down.
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });
 
-    // QueenBeemon's placement stayed eligible after the prevention: every Royal Base
-    // Digimon affected by the deletion effect reached the bottom of security face up,
-    // in battle-area order, and none of them was deleted.
     const placed = s.state.players[0]!.security.slice(1);
     expect(placed.map((card) => ({ instanceId: card.instanceId, faceUp: card.faceUp }))).toEqual([
       { instanceId: cannonInstanceId, faceUp: true },
@@ -752,10 +688,6 @@ describe("BT23-043 CannonBeemon", () => {
     ]);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
-
-  // ---------------------------------------------------------------------------
-  // Evolution
-  // ---------------------------------------------------------------------------
 
   it.each(["BT23-042", "BT23-041"])("digivolves for 3 from a level-4 Royal Base/CS card (%s)", async (base) => {
     const s = setupEngine({
@@ -784,7 +716,6 @@ describe("BT23-043 CannonBeemon", () => {
     expect(s.state.memory).toBe(2);
     expect(s.perm("base").topCard!.cardId).toBe("BT23-043");
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
-    // One card left the hand, the digivolution draw put one back.
     expect(s.state.players[0]!.hand.length).toBe(handSizeBefore);
   });
 

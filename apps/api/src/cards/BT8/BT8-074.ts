@@ -1,8 +1,3 @@
-// HAND-AUTHORED OVERRIDE — maintained as a direct implementation. The declarative effect used the
-// nonexistent SubTriggerEvent "whenDeckTrashed"; the real event is "onDiscardLibrary",
-// whose default gate (no sourceFilter) watches the OPPONENT's deck being milled, so an
-// explicit "controller": "mine" sourceFilter is required for "when a card is trashed
-// from YOUR deck" (inheritedEffectText).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

@@ -110,8 +110,6 @@ describe("ST20-06 Angewomon", () => {
     const s = setupEngine(
       {
         0: {
-          // ST20-09 (MegaKabuterimon) requires a Green Lv.4 base — Kabuterimon (ST20-08),
-          // not the Lv.3 Tentomon (ST20-07) — for the free digivolve to be legal at all.
           battleArea: [{ card: "ST20-08", as: "other" }],
           hand: [
             { card: "ST20-06", as: "angewomon" },

@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-//
-// `timing: "endOfBattle"` is provenance-only annotation (see CardEffect.timing); the
-// `whenSecurityBattleEnded` SubTrigger is what actually defers the play until after the
-// security battle resolves. Deleting it would resolve the play during the security check
-// instead. Same shape as the BT3-011 / BT23-007 / BT23-010 / BT23-028 / BT23-052 siblings.
 const compiled: CompiledCard = {
   effects: [
     {

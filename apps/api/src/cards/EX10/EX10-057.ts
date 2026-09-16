@@ -1,19 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX10-057 (the AUTO-GENERATED header is absent on purpose so
 const compiled: CompiledCard = {
   effects: [
     {
-      // Hand-corrected (dead-IR sweep): the printed [Hand][Main] clause is an ACTIVATED effect
-      // that plays THIS card from hand for its play cost minus 5 and arms a turn-end delete on
-      // the permanent it just played — the same shape as its proven sibling EX10-035 (see
-      // EX10-035.test.ts). The declarative effect record modelled it as a bare wouldBePlayed cost-reduction
-      // Replacement plus a SubTrigger whose Delete carried the never-read `playedByThisEffect`
-      // filter, so nothing played the card and the turn-end Delete matched every permanent.
-      // UntilOwnerTurnEndEffects + OnEndTurn gated on IsOwnerTurn => `DelayedDeletePlayed`.
-      // KB Q5155/Q5739-Q5740 (the delete still applies after the played card digivolves,
-      // which the permanent-anchored watcher honors).
       trigger: "Main",
       isFromHand: true,
       condition: {
@@ -84,14 +74,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // "[All Turns] This Digimon can only digivolve into [Apocalymon]."
-      //
-      // Hand-corrected: this was a `kind: "Restrict"` node carrying `on: "digivolveTarget"` (a
-      // string where `RestrictAction.on` is a `Target`) plus a top-level `filter`, and NO
-      // `restriction` / `duration`. None of those three fields is read for that action kind, so
-      // the clause was entirely dead — the Digimon could digivolve into anything. The engine
-      // already owns the exact primitive: `RestrictDigivolveInto` is the POSITIVE digivolve-target
-      // constraint, proven by this card's sibling EX10-035 (same printed wording).
       trigger: "AllTurns",
       actions: [
         {

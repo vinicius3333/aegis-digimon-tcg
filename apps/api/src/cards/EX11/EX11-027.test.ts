@@ -77,8 +77,6 @@ describe("EX11-027 Maquinamon", () => {
       rest: "deckBottom",
     });
     expect(compiled.effects[0]?.actions[1]).toMatchObject({ kind: "Link", payCost: false, optional: true });
-    // The printed LINK effect is a clause of this card, so `coverage: "full"` is only honest
-    // while it is encoded: an [All Turns] leave-replacement active in the linked state.
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
         trigger: "AllTurns",
@@ -102,9 +100,6 @@ describe("EX11-027 Maquinamon", () => {
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
   });
 
-  // Printed link effect: "[All Turns] When this Digimon would leave the battle area, by placing 1
-  // of its link cards as its bottom digivolution card, it doesn't leave." KB Q5823 confirms the
-  // placement is a real digivolution-card addition.
   it("keeps its host on the field by placing itself as the bottom digivolution card", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX11-033", as: "host", linked: [{ card: cardId }] }] } },

@@ -172,8 +172,6 @@ describe("EX7-029", () => {
     expect(s.perm("first").currentDP).toBe(4000);
     expect(s.perm("second").currentDP).toBe(5000);
 
-    // The same [Once Per Turn] identity is shared with [When Attacking]. A second
-    // initially unsuspended target was seeded before ready; the public attack must not fire the clause again.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR: the prose compiler recognizes the Unsuspend action but loses the
-// clause that binds it to an attack on an opponent's highest-DP Digimon. The official
-// Q&A confirms that every tied-highest target qualifies and a lower-DP target does not.
 const compiled: CompiledCard = {
   effects: [
     {

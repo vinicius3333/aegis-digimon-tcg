@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT26-002 Budmon — inherited [Your Turn] [Once Per Turn]: when an effect
-// trashes a card from under one of your Tamers, draw 1.
 export const compiled: CompiledCard = {
   effects: [
     {

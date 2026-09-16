@@ -70,7 +70,6 @@ describe("BT21-092 Can't Turn My Back!", () => {
       setup.inst("digimonSourceB").instanceId,
       setup.inst("existing").instanceId,
     ]);
-    // 10 - option cost 2 - (Shoutmon cost 4 - 2 placed Digimon cards) = 6.
     expect(setup.state.memory).toBe(6);
   });
 

@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The printed Blocker, Decoy (Black), and Your Turn attack restriction belong to the token,
-// not to BT16-052. Register them under the synthetic token id so every PlayToken caller gets
-// the same executable behavior after the token enters the battle area.
 export const compiled: CompiledCard = {
   effects: [
     {

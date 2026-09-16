@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ERRATA (2025-04-18): The [All Turns] Digivolve cost was updated.
-// Before errata: "By moving your level 3 or higher [Chronicle] trait Digimon from breeding area..."
-// After errata:  "By moving your level 3 or higher Digimon from the breeding area..."
-// The [Chronicle] trait restriction on the MOVING Digimon is removed; only the destination
-// card (digivolve into) must still be a [Chronicle] trait Digimon card.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -59,8 +59,6 @@ describe("BT5-038 Kyubimon", () => {
 
     const played = s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT5-065");
     expect(played).toBeDefined();
-    // Q1324: the -1000 modifier is scoped to Security Digimon, not the owner's
-    // battle area, so the newly played permanent keeps its printed DP.
     expect(played!.currentDP).toBe(5000);
   });
 });

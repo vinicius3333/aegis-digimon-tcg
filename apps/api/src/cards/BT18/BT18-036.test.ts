@@ -9,17 +9,14 @@ const INERT_SECURITY = ["BT1-009", "BT1-011", "BT1-012"];
 
 type Setup = ReturnType<typeof setupEngine>;
 
-/** Open the named seat's real Main phase inside a running production turn loop. */
 async function openMain(s: Setup, seat: 0 | 1): Promise<void> {
   await advance(s.engine).waitForMainPhase(seat);
 }
 
-/** Close the named seat's Main phase, tolerating production's own auto-pass. */
 function closeMain(s: Setup, seat: 0 | 1): void {
   advance(s.engine).endMainPhaseIfOpen(seat);
 }
 
-/** Stop the running turn loop so the test can assert on a quiescent board. */
 async function stopLoop(s: Setup, loop: Promise<void>, seat: 0 | 1): Promise<void> {
   expect(s.engine.applyIntent(seat, { type: "surrender" })).toEqual({ ok: true });
   await loop;
@@ -219,7 +216,6 @@ describe("BT18-036 Wizardmon", () => {
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([host]);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("wizardmon").instanceId]);
-    // Exactly the TOP security card paid for it.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("secTop").instanceId]);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("secNext").instanceId]);
     assertNoLoudGap(s);
@@ -271,7 +267,6 @@ describe("BT18-036 Wizardmon", () => {
   });
 
   it("protects only the Digimon carrying this card, not a matching yellow [Data] sibling (Q3087)", async () => {
-    // Both permanents are yellow [Data] Lv.4 Digimon; only `carrier` has Wizardmon underneath.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -300,7 +295,6 @@ describe("BT18-036 Wizardmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
     await s.ready();
-    // Aim the opponent's removal at the SIBLING, which carries no Wizardmon.
     preferInstanceIds.push(s.perm("sibling").topCard!.instanceId, s.perm("sibling").permanentId);
     const siblingTopId = s.perm("sibling").topCard!.instanceId;
     const loop = s.engine.startTurnLoop();
@@ -313,7 +307,6 @@ describe("BT18-036 Wizardmon", () => {
     closeMain(s, 1);
     await stopLoop(s, loop, 1);
 
-    // The sibling is gone and nothing was paid: the prevention is scoped to its own host.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
       s.perm("carrier").topCard!.instanceId,
     ]);
@@ -363,7 +356,6 @@ describe("BT18-036 Wizardmon", () => {
     await settle(() => s.state.players[0]!.security.length === 2);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
 
-    // Second removal in the SAME turn: refused, and no further security is spent.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flareTwo").instanceId })).toEqual({
       ok: true,
     });
@@ -414,7 +406,6 @@ describe("BT18-036 Wizardmon", () => {
     await settle(() => s.state.players[0]!.security.length === 2);
     closeMain(s, 1);
 
-    // Seat 0's own turn passes, then the opponent's next turn: a fresh once-per-turn window.
     await openMain(s, 0);
     closeMain(s, 0);
     await openMain(s, 1);

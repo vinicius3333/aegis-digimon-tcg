@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for ST23-02. IR verified faithful by Haiku audit.
 const compiled: CompiledCard = {
   effects: [
     {

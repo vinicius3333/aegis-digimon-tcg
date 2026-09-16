@@ -8,33 +8,17 @@ import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-/**
- * BT19-061 RaptorSparrowmon — Black/Purple Lv.4 Champion, 5000 DP, play cost 5,
- * evo cost 3 from a Black or Purple Lv.3.
- *
- * Printed clauses:
- *   1. [Digivolve] Lv.3 w/[Xros Heart] trait: Cost 2                        (alternate route)
- *   2. This card is also treated as [Sparrowmon] for a DigiXros.            (main, Q3119)
- *   3. [On Play] [When Digivolving] Reveal the top 3 cards of your deck. Add 1 card with
- *      the [Xros Heart]/[Blue Flare] trait among them to the hand. Trash the rest. (main, Q3118)
- *   4. [On Deletion] Place 1 Digimon card with the [Xros Heart]/[Blue Flare] trait from
- *      your hand or trash under your Tamers.                                (main)
- *   5. [Your Turn] This Digimon with the [Xros Heart] trait gains ＜Collision＞. (inherited)
- *
- * KB (`node tools/kb/query.mjs card BT19-061`): Q3118, Q3119.
- */
-
-const XROS_LV3 = "BT10-058"; // Monitamon: Black Lv.3 [Xros Heart] — the Cost 2 alternate source
-const PLAIN_BLACK_LV3 = "BT2-052"; // Hagurumon: Black Lv.3, no traits of interest, no effects
-const GREEN_LV3 = "BT1-064"; // Goblimon: Green Lv.3 — matches neither route
-const XROS_MATCH = "BT19-055"; // Monitamon: Black Lv.3 [Xros Heart] — reveal/place candidate
-const BLUE_FLARE_MATCH = "BT19-016"; // Gaossmon: Blue Lv.3 [Blue Flare] — the other printed trait
-const MISS_A = "BT1-009"; // Monodramon: [Mini Dragon], inert
-const MISS_B = "BT1-013"; // Muchomon: [Avian], inert
-const MISS_C = "BT1-014"; // Kokatorimon: Lv.4 [Giant Bird], inert
-const TAMER = "ST3-12"; // T.K. Takaishi — a Tamer with no effect that touches this flow
-const XROS_HOST = "BT19-013"; // Shoutmon X5: Lv.5 [Xros Heart], no inherited effect of its own
-const NON_XROS_HOST = "BT19-058"; // SkullKnightmon: [Undead]/[Twilight] — near-miss trait host
+const XROS_LV3 = "BT10-058";
+const PLAIN_BLACK_LV3 = "BT2-052";
+const GREEN_LV3 = "BT1-064";
+const XROS_MATCH = "BT19-055";
+const BLUE_FLARE_MATCH = "BT19-016";
+const MISS_A = "BT1-009";
+const MISS_B = "BT1-013";
+const MISS_C = "BT1-014";
+const TAMER = "ST3-12";
+const XROS_HOST = "BT19-013";
+const NON_XROS_HOST = "BT19-058";
 const INERT_SECURITY = "BT1-009";
 
 describe("BT19-061 RaptorSparrowmon", () => {
@@ -62,8 +46,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
     const card = runtimeCompiledCard("BT19-061");
     expect(card).toMatchObject({ coverage: "full", residual: [] });
     expect(card?.effects).toMatchObject([
-      // "also treated as [Sparrowmon] for a DigiXros" is confined to the DigiXros ledger
-      // (Q3119) and prints no timing bracket, so Static + digiXrosOnly.
       {
         trigger: "Static",
         actions: [
@@ -82,7 +64,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
           {
             kind: "RevealAdd",
             revealCount: 3,
-            // "with the [X]/[Y] trait" is an EXACT trait test, never a substring.
             add: [
               {
                 count: 1,
@@ -115,7 +96,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
           },
         ],
       },
-      // Printed "[Your Turn]" is the YourTurn trigger, not Static.
       {
         trigger: "YourTurn",
         isInherited: true,
@@ -133,15 +113,9 @@ describe("BT19-061 RaptorSparrowmon", () => {
     expect(card?.digivolutionRequirement).toEqual([{ level: 3, traits: ["Xros Heart"], cost: 2, isAlternate: true }]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve] Lv.3 w/[Xros Heart] trait: Cost 2
-  // ---------------------------------------------------------------------------
-
   it("offers the Cost 2 route only to a Lv.3 with the exact [Xros Heart] trait", () => {
     expect(matchingAlternateDigivolutionRequirement("BT19-061", XROS_LV3)).toMatchObject({ cost: 2 });
-    // Black Lv.3 without the trait: only the printed evo cost of 3 remains.
     expect(matchingAlternateDigivolutionRequirement("BT19-061", PLAIN_BLACK_LV3)).toBeUndefined();
-    // Right trait, wrong level (Lv.5 [Xros Heart]).
     expect(matchingAlternateDigivolutionRequirement("BT19-061", XROS_HOST)).toBeUndefined();
     expect(matchingAlternateDigivolutionRequirement("BT19-061", GREEN_LV3)).toBeUndefined();
   });
@@ -155,7 +129,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
         0: {
           battleArea: [{ card: baseCardId, as: "base" }],
           hand: [{ card: "BT19-061", as: "raptor" }],
-          // The evolution draw takes the top card first; the reveal then sees the next 3.
           deck: [{ card: MISS_C, as: "evoDraw" }, { card: XROS_MATCH, as: "match" }, MISS_A, MISS_B],
           security: [{ card: INERT_SECURITY }],
         },
@@ -177,11 +150,9 @@ describe("BT19-061 RaptorSparrowmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId));
 
-    // The gauge started at exactly the route's cost, so the route actually paid is pinned.
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").topCard?.cardId).toBe("BT19-061");
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
-    // Reveal 3 (match + 2 misses), add the match, trash the rest; the evolution draw is the 4th.
     expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual([MISS_C, XROS_MATCH].sort());
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([MISS_A, MISS_B]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
@@ -220,17 +191,10 @@ describe("BT19-061 RaptorSparrowmon", () => {
     expect(s.perm("goblimon").topCard?.cardId).toBe(GREEN_LV3);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] Reveal the top 3 cards of your deck. Add 1 card with the
-  // [Xros Heart]/[Blue Flare] trait among them to the hand. Trash the rest. (Q3118)
-  // ---------------------------------------------------------------------------
-
   it.each([
     ["[Xros Heart]", XROS_MATCH],
     ["[Blue Flare]", BLUE_FLARE_MATCH],
   ])("adds the revealed %s card on play and trashes the other two", async (_label, matchCardId) => {
-    // `autoDeclineOptional` is deliberate: the add is MANDATORY (Q3118 — you must add as many
-    // as possible), so no optional prompt exists for the decline to reach.
     const s = setupEngine(
       {
         0: {
@@ -252,7 +216,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual([MISS_C, matchCardId].sort());
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual([MISS_A, MISS_B].sort());
-    // Only the top 3 were touched; the 4th card stays on the deck.
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
     expect(s.state.memory).toBe(5);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -263,8 +226,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
       {
         0: {
           hand: [{ card: "BT19-061", as: "raptor" }, { card: MISS_C }],
-          // [Mini Dragon], [Avian] and [Giant Bird]: three near-miss traits, none of them the
-          // printed pair, so every revealed card is trashed.
           deck: [MISS_A, MISS_B, MISS_C],
           security: [{ card: INERT_SECURITY }],
         },
@@ -286,11 +247,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Deletion] Place 1 Digimon card with the [Xros Heart]/[Blue Flare] trait from your
-  // hand or trash under your Tamers.
-  // ---------------------------------------------------------------------------
 
   it("places a matching Digimon card from its own trash under its own Tamer when it dies in battle", async () => {
     const s = setupEngine(
@@ -324,8 +280,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.length === 1);
 
-    // Only the controller's own [Blue Flare] card qualified: the [Mini Dragon] card in hand
-    // and the opponent's own [Xros Heart] card in THEIR trash are both near misses.
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("blueFlare").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("nonMatchingHand").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT19-061"]);
@@ -365,10 +319,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // "This card is also treated as [Sparrowmon] for a DigiXros." — Q3119
-  // ---------------------------------------------------------------------------
-
   it("is a legal [Sparrowmon] DigiXros material while keeping its printed name", async () => {
     const s = setupEngine({
       0: {
@@ -387,7 +337,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
     });
     await s.ready();
 
-    // The alias never reaches ordinary name matching.
     expect(observe(s.engine).effectiveNames(s.perm("boardRaptor"))).toEqual(["raptorsparrowmon"]);
     expect(observe(s.engine).grantedNames(s.perm("boardRaptor"))).toEqual([]);
 
@@ -412,7 +361,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
   });
 
   it("is not a ＜Material Save＞-eligible [Sparrowmon] under a Tamer (Q3119)", async () => {
-    // The DigiXros-only alias is invisible to the eligibility test ＜Material Save＞ uses.
     expect(digiXrosMatches("BT10-013", "BT19-061")).toBe(false);
     expect(digiXrosMatches("BT10-013", "BT10-060")).toBe(true);
 
@@ -444,8 +392,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.length > 0);
 
-    // ＜Material Save 3＞ moved the real [Sparrowmon] and [Ballistamon]; RaptorSparrowmon was
-    // never eligible and went to the trash with the rest of the stack.
     expect(
       s
         .perm("tamer")
@@ -454,10 +400,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
     ).toEqual(["BT10-049", "BT10-060"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT19-061");
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited [Your Turn] This Digimon with the [Xros Heart] trait gains ＜Collision＞.
-  // ---------------------------------------------------------------------------
 
   it("grants inherited ＜Collision＞ only to an [Xros Heart] host, and only on its controller's turn", async () => {
     const s = setupEngine({
@@ -480,14 +422,12 @@ describe("BT19-061 RaptorSparrowmon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Identical stack shape; only the host's printed traits differ.
     expect(observe(s.engine).hasKeyword(s.perm("xrosHost"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plainHost"), "Collision")).toBe(false);
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
 
-    // [Your Turn] only: the grant is gone once the turn hands over.
     expect(s.state.turnSeat).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("xrosHost"), "Collision")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("plainHost"), "Collision")).toBe(false);
@@ -507,7 +447,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
           security: [{ card: INERT_SECURITY }],
         },
         1: {
-          // Inert Lv.3 with no printed ＜Blocker＞: it can only block if ＜Collision＞ grants it.
           battleArea: [{ card: MISS_A, as: "nonBlocker" }],
           security: [{ card: INERT_SECURITY }, { card: INERT_SECURITY }],
         },
@@ -517,8 +456,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    // Near-miss control first: the [Undead]/[Twilight] host gets no grant, so the same
-    // non-Blocker is not even an eligible blocker.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -543,7 +480,6 @@ describe("BT19-061 RaptorSparrowmon", () => {
       s.perm("nonBlocker").permanentId,
     );
     expect(opened && "mustBlock" in opened ? opened.mustBlock : undefined).toBe(true);
-    // "the opponent player is forced to block whenever possible" — a decline is illegal.
     expect(s.engine.applyIntent(1, { type: "declineBlock" }).ok).toBe(false);
     expect(
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("nonBlocker").permanentId }),

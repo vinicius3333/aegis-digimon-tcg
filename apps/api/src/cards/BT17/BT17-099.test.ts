@@ -254,12 +254,10 @@ describe("BT17-099 Awakening of the Sun", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === rhythmId)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([takatoId]);
-    // Rhythm costs 4 but is played for free; only the Option's own cost 3 is paid.
     expect(s.state.memory).toBe(0);
   });
 
   it("does not let the Delay digivolve use a [ShineGreymon] card from the trash", async () => {
-    // Q2895: the digivolution source is the hand only.
     const s = setupEngine(
       {
         0: {
@@ -318,7 +316,6 @@ describe("BT17-099 Awakening of the Sun", () => {
   });
 
   it("does not ignore the digivolution requirements of the [ShineGreymon] card", async () => {
-    // Q2894: BT17-039 needs a yellow level 5 source; a purple Rookie cannot digivolve into it.
     const s = setupEngine(
       {
         0: {
@@ -375,8 +372,6 @@ describe("BT17-099 Awakening of the Sun", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shine").instanceId)).toBe(true);
   });
   it("refuses a near-name Tamer and plays only the exact [Marcus Damon]", async () => {
-    // The printed clause has no "in its name", so the filter is exact-name.
-    // AD1-021 "Marcus Damon & Agumon" contains the string but is a different card.
     const s = setupEngine(
       {
         0: {
@@ -428,10 +423,6 @@ describe("BT17-099 Awakening of the Sun", () => {
   });
 
   it("still accepts ST24-13, whose static name list contains [Marcus Damon]", async () => {
-    // ST24-13 "Marcus Damon & Thomas H. Norstein" is listed in
-    // packages/shared/src/cards/effectiveNames.ts STATIC_NAME_ALIASES_BY_CARD_ID with the
-    // names ["Marcus Damon", "Thomas H. Norstein"], so it answers to the exact-name gate.
-    // AD1-021 "Marcus Damon & Agumon" carries no such alias entry and is refused above.
     const s = setupEngine(
       {
         0: {
@@ -449,7 +440,6 @@ describe("BT17-099 Awakening of the Sun", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === aliasedId)).toBe(true);
-    // ST24-13 costs 4 and is played for free; only the Option's own cost 3 is paid.
     expect(s.state.memory).toBe(0);
   });
 });

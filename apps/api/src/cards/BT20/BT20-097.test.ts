@@ -241,8 +241,6 @@ describe("BT20-097 The Apostle of Doom Descends!", () => {
             { card: "BT20-090", as: "purpleSource" },
           ],
           hand: [{ card: "BT20-097", as: "option" }],
-          // Legal purple/black evolution stack: Dorumon -> DexDorugamon Lv.4 ->
-          // DexDoruGreymon Lv.5 -> DexDorugoramon Lv.6.
           breeding: {
             card: "BT17-073",
             as: "breedingDex",

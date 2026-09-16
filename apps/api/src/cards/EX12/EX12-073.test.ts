@@ -16,7 +16,6 @@ describe("EX12-073 Giant Meat", () => {
       kind: "WaiveColorRequirement",
       condition: {
         kind: "youHave",
-        // CR 16-42-3 scopes ＜Use Req.＞ to Digimon and Tamers on the field.
         filter: {
           kind: ["Digimon", "Tamer"],
           nameOrTrait: [{ tokens: ["NSp", "DS", "NSo", "WG", "ME", "VB"], match: "trait" }],
@@ -59,8 +58,6 @@ describe("EX12-073 Giant Meat", () => {
     expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
-  // EX12-008 ToyAgumon is a RED [ME] Digimon, so only the ＜Use Req.＞ waiver lets this White
-  // Option be played; its colour alone never satisfies the requirement.
   it("can be played when an [ME] trait Digimon is in the battle area", async () => {
     const s = setupEngine(
       {
@@ -95,10 +92,6 @@ describe("EX12-073 Giant Meat", () => {
     });
   });
 
-  // CR 3-4-6: "the field" (what CR 16-42-3 scopes ＜Use Req.＞ to) is the battle area AND the
-  // breeding area — unlike free-text pre-keyword colour-requirement waivers (CR 3-4-7-8, e.g.
-  // EX7-074/LIBERATOR), which can't reference breeding-area info at all. So a matching-trait
-  // Digimon in the breeding area does satisfy this keyword's requirement.
   it("is enabled by an [ME] trait Digimon in the breeding area", async () => {
     const s = setupEngine(
       {
@@ -195,10 +188,6 @@ describe("EX12-073 Giant Meat", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
   });
 
-  // Mutation guard for the CR 16-42-3 kind gate on the ＜Use Req.＞ condition: EX12-072 is an
-  // OPTION whose colors never satisfy this card's colour requirement, yet it carries the [ME]
-  // trait and EX12 Options sit in the battle area. Remove `kind: ["Digimon", "Tamer"]` from the
-  // youHave filter and this play is wrongly allowed.
   it("is not enabled by a resident Option carrying the Use Req. trait", () => {
     const s = setupEngine({
       0: {

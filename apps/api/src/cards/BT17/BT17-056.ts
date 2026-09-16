@@ -1,9 +1,3 @@
-// Hand-written override for BT17-056 (Locomon).
-// Fix: the [All Turns] reveal-3 effect must place 1 [Parasitemon] OR 1 level-5-or-lower
-// black Digimon card AMONG the revealed cards as this Digimon's bottom digivolution card,
-// then trash the rest. Folded the stranded PlaceUnder + Trash into the RevealAdd
-// disposition (to:"placeUnder", rest:"trash") which the interpreter resolves from the
-// revealed pool. The [Parasitemon]-name alt and the (black, level<=5) alt are an OR.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

@@ -4,21 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-// A3 for P-143 (Drimogemon) — [End of Your Turn][Once Per Turn] move to breeding:
-//   "You may place this Digimon to the empty space in your breeding area." (documented behavior)
-//
-// KB authority (binding):
-//   Q4251: digivolution cards are NOT trashed when it moves to the breeding area.
-//   Q4250: <Overflow> in its digivolution cards is NOT processed on this move.
-//   Q4256: a suspended Digimon stays suspended after the move.
-//
-// FAILS-WHEN-REVERTED: drop/no-op the [End of Your Turn] body in P-143.ts — the
-// Digimon stays in the battle area after fireTiming(OnEndTurn) and the breeding-area
-// presence assertion goes RED.
-//
-// The hand-written module also grants inherited <Piercing> (OnDetermineDoSecurityCheck),
-// but that timing is covered by the existing mechanic.test.ts Pierce suite.
-
 function fireTiming(
   s: ReturnType<typeof setupEngine>,
   timing: EffectTiming,
@@ -40,16 +25,13 @@ describe("P-143 [End of Your Turn][OPT] move to breeding area", () => {
     const p0 = s.state.players[0] as PlayerState;
     const drimogemonId = s.perm("drimogemon").permanentId;
 
-    // Breeding area is empty — gate satisfied (documented behavior GetBreedingAreaPermanents().Count == 0).
     expect(p0.breeding).toBeUndefined();
 
     await fireTiming(s, EffectTiming.OnEndTurn);
     await settle(() => p0.breeding !== undefined);
 
-    // P-143 moved to the breeding area.
     expect(p0.breeding).toBeDefined();
     expect(p0.breeding!.permanentId).toBe(drimogemonId);
-    // It is no longer in the battle area.
     expect(p0.battleArea.some((perm) => perm.permanentId === drimogemonId)).toBe(false);
   });
 
@@ -70,7 +52,6 @@ describe("P-143 [End of Your Turn][OPT] move to breeding area", () => {
     await fireTiming(s, EffectTiming.OnEndTurn);
     await settle(() => p0.breeding !== undefined);
 
-    // The digivolution card is still in the stack — NOT trashed (Q4251).
     expect(p0.breeding!.stack.some((c) => c.instanceId === stackCardId)).toBe(true);
     expect(p0.trash.some((c) => c.instanceId === stackCardId)).toBe(false);
   });
@@ -92,7 +73,6 @@ describe("P-143 [End of Your Turn][OPT] move to breeding area", () => {
     await fireTiming(s, EffectTiming.OnEndTurn);
     for (let i = 0; i < 30; i++) await Promise.resolve();
 
-    // The breeding area still holds the original occupant; P-143 stays in battle.
     expect(p0.breeding?.permanentId).toBe(breedingBefore);
     expect(p0.battleArea.some((perm) => perm.permanentId === drimogemonId)).toBe(true);
   });
@@ -102,14 +82,13 @@ describe("P-143 [End of Your Turn][OPT] move to breeding area", () => {
       { 0: { battleArea: [{ card: "P-143", dp: 5000, as: "drimogemon" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1; // not seat 0's turn — [End of Your Turn] / [Your Turn] gate fails
+    s.state.turnSeat = 1;
     const p0 = s.state.players[0] as PlayerState;
     const drimogemonId = s.perm("drimogemon").permanentId;
 
     await fireTiming(s, EffectTiming.OnEndTurn);
     for (let i = 0; i < 30; i++) await Promise.resolve();
 
-    // P-143 stays in the battle area — guard requires it to be the owner's turn.
     expect(p0.breeding).toBeUndefined();
     expect(p0.battleArea.some((perm) => perm.permanentId === drimogemonId)).toBe(true);
   });

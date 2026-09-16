@@ -285,8 +285,6 @@ describe("BT20-032 Bulkmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // A player-directed attack resolves through the security check, not a
-    // Digimon-vs-Digimon battle, so `combatResolved` never fires for this one.
     await settle(() => !observe(s.engine).isAttacking() && s.perm("thirdOpponent").isSuspended);
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
@@ -301,8 +299,6 @@ describe("BT20-032 Bulkmon", () => {
         target: { kind: "permanent", permanentId: s.perm("thirdOpponent").permanentId },
       }),
     ).toEqual({ ok: true });
-    // The third attack (thirdOpponent -> player) never added a `combatResolved` event, so
-    // this Digimon-vs-Digimon battle is only this test's 3rd such event, not its 4th.
     await settle(
       () =>
         s.events.filter((event) => event.kind === "combatResolved").length >= 3 &&

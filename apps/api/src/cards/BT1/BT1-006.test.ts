@@ -135,8 +135,6 @@ describe("BT1-006 Cupimon", () => {
     await settle(() => s.state.players[0]!.hand.length === handBefore + 1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
 
-    // A peer without Cupimon attacks a Digimon in the same turn; it must not draw.
-    // The opponent's turn-start unsuspends the wall, so suspend it again as legal attack setup.
     await advance(s.engine).verb.suspend([s.perm("wall").permanentId]);
     const peerHandLength = s.state.players[0]!.hand.length;
     expect(

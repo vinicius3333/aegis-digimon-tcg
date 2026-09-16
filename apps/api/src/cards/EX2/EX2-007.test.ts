@@ -16,17 +16,6 @@ import "../BT8/BT8-071.js";
 const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const inertSecurity = ["BT1-009", "BT1-013"];
 
-// EX2-007 (Mother D-Reaper) — KB-grounded behavior tests.
-//
-// Three clauses:
-//   1. Registration + timing routing: [Main] must route to OnDeclaration;
-//      [All Turns] static restrictions route to None.
-//   2. [Your Turn] cost-reduction effect — the compiled Replacement action scopes the
-//      played card to the [D-Reaper] trait and scales from this card's stack.
-//      KB basis: printed text "[Your Turn][Once Per Turn] When you would play a
-//      card with [D-Reaper] in its traits from your hand, you may reduce its play
-//      cost by 1 for each of this Digimon's digivolution cards.".
-
 function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
   return {
     cardId: "EX2-007",
@@ -102,16 +91,12 @@ describe("EX2-007 (Mother D-Reaper) routing and registration", () => {
   });
 
   it("[Main] routes to OnDeclaration (activated permanent ability window)", () => {
-    // The Main trigger maps to both OnUseOption and OnDeclaration in timingsForTrigger.
-    // OnDeclaration is how activateEffect reaches a permanent's activated [Main].
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnDeclaration, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);
   });
 
   it("[All Turns] static restriction routes to None and OnPlay contributes nothing", () => {
-    // AllTurns and YourTurn triggers both map to EffectTiming.None (staticModifier).
-    // The card has no [On Play] clause.
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThanOrEqual(1);
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
@@ -208,9 +193,6 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
       eggDeck: s.state.players[0]!.eggDeck.some((card) => card.instanceId === motherId),
       trash: s.state.players[0]!.trash.some((card) => card.instanceId === motherId),
     };
-    // Q3281 redirects Mother only when she would be moved to the hand, deck, or security
-    // stack; CR §3-1-3-9 limits that redirect to private areas, so a deletion still trashes
-    // her (the trash holds Digi-Egg cards, as the trash-targeting rulings confirm).
     expect(movementEvents.at(-1)).toEqual({ from: "battleArea", to: "trash" });
     expect(locations).toEqual({ hand: false, deck: false, eggDeck: false, trash: true });
   });

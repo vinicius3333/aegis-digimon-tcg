@@ -81,8 +81,7 @@ describe("EX4-017 Gaogamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "EX4-017");
 
-    // The newly evolved EX4-017 is the top card, so its inherited text is not active on itself.
-    expect(s.state.memory).toBe(3); // -2 evolution cost; no inherited gain from the top card itself.
+    expect(s.state.memory).toBe(3);
     expect(s.perm("base").topCard?.cardId).toBe("EX4-017");
     expect(s.perm("base").topCard?.instanceId).toBe(s.inst("gaogamon").instanceId);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-030"]);
@@ -139,13 +138,13 @@ describe("EX4-017 Gaogamon", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.length === 1);
-    expect(s.state.memory).toBe(8); // -3 play cost, +1 inherited trigger.
+    expect(s.state.memory).toBe(8);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.hand.length === 2);
-    expect(s.state.memory).toBe(5); // second effect addition is blocked this turn.
+    expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(0);
   });
@@ -210,7 +209,7 @@ describe("EX4-017 Gaogamon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("second").instanceId),
     );
-    expect(s.state.memory).toBe(beforeSecondPlay - 2); // -3 play cost and a fresh +1 inherited trigger.
+    expect(s.state.memory).toBe(beforeSecondPlay - 2);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

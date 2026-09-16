@@ -6,40 +6,15 @@ import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { compiled } from "./EX13-076.js";
-// The whole registry, so every fixture carries its own implementation; EX13-076 itself is
-// registered by the import above (it is not yet listed in EX13/index.ts).
 import "../index.js";
 
 const cardId = "EX13-076";
 
-// Evolution fixtures. The catalog EvoCosts are Blue Lv.6 for 6 and Green Lv.6 for 6; the printed
-// [Digivolve] header adds a colourless "Lv.6 w/[Free]/[Royal Knight] trait: Cost 5" route.
-//   BT3-075  Craniamon   BLACK Lv.6 12000, [Royal Knight], no inherited text — matches the
-//                        alternate route's TRAIT half and NO printed EvoCost (it is black), so a
-//                        charge of 5 can only have come from the alternate route.
-//   BT16-013 Valkyrimon  RED/YELLOW Lv.6 12000, [Free] ATTRIBUTE, no inherited text — the other
-//                        half of the "[Free]/[Royal Knight]" slash, likewise off-colour.
-//   ST2-10   Plesiomon   BLUE Lv.6 12000, [Data]/[Plesiosaur] — the printed-EvoCost control: the
-//                        alternate route refuses it, so it costs the catalog's 6.
-//   BT2-064  HiAndromon  BLACK Lv.6 12000, [Vaccine]/[Cyborg] — neither route: wrong colour for
-//                        the EvoCosts and wrong traits for the alternate. The illegal source.
 const ROYAL_LV6 = "BT3-075";
 const FREE_LV6 = "BT16-013";
 const PRINTED_LV6 = "ST2-10";
 const ILLEGAL_LV6 = "BT2-064";
 
-// Assembly fixtures ("6 [Free]/[Royal Knight] trait Digimon cards w/different names"). All six
-// carry no inherited text, so stacking them adds nothing to the board.
-//   BT1-027 Armadillomon  Lv.3, [Free]
-//   BT3-009 Hawkmon       Lv.3, [Free]
-//   BT3-021 Veemon        Lv.3, [Free]
-//   BT3-047 Wormmon       Lv.3, [Free]
-//   BT1-083 GranKuwagamon Lv.6, [Free] — no level bound is printed, so a Mega is a legal material
-//   BT3-075 Craniamon     Lv.6, [Royal Knight] — the TRAIT-UNION material: nothing about it
-//                         answers [Free], so the recipe must accept it on [Royal Knight] alone
-// Negatives:
-//   BT3-032 Armadillomon  a SECOND print named Armadillomon, also [Free] — `differentNames`
-//   BT1-009 Monodramon    [Vaccine]/[Mini Dragon] — neither printed trait
 const MAT_ARMADILLO = "BT1-027";
 const MAT_HAWKMON = "BT3-009";
 const MAT_VEEMON = "BT3-021";
@@ -49,11 +24,10 @@ const MAT_ROYAL = ROYAL_LV6;
 const MAT_DUPLICATE_NAME = "BT3-032";
 const MAT_NON_TRAIT = "BT1-009";
 
-// Neutral inert main-deck fixtures (no printed text of any kind).
-const VICTIM = "BT1-013"; // Muchomon, Red Lv.3, 5000 DP
-const FILLER_A = "BT1-010"; // Agumon, Red Lv.3, 2000 DP
-const FILLER_B = "BT1-011"; // Agumon Expert, Red Lv.3, 1000 DP
-const FILLER_C = "BT1-014"; // Kokatorimon, Red Lv.4, 4000 DP
+const VICTIM = "BT1-013";
+const FILLER_A = "BT1-010";
+const FILLER_B = "BT1-011";
+const FILLER_C = "BT1-014";
 
 const DECK = [FILLER_A, FILLER_B, FILLER_C];
 
@@ -77,7 +51,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     });
     expect(getCardDefinition(cardId)?.inheritedEffectText ?? "").toBe("");
     expect(getCardDefinition(cardId)?.securityEffectText ?? "").toBe("");
-    // The printed [Rule] line is what `staticTraitsOf` regex-parses into a live trait.
     expect(getCardDefinition(cardId)?.effectText).toContain("[Rule] Trait: Has [Free] Attribute.");
   });
 
@@ -96,13 +69,10 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
       { keyword: "Evade", raw: "＜Evade＞" },
     ]);
 
-    // "[Digivolve] Lv.6 w/[Free]/[Royal Knight] trait: Cost 5" — colourless, EXACT traits, OR-matched.
     expect(compiled.digivolutionRequirement).toEqual([
       { level: 6, traits: ["Free", "Royal Knight"], cost: 5, isAlternate: true },
     ]);
 
-    // "[Assembly -8] 6 [Free]/[Royal Knight] trait Digimon cards w/different names" — one repeated
-    // slot; "Digimon cards" means the slot DOES carry a `kinds` gate, unlike EX13-063's bare "cards".
     expect(assemblyRequirementFor(cardId)).toEqual([
       {
         reduceCost: 8,
@@ -157,11 +127,8 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
         actions: body,
       });
     }
-    // §15-6-2: only the SECOND "may" gates its own siblings. Declining the leading suspend leaves
-    // the "Then, you may ..." half available, so the Suspend carries no `abortOnDecline`.
     const onPlay = compiled.effects.find(({ trigger }) => trigger === "OnPlay")!;
     expect(onPlay.actions[0]).not.toHaveProperty("abortOnDecline");
-    // "have this Digimon battle it" is mandatory once the single "may" was accepted.
     expect(onPlay.actions[4]).not.toHaveProperty("optional");
 
     const battleWon = compiled.effects.find(({ trigger }) => trigger === "AllTurns")!;
@@ -195,10 +162,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // ＜Piercing＞ ＜Vortex＞ ＜Blocker＞ ＜Evade＞ and [Rule] Trait: Has [Free] Attribute.
-  // ---------------------------------------------------------------------------
-
   it("carries all four printed keywords and the rule-granted [Free] trait", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: cardId, as: "paladin" }], deck: DECK },
@@ -209,16 +172,10 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     for (const keyword of ["Piercing", "Vortex", "Blocker", "Evade"]) {
       expect(observe(s.engine).hasKeyword(s.perm("paladin"), keyword)).toBe(true);
     }
-    // The [Rule] line is parsed straight out of `effectText` by `staticTraitsOf`, so the trait is
-    // live with or without the IR entry — this asserts the trait, not the IR.
     expect(getCardDefinition(cardId)?.attributes).toEqual(["Vaccine"]);
     expect(cardHasTrait(cardId, "Free")).toBe(true);
     expect(cardHasTrait(cardId, "Royal Knight")).toBe(false);
   });
-
-  // ---------------------------------------------------------------------------
-  // [Digivolve] Lv.6 w/[Free]/[Royal Knight] trait: Cost 5
-  // ---------------------------------------------------------------------------
 
   const digivolveFrom = async (base: string, memory: number) => {
     const s = setupEngine(
@@ -246,18 +203,12 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
   it("digivolves from a Lv.6 [Royal Knight] for the alternate 5, keeping the source stack and drawing 1", async () => {
     const s = await digivolveFrom(ROYAL_LV6, 6);
 
-    // Black Craniamon answers NO printed EvoCost (both are Blue/Green), so a charge of exactly 5
-    // can only be the colourless "Lv.6 w/[Free]/[Royal Knight] trait" route.
     expect(s.state.memory).toBe(1);
     const paladin = s.perm("base");
     expect(paladin.topCard.cardId).toBe(cardId);
-    // Source-stack identity: the base and the card that was already under it, in order.
     expect(paladin.stack.map(({ cardId: id }) => id)).toEqual([FILLER_B, ROYAL_LV6]);
     expect(paladin.currentDP).toBe(16_000);
-    // The digivolve's bonus draw.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
-    // Inherited text survives the transition: BT3-075 prints none, and the four keywords are the
-    // new top card's own.
     for (const keyword of ["Piercing", "Vortex", "Blocker", "Evade"]) {
       expect(observe(s.engine).hasKeyword(paladin, keyword)).toBe(true);
     }
@@ -268,8 +219,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     expect(free.state.memory).toBe(1);
     expect(free.perm("base").topCard.cardId).toBe(cardId);
 
-    // Plesiomon is Blue Lv.6 but [Data]/[Plesiosaur]: the alternate route refuses it, so the
-    // catalog's Blue Lv.6-for-6 EvoCost is the only route and charges one more.
     const printed = await digivolveFrom(PRINTED_LV6, 6);
     expect(printed.state.memory).toBe(0);
     expect(printed.perm("base").topCard.cardId).toBe(cardId);
@@ -301,10 +250,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
-
-  // ---------------------------------------------------------------------------
-  // [Assembly -8] 6 [Free]/[Royal Knight] trait Digimon cards w/different names
-  // ---------------------------------------------------------------------------
 
   it("plays by Assembly from the trash for 8 less, stacking the six materials in printed order", async () => {
     const s = setupEngine(
@@ -341,16 +286,12 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
     await settle();
 
-    // Printed play cost 16 reduced by the printed 8. The [Royal Knight] Craniamon counted on its
-    // trait alone, so the recipe's trait pair is a genuine OR.
     expect(s.state.memory).toBe(2);
     const paladin = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === cardId)!;
-    // §7-3-2-6: the first-declared material ends up closest to the played card (top of the pile).
     expect(paladin.stack.map(({ instanceId }) => instanceId)).toEqual(
       ["m6", "m5", "m4", "m3", "m2", "m1"].map((alias) => s.inst(alias).instanceId),
     );
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    // [On Play] fired with no opponent Digimon on the board, so it found nothing to act on.
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
@@ -386,11 +327,8 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     };
 
     for (const aliases of [
-      // `differentNames`: BT1-027 and BT3-032 are both named Armadillomon.
       ["m1", "twin", "m2", "m3", "m4", "m5"],
-      // Monodramon is [Vaccine]/[Mini Dragon] — neither [Free] nor [Royal Knight].
       ["m1", "m2", "m3", "m4", "m5", "nonTrait"],
-      // §7-3-2-4: the exact printed count of 6 must be placed.
       ["m1", "m2", "m3", "m4", "m5"],
     ]) {
       const { result, memory, board } = await declare(aliases);
@@ -399,13 +337,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
       expect(board).toBe(0);
     }
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may suspend 1 of your
-  // opponent's Digimon. Then, you may return all digivolution cards of 1 of their Digimon to the
-  // bottom of the deck and have this Digimon battle it. Compare the number of digivolution cards
-  // instead of DP in this battle.
-  // ---------------------------------------------------------------------------
 
   it("suspends, empties the chosen Digimon's whole stack to the deck bottom, and battles it", async () => {
     const s = setupEngine(
@@ -427,17 +358,10 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // Both digivolution cards left the battle area for the BOTTOM of their owner's deck — the
-    // Digimon itself stayed in play for the battle, which `Return.returnDigivolutionCardsFirst`
-    // (it would have returned the Digimon too) and ＜De-Digivolve＞ (trash, level-3 floor) cannot do.
-    // `returnStackTopsToDeck` inserts the batch bottom-first, so the former stack lands reversed
-    // under the card that was already the deck's floor.
     expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("deckFloor").instanceId,
       ...[...stackIds].reverse(),
     ]);
-    // Paladin Mode has 1 digivolution card and the stripped victim has 0, so the count comparison
-    // deletes the victim alone; its top card goes to its owner's trash.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([victimTopId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
@@ -446,10 +370,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
   });
 
   it("compares digivolution cards, not DP: a stackless Paladin Mode TIES a 5000 DP victim", async () => {
-    // Paladin Mode is 16000 DP against a 5000 DP Muchomon, so a DP battle would be a clean win
-    // with nothing happening to the attacker. Under the printed comparison both sides hold ZERO
-    // digivolution cards after the strip, which is a tie — and a tie puts the attacker on the
-    // deletion list too, where its printed ＜Evade＞ saves it by suspending (§16-35-4 + §16-30).
     const s = setupEngine(
       {
         0: { battleArea: [{ card: cardId, as: "paladin" }], deck: DECK, security: [FILLER_B] },
@@ -466,16 +386,11 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     expect(s.perm("victim").currentDP).toBe(5000);
 
     const paladinId = s.perm("paladin").permanentId;
-    // ＜Evade＞ is a combat-window decision, not a `state.pendingDecision`, so no auto-responder
-    // answers it — hold the firing promise and answer the intent by hand.
     const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("paladin"));
     await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
 
-    // THE PROOF: an ＜Evade＞ window opened for PALADIN MODE. That only happens when the battle put
-    // the attacker on the deletion list, which a 16000-vs-5000 DP comparison never would.
     expect(s.events.filter(({ kind }) => kind === "evadePrompt")).toHaveLength(1);
 
-    // Decline it, so the raw tie stands and both battlers are deleted.
     expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: paladinId, accept: false })).toEqual({
       ok: true,
     });
@@ -512,9 +427,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
   });
 
   it("shares one [Once Per Turn] across all three timings and resets on the next own turn", async () => {
-    // Paladin Mode is seeded STACKLESS so every forced battle is a 0-vs-0 tie: nobody wins it, and
-    // the [All Turns] won-battle clause (which would otherwise return "second" to the deck) stays
-    // quiet. "second" is therefore a clean witness for the shared per-turn budget.
     const prefer: string[] = [];
     const s = setupEngine(
       {
@@ -537,14 +449,12 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: prefer },
     );
     await s.ready();
-    // Pin every selection of the first activation onto "first".
     prefer.push(s.perm("first").topCard.instanceId);
     const paladinId = s.perm("paladin").permanentId;
     const secondId = s.perm("second").permanentId;
 
     const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("paladin"));
     await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
-    // Accept ＜Evade＞ so the host survives its own tie and can try the other two windows.
     expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: paladinId, accept: true })).toEqual({
       ok: true,
     });
@@ -556,8 +466,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     expect(s.perm("second").isSuspended).toBe(false);
     expect(s.perm("paladin").isSuspended).toBe(true);
 
-    // Same per-turn use: neither of the two remaining windows may activate, so "second" keeps its
-    // stack and its orientation and no second ＜Evade＞ window ever opens.
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("paladin"));
     await settle();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("paladin"));
@@ -566,7 +474,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     expect(s.perm("second").isSuspended).toBe(false);
     expect(s.events.filter(({ kind }) => kind === "evadePrompt")).toHaveLength(1);
 
-    // Through the real turn loop: the opponent's turn clears the use.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -576,17 +483,10 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("paladin"));
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
-    // The window reopened: "second" was suspended, stripped and battled. The host is still
-    // suspended from its earlier ＜Evade＞, so this tie deletes it with no new prompt.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.events.filter(({ kind }) => kind === "evadePrompt")).toHaveLength(1);
   });
-
-  // ---------------------------------------------------------------------------
-  // [All Turns] [Once Per Turn] When this Digimon wins a battle, you may return 1 of your
-  // opponent's Digimon to the bottom of the deck. Then, this Digimon may unsuspend.
-  // ---------------------------------------------------------------------------
 
   it("returns an opponent Digimon to the deck bottom and unsuspends itself after a won battle", async () => {
     const s = setupEngine(
@@ -612,15 +512,12 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // "return 1 of your opponent's Digimon to the bottom of the deck" takes the whole permanent:
-    // the top card goes to the deck bottom and its digivolution card falls to the trash.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("deckFloor").instanceId,
       targetTopId,
     ]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([targetStackId]);
-    // "Then, this Digimon may unsuspend."
     expect(s.perm("paladin").isSuspended).toBe(false);
   });
 
@@ -654,8 +551,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     await settle();
     expect(s.perm("paladin").isSuspended).toBe(false);
 
-    // Second win in the same turn: the budget is spent, so "second" stays and the re-suspended
-    // host stays suspended.
     s.perm("paladin").isSuspended = true;
     await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("paladin").permanentId });
     await settle();

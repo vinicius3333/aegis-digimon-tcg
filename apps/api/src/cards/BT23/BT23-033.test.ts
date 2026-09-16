@@ -52,7 +52,6 @@ describe("BT23-033 Beautymon", () => {
     const linkId = s.inst("linkCapable").instanceId;
     const beautymonId = s.inst("beautymon").instanceId;
 
-    // Public flow: play Beautymon from hand for its printed cost of 8.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: beautymonId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === beautymonId));
     await settle();
@@ -135,7 +134,6 @@ describe("BT23-033 Beautymon", () => {
             {
               kind: "Restrict",
               restriction: "cannotReturnToHandOrDeck",
-              // "THEIR effects can't return this Digimon": the controller's own effects still can.
               byOpponentEffectsOnly: true,
               duration: "untilOpponentTurnEnd",
             },
@@ -165,7 +163,6 @@ describe("BT23-033 Beautymon", () => {
           deck: [{ card: "BT1-046", as: "bonusDraw" }, "BT1-047", "BT1-049"],
         },
       },
-      // Decline Beautymon's own optional link clause so only the App Fusion moves cards.
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -174,7 +171,6 @@ describe("BT23-033 Beautymon", () => {
     const consulmonId = s.inst("consulmon").instanceId;
     const beautymonId = s.inst("beautymon").instanceId;
 
-    // [Link] [Appmon] trait: Cost 2 — Coordemon carries the [Appmon] form, so Consulmon links to it.
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -196,8 +192,6 @@ describe("BT23-033 Beautymon", () => {
     await settle(() => s.perm("coordemon").topCard.instanceId === beautymonId);
     await settle();
 
-    // [App Fusion] [Coordemon] & [Consulmon]: Cost 0 — the linked partner is consumed into
-    // the stack alongside the former top card, and the memory left by the link is untouched.
     expect(s.state.memory).toBe(3);
     expect(
       s
@@ -212,7 +206,6 @@ describe("BT23-033 Beautymon", () => {
     );
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // Negative: the same fusion from a linked partner that is not [Consulmon] is refused.
     const illegal = setupEngine(
       {
         0: {
@@ -261,8 +254,6 @@ describe("BT23-033 Beautymon", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(6);
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovery").instanceId);
-    // Q5281: the "then" half runs whether or not the Recovery condition held — here it did,
-    // so all six security cards scale the DP loss.
     expect(s.perm("target").currentDP).toBe(4000);
     expect(s.state.memory).toBe(2);
   });
@@ -338,8 +329,6 @@ describe("BT23-033 Beautymon", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Beautymon attacks the player so it is suspended when the opponent's turn comes round,
-    // reaching the combat Barrier window through production flow rather than a turnSeat write.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

@@ -1,18 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for EX11-062 — Shoto Kazama (Green Tamer).
-//
-// KB rulings applied:
-//   Q5917: "by suspending this Tamer" is a mandatory cost for the whole [All Turns]
-//     effect; without paying the cost, neither Draw 1 nor +3000 DP resolve.
-//   Q5918: Draw 1 is gated on "if effects suspended those Digimon" — rules suspends
-//     from attack/block do not qualify.
-//   Q6517 (2026-05-08, authoritative — overrides earlier Q5918 reading of +3000DP):
-//     the +3000 DP resolves regardless of whether suspension was by effects or rules.
-//   Q5826/Q5921: [Your Turn] widens Vortex attack declarations to include players;
-//     it does not change attack targets mid-combat.
-//   Q5919: "no unsuspended Digimon" condition is also met when opponent has no Digimon.
 export const compiled: CompiledCard = {
   effects: [
     {

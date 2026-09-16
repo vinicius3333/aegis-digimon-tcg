@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST12-10 Jesmon
-// [When Digivolving] <Blitz>
-// [When Attacking] Play 1 Digimon with [Sistermon] in name from hand free
-// [Your Turn][Once Per Turn] When you play another Digimon by an effect:
-//   this Digimon gets +3000 DP and <Security Attack +1> for the turn.
-// KB Q757: the YourTurn trigger fires during the same attack as the WhenAttacking play.
 const compiled: CompiledCard = {
   effects: [
     {

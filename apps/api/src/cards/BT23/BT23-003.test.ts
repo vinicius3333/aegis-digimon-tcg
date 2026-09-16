@@ -156,8 +156,6 @@ describe("BT23-003 Motimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT22-100"));
 
-    // BT22-100's [Main] places it as the bottom SECURITY card, so the printed
-    // "placed in the battle area" condition is never met.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
     expect(s.perm("motimonHost").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);

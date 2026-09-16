@@ -172,7 +172,6 @@ describe("BT24-029 Whamon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-029"));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-029")).toBe(true);
-    // The printed restriction cannot resolve when no legal placement card is available.
     expect(observe(s.engine).isRestricted(s.perm("candidate"), "suspend")).toBe(false);
   });
 

@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored fix:
-// AllTurns SubTrigger: text says "you may suspend this Tamer. If you do, gain 1
-// memory, then hatch 1 Digi-Egg card to an empty space in your Breeding Area."
-// KB Q3254 confirms hatch fires even when Breeding Area is not empty (but can't
-// hatch if it's not empty — however the trigger still fires). Fix:
-//   - Suspend is the optional cost-like choice; GainMemory and Hatch are gated on it
-//   - All three actions are inside the SubTrigger actions array
-//   - GainMemory condition uses ifThisEffectActed (the suspend acted)
-//   - Hatch action added
 const compiled: CompiledCard = {
   effects: [
     {

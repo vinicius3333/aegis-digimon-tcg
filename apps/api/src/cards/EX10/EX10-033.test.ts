@@ -6,21 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-033.js";
 import "../index.js";
 
-/**
- * EX10-033 Pyramidimon (Black Lv.6 Mega, [Mineral] [LIBERATOR]).
- *
- * Every clause below is driven by public intents (`digivolve`, `attack`, `declineBlock`,
- * `respondDecision`) through the real turn loop. The card's two triggers are
- * `[When Digivolving]` and `[When Attacking]`, and both windows open naturally, so no
- * injected timing (`advance.fire*`) is used anywhere in this file.
- *
- * Fixture cards, all textless so they cannot open a decision of their own:
- * BT10-064 Gogmamon (Black Lv.5 [Rock]) — the legal digivolution source and a trashable
- * [Rock] card; BT10-062 Golemon (Lv.4 [Mineral]); BT4-065 Gotsumon (Lv.3 [Rock]);
- * BT3-067 Tankmon (Black Lv.4, play cost 6) as the opponent's target;
- * BT1-009 Monodramon ([Mini Dragon]) as the near-miss the trait filter must skip.
- */
-
 const MINERAL_ROCK_TRASH = [
   { card: "BT10-062", as: "mineral" },
   { card: "EX10-003", as: "egg" },
@@ -45,8 +30,6 @@ describe("EX10-033 Pyramidimon", () => {
       maxCountInDeck: 4,
     });
     const definition = getCardDefinition("EX10-033")!;
-    // Catalog quirk: both "[Rock]\u00A0trait" spaces are non-breaking (U+00A0), not U+0020.
-    // Kept literal so the assertion documents the stored bytes instead of hiding them.
     expect(definition.effectText).toBe(
       "＜Fragment (3)＞ \n[When Digivolving] [When Attacking] [Once Per Turn] You may place up to 3 [Mineral] or [Rock]\u00A0trait cards from your trash as this Digimon's bottom digivolution cards.\n[When Digivolving] [When Attacking] By trashing up to 3 [Mineral] or [Rock]\u00A0trait cards from any of your Digimon's digivolution cards, to 1 of your opponent's Digimon, reduce the play cost by 2 until their turn ends for each card trashed.",
     );
@@ -75,7 +58,6 @@ describe("EX10-033 Pyramidimon", () => {
           filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }] },
           count: 3,
           upTo: true,
-          // Q5096: "up to 3" still demands at least 1 once the effect is activated.
           minimum: 1,
           from: ["trash"],
         },
@@ -84,7 +66,6 @@ describe("EX10-033 Pyramidimon", () => {
 
     const reductions = compiled.effects?.filter((effect) => effect.actions?.[0]?.kind === "CostModifier");
     expect(reductions?.map((effect) => [effect.trigger, effect.frequency])).toEqual([
-      // No [Once Per Turn] on the second clause: it may fire on the digivolve AND the attack.
       ["WhenDigivolving", undefined],
       ["WhenAttacking", undefined],
     ]);
@@ -106,12 +87,10 @@ describe("EX10-033 Pyramidimon", () => {
             },
             count: 3,
             upTo: true,
-            // Q5099: activating the clause forces at least 1 card to be trashed.
             minimum: 1,
             from: ["digivolutionCards"],
           },
         },
-        // "for each card trashed" is the cost's paid count, not a board count.
         scaling: { per: 1, usePaidCount: true, unit: "cards" },
         abortOnDecline: true,
       });
@@ -126,11 +105,8 @@ describe("EX10-033 Pyramidimon", () => {
           battleArea: [{ card: "BT10-064", as: "base" }],
           hand: [{ card: "EX10-033", as: "pyramid" }],
           deck: ["BT1-013", "BT1-014"],
-          // EX10-003 Tumblemon is a [Rock] Digi-Egg: Q5095 allows it as a placement source.
           trash: MINERAL_ROCK_TRASH,
         },
-        // No opposing Digimon, so the second clause has no legal target and stays silent;
-        // this test measures the placement alone.
         1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -152,11 +128,9 @@ describe("EX10-033 Pyramidimon", () => {
     const evolved = s.perm("base");
     expect(evolved.topCard!.cardId).toBe("EX10-033");
     expect(observe(s.engine).hasKeyword(evolved, "Fragment")).toBe(true);
-    // Black Lv.5 -> Lv.6 for 3 memory, plus the digivolve bonus draw.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
 
-    // "bottom digivolution cards": the three placed cards sit BELOW the original source.
     expect(evolved.stack.map((card) => card.instanceId).slice(3)).toEqual([baseInstanceId]);
     expect(
       evolved.stack
@@ -164,10 +138,8 @@ describe("EX10-033 Pyramidimon", () => {
         .map((card) => card.instanceId)
         .sort(),
     ).toEqual([s.inst("mineral").instanceId, s.inst("egg").instanceId, s.inst("rock").instanceId].sort());
-    // The [Mini Dragon] near-miss is the only card left in the trash.
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
 
-    // Q5096: once activated the selection demands at least 1 card and caps at 3.
     const placement = s.decisions.find(
       ({ req }) => req.kind === "selectCards" && (req.options?.candidateInstanceIds ?? []).length === 3,
     );
@@ -207,12 +179,6 @@ describe("EX10-033 Pyramidimon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "EX10-033");
     await settle(() => false, 40);
 
-    // Clause 2 ("You may place…") is the only optional part: declined, so no card left the
-    // trash and neither stack gained a card. The trash assertion below still opens with the
-    // 4 seeded cards in their seeded order.
-    // Clause 3 carries no "You may": it is mandatory, and "up to 3" means it pays with as
-    // many eligible cards as exist — here 2, the Lv.5 [Rock] source now under Pyramidimon
-    // and the [Rock] card under the other Digimon. Both stacks are emptied.
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([]);
     expect(s.perm("otherHost").stack.map((card) => card.instanceId)).toEqual([]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([
@@ -227,12 +193,10 @@ describe("EX10-033 Pyramidimon", () => {
       expect.arrayContaining([baseInstanceId, rockAInstanceId]),
     );
 
-    // "for each card trashed": 2 cards paid = -4, so the printed cost 6 reads 2.
     const modifiers = advance(s.engine).ledgers.modifiers;
     const tankmon = getCardDefinition("BT3-067")!;
     expect(modifiers.playCostFor({ def: tankmon, controllerSeat: 1, permanentId: tankmonPermanentId }, 6)).toBe(2);
 
-    // Black Lv.5 -> Lv.6 for 3 memory plus the digivolve bonus draw; nothing else moved.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -245,8 +209,6 @@ describe("EX10-033 Pyramidimon", () => {
       {
         0: {
           battleArea: [
-            // EX10-028 Landramon rides the digivolve source, so trashing it off the evolved
-            // [Mineral] Pyramidimon arms its inherited "delete a play cost 4 or less" clause.
             { card: "BT10-064", as: "base", under: [{ card: "EX10-028", as: "landramon" }] },
             {
               card: "BT10-062",
@@ -259,7 +221,6 @@ describe("EX10-033 Pyramidimon", () => {
           ],
           hand: [{ card: "EX10-033", as: "pyramid" }],
           deck: ["BT1-013", "BT1-014"],
-          // Nothing eligible in the trash, so the first clause never prompts here.
           trash: ["BT1-009"],
         },
         1: {
@@ -293,22 +254,15 @@ describe("EX10-033 Pyramidimon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     await settle(() => false, 40);
 
-    // Q5098: the 3 trashed cards came from TWO different Digimon's digivolution cards.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("landramon").instanceId, s.inst("rockA").instanceId, s.inst("rockB").instanceId]),
     );
     expect(s.perm("otherHost").stack).toHaveLength(0);
 
-    // Q5097 + Q5100: 3 cards trashed = -6 play cost on the chosen Digimon only. Its printed
-    // cost is 6, so it is now a legal target for Landramon's inherited "play cost of 4 or
-    // less" deletion, and the untouched twin is not.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([sparedPermanentId]);
     const modifiers = advance(s.engine).ledgers.modifiers;
     const tankmon = getCardDefinition("BT3-067")!;
     expect(modifiers.playCostFor({ def: tankmon, controllerSeat: 1, permanentId: sparedPermanentId }, 6)).toBe(6);
-    // Q5097's "the minimum value is 0" is asserted on the ledger because no card effect can
-    // distinguish a stored -1 from 0; the engine floor itself is covered by
-    // engine/effects/modifiers.test.ts ("playCostFor reduces a matching play cost and floors at 0").
     expect(modifiers.playCostFor({ def: tankmon, controllerSeat: 1, permanentId: chosenPermanentId }, 5)).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -330,8 +284,6 @@ describe("EX10-033 Pyramidimon", () => {
           ],
           security: ["BT1-009", "BT1-013"],
         },
-        // No opposing Digimon: the second clause never prompts, so every decision in this
-        // test belongs to the placement under audit.
         1: { security: ["BT1-009", "BT1-013", "BT1-014"], deck: ["BT1-009", "BT1-013"], hand: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -350,7 +302,6 @@ describe("EX10-033 Pyramidimon", () => {
     await settle(() => s.perm("base").stack.length === 4);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId !== "BT1-009")).toHaveLength(3);
 
-    // Same turn, real attack: the [When Attacking] face of the SAME once-per-turn use.
     const stackAfterDigivolve = s.perm("base").stack.length;
     const trashAfterDigivolve = s.state.players[0]!.trash.length;
     expect(
@@ -360,8 +311,6 @@ describe("EX10-033 Pyramidimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The opponent controls no Digimon, so there is no blocker and no block window to
-    // decline; the attack runs straight into security.
     await settle(() => s.state.players[1]!.security.length === 2);
     await settle(() => false, 40);
 
@@ -373,7 +322,6 @@ describe("EX10-033 Pyramidimon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // Next own turn: the gate has reset, so this attack places the remaining 3 cards.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -412,14 +360,6 @@ describe("EX10-033 Pyramidimon", () => {
     expect(s.state.memory).toBe(6);
   });
 
-  /**
-   * Q5094: both clauses trigger simultaneously on the digivolve, so the player picks the
-   * activation order. The order is observable here because the 1st clause feeds the 2nd:
-   * cards it places as digivolution cards become legal trash material for the reduction.
-   *
-   * Board: the only [Rock]/[Mineral] digivolution card before either clause runs is the
-   * digivolution source BT10-064 Gogmamon itself, and the trash holds 3 more.
-   */
   const orderingBoard = () => ({
     0: {
       battleArea: [{ card: "BT10-064", as: "base" }],
@@ -438,8 +378,6 @@ describe("EX10-033 Pyramidimon", () => {
     const s = setupEngine(orderingBoard(), {
       autoAcceptOptional: true,
       autoSelectCards: true,
-      // Compiled effect keys: "ir-shared-0" is the once-per-turn placement (it carries the
-      // shared use key), "ir-7-1" is the play-cost reduction.
       preferTriggerKeys: ["EX10-033/ir-shared-0"],
     });
     await s.ready();
@@ -456,7 +394,6 @@ describe("EX10-033 Pyramidimon", () => {
     await settle(() => s.state.players[0]!.trash.length === 3);
     await settle(() => false, 40);
 
-    // The player was asked: both effects are offered as separately addressable keys.
     const ordering = s.decisions.find(({ req }) => req.kind === "orderTriggers");
     expect(ordering?.req.options?.triggerKeys?.length).toBe(2);
     expect((ordering?.req.options?.triggerKeys ?? []).map((key) => key.split("::")[1]).sort()).toEqual([
@@ -464,8 +401,6 @@ describe("EX10-033 Pyramidimon", () => {
       "EX10-033/ir-shared-0",
     ]);
 
-    // Placement first: 3 trash cards joined Gogmamon under the top card (4), then the
-    // reduction trashed its cap of 3, leaving 1.
     expect(s.perm("base").stack).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(3);
     const modifiers = advance(s.engine).ledgers.modifiers;
@@ -474,17 +409,6 @@ describe("EX10-033 Pyramidimon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  /**
-   * The "By trashing up to 3 card(s) from ANY of your Digimon's digivolution cards" cost
-   * (Q5099) correctly pays with the single eligible [Rock] card when the reduction resolves
-   * before the placement: with only BT10-064 Gogmamon in the pool, the engine trashes that 1
-   * card (not a fixed 3) and reduces the opponent's play cost by 2.
-   *
-   * Ordering matters here for the same reason Q5094 does: resolving the reduction BEFORE the
-   * placement leaves only the digivolution source BT10-064 Gogmamon as legal material, so
-   * Gogmamon itself pays the cost and never becomes digivolution material under `base` — the
-   * placement effect then adds its own 3 trashed cards, leaving the stack at 3, not 4.
-   */
   it("Q5094/Q5099: reduction first still pays with the single eligible card for -2", async () => {
     const s = setupEngine(orderingBoard(), {
       autoAcceptOptional: true,
@@ -506,7 +430,6 @@ describe("EX10-033 Pyramidimon", () => {
     await settle(() => s.perm("base").stack.length === 3);
     await settle(() => false, 40);
 
-    // Gogmamon paid the cost, so it is no longer a digivolution card.
     expect(s.perm("base").stack.map((card) => card.instanceId)).not.toContain(baseInstanceId);
     const modifiers = advance(s.engine).ledgers.modifiers;
     const tankmon = getCardDefinition("BT3-067")!;

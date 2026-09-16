@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT23-072 King Drasil_7D6 — hand-authored IR override.
-//
-// The [Hand][Main] cost is all-or-nothing, the played-Digimon keyword grant targets the
-// whenPlayed trigger subject, and the inherited breeding condition is structured.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -32,9 +28,6 @@ export const compiled: CompiledCard = {
                 zone: "breeding",
                 nameOrTrait: [
                   {
-                    // Printed as bracketed card names, so the host must match exactly;
-                    // `name` is substring matching (matchNameOrTrait in
-                    // engine/effects/interpreter/matching/definition.ts).
                     tokens: ["King Drasil_7D6", "Mother Eater"],
                     match: "nameExact",
                   },

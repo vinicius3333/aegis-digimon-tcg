@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT20-060 Alphamon: Ouryuken
-// [Hand][Counter] <Blast DNA Digivolve ([Alphamon] + [Ouryumon])>
-// [On Play][When Digivolving] 1 of your opponent's Digimon gets -15000 DP until the end
-//   of their turn. Then, if DNA digivolving, trash your opponent's top security card and
-//   <Recovery +1 (Deck)>.
-// [All Turns][Once Per Turn] When security stacks are removed from, gain 3 memory.
-//
-// KB Q4398: DP hits 0 doesn't delete until all processing resolves.
-// KB Q4399: Security effect takes precedence on simultaneous trigger.
 export const compiled: CompiledCard = {
   effects: [
     {

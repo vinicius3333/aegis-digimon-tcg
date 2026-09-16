@@ -1,16 +1,3 @@
-// HAND-FIXED IR for BT21-044 (RizeGreymon) — do not regenerate over this file.
-//
-// runtime-effect fix: the generated OnPlay/WhenDigivolving bundle granted only <Rush> and
-// <Alliance> and dropped the "is also treated as a 3000 DP Digimon" + "can't
-// digivolve" parts of "For the turn, 1 of your [Marcus Damon]s is also treated as a
-// 3000 DP Digimon, can't digivolve, and gains <Rush> and <Alliance>." Marcus Damon is
-// a TAMER, so the target filter must not require kind:["Digimon"] either (mirrors the
-// AD1-021 fix for the same "[Marcus Damon] treated as a Digimon" pattern): GrantStatic
-// kinds:["Digimon"] + SetBaseDP 3000 + Restrict digivolve, composed with the existing
-// GainKeyword Rush/Alliance grants (KB Q4545-Q4551). Each trigger binds one exact-name
-// Marcus Damon and routes the whole bundle through that same selection. Actions are
-// inlined per effect (not factored into a shared const) so the static IR auditor can parse
-// the literal.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

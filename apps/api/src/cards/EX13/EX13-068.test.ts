@@ -6,15 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled as EX13_068 } from "./EX13-068.js";
 import "../index.js";
 
-// Fixtures
-//   EX2-056  Takato Matsuki (Tamer, Red, cost 3) — a DIFFERENT card with the exact name
-//            [Takato Matsuki]; prints only [Your Turn] watchers, so it never fires during
-//            a start-of-main window and cannot disturb an assertion.
-//   ST3-12   T.K. Takaishi (Tamer) — a non-[Takato Matsuki] Tamer: the nameExact negative.
-//   BT2-009  Guilmon (Lv.3, 3000 DP, no main effect) — the exact-named trash fixture.
-//   BT9-009  Guilmon (X Antibody) — the nameExact NEAR-match negative (normalizes to
-//            "guilmon x antibody", so it must not answer [Guilmon]).
-//   BT1-009  Monodramon — inert non-Guilmon Digimon.
 const CARD_ID = "EX13-068";
 
 describe("EX13-068 Takato Matsuki", () => {
@@ -64,18 +55,12 @@ describe("EX13-068 Takato Matsuki", () => {
     expect(EX13_068.effects.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 1 — [Start of Your Turn] If you have 2 or less memory, set it to 3.
-  // ---------------------------------------------------------------------------
-
   it("raises the memory floor to 3 through a real turn when at 2 or less", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: CARD_ID, as: "takato" }], hand: [{ card: "BT1-009", as: "spare" }] },
         1: { deck: ["BT1-011", "BT1-012"] },
       },
-      // The start-of-main chain opens its own cost prompt on the same turn; decline it so
-      // these three tests isolate the memory floor.
       { autoDeclineOptional: true },
     );
     s.state.memory = 1;
@@ -99,8 +84,6 @@ describe("EX13-068 Takato Matsuki", () => {
         0: { battleArea: [{ card: CARD_ID, as: "takato" }], hand: [{ card: "BT1-009", as: "spare" }] },
         1: { deck: ["BT1-011", "BT1-012"] },
       },
-      // The start-of-main chain opens its own cost prompt on the same turn; decline it so
-      // these three tests isolate the memory floor.
       { autoDeclineOptional: true },
     );
     s.state.memory = 2;
@@ -120,8 +103,6 @@ describe("EX13-068 Takato Matsuki", () => {
         0: { battleArea: [{ card: CARD_ID, as: "takato" }], hand: [{ card: "BT1-009", as: "spare" }] },
         1: { deck: ["BT1-011", "BT1-012"] },
       },
-      // The start-of-main chain opens its own cost prompt on the same turn; decline it so
-      // these three tests isolate the memory floor.
       { autoDeclineOptional: true },
     );
     s.state.memory = 7;
@@ -147,15 +128,10 @@ describe("EX13-068 Takato Matsuki", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
 
-    // Seat 1's turn: seat 0's [Start of Your Turn] must not fire, so the gauge is untouched.
     expect(s.state.memory).toBe(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
   });
-
-  // ---------------------------------------------------------------------------
-  // Clause 2 — [Start of Your Main Phase] return-to-deck-bottom chain
-  // ---------------------------------------------------------------------------
 
   it("returns itself to the deck bottom, plays the exact-named Takato, then Guilmon when no Digimon is out", async () => {
     const s = setupEngine(
@@ -190,12 +166,10 @@ describe("EX13-068 Takato Matsuki", () => {
       expect.arrayContaining([s.inst("replacement").instanceId, s.inst("guilmon").instanceId]),
     );
     expect(board).toHaveLength(2);
-    // The source went to the BOTTOM of the deck, not the trash.
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(sourceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(sourceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("guilmon").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("replacement").instanceId);
-    // Both plays were free: memory is still the 3 the start-of-turn floor set.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -261,8 +235,6 @@ describe("EX13-068 Takato Matsuki", () => {
     );
     await s.ready();
 
-    // Fired directly: a seeded breeding-area Digimon parks the turn loop in the breeding
-    // phase awaiting a hatch/move action, which this test has no interest in.
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("guilmon").instanceId),
@@ -304,8 +276,6 @@ describe("EX13-068 Takato Matsuki", () => {
     await settle(() => s.state.players[0]!.deck.at(-1)?.instanceId === sourceId);
     await settle();
 
-    // The return cost was paid (it gates the sentence, not either play), but neither
-    // candidate matched its exact name, so the board is empty.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("otherTamer").instanceId, s.inst("textMentionsTakato").instanceId]),
@@ -409,8 +379,6 @@ describe("EX13-068 Takato Matsuki", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Decline ONLY the cost prompt by hand; the two plays are never offered, so the single
-    // optional decision the flow raised is proof the block aborted rather than continuing.
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.state.pendingDecision!;
     expect(
@@ -453,8 +421,6 @@ describe("EX13-068 Takato Matsuki", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Answer each optional prompt by hand: take the cost, decline the Takato play, take
-    // the Guilmon play. "After," does not require the preceding play to have happened.
     const accepted: boolean[] = [];
     for (let index = 0; index < 3; index += 1) {
       await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -516,8 +482,6 @@ describe("EX13-068 Takato Matsuki", () => {
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
 
-    // Back on seat 0's turn: the EX2-056 copy the chain played is a different card number,
-    // so no second start-of-main chain runs, and the Guilmon stays put.
     s.state.turnSeat = 0;
     s.state.memory = 1;
     const secondTurn = s.engine.runOneTurn();
@@ -532,10 +496,6 @@ describe("EX13-068 Takato Matsuki", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await secondTurn;
   });
-
-  // ---------------------------------------------------------------------------
-  // Clause 3 — [Security] Play this card without paying the cost.
-  // ---------------------------------------------------------------------------
 
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: CARD_ID, as: "takato" }] } });

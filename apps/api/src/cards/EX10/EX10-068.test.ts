@@ -7,28 +7,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-068";
 
-/**
- * EX10-068 Digimon Emperor (Tamer, White, play cost 5).
- *
- * [Start of Your Main Phase] For every 2 colors your opponent's Digimon and Tamers have,
- *   gain 1 memory.
- * [On Play] Delete 1 of your opponent's play cost 5 or lower Digimon. Then, by returning 1
- *   Digimon card from your opponent's trash to the bottom of the deck, from your hand or
- *   trash and without paying the cost, you may play 1 level 4 or lower Digimon card with the
- *   same color as the card this effect returned.
- * [Security] Play this card without paying the cost.
- *
- * Every behavioural case below runs through public intents: `playCard` for the entry
- * window, `attack` for the security check, and the real turn loop for the start-of-main
- * trigger. Injected timing is not used anywhere in this file.
- *
- * Fixtures are inert (no printed or inherited text) so nothing but this card can open a
- * decision or move a card: BT1-009 (Red Lv.3), BT1-027 (Blue Lv.3), BT1-038 (Blue Lv.5),
- * BT1-065 (Green Lv.3), BT1-013/BT1-014 (Red), BT10-022 (Blue/Black Lv.5, cost 6),
- * BT10-055 (Green/Yellow Lv.6, cost 10), BT8-041 (Yellow/Purple Lv.5, cost 7).
- * BT16-021 (Blue/Green Lv.4) is inert while it sits in a trash or a deck, which is the
- * only place this file puts it.
- */
 describe("EX10-068 Digimon Emperor", () => {
   it("records the exact catalog and all three printed clauses", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -95,16 +73,6 @@ describe("EX10-068 Digimon Emperor", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // [Start of Your Main Phase] — through the real turn loop
-  // -------------------------------------------------------------------------
-
-  /**
-   * Seat 0 owns the Emperor; the opponent's board is the variable under test. The control
-   * board is identical except that it holds only single-Red opposing Digimon (1 colour,
-   * `floor(1/2) = 0` memory), so the difference between the two runs is exactly the
-   * scaled gain and no turn-start bookkeeping is baked into the expected number.
-   */
   async function memoryAtOwnMainPhase(opponentBattleArea: string[], ownExtra: string[] = []): Promise<number> {
     const s = setupEngine({
       0: {
@@ -137,9 +105,7 @@ describe("EX10-068 Digimon Emperor", () => {
 
   it("gains 1 memory for 3 opposing colours and 2 for 5, counting Tamers as well as Digimon", async () => {
     const baseline = await memoryAtOwnMainPhase(["BT1-009"]);
-    // BT10-022 is Blue/Black and the opposing EX10-068 is a White TAMER: 3 distinct colours.
     const threeColours = await memoryAtOwnMainPhase(["BT10-022", CARD_ID]);
-    // Adding Green/Yellow BT10-055 takes the board to 5 distinct colours.
     const fiveColours = await memoryAtOwnMainPhase(["BT10-022", CARD_ID, "BT10-055"]);
 
     expect(threeColours - baseline).toBe(1);
@@ -148,8 +114,6 @@ describe("EX10-068 Digimon Emperor", () => {
 
   it("counts only the OPPONENT's board: my own multi-coloured Digimon add nothing", async () => {
     const baseline = await memoryAtOwnMainPhase(["BT1-009"]);
-    // Yellow/Purple and Green/Yellow on MY side would push the count to 5 colours if the
-    // filter's `controller: "opponent"` were dropped.
     const withOwnColours = await memoryAtOwnMainPhase(["BT1-009"], ["BT8-041", "BT10-055"]);
     expect(withOwnColours).toBe(baseline);
   });
@@ -173,7 +137,6 @@ describe("EX10-068 Digimon Emperor", () => {
       const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
       const memory = s.state.memory;
-      // Nothing was played and nothing was deleted: the trashed and held copies did nothing.
       expect(s.state.players[0]!.battleArea).toHaveLength(0);
       expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
       expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([CARD_ID, "BT1-009"]);
@@ -184,16 +147,11 @@ describe("EX10-068 Digimon Emperor", () => {
       return memory;
     };
     const inert = await withCopiesAside();
-    // The same 4-colour opposing board WITH the Emperor in play gains 2 memory.
     const baseline = await memoryAtOwnMainPhase(["BT1-009"]);
     const inPlay = await memoryAtOwnMainPhase(["BT10-022", "BT10-055"]);
     expect(inPlay - baseline).toBe(2);
     expect(inert).toBe(baseline);
   });
-
-  // -------------------------------------------------------------------------
-  // [On Play] — through the public `playCard` intent
-  // -------------------------------------------------------------------------
 
   it("[On Play] deletes exactly 1 opposing play-cost-5-or-lower Digimon and pays the printed 5 memory", async () => {
     const s = setupEngine(
@@ -220,7 +178,6 @@ describe("EX10-068 Digimon Emperor", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    // Play cost 6 survives the "play cost 5 or lower" filter; the cost-2 Digimon is deleted.
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT10-022"]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([cheapInstanceId]);
     expect(s.state.memory).toBe(1);
@@ -250,10 +207,6 @@ describe("EX10-068 Digimon Emperor", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  /**
-   * Q5181 / Q5182: the returned card is a Blue/Green two-colour Digimon, so the follow-up
-   * play accepts a Lv.4-or-lower Digimon that has EITHER Blue or Green among its colours.
-   */
   it.each([
     ["Blue", "BT1-027"],
     ["Green", "BT1-065"],
@@ -283,11 +236,9 @@ describe("EX10-068 Digimon Emperor", () => {
       await settle(() => s.state.players[0]!.battleArea.length === 2);
       await settle(() => false, 30);
 
-      // Cost paid: the opponent's trash card is now the bottom card of the OPPONENT's deck.
       expect(s.state.players[1]!.trash).toHaveLength(0);
       expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-013", "BT1-014", "BT16-021"]);
       expect(s.state.players[1]!.deck.at(-1)!.instanceId).toBe(returnedInstanceId);
-      // Payload played from hand for free: the 5 memory paid was the Tamer's own play cost.
       expect(s.state.players[0]!.hand).toHaveLength(0);
       expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(
         [CARD_ID, playable].sort(),
@@ -345,7 +296,6 @@ describe("EX10-068 Digimon Emperor", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     await settle(() => false, 30);
 
-    // The whole clause is transactional: with no legal payload the cost stays unpaid.
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT16-021"]);
     expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
@@ -407,17 +357,12 @@ describe("EX10-068 Digimon Emperor", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle(() => false, 30);
 
-    // "Delete 1 ..." is mandatory; only the "Then, ... you may play" half was declined.
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT16-021"]);
     expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-027"]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // -------------------------------------------------------------------------
-  // [Security] — through a real security check
-  // -------------------------------------------------------------------------
 
   it("[Security] plays itself into the battle area free during a real security check", async () => {
     const s = setupEngine(
@@ -446,8 +391,6 @@ describe("EX10-068 Digimon Emperor", () => {
     expect(played.topCard!.cardId).toBe(CARD_ID);
     expect(played.topCard!.instanceId).toBe(emperorInstanceId);
     expect(s.state.players[1]!.trash).toHaveLength(0);
-    // Played without paying: the attacker costs 6, so the [On Play] deletion finds no target
-    // and the memory dial only reflects the attack itself, never the Tamer's 5 cost.
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();

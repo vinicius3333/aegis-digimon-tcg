@@ -41,7 +41,7 @@ describe("BT12-111 DarknessBagramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 10; // 16 - 3 per named DigiXros material
+    s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -53,7 +53,6 @@ describe("BT12-111 DarknessBagramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-111"));
     expect(s.state.memory).toBe(0);
-    // Stack storage is bottom-to-top; printed requirement order reads top-to-bottom.
     expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["BT11-088", "BT10-066"]);
   });
 

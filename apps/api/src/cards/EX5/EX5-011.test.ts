@@ -117,8 +117,6 @@ describe("EX5-011 Pajiramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // Structural setup only: exercise the production Option placement primitive so the
-    // printed Option-name scope is represented without crediting injected behavior.
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
@@ -278,8 +276,6 @@ describe("EX5-011 Pajiramon", () => {
         },
       });
       await s.ready();
-      // Structural phase setup keeps the public play intent in the observable Main phase;
-      // the deletion effect itself is still resolved by the production interpreter.
       s.state.phase = Phase.Main;
       s.state.turnSeat = 0;
       s.state.memory = 20;

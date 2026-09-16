@@ -265,8 +265,6 @@ describe("EX11-065 Close", () => {
     await settle(() => s.perm("close").isSuspended);
 
     expect(s.perm("base").topCard?.cardId).toBe("BT10-062");
-    // "as any of those Digimon's BOTTOM digivolution card": index 0 is the bottom of the stack,
-    // beneath the BT13-061 the digivolution itself pushed down.
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX8-051", "BT1-009", "BT13-061"]);
     expect(s.perm("base").stack[0]!.instanceId).toBe(s.inst("material").instanceId);
     assertNoLoudGap(s);

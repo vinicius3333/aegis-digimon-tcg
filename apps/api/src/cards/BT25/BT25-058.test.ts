@@ -439,7 +439,7 @@ describe("BT25-058 Callismon", () => {
     expect(s.perm("opponent").stack).toHaveLength(1);
     await advance(s.engine).verb.playInstances([s.inst("triggerTwo").instanceId], "BT25-058");
     await settle(() => false, 80);
-    expect(s.perm("opponent").stack).toHaveLength(1); // shared Once Per Turn consumed by the first event
+    expect(s.perm("opponent").stack).toHaveLength(1);
 
     const selfPlay = setupEngine(
       {
@@ -450,7 +450,7 @@ describe("BT25-058 Callismon", () => {
     );
     await advance(selfPlay.engine).verb.playInstances([selfPlay.inst("callismon").instanceId], "BT25-058");
     await settle(() => selfPlay.perm("opponent").stack.length === 0);
-    expect(selfPlay.perm("opponent").stack).toHaveLength(0); // Q6346: effect-playing Callismon itself triggers it
+    expect(selfPlay.perm("opponent").stack).toHaveLength(0);
 
     const effectDigivolve = setupEngine(
       {
@@ -471,7 +471,7 @@ describe("BT25-058 Callismon", () => {
       { payCost: false, draw: false, ignoreRequirements: true },
     );
     await settle(() => effectDigivolve.perm("opponent").stack.length === 0);
-    expect(effectDigivolve.perm("opponent").stack).toHaveLength(0); // effect-digivolve shares the same entry bus
+    expect(effectDigivolve.perm("opponent").stack).toHaveLength(0);
 
     const battle = setupEngine(
       {
@@ -483,7 +483,7 @@ describe("BT25-058 Callismon", () => {
     await battle.ready();
     await advance(battle.engine).verb.playInstances([battle.inst("trigger").instanceId], "BT25-058");
     await settle(() => battle.state.players[1]!.battleArea.length === 0);
-    expect(battle.state.players[1]!.battleArea).toHaveLength(0); // Q6348 direct battle uses DP rules and deletes the loser
+    expect(battle.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("does not trigger All Turns for an ordinary play", async () => {

@@ -48,8 +48,6 @@ describe("P-075 Okuwamon", () => {
     await advance(s.engine).verb.suspend([s.perm("first").permanentId]);
     await settle(() => s.state.memory === memoryAfterDigivolve + 1, 2_000);
 
-    // The opponent's Digimon is the watcher source, so losing 1 from its controller's
-    // perspective moves the shared gauge 1 toward Okuwamon's controller.
     expect(s.state.memory).toBe(memoryAfterDigivolve + 1);
     expect(s.perm("second").isSuspended).toBe(false);
   });

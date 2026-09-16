@@ -5,16 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT19-044.js";
 import "../index.js";
 
-// BT19-044 Terriermon (Green, Lv.3, Rookie/Vaccine/Beast, DP 1000, play 3, digivolve Green Lv.2 cost 0)
-//   [Start of Your Main Phase] If you have [Henry Wong]/[Calumon], gain 1 memory.
-//   Inherited: [When Attacking] [Once Per Turn] Suspend 1 of your opponent's Digimon.
-//
-// Peers used for the exact-name gate: ST17-10 [Henry Wong] and BT19-077 [Calumon] match;
-// EX4-063 [Henry Wong & Shu-Chong Wong] is the near miss (substring only, and it prints no
-// "also treated as [Henry Wong]" line), BT19-081 [Kiriha Aonuma] is the unrelated Tamer.
-// Inert fixtures are main-deck Digimon (BT1-009..BT1-014); no Digi-Egg is seeded in deck
-// or security.
-
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-012"];
 const inertDeck = ["BT1-009", "BT1-013", "BT1-012", "BT1-014"];
 
@@ -48,7 +38,6 @@ describe("BT19-044 Terriermon", () => {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              // Bracketed [Name] references are EXACT, never the substring `match: "name"`.
               nameOrTrait: [{ tokens: ["Henry Wong", "Calumon"], match: "nameExact" }],
             },
           },
@@ -61,7 +50,6 @@ describe("BT19-044 Terriermon", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
     });
-    // No `suspended: false`: the printed text does not restrict the choice (KB Q845).
     expect(JSON.stringify(compiled)).not.toContain("suspended");
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -89,8 +77,6 @@ describe("BT19-044 Terriermon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.memory === 1);
-    // Read the value INSIDE the open Main phase: after the phase passes, memory is the
-    // post-pass value and proves nothing.
     expect(s.state.memory).toBe(1);
     expect(s.perm("terrier").isSuspended).toBe(false);
 
@@ -105,8 +91,6 @@ describe("BT19-044 Terriermon", () => {
     const s = setupEngine(
       {
         0: {
-          // A second Digimon keeps EX4-063's own "1 or fewer Digimon" clause from firing,
-          // so the only candidate memory gain in the window is Terriermon's.
           battleArea: [{ card: "BT19-044", as: "terrier" }, { card: "BT1-009" }, { card: peer }],
           hand: [{ card: "BT1-009", as: "spare" }],
           deck: inertDeck,
@@ -155,8 +139,6 @@ describe("BT19-044 Terriermon", () => {
   });
 
   it("suspends exactly 1 opponent Digimon — never a Tamer, never our own — on a real attack", async () => {
-    // Realistic stack: Terriermon (Green Lv.3) under BT19-049 Gargomon (Green Lv.4, digivolve
-    // from Green Lv.3), so the inherited clause runs under a legal host.
     const s = setupEngine(
       {
         0: {
@@ -195,7 +177,6 @@ describe("BT19-044 Terriermon", () => {
     expect(s.perm("theirDigimon").isSuspended).toBe(true);
     expect(s.perm("theirTamer").isSuspended).toBe(false);
     expect(s.perm("ours").isSuspended).toBe(false);
-    // The attack itself resolved: the attacker is suspended and one security card was checked.
     expect(s.perm("host").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(inertSecurity.length - 1);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT19-044"]);
@@ -205,9 +186,6 @@ describe("BT19-044 Terriermon", () => {
   });
 
   it("may choose an ALREADY-suspended Digimon, leaving the unsuspended peer alone (KB Q845)", async () => {
-    // ST18-10 Q845: "Even if you specify an already suspended Digimon as the target for a
-    // suspending effect, it isn't considered to be suspended by the effect." The printed text
-    // says only "1 of your opponent's Digimon", so the suspended one is a legal choice.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -233,8 +211,6 @@ describe("BT19-044 Terriermon", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Seat 1's permanent seeded `suspended: true` would stand up at ITS unsuspend phase; seat
-    // 0 attacks on the very first turn, so it is still suspended here.
     expect(s.perm("already").isSuspended).toBe(true);
     expect(
       s.engine.applyIntent(0, {
@@ -289,23 +265,16 @@ describe("BT19-044 Terriermon", () => {
     const suspendedAfterFirst = ["first", "second"].filter((alias) => s.perm(alias).isSuspended);
     expect(suspendedAfterFirst).toHaveLength(1);
 
-    // Same turn, second firing of the same window: the [Once Per Turn] budget is spent.
-    // Injected timing only — no public intent re-opens a When Attacking window for an
-    // attacker that is already suspended.
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle();
     expect(["first", "second"].filter((alias) => s.perm(alias).isSuspended)).toEqual(suspendedAfterFirst);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    // The opponent's real turn, driven by the loop rather than by setting turnSeat.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // Our next own turn: the host unsuspended in the real unsuspend phase and the budget reset.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").isSuspended).toBe(false);
-    // Both opponent Digimon stood up in seat 1's own unsuspend phase, so a fresh firing is
-    // the only thing that can suspend one again.
     expect(["first", "second"].filter((alias) => s.perm(alias).isSuspended)).toEqual([]);
     expect(
       s.engine.applyIntent(0, {
@@ -343,14 +312,12 @@ describe("BT19-044 Terriermon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.perm("tanemon").topCard?.cardId === "BT19-044");
-    // Cost 0 from the printed Green Lv.2 route, and the source stays as a digivolution card.
     expect(legal.state.memory).toBe(3);
     expect(legal.perm("tanemon").stack.map((card) => card.instanceId)).toEqual([tanemonId]);
     expect(legal.state.players[0]!.hand.some((card) => card.cardId === "BT19-044")).toBe(false);
 
     const illegal = setupEngine({
       0: {
-        // BT1-005 Kyaromon is a YELLOW Lv.2: no printed route reaches this Green Lv.3.
         breeding: { card: "BT1-005", as: "kyaromon" },
         hand: [{ card: "BT19-044", as: "terrier" }],
         deck: inertDeck,

@@ -73,9 +73,6 @@ describe("BT11-085 WaruSeadramon", () => {
     const s = setupEngine(
       {
         0: {
-          // DarkLizardmon (purple Lv. 4, with a neutral purple Lv. 3 source) -> WaruSeadramon (purple Lv. 5) -> Mervamon (purple Lv. 6)
-          // is a legal stack. Waru's own digivolving effect also plays its source, but the
-          // inherited watcher is only live after Mervamon is placed on top.
           battleArea: [{ card: "BT11-079", as: "base", under: ["BT11-075"] }],
           hand: [
             { card: "BT11-085", as: "waru" },
@@ -115,8 +112,6 @@ describe("BT11-085 WaruSeadramon", () => {
         instanceId: s.inst("merva-digivolve").instanceId,
       }),
     ).toEqual({ ok: true });
-    // Mervamon's real [When Digivolving] effect plays first-play from trash. Waru's
-    // inherited effect makes that effect-play observable as +1 memory.
     await settle(
       () =>
         s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("first-play").instanceId) &&
@@ -132,12 +127,9 @@ describe("BT11-085 WaruSeadramon", () => {
         s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("second-play").instanceId) &&
         s.state.pendingDecision === undefined,
     );
-    // Mervamon costs 11, and the second real effect-play does not grant another memory.
     expect(s.state.memory).toBe(-8);
     await firstTurn;
 
-    // Run the intervening opponent turn through the real turn lifecycle, then start the
-    // next own turn. The once-per-turn inherited watcher must be available again.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);

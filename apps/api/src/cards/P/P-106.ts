@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q4200: digivolve requires meeting normal digivolution requirements (payCost:true).
-// Q4201: cannot burst digivolve or DNA digivolve.
-// Q4203: may choose not to digivolve (optional:true).
 const compiled: CompiledCard = {
   effects: [
     {

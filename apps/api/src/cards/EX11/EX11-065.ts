@@ -3,10 +3,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const mineralOrRock = [{ tokens: ["Mineral", "Rock"], match: "trait" as const }];
 
-// Both clauses move a "[Mineral] or [Rock] trait CARD", not a Digimon card. A `kind: ["Digimon"]`
-// filter excludes the catalog `DigiEgg` kind, and the [Rock] Digi-Eggs (BT9-005/EX8-005/EX10-003
-// Tumblemon) are exactly the cards that sit at the bottom of every stack raised from breeding —
-// the most common legal payment for the [Start of Your Main Phase] cost.
 const placeUnderTriggeredDigimon = {
   kind: "PlaceUnder" as const,
   target: {

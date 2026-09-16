@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./P-001.js";
 import "./P-002.js";
 import "./P-003.js";

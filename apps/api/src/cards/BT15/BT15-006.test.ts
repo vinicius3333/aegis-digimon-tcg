@@ -90,8 +90,6 @@ describe("BT15-006", () => {
             ],
           },
         },
-        // The hand cost is the clause's only question, so it is asked as the selection itself:
-        // no card is the refusal (see `costIsAskedAsSelection`).
         autoAcceptOptional ? { autoAcceptOptional, autoSelectCards: true } : { autoDeclineOptional: true },
       );
 

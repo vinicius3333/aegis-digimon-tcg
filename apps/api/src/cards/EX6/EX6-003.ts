@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored implementation for EX6-003's inherited security exchange effect.
 export const compiled: CompiledCard = {
   effects: [
     {

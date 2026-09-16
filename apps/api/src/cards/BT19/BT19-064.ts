@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT19-064 Justimon: Blitz Arm
-// [Hand][Counter] <Blast Digivolve>
-// [On Play][When Digivolving] This Digimon gains <Blocker> and isn't affected by your
-//   opponent's Digimon's effects until the end of your opponent's turn.
-// [When Digivolving][When Attacking][Once Per Turn] By trashing 1 Option card in the
-//   battle area, unsuspend this Digimon.
-// Q&A: "1 Option card in the battle area" includes either player's Option card.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -158,7 +151,6 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      // Bracketed [Name] routes are EXACT: `names` is the substring gate ("[X] in its name").
       namesExact: ["Justimon: Accel Arm", "Justimon: Critical Arm"],
       cost: 1,
       isAlternate: true,

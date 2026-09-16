@@ -82,14 +82,10 @@ describe("BT13-094 BT13-094", () => {
         hand: ["BT1-012"],
       },
     });
-    // Keep a legal Main action available so production does not auto-end the
-    // phase immediately after resolving its entry window.
     s.state.memory = 3;
     await s.ready();
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    // Main opens before the start-of-main-phase effect continuation finishes;
-    // settle it while the turn is intentionally still blocked in Main.
     await settle(() => s.state.memory === 4);
     expect(s.state.memory).toBe(4);
     advance(s.engine).endMainPhaseIfOpen(0);

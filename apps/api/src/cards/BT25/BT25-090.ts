@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** BT25-090 Tomoro Tenma — audited against the catalog and KB Q6422-Q6429. */
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -39,8 +39,6 @@ describe("BT8 Kimeramon/Canoweissmon acquired-effect timing", () => {
         s.state.pendingDecision === undefined,
     );
 
-    // Q1940: Canoweissmon's inherited grant is acquired only after this When Digivolving
-    // window began. BetelGammamon's Blitz trigger has already missed its trigger point.
     expect(s.engine.hasAcceptedBlitzAttack(s.perm("betel").permanentId)).toBe(false);
     await settle(() => !mainPhase.isOpen);
     expect(mainPhase.isOpen).toBe(false);

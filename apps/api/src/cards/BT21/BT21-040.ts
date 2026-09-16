@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -33,9 +30,6 @@ export const compiled: CompiledCard = {
           costOverride: 4,
           ignoreRequirements: true,
           optional: true,
-          // Two independent alternatives, not one filter: flattened together they demanded a
-          // single [Hero] level-6 permanent the opponent controls, which is neither branch.
-          // The Tamer half mirrors BT21-010's encoding of the same printed clause.
           condition: {
             kind: "orConditions",
             conditions: [

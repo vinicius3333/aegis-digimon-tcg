@@ -6,9 +6,6 @@ const tbHand = {
   zone: "hand",
   nameOrTrait: [{ tokens: ["TB"], match: "trait" }],
 } satisfies Filter;
-// "play ... 1 [TB] trait card" covers every card kind that is PLAYED — Digimon and Tamer.
-// BT26-104 Kunlun is the printed [TB] Tamer this branch has to reach; Options are "used"
-// through the sibling branch instead.
 const tbPlayable = { ...tbHand, kind: ["Digimon", "Tamer"] } satisfies Filter;
 const tbOption = { ...tbHand, kind: ["Option"] } satisfies Filter;
 

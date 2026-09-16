@@ -38,8 +38,6 @@ describe("EX11-044 Pyramidimon", () => {
         optional: true,
         abortOnDecline: true,
         target: { filter: { superlative: "highestPlayCost", kind: ["Digimon", "Tamer"] } },
-        // FAILS-WHEN-REVERTED: canPayCost recognizes a stack-trash cost only through
-        // filter.zone; with just `from` the affordability gate falls through to its default.
         cost: {
           kind: "trash",
           target: { filter: { controller: "mine", zone: "digivolutionCards" }, from: ["digivolutionCards"], count: 3 },
@@ -98,13 +96,10 @@ describe("EX11-044 Pyramidimon", () => {
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost5Id);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(cost6Id);
     expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038", "EX11-038"]);
-    // The payable path DOES ask, so the empty-prompt assertion in the 2-source case below is a
-    // real discriminator and not vacuously true.
     expect(s.decisions.filter(({ req }) => req.kind === "optional").length).toBeGreaterThan(0);
     assertNoLoudGap(s);
   });
 
-  /** KB Q5890: the 3 cards may be spread across several of your Digimon's stacks. */
   it("pays the 3 Mineral sources across two different Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -136,8 +131,6 @@ describe("EX11-044 Pyramidimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== cost8Id));
-    // The [All Turns] watcher fires on the effect-driven stack trash and rebuilds the SOURCE's
-    // stack from the trash; the ALLY's paid card is not returned to it.
     expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038", "EX11-038"]);
     expect(s.perm("ally").stack).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost5Id);
@@ -145,7 +138,6 @@ describe("EX11-044 Pyramidimon", () => {
     assertNoLoudGap(s);
   });
 
-  /** KB Q5889: a "by" cost cannot be partially paid — 2 sources delete nothing and trash nothing. */
   it("deletes nothing and trashes nothing when only 2 Mineral sources exist", async () => {
     const s = setupEngine(
       {
@@ -167,9 +159,6 @@ describe("EX11-044 Pyramidimon", () => {
     expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038"]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost8Id);
-    // FAILS-WHEN-REVERTED: this is the observable half of the `filter.zone` fix. canPayCost
-    // recognizes a stack-trash cost only through filter.zone; without it the gate returned its
-    // `true` default and the unpayable clause still opened an optional prompt.
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
     assertNoLoudGap(s);
   });

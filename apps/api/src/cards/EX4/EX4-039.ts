@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Text: [On Play] Reveal the top 3 cards of your deck. Add 1 Digimon card with [Garurumon]
-// in its name and 1 Digimon card with [Agumon], [Greymon], or [Omnimon] in its name among
-// them to your hand. Place the rest on top of your deck in any order.
-// KB Q3488: you can add 1 card if only 1 type is revealed.
-// KB Q3489: if both are present, you must add both (mandatory).
-// Fix: rest → deckTop (not deckBottom as the old IR had).
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -178,7 +178,6 @@ describe("EX9-069", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
     );
-    // The real start-main window triggers both Tamers simultaneously.
     const turn = s.engine.runOneTurn();
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
     const first = s.state.pendingDecision!;
@@ -213,7 +212,6 @@ describe("EX9-069", () => {
       .filter((event) => event.kind === "effectTriggered")
       .filter((event) => event.sourceCardId === "EX9-069");
     expect(events.map((event) => event.effectKey.startsWith("subtrigger/"))).toEqual([false, true, true, false]);
-    // Both suspended Tamers are unavailable for another suspension cost.
     expect(s.state.pendingDecision).toBeUndefined();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("first").isSuspended).toBe(true);

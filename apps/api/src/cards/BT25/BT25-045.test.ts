@@ -19,36 +19,10 @@ import { createGameAccess, createEffectContext } from "../../engine/effects/cont
 import { irCardModule } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-// The REAL authored IR (a hand-override exports it so the A3 asserts against the on-disk source).
 import { compiled as BT25_045 } from "./BT25-045.js";
-// Boot side-effect: self-register every compiled-IR card module (so BT25-045's real IR loads).
 import "../index.js";
 
-/**
- * Full-engine A3 for BT25-045 Onmon's link-cost-reduction clause, consuming the
- * recipient-scoped `GrantLinkCostReduction` / `linkCostOf` seam:
- *
- *   "[Your Turn] [Once Per Turn] When a [Social], [Tool] or [Game] trait card would link to
- *    this Digimon, you may reduce the cost by 1."  (documented behavior WhenWouldLink region,
- *    rule implementation reducedCost:1)
- *
- * KB authority (node tools/kb/query.mjs card BT25-045): no card-specific Q&A; general link
- * rules apply (BT25-089 Q4881: only a <Link>-bearing card may be linked; the cost is real and
- * reducible). BT25-045 is authored as the recipient-scoped, optional, once-per-turn grant shared
- * with BT25-004.
- *
- * Vehicle: resolve BT25-045's REAL registered grant through the interpreter against a
- * battle-area BT25-045 with a [Social]-trait link card (BT21-009, printed link Cost 1) in hand,
- * and compare the memory paid with the grant active (reduction => pays 0) vs. with the grant
- * STRIPPED (pays the full 1). The reduction is exactly 1.
- *
- * FAILS-WHEN-REVERTED: drop the grant from BT25-045.ts — the as-authored
- * run then pays the full link cost, the memory delta between the two runs collapses to 0, and the
- * "reduced by exactly 1" assertion goes RED. (Equivalently the proven Phase-7 lever: drop the
- * recipient reduction disappears and the "reduced by exactly 1" assertion goes RED.
- */
-
-const LINKABLE = "BT21-009"; // [Social] [Appmon] trait, printed "[Link] [Appmon] trait: Cost 1"
+const LINKABLE = "BT21-009";
 
 let seq = 0;
 function card(cardId: string, seat: Seat): CardInstance {
@@ -66,11 +40,6 @@ interface RunResult {
   linkedCount: number;
 }
 
-/**
- * Resolve a generic [Main]/OnDeclaration Link effect once, returning how
- * much memory the engine charged for the link and how many cards landed. A linkable BT21-009 sits
- * in the controller's hand; BT25-045 is the on-field recipient ("link a card to this Digimon").
- */
 async function runLinkEffect(
   compiled: CompiledCard,
   optionalAnswers: boolean[] = [true],
@@ -79,7 +48,7 @@ async function runLinkEffect(
   seq = 0;
   const state = new GameState();
   state.turnSeat = turnSeat;
-  state.memory = 10; // ample headroom so a positive link cost is actually paid
+  state.memory = 10;
   for (const seat of [0, 1] as Seat[]) {
     const player = new PlayerState();
     player.seat = seat;
@@ -87,7 +56,6 @@ async function runLinkEffect(
   }
   const events: ServerEvent[] = [];
 
-  // The BT25-045 permanent (the link recipient) on seat 0's battle area.
   const recipient = new Permanent();
   recipient.permanentId = "p-onmon";
   recipient.controllerSeat = 0;
@@ -97,7 +65,6 @@ async function runLinkEffect(
   recipient.currentDP = 3000;
   state.players[0]!.battleArea.push(recipient);
 
-  // A linkable [Social] card in hand.
   const linkCard = card(LINKABLE, 0);
   state.players[0]!.hand.push(linkCard);
 
@@ -167,7 +134,6 @@ async function runLinkEffect(
 
   const module = irCardModule("BT25-045", compiled);
   const src = createCardSource(recipient.topCard!, stateLookup);
-  // Install BT25-045's real recipient grant in the continuous/static window.
   const effects = module.effectsForTiming(EffectTiming.None, src);
 
   const before = state.memory;
@@ -181,7 +147,6 @@ async function runLinkEffect(
     }
   }
 
-  // A separate generic Link declaration targets the recipient carrying the grant.
   const genericLink: CompiledCard = {
     effects: [
       {
@@ -203,7 +168,6 @@ async function runLinkEffect(
   return { memoryPaid: before - state.memory, linkedCount: recipient.linked.length };
 }
 
-/** A clone of BT25-045's registered IR with the grant neutered (the revert). */
 function withoutGrant(compiled: CompiledCard): CompiledCard {
   const clone: CompiledCard = JSON.parse(JSON.stringify(compiled));
   for (const eff of clone.effects ?? []) {
@@ -271,12 +235,9 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     const reduced = await runLinkEffect(BT25_045);
     const full = await runLinkEffect(withoutGrant(BT25_045));
 
-    // Both runs land the single linkable card; the only difference is the recipient grant.
     expect(reduced.linkedCount).toBe(1);
     expect(full.linkedCount).toBe(1);
 
-    // BT21-009 printed link cost is 1; the grant floors it to 0, so the reduced run pays 0 and
-    // the reverted run pays the full 1 => the reduction is exactly 1.
     expect(full.memoryPaid).toBe(1);
     expect(reduced.memoryPaid).toBe(0);
     expect(full.memoryPaid - reduced.memoryPaid).toBe(1);
@@ -475,8 +436,6 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    // Onmon's link limit is 1 (CR §4-8-5): linking a new card trashes the one
-    // already there, at the same time as the new card lands.
     await settle(
       () => s.perm("onmon").linked.length === 1 && s.perm("onmon").linked[0]?.instanceId === s.inst("tool").instanceId,
     );
@@ -528,8 +487,6 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
         targetPermanentId: s.perm("onmon").permanentId,
       }),
     ).toEqual({ ok: true });
-    // Onmon's link limit is 1 (CR §4-8-5): linking a new card trashes the one
-    // already there, at the same time as the new card lands.
     await settle(
       () =>
         s.perm("onmon").linked.length === 1 && s.perm("onmon").linked[0]?.instanceId === s.inst("second").instanceId,

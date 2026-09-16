@@ -101,7 +101,6 @@ describe("BT17-053 Keramon", () => {
     expect(keramon.topCard?.cardId).toBe("BT17-055");
     expect(keramon.stack.map((card) => card.instanceId)).toEqual([keramonId]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === infermonId)).toBe(false);
-    // Only the opponent's own digivolve cost (3) moves memory; Keramon's route is free.
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
   });

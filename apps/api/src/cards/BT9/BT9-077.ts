@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1871: this card can't digivolve from trash on its own; the cost reduction
-// applies when ANOTHER effect digivolves this Digimon into a card from the trash.
-// The Replacement's `into` filter restricts to trash-zone Digimon cards.
 export const compiled: CompiledCard = {
   effects: [
     {

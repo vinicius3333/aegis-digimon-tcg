@@ -78,7 +78,6 @@ export const compiled: CompiledCard = {
             filter: { nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] },
           },
           actions: [
-            // "...may unsuspend": the unsuspension is the optional half of the printed clause.
             {
               kind: "Unsuspend",
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },

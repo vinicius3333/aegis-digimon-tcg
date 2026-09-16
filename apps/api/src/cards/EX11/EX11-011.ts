@@ -1,22 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX11-011 (Dinomon).
-// runtime-effect fixes:
-// - Text says "choose 1 of EACH player's Digimon with the highest play cost" (up to two
-//   exemptions total, per Q5796), but the old IR's `Delete.target.except` picked a single
-//   overall highest-play-cost Digimon across both sides — and `except` isn't even a field the
-//   interpreter reads, so no exemption applied at all (it deleted everyone). Replaced with two
-//   `SelectBind` picks (one per side, each scoped by `superlative: "highestPlayCost"`) feeding
-//   a `Delete` whose filter excludes both bound selections via the new
-//   `Filter.excludeSelectionRef` capability.
-// - The "Then, choose ... and delete all other Digimon" clause is an unconditional consequence
-//   of activating the effect (only the preceding Suspend is "may"); removed the stray
-//   `optional: true` from the Delete action.
-// - The opponent-turn attack rule uses the enforced attackOnlySuspendedDigimon aura. Q5797 says
-//   it overrides a positive "can attack unsuspended" permission; Q5798 limits it to declaration;
-//   Q5799 exempts Digimon unaffected by this source's effects.
-// - Security Attack +1 and Fortitude are printed main keywords. This card has no inherited text.
 const compiled: CompiledCard = {
   effects: [
     {

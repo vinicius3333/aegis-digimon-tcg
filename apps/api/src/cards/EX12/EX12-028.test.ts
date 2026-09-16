@@ -98,7 +98,6 @@ describe("EX12-028 Gusokumon", () => {
               optional: true,
               target: {
                 filter: {
-                  // CR 16-36-1: Decode reads THAT Digimon's stack only.
                   hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [{ tokens: ["DS"], match: "trait" }],
@@ -422,8 +421,6 @@ describe("EX12-028 Gusokumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The redirect budget is already spent, so this second attack is never redirected: it
-    // goes straight through to player 0's (already empty) security and ends the game.
     await settle(() => s.events.some((event) => event.kind === "gameOver"));
     expect(s.events.at(-1)).toMatchObject({ kind: "gameOver", result: { outcome: "win", winnerSeat: 1 } });
 

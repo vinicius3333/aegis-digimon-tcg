@@ -12,7 +12,6 @@ describe("BT7-039 Stefilmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Legal yellow stack: L4 Filmon -> L5 Stefilmon.
           battleArea: [{ card: "BT7-039", under: ["BT7-034"], as: "stefilmon" }],
           hand: ["BT1-048", "BT1-049"],
           deck: ["BT1-001", "BT1-002", "BT1-003"],
@@ -91,7 +90,6 @@ describe("BT7-039 Stefilmon", () => {
       {
         0: {
           battleArea: [
-            // Legal yellow stack: L4 Filmon -> L5 Stefilmon -> L6 Rasenmon.
             { card: "BT7-040", under: ["BT7-034", { card: "BT7-039", as: "stefilmon" }], as: "host" },
             { card: "BT1-010", as: "ally" },
           ],

@@ -1,12 +1,3 @@
-// EX6-066 Sea of Destruction — hand-fixed IR.
-// KB Q3817: "the placed card" refers to the Digimon placed from hand (the cost card),
-// not the blue host Digimon. Return targets all opponent Digimon at that placed card's level.
-//
-// Fixes:
-//   - Removed colors:["Blue"] from cost target filter (placed card needs no color constraint)
-//   - the place cost stores the placed card's level for the following Return target.
-//
-// nameOrTrait with two tokens in one entry = OR (Aqua OR Sea Animal) — correct per engine.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

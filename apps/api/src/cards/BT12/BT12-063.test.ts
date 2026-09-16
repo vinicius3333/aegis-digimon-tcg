@@ -29,9 +29,6 @@ describe("BT12-063 Damemon", () => {
         0: {
           battleArea: [{ card: "BT12-008", as: "saveBase" }],
           hand: [{ card: "BT12-063", as: "damemon" }],
-          // The top deck card is drawn by the standard "draw 1 on digivolve" rule before
-          // BT12-063's [When Digivolving] reveal runs, so the Tamer must sit below it to
-          // still be in the deck when the reveal happens.
           deck: ["BT1-009", { card: "BT12-094", as: "tamer" }, "BT1-010"],
         },
       },

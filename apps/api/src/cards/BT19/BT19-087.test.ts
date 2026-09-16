@@ -5,33 +5,14 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// BT19-087 Nene Amano (Black Tamer, cost 4, [General]/[Twilight]).
-//
-//   [Start of Your Turn] If you have 2 memory or less, set your memory to 3.
-//   [All Turns] When any of your [Composite]/[Twilight] trait Digimon cards with DigiXros
-//     requirements would be played, by suspending this Tamer, 1 card under your Tamers and
-//     1 card in your trash can also be placed for their DigiXros.
-//   [Security] Play this card without paying the cost.
-//
-// KB: Q3152 (the gate is [Composite] OR [Twilight] cards that have DigiXros requirements),
-// Q3153 (under-Tamer/trash are ADDED to the normal hand + battle-area sources, and either
-// area may be used alone), Q3154 (the material may sit under any of your Tamers, not only
-// this one), Q3155 (it applies to each qualifying play, not once per turn), Q3156/Q3157
-// (two copies suspended stack their per-zone quotas, on one play or across several).
-//
-// The expansion is consumed by the DigiXros play subsystem: `packages/shared/src/cards/
-// zoneExpanders.ts` registers BT19-087 with `appliesTo: hasAnyTrait(["Composite","Twilight"])`,
-// `underTamerMax: 1` and `trashMax: 1`; `engine/actions/digiXros.ts` reads that registry when
-// the play intent names `expanderPermanentIds`, summing the quotas across named expanders.
+const NENE = "BT19-087";
+const KIRIHA = "BT10-088";
+const TAKATO = "BT19-080";
+const RYO = "BT19-086";
 
-const NENE = "BT19-087"; // the expander Tamer
-const KIRIHA = "BT10-088"; // peer expander: no trait gate, under-Tamer only, single host
-const TAKATO = "BT19-080"; // a plain Tamer — a HOST that is not itself an expander
-const RYO = "BT19-086"; // a BT19 Tamer with no memory clause at all — the peer control
-
-const XROS_COMPOSITE = "BT10-009"; // Shoutmon X4, [Composite], cost 9, DigiXros -2, 4 slots
-const XROS_TWILIGHT = "BT10-066"; // DarkKnightmon, [Twilight], cost 8, DigiXros -2, 2 slots
-const NOT_GATED = "BT10-077"; // MadLeomon, [Bagra Army] only, cost 5, DigiXros -2
+const XROS_COMPOSITE = "BT10-009";
+const XROS_TWILIGHT = "BT10-066";
+const NOT_GATED = "BT10-077";
 
 const SHOUTMON = "BT10-008";
 const BALLISTAMON = "BT10-049";
@@ -53,7 +34,6 @@ describe("BT19-087 Nene Amano", () => {
       types: ["General", "Twilight"],
       effectText:
         "[Start of Your Turn] If you have 2 memory or less, set your memory to 3.\n" +
-        // NOTE: the catalog separates "[Twilight]" from "trait" with U+00A0, not a plain space.
         "[All Turns] When any of your [Composite]/[Twilight]\u00A0trait Digimon cards with DigiXros requirements " +
         "would be played, by suspending this Tamer, 1 card under your Tamers and 1 card in your trash can also " +
         "be placed for their DigiXros.",
@@ -70,8 +50,6 @@ describe("BT19-087 Nene Amano", () => {
         actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
       },
       {
-        // Trap check: the printed clause is [All Turns], so the trigger must be `AllTurns`,
-        // and the clause is a would-be-played REPLACEMENT, not a bare optional action.
         trigger: "AllTurns",
         actions: [
           {
@@ -104,13 +82,11 @@ describe("BT19-087 Nene Amano", () => {
     const expander = digiXrosZoneExpanderFor(NENE)!;
     expect(expander.underTamerMax).toBe(1);
     expect(expander.trashMax).toBe(1);
-    expect(expander.underTamerHostScope).toBeUndefined(); // Q3154: any of your Tamers
+    expect(expander.underTamerHostScope).toBeUndefined();
     expect(expander.appliesTo(getCardDefinition(XROS_COMPOSITE)!)).toBe(true);
     expect(expander.appliesTo(getCardDefinition(XROS_TWILIGHT)!)).toBe(true);
     expect(expander.appliesTo(getCardDefinition(NOT_GATED)!)).toBe(false);
   });
-
-  // --- Tamer play cost -------------------------------------------------------------------
 
   it("costs 4 memory to play from hand in a real Main phase", async () => {
     const s = setupEngine(
@@ -135,8 +111,6 @@ describe("BT19-087 Nene Amano", () => {
     await loop;
     assertNoLoudGap(s);
   });
-
-  // --- [Start of Your Turn] --------------------------------------------------------------
 
   it("[Start of Your Turn] sets memory to 3 from 2, read inside the open Main phase", async () => {
     const s = setupEngine(
@@ -210,8 +184,6 @@ describe("BT19-087 Nene Amano", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [Security] ------------------------------------------------------------------------
-
   it("[Security] plays itself for free through a real security check", async () => {
     const s = setupEngine(
       {
@@ -243,7 +215,6 @@ describe("BT19-087 Nene Amano", () => {
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual([neneId]);
     expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([fillerId]);
     expect(s.state.players[1]!.trash.map((c) => c.instanceId)).not.toContain(neneId);
-    // Nothing paid the printed cost of 4: only the attacker's own swing moved memory.
     expect(s.state.memory).toBe(3);
     expect(s.perm("attacker").isSuspended).toBe(true);
     assertNoLoudGap(s);
@@ -281,8 +252,6 @@ describe("BT19-087 Nene Amano", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [All Turns] DigiXros zone expansion ------------------------------------------------
-
   it("Q3153: hand and battle-area materials stay legal with no expander named at all", async () => {
     const s = setupEngine(
       {
@@ -299,7 +268,7 @@ describe("BT19-087 Nene Amano", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 7; // 9 - 2 (one material)
+    s.state.memory = 7;
     const materialId = s.inst("handMaterial").instanceId;
     await s.ready();
 
@@ -315,7 +284,7 @@ describe("BT19-087 Nene Amano", () => {
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === XROS_COMPOSITE);
     expect(played?.stack.map((c) => c.instanceId)).toEqual([materialId]);
     expect(s.state.memory).toBe(0);
-    expect(s.perm("nene").isSuspended).toBe(false); // the normal sources never pay the cost
+    expect(s.perm("nene").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
 
@@ -333,7 +302,7 @@ describe("BT19-087 Nene Amano", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 5; // 9 - 2*2
+    s.state.memory = 5;
     const underId = s.inst("under").instanceId;
     const trashedId = s.inst("trashed").instanceId;
     await s.ready();
@@ -354,7 +323,7 @@ describe("BT19-087 Nene Amano", () => {
     expect(played?.stack.map((c) => c.instanceId).sort()).toEqual([underId, trashedId].sort());
     expect(s.perm("nene").stack.map((c) => c.instanceId)).toEqual([]);
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).not.toContain(trashedId);
-    expect(s.perm("nene").isSuspended).toBe(true); // the printed suspend cost was paid
+    expect(s.perm("nene").isSuspended).toBe(true);
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
@@ -373,7 +342,7 @@ describe("BT19-087 Nene Amano", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 4; // 8 - 2*2
+    s.state.memory = 4;
     const underId = s.inst("under").instanceId;
     const trashedId = s.inst("trashed").instanceId;
     await s.ready();
@@ -496,8 +465,6 @@ describe("BT19-087 Nene Amano", () => {
     expect(s.state.memory).toBe(9);
   });
 
-  // --- the printed 1 + 1 caps --------------------------------------------------------------
-
   it("enforces the trash maximum of 1: two trash materials are rejected", async () => {
     const s = setupEngine(
       {
@@ -573,8 +540,6 @@ describe("BT19-087 Nene Amano", () => {
     expect(s.perm("nene").stack.map((c) => c.instanceId)).toEqual([u1, u2]);
   });
 
-  // --- Q3154 host scope --------------------------------------------------------------------
-
   it("Q3154: the material may sit under a DIFFERENT Tamer than the one suspended", async () => {
     const s = setupEngine(
       {
@@ -608,7 +573,7 @@ describe("BT19-087 Nene Amano", () => {
     expect(played?.stack.map((c) => c.instanceId)).toEqual([underId]);
     expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([]);
     expect(s.perm("nene").isSuspended).toBe(true);
-    expect(s.perm("host").isSuspended).toBe(false); // the HOST is never the one suspended
+    expect(s.perm("host").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
 
@@ -643,8 +608,6 @@ describe("BT19-087 Nene Amano", () => {
     ).toEqual({ ok: false, reason: "invalid-expander" });
     expect(s.perm("nene").isSuspended).toBe(false);
   });
-
-  // --- Q3152 trait gate, with a peer control ------------------------------------------------
 
   it("Q3152: a DigiXros card with neither [Composite] nor [Twilight] is refused", async () => {
     const s = setupEngine(
@@ -689,7 +652,7 @@ describe("BT19-087 Nene Amano", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3; // 5 - 2 (one material)
+    s.state.memory = 3;
     const underId = s.inst("under").instanceId;
     await s.ready();
 
@@ -737,8 +700,6 @@ describe("BT19-087 Nene Amano", () => {
     ).toEqual({ ok: false, reason: "invalid-material" });
   });
 
-  // --- Q3155 / Q3156 / Q3157 stacking --------------------------------------------------------
-
   it("Q3156: two copies suspended on ONE play raise the quotas to 2 under-Tamer + 2 trash", async () => {
     const s = setupEngine(
       {
@@ -759,7 +720,7 @@ describe("BT19-087 Nene Amano", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 1; // 9 - 4*2
+    s.state.memory = 1;
     const ids = ["u1", "u2", "t1", "t2"].map((alias) => s.inst(alias).instanceId);
     await s.ready();
 
@@ -844,7 +805,7 @@ describe("BT19-087 Nene Amano", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 9; // 5 for Shoutmon X4, then 4 for DarkKnightmon
+    s.state.memory = 9;
     await s.ready();
     const u1 = s.inst("u1").instanceId;
     const t1 = s.inst("t1").instanceId;

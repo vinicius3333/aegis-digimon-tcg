@@ -7,24 +7,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 import "./BT19-069.js";
 
-// BT19-069 Deltamon (Purple/Black, Lv.4 Champion/Virus/[Composite], DP 5000, play 5,
-// EvoCost Purple Lv.3 / Black Lv.3 for 3).
-//   [Digivolve][Gazimon]/[Gizamon]: Cost 2
-//   [On Play] [When Digivolving] [On Deletion] By trashing 1 card in your hand, delete 1 of
-//     your opponent's level 4 or lower Digimon.
-//   Inherited: ＜Blocker＞.
-//
-// KB: `node tools/kb/query.mjs card BT19-069` reports no knowledge-base entries, so no Q&A id
-// is owed for this card. The rules used here are the generic ones: a "by X," processing
-// condition is declinable (comprehensive 15-7-4) and ＜Blocker＞ is 16-1.
-//
-// Fixtures. Inert main-deck Digimon only (no Digi-Eggs anywhere):
-//   BT10-071 Gazimon — Purple Lv.3, the exact [Gazimon] route AND a legal normal Purple Lv.3 base.
-//   BT19-066 Gizamon — Purple/Black Lv.3, the exact [Gizamon] route and a legal normal base.
-//   BT9-070 "Gazimon (X Antibody)" — Purple Lv.3. The near-miss peer: a SUBSTRING name gate
-//     would take it for [Gazimon]; the printed bracketed name is exact, so it must fall back
-//     to the normal Purple Lv.3 route and only the memory delta (3, not 2) shows it.
-//   BT1-009 Monodramon — Red Lv.3: the illegal source (wrong colour, wrong name).
 const inertDeck = ["BT1-009", "BT1-013", "BT1-012", "BT1-014"];
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-012"];
 
@@ -74,13 +56,8 @@ describe("BT19-069 Deltamon", () => {
       })),
       { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Blocker" }] },
     ]);
-    // The bracketed `[Gazimon]/[Gizamon]` route is EXACT: `names` is the substring gate.
     expect(card?.digivolutionRequirement).toEqual([{ namesExact: ["Gazimon", "Gizamon"], cost: 2, isAlternate: true }]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play]
-  // ---------------------------------------------------------------------------
 
   it("[On Play] trashes the chosen hand card and deletes the level-4 Digimon, sparing the level 5", async () => {
     const preferInstanceIds: string[] = [];
@@ -118,13 +95,10 @@ describe("BT19-069 Deltamon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     await settle();
 
-    // Play cost 5 paid from 8.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-069"]);
-    // Exactly the chosen hand card was trashed; the spare stayed in hand.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("fodder").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("spare").instanceId]);
-    // "level 4 or lower": the Lv.5 peer survives.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-070"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-014"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -211,10 +185,6 @@ describe("BT19-069 Deltamon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Evolution routes
-  // ---------------------------------------------------------------------------
-
   it("[Digivolve][Gazimon] costs 2 and fires [When Digivolving]", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -248,11 +218,9 @@ describe("BT19-069 Deltamon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // Cost 2 through the printed alternate route, not the 3 of the normal Purple Lv.3 EvoCost.
     expect(s.state.memory).toBe(8);
     expect(s.perm("gazimon").topCard?.cardId).toBe("BT19-069");
     expect(s.perm("gazimon").stack.map((card) => card.instanceId)).toEqual([gazimonId]);
-    // [When Digivolving] resolved: the fodder paid, the Lv.4 died.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("fodder").instanceId]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -288,7 +256,6 @@ describe("BT19-069 Deltamon", () => {
 
     expect(s.state.memory).toBe(8);
     expect(s.perm("gizamon").stack.map((card) => card.instanceId)).toEqual([gizamonId]);
-    // The digivolve bonus draw: the top of the inert deck, and nothing else.
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([inertDeck[0]]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(inertDeck.slice(1));
   });
@@ -323,9 +290,6 @@ describe("BT19-069 Deltamon", () => {
   });
 
   it("refuses the exact [Gazimon] route to the near-miss peer 'Gazimon (X Antibody)'", async () => {
-    // `useAlternateCost: true` with no matching alternate route silently falls back to the
-    // normal route and still answers {ok:true}: only the memory delta discriminates. A
-    // SUBSTRING `names` gate would have charged 2 here.
     const s = setupEngine(
       {
         0: {
@@ -390,10 +354,6 @@ describe("BT19-069 Deltamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("deltamon").instanceId]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Deletion]
-  // ---------------------------------------------------------------------------
-
   it("[On Deletion] fires after a real battle loss and deletes the chosen level-4 Digimon", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -432,19 +392,13 @@ describe("BT19-069 Deltamon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     await settle();
 
-    // 5000 DP into a 20 000 DP wall: Deltamon is deleted, and its [On Deletion] resolves.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-013", "BT19-069"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("spare").instanceId]);
-    // The chosen Lv.4 died; the Lv.3 wall it fought is untouched.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-014"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // ---------------------------------------------------------------------------
-  // Inherited ＜Blocker＞ under a real host
-  // ---------------------------------------------------------------------------
 
   it("grants ＜Blocker＞ to the host it sits under, which really blocks, while a bare peer may not", async () => {
     const s = setupEngine(
@@ -469,7 +423,6 @@ describe("BT19-069 Deltamon", () => {
     );
     await s.ready();
 
-    // Reach the OPPONENT's real turn through the turn loop rather than assigning turnSeat.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -496,7 +449,6 @@ describe("BT19-069 Deltamon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // Security untouched, the 5000 DP attacker lost to the 20 000 DP blocker.
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(inertSecurity);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([
       "BT19-070",

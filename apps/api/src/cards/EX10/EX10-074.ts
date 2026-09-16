@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5189: multiple simultaneous effects — player chooses order.
-// KB Q5190: must return exactly 2 non-Digi-Egg cards (can't do just 1).
-// KB Q5191: can use <Blast Digivolve> during counter timing even in opponent's turn.
-// Digivolve: alternate path requires 20+ cards in trash (whileCondition) — see LANE_D.md.
-// [On Play/WhenDigivolving] cost for DeDigivolve: "returning 2 non-Digi-Egg cards from
-//   trash to the top of the deck" — filter excludes DigiEgg kind; to: "deckTop".
-// "For every 10 cards in your trash, add 3 to the play cost maximum" — the ceiling on
-//   which Digimon the Delete can target scales with trash count (playCostCeiling on Delete).
-//   See LANE_D.md: DeletePlayCostCeiling.
 export const compiled: CompiledCard = {
   effects: [
     {

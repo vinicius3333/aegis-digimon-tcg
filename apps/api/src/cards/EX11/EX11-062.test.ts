@@ -91,7 +91,6 @@ describe("EX11-062 Shoto Kazama", () => {
     await advance(s.engine).verb.suspend([s.perm("effectSuspended").permanentId], 0);
     expect(s.perm("bird").currentDP).toBe(4000);
 
-    // `untilOpponentTurnEnd` must survive the whole opponent turn and expire at its end.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     await settle();

@@ -49,8 +49,6 @@ describe("BT18-070 RhinoKabuterimon", () => {
     await s.ready();
 
     expect(s.perm("tamer").topCard?.cardId).toBe("BT18-070");
-    // Stack arrays are bottom-to-top; the primitive inserts each bottom placement in order,
-    // so the later selected material is the lower card.
     expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT18-067", "BT18-063", "BT18-091"]);
     expect(observe(s.engine).hasKeyword(s.perm("tamer"), "Collision")).toBe(true);
   });

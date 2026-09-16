@@ -116,7 +116,6 @@ describe("EX8-047", () => {
       expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(discardedId);
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === targetId)).toBe(deletes);
       expect(s.state.players[0]!.battleArea).toHaveLength(deletes ? 1 : 2);
-      // The cost-5 source of the discard is outside the inherited cost-4 ceiling.
       expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === frigimonId)).toBe(true);
       expect(s.state.pendingDecision).toBeUndefined();
     },

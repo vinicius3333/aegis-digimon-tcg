@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Cyber Engage (BT25-098)
-// <Use Req. ([Appmon] trait)>
-// [Main] Reveal top 3 of your deck. Add 1 [Appmon] trait to hand, trash the rest.
-//        Then place this card in the battle area.
-// [Main] <Delay> You may play 1 [Appmon] trait from hand with cost reduced by 3.
-// [Security] Place this card in the battle area.
 export const compiled: CompiledCard = {
   effects: [
     {

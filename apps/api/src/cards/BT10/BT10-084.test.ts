@@ -28,17 +28,6 @@ import { setupEngine as setupCardEngine, settle } from "../../engine/testkit/har
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT10-084.js";
 
-// A3 for BT10-084 (Tactimon)
-//
-// [On Play] Play up to 2 Bagra Army Lv.4 or lower Digimon from trash without cost;
-//   those Digimon gain ＜Blocker＞ until end of opponent's turn.
-// [Opponent's Turn] Replacement: digivolution-card trash redirect.
-//
-// Primary A3: [On Play] plays up to two qualifying Digimon and grants each played
-// Digimon Blocker until the end of the opponent's turn.
-//
-// FAILS-WHEN-REVERTED: if [On Play] were removed, the real battle-area assertions would fail.
-
 const CARD_ID = "BT10-084";
 
 function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
@@ -189,14 +178,6 @@ describe("BT10-084 (Tactimon)", () => {
   });
 });
 
-// --- [Opponent's Turn] digivolution-card-trash redirect: full-engine A3 -----------------------
-//
-// The real-engine test above covers [On Play]. The redirect clause is a persistent, continuous
-// Replacement install (EffectTiming.None) consulted through GameEngine's own
-// consultDigivolutionTrashRedirect wiring (subtriggers.ts / digivolutionTrashRedirect.ts), so it
-// needs a REAL GameEngine to prove end to end — a fake CardSource/EffectContext can't exercise
-// the continuous-recompute pass that installs the subscription or the consult that reads it back.
-
 let seq = 0;
 
 function instance(cardId: string, seat: 0 | 1, faceUp: boolean): CardInstanceClass {
@@ -238,7 +219,6 @@ function safeDecisionResponse(req: DecisionRequest): DecisionResponse {
   }
 }
 
-/** `acceptOptional`: whether the "may you redirect?" prompt should be accepted. */
 function setupEngine(acceptOptional: boolean): { engine: GameEngine; state: GameState } {
   const state = new GameStateClass() as unknown as GameState;
   let engineRef: GameEngine | undefined;
@@ -258,7 +238,7 @@ function setupEngine(acceptOptional: boolean): { engine: GameEngine; state: Game
   engine.seatPlayer(0, "sa", { displayName: "A", deck: { mainDeck: [], eggDeck: [] } });
   engine.seatPlayer(1, "sb", { displayName: "B", deck: { mainDeck: [], eggDeck: [] } });
   (state as unknown as { phase: Phase }).phase = Phase.Main;
-  state.turnSeat = 1 as Seat; // the OPPONENT of Tactimon's controller (seat 0) is the turn player
+  state.turnSeat = 1 as Seat;
   return { engine, state };
 }
 
@@ -272,13 +252,11 @@ describe("BT10-084 (Tactimon) [Opponent's Turn] digivolution-card-trash redirect
     const p0 = state.players[0] as unknown as PlayerState;
 
     const tactimon = permanentOf("BT10-084", 0, 12000);
-    const other = permanentOf("AD1-001", 0, 5000); // another of Tactimon's controller's Digimon
+    const other = permanentOf("AD1-001", 0, 5000);
     other.stack.push(instance("AD1-001", 0, false), instance("AD1-001", 0, false), instance("AD1-001", 0, false));
     tactimon.stack.push(instance("BT10-084", 0, false), instance("BT10-084", 0, false));
     p0.battleArea.push(tactimon, other);
 
-    // Install Tactimon's persistent [Opponent's Turn] redirect via the real continuous-recompute
-    // pass (mirrors how it would be armed mid-match).
     await advance(engine).recompute();
 
     const originalStackSize = other.stack.length;
@@ -303,7 +281,7 @@ describe("BT10-084 (Tactimon) [Opponent's Turn] digivolution-card-trash redirect
 
   it("does NOT redirect on the controller's OWN turn — the ability is [Opponent's Turn] only", async () => {
     const { engine, state } = setupEngine(true);
-    state.turnSeat = 0 as Seat; // now Tactimon's controller's own turn
+    state.turnSeat = 0 as Seat;
     const p0 = state.players[0] as unknown as PlayerState;
 
     const tactimon = permanentOf("BT10-084", 0, 12000);
@@ -316,14 +294,11 @@ describe("BT10-084 (Tactimon) [Opponent's Turn] digivolution-card-trash redirect
     const fx = primitivesOf(engine);
     const redirected = await fx.redirectDigivolutionTrashHosts([other.permanentId]);
 
-    // FAILS-WHEN-REVERTED: drop the turnSeat gate in BT10-084's `appliesTo` (or the "redirect"
-    // consult wiring entirely) => this returns [tactimon.permanentId] on the controller's own
-    // turn too, which is RED against the printed "[Opponent's Turn]" restriction.
     expect(redirected).toEqual([other.permanentId]);
   });
 
   it("does NOT redirect when the controller declines the 'may' prompt", async () => {
-    const { engine, state } = setupEngine(false); // decline the optional redirect
+    const { engine, state } = setupEngine(false);
     const p0 = state.players[0] as unknown as PlayerState;
 
     const tactimon = permanentOf("BT10-084", 0, 12000);
@@ -343,7 +318,7 @@ describe("BT10-084 (Tactimon) [Opponent's Turn] digivolution-card-trash redirect
     const { engine, state } = setupEngine(true);
     const p0 = state.players[0] as unknown as PlayerState;
 
-    const tactimon = permanentOf("BT10-084", 0, 12000); // no stack cards at all
+    const tactimon = permanentOf("BT10-084", 0, 12000);
     const other = permanentOf("AD1-001", 0, 5000);
     other.stack.push(instance("AD1-001", 0, false));
     p0.battleArea.push(tactimon, other);

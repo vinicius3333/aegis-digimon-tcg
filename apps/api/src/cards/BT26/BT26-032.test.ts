@@ -163,10 +163,6 @@ describe("BT26-032 compiled fidelity", () => {
           targetPermanentId === s.perm("ceresmon").permanentId,
       ),
     ).toBe(true);
-    // BT3-056's only printed keyword is ＜Digisorption -3＞, an ACTION_TYPE_KEYWORD the engine
-    // never publishes through `Permanent.keywords` (engine/effects/interpreter/errors.ts); the
-    // Succession conferral above is what carries its effects. This card's own printed markers
-    // must still be published.
     expect(s.perm("ceresmon").keywords).toContain("Alliance");
     expect(s.perm("ceresmon").keywords).not.toContain("Digisorption");
   });

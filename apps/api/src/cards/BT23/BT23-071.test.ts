@@ -65,8 +65,6 @@ describe("BT23-071 Dullahamon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Both checked security Digimon are far below 14000 DP, so both are trashed and the
-    // attacker survives: exactly two checks, one more than the default.
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT23-071"]);
   });
@@ -94,7 +92,6 @@ describe("BT23-071 Dullahamon", () => {
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // Piercing turns the won battle into a security check; Security Attack +1 makes it two.
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
@@ -133,7 +130,6 @@ describe("BT23-071 Dullahamon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
-    // No opposing Digimon, so the [When Digivolving] deletion did nothing and the DP clause applies.
     expect(s.perm("phantomon").currentDP).toBe(19000);
   });
 
@@ -226,8 +222,6 @@ describe("BT23-071 Dullahamon", () => {
           ],
         },
       },
-      // Declining every optional prompt proves the deletion is mandatory: Q5343 says a player
-      // cannot skip the choice to satisfy "if this effect didn't delete".
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -341,8 +335,6 @@ describe("BT23-071 Dullahamon", () => {
     s.state.memory = 3;
     const ghostId = s.inst("ghost").instanceId;
 
-    // Public route into the [On Deletion] window: Dullahamon attacks a bigger Digimon and
-    // loses the battle, so the deletion happens through normal combat.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -357,7 +349,6 @@ describe("BT23-071 Dullahamon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentGhost").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT23-071")).toBe(true);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
-    // "without paying the cost": Necromon's play cost of 11 is never charged.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });

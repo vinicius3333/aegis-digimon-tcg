@@ -8,21 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-032";
 
-/**
- * EX10-032 Proganomon (Black, Lv.5 Ultimate, [Mineral]/[LIBERATOR]).
- *
- * [Hand] [Main] If you have [Close], by placing 1 [Landramon] from your trash as any of your
- *   [Sunarizamon]'s bottom digivolution card, it digivolves into this card for a digivolution
- *   cost of 3, ignoring digivolution requirements.
- * [On Play] [When Digivolving] [When Attacking] By trashing any 1 [Mineral] or [Rock] trait
- *   card from your Digimon's digivolution cards, 1 of your such Digimon gains ＜Collision＞,
- *   ＜Piercing＞ and +3000 DP until your opponent's turn ends.
- * Inherited: when effects trash this card from a [Mineral] or [Rock] trait Digimon's
- *   digivolution cards, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.
- *
- * Every timing below is reached through a public intent (playCard, digivolve, attack,
- * activateEffect), never through injected timing.
- */
 const INERT_DECK = ["BT1-013", "BT1-014", "BT1-009"];
 
 describe("EX10-032 Proganomon", () => {
@@ -133,14 +118,12 @@ describe("EX10-032 Proganomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("suna").topCard.cardId === CARD_ID);
 
-    // BT21-055's own reduction turns the printed cost of 3 into 2: memory 3 -> 1.
     expect(s.state.memory).toBe(1);
     expect(s.perm("suna").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("landramon").instanceId,
       s.inst("suna").instanceId,
     ]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    // The Proganomon left the hand and the digivolution's bonus draw replaced it.
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -159,7 +142,6 @@ describe("EX10-032 Proganomon", () => {
     );
     withoutClose.state.memory = 3;
     await withoutClose.ready();
-    // "If you have [Close]" gates the whole clause.
     expect(JSON.parse(withoutClose.inst("proganomon").activatableEffectsJson || "[]")).toHaveLength(0);
 
     const opponentHost = setupEngine(
@@ -170,20 +152,12 @@ describe("EX10-032 Proganomon", () => {
           trash: [{ card: "EX10-028", as: "landramon" }],
           deck: INERT_DECK,
         },
-        // The only [Sunarizamon] belongs to the opponent. `resolvePermanentTargets` scans both
-        // seats when the host filter names no controller, so the printed "any of YOUR
-        // [Sunarizamon]" needs the explicit controller gate.
         1: { battleArea: [{ card: "BT21-055", as: "theirSuna" }], deck: INERT_DECK },
       },
       { autoSelectCards: true },
     );
     opponentHost.state.memory = 3;
     await opponentHost.ready();
-    // The activatable list only screens the "If you have [Close]" condition, so the clause is
-    // still offered with no legal host. Activating it must be a no-op, not a placement under
-    // the opponent's copy: `resolvePermanentTargets` scans BOTH seats when the host filter
-    // names no controller, so the printed "any of YOUR [Sunarizamon]" rests on the explicit
-    // `controller: "mine"` in `placeCost.hostFilter`.
     const entries = JSON.parse(opponentHost.inst("proganomon").activatableEffectsJson || "[]") as Array<{
       effectKey: string;
     }>;
@@ -194,12 +168,9 @@ describe("EX10-032 Proganomon", () => {
       effectKey: entries[0]!.effectKey,
     });
     await settle(() => opponentHost.state.pendingDecision === undefined);
-    // The opponent's Sunarizamon never becomes a Proganomon and never receives the Landramon.
     expect(opponentHost.perm("theirSuna").topCard.cardId).toBe("BT21-055");
     expect(opponentHost.perm("theirSuna").stack).toHaveLength(0);
     expect(opponentHost.state.players[1]!.battleArea).toHaveLength(1);
-    // Nothing was paid and nothing moved: the Landramon is still in the trash and the
-    // Proganomon is still in hand.
     expect(opponentHost.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
       opponentHost.inst("landramon").instanceId,
     ]);
@@ -215,9 +186,6 @@ describe("EX10-032 Proganomon", () => {
           battleArea: [
             { card: "BT21-055", as: "suna" },
             { card: "EX10-063", as: "close" },
-            // P-107 Defense Training's ＜Delay＞ digivolve ("1 of your Digimon may digivolve into a
-            // black Digimon card in your hand ... reduce the cost by 2"). Q5092: it cannot be
-            // used together with this card's [Hand] [Main] clause.
             { card: "P-107", as: "training" },
           ],
           hand: [{ card: CARD_ID, as: "proganomon" }],
@@ -231,9 +199,6 @@ describe("EX10-032 Proganomon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    // The ordinary digivolution route is still illegal: Sunarizamon is Lv.3 and this card
-    // requires a Lv.4 Black source. "Ignoring digivolution requirements" belongs to this
-    // card's own clause only, so no other effect can borrow it.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -243,8 +208,6 @@ describe("EX10-032 Proganomon", () => {
     ).not.toEqual({ ok: true });
     expect(s.perm("suna").topCard.cardId).toBe("BT21-055");
 
-    // And running this card's own clause with P-107 on the board still pays its own cost:
-    // 3 reduced to 2 by Sunarizamon, never 0 through P-107's -2 replacement.
     const [entry] = JSON.parse(s.inst("proganomon").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
     expect(entry).toBeDefined();
     expect(
@@ -317,7 +280,6 @@ describe("EX10-032 Proganomon", () => {
     s.state.memory = 3;
     const handBefore = s.state.players[0]!.hand.length;
 
-    // Printed evolution requirement: Black, Lv.4, cost 3. Landramon is Black Lv.4.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -328,9 +290,7 @@ describe("EX10-032 Proganomon", () => {
     await settle(() => s.perm("source").topCard.cardId === CARD_ID && s.state.pendingDecision === undefined);
 
     expect(s.state.memory).toBe(0);
-    // The digivolve draws 1; the card itself left the hand.
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
-    // The trait card in the stack was spent as the cost, so only the Landramon remains under it.
     expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX10-028"]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
     expect(s.perm("source").currentDP).toBe(7000 + 3000);
@@ -346,9 +306,6 @@ describe("EX10-032 Proganomon", () => {
         0: {
           battleArea: [
             { card: CARD_ID, as: "attacker" },
-            // The only Mineral/Rock card in any digivolution stack sits under a DIFFERENT
-            // Digimon (Q5093), and it is a copy of this card, so paying the cost also proves
-            // the inherited clause through the same public attack.
             { card: "EX10-028", as: "costHost", under: [{ card: CARD_ID, as: "cost" }] },
             { card: "BT1-009", as: "near" },
           ],
@@ -378,21 +335,16 @@ describe("EX10-032 Proganomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The opponent holds no ＜Blocker＞, so the block window closes on its own and the attack
-    // resolves into security without a `declineBlock` intent.
     await settleAcrossTimers(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
     expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(true);
 
-    // Cost paid from the other stack.
     expect(s.perm("costHost").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
-    // The buff landed on the attacker, not on the non-trait Digimon.
     expect(s.perm("attacker").currentDP).toBe(attackerBase + 3000);
     expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Collision")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("attacker"))).toBe(true);
     expect(s.perm("near").currentDP).toBe(nearBase);
     expect(observe(s.engine).hasPierce(s.perm("near"))).toBe(false);
-    // Inherited: the trashed copy De-Digivolved the opponent's Lv.4 Digimon by 1.
     expect(s.perm("victim").topCard.instanceId).toBe(s.inst("victimBase").instanceId);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-019");
     expect(s.state.pendingDecision).toBeUndefined();
@@ -404,11 +356,6 @@ describe("EX10-032 Proganomon", () => {
       {
         0: {
           battleArea: [
-            // The discriminating fixture: NO [Mineral]/[Rock] trait of its own, but it does hold a
-            // [Mineral] card in its digivolution cards. The rival reading of "such Digimon" ("a
-            // Digimon with such a card under it") would make this a legal buff target; the
-            // authored reading (the Digimon itself carries the trait) must exclude it. It is
-            // listed first in `preferInstanceIds`, so a wrong filter would land the buff here.
             { card: "BT1-019", as: "stackOnly", under: [{ card: "EX10-025", as: "cost" }] },
             { card: "EX10-028", as: "traitTarget" },
           ],
@@ -436,7 +383,6 @@ describe("EX10-032 Proganomon", () => {
       () => s.perm("traitTarget").currentDP === traitTargetDp + 3000 && s.state.pendingDecision === undefined,
     );
 
-    // The cost may still be paid from that stack (Q5093) — only the TARGET is trait-scoped.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.perm("stackOnly").currentDP).toBe(stackOnlyDp);
     expect(observe(s.engine).hasKeyword(s.perm("stackOnly"), "Collision")).toBe(false);
@@ -451,16 +397,11 @@ describe("EX10-032 Proganomon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT10-062 Golemon is the inert [Mineral] fixture: no main text and no inherited
-          // text, so trashing it as the cost cannot delete or move anything by itself.
           battleArea: [{ card: "EX10-028", as: "mine", under: [{ card: "BT10-062", as: "myCost" }] }],
           hand: [{ card: CARD_ID, as: "proganomon" }],
           deck: INERT_DECK,
         },
         1: {
-          // A mirror board on the other seat: same [Mineral] trait top card, same [Mineral]
-          // card in its digivolution stack. Both of its instances are preferred FIRST, so a
-          // cost or target filter that forgot `controller: "mine"` would reach across seats.
           battleArea: [{ card: "BT10-062", as: "theirs", under: [{ card: "BT10-062", as: "theirCost" }] }],
           deck: INERT_DECK,
         },
@@ -483,12 +424,10 @@ describe("EX10-032 Proganomon", () => {
     });
     await settle(() => s.state.players[0]!.hand.length === 0 && s.state.pendingDecision === undefined);
 
-    // Cost came from my own stack only.
     expect(s.perm("mine").stack).toHaveLength(0);
     expect(s.perm("theirs").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("theirCost").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("myCost").instanceId]);
     expect(s.state.players[1]!.trash).toHaveLength(0);
-    // Buff landed on my Digimon, never on theirs.
     expect(s.perm("mine").currentDP).toBe(mineBase + 3000);
     expect(observe(s.engine).hasKeyword(s.perm("mine"), "Collision")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("mine"))).toBe(true);
@@ -532,7 +471,6 @@ describe("EX10-032 Proganomon", () => {
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // Still live during the opponent's turn: the duration runs until that turn ENDS.
     expect(s.perm("target").currentDP).toBe(targetBase + 3000);
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(true);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
@@ -577,36 +515,16 @@ describe("EX10-032 Proganomon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------------------
-  // Q5092, direct: P-107 Defense Training reaches the board through a public `playCard`, and
-  // its ＜Delay＞ clause is activated on a LATER turn through the public `activateEffect`
-  // intent (＜Delay＞ may not be used the turn the Option entered play). The two tests below
-  // drive that real path instead of only asserting around a dormant P-107.
-  // ---------------------------------------------------------------------------------------
-
-  // RED, engine/peer-card seam (NOT this card): P-107.ts's second [Main] effect lists its
-  // `Replacement { event: "wouldDigivolve", mode: "reduceCost", amount: 2 }` AFTER the
-  // `Digivolve` action in the same `actions` array, so the reduction registers only once the
-  // digivolve it is meant to modify has already been paid for. Its own ＜Delay＞ digivolve
-  // therefore pays the FULL printed cost (memory 5 -> 2 instead of 5 -> 4), and the armed
-  // replacement leaks onto the NEXT digivolution (see the Q5092 leak test below).
-  // Seam: apps/api/src/cards/P/P-107.ts, compiled.effects[1].actions — that file is outside
-  // this lane's allowed edits, so the assertion is kept exact and the test kept red.
   it("Q5092 P-107's ＜Delay＞, played and activated publicly, reaches this card only by the ORDINARY route", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          // BT3-067 Tankmon: Lv.4 Black, [Cyborg], no printed text — a legal ordinary source for
-          // this Lv.5 Black card, and its card carries no [Mineral]/[Rock] trait, so the
-          // [When Digivolving] clause finds no cost card and cannot disturb the endpoints.
           battleArea: [{ card: "BT3-067", as: "host" }],
           hand: [
             { card: "P-107", as: "training" },
             { card: CARD_ID, as: "proganomon" },
           ],
-          // The [Hand] [Main] clause's own material stays available throughout: if the ＜Delay＞
-          // could borrow clause 1, this Landramon would leave the trash.
           trash: [{ card: "EX10-028", as: "landramon" }],
           deck: ["BT2-064", ...INERT_DECK],
         },
@@ -615,17 +533,12 @@ describe("EX10-032 Proganomon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    // P-107's reveal-2 adds a black card to hand, so the ＜Delay＞ digivolve sees more than one
-    // candidate; bias it onto this card.
     preferred.push(s.inst("proganomon").instanceId, s.perm("host").topCard.instanceId);
-    // Capture the id before the play: while the Option resolves it is in no zone, so the alias
-    // lookup inside a settle predicate would throw.
     const trainingId = s.inst("training").instanceId;
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 5;
-    // Public play: P-107's first [Main] clause places the Option itself into the battle area.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trainingId })).toEqual({
       ok: true,
     });
@@ -636,7 +549,6 @@ describe("EX10-032 Proganomon", () => {
     );
     expect(s.perm("host").topCard.cardId).toBe("BT3-067");
 
-    // A later turn: ＜Delay＞ cannot be used on the turn the Option entered play.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
@@ -655,14 +567,10 @@ describe("EX10-032 Proganomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === CARD_ID && s.state.pendingDecision === undefined);
 
-    // Endpoints. The digivolution is the ORDINARY one: a legal Lv.4 Black source.
     expect(s.perm("host").topCard.cardId).toBe(CARD_ID);
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("host").instanceId]);
-    // The [Hand] [Main] clause was NOT combined with it: nothing was placed from the trash.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("landramon").instanceId);
-    // The Option paid itself as the ＜Delay＞ cost and left the battle area.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === trainingId)).toBe(false);
-    // Hand: this card left it, the digivolution's bonus draw replaced it.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("proganomon").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -670,8 +578,6 @@ describe("EX10-032 Proganomon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
 
-    // Asserted last so every endpoint above is still exercised: the printed cost 3 reduced by
-    // P-107's own -2 is 1, so memory must go 5 -> 4. Actual: 5 -> 2 (no reduction applied).
     expect(s.state.memory).toBe(4);
   });
 
@@ -717,10 +623,6 @@ describe("EX10-032 Proganomon", () => {
     await advance(s.engine).waitForMainPhase(0);
 
     s.state.memory = 3;
-    // P-107's ＜Delay＞ digivolves by the ordinary rules (it does not ignore digivolution
-    // requirements) and this card's own "ignoring digivolution requirements" is not borrowed
-    // by it, so on a board whose only Digimon is a Lv.3 [Sunarizamon] the ＜Delay＞ has no
-    // legal digivolution at all and is never offered.
     expect(JSON.parse(s.perm("training").activatableEffectsJson || "[]")).toEqual([]);
     expect(
       s.engine.applyIntent(0, {
@@ -730,16 +632,12 @@ describe("EX10-032 Proganomon", () => {
       }),
     ).not.toEqual({ ok: true });
 
-    // The Lv.3 [Sunarizamon] was not promoted, and nothing else moved.
     expect(s.perm("suna").topCard.cardId).toBe("BT21-055");
     expect(s.perm("suna").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("proganomon").instanceId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("landramon").instanceId);
     expect(s.state.memory).toBe(3);
 
-    // The two effects are separate resolutions, never one combined digivolution: with P-107
-    // sitting unused in the battle area, this card's own [Hand] [Main] clause still works on
-    // its own and at its own cost.
     const [entry] = JSON.parse(s.inst("proganomon").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
     expect(entry).toBeDefined();
     expect(
@@ -750,10 +648,6 @@ describe("EX10-032 Proganomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("suna").topCard.cardId === CARD_ID);
-    // The placement happened: the Landramon left the trash and sits in the stack. The
-    // Sunarizamon card is no longer under it because this card's [When Digivolving] clause
-    // fired straight away (autoAcceptOptional) and BT21-055 was the only [Mineral] card in the
-    // new stack, so it was trashed as that clause's cost.
     expect(s.perm("suna").topCard.cardId).toBe(CARD_ID);
     expect(s.perm("suna").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("landramon").instanceId]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT21-055");
@@ -762,12 +656,6 @@ describe("EX10-032 Proganomon", () => {
     await loop;
   });
 
-  // Q5092's breach direction: P-107's -2 belongs to the digivolution its own ＜Delay＞
-  // performs and to nothing else. The ＜Delay＞ here really resolves — BT3-067 Tankmon (Lv.4
-  // Black, no printed text) digivolves into BT10-064 Gogmamon (Lv.5 Black, no printed text)
-  // for 3 - 2 = 1 — and the Option is then trashed. This card's own [Hand] [Main] clause,
-  // used afterwards, must still pay 2 (printed 3, reduced 1 by BT21-055) exactly as it does
-  // with no P-107 in the game (see the Q5091 test).
   it("Q5092 leak: P-107's spent -2 must not reduce this card's [Hand] [Main] cost", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -828,7 +716,6 @@ describe("EX10-032 Proganomon", () => {
         !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === trainingId) &&
         s.state.pendingDecision === undefined,
     );
-    // The ＜Delay＞ digivolution took the reduction: printed 3 - 2 = 1, so memory 5 -> 4.
     expect(s.perm("host").topCard.cardId).toBe("BT10-064");
     expect(s.state.memory).toBe(4);
 
@@ -843,10 +730,6 @@ describe("EX10-032 Proganomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("suna").topCard.cardId === CARD_ID);
-    // The placement happened: the Landramon left the trash and sits in the stack. The
-    // Sunarizamon card is no longer under it because this card's [When Digivolving] clause
-    // fired straight away (autoAcceptOptional) and BT21-055 was the only [Mineral] card in the
-    // new stack, so it was trashed as that clause's cost.
     expect(s.perm("suna").topCard.cardId).toBe(CARD_ID);
     expect(s.perm("suna").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("landramon").instanceId]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT21-055");
@@ -854,10 +737,6 @@ describe("EX10-032 Proganomon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
 
-    // No leak: clause 1 pays its own cost 2 (printed 3, reduced 1 by BT21-055), exactly as in
-    // the Q5091 test, even though P-107's ＜Delay＞ spent a -2 earlier in the same turn. The
-    // [Close] Tamer then suspends for 1 memory off the [Mineral] trash, so the memory reading
-    // ends at 2; the digivolution's own payment is the 3 -> 1 step.
     const digivolvePayments = s.events.filter(
       (event) => event.kind === "memoryChanged" && event.reason === "digivolve",
     );
@@ -889,8 +768,6 @@ describe("EX10-032 Proganomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("peer").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === targetBase + 3000 && s.state.pendingDecision === undefined);
 
-    // Same cost shape (1 [Mineral]/[Rock] card from a digivolution stack) and the same +3000,
-    // but the keyword pair is the discriminator between the two cards.
     expect(s.perm("costHost").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.perm("target").currentDP).toBe(targetBase + 3000);

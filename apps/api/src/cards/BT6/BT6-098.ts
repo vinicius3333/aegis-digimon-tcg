@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The two printed branches have different target filters and destinations. Each
-// branch binds its chosen Digimon, then Return moves only that Digimon to the printed
-// destination and performs the rules cleanup for its stack. Per Q1399, the cleanup
-// must not emit an effect-driven whenDigivolutionTrashed event.
 const compiled: CompiledCard = {
   effects: [
     {

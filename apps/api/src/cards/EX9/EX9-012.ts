@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4754: [Your Turn] does NOT fire when this card itself digivolves into a [Garurumon].
-// Two SubTriggers: (1) whenPlayed for Digimon/Tamers with [Garurumon] or [Tai Kamiya];
-// (2) whenOneOfYoursDigivolves into [Garurumon] Digimon.
 export const compiled: CompiledCard = {
   effects: [
     {

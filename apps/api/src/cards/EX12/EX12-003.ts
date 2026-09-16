@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [All Turns] inherited: when any ME Digimon would leave play, it (the leaving Digimon)
-// MUST be one of the two DNA materials ("1 of them and any of your other Digimon").
-// materials.includeRef:"triggerSubject" pins the leaving Digimon as the first material;
-// the player chooses 1 additional Digimon from the field. The engine hardcodes
-// zone:"hand" for DnaDigivolve into.
 const compiled: CompiledCard = {
   effects: [
     {

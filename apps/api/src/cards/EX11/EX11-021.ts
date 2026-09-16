@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5806-Q5808 (binding):
-//   - If deletion of own Digimon fails (blocked by another effect), the attack cannot be ended.
-//   - "End the attack" transitions to end-of-attack timing, bypassing counter/block timing.
-//   - EndAttack works even against Digimon unaffected by effects.
-// Inherited effect: cost = deleteOwn, action = EndAttack (not Prevent, not empty).
 const compiled: CompiledCard = {
   effects: [
     {

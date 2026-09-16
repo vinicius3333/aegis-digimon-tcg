@@ -95,7 +95,6 @@ describe("BT1-109 Smashed Potatoes", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-109"));
     expect(s.state.memory).toBe(4);
 
-    // Titamon normally costs 2. A reduction of 4 makes it free, never +2 memory.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -186,9 +185,6 @@ describe("BT1-109 Smashed Potatoes", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").topCard.cardId === "BT9-055");
 
-    // 4 before the attack, +3 from Digitamamon's own [When Attacking] gain, and NOTHING for the
-    // digivolution itself — that free digivolve is the reduction under test (an unreduced cost
-    // would show up as a lower total here).
     expect(s.state.memory).toBe(7);
   });
 

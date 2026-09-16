@@ -388,8 +388,6 @@ describe("BT24-095 Sonic Shot", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 0;
-    // Open the real Main phase first; then arrange the printed opponent-memory cap
-    // immediately before ending the turn so BT24-085 can use Sonic Shot (Q5701).
     s.state.memory = 0;
     await s.ready();
     const turn = s.engine.runOneTurn();

@@ -19,11 +19,6 @@ const trashDrawGain = [
     optional: true,
     abortOnDecline: true,
   },
-  // "By trashing 1 card ..., ＜Draw 1＞ and gain 1 memory": the trash cost gates both halves
-  // (the Draw's `abortOnDecline` stops this action when the cost is declined or unpayable), but
-  // the memory gain is NOT conditional on the draw succeeding. An `ifThisEffectActed` condition
-  // here read `ctx.lastEffectActed`, which the Draw sets to false on an empty deck, silently
-  // dropping a memory the printed text still grants.
   { kind: "GainMemory" as const, amount: 1 },
 ];
 

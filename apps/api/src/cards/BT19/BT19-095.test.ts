@@ -6,30 +6,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// BT19-095 Knight Device — Green Option, [Device] trait, use cost 3.
-//   While you don't have [Knight Device], you may ignore this card's color requirements.
-//   When this card is trashed from the battle area, 1 of your Digimon gains ＜Piercing＞
-//     and gets +4000 DP for the turn.
-//   [Main] 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn. Then, place
-//     this card in the battle area.
-//   [Security] Suspend 2 of your opponent's Digimon or Tamers. Then, add this card to the hand.
-//
-// KB Q3170 (2024-09-20): "If this card is in the battle area and is trashed during my
-// opponent's turn, how long does its 2nd effect last?" — "The 2nd effect will last until the
-// end of your opponent's turn." The printed text itself says "for the turn"; Q3170 clarifies
-// that wording when the card is trashed during the opponent's turn.
-//
-// Fixture vocabulary:
-//   BT19-093 Queen Device — Yellow Option, [Device] trait: the NAME near-miss for the
-//     "[Knight Device]" colour-waiver gate (same trait and same cycle, different name).
-//   BT1-064 Goblimon — inert GREEN Lv.3 Digimon, the legitimate CR 4-22-2 colour source.
-//   BT2-052 Hagurumon — inert BLACK Lv.3 Digimon: a board permanent that is NOT a colour
-//     source for a green Option, so the waiver is load-bearing in every play test.
-//   BT19-086 Ryo Akiyama + P-155 Pawn Device ×3 — the real `deleteOwn` battle-area trash that
-//     fires the "when this card is trashed in your battle area" clause.
-//   BT1-009 / BT1-013 / BT1-012 / BT1-014 — inert RED main-deck Digimon: deck and security
-//     padding. No Digi-Egg is seeded in any deck or security stack.
-
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-012"];
 const inertDeck = ["BT1-009", "BT1-013", "BT1-012", "BT1-014"];
 
@@ -65,7 +41,6 @@ describe("BT19-095 Knight Device — catalog and IR", () => {
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             condition: {
               kind: "youHaveNone",
-              // Bracketed `[Knight Device]` is an EXACT-name reference.
               filter: {
                 controllerDefault: "mine",
                 zone: "battleArea",
@@ -150,8 +125,6 @@ describe("BT19-095 Knight Device — use cost and the colour-requirement waiver"
     s.state.memory = 3;
     await s.ready();
 
-    // FAILS-WHEN-REVERTED (the `youHaveNone [Knight Device]` condition): a waiver with no
-    // condition would let this play through.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("knight").instanceId })).toMatchObject({
       ok: false,
       reason: "color-requirement-unmet",
@@ -172,10 +145,6 @@ describe("BT19-095 Knight Device — use cost and the colour-requirement waiver"
     s.state.memory = 3;
     await s.ready();
 
-    // FAILS-WHEN-REVERTED (the gate being a NAME gate): a [Device]-trait gate would see Queen
-    // Device and refuse this play. Note `nameExact` vs the substring `name` is NOT separable
-    // behaviourally for this card — no printed card name contains "Knight Device" as a strict
-    // substring — so the exactness itself is pinned only by the IR test above.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("knight").instanceId })).toEqual({
       ok: true,
     });
@@ -231,15 +200,12 @@ describe("BT19-095 Knight Device — [Main] ＜Piercing＞ + 4000 DP, then place
     });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
-    // Both halves landed on the SAME permanent (`sameTarget: true`), pinned by identity.
     expect(s.perm("host").currentDP).toBe(7000);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
-    // "Then, place this card in the battle area" — the Option is a permanent, not trashed.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId).sort()).toEqual(
       [s.inst("host").instanceId, s.inst("knight").instanceId].sort(),
     );
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    // FAILS-WHEN-REVERTED (`controller: "mine"`): the opponent's Digimon is untouched.
     expect(s.perm("theirs").currentDP).toBe(3000);
     expect(observe(s.engine).hasPierce(s.perm("theirs"))).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -272,16 +238,12 @@ describe("BT19-095 Knight Device — [Main] ＜Piercing＞ + 4000 DP, then place
     await settle(() => s.perm("host").currentDP === 7000);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
 
-    // Hand the turn over for real; seat 1 holds a playable card so its Main stays open and the
-    // read below is INSIDE the opponent's turn, not after it.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // "For the turn" expires at seat 0's own turn end.
     expect(s.perm("host").currentDP).toBe(3000);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
 
-    // It remains expired through the opponent's turn.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
@@ -294,7 +256,6 @@ describe("BT19-095 Knight Device — [Main] ＜Piercing＞ + 4000 DP, then place
 });
 
 describe("BT19-095 Knight Device — when this card is trashed in your battle area", () => {
-  /** Ryo's [Main] pays `deleteOwn` on 4 battle-area [Device] Options, one of them the Knight. */
   const trashBoard = {
     0: {
       battleArea: [
@@ -334,9 +295,7 @@ describe("BT19-095 Knight Device — when this card is trashed in your battle ar
     expect(activateRyo(s)).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX3-050"));
 
-    // The Knight really left the battle area for the trash...
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === knightInstance)).toBe(true);
-    // ... and its on-trash clause resolved on the only Digimon that could receive it.
     expect(s.perm("host").currentDP).toBe(7000);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
   });
@@ -354,11 +313,9 @@ describe("BT19-095 Knight Device — when this card is trashed in your battle ar
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // The trash occurs during seat 0's turn, so "for the turn" expires at seat 0's turn end.
     expect(s.perm("host").currentDP).toBe(3000);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
 
-    // It remains expired through the opponent's turn.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
@@ -452,8 +409,6 @@ describe("BT19-095 Knight Device — [Security] suspend 2, then add this card to
     );
     s.state.memory = 3;
     await s.ready();
-    // The already-suspended attacker is a LEGAL choice (15-15-5-1), so bias the pick toward the
-    // two unsuspended benched Digimon to make the count observable.
     prefer.push(s.perm("bench0").topCard!.instanceId, s.perm("bench1").topCard!.instanceId);
 
     expect(
@@ -465,14 +420,9 @@ describe("BT19-095 Knight Device — [Security] suspend 2, then add this card to
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("knight").instanceId));
 
-    // Both of the security player's opponent's BENCHED Digimon are suspended (the attacker
-    // was already suspended by its own declaration), pinned by permanent identity.
     expect(s.perm("bench0").isSuspended).toBe(true);
     expect(s.perm("bench1").isSuspended).toBe(true);
-    // FAILS-WHEN-REVERTED (`controller: "opponent"`): the security player's own wall is never
-    // a candidate.
     expect(s.perm("wall").isSuspended).toBe(false);
-    // "Then, add this card to the hand" — it left security for the security player's hand.
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("knight").instanceId]);
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -508,7 +458,6 @@ describe("BT19-095 Knight Device — [Security] suspend 2, then add this card to
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("knight").instanceId));
 
-    // FAILS-WHEN-REVERTED (`kind: ["Digimon", "Tamer"]`): a Digimon-only filter leaves Ryo up.
     expect(s.perm("tamer").isSuspended).toBe(true);
   });
 });

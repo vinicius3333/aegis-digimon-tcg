@@ -35,7 +35,7 @@ describe("P-092 Dracomon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("unrelatedDigimon").instanceId)).toBe(
       true,
     );
-    expect(s.state.memory).toBe(2); // 10 - Groundramon 5 - fixed digivolution cost 3
+    expect(s.state.memory).toBe(2);
     assertNoLoudGap(s);
   });
 
@@ -43,8 +43,6 @@ describe("P-092 Dracomon", () => {
     const s = setupEngine(
       {
         0: {
-          // Wingdramon (ST8-07) requires a Blue level-4 host; ST8-04 (Veemon) is only
-          // level 3, so BT1-032 stands in as the real legal level-4 Blue Digimon.
           battleArea: [{ card: "BT1-032", as: "host", under: ["P-092"] }],
           hand: [
             { card: "BT1-020", as: "groundramon" },

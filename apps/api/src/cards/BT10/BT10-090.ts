@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored fix:
-// PlayWithoutCost: added "underTamers" to `from` — text says "from your hand or
-// from under one of your Tamers" (the IR only carried "hand").
 const compiled: CompiledCard = {
   effects: [
     {

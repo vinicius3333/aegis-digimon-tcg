@@ -8,27 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-053";
 
-/**
- * EX10-053 Regulusmon (Lv.5 Purple/Red Virus Evil Dragon, DP 10000, play cost 10).
- *
- * "[Digivolve] Lv.4 w/[Gammamon] in name: Cost 5"
- * "＜Rush＞ ＜Blocker＞"
- * "[On Play] [When Digivolving] You may place up to 5 differently named Digimon cards with
- *  [Gammamon] in their names from your trash as this Digimon's bottom digivolution cards.
- *  Then, delete 1 of your opponent's Digimon with as much or less DP as this Digimon."
- * "[End of Your Turn] [Once Per Turn] If this Digimon has 5 or more digivolution cards, it
- *  may attack without suspending."
- * Inherited: "[Your Turn] [Once Per Turn] When any of your opponent's Digimon are deleted,
- *  gain 1 memory."
- *
- * Every clause is driven through public intents (`playCard`, `digivolve`, `attack`,
- * `declareBlock`, `respondDecision`) and the production turn loop. No injected timing.
- *
- * Five differently named [Gammamon] cards whose OWN inherited text is empty, so a stack
- * built from them cannot move this Digimon's DP or open a decision of its own:
- * P-058 Gammamon, BT8-013 BetelGammamon, BT9-023 KausGammamon, BT10-050 WezenGammamon,
- * RB1-029 GulusGammamon.
- */
 const GAMMAMON_TRASH = ["P-058", "BT8-013", "BT9-023", "BT10-050", "RB1-029"] as const;
 
 async function answerOptional(s: EngineSetup, seat: 0 | 1, accept: boolean): Promise<void> {
@@ -44,10 +23,6 @@ async function answerOptional(s: EngineSetup, seat: 0 | 1, accept: boolean): Pro
   ).toEqual({ ok: true });
 }
 
-/**
- * The [End of Your Turn] clause's only observable output is the attack it offers, so the
- * count of security checks in a board where nothing else attacks IS the count of firings.
- */
 const endOfTurnAttacks = (s: EngineSetup): number =>
   s.events.filter((event) => event.kind === "securityChecked").length;
 
@@ -80,8 +55,6 @@ describe("EX10-053 Regulusmon", () => {
   it("records the compiled clause shapes the behavioral tests exercise", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    // `names` is the SUBSTRING gate (cardData.ts `req.names` -> `name.includes(n)`), which is
-    // what "w/[Gammamon] in name" prints: GulusGammamon/BetelGammamon qualify, not only "Gammamon".
     expect(compiled.digivolutionRequirement).toEqual([{ level: 4, names: ["Gammamon"], cost: 5, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects?.find((candidate) => candidate.trigger === trigger);
@@ -113,7 +86,6 @@ describe("EX10-053 Regulusmon", () => {
           },
         ],
       });
-      // "Then, delete" is not part of the "you may place" option: it has no `optional`.
       expect(effect?.actions?.[1]?.optional).toBeUndefined();
     }
     expect(compiled.effects?.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({
@@ -157,7 +129,6 @@ describe("EX10-053 Regulusmon", () => {
             { card: "BT9-023", as: "g3" },
             { card: "BT10-050", as: "g4" },
             { card: "RB1-029", as: "g5" },
-            // A SIXTH [Gammamon] card sharing g1's name: `distinctNames` must exclude it.
             { card: "P-059", as: "duplicateName" },
             { card: "BT1-013", as: "nonMatch" },
           ],
@@ -187,31 +158,23 @@ describe("EX10-053 Regulusmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     const regulus = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === CARD_ID)!;
-    // All five landed as digivolution cards. The engine places them one at a time at the
-    // stack bottom, so the placed group ends up in reverse selection order; the printed text
-    // fixes only that they go to the BOTTOM, which the digivolve test below asserts exactly.
     expect(regulus.stack.map((card) => card.instanceId)).toEqual(
       (["g5", "g4", "g3", "g2", "g1"] as const).map((alias) => s.inst(alias).instanceId),
     );
     expect(new Set(regulus.stack.map((card) => getCardDefinition(card.cardId)!.nameEn)).size).toBe(5);
-    // The same-named sixth card and the non-[Gammamon] card stayed in trash.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
       s.inst("duplicateName").instanceId,
       s.inst("nonMatch").instanceId,
     ]);
-    // The 10000 DP Digimon was deleted; the 11000 DP one was never a legal target.
     expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([overDpId]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-013"]);
-    // 10 memory paid for the play cost. The stack cards were placed, not played: no extra cost.
     expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // ＜Rush＞: it entered the battle area THIS turn and still attacks.
     expect(observe(s.engine).hasKeyword(regulus, "Rush")).toBe(true);
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: regulus.permanentId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    // No opposing ＜Blocker＞ is on the board, so the attack resolves without a block window.
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(regulus.isSuspended).toBe(true);
@@ -248,9 +211,6 @@ describe("EX10-053 Regulusmon", () => {
     s.state.memory = 6;
     await s.ready();
 
-    // GulusGammamon is a Lv.4 Purple/Red base, so the PRINTED evoCost (5) also matches.
-    // `alternateRequirementIndex: 0` declares the printed "[Digivolve] Lv.4 w/[Gammamon] in
-    // name: Cost 5" route explicitly; the server revalidates the level and substring name gate.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -264,8 +224,6 @@ describe("EX10-053 Regulusmon", () => {
 
     const regulus = s.perm("gulus");
     expect(regulus.topCard.instanceId).toBe(s.inst("regulus").instanceId);
-    // "bottom digivolution cards": the placed cards sit BELOW the two cards that were already
-    // under the base and below the base card itself. `Permanent.stack` is bottom-first.
     expect(regulus.stack.map((card) => card.instanceId)).toEqual([
       s.inst("g2").instanceId,
       s.inst("g1").instanceId,
@@ -273,9 +231,7 @@ describe("EX10-053 Regulusmon", () => {
       s.inst("under2").instanceId,
       s.inst("gulus").instanceId,
     ]);
-    // 6 - 5 (the alternate route's cost) = 1.
     expect(s.state.memory).toBe(1);
-    // The digivolution bonus draw took the top card of the deck.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -298,8 +254,6 @@ describe("EX10-053 Regulusmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    // BT1-064 Goblimon is GREEN: neither printed evoCost (Purple/Red Lv.4) nor the alternate
-    // route (Lv.4 w/[Gammamon] in name) matches.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -307,7 +261,6 @@ describe("EX10-053 Regulusmon", () => {
         instanceId: s.inst("regulus").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
-    // P-058 Gammamon is Lv.3: the name gate passes but the printed `Lv.4` gate does not.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -334,7 +287,6 @@ describe("EX10-053 Regulusmon", () => {
             { card: "BT1-009", as: "spare" },
           ],
           deck: ["BT1-013"],
-          // A legal placement IS available, so the decline is a real choice, not an empty set.
           trash: [{ card: "P-058", as: "g1" }],
         },
         1: { battleArea: [{ card: "BT1-013", as: "victim", dp: 10000 }], deck: ["BT1-014"] },
@@ -419,7 +371,6 @@ describe("EX10-053 Regulusmon", () => {
     await settle(() => s.state.players[0]!.trash.length === 0);
     await settle(() => false, 30);
 
-    // The placement still happened, so the clause did resolve; only the deletion found no target.
     const regulus = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === CARD_ID)!;
     expect(regulus.stack.map((card) => card.instanceId)).toEqual([s.inst("g1").instanceId]);
     expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([overDpId]);
@@ -463,7 +414,6 @@ describe("EX10-053 Regulusmon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // 10000 DP blocker versus a 3000 DP attacker: the attacker dies, security is untouched.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.perm("regulus").topCard.cardId).toBe(CARD_ID);
@@ -499,19 +449,16 @@ describe("EX10-053 Regulusmon", () => {
     await answerOptional(s, 0, true);
     await settle(() => s.state.players[1]!.security.length === 2);
     expect(s.state.players[1]!.security).toHaveLength(2);
-    // "attack without suspending": the attack happened and the Digimon is still unsuspended.
     expect(s.perm("regulus").isSuspended).toBe(false);
     expect(endOfTurnAttacks(s)).toBe(1);
 
     await advance(s.engine).waitForMainPhase(1);
     expect(endOfTurnAttacks(s)).toBe(1);
-    // "[End of Your Turn]": the opponent's end of turn is not this Digimon's.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(endOfTurnAttacks(s)).toBe(1);
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    // Next own turn: the [Once Per Turn] use has reset and the clause fires again.
     advance(s.engine).endMainPhaseIfOpen(0);
     await answerOptional(s, 0, true);
     await settle(() => s.state.players[1]!.security.length === 1);
@@ -583,7 +530,6 @@ describe("EX10-053 Regulusmon", () => {
     expect(s.perm("carrier").stack.map((card) => card.instanceId)).toEqual([s.inst("regulusCard").instanceId]);
     const memoryBefore = s.state.memory;
 
-    // First battle deletion of the turn: the inherited watcher pays out.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -595,8 +541,6 @@ describe("EX10-053 Regulusmon", () => {
     expect(s.state.memory).toBe(memoryBefore + 1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    // Second deletion, same turn, by a Digimon that carries no copy of this card: the
-    // [Once Per Turn] use on the carrier is spent, so no further memory is gained.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

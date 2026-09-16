@@ -5,8 +5,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-034.js";
 
-// "Red also meets this card's colour requirements" (Q4065/Q4066): the printed requirement
-// still has to be met — by Blue or by Red — it is not waived outright.
 describe("LM-034 Wisteria Memory Boost!", () => {
   it("reveals three, adds a blue or red Digimon, bottoms the rest and places itself", async () => {
     const s = setupEngine(

@@ -334,7 +334,6 @@ describe("EX3-063 Imperialdramon: Dragon Mode", () => {
     });
     respond(s, { kind: "selectCards", instanceIds: [s.inst("fighterMode").instanceId] });
 
-    // Fighter Mode's own optional When Digivolving cost is the next prompt and is declined here.
     await settle(() => s.perm("dragonMode").topCard.cardId === "EX3-073");
     expect(s.perm("dragonMode").topCard.cardId).toBe("EX3-073");
     if (s.state.pendingDecision?.kind === "optional") respond(s, { kind: "optional", accept: false });

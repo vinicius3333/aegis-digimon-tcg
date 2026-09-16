@@ -17,9 +17,6 @@ describe("BT8-023 Submarimon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    // Only the source-less Digimon is preferred: once its bottom source is trashed, the
-    // other Digimon also becomes a legal -3000 DP target, and preferring both let the
-    // second prompt land back on it.
     preferred.push(s.perm("sourceLess").permanentId);
     s.state.memory = 2;
     expect(

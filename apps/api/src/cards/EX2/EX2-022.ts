@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored fix:
-// (1) [Main] digivolve-in-hand: text says "If you have [Shu-Chong Wong] in play,
-//     your [Lopmon] can digivolve into this card in your hand for a digivolution cost
-//     of 3, ignoring its digivolution requirements."
-//     Encoded in digivolutionRequirement as an exact Lopmon entry with a controllerControls
-//     gate for an exact Shu-Chong Wong Tamer. The shared override is the client/server source
-//     of truth; this local copy documents the audited module semantics.
-// (2) WhenAttacking cost: added zone:"security" + position:"top" to target filter —
-//     text says "trash the top card of your security stack".
-// (3) Static effect removed — it was empty and served no role; the [Main] ability
-//     is captured via digivolutionRequirement (above).
 export const compiled: CompiledCard = {
   effects: [
     {

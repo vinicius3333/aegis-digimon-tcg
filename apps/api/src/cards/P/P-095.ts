@@ -1,8 +1,3 @@
-// Hand-authored override for P-095.
-// runtime-effect fix: the [Main] effect also prevents the chosen opponent Digimon from
-// activating its [When Digivolving] effects until the end of the opponent's turn. The
-// declarative effect record only encoded the -6000 DP. Bind the single chosen opponent Digimon
-// (SelectBind), then apply both ModifyDP and DisableTimingEffect to that same target.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

@@ -54,12 +54,7 @@ describe("BT7-087 Koji Minamoto", () => {
     await settle(() => s.perm("koji").topCard?.instanceId === s.inst("magna").instanceId);
     await s.ready();
 
-    // MagnaGarurumon's [When Digivolving] is an optional processing condition ("return a
-    // Hybrid to hand to return an opposing Digimon"). Rule 15-7-5 lets the player execute it
-    // even though no opposing Digimon of that level exists, so one Hybrid comes back to hand,
-    // which fires Koji's inherited +1 memory and can't-be-blocked.
     expect(s.state.memory).toBe(1);
-    // Four remaining Hybrids plus the evolved-from Tamer remain as sources.
     expect(s.perm("koji").stack).toHaveLength(5);
     expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT7-021")).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm("koji"), "cantBeBlocked")).toBe(true);

@@ -69,10 +69,8 @@ describe("ST3-01 Tokomon", () => {
     );
     await s.ready();
     const initiallyPresent = s.state.players[1]!.battleArea[0]!;
-    // The effect-deletion negative path uses the public verb and must not grant the bonus.
     await advance(s.engine).verb.deletePermanent([initiallyPresent.permanentId], "byEffect");
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
-    // A newly appearing opposing Digimon must still be observed by the inherited watcher.
     await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
     const latePermanent = s.state.players[1]!.battleArea[0]!;
     await advance(s.engine).verb.suspend([latePermanent.permanentId]);

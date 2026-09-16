@@ -1,30 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, digivolutionRequirementsFor, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-// Register only the card under audit. The fixtures need catalog definitions, not the effects of
-// every other card in the set; avoiding the set-wide index keeps this focused gate low-memory.
 import "./BT25-084.js";
-
-/**
- * A3 — BT25-084 (Titamon, Purple). documented behavior ref: documented behavior.
- *
- * Shared On Play / When Digivolving / When Attacking ([Once Per Turn], one hashValue): by trashing
- * 1 card in hand, delete ALL of the opponent's highest-DP Digimon; AFTER, if this card entered the
- * battle area BY AN EFFECT (played/digivolved by an effect — never on a When Attacking entry), trash
- * the opponent's top security card. Plus an [All Turns] [Once Per Turn] leave-prevention: when this
- * Digimon would leave, by trashing 2 cards in hand it doesn't leave.
- *
- * Drives the REAL GameEngine: the OP/WD/WA windows via the timing seam (the established mechanic.test
- * pattern), the leave-prevention via the real delete primitive's consult.
- *
- * FAILS-WHEN-REVERTED levers:
- *   (a) delete-ALL-ties: revert Delete count "all" -> 1 and only one of the tied max-DP Digimon dies.
- *   (b) trash-2 leave cost: drop the Replacement cost and the prevention is free (hand keeps its 2).
- *   (c) entered-by-effect gate: drop `triggerEnteredByEffect` (or its OP/WD gating) and a When
- *       Attacking entry would trash security; the gate keeps security intact on attack.
- *   (d) shared once-per-turn: drop `sharedUseKey` and OP + WA in one turn delete TWICE; the shared
- *       key makes the second window inert.
- */
 
 const TITAMON = "BT25-084";
 
@@ -164,12 +141,12 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
       {
         0: {
           battleArea: [{ card: TITAMON, dp: 13000, as: "titamon" }],
-          hand: ["BT1-013"], // the trash-1 cost fuel
+          hand: ["BT1-013"],
         },
         1: {
           battleArea: [
             { card: "BT1-013", dp: 12000, as: "high1" },
-            { card: "BT1-013", dp: 12000, as: "high2" }, // tied maximum
+            { card: "BT1-013", dp: 12000, as: "high2" },
             { card: "BT1-013", dp: 5000, as: "low" },
           ],
           security: ["BT1-013", "BT1-013"],
@@ -186,9 +163,6 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     await fireTiming(s, EffectTiming.OnPlay, { enteredByEffect: 0 });
     await settle(() => !alive(p1, high1Id) && !alive(p1, high2Id) && !alive(p1, lowId));
 
-    // BOTH tied 12000 Digimon are deleted by the OP clause (count:"all" — reverting it to 1 leaves
-    // one tie alive). The 5000 `low` is deleted by the SEPARATE [All Turns] 3rd clause that fires on
-    // the trash-1 cost (your hand was trashed from -> delete opp lowest-DP).
     expect(alive(p1, high1Id)).toBe(false);
     expect(alive(p1, high2Id)).toBe(false);
     expect(alive(p1, lowId)).toBe(false);
@@ -254,14 +228,12 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     const targetId = s.perm("target").permanentId;
 
     await s.engine.recomputeContinuousEffects();
-    // OnPlay window WITHOUT enteredByEffect — a manual hard play. The `triggerEnteredByEffect`
-    // gate fails, so security is NOT trashed even though the SecurityManipulation action exists.
     await fireTiming(s, EffectTiming.OnPlay, {});
     await settle(() => !alive(p1, targetId));
-    await settle(() => false, 80); // fully flush so a (wrong) security trash WOULD be observed
+    await settle(() => false, 80);
 
-    expect(alive(p1, targetId)).toBe(false); // delete still happens
-    expect(p1.security.length).toBe(2); // security UNTOUCHED (entered-by-effect gate failed)
+    expect(alive(p1, targetId)).toBe(false);
+    expect(p1.security.length).toBe(2);
   });
 
   it("(c) When Attacking does NOT trash security (the entered-by-effect gate), but still deletes", async () => {
@@ -279,13 +251,12 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     const targetId = s.perm("target").permanentId;
 
     await s.engine.recomputeContinuousEffects();
-    // No enteredByEffect on the When Attacking window (OnUseAttack) — the security clause must NOT fire.
     await fireTiming(s, EffectTiming.OnUseAttack, {});
     await settle(() => !alive(p1, targetId));
-    await settle(() => false, 80); // fully flush so a (wrong) security trash WOULD be observed
+    await settle(() => false, 80);
 
-    expect(alive(p1, targetId)).toBe(false); // delete still happens
-    expect(p1.security.length).toBe(2); // security UNTOUCHED on attack
+    expect(alive(p1, targetId)).toBe(false);
+    expect(p1.security.length).toBe(2);
   });
 
   it("(d) On Play and When Attacking in the same turn SHARE one [Once Per Turn] use", async () => {
@@ -293,7 +264,7 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
       {
         0: {
           battleArea: [{ card: TITAMON, dp: 13000, as: "titamon" }],
-          hand: ["BT1-013", "BT1-013"], // fuel for two attempts
+          hand: ["BT1-013", "BT1-013"],
         },
         1: { battleArea: [{ card: "BT1-013", dp: 7000, as: "first" }], security: ["BT1-013"] },
       },
@@ -305,16 +276,14 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     await s.engine.recomputeContinuousEffects();
     await fireTiming(s, EffectTiming.OnPlay, { enteredByEffect: 0 });
     await settle(() => !alive(p1, firstId));
-    await settle(() => false, 50); // let the On Play window fully resolve + register the shared use
-    expect(alive(p1, firstId)).toBe(false); // first use spent
+    await settle(() => false, 50);
+    expect(alive(p1, firstId)).toBe(false);
 
-    // A SECOND target for the When Attacking window, same turn.
     const second = s.putOnBoard(1, { card: "BT1-013", dp: 7000 });
 
     await fireTiming(s, EffectTiming.OnUseAttack, {});
-    await settle(() => false, 60); // flush; nothing should delete `second`
+    await settle(() => false, 60);
 
-    // The shared use is already spent -> the When Attacking window is inert this turn.
     expect(alive(p1, second.permanentId)).toBe(true);
   });
 
@@ -323,7 +292,7 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
       {
         0: {
           battleArea: [{ card: TITAMON, dp: 13000, as: "titamon" }],
-          hand: ["BT1-013", "BT1-013"], // exactly the 2-card cost
+          hand: ["BT1-013", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -331,16 +300,15 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     const p0 = s.state.players[0] as PlayerState;
     const titamonId = s.perm("titamon").permanentId;
 
-    await s.engine.recomputeContinuousEffects(); // installs the wouldLeavePlay prevention
+    await s.engine.recomputeContinuousEffects();
     expect(p0.hand.length).toBe(2);
 
-    // An (opponent) effect tries to delete Titamon; the prevention pays trash-2 and keeps it.
     const fx = (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }).primitives;
     await fx.deletePermanent([titamonId]);
     await settle(() => p0.hand.length < 2);
 
-    expect(alive(p0, titamonId)).toBe(true); // prevented from leaving
-    expect(p0.hand.length).toBe(0); // 2 cards trashed as the cost
+    expect(alive(p0, titamonId)).toBe(true);
+    expect(p0.hand.length).toBe(0);
   });
 
   it("Q6399 prevents the first 0-DP rule deletion, then the repeated rule check deletes it before its hand-trash trigger", async () => {
@@ -372,8 +340,7 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     const s = setupEngine(
       {
         0: {
-          // loose in hand — played BY AN EFFECT, not placed
-          hand: [{ card: TITAMON, as: "titamon" }, "BT1-013"], // the trash-1 cost fuel
+          hand: [{ card: TITAMON, as: "titamon" }, "BT1-013"],
         },
         1: { battleArea: [{ card: "BT1-013", dp: 9000, as: "target" }], security: ["BT1-013", "BT1-013"] },
       },
@@ -384,31 +351,20 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     const targetId = s.perm("target").permanentId;
 
     await s.engine.recomputeContinuousEffects();
-    // The REAL effect-play verb (PlayWithoutCost) — the producer fires the played card's own On Play
-    // with enteredByEffect set. Reverting the producer leaves On Play unfired (delete + security both
-    // skipped), so this fails-when-reverted on the producer itself, not just the gate.
     const fx = (s.engine as unknown as { primitives: { playInstances(ids: string[]): Promise<unknown[]> } }).primitives;
     await fx.playInstances([titamonId]);
     await settle(() => p1.security.length < 2);
 
-    expect(alive(p1, targetId)).toBe(false); // On Play delete fired (the window ran at all)
-    expect(p1.security.length).toBe(1); // entered-by-effect security trash fired (producer set the marker)
+    expect(alive(p1, targetId)).toBe(false);
+    expect(p1.security.length).toBe(1);
   });
 
   it("(producer) DIGIVOLVED by an effect fires its own When Digivolving + entered-by-effect security trash", async () => {
-    // BT24-015 (MetalGreymon, Lv.5, [TS] trait) satisfies BT25-084's printed alternate digivolve
-    // requirement ("[Digivolve] Lv.5 w/[TS] trait: Cost 4") — a level-3, non-[TS] base (as the
-    // other cases in this file use) fails BOTH of Titamon's digivolve paths, so
-    // digivolveFromInstance would legitimately no-op before the [When Digivolving] window ever
-    // fires. The 3-color-only BT1-013 stand-in used elsewhere in this file doesn't apply here
-    // because THIS test exercises the digivolve verb itself, not a play/replacement primitive.
     const s = setupEngine(
       {
         0: {
-          // the Digimon BT25-084 digivolves on top of
           battleArea: [{ card: "BT24-015", dp: 3000, as: "base" }],
-          // loose in hand — digivolved BY AN EFFECT
-          hand: [{ card: TITAMON, as: "titamon" }, "BT1-013"], // the trash-1 cost fuel
+          hand: [{ card: TITAMON, as: "titamon" }, "BT1-013"],
         },
         1: { battleArea: [{ card: "BT1-013", dp: 9000, as: "target" }], security: ["BT1-013", "BT1-013"] },
       },
@@ -428,8 +384,8 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     await fx.digivolveFromInstance(baseId, titamonId);
     await settle(() => p1.security.length < 2);
 
-    expect(alive(p1, targetId)).toBe(false); // When Digivolving delete fired
-    expect(p1.security.length).toBe(1); // entered-by-effect security trash fired
+    expect(alive(p1, targetId)).toBe(false);
+    expect(p1.security.length).toBe(1);
   });
 
   it("(e) [All Turns] when YOUR hand is trashed from, deletes 1 of the opponent's lowest-DP Digimon", async () => {
@@ -442,7 +398,7 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
         1: {
           battleArea: [
             { card: "BT1-013", dp: 11000, as: "high" },
-            { card: "BT1-013", dp: 4000, as: "low" }, // the lowest-DP — the 3rd clause's target
+            { card: "BT1-013", dp: 4000, as: "low" },
           ],
         },
       },
@@ -454,14 +410,12 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     const lowId = s.perm("low").permanentId;
 
     await s.engine.recomputeContinuousEffects();
-    // ANY trash from p0's hand (here a direct effect-trash, not Titamon's own cost) fires the real
-    // whenHandTrashed producer; the [All Turns] watcher deletes the opponent's lowest-DP Digimon.
     const fx = (s.engine as unknown as { primitives: { trash(ids: string[]): Promise<unknown[]> } }).primitives;
     await fx.trash([handCardId]);
     await settle(() => !alive(p1, lowId));
 
-    expect(alive(p1, lowId)).toBe(false); // lowest-DP deleted
-    expect(alive(p1, highId)).toBe(true); // the 11000 survives (only the lowest is hit)
+    expect(alive(p1, lowId)).toBe(false);
+    expect(alive(p1, highId)).toBe(true);
   });
 
   it("Q6400/Q6401 fires once per hand-trash action, not once per card", async () => {
@@ -488,12 +442,10 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     await s.engine.recomputeContinuousEffects();
     const fx = (s.engine as unknown as { primitives: { trash(ids: string[]): Promise<unknown[]> } }).primitives;
 
-    // One action moving two cards emits one event, therefore deletes only one tied minimum.
     await fx.trash([s.inst("cost1").instanceId, s.inst("cost2").instanceId]);
     await settle(() => p1.battleArea.length === 1);
     expect(p1.battleArea).toHaveLength(1);
 
-    // A separate trash action emits a second event and may delete the remaining Digimon.
     await fx.trash([s.inst("cost3").instanceId]);
     await settle(() => p1.battleArea.length === 0);
     expect(p1.battleArea).toHaveLength(0);
@@ -504,7 +456,7 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
       {
         0: { battleArea: [{ card: TITAMON, dp: 13000, as: "titamon" }] },
         1: {
-          hand: [{ card: "BT1-013", as: "oppHandCard" }], // the OPPONENT's hand
+          hand: [{ card: "BT1-013", as: "oppHandCard" }],
           battleArea: [{ card: "BT1-013", dp: 4000, as: "low" }],
         },
       },
@@ -516,10 +468,10 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
 
     await s.engine.recomputeContinuousEffects();
     const fx = (s.engine as unknown as { primitives: { trash(ids: string[]): Promise<unknown[]> } }).primitives;
-    await fx.trash([oppHandCardId]); // trashing the OPPONENT's hand
+    await fx.trash([oppHandCardId]);
     await settle(() => false, 60);
 
-    expect(alive(p1, lowId)).toBe(true); // NOT deleted — only YOUR hand being trashed fires it
+    expect(alive(p1, lowId)).toBe(true);
   });
 
   it("(b-neg) with only 1 card in hand the 2-card cost cannot be paid -> the Digimon leaves", async () => {
@@ -527,7 +479,7 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
       {
         0: {
           battleArea: [{ card: TITAMON, dp: 13000, as: "titamon" }],
-          hand: ["BT1-013"], // only 1 — cannot pay trash-2
+          hand: ["BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -540,6 +492,6 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     await fx.deletePermanent([titamonId]);
     await settle(() => !alive(p0, titamonId));
 
-    expect(alive(p0, titamonId)).toBe(false); // unpaid cost -> leaves
+    expect(alive(p0, titamonId)).toBe(false);
   });
 });

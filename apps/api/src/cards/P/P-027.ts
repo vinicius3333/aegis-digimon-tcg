@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4136: using an Option through this effect is a genuine Option use and therefore
-// triggers watchers such as BT3-096 Mimi Tachikawa.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -20,8 +18,6 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
-          // Digi-Burst is payable even when the optional Option payload has no
-          // eligible card; paying it still trashes the printed source cards.
           allowCostWithoutTarget: true,
           cost: {
             kind: "trash",

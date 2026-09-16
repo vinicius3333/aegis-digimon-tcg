@@ -98,7 +98,7 @@ describe("EX6-064 Shu-Chong Wong", () => {
     expect(s.perm("target").topCard?.cardId).toBe("EX6-033");
     expect(s.perm("target").stack.map((card) => card.cardId)).toContain("EX6-032");
     expect(s.perm("shu").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(9); // EX6-033's cost 3, reduced by 2, so 1 memory is paid.
+    expect(s.state.memory).toBe(9);
   });
 
   it("does not ignore ordinary evolution requirements", async () => {

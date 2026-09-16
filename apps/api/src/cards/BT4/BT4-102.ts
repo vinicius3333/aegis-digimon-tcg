@@ -1,5 +1,3 @@
-// BT6-002 Q1399: attachment trash during a return is rule teardown, not source
-// trash by effect. Canonical Return handles the whole selected stack accordingly.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

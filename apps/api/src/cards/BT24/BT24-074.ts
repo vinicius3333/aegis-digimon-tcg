@@ -1,12 +1,6 @@
-// Hand override (was auto-generated): the IR compiler mis-modeled the [On Play]/[When
-// Digivolving] clause as a plain Trash of an opponent Digimon's TOP card. The card
-// (SkullSeadramon, documented behavior) trashes up to 3 *digivolution cards* from one opponent
-// Digimon (a source trash, not a deletion), and only then — if it was PLAYED BY AN EFFECT —
-// deletes 1 opponent Digimon with no digivolution cards.
 import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Trash up to 3 digivolution cards from a single opponent Digimon that has at least one.
 const trashThreeSources: Action = {
   effectTextPart: "[On Play] [When Digivolving] Trash any 3 digivolution cards from 1 of your opponent's Digimon.",
   kind: "TrashDigivolution",
@@ -20,8 +14,6 @@ const trashThreeSources: Action = {
 export const compiled: CompiledCard = {
   effects: [
     {
-      // INSIDE the shared coroutine (documented behavior), so it runs only on [On Play] by an
-      // effect — never on a digivolve. triggerEnteredByEffect carries the "by an effect" gate.
       trigger: "OnPlay",
       actions: [
         trashThreeSources,

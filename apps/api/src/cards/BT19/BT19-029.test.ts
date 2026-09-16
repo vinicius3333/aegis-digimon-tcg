@@ -5,35 +5,18 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "../index.js";
 import { compiled } from "./BT19-029.js";
 
-/**
- * BT19-029 Tapirmon (Yellow, Lv.3, Vaccine, Holy Beast, 1000 DP, play cost 3).
- *
- * Main:      [On Play] By trashing your top security card, gain 1 memory.
- * Inherited: [All Turns] [Once Per Turn] When this yellow Digimon with the [Data]/[Witchelny]
- *            trait would leave the battle area by your opponent's effects, by trashing your top
- *            security card, it doesn't leave.
- *
- * Everything below drives public intents or the real turn loop. The opponent's removal is a real
- * BT2-091 Volcanic Flare played from the opponent's hand during the opponent's own Main phase, so
- * the "by your opponent's effects" gate is exercised by a genuine opposing resolution rather than
- * by an injected removal cause.
- */
-
 const INERT_SECURITY = ["BT1-009", "BT1-011", "BT1-012"];
 
 type Setup = ReturnType<typeof setupEngine>;
 
-/** Open the named seat's real Main phase inside a running production turn loop. */
 async function openMain(s: Setup, seat: 0 | 1): Promise<void> {
   await advance(s.engine).waitForMainPhase(seat);
 }
 
-/** Close the named seat's Main phase, tolerating production's own auto-pass. */
 function closeMain(s: Setup, seat: 0 | 1): void {
   advance(s.engine).endMainPhaseIfOpen(seat);
 }
 
-/** Stop the running turn loop so the test can assert on a quiescent board. */
 async function stopLoop(s: Setup, loop: Promise<void>, seat: 0 | 1): Promise<void> {
   expect(s.engine.applyIntent(seat, { type: "surrender" })).toEqual({ ok: true });
   await loop;
@@ -54,13 +37,10 @@ describe("BT19-029 Tapirmon", () => {
       evoCosts: [{ color: "Yellow", level: 2, memoryCost: 0 }],
       effectText: "[On Play] By trashing your top security card, gain 1 memory.",
     });
-    // The catalog prints a non-breaking space inside the inherited clause; compare on the
-    // normalized text so the assertion is about wording, not whitespace encoding.
     expect(getCardDefinition("BT19-029")!.inheritedEffectText!.replace(/\u00a0/g, " ")).toBe(
       "[All Turns] [Once Per Turn] When this yellow Digimon with the [Data]/[Witchelny] trait would leave " +
         "the battle area by your opponent's effects, by trashing your top security card, it doesn't leave.",
     );
-    // No printed [Digivolve] route, so the only legal source is the printed evolution cost.
     expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -121,7 +101,6 @@ describe("BT19-029 Tapirmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tapir").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
 
-    // 5 memory - 3 play cost + 1 from the effect.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("secNext").instanceId]);
     expect(s.state.players[0]!.security.every((card) => card.faceUp === false)).toBe(true);
@@ -217,10 +196,8 @@ describe("BT19-029 Tapirmon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.breeding?.stack.map((card) => card.instanceId)).toEqual([viximonId]);
-    // The digivolution bonus draw is the only card that reaches the hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
-    // Digivolving in breeding is not "playing": the On Play cost is not paid.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("secTop").instanceId]);
   });
 
@@ -301,10 +278,8 @@ describe("BT19-029 Tapirmon", () => {
       closeMain(s, 1);
       await stopLoop(s, loop, 1);
 
-      // The host is still on the board with its digivolution card intact.
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([hostCard]);
       expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("tapir").instanceId]);
-      // Exactly the TOP security card paid for it.
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("secTop").instanceId]);
       expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("secNext").instanceId]);
       assertNoLoudGap(s);
@@ -389,7 +364,6 @@ describe("BT19-029 Tapirmon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.security.length === 2);
-    // Intermediate state: the first removal was prevented at the cost of one security card.
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("secTwo").instanceId,
@@ -403,7 +377,6 @@ describe("BT19-029 Tapirmon", () => {
     closeMain(s, 1);
     await stopLoop(s, loop, 1);
 
-    // The second removal in the same turn is NOT prevented, and costs no further security.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("secTwo").instanceId,
       s.inst("secThree").instanceId,
@@ -449,7 +422,6 @@ describe("BT19-029 Tapirmon", () => {
     await settle(() => s.state.players[0]!.security.length === 2);
     closeMain(s, 1);
 
-    // Seat 0's own turn passes, then the opponent's next turn: a fresh once-per-turn window.
     await openMain(s, 0);
     closeMain(s, 0);
     await openMain(s, 1);
@@ -510,7 +482,6 @@ describe("BT19-029 Tapirmon", () => {
   });
 
   it("protects only the Digimon carrying this card, not a matching sibling (Q3087)", async () => {
-    // Both permanents are yellow [Data] Lv.4 Digimon; only `carrier` has Tapirmon underneath.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -539,7 +510,6 @@ describe("BT19-029 Tapirmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
     await s.ready();
-    // Aim the opponent's removal at the SIBLING, which carries no Tapirmon.
     preferInstanceIds.push(s.perm("sibling").topCard!.instanceId, s.perm("sibling").permanentId);
     const siblingTopId = s.perm("sibling").topCard!.instanceId;
     const loop = s.engine.startTurnLoop();
@@ -552,7 +522,6 @@ describe("BT19-029 Tapirmon", () => {
     closeMain(s, 1);
     await stopLoop(s, loop, 1);
 
-    // The sibling is gone and nothing was paid: the prevention is scoped to its own host.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
       s.perm("carrier").topCard!.instanceId,
     ]);
@@ -602,9 +571,6 @@ describe("BT19-029 Tapirmon", () => {
   });
 
   it("does not prevent a leave caused by the controller's OWN effect", async () => {
-    // BT7-107 Calling From the Darkness is played by seat 0 itself, so the removal is "by your
-    // effects" — outside the printed "by your opponent's effects" window. The purple DemiDevimon
-    // is only there to satisfy the option's colour requirement.
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -642,7 +608,6 @@ describe("BT19-029 Tapirmon", () => {
     closeMain(s, 0);
     await stopLoop(s, loop, 0);
 
-    // The host left, and no security was spent: the clause never offered a prevention.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT2-067"]);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("secTop").instanceId,
@@ -652,9 +617,6 @@ describe("BT19-029 Tapirmon", () => {
   });
 
   it("does not protect a yellow host whose only near-match trait is [DATA SQUAD], not [Data]", async () => {
-    // AD1-016 ShineGreymon is yellow and carries [DATA SQUAD], a trait that merely CONTAINS the
-    // token "Data". The printed clause says "with the [Data]/[Witchelny] trait", so the refs are
-    // `match: "trait"` (exact) rather than `traitContains`, and this host is not protected.
     const s = setupEngine(
       {
         0: {
@@ -700,9 +662,6 @@ describe("BT19-029 Tapirmon", () => {
     ["BT19-029", "the Tapirmon prevention"],
     ["BT19-041", "the host's own [All Turns] clause"],
   ])("lets the player order simultaneous would-leave effects, resolving %s first (Q3095)", async (preferredCardId) => {
-    // BT19-041 Dynasmon is a yellow [Data] Digimon whose own [All Turns] clause reacts to the
-    // same "would leave" event. Q3095: both trigger simultaneously and the player picks the
-    // order. Preferring one branch or the other produces two DIFFERENT, observable endpoints.
     const s = setupEngine(
       {
         0: {
@@ -740,13 +699,9 @@ describe("BT19-029 Tapirmon", () => {
     closeMain(s, 1);
     await stopLoop(s, loop, 1);
 
-    // The host survives either way; ＜Recovery +1 (Deck)＞ adds a card and the prevention
-    // trashes one, so the stack size is unchanged but its CONTENTS differ by resolve order.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-041"]);
     const trashedIds = s.state.players[0]!.trash.map((card) => card.instanceId);
     const securityIds = s.state.players[0]!.security.map((card) => card.instanceId);
-    // Prevention first: the printed top security card pays, then ＜Recovery +1＞ adds the deck
-    // card. Recovery first: the deck card becomes the new top and is what the prevention pays.
     const expected =
       preferredCardId === "BT19-029"
         ? { trash: [s.inst("secTop").instanceId], security: [deckTopId, s.inst("secNext").instanceId] }

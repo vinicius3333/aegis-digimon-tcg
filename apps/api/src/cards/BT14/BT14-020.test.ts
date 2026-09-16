@@ -74,8 +74,6 @@ describe("BT14-020", () => {
       { autoDeclineOptional: true },
     );
     s.state.memory = 10;
-    // Drive the real turn machine so the Start of Your Main Phase clauses originate from
-    // the production phase transition rather than a direct timing injection.
     const turn = s.engine.runOneTurn();
     await settle(() => s.decisions.some((decision) => decision.req.kind === "selectCards"));
     const decision = s.decisions.find((entry) => entry.req.kind === "selectCards")!;

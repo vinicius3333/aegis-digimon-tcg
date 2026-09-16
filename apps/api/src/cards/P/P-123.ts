@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q4236: gaining memory is mandatory even when the optional hatch is declined.
-// Q4239: this watcher may trigger when Ukkomon itself moves out of breeding.
 const compiled: CompiledCard = {
   effects: [
     {

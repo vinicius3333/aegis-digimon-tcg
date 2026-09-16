@@ -81,7 +81,6 @@ describe("BT23-068 GranDracmon", () => {
       expect(s.state.memory).toBe(1);
       expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
       expect(s.perm("base").topCard?.instanceId).toBe(s.inst("gran").instanceId);
-      // Digivolution bonus: one card drawn, one card left the hand.
       expect(s.state.players[0]!.hand).toHaveLength(handBefore);
     });
 
@@ -169,11 +168,8 @@ describe("BT23-068 GranDracmon", () => {
       expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
       expect(s.perm("base").topCard?.instanceId).toBe(qualifyingId);
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === offTraitId)).toBe(true);
-      // The trait matches but no legal route does: a Lv.3 base cannot reach a Lv.4-requirement card.
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("unreachable").instanceId)).toBe(true);
-      // Free: the Lv.3 -> Lv.4 route costs 2, which would have driven memory to -2.
       expect(s.state.memory).toBe(0);
-      // Clause 4 rides along: both Lv.3 opponents go, the Lv.5 stays.
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([highId]);
 
       expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -224,8 +220,6 @@ describe("BT23-068 GranDracmon", () => {
       const s = setupEngine(
         {
           0: {
-            // BT2-075 Myotismon and BT4-082 Dobermon are inert: purple, no printed or inherited
-            // text, so nothing but GranDracmon's own clauses can move this board.
             battleArea: [
               { card: "BT2-075", as: "source" },
               { card: "BT4-082", as: "base" },
@@ -236,15 +230,12 @@ describe("BT23-068 GranDracmon", () => {
             ],
             trash: [
               { card: "BT2-075", as: "qualifying" },
-              // BT23-065 Phantomon: purple Lv.5 [Ghost]/[LIBERATOR]. Wrong trait for this clause,
-              // and above the level cap of the [When Digivolving] clause, so it stays put.
               { card: "BT23-065", as: "offTrait" },
             ],
             deck: [...NEUTRAL_DECK],
             security: ["BT1-009", "BT1-010", "BT1-011"],
           },
           1: {
-            // A red Digimon on the field: an Option needs a matching colour (CR 4-21-2).
             battleArea: [{ card: "BT1-015", as: "redAnchor" }],
             hand: [{ card: "ST1-16", as: "gaiaForce" }],
             deck: [...NEUTRAL_DECK],
@@ -262,8 +253,6 @@ describe("BT23-068 GranDracmon", () => {
 
       const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
-      // GranDracmon reaches the board DURING seat 0's main phase, so its [Start of Your Main
-      // Phase] clause has already passed and cannot consume the trash card this test needs.
       s.state.memory = 5;
       expect(
         s.engine.applyIntent(0, {
@@ -274,7 +263,6 @@ describe("BT23-068 GranDracmon", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("source").topCard?.instanceId === granInstanceId);
-      // The [When Digivolving] play found no level 4 or lower purple card in the trash.
       expect(s.state.players[0]!.battleArea).toHaveLength(2);
 
       expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -282,8 +270,6 @@ describe("BT23-068 GranDracmon", () => {
       expect(s.state.turnSeat).toBe(1);
       await s.ready();
 
-      // ST1-16 Gaia Force: "[Main] Delete 1 of your opponent's Digimon." A public deletion, by the
-      // opponent, on the opponent's own turn — no injected verb and no direct state write.
       s.state.memory = 10;
       expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
         ok: true,
@@ -294,19 +280,14 @@ describe("BT23-068 GranDracmon", () => {
           s.state.pendingDecision === undefined,
       );
 
-      // GranDracmon is in the trash, stack and all.
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === granInstanceId)).toBe(true);
-      // Its [On Deletion] digivolved the Lv.4 base into the trash [Undead] card, free, with the
-      // base preserved underneath.
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
         s.perm("base").permanentId,
       ]);
       expect(s.perm("base").topCard?.instanceId).toBe(qualifyingId);
       expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === qualifyingId)).toBe(false);
-      // The off-trait [Ghost] card was never eligible.
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === offTraitId)).toBe(true);
-      // Only Gaia Force's cost of 8 was paid; the Lv.4 -> Lv.5 route (2) cost nothing.
       expect(s.state.memory).toBe(2);
       expect(s.state.pendingDecision).toBeUndefined();
 
@@ -348,7 +329,6 @@ describe("BT23-068 GranDracmon", () => {
 
       expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eligibleId)).toBe(true);
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === tooHighId)).toBe(true);
-      // Only the digivolution cost of 5 was paid; the trash play cost nothing.
       expect(s.state.memory).toBe(0);
     });
 
@@ -443,19 +423,13 @@ describe("BT23-068 GranDracmon", () => {
       const highId = s.perm("high").permanentId;
       const intoInstanceId = s.inst("into").instanceId;
 
-      // Public route: the watcher's own [Start of Your Main Phase] offers the free trash
-      // digivolution, and the card digivolved INTO is another BT23-068 (Q5336).
       const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
       await settle(() => s.state.players[1]!.battleArea.length === 1);
 
       expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
       expect(s.perm("base").topCard?.instanceId).toBe(intoInstanceId);
-      // Free: the Lv.5 -> Lv.6 route costs 4 or 5, which would have driven memory below zero.
       expect(s.state.memory).toBe(0);
-      // Two watchers see one event. The Digimon already in play spends its once-per-turn on the
-      // two level 3s; the level 4 can only have been taken by the card that was digivolved INTO
-      // from the trash, which is exactly what Q5336 says fires.
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([highId]);
       const opponentTrash = s.state.players[1]!.trash.map((card) => card.cardId);
       expect(opponentTrash).toContain("BT1-014");
@@ -470,9 +444,6 @@ describe("BT23-068 GranDracmon", () => {
       const s = setupEngine(
         {
           0: {
-            // Two inert purple Lv.5 [Undead] sources; both GranDracmon arrive from hand DURING
-            // seat 0's main phase, so neither [Start of Your Main Phase] clause ever runs and the
-            // trash card survives to the opponent's turn.
             battleArea: [
               { card: "BT2-075", as: "sourceA" },
               { card: "BT2-075", as: "sourceB" },
@@ -523,7 +494,6 @@ describe("BT23-068 GranDracmon", () => {
         ).toEqual({ ok: true });
         await settle(() => s.perm(sourceAlias).topCard?.instanceId === handInstanceId);
       }
-      // Neither arrival was a digivolution FROM THE TRASH, so nothing was deleted yet.
       expect(s.state.players[1]!.battleArea).toHaveLength(2);
 
       expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -533,9 +503,6 @@ describe("BT23-068 GranDracmon", () => {
       const lowId = s.perm("low").permanentId;
       const redAnchorId = s.perm("redAnchor").permanentId;
 
-      // On the OPPONENT's turn: the opponent's Gaia Force deletes one GranDracmon, whose
-      // [On Deletion] digivolves the Lv.4 base out of the trash. The second GranDracmon is still
-      // on the board and watches that trash digivolution.
       s.state.memory = 10;
       expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
         ok: true,
@@ -544,7 +511,6 @@ describe("BT23-068 GranDracmon", () => {
 
       expect(s.perm("base").topCard?.instanceId).toBe(fromTrashId);
       expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
-      // The [All Turns] delete fired on the opponent's turn and took their lowest level only.
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([redAnchorId]);
       expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("low").instanceId)).toBe(true);
       expect(lowId).not.toBe(redAnchorId);
@@ -567,7 +533,6 @@ describe("BT23-068 GranDracmon", () => {
             hand: [{ card: "BT23-061", as: "spare" }],
             trash: [
               { card: "BT23-063", as: "firstTrashCard" },
-              // BT2-075 Myotismon: inert purple Lv.5 [Undead], reachable from a Lv.4 purple base.
               { card: "BT2-075", as: "secondTrashCard" },
               { card: "BT23-063", as: "thirdTrashCard" },
             ],
@@ -596,16 +561,10 @@ describe("BT23-068 GranDracmon", () => {
 
       const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
-      // First trash digivolution of the turn, offered by GranDracmon's own [Start of Your Main
-      // Phase]: the delete fires and takes the Lv.3.
       await settle(() => s.state.players[1]!.battleArea.length === 2);
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([middleId, highestId]);
       expect(topCardIds()).toContain(firstId);
 
-      // Second trash digivolution in the SAME turn, through a public attack: the BT23-063
-      // Sangloupmon that just arrived has "[When Attacking] This Digimon may digivolve into a
-      // Digimon card with the [Undead] or [CS] trait in the trash". The once-per-turn gate on
-      // GranDracmon's watcher holds the delete.
       const sangloupmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === firstId);
       expect(sangloupmon).toBeDefined();
       s.state.memory = 5;
@@ -626,7 +585,6 @@ describe("BT23-068 GranDracmon", () => {
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([middleId, highestId]);
       expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
       await advance(s.engine).waitForMainPhase(0);
-      // Next own turn: the counter has reset, so the third trash digivolution deletes again.
       await settle(() => s.state.players[1]!.battleArea.length === 1);
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([highestId]);
       expect(topCardIds()).toContain(thirdId);

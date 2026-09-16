@@ -18,11 +18,6 @@ const PRINTED_TEXT =
 
 type PendingDecision = NonNullable<GameState["pendingDecision"]>;
 
-/**
- * Answer the next `chooseTargets` prompt with an explicit permanent and hand the request back so a
- * test can assert the offered candidate set. `previousDecisionId` distinguishes the second prompt of
- * a pair (the By cost and then the restriction target) from the first, which may still be recorded.
- */
 async function chooseTarget(
   s: EngineSetup,
   seat: Seat,
@@ -44,16 +39,10 @@ async function chooseTarget(
   return request;
 }
 
-/** The options of a recorded decision — `state.pendingDecision` does not carry them. */
 function optionsOf(s: EngineSetup, decisionId: string) {
   return s.decisions.find(({ req }) => req.decisionId === decisionId)!.req.options;
 }
 
-/**
- * Hand the turn to the opponent through the real turn loop, suspending the named own Digimon on
- * the way by attacking the opposing player with each. Returns the loop so the caller can end the
- * game with a surrender and await it.
- */
 async function passTurnToOpponent(s: EngineSetup, suspendByAttacking: string[]) {
   const loop = s.engine.startTurnLoop();
   await advance(s.engine).waitForMainPhase(0);
@@ -67,7 +56,6 @@ async function passTurnToOpponent(s: EngineSetup, suspendByAttacking: string[]) 
     ).toEqual({ ok: true });
     await settle(() => s.perm(alias).isSuspended && s.state.pendingDecision === undefined);
   }
-  // A seat with no legal main action left is auto-passed by the turn loop itself.
   const ended = s.state.turnSeat === 0 ? s.engine.applyIntent(0, { type: "endPhase" }) : { ok: true };
   expect(ended).toEqual({ ok: true });
   await advance(s.engine).waitForMainPhase(1);
@@ -146,8 +134,6 @@ describe("BT23-046 Rosemon", () => {
     });
   });
 
-  // Clause 3 — the By cost (Q5311) and the restriction target.
-
   it("pays the By cost with its controller's own Tamer and still restricts an opposing Digimon", async () => {
     const s = setupEngine(
       {
@@ -212,7 +198,6 @@ describe("BT23-046 Rosemon", () => {
     await s.ready();
     s.state.memory = 3;
 
-    // Public [When Digivolving] route: no injected timing.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -224,11 +209,9 @@ describe("BT23-046 Rosemon", () => {
     const targetRequest = await chooseTarget(s, 0, s.perm("oppDigimon").permanentId, costRequest.decisionId);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Q5311: the By cost may suspend either side's Digimon or Tamer.
     expect(optionsOf(s, costRequest.decisionId)?.candidateInstanceIds).toEqual(
       expect.arrayContaining([s.perm("oppTamer").permanentId, s.perm("oppDigimon").permanentId]),
     );
-    // Clause 3, controller boundary: only the opponent's permanents are offered as the target.
     expect(optionsOf(s, targetRequest.decisionId)?.candidateInstanceIds).toEqual(
       expect.arrayContaining([s.perm("oppDigimon").permanentId, s.perm("oppTamer").permanentId]),
     );
@@ -266,8 +249,6 @@ describe("BT23-046 Rosemon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // CR 15-7-1/15-7-4: "By suspending ..." is an optional processing condition the controller may
-    // refuse; CR 15-7-2 then blocks everything after it.
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
     expect(s.perm("ownTamer").isSuspended).toBe(false);
     expect(s.perm("rose").isSuspended).toBe(false);
@@ -291,8 +272,6 @@ describe("BT23-046 Rosemon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Rosemon itself is the only Digimon in play, so it pays its own cost; with no opposing
-    // Digimon or Tamer there is nothing to restrict.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -334,21 +313,18 @@ describe("BT23-046 Rosemon", () => {
     expect(s.perm("costFodder").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("oppDigimon"), "unsuspend")).toBe(true);
 
-    // Opponent's turn: the unsuspend step runs and the restricted Digimon must stay suspended.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(observe(s.engine).isRestricted(s.perm("oppDigimon"), "unsuspend")).toBe(true);
     expect(s.perm("oppDigimon").isSuspended).toBe(true);
 
-    // The duration is "until your opponent's turn ends": gone once that turn is over.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     expect(observe(s.engine).isRestricted(s.perm("oppDigimon"), "unsuspend")).toBe(false);
     expect(s.perm("oppDigimon").isSuspended).toBe(true);
 
-    // With the restriction gone the same Digimon unsuspends normally on its controller's next turn.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
@@ -357,8 +333,6 @@ describe("BT23-046 Rosemon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // Clause 4 — the Opponent's Turn redirect (Q5312).
 
   const OPPONENT_SECURITY = ["BT1-011", "BT1-011", "BT1-011", "BT1-011", "BT1-011", "BT1-011"];
   const FILLER_DECK = ["BT1-012", "BT1-013", "BT1-011", "BT1-012", "BT1-013", "BT1-011"];
@@ -382,7 +356,6 @@ describe("BT23-046 Rosemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // Suspend the redirect target publicly, then let the real turn loop pass the turn.
     const { loop } = await passTurnToOpponent(s, ["lily"]);
     const attackerId = s.perm("attacker").permanentId;
     const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
@@ -393,8 +366,6 @@ describe("BT23-046 Rosemon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerId));
 
-    // 3000 DP attacker into the 6000 DP redirect target: the attacker dies, Lillymon survives,
-    // and no security card was ever checked.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.perm("lily").currentDP).toBe(6000);
@@ -430,8 +401,6 @@ describe("BT23-046 Rosemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    // Every candidate and every rejected permanent is suspended through a public attack, so the
-    // only thing separating them is the printed trait filter.
     const { loop } = await passTurnToOpponent(s, ["rose", "fairy", "carnivorousPlant", "csOnly", "nonQualifying"]);
     preferInstanceIds.push(s.perm("carnivorousPlant").permanentId);
 
@@ -450,8 +419,6 @@ describe("BT23-046 Rosemon", () => {
     )!;
     const candidates = redirect.req.options?.candidateInstanceIds;
 
-    // Q5312: own suspended Digimon with Vegetation/Plant/Fairy in ANY trait (so [Carnivorous
-    // Plant] counts), or with the exact [CS] trait. Nothing else.
     expect(new Set(candidates)).toEqual(
       new Set([
         s.perm("rose").permanentId,
@@ -463,8 +430,6 @@ describe("BT23-046 Rosemon", () => {
     expect(candidates).not.toContain(s.perm("nonQualifying").permanentId);
     expect(candidates).not.toContain(s.perm("unsuspendedVegetation").permanentId);
 
-    // The 3000 DP attacker dies against the 6000 DP [Carnivorous Plant] Vegiemon, and no
-    // security card was checked.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.perm("carnivorousPlant").currentDP).toBe(6000);
@@ -575,7 +540,6 @@ describe("BT23-046 Rosemon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Suspend the redirect target publicly, by attacking with it.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -596,7 +560,6 @@ describe("BT23-046 Rosemon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerOneId));
     expect(s.state.players[0]!.security).toHaveLength(securityBefore);
 
-    // Second attack of the same opponent turn: the once-per-turn use is spent, so it goes through.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -609,7 +572,6 @@ describe("BT23-046 Rosemon", () => {
     expect(s.perm("attackerTwo").isSuspended).toBe(true);
     expect(s.perm("lily").currentDP).toBe(6000);
 
-    // Back to the controller's turn, then the opponent's next turn: the use resets.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
@@ -638,8 +600,6 @@ describe("BT23-046 Rosemon", () => {
     await loop;
   });
 
-  // Clause 2 — Fortitude.
-
   it("exposes Fortitude through the live keyword seam", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT23-046", as: "rose" }] } });
     await s.ready();
@@ -665,7 +625,6 @@ describe("BT23-046 Rosemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // Rosemon suspends itself by attacking, so the opponent can attack it on their own turn.
     const { loop } = await passTurnToOpponent(s, ["rose"]);
     const roseInstanceId = s.perm("rose").topCard.instanceId;
     const memoryBefore = s.state.memory;
@@ -694,8 +653,6 @@ describe("BT23-046 Rosemon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // Clause 1 — evolution routes.
 
   it("digivolves for 3 from a green Lv.5 base on the printed route and draws the digivolution card", async () => {
     const s = setupEngine(

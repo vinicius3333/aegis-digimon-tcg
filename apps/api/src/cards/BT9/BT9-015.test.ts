@@ -100,7 +100,6 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    // Greymon contributes its inherited +2000 DP on top of the +3000 grant.
     await settle(() => s.perm("stack").currentDP === 13000);
     expect(s.perm("stack").currentDP).toBe(13000);
     expect(s.state.memory).toBe(1);
@@ -161,8 +160,6 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
       await turn;
     };
 
-    // No player intent can digivolve during an ordinary opposing Main phase. Fire the
-    // production timing directly inside the real opponent turn to model an effect-driven evolution.
     const currentOpponentTurn = s.engine.runOneTurn();
     await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main);
     s.state.memory = 10;

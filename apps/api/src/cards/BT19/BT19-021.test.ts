@@ -7,17 +7,6 @@ import "../index.js";
 import "../EX12/EX12-031.js";
 import { compiled } from "./BT19-021.js";
 
-// BT19-021 Xiquemon — Blue Lv.4 Champion, 5000 DP, play cost 5, digivolves from a Blue Lv.3
-// for 2.
-//   [On Play] [When Digivolving] Return 1 of your opponent's level 3 Digimon to the hand.
-//   [Rule] Trait: Has the [Aquatic] type.   (Q3077)
-//   Inherited: ＜Jamming＞.
-//
-// Fixtures: BT1-028 Elecmon (inert Blue Lv.3) is the legal digivolution source and
-// BT1-064 Goblimon (inert Green Lv.3) the illegal one. Opposing near-misses for
-// "your opponent's level 3 Digimon": BT1-027 Armadillomon (opposing Lv.3, the legal
-// target), BT1-013 Muchomon under the CONTROLLER's own seat (right level, wrong side) and
-// BT19-019 Shellmon (opposing Lv.4, right side, wrong level).
 describe("BT19-021 Xiquemon", () => {
   it("matches the catalog printing", () => {
     expect(getCardDefinition("BT19-021")).toMatchObject({
@@ -30,8 +19,6 @@ describe("BT19-021 Xiquemon", () => {
       dp: 5000,
       forms: ["Champion"],
       attributes: ["Vaccine"],
-      // The [Rule] trait is already baked into the catalog's printed types, which is what
-      // makes it apply in every zone (Q3077) rather than only on the battle area.
       types: ["Avian", "Aquatic"],
       evoCosts: [{ color: "Blue", level: 3, memoryCost: 2 }],
       effectText:
@@ -41,8 +28,6 @@ describe("BT19-021 Xiquemon", () => {
   });
 
   it("compiles every printed clause", () => {
-    // [On Play] and [When Digivolving] are two independent timings printed on one line, so
-    // they compile to two effects, not one shared trigger.
     for (const [index, trigger] of [
       [0, "OnPlay"],
       [1, "WhenDigivolving"],
@@ -76,10 +61,6 @@ describe("BT19-021 Xiquemon", () => {
     });
     expect(compiled.effects).toHaveLength(4);
   });
-
-  // ---------------------------------------------------------------------------
-  // Digivolution routes
-  // ---------------------------------------------------------------------------
 
   it("digivolves from a Blue Lv.3 for 2, drawing the bonus card and firing When Digivolving", async () => {
     const s = setupEngine(
@@ -120,7 +101,6 @@ describe("BT19-021 Xiquemon", () => {
     expect(s.perm("base").currentDP).toBe(5000);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
-    // Only the opposing LEVEL 3 goes back; the opposing Lv.4 stays put.
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([returnedInstanceId]);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-019"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -153,10 +133,6 @@ describe("BT19-021 Xiquemon", () => {
     expect(s.state.players[1]!.hand).toHaveLength(0);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] Return 1 of your opponent's level 3 Digimon to the hand.
-  // ---------------------------------------------------------------------------
-
   it("returns exactly one opposing level-3 Digimon when played from hand", async () => {
     const s = setupEngine(
       {
@@ -185,7 +161,6 @@ describe("BT19-021 Xiquemon", () => {
     await settle(() => false, 30);
 
     expect(s.state.memory).toBe(0);
-    // "your opponent's": the controller's own level-3 Digimon is never a candidate.
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(ownLv3PermanentId);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("opponentLv3").instanceId]);
@@ -219,10 +194,6 @@ describe("BT19-021 Xiquemon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // [Rule] Trait: Has the [Aquatic] type. — Q3077
-  // ---------------------------------------------------------------------------
-
   it("is always [Aquatic] without granting the trait to a peer", async () => {
     const s = setupEngine({
       0: {
@@ -235,14 +206,10 @@ describe("BT19-021 Xiquemon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasEffectiveTrait(s.perm("xique"), "Aquatic")).toBe(true);
-    // BT19-020 Greymon is the near-miss Blue Lv.4: [Dinosaur]/[Blue Flare], no [Aquatic].
     expect(observe(s.engine).hasEffectiveTrait(s.perm("nearMiss"), "Aquatic")).toBe(false);
   });
 
   it("satisfies a real [Aquatic] digivolution gate that the near-miss Lv.4 does not", async () => {
-    // EX12-031 MarineBullmon prints "[Digivolve] Lv.4 w/[Aquatic]/[Shambala] trait: Cost 3"
-    // on top of its normal Blue Lv.4 cost of 4. Xiquemon takes the cheap route on the
-    // strength of its [Rule] trait; BT19-020 Greymon (Blue Lv.4, no [Aquatic]) does not.
     for (const [baseCardId, expectedCost] of [
       ["BT19-021", 3],
       ["BT19-020", 4],
@@ -267,8 +234,6 @@ describe("BT19-021 Xiquemon", () => {
           type: "digivolve",
           permanentId: s.perm("base").permanentId,
           instanceId: s.inst("marine").instanceId,
-          // Requested for BOTH bases: the engine accepts the flag either way and simply
-          // falls back to the normal route, so the COST is what proves the gate.
           useAlternateCost: true,
         }),
       ).toEqual({ ok: true });
@@ -280,14 +245,7 @@ describe("BT19-021 Xiquemon", () => {
     }
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited ＜Jamming＞ (comprehensive 16-9-1)
-  // ---------------------------------------------------------------------------
-
   it("keeps its host alive against a Security Digimon that beats it, while a plain host dies", async () => {
-    // A realistic stack: Xiquemon (Blue Lv.4) digivolved into BT19-023 Huankunmon
-    // (Blue Lv.5). Both hosts attack the player at 3000 DP into a 5000 DP Security
-    // Digimon, so both lose the security battle; only the Xiquemon host has ＜Jamming＞.
     const s = setupEngine(
       {
         0: {
@@ -315,7 +273,6 @@ describe("BT19-021 Xiquemon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // The Jamming host survives its lost security battle.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -326,7 +283,6 @@ describe("BT19-021 Xiquemon", () => {
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 3);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostPermanentId)).toBe(true);
 
-    // The plain host does not.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -360,7 +316,6 @@ describe("BT19-021 Xiquemon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plainHost"), "Jamming")).toBe(false);
-    // An inherited effect never applies while the card is the top card.
     expect(observe(s.engine).hasKeyword(s.perm("onTop"), "Jamming")).toBe(false);
   });
 });

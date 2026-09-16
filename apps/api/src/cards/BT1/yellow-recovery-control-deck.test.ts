@@ -53,8 +53,6 @@ describe("BT1 yellow recovery control deck gauntlet", () => {
       () =>
         s.state.players[0]!.hand.some(({ instanceId }) => instanceId === tkId) && s.state.pendingDecision === undefined,
     );
-    // Let the automatic Patamon ordering response finish its effect continuation
-    // before starting the next play intent.
     await settle(() => false, 5);
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === tkId)).toBe(true);

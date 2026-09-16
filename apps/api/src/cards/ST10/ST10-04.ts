@@ -1,6 +1,3 @@
-// Hand-fixed: inherited DnaDigivolve needs 2 materials (self + one other in play),
-// into must be from hand with DNA digivolution requirement (KB Q729-731).
-// [Your Turn] Replacement already correctly scoped to isSelfRef with trait filter.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

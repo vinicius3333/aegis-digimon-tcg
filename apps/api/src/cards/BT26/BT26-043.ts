@@ -8,8 +8,6 @@ const setup = [
     kind: "Suspend",
     target: opponentTarget,
   },
-  // "your deck's top card" is taken with no prompt. A loose `from: ["deck"]` target would
-  // instead offer the whole deck for selection.
   {
     effectTextPart:
       "Then, by placing your deck's top card face down as this Digimon's bottom digivolution card, for each of this Digimon's face-down digivolution cards, 1 of your opponent's Digimon or Tamers can't unsuspend until their turn ends.",

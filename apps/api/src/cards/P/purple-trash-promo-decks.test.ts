@@ -47,13 +47,9 @@ describe("Purple trash promo decks", () => {
     s.state.memory = 0;
     await s.ready();
     const opponentRookie = s.perm("opponent-rookie");
-    // Drive the production event bus directly: this scenario proves Troopmon's response to an
-    // opposing play, while PlayWithoutCost/whenPlayed emission is covered by the engine suite.
     await advance(s.engine).fireSubTrigger("whenPlayed", {
       subjectPermanentId: opponentRookie.permanentId,
     });
-    // Auto-decisions are drained by the engine's queued continuation. Yield one event-loop turn
-    // before polling microtasks so this remains deterministic under collection-wide parallel load.
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     await settle(
       () =>

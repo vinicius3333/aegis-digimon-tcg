@@ -4,8 +4,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      // This universal name alias is consumed by the loose-card resolver, which
-      // intentionally scans Rule effects rather than ordinary Static modifiers.
       trigger: "Rule",
       actions: [
         {
@@ -37,7 +35,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          // Printed "by an effect" excludes ordinary hand plays.
           sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"], byEffect: true },
           actions: [
             {

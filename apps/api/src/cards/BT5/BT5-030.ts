@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-written override for BT5-030 (Neptunemon).
-// Fix: restriction must be 'cantBeAttacked' not 'attack'.
-// Also adds opponent-turn gate (documented behavior — Condition checks IsOpponentTurn).
 const compiled: CompiledCard = {
   effects: [
     {

@@ -8,31 +8,14 @@ import { compiled } from "./EX13-049.js";
 
 const CARD_ID = "EX13-049";
 
-// Fixtures, and why each one is here:
-//   BT25-006 Dorimon     PURPLE Lv.2 [Lesser]/[X Antibody]/[Titan]/[TS], no printed text. Matches
-//                        the header's NAME half and fails its "Black" half, so it separates the
-//                        two compiled requirements.
-//   BT8-005  Kyokyomon   Black Lv.2 [Lesser]/[X Antibody], no printed text. The mirror image:
-//                        matches the colour/level/trait half and not the name half.
-//   BT10-005 Monimon     Black Lv.2 with NO [X Antibody] trait, no printed text: legal on the
-//                        printed Black Lv.2-for-1 EvoCost, illegal on either header route.
-//   BT13-063 Dorumon     Black Lv.3 [Beast]/[X Antibody], no printed text — the [X Antibody]
-//                        branch of the reveal union, inert so its own text adds no noise.
-//   BT20-087 Kota Domoto & Yuji Musya — a TAMER whose only trait is [Chronicle]: the [Chronicle]
-//                        branch, and the proof that "1 card" is not "1 Digimon card".
-//   BT1-009  Monodramon  Lv.3 [Mini Dragon], inert: the plain non-match.
-//   BT1-010..BT1-014     inert red main-deck Digimon — deck filler, sentinels and hosts.
 const NAME_ONLY_EGG = "BT25-006";
 const TRAIT_ONLY_EGG = "BT8-005";
 const NEITHER_EGG = "BT10-005";
 const X_ANTIBODY = "BT13-063";
 const CHRONICLE_TAMER = "BT20-087";
 const NON_MATCH = "BT1-009";
-//   BT9-095  Gaia Force ZERO — an Option with NO traits at all whose printed text contains
-//                        "[X Antibody]": the near-match that `match: "trait"` must refuse.
 const TEXT_ONLY_NEAR_MATCH = "BT9-095";
 
-/** Fire the inherited [When Attacking] window on a host carrying EX13-049 in its stack. */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm(alias), {
     attackerPermanentId: s.perm(alias).permanentId,
@@ -65,7 +48,6 @@ describe("EX13-049 Dorumon", () => {
   it("compiles every printed clause", () => {
     expect(runtimeCompiledCard(CARD_ID)).toMatchObject({ coverage: "full", residual: [] });
 
-    // One printed cost line, two independent source descriptions separated by "/".
     expect(digivolutionRequirementsFor(CARD_ID)).toEqual([
       { namesExact: ["Dorimon"], cost: 0, isAlternate: true },
       { level: 2, colors: ["Black"], traits: ["X Antibody"], cost: 0, isAlternate: true },
@@ -77,8 +59,6 @@ describe("EX13-049 Dorumon", () => {
       nameOrTrait: [{ tokens: ["X Antibody", "Chronicle"], match: "trait" }],
     };
 
-    // One sentence printed under two timings: two effects, identical action list, neither
-    // inherited and neither once-per-turn.
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect.isInherited).toBeUndefined();
@@ -87,7 +67,6 @@ describe("EX13-049 Dorumon", () => {
         {
           kind: "RevealAdd",
           revealCount: 3,
-          // A single `add` slot: "1 card", with no `kind` narrowing and no `optional`.
           add: [{ filter: traitUnion, count: 1, to: "hand" }],
           rest: "deckTopOrBottom",
         },
@@ -109,13 +88,6 @@ describe("EX13-049 Dorumon", () => {
       ],
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // [Digivolve] [Dorimon]/Black Lv.2 w/[X Antibody] trait: Cost 0
-  //
-  // The printed EvoCosts both charge 1, so cost alone separates the header from the catalog
-  // route; the two header halves are separated by pinning `alternateRequirementIndex`.
-  // ---------------------------------------------------------------------------
 
   it("takes the [Dorimon] half for 0 from a purple Dorimon the colour half cannot reach", async () => {
     const s = setupEngine({
@@ -143,7 +115,6 @@ describe("EX13-049 Dorumon", () => {
     expect(s.perm("egg").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("egg").instanceId]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
 
-    // The SAME purple egg is refused on the colour/trait half: "Black" is a real gate.
     const wrongHalf = setupEngine({
       0: {
         breeding: { card: NAME_ONLY_EGG, as: "egg" },
@@ -242,7 +213,6 @@ describe("EX13-049 Dorumon", () => {
       expect(s.state.memory).toBe(0);
     }
 
-    // The printed Black Lv.2 EvoCost still reaches it, at its own cost of 1.
     const printedRoute = setupEngine({
       0: {
         breeding: { card: NEITHER_EGG, as: "egg" },
@@ -262,13 +232,8 @@ describe("EX13-049 Dorumon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => printedRoute.perm("egg").topCard.cardId === CARD_ID);
-    // Paying 1 from a 0 gauge hands the turn's memory to the opponent: the gauge reads -1.
     expect(printedRoute.state.memory).toBe(-1);
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] Reveal 3, add 1 [X Antibody]/[Chronicle] card, rest to top or bottom.
-  // ---------------------------------------------------------------------------
 
   it("adds one [X Antibody] card to hand and sends the rest to the BOTTOM when that branch is chosen", async () => {
     const preferred: string[] = [];
@@ -299,7 +264,6 @@ describe("EX13-049 Dorumon", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("toHand").instanceId]);
-    // "Bottom of the deck": both leftovers land UNDER the untouched sentinel.
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
       s.inst("restA").instanceId,
@@ -338,7 +302,6 @@ describe("EX13-049 Dorumon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("toHand").instanceId]);
-    // "Top of the deck": both leftovers sit ABOVE the sentinel, still in the revealed order.
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("restA").instanceId,
       s.inst("restB").instanceId,
@@ -409,8 +372,6 @@ describe("EX13-049 Dorumon", () => {
     });
     await settle(() => s.state.pendingDecision === undefined);
 
-    // `match: "trait"` is exact trait equality: the printed "[X Antibody]" inside BT9-095's own
-    // effect text is not a trait, so nothing is added and the near-match returns with the rest.
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
@@ -420,10 +381,6 @@ describe("EX13-049 Dorumon", () => {
     ]);
     assertNoLoudGap(s);
   });
-
-  // ---------------------------------------------------------------------------
-  // [When Moving] — the same clause on the public breeding-move route.
-  // ---------------------------------------------------------------------------
 
   it("fires the same reveal clause when it moves out of breeding", async () => {
     const preferred: string[] = [];
@@ -471,10 +428,6 @@ describe("EX13-049 Dorumon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [When Attacking] [Once Per Turn] -2000 DP for the turn.
-  // ---------------------------------------------------------------------------
-
   it("drops exactly one opposing Digimon by 2000 DP on the public attack route", async () => {
     const s = setupEngine(
       {
@@ -509,7 +462,6 @@ describe("EX13-049 Dorumon", () => {
 
     const dps = [s.perm("first").currentDP, s.perm("second").currentDP].sort((a, b) => a - b);
     expect(dps).toEqual([7000, 9000]);
-    // Controller boundary: the caster's own board is untouched.
     expect(s.perm("host").currentDP).toBe(20_000);
     expect(s.perm("host").isSuspended).toBe(true);
     assertNoLoudGap(s);
@@ -536,24 +488,17 @@ describe("EX13-049 Dorumon", () => {
     );
     await s.ready();
 
-    // §11-2-3 caps each Digimon at ONE attack per turn, so a second REAL declaration by the same
-    // host is refused by the rule before the rider is reached (engine seam:
-    // `apps/api/src/engine/actions/attack.ts` `validateAttack` step 5). The printed [Once Per
-    // Turn] therefore has to be exercised on a second [When Attacking] WINDOW for the same host;
-    // the public attack route is proven in the test above.
     await attackWindow(s, "host");
     await settle(() => s.state.pendingDecision === undefined);
     const hit = ["first", "second"].filter((alias) => s.perm(alias).currentDP === 7000);
     expect(hit).toHaveLength(1);
     const other = ["first", "second"].find((alias) => alias !== hit[0])!;
 
-    // Same turn, second attack window: the once-per-turn gate refuses it.
     await attackWindow(s, "host");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm(other).currentDP).toBe(9000);
     expect(s.perm(hit[0]!).currentDP).toBe(7000);
 
-    // A real opponent turn passes: "for the turn" expires and the gate reopens next own turn.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(s.perm(hit[0]!).currentDP).toBe(9000);

@@ -135,9 +135,6 @@ describe("BT20-085 Shoto Kazama", () => {
     expect(accepted.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
       expect.arrayContaining(["BT20-085", "BT1-013"]),
     );
-    // Capture identities before the source permanent leaves. Q5553/Q5554 concern the
-    // physical returned card and the newly played copy; aliases must not be re-derived
-    // from whichever permanent happens to remain after the phase-boundary effect.
     expect(accepted.state.players[0]!.deck.at(-1)?.instanceId).toBe(originalShotoInstanceId);
     expect(accepted.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
       replacementInstanceId,
@@ -164,25 +161,16 @@ describe("BT20-085 Shoto Kazama", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // Drive the real turn loop. The partner has the Vortex Warriors trait but no Vortex
-    // keyword, so its presence cannot open an unrelated end-of-turn attack decision.
     const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
-    // The public one-turn driver leaves the next seat's Main phase open in this
-    // harness. The resolved event proves the End-of-Your-Turn effect completed;
-    // the opponent's sole legal target has then naturally passed its unsuspend
-    // phase, while this Tamer remains suspended until its owner's next turn.
     expect(s.perm("shoto").isSuspended).toBe(true);
     expect(s.perm("vortex").currentDP).toBe(9000);
     expect(s.events).toContainEqual(
       expect.objectContaining({ kind: "effectResolved", sourceCardId: "BT20-085", timing: "OnEndTurn" }),
     );
 
-    // Continue seat 1 -> seat 0 through the public loop. The opponent turn
-    // exercises the printed duration boundary without mutating turn ownership
-    // or memory.
     const turnLoop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);

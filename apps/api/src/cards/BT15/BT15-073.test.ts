@@ -81,16 +81,12 @@ describe("BT15-073", () => {
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("filler").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
-    // The inherited retaliation clause is inactive while this card is the top card, so the
-    // attacker survives its own battle.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("naturally deletes its battle opponent while inherited under a legal host", async () => {
     const s = setupEngine(
       {
-        // ST6-09 is a legal Purple Lv.5 host over BT15-073 (Purple Lv.4). Its printed
-        // effects are irrelevant here; the inherited retaliation clause is the subject.
         0: {
           battleArea: [{ card: "ST6-09", as: "host", under: ["BT15-073"], suspended: true }],
           security: ["BT1-009"],

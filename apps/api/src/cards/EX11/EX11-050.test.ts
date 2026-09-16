@@ -145,11 +145,6 @@ describe("EX11-050 Loudmon", () => {
     assertNoLoudGap(s);
   });
 
-  /**
-   * Boundary for "While you have 4 or fewer cards in your hand" on BOTH the main [All Turns]
-   * aura and the inherited [Your Turn] aura. FAILS-WHEN-REVERTED: an `op`/`value` other than
-   * `lte 4` flips one of the two halves below.
-   */
   it("withholds both auras at 5 cards in hand and restores them at 4", async () => {
     const s = setupEngine({
       0: {

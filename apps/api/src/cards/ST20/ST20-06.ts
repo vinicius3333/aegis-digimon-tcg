@@ -1,21 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST20-06 Angewomon
-// [On Play][When Digivolving] 1 of your other Digimon may digivolve into an [ADVENTURE] trait
-//   Digimon card in hand without paying the cost.
-// [Your Turn][Once Per Turn] When your other Digimon are played or digivolve, if any of them
-//   have the [ADVENTURE] trait, 1 of your Digimon gains <Alliance> for the turn. Then, 1 of
-//   your Digimon may attack.
-// (inherited) <Alliance>
-//
-// Fixes from audit:
-// 1. The [Your Turn] SubTriggers had sourceFilter gating on ADVENTURE trait — the trigger
-//    fires for ANY other Digimon played/digivolving; ADVENTURE is only a condition for the
-//    Alliance grant, not the trigger condition.
-// 2. The Attack action was a sibling of the SubTriggers (firing immediately on install, not
-//    inside them). Per KB Q4694: attack fires even when ADVENTURE condition is not met.
-//    Attack must be nested inside each SubTrigger's actions.
 const compiled: CompiledCard = {
   effects: [
     {

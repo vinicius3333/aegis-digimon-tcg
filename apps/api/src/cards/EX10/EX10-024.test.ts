@@ -7,18 +7,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-024";
 
-/**
- * EX10-024 Kabemon (Black, Lv.3, [Appmon]/[Wallpaper]).
- *
- * Printed: "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0", "[Security] At the end of the battle,
- * play this card without paying the cost.", "[Link] [Appmon] trait: Cost 1" and the link effect
- * "[When Attacking] By trashing 1 of this Digimon's link cards, ＜De-Digivolve 1＞ 1 of your
- * opponent's Digimon."
- *
- * Every clause is proved through public intents: `digivolve`, `linkCard`, `attack` and the
- * production block window. The link effect fires from a real attack declaration, never from
- * injected timing.
- */
 describe("EX10-024 Kabemon", () => {
   it("records the linked De-Digivolve, the Security play and both requirements", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
@@ -75,15 +63,11 @@ describe("EX10-024 Kabemon", () => {
         "[Digivolve] Lv.2 w/[Appmon]\u00a0trait: Cost 0 \n\n[Security] At the end of the battle, play this card without paying the cost.",
       linkEffect:
         "[When Attacking] By trashing 1 of this Digimon's link cards, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
-      // The catalog separates "[Appmon]" and "trait" with U+00A0 in both printed lines.
-      // Reported, not edited.
       linkRequirement: "[Link] [Appmon]\u00a0trait: Cost 1",
     });
   });
 
   it("digivolves for 0 from the printed Black Lv.2 route and from the [Appmon] Lv.2 route", async () => {
-    // BT2-005 Kapurimon is the printed route (Black, Lv.2, no [Appmon] trait);
-    // EX10-001 Flickmon is the alternate one (Lv.2 [Appmon], Green — the trait, not the color).
     for (const baseCard of ["BT2-005", "EX10-001"]) {
       const s = setupEngine({
         0: { battleArea: [{ card: baseCard, as: "base" }], hand: [{ card: CARD_ID, as: "kabe" }] },
@@ -210,8 +194,6 @@ describe("EX10-024 Kabemon", () => {
         0: {
           battleArea: [
             {
-              // The host prints ＜Link +6＞, so a second link card is legal board state without
-              // poking the continuous ledger; the rule sweep trashes an over-cap link otherwise.
               card: "BT26-086",
               as: "host",
               dp: 20_000,

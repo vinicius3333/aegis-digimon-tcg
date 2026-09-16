@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-114 Diaboromon.
-// [All Turns][Once Per Turn] When an effect plays another Digimon, you may delete 1 of
-// your opponent's Digimon with play cost ≤ (3 + 2 × your Diaboromon count).
-// The scalingCap on the Delete target encodes the dynamic maximum per-Diaboromon scaling.
-// excludeSelf:true is correct — "another Digimon" means any Digimon except P-114 itself.
 const compiled: CompiledCard = {
   effects: [
     {

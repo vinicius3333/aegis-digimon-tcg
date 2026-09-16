@@ -1,8 +1,3 @@
-// HAND-FIXED IR for EX6-056 — do not regenerate.
-// OnPlay+WhenDigivolving DeDigivolve: removed levels:[3] (no target-level restriction in text).
-// AllTurns Replacement: sourceFilter restricted to self (isSelfRef), otherThanBattle leaveCause,
-// target zone:trash + from:[trash], underFilter zone:breedingArea — mirrors EX6-060's hand fix
-// for the same "Seven Great Demon Lords"/"Gate of Deadly Sins" mechanic (KB Q3791).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

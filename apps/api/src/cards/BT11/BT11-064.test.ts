@@ -39,7 +39,7 @@ describe("BT11-064 Greymon (X Antibody)", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT11-069");
-    expect(s.state.memory).toBe(8); // printed cost 4 minus 2 colors
+    expect(s.state.memory).toBe(8);
   });
 
   it("digivolves for 0 from an exact Greymon base", async () => {

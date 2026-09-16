@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT25-035 (Cougarmon).
-// Fix: Digivolve cost filter changed from kind:["Tamer"] to zone:"underTamers"
-// with faceDown:true — the text says "trash 2 bottom face-down cards from under
-// any of your Tamers" (KB Q6300/Q6301: all 2 must come from underTamers,
-// may be spread across multiple Tamers).
 export const compiled: CompiledCard = {
   effects: [
     {

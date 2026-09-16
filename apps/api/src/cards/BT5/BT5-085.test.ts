@@ -21,8 +21,6 @@ describe("BT5-085 Armageddemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // Immediate validation must be able to cover the printed 15 before the
-    // interactive -12 reducer resolves; memory 5 has an affordability ceiling of 15.
     s.state.memory = 5;
     const diaboromonId = s.perm("diaboromon").permanentId;
 

@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX9-071 Protein (Option card)
-// Static: While you have a [DM] trait Digimon or Tamer on the field, ignore color requirements.
-// [Main] <Draw 1>. Then, place this card in the battle area.
-// [Main] <Delay>: By trashing 1 of your [DM] trait Digimon's bottom 2 face-down digivolution
-//   cards, it unsuspends.
-// [Security] Gain 1 memory. Then, place this card in the battle area.
-// Q4833: All required face-down digivolution cards must be trashed; partial cost can't be met.
-// Q4834: "while you have [card] on the field" = card in battle area or breeding area.
 export const compiled: CompiledCard = {
   effects: [
     {

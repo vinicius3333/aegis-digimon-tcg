@@ -5,8 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// Inert main-deck Digimon (no printed or inherited text): no Digi-Egg may sit in the deck
-// or security, and the numeric `security: n` form is forbidden.
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
@@ -57,15 +55,12 @@ describe("BT19-035 ShootingStarmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => xros.perm("base").topCard?.cardId === "BT19-035");
-    // Only the memory delta discriminates the route: 2, not the printed Yellow Lv3 cost of 3.
     expect(xros.state.memory).toBe(4);
     expect(xros.perm("base").stack.map((card) => card.cardId)).toEqual(["BT10-029"]);
     expect(xros.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([xros.inst("drawn").instanceId]);
-    // Digivolving is not "played": the [All Turns] watcher stays quiet.
     expect(xros.perm("peer").currentDP).toBe(6000);
     expect(observe(xros.engine).keywordAmount(xros.perm("peer"), "SecurityAttack")).toBe(0);
 
-    // A yellow Lv3 WITHOUT the trait falls back to the normal route and pays 3.
     const plain = setupEngine({
       0: {
         battleArea: [{ card: "BT1-050", as: "base" }],
@@ -154,7 +149,6 @@ describe("BT19-035 ShootingStarmon", () => {
     expect(s.perm("bystander").currentDP).toBe(5000);
     expect(observe(s.engine).keywordAmount(s.perm("bystander"), "SecurityAttack")).toBe(0);
 
-    // [Once Per Turn]: a second [Xros Heart] Digimon played this turn adds nothing.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondXros").instanceId })).toEqual({
       ok: true,
     });
@@ -170,8 +164,6 @@ describe("BT19-035 ShootingStarmon", () => {
       {
         0: {
           battleArea: [{ card: "BT19-035", as: "watcher" }],
-          // BT9-035 Starmon is the near miss: a yellow Digimon whose name looks the part but
-          // whose only trait is [Mutant].
           hand: [{ card: "BT9-035", as: "nearMiss" }],
           deck: [...FILLER],
           security: [...SECURITY],
@@ -222,14 +214,12 @@ describe("BT19-035 ShootingStarmon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    // Still in force for the whole of the opponent's turn.
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(s.perm("target").currentDP).toBe(3000);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // Gone once that turn ended.
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     expect(s.perm("target").currentDP).toBe(6000);
@@ -267,7 +257,6 @@ describe("BT19-035 ShootingStarmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // A real battle deletes ShootingStarmon: 5000 DP into a 7000 DP suspended defender.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -278,8 +267,6 @@ describe("BT19-035 ShootingStarmon", () => {
     await settle(() => s.perm("tamer").stack.length === 1);
     await settle();
 
-    // Pinned by instance id: ShootingStarmon itself is now in the trash and also carries the
-    // [Xros Heart] trait, so an unpinned assertion would prove nothing.
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("candidate").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("nearMiss").instanceId]);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT19-035")).toBe(true);
@@ -323,7 +310,6 @@ describe("BT19-035 ShootingStarmon", () => {
     await settle(() => s.perm("tamer").stack.length === 1);
     await settle();
 
-    // The [Blue Flare] half of the printed filter, chosen over the [Mutant] near miss.
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("blueFlare").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("nearMiss").instanceId);
   });
@@ -345,7 +331,6 @@ describe("BT19-035 ShootingStarmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    // The near miss: [Starmon] is not [Starmons], so it fills no slot.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -363,7 +348,7 @@ describe("BT19-035 ShootingStarmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT10-013"));
 
-    expect(s.state.memory).toBe(4); // 10 printed, -2 per placed material
+    expect(s.state.memory).toBe(4);
     expect(
       s
         .perm("x5")
@@ -405,8 +390,6 @@ describe("BT19-035 ShootingStarmon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT10-013"));
     await settle();
 
-    // Only the real [Shoutmon] is one of the host's specified DigiXros cards; ShootingStarmon
-    // is treated as [Starmons] for a DigiXros ONLY, so it goes to the trash.
     expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT10-008"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT19-035");
   });
@@ -436,7 +419,6 @@ describe("BT19-035 ShootingStarmon", () => {
     await settle(() => s.perm("target").currentDP === 4000);
     expect(s.perm("target").currentDP).toBe(4000);
 
-    // A host without the [Xros Heart] trait leaves the opponent alone.
     const negative = setupEngine(
       {
         0: {

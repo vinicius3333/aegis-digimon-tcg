@@ -98,8 +98,6 @@ describe("BT22-082 Eater Adam", () => {
       }),
     ).toEqual({ ok: true });
 
-    // The real BT22-091 inherited effect also sees this attack. Decline its redirect prompts
-    // so the attack reaches Adam, then accept Adam's own leave replacement.
     for (let decisionCount = 0; decisionCount < 4; decisionCount += 1) {
       await settle(
         () =>

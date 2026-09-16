@@ -62,7 +62,7 @@ describe("P-029 Agunimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.cardId === "BT4-113");
 
-    expect(s.state.memory).toBe(7); // Printed cost 5, reduced by 2.
+    expect(s.state.memory).toBe(7);
   });
 
   it("does not reduce an unrelated digivolution from its host", async () => {
@@ -85,7 +85,7 @@ describe("P-029 Agunimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.cardId === "BT5-086");
 
-    expect(s.state.memory).toBe(6); // Printed cost 4; AncientGreymon-only reduction must not apply.
+    expect(s.state.memory).toBe(6);
   });
 
   it("digivolves into AncientGreymon while attacking and deletes that Digimon at end of turn", async () => {

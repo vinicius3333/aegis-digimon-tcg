@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT24-016 Lamiamon — hand-authored IR override.
-//
-// [Hand][Main] places [Dimetromon] from trash under an [Elizamon], binds that host, then
-// digivolves the same host into this in-hand card for cost 3 ignoring requirements.
 export const compiled: CompiledCard = {
   effects: [
     {

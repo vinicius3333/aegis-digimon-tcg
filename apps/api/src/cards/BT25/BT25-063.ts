@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT25-063 Commandramon. The controller chooses both the top/bottom destination and
-// the order of the unselected revealed cards.
 export const compiled: CompiledCard = {
   effects: [
     {

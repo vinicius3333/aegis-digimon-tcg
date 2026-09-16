@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT23-068 (GranDracmon).
-// [Start of Your Main Phase] [On Deletion] 1 of your Digimon may digivolve into a
-// level 6 or lower [Undead] or [Dark Animal] Digimon from trash without cost.
-// [When Digivolving] play 1 level 4 or lower purple Digimon from trash without cost.
-// [All Turns] [Once Per Turn] When any of your Digimon digivolve FROM THE TRASH,
-// delete ALL of your opponent's lowest-level Digimon.
-// KB Q5336: also triggers when digivolving into this card itself from the trash.
 export const compiled: CompiledCard = {
   effects: [
     {

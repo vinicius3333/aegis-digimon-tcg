@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for EX1-021 (MetalGarurumon).
-// runtime-effect fixes:
-// - Return target filter: changed match:"trait" to match:"text" for "On Deletion" (text
-//   says "Digimon with an [On Deletion] effect", a text-presence match, not a literal
-//   trait named "On Deletion"; BT5-031 pattern). ReturnToDeck atomically moves the selected
-//   Digimon to its owner's deck and trashes its attached sources, which is the printed
-//   "trash all of the digivolution cards" result.
-// - Condition: requires BOTH 8+ cards in hand AND a Tamer in play (was hand-count only).
 const compiled: CompiledCard = {
   effects: [
     {

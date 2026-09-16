@@ -216,7 +216,6 @@ describe("EX2-009 Growlmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Legal red stack: BT1-009 (Lv.3) -> EX2-009 (Lv.4) -> ST7-08 (Lv.5) -> P-186 (Lv.6).
           battleArea: [
             {
               card: "P-186",

@@ -59,7 +59,7 @@ describe("BT10-039 Taomon", () => {
     expect(s.perm("base").currentDP).toBe(11000);
     expect(s.perm("base").topCard.cardId).toBe("BT10-039");
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT10-036");
-    expect(s.state.memory).toBe(0); // only Taomon's evolution cost 3; the white Option is free.
+    expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
 

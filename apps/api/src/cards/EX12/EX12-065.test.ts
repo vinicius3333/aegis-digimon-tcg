@@ -5,7 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-065.js";
-// EX12-063 sits in the Q6866 stack; its inherited [On Deletion] must be registered to trigger.
 import "./EX12-063.js";
 
 const CARD_ID = "EX12-065";
@@ -263,7 +262,6 @@ describe("EX12-065 Kaguyamon", () => {
       );
       await s.ready();
 
-      // Fire-and-forget: the deletion cannot complete until the ordering decision is answered.
       const deletion = advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
       await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
 
@@ -271,9 +269,6 @@ describe("EX12-065 Kaguyamon", () => {
       const request = s.decisions.find(({ req }) => req.decisionId === ordering.decisionId)!.req;
       const ids = request.options?.triggerCardIds ?? [];
       const keys = request.options?.triggerKeys ?? [];
-      // Kaguyamon's own [On Deletion] and Karakurumon's inherited [On Deletion] trigger at the
-      // same time. Fortitude is a third simultaneous trigger for the same deletion, so the
-      // controller — not the engine — decides which resolves first.
       expect(ids).toHaveLength(3);
       expect(ids).toEqual(expect.arrayContaining(["EX12-063", CARD_ID, CARD_ID]));
 
@@ -287,9 +282,6 @@ describe("EX12-065 Kaguyamon", () => {
         }),
       ).toEqual({ ok: true });
 
-      // The second order prompt contains the remaining printed effect and Fortitude. Select
-      // the other printed effect; Fortitude then resolves last and may legitimately replay the
-      // card's On Play effect.
       const secondCardId = firstCardId === "EX12-063" ? CARD_ID : "EX12-063";
       await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
       const secondOrdering = s.state.pendingDecision!;
@@ -374,9 +366,6 @@ describe("EX12-065 Kaguyamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
 
-    // Fortitude replays the deleted top card, and replaying it first removes the deleted
-    // source's own/inherited pending effects from the queue: no opponent return and no
-    // inherited trash play may occur afterward.
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.deck.some(({ cardId }) => cardId === "BT1-009")).toBe(false);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-012")).toBe(true);
@@ -438,11 +427,7 @@ describe("EX12-065 Kaguyamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
 
-    // Equal DP deletes both combatants in the same battle; the attacker has no surviving
-    // permanent for Retaliation to delete.
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-057")).toBe(false);
-    // The unrelated opponent Digimon proves Kaguyamon's pending On Deletion return effect was
-    // stranded together with the inherited Karakurumon effect.
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-012")).toBe(false);
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT26-012")).toBe(true);

@@ -329,10 +329,6 @@ describe("BT23-018 Garurumon", () => {
   });
 
   it("caps the Main effect at once per turn per source and keeps a second Garurumon's use available", async () => {
-    // The mandatory restack cost buries Garurumon under its own stack, so after one use it is no
-    // longer the top card and can never be the source again. A next-own-turn reset is therefore
-    // unobservable for this card; what is observable is the same-turn refusal and that the cap is
-    // tracked per source permanent.
     const s = setupEngine(
       {
         0: {
@@ -364,14 +360,12 @@ describe("BT23-018 Garurumon", () => {
     );
     expect(s.perm("garurumon").stack[0]!.instanceId).toBe(garurumonId);
 
-    // Same source, same turn: refused, and the second Agumon stays in hand.
     expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: garurumonId, effectKey })).toMatchObject(
       { ok: false },
     );
     await settle();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondAgumon").instanceId);
 
-    // A different Garurumon still has its own use this turn.
     expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: secondId, effectKey })).toEqual({
       ok: true,
     });
@@ -403,11 +397,9 @@ describe("BT23-018 Garurumon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("agumon").instanceId),
     );
-    // The reduced-cost play still happens (6 - 2 = 4 play cost on a cost-3 Agumon clamps to 1).
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("agumon").instanceId)).toBe(
       true,
     );
-    // The Digi-Egg became the top card and has no DP, so the whole permanent leaves the battle area.
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eggId)).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([eggId, garurumonId]),

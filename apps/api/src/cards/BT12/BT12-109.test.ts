@@ -63,7 +63,7 @@ describe("BT12-109 Overflowing Power", () => {
     expect(s.perm("hunter").stack).toHaveLength(0);
     expect(s.perm("hunter").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT12-109");
-    expect(s.state.memory).toBe(0); // BT12-077's printed digivolution cost is 2
+    expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

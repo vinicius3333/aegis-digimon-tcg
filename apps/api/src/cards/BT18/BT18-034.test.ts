@@ -143,7 +143,6 @@ describe("BT18-034 Lucemon", () => {
     expect(s.perm("lucemon").stack.map(({ cardId }) => cardId)).toEqual(["BT18-034"]);
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("levelSixCost").instanceId);
     expect(s.state.players[0]!.security[1]!.instanceId).toBe(s.inst("oldTopSecurity").instanceId);
-    // runTurn completes the turn and passes priority, normalizing memory.
     expect(s.state.memory).toBe(-3);
     assertNoLoudGap(s);
   });

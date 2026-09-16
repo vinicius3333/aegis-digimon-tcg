@@ -7,12 +7,9 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "./BT19-072.js";
 
-// Inert main-deck Digimon only: no Digi-Egg may sit in a deck or in security, and the
-// numeric `security: n` form is forbidden.
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
-/** Every `chooseTargets` candidate set the engine offered, in order. */
 function recordCandidates(s: { decisions: { seat: Seat; req: DecisionRequest }[] }): () => string[][] {
   return () =>
     s.decisions
@@ -77,7 +74,6 @@ describe("BT19-072 LordKnightmon", () => {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
-                  // "with the [Royal Knight] trait" is an EXACT trait match, not a substring.
                   nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }],
                 },
                 count: 1,
@@ -116,7 +112,7 @@ describe("BT19-072 LordKnightmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     await settle();
 
-    expect(s.state.memory).toBe(-1); // the play cost 11; the revived Digimon was free
+    expect(s.state.memory).toBe(-1);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId).sort()).toEqual(
       [s.inst("lord").instanceId, s.inst("lv4").instanceId].sort(),
     );
@@ -188,7 +184,7 @@ describe("BT19-072 LordKnightmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     await settle();
 
-    expect(s.state.memory).toBe(7); // Purple Lv5 evolution cost 3
+    expect(s.state.memory).toBe(7);
     expect(s.perm("base").topCard?.cardId).toBe("BT19-072");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT3-076", "BT3-083", "BT3-085"]);
     expect(s.perm("base").stack.at(-1)?.instanceId).toBe(baseInstanceId);
@@ -239,7 +235,6 @@ describe("BT19-072 LordKnightmon", () => {
           battleArea: [
             { card: "BT19-072", as: "lord" },
             { card: "BT13-090", as: "royal" },
-            // Near-miss peer: [Knightmon] in its name, trait "Warrior", not [Royal Knight].
             { card: "ST13-12", as: "plainKnight" },
             { card: "BT1-009", as: "wall", dp: 5000 },
           ],
@@ -266,7 +261,6 @@ describe("BT19-072 LordKnightmon", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Suspend my wall through a real attack so it is a legal defender on the opponent's turn.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -282,7 +276,6 @@ describe("BT19-072 LordKnightmon", () => {
     await s.ready();
     expect(s.perm("wall").isSuspended).toBe(true);
 
-    // First attack of the opponent's turn: the switch sends it into the Royal Knight.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -293,20 +286,16 @@ describe("BT19-072 LordKnightmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     await settle();
 
-    // 9000 attacker into the 11000 Royal Knight: the attacker dies, my wall is untouched.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT10-064"]);
-    // The security card my wall broke earlier is also in that trash; the attacker joined it.
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT12-069");
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual(
       ["BT1-009", "BT13-090", "BT19-072", "ST13-12"].sort(),
     );
-    // The trait gate is exact: the plain [Knightmon] was never a candidate.
     const offered = candidates().flat();
     expect(offered).toContain(s.perm("royal").permanentId);
     expect(offered).not.toContain(s.perm("plainKnight").permanentId);
     expect(offered).not.toContain(s.perm("plainKnight").topCard!.instanceId);
 
-    // Second attack of the SAME opponent turn: the once-per-turn switch is spent.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -355,8 +344,6 @@ describe("BT19-072 LordKnightmon", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // "Isn't affected by effects" on my own Royal Knight: CR 15-15-5-3 keeps it choosable, and
-    // the ruling confirms the switch still happens.
     await advance(s.engine).verb.restrict(s.perm("royal").permanentId, "beAffected", EffectDuration.Permanent);
     expect(
       s.engine.applyIntent(0, {
@@ -381,7 +368,6 @@ describe("BT19-072 LordKnightmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    // The security card my wall broke earlier is also in that trash; the attacker joined it.
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT12-069");
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual(
       ["BT1-009", "BT13-090", "BT19-072"].sort(),

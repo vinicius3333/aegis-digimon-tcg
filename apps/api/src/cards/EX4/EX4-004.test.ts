@@ -184,8 +184,6 @@ describe("EX4-004 Pinamon — deletion boundaries and Q3439", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // CR §3-1-3-9 redirects a Digi-Egg only into private areas, so the deleted host trashes
-    // its EX4-004 digivolution card along with the rest of the stack.
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["ST6-09", "ST6-08", "EX4-004"]),
     );
@@ -224,8 +222,6 @@ describe("EX4-004 Pinamon — deletion boundaries and Q3439", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // CR §3-1-3-9 redirects a Digi-Egg only into private areas, so the deleted host trashes
-    // its EX4-004 digivolution card along with the rest of the stack.
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["ST6-09", "ST6-08", "EX4-004"]),
     );

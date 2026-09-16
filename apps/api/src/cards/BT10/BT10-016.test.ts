@@ -116,7 +116,6 @@ describe("BT10-016 Jesmon (X Antibody)", () => {
       { autoDeclineOptional: true },
     );
     s.state.memory = 3;
-    // Board-spec permanents are from a prior turn; the later effect-play remains fresh.
     s.state.turnCount += 1;
 
     expect(
@@ -135,7 +134,6 @@ describe("BT10-016 Jesmon (X Antibody)", () => {
     expect(s.perm("currentAlly").currentDP).toBe(4000);
     expect(s.perm("currentAlly").attackablePermanentIds).toContain(s.perm("unsuspendedOpponent").permanentId);
 
-    // The resolved player-scoped effect persists even if Jesmon X leaves the battle area.
     expect(await advance(s.engine).verb.deletePermanent([s.perm("base").permanentId])).toBe(1);
     await advance(s.engine).verb.playInstances([s.inst("laterAlly").instanceId]);
     const later = s.state.players[0]!.battleArea.find(

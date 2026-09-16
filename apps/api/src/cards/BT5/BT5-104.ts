@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1377: can create Diaboromon token even if no valid DeDigivolve target exists.
-// KB Q1378: can create token from existing Diaboromon token in battle area.
-// The parenthetical "(you can't trash more cards if target has no digivolution cards
-// or becomes lv3)" is a built-in constraint of DeDigivolve, not a separate action.
 const compiled: CompiledCard = {
   effects: [
     {

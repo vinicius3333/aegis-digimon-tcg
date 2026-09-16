@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT22-041 — hand-authored IR override (AUTO-GENERATED header removed so the regen
-// preserves this file).
-//
-// [On Play] / [When Digivolving]: "You may place 1 yellow card from your hand as your top
-// security card." The runtime record dropped the `from`/`source` fields, so the interpreter took
-// the SELF-form branch (BT22-041 itself became security). The faithful behavior selects a
-// Yellow card FROM HAND and places it on top of security; BT22-041 stays on the battle area.
-// canNoSelect:true (=> optional) -> AddSecurityCard(selectedCard) (documented behavior). The hand-
-// form is keyed by from:["hand"] + a source filter colors:["Yellow"], which routes the
-// interpreter's placeAsSecurity fromLoose branch (interpreter.ts:1625).
 export const compiled: CompiledCard = {
   effects: [
     {

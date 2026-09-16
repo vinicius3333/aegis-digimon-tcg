@@ -8,27 +8,10 @@ import "../index.js";
 
 const CARD_ID = "EX13-004";
 
-// Fixtures.
-//   BT1-045 Tsukaimon — YELLOW Lv.3, 3000 DP, NO printed text at all: the carrier the Digi-Egg
-//     sits under. Yellow so the public breeding route (yellow Digi-Egg -> Lv.3) is legal, and
-//     textless so every observed delta is attributable to this card.
-//   BT18-036 Wizardmon — YELLOW Lv.4, EvoCost Yellow Lv.3 for 2, printed TYPES
-//     ["Wizard","Witchelny"]. The legal, matching destination. It carries its own
-//     "[When Digivolving] By trashing the top card of your security stack, ＜Draw 1＞ and gain 1
-//     memory", which the automation accepts, so every assertion below states the COMBINED
-//     endpoint and names which half each delta came from.
-//   BT18-039 Mistymon — YELLOW Lv.5, EvoCost Yellow Lv.4 for 3, ["Wizard","Witchelny"]: the
-//     second, higher-level destination the once-per-turn reset needs.
-//   BT9-035 Starmon — YELLOW Lv.4, EvoCost Yellow Lv.3 for 2, ["Star"], NO printed text: the
-//     near-match. A perfectly legal evolution over the host at the SAME cost, so an encoding that
-//     ignored the printed [Witchelny] gate would take it.
-//   BT1-009..BT1-014 are the inert main-deck Digimon used as security and deck filler.
 const HOST = "BT1-045";
 const WITCHELNY_DESTINATION = "BT18-036";
 const WITCHELNY_DESTINATION_LV5 = "BT18-039";
 const NON_MATCH_DESTINATION = "BT9-035";
-//   EX13-034 Wisemon — YELLOW Lv.5, EvoCost Yellow Lv.4 for 4, types ["Wizard"] only. [Witchelny]
-//     appears ONLY inside its printed text, so it separates `match: "text"` from `match: "trait"`.
 const TEXT_ONLY_WITCHELNY = "EX13-034";
 const INERT = "BT1-009";
 const DECK = ["BT1-011", "BT1-012", "BT1-013", "BT1-014"];
@@ -49,7 +32,6 @@ describe("EX13-004 DemiMeramon", () => {
       inheritedEffectText:
         "[When Attacking] [Once Per Turn] This Digimon may digivolve into a Digimon card with [Witchelny] in its text in the hand with the cost reduced by 1. If this effect digivolved, trash your top security card.",
     });
-    // A Digi-Egg prints no main box and no security text.
     expect(getCardDefinition(CARD_ID)?.effectText).toBeUndefined();
   });
 
@@ -57,7 +39,6 @@ describe("EX13-004 DemiMeramon", () => {
     expect(runtimeCompiledCard(CARD_ID)).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects).toEqual([
       expect.objectContaining({
-        // A plain [When Attacking] tag, so the window IS the trigger — no SubTrigger wrapper.
         trigger: "WhenAttacking",
         isInherited: true,
         frequency: "OncePerTurn",
@@ -67,7 +48,6 @@ describe("EX13-004 DemiMeramon", () => {
             target: expect.objectContaining({ isSelf: true, filter: { isSelfRef: true } }),
             into: expect.objectContaining({
               kind: ["Digimon"],
-              // "in its text" is the name ∪ traits ∪ printed-text union (§4-22-1), NOT `trait`.
               nameOrTrait: [{ tokens: ["Witchelny"], match: "text" }],
             }),
             from: ["hand"],
@@ -76,8 +56,6 @@ describe("EX13-004 DemiMeramon", () => {
             optional: true,
           }),
           expect.objectContaining({
-            // A consequence, not a payment: an empty security stack must not make the
-            // digivolution illegal.
             kind: "trashSecurityTop",
             controller: "mine",
             count: 1,
@@ -123,11 +101,7 @@ describe("EX13-004 DemiMeramon", () => {
 
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("sorcermon").instanceId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([CARD_ID, HOST]);
-    // 5 - 1 (printed EvoCost Yellow Lv.3 for 2, reduced by 1 by THIS card) + 1 (Wizardmon's own
-    // [When Digivolving] memory gain).
     expect(s.state.memory).toBe(5);
-    // Two security cards leave from the TOP: one to Wizardmon's own cost, one to this card's
-    // "If this effect digivolved, trash your top security card". The bottom card survives.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("bottomSecurity").instanceId]);
     const trashIds = s.state.players[0]!.trash.map((card) => card.instanceId);
     expect(trashIds).toContain(s.inst("topSecurity").instanceId);
@@ -166,16 +140,11 @@ describe("EX13-004 DemiMeramon", () => {
     expect(s.perm("host").topCard.cardId).toBe(HOST);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nearMatch").instanceId);
     expect(s.state.memory).toBe(5);
-    // Nothing digivolved, so the conditional security trash never runs.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("topSecurity").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("accepts a destination that carries [Witchelny] only in its printed effect text", async () => {
-    // EX13-034 Wisemon is Yellow Lv.5 with types ["Wizard"] — NO [Witchelny] trait — but its
-    // printed "[Digivolve] Lv.4 w/[Witchelny] in text: Cost 3" line mentions [Witchelny]. Only a
-    // `match: "text"` reading reaches it; `match: "trait"` would refuse. The base is the textless
-    // Lv.4 BT9-035 Starmon so the printed EvoCost Yellow Lv.4 for 4 is the only cost in play.
     const s = setupEngine(
       {
         0: {
@@ -208,17 +177,12 @@ describe("EX13-004 DemiMeramon", () => {
 
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("wisemon").instanceId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([CARD_ID, NON_MATCH_DESTINATION]);
-    // 5 - 3 (printed EvoCost Yellow Lv.4 for 4, reduced by 1 by THIS card).
     expect(s.state.memory).toBe(2);
-    // The top security card left to this card's "If this effect digivolved" clause.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("bottomSecurity").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
   });
 
   it("refuses a [Witchelny] hand card that is an illegal evolution over this carrier", async () => {
-    // BT18-039 Mistymon carries the [Witchelny] trait, so it passes the printed filter, but it is
-    // Lv.5 with EvoCost Yellow Lv.4 — illegal over the Lv.3 host. The digivolution must not happen
-    // and, because it did not, the security trash must not run either.
     const s = setupEngine(
       {
         0: {
@@ -311,8 +275,6 @@ describe("EX13-004 DemiMeramon", () => {
     await settle(() => s.perm("host").topCard.cardId === WITCHELNY_DESTINATION);
 
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("sorcermon").instanceId);
-    // 5 - 1 for the reduced evolution cost. Wizardmon's own rider needs a security card it does
-    // not have, so it contributes neither the draw nor the memory.
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -349,9 +311,6 @@ describe("EX13-004 DemiMeramon", () => {
     await settle(() => s.perm("host").topCard.cardId === WITCHELNY_DESTINATION);
     const securityAfterFirst = s.state.players[0]!.security.length;
 
-    // The carrier suspended to attack; unsuspend it so a SECOND attack in the same turn is legal.
-    // Its Lv.5 [Witchelny] destination is in hand and affordable, so only the spent [Once Per
-    // Turn] quota can stop it.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -372,7 +331,6 @@ describe("EX13-004 DemiMeramon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 20;
 
-    // Next own turn through the real turn loop: the quota is back and the Lv.5 card is taken.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -451,9 +409,7 @@ describe("EX13-004 DemiMeramon", () => {
     expect(evolved.topCard!.instanceId).toBe(s.inst("sorcermon").instanceId);
     expect(evolved.stack.map((card) => card.cardId)).toEqual([CARD_ID, HOST]);
     expect(evolved.stack[0]!.instanceId).toBe(eggInstanceId);
-    // 10 - 1 (reduced evolution cost) + 1 (Wizardmon's own memory gain).
     expect(s.state.memory).toBe(10);
-    // Both security cards leave from the top: one to Wizardmon's cost, one to this card's trash.
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });

@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. The [All Turns] clause uses a CostGatedBlock so the optional suspend
-// processing condition and its nested may-placement resolve as independent decisions.
 export const compiled: CompiledCard = {
   effects: [
     {

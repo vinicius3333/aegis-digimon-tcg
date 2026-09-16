@@ -105,8 +105,6 @@ describe("BT23-028 Coordemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
-    // 10000 DP beats the 4000 DP security Digimon, so Coordemon is trashed by the battle and
-    // the deferred security clause still plays it from there, with its [On Play] attached.
     const securityBattle = s.events.find((event) => event.kind === "securityChecked");
     expect(securityBattle && "battle" in securityBattle ? securityBattle.battle : undefined).toMatchObject({
       attackerDeleted: false,

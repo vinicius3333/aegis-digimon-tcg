@@ -199,7 +199,6 @@ describe("BT21-060 Destromon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard.cardId === "BT21-060");
 
-    // Public opponent play during the protected opponent turn cannot trash the Vemmon source.
     s.state.turnSeat = 1;
     s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstOpponentEffect").instanceId })).toEqual(
@@ -218,7 +217,6 @@ describe("BT21-060 Destromon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
 
-    // On the next opponent turn the until-opponent-turn-end lock has expired.
     s.state.turnSeat = 1;
     s.state.memory = 10;
     const nextOpponentTurn = s.engine.runOneTurn();

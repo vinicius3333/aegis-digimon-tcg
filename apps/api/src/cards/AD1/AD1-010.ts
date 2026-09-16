@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// AD1-010 Garurumon. Q6077/Q6078: the reaction is driven by the entered card's
-// name/text, and a Greymon-named digivolution does not qualify as a Garurumon trigger.
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [{ kind: "Draw", controller: "mine", amount: 1 }] },

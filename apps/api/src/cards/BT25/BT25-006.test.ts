@@ -204,9 +204,6 @@ describe("BT25-006 Dorimon", () => {
           ],
         },
       },
-      // The hand cost is the clause's only question, so it is asked as the selection itself:
-      // no card is the refusal, the card is the acceptance (see `costIsAskedAsSelection`).
-      // This test needs one of each, so it answers both prompts rather than auto-selecting.
       {},
     );
     s.state.turnSeat = 1;

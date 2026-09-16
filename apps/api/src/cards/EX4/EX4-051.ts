@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * EX4-051 — BlitzGreymon (EX4, Black Lv.6 Digimon).
- *
- * Digivolution requirement: 3 from a level 5 [MetalGreymon].
- * [When Digivolving] Choose 1 of 3 effects:
- *   1) De-Digivolve 1 on 3 opponent Digimon.
- *   2) Digivolve 1 other of your Digimon into Lv.≤6 [Garurumon] from hand, no cost.
- *   3) DNA digivolve this + another Digimon into hand card, paying cost.
- * Inherited [When Attacking][Once Per Turn] If [Omnimon] in name:
- *   trash top of opponent's security.
- */
 const cardId = "EX4-051";
 
 export const compiled: CompiledCard = {

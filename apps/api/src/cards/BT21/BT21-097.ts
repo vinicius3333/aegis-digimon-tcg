@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-097 App Link — manually verified. The end-of-turn Link effect is an
-// intrinsic Delay payload, not an immediate link from the turn watcher.
 export const compiled: CompiledCard = {
   effects: [
     {

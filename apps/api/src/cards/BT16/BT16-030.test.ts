@@ -55,7 +55,6 @@ describe("BT16-030", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
-    // 3 to play Salamon, then Gatomon's cost 3 reduced by 1 for the trash digivolve.
     s.state.memory = 5;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("salamon").instanceId })).toEqual({

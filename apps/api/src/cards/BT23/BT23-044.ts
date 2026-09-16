@@ -1,23 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT23-044 (Lilamon). Re-audit fixes to the generated IR:
-// - "if you have [Yuuko Kamishiro] or a [CS] trait Digimon" is scoped to the battle area.
-//   The zone-less default also scans the breeding area, but comprehensive rules 3-4-5-8
-//   forbids referencing information on cards in breeding areas.
-// - [Yuuko Kamishiro] is a printed bracket name, so it matches with `nameExact`. The
-//   generated `name` mode is a substring match, which would also accept a future card whose
-//   name merely contains "Yuuko Kamishiro".
-// - "their effects can't return ... to hands or decks" restricts the OPPONENT's effects
-//   only, so both Restrict actions carry `byOpponentEffectsOnly`. Without it the controller's
-//   own return effects were blocked too.
-// - "1 of your Digimon with ..." is Digimon-only. The generated Restrict target filter had no
-//   `kind`, so a Tamer carrying one of the listed traits (Yuuko Kamishiro has [CS]) was offered
-//   as a protection target.
-// - "[Vegetation], [Plant] or [Fairy] in any of its traits or the [CS] trait" mixes two match
-//   modes. The first three are substring (`traitContains`), so [Carnivorous Plant] and
-//   [Ancient Fairy] qualify; [CS] is a bracket trait and stays exact (`traits`), so
-//   [Abadin Electronics] — which contains "cs" — does not.
 export const compiled: CompiledCard = {
   effects: [
     {

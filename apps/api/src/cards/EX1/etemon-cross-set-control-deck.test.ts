@@ -47,8 +47,6 @@ describe("EX1 Etemon cross-set control deck", () => {
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolutionDraw").instanceId)).toBe(
       true,
     );
-    // The visible top-card/memory state precedes the trailing continuous recompute by a
-    // few microtasks. Flush that window before simulating the opponent taking the turn.
     await settle();
 
     const deletedPermanentId = s.perm("evolvingEtemon").permanentId;
@@ -121,7 +119,6 @@ describe("EX1 Etemon cross-set control deck", () => {
     expect(s.perm("firstRedStack").topCard.cardId).toBe("BT1-015");
     expect(s.perm("secondRedStack").topCard.cardId).toBe("BT1-009");
     expect(s.state.memory).toBe(2);
-    // The deleted EX1-052/053 stack joins the two starting Etemons in trash.
     expect(s.perm("otherMetalEtemon").currentDP).toBe(14_000);
     assertNoLoudGap(s);
   });

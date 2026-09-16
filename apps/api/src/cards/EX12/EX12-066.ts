@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX12-066 Hiro Amanokawa.
-// Q6867: "with [Gammamon] in its text" includes the card's name, traits, effects,
-// inherited effects, rules, and evolution requirements; the text filter therefore uses
-// match:"text" and is intentionally not limited to the main effect text.
-// Q6868: each trigger is anchored to its own Tamer and pays the printed suspend cost;
-// the engine's simultaneous-use gate prevents multiple copies from consuming the same
-// selected card at once.
-// Q6869: the effect may activate even when a cost-reduction prohibition is present; the
-// digivolve remains legal and simply pays its unmodified cost. No requirement waiver is
-// encoded because the printed text does not say to ignore digivolution requirements.
 export const compiled: CompiledCard = {
   effects: [
     {

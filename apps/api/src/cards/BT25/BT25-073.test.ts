@@ -2,28 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, digivolutionRequirementsFor, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-// Register only the audited module; importing the whole set masks card-local regressions and
-// materially increases the focused gate's memory footprint.
 import "./BT25-073.js";
-
-/**
- * A3 — BT25-073 (Dragomon). Engine capability: pay a cost by trashing a card from a
- * Digimon's LINK zone (`permanent.linked`).
- *
- * Printed: "[On Play] [When Digivolving] By trashing 1 of your Digimon's link cards, you may
- *   play or use 1 [TS] trait card with a play or use cost of 5 or less from your hand without
- *   paying the cost." plus inherited "[All Turns] By trashing 1 of its link cards, this Digimon
- *   doesn't leave play."
- *
- * The cost's `filter.zone === "linked"` selects the LINK CARDS of the matching HOST permanents;
- * the rest of the filter (kind:["Digimon"], controller:"mine") constrains the HOST, not the link
- * card. The chosen link card is removed from its host's `.linked` list and moved to the OWNER's
- * trash, then a [TS] cost<=5 card is played free from hand.
- *
- * FAILS-WHEN-REVERTED: drop the `zone === "linked"` branch in payCost and the trash cost finds no
- * candidates (link cards are not enumerable via the normal-zone paths) => the optional aborts, no
- * link card is trashed and nothing is played.
- */
 
 function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
   return (
@@ -31,8 +10,6 @@ function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string
   ).fireTiming(timing, trigger);
 }
 
-// A [TS]-trait Digimon with play cost <= 5 and no On Play / When Digivolving of its own
-// (BT24-011: <Rush>/<Raid> only) — the free-played payload.
 const TS_CARD = "BT24-011";
 const LINK_CARD = "BT1-013";
 const DRAGOMON = "BT25-073";
@@ -124,15 +101,11 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
         0: {
           battleArea: [
             { card: DRAGOMON, dp: 4000, as: "dragomon" },
-            // A friendly Digimon HOST carrying one LINK card (the cost fuel).
             { card: LINK_CARD, dp: 4000, as: "host", linked: [{ card: LINK_CARD, as: "linkCard" }] },
           ],
-          // The [TS] payload sitting in hand.
           hand: [TS_CARD],
         },
       },
-      // The clause is a Modal ("play a [TS] Digimon" / "use a [TS] Option"); option 0 is the
-      // play branch this case asserts, and without an answer the resolution never returns.
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 0 },
     );
     const p0 = s.state.players[0] as PlayerState;
@@ -145,10 +118,10 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
     await fireTiming(s, EffectTiming.OnPlay, {});
     await settle(() => inArea(p0, TS_CARD));
 
-    expect(s.perm("host").linked.length).toBe(0); // the link card left the linked list
-    expect(p0.trash.some((c) => c.instanceId === linkCardId)).toBe(true); // -> owner trash
-    expect(inArea(p0, TS_CARD)).toBe(true); // the [TS] card was played free
-    expect(p0.hand.some((c) => c.cardId === TS_CARD)).toBe(false); // and left the hand
+    expect(s.perm("host").linked.length).toBe(0);
+    expect(p0.trash.some((c) => c.instanceId === linkCardId)).toBe(true);
+    expect(inArea(p0, TS_CARD)).toBe(true);
+    expect(p0.hand.some((c) => c.cardId === TS_CARD)).toBe(false);
   });
 
   it("publicly playing Dragomon from hand opens the same On Play clause", async () => {
@@ -186,8 +159,6 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
           hand: [TS_CARD],
         },
       },
-      // The clause is a Modal ("play a [TS] Digimon" / "use a [TS] Option"); option 0 is the
-      // play branch this case asserts, and without an answer the resolution never returns.
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 0 },
     );
     const p0 = s.state.players[0] as PlayerState;
@@ -264,9 +235,6 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
   });
 
   it("On Play declined (abortOnDecline): plays nothing and trashes no link card", async () => {
-    // No autoAcceptOptional — respond to the "by trashing..." prompt manually, declining it, since
-    // the harness's opts only express auto-accept, not auto-decline. fireTiming's own promise awaits
-    // that prompt internally, so it must not be awaited before the manual response is sent.
     const s = setupEngine(
       {
         0: {
@@ -295,18 +263,15 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
       });
     }
     await pending;
-    await settle(() => false, 80); // flush; a (wrong) play/trash WOULD be observed
+    await settle(() => false, 80);
 
-    expect(s.perm("host").linked.length).toBe(1); // link card untouched
+    expect(s.perm("host").linked.length).toBe(1);
     expect(p0.trash.some((c) => c.instanceId === linkCardId)).toBe(false);
-    expect(inArea(p0, TS_CARD)).toBe(false); // nothing played
-    expect(p0.hand.some((c) => c.cardId === TS_CARD)).toBe(true); // still in hand
+    expect(inArea(p0, TS_CARD)).toBe(false);
+    expect(p0.hand.some((c) => c.cardId === TS_CARD)).toBe(true);
   });
 
   it("(inherited) [All Turns] leave-prevention pays by trashing the host's OWN link card -> survives", async () => {
-    // BT25-073's inherited [All Turns] clause is active only when it sits UNDER a Digimon: the
-    // host carries BT25-073 in its digivolution stack. `isSelfRef` on the cost resolves to the
-    // HOST permanent, so the link card must sit in the HOST's linked list.
     const s = setupEngine(
       {
         0: {
@@ -315,7 +280,7 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
               card: "BT10-068",
               dp: 4000,
               as: "host",
-              under: [{ card: DRAGOMON }], // the inherited source card
+              under: [{ card: DRAGOMON }],
               linked: [{ card: LINK_CARD, as: "linkCard" }],
             },
           ],
@@ -327,15 +292,15 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
     const hostId = s.perm("host").permanentId;
     const linkCardId = s.inst("linkCard").instanceId;
 
-    await s.engine.recomputeContinuousEffects(); // installs the inherited wouldLeavePlay prevention
+    await s.engine.recomputeContinuousEffects();
 
     const fx = (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }).primitives;
     await fx.deletePermanent([hostId]);
     await settle(() => s.perm("host").linked.length === 0);
 
-    expect(p0.battleArea.some((perm) => perm.permanentId === hostId)).toBe(true); // survived
-    expect(s.perm("host").linked.length).toBe(0); // the host's own link card paid the cost
-    expect(p0.trash.some((c) => c.instanceId === linkCardId)).toBe(true); // -> owner trash
+    expect(p0.battleArea.some((perm) => perm.permanentId === hostId)).toBe(true);
+    expect(s.perm("host").linked.length).toBe(0);
+    expect(p0.trash.some((c) => c.instanceId === linkCardId)).toBe(true);
   });
 
   it("the inherited replacement cannot pay with another Digimon's link card", async () => {

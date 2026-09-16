@@ -89,7 +89,6 @@ describe("EX6-074 Mirei Mikagura", () => {
     expect(s.perm("other").topCard?.cardId).toBe("BT11-042");
     expect(s.perm("base").topCard?.cardId).toBe("BT1-055");
     expect(s.perm("mirei").isSuspended).toBe(true);
-    // BT11-042 normally costs 3 to digivolve; Mirei reduces it by 1 after gaining 1 memory.
     expect(s.state.memory).toBe(1);
   });
 

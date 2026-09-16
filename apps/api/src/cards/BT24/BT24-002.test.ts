@@ -84,7 +84,6 @@ describe("BT24-002 Bukamon", () => {
       ok: true,
     });
     await advance(s.engine).waitForMainPhase(0);
-    // Keep the Lv.3 host alive through the security check; inert Lv.3 fixtures need 20,000 DP.
     s.perm("egg").baseDP = 20_000;
     s.perm("egg").currentDP = 20_000;
     expect(
@@ -245,8 +244,6 @@ describe("BT24-002 Bukamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    // Bukamon resolves first, then Dan's effect makes that same host attack,
-    // leaving it suspended again.
     expect(s.perm("host").isSuspended).toBe(true);
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("host"))).toBe(true);
     expect(s.perm("dan").isSuspended).toBe(true);

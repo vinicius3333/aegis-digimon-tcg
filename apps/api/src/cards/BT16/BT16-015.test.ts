@@ -11,14 +11,6 @@ import "../BT2/BT2-019.js";
 import "../ST1/ST1-16.js";
 import "../index.js";
 
-/**
- * BT16-015 Phoenixmon (X Antibody). The behavioral tests below cover the `[Your Turn]` clause
- * "while [Phoenixmon] or [X Antibody] is in this Digimon's digivolution cards, attach [End of
- * Attack] to all of this Digimon's [On Deletion] effects", against the card's KB rulings:
- * Q2614 (the projection reaches inherited [On Deletion] effects, each still gated by its own
- * conditions) and Q2615 (the projected copies stop applying when the source clause no longer
- * holds). Every timing assertion uses a public play, digivolve, attack, or end-phase intent.
- */
 describe("BT16-015", () => {
   it("compiles Blitz, exact alternate evolution, and split name/trait stack conditions", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Phoenixmon"], cost: 2, isAlternate: true }]);

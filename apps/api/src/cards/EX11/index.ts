@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./EX11-001.js";
 import "./EX11-002.js";
 import "./EX11-003.js";

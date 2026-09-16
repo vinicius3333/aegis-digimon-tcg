@@ -174,17 +174,12 @@ describe("BT21-102 Tai Kamiya", () => {
         effectKey: `BT21-102/ir-${EffectTiming.OnDeclaration}-0`,
       }),
     ).toEqual({ ok: true });
-    // The background `runOneTurn()` turn loop parks on a timer between phases, so this
-    // resolution's milestone lies past a timer boundary `settle` alone cannot cross.
     await settleAcrossTimers(
       () =>
         s.state.players[0]!.deck.at(-1)?.instanceId === taiInstanceId &&
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-009"),
     );
     await settle();
-    // The Hero enters without paying: no play cost may reach the gauge. Asserting the gauge
-    // value itself would instead read whatever the turn loop has done with it by now — with
-    // no legal action left, the turn auto-ends and passes memory to the opponent.
     const paidPlayCost = () => s.events.some((event) => event.kind === "memoryChanged" && event.reason === "playCard");
     expect(paidPlayCost()).toBe(false);
 
@@ -224,8 +219,6 @@ describe("BT21-102 Tai Kamiya", () => {
         effectKey: `BT21-102/ir-${EffectTiming.OnDeclaration}-0`,
       }),
     ).toEqual({ ok: true });
-    // The background `runOneTurn()` turn loop parks on a timer between phases, so this
-    // resolution's milestone lies past a timer boundary `settle` alone cannot cross.
     await settleAcrossTimers(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-009"),
     );

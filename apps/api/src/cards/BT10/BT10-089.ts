@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT10-089 (Akari Hinomoto).
-// OnPlay PlayWithoutCost source zones: text reads "from your hand or from
-// under one of your Tamers", but the declarative effect record only searched "hand" —
-// the "under one of your Tamers" zone was dropped. Add "underTamers" (the
-// zone used by BT19-026's analogous PlayWithoutCost fix) so cards stacked
-// beneath a Tamer permanent qualify too. KB Q2021 confirms this is limited
-// to cards directly under a Tamer permanent, not the digivolution stack of
-// a Digimon that itself digivolved from a Tamer.
 const compiled: CompiledCard = {
   effects: [
     {

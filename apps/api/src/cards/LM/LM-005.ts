@@ -1,17 +1,3 @@
-// LM-005 Amphimon — hand-fixed IR.
-// KB Q3994: trash 2 blue cards => trash 1 under each of 2 Digimon/Tamers (usePaidCount scales).
-// KB Q3995: WhenAttacking SecurityAttack+1 can fire multiple times in a turn if Digimon attacks again.
-// Fixes applied:
-//   - the return target filter adds digivolutionCards:"none"
-//   - WhenAttacking: added SecurityAttack+1 for the turn behind a return-3-Jellymon cost
-// Audit fixes (LM audit):
-//   - the [Hand][Counter] parenthetical is the <Blast Digivolve> keyword; without the marker
-//     the cost waiver was never registered for this card
-//   - "trash any 1 card UNDER your opponent's Digimon or Tamers" trashes DIGIVOLUTION CARDS,
-//     not the permanents themselves — TrashDigivolution with scope "acrossDigimon" pools the
-//     opponent's stacks so Q3994's "1 under each of 2" selection is reachable
-//   - `usePaidCount` reads the count paid by the action's OWN cost, so the hand trash moves
-//     from a preceding action into that cost (the EX12-030 pattern for the same archetype)
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

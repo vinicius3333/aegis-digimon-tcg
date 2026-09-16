@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Text: [On Play][When Digivolving] Until the end of your opponent's turn, 1 of your opponent's
-// Digimon gets -3000 DP and gains "[Start of Your Main Phase] This Digimon attacks."
-// KB Q3625: if two Digimon gain this effect, both triggers fire simultaneously at start of
-// opponent's main phase but only the first attacker actually attacks (the second can't).
-// Inherited [Opponent's Turn][Once Per Turn]: When an opponent's Digimon attacks, you may
-// reveal the top 3 cards of your deck. You may play 1 black or yellow Digimon with a play
-// cost of 3 or less among them without paying the cost. Trash the rest.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -21,15 +14,12 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            // Bind the selected Digimon so the GainEffect below can reference it.
             bindAs: "dpTarget",
           },
           amount: -3000,
           duration: "untilOpponentTurnEnd",
         },
         {
-          // Grant the SAME targeted Digimon "[Start of Your Main Phase] This Digimon attacks."
-          // Uses GainEffect (new primitive — see LANE_A.md CAP-A12).
           kind: "GainEffect",
           target: {
             filter: {
@@ -111,7 +101,6 @@ export const compiled: CompiledCard = {
           event: "whenOpponentAttacks",
           actions: [
             {
-              // "You may reveal" — optional reveal.
               kind: "RevealAdd",
               revealCount: 3,
               add: [

@@ -28,8 +28,6 @@ describe("BT24-058 Blimpmon", () => {
     for (const effect of effects ?? []) {
       const reveal = effect.actions?.[0];
       expect(reveal).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckTopOrBottom" });
-      // One add entry offers both printed destinations: `to` is the default and `orDispositions`
-      // carries the alternative, which is the pair runRevealAdd presents as one choice.
       const additions = reveal?.kind === "RevealAdd" ? reveal.add : undefined;
       expect(additions).toHaveLength(1);
       expect(additions?.[0]).toMatchObject({

@@ -87,12 +87,8 @@ describe("ST12 Jesmon and Jesmon GX Royal Knights deck", () => {
         !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
-    // Digivolving costs 5 (4 -> -1) and Sistermon Ciel gives 1 back, so the turn player's
-    // memory returns to 0 — no memory ever rests on the opponent's side, so ＜Blitz＞ opens
-    // no extra attack window here. The turn then ends normally and hands the opponent 3.
     expect(s.engine.hasAcceptedBlitzAttack(s.perm("jesmon").permanentId)).toBe(false);
     expect(s.state.memory).toBe(-3);
-    // Jesmon GX is 15,000 DP and Sistermon Ciel contributes +2,000 DP.
     expect(s.perm("jesmon").currentDP).toBeGreaterThanOrEqual(17_000);
     expect(s.state.phase).toBe(Phase.End);
     expect(mainPhase.isOpen).toBe(false);

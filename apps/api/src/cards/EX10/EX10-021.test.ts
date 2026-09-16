@@ -8,22 +8,6 @@ import "../index.js";
 
 const CARD_ID = "EX10-021";
 
-/**
- * EX10-021 Belphemon: Sleep Mode (Lv.6 Green/Purple Mega, [Demon Lord]/[Seven Great Demon Lords]).
- *
- * Printed text:
- *   [Digivolve] [Belphemon: Rage Mode]: Cost 1
- *   [On Play] [When Digivolving] By placing 1 [Belphemon: Rage Mode] from your trash as this
- *     Digimon's top digivolution card, until your opponent's turn ends, this Digimon can't
- *     attack and your opponent's effects don't affect it.
- *   [Opponent's Turn] [Once Per Turn] When any of your opponent's Digimon suspend, by trashing
- *     2 cards in your hand, suspend 2 of their Digimon or Tamers.
- *
- * Every clause below is proved from a natural origin: `playCard` for [On Play], the alternate
- * [Belphemon: Rage Mode] digivolve route for [When Digivolving], an opponent's attack
- * declaration (which suspends the attacker) for the [Opponent's Turn] watcher, and the real
- * turn loop for the once-per-turn reset and the `untilOpponentTurnEnd` expiry.
- */
 describe("EX10-021 Belphemon: Sleep Mode", () => {
   it("matches the catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -98,7 +82,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
   });
 
   it("digivolves by the printed Purple Lv.5 route and by the alternate [Belphemon: Rage Mode]: Cost 1 route", async () => {
-    // Printed evolution cost: Purple, Lv.5, 3 memory.
     const normal = setupEngine(
       { 0: { battleArea: [{ card: "BT10-081", as: "base" }], hand: [{ card: CARD_ID, as: "sleep" }], trash: [] } },
       { autoDeclineOptional: true },
@@ -116,7 +99,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     expect(normal.state.memory).toBe(0);
     expect(normal.perm("base").stack.map((card) => card.cardId)).toEqual(["BT10-081"]);
 
-    // Alternate route: 1 memory from a [Belphemon: Rage Mode].
     const alternate = setupEngine(
       { 0: { battleArea: [{ card: "EX10-022", as: "rage" }], hand: [{ card: CARD_ID, as: "sleep" }] } },
       { autoDeclineOptional: true },
@@ -134,7 +116,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     expect(alternate.state.memory).toBe(0);
     expect(alternate.perm("rage").stack.map((card) => card.cardId)).toEqual(["EX10-022"]);
 
-    // Illegal source: a Green Lv.4 is neither the printed Purple Lv.5 nor a [Rage Mode].
     const illegal = setupEngine(
       { 0: { battleArea: [{ card: "BT1-070", as: "green4" }], hand: [{ card: CARD_ID, as: "sleep" }] } },
       { autoDeclineOptional: true },
@@ -168,8 +149,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    // Bias the placement toward the decoy first: only the exact [Belphemon: Rage Mode] name may
-    // be a candidate, so a wrong-name pick would show up as the decoy leaving the trash.
     preferred.push(s.inst("decoy").instanceId, s.inst("rage").instanceId);
     s.state.memory = 11;
     const sleepId = s.inst("sleep").instanceId;
@@ -186,7 +165,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
 
-    // "This Digimon can't attack": refused through the production attack intent, not just the ledger.
     expect(observe(s.engine).isRestricted(played, "attack")).toBe(true);
     expect(
       s.engine.applyIntent(0, {
@@ -200,10 +178,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // Fidelity fix: the printed reference is the bracketed exact name [Belphemon: Rage Mode], so
-  // the IR must use `nameExact`. It shipped as `match: "name"` (substring), which would have
-  // accepted any future printing whose name merely CONTAINS "Belphemon: Rage Mode" — the peer
-  // printing of the same clause, BT13-088, already used `nameExact`.
   it("accepts every [Belphemon: Rage Mode] printing and no other [Belphemon] card", async () => {
     for (const rageModePrinting of ["EX10-022", "BT13-091", "EX6-060"]) {
       const preferred: string[] = [];
@@ -222,7 +196,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
         { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
       );
       await s.ready();
-      // Both near-miss names sort ahead of the real one: a loose name match would take them.
       preferred.push(s.inst("belphemonX").instanceId, s.inst("sleepMode").instanceId, s.inst("rage").instanceId);
       s.state.memory = 11;
       const sleepId = s.inst("sleep").instanceId;
@@ -261,8 +234,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("rage").stack.length === 2);
 
-    // Bottom-most first: the field Rage Mode is the digivolution source, the trashed one is placed
-    // on TOP of the stack (immediately beneath Sleep Mode itself).
     expect(s.perm("rage").topCard!.cardId).toBe(CARD_ID);
     expect(s.perm("rage").stack.map((card) => card.instanceId)).toEqual([
       s.inst("rage").instanceId,
@@ -295,8 +266,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
 
     expect(s.perm("sleep").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("rage").instanceId]);
-    // `abortOnDecline` must abort the WHOLE clause: the immunity is a second IR action with no
-    // cost of its own, so a decline that only stopped the first action would leave it installed.
     expect(observe(s.engine).isRestricted(s.perm("sleep"), "attack")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("sleep"), "beAffected")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -307,7 +276,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
       {
         0: {
           hand: [{ card: CARD_ID, as: "sleep" }, "BT1-013"],
-          // A near-miss name and a same-set Digimon: neither is [Belphemon: Rage Mode].
           trash: [
             { card: "BT13-088", as: "otherBelphemon" },
             { card: "EX10-023", as: "sameSet" },
@@ -332,8 +300,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // KB Q5066 / Comprehensive Rules 15-15-5-1: an opponent effect that would suspend this Digimon
-  // does not suspend it. The opponent's effect is played naturally on their own turn.
   it("your opponent's effects don't affect it: an opposing [On Play] suspend leaves it unsuspended", async () => {
     const s = setupEngine(
       {
@@ -353,8 +319,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     await settle(() => s.perm("sleep").stack.length === 1);
     expect(observe(s.engine).isRestricted(s.perm("sleep"), "beAffected")).toBe(true);
 
-    // The opponent's turn: Sleep Mode is their ONLY Digimon target, so "Suspend 1 of your
-    // opponent's Digimon" has nowhere else to land.
     s.state.turnSeat = 1;
     s.state.memory = 4;
     await s.ready();
@@ -368,9 +332,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // KB Q5067 / CR 15-15-5-3: a card that isn't affected by effects can still be CHOSEN.
-  // BT1-070's Suspend target carries `allowUnaffectableChoice`, so the immune Digimon is offered
-  // even as the only candidate; the effect then does nothing to it.
   it("KB Q5067: an immune Digimon is still offered as a candidate for an opponent's effect", async () => {
     const s = setupEngine(
       {
@@ -402,13 +363,10 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
       .slice(before)
       .filter((entry) => entry.req.kind === "chooseTargets")
       .flatMap((entry) => entry.req.options?.candidateInstanceIds ?? []);
-    // A permanent-target decision addresses permanentIds, not top-card instanceIds.
     expect(offered).toContain(s.perm("sleep").permanentId);
     expect(s.perm("sleep").isSuspended).toBe(false);
   });
 
-  // KB Q5070 / CR 15-15-5-2: once the "effects don't affect" window closes, the card can be
-  // affected again. `untilOpponentTurnEnd` is proved through the real turn loop, not a sweep.
   it("both halves last until the opponent's turn ends, and the same effect then lands", async () => {
     const s = setupEngine(
       {
@@ -436,11 +394,8 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    // Still inside the opponent's turn: both halves hold.
     expect(observe(s.engine).isRestricted(s.perm("sleep"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("sleep"), "beAffected")).toBe(true);
-    // Enough memory that the play does not drive memory negative and hand the turn back:
-    // an immediate turn switch would run seat 0's unsuspend phase and erase the state under test.
     s.state.memory = 6;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspenderA").instanceId })).toEqual({
       ok: true,
@@ -451,7 +406,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
 
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-    // The opponent's turn ended: both halves are gone.
     expect(observe(s.engine).isRestricted(s.perm("sleep"), "attack")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("sleep"), "beAffected")).toBe(false);
 
@@ -468,8 +422,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     await loop;
   });
 
-  // [Opponent's Turn] watcher, natural origin: declaring an attack suspends the attacker
-  // (combat/controller.ts `fireSuspended`), which is "any of your opponent's Digimon suspend".
   it("[Opponent's Turn]: an opposing attack declaration pays 2 hand cards and suspends 2 of their permanents", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -513,21 +465,16 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     await settle(() => s.perm("digimon").isSuspended && s.perm("tamer").isSuspended);
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Exactly 2 cards left the hand; the spare stayed.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("spare").instanceId]);
-    // The opponent's unblocked attack also checks one of my security cards into the same trash,
-    // so the cost is asserted by identity, not by a total count.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("cost1").instanceId, s.inst("cost2").instanceId]),
     );
-    // Exactly 2 of THEIR permanents suspended (both kinds are legal targets); mine did not.
     expect(s.perm("digimon").isSuspended).toBe(true);
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("sleep").isSuspended).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // KB Q5065: a "by" cost can't be partially paid.
   it("cannot pay the cost with a single card in hand: nothing is trashed and nothing suspends", async () => {
     const s = setupEngine(
       {
@@ -659,7 +606,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
       expect.arrayContaining([s.inst("a1").instanceId, s.inst("a2").instanceId]),
     );
 
-    // Second suspension in the SAME opponent turn: the gate refuses it, so no further cost is paid.
     s.perm("victim1").isSuspended = false;
     s.perm("victim2").isSuspended = false;
     expect(
@@ -678,7 +624,6 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     expect(s.perm("victim1").isSuspended).toBe(false);
     expect(s.perm("victim2").isSuspended).toBe(false);
 
-    // Through the real turn loop to the opponent's NEXT turn: the once-per-turn use has reset.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);

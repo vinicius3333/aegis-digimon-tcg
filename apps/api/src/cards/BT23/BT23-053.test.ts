@@ -56,14 +56,6 @@ describe("BT23-053 Strikedramon", () => {
     });
   });
 
-  // --- the [Your Turn] Option-placement clause, driven by public intents -------------------
-
-  /**
-   * `BT23-100` is a White Option whose printed `[Main]` body draws 1 and then places itself in
-   * the battle area, so a plain public `playCard` reaches the option-permanent placement seam
-   * (`primitives.placeOptionAsPermanent`) that fires `whenOptionPlayed`. Strikedramon supplies
-   * the on-field [CS] Digimon that waives BT23-100's colour requirement.
-   */
   it("digivolves into Cyberdramon for exactly 1 when its controller publicly plays an Option", async () => {
     const s = setupEngine(
       {
@@ -95,9 +87,7 @@ describe("BT23-053 Strikedramon", () => {
     const strike = s.state.players[0]!.battleArea.find((p) => p.permanentId === permanentId);
     expect(strike?.topCard?.instanceId).toBe(cyberInstanceId);
     expect(strike?.stack.at(-1)?.instanceId).toBe(strikeInstanceId);
-    // The Option really was placed as its own battle-area permanent (the event this clause watches).
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionInstanceId)).toBe(true);
-    // Play cost 3 for the Option, then the printed 3 for Cyberdramon reduced by 2.
     expect(s.state.memory).toBe(10 - 3 - 1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("neutral").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === cyberInstanceId)).toBe(false);
@@ -166,8 +156,6 @@ describe("BT23-053 Strikedramon", () => {
     const strike = s.state.players[0]!.battleArea.find((p) => p.permanentId === permanentId);
     expect(strike?.topCard?.instanceId).toBe(chirinmonInstanceId);
     expect(strike?.stack.at(-1)?.instanceId).toBe(strikeInstanceId);
-    // BT22-037 is Yellow: only its alternate "Lv.4 w/[CS] trait: Cost 3" recipe fits a Black
-    // Strikedramon, so 1 here also pins that the alternate requirement was the one charged.
     expect(s.state.memory).toBe(10 - 3 - 1);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
@@ -207,7 +195,6 @@ describe("BT23-053 Strikedramon", () => {
     expect(strike?.topCard?.cardId).toBe("BT23-053");
     expect(strike?.stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === cyberInstanceId)).toBe(true);
-    // Only the Option's own play cost was paid.
     expect(s.state.memory).toBe(10 - 3);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
@@ -252,12 +239,6 @@ describe("BT23-053 Strikedramon", () => {
     await loop;
   });
 
-  /**
-   * The printed clause still digivolves, so the hand card must satisfy a real digivolution
-   * requirement. `BT10-025` is a Blue Cyberdramon (Blue Lv.4 only) and `BT22-064` is a Black
-   * Lv.6 CS card (Lv.5 only): both match the name/trait filter and neither has a legal route
-   * from a Black Lv.4 Strikedramon.
-   */
   it("refuses hand cards that match the name or trait but have no legal digivolution route", async () => {
     const s = setupEngine(
       {
@@ -297,11 +278,6 @@ describe("BT23-053 Strikedramon", () => {
     await loop;
   });
 
-  /**
-   * "your Option cards" in isolation. The opponent cannot publicly play an Option during seat
-   * 0's turn, so the placement seam is driven directly for an OPPONENT-owned Option while seat
-   * 0's Main is open — the one arrangement where only `sourceFilter.controller` can refuse.
-   */
   it("ignores an opponent's Option placed while its own controller's Main is open", async () => {
     const s = setupEngine(
       {
@@ -382,11 +358,6 @@ describe("BT23-053 Strikedramon", () => {
     await loop;
   });
 
-  /**
-   * [Your Turn] boundary. No public intent places a player's own Option during the opponent's
-   * turn (BT23-100's placement rides its own [Main] body), so the placement seam is driven
-   * directly here; everything else — the turn, the phase, the watcher — is production.
-   */
   it("does not fire for its controller's own Option placed during the opponent's turn", async () => {
     const s = setupEngine(
       {
@@ -414,7 +385,6 @@ describe("BT23-053 Strikedramon", () => {
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-100"));
 
-    // The watched event really happened: the Option is a seat-0 battle-area permanent.
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-100")).toBe(true);
     expect(s.state.turnSeat).toBe(1);
     const strike = s.state.players[0]!.battleArea.find((p) => p.permanentId === permanentId);
@@ -424,8 +394,6 @@ describe("BT23-053 Strikedramon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // --- inherited clause -------------------------------------------------------------------
 
   it("grants the inherited host +1000 DP on its controller's turn and the opponent's turn", async () => {
     const s = setupEngine(
@@ -468,8 +436,6 @@ describe("BT23-053 Strikedramon", () => {
     });
   });
 
-  // --- printed digivolution routes onto Strikedramon --------------------------------------
-
   it("digivolves for 2 from a black level-3 source through the printed colour recipe", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT3-059", as: "base" }], hand: [{ card: "BT23-053", as: "strike" }], deck: DECK },
@@ -487,7 +453,6 @@ describe("BT23-053 Strikedramon", () => {
     expect(s.perm("base").topCard.instanceId).toBe(strikeInstanceId);
     expect(s.perm("base").stack.at(-1)?.instanceId).toBe(baseInstanceId);
     expect(s.state.memory).toBe(5 - 2);
-    // The printed bonus draw for a digivolution.
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 

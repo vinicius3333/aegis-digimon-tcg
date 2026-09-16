@@ -5,30 +5,9 @@ import { assertNoLoudGap, settle, settleAcrossTimers, setupEngine } from "../../
 import "../index.js";
 import { compiled } from "./BT23-088.js";
 
-/**
- * BT23-088 K (Purple Tamer, cost 3, [CS]).
- *
- * [Start of Your Main Phase] By trashing 1 card with the [Undead], [Dark Animal] or [CS]
- * trait from your hand, gain 1 memory.
- * [End of Your Turn] By deleting this Tamer, 1 of your Digimon may digivolve into a level 5
- * or lower Digimon card with the [Undead] or [Dark Animal] trait in the trash without paying
- * the cost.
- * [Security] Play this card without paying the cost.
- *
- * Fixture cast:
- * - base  BT2-067 DemiDevimon, Lv.3 Purple, no printed effects (no trigger noise).
- * - into  BT23-063 Sangloupmon, Lv.4 Purple [Dark Animal]/[CS], EvoCost Purple Lv.3 = 2.
- * - BT23-066 Matadormon, Lv.5 Purple [Undead], EvoCost Purple Lv.4 — trait-legal, requirement
- *   illegal from a Lv.3 base.
- * - BT23-068 GranDracmon, Lv.6 Purple [Dark Animal] — trait-legal, level-illegal.
- * - BT10-074 Quetzalmon, Lv.4 Purple [Mythical Beast], EvoCost Purple Lv.3 — requirement-legal,
- *   trait-illegal.
- */
 const DECK = Array<string>(10).fill("BT1-009");
 const SECURITY = ["BT1-010", "BT1-011", "BT1-012"];
-/** Memory handed to the incoming turn player when a turn ends with no memory swing. */
 const EXPECTED_MEMORY_AFTER_HANDOVER = 3;
-/** A card the turn player can always play, so a hand-laid Main phase is not auto-passed. */
 const NEUTRAL = "BT1-009";
 
 describe("BT23-088 K", () => {
@@ -49,9 +28,6 @@ describe("BT23-088 K", () => {
       maxCountInDeck: 4,
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
-    // The catalog stores two non-breaking spaces ("trait from your", "trait in the")
-    // where the official card list prints ordinary spaces. Cosmetic, and cards.json is
-    // coordinator-owned, so the comparison normalizes them and the report records the defect.
     expect(getCardDefinition("BT23-088")!.effectText!.replace(/\u00a0/g, " ")).toBe(
       "[Start of Your Main Phase] By trashing 1 card with the [Undead], [Dark Animal] or [CS] trait from your hand, gain 1 memory.\n[End of Your Turn] By deleting this Tamer, 1 of your Digimon may digivolve into a level 5 or lower Digimon card with the [Undead] or [Dark Animal] trait in the trash without paying the cost.",
     );
@@ -97,8 +73,6 @@ describe("BT23-088 K", () => {
       target: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } },
       cost: { kind: "deleteOwn", target: { count: 1, isSelf: true, filter: { isSelfRef: true } } },
     });
-    // No `ignoreReqs` flag: "without paying the cost" waives the memory, never the
-    // digivolution requirement (comprehensive rules; see the negative tests below).
     const flags = action as unknown as Record<string, unknown>;
     expect(flags.ignoreReqs).toBeUndefined();
     expect(flags.ignoreRequirements).toBeUndefined();
@@ -109,9 +83,6 @@ describe("BT23-088 K", () => {
       levelComparison: { op: "lte", value: 5 },
       nameOrTrait: [{ tokens: ["Undead", "Dark Animal"], match: "trait" }],
     });
-    // "1 of your Digimon" is battle-area only (comprehensive rules 3-4-5-3): the target filter
-    // carries no `zone`, and the engine's permanent targeting defaults zone-less filters to the
-    // battle area. The breeding-area negative below is the behavioral proof.
     expect((flags.target as { filter: { zone?: unknown } }).filter.zone).toBeUndefined();
   });
 
@@ -144,7 +115,6 @@ describe("BT23-088 K", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // The hand-laid turn opens at 0 memory; the trash cost gains exactly 1.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([eligibleId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(ineligibleId);
@@ -231,7 +201,6 @@ describe("BT23-088 K", () => {
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // The opponent's main phase gives seat 0 no memory gain and trashes nothing of theirs.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([firstId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(secondId);
 
@@ -272,7 +241,6 @@ describe("BT23-088 K", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // K is deleted as the cost; the trash card is now the top of the base's stack.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kId)).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(kId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(sangloupmonId);
@@ -280,11 +248,8 @@ describe("BT23-088 K", () => {
     expect(evolved.topCard?.instanceId).toBe(sangloupmonId);
     expect(evolved.stack.map((card) => card.instanceId)).toEqual([baseId]);
     expect(evolved.currentDP).toBe(getCardDefinition("BT23-063")!.dp);
-    // Free route: the printed Cost 2 is not paid, but the digivolve draw still happens.
     expect(s.state.players[0]!.hand).toHaveLength(handBefore + 1);
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
-    // Handover memory only. Sangloupmon's printed Cost 2 was never drained: the declined
-    // branch below reaches the same value from the same board.
     expect(s.state.memory).toBe(EXPECTED_MEMORY_AFTER_HANDOVER);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
@@ -322,8 +287,6 @@ describe("BT23-088 K", () => {
     expect(s.perm("base").topCard?.cardId).toBe("BT2-067");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sangloupmonId);
     expect(s.state.players[0]!.hand).toHaveLength(1);
-    // Control for the accepted branch: the same board reaches the same handover memory, so the
-    // accepted digivolve drained no memory.
     expect(s.state.memory).toBe(EXPECTED_MEMORY_AFTER_HANDOVER);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -389,13 +352,10 @@ describe("BT23-088 K", () => {
     const sangloupmonId = s.inst("sangloupmon").instanceId;
 
     const loop = s.engine.startTurnLoop();
-    // A breeding resident opens the interactive breeding window; take the "do nothing" action
-    // so the turn reaches Main.
     await settleAcrossTimers(() => s.state.phase === Phase.Breeding);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    // Seat 1 has no breeding resident, so its breeding window auto-skips.
     await advance(s.engine).waitForMainPhase(1);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kId)).toBe(true);
@@ -431,7 +391,6 @@ describe("BT23-088 K", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kId)).toBe(true);
 
-    // The opponent ending THEIR turn must not delete K or evolve seat 0's Digimon.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kId)).toBe(true);
@@ -466,7 +425,6 @@ describe("BT23-088 K", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(kId);
-    // The security play costs nothing: only the attacker's own turn memory stands.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);

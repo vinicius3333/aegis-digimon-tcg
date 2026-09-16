@@ -6,11 +6,10 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-048.js";
 
-const HAND_HUDIE = "BT23-037"; // Tentomon: Hudie, play cost 3, no On Play noise.
-const HAND_HUDIE_TOO_EXPENSIVE = "BT23-055"; // Cyberdramon: Hudie, play cost 7.
-const HAND_NON_HUDIE = "BT1-009"; // Kunemon: play cost 3, no Hudie trait.
+const HAND_HUDIE = "BT23-037";
+const HAND_HUDIE_TOO_EXPENSIVE = "BT23-055";
+const HAND_NON_HUDIE = "BT1-009";
 
-/** End `seat`'s main phase; the turn loop auto-passes a seat with no legal main action left. */
 function endMainPhase(s: ReturnType<typeof setupEngine>, seat: 0 | 1): void {
   const result = s.state.turnSeat === seat ? s.engine.applyIntent(seat, { type: "endPhase" }) : { ok: true };
   expect(result).toEqual({ ok: true });
@@ -38,7 +37,6 @@ describe("BT23-048 Gotsumon", () => {
       attributes: ["Data"],
       types: ["Rock", "Hudie", "CS"],
     });
-    // The whole printed contract, clause for clause (catalog text carries U+00A0 separators).
     expect(getCardDefinition("BT23-048")?.effectText?.replace(/\u00a0/g, " ")).toBe(
       "[Digivolve] Lv.2 w/[CS] trait: Cost 0 \n\n" +
         "[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Hudie] trait and 1 Tamer " +
@@ -268,8 +266,6 @@ describe("BT23-048 Gotsumon", () => {
           hand: [
             { card: HAND_HUDIE, as: "first" },
             { card: HAND_HUDIE, as: "second" },
-            // Black Option matching the host's colour: the public route to a second attack in
-            // the same turn.
             { card: "ST15-15", as: "unsuspender" },
           ],
           deck: Array(12).fill("BT1-010"),
@@ -301,7 +297,6 @@ describe("BT23-048 Gotsumon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("host").isSuspended).toBe(true);
 
-    // Unsuspend the host publicly and attack again in the SAME turn.
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
       ok: true,
@@ -312,8 +307,6 @@ describe("BT23-048 Gotsumon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === secondId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === secondId)).toBe(false);
 
-    // A full turn cycle through the real loop: the host unsuspends in its own unsuspend phase and
-    // the once-per-turn use resets.
     endMainPhase(s, 0);
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
@@ -362,19 +355,16 @@ describe("BT23-048 Gotsumon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // End of the CONTROLLER's turn: the played Digimon survives.
     endMainPhase(s, 0);
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eligibleId)).toBe(true);
 
-    // End of the OPPONENT's turn: it is deleted (Q5567).
     endMainPhase(s, 1);
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eligibleId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === eligibleId)).toBe(true);
-    // Only the Digimon this effect played is deleted; the host keeps its stack.
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual(["BT23-050"]);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
@@ -403,8 +393,6 @@ describe("BT23-048 Gotsumon", () => {
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
 
-    // The inherited [When Attacking] play resolves inside the attacker's window; ＜Alliance＞
-    // resolves after it and re-reads the board, so the Digimon just played is a legal ally.
     await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === eligibleId);
     expect(played).toBeDefined();
@@ -415,15 +403,10 @@ describe("BT23-048 Gotsumon", () => {
 
     const ally = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === eligibleId)!;
     expect(ally.isSuspended).toBe(true);
-    // ＜Alliance＞ adds its ally's DP and one extra security check to the attack.
     expect(securityBefore - s.state.players[1]!.security.length).toBe(2);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
-  // CR §15-4 and KB Q5257 make ＜Alliance＞ and every [When Attacking] effect on the attacker
-  // simultaneous triggers that the controller orders — including a [When Attacking] effect the
-  // attacker only has as an INHERITED effect from a digivolution card (BT23-048 under a
-  // printed-＜Alliance＞ Seadramon). The window must name both.
   it("orders inherited [When Attacking] against Alliance in one window", async () => {
     const s = setupEngine(
       {
@@ -453,15 +436,10 @@ describe("BT23-048 Gotsumon", () => {
     expect(pending.seat).toBe(0);
     const keys = (JSON.parse(pending.payloadJson) as { triggerKeys?: string[] }).triggerKeys ?? [];
     expect(keys).toHaveLength(2);
-    // One key is the printed ＜Alliance＞, the other the inherited BT23-048 play.
     expect(keys.some((key) => /Alliance/i.test(key))).toBe(true);
     expect(keys.some((key) => /Alliance/i.test(key) === false)).toBe(true);
   });
 
-  // KB Q5568: an effect that triggers at the end of the turn and this card's end-of-opponent-turn
-  // deletion are simultaneous pending processing, so the TURN PLAYER chooses the processing
-  // order — here seat 1, who controls EX9-033 Kaguyamon's [End of Your Turn] effect, while the
-  // deletion belongs to seat 0's Digimon. See docs/audits/BT23.md#end-turn-ordering.
   it("offers the turn player the order of the end-of-turn trigger and this deletion (Q5568)", async () => {
     const s = setupEngine(
       {
@@ -505,7 +483,6 @@ describe("BT23-048 Gotsumon", () => {
     await settleAcrossTimers(() => s.state.pendingDecision?.kind === "orderTriggers");
     const pending = s.state.pendingDecision;
     expect(pending?.kind).toBe("orderTriggers");
-    // The turn player orders, even though the deletion is the opponent's Digimon.
     expect(pending?.seat).toBe(1);
     const keys = (JSON.parse(pending!.payloadJson) as { triggerKeys?: string[] }).triggerKeys ?? [];
     expect(keys).toHaveLength(2);

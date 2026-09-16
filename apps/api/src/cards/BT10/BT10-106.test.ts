@@ -22,7 +22,6 @@ describe("BT10-106 Justice Kick", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
-    // Justice Kick costs 12; seven Tamers reduce that to 5.
     expect(s.state.memory).toBe(5);
   });
 
@@ -57,7 +56,6 @@ describe("BT10-106 Justice Kick", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
-    // Justice Kick costs 12; thirteen Tamers reduce it to zero, never below zero.
     expect(s.state.memory).toBe(0);
   });
 
@@ -76,7 +74,6 @@ describe("BT10-106 Justice Kick", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
-    // Only the one own Tamer reduces Justice Kick's cost: 12 - 1 = 11.
     expect(s.state.memory).toBe(1);
   });
 
@@ -99,7 +96,6 @@ describe("BT10-106 Justice Kick", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
-    // The Tamer remains in the original owner's area but is controlled by the opponent, so it does not count.
     expect(s.state.memory).toBe(0);
   });
 

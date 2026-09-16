@@ -55,8 +55,6 @@ describe("BT26-101 compiled fidelity", () => {
           battleArea: [{ card: "BT26-009", as: "tsDigimon" }],
         },
       },
-      // No opponent Digimon exists, so the modal's Delete branch has nothing to hit — steer
-      // the chooseOption decision to the Unsuspend branch instead.
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
     );
     withTs.state.memory = 4;
@@ -159,7 +157,6 @@ describe("BT26-101 compiled fidelity", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
       },
-      // Choose the Delete branch (index 0) of the modal.
       { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     s.state.memory = 4;
@@ -208,7 +205,6 @@ describe("BT26-101 compiled fidelity", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 2000 }] },
       },
-      // Choose the Delete branch (index 0) of the modal.
       { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     s.state.memory = 4;

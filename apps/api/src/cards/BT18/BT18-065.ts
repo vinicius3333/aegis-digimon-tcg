@@ -1,5 +1,3 @@
-// HAND-FIXED IR for BT18-065 — do not regenerate.
-// WhenDigivolving PlaceUnder: takes up to 2 Vemmon from trash under this Digimon at the bottom.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {

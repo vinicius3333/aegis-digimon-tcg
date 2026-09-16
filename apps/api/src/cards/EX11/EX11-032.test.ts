@@ -285,8 +285,6 @@ describe("EX11-032 GrandGalemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    // The target deletes, while the competing battle-win watcher remains a public
-    // ordering seam when the losing Digimon carries an inherited On Deletion effect.
     expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain("BT1-012");
     expect(s.perm("host").isSuspended).toBe(true);
     assertNoLoudGap(s);

@@ -70,8 +70,6 @@ describe("LM-044 Ghoulmon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId), 2000);
 
-    // The discard needs 5 or more cards; the deletion only needs 4 or fewer, and both
-    // sentences are evaluated on their own.
     expect(s.state.players[1]!.hand).toHaveLength(4);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerInstanceId);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);

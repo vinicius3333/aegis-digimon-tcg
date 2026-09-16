@@ -153,7 +153,6 @@ describe("EX3-032 Majiramon", () => {
     expect(
       s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    // Net Security Attack is -1, which floors at 0 real checks: no security event fires at all.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
 

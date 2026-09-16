@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited: D-Brigade raises the deletion target's play-cost ceiling; it does not
-// reduce the Option's own play cost (KB Q1277).
 const compiled: CompiledCard = {
   effects: [
     {

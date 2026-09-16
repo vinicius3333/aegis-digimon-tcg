@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q4181: the "by returning 3 cards" cost must be fulfilled in full (all 3 cards must be returned).
 const compiled: CompiledCard = {
   effects: [
     {

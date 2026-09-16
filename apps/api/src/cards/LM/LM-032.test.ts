@@ -5,8 +5,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-032.js";
 
-// The six coloured Scrambles share one printed card; each is proven on its own colour so a
-// colour-swapped regression in one module cannot hide behind another.
 async function openAfterStartOfTurn(s: ReturnType<typeof setupEngine>): Promise<{ turn: Promise<void> }> {
   const turn = s.engine.runOneTurn();
   const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
@@ -17,7 +15,6 @@ async function openAfterStartOfTurn(s: ReturnType<typeof setupEngine>): Promise<
 
 async function closeTurn(s: ReturnType<typeof setupEngine>, turn: Promise<void>): Promise<void> {
   const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-  // Production may auto-end the Main phase; ending an already-closed one is not an assertion.
   if (mainPhase.isOpen) {
     const ended = s.engine.applyIntent(0, { type: "endPhase" });
     if (!ended.ok) throw new Error(`Could not end the Main phase: ${ended.reason}`);
@@ -31,7 +28,6 @@ describe("LM-032 Purple Scramble", () => {
       { 0: { battleArea: [{ card: "BT10-072", as: "host" }], hand: [{ card: "LM-032", as: "option" }, "BT14-075"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // 2 to use the Option, then 0 for the reduced (printed cost 3) digivolution.
     s.state.memory = 2;
     await s.ready();
 

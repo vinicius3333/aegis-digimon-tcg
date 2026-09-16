@@ -6,38 +6,6 @@ import { registeredCompiledCards } from "../../engine/effects/interpreter/compil
 import { compiled as EX13_072 } from "./EX13-072.js";
 import "../index.js";
 
-// Fixtures (every peer module is loaded through `../index.js`, so each behaves as printed):
-//   BT20-051 Raptordramon — Black/Yellow Lv.4, 6000 DP, traits [Cyborg]/[X Antibody]/[Chronicle].
-//            The MATCHING attacker. Prints only a [Digivolve] header and a [When Digivolving]
-//            clause, so nothing of its own fires on a plain attack.
-//   BT13-063 Dorumon — Black Lv.3, 3000 DP, traits [Beast]/[X Antibody], NO printed text. The
-//            NEAR-MATCH attacker: it carries the sibling trait that is printed next to
-//            [Chronicle] on every BT20 Chronicle card, but not [Chronicle] itself.
-//   BT1-013  Muchomon — Red Lv.3, 5000 DP, no effects: the wholly unrelated attacker.
-//   P-204    Release of the Sealed Knight! — Black Option, use cost 3, traits
-//            [X Antibody]/[Chronicle]. The MATCHING Option for the trait branch; its cost is
-//            high enough for the "-1" to be observable, and it is Black, so this card's own
-//            Black Tamer already satisfies the colour requirement a REDUCTION (unlike a waiver)
-//            leaves in force (§4-22-3).
-//   BT20-095 Fellowship of Hope's Keepers — Black Option, traits [X Antibody]/[Chronicle]; used
-//            here only as the [Chronicle] trash-cost card for clause 1. It is deliberately NOT
-//            the clause-2 Option fixture: its own [Main] ends with "place this card in the
-//            battle area" and, used through this card, the instance ends up in no zone at all
-//            (not hand, board, trash or deck) — a peer-module/self-place seam that would make
-//            a clause-2 endpoint unassertable. Reported, not worked around by weakening a claim.
-//   BT9-109  X Antibody — White Option, use cost 0, trait [X Antibody]. The MATCHING Option for
-//            the `[X Antibody]` NAME branch. It waives its own colour requirement while its
-//            controller has a Digimon in play, and its [Main] places itself under a Digimon.
-//   BT9-104  X Digivolution! — Black Option, cost 3, trait [X Antibody]. The TRAIT near-match
-//            negative: the sibling trait printed next to [Chronicle] on the BT20 cards, no
-//            [Chronicle] of its own, and a name that is not [X Antibody].
-//   NOT USED as a negative: EX5-070 X Antibody Proto Form. Its printed
-//            "[Rule] Name: Also treated as [X Antibody]." makes it a genuine exact-name match
-//            (`effectiveStaticNames`), so it is a true positive for the name branch, not a
-//            near-miss — exactly the fixture trap the EX13 review notes warn about.
-//   BT2-103  Spiral Sword — Black Option, cost 1, no traits: the unrelated negative.
-//   BT1-009 / BT1-011 / BT1-012 — inert neutral Digimon used as spare hand cards, deck filler
-//            and the defender's single security card.
 const CARD_ID = "EX13-072";
 
 describe("EX13-072 Kota Domoto", () => {
@@ -106,9 +74,7 @@ describe("EX13-072 Kota Domoto", () => {
         },
       },
     ]);
-    // A reduction, never a waiver: the printed clause says "with the cost reduced by 1".
     expect(watcher.actions[0]).not.toHaveProperty("waiveColorRequirement");
-    // No printed cost ceiling, so none is encoded (a `playCostLte` would silently cap the use).
     expect(watcher.actions[0]).not.toHaveProperty("playCostLte");
 
     expect(EX13_072.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
@@ -116,11 +82,6 @@ describe("EX13-072 Kota Domoto", () => {
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // Clause 1 — [Start of Your Main Phase] By trashing 1 [Chronicle] trait card
-  //            from your hand, ＜Draw 1＞ and gain 1 memory.
-  // ---------------------------------------------------------------------------
 
   it("trashes a [Chronicle] card from hand for a draw and a memory through a real turn", async () => {
     const s = setupEngine(
@@ -149,10 +110,8 @@ describe("EX13-072 Kota Domoto", () => {
     await settle();
     const memoryAfterGate = s.state.memory;
 
-    // The [Chronicle] card left the hand for the trash.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("chronicleCard").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("chronicleCard").instanceId);
-    // One card was drawn, so the hand is back to its starting size and the deck is one shorter.
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("spare").instanceId);
@@ -161,7 +120,6 @@ describe("EX13-072 Kota Domoto", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
 
-    // The memory gain is the gauge value observed while the controller still held priority.
     expect(memoryAfterGate).toBeGreaterThanOrEqual(1);
   });
 
@@ -231,7 +189,6 @@ describe("EX13-072 Kota Domoto", () => {
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "kota" }],
-          // Both hand cards carry [X Antibody]; neither carries [Chronicle].
           hand: [
             { card: "BT9-104", as: "xAntibodyOption" },
             { card: "BT13-063", as: "xAntibodyDigimon" },
@@ -286,12 +243,6 @@ describe("EX13-072 Kota Domoto", () => {
     await turn;
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 2 — [Your Turn] When one of your [Chronicle] trait Digimon attacks, by
-  //            suspending this Tamer, you may use 1 [X Antibody] or 1 Option card
-  //            with the [Chronicle] trait from your hand with the cost reduced by 1.
-  // ---------------------------------------------------------------------------
-
   it("suspends itself and uses a [Chronicle] Option for 1 less than its printed cost", async () => {
     const s = setupEngine(
       {
@@ -321,7 +272,6 @@ describe("EX13-072 Kota Domoto", () => {
     await settle();
 
     expect(s.perm("kota").isSuspended).toBe(true);
-    // Printed use cost 3, reduced by 1: exactly 2 memory was paid.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("option").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
@@ -357,7 +307,6 @@ describe("EX13-072 Kota Domoto", () => {
     await settle();
 
     expect(s.perm("kota").isSuspended).toBe(true);
-    // Printed use cost 0 reduced by 1 cannot go below 0: no memory moved.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("xAntibody").instanceId);
   });
@@ -392,7 +341,6 @@ describe("EX13-072 Kota Domoto", () => {
     ).toEqual({ ok: true });
     await settle(() => false, 150);
 
-    // No Option matched either printed branch, so nothing was used and no memory moved.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("traitNearMiss").instanceId,
@@ -400,10 +348,6 @@ describe("EX13-072 Kota Domoto", () => {
     ]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
-    // The suspend cost was still paid: `autoAcceptOptional` accepts the cost window before the
-    // empty candidate set is known, the documented "a chosen 'may' pays first, finds nothing to
-    // hit, and the cost is not refunded" behaviour (EX13 review notes). A human controller who
-    // sees no eligible Option simply declines, so this is harness bookkeeping, not a rules claim.
     expect(s.perm("kota").isSuspended).toBe(true);
   });
 
@@ -543,10 +487,6 @@ describe("EX13-072 Kota Domoto", () => {
     await turn;
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 3 — [Security] Play this card without paying the cost.
-  // ---------------------------------------------------------------------------
-
   it("plays itself from security without paying its cost", async () => {
     const s = setupEngine({
       0: { security: [{ card: CARD_ID, as: "security", faceUp: true }], deck: ["BT1-011", "BT1-012"] },
@@ -560,7 +500,6 @@ describe("EX13-072 Kota Domoto", () => {
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === CARD_ID);
     expect(played?.topCard?.instanceId).toBe(s.inst("security").instanceId);
-    // Printed play cost 4 was waived entirely.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(s.inst("security").instanceId);
   });

@@ -77,7 +77,7 @@ describe("BT25-100 Iron Slash", () => {
     expect(s.perm("breedingHost").linked.map((card) => card.instanceId)).toContain(optionId);
     expect(s.perm("opponent").topCard.cardId).toBe("BT25-011");
     expect(s.perm("opponent").stack).toHaveLength(1);
-    expect(s.state.memory).toBe(0); // Option cost only; the link cost 2 was waived.
+    expect(s.state.memory).toBe(0);
   });
 
   it("linked face grants Collision, Piercing and +2000 DP as Digimon-facing state (Q6471)", async () => {
@@ -109,9 +109,6 @@ describe("BT25-100 Iron Slash", () => {
     ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
-  // CR 3-4-6: "the field" (what CR 16-42-3 scopes <Use Req.> to) is the battle area AND the
-  // breeding area, so a TS Digimon in breeding satisfies it. A TS Option placed in the battle
-  // area still doesn't (it's not a Digimon or Tamer).
   it("is enabled by a breeding TS Digimon but not by a TS Option in the battle area", async () => {
     const breeding = setupEngine(
       {
@@ -178,9 +175,6 @@ describe("BT25-100 Iron Slash", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId, useAs: "option" } as never)).toEqual({
       ok: true,
     });
-    // De-Digivolve 2 removes both cards from the top in one atomic move (BT25-075's
-    // top card and BT25-009 beneath it), so the stack goes straight from 3 to 1 — it
-    // never transits through 2.
     await settle(() => s.perm("opponent").stack.length === 1);
     expect(s.perm("opponent").stack).toHaveLength(1);
     expect(s.perm("opponent").topCard.cardId).toBe("BT25-011");

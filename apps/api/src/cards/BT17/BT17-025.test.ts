@@ -55,19 +55,12 @@ describe("BT17-025", () => {
           battleArea: [{ card: "BT4-083", as: "cerberusmon" }],
           trash: [{ card: "BT17-021", as: "revived" }],
           deck: ["BT1-011"],
-          // BT17-021 has its own On Play placement cost; keep a legal neutral
-          // level-3 blue card available so entry fully resolves before the
-          // delayed return watcher is exercised.
           hand: [
             { card: "BT17-025", as: "werewolf" },
             { card: "BT1-029", as: "placement" },
           ],
         },
-        // Keep the public Main phase open for the opponent's complete turn; this free card is
-        // never played, so it cannot alter the delayed-return outcome.
         1: {
-          // Keep the opponent's turn alive through its draw phase so the delayed
-          // end-of-opponent-turn watcher actually gets its production boundary.
           deck: ["BT1-011"],
           battleArea: [{ card: "BT1-029", as: "opponentLevel3" }],
           hand: [{ card: "BT1-090", as: "opponentMainAction" }],
@@ -205,10 +198,9 @@ describe("BT17-025", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("cerberusmon").topCard?.instanceId === werewolfId);
 
-    // Cost 1 through the alternate route, not the printed 4 of the normal Lv4 route.
     expect(s.state.memory).toBe(-1);
     expect(s.perm("cerberusmon").stack.map((card) => card.instanceId)).toEqual([cerberusId]);
-    expect(s.state.players[0]!.hand).toHaveLength(1); // the bonus draw
+    expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
   it("publicly digivolves from a purple Lv4 through the normal route for 4", async () => {
@@ -260,8 +252,6 @@ describe("BT17-025", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
-  // Q2770: if the played Digimon later digivolved, only its top card goes back to the
-  // hand; the cards beneath it (the played card included) are trashed.
   it("Q2770: returns only the top card when the played Digimon has digivolved", async () => {
     const s = setupEngine(
       {
@@ -311,8 +301,6 @@ describe("BT17-025", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === gorillamonId)).toBe(false);
   });
 
-  // Q2771: the delayed return only reaches the Digimon it played. Once that card has
-  // already left the battle area for the trash, nothing comes back.
   it("Q2771: does not return the played card from the trash at the end of the opponent turn", async () => {
     const s = setupEngine(
       {

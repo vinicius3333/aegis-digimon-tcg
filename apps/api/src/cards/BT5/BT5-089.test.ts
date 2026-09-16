@@ -45,7 +45,7 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard.instanceId).toBe(s.inst("level6").instanceId);
     expect(s.state.players[0]!.deck).toHaveLength(2);
-    expect(s.state.players[0]!.hand).toHaveLength(1); // CR 7-1-4-1 digivolution bonus draw
+    expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.hand[0]?.instanceId).toBe(s.inst("draw").instanceId);
   });
 

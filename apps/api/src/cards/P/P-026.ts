@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4135: this Main effect cannot be activated after memory has passed the turn.
 const compiled: CompiledCard = {
   effects: [
     {

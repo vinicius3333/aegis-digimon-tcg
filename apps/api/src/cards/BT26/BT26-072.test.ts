@@ -230,8 +230,6 @@ describe("BT26-072 Peckmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The block window is a raw applyIntent, not a pendingDecision — Peckmon must
-    // explicitly declare the block.
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(
       s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("peckmon").permanentId }),

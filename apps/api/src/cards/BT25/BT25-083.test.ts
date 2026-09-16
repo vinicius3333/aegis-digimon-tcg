@@ -113,9 +113,6 @@ describe("BT25-083 LadyDevimon", () => {
     s.state.memory = 5;
     await s.ready();
     await advance(s.engine).verb.placeUnder(s.perm("other").permanentId, [s.inst("option").instanceId]);
-    // Use the attack window so this proof isolates the source-use effect. In the
-    // When Digivolving window LadyDevimon's independent place-and-draw effect is
-    // simultaneous and may legally put the used card back under a Digimon afterward.
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("lady"), {
       attackerPermanentId: s.perm("lady").permanentId,
     });

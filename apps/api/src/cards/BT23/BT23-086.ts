@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -73,8 +70,6 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           attackPlayer: true,
-          // Printed "may attack a player": the player is the only legal target, so a suspended
-          // opposing Digimon is never offered (attackPlayer alone only WIDENS the candidates).
           attackPlayerOnly: true,
           cost: {
             kind: "suspend",

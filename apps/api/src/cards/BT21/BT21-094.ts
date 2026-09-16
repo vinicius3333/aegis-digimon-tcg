@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-094 Armor Digivolution — manually verified against the printed text.
-// The Armor Form trash watcher only arms Delay; its digivolution is a separate
-// intrinsic-Delay payload and is not resolved immediately by the watcher.
 export const compiled: CompiledCard = {
   effects: [
     {

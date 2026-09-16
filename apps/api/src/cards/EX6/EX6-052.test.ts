@@ -152,8 +152,6 @@ describe("EX6-052 Bastemon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    // Start the actual opponent turn, then prove the first deletion spends the inherited
-    // once-per-turn budget and a second deletion in the same turn cannot revive again.
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     await advance(s.engine).verb.deletePermanent([s.perm("victimA").permanentId], "byEffect");
@@ -167,7 +165,6 @@ describe("EX6-052 Bastemon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
-    // Chain the real turn loop through the owner's turn and back to the next opponent turn.
     s.state.turnSeat = 0;
     s.state.memory = -s.state.memory;
     const ownerTurn = s.engine.runOneTurn();
@@ -179,8 +176,6 @@ describe("EX6-052 Bastemon", () => {
     s.state.memory = -s.state.memory;
     const nextOpponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
-    // The first victim was deleted; the remaining fixture is a fresh opposing Digimon for
-    // this next opponent turn, while the second revival card proves the ledger re-armed.
     const nextVictim = s.state.players[1]!.battleArea[0]!;
     await advance(s.engine).verb.deletePermanent([nextVictim.permanentId], "byEffect");
     await settle(() =>

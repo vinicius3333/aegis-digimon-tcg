@@ -28,7 +28,6 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 1,
-          // Pool one selection per own digivolution card across all opposing Digimon.
           scope: "acrossDigimon",
           scaling: {
             per: 1,
@@ -51,8 +50,6 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
-          // Q3586/Q3587: this is a live set, not the targets that happened to
-          // have no sources when the effect resolved.
           whileMatchesTargetFilter: true,
         },
       ],
@@ -74,7 +71,6 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 1,
-          // Pool one selection per own digivolution card across all opposing Digimon.
           scope: "acrossDigimon",
           scaling: {
             per: 1,
@@ -97,8 +93,6 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
-          // Q3586/Q3587: this is a live set, not the targets that happened to
-          // have no sources when the effect resolved.
           whileMatchesTargetFilter: true,
         },
       ],

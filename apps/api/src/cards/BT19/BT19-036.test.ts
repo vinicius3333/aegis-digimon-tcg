@@ -6,16 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-036.js";
 
-// Fixtures, all inert unless the test needs their printed text:
-//   BT18-036 Wizardmon        Lv4 Yellow  — exact [Wizardmon] name, the alternate route's base
-//   BT12-078 Wizardmon (X Antibody) Lv4 Purple — name-substring near miss for [Wizardmon]
-//   BT12-073 Impmon (X Antibody)    Lv3 Purple — [X Antibody] trait without the [Wizardmon] name
-//   BT1-045  Tsukaimon       Lv3 Yellow  — neither name nor trait
-//   BT1-102  Blade of the True   Yellow Option cost 2  — eligible
-//   BT10-107 Buzzing Fist       Purple Option cost 2  — eligible
-//   BT1-107  Holy Wave          Yellow Option cost 6  — cost near miss
-//   BT1-108  Horn Buster        Green  Option cost 1  — colour near miss
-//   BT14-100 Pummel Whack       Purple Option cost 3  — "delete 1 opponent Lv4 or lower Digimon"
 const SPARE = "BT1-013";
 const DECK = ["BT1-009", "BT1-010", "BT1-012", "BT1-013", "BT1-014", "BT1-009"];
 
@@ -44,7 +34,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
   });
 
   it("compiles every printed clause", () => {
-    // "[Wizardmon]" is bracketed, so it is an EXACT name gate; "[X Antibody]" is a trait.
     for (const index of [0, 1] as const) {
       expect(compiled.effects?.[index]).toMatchObject({
         trigger: index === 0 ? "OnPlay" : "WhenDigivolving",
@@ -76,7 +65,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
         ],
       });
     }
-    // Printed "[All Turns] [Once Per Turn]" and "when THIS ... Digimon would leave".
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
@@ -106,10 +94,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Wizardmon"], cost: 0, isAlternate: true }]);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve][Wizardmon]: Cost 0
-  // ---------------------------------------------------------------------------
-
   it("digivolves from an exact [Wizardmon] for 0 memory and draws the digivolution card", async () => {
     const s = setupEngine(
       {
@@ -137,15 +121,12 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT19-036");
     await drainMicrotasks(40);
 
-    // The alternate route is free: the Lv3 evoCost (3) was never charged.
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evoDraw").instanceId);
   });
 
   it("refuses the [Wizardmon] route for the name-substring peer Wizardmon (X Antibody)", async () => {
-    // BT12-078 is NAMED "Wizardmon (X Antibody)": a substring gate would accept it, the printed
-    // bracketed [Wizardmon] does not. It is Lv4, so no normal Lv3 evoCost route exists either.
     const s = setupEngine(
       {
         0: {
@@ -231,10 +212,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] [When Digivolving] Add your top security card to the hand. Then, ...
-  // ---------------------------------------------------------------------------
-
   it("adds the top security card to the hand on a public play, with no stack to satisfy the gate", async () => {
     const s = setupEngine(
       {
@@ -261,8 +238,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
 
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("second").instanceId]);
-    // Played from hand: no digivolution cards, so the conditional placement never runs and the
-    // eligible Option stays in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [
         s.inst("top").instanceId,
@@ -309,7 +284,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
       await settle(() => s.state.players[0]!.security.length === 2 && s.perm("base").topCard?.cardId === "BT19-036");
       await drainMicrotasks(40);
 
-      // Top security card left for the hand; the Option went UNDER the remaining security card.
       expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
         s.inst("second").instanceId,
         s.inst("option").instanceId,
@@ -458,14 +432,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [All Turns] [Once Per Turn] would-leave prevention
-  // ---------------------------------------------------------------------------
-
-  /**
-   * The opponent's deletion is a real Option play (BT14-100 "[Main] Delete 1 of your opponent's
-   * level 4 or lower Digimon") resolved inside their own Main phase, driven by the turn loop.
-   */
   async function opponentDeletes(
     hostCard: string,
     peerCard: string | undefined,
@@ -488,8 +454,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
           ],
         },
         1: {
-          // BT14-100 is a purple Option: its controller needs a purple card in play to meet the
-          // colour requirement (CR 8-5-1). BT3-076 Candlemon is inert.
           battleArea: [{ card: "BT3-076", as: "purpleSource" }],
           hand: Array.from({ length: copies }, (_, index) => ({ card: "BT14-100", as: `whack${index}` })),
           deck: DECK,
@@ -526,8 +490,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
   });
 
   it("does not protect the controller's OTHER yellow [Data] Digimon", async () => {
-    // "When THIS ... Digimon would leave" (Q3092): only the permanent carrying BT19-036 in its
-    // digivolution cards is guarded. BT3-037 is a yellow [Data] Digimon without it.
     const s = await opponentDeletes("BT10-033", "BT3-037", "peer", 1);
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT10-033"]);
@@ -536,7 +498,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
   });
 
   it("does not protect a yellow host without the [Data] or [Witchelny] trait", async () => {
-    // BT1-051 Reppamon is yellow with [Holy Beast]/Vaccine — neither printed trait.
     const s = await opponentDeletes("BT1-051", undefined, "host", 1);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
@@ -547,7 +508,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     const s = await opponentDeletes("BT10-033", undefined, "host", 2);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    // Exactly one security card paid for the single use.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("sec2").instanceId]);
   });
 
@@ -575,7 +535,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
 
-    // The host must be suspended to be attackable, so it attacks on its own turn first.
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {

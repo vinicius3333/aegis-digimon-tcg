@@ -1,24 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-IR override for EX8-037 Sakuyamon (X Antibody).
-//
-// KB Q3923: once you activate the used Option's effect, you process "if this effect used".
-// KB Q4737: the unsuspend tail is MANDATORY after using an Option.
-// KB Q4738: the tail still fires even if the Option digivolved this card away.
-//
-// The printed single-color and use-cost limits are explicit filters; the engine
-// separately enforces the chosen Option's color requirements and use prohibitions.
-//
-// WhenDigivolving condition uses structured anyOf (name OR trait) against digivolution stack:
-// the printed "[Sakuyamon]/[X Antibody]" slash is an OR, per comprehensive rules §15-7 (8.363),
-// which glosses an identical "[WereGarurumon] or [X Antibody] is in this Digimon's digivolution
-// cards" clause with "or" — not an AND of both criteria on one card.
-//
-// [Your Turn] body is gated by a SubTrigger("whenAttacking", sourceFilter: mine Digimon) —
-// "when one of your Digimon attacks" — matching the BT15-010 IR pattern for the same clause.
-//
-// digivolutionRequirement: 'w/o [X Antibody] trait' exclusion via DigivolutionRequirement.excludeTraits.
 export const compiled: CompiledCard = {
   effects: [
     {

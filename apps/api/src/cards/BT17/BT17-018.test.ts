@@ -109,7 +109,6 @@ describe("BT17-018", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
-    // The effect trashes two cards, then the attack's normal security check removes the last one.
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
   it("digivolves through the printed Lv.6 [Gallantmon] route for cost 4 with the bonus draw", async () => {
@@ -181,8 +180,6 @@ describe("BT17-018", () => {
     s.state.memory = 5;
     await s.ready();
 
-    // `useAlternateCost` is a hint the server revalidates: no printed alternate path accepts
-    // this source, so the catalog Lv.6 red cost of 5 is charged instead of the reduced 4.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -274,13 +271,11 @@ describe("BT17-018", () => {
 
     attack();
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
-    // Two trashed by the effect (20 cards across both trashes) plus one from the security check.
     expect(s.state.players[1]!.security).toHaveLength(5);
 
     await advance(s.engine).verb.unsuspend([crimsonId]);
     attack();
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
-    // Once Per Turn refuses the second activation: only the security check removes a card.
     expect(s.state.players[1]!.security).toHaveLength(4);
 
     await advance(s.engine).runTurn(0);

@@ -11,7 +11,6 @@ describe("EX9-036", () => {
     });
     s.state.turnSeat = 1;
     s.state.memory = 5;
-    // Off-turn evolution is effect-driven, not a normal Main-phase player intent.
     await advance(s.engine).verb.digivolveFromInstance(s.perm("host").permanentId, s.inst("evo").instanceId, {
       payCost: true,
     });

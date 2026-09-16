@@ -3,14 +3,6 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT2-094.js";
 
-// A3 for BT2-094 (Arctic Blizzard, Blue Option).
-// [Main] Choose 1 digivolution card of 1 of your opponent's Digimon and trash it.
-//   Then, 1 of your Digimon gets +2000 DP for the turn.
-// [Security] Add this card to its owner's hand.
-//
-// The shared interpreter's TrashDigivolution primitive executes this source-card choice directly;
-// the test guards the source-trash behavior and the subsequent own-Digimon boost.
-
 describe("BT2-094 Arctic Blizzard", () => {
   it("matches its official Option and Security text through a direct module import", () => {
     expect(compiled).toBeDefined();
@@ -45,14 +37,12 @@ describe("BT2-094 Arctic Blizzard", () => {
       {
         0: {
           battleArea: [
-            // Player 0 has a Digimon (for the +2000 DP target).
             { card: "BT1-009", dp: 3000, as: "buffTarget" },
-            { card: "BT1-027", dp: 3000 }, // §4-21 color-requirement source (Blue)
+            { card: "BT1-027", dp: 3000 },
           ],
           hand: [{ card: "BT2-094", as: "option" }],
         },
         1: {
-          // Opponent has a Digimon with a digivolution card in its stack.
           battleArea: [{ card: "BT1-057", dp: 5000, as: "oppDigimon", under: [{ card: "BT1-051", as: "divoCard" }] }],
         },
       },
@@ -69,14 +59,11 @@ describe("BT2-094 Arctic Blizzard", () => {
     });
     expect(res).toEqual({ ok: true });
 
-    // Wait until the digivolution card is trashed.
     await settle(
       () => (p1?.trash.some((c) => c.instanceId === divoCardId) ?? false) && s.perm("buffTarget").currentDP === 5000,
     );
 
-    // The digivolution card must now be in player 1's trash.
     expect(p1?.trash.some((c) => c.instanceId === divoCardId)).toBe(true);
-    // The digivolution card must no longer be in the opponent's Digimon stack.
     expect(s.perm("oppDigimon").stack.some((c) => c.instanceId === divoCardId)).toBe(false);
     expect(s.perm("buffTarget").currentDP).toBe(5000);
   });
@@ -130,9 +117,7 @@ describe("BT2-094 Arctic Blizzard", () => {
 
   it("[Security] adds this card to its owner's hand", async () => {
     const s = setupEngine({
-      // Player 0 has BT2-094 in security, no battleArea Digimon.
       0: { security: [{ card: "BT2-094", as: "secCard" }] },
-      // Player 1 has an attacker; player 0 has no battleArea Digimon so attack goes direct.
       1: { battleArea: [{ card: "BT1-057", dp: 5000, as: "attacker" }] },
     });
     const p0 = s.state.players[0];
@@ -148,7 +133,6 @@ describe("BT2-094 Arctic Blizzard", () => {
     });
     expect(res).toEqual({ ok: true });
 
-    // After security check: BT2-094 is in player 0's hand.
     await settle(() => p0?.hand.some((c) => c.instanceId === secCardId) ?? false);
 
     expect(p0?.hand.some((c) => c.instanceId === secCardId)).toBe(true);

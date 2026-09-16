@@ -275,7 +275,6 @@ describe("BT23-064 Bakemon", () => {
         s.state.pendingDecision === undefined && s.state.players[1]!.trash.some((card) => card.instanceId === targetId),
     );
 
-    // 5 memory - 4 play cost + 1 from the inherited [On Deletion] of the trashed stack.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === hostTopId)).toBe(true);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard!.instanceId)).toEqual([bakemonId]);
@@ -307,16 +306,11 @@ describe("BT23-064 Bakemon", () => {
         s.state.pendingDecision === undefined && s.state.players[1]!.trash.some((card) => card.instanceId === targetId),
     );
 
-    // The inherited [On Deletion] only applies from a digivolution card, never from the top card.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([fodderId]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard!.instanceId)).toEqual([bakemonId]);
   });
 
-  /**
-   * CR 3-4-5-3: a card in the breeding area can't be affected by an effect that doesn't name
-   * the breeding area, so "1 of your Digimon" in the By cost is the battle area only.
-   */
   it("never pays a Digimon in the breeding area as the By cost", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -342,7 +336,6 @@ describe("BT23-064 Bakemon", () => {
         s.state.pendingDecision === undefined && s.state.players[1]!.trash.some((card) => card.instanceId === targetId),
     );
 
-    // The breeding Digimon was preferred but is not a candidate, so Bakemon paid itself.
     expect(s.perm("hatched").topCard!.instanceId).toBe(hatchedId);
     expect(s.perm("hatched").inBreeding).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);

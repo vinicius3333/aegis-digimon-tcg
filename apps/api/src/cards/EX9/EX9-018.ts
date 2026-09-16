@@ -1,8 +1,3 @@
-// EX9-018 MetalMamemon — hand-fixed IR.
-// KB Q4760: trash digivolution cards from exactly 1 opponent Digimon (count:1 enforces this).
-// KB Q4761: the placement cost gates the "then" return; the trash operation itself may be a
-// no-op when the chosen opponent Digimon has no sources, after which the return still resolves.
-// Scaling counts THIS Digimon's face-down digivolution cards.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

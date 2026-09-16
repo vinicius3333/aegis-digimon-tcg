@@ -7,11 +7,6 @@ import "./index.js";
 
 type BoardExtra = { card: string; as: string };
 
-/**
- * Board where seat 0's KoDokugumon (BT14-043) [On Play] effect-suspends Terriermon as its
- * cost, which is the only suspension Rhythm's first [Your Turn] watcher may react to.
- * `extras` add the witnesses the ＜Draw 1＞ condition inspects.
- */
 async function effectSuspendOwnDigimon(extras: BoardExtra[]) {
   const preferInstanceIds: string[] = [];
   const s = setupEngine(

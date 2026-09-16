@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q1823-Q1824: effect-driven returns and draws both count as adding a card to
-// the controller's hand, even when a later clause removes a card from hand.
 export const compiled: CompiledCard = {
   effects: [
     {

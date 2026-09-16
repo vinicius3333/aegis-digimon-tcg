@@ -8,12 +8,9 @@ import { compiled } from "./BT19-040.js";
 
 const PIPE_FOX = "TOKEN-Pipe-Fox";
 
-// Inert main-deck Digimon (no printed or inherited text) for deck/security padding: no
-// Digi-Egg may sit in either zone, and the numeric `security: n` form is forbidden.
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
-/** Every Pipe Fox token currently on seat 0's battle area. */
 function tokens(s: EngineSetup) {
   return s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === PIPE_FOX);
 }
@@ -42,13 +39,9 @@ describe("BT19-040 Sakuyamon", () => {
     expect(printed).toContain(
       "[Your Turn] [Once Per Turn] When you use an Option card with a cost of 2 or more, play 1 [Pipe Fox] Token (Digimon/Yellow/6000 DP/＜Blocker＞).",
     );
-    // The printed maxCountInDeck stays 4; the 2025-09-01 banlist restricts BT19-040 to 1 copy
-    // per deck. That is a deck-construction rule, not a card effect, so nothing in the IR
-    // encodes it; `data/kb/banlist.json` is the source and the audit report records it.
   });
 
   it("compiles the printed clauses to the intended IR shape", () => {
-    // The bracketed [Sakuyamon: Maid Mode] route is an EXACT name gate, not a substring one.
     expect(compiled.digivolutionRequirement).toEqual([
       { namesExact: ["Sakuyamon: Maid Mode"], cost: 1, isAlternate: true },
     ]);
@@ -84,15 +77,12 @@ describe("BT19-040 Sakuyamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            // A realistic Lv6 stack: Renamon -> Reppamon -> Sakuyamon: Maid Mode.
-            { card: "BT10-041", as: "maid", under: ["BT1-045", "BT1-051"] },
-          ],
+          battleArea: [{ card: "BT10-041", as: "maid", under: ["BT1-045", "BT1-051"] }],
           hand: [
             { card: "BT19-040", as: "saku" },
-            { card: "BT1-102", as: "eligible" }, // Yellow, single colour, cost 2
-            { card: "BT12-104", as: "twoColour" }, // Yellow/Red, cost 5 — fails colorCount 1
-            { card: "BT1-107", as: "tooExpensive" }, // Yellow, single colour, cost 6
+            { card: "BT1-102", as: "eligible" },
+            { card: "BT12-104", as: "twoColour" },
+            { card: "BT1-107", as: "tooExpensive" },
           ],
           deck: [
             { card: "BT19-030", as: "draw1" },
@@ -120,13 +110,11 @@ describe("BT19-040 Sakuyamon", () => {
     ).toEqual({ ok: true });
     await settle(() => tokens(s).length === 1);
 
-    // Cost 1 off the alternate route, not the printed evo cost of 3.
     expect(s.state.memory).toBe(2);
     expect(s.perm("saku").topCard!.instanceId).toBe(sakuId);
     expect(s.perm("saku").stack.map((card) => card.cardId)).toEqual(["BT1-045", "BT1-051", "BT10-041"]);
     expect(s.perm("saku").stack.at(-1)!.instanceId).toBe(maidId);
 
-    // ＜Draw 2＞ emptied the deck into hand; the free use trashed only the eligible Option.
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-102"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual([
@@ -136,8 +124,6 @@ describe("BT19-040 Sakuyamon", () => {
       "BT19-031",
     ]);
 
-    // Q5473: the Option was used without paying its cost, so its ORIGINAL cost of 2 still
-    // arms the watcher. One 6000 DP ＜Blocker＞ token, played for free.
     const token = tokens(s)[0]!;
     expect(token.currentDP).toBe(6000);
     expect(getCardDefinition(PIPE_FOX)).toMatchObject({ nameEn: "Pipe Fox", colors: ["Yellow"], dp: 6000 });
@@ -184,7 +170,6 @@ describe("BT19-040 Sakuyamon", () => {
       const s = setupEngine(
         {
           0: {
-            // BT1-059 Piximon: yellow Lv5, no printed effects — the normal-route source.
             battleArea: [{ card: "BT1-059", as: "base" }],
             hand: [{ card: "BT19-040", as: "saku" }],
             deck: ["BT19-030", "BT19-031"],
@@ -205,7 +190,6 @@ describe("BT19-040 Sakuyamon", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.deck.length === 0);
-      // Piximon is not [Sakuyamon: Maid Mode], so the cost-1 route never applies: 5 - 3 = 2.
       expect(s.state.memory).toBe(2);
       expect(s.perm("saku").stack.map((card) => card.cardId)).toEqual(["BT1-059"]);
     }
@@ -276,7 +260,6 @@ describe("BT19-040 Sakuyamon", () => {
     await settle(() => tokens(s).length === 1);
     expect(tokens(s)).toHaveLength(1);
 
-    // Same turn, a second cost-2 Option use: [Once Per Turn] refuses a second token.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
@@ -284,13 +267,11 @@ describe("BT19-040 Sakuyamon", () => {
     expect(tokens(s)).toHaveLength(1);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    // The opponent's whole turn passes through the real loop.
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(tokens(s)).toHaveLength(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // Back on our own turn the allowance is fresh.
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("third").instanceId })).toEqual({ ok: true });
@@ -312,7 +293,6 @@ describe("BT19-040 Sakuyamon", () => {
           security: [...SECURITY],
         },
         1: {
-          // A yellow permanent so the opponent legally meets BT1-102's colour requirement.
           battleArea: [{ card: "BT1-059", as: "opponentYellow" }],
           hand: [
             { card: "BT1-102", as: "opponentOption" },
@@ -344,10 +324,6 @@ describe("BT19-040 Sakuyamon", () => {
   });
 
   it("reads the card's own use cost, not the printed cost (Q5471)", async () => {
-    // BT7-100 Qualialise Blast prints cost 5 but sets its own use cost to the number of
-    // security cards. Q5471: a change to the USE COST ITSELF is what the threshold reads.
-    // Its [Main] always puts -3000 DP on an opponent's Digimon, which is the control that the
-    // Option really was used in both runs.
     for (const [securityCount, expectedTokens] of [
       [1, 0],
       [3, 1],
@@ -388,8 +364,6 @@ describe("BT19-040 Sakuyamon", () => {
   });
 
   it("plays the token only after the used Option's [Main] effect has resolved (Q5469)", async () => {
-    // BT7-100's [Main] gives an opponent's Digimon -3000 DP. Sampling the board at the instant
-    // the token first appears shows that body already applied, which is the printed order.
     let victimDpWhenTokenAppeared: number | undefined;
     const s = setupEngine(
       {
@@ -436,8 +410,6 @@ describe("BT19-040 Sakuyamon", () => {
   });
 
   it("still fires when only the cost TO PAY is reduced below 2 (Q5472)", async () => {
-    // BT17-035 Taomon uses a yellow Option from hand "with the cost reduced by 2". BT1-102's
-    // own use cost stays 2 while nothing is paid, so the threshold still sees 2.
     const s = setupEngine(
       {
         0: {
@@ -470,7 +442,6 @@ describe("BT19-040 Sakuyamon", () => {
     ).toEqual({ ok: true });
     await settle(() => tokens(s).length === 1);
 
-    // 5 - 3 for the digivolution and nothing for the Option: its 2 was fully reduced away.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-102"]);
     expect(tokens(s)).toHaveLength(1);
@@ -481,9 +452,6 @@ describe("BT19-040 Sakuyamon", () => {
   });
 
   it("stays silent when an Option's effect activates without being used (Q5470)", async () => {
-    // BT13-106 Odin's Breath activates its own [Main] when an effect trashes it from security.
-    // That is an activation, not a use, so the watcher must not fire — while the [Main] body
-    // itself demonstrably resolves.
     const s = setupEngine(
       {
         0: {
@@ -551,8 +519,6 @@ describe("BT19-040 Sakuyamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    // ＜Blocker＞ proved by its rules consequence: the token is offered as a legal blocker and
-    // takes the attack instead of the security stack.
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: tokenId })).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.security).toHaveLength(SECURITY.length);

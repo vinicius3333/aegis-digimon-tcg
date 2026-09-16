@@ -16,8 +16,6 @@ export const compiled: CompiledCard = {
               amount: 2,
               cost: {
                 kind: "trash",
-                // The cost is specifically one of this Digimon's stack cards.  The
-                // hostFilter keeps another own stack from entering the loose-card pool.
                 target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, count: 1 },
               },
               optional: true,

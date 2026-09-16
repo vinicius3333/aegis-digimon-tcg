@@ -185,8 +185,6 @@ describe("EX5-049 GrapLeomon", () => {
     ).toEqual({ ok: true });
     await settle(() => matching.perm("host").topCard?.cardId === "EX5-055");
     expect(observe(matching.engine).hasPierce(matching.perm("host"))).toBe(true);
-    // The normal black Lv.5 route on HeavyLeomon costs 5 (the alternate
-    // Leomon-name route costs 4), so 7 -> 2 after GrapLeomon's 3-cost route.
     expect(matching.state.memory).toBe(2);
     expect(matching.perm("host").stack.map((card) => card.cardId)).toEqual(["EX5-047", "EX5-049"]);
     expect(matching.state.pendingDecision).toBeUndefined();

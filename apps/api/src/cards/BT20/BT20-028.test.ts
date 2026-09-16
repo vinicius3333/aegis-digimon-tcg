@@ -55,8 +55,6 @@ describe("BT20-028 GigaSeadramon", () => {
           ],
           hand: [{ card: "BT20-028", as: "gigaEvolution" }],
         },
-        // Keep the post-De-Digivolve top above BT20-026's level-4 return boundary.
-        // Otherwise BT20-026's own On Play return removes this tested permanent.
         1: { battleArea: [{ card: "BT20-017", as: "opponentStack", under: ["BT20-025", "BT20-014"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -219,8 +217,6 @@ describe("BT20-028 GigaSeadramon", () => {
           security: ["BT1-010"],
         },
         1: {
-          // Keep all promoted cards above Maelstrom's level-4 return boundary so
-          // the once-per-turn De-Digivolve proof observes the target afterward.
           battleArea: [{ card: "BT5-086", as: "target", under: ["BT20-025", "BT20-025", "BT20-014"] }],
           security: Array(4).fill("BT1-010"),
           deck: Array(8).fill("BT1-010"),
@@ -255,7 +251,6 @@ describe("BT20-028 GigaSeadramon", () => {
     expect(s.perm("mega").stack).toHaveLength(3);
     expect(s.perm("mega").isSuspended).toBe(true);
 
-    // A second actual source play cannot repeat the All Turns De-Digivolve in this turn.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maelstrom").instanceId })).toEqual({
       ok: true,
     });
@@ -270,7 +265,7 @@ describe("BT20-028 GigaSeadramon", () => {
     s.state.memory = -s.state.memory;
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.perm("mega").isSuspended).toBe(false); // Reboot at the opponent's unsuspend phase.
+    expect(s.perm("mega").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
     s.state.turnSeat = 0;
@@ -284,8 +279,6 @@ describe("BT20-028 GigaSeadramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Security Attack +2 checks 2 cards per attack, so this second attack's own
-    // security checks land on top of the 2 the first attack already produced.
     await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
     expect(s.perm("mega").stack.map((card) => card.cardId)).toEqual(["BT9-109"]);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-026")).toBe(true);
@@ -336,8 +329,6 @@ describe("BT20-028 GigaSeadramon", () => {
           battleArea: [{ card: "BT20-045", as: "host", under: ["BT20-028"] }],
           hand: [{ card: "BT11-098", as: "sourcePlayer" }],
         },
-        // Keep the promoted card above Maelstrom's level-4 return boundary so the
-        // watcher proof observes the de-digivolved permanent after Main resolves.
         1: { battleArea: [{ card: "BT20-017", as: "opponent", under: ["BT20-025", "BT20-014"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

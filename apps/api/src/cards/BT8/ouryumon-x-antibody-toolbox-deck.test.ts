@@ -66,8 +66,6 @@ describe("BT8 Ouryumon X Antibody toolbox deck", () => {
         ouryumon.currentDP === printedDp + 2000,
     );
 
-    // BT8-069's 2022 errata says a source placed under ONE OF your Digimon triggers it.
-    // The card was placed under firstHost, not Ouryumon itself.
     expect(s.perm("firstHost").stack[0]?.instanceId).toBe(firstOptionId);
     expect(ouryumon.currentDP).toBe(printedDp + 2000);
 
@@ -144,8 +142,6 @@ describe("BT8 Ouryumon X Antibody toolbox deck", () => {
     ).toEqual({ ok: true });
     await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
 
-    // Reboot changes only the opponent-turn unsuspend phase. Its parenthetical reminder is
-    // not an effect that can immediately undo the suspension paid to block.
     expect(blocker.isSuspended).toBe(true);
     assertNoLoudGap(s);
   });

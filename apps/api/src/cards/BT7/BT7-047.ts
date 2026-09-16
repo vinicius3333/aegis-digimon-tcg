@@ -1,9 +1,3 @@
-// HAND-FIXED IR for BT7-047 (MetalKabuterimon) — do not regenerate over this file.
-// The generated [When Digivolving] gate ("If a card with [Hybrid] in its traits or
-// [J.P. Shibayama] is in this Digimon's digivolution cards") was a raw condition —
-// always unmet, so the suspend never fired. It is now the structured
-// selfDigivolutionStackHasTrait condition with two OR'd refs: [Hybrid] as a trait
-// match and [J.P. Shibayama] as a name match (both supported by matchNameOrTrait).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

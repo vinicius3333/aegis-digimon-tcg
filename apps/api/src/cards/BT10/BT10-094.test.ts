@@ -15,17 +15,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-094.js";
 
-// A3 for BT10-094 (Breaclaw, Red Option)
-//
-// [Main] 1 Digimon gets +2000 DP. Optionally place a Gammamon from hand under a Digimon
-//   as its bottom digivolution card → Draw 1.
-// [Security] Play 1 Gammamon from hand or trash without cost.
-//
-// Primary A3: [Main] calls modifyDP(+2000) on the chosen Digimon, and if a Gammamon
-// is placed, calls placeUnder then draw. Without the effect these would not be called.
-//
-// FAILS-WHEN-REVERTED: if [Main] were removed, modifyDP would never be called.
-
 const CARD_ID = "BT10-094";
 
 function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
@@ -64,7 +53,7 @@ function makeSource(over: Partial<CardSource> = {}): CardSource {
     ownerSeat: 0 as Seat,
     definition: fakeDef(),
     permanent: () => undefined,
-    isOnBattleArea: () => false, // Option cards are not on battle area
+    isOnBattleArea: () => false,
     isOwnersTurn: () => true,
     hasColor: () => false,
     ...over,
@@ -207,7 +196,6 @@ describe("BT10-094 (Breaclaw)", () => {
   });
 
   it("[Main] calls modifyDP +2000 on the chosen Digimon", async () => {
-    // Primary A3: modifyDP(+2000, UntilEachTurnEnd) is called for the chosen Digimon.
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);
@@ -234,7 +222,6 @@ describe("BT10-094 (Breaclaw)", () => {
   });
 
   it("[Main] calls placeUnder and draw 1 when Gammamon is in hand", async () => {
-    // With a Gammamon in hand and a Digimon on field, placeUnder + draw 1 are called.
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
 

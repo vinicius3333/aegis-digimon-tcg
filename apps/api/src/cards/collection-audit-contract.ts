@@ -42,8 +42,6 @@ type RuntimeProof = { set: AuditSet; cardIds: readonly string[]; testFile: strin
 const cardsDirectory = fileURLToPath(new URL(".", import.meta.url));
 const auditDirectory = fileURLToPath(new URL("../../../../docs/audits/", import.meta.url));
 
-// Narrative ledgers preserve historical worker rubrics separately from coordinator
-// closeout. Validate their category identity and arithmetic without awarding delivery.
 const NARRATIVE_RUBRIC_SETS = new Set<AuditSet>(["EX3", "EX4"]);
 
 function escapeRegExp(value: string): string {
@@ -81,8 +79,6 @@ function countMatches(source: string, pattern: RegExp): number {
   return source.match(pattern)?.length ?? 0;
 }
 
-// Worker rubric blocks score four 2/2 components and leave "Delivery gates" at 0/2,
-// awarded collection-wide by the coordinator once every card clears 8/8.
 export function assertNarrativeRubricScore(cardId: string, body: string): void {
   const plain = body.replace(/\*/g, "");
   const compact =
@@ -169,7 +165,6 @@ function assertRubricCategories(categories: string[]): void {
   }
 }
 
-/** Read the authoritative current score, never a superseded score in its history. */
 export function standardLedgerScore({ body, verified = false }: { body: string; verified?: boolean }): number {
   const reported = body.match(/^- Current score:.*$/m) ?? body.match(/^- Score:.*$/m);
   const scoreText = reported?.[0].match(
@@ -333,9 +328,6 @@ export function describeRemainingCollectionAuditContract({
             if (!provesEmptyEffects) invalidNoEffectExceptions.push(cardId);
             continue;
           }
-          // A shared smoke helper can prove that a card is loadable/playable, but it cannot
-          // prove this card's own effect clause. Runtime evidence must live in the card's
-          // colocated test so a generic source-zone transition cannot satisfy 10/10.
           const harnessImport = testSource.match(/import\s*{([^}]*)}\s*from\s*["'][^"']*testkit\/harness\.js["']/);
           const setupImport = harnessImport?.[1]?.match(/\bsetupEngine(?:\s+as\s+(\w+))?/);
           const setupName = setupImport?.[1] ?? (setupImport ? "setupEngine" : undefined);
@@ -353,9 +345,6 @@ export function describeRemainingCollectionAuditContract({
             approvedSharedEvidence.length > 0 &&
             /\bsetupEngine\s*\(/.test(approvedSharedEvidence) &&
             /\b(?:applyIntent|advance|fire|playSubject(?:Card)?)\s*\(/.test(approvedSharedEvidence);
-          // Resolver-unit tests with fake GameAccess/Primitives are useful mechanism checks, but
-          // they cannot earn a card's behavioral points. Only a card-scoped production harness
-          // scenario (direct or an explicitly keyed semantic matrix case) counts here.
           const runtimeEvidenceSource = `${testSource}\n${approvedSharedEvidence}`;
           const observesRuntime =
             /\b(?:settle|observe|advance)\s*\(|\.state\b|\.perm\s*\(|\.events\b|\.decisions\b|\.engine\./.test(
@@ -370,11 +359,6 @@ export function describeRemainingCollectionAuditContract({
             runtimeEvidenceSource,
             /\.engine\.\w+\s*\(|\badvance\s*\([^)]*\.engine\s*\)\s*\.|\bobserve\s*\([^)]*\.engine\s*\)|\.ready\s*\(\s*\)|\b(?:fire|fireTiming|playSubject(?:Card)?)\s*\(/g,
           );
-          // This is a necessary smoke-test floor, not proof that every printed clause has
-          // been covered: a driver can exercise multiple effects, or exercise none. The
-          // per-card audit remains responsible for mapping each clause to an observable
-          // production-harness outcome. A single setup may intentionally exercise several
-          // timings, so setup count is diagnostic only and is not itself a threshold.
           const promoNumber = cardId.startsWith("P-") ? Number(cardId.slice(2)) : 0;
           const requiresClauseProof = set === "EX4" || (set === "P" && promoNumber >= 103);
           if (requiresClauseProof && liveDriverCount < clauseCount) {

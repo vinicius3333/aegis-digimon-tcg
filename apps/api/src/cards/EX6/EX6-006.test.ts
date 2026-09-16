@@ -220,8 +220,6 @@ describe("EX6-006 Gate of Deadly Sins", () => {
     );
     s.state.memory = -7;
     await s.ready();
-    // The native primitive seam models an effect-paid play while memory is negative;
-    // a playCard intent cannot begin that processing state directly.
     const canAfford = await internalsOf(s.engine).primitives.canAffordEffectPlay!(s.inst("beelzemon").instanceId);
     expect(canAfford).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();

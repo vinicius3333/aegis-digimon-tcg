@@ -7,19 +7,11 @@ import { compiled } from "./EX13-073.js";
 import "../index.js";
 
 const CARD_ID = "EX13-073";
-// ST20-07 Tentomon: Lv.3 [ADVENTURE], play cost 3, and its only printed clause is an
-// [Opponent's Turn] static — nothing that competes with the watcher under test.
 const ADVENTURE_ROOKIE = "ST20-07";
-// BT21-061 MetalGreymon: Lv.5 [ADVENTURE]. ST20-08 Kabuterimon: Lv.4 [ADVENTURE] (below the
-// printed floor). BT1-020: Lv.5 with no [ADVENTURE] trait and no printed text.
 const ADVENTURE_LV5 = "BT21-061";
 const ADVENTURE_LV4 = "ST20-08";
 const PLAIN_LV5 = "BT1-020";
-// ST20-11 WarGreymon: Lv.6 [ADVENTURE], play cost 7. Its only other printed clause is a
-// [Hand] [Counter] ＜Blast Digivolve＞, which no window in these tests opens.
 const ADVENTURE_LV6 = "ST20-11";
-// ST20-12 Sora Takenouchi & Kari Kamiya: an [ADVENTURE] trait Tamer, play cost 3 — the "or
-// Tamers" half of the watcher's printed subject.
 const ADVENTURE_TAMER = "ST20-12";
 
 describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
@@ -79,7 +71,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
         },
       ],
     });
-    // The printed sentence has no "other than this Tamer", so the watcher must not exclude itself.
     expect(compiled.effects[1]?.actions[0]).not.toMatchObject({ sourceFilter: { excludeSelf: true } });
 
     expect(compiled.effects[2]).toMatchObject({
@@ -158,7 +149,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("tamer"));
     await settle();
 
-    // The printed gate reads "you have an [ADVENTURE] trait Digimon": the battle area only.
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe(ADVENTURE_ROOKIE);
     expect(s.state.memory).toBe(2);
   });
@@ -258,7 +248,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
     });
     await settle();
 
-    // Unpayable cost: no draw, no trash, and no decision left parked on the board.
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -284,7 +273,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
     await settle();
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain(ADVENTURE_ROOKIE);
-    // The clause is bracketed [Your Turn]; the play landed on the opponent's turn.
     expect(s.perm("tamer").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -355,8 +343,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
           { card: ADVENTURE_LV6, as: "mega" },
           { card: ADVENTURE_LV4, as: "small" },
           { card: PLAIN_LV5, as: "plain" },
-          // Near-match: the [ADVENTURE] trait sits on a digivolution card under a non-[ADVENTURE]
-          // Lv.5 top card, which is not the same as the permanent having the trait.
           { card: PLAIN_LV5, as: "stacked", under: [ADVENTURE_LV4] },
         ],
         deck: ["BT1-010"],
@@ -410,7 +396,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
     ).toEqual({ ok: true });
     await settle();
 
-    // Without the Tamer the same freshly played Digimon has no ＜Rush＞ and cannot attack.
     const without = setupEngine(
       {
         0: {
@@ -470,7 +455,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
     });
     await settle();
 
-    // The block happened, so security was never checked and the weaker attacker died.
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("BT1-019");
   });
@@ -499,8 +483,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
     ).toEqual({ ok: true });
     await settle();
 
-    // The Lv.4 is below the printed floor, so no ＜Blocker＞ exists and no block window ever
-    // opens; the attack goes straight through to security.
     expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("small").permanentId }).ok).toBe(
       false,
@@ -530,7 +512,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("big"), "Rush")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("big"), "Blocker")).toBe(false);
-    // Without ＜Rush＞ the Digimon that entered this turn can no longer attack.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -584,8 +565,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
       return memory;
     }
 
-    // The same turn loop, the same starting gauge: the single point of difference is the
-    // printed gate, so the delta is exactly the printed 1 memory.
     expect(await memoryAtMainPhase(ADVENTURE_LV5)).toBe((await memoryAtMainPhase(PLAIN_LV5)) + 1);
   });
 
@@ -611,7 +590,6 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
 
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    // The unsuspend phase readied the Tamer that started the turn suspended.
     expect(s.perm("tamer").isSuspended).toBe(false);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({

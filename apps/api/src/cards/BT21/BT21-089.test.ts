@@ -156,7 +156,6 @@ describe("BT21-089 Takato Matsuki", () => {
 
     expect(s.perm("takato").isSuspended).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
-    // Veemon reduces the printed alternate cost 3 by 1.
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").currentDP).toBe(9000);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT21-032"]);

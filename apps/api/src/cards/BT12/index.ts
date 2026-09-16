@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./BT12-001.js";
 import "./BT12-002.js";
 import "./BT12-003.js";

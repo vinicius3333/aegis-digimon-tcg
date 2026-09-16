@@ -12,7 +12,6 @@ describe("P-047 AeroVeedramon Zero", () => {
             { card: "BT1-089", as: "tamer" },
           ],
           hand: [{ card: "P-047", as: "source" }],
-          // The normal digivolution draw consumes one card; only 2 remain for the effect.
           deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },

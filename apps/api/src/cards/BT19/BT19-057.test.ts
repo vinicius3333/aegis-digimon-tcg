@@ -6,32 +6,15 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-/**
- * BT19-057 Sparrowmon — Black/Purple Lv.3 Rookie, 2000 DP, play cost 4,
- * evo cost 1 from a Black or Purple Lv.2.
- *
- * Printed clauses:
- *   1. [Digivolve] Lv.2 w/[Twilight]/[Xros Heart] trait: Cost 0            (alternate route)
- *   2. [When Attacking] This Digimon may digivolve into [RaptorSparrowmon]
- *      under your Tamers without paying the cost.                          (main)
- *   3. [On Deletion] ＜Save＞                                               (main, CR 16-20 / 4-3-2)
- *   4. [Your Turn] This Digimon with the [Xros Heart] trait gains ＜Collision＞ (inherited, CR 16-30)
- *
- * KB (`node tools/kb/query.mjs card BT19-057`): Q3117 — using the [When Attacking]
- * digivolve into a [RaptorSparrowmon] with the [Xros Heart] trait DOES activate the
- * ＜Collision＞ from this card's inherited effect, because ＜Collision＞ is already
- * active while the Digimon carrying it is attacking.
- */
-
-const RAPTOR = "BT19-061"; // RaptorSparrowmon: Black/Purple Lv.4, Twilight + Xros Heart
-const TAMER = "BT19-086"; // Ryo Akiyama: Black Tamer
-const XROS_LV2_BLACK = "BT10-005"; // Monimon: Black Lv.2 Digi-Egg, Twilight + Xros Heart
-const XROS_LV2_YELLOW = "BT10-003"; // Pickmons: YELLOW Lv.2 Digi-Egg, Xros Heart — off-color
-const PLAIN_LV2_YELLOW = "BT1-005"; // Kyaromon: Yellow Lv.2 Digi-Egg, Lesser only
-const PLAIN_LV2_BLACK = "BT11-005"; // Koromon: Black Lv.2 Digi-Egg, Lesser only — near-miss peer
-const BLACK_LV3 = "BT2-052"; // Hagurumon: Black Lv.3 — wrong level for the alternate route
-const NON_XROS_LV4 = "BT19-046"; // Chamblemon: Green Lv.4, no Xros Heart trait
-const PLAIN_OPPONENT = "BT1-014"; // Kokatorimon: Red Lv.4, 4000 DP, no ＜Blocker＞
+const RAPTOR = "BT19-061";
+const TAMER = "BT19-086";
+const XROS_LV2_BLACK = "BT10-005";
+const XROS_LV2_YELLOW = "BT10-003";
+const PLAIN_LV2_YELLOW = "BT1-005";
+const PLAIN_LV2_BLACK = "BT11-005";
+const BLACK_LV3 = "BT2-052";
+const NON_XROS_LV4 = "BT19-046";
+const PLAIN_OPPONENT = "BT1-014";
 const INERT_SECURITY = "BT1-009";
 const DECK = ["BT19-055", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-012"];
 
@@ -72,7 +55,6 @@ describe("BT19-057 Sparrowmon", () => {
           {
             kind: "Digivolve",
             target: { filter: { isSelfRef: true }, isSelf: true },
-            // Bracketed [RaptorSparrowmon] is an EXACT name gate, not a substring one.
             into: { nameOrTrait: [{ tokens: ["RaptorSparrowmon"], match: "nameExact" }] },
             from: ["digivolutionCardsUnderTamers"],
             payCost: false,
@@ -98,7 +80,6 @@ describe("BT19-057 Sparrowmon", () => {
         ],
       },
     ]);
-    // "w/[Twilight]/[Xros Heart] trait" is an OR over exact traits, gated to Lv.2, cost 0.
     expect(card?.digivolutionRequirement).toEqual([
       { level: 2, traits: ["Twilight", "Xros Heart"], cost: 0, isAlternate: true },
     ]);
@@ -124,10 +105,9 @@ describe("BT19-057 Sparrowmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === sparrowId);
 
-    // Cost 0, not the printed evo cost of 1 — the memory delta is what discriminates the route.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.breeding?.stack.map((card) => card.instanceId)).toEqual([baseId]);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-055"]); // the digivolve draw
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-055"]);
   });
 
   it("takes the Cost 0 route off an OFF-COLOR Lv.2 that carries the [Xros Heart] trait", async () => {
@@ -140,9 +120,6 @@ describe("BT19-057 Sparrowmon", () => {
     const baseId = s.inst("base").instanceId;
     const sparrowId = s.inst("sparrow").instanceId;
 
-    // Yellow is neither printed evo color, so the ONLY route onto this base is the
-    // trait-gated one. The engine selects it without the explicit flag; the cost proves which
-    // route ran (the normal Black/Purple route would have been refused outright).
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -196,8 +173,6 @@ describe("BT19-057 Sparrowmon", () => {
     await s.ready();
     const sparrowId = s.inst("sparrow").instanceId;
 
-    // `useAlternateCost: true` with no matching alternate route silently uses the normal
-    // route, so only the memory delta proves the trait gate held.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -273,11 +248,9 @@ describe("BT19-057 Sparrowmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("sparrow").topCard?.instanceId === raptorId);
 
-    // The attacking permanent kept its identity; Sparrowmon is now its digivolution card.
     expect(s.perm("sparrow").topCard?.cardId).toBe(RAPTOR);
     expect(s.perm("sparrow").stack.map((card) => card.instanceId)).toEqual([sparrowId]);
     expect(s.perm("tamer").stack).toHaveLength(0);
-    // "without paying the cost": no memory moved for the digivolve.
     expect(s.state.memory).toBe(3);
     expect(s.events.some((e) => e.kind === "actionRejected")).toBe(false);
   });
@@ -342,7 +315,6 @@ describe("BT19-057 Sparrowmon", () => {
 
     expect(s.perm("sparrow").topCard?.instanceId).toBe(sparrowId);
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("skull").instanceId]);
-    // Only "under your Tamers" is a source: the hand copy stays in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handRaptor").instanceId);
   });
 
@@ -380,7 +352,6 @@ describe("BT19-057 Sparrowmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("sparrow"), "Collision")).toBe(true);
     const opened = s.events.find((e) => e.kind === "blockWindowOpened");
     const eligible = opened !== undefined && "eligibleBlockerIds" in opened ? opened.eligibleBlockerIds : [];
-    // ＜Collision＞ (CR 16-30-1): every opponent Digimon gains ＜Blocker＞ and the block is forced.
     expect(eligible).toContain(nonBlockerId);
     expect(opened !== undefined && "mustBlock" in opened ? opened.mustBlock : undefined).toBe(true);
     expect(s.engine.applyIntent(1, { type: "declineBlock" }).ok).toBe(false);
@@ -489,7 +460,6 @@ describe("BT19-057 Sparrowmon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // [Your Turn] + "with the [Xros Heart] trait": the Green host under the same card misses.
     expect(observe(s.engine).hasKeyword(s.perm("xrosHost"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plainHost"), "Collision")).toBe(false);
 

@@ -142,13 +142,7 @@ describe("BT17-080 Takato Matsuki", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-080")).toBe(false);
   });
 
-  // REMOVED by engine lane E2: "may decline the natural end-of-turn evolution without moving its
-  // required cards" asserted the pre-ruling behaviour on exactly the fixture and decision path the
-  // Q2853 test below now covers, and Q2853 says the opposite — the placement is an activation cost
-  // and is paid whether or not the digivolve is taken. See PAY-THEN-MAY-MECHANISM.md.
-
   it("does not count a Guilmon that sits in the breeding area", async () => {
-    // Comprehensive Rules 3-4-5-8: information on cards in the breeding area can't be referenced.
     const breedingOnly = setupEngine({
       0: {
         battleArea: [{ card: "BT17-080", as: "mainTamer" }],
@@ -160,7 +154,6 @@ describe("BT17-080 Takato Matsuki", () => {
     breedingOnly.state.turnSeat = 0;
     await breedingOnly.ready();
     const loop = breedingOnly.engine.startTurnLoop();
-    // The Breeding window is interactive; only the turn player's own skip leaves it.
     for (let tick = 0; tick < 400 && breedingOnly.state.phase !== Phase.Main; tick += 1) {
       if (breedingOnly.state.phase === Phase.Breeding) {
         breedingOnly.engine.applyIntent(0, { type: "endPhase" });
@@ -234,10 +227,6 @@ describe("BT17-080 Takato Matsuki", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-080")).toBe(true);
   });
 
-  // Q2853: the ruling lets the player PLACE this Tamer, [Growlmon] and [WarGrowlmon] and then
-  // decline the "may digivolve". The module sets `payCostBeforeOptional`, so `runActionInner` pays
-  // the whole placement cost first and offers only the digivolve.
-  // See docs/audits/BT17.md#pay-then-may-mechanism.
   it("Q2853: places the cost cards even when the digivolve itself is declined", async () => {
     const s = setupEngine(
       {
@@ -266,11 +255,6 @@ describe("BT17-080 Takato Matsuki", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gallantmon").instanceId)).toBe(true);
   });
 
-  // Q2854: <Blitz> on the digivolved [Gallantmon] can still activate. BT17-016 Gallantmon does not
-  // print <Blitz>, and no printed [Gallantmon] reachable from this clause does, so the ruling has
-  // no card-level endpoint to assert here; it is a keyword-timing statement owned by the engine's
-  // Blitz window, not by this card's IR.
-
   it("places only the copy of [Takato Matsuki] that owns the trigger, not a second copy", async () => {
     const s = setupEngine(
       {
@@ -296,8 +280,6 @@ describe("BT17-080 Takato Matsuki", () => {
     await advance(s.engine).runTurn(0);
     await settle(() => s.perm("guilmon").topCard.cardId === "BT17-016");
 
-    // `isSelfRef` binds the placement to the copy that owns the trigger, so the first
-    // resolution places exactly one Tamer and the second copy has no [Guilmon] host left.
     const placedTamers = s
       .perm("guilmon")
       .stack.filter((card) => card.cardId === "BT17-080")

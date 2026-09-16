@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited IR for EX3-041. The generated record omitted the Examon-only gate on TreatAsLevel,
-// the second [Dramon] DNA material, the hand zone for the result, and a structured inherited gate.
 const compiled: CompiledCard = {
   effects: [
     {

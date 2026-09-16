@@ -107,7 +107,6 @@ describe("BT26-068 Devimon", () => {
       isAlternate: true,
     });
 
-    // BT26-008 is a red Lv.3 [TS] Digimon, so only the trait path permits this evolution.
     const s = setupEngine(
       {
         0: {
@@ -133,7 +132,7 @@ describe("BT26-068 Devimon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("kotemon").stack.map(({ cardId }) => cardId)).toEqual(["BT26-008"]);
-    expect(s.state.players[0]!.hand).toHaveLength(3); // evolution draw + printed Draw 2
+    expect(s.state.players[0]!.hand).toHaveLength(3);
     expect(s.state.players[1]!.hand).toHaveLength(2);
   });
 
@@ -272,9 +271,6 @@ describe("BT26-068 Devimon", () => {
     await effect.resolve(staticCtx);
 
     expect(subscription).toBeDefined();
-    // The watcher key must be scoped to this source instance and to the conferral origin
-    // ("printed" for a card's own clause), so two copies keep separate budgets; the card
-    // must not install its former card-global key itself.
     expect(subscription!.oncePerTurnKey).toMatch(new RegExp(`^${cardSource.instanceId}/printed/${CARD_ID}/`));
 
     const ownCard = instance("own-card");

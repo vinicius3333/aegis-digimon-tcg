@@ -57,8 +57,6 @@ describe("ST5-04 ToyAgumon", () => {
     const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
     await settle(() => combat.hasOpenBlockWindow);
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
-    // The attacker loses the security battle against the checked ST5-03 and is deleted;
-    // the assertion below only needs its permanentId, not a live permanent.
     await settle(() => s.state.players[0]!.security.length === 1 && !observe(s.engine).isAttacking());
     expect(observe(s.engine).hasAttackedThisTurn(attackerPermanentId)).toBe(true);
     expect(observe(s.engine).attackedWithDigimonThisTurn(1)).toBe(true);

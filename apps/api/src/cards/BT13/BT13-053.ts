@@ -1,13 +1,6 @@
-// HAND-FIXED IR for BT13-053 — do not regenerate. The printed "Then, until the end of
-// your opponent's turn, 1 of your opponent's Digimon doesn't unsuspend" compiled as an
-// immediate `Unsuspend` of an opponent Digimon, which UNDID the suspend; replaced with
-// the unsuspend-prevention `Restrict` (untilOpponentTurnEnd).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {

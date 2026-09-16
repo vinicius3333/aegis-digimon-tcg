@@ -124,8 +124,6 @@ describe("EX13-006 Dorimon", () => {
 
     await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("host"));
 
-    // The engine normalizes whitespace and hyphens in trait refs (matching/definition.ts
-    // `normalizeTrait`), so "X-Antibody" and "X Antibody" are one trait, as in the real game.
     expect(s.perm("hyphenTrait").isSuspended).toBe(false);
     expect(s.state.memory).toBe(1);
   });
@@ -195,7 +193,6 @@ describe("EX13-006 Dorimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.instanceId === s.inst("host").instanceId);
-    // Digi-Egg digivolution in breeding costs no memory and still draws 1.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["EX13-006"]);
@@ -206,7 +203,6 @@ describe("EX13-006 Dorimon", () => {
       ok: true,
     });
     await advance(s.engine).waitForMainPhase(0);
-    // Keep the Lv.3 host alive through the security check; inert Lv.3 fixtures need 20,000 DP.
     s.perm("egg").baseDP = 20_000;
     s.perm("egg").currentDP = 20_000;
     expect(

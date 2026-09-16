@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR: the second clause must restrict the Digimon selected and suspended
-// by the first clause, not MegaGargomon itself. `sameTarget` carries that selection
-// through the shared interpreter's action context.
 const compiled: CompiledCard = {
   effects: [
     {

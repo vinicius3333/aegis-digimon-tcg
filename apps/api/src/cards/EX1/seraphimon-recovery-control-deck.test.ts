@@ -72,7 +72,6 @@ describe("EX1 Seraphimon recovery control deck", () => {
 
     expect(s.perm("firstTarget").currentDP).toBe(5000);
     expect(s.state.players[0]!.security).toHaveLength(1);
-    // Seraphimon costs 4 to digivolve and inherited MagnaAngemon refunds exactly 1.
     expect(s.state.memory).toBe(7);
 
     expect(
@@ -87,14 +86,10 @@ describe("EX1 Seraphimon recovery control deck", () => {
         s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("holyWave").instanceId),
     );
 
-    // Holy Wave is exactly Recovery +1: the two separate recoveries moved two cards total.
-    // The third starting deck card was the normal bonus draw from digivolving.
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.security.filter(({ instanceId }) => startingDeckIds.has(instanceId))).toHaveLength(2);
     expect(s.state.players[0]!.hand.filter(({ instanceId }) => startingDeckIds.has(instanceId))).toHaveLength(1);
-    // MagnaAngemon and Angewomon are each once per turn, so the second Recovery neither
-    // gains another memory nor applies another -2000 DP choice.
     expect(s.state.memory).toBe(1);
     expect(s.perm("secondTarget").currentDP).toBe(3000);
     expect(

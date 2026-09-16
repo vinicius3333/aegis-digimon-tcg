@@ -8,7 +8,6 @@ const protectedTarget: Target = {
     nameOrTrait: [
       { tokens: ["System"], match: "trait" },
       { tokens: ["Life"], match: "trait" },
-      // The parenthetical is printed reminder text; the catalog trait identity is Transmutation.
       { tokens: ["Transmutation"], match: "trait" },
     ],
   },
@@ -52,8 +51,6 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
-  // The printed second evolution circle is any-color Standard grade, cost 2.
-  // The shared trait matcher includes forms, so Stnd. also matches the grade.
   digivolutionRequirement: [{ traits: ["Stnd."], cost: 2, isAlternate: false }],
 };
 

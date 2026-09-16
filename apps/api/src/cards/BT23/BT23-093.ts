@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT23-093 Big Bang Punch!
-// Fix: [All Turns] effect — Link action is part of the <Delay> triggered by the suspend;
-//   moved inside SubTrigger. Link target is the suspending Digimon (isTriggerSource).
-//   Linked card filter is [Appmon] trait from hand (engine enforces <Link> requirement per Q5367).
-//   Q5366, asked about this printed wording, answers that "on the field" is the battle area
-//   or the breeding area. CR 3-4-7-8 bars referencing breeding-area information "except for
-//   effects that explicitly specify or reference breeding areas", and that card-specific
-//   ruling is exactly such a reference, so the [Appmon] check spans both field zones.
 export const compiled: CompiledCard = {
   effects: [
     {

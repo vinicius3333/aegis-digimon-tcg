@@ -44,7 +44,6 @@ describe("BT9-107 Metal Impulse", () => {
   it("repeats De-Digivolve 1 on one chosen target, stops at level 3, then chooses a deletion", async () => {
     const s = setupEngine({
       0: {
-        // Metal Impulse is a dual-color Option, so both printed colors must be present.
         battleArea: ["BT9-070", "BT10-022"],
         hand: [
           { card: "BT9-107", as: "option" },
@@ -118,8 +117,6 @@ describe("BT9-107 Metal Impulse", () => {
       return latest?.kind === "chooseTargets" && latest.decisionId !== dedigivolveChoice.decisionId;
     });
 
-    // Q1915/Q1916 and the keyword floor: both repetitions used the bound target,
-    // which reached level 3 while its Digi-Egg remained underneath.
     expect(s.perm("dedigivolveTarget").topCard.instanceId).toBe(level3Id);
     expect(s.perm("dedigivolveTarget").stack.map(({ instanceId }) => instanceId)).toEqual([eggId]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
@@ -153,7 +150,6 @@ describe("BT9-107 Metal Impulse", () => {
   it("skips De-Digivolve when zero cards are discarded but still performs the Then deletion", async () => {
     const s = setupEngine({
       0: {
-        // Metal Impulse is a dual-color Option, so both printed colors must be present.
         battleArea: ["BT9-070", "BT10-022"],
         hand: [
           { card: "BT9-107", as: "option" },

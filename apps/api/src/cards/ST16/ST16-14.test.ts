@@ -4,14 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-// A3 for ST16-14 (Matt Ishida):
-//   "[All Turns] When one of your effects trashes a card in your hand, by suspending
-//    this Tamer, gain 1 memory."
-//
-// FAILS-WHEN-REVERTED: the memory gain + Tamer suspension fires ONLY because ST16-14's
-// whenHandTrashed watcher is active on the field. Without the card the watcher is absent
-// and memory remains unchanged.
-
 function primitivesOf(s: EngineSetup): Primitives {
   return (s.engine as unknown as { primitives: Primitives }).primitives;
 }
@@ -73,7 +65,6 @@ describe("ST16-14 Matt Ishida — whenHandTrashed: by suspending this Tamer, gai
     const s = setupEngine(
       {
         0: {
-          // already suspended — cost cannot be paid
           battleArea: [{ card: "ST16-14", dp: 0, as: "tamer", suspended: true }],
           hand: [{ card: "BT1-001", as: "handCard" }],
         },
@@ -89,7 +80,6 @@ describe("ST16-14 Matt Ishida — whenHandTrashed: by suspending this Tamer, gai
     await settle(() => false, 100);
 
     expect(s.state.memory).toBe(0);
-    // Tamer remains suspended (unchanged).
     expect(s.perm("tamer").isSuspended).toBe(true);
   });
 

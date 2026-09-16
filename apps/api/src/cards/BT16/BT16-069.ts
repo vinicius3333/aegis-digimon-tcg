@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play][When Digivolving]:
-//   If [Gesomon] or [X Antibody] is in this Digimon's digivolution cards, trash any 3 cards
-//   under 1 of your opponent's Digimon or Tamers.
-//   Then (regardless of above IF), 1 of your opponent's Digimon or Tamers without cards under it
-//   can't suspend until the end of their turn.
-// KB Q4708: the "then" part fires even if the "if" condition is not met.
-// KB Q4709: "with cards under it" = has digivolution cards stacked under it.
-// Inherited [When Attacking][Once Per Turn]: <Draw 1> and trash 1 card in hand.
 const compiled: CompiledCard = {
   effects: [
     {

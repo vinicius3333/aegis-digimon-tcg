@@ -148,8 +148,6 @@ describe("BT17-013", () => {
     });
   });
 
-  // Q2739: with a legal target the deletion is mandatory — declining every optional prompt
-  // still deletes, and no Security Attack +1 is handed out.
   it("cannot decline the deletion while a legal target exists (Q2739)", async () => {
     const s = setupEngine(
       {
@@ -181,9 +179,6 @@ describe("BT17-013", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  // Q2740: a deletion-proof target is still a legal choice, and choosing it turns the clause
-  // into the "didn't delete" branch. BT14-062 Datamon is 6000 DP and can't be deleted by
-  // opponent effects; the plain BT1-009 next to it proves the pick was a real choice.
   it("grants Security Attack +1 when the chosen target cannot be deleted (Q2740)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -295,7 +290,6 @@ describe("BT17-013", () => {
     expect(s.perm("gallant").isSuspended).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
 
-    // Re-suspend as plumbing so the second deletion has something to undo.
     await advance(s.engine).verb.suspend([s.perm("gallant").permanentId]);
     expect(s.perm("gallant").isSuspended).toBe(true);
 

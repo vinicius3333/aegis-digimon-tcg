@@ -5,16 +5,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 import { compiled } from "./BT15-038.js";
 
-// A3 behavioral test for BT15-038 (Angewomon):
-//   [On Play] By trashing the top or bottom card of your security stack,
-//   1 of your opponent's Digimon gets -6000 DP until the end of their turn.
-//
-// Primary observable: playing BT15-038 with security available causes the target
-// opponent Digimon to have -6000 DP applied.
-//
 const ANGEWOMON = "BT15-038";
-const OPP_DIGIMON = "BT1-009"; // Monodramon Lv.3, 2000 DP
-const SECURITY_CARD = "BT1-010"; // neutral non-Digi-Egg card for security stack
+const OPP_DIGIMON = "BT1-009";
+const SECURITY_CARD = "BT1-010";
 
 describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () => {
   it("registers Blast Digivolve and executable owned-security recovery IR", () => {
@@ -38,7 +31,7 @@ describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () =>
         },
         1: { battleArea: [{ card: OPP_DIGIMON, dp: 8000, as: "oppDigi" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true }, // "Security Top" is option index 0
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
@@ -52,15 +45,13 @@ describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () =>
     const res = s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId });
     expect(res).toEqual({ ok: true });
 
-    // Wait for DP to change on opp Digimon (8000 - 6000 = 2000).
     await settle(() => {
       const perm = p1.battleArea.find((p) => p.permanentId === oppDigi.permanentId);
       return perm !== undefined && perm.currentDP < 8000;
     }, 600);
 
     const perm = p1.battleArea.find((p) => p.permanentId === oppDigi.permanentId);
-    expect(perm?.currentDP).toBe(2000); // 8000 - 6000
-    // Security card was consumed.
+    expect(perm?.currentDP).toBe(2000);
     expect(p0.security.some((c) => c.instanceId === secCard.instanceId)).toBe(false);
   });
 

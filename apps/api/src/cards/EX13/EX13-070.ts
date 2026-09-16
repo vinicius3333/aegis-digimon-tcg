@@ -1,15 +1,6 @@
 import type { Action, CompiledCard, Filter, Scaling } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX13-070 Davis Motomiya & Ken Ichijoji (Blue/Green Tamer, play cost 4).
-//
-// [Start of Your Turn] If you have 2 or less memory, set it to 3.
-// [End of Your Turn] By suspending this Tamer, activate 1 of the effects below:
-//   1 of your Digimon may digivolve into an [Imperialdramon]-named or [Free] Digimon
-//   in hand, reducing the paid cost by 1 for each opponent's Digimon; or
-//   2 of your Digimon may DNA digivolve into a [Free] Digimon in hand.
-// [Security] Play this card without paying the cost.
-
 const imperialdramonOrFree: Filter = {
   controllerDefault: "mine",
   kind: ["Digimon"],

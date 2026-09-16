@@ -11,7 +11,6 @@ describe("BT7-031 Herissmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Legal yellow stack: L2 egg -> L3 Herissmon -> L4 Filmon.
           battleArea: [
             {
               card: "BT7-034",

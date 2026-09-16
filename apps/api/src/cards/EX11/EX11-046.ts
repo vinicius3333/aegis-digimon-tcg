@@ -67,7 +67,6 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          // "isn't affected by THEIR effects" — the opponent's effects, all card kinds.
           immuneFrom: "opponentEffects",
           duration: "untilOpponentTurnEnd",
           condition: {
@@ -144,7 +143,6 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          // "isn't affected by THEIR effects" — the opponent's effects, all card kinds.
           immuneFrom: "opponentEffects",
           duration: "untilOpponentTurnEnd",
           condition: {

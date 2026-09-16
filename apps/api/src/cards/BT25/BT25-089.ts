@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** BT25-089 Kazuki & Itsuki — audited against Q6422-Q6423. */
 export const compiled: CompiledCard = {
   effects: [
     {

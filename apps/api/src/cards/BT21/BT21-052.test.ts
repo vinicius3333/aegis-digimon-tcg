@@ -385,7 +385,6 @@ describe("BT21-052 Examon (X Antibody)", () => {
     } else {
       expect(s.events.some((event) => event.kind === "evadeResolved")).toBe(true);
       expect(s.perm("target").topCard.instanceId).toBe(targetCardId);
-      // Evade pays by suspending; Examon X's own All Turns watcher then unsuspends it.
       expect(s.perm("target").isSuspended).toBe(false);
     }
   });

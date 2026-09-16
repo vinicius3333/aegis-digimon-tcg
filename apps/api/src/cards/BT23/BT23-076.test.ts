@@ -7,11 +7,6 @@ import "../BT10/BT10-110.js";
 import "../index.js";
 import { compiled } from "./BT23-076.js";
 
-/**
- * Blanc's `[Your Turn]` watcher only fires when Blanc itself suspends, and attacking is the
- * public intent that suspends an attacker — so every behavioral test below reaches the
- * watcher by attacking rather than by firing the sub-trigger directly.
- */
 const attack = (s: ReturnType<typeof setupEngine>, alias: string, preyAlias = "prey") =>
   s.engine.applyIntent(0, {
     type: "attack",
@@ -19,7 +14,6 @@ const attack = (s: ReturnType<typeof setupEngine>, alias: string, preyAlias = "p
     target: { kind: "permanent", permanentId: s.perm(preyAlias).permanentId },
   });
 
-/** A suspended 1000 DP opponent Digimon: a legal attack target a 3000 DP attacker survives. */
 const prey = { card: "BT1-009", as: "prey", dp: 1000, suspended: true } as const;
 const secondPrey = { card: "BT1-010", as: "secondPrey", dp: 1000, suspended: true } as const;
 
@@ -104,9 +98,7 @@ describe("BT23-076 Sistermon Blanc", () => {
     expect(s.perm("blanc").isSuspended).toBe(true);
     expect(s.perm("base").topCard?.instanceId).toBe(baoId);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
-    // BaoHuckmon's printed digivolution cost is 2; the reduction makes it 1.
     expect(s.state.memory).toBe(2);
-    // BaoHuckmon left the hand and the digivolution bonus draw put one card back.
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -135,8 +127,6 @@ describe("BT23-076 Sistermon Blanc", () => {
     expect(attack(s, "blanc")).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.perm("base").topCard?.instanceId === meramonId);
 
-    // Meramon matches both its printed Red Lv.3 route (cost 3) and its alternate [CS] route
-    // (cost 2), so the engine asks which requirement to use; index 0 is the printed one.
     const routeChoice = s.decisions.find(({ req }) => req.kind === "chooseOption");
     expect(routeChoice?.req.options?.choices).toEqual([
       "Printed digivolution requirement (cost 3)",
@@ -172,7 +162,6 @@ describe("BT23-076 Sistermon Blanc", () => {
     await settle(() => !observe(s.engine).isAttacking() && s.perm("base").topCard?.instanceId === meramonId);
 
     expect(s.perm("base").topCard?.instanceId).toBe(meramonId);
-    // The alternate route costs 2; the reduction makes it 1.
     expect(s.state.memory).toBe(4);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
@@ -208,8 +197,6 @@ describe("BT23-076 Sistermon Blanc", () => {
     expect(s.perm("firstBase").topCard?.instanceId).toBe(firstBaoId);
     expect(s.state.memory).toBe(8);
 
-    // Unsuspend Blanc the public way: BT10-110 Seiken Meppa is a [Main] Option that unsuspends
-    // 1 of your Digimon, so the second suspension under test is a real one.
     preferred.push(s.perm("blanc").permanentId, s.perm("blanc").topCard!.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("seikenMeppa").instanceId })).toEqual({
       ok: true,
@@ -249,7 +236,6 @@ describe("BT23-076 Sistermon Blanc", () => {
     await settle(() => !observe(s.engine).isAttacking() && s.perm("base").topCard?.instanceId === magnamonId);
 
     expect(s.perm("base").topCard?.instanceId).toBe(magnamonId);
-    // Magnamon's Blue Lv.3 route costs 4; the reduction makes it 3.
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
@@ -301,7 +287,6 @@ describe("BT23-076 Sistermon Blanc", () => {
     expect(attack(s, "blanc")).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Greymon is a legal Red Lv.3 digivolution, so only the name/trait gate can stop it.
     expect(s.perm("base").topCard?.cardId).toBe("BT23-006");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([greymonId]);
     expect(s.state.memory).toBe(5);
@@ -400,7 +385,6 @@ describe("BT23-076 Sistermon Blanc", () => {
     expect(offered).toContain(firstBasePermanentId);
     expect(offered).not.toContain(blancPermanentId);
     expect(offered).not.toContain(breedingPermanentId);
-    // Blanc and the breeding Digimon are both untouched; only a battle-area peer digivolved.
     expect(s.perm("blanc").topCard?.cardId).toBe("BT23-076");
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-012");
   });
@@ -434,8 +418,6 @@ describe("BT23-076 Sistermon Blanc", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // P-131 Pteromon's [On Play] suspends 1 of the opponent's Digimon; `preferred` steers it
-    // onto Blanc, which on the opponent's turn must not offer any digivolution.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("pteromon").instanceId })).toEqual({
       ok: true,
     });

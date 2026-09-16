@@ -31,7 +31,7 @@ describe("P-085 Dracmon", () => {
     expect(evolved?.topCard?.instanceId).toBe(troopmonId);
     expect(evolved?.stack.some((card) => card.cardId === "P-085")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === troopmonId)).toBe(false);
-    expect(s.state.memory).toBe(5); // 3 to play Dracmon, then 2 to digivolve.
+    expect(s.state.memory).toBe(5);
   });
 
   it("does not ignore the trash card's digivolution requirements", async () => {
@@ -58,7 +58,7 @@ describe("P-085 Dracmon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "P-085")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === skullGreymonId)).toBe(true);
-    expect(s.state.memory).toBe(7); // Only Dracmon's play cost was paid.
+    expect(s.state.memory).toBe(7);
   });
 
   it("does not digivolve without a purple Tamer", async () => {

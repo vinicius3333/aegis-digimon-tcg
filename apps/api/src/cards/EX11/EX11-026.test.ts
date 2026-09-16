@@ -79,10 +79,6 @@ describe("EX11-026 Pteromon", () => {
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
   });
 
-  // Controller gate for "If this effect suspended YOUR Digimon": suspending the OPPONENT's
-  // Digimon (allowed by Q5816) leaves the bonus unprocessed. The source is itself a [Bird Dragon]
-  // and so a legal buff target, which is what makes this a real guard — swap the condition back
-  // to `ifThisEffectActed` and the source gains +3000 here.
   it("may suspend an opposing Digimon but then does not grant the conditional DP bonus", async () => {
     const s = setupEngine(
       {
@@ -117,11 +113,6 @@ describe("EX11-026 Pteromon", () => {
     assertNoLoudGap(s);
   });
 
-  // Trait-mix proof for the printed "with [Avian] or [Bird] IN ANY OF ITS TRAITS or the
-  // [Vortex Warriors] trait" (KB Q839/Q6517). Pteromon's own [Bird Dragon] trait only qualifies
-  // under partial matching, EX8-074 only under the exact [Vortex Warriors] branch, and
-  // BT1-009 [Mini Dragon] under neither. With `match: "trait"` (exact) the [Bird Dragon] source
-  // would drop out of the candidate set and this assertion fails.
   it("offers partial-trait and Vortex Warriors allies but never a non-matching trait", async () => {
     const s = setupEngine(
       {

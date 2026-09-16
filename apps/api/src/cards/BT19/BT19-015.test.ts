@@ -6,15 +6,10 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT19-015.js";
 import "../index.js";
 
-/** Wait until the hand Gallantmon is the top card of a board permanent and the flow is quiet. */
 async function settleOnGallant(s: ReturnType<typeof setupEngine>): Promise<void> {
   await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-015"));
   await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
 }
-
-// Inert fixtures only: BT1-024 MetalTyrannomon (Red Lv.5, 10000, no text) is the legal
-// digivolution source, BT1-038 Monzaemon (Blue Lv.5) and BT1-014 Kokatorimon (Red Lv.4)
-// are the illegal ones, and BT1-009/BT1-013 are the inert security and board bodies.
 
 describe("BT19-015 Gallantmon", () => {
   it("matches the catalog printing", () => {
@@ -59,7 +54,6 @@ describe("BT19-015 Gallantmon", () => {
         },
       ],
     });
-    // The delete carries no `optional`, which is what makes it mandatory (Q3070).
     expect(compiled.effects[0]?.actions?.[0]).not.toHaveProperty("optional");
     expect(compiled.effects[1]).toMatchObject({
       trigger: "YourTurn",
@@ -113,7 +107,6 @@ describe("BT19-015 Gallantmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
-    // 10 - 4 (evolution cost) + 1 (bonus draw is a card, not memory) + 2 (own [Your Turn] clause).
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
@@ -216,7 +209,6 @@ describe("BT19-015 Gallantmon", () => {
     expect(s.perm("target").currentDP).toBe(9000);
     expect(s.perm("gallant").currentDP).toBe(15000);
     expect(observe(s.engine).hasPierce(s.perm("gallant"))).toBe(true);
-    // No opponent Digimon was deleted, so the [Your Turn] memory clause never fires.
     expect(s.state.memory).toBe(6);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -246,8 +238,6 @@ describe("BT19-015 Gallantmon", () => {
     ).toEqual({ ok: true });
     await settleOnGallant(s);
 
-    // Datamon's [All Turns] "can't be deleted by your opponent's effects" holds; it was still
-    // a legal choice, so the fallback applies.
     expect(s.perm("datamon").topCard?.cardId).toBe("BT14-062");
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.perm("gallant").currentDP).toBe(15000);
@@ -285,8 +275,6 @@ describe("BT19-015 Gallantmon", () => {
   });
 
   it("checks security with the granted Piercing after winning a battle, unlike the deleting branch", async () => {
-    // Fallback branch: no deletion happened, so Piercing is live and the excess damage from
-    // beating a 3000 DP suspended Digimon reaches the security stack.
     const pierced = setupEngine(
       {
         0: {
@@ -325,8 +313,6 @@ describe("BT19-015 Gallantmon", () => {
     expect(pierced.state.players[1]!.security).toHaveLength(2);
     expect(pierced.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
 
-    // Control: the same board plus a deletable 8000 DP body, pinned as the delete target, so
-    // the deletion happens, Piercing is never granted and the same battle leaves security alone.
     const preferInstanceIds: string[] = [];
     const plain = setupEngine(
       {
@@ -404,15 +390,12 @@ describe("BT19-015 Gallantmon", () => {
     expect(s.perm("gallant").currentDP).toBe(15000);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Read INSIDE the opponent's open Main phase: the grant is still live there. The turn
-    // loop passes the turn itself, so nothing here writes `turnSeat`.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.turnSeat).toBe(1);
     expect(s.perm("gallant").currentDP).toBe(15000);
     expect(observe(s.engine).hasPierce(s.perm("gallant"))).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // ... and gone once that turn has ended, read inside our own next Main.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.turnSeat).toBe(0);
     expect(s.perm("gallant").currentDP).toBe(12000);
@@ -423,8 +406,6 @@ describe("BT19-015 Gallantmon", () => {
   });
 
   it("ignores the deletion of your OWN Digimon without consuming the once-per-turn window", async () => {
-    // Both deletions are real battle outcomes on our own turn, driven by public attack
-    // intents; nothing writes `turnSeat` or fires a timing directly.
     const s = setupEngine(
       {
         0: {
@@ -453,7 +434,6 @@ describe("BT19-015 Gallantmon", () => {
     s.state.memory = 0;
     const mineInstanceId = s.perm("mine").topCard!.instanceId;
 
-    // Our own 3000 DP body attacks their suspended 9000 DP body and dies.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -465,7 +445,6 @@ describe("BT19-015 Gallantmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([mineInstanceId]);
     expect(s.state.memory).toBe(0);
 
-    // The window is untouched: the very next OPPONENT Digimon deletion still pays out.
     const theirSmallInstanceId = s.perm("theirSmall").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
@@ -486,9 +465,6 @@ describe("BT19-015 Gallantmon", () => {
   });
 
   it("stays silent on the opponent's turn and re-arms on your next own turn", async () => {
-    // Three consecutive turns of ONE real turn loop. Every deletion is a battle outcome
-    // from a public attack intent, and the loop passes the turn itself — no `turnSeat`
-    // write, no injected timing.
     const s = setupEngine(
       {
         0: {
@@ -499,7 +475,6 @@ describe("BT19-015 Gallantmon", () => {
           ],
           hand: [{ card: "BT1-013", as: "spare" }],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-009"],
-          // 1000 DP security bodies, so the opponent's two suspending attacks survive.
           security: ["BT1-011", "BT1-011", "BT1-011"],
         },
         1: {
@@ -517,9 +492,6 @@ describe("BT19-015 Gallantmon", () => {
     );
     const loop = s.engine.startTurnLoop();
 
-    // Turn 1 (ours): attack the player with the bait so it is left suspended and therefore
-    // attackable on the opponent's turn. No opponent Digimon is deleted, so the
-    // once-per-turn window is still unspent when their turn opens.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.turnSeat).toBe(0);
     expect(
@@ -533,8 +505,6 @@ describe("BT19-015 Gallantmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(3);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Turn 2 (theirs): their own 3000 DP Digimon attacks our suspended 10000 DP body and is
-    // deleted. That IS "an opponent's Digimon is deleted", but not on OUR turn.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.turnSeat).toBe(1);
     const theirAttackerInstanceId = s.perm("theirAttacker").topCard!.instanceId;
@@ -553,11 +523,8 @@ describe("BT19-015 Gallantmon", () => {
       s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === theirAttackerInstanceId),
     ).toBe(false);
     expect(s.perm("bait").topCard?.cardId).toBe("BT1-020");
-    // The [Your Turn] gate held: the gauge moved only by the battle itself, not by +2.
     expect(s.state.memory).toBe(memoryBeforeTheirDeletion);
 
-    // Their two survivors attack our 1000 DP security bodies, win, and end their turn
-    // suspended — which is what makes them legal attack targets on our next turn.
     for (const alias of ["firstVictim", "secondVictim"]) {
       expect(
         s.engine.applyIntent(1, {
@@ -571,7 +538,6 @@ describe("BT19-015 Gallantmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
     advance(s.engine).endMainPhaseIfOpen(1);
 
-    // Turn 3 (ours): the window is armed again and the first opponent deletion pays out.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.turnSeat).toBe(0);
     s.state.memory = 0;
@@ -587,7 +553,6 @@ describe("BT19-015 Gallantmon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(firstVictimInstanceId);
     expect(s.state.memory).toBe(2);
 
-    // Second opponent deletion in the SAME turn, by a different attacker: [Once Per Turn].
     const secondVictimInstanceId = s.perm("secondVictim").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {

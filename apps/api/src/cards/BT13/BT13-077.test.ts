@@ -154,7 +154,6 @@ describe("BT13-077 Craniamon", () => {
 
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
-    // Digivolve an established host so immunity is active without summoning sickness.
     expect(
       s.engine.applyIntent(1, {
         type: "digivolve",

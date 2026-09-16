@@ -6,18 +6,6 @@ import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../e
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-104.js";
 
-// A3 for BT10-104 (Immortal Ruler, Black Option)
-//
-// [Static] If [Nene Amano] is in play, waive this card's color requirement.
-// [Main] Trash 3 from deck top. Optionally play 1 DarkKnightmon from trash for cost.
-// [Security] Add this card to hand.
-//
-// Primary A3: [Main] calls reveal(3) then trash then fires library events, and when
-// DarkKnightmon is in trash, calls playInstances with payCost: true.
-// Without the effect reveal/trash/playInstances would not be called.
-//
-// FAILS-WHEN-REVERTED: if [Main] were removed, reveal would never be called.
-
 const CARD_ID = "BT10-104";
 
 function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
@@ -287,7 +275,6 @@ describe("BT10-104 (Immortal Ruler)", () => {
   });
 
   it("[Main] calls reveal(3) from deck and trashes the revealed cards", async () => {
-    // Primary A3: [Main] trashes 3 from deck top via reveal then trash.
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);
@@ -308,23 +295,20 @@ describe("BT10-104 (Immortal Ruler)", () => {
     const ctx = makeContext({
       source,
       ownerDeck: deckCards,
-      ownerTrash: [], // no DarkKnightmon → no play
+      ownerTrash: [],
       revealReturns: deckCards,
       record,
     });
 
     await effects[0]!.resolve(ctx);
 
-    // reveal(0, 3) called.
     expect(record.revealCalls.length).toBeGreaterThanOrEqual(1);
     expect(record.revealCalls[0]!.n).toBe(3);
-    // trash called with the 3 revealed card ids.
     expect(record.trashCalls.length).toBeGreaterThanOrEqual(1);
     expect(record.trashCalls[0]!.length).toBe(3);
   });
 
   it("[Main] calls playInstances with payCost:true for DarkKnightmon in trash", async () => {
-    // After trashing 3, if DarkKnightmon is in trash, playInstances(payCost:true) is called.
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
 
@@ -349,7 +333,6 @@ describe("BT10-104 (Immortal Ruler)", () => {
 
     await effects[0]!.resolve(ctx);
 
-    // playInstances called with DarkKnightmon and payCost: true.
     const playCalls = record.playInstancesCalls.filter((c) => c.ids.includes("dkm-inst"));
     expect(playCalls.length).toBeGreaterThanOrEqual(1);
     expect(playCalls[0]!.opts.payCost).toBe(true);
@@ -389,7 +372,6 @@ describe("BT10-104 (Immortal Ruler)", () => {
   });
 
   it("[Security] calls returnToHand with the source instanceId", async () => {
-    // [Security] effect: Add this card to its owner's hand.
     const source = makeSource({ instanceId: "immortal-ruler-inst" });
     const effects = module!.effectsForTiming(EffectTiming.SecuritySkill, source);
 

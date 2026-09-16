@@ -11,18 +11,9 @@ import {
 import { compiled } from "./BT21-094.js";
 import "../index.js";
 
-// A3 for BT21-094 (Armor Digivolution) — [Main]/[Security]:
-//   Reveal the top 3 cards of your deck. Add 1 card with [Davis Motomiya] in its name and
-//   1 card with the [Free] trait among them to the hand. Trash the rest. Then, place this
-//   card in the battle area.
-//
-// FAILS-WHEN-REVERTED: `ctx.fx.reveal` only flips cards face-up in place — it does not
-// move them. The pre-fix module trashed all 3 revealed cards unconditionally with no
-// selection logic, so the matching cards never reached the hand.
-
 function playCard(s: ReturnType<typeof setup>): { instanceId: string } {
   const p0 = s.state.players[0] as PlayerState;
-  p0.battleArea.push(digimon(0, 3000, "AD1-011")); // §4-21 color-requirement source (Blue)
+  p0.battleArea.push(digimon(0, 3000, "AD1-011"));
   const option = instance("BT21-094", 0, true);
   p0.hand.push(option);
   s.state.memory = 0;
@@ -37,25 +28,21 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
 
-    const davisNamed = instance("BT3-093", 0, false); // Davis Motomiya
-    const freeTraited = instance("BT17-077", 0, false); // [Free] trait
-    const filler = instance("AD1-001", 0, false); // neither
+    const davisNamed = instance("BT3-093", 0, false);
+    const freeTraited = instance("BT17-077", 0, false);
+    const filler = instance("AD1-001", 0, false);
     p0.deck.push(davisNamed, freeTraited, filler);
 
     playCard(s);
-    // The Main play cost is paid before the reveal choices resolve.
     expect(s.state.memory).toBe(-3);
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT21-094"));
     await settle(() => false, 60);
 
     expect(s.events.some((e) => e.kind === "actionRejected")).toBe(false);
-    // Both matching cards land in hand — the reveal alone never moves them.
     expect(p0.hand.some((c) => c.instanceId === davisNamed.instanceId)).toBe(true);
     expect(p0.hand.some((c) => c.instanceId === freeTraited.instanceId)).toBe(true);
-    // The filler card is trashed, not left in hand or deck.
     expect(p0.trash.some((c) => c.instanceId === filler.instanceId)).toBe(true);
     expect(p0.hand.some((c) => c.instanceId === filler.instanceId)).toBe(false);
-    // The option itself is placed in the battle area (not trashed).
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === "BT21-094")).toBe(true);
     expect(p0.trash.some((c) => c.cardId === "BT21-094")).toBe(false);
   });
@@ -87,8 +74,6 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-094"));
 
-    // Age the Option through a real opponent turn so the negative proves that an
-    // ineligible destination fails after Delay is actually allowed to activate.
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 0;
@@ -109,7 +94,6 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // A public Armor Purge battle trashes the Armor Form top card and arms Delay.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -119,7 +103,6 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT21-035"));
 
-    // BT1-009 is not Armor Form, so Delay cannot use it; the option and base remain.
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonArmor").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-094")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-032")).toBe(true);
@@ -238,12 +221,9 @@ describe("BT21-094 Delay watcher", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT21-035"));
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-035")).toBe(true);
-    // Same-turn placement refusal: the reactive Delay event does not pay its source cost.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-094")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-036")).toBe(false);
 
-    // Age the placed option through real production turns, then trigger a second public
-    // Armor Purge. This exercises the later-turn optional source trash and free evolution.
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 0;

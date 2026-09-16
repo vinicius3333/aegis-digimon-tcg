@@ -5,13 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// A3 for P-169 (Close, Black Tamer) — its [Security] clause: "Play this card without
-// paying the cost."
-//
-// FAILS-WHEN-REVERTED: the module had no EffectTiming.SecuritySkill branch at all — the
-// printed [Security] ability was entirely unported, so a security check against this card
-// only revealed and trashed it (per the default security-check flow) instead of playing
-// it onto the battle area for free.
 describe("P-169 [Security] play this card without paying the cost", () => {
   it("plays the Tamer onto the battle area during a security check, at no memory cost", async () => {
     const s = setupEngine(
@@ -40,7 +33,7 @@ describe("P-169 [Security] play this card without paying the cost", () => {
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "P-169")).toBe(true);
     const secCard = s.inst("secCard");
     expect(p0.security.some((c) => c.instanceId === secCard.instanceId)).toBe(false);
-    expect(s.state.memory).toBe(0); // played for free, no memory cost paid
+    expect(s.state.memory).toBe(0);
     s.state.turnSeat = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("secCard"));
     await settle();

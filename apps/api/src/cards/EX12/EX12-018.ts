@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX12-018 Siriusmon / Planet Punch (DUAL Digimon + Option).
-//
-// "give -2000 DP ... for each of this Digimon's digivolution cards" counts EVERY card in the
-// source's stack. The generated shape carried `filter: { controllerDefault: "mine", kind:
-// ["Digimon"] }`, which `definitionMatches` applies per stack card, so a Digi-Egg (catalog kind
-// "DigiEgg", not "Digimon") was skipped — every Siriusmon raised through the breeding area was
-// short by 2000 DP. The scaling unit "digivolutionCards" already scopes the count to the source's
-// own stack, so the filter must be empty.
 const compiled: CompiledCard = {
   effects: [
     {

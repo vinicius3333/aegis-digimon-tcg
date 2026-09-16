@@ -173,8 +173,6 @@ describe("BT20-002 Bebydomon", () => {
     );
     expect(matching.state.players[1]!.security.length).toBe(4);
 
-    // A public On Play unsuspend effect makes a second same-turn attack possible; the
-    // once-per-turn identity still refuses the inherited draw.
     matching.state.memory = 10;
     expect(
       matching.engine.applyIntent(0, { type: "playCard", instanceId: matching.inst("garurumon").instanceId }),
@@ -196,10 +194,6 @@ describe("BT20-002 Bebydomon", () => {
     );
     expect(matching.state.players[1]!.security.length).toBe(3);
 
-    // Pass through the opponent turn and start the next own turn through the production
-    // lifecycle; the inherited source may draw again once its turn identity resets.
-    // Normalize the gauge before handing over: Garurumon's paid play leaves memory on the
-    // current side, which would make the opponent's Main phase immediately auto-end.
     matching.state.memory = 0;
     matching.state.turnSeat = 1;
     const opponentTurn = matching.engine.runOneTurn();
@@ -207,7 +201,6 @@ describe("BT20-002 Bebydomon", () => {
     advance(matching.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
     matching.state.turnSeat = 0;
-    // runOneTurn does not call passTurn: reproduce its change of gauge frame.
     matching.state.memory = -matching.state.memory;
     const nextTurn = matching.engine.runOneTurn();
     await advance(matching.engine).waitForMainPhase(0);

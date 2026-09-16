@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT23-094 (Nanomachine Break).
-// [Main]: give 1 opponent Digimon SecurityAttack -1 + disable WD/WA until opp turn ends; place self.
-// [Your Turn] SubTrigger whenAttacking (CS trait Digimon): grant <Delay> to self.
-// [Main]+Delay keyword: delayed payoff — give 1 opponent Digimon SecurityAttack -1 + disable WD/WA.
-// [Security]: same effect as [Main] + place self.
-// The DisableTimingEffect targets carry a filter only to satisfy `Target`; `fromSelectionRef`
-// short-circuits target resolution (targeting/permanents.ts ~29) so the bound Digimon is reused.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -27,10 +20,6 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],
-              // Q5368, asked about this printed wording, answers that "on the field" is the
-              // battle area or the breeding area. CR 3-4-7-8 bars referencing breeding-area
-              // information "except for effects that explicitly specify or reference breeding
-              // areas", and that card-specific ruling is exactly such a reference.
               zone: ["battleArea", "breeding"],
               nameOrTrait: [
                 {

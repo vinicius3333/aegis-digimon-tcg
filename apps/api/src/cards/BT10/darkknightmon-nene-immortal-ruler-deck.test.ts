@@ -76,9 +76,6 @@ describe("BT10 DarkKnightmon / Nene / Immortal Ruler deck gauntlet", () => {
     expect(observe(s.engine).hasKeyword(darkKnightmon, "Blocker")).toBe(true);
 
     preferred.push(s.inst("chosenSkullKnightmon").instanceId, s.inst("chosenDeadlyAxemon").instanceId);
-    // The optional deletion replacement opens a split decision.  The fixture's
-    // automatic selector is biased to the exact DeadlyAxemon source above, so
-    // the complete replacement resolves deterministically without hand timing.
     const deletion = advance(s.engine).verb.deletePermanent([darkKnightmon.permanentId], "byEffect");
     await settle(
       () =>

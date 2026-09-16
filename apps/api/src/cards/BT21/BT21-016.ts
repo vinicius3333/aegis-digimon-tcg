@@ -1,19 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-016 Shoutmon (King Version):
-// [Digivolve] Lv.3 w/[Xros Heart]/[Hero] trait: Cost 2
-// <Raid> <Piercing>
-// [On Deletion] You may place 1 Digimon card with [Xros Heart]/[Blue Flare]/[Hero]
-//   trait from your hand or trash under any of your Tamers. Then, <Save>.
-// [DigiXros -1] 1 Digimon card w/[Xros Heart] trait
-// [Inherited][Your Turn] This Digimon gets +2000 DP.
-//
-// Notes:
-// - Digivolution traits list is OR-match (standard Digimon TCG / notation).
-// - <Save> after "Then," remains an independent optional process (CR 16-20-3).
-// - DigiXros count:1 = reduce cost by 1 per placed material (ir.ts DigiXrosRequirement.count).
-
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -200,7 +200,7 @@ describe("BT25-060 Rebootmon", () => {
     );
 
     expect(s.perm("reboot").linked.map((card) => card.cardId)).toEqual([VALID_LINK]);
-    expect(s.state.memory).toBe(0); // player link cost 3 is paid; the linked face itself has no cost.
+    expect(s.state.memory).toBe(0);
     expect(observe(s.engine).hasPierce(s.perm("reboot"))).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("reboot"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("reboot"), "beAffected", "Digimon")).toBe(true);
@@ -389,7 +389,7 @@ describe("BT25-060 Rebootmon", () => {
     expect(observe(s.engine).hasPierce(s.perm("reboot"))).toBe(false);
     await advance(s.engine).verb.suspend([s.perm("reboot").permanentId]);
     await advance(s.engine).verb.unsuspend([s.perm("reboot").permanentId]);
-    expect(observe(s.engine).hasPierce(s.perm("reboot"))).toBe(false); // shared Once Per Turn is consumed
+    expect(observe(s.engine).hasPierce(s.perm("reboot"))).toBe(false);
   });
 
   it("keeps linked/unsuspended keywords through the opponent turn, then expires at own turn end", async () => {

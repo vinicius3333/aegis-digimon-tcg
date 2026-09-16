@@ -26,8 +26,6 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
         },
         1: {
           deck: Array.from({ length: 10 }, () => "BT1-009"),
-          // Use a neutral host: ST19-10 also has Armor Purge, which spends security
-          // during battle and changes this Barrier-only lifecycle assertion.
           battleArea: [{ card: "BT1-009", as: "barrier", dp: 1000, suspended: true, under: ["ST19-02"] }],
           security: ["BT1-085", "BT1-085"],
         },

@@ -74,8 +74,6 @@ describe("BT9-080 Raguelmon", () => {
           hand: [{ card: "BT9-080", as: "source" }],
           security: ["BT9-072"],
           trash: [
-            // A level 6 [Angel] above 6000 DP: only the alternative option can play it
-            // (BT9-082 Ordinemon is level 7, outside the printed "level 6 or lower").
             { card: "BT3-090", as: "angel" },
             { card: "BT9-073", as: "normal" },
           ],

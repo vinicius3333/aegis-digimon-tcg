@@ -225,8 +225,6 @@ describe("LM-004 Thetismon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("host").isSuspended).toBe(true);
 
-    // End the real turn, let the opponent take a real turn, then prove the once-per-turn
-    // inherited watcher is available again on the controller's next turn.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
@@ -270,7 +268,6 @@ describe("LM-004 Thetismon", () => {
     );
     await s.ready();
 
-    // The neutral blue card is not Jellymon-text, so an actual hand-trash event must not arm it.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

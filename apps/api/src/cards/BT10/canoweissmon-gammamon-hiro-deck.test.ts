@@ -54,7 +54,6 @@ describe("BT10 Canoweissmon Gammamon/Hiro deck gauntlet", () => {
 
     expect(s.engine.hasAcceptedBlitzAttack(s.perm("gammamonLine").permanentId)).toBe(true);
     expect(s.state.memory).toBe(-1);
-    // P-059 Gammamon is in the stack and inherits +2000 while Hiro is in play.
     expect(s.perm("gammamonLine").currentDP).toBe(12_000);
     expect(mainPhase.isOpen).toBe(true);
 
@@ -74,13 +73,10 @@ describe("BT10 Canoweissmon Gammamon/Hiro deck gauntlet", () => {
       5000,
     );
 
-    // The two temporary +1 grants are proved behaviorally by consuming all 3 security cards;
-    // combat cleanup removes them before this completed-attack observation.
     expect(observe(s.engine).keywordAmount(s.perm("gammamonLine"), "SecurityAttack")).toBe(0);
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
     await turn;
-    // They expire cleanly at the crossed-memory turn boundary.
     expect(s.perm("gammamonLine").currentDP).toBe(12_000);
     expect(observe(s.engine).keywordAmount(s.perm("gammamonLine"), "SecurityAttack")).toBe(0);
     assertNoLoudGap(s);

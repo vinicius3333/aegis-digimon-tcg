@@ -9,21 +9,13 @@ import { compiled } from "./EX13-018.js";
 type NameOrTraitReference = Parameters<typeof matchNameOrTrait>[1];
 
 const CARD_ID = "EX13-018";
-/** Dracomon, Red Lv.3, 4000 DP, no printed effects: the inert base for both evolution routes. */
 const DRACOMON_BASE = "ST1-04";
-/** Muchomon, Red Lv.3, no [Dracomon] in its name: legal for the printed Red EvoCost only. */
 const NON_DRACOMON_BASE = "BT1-013";
-/** Kokatorimon, Red Lv.4: wrong level for either route. */
 const WRONG_LEVEL_BASE = "BT1-014";
-/** Coredramon, Green/Red Lv.4, play cost 5, carries [Dracomon]/[Examon] only inside its text. */
 const TEXT_MATCH = "BT20-040";
-/** Examon, the name match for the same reference. */
 const NAME_MATCH = "BT20-045";
-/** Monodramon, Red Lv.3, no printed text at all: matches neither token. */
 const NON_MATCH = "BT1-009";
-/** Wingdramon, Blue/Red Lv.5 with [Examon] in its text; its Blue/Red Lv.4 EvoCost is 4. */
 const EXAMON_DEST = "BT20-025";
-/** Groundramon, Red Lv.5 from a Red Lv.4 for 2, with no [Examon] anywhere in its text. */
 const PLAIN_DEST = "BT1-020";
 const FILLER = "BT1-009";
 const DECK = [FILLER, FILLER, FILLER, FILLER, FILLER, FILLER];
@@ -59,7 +51,6 @@ describe("EX13-018 Coredramon", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects).toHaveLength(4);
 
-    // The printed [Digivolve] header reads "in name", so it is the SUBSTRING name gate.
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, names: ["Dracomon"], cost: 2, isAlternate: true }]);
 
     const drawCost = {
@@ -80,7 +71,6 @@ describe("EX13-018 Coredramon", () => {
           { kind: "Draw", controller: "mine", amount: 2, optional: true, abortOnDecline: true, cost: drawCost },
         ],
       });
-      // No [Once Per Turn] is printed on the draw clause.
       expect(compiled.effects.find((entry) => entry.trigger === trigger)?.frequency).toBeUndefined();
     }
 
@@ -114,7 +104,6 @@ describe("EX13-018 Coredramon", () => {
         },
       ],
     });
-    // The clause prints no [Once Per Turn], and it is a main effect rather than an inherited one.
     expect(digivolveClause?.frequency).toBeUndefined();
     expect(digivolveClause?.isInherited).toBeUndefined();
 
@@ -132,13 +121,6 @@ describe("EX13-018 Coredramon", () => {
     });
   });
 
-  /**
-   * "in its text" is the full printed-information union (comprehensive rules §4-22-1), so the
-   * filter must discriminate three ways: a card naming the token only inside an effect body
-   * qualifies, a card whose NAME carries it qualifies, and an unrelated card qualifies for
-   * neither reading. The narrower `match: "name"` would silently drop the first group — which
-   * is the whole reason this card says "in its text".
-   */
   it("discriminates [Dracomon]/[Examon] in text from the narrower in-name reading", () => {
     const reference: NameOrTraitReference = { tokens: ["Dracomon", "Examon"], match: "text" };
     const nameOnly: NameOrTraitReference = { tokens: ["Dracomon", "Examon"], match: "name" };
@@ -153,13 +135,10 @@ describe("EX13-018 Coredramon", () => {
     expect(matchNameOrTrait(nonMatch, reference)).toBe(false);
     expect(matchNameOrTrait(nonMatch, nameOnly)).toBe(false);
 
-    // The destination half names only [Examon], so a [Dracomon]-only card is not a legal top.
     const examonOnly: NameOrTraitReference = { tokens: ["Examon"], match: "text" };
     expect(matchNameOrTrait(getCardDefinition(EXAMON_DEST)!, examonOnly)).toBe(true);
     expect(matchNameOrTrait(getCardDefinition(PLAIN_DEST)!, examonOnly)).toBe(false);
   });
-
-  // --- [On Play] / [When Digivolving] By trashing 1 card ..., ＜Draw 2＞ ---------------------
 
   it("trashes a [Dracomon]-text hand card on play and draws exactly 2", async () => {
     const s = setupEngine(
@@ -191,7 +170,6 @@ describe("EX13-018 Coredramon", () => {
     expect(me.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([CARD_ID]);
     expect(me.trash.map((card) => card.instanceId)).toEqual([baitInstanceId]);
     expect(me.deck).toHaveLength(deckBefore - 2);
-    // The non-matching spare plus the 2 drawn cards; the bait went to trash.
     expect(me.hand).toHaveLength(3);
     expect(me.hand.some((card) => card.instanceId === spareInstanceId)).toBe(true);
     expect(me.hand.some((card) => card.instanceId === baitInstanceId)).toBe(false);
@@ -263,8 +241,6 @@ describe("EX13-018 Coredramon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // --- [Digivolve] Lv.3 w/[Dracomon] in name: Cost 2 ----------------------------------------
-
   it("digivolves off a Lv.3 Dracomon for the alternate 2 and draws 2 on top of the bonus draw", async () => {
     const s = setupEngine(
       {
@@ -298,11 +274,9 @@ describe("EX13-018 Coredramon", () => {
 
     const me = s.state.players[0]!;
     expect(s.perm("base").topCard.cardId).toBe(CARD_ID);
-    // `Permanent.stack` holds only the cards beneath the top card.
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
     expect(s.state.memory).toBe(5 - 2);
     expect(me.trash.map((card) => card.instanceId)).toEqual([baitInstanceId]);
-    // 1 digivolution bonus draw plus the clause's 2.
     expect(me.deck).toHaveLength(deckBefore - 3);
     expect(me.hand).toHaveLength(3);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -347,9 +321,6 @@ describe("EX13-018 Coredramon", () => {
     });
     nonDracomon.state.memory = 5;
     await nonDracomon.ready();
-    // `useAlternateCost` is a preference, not a gate: with no matching alternate entry the
-    // engine falls back to the printed Red Lv.3 EvoCost, so the OBSERVABLE proof that the
-    // in-name gate rejected Muchomon is the 3 charged instead of the alternate's 2.
     expect(
       nonDracomon.engine.applyIntent(0, {
         type: "digivolve",
@@ -384,8 +355,6 @@ describe("EX13-018 Coredramon", () => {
     expect(wrongLevel.perm("base").topCard.cardId).toBe(WRONG_LEVEL_BASE);
   });
 
-  // --- [Your Turn] When any of your other [Dracomon]/[Examon]-text Digimon are played --------
-
   it("digivolves into an [Examon]-text hand card for 2 less when another matching Digimon is played", async () => {
     const s = setupEngine(
       {
@@ -414,10 +383,8 @@ describe("EX13-018 Coredramon", () => {
     expect(s.perm("host").topCard.instanceId).toBe(wingdramonInstanceId);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([hostInstanceId]);
     expect(s.perm("host").stack[0]?.cardId).toBe(CARD_ID);
-    // 10 less the trigger's play cost of 5, less Wingdramon's Blue/Red Lv.4 EvoCost of 4 reduced by 2.
     expect(s.state.memory).toBe(10 - 5 - 2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === wingdramonInstanceId)).toBe(false);
-    // Coredramon is now a digivolution card, so its inherited [Your Turn] +2000 DP applies.
     expect(s.perm("host").currentDP).toBe(7000 + 2000);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
@@ -457,9 +424,6 @@ describe("EX13-018 Coredramon", () => {
     const s = setupEngine(
       {
         0: {
-          // A sibling copy already on the board proves the play event itself IS live: it is
-          // "other" relative to the copy being played, so it digivolves on the same event the
-          // played copy must ignore.
           battleArea: [{ card: CARD_ID, as: "sibling" }],
           hand: [
             { card: CARD_ID, as: "coredramon" },
@@ -473,13 +437,10 @@ describe("EX13-018 Coredramon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
     );
-    // MEMORY_MAX is 10, so a larger seed would silently clamp and break the arithmetic below.
     s.state.memory = 10;
     await s.ready();
     const baitInstanceId = s.inst("bait").instanceId;
     const wingdramonInstanceId = s.inst("wingdramon").instanceId;
-    // Both hand cards carry [Examon] in their text, so bias the trash cost onto the bait and
-    // leave Wingdramon in hand as the digivolve destination this test must prove is NOT taken.
     preferInstanceIds.push(baitInstanceId);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("coredramon").instanceId })).toEqual({
@@ -490,15 +451,11 @@ describe("EX13-018 Coredramon", () => {
 
     const me = s.state.players[0]!;
     expect(me.trash.map((card) => card.instanceId)).toEqual([baitInstanceId]);
-    // The already-present copy treats the new arrival as "other" and digivolves.
     expect(s.perm("sibling").stack.map((card) => card.cardId)).toEqual([CARD_ID]);
-    // "other" excludes the carrier: the played copy's own arrival must not digivolve itself.
     const playedPermanent = me.battleArea.find((permanent) => permanent.permanentId !== s.perm("sibling").permanentId);
     expect(playedPermanent?.topCard?.cardId).toBe(CARD_ID);
     expect(playedPermanent?.stack).toHaveLength(0);
-    // Exactly one of the two Wingdramon copies was consumed, by the sibling.
     expect(me.hand.filter((card) => card.cardId === EXAMON_DEST)).toHaveLength(1);
-    // 10 less the played copy's cost of 5, less the sibling's 4-minus-2 digivolution cost.
     expect(s.state.memory).toBe(10 - 5 - 2);
     expect(wingdramonInstanceId).toBeDefined();
   });
@@ -532,13 +489,6 @@ describe("EX13-018 Coredramon", () => {
     await loop;
   });
 
-  /**
-   * The clause is printed on Coredramon itself and is NOT inherited, so once the host has
-   * digivolved, Coredramon sits in the digivolution cards and the watcher is gone. A second
-   * qualifying play in the same turn therefore finds nothing to arm — not because of a
-   * [Once Per Turn] (none is printed; the IR carries no `frequency`), but because the clause
-   * left the board with the top card.
-   */
   it("stops offering the evolution once Coredramon is no longer the top card", async () => {
     const s = setupEngine(
       {
@@ -575,12 +525,9 @@ describe("EX13-018 Coredramon", () => {
     expect(s.perm("host").topCard.cardId).toBe(EXAMON_DEST);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([CARD_ID]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === secondDestInstanceId)).toBe(true);
-    // Only the second trigger's play cost of 5 was spent after the first evolution.
     expect(s.state.memory).toBe(memoryAfterFirst - 5);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // --- inherited [Your Turn] This Digimon gets +2000 DP --------------------------------------
 
   it("grants its inherited +2000 DP only on its controller's turn", async () => {
     const s = setupEngine({

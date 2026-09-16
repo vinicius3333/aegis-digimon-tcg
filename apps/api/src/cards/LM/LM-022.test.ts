@@ -25,7 +25,6 @@ describe("LM-022 Gabumon - Bond of Friendship", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bond").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 2, 2000);
 
-    // Played fresh, Gabumon has an empty stack, so only the stackless opponent qualifies.
     expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(
       expect.arrayContaining(["BT1-010", "BT1-011"]),
     );

@@ -212,7 +212,6 @@ describe("EX9-057", () => {
       {
         0: {
           breeding: { card: "EX9-057", as: "source" },
-          // Negamon's breeding Main effect can play Eyesmon and place itself directly underneath.
           battleArea: [
             { card: "EX9-047", as: "first", under: ["EX9-005"] },
             { card: "EX9-047", as: "second", under: ["EX9-005"] },

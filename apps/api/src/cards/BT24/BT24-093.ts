@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main] Add your top security card to your hand and Recovery +1, then place this
-// card in the battle area. [All Turns] Delay: when a card is removed from your
-// security, place the top card of one of your Aegiochusmon/Jupitermon Digimon as
-// the top security card.
 export const compiled: CompiledCard = {
   effects: [
     {

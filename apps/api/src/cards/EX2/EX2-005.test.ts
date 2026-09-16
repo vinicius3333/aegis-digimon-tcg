@@ -8,7 +8,6 @@ describe("EX2-005 Hopmon", () => {
   it("gives its host +1000 DP while its controller has a black Tamer", async () => {
     const s = setupEngine({
       0: {
-        // Legal stack: Hopmon -> Monodramon -> Guardromon.
         battleArea: [{ card: "EX2-031", as: "host", under: ["EX2-005", "EX2-030"] }, "BT10-092"],
       },
     });

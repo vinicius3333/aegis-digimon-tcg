@@ -5,28 +5,14 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "../index.js";
 import { compiled } from "./BT23-093.js";
 
-/**
- * Fixture vocabulary.
- *
- * `[Appmon]` is a FORM on Digimon records (BT21-009 / BT22-016 -> `forms: ["Stnd.","Appmon"]`),
- * and the engine's trait set is forms ∪ attributes ∪ types, so `match: "trait"` (exact) matches.
- * `<Link>` eligibility is the structured `linkRequirement` field, not text: BT21-009 and BT22-016
- * both carry "[Link] [Appmon] trait: Cost 1". BT22-039 (Ouranosmon, [Appmon] form) carries
- * none, so it is the no-<Link> half of the Q5367 control.
- */
-const APPMON_WITH_LINK = "BT21-009"; // Gatchmon, red, [Appmon] form, Link cost 1
-const APPMON_NO_LINK = "BT22-016"; // Mcmon, blue, [Appmon] form
-const APPMON_NO_LINK_MATERIAL = "BT22-039"; // Ouranosmon, [Appmon] form, no [Link]
-const APPMON_TAMER = "BT21-084"; // Haru Shinkai, red Tamer, [Appmon] type
-const VANILLA_ROOKIE = "BT1-009"; // Monodramon, red, no [Appmon]
-const WEAK_SECURITY = "BT1-011"; // Agumon Expert, 1000 DP main-deck Digimon
-/** Mcmon prints only 1000 DP, which trades with WEAK_SECURITY; give attackers headroom. */
+const APPMON_WITH_LINK = "BT21-009";
+const APPMON_NO_LINK = "BT22-016";
+const APPMON_NO_LINK_MATERIAL = "BT22-039";
+const APPMON_TAMER = "BT21-084";
+const VANILLA_ROOKIE = "BT1-009";
+const WEAK_SECURITY = "BT1-011";
 const SURVIVES_SECURITY = 4000;
 
-/**
- * Probe a permanent by id without the alias helper's "must still exist" assertion, so a
- * `settle` predicate can poll across a battle window that transiently rebuilds the board.
- */
 function suspended(s: ReturnType<typeof setupEngine>, seat: 0 | 1, permanentId: string): boolean {
   return s.state.players[seat]!.battleArea.find((p) => p.permanentId === permanentId)?.isSuspended === true;
 }
@@ -55,7 +41,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(security.actions.map((action: any) => action.kind)).toEqual(["PlaceInBattleAreaSelf"]);
   });
 
-  // C1: the battle-area half, satisfied by an off-color [Appmon] Digimon.
   it("waives the blue color requirement from an off-color Appmon Digimon in the battle area", async () => {
     const s = setupEngine({
       0: {
@@ -73,8 +58,6 @@ describe("BT23-093 Big Bang Punch", () => {
     assertNoLoudGap(s);
   });
 
-  // C1 (Q5366, asked about this printed wording): "on the field" is the battle area OR the
-  // breeding area — the CR 3-4-7-8 "explicitly references breeding areas" exception.
   it("waives the blue color requirement from an off-color Appmon Digimon in breeding (Q5366)", async () => {
     const s = setupEngine({
       0: {
@@ -93,7 +76,6 @@ describe("BT23-093 Big Bang Punch", () => {
     assertNoLoudGap(s);
   });
 
-  // C1 (Q5366): the battle-area half, satisfied by a TAMER rather than a Digimon.
   it("waives the color requirement from an off-color Appmon Tamer in the battle area", async () => {
     const s = setupEngine({
       0: {
@@ -110,7 +92,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
   });
 
-  // C1 negative: no [Appmon] card on the field, so the printed blue requirement stands.
   it("refuses the off-color play with no Appmon Digimon or Tamer on the field", async () => {
     const s = setupEngine({
       0: {
@@ -132,7 +113,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  // C1 controller boundary: "you have" is your field only, so an opponent Appmon does not waive.
   it("refuses the off-color play when only the opponent controls an Appmon card", async () => {
     const s = setupEngine({
       0: {
@@ -157,7 +137,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  // C3 source-zone boundary: the link card must come from HAND, not from the trash.
   it("does not link an Appmon card sitting in the trash", async () => {
     const s = setupEngine(
       {
@@ -190,7 +169,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
   });
 
-  // C2: "＜Draw 1＞. Then, place this card in the battle area."
   it("draws exactly 1 and then places itself in the battle area for memory 2", async () => {
     const s = setupEngine({
       0: {
@@ -222,8 +200,6 @@ describe("BT23-093 Big Bang Punch", () => {
     assertNoLoudGap(s);
   });
 
-  // C3 + Q5367: the Delay pays its own trash cost, links only the <Link>-capable Appmon,
-  // and leaves the no-<Link> Appmon physically in hand.
   it("pays intrinsic Delay and links only a Link-capable Appmon to the suspending subject", async () => {
     const s = setupEngine(
       {
@@ -261,7 +237,6 @@ describe("BT23-093 Big Bang Punch", () => {
     assertNoLoudGap(s);
   });
 
-  // C3: "to 1 of THOSE Digimon" — the recipient is the suspending Digimon, not any Appmon.
   it("links to the suspending Appmon, not to an idle Appmon bystander", async () => {
     const s = setupEngine(
       {
@@ -294,7 +269,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.perm("bystander").isSuspended).toBe(false);
   });
 
-  // C3: "without paying the cost" — BT21-009's printed link cost is 1 and must not be paid.
   it("links the cost-1 Appmon without spending memory", async () => {
     expect(getCardDefinition(APPMON_WITH_LINK)?.linkRequirement ?? "").toMatch(/^\[Link\] \[Appmon\]\s*trait: Cost 1$/);
     const s = setupEngine(
@@ -358,9 +332,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([eligibleId]);
   });
 
-  // Controller boundary, reached through the real turn loop: the printed subject is "your
-  // [Appmon] trait Digimon", so the OPPONENT's Appmon suspending on their own turn arms
-  // nothing, even though the clause itself is [All Turns].
   it("does not pay Delay for an opponent-controlled Appmon suspension", async () => {
     const s = setupEngine(
       {
@@ -406,8 +377,6 @@ describe("BT23-093 Big Bang Punch", () => {
     await loop;
   });
 
-  // Q5367 in isolation: the ONLY Appmon card in hand has no [Link], so `canAttemptLink`
-  // fails the Delay before its optional ask and the source card is never trashed.
   it("keeps the Delay card when the only Appmon in hand has no [Link]", async () => {
     const s = setupEngine(
       {
@@ -441,7 +410,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([noLinkId]);
   });
 
-  // §16-17-2: ＜Delay＞ is optional processing. Declining keeps the source card and the hand.
   it("keeps the card and the hand intact when the Delay is declined", async () => {
     const s = setupEngine(
       {
@@ -475,9 +443,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // §16-17-3: "You can't activate this effect the turn this card enters play." Proven on the
-  // real turn loop: the option is PLAYED on turn 1 (C2 places it), the same-turn suspension
-  // must not pay it, and the next own turn must.
   it("cannot pay Delay the turn it is placed and can on the next own turn", async () => {
     const s = setupEngine(
       {
@@ -510,7 +475,6 @@ describe("BT23-093 Big Bang Punch", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
     const placedTurn = s.state.turnCount;
 
-    // Same turn as placement: the suspension must not arm the Delay.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -530,7 +494,6 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.state.turnCount).not.toBe(placedTurn);
     expect(s.perm("attacker").isSuspended).toBe(false);
 
-    // Next own turn: the same option now pays its Delay and links.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -546,7 +509,6 @@ describe("BT23-093 Big Bang Punch", () => {
     await loop;
   });
 
-  // C4: "[Security] Place this card in the battle area."
   it("places itself in the battle area from a security check", async () => {
     const s = setupEngine(
       {

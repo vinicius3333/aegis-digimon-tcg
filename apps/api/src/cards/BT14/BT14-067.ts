@@ -1,8 +1,3 @@
-// Hand-authored override for BT14-067 (Ebemon).
-// runtime-effect fix: reveal opponent deck, choose one revealed Digimon as the play-cost
-// budget reference, delete opponent Digimon up to that total play cost, then return
-// all revealed cards to top or bottom of that deck by the effect controller's choice
-// (KB Q2439/Q2440).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

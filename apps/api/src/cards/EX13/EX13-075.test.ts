@@ -6,18 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-075.js";
 import "../index.js";
 
-// Reveal fixtures, chosen so every axis of the single [Huckmon]-text slot is exercised:
-//   BT6-009  Huckmon    — carries the token AS its name (the plain name-carrier).
-//   BT6-011  BaoHuckmon — carries the token only as a SUBSTRING of its name; "in its text"
-//                         reads printed information, so it qualifies. This is the same
-//                         reading EX13-014/EX13-061 rely on for their "Lv.5 w/[Huckmon] in
-//                         text" headers, whose only catalog answer is SaviorHuckmon.
-//   BT6-093  Judgement of the Blade — an OPTION whose only [Huckmon] mention sits inside its
-//                         printed effect text. It is neither named nor "treated as" a
-//                         [Huckmon], so it is a genuine text-only fixture (not the
-//                         `effectiveStaticNames` false-green trap) and it also proves the
-//                         slot carries no card-kind restriction.
-//   BT1-009/012/013/014 — inert Digimon with no [Huckmon] token anywhere.
 const CARD_ID = "EX13-075";
 const inertDeck = ["BT1-009", "BT1-012", "BT1-013", "BT1-014"];
 
@@ -80,10 +68,6 @@ describe("EX13-075 Mon", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 1 — [Start of Your Turn] If you have 2 or less memory, set it to 3.
-  // ---------------------------------------------------------------------------
-
   it("raises the memory floor to 3 through a real turn when below the threshold", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: CARD_ID, as: "mon" }], hand: [{ card: "BT1-009", as: "spare" }], deck: inertDeck },
@@ -99,8 +83,6 @@ describe("EX13-075 Mon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
       s.inst("mon").instanceId,
     ]);
-    // The floor is not an [On Play]: the reveal must stay silent, so the hand keeps only the
-    // seeded spare plus the ordinary draw for the turn.
     expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -151,7 +133,6 @@ describe("EX13-075 Mon", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
 
-    // Seat 1's turn: seat 0's [Start of Your Turn] must not fire, so the gauge is untouched.
     expect(s.state.memory).toBe(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
@@ -190,10 +171,6 @@ describe("EX13-075 Mon", () => {
     await secondTurn;
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 2 — [On Play] reveal 3, add 1 [Huckmon]-text card, bottom the rest
-  // ---------------------------------------------------------------------------
-
   it("reveals exactly 3, adds the [Huckmon]-named card and bottoms the other two in order", async () => {
     const s = setupEngine(
       {
@@ -217,8 +194,6 @@ describe("EX13-075 Mon", () => {
     await settle();
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("huckmon").instanceId]);
-    // Exactly 3 cards left the top: the 4th was never touched and is still on top, with the
-    // two non-matching reveals underneath it at the bottom.
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("unrevealed").instanceId,
       s.inst("firstRest").instanceId,
@@ -226,17 +201,12 @@ describe("EX13-075 Mon", () => {
     ]);
     expect(s.state.players[0]!.deck.every(({ faceUp }) => !faceUp)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    // Played from hand at the printed cost of 4.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // §4-23-1/§4-23-3: "in its text" is the token anywhere in the card's printed information,
-  // so an Option that names [Huckmon] only inside an effect it can never trigger from the
-  // deck still qualifies. `match: "name"` would leave it behind, and the printed slot says
-  // "1 card", not "1 Digimon card", so a non-Digimon is legal here.
   it("adds an Option whose only [Huckmon] mention sits inside its effect text", async () => {
     const s = setupEngine(
       {
@@ -268,9 +238,6 @@ describe("EX13-075 Mon", () => {
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
   });
 
-  // The token also counts as part of a longer printed name — the reading EX13-014/EX13-061
-  // depend on for "Lv.5 w/[Huckmon] in text", whose only catalog answers are SaviorHuckmon
-  // and BaoHuckmon. A `nameExact` encoding would wrongly refuse this.
   it("accepts a card carrying the token inside a longer name (BaoHuckmon)", async () => {
     const s = setupEngine(
       {
@@ -301,9 +268,6 @@ describe("EX13-075 Mon", () => {
     ]);
   });
 
-  // The slot discriminates rather than merely firing: a name-carrier, a text-only carrier and
-  // a non-carrier are revealed together, exactly ONE card leaves (the printed "Add 1 card"),
-  // and the two it passed over go to the bottom.
   it("adds exactly one card when several revealed cards carry the token", async () => {
     const s = setupEngine(
       {
@@ -371,10 +335,6 @@ describe("EX13-075 Mon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 3 — [Security] Play this card without paying the cost.
-  // ---------------------------------------------------------------------------
-
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine(
       {
@@ -403,7 +363,6 @@ describe("EX13-075 Mon", () => {
     ]);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).not.toContain(s.inst("mon").instanceId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("mon").instanceId);
-    // Free: the 4 memory the printed play cost would have charged was never spent.
     expect(s.state.memory).toBe(5);
   });
 
@@ -453,7 +412,6 @@ describe("EX13-075 Mon", () => {
       s.inst("remainingSecurity").instanceId,
     ]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(monId);
-    // The security play is a real play, so [On Play] resolved off the top of the deck.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("huckmon").instanceId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("unrevealed").instanceId,

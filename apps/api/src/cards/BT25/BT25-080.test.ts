@@ -293,7 +293,6 @@ describe("BT25-080 Witchmon", () => {
     await settle(() => false, 60);
     expect(alive(opponent, firstId)).toBe(true);
 
-    // Manual entry does not satisfy the After gate, but still consumes the shared activation.
     s.give(0, Zone.Trash, { card: TITAN_DIGIMON, as: "titan2" });
     s.putOnBoard(1, { card: LEVEL_FIVE, as: "second" });
     await fireTiming(s, EffectTiming.OnUseAttack, { subjectPermanentId: s.perm("witchmon").permanentId });
@@ -314,9 +313,6 @@ describe("BT25-080 Witchmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const targetId = s.perm("target").permanentId;
-    // This is the persisted producer marker set by GameEngine.fireEnteredByEffectTiming when
-    // an effect plays/digivolves the current top; the attack window itself has no transient
-    // enteredByEffect trigger payload.
     s.perm("witchmon").enteredByEffect = true;
     await fireTiming(s, EffectTiming.OnUseAttack, { subjectPermanentId: s.perm("witchmon").permanentId });
     await settle(() => !alive(s.state.players[1] as PlayerState, targetId));
@@ -410,7 +406,6 @@ describe("BT25-080 Witchmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Witchmon must be a source on a live Titan host for its inherited effect to be active.
           battleArea: [{ card: "BT24-015", as: "host", under: [{ card: CARD }] }],
           hand: [
             { card: "BT25-101", as: "option" },
@@ -420,9 +415,6 @@ describe("BT25-080 Witchmon", () => {
         },
         1: { battleArea: [{ card: "BT1-013", as: "target" }] },
       },
-      // BT25-101 may link itself OR a [TS] card with a link requirement from the trash, and the
-      // card trashed to pay its cost is such a card. Pin the link to BT25-101 itself so this test
-      // keeps asserting the cost payment rather than the link choice.
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("option").instanceId);

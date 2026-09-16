@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4171: declining the eligible free play adds that revealed card to hand.
-// KB Q4846-Q4847: adding this Security card to hand is an unconditional final process.
 const compiled: CompiledCard = {
   effects: [
     {

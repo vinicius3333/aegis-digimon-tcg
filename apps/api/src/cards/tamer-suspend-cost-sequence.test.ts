@@ -4,7 +4,7 @@ import "./BT9/BT9-092.js";
 import "./EX2/EX2-057.js";
 import "./EX2/EX2-063.js";
 import "./EX2/EX2-065.js";
-import "./index.js"; // the full catalog is registered in a real match
+import "./index.js";
 
 describe("Tamer suspend costs gate their complete triggered sequences", () => {
   it("BT9-092 does not draw or gain memory when Cool Boy is already suspended", async () => {
@@ -40,8 +40,6 @@ describe("Tamer suspend costs gate their complete triggered sequences", () => {
     expect(
       s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("normalDigivolutionDraw").instanceId),
     ).toBe(true);
-    // Cool Boy's ＜Draw 1＞ never happened: the second deck card was only ever revealed by
-    // Agumon X's own [When Digivolving] and never reached the hand.
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("untouched").instanceId)).toBe(false);
   });
 
@@ -73,9 +71,6 @@ describe("Tamer suspend costs gate their complete triggered sequences", () => {
     await settle();
 
     expect(s.perm("beelzemon").topCard.cardId).toBe("EX2-044");
-    // The deck is not a usable proxy here: Beelzemon's own [When Attacking] "you may trash the
-    // top 2 cards of your deck" mills regardless of Ai & Mako. What the suspended Tamer must
-    // NOT do is the digivolution below — its Blast Mode stays in the trash.
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("blastMode").instanceId)).toBe(true);
     expect(s.state.memory).toBe(10);
   });

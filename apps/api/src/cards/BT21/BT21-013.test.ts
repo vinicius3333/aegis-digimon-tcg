@@ -9,37 +9,26 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT21-013.js";
 import "../index.js";
 
-// BT21-013 (Agunimon, Red Hybrid) registers TWO alternate digivolution conditions in documented behavior
-//   1. base TopCard.IsTamer && CardColors.Contains(Red) → cost 2
-//   2. base TopCard.EqualsCardName("BurningGreymon")     → cost 0
-// The text parser only kept #1's sibling (BurningGreymon); the red-Tamer path is restored
-// via ALTERNATE_DIGIVOLUTION_OVERRIDES, since the compiler cannot express baseIsTamer/baseColors.
 describe("BT21-013 Agunimon — alternate digivolution conditions", () => {
   it("may digivolve from a red Tamer for cost 2", () => {
-    const req = matchingAlternateDigivolutionRequirement("BT21-013", "BT1-085"); // Tai Kamiya (Red Tamer)
+    const req = matchingAlternateDigivolutionRequirement("BT21-013", "BT1-085");
     expect(req).toBeDefined();
     expect(req?.cost).toBe(2);
     expect(req?.baseIsTamer).toBe(true);
   });
 
   it("may digivolve from BurningGreymon for cost 0", () => {
-    const req = matchingAlternateDigivolutionRequirement("BT21-013", "BT12-013"); // BurningGreymon
+    const req = matchingAlternateDigivolutionRequirement("BT21-013", "BT12-013");
     expect(req).toBeDefined();
     expect(req?.cost).toBe(0);
     expect(req?.namesExact).toEqual(["BurningGreymon"]);
   });
 
   it("may NOT digivolve from a non-red Tamer", () => {
-    const req = matchingAlternateDigivolutionRequirement("BT21-013", "AD1-019"); // Blue/Yellow Tamer
+    const req = matchingAlternateDigivolutionRequirement("BT21-013", "AD1-019");
     expect(req).toBeUndefined();
   });
 });
-
-// --- [When Digivolving] placement destination -------------------------------
-// documented behavior CanSelectPermanent accepts EITHER this Digimon's own permanent ("as this
-// Digimon's bottom digivolution card") OR a red Tamer with inherited effects. The generated
-// IR only carried the Tamer half, so a controller with no red Tamer got no card selection at
-// all. FAILS-WHEN-REVERTED: drop `underOrFilters` and the no-Tamer case places nothing.
 
 const CARD_ID = "BT21-013";
 
@@ -133,8 +122,6 @@ function makeContext(opts: {
     definitionOf: (card: { cardId: string }) => fakeDefinition(card.cardId),
   } as unknown as GameAccess;
 
-  // Any primitive the interpreter reaches for is a recorded no-op except placeUnder, which is
-  // the observable this test asserts on.
   const fx = new Proxy(
     {
       placeUnder: async (hostId: string, instanceIds: string[]) => {
@@ -265,8 +252,6 @@ describe("BT21-013 Agunimon — observable game behavior", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("redTamer").topCard.cardId === "BT21-013");
 
-    // The alternate red-Tamer route costs 2; the When Digivolving effect then places
-    // the eligible Hero card under the new Agunimon permanent.
     expect(s.state.memory).toBe(3);
     expect(s.perm("redTamer").stack.map((card) => card.cardId)).toContain("BT21-016");
   });

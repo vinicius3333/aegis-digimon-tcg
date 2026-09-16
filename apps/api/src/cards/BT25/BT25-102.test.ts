@@ -34,7 +34,7 @@ describe("BT25-102 Factorial Area", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === coronamonId)).toBe(
       true,
     );
-    expect(s.state.memory).toBe(7); // Option cost 3; Coronamon's cost 3 is reduced to 0.
+    expect(s.state.memory).toBe(7);
   });
 
   it("does not play a blue TS or a red non-TS card from hand for the Main play branch", async () => {

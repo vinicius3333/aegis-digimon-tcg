@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -46,12 +43,6 @@ export const compiled: CompiledCard = {
             ],
             [],
           ],
-          // Q2803: "By paying 4 cost and placing this card as the bottom digivolution card of 1 of
-          // your level 5 or higher Digimon" is ONE activation cost. With the placement modeled as
-          // the first action of option[0] the modal activated with no legal host, charged the 4
-          // memory and placed nothing; as a compound cost `canPayCost` refuses the activation up
-          // front. Q2804: with the placement out of the bullet, option[1] = [] is the real
-          // "placed, nothing else" branch the ruling allows.
           cost: {
             kind: "compound",
             costs: [
@@ -78,9 +69,6 @@ export const compiled: CompiledCard = {
                   },
                 },
                 destination: "digivolutionStack",
-                // `underFilter` is only read as the destination when the host is the cost's own
-                // chosen target; without this the placement falls back to the source permanent,
-                // which does not exist while this card is still in hand.
                 host: "target",
                 position: "bottom",
                 bindHostAs: "parasitemonHost",

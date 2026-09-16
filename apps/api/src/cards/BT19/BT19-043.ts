@@ -52,8 +52,6 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      // "Lv.5 or higher w/[Lucemon] in its name" — an "in its name" gate is SUBSTRING, so
-      // `names` (not `namesExact`) is correct here: [Lucemon: Chaos Mode] is a legal source.
       levelMin: 5,
       names: ["Lucemon"],
       cost: 3,

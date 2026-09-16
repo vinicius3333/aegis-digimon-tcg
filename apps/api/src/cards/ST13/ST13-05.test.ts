@@ -24,8 +24,6 @@ describe("ST13-05 Durandamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-02"));
-    // The played Zubamon resolves its own On Play effect, revealing BT1-009
-    // and adding it to hand after it is placed beneath Durandamon.
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
   });
@@ -72,9 +70,6 @@ describe("ST13-05 Durandamon", () => {
             { card: "ST13-03", as: "zubaeagermon" },
           ],
         },
-        // ZubaEagermon's placement cost is gated behind its own [On Play] Delete having a
-        // legal target (opponent Digimon, 5000 DP or less); without one it can't place
-        // itself under Durandamon at all. Seed one so the second placement is real.
         1: { battleArea: [{ card: "BT1-009", as: "oppTarget", dp: 3000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

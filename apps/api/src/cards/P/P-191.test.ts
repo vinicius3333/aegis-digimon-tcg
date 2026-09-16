@@ -185,8 +185,6 @@ describe("P-191 Apollomon", () => {
       await settle(() => apollomonResolved() || s.state.pendingDecision?.kind === "optional");
       if (apollomonResolved()) break;
       const decision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
-      // Q6490: GraceNovamon's When Attacking now resolves before security. Decline
-      // its optional processing, including EndAttack, to exercise a successful attack.
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",

@@ -85,8 +85,6 @@ describe("EX7-004 Fluffymon", () => {
     );
     expect(s.state.memory).toBe(4);
 
-    // The source filter is self-scoped: a different attacker deleting in battle does not trigger
-    // the inherited watcher on the stacked host.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -153,8 +151,6 @@ describe("EX7-004 Fluffymon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstDefenderId));
     expect(s.state.memory).toBe(firstTurnMemory + 1);
 
-    // No public main-phase action unsuspends an arbitrary host. This named production test seam
-    // supplies only that rule-state bridge; both deletion events remain real public attacks.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     const secondDefenderId = s.perm("secondDefender").permanentId;
     expect(
@@ -167,8 +163,6 @@ describe("EX7-004 Fluffymon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondDefenderId));
     expect(s.state.memory).toBe(firstTurnMemory + 1);
 
-    // The public main phase has no arbitrary unsuspend action, so run the actual turn machine
-    // across the opponent's turn and back to the owner to reset the per-turn ledger.
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = -s.state.memory;
@@ -250,8 +244,6 @@ describe("EX7-004 Fluffymon", () => {
     expect(carrier.topCard?.cardId).toBe("BT1-064");
     expect(carrier.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
     await advance(s.engine).waitForMainPhase(0);
-    // The intervening real turn correctly unsuspends the defender. This named production seam
-    // restores the battle fixture; the deletion and inherited trigger remain a public attack.
     await advance(s.engine).verb.suspend([s.perm("defender").permanentId]);
     const memoryBeforeBattle = s.state.memory;
     expect(

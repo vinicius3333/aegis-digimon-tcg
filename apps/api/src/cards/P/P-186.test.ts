@@ -74,7 +74,6 @@ describe("P-186 engine behavior", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gallantmon").instanceId),
     );
-    // Gallantmon costs 12; 10 total trash cards apply two -2 reductions, paying 8.
     expect(s.state.memory).toBe(2);
   });
 

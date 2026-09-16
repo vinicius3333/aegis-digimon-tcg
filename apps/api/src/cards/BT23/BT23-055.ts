@@ -1,10 +1,6 @@
-// Hand-authored override: audit findings verified against engine — IR is faithful.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -72,10 +68,6 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          // "When THIS Digimon ... would leave": the inherited clause guards only the
-          // permanent carrying this card, never every CS Digimon its controller owns.
-          // Without `isSelfRef` the replacement installs with a board-wide `protects`
-          // predicate, and `controllerDefault` is not read by that predicate's seat gate.
           sourceFilter: {
             isSelfRef: true,
             controllerDefault: "mine",

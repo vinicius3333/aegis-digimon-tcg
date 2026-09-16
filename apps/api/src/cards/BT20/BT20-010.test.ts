@@ -114,7 +114,7 @@ describe("BT20-010 Ryudamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("ryudamon").topCard.cardId === "BT20-051");
     expect(s.perm("ryudamon").stack.map((card) => card.cardId)).toEqual(["BT20-010"]);
-    expect(s.state.memory).toBe(3); // printed cost 3, reduced by 1 from the battle-area Ryudamon
+    expect(s.state.memory).toBe(3);
     expect(s.perm("ryudamon").currentDP).toBe(chronicle.dp + 2000);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
@@ -156,7 +156,7 @@ describe("BT20-010 Ryudamon", () => {
     ).toEqual({ ok: true });
     await settle(() => excluded.perm("ryudamon").topCard.cardId === "BT20-031");
     expect(excluded.perm("ryudamon").stack.map((card) => card.cardId)).toEqual(["BT20-010"]);
-    expect(excluded.state.memory).toBe(2); // normal Black Lv.3 cost 3; no Chronicle reduction applied
+    expect(excluded.state.memory).toBe(2);
     expect(
       excluded.state.players[0]!.hand.some((card) => card.instanceId === excluded.inst("nonChronicle").instanceId),
     ).toBe(false);

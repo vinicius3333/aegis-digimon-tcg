@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [When Attacking] "trash 1 Option card in the battle area" — KB Q3120 clarifies this
-// trashes an Option card placed by a "place this card in the battle area" effect.
-// [End of Your Turn] — KB Q3122 confirms this Digimon must attack a player if possible.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -84,8 +81,6 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      // Bracketed [Strikedramon] is an EXACT name gate; `names` is the substring form and
-      // would also accept a relative carrying [Strikedramon] inside its name.
       namesExact: ["Strikedramon"],
       cost: 3,
       isAlternate: true,

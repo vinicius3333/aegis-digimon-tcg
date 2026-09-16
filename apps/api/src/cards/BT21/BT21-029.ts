@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-029 Medusamon
-// <Security A. +1>, <Progress>
-// [When Digivolving][End of Attack][Once Per Turn] You may delete 1 of your opponent's
-//   lowest DP Digimon.
-// [All Turns][Once Per Turn] When any of your opponent's Digimon are deleted OR their
-//   security stack is removed from, they play 1 [Petrification] Token as their Digimon.
-//
-// KB Q4538: the token of the player that activated this effect is played as opponent's Digimon.
-// Audit: dual trigger — onDeletionOf + whenSecurityRemoved both fire the same PlayToken.
 export const compiled: CompiledCard = {
   effects: [
     {

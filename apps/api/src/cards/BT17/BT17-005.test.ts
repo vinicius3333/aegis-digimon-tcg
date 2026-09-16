@@ -44,8 +44,6 @@ describe("BT17-005 Tsumemon", () => {
 
   it("gains 1 memory when its [Unidentified] host loses a real battle", async () => {
     const s = setupEngine({
-      // BT17-053 Keramon carries the [Unidentified] trait; its own printed clause only
-      // watches the opponent playing a level 5+ Digimon, so it stays inert here.
       0: { battleArea: [{ card: "BT17-053", as: "host", under: ["BT17-005"] }] },
       1: { battleArea: [{ card: "BT1-013", as: "wall", suspended: true }] },
     });
@@ -72,7 +70,6 @@ describe("BT17-005 Tsumemon", () => {
 
   it("does not gain memory when the deleted host lacks the [Unidentified] trait", async () => {
     const s = setupEngine({
-      // BT17-052 Agumon is Reptile/SoC, not [Unidentified].
       0: { battleArea: [{ card: "BT17-052", as: "host", under: ["BT17-005"] }] },
       1: { battleArea: [{ card: "BT1-013", as: "wall", suspended: true }] },
     });
@@ -115,12 +112,6 @@ describe("BT17-005 Tsumemon", () => {
   });
 
   it("carries the inherited memory gain through the real Digi-Egg route beside a non-[Unidentified] peer stack", async () => {
-    // Peer/stack case, public intents only for every zone change: `hatchEgg` puts BT17-005 in
-    // the breeding area, the Black Lv.3 [Unidentified] BT17-053 digivolves onto it there
-    // (Lv.2 Black, cost 0), and `moveFromBreeding` carries the stack to the battle area on the
-    // next own turn. Beside it stands BT17-052 Agumon carrying the same Digi-Egg — same colour,
-    // same egg, [Reptile]/[SoC] instead of [Unidentified]. Both die to the same 5000 DP wall;
-    // only the [Unidentified] carrier gains memory.
     const s = setupEngine(
       {
         0: {
@@ -170,10 +161,8 @@ describe("BT17-005 Tsumemon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 3;
     const wallPermanentId = s.perm("wall").permanentId;
-    // The opponent's unsuspend phase readied the wall; suspend it again so it is a legal target.
     await advance(s.engine).verb.suspend([wallPermanentId]);
 
-    // Near-miss host first: same egg beneath, wrong trait, no memory.
     const peerPermanentId = s.perm("peer").permanentId;
     expect(
       s.engine.applyIntent(0, {
@@ -185,7 +174,6 @@ describe("BT17-005 Tsumemon", () => {
     await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === peerPermanentId));
     expect(s.state.memory).toBe(3);
 
-    // The routed [Unidentified] stack: the egg fires from under its real host.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

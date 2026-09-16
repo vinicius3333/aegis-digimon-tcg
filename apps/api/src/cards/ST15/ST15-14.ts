@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q815: blocking causes attack target to switch, so this effect activates on blocks too.
 const compiled: CompiledCard = {
   effects: [
     {

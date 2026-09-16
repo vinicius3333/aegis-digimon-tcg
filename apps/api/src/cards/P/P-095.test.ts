@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-090.js";
 import "./P-095.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 describe("P-095 Pause Plug-In P", () => {
   it("requires a color source without a Tamer, but any off-color Tamer waives that requirement", async () => {
@@ -23,8 +23,6 @@ describe("P-095 Pause Plug-In P", () => {
     const withTamer = setupEngine(
       {
         0: {
-          // EX2-061 is a green Tamer: it satisfies "a Tamer", but cannot satisfy the
-          // yellow Option's printed color requirement by itself.
           battleArea: ["EX2-061"],
           hand: [{ card: "P-095", as: "option" }],
         },
@@ -128,8 +126,6 @@ describe("P-095 Pause Plug-In P", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
-    // The restriction belongs to the permanent, not to its old top card. Let the opponent
-    // evolve that exact host into P-090, whose mandatory When Digivolving suspends 2 targets.
     s.state.turnSeat = 1;
     s.state.memory = 10;
     const deckBefore = s.state.players[1]!.deck.length;
@@ -157,7 +153,6 @@ describe("P-095 Pause Plug-In P", () => {
         0: { security: [{ card: "P-095", as: "securityOption" }] },
         1: {
           battleArea: [
-            // BT1-025 WarGreymon would suppress the [Security] skill on Option cards it checks.
             { card: "BT1-024", as: "attacker" },
             { card: "BT1-075", dp: 12000, as: "securityTarget" },
           ],

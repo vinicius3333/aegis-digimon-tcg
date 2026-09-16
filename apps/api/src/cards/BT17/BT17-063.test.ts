@@ -50,7 +50,6 @@ describe("BT17-063 Darcmon", () => {
       optional: true,
       condition: {
         kind: "selfDigivolutionStackHasTrait",
-        // Printed [HippoGryphonmon] is an exact name reference, not a substring.
         filter: { nameOrTrait: [{ tokens: ["HippoGryphonmon"], match: "nameExact" }] },
       },
       into: { nameOrTrait: [{ tokens: ["Murmukusmon"], match: "nameExact" }] },
@@ -87,7 +86,6 @@ describe("BT17-063 Darcmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 1);
 
-    // 3 memory - 1 printed alternate cost; no Murmukusmon in hand, so no chain.
     expect(s.state.memory).toBe(2);
     expect(s.perm("hippoGryphonmon").topCard?.instanceId).toBe(darcmonId);
     expect(s.perm("hippoGryphonmon").stack.map((card) => card.cardId)).toEqual(["BT17-066"]);
@@ -193,7 +191,6 @@ describe("BT17-063 Darcmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("hippoGryphonmon").topCard?.instanceId === murmukusmonId);
 
-    // 3 - 1 (printed alternate route) - 2 (printed chain cost override).
     expect(s.state.memory).toBe(0);
     expect(s.perm("hippoGryphonmon").stack.map((card) => card.cardId)).toEqual(["BT17-066", "BT17-063"]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([discardId]);

@@ -8,7 +8,6 @@ describe("EX1-046 Kurisarimon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          // EX1-046 is a legal Lv.4 source under the Lv.5 Infermon host.
           { card: "EX1-051", as: "host", suspended: true, under: ["EX1-046"] },
           { card: "BT2-062", as: "sameName" },
         ],

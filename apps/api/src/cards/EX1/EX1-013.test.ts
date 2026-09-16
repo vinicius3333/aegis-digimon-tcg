@@ -212,8 +212,6 @@ describe("EX1-013 Veemon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").isSuspended).toBe(false);
-    // Tai establishes 3 memory, then the next-turn automatic unsuspend proves
-    // EX1-013 reset and resolves for +1 before Main opens.
     expect(s.state.memory).toBe(4);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

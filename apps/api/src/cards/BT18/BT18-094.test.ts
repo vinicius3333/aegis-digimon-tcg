@@ -78,7 +78,6 @@ describe("BT18-094 Koichi Kimura", () => {
     await advance(s.engine).runTurn(0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
-    // runTurn completes the turn and passes priority, normalizing memory.
     expect(s.state.memory).toBe(-3);
   });
 

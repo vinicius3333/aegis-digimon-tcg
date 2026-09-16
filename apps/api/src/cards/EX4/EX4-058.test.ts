@@ -25,9 +25,6 @@ describe("EX4-058 Ravemon", () => {
         },
       ],
     });
-    // The printed "By deleting this Digimon ..." is a whole-clause processing condition paid at
-    // [End of Attack], not a cost of the delayed sub-trigger, and "[Bird] or [Avian] in one of
-    // its traits" is a trait SUBSTRING match ([Mysterious Bird] qualifies).
     expect(clause?.cost).toMatchObject({
       kind: "deleteOwn",
       target: {
@@ -74,9 +71,6 @@ describe("EX4-058 Ravemon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("source"));
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX4-058")).not.toHaveLength(0);
-    // Pass the opponent's turn through the production turn loop. This reaches the
-    // OnEndTurn window (and its endOfOpponentTurn watcher) without injecting the
-    // named sub-trigger directly.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-058"));

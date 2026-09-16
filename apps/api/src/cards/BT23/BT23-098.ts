@@ -66,8 +66,6 @@ export const compiled: CompiledCard = {
                 ],
               },
               from: ["hand"],
-              // "with the digivolution cost reduced by 3" still charges the remainder:
-              // without payCost the interpreter treats the digivolution as free.
               payCost: true,
               reduceCost: 3,
               optional: true,

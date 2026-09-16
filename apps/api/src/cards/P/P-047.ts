@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4163: trash as many of the top 3 as possible, then still evaluate the Tamer gate.
-// KB Q4165: after paying the inherited return cost, the +2000 DP result is mandatory.
 const compiled: CompiledCard = {
   effects: [
     {

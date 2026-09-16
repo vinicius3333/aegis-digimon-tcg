@@ -276,8 +276,6 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === hostInstanceId));
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionId));
 
-    // The legal BT17-059 stack card is selected by the replacement before the host leaves,
-    // and the exact source instance is then played to the owner's battle area.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === stackedInstanceId)).toBe(
       true,
     );

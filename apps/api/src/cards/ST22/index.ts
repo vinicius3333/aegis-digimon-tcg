@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./ST22-01.js";
 import "./ST22-02.js";
 import "./ST22-03.js";

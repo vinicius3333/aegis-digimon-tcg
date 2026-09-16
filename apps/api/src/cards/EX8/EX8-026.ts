@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX8-026 MetalSeadramon
-// [Digivolve] Lv.5 w/[DS] trait: Cost 3
-// [Counter] <Blast Digivolve>
-// [On Play] [When Digivolving] <De-Digivolve 1> 1 of your opponent's Digimon. Then, return
-//   1 of your opponent's Digimon with a play cost of 7 or less to the bottom of the deck.
-// [All Turns] While you have 1 or more memory, none of your opponent's Digimon can suspend.
-// Q3892: "1 or more memory" = memory gauge at 1 or further left on your side.
-// Q3893: Blitz attacks also blocked since the Digimon cannot suspend at all.
-// [Rule] Trait: Has the [Aquatic] type.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -48,7 +48,6 @@ describe("EX1-009 WarGreymon", () => {
             { card: "ST1-12", as: "tamer" },
           ],
         },
-        // Survive the 12000-DP attacker plus Tai's continuous +1000 DP.
         1: { battleArea: [{ card: "BT1-072", as: "blocker", dp: 14000, suspended: true }] },
       },
       { autoSelectCards: true },

@@ -6,13 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT15-012.js";
 
-// A3 behavioral test for BT15-012 (Shoutmon X2):
-//   [On Play] Suspend 1 of your opponent's Digimon.
-//
-// Primary observable: playing BT15-012 causes the target opp Digimon to become suspended.
-//
-// FAILS-WHEN-REVERTED: remove the [On Play] resolve body → the opp Digimon stays unsuspended.
-
 describe("BT15-012 Shoutmon X2 [On Play] suspend", () => {
   it("encodes deletion prevention, the DigiXros restriction, and both treated-as names", () => {
     expect(digiXrosRequirementFor("BT15-012")).toEqual([
@@ -108,7 +101,7 @@ describe("BT15-012 Shoutmon X2 [On Play] suspend", () => {
     const s = setup(
       {
         0: { hand: [{ card: "BT15-012", as: "shoutmonX2" }] },
-        1: { battleArea: [{ card: "BT1-009", dp: 1000, as: "oppDigimon" }] }, // Monodramon Lv.3
+        1: { battleArea: [{ card: "BT1-009", dp: 1000, as: "oppDigimon" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -122,10 +115,8 @@ describe("BT15-012 Shoutmon X2 [On Play] suspend", () => {
     });
     expect(res).toEqual({ ok: true });
 
-    // Wait for the opp Digimon to become suspended
     await settle(() => oppDigimon.isSuspended, 600);
 
-    // The opp Digimon should be suspended
     expect(oppDigimon.isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(oppDigimon, "unsuspend")).toBe(false);
   });

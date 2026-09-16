@@ -200,8 +200,6 @@ describe("BT21-099 Xros Up", () => {
     await s.ready();
     const optionId = s.inst("option").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
-    // No `PlaceInBattleAreaSelf` clause: this Option resolves its Main body, then trashes
-    // normally like any other used Option.
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("save").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("evolved").instanceId)).toBe(true);
@@ -231,8 +229,6 @@ describe("BT21-099 Xros Up", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({
       ok: true,
     });
-    // No `PlaceInBattleAreaSelf` clause: this Option resolves its Main body, then trashes
-    // normally like any other used Option.
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("unrelated").instanceId)).toBe(true);
     expect(s.perm("tamer").stack).toHaveLength(0);

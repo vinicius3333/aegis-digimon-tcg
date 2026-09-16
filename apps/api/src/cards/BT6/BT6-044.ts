@@ -1,12 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q1428: "you may," player can choose not to trash.
-// KB Q1429: cannot activate if security stack is empty.
-// KB Q1430: AllTurns Recovery effect triggers if <=3 security after trash.
-// KB Q1431: multiple copies activate sequentially; once security reaches 4 the remaining
-//   copies don't activate — modeled via condition check per-activation.
-// Fixed: cost uses trashSecurityTop (not generic trash); rest is "trash" not "deckBottom".
 const compiled: CompiledCard = {
   effects: [
     {

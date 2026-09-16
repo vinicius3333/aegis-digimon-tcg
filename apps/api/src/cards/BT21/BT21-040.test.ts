@@ -4,16 +4,10 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-040.js";
 import "../index.js";
 
-/**
- * BT21-040's alternate digivolution is gated on EITHER printed alternative:
- * "your opponent has a level 6 or higher Digimon OR you have 3 or more [Hero] trait Tamers
- * with different names". Each branch is proven to open the path on its own, and a board that
- * satisfies neither is proven to keep it shut.
- */
 const SHINEGREYMON = "BT13-018";
 const SHINEGREYMON_BURST_MODE = "BT13-020";
-const OPPONENT_LV6 = "AD1-004"; // WarGreymon, level 6
-const HERO_TAMERS = ["BT21-080", "BT21-082", "BT21-083"]; // three distinct [Hero] Tamer names
+const OPPONENT_LV6 = "AD1-004";
+const HERO_TAMERS = ["BT21-080", "BT21-082", "BT21-083"];
 const EFFECT_KEY = `BT21-040/ir-${EffectTiming.OnDeclaration}-0`;
 
 function board(opts: { opponentLv6?: boolean; heroTamers?: number }) {
@@ -42,7 +36,6 @@ async function digivolvesForFour(s: ReturnType<typeof board>): Promise<boolean> 
   });
   if (!result.ok) return false;
   await settle(() => s.perm("agumon").topCard?.cardId === SHINEGREYMON, 2000);
-  // The alternate path is the only one that reaches ShineGreymon from a level 3 for 4 memory.
   expect(before - s.state.memory).toBe(4);
   return s.perm("agumon").topCard?.cardId === SHINEGREYMON;
 }
@@ -137,8 +130,6 @@ describe("BT21-040 Agumon", () => {
   });
 
   it("keeps it shut when neither alternative holds", async () => {
-    // FAILS-WHEN-REVERTED: flattening both alternatives into one filter made this board — two
-    // Hero Tamers and no level 6 opposite — indistinguishable from the ones above.
     const s = board({ heroTamers: 2 });
     const result = s.engine.applyIntent(0, {
       type: "activateEffect",
@@ -225,10 +216,6 @@ describe("BT21-040 Agumon", () => {
   });
 
   it("Q5211: a qualified BT21-040 can evolve from Agumon through an aged P-105 Delay for 4-2", async () => {
-    // RED regression: Q5211 permits this Your Turn alternate evolution to be activated at
-    // the same time as P-105's Delay. The Delay must retain BT21-040's qualified
-    // ignore-requirements permission while applying its own -2 reduction. This intentionally
-    // expects the public result; do not weaken it to a failed legality preflight.
     const s = setupEngine(
       {
         0: {
@@ -243,7 +230,7 @@ describe("BT21-040 Agumon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    s.state.turnCount = 1; // P-105 entered on an earlier turn, so Delay is aged and usable.
+    s.state.turnCount = 1;
     await s.ready();
     const delayEffect = JSON.parse(s.perm("training").activatableEffectsJson) as { effectKey: string }[];
     expect(delayEffect).toHaveLength(1);
@@ -345,9 +332,6 @@ describe("BT21-040 Agumon", () => {
           hand: [{ card: "ST24-07", as: "dualShine" }],
         },
         1: {
-          // ST24-07's Option effect deletes the 6000-DP target after its -6000 modifier;
-          // retain a second printed Lv6 so BT21-040's Your Turn gate is still qualified at
-          // the actual Arts window.
           battleArea: [
             { card: "BT1-080", as: "opponentTarget" },
             { card: OPPONENT_LV6, as: "opponentLv6" },
@@ -366,8 +350,6 @@ describe("BT21-040 Agumon", () => {
       }),
     ).toEqual({ ok: true });
 
-    // The Option effect resolves before the Arts replacement prompt. The legal Lv5 host is
-    // offered; the audited Lv3 Agumon is absent even though its Your Turn condition qualifies.
     let artsDecisionId: string | undefined;
     for (let step = 0; step < 4; step += 1) {
       await settle(() => s.state.pendingDecision !== undefined, 5000);

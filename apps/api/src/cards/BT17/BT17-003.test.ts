@@ -125,11 +125,6 @@ describe("BT17-003 Bibimon", () => {
   });
 
   it("carries the inherited memory gain through the real Digi-Egg route: hatch -> digivolve -> battle area", async () => {
-    // Peer/stack case, public intents only for every zone change: `hatchEgg` puts BT17-003 in
-    // the breeding area, the Yellow Lv.3 BT1-045 digivolves onto it there (Lv.2 Yellow, cost 0),
-    // and `moveFromBreeding` carries the stack into the battle area on the next own turn. The
-    // near-miss peer beside it is a Digimon with no BT17-003 beneath: a Tamer placed under it
-    // gains nothing, while the same placement under the real host gains 1.
     const s = setupEngine(
       {
         0: {

@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-corrected IR for BT9-083 (Omnimon: Merciful Mode).
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -11,18 +11,6 @@ import { setupEngine, settle as harnessSettle, assertNoLoudGap } from "../../eng
 import { advance } from "../../engine/testkit/advance.js";
 import type { PlayerState } from "@aegis/shared";
 
-// BT9-109 X Antibody (hand-authored override). Authoritative text (no errata):
-//   [Security] Gain 1 memory, and add this card to its owner's hand.
-//   [Main] Place this card under 1 of your Digimon without [X Antibody] in its
-//     digivolution cards as its bottom digivolution card.
-//
-// The override already documents the [Security] gap: by the time a [Security] effect
-// resolves, the revealed card has been shifted out of the security stack, so
-// returnToHand on a now-unzoned instance is a no-op and the resolver then trashes it —
-// the OPPOSITE of the printed effect. There is no "revealed-security-card -> hand"
-// primitive yet. These tests pin the executable half (gain 1 memory, place-under) and
-// the KB-correct add-to-hand half (currently unmet) so a future primitive flips it green.
-
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
 }
@@ -74,7 +62,6 @@ function makeSource(): CardSource {
   };
 }
 
-// Card name lookup keyed by cardId: hosts are Digimon; "XA" is the [X Antibody] stack card.
 const DEFINITIONS: Record<string, Partial<CardDefinition>> = {
   "HOST-D": { nameEn: "Greymon", kinds: ["Digimon"] as never },
   XA: { nameEn: "X Antibody", kinds: ["Option"] as never },
@@ -201,21 +188,14 @@ describe("BT9-109 X Antibody (override)", () => {
     const effect = module!.effectsForTiming(EffectTiming.SecuritySkill, makeSource())[0]!;
     expect(effect.isSecurity).toBe(true);
     await effect.resolve(ctx);
-    // A [Security] clause always resolves on the ATTACKING player's turn against the
-    // DEFENDING (card-owning) player's security stack, so turnSeat is never this card's
-    // owner. Crediting via the seat-agnostic `gainMemory` (which pays turnSeat) would
-    // always pay the wrong player -- must use `gainMemoryForSeat(source.ownerSeat, ...)`.
     expect(recorder.calls.filter((c) => c.verb === "gainMemory")).toHaveLength(0);
     const mem = recorder.calls.filter((c) => c.verb === "gainMemoryForSeat");
     expect(mem).toHaveLength(1);
-    expect(mem[0]!.args[0]).toBe(0); // source.ownerSeat
+    expect(mem[0]!.args[0]).toBe(0);
     expect(mem[0]!.args[1]).toBe(1);
   });
 
-  it(// Text: "[Security] Gain 1 memory, AND add this card to its owner's hand." The
-  // security resolver runs a [Security] effect while the revealed card is still in the
-  // security stack, so returnToHand moves it to hand before the resolver's trash sweep.
-  "[Security] adds this card to its owner's hand", async () => {
+  it("[Security] adds this card to its owner's hand", async () => {
     const recorder: Recorder = { calls: [] };
     const ctx = makeContext({ recorder });
     const effect = module!.effectsForTiming(EffectTiming.SecuritySkill, makeSource())[0]!;
@@ -243,8 +223,6 @@ describe("BT9-109 X Antibody (override)", () => {
     const host = digimonHost("HOST-1", { withXAntibody: true });
     const ctx = makeContext({ recorder, ownBattleArea: [host] });
     const effect = module!.effectsForTiming(EffectTiming.OnUseOption, makeSource())[0]!;
-    // The only Digimon already carries an [X Antibody], so there is no legal target.
-    // The compiled activation predicate rejects the illegal host before target resolution.
     expect(effect.canActivate(ctx)).toBe(false);
   });
 
@@ -266,15 +244,6 @@ describe("BT9-109 X Antibody (override)", () => {
   });
 });
 
-/**
- * A3 (real GameEngine) — proves the [Security] memory credit lands on BT9-109's owner,
- * not the attacking turn player, driving an actual `attack` intent through the real
- * security-check flow (engine/security/securityCheck.ts), not a mocked EffectContext.
- *
- * FAILS-WHEN-REVERTED: reverting `ctx.fx.gainMemoryForSeat(source.ownerSeat, 1)` back to
- * `ctx.fx.gainMemory(1)` flips the memory assertions below (the attacker, seat 1, would
- * gain the memory instead of the defender, seat 0).
- */
 describe("BT9-109 [Security] — real engine: credits its OWNER, not the attacking turn player", () => {
   it("attacker (seat 1) checks defender's (seat 0) security; the memory goes to seat 0", async () => {
     const s = setupEngine({
@@ -284,16 +253,11 @@ describe("BT9-109 [Security] — real engine: credits its OWNER, not the attacki
     const p0 = s.state.players[0] as PlayerState;
     const _p1 = s.state.players[1] as PlayerState;
 
-    // It is seat 1's turn; seat 1 attacks seat 0's security, which holds BT9-109.
     s.state.turnSeat = 1;
     const attacker = s.perm("attacker");
     const secCard = s.inst("secCard");
 
-    // memoryFor mirrors MemoryGauge.memoryFor: state.memory is stored relative to
-    // turnSeat, so reading a seat's own-perspective value must account for whose turn
-    // it is -- asserting on the raw sign of state.memory would silently pass for
-    // whichever seat happens to be turnSeat, which is exactly the bug being caught here.
-    const memoryFor = (seat: 0 | 1): number => (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0; // normalize -0 -> 0
+    const memoryFor = (seat: 0 | 1): number => (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0;
     expect(memoryFor(0)).toBe(0);
     expect(memoryFor(1)).toBe(0);
 
@@ -307,10 +271,8 @@ describe("BT9-109 [Security] — real engine: credits its OWNER, not the attacki
 
     await harnessSettle(() => s.events.some((e) => e.kind === "securityChecked"));
 
-    // BT9-109 was moved to its owner's (seat 0) hand by the [Security] clause.
     expect(p0.hand.some((c) => c.instanceId === secCard.instanceId)).toBe(true);
 
-    // The memory goes to BT9-109's owner (seat 0), never the attacking turn player.
     expect(memoryFor(0)).toBe(1);
     expect(memoryFor(1)).toBe(-1);
     assertNoLoudGap(s);

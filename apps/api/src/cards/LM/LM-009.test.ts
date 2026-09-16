@@ -22,7 +22,6 @@ describe("LM-009 Airdramon", () => {
     });
     await settle(() => s.perm("airdramon").isSuspended, 2000);
 
-    // SymbareAngoramon costs 5; the reduction charges 3 and suspends Airdramon.
     expect(s.perm("airdramon").isSuspended).toBe(true);
     expect(s.state.memory).toBe(2);
   });
@@ -69,7 +68,6 @@ describe("LM-009 Airdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "LM-011", 2000);
 
-    // The printed digivolution cost is 2, reduced to 0 by suspending Airdramon.
     expect(s.perm("airdramon").isSuspended).toBe(true);
     expect(s.state.memory).toBe(2);
   });
@@ -121,7 +119,6 @@ describe("LM-009 Airdramon", () => {
     s.state.turnSeat = 0;
     await s.ready();
 
-    // Declaring an attack suspends the attacker, which is the printed trigger.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -149,8 +146,6 @@ describe("LM-009 Airdramon", () => {
     await s.ready();
     const basePermanentId = s.perm("airdramon").permanentId;
 
-    // Airdramon is both the reducer and the base: once the digivolution completes it is a
-    // digivolution card, so its "when this Digimon becomes suspended" clause is gone.
     s.engine.applyIntent(0, {
       type: "digivolve",
       instanceId: s.inst("lamortmon").instanceId,

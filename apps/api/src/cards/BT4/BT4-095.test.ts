@@ -141,7 +141,7 @@ describe("BT4-095 Yoshino Fujieda", () => {
       await settle(() => s.perm("base").topCard.instanceId === s.inst(alias).instanceId);
       expect(s.perm("yoshino").isSuspended).toBe(true);
     }
-    expect(s.state.memory).toBe(6); // (2 - 1) for level 4, then the full 3 for level 5.
+    expect(s.state.memory).toBe(6);
     expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT4-095")).toHaveLength(1);
   });
 

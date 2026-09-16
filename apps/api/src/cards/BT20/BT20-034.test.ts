@@ -416,8 +416,6 @@ describe("BT20-034 Boutmon", () => {
     expect(
       s.engine.applyIntent(1, { type: "attack", attackerPermanentId: thirdId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    // A player-directed attack resolves through the security check, not a
-    // Digimon-vs-Digimon battle, so `combatResolved` never fires for this one.
     await settle(() => !observe(s.engine).isAttacking() && s.perm("third").isSuspended);
     expect(s.perm("third").isSuspended).toBe(true);
     expect(s.perm("host").topCard.cardId).toBe("BT20-035");

@@ -155,8 +155,6 @@ describe("EX11-066 Xeno", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard.cardId === "BT11-061");
     expect(s.perm("xeno").isSuspended).toBe(false);
-    // The turn draw and public Start Main cost/draw consume the two prepared cards;
-    // no additional two-card watcher reveal occurred in breeding.
     expect(s.state.players[0]!.deck).toHaveLength(0);
     s.engine.applyIntent(0, { type: "endPhase" });
     await settle(() => s.state.turnSeat === 1);
@@ -246,8 +244,6 @@ describe("EX11-066 Xeno", () => {
     await settle(() => s.perm("vemmon").topCard.cardId === "BT11-070");
     await settle(() => s.perm("firstXeno").isSuspended && s.perm("secondXeno").isSuspended);
 
-    // One digivolution, one prompt: Destromon's own [When Digivolving] and both Xeno watchers
-    // compete in the same ordering decision instead of the printed effect always going first.
     const ordering = s.decisions.find(({ req }) => req.kind === "orderTriggers");
     expect(ordering?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT11-070", "EX11-066", "EX11-066"]));
     expect(ordering?.req.options?.triggerKeys).toHaveLength(3);
@@ -273,8 +269,6 @@ describe("EX11-066 Xeno", () => {
     });
     await settle(() => s.perm("xeno").isSuspended);
 
-    // The play is one event: the played card's [On Play] and the Xeno watcher it triggered are
-    // offered in the same ordering prompt, and the watcher resolves exactly once.
     const ordering = s.decisions.find(({ req }) => req.kind === "orderTriggers");
     expect(ordering?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["P-094", "EX11-066"]));
     expect(s.state.players[0]!.deck).toHaveLength(0);

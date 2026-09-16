@@ -142,8 +142,6 @@ describe("BT18-005 Kozenimon", () => {
     s.state.phase = Phase.Main;
     s.state.memory = 3;
     s.perm("host").isSuspended = false;
-    // The opponent's Active phase readies its Digimon; suspend the second battle target
-    // through the production verb so the next-turn attack remains legal.
     await advance(s.engine).verb.suspend([s.perm("second").permanentId]);
     await s.ready();
     expect(attack("second")).toEqual({ ok: true });

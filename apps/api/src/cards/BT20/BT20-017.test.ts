@@ -334,7 +334,7 @@ describe("BT20-017 Jesmon", () => {
     expect(s.perm("savior").stack.map((card) => card.cardId)).toEqual(["BT20-008", "BT20-013", "BT20-014"]);
     const token = s.state.players[0]!.battleArea.find((perm) => perm.topCard.cardId === "TOKEN-AthoRenePor-Token")!;
     expect(token.baseDP).toBe(6000);
-    expect(token.currentDP).toBe(8000); // Both legal inherited sources grant all own Digimon +1000.
+    expect(token.currentDP).toBe(8000);
     expect(s.state.memory).toBe(0);
   });
 });

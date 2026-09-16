@@ -267,8 +267,6 @@ describe("EX9-055", () => {
           0: {
             battleArea: [
               { card: "EX9-054", as: "source" },
-              // Negamon's breeding Main effect can play Eyesmon directly and place itself underneath.
-              // These are effect-created stacks, not level-2-to-4 digivolutions.
               { card: "EX9-047", as: "peer1", under: ["EX9-005"] },
               { card: "EX9-047", as: "peer2", under: ["EX9-005"] },
             ],

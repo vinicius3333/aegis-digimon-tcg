@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// HAND-FIXED IR for BT19-077 — do not regenerate.
-// Re-audit fix: the [On Deletion] "place this card on top of your security stack" carried an
-// explicit `source: { filter: { isSelfRef: true } }`. That branch of
-// `interpreter/actions/actions/security.ts` resolves PERMANENTS, and the permanent is already
-// gone by the time an [On Deletion] effect resolves, so `ids.length === 0` and the card was
-// trashed instead. The self form is `source` OMITTED (BT2-040 Ophanimon), which falls back to
-// `ctx.source.instanceId` and survives the deletion.
 const compiled: CompiledCard = {
   effects: [
     {

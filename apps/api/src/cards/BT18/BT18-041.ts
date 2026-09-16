@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q2965 expands the printed color alternatives into four concrete material pairs.
 export const compiled: CompiledCard = {
   effects: [
     {

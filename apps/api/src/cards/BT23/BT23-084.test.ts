@@ -6,19 +6,9 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-084.js";
 
-// Printed text (BT23-084 Erika Mishima, Green Tamer, play cost 4, [Hudie]/[CS]):
-//   [Security] Play this card without paying the cost.
-//   [Start of Your Main Phase] If you have a Digimon with the [CS] trait, gain 1 memory.
-//   [End of Your Turn] By suspending this Tamer and returning 1 of your Digimon with the
-//     [Hudie] trait to the hand, you may play 1 level 3 Digimon card with the [CS] trait
-//     from your hand to your empty breeding area without paying the cost.
-//   Inherited: [Your Turn] While this Digimon is [Hudiemon], [Eater Legion] or
-//     [Eater EDEN], it gains <Alliance>.
-
 const NEUTRAL_SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 const NEUTRAL_DECK = ["BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"];
 
-/** Seat 0 board with a spare playable card so the Main phase does not auto-pass. */
 function turnBoard(seat0: BoardSpec[0]): BoardSpec {
   return {
     0: { deck: [...NEUTRAL_DECK], security: [...NEUTRAL_SECURITY], ...seat0 },
@@ -29,8 +19,6 @@ function turnBoard(seat0: BoardSpec[0]): BoardSpec {
 async function runSeat0Turn(board: BoardSpec, opts: SetupEngineOptions) {
   const s = setupEngine(board, opts);
   const loop = s.engine.startTurnLoop();
-  // A seeded breeding-area permanent opens the interactive Breeding window
-  // (BreedingPhaseController), which blocks until the turn player acts or skips.
   for (let i = 0; i < 500 && s.state.phase !== Phase.Main; i += 1) {
     if (s.state.phase === Phase.Breeding && s.state.turnSeat === 0) {
       s.engine.applyIntent(0, { type: "endPhase" });
@@ -61,9 +49,6 @@ describe("BT23-084 Erika Mishima", () => {
       inheritedEffectText:
         "[Your Turn] While this Digimon is [Hudiemon], [Eater Legion] or [Eater EDEN], it gains ＜Alliance＞.",
     });
-    // The catalog splits the printed text across `effectText` and `securityEffectText`, and
-    // uses a non-breaking space inside "[CS] trait, gain 1 memory". Join both fields and
-    // normalize every space class before comparing.
     const printed = `${definition.effectText ?? ""}\n${definition.securityEffectText ?? ""}`.replace(/\s+/g, " ");
     expect(printed).toContain("[Security] Play this card without paying the cost.");
     expect(printed).toContain("[Start of Your Main Phase] If you have a Digimon with the [CS] trait, gain 1 memory.");
@@ -111,7 +96,6 @@ describe("BT23-084 Erika Mishima", () => {
     expect(opponent.trash.some((card) => card.instanceId === erikaId)).toBe(false);
     expect(opponent.security.some((card) => card.instanceId === erikaId)).toBe(false);
     expect(opponent.security).toHaveLength(1);
-    // A security play costs nothing: memory moved only by the attack itself, which is 0.
     expect(s.state.memory).toBe(memoryBefore);
   });
 
@@ -316,7 +300,6 @@ describe("BT23-084 Erika Mishima", () => {
           { card: "BT23-084", as: "erika" },
           { card: "BT23-020", as: "hudie" },
         ],
-        // BT23-006 Huckmon's [On Play] reveals the top 3 cards of the deck and adds one.
         hand: [
           { card: "BT23-006", as: "huckmon" },
           { card: "BT1-009", as: "spare" },
@@ -333,8 +316,6 @@ describe("BT23-084 Erika Mishima", () => {
     const me = s.state.players[0]!;
     expect(me.breeding?.topCard?.instanceId).toBe(s.inst("huckmon").instanceId);
     expect(me.deck.map((card) => card.instanceId)).toEqual(deckBefore);
-    // Huckmon left the hand, the returned [Hudie] Digimon entered it: net hand size is flat
-    // and no extra card arrived from the deck.
     expect(me.hand).toHaveLength(handBefore);
     expect(s.state.pendingDecision).toBeUndefined();
 
@@ -343,9 +324,6 @@ describe("BT23-084 Erika Mishima", () => {
   });
 
   it("is a legal public digivolution source for BT23-074 Eater Legion and stays under the new top card", async () => {
-    // BT23-074 prints "[Digivolve] [Erika Mishima]: Cost 3", so the Tamer itself is the
-    // digivolution source. Q6703/Q6708: the Tamer is not a digivolving Digimon, so only the
-    // played card's own [When Digivolving] window opens.
     const s = setupEngine(
       {
         0: {
@@ -374,9 +352,8 @@ describe("BT23-084 Erika Mishima", () => {
 
     const permanent = s.state.players[0]!.battleArea.find((entry) => entry.permanentId === erikaPermanentId)!;
     expect(permanent.topCard?.instanceId).toBe(legionId);
-    // Permanent.stack holds only the cards beneath the top card: the Tamer itself.
     expect(permanent.stack.map((card) => card.instanceId)).toEqual([erikaId]);
-    expect(s.state.memory).toBe(3); // the printed [Erika Mishima] route costs 3
+    expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === legionId)).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -412,8 +389,6 @@ describe("BT23-084 Erika Mishima", () => {
     expect(s.state.memory).toBe(6);
   });
 
-  // BT23-101 Hudiemon and BT23-074 Eater Legion print ＜Alliance＞ themselves, so a positive
-  // on those two proves nothing about the inherited grant. These two carriers do not.
   it.each([
     ["BT26-041", "Hudiemon — a different card with the same printed name"],
     ["BT23-075", "Eater EDEN"],
@@ -439,8 +414,6 @@ describe("BT23-084 Erika Mishima", () => {
   });
 
   it("grants the inherited ＜Alliance＞ only on its controller's turn", async () => {
-    // BT23-075 Eater EDEN has no printed <Alliance>, so the keyword seen here can only
-    // come from Erika's inherited [Your Turn] clause.
     const s = setupEngine(
       turnBoard({
         battleArea: [{ card: "BT23-075", as: "carrier", under: ["BT23-084"] }],
@@ -468,8 +441,6 @@ describe("BT23-084 Erika Mishima", () => {
       effect: { kind: "keyword", keyword: { keyword: "Alliance" } },
       while: { kind: "anyOf", conditions: [{ kind: "selfHasName" }] },
     });
-    // `selfHasName` compares effective names for equality; `selfHasNameContaining` would
-    // be substring matching, which the printed [Bracketed] wording does not license.
     expect(aura.while.conditions[0]?.names).toEqual(["Hudiemon", "Eater Legion", "Eater EDEN"]);
 
     type PlayShape = { target: { filter: { levels: number[]; nameOrTrait: { tokens: string[]; match: string }[] } } };
@@ -502,7 +473,6 @@ describe("BT23-084 Erika Mishima", () => {
     const memory = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase")!
       .actions[0] as unknown as MemoryShape;
     expect(memory).toMatchObject({ kind: "GainMemory", amount: 1, condition: { kind: "youHave" } });
-    // Zone-less `youHave` also counts the breeding area (interpreter/scaling.ts countMatching).
     expect(memory.condition.filter.zone).toBe("battleArea");
   });
 });

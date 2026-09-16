@@ -7,8 +7,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import "./BT19-071.js";
 
-// Inert main-deck Digimon only: no Digi-Egg may sit in a deck or in security, and the
-// numeric `security: n` form is forbidden.
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
@@ -55,7 +53,6 @@ describe("BT19-071 Beelzemon", () => {
         {
           kind: "SubTrigger",
           event: "onDiscardLibrary",
-          // "your deck": the watcher must ignore a mill of the opponent's deck.
           sourceFilter: { controller: "mine" },
           actions: [
             {
@@ -79,7 +76,6 @@ describe("BT19-071 Beelzemon", () => {
             { card: "BT19-071", as: "beelzemon" },
             { card: "BT1-009", as: "spare" },
           ],
-          // Only my own Lv5 peer: the delete filter is opponent-scoped.
           battleArea: [{ card: "BT12-079", as: "myLv5" }],
           deck: [{ card: "BT1-013", as: "milledTop" }, { card: "BT1-009", as: "milledSecond" }, ...FILLER],
           security: [...SECURITY],
@@ -87,7 +83,6 @@ describe("BT19-071 Beelzemon", () => {
         1: {
           battleArea: [
             { card: "BT3-085", as: "theirLv5" },
-            // Near-miss peer: same colour and type family, one level too high.
             { card: "BT3-089", as: "theirLv6" },
           ],
           deck: [...FILLER],
@@ -105,13 +100,12 @@ describe("BT19-071 Beelzemon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     await settle();
 
-    expect(s.state.memory).toBe(-1); // play cost 11 paid from 10
+    expect(s.state.memory).toBe(-1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
       s.inst("milledTop").instanceId,
       s.inst("milledSecond").instanceId,
     ]);
     expect(observe(s.engine).hasKeyword(s.perm("beelzemon"), "Blocker")).toBe(true);
-    // Exactly the opponent's Lv5 left; the Lv6 peer and my own Lv5 are untouched.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT3-089"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT3-085"]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual(
@@ -160,11 +154,10 @@ describe("BT19-071 Beelzemon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    expect(s.state.memory).toBe(7); // Purple Lv5 evolution cost 3
+    expect(s.state.memory).toBe(7);
     expect(s.perm("base").topCard?.cardId).toBe("BT19-071");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT3-076", "BT3-083", "BT3-085"]);
     expect(s.perm("base").stack.at(-1)?.instanceId).toBe(baseInstanceId);
-    // The digivolution draw resolves first, then the effect mills the next two.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("spare").instanceId, s.inst("drawn").instanceId].sort(),
     );
@@ -243,7 +236,6 @@ describe("BT19-071 Beelzemon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;
 
-    // First mill of the turn: the [When Digivolving] clause deletes one Lv5.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -255,7 +247,6 @@ describe("BT19-071 Beelzemon", () => {
     await settle();
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
 
-    // Second mill of the SAME turn, from an unrelated card: the watcher is spent.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("millerOne").instanceId })).toEqual({
       ok: true,
     });
@@ -269,7 +260,6 @@ describe("BT19-071 Beelzemon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // Back on my own turn the once-per-turn allowance is fresh.
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     s.state.memory = 10;

@@ -6,53 +6,31 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// BT19-088 Ai & Mako (Purple Tamer, cost 3).
-//
-//   [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
-//   [Main] If you have 20 or more cards in your trash, by suspending this Tamer, 1 of your
-//     [Impmon] may digivolve into [Beelzemon] in the hand or trash for a digivolution cost
-//     of 4, ignoring its digivolution requirements.
-//   [Security] Play this card without paying the cost.
-//
-// KB: `node tools/kb/query.mjs card BT19-088` reports no knowledge-base entries, and
-// docs/audits/BT19.md#knowledge-base-index lists 0 Q&A ids for this card. Every clause below is
-// therefore proved against the printed text and the comprehensive rules alone.
-
 const AI_MAKO = "BT19-088";
-const IMPMON = "BT2-068"; // "Impmon", Lv.3 purple
-const IMPMON_X = "BT12-073"; // "Impmon (X Antibody)" — a DIFFERENT exact name
-const BLIMPMON = "BT20-049"; // "Blimpmon" — contains "impmon" as a substring
-const BEELZEMON = "BT19-071"; // "Beelzemon", Lv.6 purple
-const BEELZEMON_X = "BT12-085"; // "Beelzemon (X Antibody)" — a DIFFERENT exact name
-const BEELZEMON_BLAST = "BT19-074"; // "Beelzemon: Blast Mode" — a DIFFERENT exact name
+const IMPMON = "BT2-068";
+const IMPMON_X = "BT12-073";
+const BLIMPMON = "BT20-049";
+const BEELZEMON = "BT19-071";
+const BEELZEMON_X = "BT12-085";
+const BEELZEMON_BLAST = "BT19-074";
 
 const FILLER = ["BT1-009", "BT1-010", "BT1-012", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-012", "BT1-013"];
-/** 20 inert main-deck Digimon: the exact threshold the [Main] clause reads. */
 const TRASH_20 = Array.from({ length: 20 }, (_, i) => FILLER[i % FILLER.length]!);
 const TRASH_19 = TRASH_20.slice(1);
 
-/** The activatable-effect keys the client is offered for a permanent. */
 function offeredKeys(s: ReturnType<typeof setupEngine>, alias: string): string[] {
   return observe(s.engine)
     .activatableEffects(s.perm(alias))
     .map((effect) => effect.effectKey);
 }
 
-/** The runtime key of the card's single activatable [Main] clause. */
 function mainEffectKey(s: ReturnType<typeof setupEngine>, alias: string): string {
   const keys = offeredKeys(s, alias);
   expect(keys).toHaveLength(1);
   return keys[0]!;
 }
 
-/**
- * The [Main] clause's runtime key, read off a fixture that satisfies every gate.
- *
- * The engine stops OFFERING the clause the moment a gate fails, so a negative fixture has no
- * key of its own to name; each negative below asserts both that nothing is offered AND that
- * naming this key anyway is rejected.
- */
 function discoverMainEffectKey(): string {
   const s = setupEngine({
     0: {
@@ -82,7 +60,6 @@ describe("BT19-088 Ai & Mako", () => {
       playCost: 3,
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
-    // NOTE: the catalog runs the two clauses together with a DOUBLE space, not a newline.
     expect(getCardDefinition(AI_MAKO)?.effectText).toBe(
       "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.  " +
         "[Main] If you have 20 or more cards in your trash, by suspending this Tamer, 1 of your [Impmon] may " +
@@ -110,8 +87,6 @@ describe("BT19-088 Ai & Mako", () => {
         actions: [
           {
             kind: "Digivolve",
-            // Trap check: `[Impmon]` / `[Beelzemon]` are bracketed exact names, so both refs
-            // must be `nameExact`; `match: "name"` is the substring form.
             target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Impmon"], match: "nameExact" }] } },
             into: { nameOrTrait: [{ tokens: ["Beelzemon"], match: "nameExact" }] },
             payCost: true,
@@ -127,8 +102,6 @@ describe("BT19-088 Ai & Mako", () => {
       { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
     ]);
   });
-
-  // --- Tamer play cost ---------------------------------------------------------------------
 
   it("costs 3 memory to play from hand in a real Main phase", async () => {
     const s = setupEngine(
@@ -153,8 +126,6 @@ describe("BT19-088 Ai & Mako", () => {
     await loop;
     assertNoLoudGap(s);
   });
-
-  // --- [Start of Your Main Phase] ------------------------------------------------------------
 
   it("[Start of Your Main Phase] gains 1 memory while the opponent has a Digimon, read inside Main", async () => {
     const s = setupEngine(
@@ -231,8 +202,6 @@ describe("BT19-088 Ai & Mako", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [Security] ------------------------------------------------------------------------------
-
   it("[Security] plays itself for free through a real security check", async () => {
     const s = setupEngine(
       {
@@ -264,7 +233,6 @@ describe("BT19-088 Ai & Mako", () => {
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual([tamerId]);
     expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([fillerId]);
     expect(s.state.players[1]!.trash.map((c) => c.instanceId)).not.toContain(tamerId);
-    // Nothing paid the printed cost of 3.
     expect(s.state.memory).toBe(3);
     expect(s.perm("attacker").isSuspended).toBe(true);
     assertNoLoudGap(s);
@@ -302,8 +270,6 @@ describe("BT19-088 Ai & Mako", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [Main] Impmon -> Beelzemon ---------------------------------------------------------------
-
   it("digivolves [Impmon] into a HAND [Beelzemon] for 4, suspending the Tamer", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -339,14 +305,11 @@ describe("BT19-088 Ai & Mako", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("impmon").topCard?.instanceId === beelzId);
 
-    // Exact endpoints: Beelzemon is now the top card of the SAME permanent, Impmon is its
-    // only digivolution card, the Tamer is suspended and 4 memory was paid.
     const host = s.perm("impmon");
     expect(host.topCard?.cardId).toBe(BEELZEMON);
     expect(host.stack.map((c) => c.instanceId)).toEqual([impmonInstanceId]);
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.memory).toBe(2);
-    // The digivolution draw fired (hand: -1 Beelzemon, +1 drawn card).
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
     expect(s.state.players[0]!.hand.map((c) => c.instanceId)).not.toContain(beelzId);
     assertNoLoudGap(s);
@@ -483,8 +446,6 @@ describe("BT19-088 Ai & Mako", () => {
     expect(s.state.memory).toBe(6);
   });
 
-  // --- exact-name near misses -------------------------------------------------------------------
-
   it.each([
     ["Blimpmon (contains 'impmon' as a substring)", BLIMPMON],
     ["Impmon (X Antibody) (a different exact name)", IMPMON_X],
@@ -558,12 +519,9 @@ describe("BT19-088 Ai & Mako", () => {
     });
     if (res.ok) await settle(() => true);
 
-    // Whatever the activation verdict, the near-miss card never becomes the new top card.
     expect(s.perm("impmon").topCard?.instanceId).toBe(impmonInstanceId);
     expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("into").instanceId);
   });
-
-  // --- realistic stack: the printed clause ignores digivolution requirements -----------------------
 
   it("ignores the Lv.5 requirement: a Lv.3 [Impmon] with its own digivolution card reaches Lv.6", async () => {
     const preferred: string[] = [];
@@ -602,7 +560,6 @@ describe("BT19-088 Ai & Mako", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("impmon").topCard?.instanceId === beelzId);
 
-    // Bottom-most first: the pre-existing card stays beneath the Impmon it evolved from.
     expect(s.perm("impmon").stack.map((c) => c.instanceId)).toEqual([eggId, impmonInstanceId]);
     expect(s.perm("impmon").topCard?.cardId).toBe(BEELZEMON);
     expect(s.state.memory).toBe(2);

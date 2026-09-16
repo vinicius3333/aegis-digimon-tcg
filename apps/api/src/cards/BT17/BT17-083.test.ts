@@ -10,7 +10,6 @@ import "./index.js";
 
 const KOJI = "BT17-083";
 
-/** Observe the production OnStartTurn window without replacing or manually firing it. */
 function observeStartTurn(s: EngineSetup): number[] {
   const memoryAfterStartTurn: number[] = [];
   const engineAny = s.engine as unknown as {
@@ -207,9 +206,6 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
     });
     await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Jamming"));
 
-    // Q2861: the effect draws 1 then trashes 1, so the add is net-zero, and the watcher still
-    // fires. Koichi is a Tamer, so this also proves the printed "an effect" is not narrowed to
-    // your Digimon's effects. Memory: 9 - 3 (Koichi's cost) + 1 (Koji) = 7.
     expect(s.state.memory).toBe(7);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
 
@@ -222,10 +218,8 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
         !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("fodder2").instanceId),
     );
 
-    // Once Per Turn: the second add in the same turn grants no further memory (7 - 3 = 4).
     expect(s.state.memory).toBe(4);
 
-    // The limit resets on the next own turn, reached through the real turn loop.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 0;

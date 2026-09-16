@@ -65,9 +65,6 @@ describe("EX5-003 Nyaromon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await firstTurn;
 
-    // runOneTurn is deliberately a one-turn test seam and does not pass the turn;
-    // hand off the turn seat between real production loops, then let ActivePhase
-    // perform the authoritative unsuspend for the owning player.
     s.state.turnSeat = 1;
     await s.engine.runOneTurn();
     expect(s.perm("opponentHost").isSuspended).toBe(false);

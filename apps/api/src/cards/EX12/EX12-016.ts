@@ -1,24 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX12-016 MetalGreymon
-// [Digivolve] Lv.4 w/[Greymon] in name or w/[ME]/[VB] trait: Cost 3
-// The two digivolutionRequirement entries (names/traits) are the correct OR-split encoding.
-// <Security Attack +1>
-// <Decode (Lv.4 or lower w/[Agumon]/[Greymon] in name or w/[ME]/[VB] trait)>
-// [On Play][When Digivolving] Delete 1 of your opponent's Digimon with 6000 DP or less.
-//   Then, give 1 of their Digimon "[Start of Your Main Phase] This Digimon attacks."
-//   until their turn ends.
-// [Inherited] <Decode (Lv.4 or lower w/[Agumon]/[Greymon] in name or w/[ME]/[VB] trait)>
-//
-// Decode's replacement plays from "THAT Digimon's digivolution cards" (CR 16-36-1), so the
-// PlayWithoutCost target carries `hostFilter: { isSelfRef: true }`; without it the
-// `from: ["digivolutionCards"]` pool spans every stack the controller owns.
-//
-// The grant uses the same proven startOfYourMainPhase SubTrigger shape as BT23-056 and
-// BT12-065. Unlike BT23-056, this card has NO precondition gating the grant — it is
-// unconditional. The chosen opponent Digimon gains "[Start of Your Main Phase] This Digimon
-// attacks." until their turn ends (untilOpponentTurnEnd).
 const compiled: CompiledCard = {
   effects: [
     {

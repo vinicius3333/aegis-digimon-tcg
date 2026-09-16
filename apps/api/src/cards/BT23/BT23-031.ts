@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -13,10 +10,6 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldBePlayed",
           sourceFilter: {
-            // "When this card would be played FROM THE HAND": the printed provenance gate.
-            // The pay-time self-reducer (GameEngine.fireBeforePayCost) has no origin-zone
-            // signal, so this records the printed boundary; every effect-driven play from a
-            // non-hand zone in the catalog is a free play, so the reduction cannot leak.
             zone: "hand",
             isSelfRef: true,
           },
@@ -33,9 +26,6 @@ export const compiled: CompiledCard = {
                   controllerDefault: "mine",
                   nameOrTrait: [
                     {
-                      // Bracket-only card references match the printed name exactly
-                      // (comprehensive rules 2-3-1-2), so "LadyDevimon (X Antibody)"
-                      // must not satisfy [LadyDevimon].
                       tokens: ["LadyDevimon", "Mirei Mikagura"],
                       match: "nameExact",
                     },

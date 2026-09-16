@@ -225,8 +225,6 @@ describe("EX2-056 Takato Matsuki", () => {
       },
       { autoAcceptOptional: true, autoOrderTriggers: true },
     );
-    // Seat 1 pays downward from -8: printed cost 2 reaches -10, while inherited cost 4 cannot.
-    // Seed +8 so the real loop can complete seat 0's Main phase and passTurn reframes to -8.
     s.state.memory = 8;
     await s.ready();
     const loop = s.engine.startTurnLoop();
@@ -234,8 +232,6 @@ describe("EX2-056 Takato Matsuki", () => {
       await advance(s.engine).waitForMainPhase(0);
       advance(s.engine).endMainPhaseIfOpen(0);
       await advance(s.engine).waitForMainPhase(1);
-      // The real pass-turn bonus normalizes the gauge to +3 for seat 1. Bound the public
-      // action at -8 so printed cost 2 is payable while inherited cost 4 is not.
       s.state.memory = -8;
       expect(s.state.memory).toBe(-8);
       expect(

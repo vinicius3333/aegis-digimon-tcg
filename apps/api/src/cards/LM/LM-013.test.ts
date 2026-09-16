@@ -61,8 +61,6 @@ describe("LM-013 Diarbbitmon", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "LM-013", as: "diarbbitmon" }], battleArea: [{ card: "LM-012", as: "base" }] },
-        // A second unsuspended Digimon keeps the [When Digivolving] memory gain off, so memory
-        // reflects the cost waiver alone.
         1: {
           battleArea: [
             { card: "BT1-080", as: "attacker" },
@@ -186,7 +184,6 @@ describe("LM-013 Diarbbitmon", () => {
     await settle(() => !observe(s.engine).isAttacking(), 2000);
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-008"), 2000);
 
-    // Q4001: the top card goes back to the hand and everything under it is trashed.
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "LM-008")!;
     expect(
       s.engine.applyIntent(0, {

@@ -17,7 +17,6 @@ import "../index.js";
 import "./EX13-065.js";
 import { compiled } from "./EX13-065.js";
 
-// Ensure a previously cached engine also reads this file's synthetic definitions.
 vi.hoisted(() => vi.resetModules());
 vi.mock("@aegis/shared", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@aegis/shared")>();
@@ -37,37 +36,20 @@ afterEach(() => {
 
 const cardId = "EX13-065";
 
-// Inert neutral fixtures (main-deck Digimon with no printed effects at all).
-const SENTINEL = "BT1-009"; // Red Lv.3 Monodramon, 3000 DP.
-const NEUTRAL_LV3 = "BT1-013"; // Red Lv.3 Muchomon, 5000 DP.
-const NEUTRAL_LV4 = "BT1-014"; // Red Lv.4 Kokatorimon, 4000 DP.
-const BIG_VANILLA = "BT1-080"; // Green Lv.6 Titamon, 12000 DP, no printed effects — the DP target.
+const SENTINEL = "BT1-009";
+const NEUTRAL_LV3 = "BT1-013";
+const NEUTRAL_LV4 = "BT1-014";
+const BIG_VANILLA = "BT1-080";
 
-// [Sistermon Blanc] fixtures.
-//   BT6-082  — White Lv.3 "Sistermon Blanc", play cost 3. The EXACT name. Its only printed
-//              effects are an [On Play] ＜Draw 1＞ and an [All Turns] Aura gated on a
-//              [Huckmon]/[Royal Knight] card being in play, which no fixture here supplies.
-//   ST12-12  — a second printing, also exactly "Sistermon Blanc", play cost 3.
-//   BT7-082  — "Sistermon Blanc (Awakened)", White Lv.3, play cost 5. Its name CONTAINS
-//              "Sistermon Blanc" but is not equal to it, and it carries no inherited text:
-//              the discriminator that pins `nameExact` against substring `name`.
-//   BT10-085 — "Sistermon Ciel", play cost 4: in range for the Option's `playCostLte: 4`
-//              and a [Sistermon] substring match, but never an exact "Sistermon Blanc".
 const BLANC = "BT6-082";
 const BLANC_REPRINT = "ST12-12";
 const BLANC_AWAKENED_OLD = "BT7-082";
-const CIEL_COST_6 = "BT7-083"; // "Sistermon Ciel (Awakened)", play cost 6 — over the ceiling.
-const HUCKMON_TEXT_ONLY = "BT13-009"; // prints "[Sistermon]" only in its effect TEXT; cost 3.
-// Option-side board fixtures. BT7-082 is the inert White colour source: it satisfies the
-// printed White requirement, and because its name is NOT exactly "Sistermon Blanc" it is not a
-// legal §4-19 Arts Digivolve target either, so the DUAL card reaches its normal trash step.
-// BT10-085 "Sistermon Ciel" is the free-play fixture at exactly the printed play-cost ceiling
-// of 4; its [On Play] needs a [Royal Knight] card in hand (none here) and its other clause is
-// a memory trigger, so neither disturbs the endpoints.
+const CIEL_COST_6 = "BT7-083";
+const HUCKMON_TEXT_ONLY = "BT13-009";
 const WHITE_SOURCE = BLANC_AWAKENED_OLD;
 const CIEL_COST_4 = "BT10-085";
 
-const EGG_NO_HUCKMON = "BT22-004"; // Green Lv.2 Digi-Egg, [CS] trait, no [Huckmon] anywhere.
+const EGG_NO_HUCKMON = "BT22-004";
 
 const inertDeck = [SENTINEL, SENTINEL, SENTINEL, SENTINEL, SENTINEL];
 
@@ -94,7 +76,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
       optionEffect:
         "[Main] You may play 1 play cost 4 or lower card with [Sistermon] from your hand or trash without paying the cost. Then, to 1 of your opponent's Digimon, give -3000 DP for the turn for each of your Digimon.",
     });
-    // No inherited and no security text is printed.
     expect(getCardDefinition(cardId)?.inheritedEffectText).toBeUndefined();
     expect(getCardDefinition(cardId)?.securityEffectText).toBeUndefined();
   });
@@ -103,7 +84,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects).toHaveLength(4);
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
-    // No printed inherited text: nothing may be marked inherited.
     expect(compiled.effects.some(({ isInherited }) => isInherited === true)).toBe(false);
 
     expect(compiled.effects[0]).toEqual({
@@ -117,7 +97,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
       keywords: [{ keyword: "Guard", raw: "＜Guard＞" }],
     });
 
-    // ＜Decode ([Sistermon Blanc])＞ — an executable leave replacement, NOT a prevention.
     const decode = compiled.effects[2]!;
     expect(decode).toMatchObject({
       trigger: "AllTurns",
@@ -151,13 +130,10 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(decode.actions[0]).not.toHaveProperty("mode");
     expect(decode.frequency).toBeUndefined();
 
-    // Printed Guard uses the shared holder hook; Decode remains its distinct replacement.
     expect(
       compiled.effects.filter((effect) => effect.actions.some((action) => action.kind === "Replacement")),
     ).toHaveLength(1);
 
-    // The Option side's [Main] body: the free play carries no `kind` ("card", not "Digimon
-    // card") and no `abortOnDecline` (the "Then," process is independent, §15-6-2).
     const main = compiled.effects[3]!;
     expect(main.trigger).toBe("Main");
     expect(main.actions).toMatchObject([
@@ -186,10 +162,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect((main.actions[0] as { target: { filter: { kind?: unknown } } }).target.filter.kind).toBeUndefined();
     expect(main.actions[0]).not.toHaveProperty("abortOnDecline");
   });
-
-  // ---------------------------------------------------------------------------
-  // [Digivolve] [Sistermon Blanc]: Cost 0
-  // ---------------------------------------------------------------------------
 
   it("publishes exactly the two printed [Digivolve] routes and no catalog EvoCost", () => {
     expect(digivolutionRequirementsFor(cardId)).toEqual([
@@ -229,10 +201,8 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await settle(() => s.perm("base").topCard.cardId === cardId);
     await settle();
 
-    // Cost 0: memory is untouched. The digivolution bonus draw still happens.
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand).toHaveLength(handBefore); // -1 played, +1 bonus draw
-    // Source-stack identity survives: the base card is now the only digivolution card.
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore);
     expect(s.perm("base").permanentId).toBe(basePermanentId);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseInstanceId]);
     expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual([sourceCardId]);
@@ -242,9 +212,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
   });
 
   it("refuses a source whose name merely CONTAINS [Sistermon Blanc], and a non-Sistermon Lv.3", () => {
-    // `evoCosts` is empty, so there is no printed fallback route: a non-matching base can
-    // only be refused outright. Both preferences are exercised because `useAlternateCost` is
-    // a preference in both directions (coordinator note), so neither can mask a route.
     for (const [baseCardId, useAlternateCost] of [
       [BLANC_AWAKENED_OLD, true],
       [BLANC_AWAKENED_OLD, false],
@@ -268,19 +235,11 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
           ...(useAlternateCost === undefined ? {} : { useAlternateCost }),
         }),
       ).toEqual(expect.objectContaining({ ok: false }));
-      // Nothing was charged and nothing moved.
       expect(s.state.memory).toBe(5);
       expect(s.perm("base").topCard.cardId).toBe(baseCardId);
       expect(s.state.players[0]!.hand).toHaveLength(1);
     }
   });
-
-  // ---------------------------------------------------------------------------
-  // [Digivolve] Lv.2 w/[Huckmon] in text: Cost 1
-  //
-  // No matching production egg exists. These explicitly synthetic lookup fixtures
-  // exercise the real route through public hatch/evolution without changing EX13-065.
-  // ---------------------------------------------------------------------------
 
   it.each(["nameEn", "effectText", "inheritedEffectText"] as const)(
     "takes the cost-one Lv.2 route with synthetic printed %s",
@@ -297,8 +256,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
         [field]: field === "nameEn" ? "Huckmon Test Egg" : referenceText,
       };
       syntheticDefinitions.set(eggId, egg);
-      // Reuse the real ST12-04 conditional aura for effect-bearing fixtures. It is
-      // inactive in breeding and does not buff Sistermon Blanc after evolution.
       registerIrCard(eggId, {
         effects: field === "nameEn" ? [] : [{ ...inheritedAura, isInherited: field === "inheritedEffectText" }],
         coverage: "full",
@@ -385,10 +342,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(s.perm("egg").topCard.cardId).toBe(EGG_NO_HUCKMON);
   });
 
-  // ---------------------------------------------------------------------------
-  // ＜Decode ([Sistermon Blanc])＞
-  // ---------------------------------------------------------------------------
-
   it("exposes the printed ＜Decode＞ and ＜Guard＞ keywords on the continuous ledger", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: cardId, as: "awakened" }], deck: inertDeck } });
     await s.ready();
@@ -418,14 +371,11 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === blancId));
     await settle();
 
-    // The Digimon still LEFT (Decode is not a prevention) and the stacked card is now a
-    // permanent of its own, with no stack beneath it.
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === awakenedPermanentId)).toBe(false);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual([cardId]);
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.instanceId === blancId)!;
     expect(played.topCard!.cardId).toBe(BLANC);
     expect(played.stack).toHaveLength(0);
-    // It was really PLAYED: BT6-082's own [On Play] ＜Draw 1＞ resolved.
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -471,7 +421,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(await advance(s.engine).verb.deletePermanent([s.perm("awakened").permanentId], "byEffect")).toBe(1);
     await settle();
 
-    // Substring-matching would have played it; `nameExact` does not.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(notBlancId);
   });
@@ -501,11 +450,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(s.perm("neighbour").stack.map(({ instanceId }) => instanceId)).toEqual([foreignId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
-
-  // ---------------------------------------------------------------------------
-  // ＜Guard＞ — §16-45. Every fixture below keeps EX13-065's stack EMPTY so the Guard
-  // self-delete cannot also set off ＜Decode＞ and confuse the endpoint.
-  // ---------------------------------------------------------------------------
 
   it("saves another of your Digimon from an opponent's effect by deleting itself", async () => {
     const s = setupEngine(
@@ -644,22 +588,15 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === blancId));
     await settle();
 
-    // The ally stayed, EX13-065 paid with itself, and its ＜Decode＞ put the stacked
-    // [Sistermon Blanc] onto the board.
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(allyId);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === blancId)).toBe(true);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual([cardId]);
   });
 
-  // ---------------------------------------------------------------------------
-  // Option side — [Main] free [Sistermon] play, then scaled -3000 DP.
-  // ---------------------------------------------------------------------------
-
   it("used as an Option, plays a [Sistermon] card free and gives -3000 DP per of your Digimon", async () => {
     const s = setupEngine(
       {
         0: {
-          // WHITE_SOURCE satisfies the printed White colour requirement and counts for scaling.
           battleArea: [
             { card: WHITE_SOURCE, as: "colourSource" },
             { card: NEUTRAL_LV3, as: "other" },
@@ -690,14 +627,10 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await settle(() => s.perm("target").currentDP !== 12_000);
     await settle();
 
-    // The free play landed without paying its own 4 cost...
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === freePlayId)).toBe(true);
-    // ...so three of the controller's Digimon are in play: -3000 x 3.
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
     expect(s.perm("target").currentDP).toBe(12_000 - 9000);
-    // Only the Option's own 5 play cost was paid.
     expect(s.state.memory).toBe(1);
-    // The DUAL card resolved as an Option: it went to the trash, not the battle area.
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === cardId)).toBe(false);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain(cardId);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -732,7 +665,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await settle(() => s.perm("target").currentDP !== 12_000);
     await settle();
 
-    // Nothing in hand or trash matched the free play, so only the colour source counts.
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("target").currentDP).toBe(12_000 - 3000);
   });
@@ -805,8 +737,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await settle(() => s.perm("target").currentDP !== 12_000);
     await settle();
 
-    // `playCostLte: 4` excludes the play-cost-6 Sistermon Ciel (Awakened); the substring NAME
-    // gate excludes BT13-009 Huckmon, which carries "[Sistermon]" only in its effect text.
     const handIds = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     expect(handIds).toContain(overCostId);
     expect(handIds).toContain(textOnlyId);
@@ -832,7 +762,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
         },
         1: { battleArea: [{ card: BIG_VANILLA, as: "target" }], deck: inertDeck, security: [SENTINEL] },
       },
-      // autoAcceptOptional omitted: the "You may play" prompt is declined on timeout.
       { autoSelectCards: false, autoOrderTriggers: true, autoDeclineOptional: true },
     );
     s.state.memory = 6;
@@ -849,10 +778,8 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await settle(() => s.perm("target").currentDP !== 12_000);
     await settle();
 
-    // The play was declined...
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(declinedId);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
-    // ...and the independent "Then," process still ran, scaled by the two Digimon in play.
     expect(s.perm("target").currentDP).toBe(12_000 - 6000);
   });
 
@@ -860,9 +787,6 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     const s = setupEngine(
       {
         0: {
-          // BT6-082 is exactly "Sistermon Blanc", so this card's own cost-0 [Digivolve] route
-          // makes it a legal §4-19-2 Arts Digivolve target — the DUAL card is then consumed by
-          // the digivolve instead of going to the trash.
           battleArea: [{ card: BLANC, as: "artsTarget" }],
           hand: [
             { card: cardId, as: "divinePierce" },
@@ -889,9 +813,7 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await settle(() => s.perm("artsTarget").topCard.cardId === cardId);
     await settle();
 
-    // The Option body still resolved (one Digimon in play: -3000)...
     expect(s.perm("target").currentDP).toBe(12_000 - 3000);
-    // ...and then the DUAL card became a Digimon on top of the Sistermon Blanc, not trash.
     expect(s.perm("artsTarget").stack.map(({ instanceId }) => instanceId)).toEqual([blancInstanceId]);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).not.toContain(cardId);
     expect(s.state.pendingDecision).toBeUndefined();

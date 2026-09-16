@@ -31,8 +31,6 @@ describe("BT17-041 ShineGreymon: Burst Mode", () => {
     expect(definition!.inheritedEffectText ?? "").toBe("");
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    // Printed `[ShineGreymon]` is an exact name: substring `names` would wrongly accept
-    // "ShineGreymon: Ruin Mode" / "ShineGreymon: Burst Mode" as cost-4 sources.
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["ShineGreymon"], cost: 4, isAlternate: true }]);
   });
 
@@ -97,7 +95,6 @@ describe("BT17-041 ShineGreymon: Burst Mode", () => {
     const playedTamerId = s.inst("playedTamer").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("burst").instanceId })).toEqual({ ok: true });
-    // Two Tamers on board once the played one lands: 20000 - 2 x 5000.
     await settle(() => s.perm("target").currentDP === 10000);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === playedTamerId)).toBe(
@@ -108,7 +105,6 @@ describe("BT17-041 ShineGreymon: Burst Mode", () => {
   });
 
   it("reduces DP by only 5000 when a single Tamer is on the board", async () => {
-    // Comparative case for the per-Tamer scaling: same board, one fewer Tamer.
     const s = setupEngine(
       {
         0: {
@@ -259,7 +255,6 @@ describe("BT17-041 ShineGreymon: Burst Mode", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-009", "BT17-039"]);
-    // The Blast route still resolves [When Digivolving]: the Tamer lands from hand.
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-087")).toBe(true);
   });
 
@@ -292,21 +287,11 @@ describe("BT17-041 ShineGreymon: Burst Mode", () => {
 
     expect(s.perm("firstTamer").isSuspended).toBe(true);
     expect(s.perm("secondTamer").isSuspended).toBe(true);
-    // Security Attack +2 means three security cards checked in one attack.
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.filter(({ cardId }) => cardId === "BT1-009")).toHaveLength(3);
     expect(s.perm("burst").isSuspended).toBe(true);
   });
 
-  // ENGINE GAP: canPayCost's `suspend` branch in
-  // apps/api/src/engine/effects/interpreter/costs.ts (~L201-210) ignores
-  // `cost.target.upTo`, unlike every neighbouring cost kind: it returns
-  // `candidates.length >= required`, so an "up to 2" suspend cost with exactly one
-  // legal candidate is judged unpayable and the WhenAttacking effect is never even
-  // offered (no decision is raised). Expected: suspend the 1 yellow Tamer and gain
-  // ＜Security Attack +1＞ (usePaidCount scaling, proven at the interpreter level by
-  // apps/api/src/engine/effects/cardCapabilities.test.ts "scaling usePaidCount
-  // (BT17-041)"). Actual: nothing suspended, Security Attack 0, only 1 security checked.
   it("gains only one Security Attack when a single yellow Tamer is available", async () => {
     const s = setupEngine(
       {
@@ -339,7 +324,6 @@ describe("BT17-041 ShineGreymon: Burst Mode", () => {
       s.perm("yellowTamer").isSuspended,
     );
     expect(s.perm("yellowTamer").isSuspended).toBe(true);
-    // Comparative peer proof: the red Tamer fails the yellow colour gate and stays unsuspended.
     expect(s.perm("redTamer").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

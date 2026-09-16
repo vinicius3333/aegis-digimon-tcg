@@ -209,8 +209,6 @@ describe("BT26-017 Zanbamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // The block window is a raw applyIntent, not a pendingDecision — the defender must
-    // explicitly declare Zanbamon as the blocker before the battle can proceed.
     await settle(
       () =>
         blocking.state.pendingDecision === undefined &&

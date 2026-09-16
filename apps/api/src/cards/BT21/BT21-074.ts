@@ -1,22 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-074 Satellamon
-// [Digivolve] Lv.4 w/[Three Musketeers] in text: Cost 3
-// [On Play][When Digivolving] By placing 1 [Appmon]/[Three Musketeers] trait card from your
-//   hand or trash as any of your Digimon's bottom digivolution card, until your opponent's
-//   turn ends, their effects can't return that Digimon to hands or decks or affect it with
-//   <De-Digivolve> effects.
-// [When Digivolving][When Attacking][Once Per Turn] By trashing 1 card with the
-//   [Appmon]/[Three Musketeers] trait from your Digimon's digivolution cards, <De-Digivolve 1>
-//   1 of your opponent's Digimon.
-//
-// Audit: "that Digimon" = your Digimon that received the placed card (controller: mine).
-// Audit: bind the placement host and reuse it for both restrictions, so "that Digimon"
-// cannot drift to a separately selected own Digimon.
-// Audit: restrictions are beReturned + cantBeDeDigivolved (not immuneToOpponentEffects).
-// Audit: cost target is any card (not just Digimon kind) with the trait.
-// Audit: trash cost zone = digivolutionCards of your Digimon (not hand/trash/battleArea).
 export const compiled: CompiledCard = {
   effects: [
     {

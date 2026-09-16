@@ -3,17 +3,10 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-/**
- * Guard: exactly one audit document per card collection, at docs/audits/<SET>.md, with valid front
- * matter. No set-level audit lives anywhere else in the tree, and docs/audits/ holds only the
- * README, the per-set documents, and the cross-set engine directory.
- */
-
 const CARDS_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(CARDS_DIR, "..", "..", "..", "..");
 const AUDITS_DIR = join(REPO_ROOT, "docs", "audits");
 
-/** Test-only bucket: it has a cards directory but is not a printed collection. */
 const EXCLUDED_CARD_DIRS = new Set(["_a3"]);
 
 const REQUIRED_FRONT_MATTER = ["set", "cards", "status", "verified_at", "catalog_commit", "evidence_commit"];

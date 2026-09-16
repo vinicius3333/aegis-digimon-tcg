@@ -191,7 +191,6 @@ describe("EX8-074", () => {
         }),
       );
       await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === medievalId));
-      // Decline the subsequent self-play reaction so the payment targets remain observable.
       await settle(() => s.state.pendingDecision?.kind === "optional");
       optionalKinds.push(s.state.pendingDecision?.kind);
       replies.push(

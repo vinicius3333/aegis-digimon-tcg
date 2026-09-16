@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX10-055.
-// Defects fixed:
-// (1) OnPlay/WhenDigivolving effect was "delete all opponent Digimon" — wrong.
-//     1 OPPONENT Digimon with Level <= the sacrificed Digimon's level (documented behavior).
-//     Fixed using SelectBind{A = mine Digimon} + Delete{fromSelectionRef:A} (sacrifice)
-//     + Delete{opp Digimon with Filter.relativeTo:{attr:'level', op:'lte', selectionRef:'A'}}.
-// (2) AllTurns Replacement: count changed from 1 to "all" — KB Q5139 says the effect
-//     prevents ALL matching Digimon from leaving without the player having to choose them.
 const compiled: CompiledCard = {
   effects: [
     {

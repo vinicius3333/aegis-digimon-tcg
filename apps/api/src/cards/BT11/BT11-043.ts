@@ -35,7 +35,6 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               zone: "battleArea",
-              // "in play" has no controller qualifier: count both players' other Sukamon-named Digimon.
               controller: "any",
               excludeSelf: true,
               kind: ["Digimon"],

@@ -56,7 +56,6 @@ describe("BT3-091 Lilithmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((c) => c.cardId === "BT3-109"));
 
-    // The Option costs 2 memory, then Lilithmon's watcher refunds 2.
     expect(s.state.memory).toBe(5);
   });
 

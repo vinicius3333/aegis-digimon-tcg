@@ -21,9 +21,6 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  // The first clause is an alternate digivolution from the hand onto a
-  // Tamer treated as level 6, paid by placing exactly 10 Tamer/Hybrid cards
-  // from hand and/or trash at the bottom of the deck in player-selected order.
   digivolutionRequirement: [
     {
       cost: 7,

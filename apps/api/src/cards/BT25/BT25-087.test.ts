@@ -163,7 +163,7 @@ describe("BT25-087 Thomas H. Norstein", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("gaomon").topCard.instanceId === s.inst("gaogamon").instanceId);
-    expect(s.state.memory).toBe(1); // printed cost 2, reduced by both physical copies to 0.
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toEqual(
       expect.arrayContaining([s.inst("costA").instanceId, s.inst("costB").instanceId]),
     );

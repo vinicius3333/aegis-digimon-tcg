@@ -118,7 +118,6 @@ describe("BT17-070 Gulfmon", () => {
     await s.ready();
     const levelFiveId = s.perm("levelFive").permanentId;
 
-    // BT17-068's effect text contains [Dark Masters], so the alternate level-5 route is legal.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -134,9 +133,6 @@ describe("BT17-070 Gulfmon", () => {
   });
 
   it("takes a blue level-5 base only when its text carries [Dark Masters]", async () => {
-    // The catalog route is Purple level 5, so a BLUE level-5 base can only be legal through the
-    // printed alternate. BT15-027 Scorpiomon's text names [Dark Masters]; BT1-038 Monzaemon is a
-    // blue level 5 with no printed text at all, the same shape without the token.
     const legal = setupEngine(
       {
         0: {
@@ -193,7 +189,6 @@ describe("BT17-070 Gulfmon", () => {
       {
         0: {
           battleArea: [{ card: GULFMON, as: "gulfmon" }],
-          // A spare playable card keeps Main from auto-passing the moment the attacker suspends.
           hand: [{ card: "BT1-009", as: "spare" }],
         },
         1: {
@@ -215,8 +210,6 @@ describe("BT17-070 Gulfmon", () => {
     await settle(() => s.state.players[1]!.security.length === 1);
 
     expect(s.perm("gulfmon").isSuspended).toBe(true);
-    // Nothing was returned: the six pre-set cards are all still there, joined only by the
-    // security card the attack checked. The deck was never appended to either.
     expect(s.state.players[1]!.trash.map((card) => card.cardId).slice(0, 6)).toEqual([
       "BT1-009",
       "BT1-012",

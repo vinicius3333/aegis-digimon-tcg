@@ -1,4 +1,3 @@
-// Card modules for this set.
 import "./AD1-001.js";
 import "./AD1-002.js";
 import "./AD1-003.js";

@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q3232 (binding): "same name as this Digimon" means the name of the Digimon this card
-// has digivolved into (the current top-card name of the stack that includes this card as a
-// digivolution card), NOT the name [Kurisarimon].
-// sourceFilter: isSameName:true compares the candidate with the live source top card.
 const compiled: CompiledCard = {
   effects: [
     {

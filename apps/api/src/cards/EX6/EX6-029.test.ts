@@ -68,8 +68,6 @@ describe("EX6-029 Mastemon", () => {
     );
   });
 
-  // EX6-029 prints [DNA Digivolve] Yellow Lv.5 + Purple Lv.5: Cost 0. Blast DNA is a Counter-only
-  // procedure (CR 16-31), so the Main-phase verb takes the printed cost-0 recipe instead.
   it("publicly DNA digivolves at Main for the printed cost 0 and places another Digimon in security while trimming the opponent to four", async () => {
     const s = setupEngine(
       {

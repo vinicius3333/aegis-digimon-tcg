@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Digivolution option card. First effect triggers when an effect trashes this card
-// from a Digimon's digivolution stack. Second effect is a Static color-waive while
-// you control a Three Musketeers Digimon. Third is the [Main] play effect.
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT26-009 Hyokomon — start-main hand-trash cost, plus inherited attack draw
-// and the six-card hand-size return-to-deck-bottom clause.
 export const compiled: CompiledCard = {
   effects: [
     {

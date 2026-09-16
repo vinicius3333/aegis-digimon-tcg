@@ -20,7 +20,6 @@ export const compiled: CompiledCard = {
                 filter: {
                   zone: "digivolutionCards",
                   kind: ["Digimon"],
-                  // The printed source is this Digimon's stack, not every friendly stack.
                   hostFilter: { isSelfRef: true },
                   nameOrTrait: [
                     {

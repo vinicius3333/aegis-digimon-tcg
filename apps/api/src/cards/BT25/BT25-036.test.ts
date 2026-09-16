@@ -147,7 +147,6 @@ describe("BT25-036 Craftmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === craftmonId));
 
-    // Craftmon was battled as the revealed security Digimon first: the weaker attacker is deleted.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("attacker").instanceId);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(craftmonId);
     expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("oldTop").instanceId);

@@ -49,7 +49,6 @@ describe("ST2 source-strip MetalGarurumon deck gauntlet", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 4);
     expect(host.isSuspended).toBe(false);
-    // Gabumon's level-5 ceiling excludes this opponent; only Garurumon strips a source.
     expect(s.perm("opponent").stack.map(({ cardId }) => cardId)).toEqual(["ST1-03"]);
     expect(observe(s.engine).keywordAmount(host, "SecurityAttack")).toBe(0);
     expect(
@@ -99,8 +98,6 @@ describe("ST2 source-strip MetalGarurumon deck gauntlet", () => {
       }),
     ).toEqual({ ok: true });
 
-    // KB Q612: ST2-06 strips the last source during [When Attacking], immediately turning
-    // ST2-08 on for this same attack. ST2-11 has already unsuspended before the checks (Q618).
     await settle(
       () => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 3 && !attacker.isSuspended,
       3000,
@@ -134,8 +131,6 @@ describe("ST2 source-strip MetalGarurumon deck gauntlet", () => {
     });
     await breedingOnly.ready();
 
-    // KB Q613/Q614: breeding does not count, and an empty opposing battle area does not
-    // satisfy the condition merely because every Digimon there vacuously has no sources.
     expect(observe(breedingOnly.engine).keywordAmount(breedingOnly.perm("host"), "SecurityAttack")).toBe(0);
 
     breedingOnly.putOnBoard(1, { card: "ST1-03", as: "battleDigimon" });

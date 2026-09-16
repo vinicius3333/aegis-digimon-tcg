@@ -386,7 +386,6 @@ describe("BT23-025 MarineAngemon", () => {
     });
     const marineId = s.inst("marine").instanceId;
     await s.ready();
-    // Reach the opponent's turn through the real turn loop, not a `turnSeat` write.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -402,14 +401,11 @@ describe("BT23-025 MarineAngemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === marineId));
     expect(s.state.players[0]!.security).toHaveLength(0);
-    // It is still present before the opponent's turn ends.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === marineId)).toBe(true);
-    // The 11,000-DP Security Marine wins the battle: Monodramon is trashed.
     expect(s.state.players[1]!.trash.filter((card) => card.instanceId === attackerId)).toHaveLength(1);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(otherId);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-    // Q5563/Q5564 require deletion at the current turn end (the opponent's turn).
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === marineId)).toBe(false);
     expect(
       s.state.players[0]!.battleArea.some(

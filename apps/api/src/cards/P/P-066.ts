@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4170: You can always add the card to your hand even if no deletion occurred.
-// KB Q4845: "Then, add this card to its owner's hand" always applies regardless of the
-// Draw condition. Sequence: Delete → conditional Draw → unconditional AddToHandSelf.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -21,7 +18,6 @@ const compiled: CompiledCard = {
           },
         },
         {
-          // Draw 1 only if no Digimon was deleted by the preceding Delete action.
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -31,7 +27,6 @@ const compiled: CompiledCard = {
           },
         },
         {
-          // Always: add this card to its owner's hand (the "Then" clause).
           kind: "AddToHandSelf",
         },
       ],

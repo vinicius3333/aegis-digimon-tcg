@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Your Turn][Once Per Turn]: whenDeletesInBattle fires only when the attacker
-// survived (BT2-051 precedent), so no extra "survives" field is needed.
-// sourceFilter restricts to own Digimon with [Ten Warriors] or [Hybrid] trait.
-// [On Deletion]: play a green level 4 or lower [Hybrid] card from hand.
 const compiled: CompiledCard = {
   effects: [
     {

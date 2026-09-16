@@ -3,24 +3,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-091.js";
 
-// A3 for BT5-091 (Takumi Aiba) — [All Turns] All level 3 Digimon gain
-// "[When Attacking] Lose 1 memory."
-//
-// KB Q1369: the grant also applies to the granting Tamer's OWN level 3 Digimon.
-// KB Q1370: two copies of Takumi Aiba each activate separately (a combined -2), though
-// this A3 exercises the single-copy case (the grant-dedup key is per (instance, token) —
-// see the doc comment in GRANTED_EFFECT_LIBRARY's consumer, a known residual for the
-// two-copies-stacking case).
-//
-// FAILS-WHEN-REVERTED: `grantCustomEffect` names a token
-// ("[When Attacking] Lose 1 memory.") with NO entry in GRANTED_EFFECT_LIBRARY before this
-// fix — the grant installs into the ledger but `grantedTokenEffectsForTiming` returns `[]`
-// for it, so attacking never loses memory. With the library entry, the granted Digimon's
-// attack fires GainMemory(-1).
-
 const TAKUMI = "BT5-091";
-const LV3_DIGIMON = "BT1-009"; // Monodramon — level 3
-const DUMMY_TARGET = "BT1-010"; // Agumon — arbitrary opponent Digimon target
+const LV3_DIGIMON = "BT1-009";
+const DUMMY_TARGET = "BT1-010";
 
 describe('BT5-091 [All Turns] level 3 Digimon gain "[When Attacking] Lose 1 memory."', () => {
   it("may suspend to draw when one of your Digimon digivolves during your turn", async () => {
@@ -130,7 +115,6 @@ describe('BT5-091 [All Turns] level 3 Digimon gain "[When Attacking] Lose 1 memo
 
     await settle(() => s.state.memory !== 5, 400);
 
-    // The granted "[When Attacking] Lose 1 memory" fired: 5 - 1 = 4.
     expect(s.state.memory).toBe(4);
   });
 
@@ -189,7 +173,6 @@ describe('BT5-091 [All Turns] level 3 Digimon gain "[When Attacking] Lose 1 memo
         0: {
           battleArea: [
             { card: TAKUMI, dp: 0, as: "takumi" },
-            // AD1-010 (Garurumon) is level 4 — outside the grant's level-3 filter.
             { card: "AD1-010", dp: 5000, as: "attacker" },
           ],
           security: 3,
@@ -207,11 +190,8 @@ describe('BT5-091 [All Turns] level 3 Digimon gain "[When Attacking] Lose 1 memo
     });
     expect(res).toEqual({ ok: true });
 
-    // Wait for the attack to resolve (the suspended defender is deleted in combat).
     await settle(() => s.state.players[1]?.battleArea.length === 0, 400);
 
-    // No level-3 grant applies: the attack must not produce the -1 memory result.
-    // The completed attack may advance the turn and reset the gauge to its standard value.
     expect(s.state.memory).not.toBe(4);
   });
 });

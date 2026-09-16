@@ -41,8 +41,6 @@ describe("EX12-008 ToyAgumon", () => {
     s.state.memory = 0;
 
     const firing = advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
-    // The hand cost is the clause's only question, so it is asked as the selection
-    // itself: picking no card is the refusal (see `costIsAskedAsSelection`).
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const pending = s.state.pendingDecision!;
     expect(

@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// HAND-FIXED IR for BT19-014 — do not regenerate.
-// [ShootingStarmon] is a bracketed exact card-name reference, so the PlayWithoutCost
-// filter uses `nameExact`, not the substring `name` match.
 const compiled: CompiledCard = {
   effects: [
     {

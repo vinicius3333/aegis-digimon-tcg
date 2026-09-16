@@ -96,7 +96,6 @@ describe("BT10-024 MetalGreymon", () => {
     expect(observe(s.engine).isRestricted(s.perm("threeSources"), "attack")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("threeSources"), "block")).toBe(false);
 
-    // Q1950: the selected Digimon stays restricted even after gaining more sources.
     await advance(s.engine).verb.placeUnder(s.perm("twoSources").permanentId, [s.inst("newSource").instanceId]);
     expect(s.perm("twoSources").stack).toHaveLength(3);
     expect(observe(s.engine).isRestricted(s.perm("twoSources"), "attack")).toBe(true);

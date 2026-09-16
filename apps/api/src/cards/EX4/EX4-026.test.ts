@@ -194,9 +194,6 @@ describe("EX4-026 Youkomon", () => {
     const s = setupEngine(
       {
         0: {
-          // The Option's color requirement is met by the yellow Digimon.
-          // (EX4-026 is an inherited source, not the face-up host.)
-          // Keep the blue host so this also proves the source's color is not inferred.
           hand: [
             { card: "BT1-108", as: "cheap" },
             { card: "BT1-102", as: "first" },

@@ -66,7 +66,6 @@ describe("BT13-054 Lilamon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("yoshino").instanceId),
     );
-    // Yoshino can suspend for +1 after entering during this evolution.
     expect(s.state.memory).toBe(2);
     expect(s.perm("yoshino").isSuspended).toBe(true);
     expect(s.perm("base").stack.some((card) => card.cardId === "BT13-051")).toBe(true);

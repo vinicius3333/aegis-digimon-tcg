@@ -1,9 +1,3 @@
-// HAND-FIXED IR for BT6-030 (Gabumon - Bond of Friendship) — do not regenerate over
-// this file. The generated second [When Attacking] clause miscompiled the target
-// cleanup as a field-Trash of ALL MY Digimon. SelectBind keeps the returned target
-// stable, then the canonical Return-to-deck primitive moves that target's top card
-// to the deck bottom and trashes its attached digivolution cards as rules cleanup.
-// Per Q1399, that explanatory cleanup must not emit whenDigivolutionTrashed.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

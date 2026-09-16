@@ -85,8 +85,6 @@ describe("BT21-075 SkullGreymon", () => {
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Raid"));
-    // The public play grants Raid; this test then uses the established Digimon in the
-    // same production turn to isolate Raid's redirection behavior from summoning sickness.
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Raid")).toBe(true);
     expect(
       s.engine.applyIntent(0, {

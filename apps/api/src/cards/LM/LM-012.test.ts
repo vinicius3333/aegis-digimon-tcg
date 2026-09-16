@@ -94,8 +94,6 @@ describe("LM-012 Lamortmon", () => {
     await settle(() => !observe(s.engine).isAttacking(), 3000);
     expect(s.state.players[1]!.security).toHaveLength(5);
 
-    // The watcher lives on the single LM-012 in the stack and watches every Angoramon-text
-    // Digimon, so a second winning battle this turn is outside its [Once Per Turn] budget.
     s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("second").permanentId,

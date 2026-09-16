@@ -1,18 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT19-026 (ZeigGreymon).
-// Prior fix: removed spurious colors:["Blue"] from OnDeletion PlayWithoutCost.
-// New fixes:
-// 1. opponentHas condition in OnPlay/WhenDigivolving Return must have countMin:2
-//    (text: "if your opponent has 2 or more Digimon"). KB Q3079/Q3080 confirm the
-//    count check applies at the time of the condition resolution.
-// 2. OnDeletion PlayWithoutCost source zone: "from under your Tamers"
-//    (the filter currently lacks a zone restriction to underTamers).
-// 3. OnDeletion PlaceUnder is the printed ＜Save＞ keyword: comprehensive 16-20-3 makes its
-//    processing OPTIONAL, and 4-22 requires the keyword itself to be declared so cards that
-//    reference "＜Save＞ in its text" can see it. It is also INDEPENDENT of the preceding
-//    optional play: declining the play must not abort ＜Save＞.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -119,7 +107,6 @@ export const compiled: CompiledCard = {
             kind: ["Tamer"],
             excludeToken: true,
           },
-          // Comprehensive 16-20-3: the processing from ＜Save＞ is optional.
           optional: true,
         },
       ],

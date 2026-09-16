@@ -5,12 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// BT19-054 MegaGargomon (Green, Lv.6, Vaccine, Machine, DP 13000, play 13, evolve Green Lv.5 for 5)
-//   ＜Security A. +1＞
-//   [When Digivolving] [When Attacking] You may return 1 of your opponent's suspended
-//   Digimon to the bottom of the deck.
-// KB: `node tools/kb/query.mjs card BT19-054` -> "(no knowledge-base entries)". No Q&A to cover.
-
 describe("BT19-054 MegaGargomon", () => {
   it("matches the catalog print and carries no inherited effect", () => {
     const definition = getCardDefinition("BT19-054")!;
@@ -66,7 +60,6 @@ describe("BT19-054 MegaGargomon", () => {
 
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
     expect(s.state.memory).toBe(1);
-    // Digivolve bonus draw: the pre-digivolve hand held only MegaGargomon, which left the hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(handBefore).toBe(1);
     expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(1);
@@ -158,7 +151,6 @@ describe("BT19-054 MegaGargomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // Only the suspended opponent body left; the active peer and our own suspended peer stay.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-015"]);
     expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([
       s.inst("deckBottomBefore").instanceId,
@@ -249,9 +241,7 @@ describe("BT19-054 MegaGargomon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1);
 
-    // ＜Security A. +1＞: two security cards checked from a three-card stack.
     expect(s.state.players[1]!.security).toHaveLength(1);
-    // [When Attacking]: the suspended body went to the bottom of its owner's deck.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-015"]);
     expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(suspendedInstanceId);
     expect(s.state.pendingDecision).toBeUndefined();

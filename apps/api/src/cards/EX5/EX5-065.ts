@@ -41,7 +41,6 @@ if (startOfOpponentsTurn !== undefined) {
   }
 }
 
-// Replace the parser residual with the concrete add-digivolution watcher.
 const yourTurn = compiled.effects.find((effect) => effect.trigger === "YourTurn");
 if (yourTurn) {
   yourTurn.actions = [

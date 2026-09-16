@@ -7,8 +7,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 const CARD_ID = "EX10-064";
-// A vanilla Red Rookie: playable so Main never auto-passes, and never a legal payment or
-// DigiXros material for this card.
 const NEUTRAL_HAND = "ST1-02";
 
 describe("EX10-064 Yuu Amano & Nene Amano", () => {
@@ -42,8 +40,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
           mode: "instead",
           sourceFilter: { controller: "mine", kind: ["Digimon"], hasDigiXrosRequirement: true },
           actions: [
-            // `underTamers` is the only ZoneRef the material picker reads for "under your
-            // Tamers"; the previous `tamerCards` token matched nothing there.
             { kind: "DigiXrosMaterialZoneExpansion", zones: ["underTamers", "trash"], cost: { kind: "suspend" } },
           ],
         },
@@ -51,13 +47,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     });
   });
 
-  // --- [Start of Your Main Phase]: place 1 [Bagra Army]/[Twilight] Digimon card, ＜Draw 1＞ ---
-
-  /**
-   * My seat in a real turn loop: a playable neutral card so Main never auto-passes, plus an
-   * aliased deck so a draw can be named. Aliases are global to a Board Spec, so only ONE seat
-   * may carry them — the opponent gets the alias-free `opponentSeat`.
-   */
   const mySeat = () => ({
     hand: [{ card: NEUTRAL_HAND, as: "neutral" }],
     security: ["BT1-009", "BT1-013", "BT1-014"],
@@ -83,8 +72,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
             { card: NEUTRAL_HAND, as: "neutral" },
             { card: "EX10-026", as: "material" },
           ],
-          // Two cards already under the Tamer, so "bottom" is distinguishable from both
-          // "directly beneath the Tamer" and "anywhere in the stack".
           battleArea: [
             {
               card: CARD_ID,
@@ -103,16 +90,11 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Q5174: the payment goes to the BOTTOM of what is already under the Tamer. `stack` is
-    // bottom-most first, so the new card takes index 0 and both seeded cards shift up.
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("material").instanceId,
       s.inst("existingBottom").instanceId,
       s.inst("existingTop").instanceId,
     ]);
-    // ＜Draw 1＞: the first turn has no draw phase, so the deck's top card in hand is the
-    // effect's own draw and nothing else moved. The negative cases below share this fixture
-    // and end with `deckA` still on the deck, which is what makes this draw load-bearing.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
       [s.inst("neutral").instanceId, s.inst("deckA").instanceId].sort(),
     );
@@ -163,8 +145,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
       {
         0: {
           ...mySeat(),
-          // Right kind, wrong traits (Red [Giant Bird]); and a [Bagra Army] card that is a
-          // Digi-Egg, not a Digimon card, so the `kind: ["Digimon"]` half of the gate holds.
           hand: [
             { card: NEUTRAL_HAND, as: "neutral" },
             { card: "BT1-014", as: "offTrait" },
@@ -179,8 +159,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // No payment is possible, so `abortOnDecline` keeps the draw from happening: `deckA` is
-    // still on the deck, exactly one card fewer in hand than the paid case above.
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("existing").instanceId]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
       [s.inst("neutral").instanceId, s.inst("offTrait").instanceId].sort(),
@@ -216,7 +194,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // "By placing ..." is a cost: declining keeps the card AND skips the draw entirely.
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("existing").instanceId]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
       [s.inst("neutral").instanceId, s.inst("material").instanceId].sort(),
@@ -244,7 +221,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("existing").instanceId]);
 
-    // Arm a legal payment only AFTER my own main phase, then hand the turn over.
     const armed = s.give(0, Zone.Hand, { card: "EX10-026", as: "armed" });
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -276,8 +252,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // A Tamer only has effects in the battle area: neither copy may open a payment prompt
-    // or draw, so the hand and the deck are exactly as they were laid.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
       [s.inst("neutral").instanceId, s.inst("inHand").instanceId, s.inst("material").instanceId].sort(),
     );
@@ -302,7 +276,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     });
     s.state.memory = 12;
     await s.ready();
-    // No expander permanent exists, so the trash zone is locked and the material is refused.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -353,9 +326,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
   });
 
   it("Q5175/Q5176 effect-play path pays the expander and consumes exactly one card from each extra zone", async () => {
-    // This is the card-effect boundary: BT26-006's inherited effect plays the DigiXros card
-    // through PlayWithoutCost { allowDigiXros: true }. There is deliberately no playCard
-    // digiXros declaration and no client-supplied expanderPermanentIds shortcut.
     const s = setupEngine(
       {
         0: {
@@ -398,9 +368,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // Resolve the effect's real prompts explicitly. Auto-selecting the maximum here would
-    // choose the attacker's top card plus both extra-zone cards, exceeding the two one-card
-    // quotas and making the test pass without proving the printed payment.
     await settle(
       () =>
         s.state.pendingDecision?.kind === "selectCards" && JSON.parse(s.state.pendingDecision.payloadJson).max === 2,
@@ -442,7 +409,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
       s.inst("costA").instanceId,
       s.inst("costB").instanceId,
     ]);
-    // EX10-058 costs 11; BT26-006 reduces by 2 and two DigiXros materials reduce by 4.
     expect(s.state.memory).toBe(0);
   });
 
@@ -793,8 +759,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
   });
 
   it("[Security] plays itself for free out of a real security check", async () => {
-    // The public route: seat 0 attacks the player, so seat 1's top security card is revealed
-    // and its [Security] effect runs inside `runSecurityCheck` — no fired timing.
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-014", dp: 4000, as: "attacker" }] },
       1: {
@@ -822,10 +786,8 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
 
     const played = s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === CARD_ID)!;
     expect(played.stack).toHaveLength(0);
-    // It left security and never reached the trash — the checked card was PLAYED, not resolved.
     expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("next").instanceId]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("tamer").instanceId);
-    // "without paying the cost": the printed cost is 4, and no memory moved for the play.
     expect(getCardDefinition(CARD_ID)!.playCost).toBe(4);
     expect(s.state.memory).toBe(memoryBefore);
   });
@@ -862,8 +824,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // First accept BT26-006's optional play branch. EX10-064's replacement then presents its
-    // own optional choice; decline that second prompt to prove the original play continues.
     await settle(
       () =>
         s.state.pendingDecision?.kind === "optional" &&
@@ -940,8 +900,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     });
     s.state.memory = 12;
     await s.ready();
-    // "This effect also allows you to place a card from just one area" (Q5175): one trash
-    // material and nothing from under a Tamer is a legal DigiXros.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -962,7 +920,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("expander").isSuspended).toBe(true);
-    // EX10-055 costs 12; one DigiXros material reduces it by 2.
     expect(s.state.memory).toBe(2);
   });
 
@@ -998,9 +955,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX10-055"));
     expect(s.perm("expander").isSuspended).toBe(true);
 
-    // "by suspending this Tamer" is a real cost: a suspended copy cannot pay again, so the
-    // second play in the same turn gets no trash material. (Q5177's own case — several cards
-    // played at once off ONE activation — has no public intent: `playCard` plays one card.)
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -1011,7 +965,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
         },
       }),
     ).toEqual({ ok: false, reason: "invalid-expander" });
-    // Without naming the expander the trash zone stays locked, so the material is refused too.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -1023,15 +976,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("second").instanceId]);
   });
 
-  // --- Q6961: a pending activation dies when its card leaves the trash -------------------
-
-  /**
-   * EX10-044 Damemon's inherited clause is "When effects trash this card from a [Bagra Army]
-   * trait Digimon's digivolution cards, ＜Draw 1＞". BT26-006's [When Attacking] cost trashes it
-   * from the [Bagra Army] attacker, arming that draw; EX10-064 then offers the trash as a
-   * DigiXros source. Q6961: taking that same card as a material removes it from the trash
-   * before the pending draw can activate, so the draw never happens.
-   */
   const q6961Board = () => ({
     0: {
       battleArea: [
@@ -1068,7 +1012,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
       }),
     ).toEqual({ ok: true });
 
-    // 1. BT26-006's cost: trash Damemon and one inert card from the attacker's stack.
     await settle(
       () =>
         s.state.pendingDecision?.kind === "selectCards" && JSON.parse(s.state.pendingDecision.payloadJson).max === 2,
@@ -1082,7 +1025,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
       }),
     ).toEqual({ ok: true });
 
-    // 2. EX10-064's expanded material pick.
     await settle(
       () =>
         s.state.pendingDecision?.kind === "selectCards" && JSON.parse(s.state.pendingDecision.payloadJson).max === 2,
@@ -1120,7 +1062,6 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX10-058")!;
     expect(played.stack.map(({ instanceId }) => instanceId)).toContain(s.inst("damemon").instanceId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("damemon").instanceId);
-    // Q6961: "it's removed from the trash before the effect can activate" — no draw.
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("deckA").instanceId,
       s.inst("deckB").instanceId,

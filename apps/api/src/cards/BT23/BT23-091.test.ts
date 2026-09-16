@@ -4,21 +4,13 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT23-091.js";
 
-// Fixture cast (all legal main-deck cards; no Digi-Egg ever sits in security or deck):
-//   BT22-053 Keramon      Black, Lv.3, 1000 DP, [CS] trait — the only trait carrier needed.
-//   BT1-049  Labramon     Yellow, 1000 DP, vanilla — the lowest-DP deletion target.
-//   BT1-034  Ikkakumon    Blue, 5000 DP, vanilla — the higher-DP survivor.
-//   BT1-028  Elecmon      Blue, 3000 DP, vanilla — a non-[CS] attacker/bystander.
-//   BT1-030  Gomamon      Blue, 3000 DP, vanilla — spare playable card / security filler.
-// None of them are Red, so the printed Red color requirement is only ever met by the waiver.
 const CS_DIGIMON = "BT22-053";
-const CS_TAMER = "BT23-082"; // Makiko Date, Yellow Tamer with the [CS] trait.
+const CS_TAMER = "BT23-082";
 const LOWEST = "BT1-049";
 const HIGHER = "BT1-034";
 const NON_CS = "BT1-028";
 const FILLER = "BT1-030";
 
-/** How many times the engine has offered BT23-091's optional ＜Delay＞ prompt so far. */
 function delayPrompts(s: { decisions: { req: { kind: string; sourceCardId?: string } }[] }): number {
   return s.decisions.filter((d) => d.req.kind === "optional" && d.req.sourceCardId === "BT23-091").length;
 }
@@ -37,11 +29,6 @@ describe("BT23-091 Wolkenapalm", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects.map((effect) => effect.trigger)).toEqual(["Static", "Main", "YourTurn", "Security"]);
   });
-
-  // ---------------------------------------------------------------------------
-  // Clause 1 — "While you have a Digimon or Tamer with the [CS] trait on the
-  // field, you can ignore this card's color requirements."
-  // ---------------------------------------------------------------------------
 
   it("rejects the play when no [CS] card and no Red source is on the board", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT23-091", as: "option" }], battleArea: [NON_CS] } });
@@ -85,10 +72,6 @@ describe("BT23-091 Wolkenapalm", () => {
     assertNoLoudGap(s);
   });
 
-  // Q5364, asked about this printed wording, answers that "on the field" is the battle area
-  // OR the breeding area. CR 3-4-7-8 bars referencing breeding-area information "except for
-  // effects that explicitly specify or reference breeding areas", and that card-specific
-  // ruling is exactly such a reference, so a [CS] Digimon in breeding does unlock the waiver.
   it("waives the color requirement for a [CS] Digimon in the breeding area (Q5364)", async () => {
     const s = setupEngine(
       {
@@ -125,9 +108,6 @@ describe("BT23-091 Wolkenapalm", () => {
     });
   });
 
-  // A Digimon's traits are the traits of its top card. A [CS] card sitting in the
-  // digivolution cards beneath a non-[CS] top card is not a "[CS] trait Digimon", so it
-  // neither unlocks the waiver nor arms the ＜Delay＞ when that stack attacks.
   it("reads the [CS] trait from the top card only, not from the digivolution cards beneath", async () => {
     const s = setupEngine({
       0: {
@@ -200,11 +180,6 @@ describe("BT23-091 Wolkenapalm", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 2 — "[Main] Delete 1 of your opponent's Digimon with the lowest DP.
-  // Then, place this card in the battle area."
-  // ---------------------------------------------------------------------------
-
   it("deletes only the lowest-DP opponent Digimon and then places itself in the battle area", async () => {
     const s = setupEngine(
       {
@@ -233,7 +208,6 @@ describe("BT23-091 Wolkenapalm", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([higherId]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual([LOWEST]);
     expect(lowestId).not.toBe(higherId);
-    // The Option survives the §17-1-3-2-2 rule sweep only because it was placed BY an effect.
     const placed = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === optionInstanceId);
     expect(placed?.placedByEffect).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionInstanceId)).toBe(false);
@@ -259,11 +233,6 @@ describe("BT23-091 Wolkenapalm", () => {
     expect(placed?.placedByEffect).toBe(true);
     assertNoLoudGap(s);
   });
-
-  // ---------------------------------------------------------------------------
-  // Clause 3 — "[Your Turn] When one of your [CS] trait Digimon attacks,
-  // ＜Delay＞ ・Delete 1 of your opponent's Digimon with the lowest DP."
-  // ---------------------------------------------------------------------------
 
   it("holds the Delay on the placement turn, then spends it on the next own turn", async () => {
     const s = setupEngine(
@@ -292,15 +261,12 @@ describe("BT23-091 Wolkenapalm", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 5;
 
-    // Main: deletes the 1000 DP Labramon and places the Option.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionInstanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     const onBoard = (): boolean =>
       s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionInstanceId);
     expect(onBoard()).toBe(true);
 
-    // Same turn: ＜Delay＞ cannot be activated the turn its card enters play (CR §16-17,
-    // glossary "You can't activate this effect the turn this card enters play").
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -319,7 +285,6 @@ describe("BT23-091 Wolkenapalm", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    // Next own turn: the same attack now trashes the Option and deletes the lowest DP.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -488,11 +453,6 @@ describe("BT23-091 Wolkenapalm", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Clause 4 — "[Security] Delete 1 of your opponent's Digimon with the lowest
-  // DP. Then, place this card in the battle area."
-  // ---------------------------------------------------------------------------
-
   it("deletes the attacker side's lowest-DP Digimon from security and then places itself", async () => {
     const s = setupEngine(
       {
@@ -523,7 +483,6 @@ describe("BT23-091 Wolkenapalm", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
 
-    // The security player's own lowest-DP opponent is the attacking side's 1000 DP Labramon.
     expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toEqual([attackerId]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([LOWEST]);
     const placed = s.state.players[1]!.battleArea.find((p) => p.topCard?.instanceId === optionInstanceId);

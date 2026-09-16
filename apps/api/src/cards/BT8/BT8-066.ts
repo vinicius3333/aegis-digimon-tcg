@@ -1,15 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Your Turn]: when an effect places a digivolution card under this Digimon,
-// may digivolve from hand into a Digimon with [X-Antibody] trait, paying cost minus 1.
-// The cost reduction "with this effect" is scoped to this digivolve by costDelta: -1
-// on the Digivolve action directly (no separate Replacement needed).
-// KB Q1748: digivolution requirements cannot be ignored.
-// [Inherited][Opponent's Turn]: host gets <Reboot> while [X-Antibody] is in digivolution stack
-// (Hisyaryumon has [X-Antibody] so the condition is met whenever this is inherited).
-// selfDigivolutionStackHasTrait checks the host's digivolution
-// stack for the [X-Antibody] trait (the whole stack, including Hisyaryumon itself).
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -6,31 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-031.js";
 
-// BT19-031 Starmons — Yellow/Red Lv.3 Rookie, 1000 DP, play cost 4, digivolves from a Yellow
-// Lv.2 or a Red Lv.2 for 1.
-//   [Digivolve] Lv.2 w/[Xros Heart] trait: Cost 0
-//   ＜Decoy ([Xros Heart] trait)＞
-//   [On Deletion] You may play 1 [ShootingStarmon] from under your Tamers without paying the
-//                 cost. Then, place 1 [Starmons] and 1 [Pickmons] from your trash as that
-//                 Digimon's bottom digivolution cards.
-//   Inherited: [When Attacking] [Once Per Turn] If this Digimon has the [Xros Heart] trait,
-//              1 of your opponent's Digimon gets -2000 DP for the turn.
-//
-// Knowledge base (`node tools/kb/query.mjs card BT19-031`): Q3088 — with only one of
-// [Starmons]/[Pickmons] in the trash you still place the one you have.
-//
-// Fixtures:
-//   BT19-001 Pickmons (Red Lv.2, [Xros Heart]) — the alternate-route Digi-Egg, hatched
-//     through the real Breeding window; Digi-Eggs never appear in a deck or in security here.
-//   BT1-001 Yokomon (Red Lv.2, no [Xros Heart]) — the trait near-miss egg: same colour, so it
-//     digivolves only on the printed Red route for 1.
-//   BT1-003 Upamon (Blue Lv.2) — the illegal source.
-//   BT19-083 Rika Nonaka — Tamer host for the "under your Tamers" pool ([On Play] never fires
-//     from a seeded board; its other clause needs an Option play).
-//   BT10-034 Dorulumon — the name near-miss under a Tamer; BT19-035 ShootingStarmon in the
-//     trash is the name near-miss for [Starmons] (its "also treated as [Starmons]" line is
-//     DigiXros-only, so it must not answer an exact [Starmons] gate).
-//   BT19-033 Dorulumon ([Xros Heart]) / BT19-030 Renamon (no [Xros Heart]) — the ＜Decoy＞ pair.
 describe("BT19-031 Starmons", () => {
   it("matches the catalog printing", () => {
     expect(getCardDefinition("BT19-031")).toMatchObject({
@@ -66,15 +41,12 @@ describe("BT19-031 Starmons", () => {
       trigger: "Static",
       keywords: [{ keyword: "Decoy", raw: "＜Decoy ([Xros Heart] trait)＞" }],
     });
-    // Every bracketed name here is an EXACT reference, so each gate is `nameExact`; the
-    // substring `match: "name"` would let a "…Starmons" printing answer a [Starmons] gate.
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "OnDeletion",
       actions: [
         {
           kind: "PlayWithoutCost",
           optional: true,
-          // Not the last action: declining must abort the two placements that follow.
           abortOnDecline: true,
           payCost: false,
           from: ["digivolutionCardsUnderTamers"],
@@ -134,10 +106,6 @@ describe("BT19-031 Starmons", () => {
     expect(compiled.coverage).toBe("full");
   });
 
-  // ---------------------------------------------------------------------------
-  // Digivolution routes, through the real Digi-Egg lifecycle
-  // ---------------------------------------------------------------------------
-
   it("hatches a [Xros Heart] Digi-Egg and digivolves on the free alternate route", async () => {
     const s = setupEngine(
       {
@@ -178,7 +146,6 @@ describe("BT19-031 Starmons", () => {
     const raised = s.state.players[0]!.breeding!;
     expect(raised.stack.map((card) => card.instanceId)).toEqual([eggInstanceId]);
     expect(raised.currentDP).toBe(1000);
-    // Cost 0: the [Xros Heart] alternate route spends nothing at all.
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT19-031")).toBe(false);
 
@@ -188,8 +155,6 @@ describe("BT19-031 Starmons", () => {
   });
 
   it("falls back to the printed Red Lv.2 route for 1 when the egg lacks [Xros Heart]", async () => {
-    // `useAlternateCost: true` with no matching alternate route silently uses the normal
-    // route, so only the memory delta discriminates: 1 here versus 0 above.
     const s = setupEngine(
       {
         0: {
@@ -218,7 +183,6 @@ describe("BT19-031 Starmons", () => {
 
     expect(s.state.players[0]!.breeding!.stack.map((card) => card.instanceId)).toEqual([eggInstanceId]);
     expect(s.state.memory).toBe(4);
-    // The digivolution bonus draw still happens in the breeding area.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -252,10 +216,6 @@ describe("BT19-031 Starmons", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-031"]);
   });
 
-  // ---------------------------------------------------------------------------
-  // ＜Decoy ([Xros Heart] trait)＞ (comprehensive 16-18)
-  // ---------------------------------------------------------------------------
-
   it("has Decoy on the battle area", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT19-031", as: "stars" }], security: ["BT1-013", "BT1-014"] },
@@ -285,7 +245,6 @@ describe("BT19-031 Starmons", () => {
     const xrosPeerId = s.perm("xrosPeer").permanentId;
     const nearMissId = s.perm("traitNearMiss").permanentId;
 
-    // The [Xros Heart] peer is saved: the Decoy holder dies instead.
     const driver = advance(s.engine);
     driver.verb.enterEffectResolution(1, ["Digimon"]);
     await driver.verb.deletePermanent([xrosPeerId], "byEffect");
@@ -293,8 +252,6 @@ describe("BT19-031 Starmons", () => {
     await settle(() => false, 30);
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([xrosPeerId, nearMissId]);
-    // The Decoy holder's own [On Deletion] found no ShootingStarmon under a Tamer, so it just
-    // sits in the trash.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([decoyInstanceId]);
   });
 
@@ -316,8 +273,6 @@ describe("BT19-031 Starmons", () => {
     const decoyId = s.perm("decoy").permanentId;
     const nearMissInstanceId = s.perm("traitNearMiss").topCard!.instanceId;
 
-    // BT19-030 Renamon is Yellow/Beastkin with no [Xros Heart] type, so the parenthetical
-    // ＜Decoy ([Xros Heart] trait)＞ scope (CR §4-22-5) refuses it: Renamon dies, Starmons lives.
     const driver = advance(s.engine);
     driver.verb.enterEffectResolution(1, ["Digimon"]);
     await driver.verb.deletePermanent([s.perm("traitNearMiss").permanentId], "byEffect");
@@ -346,7 +301,6 @@ describe("BT19-031 Starmons", () => {
     const decoyId = s.perm("decoy").permanentId;
     const xrosPeerId = s.perm("xrosPeer").permanentId;
 
-    // §16-18-1: only an OPPONENT's effect activates ＜Decoy＞.
     const driver = advance(s.engine);
     driver.verb.enterEffectResolution(0, ["Digimon"]);
     await driver.verb.deletePermanent([xrosPeerId], "byEffect");
@@ -354,7 +308,6 @@ describe("BT19-031 Starmons", () => {
     await settle(() => false, 30);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([decoyId]);
 
-    // A battle death is not an effect at all.
     s.putOnBoard(0, { card: "BT19-033", as: "secondPeer" });
     await advance(s.engine).recompute();
     const secondPeerId = s.perm("secondPeer").permanentId;
@@ -362,10 +315,6 @@ describe("BT19-031 Starmons", () => {
     await settle(() => false, 30);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([decoyId]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Deletion] play [ShootingStarmon] + place [Starmons]/[Pickmons] (Q3088)
-  // ---------------------------------------------------------------------------
 
   it("plays only the ShootingStarmon under YOUR Tamer and places both named trash cards at the bottom", async () => {
     const s = setupEngine(
@@ -406,12 +355,7 @@ describe("BT19-031 Starmons", () => {
 
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT19-035")!;
     expect(played.topCard!.instanceId).toBe(s.inst("shooting").instanceId);
-    // The deleted [Starmons] is already in the trash when the effect resolves (CR §4-14-1/2),
-    // so it is itself the [Starmons] placed. Bottom-most first: the second placement
-    // ([Pickmons]) ends up under the first.
     expect(played.stack.map((card) => card.instanceId)).toEqual([s.inst("pickmons").instanceId, starsInstanceId]);
-    // Near-misses: the Dorulumon under the same Tamer stays, the opponent's Tamer is untouched,
-    // and the trash ShootingStarmon does not answer an exact [Starmons]/[Pickmons] gate.
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("underNameNearMiss").instanceId]);
     expect(s.perm("opponentTamer").stack.map((card) => card.instanceId)).toEqual([
       s.inst("opponentShooting").instanceId,
@@ -421,10 +365,6 @@ describe("BT19-031 Starmons", () => {
   });
 
   it("places whichever of [Starmons] / [Pickmons] the trash actually holds (Q3088)", async () => {
-    // Q3088: with only one of the two present you still place that one. The mirror case —
-    // a [Pickmons] but no [Starmons] — is unreachable for this card: the deleted Starmons is
-    // itself in the trash by the time the effect resolves, so the [Starmons] leg always has a
-    // candidate. This board therefore withholds the [Pickmons].
     const s = setupEngine(
       {
         0: {
@@ -480,8 +420,6 @@ describe("BT19-031 Starmons", () => {
     await settle(() => false, 30);
 
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT19-035")!;
-    // Both trash copies answer the exact [Starmons] gate; exactly one of them was placed, and
-    // the [Pickmons] leg always resolves to the single Pickmons.
     expect(played.stack).toHaveLength(2);
     expect(played.stack[0]!.instanceId).toBe(s.inst("pickmons").instanceId);
     expect([...prefer, starsInstanceId]).toContain(played.stack[1]!.instanceId);
@@ -553,13 +491,7 @@ describe("BT19-031 Starmons", () => {
     ]);
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [When Attacking] [Once Per Turn] -2000 DP
-  // ---------------------------------------------------------------------------
-
   it("reduces one opposing Digimon by 2000 on a real attack from a real evolution stack", async () => {
-    // The realistic stack: BT19-031 (Yellow/Red Lv.3, [Xros Heart]) digivolves into BT19-033
-    // Dorulumon (Yellow Lv.4, cost 3) through the ordinary `digivolve` intent, then attacks.
     const s = setupEngine(
       {
         0: {
@@ -616,14 +548,11 @@ describe("BT19-031 Starmons", () => {
     );
     expect(reduced).toHaveLength(1);
 
-    // [Once Per Turn]: the same host's second [When Attacking] window this turn adds nothing.
-    // Structural only — no public intent gives a second attack to a suspended attacker.
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("stars"));
     expect(
       [s.perm("first"), s.perm("second")].filter((permanent) => permanent.currentDP === permanent.baseDP - 2000),
     ).toHaveLength(1);
 
-    // The turn boundary both expires "for the turn" and resets the once-per-turn counter.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("first").currentDP).toBe(4000);
@@ -668,7 +597,6 @@ describe("BT19-031 Starmons", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // BT19-037 Taomon is Yellow Lv.5 Wizard: no [Xros Heart] type, so the condition fails.
     expect(getCardDefinition("BT19-037")?.types).not.toContain("Xros Heart");
 
     const loop = s.engine.startTurnLoop();

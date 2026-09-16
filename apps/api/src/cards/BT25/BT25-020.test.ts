@@ -119,8 +119,6 @@ describe("BT25-020 Marsmon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.perm("marsmon").currentDP).toBe(15000);
-    // The direct battle itself does not check security; Marsmon's All Turns
-    // watcher then trashes the opponent's top security after winning.
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
@@ -216,7 +214,7 @@ describe("BT25-020 Marsmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
 
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(0);
-    expect(s.state.players[1]!.security).toHaveLength(2); // Marsmon's separate battle-won trash only.
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("keeps the DP boost when the optional battle is declined", async () => {

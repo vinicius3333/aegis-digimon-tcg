@@ -1,13 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4144: Aura check is real-time at "reaction timing"; if the purple Digimon is
-// deleted by the attacking Digimon's When Attacking effect, Blocker is gone at reaction.
 const compiled: CompiledCard = {
   effects: [
     {
-      // [Opponent's Turn] While you have a purple Digimon in play, this Digimon gains <Blocker>.
-      // Continuous conditional aura during opponent's turn; not an activated [Main] effect.
       trigger: "OpponentsTurn",
       actions: [
         {
@@ -35,8 +31,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [On Play] If you have 3 or fewer security cards, trigger <Recovery +1 (Deck)>.
-      // <Recovery +1 (Deck)> = place top card of your deck on top of your security stack.
       trigger: "OnPlay",
       actions: [
         {

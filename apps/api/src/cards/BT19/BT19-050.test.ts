@@ -6,16 +6,6 @@ import { drainMicrotasks, setupEngine, settle, settleAcrossTimers } from "../../
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-// Fixtures (inert main-deck Digimon only; no Digi-Egg in a deck or in security):
-//   BT1-009 Monodramon    Lv3 Red   3000, no text  — deck/security filler
-//   BT1-013 Muchomon      Lv3 Red   5000, no text  — deck/security filler / opponent opener
-//   BT1-011 Agumon Expert Lv3 Red   1000           — opponent Digimon target
-//   BT1-012 Biyomon       Lv3 Red   2000, no text  — own Digimon near miss
-//   BT1-071 Vegiemon      Lv4 Green 6000, no text  — legal Green Lv4 evolution / blast base
-//   BT1-064 Goblimon      Lv3 Green 3000, no text  — ILLEGAL source (level too low)
-//   BT1-014 Kokatorimon   Lv4 Red   4000, no text  — ILLEGAL source (wrong colour)
-//   BT19-051 AtlurBallistamon Lv5 Green/Black 7000 — realistic inherited host
-//   BT19-081 Kiriha Aonuma    Blue Tamer           — opponent Tamer target
 const DECK = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 
@@ -59,7 +49,6 @@ describe("BT19-050 Rapidmon", () => {
           {
             kind: "Restrict",
             restriction: "unsuspend",
-            // "until the end of their turn" — their turn is the opponent's turn.
             duration: "untilOpponentTurnEnd",
             target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
           },
@@ -72,11 +61,6 @@ describe("BT19-050 Rapidmon", () => {
       actions: [{ kind: "ModifyDP", amount: 4000, target: { isSelf: true } }],
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] Suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their
-  // Digimon or Tamers can't unsuspend until the end of their turn.
-  // ---------------------------------------------------------------------------
 
   it.each([
     ["an opponent Digimon", "BT1-011"],
@@ -105,7 +89,6 @@ describe("BT19-050 Rapidmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
     expect(s.perm("own").isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("own"), "unsuspend")).toBe(false);
-    // Only the play cost of 5 was paid.
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -140,9 +123,6 @@ describe("BT19-050 Rapidmon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("already"), "unsuspend"));
     await drainMicrotasks(80);
 
-    // The already-suspended Digimon was offered to BOTH actions and the scripted answer took
-    // it; the fresh peer is untouched by either.
-    // `candidateInstanceIds` carries PERMANENT ids for a permanent target.
     const offered = s.decisions.filter(
       (entry) =>
         entry.req.kind === "chooseTargets" &&
@@ -187,13 +167,11 @@ describe("BT19-050 Rapidmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // The opponent's own turn ran its real unsuspend phase; the lock held.
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
 
-    // "Until the end of their turn": the restriction is gone on our next turn.
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
     expect(s.perm("target").isSuspended).toBe(true);
@@ -266,10 +244,6 @@ describe("BT19-050 Rapidmon", () => {
     expect(s.perm("target").isSuspended).toBe(false);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Hand] [Counter] ＜Blast Digivolve＞
-  // ---------------------------------------------------------------------------
-
   it("blast digivolves from hand in the opponent's counter window for no memory and still fires its clause", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -323,14 +297,11 @@ describe("BT19-050 Rapidmon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT19-050");
     await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // ＜Blast Digivolve＞ waived the memory cost but still drew the digivolution bonus card.
     expect(s.state.memory).toBe(6);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evoDraw").instanceId]);
-    // The [When Digivolving] clause resolved off the blast.
     expect(s.perm("locked").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(true);
-    // The unblocked attack still checked exactly one security card.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("sec2").instanceId,
       s.inst("sec3").instanceId,
@@ -374,10 +345,6 @@ describe("BT19-050 Rapidmon", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited: [Your Turn] This Digimon gets +4000 DP.
-  // ---------------------------------------------------------------------------
-
   it("gives a real host +4000 DP only on its controller's turn", async () => {
     const s = setupEngine(
       {
@@ -400,7 +367,6 @@ describe("BT19-050 Rapidmon", () => {
 
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").currentDP).toBe(11_000);
-    // A same-name host WITHOUT BT19-050 in its digivolution cards gets nothing.
     expect(s.perm("peer").currentDP).toBe(7000);
     advance(s.engine).endMainPhaseIfOpen(0);
 

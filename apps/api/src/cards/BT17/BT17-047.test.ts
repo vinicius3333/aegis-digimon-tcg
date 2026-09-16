@@ -229,8 +229,6 @@ describe("BT17-047 Parrotmon", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    // The opponent's turn start unsuspended its own Digimon; a Digimon can only be attacked
-    // while suspended, so re-suspend the last target through the production verb.
     await advance(s.engine).verb.suspend([thirdPermanentId]);
 
     expect(

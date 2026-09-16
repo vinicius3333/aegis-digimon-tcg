@@ -100,7 +100,6 @@ describe("EX5-025 Dianamon", () => {
     );
     expect(observe(s.engine).isRestricted(s.perm("stackedOpponent"), "beSuspended")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("bareOpponent"), "beSuspended")).toBe(true);
-    // The opposing source trash also reaches Dianamon's public All Turns trigger.
     expect(s.perm("base").isSuspended).toBe(false);
 
     expect(
@@ -204,7 +203,6 @@ describe("EX5-025 Dianamon", () => {
     await settle(() => s.perm("existingBare").topCard?.cardId === "BT1-015");
     expect(observe(s.engine).isRestricted(s.perm("existingBare"), "beSuspended")).toBe(false);
 
-    // Evolution releases only the restriction; it does not itself suspend the new Digimon.
     expect(s.perm("existingBare").isSuspended).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

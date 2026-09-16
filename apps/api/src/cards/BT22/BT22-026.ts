@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for BT22-026 (MetalGarurumon).
-// [Hand][Main]: if you have [Nokia Shiramine], 1 of your [Gabumon] (in battle area)
-// digivolves into this card for cost 6, ignoring requirements.
-// [When Digivolving] modal: option A = 1 [Agumon] in battle area digivolves into
-// [WarGreymon] from hand without cost, ignoring requirements.
-// option B = return opponent's lowest-level Digimon to hand.
-// [Inherited][When Attacking]: if this Digimon has [Omnimon] in name, unsuspend once/turn.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -51,8 +44,6 @@ export const compiled: CompiledCard = {
           options: [
             [
               {
-                // 1 [Agumon] in battle area digivolves into [WarGreymon] from hand
-                // without paying the cost, ignoring requirements.
                 kind: "Digivolve",
                 target: {
                   filter: {

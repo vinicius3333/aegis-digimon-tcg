@@ -122,8 +122,6 @@ describe("BT21-090 The Strongest of Brothers", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
     expect(s.state.memory).toBe(7);
 
-    // Canoweissmon's public On Play placement arms the watcher, but Delay cannot
-    // activate on the same turn the Option entered the battle area.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cano1").instanceId })).toEqual({
       ok: true,
     });
@@ -132,8 +130,6 @@ describe("BT21-090 The Strongest of Brothers", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("destination").instanceId)).toBe(true);
 
-    // Age the Option through complete production turns before the second public
-    // Canoweissmon placement creates an independent reactive opportunity.
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 0;
@@ -293,13 +289,10 @@ describe("BT21-090 The Strongest of Brothers", () => {
     await s.ready();
     const optionId = s.inst("option").instanceId;
 
-    // Accept the real Main placement first; this creates the Delay source through
-    // a public intent and leaves an eligible Gammamon-text card in hand.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
     expect(s.state.memory).toBe(7);
 
-    // Age the Option through complete turns, then begin a fresh own Main phase.
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 0;
@@ -309,8 +302,6 @@ describe("BT21-090 The Strongest of Brothers", () => {
     const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Canoweissmon's public On Play placement is the actual aged producer. Turn
-    // off only the harness's optional auto-answer after all earlier prompts settled.
     opts.autoAcceptOptional = false;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cano").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");

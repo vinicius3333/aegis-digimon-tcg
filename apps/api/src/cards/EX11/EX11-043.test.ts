@@ -61,8 +61,6 @@ describe("EX11-043 Invisimon", () => {
               op: "addBottom",
               faceUp: true,
               optional: true,
-              // FAILS-WHEN-REVERTED: without detachPermanentTop the whole permanent leaves for
-              // security and its digivolution cards are trashed (KB Q5875/Q5887/Q5888).
               detachPermanentTop: true,
               source: { filter: { isSelfRef: true }, isSelf: true },
             },
@@ -136,10 +134,6 @@ describe("EX11-043 Invisimon", () => {
     assertNoLoudGap(s);
   });
 
-  /**
-   * Public attack proof for the security placement path. Promotion of the remaining stack is
-   * recorded as an engine limitation when the attack resolves.
-   */
   it("places Invisimon in security after a public face-up security check", async () => {
     const s = setupEngine(
       {

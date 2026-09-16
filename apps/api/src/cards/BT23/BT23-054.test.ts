@@ -6,22 +6,14 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-054.js";
 
-/** A card with no [Digivolve] alternate route and no CS trait — a neutral spare Main-phase play. */
 const NEUTRAL = "BT1-010";
-/** Lv.3 Blue [CS] [Veemon] — satisfies BOTH the printed Blue Lv.3 EvoCost and the [Veemon] route. */
 const VEEMON_CS = "BT22-019";
-/** Lv.3 Blue, no [CS], not named Veemon — printed EvoCost only. */
 const PLAIN_BLUE_LV3 = "BT2-022";
-/** Lv.3 Green/Yellow [CS] with no digivolution-cost reduction — the alternate trait route only. */
 const CS_LV3 = "BT22-043";
-/** Lv.3 Green/Yellow [CS] that reduces the cost of digivolving into a [CS] card by 1. */
 const CS_LV3_DISCOUNTER = "BT23-037";
-/** Lv.4 Blue, name CONTAINS "Veemon" but is not [Veemon]. */
 const EXVEEMON = "BT3-025";
-/** Inert main-deck Digimon used as security: the harness fills a numeric `security` with a Digi-Egg. */
 const SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 
-/** The permanent a decision candidate id names, whether it is a permanent id or a top-card id. */
 function permanentForCandidate(s: EngineSetup, id: string): Permanent | undefined {
   for (const player of s.state.players) {
     const found = player.battleArea.find((p) => p.permanentId === id || p.topCard?.instanceId === id);
@@ -34,7 +26,6 @@ function permanentForCandidate(s: EngineSetup, id: string): Permanent | undefine
   return undefined;
 }
 
-/** Every permanent the last target/selection decision offered, as a set of permanent ids. */
 function offeredPermanentIds(s: EngineSetup): Set<string> {
   const request = s.decisions.filter(({ req }) => req.kind === "chooseTargets" || req.kind === "selectCards").at(-1);
   expect(request, "no target decision was raised").toBeDefined();
@@ -65,7 +56,6 @@ describe("BT23-054 Magnamon", () => {
       attributes: ["Free"],
       types: ["Holy Warrior", "Royal Knight", "CS"],
     });
-    // The catalog stores non-breaking spaces and trailing blanks; compare on normalized text.
     const printed = (definition?.effectText ?? "")
       .replace(/\u00a0/g, " ")
       .replace(/\s+/g, " ")
@@ -75,8 +65,6 @@ describe("BT23-054 Magnamon", () => {
         "[On Play] [When Digivolving] ＜Draw 1＞ Then, 1 of your Digimon with the [Royal Knight] or [CS] " +
         "trait can't be returned to hands or decks by your opponent's effects until their turn ends.",
     );
-    // The printed name is bracketed, so the route is an EXACT-name gate. `names` is a substring
-    // gate in cardData.matchGatedRequirement and let ExVeemon/DemiVeemon take this route.
     expect(compiled.digivolutionRequirement).toEqual([
       { namesExact: ["Veemon"], cost: 3, isAlternate: true },
       { level: 3, traits: ["CS"], cost: 3, isAlternate: true },
@@ -150,12 +138,10 @@ describe("BT23-054 Magnamon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === magnaInstanceId)).toBe(
       true,
     );
-    // ＜Draw 1＞: the exact top-of-deck card is now in hand, and hand size is net -1 (played -1, drew +1).
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnInstanceId)).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(handSizeBefore);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === drawnInstanceId)).toBe(false);
 
-    // Exactly one of the two eligible own Digimon (Magnamon itself and the CS ally) is protected.
     const protectedOwn = s.state.players[0]!.battleArea.filter((permanent) =>
       observe(s.engine).isRestricted(permanent, "beReturned"),
     );
@@ -163,7 +149,6 @@ describe("BT23-054 Magnamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("plainAlly"), "beReturned")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("opponentCs"), "beReturned")).toBe(false);
 
-    // Only own battle-area [Royal Knight]/[CS] Digimon were ever offered.
     const offered = offeredPermanentIds(s);
     const magnamonPermanentId = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard?.instanceId === magnaInstanceId,
@@ -192,8 +177,6 @@ describe("BT23-054 Magnamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && s.state.memory === 3);
 
-    // Magnamon is the only candidate, so the engine resolves the target without a decision;
-    // the breeding [CS] Digimon is never reachable.
     expect(observe(s.engine).isRestricted(s.perm("magna"), "beReturned")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("hatched"), "beReturned")).toBe(false);
   });
@@ -219,7 +202,6 @@ describe("BT23-054 Magnamon", () => {
       const magnaCardId = s.perm("magna").topCard!.instanceId;
       expect(observe(s.engine).isRestricted(s.perm("magna"), "beReturned")).toBe(true);
 
-      // The opponent (seat 1) is the effect owner: the restriction must hold.
       advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
       if (route === "hand") await advance(s.engine).verb.returnToHand([magnaCardId]);
       else await advance(s.engine).verb.returnToDeck([magnaCardId]);
@@ -231,11 +213,6 @@ describe("BT23-054 Magnamon", () => {
     }
   });
 
-  /**
-   * The public counterpart of the verb-driven proof above: the opponent really resolves
-   * ST2-16 ("[Main] Return 1 of your opponent's Digimon to its owner's hand") on their own
-   * turn, while Magnamon's protection is still armed.
-   */
   it("survives an opponent's publicly played ST2-16 while an unprotected ally does not", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -277,7 +254,6 @@ describe("BT23-054 Magnamon", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "ST2-16"), 5000);
     await settle(() => s.state.pendingDecision === undefined, 5000);
 
-    // The protection held: Magnamon never reached its owner's hand or deck.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === magnaPermanentId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === magnaCardId)).toBe(false);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === magnaCardId)).toBe(false);
@@ -370,7 +346,6 @@ describe("BT23-054 Magnamon", () => {
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // Still armed for the whole of the opponent's turn.
     expect(observe(s.engine).isRestricted(s.perm("magna"), "beReturned")).toBe(true);
 
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
@@ -590,7 +565,6 @@ describe("BT23-054 Magnamon", () => {
     });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"), 5000);
 
-    // The attack never reached the player: no security check, and the battle happened on Magnamon.
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(3);
 
@@ -617,7 +591,6 @@ describe("BT23-054 Magnamon", () => {
     const magnaPermanentId = s.perm("magna").permanentId;
     const underInstanceId = s.inst("under").instanceId;
 
-    // Suspend Magnamon through a real attack on seat 0's turn, then let seat 1 attack it.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(

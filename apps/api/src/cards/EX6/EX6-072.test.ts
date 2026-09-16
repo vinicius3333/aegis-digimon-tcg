@@ -34,8 +34,6 @@ describe("EX6-072 Mega Digimon Assembly!", () => {
           ],
           hand: [
             { card: "EX6-072", as: "option" },
-            // EX6-062 UltimateChaosmon's recipe is Yellow/Black Lv.6 + Green/Purple Lv.6, so the
-            // hand material must be a green level 6 to pair with the black level 6 on the field.
             { card: "BT1-082", as: "handMaterial" },
             { card: "EX6-062", as: "result" },
           ],

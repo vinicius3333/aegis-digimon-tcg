@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX3-024 Slayerdramon
-// Text (errata): "[Start of Opponent's Main Phase] By suspending 1 of your Digimon with [Dramon]
-//   or [Examon] in its name, your opponent attacks with 1 of their Digimon."
-// KB Q3395: "Your opponent chooses." (the attacker)
-// KB Q3396: opponent chooses immediately after cost is paid
-// KB Q3397: opponent may choose a "can't attack" Digimon (attack fails gracefully)
-// KB Q3398: activatable even with no opponent Digimon; effect ends without attack
-// Fixes:
-//   - Attack action: target = opponent's Digimon (the attacker), opponent chooses
-//   - Remove attackPlayer:true (opponent can attack either player or Digimon per normal rules)
-//   - Both main and inherited effects have the same correction
 const compiled: CompiledCard = {
   effects: [
     {

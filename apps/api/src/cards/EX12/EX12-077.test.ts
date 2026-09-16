@@ -48,8 +48,6 @@ describe("EX12-077 Proximamon", () => {
             controller: "mine",
             kind: ["Digimon", "Tamer", "Option"],
             playCostLte: 10,
-            // "from ANY of your Digimon's digivolution cards": scope the HOST, but never to the
-            // source itself — that is ＜Decode＞'s scoping (CR 16-36-1), not this card's.
             hostFilter: { kind: ["Digimon"], zone: "battleArea" },
           },
         },
@@ -63,7 +61,6 @@ describe("EX12-077 Proximamon", () => {
       .map((action) => irNode(action).cost);
     expect(placementCosts).toHaveLength(2);
     for (const cost of placementCosts) {
-      // "2 CARDS ...", never "2 Digimon cards" — the host restriction is `underFilter`.
       expect(cost.target.filter.kind).toBeUndefined();
       expect(cost).toMatchObject({
         kind: "place",
@@ -236,10 +233,6 @@ describe("EX12-077 Proximamon", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-069")).toBe(false);
   });
 
-  // The printed placement cost says "2 CARDS with [Gammamon] in their texts or the [VB] trait",
-  // not "2 Digimon cards". EX12-073 Giant Meat is an OPTION carrying [VB]; a `kind: ["Digimon"]`
-  // gate on the cost target (the persisted record's shape) drops it from the payable pool and the
-  // deletion never happens.
   it("pays the placement cost with a non-Digimon card carrying the VB trait", async () => {
     const s = setupEngine(
       {
@@ -272,9 +265,6 @@ describe("EX12-077 Proximamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("optionSource").instanceId)).toBe(false);
   });
 
-  // "from ANY of your Digimon's digivolution cards" — the pool is not scoped to this Digimon's own
-  // stack (that is ＜Decode＞'s CR 16-36-1 scoping, EX12-014), so a card under a DIFFERENT Digimon
-  // must be reachable.
   it("plays a qualifying card out of another of your Digimon's stack", async () => {
     const s = setupEngine(
       {
@@ -296,8 +286,6 @@ describe("EX12-077 Proximamon", () => {
     expect(s.perm("ally").stack).toHaveLength(0);
   });
 
-  // `hostFilter: { kind: ["Digimon"], zone: "battleArea" }`: the loose `digivolutionCards` zone also
-  // yields cards stacked under the controller's TAMERS, which the printed text never reaches.
   it("does not reach a qualifying card stacked under one of your Tamers", async () => {
     const s = setupEngine(
       {

@@ -68,7 +68,6 @@ describe("EX11-061 Mirai Kinosaki", () => {
     expect(s.perm("mirai").isSuspended).toBe(true);
     expect(s.perm("base").topCard?.cardId).toBe("EX11-021");
 
-    // DelayedDelete joins the real turn-end processing window.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -147,8 +146,6 @@ describe("EX11-061 Mirai Kinosaki", () => {
   );
 
   it("plays only the level 3 [Puppet] out of a mixed hand", async () => {
-    // EX11-021 is a [Puppet] Digimon at the WRONG level and BT1-090 matches nothing; both are
-    // listed before the legal card, so a broken level or trait bound would take one of them.
     const s = setupEngine(
       {
         0: {
@@ -212,7 +209,6 @@ describe("EX11-061 Mirai Kinosaki", () => {
     expect(s.perm("mirai").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX11-021", "EX11-020"]);
 
-    // The delayed delete only targets a Puppet this effect played; the existing Puppet survives.
     expect(s.perm("unrelatedPuppet").topCard?.cardId).toBe("EX11-020");
     expect(s.state.players[0]!.trash).toHaveLength(0);
     assertNoLoudGap(s);

@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** HAND-FIXED IR: printed OR watcher, bottom-stack return, and Gate replacement. */
 export const compiled: CompiledCard = {
   effects: [
     {

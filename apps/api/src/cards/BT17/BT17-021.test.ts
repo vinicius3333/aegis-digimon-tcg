@@ -107,7 +107,6 @@ describe("BT17-021 Labramon", () => {
     expect(labramon.stack.map((card) => card.instanceId)).toEqual([materialId]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([drawnId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("kept").instanceId]);
-    // Play cost 3 only; the placement is a cost paid in cards, not memory.
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -204,7 +203,6 @@ describe("BT17-021 Labramon", () => {
   it("gains 1 memory once per turn when its ＜Jamming＞ host attacks", async () => {
     const s = setupEngine({
       0: {
-        // BT17-024 Seasarmon's inherited clause is a bare ＜Jamming＞ grant.
         battleArea: [{ card: "BT17-025", under: ["BT17-021", "BT17-024"], as: "host", dp: 20_000 }],
       },
       1: { security: ["BT1-009", "BT1-013", "BT1-027"] },
@@ -225,7 +223,6 @@ describe("BT17-021 Labramon", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    // Plumbing only: the second attack in the same turn needs an unsuspended attacker.
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(attack()).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
@@ -259,8 +256,6 @@ describe("BT17-021 Labramon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT17-025", under: ["BT17-021", "BT17-024"], as: "host", dp: 20_000 }],
-        // A spare playable card keeps Main open; with an empty hand the phase
-        // auto-passes as soon as the attacker is suspended.
         hand: ["BT1-009"],
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         security: ["BT1-009", "BT1-013", "BT1-027"],
@@ -308,8 +303,6 @@ describe("BT17-021 Labramon", () => {
     ["breeding", "breeding"],
     ["battle area", "battleArea"],
   ] as const)("digivolves from a blue Lv.2 source in the %s for 0 memory and draws 1", async (_where, zone) => {
-    // BT13-002 Chapmon is a blue Lv.2 Digi-Egg whose only clause is an
-    // [Opponent's Turn] window, so it stays inert on seat 0's turn.
     const base = { card: "BT13-002", as: "base" } as const;
     const s = setupEngine({
       0: {
@@ -335,12 +328,10 @@ describe("BT17-021 Labramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.instanceId === labramonId);
 
-    // Blue Lv.2: cost 0, so memory is untouched; digivolving still draws 1.
     expect(s.state.memory).toBe(5);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseCardId]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("kept").instanceId]);
-    // [On Play] does not fire on a digivolve, so no placement prompt is raised.
     expect(s.decisions).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -348,7 +339,6 @@ describe("BT17-021 Labramon", () => {
   it("refuses an off-colour Lv.2 source", async () => {
     const s = setupEngine({
       0: {
-        // BT17-004 Argomon is a green Lv.2 Digi-Egg: the wrong colour for `Blue Lv.2: 0`.
         breeding: { card: "BT17-004", as: "base" },
         hand: [{ card: "BT17-021", as: "labramon" }],
         deck: [{ card: "BT1-009", as: "top" }],

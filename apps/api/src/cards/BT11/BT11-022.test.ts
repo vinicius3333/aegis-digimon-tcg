@@ -3,7 +3,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT11-022.js";
-import "../index.js"; // the full catalog is always registered in a real match
+import "../index.js";
 
 describe("BT11-022 Dracomon", () => {
   it("matches the catalog and carries both complete watcher contracts", () => {
@@ -58,8 +58,6 @@ describe("BT11-022 Dracomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT11-022", as: "dracomon" }],
-        // A [Blue Flare] Digimon whose own printed effects never touch the deck, so the
-        // expected draw stays on top with the whole catalog registered.
         hand: [{ card: "BT19-022", as: "qualifier" }],
         deck: [{ card: "BT1-009", as: "drawn" }, "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
       },

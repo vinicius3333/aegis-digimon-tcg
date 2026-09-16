@@ -190,7 +190,7 @@ describe("BT20-013 BaoHuckmon", () => {
     await settle(() =>
       gankoomon.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-057"),
     );
-    expect(gankoomon.state.memory).toBe(4); // BaoHuckmon -2 plus Gankoomon's printed -4 reduction (Q4294)
+    expect(gankoomon.state.memory).toBe(4);
   });
 
   it("plays at full cost when Solarmon prevents cost reductions (Q4295)", async () => {

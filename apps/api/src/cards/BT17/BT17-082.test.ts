@@ -141,7 +141,6 @@ describe("BT17-082 Minami Uehara", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
     s.state.memory = 3;
-    // Prefer the red peer first: the blue-only filter must refuse it and fall to the blue host.
     preferred.push(s.perm("redPeer").topCard.instanceId, s.perm("blueHost").topCard.instanceId);
     const labramonId = s.inst("labramon").instanceId;
 

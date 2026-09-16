@@ -6,26 +6,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 import "./BT19-068.js";
 
-// BT19-068 Shademon (Purple/Black, Lv.4 Champion/Virus, [Unidentified][Twilight][Composite],
-// DP 4000, play 5, EvoCost Purple Lv.3 / Black Lv.3 for 3).
-//   [On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Twilight]/[Composite]
-//     trait among them to the hand. Trash the rest.
-//   [On Deletion] You may play 1 [Nene Amano] from your trash without paying the cost.
-//     Then, ＜Save＞
-//   [Rule] Trait: Has [Composite] type.
-//   [DigiXros -2] [Nene Amano]
-//
-// KB Q3130 (2024-09-20): "If I use this card's [On Deletion] effect to play a Tamer card, can I
-// then use the ＜Save＞ from the part of the effect after 'then' to place this card under that
-// Tamer?" — "Yes, you can."
-//
-// Fixtures:
-//   BT19-087 / BT10-092 "Nene Amano" — the exact-name Tamers ([Twilight] trait).
-//   EX10-064 "Yuu Amano & Nene Amano" — the near-miss peer. A SUBSTRING name gate would take
-//     it; the bracketed printed name is exact, so it must never be played or accepted as a
-//     DigiXros material. It carries no "also treated as [Nene Amano]" line.
-//   BT19-069 Deltamon — [Composite]; BT10-092 — [Twilight]; BT1-009/012/013 — neither.
-//   BT19-066 Gizamon (Purple/Black Lv.3) — the legal base; BT1-009 (Red Lv.3) — the illegal one.
 const inertDeck = ["BT1-009", "BT1-013", "BT1-012", "BT1-014"];
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-012"];
 
@@ -74,7 +54,6 @@ describe("BT19-068 Shademon", () => {
               {
                 count: 1,
                 to: "hand",
-                // "[Twilight]/[Composite] trait" is the EXACT trait gate, not a substring one.
                 filter: { nameOrTrait: [{ tokens: ["Twilight", "Composite"], match: "trait" }] },
               },
             ],
@@ -83,8 +62,6 @@ describe("BT19-068 Shademon", () => {
       },
       {
         trigger: "OnDeletion",
-        // The ＜Save＞ keyword tag is what defaults the placement to the BOTTOM of the Tamer's
-        // stack (CR 4-3-2 / 16-20) through `withSavePlacementDefaults`.
         keywords: [{ keyword: "Save" }],
         actions: [
           {
@@ -105,13 +82,8 @@ describe("BT19-068 Shademon", () => {
       },
       { trigger: "Rule", actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Composite"] }] },
     ]);
-    // `count` is the PER-MATERIAL discount (-2); the printed recipe names exactly one material.
     expect(card?.digiXrosRequirement).toEqual([{ materials: [{ names: ["Nene Amano"] }], count: 2, maxMaterials: 1 }]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] reveal 3
-  // ---------------------------------------------------------------------------
 
   it("[On Play] adds the [Composite] card and trashes the other two revealed cards", async () => {
     const s = setupEngine(
@@ -152,7 +124,6 @@ describe("BT19-068 Shademon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("revealA").instanceId, s.inst("revealB").instanceId].sort(),
     );
-    // Only the top 3 were touched.
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("untouched").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
 
@@ -245,10 +216,6 @@ describe("BT19-068 Shademon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Deletion] — play [Nene Amano], then ＜Save＞
-  // ---------------------------------------------------------------------------
-
   it("Q3130: plays the Tamer from trash and ＜Save＞s itself under that very Tamer", async () => {
     const s = setupEngine(
       {
@@ -281,14 +248,11 @@ describe("BT19-068 Shademon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-087"));
     await settle();
 
-    // 4000 DP into a 20 000 DP wall: Shademon is deleted, its [On Deletion] plays the Tamer
-    // free, and the ＜Save＞ after "then" places Shademon under that same Tamer.
     const tamer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === neneId);
     expect(tamer).toBeDefined();
     expect(tamer!.stack.map((card) => card.instanceId)).toEqual([shademonId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    // Played "without paying the cost": the Tamer's printed play cost 4 was never charged.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -326,7 +290,6 @@ describe("BT19-068 Shademon", () => {
     await settle(() => s.perm("tamer").stack.length === 2);
     await settle();
 
-    // `stack` is bottom-first, so the saved card sits BELOW the card already there.
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([shademonId, s.inst("existing").instanceId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -366,7 +329,6 @@ describe("BT19-068 Shademon", () => {
     await settle(() => s.perm("tamer").stack.length === 1);
     await settle();
 
-    // "Yuu Amano & Nene Amano" stayed in the trash; only the ＜Save＞ half resolved.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("yuuAndNene").instanceId]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-081"]);
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([shademonId]);
@@ -451,10 +413,6 @@ describe("BT19-068 Shademon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // [DigiXros -2] [Nene Amano]
-  // ---------------------------------------------------------------------------
-
   it("DigiXroses for 3 by placing the exact [Nene Amano] from hand under it", async () => {
     const s = setupEngine(
       {
@@ -491,11 +449,9 @@ describe("BT19-068 Shademon", () => {
     await settle(() => s.state.players[0]!.trash.length === 2);
     await settle();
 
-    // Printed cost 5 minus the single material's -2.
     expect(s.state.memory).toBe(5);
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT19-068");
     expect(played?.stack.map((card) => card.instanceId)).toEqual([neneId]);
-    // A DigiXros is a play, so [On Play] still resolved.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("composite").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("untouched").instanceId]);
 
@@ -526,7 +482,6 @@ describe("BT19-068 Shademon", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 8;
 
-    // The substring peer is not the printed material.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -535,7 +490,6 @@ describe("BT19-068 Shademon", () => {
       }),
     ).toEqual({ ok: false, reason: "invalid-material" });
 
-    // The recipe names exactly one material, so two Nene Amano cards cannot buy -4.
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -551,10 +505,6 @@ describe("BT19-068 Shademon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
-
-  // ---------------------------------------------------------------------------
-  // Evolution routes and the [Rule] [Composite] trait
-  // ---------------------------------------------------------------------------
 
   it("digivolves from a Purple/Black Lv.3 for 3 and refuses a Red Lv.3 source", async () => {
     const s = setupEngine(
@@ -575,7 +525,6 @@ describe("BT19-068 Shademon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    // The illegal source first: Red Lv.3 matches neither printed EvoCost row.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -602,9 +551,6 @@ describe("BT19-068 Shademon", () => {
   });
 
   it("[Rule] [Composite] is real to another card: Kimeramon takes its Lv.4 [Composite] route for 3", async () => {
-    // The cross-card consequence of the trait line: BT19-070's printed
-    // "[Digivolve]Lv.4 w/[Composite] trait: Cost 3" beats Shademon's normal Purple Lv.4
-    // EvoCost of 4, and the near-miss Lv.4 peer without the trait pays the full 4.
     const s = setupEngine(
       {
         0: {
@@ -638,7 +584,6 @@ describe("BT19-068 Shademon", () => {
     await settle();
     expect(s.state.memory).toBe(7);
 
-    // The near-miss peer: Red Lv.4 with no [Composite] falls back to the normal route for 4.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

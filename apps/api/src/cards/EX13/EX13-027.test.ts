@@ -8,22 +8,12 @@ import { compiled } from "./EX13-027.js";
 
 const cardId = "EX13-027";
 
-// Name-reference fixtures for "[Sukamon] or [Etemon] in its name".
-//   BT3-063  "Sukamon"         — exact token, and its [On Deletion] is inert while the
-//                                controller's deck holds no [Chuumon].
-//   BT3-070  "Etemon"          — the second token of the union.
-//   BT13-065 "PlatinumSukamon" — SUBSTRING match, the reason the reference is `match: "name"`
-//                                rather than `nameExact`.
-//   BT11-063 "Geremon"         — the near-match: it prints "[Sukamon]" inside its own effect
-//                                TEXT but not in its name, so `match: "name"` must refuse it.
-//   BT3-061  "Chuumon"         — plain non-match from the same archetype.
 const SUKAMON = "BT3-063";
 const ETEMON = "BT3-070";
 const PLATINUM_SUKAMON = "BT13-065";
 const TEXT_ONLY_SUKAMON = "BT11-063";
 const ARCHETYPE_NON_MATCH = "BT3-061";
 
-// Inert neutral fixtures (main-deck Digimon, no printed effects).
 const SENTINEL = "BT1-009";
 const NEUTRAL_LV3 = "BT1-013";
 
@@ -58,10 +48,8 @@ describe("EX13-027 Chuumon", () => {
 
   it("compiles every printed clause", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
-    // The card prints no [Digivolve] header; both routes are catalog EvoCosts.
     expect(compiled.digivolutionRequirement).toBeUndefined();
 
-    // One sentence under two timings: two non-inherited effects with an identical action list.
     const nameUnion = {
       controllerDefault: "mine",
       nameOrTrait: [{ tokens: ["Sukamon", "Etemon"], match: "name" }],
@@ -113,10 +101,6 @@ describe("EX13-027 Chuumon", () => {
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
   });
 
-  // ---------------------------------------------------------------------------
-  // [On Play] Reveal 3. Add 1 [Sukamon]/[Etemon]-named card to hand AND trash 1 such card.
-  // ---------------------------------------------------------------------------
-
   it("adds one named card to hand, trashes a second, and bottoms the text-only near-match", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -148,8 +132,6 @@ describe("EX13-027 Chuumon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("toHand").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("toTrash").instanceId]);
-    // Geremon prints "[Sukamon]" in its text, never in its name, so it is returned with the rest,
-    // underneath the untouched sentinel — proving "bottom of the deck".
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
       s.inst("nearMatch").instanceId,
@@ -184,9 +166,7 @@ describe("EX13-027 Chuumon", () => {
     await settle(() => s.state.players[0]!.hand.some(({ cardId: id }) => id === PLATINUM_SUKAMON));
     await settle(() => s.state.pendingDecision === undefined);
 
-    // "PlatinumSukamon" carries [Sukamon] as a substring, so the name reference is not exact.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("substringMatch").instanceId]);
-    // The trash slot needs a SECOND match among the revealed cards; with one, nothing is trashed.
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
@@ -233,10 +213,6 @@ describe("EX13-027 Chuumon", () => {
     assertNoLoudGap(s);
   });
 
-  // ---------------------------------------------------------------------------
-  // [When Moving] — the same clause on the public breeding-move route.
-  // ---------------------------------------------------------------------------
-
   it("fires the same reveal clause when it moves out of breeding", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -282,10 +258,6 @@ describe("EX13-027 Chuumon", () => {
     await loop;
   });
 
-  // ---------------------------------------------------------------------------
-  // Printed EvoCosts: Yellow Lv.2 cost 0 and Black Lv.2 cost 0.
-  // ---------------------------------------------------------------------------
-
   it("digivolves from a yellow and from a black Lv.2 egg for 0, and refuses a green egg", async () => {
     for (const egg of [YELLOW_EGG, BLACK_EGG]) {
       const s = setupEngine({
@@ -309,9 +281,7 @@ describe("EX13-027 Chuumon", () => {
       await settle(() => s.perm("egg").topCard.cardId === cardId);
 
       expect(s.state.memory).toBe(0);
-      // Source identity: the egg survives as the single digivolution card beneath Chuumon.
       expect(s.perm("egg").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("egg").instanceId]);
-      // Digivolution's bonus draw moved the one deck card into hand.
       expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
       expect(s.state.players[0]!.deck).toHaveLength(0);
     }
@@ -340,10 +310,6 @@ describe("EX13-027 Chuumon", () => {
     ]);
   });
 
-  // ---------------------------------------------------------------------------
-  // Inherited [All Turns] [Once Per Turn] leave prevention.
-  // ---------------------------------------------------------------------------
-
   it("keeps the host in play against an opponent's effect by deleting your own [Sukamon]-named Digimon", async () => {
     const s = setupEngine(
       {
@@ -368,7 +334,6 @@ describe("EX13-027 Chuumon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([hostId]);
-    // The substring-named PlatinumSukamon paid the cost.
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual([PLATINUM_SUKAMON]);
   });
 
@@ -400,7 +365,6 @@ describe("EX13-027 Chuumon", () => {
       s.perm("textOnly").permanentId,
       s.perm("etemon").permanentId,
     ]);
-    // The host and its digivolution card went to the trash; neither candidate was touched.
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id).sort()).toEqual([cardId, NEUTRAL_LV3].sort());
   });
 
@@ -428,10 +392,6 @@ describe("EX13-027 Chuumon", () => {
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id).sort()).toEqual([cardId, PLATINUM_SUKAMON].sort());
   });
 
-  // The printed cost is "1 other Digimon with [Sukamon] in its name" — NOT "1 of your other
-  // Digimon" (contrast EX13-048/EX13-052 in this same set), so the cost may be paid from either
-  // side of the board. This pins the `controller: "any"` reading already used by the two earlier
-  // cards printing this same sentence (BT11-040, BT13-065).
   it("may pay the cost with the opponent's [Sukamon]-named Digimon", async () => {
     const s = setupEngine(
       {
@@ -484,7 +444,6 @@ describe("EX13-027 Chuumon", () => {
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
 
-    // "other than by your effects": the payable PlatinumSukamon was never touched.
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("fodder").permanentId,
     ]);
@@ -517,15 +476,12 @@ describe("EX13-027 Chuumon", () => {
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(hostId);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
 
-    // Same turn: the once-per-turn budget is spent, so the second leave goes through even though
-    // a second [Sukamon]-named Digimon is still standing.
     advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
     expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(hostId);
 
-    // A fresh host, and a real turn in between, restores the budget.
     const revived = s.putOnBoard(0, { card: NEUTRAL_LV3, as: "host2", under: [cardId] });
     await s.ready();
     s.state.turnSeat = 1;
@@ -568,8 +524,6 @@ describe("EX13-027 Chuumon", () => {
     ]);
   });
 
-  // Smallest legal stack that reaches the inherited clause through a real digivolution:
-  // yellow Lv.2 egg -> EX13-027 -> yellow Lv.4, with the inherited watcher still live on top.
   it("grants the inherited prevention to a Digimon digivolved onto it, preserving source identity", async () => {
     const s = setupEngine(
       {
@@ -601,7 +555,6 @@ describe("EX13-027 Chuumon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     const hostId = s.perm("chuumon").permanentId;
-    // Source identity survives the transition: egg at the bottom, EX13-027 above it.
     expect(s.perm("chuumon").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("egg").instanceId,
       s.inst("chuumon").instanceId,

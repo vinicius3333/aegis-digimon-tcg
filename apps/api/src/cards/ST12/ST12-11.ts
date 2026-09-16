@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST12-11 Gankoomon
-// [When Digivolving] You may play 1 Huckmon or 1 Digimon card with [Sistermon] in its name from your trash without paying its memory cost.
-// [Your Turn][Once Per Turn] When you play another Digimon by an effect, ＜De-Digivolve 1＞ up to 2 of your opponent's Digimon.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -189,8 +189,6 @@ describe("P-189 Dimetromon", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-    // Both turns passed while the gauge stayed on the active player's side, so the production
-    // turn rule applies the natural +3 pass bonus before the owner's next Main phase.
     expect(s.state.memory).toBe(3);
 
     expect(

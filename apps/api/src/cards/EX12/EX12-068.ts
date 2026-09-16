@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX12-068 Ruli Tsukiyono.
-// Q6873: "with [Angoramon] in its text" includes names, traits, effects, inherited effects,
-// rules, and evolution/assembly requirements; match:"text" intentionally covers that scope.
-// Q6874: one activation uses one selected card; multiple copies cannot combine this card's
-// reductions by consuming multiple cards at once.
-// Q6875: the effect may activate when cost reduction is prohibited, but it never waives
-// digivolution requirements. No ignoreRequirements field is present.
 export const compiled: CompiledCard = {
   effects: [
     {

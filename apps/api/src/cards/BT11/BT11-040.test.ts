@@ -229,29 +229,6 @@ describe("BT11-040 Sukamon", () => {
   });
 });
 
-/**
- * Q1g repro/diagnosis. Found incidentally in Q1f: deleting BT11-040 (Sukamon) after it received
- * a granted "[On Deletion] ..." custom effect appeared to hang `deletePermanent` indefinitely.
- *
- * Root cause: BT11-040 already has its OWN native `OnDeletion` effect (RevealAdd). Once it is
- * also the recipient of a granted `OnDeletion` custom effect, deleting it makes TWO simultaneous
- * same-timing triggered effects fire off the SAME permanent, which correctly raises an
- * `orderTriggers` decision ("Multiple effects triggered. Choose which to resolve first.") per
- * `resolverDecisions.chooseOrder` / `stack.ts`'s `pickNext`. Nothing card- or Sukamon-specific
- * about this: ANY permanent carrying 2+ simultaneous mandatory same-timing effects hits the same
- * decision. It is NOT a cycle in `recomputeContinuousEffects` — that function's own re-entrancy
- * guard (`this.recomputing`) already makes a nested call a no-op, and it is not in play here at
- * all once the watcher has installed.
- *
- * The apparent "hang" is an unanswered decision, not an infinite loop: `GameEngine` always
- * constructs its `DecisionManager` with the real 60-second `DEFAULT_DECISION_TIMEOUT_MS`
- * (`GameEngine.ts`), which auto-resolves a stalled `orderTriggers` decision with a safe default
- * (`{ order: [] }`). `stack.ts`'s `pickNext` already coerces that decline to index 0 when not
- * every simultaneous effect is optional (exactly this case: BT11-040's own RevealAdd is
- * mandatory), so production self-heals in <=60s. Only a hand-rolled test/harness call that
- * forgets to answer the `orderTriggers` decision (no `autoOrderTriggers`, no manual
- * `respondDecision`) sees a promise that never settles within the test process.
- */
 describe("Q1g — BT11-040 as a grant recipient (diagnosis, not a bug)", () => {
   function setup(options: { autoOrderTriggers?: boolean } = {}) {
     return setupEngine(
@@ -295,9 +272,6 @@ describe("Q1g — BT11-040 as a grant recipient (diagnosis, not a bug)", () => {
       3000,
     );
 
-    // Reset to a clean baseline AFTER the play cost was paid, so the memory assertion below
-    // isolates the granted effect's own delta from the card's own play cost (BT11-106.test.ts
-    // follows the same pattern).
     s.state.memory = 5;
 
     await engine.recomputeContinuousEffects();

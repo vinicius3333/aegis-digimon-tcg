@@ -7,11 +7,8 @@ import { compiled } from "./EX10-030.js";
 import "../index.js";
 
 const CARD_ID = "EX10-030";
-/** BT24-036 Medicmon: Lv.4 [Appmon], prints [Link] [Appmon] trait: Cost 2. */
 const LINKABLE_LV4 = "BT24-036";
-/** BT26-010 Roleplaymon: Lv.3 [Appmon], prints [Link] [Appmon] trait: Cost 3. */
 const LINKABLE_LV3 = "BT26-010";
-/** BT1-009 Kunemon: inert Lv.3, no effect text and no [Link] requirement. */
 const NO_LINK = "BT1-009";
 
 describe("EX10-030 Cometmon", () => {
@@ -29,14 +26,11 @@ describe("EX10-030 Cometmon", () => {
       attributes: ["Navi"],
       types: ["Astronomy", "Leviathan"],
       linkDp: 4000,
-      // The catalog stores a non-breaking space (U+00A0) after "[Appmon]"; see the report.
       linkRequirement: "[Link] [Appmon]\u00A0trait: Cost 3",
-      // The lower box is a [Link] effect, not an inherited effect.
       linkEffect:
         "[All Turns] [Once Per Turn] When this Digimon would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",
     });
     expect(getCardDefinition(CARD_ID)).not.toHaveProperty("inheritedEffectText");
-    // The would-leave replacement is granted from the link zone only.
     const replacement = compiled.effects?.find((effect) =>
       effect.actions?.some((action) => action.kind === "Replacement"),
     );
@@ -68,8 +62,6 @@ describe("EX10-030 Cometmon", () => {
         ],
       });
     }
-    // Guards a removed fabrication: Cometmon prints no "[When Attacking] trash a link card to
-    // return an [Appmon] Digimon card from your trash" clause anywhere in the catalog.
     expect(compiled.effects?.flatMap((effect) => effect.actions ?? []).some((action) => action.kind === "Return")).toBe(
       false,
     );
@@ -100,7 +92,6 @@ describe("EX10-030 Cometmon", () => {
 
     const comet = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === cometId)!;
     expect(comet.linked.map((card) => card.instanceId)).toEqual([s.inst("medic").instanceId]);
-    // Play cost 8 only: the link is "without paying the cost", so Medicmon's Cost 2 is not paid.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("noLink").instanceId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -141,9 +132,6 @@ describe("EX10-030 Cometmon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT23-052 Consulmon: Black Lv.4 [Appmon] whose link effect only grants keywords, so
-          // linking it cannot disturb the zones this test asserts. (EX10-029 Warpmon is unusable
-          // here: its [When Linking] effect pays by trashing the host's link card.)
           battleArea: [{ card: "BT23-052", as: "warpmon" }],
           hand: [{ card: CARD_ID, as: "comet" }],
           deck: ["BT1-013", "BT1-014"],
@@ -166,12 +154,10 @@ describe("EX10-030 Cometmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("warpmon").linked.length === 1);
 
-    // Black Lv.4 -> Cometmon costs 4 memory and draws the digivolution bonus card.
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
     expect(s.perm("warpmon").topCard!.cardId).toBe(CARD_ID);
-    // Consulmon moved from the digivolution stack into the link zone; the stack is now empty.
     expect(s.perm("warpmon").linked.map((card) => card.instanceId)).toEqual([warpmonInstanceId]);
     expect(s.perm("warpmon").stack).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -183,8 +169,6 @@ describe("EX10-030 Cometmon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT21-043 Sociamon: Yellow Lv.4 [Appmon]. Its [When Linking] -2000 DP clause has no
-          // legal target because the opponent controls no Digimon here.
           battleArea: [{ card: "BT21-043", as: "sociamon" }],
           hand: [{ card: CARD_ID, as: "comet" }],
           deck: ["BT1-013", "BT1-014"],
@@ -269,10 +253,8 @@ describe("EX10-030 Cometmon", () => {
     expect(s.events).toContainEqual(
       expect.objectContaining({ kind: "digivolved", mechanic: "appFusion", cardId: CARD_ID }),
     );
-    // Printed App Fusion cost 0, plus the digivolution bonus draw.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
-    // Both materials became digivolution cards; [When Digivolving] then linked one of them back.
     expect(s.perm("warpmon").linked.map((card) => card.instanceId)).toEqual([weatherInstanceId]);
     expect(s.perm("warpmon").stack.map((card) => card.instanceId)).toEqual([warpmonInstanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -283,11 +265,6 @@ describe("EX10-030 Cometmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Cometmon's own link card is a second Cometmon, so the lower-box replacement is
-          // present in its LINK residency (KB Q5086 calls it "this card's link effect") and the
-          // cost it pays trashes one of the HOST Cometmon's link cards — which is exactly the
-          // "[All Turns] [Once Per Turn] When effects trash any of this Digimon's link cards"
-          // event the main-text watcher listens for.
           battleArea: [{ card: CARD_ID, as: "comet", dp: 1000, linked: [{ card: CARD_ID, as: "linkComet" }] }],
           hand: ["BT1-013"],
           deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010"],
@@ -316,23 +293,19 @@ describe("EX10-030 Cometmon", () => {
       mustBlock: true,
       eligibleBlockerIds: [victimPermanentId],
     });
-    // ＜Collision＞ is enforced: passing the forced block window is refused.
     expect(s.engine.applyIntent(1, { type: "declineBlock" }).ok).toBe(false);
     expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: victimPermanentId })).toEqual({
       ok: true,
     });
     await settle(() => !observe(s.engine).isAttacking());
 
-    // 1000 DP lost the battle, but the replacement paid with the link card, so it never left.
     expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(cometPermanentId);
     expect(s.perm("comet").linked).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("linkComet").instanceId]);
-    // The link trash fired the [All Turns] watcher on the only opponent Digimon.
     expect(s.perm("victim").currentDP).toBe(12_000);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // "for the turn": the debuff is gone once this turn ends.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("victim").currentDP).toBe(20_000);
@@ -371,8 +344,6 @@ describe("EX10-030 Cometmon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("existing").instanceId));
     await settle(() => false, 40);
 
-    // The new link replaced the old one (max links is 1), so the old link card went to the trash
-    // by the RULE, not by an effect: no -8000.
     expect(s.perm("warpmon").linked.map((card) => card.instanceId)).toEqual([s.inst("newLink").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("existing").instanceId]);
     expect(s.perm("victim").currentDP).toBe(20_000);
@@ -384,8 +355,6 @@ describe("EX10-030 Cometmon", () => {
     const s = setupEngine(
       {
         0: {
-          // BT21-101 Gaiamon prints ＜Link +1＞, so it legally carries two link cards. It never
-          // attacks or digivolves here, so its own optional link clause never opens a decision.
           battleArea: [
             {
               card: "BT21-101",
@@ -413,7 +382,6 @@ describe("EX10-030 Cometmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    // Q5089: prefer the OTHER link card, proving the cost is not restricted to Cometmon itself.
     preferred.push(s.inst("other").instanceId);
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -423,7 +391,6 @@ describe("EX10-030 Cometmon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
 
-    // Opponent's first attack: Gaiamon blocks (＜Blocker＞), loses at 1000 DP and would leave.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -442,8 +409,6 @@ describe("EX10-030 Cometmon", () => {
     expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("comet").instanceId]);
     expect(s.perm("host").isSuspended).toBe(true);
 
-    // Same turn, second would-leave: [Once Per Turn] is spent, so the host leaves and its
-    // remaining link card (Cometmon) goes to the trash with it.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -519,7 +484,6 @@ describe("EX10-030 Cometmon", () => {
     expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(hostPermanentId);
     expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("comet").instanceId]);
 
-    // My own turn passes with no action, then the opponent attacks again on their next turn.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -540,7 +504,6 @@ describe("EX10-030 Cometmon", () => {
     await settle(() => s.events.filter((event) => event.kind === "blocked").length > blocksBefore);
     await settle(() => !observe(s.engine).isAttacking());
 
-    // Q5086: with no other link card left, the replacement paid by trashing Cometmon itself.
     expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(hostPermanentId);
     expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
@@ -556,9 +519,6 @@ describe("EX10-030 Cometmon", () => {
     const s = setupEngine(
       {
         0: {
-          // Same board as the positive case, except Cometmon sits UNDER the host in the
-          // digivolution stack. BT24-036 Medicmon is the link card, so a link card is available
-          // to pay with — only the residency differs.
           battleArea: [
             {
               card: "BT21-101",
@@ -579,8 +539,6 @@ describe("EX10-030 Cometmon", () => {
           security: ["BT1-013", "BT1-014"],
         },
       },
-      // Accept every optional effect: if the replacement were wrongly granted from the stack it
-      // would fire here and save the host.
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const loop = s.engine.startTurnLoop();
@@ -604,7 +562,6 @@ describe("EX10-030 Cometmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     await settle(() => false, 40);
 
-    // The host left: no replacement, and the link card was never spent as a cost.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(
       ["BT21-101", LINKABLE_LV4, CARD_ID].sort(),

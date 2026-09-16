@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -136,9 +133,6 @@ const compiled: CompiledCard = {
               controller: "mine",
               nameOrTrait: [
                 {
-                  // "[Beelzemon]" is a bracketed exact-name reference: "Beelzemon: Blast
-                  // Mode" is a different card name (KB Q1231/Q1232), so `name` (substring)
-                  // would wrongly offer it from the trash.
                   tokens: ["Beelzemon"],
                   match: "nameExact",
                 },

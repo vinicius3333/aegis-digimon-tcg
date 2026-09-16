@@ -144,8 +144,6 @@ describe("BT25-089 Kazuki & Itsuki", () => {
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("tamer"));
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("result").instanceId);
-    // Shutmon's own When Digivolving may immediately link the carried Logamon;
-    // either destination proves App Fusion first carried the old top under it.
     expect([...s.perm("host").stack, ...s.perm("host").linked].map((card) => card.cardId)).toContain("BT25-070");
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });

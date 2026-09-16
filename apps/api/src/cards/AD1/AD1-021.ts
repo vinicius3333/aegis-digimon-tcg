@@ -1,18 +1,8 @@
-// HAND-FIXED IR for AD1-021 (Marcus Damon & Agumon) — do not regenerate over this file.
-//
-// The generated [End of Your Turn] effect mistargeted the whole "1 of your [Marcus
-// Damon]s is also treated as a 6000 DP Digimon, gains <Rush> and can't digivolve"
-// bundle: it filtered on kind:["Digimon"] (Marcus Damon is a TAMER, so nothing ever
-// matched — KB Q6111) and dropped the treated-as-Digimon/6000-DP/can't-digivolve
-// no kind check) and applies BecomeDigimonThatCantDigivolve(DP 6000, UntilEachTurnEnd)
-// + GainRush(UntilEachTurnEnd), then offers ONE optional "1 of your Digimon may
-// attack". All four bundle actions target the same lone name-matched permanent.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 type Actions = CompiledCard["effects"][number]["actions"];
 
-// "1 of your [Marcus Damon]s" — name-matched, deliberately kind-unrestricted (a Tamer).
 const marcusTarget = {
   filter: {
     controller: "mine",
@@ -26,8 +16,6 @@ const chosenMarcusTarget = {
   fromSelectionRef: "chosenMarcus",
 };
 
-// "If you have a yellow Digimon with [Agumon] or [Greymon] in its name" (documented behavior
-// PermanentCondition gates the Marcus bundle only; the trailing attack is ungated).
 const agumonGate = {
   kind: "youHave",
   filter: {

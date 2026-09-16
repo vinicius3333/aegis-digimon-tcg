@@ -115,7 +115,6 @@ describe("BT21-097 App Link", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
 
-    // CR 16-17-3: Delay gained this turn cannot activate during this same turn.
     advance(s.engine).endMainPhaseIfOpen(0);
     await firstTurn;
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);

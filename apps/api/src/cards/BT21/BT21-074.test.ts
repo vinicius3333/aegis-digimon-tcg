@@ -161,7 +161,6 @@ describe("BT21-074 Satellamon", () => {
     const unprotectedId = s.perm("unprotected").permanentId;
     const satellamonHandId = s.inst("satellamon").instanceId;
     const unprotectedTopId = s.perm("unprotected").topCard.instanceId;
-    // Choose "protected" as the placement host for satellamon's own On Play.
     preferred.push(s.perm("protected").topCard.instanceId);
     s.state.memory = 10;
     await s.ready();
@@ -171,10 +170,6 @@ describe("BT21-074 Satellamon", () => {
     });
     await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beReturned"));
 
-    // The opponent's Return offers both the protected and unprotected Digimon as candidates
-    // (restriction is enforced when the choice resolves, not by hiding the candidate). Bias
-    // the auto-selector toward the one that is actually legal so the effect lands, proving
-    // the restriction blocks the other one rather than producing a no-op on either.
     preferred.length = 0;
     preferred.push(unprotectedTopId);
     s.state.turnSeat = 1;
@@ -187,8 +182,6 @@ describe("BT21-074 Satellamon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("cocytusA").instanceId)).toBe(true);
     expect(s.state.memory).toBe(3);
 
-    // Only "protected" and satellamon itself remain as opponent Digimon candidates; bias
-    // toward satellamon so the second Return also lands on a legal target.
     preferred.length = 0;
     preferred.push(satellamonHandId);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cocytusB").instanceId })).toEqual({
@@ -229,7 +222,6 @@ describe("BT21-074 Satellamon", () => {
     );
     const protectedId = s.perm("protected").permanentId;
     const unprotectedId = s.perm("unprotected").permanentId;
-    // Choose "protected" as the placement host for satellamon's own On Play.
     preferred.push(s.perm("protected").topCard.instanceId);
     s.state.memory = 10;
     await s.ready();
@@ -239,9 +231,6 @@ describe("BT21-074 Satellamon", () => {
     });
     await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "cantBeDeDigivolved"));
 
-    // Both the protected and unprotected Digimon are offered as De-Digivolve candidates
-    // (restriction is enforced when the choice resolves, not by hiding the candidate). Bias
-    // toward the one that is actually legal so the effect lands.
     preferred.length = 0;
     preferred.push(s.perm("unprotected").topCard.instanceId);
     s.state.turnSeat = 1;
@@ -259,8 +248,6 @@ describe("BT21-074 Satellamon", () => {
     expect(s.perm("timemonA").linked.some((card) => card.instanceId === s.inst("appmonA").instanceId)).toBe(true);
     expect(s.state.memory).toBe(8);
 
-    // Only "protected" remains eligible for De-Digivolve at level 4+ (the unprotected control
-    // is already at its base form); protection must keep it from being touched.
     preferred.length = 0;
     preferred.push(s.perm("protected").topCard.instanceId);
     expect(

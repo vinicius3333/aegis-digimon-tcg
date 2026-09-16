@@ -12,16 +12,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-065.js";
 import "../index.js";
 
-// EX10-065 Yukio Oikawa (Tamer, Purple, cost 4)
-//   [Start of Your Turn] If you have 2 or less memory, set it to 3.
-//   [All Turns] When any of your Digimon with [Myotismon] in their names are played, by
-//     deleting this Tamer, 1 of those Digimon gains <Rush> for the turn. Then, gain 1 memory.
-//   [Security] Play this card without paying the cost.
-
 const CARD_ID = "EX10-065";
-/** Inert Lv.5 Purple "Myotismon" — no main, inherited or security text at all. */
 const MYOTISMON = "BT2-075";
-/** "VenomMyotismon" — the name-substring boundary; its own text is inert on your own turn. */
 const VENOM = "BT2-079";
 const NEUTRAL_SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 const NEUTRAL_DECK = ["BT1-013", "BT1-014", "BT1-009", "BT1-010", "BT1-011"];
@@ -38,7 +30,6 @@ function turnBoard(seat0: BoardSpec[0], seat1?: BoardSpec[1]): BoardSpec {
   };
 }
 
-/** Start the real turn loop on seat 0 and stop inside its open Main phase. */
 async function runSeat0Turn(board: BoardSpec, opts: SetupEngineOptions, memory?: number) {
   const s = setupEngine(board, opts);
   if (memory !== undefined) s.state.memory = memory;
@@ -53,7 +44,6 @@ async function runSeat0Turn(board: BoardSpec, opts: SetupEngineOptions, memory?:
   return { s, loop };
 }
 
-/** Close the turn loop from whichever phase the test stopped in. */
 async function finish(s: EngineSetup, loop: Promise<unknown>) {
   expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
   await loop;
@@ -75,9 +65,6 @@ describe("EX10-065 Yukio Oikawa", () => {
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
     expect(getCardDefinition(CARD_ID)!.inheritedEffectText ?? "").toBe("");
-    // The catalog stores a NON-BREAKING SPACE (U+00A0) after "[Myotismon]" in this card's
-    // second clause; the text is compared with whitespace normalized so the assertion is
-    // about the printed wording, not about that catalog artefact. Reported, not edited.
     expect(getCardDefinition(CARD_ID)!.effectText!.replace(/\s/g, " ")).toBe(
       "[Start of Your Turn] If you have 2 or less memory, set it to 3. " +
         "[All Turns] When any of your Digimon with [Myotismon] in their names are played, by deleting this Tamer, 1 of those Digimon gains ＜Rush＞ for the turn. Then, gain 1 memory.",
@@ -95,7 +82,6 @@ describe("EX10-065 Yukio Oikawa", () => {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            // "in their names" is a substring test, so `match: "name"` (not `nameExact`).
             nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }],
           },
           actions: [
@@ -179,15 +165,12 @@ describe("EX10-065 Yukio Oikawa", () => {
     const me = s.state.players[0]!;
     const played = me.battleArea.find((p) => p.topCard?.instanceId === myotismonId)!;
     expect(played).toBeDefined();
-    // The Tamer paid itself as the cost: gone from the battle area, in the trash.
     expect(me.battleArea.some((p) => p.topCard?.cardId === CARD_ID)).toBe(false);
     expect(me.trash.map((card) => card.instanceId)).toContain(oikawaInstanceId);
-    // 10 - 6 (printed play cost) + 1 (the "then" clause) = 5.
     expect(s.state.memory).toBe(5);
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // <Rush> is real, not just a flag: the Digimon played this turn can attack at once.
     const securityBefore = s.state.players[1]!.security.length;
     expect(
       s.engine.applyIntent(0, {
@@ -231,14 +214,12 @@ describe("EX10-065 Yukio Oikawa", () => {
 
     const me = s.state.players[0]!;
     const played = me.battleArea.find((p) => p.topCard?.instanceId === myotismonId)!;
-    // Cost unpaid: the Tamer stays, no <Rush>, and — per Q5180 — no memory from "Then".
     expect(me.battleArea.some((p) => p.topCard?.instanceId === oikawaInstanceId)).toBe(true);
     expect(me.trash.some((card) => card.instanceId === oikawaInstanceId)).toBe(false);
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(false);
-    expect(s.state.memory).toBe(4); // 10 - 6, and nothing else
+    expect(s.state.memory).toBe(4);
     expect(s.state.pendingDecision).toBeUndefined();
 
-    // Without <Rush> the freshly played Digimon may not attack.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -252,8 +233,6 @@ describe("EX10-065 Yukio Oikawa", () => {
   });
 
   it("grants <Rush> to the Myotismon that was PLAYED, not to one already on the board", async () => {
-    // "1 of those Digimon" is the trigger subject. A second, established Myotismon sits on
-    // the board first, so a target resolved from the plain board filter would land on it.
     const { s, loop } = await runSeat0Turn(
       turnBoard({
         battleArea: [
@@ -305,14 +284,11 @@ describe("EX10-065 Yukio Oikawa", () => {
     const played = me.battleArea.find((p) => p.topCard?.cardId === "BT1-014")!;
     expect(me.battleArea.some((p) => p.topCard?.instanceId === oikawaInstanceId)).toBe(true);
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(false);
-    expect(s.state.memory).toBe(7); // 10 - 3, no memory gain
+    expect(s.state.memory).toBe(7);
     await finish(s, loop);
   });
 
   it("triggers on a name that only CONTAINS Myotismon (VenomMyotismon)", async () => {
-    // VenomMyotismon costs 12, past the turn-loop memory range, so this scenario runs on a
-    // seeded Main phase with the memory armed directly. The play itself is still the public
-    // `playCard` intent.
     const s = setupEngine(
       {
         0: {
@@ -338,7 +314,7 @@ describe("EX10-065 Yukio Oikawa", () => {
     const played = me.battleArea.find((p) => p.topCard?.instanceId === venomId)!;
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
     expect(me.trash.map((card) => card.instanceId)).toContain(oikawaInstanceId);
-    expect(s.state.memory).toBe(9); // 20 - 12 + 1
+    expect(s.state.memory).toBe(9);
   });
 
   it("does not trigger on the OPPONENT's Myotismon (controller: mine)", async () => {
@@ -357,7 +333,6 @@ describe("EX10-065 Yukio Oikawa", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // `state.memory` is always read from the CURRENT turn player's side, so seat 1 holds 8.
     s.state.turnSeat = 1;
     s.state.memory = 8;
     await s.ready();
@@ -372,7 +347,7 @@ describe("EX10-065 Yukio Oikawa", () => {
     const theirs = s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === MYOTISMON)!;
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === oikawaInstanceId)).toBe(true);
     expect(observe(s.engine).hasKeyword(theirs, "Rush")).toBe(false);
-    expect(s.state.memory).toBe(2); // only seat 1's own play cost of 6
+    expect(s.state.memory).toBe(2);
   });
 
   it("is inert once it is in the trash: a later Myotismon play does nothing", async () => {
@@ -393,11 +368,8 @@ describe("EX10-065 Yukio Oikawa", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === oikawaInstanceId));
     await settle(() => false, 30);
-    expect(s.state.memory).toBe(5); // 10 - 6 + 1
+    expect(s.state.memory).toBe(5);
 
-    // The Tamer is in the TRASH now. A Tamer's effects are inert outside the battle area,
-    // so the second Myotismon must get nothing and no memory may be gained.
-    // The gauge is re-armed so the second play stays inside the same Main phase.
     s.state.memory = 10;
     const secondId = s.inst("second").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: secondId })).toEqual({ ok: true });
@@ -406,7 +378,7 @@ describe("EX10-065 Yukio Oikawa", () => {
 
     const second = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === secondId)!;
     expect(observe(s.engine).hasKeyword(second, "Rush")).toBe(false);
-    expect(s.state.memory).toBe(4); // 10 - 6, with no "then, gain 1 memory"
+    expect(s.state.memory).toBe(4);
     expect(s.state.pendingDecision).toBeUndefined();
 
     await finish(s, loop);
@@ -435,10 +407,8 @@ describe("EX10-065 Yukio Oikawa", () => {
 
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === myotismonId)!;
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(false);
-    expect(s.state.memory).toBe(4); // 10 - 6 only
+    expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("oikawa").instanceId)).toBe(true);
-    // The EX10-048 lane saw this Tamer's watcher appear as a trigger key while it sat in the
-    // trash. No decision of any kind may be raised for a trash-resident Tamer.
     expect(s.decisions).toEqual([]);
   });
 
@@ -461,7 +431,6 @@ describe("EX10-065 Yukio Oikawa", () => {
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === myotismonId)!;
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
 
-    // Pass the turn through the real loop; "for the turn" expires at the turn end.
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
@@ -504,7 +473,6 @@ describe("EX10-065 Yukio Oikawa", () => {
     expect(opponent.battleArea.some((p) => p.topCard?.instanceId === oikawaId)).toBe(true);
     expect(opponent.trash.some((card) => card.instanceId === oikawaId)).toBe(false);
     expect(opponent.security.map((card) => card.instanceId)).not.toContain(oikawaId);
-    // Free: paying the printed cost of 4 would have moved the gauge by 4 in seat 1's favour.
     expect(s.state.memory).toBe(memoryBefore);
   });
 });

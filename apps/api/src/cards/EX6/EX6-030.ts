@@ -4,7 +4,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const generated = getCompiledCard("EX6-030")!;
 const generatedWhenDigivolving = generated.effects.find((effect) => effect.trigger === "WhenDigivolving")!;
 
-/** EX6-030 — Dominimon, with security search/play and security-cost prevention structured. */
 export const compiled: CompiledCard = {
   ...generated,
   effects: generated.effects.map((effect): CardEffect => {

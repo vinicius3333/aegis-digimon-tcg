@@ -6,25 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-026.js";
 import "../index.js";
 
-/**
- * EX10-026 SkullKnightmon (Black/Purple, Lv.4 Champion, [Undead]/[Bagra Army]/[Twilight]).
- *
- * Printed clauses
- *   1. [Digivolve] Lv.3 w/[Knightmon] in text: Cost 2
- *   2. [On Play] [When Digivolving] By trashing 1 card in your hand, delete 1 of your
- *      opponent's Digimon with a play cost of 4 or less.
- *   3. [On Deletion] ＜Save＞
- *   4. Inherited: ＜Blocker＞
- *
- * Every clause below is proved through public intents (playCard / digivolve / attack /
- * declareBlock / DigiXros declaration), never through injected timing.
- *
- * Fixtures: BT4-065 Gotsumon (Lv.3 Black, no printed text — the "no [Knightmon] in text"
- * negative base), BT18-058 Kotemon (Lv.3 Black whose effect text names [Knightmon] — the
- * alternate-route base), BT7-020 Shellmon (play cost 4, no text — the deletable boundary),
- * BT1-038 Monzaemon (play cost 5, no text — the boundary that must survive), BT1-013 /
- * BT1-014 (inert main-deck Digimon used as hand fodder, deck and security filler).
- */
 const CARD_ID = "EX10-026";
 
 describe("EX10-026 SkullKnightmon", () => {
@@ -49,7 +30,6 @@ describe("EX10-026 SkullKnightmon", () => {
       residual: [],
       digivolutionRequirement: [{ level: 3, texts: ["Knightmon"], cost: 2, isAlternate: true }],
     });
-    // Comprehensive Rules 4-3: ＜Save＞ places the card at the BOTTOM of the Tamer's stack.
     const save = compiled.effects.find((effect) => effect.trigger === "OnDeletion")!;
     expect(save.actions[0]).toMatchObject({ kind: "PlaceUnder", position: "bottom", optional: true });
   });
@@ -88,7 +68,6 @@ describe("EX10-026 SkullKnightmon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard!.instanceId)).toEqual([skullId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([fodderId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("spare").instanceId]);
-    // Only the play cost 4 Digimon is a legal target; the play cost 5 one is untouched.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard!.instanceId)).toEqual([cost5Id]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT7-020"]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -191,7 +170,6 @@ describe("EX10-026 SkullKnightmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard!.cardId === CARD_ID && s.state.pendingDecision === undefined);
 
-    // 3 - 2 = 1: the alternate requirement's cost, not the printed EvoCost of 3.
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
@@ -222,8 +200,6 @@ describe("EX10-026 SkullKnightmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard!.cardId === CARD_ID && s.state.pendingDecision === undefined);
 
-    // Gotsumon has no [Knightmon] in its name, traits or text, so the cost 2 path is refused
-    // and the printed Lv.3 EvoCost of 3 is charged instead: 3 - 3 = 0.
     expect(s.state.memory).toBe(0);
   });
 
@@ -255,8 +231,6 @@ describe("EX10-026 SkullKnightmon", () => {
     await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === skullId));
     await settle(() => false, 30);
 
-    // Comprehensive Rules 4-3: the new card goes under the cards already stacked there.
-    // `Permanent.stack` is bottom-first, so the saved card must be index 0.
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([skullId, olderId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(skullId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard!.instanceId)).not.toContain(skullId);
@@ -355,8 +329,6 @@ describe("EX10-026 SkullKnightmon", () => {
     await settle(() => s.events.some((event) => event.kind === "blocked"));
     await settle(() => false, 30);
 
-    // The block redirected the attack: security was never checked, and the 7000 DP host
-    // carrying SkullKnightmon deleted the 6000 DP attacker.
     expect(s.state.players[0]!.security).toHaveLength(securityBefore);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("skull").topCard!.cardId).toBe("EX10-031");
@@ -402,7 +374,6 @@ describe("EX10-026 SkullKnightmon", () => {
         legal.state.pendingDecision === undefined,
     );
 
-    // [DigiXros -1] with two materials: 7 - 2 = 5.
     expect(legal.state.memory).toBe(0);
     const xrosed = legal.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === darkId)!;
     expect(xrosed.stack.map((card) => card.instanceId).sort()).toEqual([skullId, axeId].sort());

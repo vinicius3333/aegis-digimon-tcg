@@ -4,37 +4,6 @@ import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../en
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// BT19-099 The Wicked God Descends! — Purple Option, use cost 4, [Wicked God] trait.
-//   [Main]       You may play 1 Digimon with the [Composite] trait card from your trash with the
-//     play cost reduced by 4. Then, place this card in the battle area.
-//   [All Turns]  When any of your Digimon with [Millenniummon] in its name would leave the battle
-//     area, ＜Delay＞ ・ You may play 1 [Wicked God] trait Digimon card with a play cost 1 higher
-//     than that Digimon from your hand or trash without paying the cost.
-//   [Security]   Place this card in the battle area.
-//
-// KB (`node tools/kb/query.mjs card BT19-099`):
-//   Q3175 — several of your Digimon with different play costs and [Millenniummon] in their names
-//     would leave at the same time: you choose 1 of them and play a [Wicked God] Digimon whose
-//     play cost is 1 higher THAN THAT Digimon.
-//
-// Fixture vocabulary:
-//   BT3-076 Candlemon    — inert mono-PURPLE Lv.3. Seat 0's colour source for the Option's
-//                          printed Purple requirement.
-//   BT1-038 Monzaemon    — inert mono-BLUE Lv.5. The off-colour board for the refusal case.
-//   BT6-012 Deltamon     — [Composite] Lv.4, play cost 5, NO printed effect text. The [Main]
-//                          revival target: 5 - 4 = 1 memory.
-//   BT1-013 Muchomon     — inert Lv.3 with NO [Composite] trait: the [Main] trait near miss.
-//   BT18-019 Millenniummon (play cost 14) / BT2-083 Millenniummon (play cost 15) — the two
-//                          "[Millenniummon] in its name" bodies. Their DIFFERENT play costs are
-//                          what makes the ＜Delay＞ cost reference observable (Q3175).
-//   BT19-075 MoonMillenniummon (Wicked God, play cost 15) — the legal answer to BT18-019 leaving,
-//                          and the near miss when BT2-083 leaves.
-//   BT19-101 ZeedMillenniummon (Wicked God, play cost 16) — the mirror of that pair.
-//   BT1-051 Reppamon seeded at dp 20000 and suspended — the opponent wall a Millenniummon can
-//                          legally attack into and lose to, which is a REAL "would leave".
-//   BT1-009..BT1-013     — inert main-deck Digimon used as deck and security padding. No Digi-Egg
-//                          is seeded in any deck or security stack.
-
 const FILLER = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 
@@ -55,8 +24,6 @@ describe("BT19-099 The Wicked God Descends! — catalog and IR", () => {
       maxCountInDeck: 4,
     });
     const printed = getCardDefinition("BT19-099")!;
-    // The catalog stores a NON-BREAKING space (U+00A0) after "[Composite] trait"; normalise it so
-    // the assertion reads as the printed sentence. Reported as a catalog quirk, not edited.
     const effectText = printed.effectText!.replaceAll(" ", " ");
     expect(effectText).toContain(
       "[Main] You may play 1 Digimon with the [Composite] trait card from your trash with the play cost reduced by 4. " +
@@ -86,14 +53,12 @@ describe("BT19-099 The Wicked God Descends! — catalog and IR", () => {
               filter: {
                 controller: "mine",
                 kind: ["Digimon"],
-                // "with the [Composite] trait" is the EXACT trait form, not `traitContains`.
                 nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
               },
               count: 1,
             },
             from: ["trash"],
             costReduction: 4,
-            // "You may play" — declining must still leave the "Then, place this card" tail.
             optional: true,
           },
           { kind: "PlaceInBattleAreaSelf" },
@@ -109,11 +74,8 @@ describe("BT19-099 The Wicked God Descends! — catalog and IR", () => {
             sourceFilter: {
               controller: "mine",
               kind: ["Digimon"],
-              // "with [Millenniummon] IN ITS NAME" is the substring form, so `match: "name"`
-              // (not `nameExact`) is right here: MoonMillenniummon and ZeedMillenniummon count.
               nameOrTrait: [{ tokens: ["Millenniummon"], match: "name" }],
             },
-            // Q3175: the controller picks ONE leaving Millenniummon as the cost reference.
             pickOne: true,
             actions: [
               {
@@ -160,7 +122,6 @@ describe("BT19-099 The Wicked God Descends! — use cost and the colour requirem
   }
 
   it("refuses the play with no Purple permanent on the controller's board", async () => {
-    // BT19-099 prints no colour waiver, so the mono-blue board fails `printedColorRequirementMet`.
     const s = colourFixture(["BT1-038"]);
     await s.ready();
 
@@ -183,7 +144,6 @@ describe("BT19-099 The Wicked God Descends! — use cost and the colour requirem
     });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === compositeId));
 
-    // Option 4 + Deltamon (printed 5, reduced by 4) 1 = 5.
     expect(s.state.memory).toBe(5);
   });
 });
@@ -224,19 +184,15 @@ describe("BT19-099 The Wicked God Descends! — [Main]", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === optionId));
 
-    // "You may play 1 Digimon with the [Composite] trait card from your trash ..."
     const revived = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.instanceId === compositeId);
     expect(revived).toBeDefined();
     expect(revived!.topCard!.cardId).toBe("BT6-012");
-    // "Then, place this card in the battle area" — the Option is a permanent, not trash.
     const placed = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.instanceId === optionId);
     expect(placed).toBeDefined();
     expect(placed!.placedByEffect).toBe(true);
     expect(boardCardIds(s, 0)).toEqual(["BT19-099", "BT3-076", "BT6-012"]);
 
-    // The non-[Composite] Lv.3 was never a candidate.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("traitMiss").instanceId]);
-    // 10 - 4 (Option) - 1 (5 reduced by 4) = 5.
     expect(s.state.memory).toBe(5);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
@@ -272,14 +228,6 @@ describe("BT19-099 The Wicked God Descends! — [Main]", () => {
 });
 
 describe("BT19-099 The Wicked God Descends! — ＜Delay＞ on a Millenniummon leaving (Q3175)", () => {
-  /**
-   * BT19-099 sits on the board as the Option permanent its own [Main]/[Security] clause places,
-   * which is where the [All Turns] watcher lives. Seat 0 then plays BT15-098 Mist Barrier
-   * ("[Main] By deleting 1 of your Digimon, ..."): a REAL printed card effect whose cost deletes
-   * the Millenniummon, so "would leave the battle area" is reached through the public `playCard`
-   * intent rather than an injected `fireSubTrigger`. With no [Myotismon] in the trash, Mist
-   * Barrier's own payload is a no-op and only its cost is observable.
-   */
   function delayFixture(
     millenniummon: string,
     hand: (string | { card: string; as: string })[],
@@ -314,27 +262,17 @@ describe("BT19-099 The Wicked God Descends! — ＜Delay＞ on a Millenniummon l
     return s;
   }
 
-  /** Play Mist Barrier, paying its "by deleting 1 of your Digimon" cost with the Millenniummon. */
   const playMistBarrier = (s: EngineSetup): unknown =>
     s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mist").instanceId });
 
-  // ＜Delay＞ body: `relativeToLeavingDigimon` reads the leaving Digimon's play cost. Leave and
-  // deletion events resolve AFTER the permanent has left the battle area, so `play.ts` reads the
-  // removal snapshot (`deletedPermanentSnapshots` / `deletedTopCardId`) when the live board no
-  // longer holds it — the same data `subTrigger.ts` `deletionSourceFilterGate` gates on. These
-  // three tests were retained reds until that fallback was added; see
-  // docs/audits/BT19.md#leaving-digimon-play-mechanism.
-  //
-  // The battle-deletion route (attack into a suspended 20000 DP wall, combat/controller.ts:1584)
-  // travels the same seam and is covered by the engine regression test.
   it("plays the play-cost-15 [Wicked God] free when the play-cost-14 Millenniummon leaves", async () => {
     const prefer: string[] = [];
     const s = delayFixture(
       "BT18-019",
       [
-        { card: "BT19-075", as: "moon" }, // Wicked God, play cost 15 = 14 + 1 -> the legal answer
-        { card: "BT19-101", as: "zeed" }, // Wicked God, play cost 16 -> the COST near miss
-        { card: "BT6-012", as: "composite" }, // play cost 5, [Composite] -> the TRAIT near miss
+        { card: "BT19-075", as: "moon" },
+        { card: "BT19-101", as: "zeed" },
+        { card: "BT6-012", as: "composite" },
         "BT1-009",
       ],
       prefer,
@@ -348,26 +286,18 @@ describe("BT19-099 The Wicked God Descends! — ＜Delay＞ on a Millenniummon l
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === millInstanceId));
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === moonId));
 
-    // The Millenniummon really left, and the play-cost-15 Wicked God took its place.
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT18-019");
     expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.instanceId)).toContain(moonId);
-    // "without paying the cost": the only memory that moved is Mist Barrier's printed 4.
     expect(s.state.memory).toBe(6);
-    // The cost and trait near misses stayed in hand.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("zeed").instanceId, s.inst("composite").instanceId]),
     );
-    // ＜Delay＞ is paid by trashing the Option: BT19-099 leaves the battle area for the trash.
     expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).not.toContain("BT19-099");
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT19-099");
     assertNoLoudGap(s);
   });
 
   it("plays the play-cost-16 [Wicked God] instead when the play-cost-15 Millenniummon leaves (Q3175)", async () => {
-    // Same board, a different leaving Digimon. BT2-083 Millenniummon costs 15, so ZeedMillenniummon
-    // (16) becomes the only legal answer and MoonMillenniummon (15) becomes the near miss. The
-    // pair is what pins the filter to the Digimon that actually left rather than to a fixed cost —
-    // exactly the "1 higher than THAT Digimon" reading Q3175 gives for the simultaneous case.
     const prefer: string[] = [];
     const s = delayFixture(
       "BT2-083",
@@ -428,8 +358,6 @@ describe("BT19-099 The Wicked God Descends! — ＜Delay＞ on a Millenniummon l
   });
 
   it("near miss: a Digimon without [Millenniummon] in its name leaving does nothing", async () => {
-    // BT6-012 Deltamon is [Composite] and shares the archetype, but its name carries no
-    // "Millenniummon", so the watcher must sleep and both Wicked God cards stay in hand.
     const prefer: string[] = [];
     const s = delayFixture(
       "BT6-012",
@@ -446,7 +374,6 @@ describe("BT19-099 The Wicked God Descends! — ＜Delay＞ on a Millenniummon l
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("moon").instanceId, s.inst("zeed").instanceId]),
     );
-    // Only Mist Barrier joined the board; BT19-099 was never asked to trash itself.
     expect(boardCardIds(s, 0)).toEqual(["BT15-098", "BT19-099", "BT3-076"]);
     assertNoLoudGap(s);
   });
@@ -458,8 +385,6 @@ describe("BT19-099 The Wicked God Descends! — ＜Delay＞ on a Millenniummon l
     await s.ready();
     const millInstanceId = s.perm("mill").topCard!.instanceId;
 
-    // `autoDeclineOptional` also declines Mist Barrier's own "by deleting" cost, so drive that
-    // cost by hand: answer the first optional yes, the rest no.
     expect(playMistBarrier(s)).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === millInstanceId));
 

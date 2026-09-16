@@ -1,7 +1,6 @@
 import { memoryBoostTests } from "./memoryBoostTestSupport.js";
 import "./P-036.js";
 
-// audit-cases: 4
 memoryBoostTests({
   cardId: "P-036",
   name: "Blue Memory Boost!",

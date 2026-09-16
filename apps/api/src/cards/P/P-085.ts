@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4178: this effect never ignores the chosen trash card's digivolution requirements.
 const compiled: CompiledCard = {
   effects: [
     {

@@ -9,20 +9,6 @@ import { compiled } from "./EX13-035.js";
 
 const cardId = "EX13-035";
 
-// Name-reference fixtures for "[Chuumon], [Sukamon] or [Etemon] in their names". Each was picked
-// for a quiet play window so the assertions read this card's clause, not a fixture's.
-//   BT3-061  "Chuumon"         — play cost 3; its only printed effect is an [All Turns] memory
-//                                restriction, so entering play asks nothing.
-//   BT14-034 "Sukamon"         — play cost 3; printed effect is [Security]-only, inert on a play.
-//   BT13-069 "KingSukamon"     — play cost 6, the largest single card the printed maximum admits.
-//   BT3-070  "Etemon"          — play cost 7 and Lv.5: both the card the base maximum must refuse
-//                                and the legal source for the alternate [Digivolve] route.
-//   BT13-065 "PlatinumSukamon" — Lv.4 SUBSTRING name match, the illegal-level digivolve source.
-//   BT11-063 "Geremon"         — the near-match: it prints "[Sukamon]" inside its own effect TEXT
-//                                and is also treated as [Numemon], but its NAME carries neither
-//                                token, so `match: "name"` must refuse it.
-//   BT1-057  "Sirenmon"        — Yellow Lv.5 with no printed effects: the right level and color
-//                                for the printed EvoCost, without either name token.
 const CHUUMON_3 = "BT3-061";
 const SUKAMON_3 = "BT14-034";
 const KING_SUKAMON_6 = "BT13-069";
@@ -31,7 +17,6 @@ const PLATINUM_SUKAMON_LV4 = "BT13-065";
 const TEXT_ONLY_SUKAMON = "BT11-063";
 const UNNAMED_LV5 = "BT1-057";
 
-// Inert main-deck Digimon used as neutral fixtures.
 const SENTINEL = "BT1-009";
 const OPPONENT_TARGET = "BT1-010";
 const OPPONENT_OTHER = "BT1-011";
@@ -56,13 +41,11 @@ describe("EX13-035 KingEtemon", () => {
         { color: "Black", level: 5, memoryCost: 5 },
       ],
     });
-    // The printed main text, verbatim, is the contract every test below is written against.
     expect(getCardDefinition(cardId)!.effectText).toBe(
       "[Digivolve] Lv.5 w/[Sukamon]/[Etemon] in name: Cost 4 \n\n" +
         "[On Play] [When Digivolving] You may play up to 2 Digimon cards with [Chuumon], [Sukamon] or [Etemon] in their names and up to 6 total play cost from your hand or trash without paying the costs. By returning 10 such cards from your trash to the bottom of the deck, add 6 to the play cost maximum.\n" +
         "[All Turns] While there are 3 or more Digimon with [Sukamon] or [Etemon] in their names, give all of your opponent's Digimon ＜Security A. -1＞ and -3000 DP.",
     );
-    // No printed inherited or security text, so the IR declares neither.
     expect(getCardDefinition(cardId)!.inheritedEffectText).toBeUndefined();
     expect(getCardDefinition(cardId)!.securityEffectText).toBeUndefined();
     expect(compiled.effects.some((effect) => effect.isInherited === true)).toBe(false);
@@ -84,17 +67,11 @@ describe("EX13-035 KingEtemon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect.isInherited).toBeUndefined();
-      // No printed [Once Per Turn] on the line, so neither window carries a frequency.
       expect(effect.frequency).toBeUndefined();
       const modal = effect.actions[0]!;
-      // Two exclusive branches, one chosen, the whole clause declinable. The paid branch carries
-      // no availability condition: the engine's own `canPayCost` preflight drops it when the
-      // trash cannot fund the return (proven behaviourally two tests below).
       expect(modal).toMatchObject({ kind: "Modal", choose: 1, optional: true });
       expect((modal as { optionConditions?: unknown }).optionConditions).toBeUndefined();
       if (modal.kind !== "Modal") throw new Error("expected the play clause to compile to a Modal");
-      // Branch 0 is the printed maximum of 6; branch 1 pays the trash return for 6 + 6 = 12.
-      // Both cap the card count at 2 and both declare the printed aggregate budget.
       expect(modal.options[0]).toEqual([
         {
           kind: "PlayWithoutCost",
@@ -140,8 +117,6 @@ describe("EX13-035 KingEtemon", () => {
     const effect = compiled.effects.find((candidate) => candidate.trigger === "AllTurns")!;
     const gate = {
       kind: "anyHas",
-      // "there are 3 or more Digimon" names no controller, so the count spans both players;
-      // `zone: "battleArea"` keeps breeding-area Digimon unreferenced (comprehensive §3-4-7-8).
       filter: { zone: "battleArea", kind: ["Digimon"], nameOrTrait: nameUnion(["Sukamon", "Etemon"]) },
       countMin: 3,
       raw: expect.any(String),
@@ -163,10 +138,6 @@ describe("EX13-035 KingEtemon", () => {
       },
     ]);
   });
-
-  // ---------------------------------------------------------------------------
-  // [On Play] — the base branch: up to 2 named Digimon cards from hand OR trash, free.
-  // ---------------------------------------------------------------------------
 
   it("plays one named card from hand and one from the trash, refusing the over-cost and text-only cards", async () => {
     const preferred: string[] = [];
@@ -191,8 +162,6 @@ describe("EX13-035 KingEtemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );
     s.state.memory = 10;
-    // Bias the selector toward the three cards the clause must REFUSE, so their absence from the
-    // battle area is a property of the filter rather than of candidate ordering.
     preferred.push(s.inst("overCost").instanceId, s.inst("textOnly").instanceId, s.inst("unnamed").instanceId);
     await s.ready();
 
@@ -203,11 +172,8 @@ describe("EX13-035 KingEtemon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(
       [cardId, SUKAMON_3, CHUUMON_3].sort(),
     );
-    // Both arrived free: the only memory spent is KingEtemon's own printed play cost of 13.
     expect(s.state.memory).toBe(-3);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    // The cost-7 Etemon exceeds the printed maximum; Geremon carries [Sukamon] only in its TEXT;
-    // the sentinel carries no token at all. All three stay in the trash.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("overCost").instanceId,
       s.inst("textOnly").instanceId,
@@ -241,12 +207,6 @@ describe("EX13-035 KingEtemon", () => {
     assertNoLoudGap(s);
   });
 
-  // ---------------------------------------------------------------------------
-  // "By returning 10 such cards from your trash to the bottom of the deck, add 6 to the play
-  // cost maximum." The raise is observable through the per-card ceiling: the cost-7 Etemon that
-  // the base branch refused above becomes playable.
-  // ---------------------------------------------------------------------------
-
   it("returns ten such cards to the deck bottom and then plays a card the base maximum refuses", async () => {
     const s = setupEngine(
       {
@@ -271,12 +231,10 @@ describe("EX13-035 KingEtemon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The cost-7 Etemon arrived free: the raised maximum of 12 admits it.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(
       [cardId, ETEMON_7].sort(),
     );
     expect(s.state.memory).toBe(-3);
-    // All ten paid cards left the trash and sit UNDER the pre-existing deck card.
     expect(s.state.players[0]!.trash).toHaveLength(0);
     const deck = s.state.players[0]!.deck.map(({ instanceId }) => instanceId);
     expect(deck[0]).toBe(s.inst("deckTop").instanceId);
@@ -307,8 +265,6 @@ describe("EX13-035 KingEtemon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 3);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Only the base branch was available, so the cost-7 Etemon stayed in hand and two of the
-    // nine cost-3 Chuumon came out of the trash instead. Nothing went to the deck.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("overBaseCost").instanceId]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(
       [cardId, CHUUMON_3, CHUUMON_3].sort(),
@@ -519,10 +475,6 @@ describe("EX13-035 KingEtemon", () => {
     },
   );
 
-  // ---------------------------------------------------------------------------
-  // [Digivolve] Lv.5 w/[Sukamon]/[Etemon] in name: Cost 4, and [When Digivolving].
-  // ---------------------------------------------------------------------------
-
   it("digivolves from a Lv.5 Etemon for 4, keeps the source in the stack and fires the same clause", async () => {
     const s = setupEngine(
       {
@@ -551,13 +503,9 @@ describe("EX13-035 KingEtemon", () => {
     await settle(() => s.perm("base").topCard.cardId === cardId);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Cost 4, not the catalog EvoCost of 5.
     expect(s.state.memory).toBe(6);
-    // Source identity: the Lv.5 Etemon survives as the single digivolution card beneath.
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("base").instanceId]);
-    // Digivolution's bonus draw took the named top deck card.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
-    // [When Digivolving] ran the same free play out of the trash.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(
       [cardId, SUKAMON_3].sort(),
     );
@@ -581,8 +529,6 @@ describe("EX13-035 KingEtemon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    // `useAlternateCost` is a preference, not a gate: with no matching alternate route the engine
-    // still takes the printed Yellow Lv.5 EvoCost and returns ok, so the proof is the memory.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -623,15 +569,9 @@ describe("EX13-035 KingEtemon", () => {
     expect(s.state.memory).toBe(10);
   });
 
-  // ---------------------------------------------------------------------------
-  // [All Turns] While there are 3 or more Digimon with [Sukamon] or [Etemon] in their names,
-  // give all of your opponent's Digimon ＜Security A. -1＞ and -3000 DP.
-  // ---------------------------------------------------------------------------
-
   it("debuffs every opposing Digimon while three named Digimon stand on either side of the board", async () => {
     const s = setupEngine({
       0: {
-        // KingEtemon's own name carries [Etemon], so it is one of the three.
         battleArea: [
           { card: cardId, as: "king" },
           { card: SUKAMON_3, as: "mySukamon" },
@@ -641,8 +581,6 @@ describe("EX13-035 KingEtemon", () => {
       },
       1: {
         battleArea: [
-          // The third counts even though the OPPONENT controls it: the printed sentence says
-          // "there are", not "you have".
           { card: ETEMON_7, as: "theirEtemon", dp: 6000 },
           { card: OPPONENT_TARGET, as: "target", dp: 9000 },
         ],
@@ -658,12 +596,10 @@ describe("EX13-035 KingEtemon", () => {
     }
     expect(s.perm("target").currentDP).toBe(6000);
     expect(s.perm("theirEtemon").currentDP).toBe(3000);
-    // "all of your OPPONENT's Digimon": neither of the controller's own Digimon is touched.
     expect(observe(s.engine).keywordAmount(s.perm("mySukamon"), "SecurityAttack")).toBe(0);
     expect(s.perm("mySukamon").currentDP).toBe(getCardDefinition(SUKAMON_3)!.dp);
     expect(s.perm("king").currentDP).toBe(13000);
 
-    // Drop below the threshold: the aura is continuous, so the debuff lifts on its own.
     await advance(s.engine).verb.deletePermanent([s.perm("theirEtemon").permanentId]);
     await s.engine.recomputeContinuousEffects();
 
@@ -677,8 +613,6 @@ describe("EX13-035 KingEtemon", () => {
         battleArea: [
           { card: cardId, as: "king" },
           { card: SUKAMON_3, as: "mySukamon" },
-          // Geremon prints [Sukamon] in its effect text and is treated as [Numemon], but its
-          // NAME carries neither token, so the board still holds only two named Digimon.
           { card: TEXT_ONLY_SUKAMON, as: "nearMatch" },
         ],
         deck: [SENTINEL, SENTINEL],
@@ -696,7 +630,6 @@ describe("EX13-035 KingEtemon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
     expect(s.perm("target").currentDP).toBe(9000);
 
-    // Swap the near-match for a real third name and the same board now debuffs.
     s.putOnBoard(0, { card: PLATINUM_SUKAMON_LV4, as: "realThird" });
     await s.engine.recomputeContinuousEffects();
 
@@ -711,8 +644,6 @@ describe("EX13-035 KingEtemon", () => {
           { card: cardId, as: "king" },
           { card: SUKAMON_3, as: "mySukamon" },
         ],
-        // Comprehensive §3-4-7-8: information on cards in breeding areas can't be referenced by
-        // an effect that does not name the breeding area, so this third Sukamon does not count.
         breeding: { card: PLATINUM_SUKAMON_LV4, as: "breedingSukamon" },
         deck: [SENTINEL, SENTINEL],
         security: [SENTINEL],

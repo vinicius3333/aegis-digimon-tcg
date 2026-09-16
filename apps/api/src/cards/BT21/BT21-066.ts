@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-066 Arresterdramon:
-// [On Play][When Digivolving] You may play 1 [Hunter]/[Hero] trait Tamer from
-//   your hand without paying the cost.
-// [On Deletion] You may place 1 Digimon card with the [Hero] trait or
-//   <Save> in its text from your hand or trash under any of your Tamers.
-//   Then, <Save>.
-// [Inherited][Your Turn] This Digimon gets +2000 DP.
-//
-// KB Q4574: "with X in its text" includes name, traits, effects, keywords, etc.
-
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -72,7 +72,6 @@ describe("BT3 Imperialdramon historical deck gauntlet", () => {
       5000,
     );
 
-    // Jamming keeps Imperialdramon alive against the 15000 DP security Omnimon.
     expect(
       s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("paildramon").permanentId),
     ).toBe(true);

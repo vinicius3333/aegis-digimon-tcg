@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT17-036's second All Turns clause is specifically effect-driven trash from security;
-// `whenEffectTrashesFromSecurity` excludes ordinary security checks and non-trash relocations.
 export const compiled: CompiledCard = {
   effects: [
     {

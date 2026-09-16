@@ -2,14 +2,6 @@ import { describe, it, expect } from "vitest";
 import { GameState, PlayerState, Permanent, CardInstance, Phase, type Seat } from "@aegis/shared";
 import { validateDigivolve, type DigivolveDeps } from "../engine/actions/digivolve.js";
 
-// Integration coverage for the conditional Tamer-base digivolution paths whose documented behavior `condition:`
-// or stack gate the text parser could not express:
-//   BT22-042 — from Chaperomon, only while you control a [Arisa Kinosaki] Tamer (controllerControls).
-//   BT23-101 — from [Erika Mishima], only while you control 4+ [Hudie] Tamers (controllerControls);
-//              plus the Lv.3 [CS] base path, which carries no controller gate.
-//   P-185    — from a [Takuya Kanbara] Tamer with 5+ [Hybrid] cards under it (minTraitStackCount).
-// memory is removed from the equation (maxAffordable: () => 99) so each test isolates the gate.
-
 let counter = 0;
 function instance(cardId: string, seat: Seat = 0): CardInstance {
   const ci = new CardInstance();
@@ -31,7 +23,6 @@ function permanent(topCardId: string, opts?: { stack?: string[] }): Permanent {
   return p;
 }
 
-/** Seat-0 turn, Main phase, controlling `permanents` (first = the digivolve base), `evolver` in hand. */
 function setup(permanents: Permanent[], evolverCardId: string) {
   const state = new GameState();
   state.phase = Phase.Main;
@@ -63,14 +54,13 @@ const validate = (state: GameState, base: Permanent, evolver: CardInstance) =>
     deps,
   );
 
-// Card ids (from cards.json):
 const CHAPEROMON = "BT22-036";
-const ARISA_KINOSAKI = "BT22-088"; // Tamer
-const ERIKA_MISHIMA = "BT23-084"; // Hudie Tamer
-const HUDIE_TAMERS = ["BT23-081", "BT23-085", "BT23-090"]; // + Erika = 4
-const LV3_CS = "BT22-008"; // Lv.3 [CS] Digimon
-const TAKUYA = "BT12-088"; // Takuya Kanbara Tamer
-const HYBRID = "AD1-002"; // [Hybrid] Digimon (stack filler)
+const ARISA_KINOSAKI = "BT22-088";
+const ERIKA_MISHIMA = "BT23-084";
+const HUDIE_TAMERS = ["BT23-081", "BT23-085", "BT23-090"];
+const LV3_CS = "BT22-008";
+const TAKUYA = "BT12-088";
+const HYBRID = "AD1-002";
 
 describe("BT22-042 — digivolve from Chaperomon gated on controlling a [Arisa Kinosaki] Tamer", () => {
   it("is illegal without an Arisa Kinosaki Tamer", () => {

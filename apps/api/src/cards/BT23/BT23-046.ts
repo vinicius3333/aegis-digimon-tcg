@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -41,9 +38,6 @@ export const compiled: CompiledCard = {
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
-          // "By suspending ..., ..." is an OPTIONAL processing condition (CR 15-7-1): the
-          // controller may decline it outright (CR 15-7-4), and either side's Digimon or Tamer may
-          // be the one suspended (Q5311). Declining skips the restriction (CR 15-7-2).
           optional: true,
           abortOnDecline: true,
         },
@@ -74,9 +68,6 @@ export const compiled: CompiledCard = {
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
-          // "By suspending ..., ..." is an OPTIONAL processing condition (CR 15-7-1): the
-          // controller may decline it outright (CR 15-7-4), and either side's Digimon or Tamer may
-          // be the one suspended (Q5311). Declining skips the restriction (CR 15-7-2).
           optional: true,
           abortOnDecline: true,
         },
@@ -98,8 +89,6 @@ export const compiled: CompiledCard = {
                   kind: ["Digimon"],
                   nameOrTrait: [
                     {
-                      // "in any of its traits" is a substring read: [Carnivorous Plant] and
-                      // [Ancient Fairy] qualify. "the [CS] trait" below stays exact.
                       tokens: ["Vegetation", "Plant", "Fairy"],
                       match: "traitContains",
                     },

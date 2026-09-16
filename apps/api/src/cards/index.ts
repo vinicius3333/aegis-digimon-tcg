@@ -1,5 +1,3 @@
-// self-register at boot (card-module contract). apps/api/src/index.ts imports
-// this once.
 import "./AD1/index.js";
 import "./BT1/index.js";
 import "./BT10/index.js";

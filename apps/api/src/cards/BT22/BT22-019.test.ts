@@ -131,8 +131,6 @@ describe("BT22-019 Veemon", () => {
     await s.ready();
     const hostId = s.perm("nonVeedramon").permanentId;
 
-    // No player Intent currently produces an opponent-effect deletion; use the public advance
-    // verb to drive the same production leave event used by the positive protection test.
     advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
     try {
       expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);

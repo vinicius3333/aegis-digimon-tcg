@@ -6,28 +6,11 @@ import { irNode } from "../../engine/testkit/irNode.js";
 import compiled from "./EX10-056.js";
 import "../index.js";
 
-/**
- * EX10-056 Bagramon (Purple, Lv.6 Mega, [Demon Lord]/[Bagra Army], 13000 DP, play cost 13).
- *
- * "[On Play] [When Digivolving] You may place 1 of your opponent's Digimon as any of their other
- *  Digimon's bottom digivolution card or under any of their Tamers.
- *  [All Turns] [Once Per Turn] When any of your opponent's Digimon or Tamers digivolve or effects
- *  place cards under them, by trashing any 2 of this Digimon's digivolution cards, trash your
- *  opponent's top security card.
- *  [DigiXros -2] 2 Digimon cards w/[Bagra Army] trait"
- *
- * Every clause below is driven by a public intent: `playCard` with a `digiXros` plan, `digivolve`,
- * `linkCard`, and the real turn loop. The one exception is the Q5144 unaffectable-host negative,
- * which arms a restriction through the Test Seam's ledger surface because no in-set card grants
- * "unaffected by your opponent's effects" to an opposing permanent.
- */
-
 const CARD_ID = "EX10-056";
 
-/** Bagra Army Digimon cards that carry no [On Play] / [When Digivolving] text: safe DigiXros materials. */
-const MATERIAL_A = "BT14-057"; // ChuuChuumon, Lv.3 Black/Purple [Bagra Army]
-const MATERIAL_B = "BT14-059"; // Damemon, Lv.4 Black/Purple [Bagra Army]
-const NON_MATERIAL = "BT1-009"; // Monodramon, Red [Dragon] — no [Bagra Army] trait, no text
+const MATERIAL_A = "BT14-057";
+const MATERIAL_B = "BT14-059";
+const NON_MATERIAL = "BT1-009";
 
 describe("EX10-056 Bagramon catalog and compiled contract", () => {
   it("records the exact catalog", () => {
@@ -63,12 +46,9 @@ describe("EX10-056 Bagramon catalog and compiled contract", () => {
     }
     const allTurns = compiled.effects?.find((effect) => effect.trigger === "AllTurns");
     expect(allTurns).toMatchObject({ frequency: "OncePerTurn" });
-    // Both event forms carry the SAME `oncePerTurnKey`, so they spend one physical use.
     expect(allTurns?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenOneOfYoursDigivolves",
-      // "Digimon or Tamers digivolve": a Tamer base digivolves as a Tamer, so the kind list
-      // must name Tamer or the engine's `tamerDigivolvedGate` withholds the watcher.
       sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
       oncePerTurnKey: "EX10-056/all-turns",
     });
@@ -120,8 +100,6 @@ describe("EX10-056 [DigiXros -2] 2 Digimon cards w/[Bagra Army] trait", () => {
     const played = s.state.players[0]!.battleArea[0]!;
     expect(played.topCard!.cardId).toBe(CARD_ID);
     expect(played.currentDP).toBe(13000);
-    // `Permanent.stack[0]` is the BOTTOM digivolution card; each material is placed underneath
-    // the previous one, so the last-declared material ends up bottom-most.
     expect(played.stack.map(({ cardId }) => cardId)).toEqual([MATERIAL_B, MATERIAL_A]);
     expect(s.state.memory).toBe(-9);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
@@ -179,10 +157,7 @@ describe("EX10-056 [DigiXros -2] 2 Digimon cards w/[Bagra Army] trait", () => {
 
     const played = s.state.players[0]!.battleArea[0]!;
     expect(played.topCard!.cardId).toBe(CARD_ID);
-    // A hand material is placed at the bottom; a relocated battle-area permanent is pushed on
-    // top of the existing stack, so the field material sits above it.
     expect(played.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("fromHand").instanceId, fieldTopId]);
-    // §7-2-2-7: only the battle-area material's TOP card becomes a digivolution card.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("shed").instanceId]);
     expect(s.state.memory).toBe(-9);
   });
@@ -275,8 +250,6 @@ describe("EX10-056 [On Play] [When Digivolving] placement", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // Only the host is left; the victim's top card sits at the true BOTTOM of the host's stack
-    // (Q5143) and the victim's own digivolution card was trashed at the same time (Q5145).
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("host").permanentId]);
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
       victimTopId,
@@ -325,15 +298,11 @@ describe("EX10-056 [On Play] [When Digivolving] placement", () => {
 
     expect(s.perm("base").topCard!.cardId).toBe(CARD_ID);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT10-081"]);
-    // The Tamer keeps the cards it already had and receives the placed Digimon underneath them.
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
       victimTopId,
       s.inst("under1").instanceId,
       s.inst("under2").instanceId,
     ]);
-    // Q5146: a Tamer never gains an inherited effect from a card under it. The placed card is a
-    // plain vanilla Digimon here, so the observable consequence is only the stack itself; the
-    // gaining rule lives in the engine's inherited-effect resolution, not in this card.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("tamer").permanentId]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -352,8 +321,6 @@ describe("EX10-056 [On Play] [When Digivolving] placement", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // Test Seam ledger arming: no card in this set grants "unaffected by your opponent's effects"
-    // to an OPPOSING permanent, so the only legal host is made unaffectable directly.
     advance(s.engine).ledgers.continuous.addRestriction(
       s.perm("host").permanentId,
       "beAffected",
@@ -370,7 +337,6 @@ describe("EX10-056 [On Play] [When Digivolving] placement", () => {
 });
 
 describe("EX10-056 [All Turns] [Once Per Turn] security trash", () => {
-  /** Seat 0 holds Bagramon with `underCount` digivolution cards; seat 1 can digivolve on its turn. */
   const board = (underCount: number) => ({
     0: {
       battleArea: [
@@ -414,7 +380,6 @@ describe("EX10-056 [All Turns] [Once Per Turn] security trash", () => {
     const securityBefore = opponent.security.map(({ instanceId }) => instanceId);
     expect(s.perm("bagramon").stack).toHaveLength(4);
 
-    // First opponent digivolve of the turn: the watcher fires.
     expect(
       s.engine.applyIntent(1, {
         type: "digivolve",
@@ -429,7 +394,6 @@ describe("EX10-056 [All Turns] [Once Per Turn] security trash", () => {
     expect(s.perm("bagramon").stack).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(2);
 
-    // Second opponent digivolve, same turn: [Once Per Turn] is spent.
     const securityAfterFirst = opponent.security.map(({ instanceId }) => instanceId);
     expect(
       s.engine.applyIntent(1, {
@@ -442,7 +406,6 @@ describe("EX10-056 [All Turns] [Once Per Turn] security trash", () => {
     expect(opponent.security.map(({ instanceId }) => instanceId)).toEqual(securityAfterFirst);
     expect(s.perm("bagramon").stack).toHaveLength(2);
 
-    // Next own turn of the opponent: the use has reset and the remaining 2 sources pay again.
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -518,8 +481,6 @@ describe("EX10-056 [All Turns] [Once Per Turn] security trash", () => {
 
     const opponent = s.state.players[1]!;
     const securityBefore = opponent.security.map(({ instanceId }) => instanceId);
-    // EX10-044's [On Play] places a [Bagra Army] Digimon card from hand under one of its
-    // controller's Tamers — an EFFECT placing cards under an opponent permanent.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tuwarmon").instanceId })).toEqual({
       ok: true,
     });

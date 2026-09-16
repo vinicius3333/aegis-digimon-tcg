@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [All Turns] When this Digimon would leave the battle area, you may place up to 4
-// [Xros Heart]/[Blue Flare] trait Digimon cards from its digivolution cards under 1
-// of your Tamers. No Blue color restriction in the text — trait only.
 export const compiled: CompiledCard = {
   effects: [
     {

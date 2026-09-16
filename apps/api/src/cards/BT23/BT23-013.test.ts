@@ -77,14 +77,6 @@ describe("BT23-013 Jesmon", () => {
     });
   });
 
-  // Exact-name sweep (session 2).
-  // Both printed routes bracket the base name ("[SaviorHuckmon]/Lv.5 w/[CS] trait" and
-  // "[Huckmon]"), so they are equality gates. `names` is a SUBSTRING gate in
-  // engine/cards/cardData.ts matchGatedRequirement (~line 481), which let BaoHuckmon — a level 4
-  // whose name merely CONTAINS "Huckmon" — take the cost-5 [Huckmon] route. Both the module and
-  // the hand-authored ALTERNATE_DIGIVOLUTION_OVERRIDES["BT23-013"] entry in
-  // packages/shared/src/effects/data.ts (which `digivolutionRequirementsFor` prefers) now use
-  // `namesExact`.
   it("gates both printed routes on the exact base name, not a substring", () => {
     expect(digivolutionRequirementsFor("BT23-013")).toEqual(compiled.digivolutionRequirement);
     expect(matchingAlternateDigivolutionRequirement("BT23-013", "BT23-006")).toMatchObject({

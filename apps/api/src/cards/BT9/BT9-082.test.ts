@@ -71,9 +71,6 @@ describe("BT9-082 Ordinemon", () => {
             { card: "AD1-016", as: "yellow" },
           ],
           hand: [{ card: "BT9-082", as: "ordinemon" }],
-          // DNA digivolving draws 1 card (rule §16-11-1) before [When Digivolving]
-          // opens, so lead with a filler card and leave exactly 3 behind for the
-          // security-manipulation scaling (1 + 2 deletions) to consume.
           deck: ["BT1-004", "BT1-001", "BT1-002", "BT1-003"],
         },
         1: { battleArea: ["BT6-111", "BT2-047", "BT1-015"] },

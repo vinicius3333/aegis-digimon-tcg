@@ -1,17 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT20-081 Fenriloogamon: Takemikazuchi:
-// [Hand][Counter] <Blast DNA Digivolve ([Fenriloogamon] + [Kazuchimon])>
-// [On Play][When Digivolving] 2 of your opponent's Digimon get -10000 DP for the turn.
-//   Then, if a Tamer card is in this Digimon's digivolution cards, delete 1 of your
-//   opponent's 10000 DP or lower Digimon.
-// [When Attacking] By trashing your top security card, activate 1 of this Digimon's
-//   [When Digivolving] effects.
-//
-// KB Q4406: can't choose the same Digimon twice for the -10000 DP effect.
-// KB Q4407: Digimon with 0 DP are deleted after ALL processing finishes.
-
 export const compiled: CompiledCard = {
   effects: [
     {

@@ -4,19 +4,6 @@ import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../en
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// Fixture vocabulary (BT19-090 Meteor Rock Soul — Red Option, cost 3).
-// BT10-087 Taiki Kudo: Red [Xros Heart] Tamer — the host whose under-cards branch A and
-//   the [Security] clause play from, and the RED permanent that satisfies the Option's
-//   colour requirement. Its own printed clauses are [On Play] and a DigiXros replacement,
-//   neither of which fires for a seeded Tamer or for a plain Digimon play.
-// BT10-008 Shoutmon: Red Lv.3, [Xros Heart] trait, 2000 DP — the qualifying under-card.
-// BT10-009 Shoutmon X4: [Xros Heart] trait but 8000 DP — the DP near-miss.
-// BT1-009 Monodramon: inert Red Lv.3 3000 DP with NO [Xros Heart] trait — the trait
-//   near-miss, and deck/security padding elsewhere.
-// BT19-014 Shoutmon EX6 / BT19-035 ShootingStarmon: the two exact names branch B's cost
-//   names. BT5-039 is a second, older card ALSO named ShootingStarmon — a legal choice.
-// BT9-035 Starmon: the name near-miss (neither printed name), seeded suspended.
-// BT1-013 Muchomon: inert Red Lv.3 — the attacker and security padding.
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
@@ -36,8 +23,6 @@ describe("BT19-090 Meteor Rock Soul — catalog and IR", () => {
       types: ["Xros Heart"],
       maxCountInDeck: 4,
     });
-    // Catalog discrepancy (reported, not edited): both texts store a U+00A0 NO-BREAK
-    // SPACE after "[Xros Heart]" where the printed card has a plain space.
     const definition = getCardDefinition("BT19-090")!;
     expect(definition.effectText).toContain("\u00a0");
     expect(definition.effectText!.replace(/\u00a0/g, " ")).toBe(
@@ -65,7 +50,7 @@ describe("BT19-090 Meteor Rock Soul — catalog and IR", () => {
                 {
                   kind: "PlayWithoutCost",
                   payCost: false,
-                  optional: true, // "You MAY play"
+                  optional: true,
                   from: ["underTamers"],
                   target: {
                     count: 1,
@@ -73,7 +58,6 @@ describe("BT19-090 Meteor Rock Soul — catalog and IR", () => {
                       controller: "mine",
                       zone: "underTamers",
                       kind: ["Digimon"],
-                      // "with the [Xros Heart] TRAIT" — exact trait, not a substring.
                       nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }],
                       dp: { op: "lte", value: 4000 },
                     },
@@ -88,7 +72,6 @@ describe("BT19-090 Meteor Rock Soul — catalog and IR", () => {
                   cost: {
                     kind: "unsuspendNamed",
                     targets: [
-                      // Bracketed [Shoutmon EX6] / [ShootingStarmon] are EXACT name gates.
                       { count: 1, filter: { nameOrTrait: [{ tokens: ["Shoutmon EX6"], match: "nameExact" }] } },
                       { count: 1, filter: { nameOrTrait: [{ tokens: ["ShootingStarmon"], match: "nameExact" }] } },
                     ],
@@ -99,11 +82,8 @@ describe("BT19-090 Meteor Rock Soul — catalog and IR", () => {
           },
         ],
       },
-      // The [Security] clause is branch A verbatim, including "you may".
       { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", from: ["underTamers"] }] },
     ]);
-    // Both cost legs must require a SUSPENDED permanent: unsuspending is the cost, and
-    // Q3159 turns on an unsuspended [ShootingStarmon] being unable to pay it.
     const modal = card!.effects[0]!.actions[0] as {
       options: { cost?: { targets: { filter: { suspended?: boolean } }[] } }[][];
     };
@@ -151,11 +131,9 @@ describe("BT19-090 Meteor Rock Soul — [Main] branch A: play from under your Ta
     );
     await drainMicrotasks();
 
-    // The Option itself was paid for (cost 3 off 3); the Digimon was not.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
     expect(boardIds(s).sort()).toEqual([s.perm("tamer").topCard!.instanceId, s.inst("shoutmon").instanceId].sort());
-    // Only the qualifying card left the Tamer: the 8000 DP and the non-[Xros Heart] cards stay.
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([
       s.inst("tooBig").instanceId,
       s.inst("wrongTrait").instanceId,
@@ -209,8 +187,6 @@ describe("BT19-090 Meteor Rock Soul — [Main] branch A: play from under your Ta
       {
         0: {
           hand: [{ card: "BT19-090", as: "option" }, "BT1-009"],
-          // BT10-034 Dorulumon: YELLOW [Xros Heart] Lv.4 — a Xros Heart board that is
-          // still not a red permanent.
           battleArea: [{ card: "BT10-034", as: "yellow" }],
           deck: [...FILLER],
           security: [...SECURITY],
@@ -230,10 +206,6 @@ describe("BT19-090 Meteor Rock Soul — [Main] branch A: play from under your Ta
 });
 
 describe("BT19-090 Meteor Rock Soul — [Main] branch B: unsuspend two named Digimon, then attack", () => {
-  /**
-   * `starmon` is whatever card is seeded suspended alongside [Shoutmon EX6]; `ex6Suspended`
-   * arms the Q3159 half where the EX6 itself cannot be unsuspended.
-   */
   function branchBFixture(opts: { starmon?: string; starmonSuspended?: boolean; ex6Suspended?: boolean }): {
     s: EngineSetup;
     prefer: string[];
@@ -278,10 +250,8 @@ describe("BT19-090 Meteor Rock Soul — [Main] branch B: unsuspend two named Dig
     await settle(() => s.state.players[1]!.security.length === SECURITY.length - 1);
     await drainMicrotasks();
 
-    // The cost was paid: both named Digimon stand up.
     expect(s.perm("ex6").isSuspended).toBe(false);
     expect(s.perm("starmon").isSuspended).toBe(false);
-    // The attack really happened: the attacker suspended and one security card was checked.
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(SECURITY.length - 1);
     expect(s.state.memory).toBe(0);
@@ -303,9 +273,6 @@ describe("BT19-090 Meteor Rock Soul — [Main] branch B: unsuspend two named Dig
   });
 
   it("Q3159: an already-unsuspended [ShootingStarmon] cannot pay half the cost", async () => {
-    // Q3159 verbatim: a suspended [Shoutmon EX6] and an UNSUSPENDED [ShootingStarmon].
-    // "A 'by doing X' condition can't be met if only some of the required actions are
-    // performed" — so nothing unsuspends and no attack happens.
     const { s } = branchBFixture({ starmon: "BT19-035", starmonSuspended: false });
     await s.ready();
 
@@ -318,7 +285,6 @@ describe("BT19-090 Meteor Rock Soul — [Main] branch B: unsuspend two named Dig
     expect(s.perm("starmon").isSuspended).toBe(false);
     expect(s.perm("attacker").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(SECURITY.length);
-    // The Option was still used and paid for; only its chosen branch did nothing.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -400,11 +366,9 @@ describe("BT19-090 Meteor Rock Soul — [Security]", () => {
     );
     await drainMicrotasks();
 
-    // The defender's Shoutmon is on the board, free, and the 8000 DP card stayed put.
     expect(boardIds(s, 1).sort()).toEqual([s.perm("tamer").topCard!.instanceId, s.inst("shoutmon").instanceId].sort());
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("tooBig").instanceId]);
     expect(s.state.memory).toBe(memoryBefore);
-    // The Option itself is spent from security, not added to the hand.
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-013"]);
     expect(s.state.players[1]!.hand).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();

@@ -255,8 +255,6 @@ describe("BT20-060 Alphamon: Ouryuken", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
-    // The card belongs to seat 0 while seat 1 is taking the turn; its +3 is
-    // therefore represented as -3 on the global memory gauge.
     expect(s.state.memory).toBe(-3);
   });
 
@@ -276,8 +274,6 @@ describe("BT20-060 Alphamon: Ouryuken", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ouryuken").permanentId));
-    // The owner of the deleted ACE is seat 0 while seat 1 is taking the turn;
-    // Overflow -5 is therefore represented as +5 on the global memory gauge.
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT20-060");
   });

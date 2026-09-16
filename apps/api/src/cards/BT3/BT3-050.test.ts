@@ -132,7 +132,6 @@ describe("BT3-050 Stingmon", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    // The real next own Active phase unsuspends the same host before Main Phase begins.
     expect(s.perm("host").isSuspended).toBe(false);
     await advance(s.engine).verb.suspend([secondId]);
     expect(s.perm("second").isSuspended).toBe(true);

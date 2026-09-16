@@ -1,20 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT9-079 (GranDracmon).
-//
-// Audit fixes:
-//
-// 1. [End of Attack] target filter must exclude self ("1 of your OTHER Digimon").
-//    Prior IR had no excludeSelf. Fix: add excludeSelf: true.
-//
-// 2. [End of Attack] `into` was a raw string. Fix: use structured filter with
-//    nameOrTrait [Undead, Dark Animal] match:"trait" (OR disjunction per BT9-071 pattern).
-//
-// 3. [End of Attack] freeCost: true was wrong. KB Q1872 says requirements cannot be ignored.
-//    The effect pays no memory cost (payCost: false) but MUST satisfy digivolution requirements.
-//    Fix: payCost: false, remove freeCost, remove ignoreReqs (not present but make explicit).
-
 export const compiled: CompiledCard = {
   effects: [
     {

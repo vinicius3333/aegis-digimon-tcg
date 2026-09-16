@@ -36,8 +36,6 @@ describe("BT20-003 Bibimon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    // Evolve Bibimon into a legal yellow Rookie in the initial Main fixture, then move it
-    // publicly during the next real Breeding phase before reaching End of Your Turn.
     await eligible.ready();
     expect(
       eligible.engine.applyIntent(0, {
@@ -148,7 +146,7 @@ describe("BT20-003 Bibimon", () => {
       },
       options,
     );
-    preferred.push(s.perm("eijiHost").stack[0]!.instanceId); // Reuse Eiji so its inherited effect can detach it on the next window.
+    preferred.push(s.perm("eijiHost").stack[0]!.instanceId);
     s.state.memory = 3;
     await s.ready();
     const turn = s.engine.runOneTurn();
@@ -172,20 +170,13 @@ describe("BT20-003 Bibimon", () => {
       await settle(() => s.state.pendingDecision?.decisionId !== decision.req.decisionId);
     }
 
-    // The first End of Your Turn window must detach the existing Eiji, then place the
-    // eligible field Tamer, and finally let Ouryuken return four X sources for +4 memory.
     await chooseTrigger("BT14-087");
     await chooseTrigger("BT20-003");
-    // The final remaining Ouryuken effect resolves automatically.
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("ouryuken").stack).toHaveLength(1);
     expect(s.perm("host").stack.some((card) => card.cardId === "BT14-087")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-086")).toBe(true);
 
-    // Main reopened in the same turn. Eiji detaches again during the second EOT,
-    // restoring the no-Tamer condition while Bibimon's Once Per Turn identity stays used.
-    // CR 6-6-4 CONTINUES the Main phase rather than re-entering it, so the reopening emits
-    // no second `phaseChanged` — `waitForMainPhase` above is what proves input reopened.
     expect(s.events.filter((event) => event.kind === "phaseChanged" && event.phase === Phase.Main)).toHaveLength(1);
     options.autoOrderTriggers = true;
     advance(s.engine).endMainPhaseIfOpen(0);

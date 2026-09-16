@@ -117,8 +117,6 @@ describe("EX6-028 Seraphimon", () => {
     await advance(s.engine).waitForMainPhase(0);
     await advance(s.engine).verb.playFromSecurity(s.inst("opponentRecovery").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(3);
-    // The first own security addition arms the watcher; subsequent additions in this turn
-    // must not retrigger it.
     await advance(s.engine).verb.playFromSecurity(s.inst("ownRecovery").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
     await advance(s.engine).verb.playFromSecurity(s.inst("sameTurnRecovery").instanceId);

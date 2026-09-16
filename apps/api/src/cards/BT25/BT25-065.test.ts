@@ -133,8 +133,6 @@ describe("BT25-065 Monodramon", () => {
       0: { breeding: { card: "BT11-005", as: "blackEgg" }, hand: [{ card: CARD_ID, as: "monodramon" }] },
     });
     nonTs.state.memory = 3;
-    // The public intent flag requests the alternate route, but the engine falls
-    // back to the independently legal ordinary black Lv2 route for this source.
     expect(
       nonTs.engine.applyIntent(0, {
         type: "digivolve",

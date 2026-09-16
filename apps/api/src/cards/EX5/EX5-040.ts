@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX5-040.
-// Plan 13-01 Task 3 (Phase 13 primitives): PlayWithoutCost.breeding: true routes the
-// played card to the BREEDING area. The engine's playInstances primitive now handles
-// the breeding destination.
 export const compiled: CompiledCard = {
   effects: [
     {

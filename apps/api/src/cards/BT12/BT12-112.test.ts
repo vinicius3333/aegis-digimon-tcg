@@ -5,24 +5,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-112.js";
 
-// A3 for BT12-112 (Shoutmon X7: Superior Mode) — self ＜would be played＞ cost reduction paid by
-// PLACING A PERMANENT (not a structured Cost), the family this fix unlocks:
-//   "When you would play this card from your hand, by placing 1 of your [Shoutmon] as a
-//   digivolution card under this Digimon, reduce its play cost by 1." (KB Q2249-Q2256)
-//
-// Before the fix, `wouldBePlayed reduceCost` replacements whose cost is paid by running an
-// `actions` body (SelectBind + TrashDigivolution + PlaceUnder) were compiled but never consumed:
-// `ReplacementSubscription.apply` had zero call sites, and this self-reducer shape wasn't in the
-// old structured-Cost-only extraction. The fix generalizes the self-reducer extraction/consume path
-// to run these actions bodies at pay-time, deferring the final relocation (the played permanent
-// doesn't exist yet at pay-time) via `pendingSelfReducerRelocations`.
-//
-// FAILS-WHEN-REVERTED: without the fix, `wouldBePlayedSelfReducersFor` never captures an
-// actions-body reducer, so the optional prompt is never offered, the [Shoutmon] is never placed,
-// and the FULL cost (15) is paid.
-
-const BT12_112 = "BT12-112"; // cost 15
-const SHOUTMON = "BT12-008"; // Lv.3 Shoutmon, a valid material for the SelectBind filter
+const BT12_112 = "BT12-112";
+const SHOUTMON = "BT12-008";
 
 describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)", () => {
   it("registers the complete DigiXros and declarative replacement IR", async () => {
@@ -150,7 +134,7 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const p0 = s.state.players[0];
-    s.state.memory = 14; // exactly the reduced cost
+    s.state.memory = 14;
 
     const res = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId });
     expect(res).toEqual({ ok: true });
@@ -164,13 +148,8 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
 
     const played = p0?.battleArea.find((p) => p.topCard?.cardId === BT12_112);
     expect(played).toBeDefined();
-    // The full cost (15) was NOT paid — memory 14 reduced cost paid to 0, not -1.
     expect(s.state.memory).toBe(0);
-    // The [Shoutmon] permanent is gone from the top-level battle area (relocated as a digivolution
-    // card) — the actions body actually ran, not just the amount.
     expect(p0?.battleArea.some((p) => p.permanentId === shoutmonPermanentId)).toBe(false);
-    // It now lives under BT12-112 as the only placed digivolution card; its own source stack was
-    // trashed by the would-be-played effect before placement (KB Q2250).
     expect(played?.stack.map((c) => c.cardId)).toEqual([SHOUTMON]);
     expect(s.state.players[0]?.trash.map(({ instanceId }) => instanceId)).toContain(sourceStackId);
   });
@@ -186,15 +165,13 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
       { autoSelectCards: true },
     );
     const p0 = s.state.players[0];
-    s.state.memory = 15; // the FULL cost, not the reduced one
+    s.state.memory = 15;
 
     const res = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId });
     expect(res).toEqual({ ok: true });
 
     const shoutmonPermanentId = s.perm("shoutmon").permanentId;
     const sourceStackId = s.inst("source-stack").instanceId;
-    // The harness's `autoAcceptOptional` only ever answers "yes" — declining requires
-    // responding to the captured decision by hand.
     await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 400);
     const prompt = s.decisions.find((d) => d.req.kind === "optional");
     if (prompt !== undefined) {
@@ -212,7 +189,6 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
     const played = p0?.battleArea.find((p) => p.topCard?.cardId === BT12_112);
     expect(played).toBeDefined();
     expect(s.state.memory).toBe(0);
-    // No discount was granted and the [Shoutmon] was left as its own permanent, untouched.
     expect(p0?.battleArea.some((p) => p.permanentId === shoutmonPermanentId)).toBe(true);
     expect(played?.stack.length ?? 0).toBe(0);
     expect(s.perm("shoutmon").stack.map(({ instanceId }) => instanceId)).toEqual([sourceStackId]);

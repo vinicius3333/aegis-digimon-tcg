@@ -88,7 +88,6 @@ describe("P-161 Bishop Device", () => {
     await s.ready();
     const bishopId = s.perm("bishop").permanentId;
     await advance(s.engine).verb.deletePermanent([bishopId], "byEffect");
-    // This top-level trigger is opened after the permanent leaves the field.
     await advance(s.engine).fireGlobal(EffectTiming.WhenTrashedFromBattleArea, {
       deletedPermanentId: bishopId,
       deletedInstanceIds: [s.inst("bishop").instanceId],

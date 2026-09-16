@@ -217,8 +217,6 @@ describe("BT15-102", () => {
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 3;
 
-    // Digivolving costs 6, so paying from 3 memory crosses the gauge — the rulebook
-    // turn-pass, with no endPhase intent from the player.
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

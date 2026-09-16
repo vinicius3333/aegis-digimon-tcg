@@ -35,10 +35,6 @@ describe("BT17-008", () => {
   });
 
   it("compiles the played-trigger deletion and the inherited DP-maximum bonus", () => {
-    // `[Calumon]` is a bracketed name with no "in name", so it is literal equality
-    // (nameExact); "Tamers with [Takato Matsuki] in their name" stays substring (name).
-    // "While YOU have 0 or less memory" is owner-relative, so the memory condition
-    // carries controller "mine" rather than reading the raw turn-relative gauge.
     expect(compiled).toEqual({
       effects: [
         {
@@ -111,8 +107,6 @@ describe("BT17-008", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // Q2710: with a legal target the deletion is mandatory, so the "didn't delete"
-    // memory gain never fires; 10 - 3 (Takato's play cost) = 7 and no +1.
     expect(s.state.memory).toBe(7);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("boundaryTarget").instanceId]);
@@ -178,8 +172,6 @@ describe("BT17-008", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tai").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
-    // Neither branch of the sourceFilter matches, so there is no deletion AND no memory
-    // gain: 10 - 4 (Tai's play cost) = 6.
     expect(s.state.memory).toBe(6);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -216,9 +208,6 @@ describe("BT17-008", () => {
   });
 
   it("gains 1 memory when the only legal target cannot be deleted by opponent effects", async () => {
-    // Q2711: a Digimon with "can't be deleted by your opponent's effects" is still a legal
-    // choice, and choosing it leaves the effect having deleted nothing, so the memory
-    // clause fires. BT14-062 carries that restriction; its DP is trimmed under the cap.
     const s = setupEngine(
       {
         0: {
@@ -286,8 +275,6 @@ describe("BT17-008", () => {
     });
     await settle(() => s.state.memory === memoryAfterFirst - 3);
 
-    // Second play in the same turn: the once-per-turn effect is spent, so neither the
-    // deletion nor the "didn't delete" memory gain happens.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.memory).toBe(memoryAfterFirst - 3);
 
@@ -306,8 +293,6 @@ describe("BT17-008", () => {
   });
 
   it("raises Growlmon's 4000 DP deletion maximum to 6000 while its owner has 0 memory", async () => {
-    // Q2712/Q2713: the inherited bonus reads the OWNER's gauge, and it lifts the printed
-    // numeric maximum of the carrier's own DP-based deletion.
     const s = setupEngine(
       {
         0: {
@@ -371,8 +356,6 @@ describe("BT17-008", () => {
     await settle(() => s.perm("guilmon").topCard.cardId === "BT17-010");
     await settle(() => s.perm("guilmon").currentDP === 8000);
 
-    // Memory 2 (> 0) keeps the maximum at the printed 4000, so the 5000 DP Digimon
-    // survives and Growlmon takes its "didn't delete" +3000 DP instead.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("fiveKTarget").currentDP).toBe(5000);

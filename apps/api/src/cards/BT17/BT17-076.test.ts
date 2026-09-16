@@ -160,9 +160,6 @@ describe("BT17-076 Eosmon", () => {
     );
   });
 
-  // "For each Tamer" counts every Tamer in play, not only yours (matching the corrected
-  // scaling filter and BT6-086's "For each Tamer in play"). The aura must not be gated on
-  // controlling a Tamer yourself: an opponent-only Tamer still confers +1000.
   it("boosts your Eosmon by an opponent-only Tamer on your turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT17-076", as: "eosmon" }] },
@@ -174,9 +171,6 @@ describe("BT17-076 Eosmon", () => {
     expect(s.perm("eosmon").currentDP).toBe(13000);
   });
 
-  // Q2844: this card is itself an [Eosmon], so playing it satisfies its own [All Turns]
-  // "when one of your [Eosmon] is played" trigger, deleting an opponent Digimon at or below
-  // this card's own DP.
   it("triggers its own [All Turns] deletion when this Eosmon is played (Q2844)", async () => {
     const s = setupEngine(
       {
@@ -229,8 +223,6 @@ describe("BT17-076 Eosmon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  // The route is level 5 + exactly [Eosmon]: a Lv4 Eosmon (wrong level) and a Lv5 non-Eosmon
-  // (wrong name) are both refused.
   it("refuses a wrong-level Eosmon and a right-level non-Eosmon source", async () => {
     const s = setupEngine(
       {
@@ -266,8 +258,6 @@ describe("BT17-076 Eosmon", () => {
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === evolvingId)).toBe(true);
   });
 
-  // The [All Turns] deletion is [Once Per Turn]: playing a second Eosmon the same turn does
-  // not delete a second opponent Digimon.
   it("deletes only one opponent Digimon per turn across two Eosmon plays", async () => {
     const s = setupEngine(
       {

@@ -1,17 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST17-02 Terriermon — hand-fixed IR.
-// [Digivolve] [Gummymon]: Cost 0
-// [Main][Once Per Turn] You may play 1 green Tamer card or 1 level 3 Digimon card
-//   with [Lopmon] in its name from your hand with the play cost reduced by 2.
-// [Inherited] [All Turns] While this Digimon is suspended, it gets +1000 DP.
 const compiled: CompiledCard = {
   effects: [
     {
-      // [Main][Once Per Turn] You may play 1 green Tamer card OR 1 level 3 Digimon
-      // with [Lopmon] in its name from your hand with the play cost reduced by 2.
-      // The two alternatives are expressed as filter.or.
       trigger: "Main",
       actions: [
         {

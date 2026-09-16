@@ -41,8 +41,6 @@ describe("BT17-050 Parasitemon", () => {
 
   it("carries the modal [Hand][Main], the [End of Attack] relocate and both inherited effects", () => {
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
-    // "By paying 4 cost and placing this card ..." is one compound activation cost (Q2803), so the
-    // placement is in `cost`, not in the bullet.
     expect(main).toMatchObject({
       isFromHand: true,
       actions: [
@@ -69,7 +67,6 @@ describe("BT17-050 Parasitemon", () => {
     expect(option).toHaveLength(2);
     expect(option[0]).toMatchObject({ kind: "Suspend", target: { filter: { controller: "opponent" }, count: 1 } });
     expect(option[1]).toMatchObject({ kind: "Attack", attacker: { filter: { boundRef: "parasitemonHost" } } });
-    // Q2804's "placed, nothing else" branch.
     expect(irNode(main!.actions[0]!).options[1]).toEqual([]);
 
     expect(compiled.effects.find((entry) => entry.trigger === "EndOfAttack")?.actions[0]).toMatchObject({
@@ -99,12 +96,8 @@ describe("BT17-050 Parasitemon", () => {
           ],
           deck: [{ card: "BT1-011", as: "top" }],
         },
-        // One suspended opponent Digimon is both the suspend and the attack target; a suspended
-        // defender cannot open a block/counter window, so the battle resolves without input.
         1: { battleArea: [{ card: "BT1-013", dp: 5000, as: "prey", suspended: true }] },
       },
-      // The modal now offers two real bullets — "suspend and attack" and the empty
-      // "placed, nothing else" branch of Q2804 — so the option choice has to be answered.
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, autoChooseOption: true },
     );
     s.state.memory = 4;
@@ -122,7 +115,6 @@ describe("BT17-050 Parasitemon", () => {
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== preyId));
 
     expect(s.state.memory).toBe(0);
-    // Placed as the BOTTOM digivolution card: index 0 of the beneath-top stack, under the existing source.
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
       parasitemonId,
       s.inst("hostSource").instanceId,
@@ -136,10 +128,6 @@ describe("BT17-050 Parasitemon", () => {
   });
 
   it("Q2803: refuses to activate with no level-5-or-higher host", async () => {
-    // Q2803: paying 4 cost AND placing this card under a level-5+ Digimon is a single activation
-    // condition; with no such Digimon the effect cannot be activated. The module now carries both
-    // halves as one compound `cost` on the modal, so `canPayCost` refuses the activation before
-    // any memory is charged. See docs/audits/BT17.md#pay-then-may-mechanism.
     const s = setupEngine(
       {
         0: {
@@ -164,18 +152,12 @@ describe("BT17-050 Parasitemon", () => {
     });
     await settle(() => s.state.pendingDecision === undefined && observe(s.engine).isAttacking() === false);
 
-    // Desired: activation refused, cost untouched, card still in hand.
     expect(result).not.toEqual({ ok: true });
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(parasitemonId);
   });
 
   it("Q2804: can place under a level-5 host without suspending or attacking", async () => {
-    // Printed text: "you may suspend ... and attack". Q2804 gives two legal resolutions once the
-    // 4 cost is paid and the card is placed: (a) suspend + attack, or (b) neither. With the
-    // placement moved into the modal's cost, option[1] = [] is the real "placed, nothing else"
-    // branch, and `runModal` now treats an empty option list as available rather than filtering it
-    // out. See docs/audits/BT17.md#pay-then-may-mechanism.
     const s = setupEngine(
       {
         0: {
@@ -201,7 +183,6 @@ describe("BT17-050 Parasitemon", () => {
     });
     await settle(() => s.perm("host").stack.some(({ instanceId }) => instanceId === parasitemonId));
 
-    // Desired end state: placed and paid, but the opponent Digimon was neither suspended nor attacked.
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([parasitemonId]);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === preyId)?.isSuspended).toBe(false);
@@ -233,25 +214,19 @@ describe("BT17-050 Parasitemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // ＜Alliance＞ opens a decision on attack; decline it so Parasitemon attacks alone and survives.
     await settle(() => combat.hasOpenAllianceDecision);
     expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: undefined })).toEqual({ ok: true });
     await settle(() => s.perm("other").stack.some(({ instanceId }) => instanceId === paraId));
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([otherId]);
     expect(s.perm("other").stack.map(({ cardId }) => cardId)).toEqual(["BT17-050"]);
-    // Placing only the top Digimon under another trashes its own digivolution source.
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("paraSource").instanceId)).toBe(
       true,
     );
-    // The relocated Parasitemon now confers its inherited [Your Turn] +3000 to the new host.
     expect(s.perm("other").currentDP).toBe(10000);
   });
 
   it("Q2805: an opponent effect deleting the host lets each buried Parasitemon play itself for free", async () => {
-    // Seam-driven (advance.verb.deletePermanent inside an opponent effect-resolution window) because
-    // no public intent in this fixture deletes the host by the opponent's effect; this is structural
-    // evidence for the [All Turns] inherited replacement, not a natural-flow behavioural proof.
     const s = setupEngine(
       {
         0: {
@@ -273,7 +248,6 @@ describe("BT17-050 Parasitemon", () => {
     await s.ready();
     const hostPermanentId = s.perm("host").permanentId;
 
-    // Opponent (seat 1) effect deletes the host.
     advance(s.engine).verb.enterEffectResolution(1);
     await advance(s.engine).verb.deletePermanent([hostPermanentId], "byEffect");
     advance(s.engine).verb.leaveEffectResolution();
@@ -298,7 +272,6 @@ describe("BT17-050 Parasitemon", () => {
     });
     await s.ready();
 
-    // Same host printed DP; the only difference is the Parasitemon digivolution card underneath.
     expect(s.perm("bare").currentDP).toBe(7000);
     expect(s.perm("boosted").currentDP).toBe(10000);
   });

@@ -1,9 +1,3 @@
-// EX9-062 SkullGreymon — hand-fixed IR.
-// Scaling corrected to target face-down digivolution cards (faceDown:true in filter).
-// Scaling uses the dedicated face-down digivolution-card counter.
-//
-// "This card is also treated as level 4 for [Kimeramon]'s assembly" is enforced by the
-// shared Assembly material matcher, independently of the printed level 5.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

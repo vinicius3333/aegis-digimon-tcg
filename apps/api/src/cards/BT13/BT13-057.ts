@@ -1,8 +1,3 @@
-// HAND-FIXED IR for BT13-057 (Rosemon) — do not regenerate. Both suspend selections
-// CanSelectPermanentCondition gates on `!permanent.IsSuspended`, and resolution guards
-// on `!IsSuspended && CanSuspend`): a suspend may only target an UNSUSPENDED permanent.
-// Without it the [All Turns] watcher could re-pick the already-suspended cost target as a
-// no-op instead of a fresh opponent.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

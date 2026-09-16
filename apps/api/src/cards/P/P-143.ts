@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// MovePermanent preserves identity, stack, links, and suspension state, matching
-// Q4250/Q4251/Q4256. The breeding-area destination also supplies the empty-slot gate.
 const compiled: CompiledCard = {
   effects: [
     {

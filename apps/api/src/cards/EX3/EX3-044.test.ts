@@ -6,7 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../BT2/BT2-054.js";
 import "./EX3-024.js";
 import { compiled } from "./EX3-044.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 const mainEffect =
   "Digivolve: 3 from [Groundramon] or [Wingdramon][All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.";
@@ -256,8 +256,6 @@ describe("EX3-044 Breakdramon", () => {
     s.perm("firstTarget").isSuspended = true;
     s.perm("secondTarget").isSuspended = false;
     await advance(s.engine).verb.suspend([s.perm("breakdramon").permanentId]);
-    // Only 1 legal target remains (firstTarget is already suspended), so the effect resolves it
-    // without a chooseTargets decision.
     await settle(() => s.perm("secondTarget").isSuspended);
 
     expect(s.perm("secondTarget").isSuspended).toBe(true);
@@ -284,8 +282,6 @@ describe("EX3-044 Breakdramon", () => {
     s.state.memory = -3;
     await s.ready();
 
-    // Start a real opponent turn so the production Start of Opponent's Main Phase
-    // trigger drives Q3399's simultaneous-resolution ordering.
     const flow = s.engine.runOneTurn();
     await settle(() => s.state.pendingDecision?.kind === "optional");
     let pending = s.state.pendingDecision!;
@@ -378,8 +374,6 @@ describe("EX3-044 Breakdramon", () => {
         battleArea: [
           { card: "EX3-044", as: "watcher" },
           { card: "BT1-020", dp: 9000, as: "groundramon" },
-          // A vanilla Dramon keeps the assertion scoped to Breakdramon's watcher; BT1-026
-          // prints Piercing and correctly consumes security after its battle win.
           { card: "BT14-015", dp: 9000, as: "breakdramon" },
         ],
       },
@@ -428,8 +422,6 @@ describe("EX3-044 Breakdramon", () => {
           { card: "EX3-044", as: "mainWatcher" },
           { card: "BT1-020", under: ["EX3-044"], as: "inheritedWatcher" },
           { card: "BT1-020", dp: 15000, as: "firstDramon" },
-          // A vanilla [Dramon] attacker: BT1-026 Breakdramon prints ＜Piercing＞, which would
-          // consume a second security card and hide the once-per-turn trash under test.
           { card: "BT14-015", dp: 15000, as: "secondDramon" },
           { card: "BT1-009", dp: 15000, as: "nextTurnDramon" },
         ],

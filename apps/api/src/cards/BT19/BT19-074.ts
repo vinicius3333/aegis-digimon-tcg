@@ -1,16 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Manual audit corrections:
-// - the 10-card return cost excludes Digi-Eggs (the generated record had the inverse filter);
-// - the result is the opponent's top security card, so it must use SecurityManipulation rather
-//   than a loose-card Trash action.
-// - the 10-trash deletion is an "instead" branch, not an additional deletion after the
-//   level-6-or-lower branch.
-
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
   effects: [
     {

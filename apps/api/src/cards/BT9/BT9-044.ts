@@ -1,18 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT9-044 (Magnamon X Antibody).
-//
-// Audit fixes:
-//
-// 1. The printed text uses the primary form "Digivolve: 4 from [Magnamon]" — not a bracketed
-//    alternate form. Keep the required typed field explicit as isAlternate: false.
-//
-// 2. [All Turns] Replacement effect: "you may place the top card of this Digimon on top of
-//    your security stack face down to prevent that deletion." KB Q1840 confirms you CANNOT
-//    activate this effect when there are no digivolution cards (the action requires a card to
-//    place). Fix: add condition selfDigivolutionCountAtLeast: 1 to the Replacement.
-
 export const compiled: CompiledCard = {
   effects: [
     {

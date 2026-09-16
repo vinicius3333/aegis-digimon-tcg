@@ -26,9 +26,6 @@ describe("BT8-059 Kokuwamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // A player-directed attack has no Digimon-vs-Digimon battle, so `combatResolved`
-    // (emitted only by `resolveDigimonBattle`) never fires; the attack's real
-    // completion milestone here is the security check.
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.perm("fury").topCard.cardId).toBe("BT8-081");
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("rasenmon").instanceId)).toBe(true);
@@ -59,9 +56,6 @@ describe("BT8-059 Kokuwamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // A player-directed attack has no Digimon-vs-Digimon battle, so `combatResolved`
-    // (emitted only by `resolveDigimonBattle`) never fires; the attack's real
-    // completion milestone here is the security check.
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
 
     expect(s.perm("fury").topCard.cardId).toBe("BT8-081");

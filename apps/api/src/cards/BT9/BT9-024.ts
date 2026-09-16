@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-corrected IR for BT9-024 (Garurumon X Antibody).
-// Inherited effect: when this Digimon has [Garurumon] or [Omnimon] in its name and
-// would be deleted in battle, you may trash 2 cards of the same level from its
-// digivolution cards to prevent that deletion.
-// KB Q1825: the 2 trashed cards must be same level AS EACH OTHER (not the Digimon's level).
-// KB Q1826: this card itself (in the digivolution cards) can be one of the 2 trashed.
-// Encoded as a Replacement "prevent" with a sameLevelPair cost from digivolutionCards.
 export const compiled: CompiledCard = {
   effects: [
     {

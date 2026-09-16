@@ -71,7 +71,6 @@ describe("BT18-086 Lucemon: Larva", () => {
   it("does not play a Lucemon variant from trash when Larva is revealed from security", async () => {
     const s = setupEngine({
       0: {
-        // Keep a second security card so the post-check assertions can inspect the trash.
         security: [{ card: "BT18-086", as: "larva", faceUp: true }, "BT1-010"],
         trash: [{ card: "BT18-082", as: "variant" }],
       },
@@ -153,7 +152,6 @@ describe("BT18-086 Lucemon: Larva", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("larva").instanceId)).toBe(
       true,
     );
-    // Moving Larva is the replacement cost, so Satan Mode remains in play.
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("satan").instanceId)).toBe(
       true,
     );

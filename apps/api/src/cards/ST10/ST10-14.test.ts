@@ -5,20 +5,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT9/BT9-103.js";
 import "./ST10-14.js";
 
-// A3 for ST10-14 (Chaos Degradation, Option) — [Main] place 1 opponent Digimon face down at the
-// top or bottom of their security stack; if placed at top, trash the top of their security.
-// source: documented behavior.
-//
-// FAILS-WHEN-REVERTED: choosing TOP places the opponent Digimon's top card onto their security
-// and then the if(toTop) trash removes it to the opponent's trash. A no-op leaves the opponent
-// Digimon on the field and the trash unchanged.
-
 describe("ST10-14 [Main] place an opponent Digimon onto their security (top), then trash the top", () => {
   it("places the opponent Digimon's top card to their security and trashes it (toTop)", async () => {
     const s = setupEngine(
       {
         0: {
-          // §4-21 color-requirement source (Yellow + Purple)
           battleArea: ["BT1-045", "BT10-079"],
           hand: [{ card: "ST10-14", as: "option" }],
         },
@@ -28,7 +19,7 @@ describe("ST10-14 [Main] place an opponent Digimon onto their security (top), th
     );
     const p1 = s.state.players[1] as PlayerState;
     const oppTopId = s.perm("oppDigimon").topCard!.instanceId;
-    s.state.memory = 8; // exact play cost
+    s.state.memory = 8;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
@@ -36,9 +27,7 @@ describe("ST10-14 [Main] place an opponent Digimon onto their security (top), th
 
     await settle(() => p1.trash.some((c) => c.instanceId === oppTopId));
 
-    // The opponent Digimon's top card was placed at security top, then trashed → in their trash.
     expect(p1.trash.some((c) => c.instanceId === oppTopId)).toBe(true);
-    // The Digimon's former top card is no longer on the battle area.
     expect(p1.battleArea.some((perm) => perm.topCard?.instanceId === oppTopId)).toBe(false);
   });
 

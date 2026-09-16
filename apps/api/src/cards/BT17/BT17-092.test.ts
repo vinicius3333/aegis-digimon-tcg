@@ -213,16 +213,12 @@ describe("BT17-092 Menoa Bellucci", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT4-093"));
 
-    // [On Play] Draw 1 never activated: the card stays on top of the deck.
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("blockedDraw").instanceId);
     expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toContain(s.inst("blockedDraw").instanceId);
     expect(s.state.players[1]!.hand).toHaveLength(1);
     expect(observe(s.engine).timingEffectDisabled(s.perm("thomas"), "onPlay")).toBe(true);
-    // Q2875: the [Main] timing is untouched, so the Tamer still offers an activatable effect.
   });
 
-  // Q2876: "would leave the battle area" also covers a return to the hand, which the test below
-  // proves through a real opponent Option (BT15-090 Fox Fire) rather than the deletion route only.
   it("Q2876: prevents an opponent bounce by deleting another Eosmon", async () => {
     const s = setupEngine(
       {
@@ -252,8 +248,6 @@ describe("BT17-092 Menoa Bellucci", () => {
     });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT15-090"));
 
-    // The bounce is prevented: no Eosmon reaches seat 0's hand, one Eosmon stays on the field and
-    // the other was deleted as the prevention cost.
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074")).toHaveLength(
       1,
@@ -292,7 +286,6 @@ describe("BT17-092 Menoa Bellucci", () => {
     s.state.memory = 30;
     await s.ready();
 
-    // First opponent turn: the replacement pays with one Eosmon, so two Eosmon are consumed.
     const firstOpponentTurn = s.engine.runOneTurn();
     await turns.waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstDeleter").instanceId })).toEqual({
@@ -305,12 +298,10 @@ describe("BT17-092 Menoa Bellucci", () => {
     turns.endMainPhaseIfOpen(1);
     await firstOpponentTurn;
 
-    // The harness chains hand-laid turns: the caller sets the seat and memory before each turn.
     s.state.turnSeat = 0;
     s.state.memory = 3;
     await turns.runTurn(0);
 
-    // Second opponent turn: the once-per-turn use is available again.
     s.state.turnSeat = 1;
     s.state.memory = 30;
     const secondOpponentTurn = s.engine.runOneTurn();
@@ -322,7 +313,6 @@ describe("BT17-092 Menoa Bellucci", () => {
     turns.endMainPhaseIfOpen(1);
     await secondOpponentTurn;
 
-    // Two deletions, two prevention costs paid, and two Eosmon still standing.
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT17-074", "BT17-074"]);
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074")).toHaveLength(
       2,
@@ -392,7 +382,6 @@ describe("BT17-092 Menoa Bellucci", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("bystander").instanceId));
 
-    // The replacement is scoped to [Eosmon]: the Monodramon leaves and no Eosmon is spent.
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("bystander").instanceId]);
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074")).toHaveLength(
       1,

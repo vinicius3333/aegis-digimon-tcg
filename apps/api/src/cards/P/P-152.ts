@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q4267: digivolve from Shoutmon (play cost ≤4) OR Dorulumon (play cost ≤4) for cost 0.
-// [DigiXros -1]: requires 1 Shoutmon AND 1 Dorulumon as the two Xros materials.
 const compiled: CompiledCard = {
   effects: [
     {

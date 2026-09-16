@@ -127,8 +127,6 @@ describe("BT14-017", () => {
     s.state.turnSeat = 1;
     s.state.memory = 13;
     await s.ready();
-    // Natural hand play drives Goldramon's own On Play effect, proving the token restriction
-    // through the same entry path used by the game rather than manually injecting On Play.
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("goldramon").instanceId })).toEqual({
       ok: true,
     });

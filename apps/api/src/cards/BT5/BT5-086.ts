@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-validated effect IR for BT5-086 (Omnimon).
 const compiled: CompiledCard = {
   effects: [
     {

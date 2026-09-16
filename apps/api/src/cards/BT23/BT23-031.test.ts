@@ -6,12 +6,11 @@ import "../index.js";
 import { compiled } from "./BT23-031.js";
 
 const ANGEWOMON = "BT23-031";
-const LADYDEVIMON = "BT23-067"; // exact name [LadyDevimon]
-const LADYDEVIMON_X = "EX7-058"; // "LadyDevimon (X Antibody)" — a different printed name
-const MIREI = "BT22-089"; // Tamer [Mirei Mikagura]
-const SECURITY_OPTION = "BT23-100"; // carries a [Security] effect; must stay dormant when moved to hand
+const LADYDEVIMON = "BT23-067";
+const LADYDEVIMON_X = "EX7-058";
+const MIREI = "BT22-089";
+const SECURITY_OPTION = "BT23-100";
 
-/** Play Angewomon from hand with `memory` available and wait for both On Play clauses to settle. */
 function playFromHand(memory: number, board: BoardSpec) {
   const s = setupEngine(board, { autoSelectCards: true });
   s.state.memory = memory;
@@ -57,7 +56,6 @@ describe("BT23-031 Angewomon", () => {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              // Bracket-only references are exact names (comprehensive rules 2-3-1-2).
               nameOrTrait: [{ tokens: ["LadyDevimon", "Mirei Mikagura"], match: "nameExact" }],
             },
           },
@@ -91,8 +89,6 @@ describe("BT23-031 Angewomon", () => {
       keywords: [{ keyword: "Alliance" }],
     });
   });
-
-  // --- the play-cost reduction ---
 
   it("costs 4 instead of 7 when you control an exact [LadyDevimon]", async () => {
     const s = playFromHand(10, {
@@ -187,12 +183,9 @@ describe("BT23-031 Angewomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 2);
 
-    // The printed [Digivolve] Lv.4 w/[CS] cost 3 is paid in full; the play-cost clause never applies.
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.security).toHaveLength(4);
   });
-
-  // --- the On Play / When Digivolving security clause ---
 
   it("moves the physical top security card to hand and recovers back to four, without firing its Security effect", async () => {
     const s = playFromHand(10, {
@@ -215,7 +208,6 @@ describe("BT23-031 Angewomon", () => {
     expect(player.security[0]!.faceUp).toBe(false);
     expect(player.security.some((card) => card.instanceId === secTopId)).toBe(false);
     expect(player.hand.map((card) => card.instanceId)).toEqual([secTopId]);
-    // The [Security] effect on the moved card belongs to a security check, not to this move.
     expect(player.trash.some((card) => card.instanceId === secTopId)).toBe(false);
     expect(player.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([angewomonId]);
     expect(player.deck.map((card) => card.instanceId)).not.toContain(recoveredId);
@@ -264,8 +256,6 @@ describe("BT23-031 Angewomon", () => {
     expect(player.hand).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // --- evolution routes ---
 
   for (const [label, source, cost] of [
     ["yellow Lv.4", "BT1-055", 3],
@@ -320,7 +310,7 @@ describe("BT23-031 Angewomon", () => {
   it("refuses a level 3 source that matches neither printed requirement", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-046", as: "host" }], // yellow Lv.3, no [CS] trait
+        battleArea: [{ card: "BT1-046", as: "host" }],
         hand: [{ card: ANGEWOMON, as: "angewomon" }],
         deck: ["BT1-009", "BT1-010"],
       },
@@ -338,8 +328,6 @@ describe("BT23-031 Angewomon", () => {
     expect(s.perm("host").topCard?.instanceId).toBe(s.inst("host").instanceId);
     expect(s.state.memory).toBe(5);
   });
-
-  // --- the inherited ＜Alliance＞ ---
 
   it("grants inherited Alliance to its carrier", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST3-10", as: "carrier", under: [ANGEWOMON] }] } });
@@ -422,8 +410,6 @@ describe("BT23-031 Angewomon", () => {
     expect(s.perm("carrier").currentDP).toBe(12000);
     expect(s.perm("carrier").securityAttack).toBe(1);
 
-    // Combat resolution parks on a timer between the alliance prompt and the security check;
-    // `settle` alone cannot cross that boundary.
     await settleAcrossTimers(() =>
       s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("defender").instanceId),
     );

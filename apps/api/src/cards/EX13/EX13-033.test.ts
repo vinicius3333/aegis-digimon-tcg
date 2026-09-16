@@ -9,22 +9,7 @@ import "../index.js";
 
 const CARD_ID = "EX13-033";
 
-// Fixtures.
-//   BT18-036 Wizardmon — YELLOW Lv.4, printed TYPES ["Wizard","Witchelny"]: the alternate
-//     header's source (cost 3 instead of the catalog EvoCost's 4) and the [Witchelny] text card
-//     the placement clause takes from hand.
-//   BT11-051 Ogremon — GREEN Lv.4, no printed text: the illegal source. Neither the Yellow/Red
-//     Lv.4 EvoCosts nor the header's [Witchelny]-text predicate admits it.
-//   BT19-029 Tapirmon — YELLOW Lv.3 whose "[On Play] By trashing your top security card, gain 1
-//     memory" is the public route that removes the CONTROLLER'S OWN security stack on the
-//     controller's own turn, which is what the [All Turns] watcher listens for.
-//   BT1-037 Gorillamon — BLUE Lv.4, 6000 DP, no printed text: the opponent Digimon. Seeded at
-//     9000 DP the -6000 leaves 3000 — above zero, so a removal is the printed DELETE rather than
-//     the DP-reaching-zero rule; seeded at 20000 DP it survives at 14000, above the ceiling.
-//   BT1-009..BT1-014 are the inert main-deck Digimon used as security and deck filler.
 const WITCHELNY_LV4 = "BT18-036";
-// BT18-030 Candlemon — Lv.3 whose PRINTED MAIN TEXT names [Witchelny] while neither its name
-// nor its types do. The only fixture that separates `match: "text"` from a trait read.
 const WITCHELNY_TEXT_ONLY = "BT18-030";
 const ILLEGAL_SOURCE = "BT11-051";
 const OWN_SECURITY_REMOVER = "BT19-029";
@@ -68,7 +53,6 @@ describe("EX13-033 Mistymon", () => {
       keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }],
     });
 
-    // Two printed timings, ONE sentence, NO printed [Once Per Turn]: independent copies.
     for (const [index, trigger] of [
       [1, "OnPlay"],
       [2, "WhenDigivolving"],
@@ -106,9 +90,7 @@ describe("EX13-033 Mistymon", () => {
       });
       expect(effect?.frequency).toBeUndefined();
       expect(effect?.sharedUseKey).toBeUndefined();
-      // Nothing printed says "without suspending".
       expect(effect?.actions[1]).not.toHaveProperty("withoutSuspending");
-      // The placement is its own process, so declining it must not skip the attack.
       expect(effect?.actions[0]).not.toHaveProperty("abortOnDecline");
     }
 
@@ -195,8 +177,6 @@ describe("EX13-033 Mistymon", () => {
     await settle(() => s.perm("source").topCard.cardId === CARD_ID);
 
     expect(s.perm("source").stack.map((card) => card.cardId)).toEqual([WITCHELNY_LV4]);
-    // The header's 3, not the catalog EvoCost's 4. The clause's own two processes move security
-    // cards, never memory, so the gauge ends exactly at 10 - 3.
     expect(s.state.memory).toBe(7);
   });
 
@@ -256,11 +236,8 @@ describe("EX13-033 Mistymon", () => {
     await settle(() => s.state.players[1]!.security.length === 2);
 
     const securityIds = s.state.players[0]!.security.map((card) => card.instanceId);
-    // The placement ran FIRST, so the [Witchelny] card is the new bottom card; the attack's cost
-    // then trashed the card that was on top.
     expect(securityIds).toEqual([s.inst("bottom").instanceId, s.inst("toPlace").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("top").instanceId);
-    // The granted attack really happened: one opponent security card was checked.
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -327,8 +304,6 @@ describe("EX13-033 Mistymon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // 1 security card left (<= 3), and 9000 - 6000 = 3000 — above zero, so the removal is the
-    // printed DELETE under its 6000 DP ceiling, not the DP-reaching-zero rule.
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -386,9 +361,6 @@ describe("EX13-033 Mistymon", () => {
     });
     await settle(() => gate.state.players[0]!.security.length === 4);
 
-    // 4 security cards is above the printed "3 or fewer" gate, so the debuff lands but the
-    // delete does not.
-    // 9000 - 6000 = 3000 is UNDER the printed ceiling, so only the security gate keeps it alive.
     expect(gate.state.players[1]!.battleArea).toHaveLength(1);
     expect(gate.perm("victim").currentDP).toBe(3000);
   });
@@ -461,9 +433,6 @@ describe("EX13-033 Mistymon", () => {
     });
     await drainMicrotasks();
 
-    // The quota is spent: the second own-security removal neither debuffs nor deletes. Both
-    // victims are seeded at 9000 so the FIRST removal's delete is the printed one, not the
-    // DP-reaching-zero rule.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([survivorId]);
     expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(9000);
   });
@@ -521,14 +490,12 @@ describe("EX13-033 Mistymon", () => {
     });
     await settle(() => s.state.players[1]!.security.length === 2);
 
-    // BT18-030's name and types never say [Witchelny]; only its printed main text does.
     expect(getCardDefinition(WITCHELNY_TEXT_ONLY)?.types).not.toContain("Witchelny");
     const security = s.state.players[0]!.security;
     expect(security.map((card) => card.instanceId)).toEqual([
       s.inst("bottom").instanceId,
       s.inst("toPlace").instanceId,
     ]);
-    // Nothing printed reveals the placed card, so it joins the stack FACE DOWN.
     expect(security.every((card) => card.faceUp === false)).toBe(true);
   });
 
@@ -559,9 +526,7 @@ describe("EX13-033 Mistymon", () => {
     });
     await settle(() => s.state.players[1]!.security.length === 2);
 
-    // BT1-009 has no printed text at all: it is not a legal placement candidate.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("spare").instanceId]);
-    // The two processes are independent, so the unavailable placement does not skip the attack.
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
   });
@@ -603,9 +568,6 @@ describe("EX13-033 Mistymon", () => {
         0: {
           battleArea: [{ card: INERT, as: "attacker", dp: 40_000 }],
           hand: [{ card: CARD_ID, as: "mistymon" }],
-          // Five security cards: after the attack's cost trashes one, four remain, which is
-          // ABOVE the watcher's "3 or fewer" gate. The defender therefore leaves by BATTLE,
-          // not by the watcher's delete.
           security: [{ card: "BT1-010", as: "top" }, "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
           deck: DECK,
         },
@@ -619,8 +581,6 @@ describe("EX13-033 Mistymon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    // `forceAttack` asks for the attack target with candidates ["player", <permanentId>], so
-    // the steer is the defender's PERMANENT id; without it the prompt defaults to the player.
     preferInstanceIds.push(s.perm("suspendedDefender").permanentId);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mistymon").instanceId })).toEqual({
@@ -628,9 +588,7 @@ describe("EX13-033 Mistymon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // Normal attack rules: a suspended Digimon is a legal target, and 40000 beats 30000 - 6000.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // The player was NOT attacked, so the opponent's security stack is untouched.
     expect(s.state.players[1]!.security).toHaveLength(3);
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("top").instanceId);
@@ -656,8 +614,6 @@ describe("EX13-033 Mistymon", () => {
     const mistymonId = s.perm("mistymon").permanentId;
     const combat = (s.engine as unknown as { combat: { hasOpenBarrierDecision: boolean } }).combat;
 
-    // Mistymon attacks on its OWN turn so it is suspended, and therefore legally attackable,
-    // on the opponent's. That attack removes the OPPONENT's stack, which its watcher ignores.
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: mistymonId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
@@ -680,12 +636,9 @@ describe("EX13-033 Mistymon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle();
 
-    // 11000 beats 7000, but ＜Barrier＞ pays the top security card to keep it on the board.
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([mistymonId]);
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("top").instanceId);
-    // The Barrier payment is itself a removal from the controller's OWN stack, so the watcher
-    // fires; 4 remaining security cards is above the printed gate, so only the debuff lands.
     expect(s.perm("attacker").currentDP).toBe(5000);
   });
 
@@ -722,9 +675,6 @@ describe("EX13-033 Mistymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // An opponent's security CHECK removes from YOUR stack, so the watcher fires on the
-    // OPPONENT's turn: 1 security card is left (<= 3) and 9000 - 6000 = 3000 is under the
-    // printed ceiling, so the victim is deleted while the attacker lives.
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("attacker").permanentId,
@@ -769,12 +719,9 @@ describe("EX13-033 Mistymon", () => {
     });
     await drainMicrotasks();
 
-    // Same turn: the quota is spent, so the survivor is neither debuffed nor deleted.
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([survivorId]);
     expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(9000);
 
-    // A full opponent turn, then the controller's next turn, through the real turn loop, and a
-    // PUBLIC third removal there.
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -790,7 +737,6 @@ describe("EX13-033 Mistymon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // The counter reset: the third own-security removal debuffs and deletes again.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
@@ -816,8 +762,6 @@ describe("EX13-033 Mistymon", () => {
       { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
-    // A MANDATORY own-security removal (the opponent's security check), so the only optional
-    // step the auto-responder can decline is the inherited unsuspend itself.
     s.state.turnSeat = 1;
 
     expect(
@@ -830,9 +774,7 @@ describe("EX13-033 Mistymon", () => {
     await settle(() => s.state.players[0]!.security.length === 1);
     await settle();
 
-    // "this Digimon MAY unsuspend": declined, the carrier stays suspended.
     expect(s.perm("carrier").isSuspended).toBe(true);
-    // "THIS Digimon" is the host only — a Digimon with no EX13-033 in its stack is never offered.
     expect(s.perm("bystander").isSuspended).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -852,7 +794,6 @@ describe("EX13-033 Mistymon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("mistymon"), "Barrier")).toBe(true);
-    // ＜Barrier＞ is printed in the MAIN box only, so it is not passed up the stack.
     expect(compiled.effects.some((effect) => effect.isInherited === true && effect.keywords !== undefined)).toBe(false);
   });
 });

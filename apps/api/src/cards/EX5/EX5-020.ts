@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Text: When this card would be played or digivolved into, if you have a Digimon with 3 or more
-// digivolution cards and the [Night Claw]/[Light Fang]/[Galaxy] trait, reduce the play or
-// digivolution cost by 2.
-// KB Q3569: the cost reduction activates when this card would be played/digivolved-into (as a
-// target), NOT when digivolving FROM this card. Current IR only had 'wouldBePlayed'; the event
-// must also cover 'wouldBeDigivolvedInto'.
-// The condition requires BOTH: 3+ digivolution cards AND the specific trait.
 export const compiled: CompiledCard = {
   effects: [
     {

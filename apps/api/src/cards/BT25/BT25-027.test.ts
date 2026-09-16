@@ -514,8 +514,6 @@ describe("BT25-027 MachGaogamon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        // The face-down cards are hidden, so the cost offers the HOST Tamers as the
-        // selectable identity; the bottom card under the chosen Tamer is what gets trashed.
         response: { kind: "selectCards", instanceIds: [s.inst("secondTamer").instanceId] },
       }),
     ).toEqual({ ok: true });
@@ -661,8 +659,6 @@ describe("BT25-027 MachGaogamon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toContain("BT25-029");
-    // Paying the inherited replacement trashes a Tamer source, so MirageGaogamon
-    // may then unsuspend through its own watcher. It started suspended, excluding Evade.
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
   });

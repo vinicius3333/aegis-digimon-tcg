@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored fix:
-// (1) OnDeletion: condition "deleted other than in battle" — kept as raw; engine
-//     evaluates via trigger context (OnDeletion fires, battle flag filters it).
-// (2) Inherited SubTrigger whenOpponentAttacks: added EndAttack to actions[] —
-//     text says "end that attack"; was missing (empty array). Cost is deleteOwn;
-//     if cost cannot be paid (no other Digimon), the EndAttack does not happen
-//     (cost-gating is standard interpreter behavior).
 const compiled: CompiledCard = {
   effects: [
     {

@@ -1,13 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// ST17-06 Rapidmon.
-// <Blocker> <Armor Purge>
-// [All Turns][Once Per Turn] When this Digimon becomes suspended:
-//   1 of your opponent's Digimon AND all of their Security Digimon get -4000 DP
-//   until the end of their turn.
-// [Inherited][All Turns] While this Digimon is suspended, it gets +1000 DP.
-// Digivolve: from Lv3 w/[Terriermon] in name for 3 (alternate)
 const compiled: CompiledCard = {
   effects: [
     {

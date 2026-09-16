@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4592 (binding): "X in its text" includes name, traits, effects, etc.
-// The triggerFilter uses OR: Digimon with [Gammamon] in its text OR with the [Hero] trait.
-// The suspend cost is paid once for both Draw and GainMemory (single cost on the SubTrigger).
 export const compiled: CompiledCard = {
   effects: [
     {

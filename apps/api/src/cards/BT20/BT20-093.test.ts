@@ -137,8 +137,6 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
       if (candidatePlay?.kind !== "memoryChanged") throw new Error("candidate play did not emit memory change");
       expect(candidatePlay.to - candidatePlay.from).toBe(-(printedPlayCost - 3));
       expect(s.events.some((event) => event.kind === "memoryChanged" && event.reason === "payCost")).toBe(true);
-      // The observable gauge also includes card-resolution adjustments; the ordered
-      // play-card cost deltas are the payment evidence for the Option and candidate.
     }
   });
 
@@ -323,8 +321,6 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    // A player-directed, unblocked attack resolves through a security check rather than
-    // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.perm("breaker").isSuspended).toBe(true);
 

@@ -90,7 +90,7 @@ describe("P-030 Lobomon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT4-114");
 
     expect(s.perm("base").topCard?.cardId).toBe("BT4-114");
-    expect(s.state.memory).toBe(7); // Lobomon costs 2, its effect digivolution costs 1.
+    expect(s.state.memory).toBe(7);
   });
 
   it("deletes that Digimon at end of turn even after it digivolves again (Q4141)", async () => {
@@ -162,7 +162,7 @@ describe("P-030 Lobomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT4-114");
 
-    expect(s.state.memory).toBe(7); // Printed cost 5, reduced by 2.
+    expect(s.state.memory).toBe(7);
   });
 
   it("does not reduce an unrelated digivolution from its inherited host", async () => {

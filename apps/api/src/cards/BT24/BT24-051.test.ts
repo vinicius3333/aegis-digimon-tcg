@@ -231,8 +231,6 @@ describe("BT24-051 Merukimon", () => {
     expect(s.perm("merukimon").currentDP).toBe(17000);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]!.isSuspended).toBe(true);
-    // Its shared When Attacking unsuspend resolves during this combat, making it
-    // eligible again; the defeated opposing Digimon is the durable attack proof.
     expect(s.perm("merukimon").isSuspended).toBe(false);
   });
 

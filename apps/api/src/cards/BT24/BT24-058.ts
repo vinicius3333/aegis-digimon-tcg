@@ -1,9 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT24-058 Blimpmon
-// The revealed card is selected once, then the controller chooses its printed destination:
-// hand OR the bottom of one qualifying Machine/Cyborg/TS Digimon.
 export const compiled: CompiledCard = {
   effects: [
     {

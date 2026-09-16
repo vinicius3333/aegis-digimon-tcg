@@ -121,7 +121,6 @@ describe("BT4 Ancient Hybrid deck", () => {
     expect(s.state.players[0]!.deck[0]?.instanceId).toBe(s.inst("unrevealed").instanceId);
 
     const boost = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "P-036")!;
-    // Delay can't be activated on the turn the Option entered; advance the fixture to its next turn.
     s.state.turnCount += 1;
     expect(
       s.engine.applyIntent(0, {

@@ -1,7 +1,3 @@
-// Hand-corrected IR for ST20-04 Garudamon (source documented behavior; KB Q4445-Q4447, Q4693).
-// The declarative effect record mis-attached the "for every 2 colors your Tamers have" scaling to the
-// ＜Security A. +1＞ grant (so the grant silently no-oped with 0 Tamers in play) and
-// the keyword UNCONDITIONALLY for the turn AND gets +2000 DP per 2 Tamer colors.
 import type { CompiledCard, Action } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

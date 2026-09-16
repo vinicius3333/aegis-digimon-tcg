@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4166: fewer than 3 non-Digi-Egg cards cannot pay the optional cost.
-// KB Q4168: once paid, both unsuspend actions are mandatory.
 const compiled: CompiledCard = {
   effects: [
     {

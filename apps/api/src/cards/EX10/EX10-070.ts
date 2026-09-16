@@ -1,14 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5184 (binding): does NOT trigger when a link card is trashed and replaced by a linking effect.
-// [AllTurns]: SubTrigger event "whenLinkTrashed" (the only link-card-trash event the engine's
-// `trash` primitive actually fires — apps/api/src/engine/effects/primitives.ts;
-// "whenLinkCardTrashedByEffect" is a catalog-only alias nothing ever fires), sourceFilter
-// controller "mine" + kind ["Digimon"] (text: "any of YOUR Digimon's link cards"). The Delay
-// keyword is on the triggered sub-effect (arms a next-main-phase Link).
-// The Link action targets 1 [Appmon] from trash onto the Digimon whose link card was trashed
-// (sourceRef — the Digimon that triggered the event).
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -93,11 +85,6 @@ export const compiled: CompiledCard = {
           ],
         },
       ],
-      // ＜Delay＞ printed on the [All Turns] window. `delayArmedIntrinsic` is synthesized by
-      // `withIntrinsicDelayGate` (interpreter/effect.ts) from this keyword and is not part of
-      // the compiled IR, so the keyword is the encoding that belongs here (same shape as the
-      // BT23-093 peer). The runtime gate is unchanged: trash this card to activate, never on
-      // the turn it entered play.
       keywords: [
         {
           keyword: "Delay",

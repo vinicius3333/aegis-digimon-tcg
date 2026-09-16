@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [On Play] [When Digivolving]: <De-Digivolve 1> on 1 opponent Digimon.
-// Targets ANY opponent Digimon (no level/digivolution-card restriction on targeting —
-// the parenthetical describes the De-Digivolve mechanic, not an additional target filter).
-// stopAtLevel:3 per the De-Digivolve definition: can't trash more if no digivolution
-// cards remain or it becomes level 3.
 const compiled: CompiledCard = {
   effects: [
     {

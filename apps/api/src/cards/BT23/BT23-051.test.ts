@@ -9,11 +9,8 @@ import { compiled } from "./BT23-051.js";
 
 const SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 
-/** Golemon carries ＜Alliance＞, so any attack it declares with an untapped ally opens a prompt. */
 async function declineAllianceIfPrompted(s: ReturnType<typeof setupEngine>, seat: 0 | 1) {
   const before = s.events.filter((event) => event.kind === "alliancePrompt").length;
-  // Not every attack has an eligible ally, so the prompt may legitimately never appear;
-  // drain instead of asserting a milestone that is sometimes false by design.
   await drainMicrotasks(100);
   const prompted = s.events.filter((event) => event.kind === "alliancePrompt").length > before;
   const declined = prompted ? s.engine.applyIntent(seat, { type: "respondAlliance" }) : { ok: true };
@@ -124,7 +121,6 @@ describe("BT23-051 Golemon", () => {
     await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([highId]);
-    // Only the checked security card reached the trash; no battle-area Digimon was deleted.
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === highInstanceId)).toBe(false);
     expect(s.state.players[1]!.trash).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toEqual(
@@ -164,8 +160,6 @@ describe("BT23-051 Golemon", () => {
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([secondId]);
     expect(s.perm("gole").isSuspended).toBe(true);
 
-    // No public intent unsuspends Golemon mid-turn on this board, so the board is arranged
-    // through the effect verb; the suspension under test is still produced by a public attack.
     await advance(s.engine).verb.unsuspend([goleId]);
     expect(s.perm("gole").isSuspended).toBe(false);
     expect(
@@ -252,7 +246,6 @@ describe("BT23-051 Golemon", () => {
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    // Reach the opponent's turn through the real turn loop rather than writing `turnSeat`.
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -274,7 +267,6 @@ describe("BT23-051 Golemon", () => {
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).not.toContain(bystanderId);
     expect(s.perm("gole").isSuspended).toBe(true);
     expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toEqual([goleId]);
-    // Golemon's 5000 DP beat the 3000 attacker, and the block kept security intact.
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerId)).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -348,7 +340,6 @@ describe("BT23-051 Golemon", () => {
     expect(prompt.eligibleAllyIds).toContain(allyId);
     expect(prompt.eligibleAllyIds).not.toContain(goleId);
     expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: allyId })).toEqual({ ok: true });
-    // The ＜Blocker＞ wall keeps the block window open, so the Alliance bonus is still live.
     await settle(
       () => s.perm("ally").isSuspended && s.events.some((event) => event.kind === "blockWindowOpened"),
       3000,

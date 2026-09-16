@@ -1,7 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** Hand-audited IR: the generic Delete ceiling consumer counts qualifying Digimon in this stack. */
 export const compiled: CompiledCard = {
   effects: [
     {

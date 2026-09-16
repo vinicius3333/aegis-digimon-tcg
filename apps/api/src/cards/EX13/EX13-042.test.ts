@@ -8,16 +8,6 @@ import { compiled } from "./EX13-042.js";
 
 const CARD_ID = "EX13-042";
 
-// Fixtures, all chosen so that playing them runs no [On Play] effect of their own:
-//   BT9-057  Bearmon        play cost 2, [Beast]                     -> legal
-//   ST14-04  Phascomon      play cost 3, [Dark Animal]               -> legal (substring "Animal")
-//   BT14-008 Gizamon        play cost 3, [Sea Animal]                -> excluded by the printed rider
-//   BT8-052  Drimogemon     play cost 5, [Beast]                     -> over the cost cap
-//   EX5-041  Ebonwumon      play cost 7, [Holy Beast]/[Four Sovereigns] -> over the cost cap
-//   BT1-009  Monodramon     play cost 2, [Mini Dragon]               -> no matching trait token
-//   BT1-071  Vegiemon       Green Lv.4                               -> legal digivolution base
-//   BT4-050  Liollmon       Green Lv.3                               -> illegal base (level)
-//   BT1-014  Kokatorimon    Red Lv.4                                 -> illegal base (color)
 const BEAST = "BT9-057";
 const DARK_ANIMAL = "ST14-04";
 const SEA_ANIMAL = "BT14-008";
@@ -26,7 +16,6 @@ const SOVEREIGN_COST_7 = "EX5-041";
 const NO_TOKEN = "BT1-009";
 const GREEN_LV4 = "BT1-071";
 
-/** Fire the [When Attacking] window on a permanent without running a whole combat. */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
   await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm(alias), {
     attackerPermanentId: s.perm(alias).permanentId,
@@ -62,7 +51,6 @@ describe("EX13-042 Bastemon", () => {
     );
     expect((getCardDefinition(CARD_ID)?.inheritedEffectText ?? "").trim()).toBe("＜Alliance＞");
     expect(getCardDefinition(CARD_ID)?.securityEffectText ?? "").toBe("");
-    // No printed [Digivolve] header, so the IR carries no alternate requirement.
     expect(effectText).not.toContain("[Digivolve]");
   });
 
@@ -72,7 +60,6 @@ describe("EX13-042 Bastemon", () => {
     expect(compiled.effects).toHaveLength(4);
     expect(compiled.digivolutionRequirement).toBeUndefined();
 
-    // Printed ＜Alliance＞: a main copy (this Digimon only) and an inherited copy (passes up).
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Static",
       actions: [],
@@ -117,7 +104,6 @@ describe("EX13-042 Bastemon", () => {
     });
     expect(compiled.effects[1]?.isInherited).toBeUndefined();
     expect(compiled.effects[2]?.isInherited).toBeUndefined();
-    // Both printed timings share the one printed [Once Per Turn].
     expect(compiled.effects[1]?.sharedUseKey).toBe(compiled.effects[2]?.sharedUseKey);
   });
 
@@ -149,19 +135,16 @@ describe("EX13-042 Bastemon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("bastemon").instanceId);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Cost 3 only: the free play adds nothing to the memory swing.
     expect(s.state.memory).toBe(2);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseInstanceId]);
     expect(s.perm("base").currentDP).toBe(7000);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(true);
 
-    // Bearmon reached the battle area from hand as a fresh permanent with no stack.
     const played = s.state.players[0]!.battleArea.find(
       ({ topCard }) => topCard.instanceId === s.inst("bearmon").instanceId,
     );
     expect(played).toBeDefined();
     expect(played!.stack).toHaveLength(0);
-    // Only the digivolution bonus draw is left in hand.
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -190,7 +173,6 @@ describe("EX13-042 Bastemon", () => {
         });
         expect(result.ok, `${base} alt=${useAlternateCost}`).toBe(false);
       }
-      // Nothing moved and no memory was charged on either attempt.
       expect(s.state.memory).toBe(6);
       expect(s.perm("base").topCard.cardId).toBe(base);
       expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bastemon").instanceId]);
@@ -220,7 +202,6 @@ describe("EX13-042 Bastemon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // "without paying the cost": memory is untouched by the play cost 2.
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("spare").instanceId]);
     const played = s.state.players[0]!.battleArea.find(
@@ -254,8 +235,6 @@ describe("EX13-042 Bastemon", () => {
     );
     await settle(() => s.state.pendingDecision === undefined);
 
-    // "Animal" matched [Dark Animal]; the printed rider kept [Sea Animal] out even though it also
-    // contains "Animal".
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("gizamon").instanceId]);
   });
@@ -287,7 +266,6 @@ describe("EX13-042 Bastemon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.memory).toBe(3);
-    // Everything except the single legal candidate stayed in hand, in its original order.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("seaAnimal").instanceId,
       s.inst("noToken").instanceId,
@@ -374,7 +352,6 @@ describe("EX13-042 Bastemon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("bastemon").instanceId);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The [When Digivolving] copy played exactly one of the two Bearmon.
     const playedFirst = s.state.players[0]!.battleArea.some(
       ({ topCard }) => topCard.instanceId === s.inst("first").instanceId,
     );
@@ -384,7 +361,6 @@ describe("EX13-042 Bastemon", () => {
     expect(playedFirst !== playedSecond).toBe(true);
     const handAfterDigivolve = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
 
-    // Same turn, the other printed timing: the shared [Once Per Turn] ledger refuses it.
     await attackWindow(s, "base");
     await settle(() => s.state.pendingDecision === undefined);
 
@@ -422,7 +398,6 @@ describe("EX13-042 Bastemon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(handAfterFirst);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
 
-    // A real opponent turn passes; the gate reopens on the controller's next turn.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
 
@@ -466,12 +441,10 @@ describe("EX13-042 Bastemon", () => {
       s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId } as never),
     ).toEqual({ ok: true });
 
-    // ＜Security A. +1＞: both security cards are checked in the one attack (comprehensive §16-24-1).
     await settle(() => s.state.players[1]!.security.length === 0);
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("ally").isSuspended).toBe(true);
-    // 7000 + the ally's 3000 beats both 3000 DP security Digimon, so the attacker survives.
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === attackerPermanentId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
@@ -507,7 +480,6 @@ describe("EX13-042 Bastemon", () => {
     await settle(() => s.state.players[1]!.security.length === 1);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // One security check only, and the ally was never asked to suspend.
     expect(allianceState(s).hasOpenAllianceDecision).toBe(false);
     expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
@@ -519,7 +491,6 @@ describe("EX13-042 Bastemon", () => {
         0: {
           battleArea: [
             { card: "BT1-014", as: "host", under: [{ card: CARD_ID, as: "bastemon" }] },
-            // Same top card, nothing underneath: the keyword must come from the stack.
             { card: "BT1-014", as: "bareHost" },
           ],
           hand: [{ card: BEAST, as: "bearmon" }],
@@ -535,7 +506,6 @@ describe("EX13-042 Bastemon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("bareHost"), "Alliance")).toBe(false);
 
-    // Only ＜Alliance＞ is printed as inherited text; the free play stays with the top card.
     await attackWindow(s, "host");
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bearmon").instanceId]);
@@ -601,7 +571,6 @@ describe("EX13-042 Bastemon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("bastemon").instanceId);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Cost 3 and a free Bearmon: memory moved only by the digivolution cost.
     expect(s.state.memory).toBe(3);
     expect(
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("bearmon").instanceId),
@@ -615,16 +584,12 @@ describe("EX13-042 Bastemon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    // Printed ＜Alliance＞ opens its own window on every attack; decline it here so this route
-    // proves the free-play windows rather than the keyword.
     const combat = allianceState(s);
     await settle(() => combat.hasOpenAllianceDecision);
     expect(s.engine.applyIntent(0, { type: "respondAlliance" } as never)).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.pendingDecision === undefined);
 
-    // 7000 DP beats the 1000 DP defender; the shared use was already spent on the digivolve, so
-    // the attack window played nothing more.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("base").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("spare").instanceId);

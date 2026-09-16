@@ -7,14 +7,6 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-100.js";
 
-// A3 for BT7-100 (Qualialise Blast):
-//   [Static] play cost = owner's security stack count.
-//   [Security] add this card to its owner's hand.
-//   [Main] -3000 DP to 1 opponent Digimon; +1 SecurityAttack to 1 own Rasenmon.
-//
-// FAILS-WHEN-REVERTED: the old declarative effect record omitted the
-// security-count cost mechanic; the [Main] + SecurityAttack body is also absent.
-
 const RASENMON_ID = "BT7-RASENMON";
 const OTHER_DIGIMON_ID = "BT7-OTHER";
 const SELF_INST = "self-inst";
@@ -208,7 +200,6 @@ describe("BT7-100 Qualialise Blast", () => {
   });
 
   it("[Static] changePlayCost sets fixed cost to security count", async () => {
-    // FAILS-WHEN-REVERTED: the old declarative effect record makes no changePlayCost call
     const { ctx, recorder } = makeCtx({ securityCount: 3, inHand: true });
     const source = makeSource(true);
     const effects = module!.effectsForTiming(EffectTiming.None, source);
@@ -216,12 +207,10 @@ describe("BT7-100 Qualialise Blast", () => {
 
     const changePlayCostCalls = recorder.calls.filter((c) => c.verb === "changePlayCost");
     expect(changePlayCostCalls).toHaveLength(1);
-    // The second arg is the cost value (security count = 3)
     expect(changePlayCostCalls[0]!.args[1]).toBe(3);
   });
 
   it("[Static] sets the cost to zero when the owner's security stack is empty", async () => {
-    // FAILS-WHEN-REVERTED: an invented floor of 1 makes this zero-security case cost 1.
     const { ctx, recorder } = makeCtx({ securityCount: 0, inHand: true });
     const source = makeSource(true);
     const effects = module!.effectsForTiming(EffectTiming.None, source);
@@ -244,7 +233,6 @@ describe("BT7-100 Qualialise Blast", () => {
   });
 
   it("[Main] calls modifyDP -3000 on opponent Digimon", async () => {
-    // FAILS-WHEN-REVERTED: IR has no modifyDP call
     const { ctx, recorder } = makeCtx({ opponentDigimonPermanentId: "opp-perm-1" });
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
@@ -256,7 +244,6 @@ describe("BT7-100 Qualialise Blast", () => {
   });
 
   it("[Main] calls grantKeyword SecurityAttack +1 on Rasenmon when present", async () => {
-    // FAILS-WHEN-REVERTED: IR has no grantKeyword call
     const { ctx, recorder } = makeCtx({
       opponentDigimonPermanentId: "opp-perm-2",
       rasenmonPermanentId: "rasenmon-perm-1",

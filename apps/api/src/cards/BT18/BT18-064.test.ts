@@ -97,7 +97,6 @@ describe("BT18-064 Mercurymon", () => {
     expect(observe(s.engine).isRestricted(s.perm("mercurymon"), "beReturned")).toBe(true);
 
     s.state.turnSeat = 1;
-    // Keep the active seat's entry gauge above the automatic pass threshold so Main opens.
     s.state.memory = 4;
     await advance(s.engine).runTurn(1);
 

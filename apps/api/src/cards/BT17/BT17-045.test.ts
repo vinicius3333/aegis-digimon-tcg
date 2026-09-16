@@ -79,12 +79,10 @@ describe("BT17-045 Argomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === rhythmId));
 
-    // Alternate route: Cost 2, not the printed evoCost 3.
     expect(s.state.memory).toBe(0);
     const host = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === permanentId)!;
     expect(host.topCard?.instanceId).toBe(argomonId);
     expect(host.stack.map((card) => card.instanceId)).toEqual([baseId]);
-    // Digivolve bonus draw plus the free Rhythm leaving hand: only the spare remains.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("spare").instanceId, bonusId]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
@@ -120,7 +118,6 @@ describe("BT17-045 Argomon", () => {
     await settle(() => s.perm("base").topCard?.instanceId === argomonId);
 
     expect(s.state.memory).toBe(0);
-    // No Rhythm in hand: the optional play finds nothing and nothing else moves.
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(2);
   });

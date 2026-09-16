@@ -1,25 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX11-032 (GrandGalemon).
-// runtime-effect fixes:
-// - [Hand][Main]: was an empty action list; encoded as a `Digivolve` action (BT22-026/
-//   EX10-066 pattern) — the target Pteromon digivolves into this card for cost 3, ignoring
-//   requirements, paid by placing 1 [Galemon] from the trash as that Pteromon's bottom
-//   digivolution card (cost host: "target").
-// - [When Digivolving]: the DP ceiling raise was a standalone `CostModifier` action with
-//   mode "raiseCeiling", which the interpreter doesn't special-case (it fell through to the
-//   play-cost predicate branch and modified the wrong thing). Folded into the preceding
-//   `PlayWithoutCost` action's `dpCeilingModifier` (now supports `raiseCeiling` + a live
-//   `scaling` count). The scaling filter also no longer restricts to `controllerDefault:
-//   "mine"` — Q&A Q5840 confirms either player's suspended Digimon counts.
-// - [Your Turn] inherited: was unconditional `Unsuspend` on any [Vortex Warriors] Digimon.
-//   Text says "When this Digimon wins a battle" (Q5841), so it's gated behind a
-//   `whenBattleWon` SubTrigger (EX11-026 pattern); "this [Vortex Warriors] trait Digimon"
-//   refers to the source itself (isSelfRef), not a separately-searched trait match. The
-//   printed trait is a GATE on the inheriting host (BT26-066 precedent): a host without the
-//   [Vortex Warriors] trait inherits the watcher but unsuspends nothing, so the trait rides
-//   on the self target, which `candidatePermanents` still runs through `permanentMatchesFilter`.
 const compiled: CompiledCard = {
   digivolutionRequirement: [],
   effects: [

@@ -226,8 +226,6 @@ describe("EX3-021 CrysPaledramon", () => {
     preferred.push(s.perm("wingdramon").permanentId, s.perm("wingdramon").permanentId);
     await s.ready();
 
-    // Prefer the Wingdramon both as the source host and, after its only source is trashed,
-    // as the independently selected restriction target (Q3392 allows same or different).
     const resolving = s.engine.applyIntent(0, {
       type: "digivolve",
       permanentId: s.perm("paledramon").permanentId,

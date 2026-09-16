@@ -6,26 +6,12 @@ import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// BT19-080 Takato Matsuki (Red Tamer, cost 4).
-//
-//   [Start of Your Turn] If you have 2 or less memory, set it to 3.
-//   [Your Turn] When any of your Digimon digivolve into a Digimon with [Growlmon]/[Gallantmon]
-//     in its name, by suspending this Tamer, that Digimon gains ＜Raid＞ for the turn.
-//     Then, that Digimon attacks a player.
-//   [Security] Play this card without paying the cost.
-//
-// KB Q3141: once ＜Raid＞ has been given, the attack is NOT optional — the Digimon must attack
-// if it can. The suspend is the only choice point ("by suspending this Tamer").
-//
-// "in its name" is the printed SUBSTRING form, so `match: "name"` is correct here (a bracketed
-// `[Name]` reference would need `namesExact`). WarGrowlmon therefore matches; Kokatorimon does not.
-
 const TAKATO = "BT19-080";
-const BASE_LV3 = "BT1-009"; // Monodramon, red Lv.3 — a legal source for the Lv.4 routes
-const BASE_LV5 = "ST7-08"; // WarGrowlmon, red Lv.5 — a legal source for the Lv.6 Gallantmon
-const GROWLMON = "BT2-013"; // vanilla red Growlmon Lv.4 (evo: red Lv.3, cost 2)
-const GALLANTMON = "EX2-011"; // Gallantmon Lv.6, static DP only (evo: red Lv.5, cost 4)
-const NEAR_MISS = "BT1-014"; // Kokatorimon, red Lv.4 (evo: red Lv.3, cost 2) — neither name
+const BASE_LV3 = "BT1-009";
+const BASE_LV5 = "ST7-08";
+const GROWLMON = "BT2-013";
+const GALLANTMON = "EX2-011";
+const NEAR_MISS = "BT1-014";
 const FILLER = ["BT1-009", "BT1-010", "BT1-012", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-012", "BT1-013"];
 
@@ -36,8 +22,6 @@ describe("BT19-080 Takato Matsuki", () => {
       colors: ["Red"],
       kinds: ["Tamer"],
       playCost: 4,
-      // NOTE: the catalog separates "[Gallantmon]" from "in its name" with U+00A0, and prints
-      // "＜Raid＞for the turn" with no space after the keyword.
       effectText:
         "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n" +
         "[Your Turn] When any of your Digimon digivolve into a Digimon with [Growlmon]/[Gallantmon] in its " +
@@ -63,7 +47,6 @@ describe("BT19-080 Takato Matsuki", () => {
             sourceFilter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
-              // "in its name" is the substring form; `match: "name"` is deliberate.
               nameOrTrait: [{ tokens: ["Growlmon", "Gallantmon"], match: "name" }],
             },
             actions: [
@@ -72,12 +55,10 @@ describe("BT19-080 Takato Matsuki", () => {
                 keyword: { keyword: "Raid" },
                 duration: "forTheTurn",
                 optional: true,
-                // Live, not dead: a second action follows, so declining the cost aborts it.
                 abortOnDecline: true,
                 target: { sourceRef: "triggerSubject" },
                 cost: { kind: "suspend", target: { filter: { isSelfRef: true }, isSelf: true } },
               },
-              // Q3141: the attack carries no `optional`, so it cannot be declined.
               { kind: "Attack", attackPlayer: true, mandatory: true, target: { sourceRef: "triggerSubject" } },
             ],
           },
@@ -88,8 +69,6 @@ describe("BT19-080 Takato Matsuki", () => {
     const subTrigger = card?.effects?.[1]?.actions?.[0] as { actions?: { optional?: boolean }[] } | undefined;
     expect(subTrigger?.actions?.[1]?.optional).toBeUndefined();
   });
-
-  // --- play cost -----------------------------------------------------------------------
 
   it("costs 4 memory to play from hand in a real Main phase", async () => {
     const s = setupEngine(
@@ -115,8 +94,6 @@ describe("BT19-080 Takato Matsuki", () => {
     await loop;
     assertNoLoudGap(s);
   });
-
-  // --- [Start of Your Turn] memory ------------------------------------------------------
 
   it("[Start of Your Turn] sets memory to 3 from 2, read inside the open Main phase", async () => {
     const s = setupEngine(
@@ -166,8 +143,6 @@ describe("BT19-080 Takato Matsuki", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [Security] ----------------------------------------------------------------------
-
   it("[Security] plays itself for free through a real security check", async () => {
     const s = setupEngine(
       {
@@ -199,7 +174,7 @@ describe("BT19-080 Takato Matsuki", () => {
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual([takatoId]);
     expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([fillerId]);
     expect(s.state.players[1]!.trash.map((c) => c.instanceId)).not.toContain(takatoId);
-    expect(s.state.memory).toBe(3); // nothing paid the cost of 4
+    expect(s.state.memory).toBe(3);
     expect(s.perm("attacker").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
@@ -236,8 +211,6 @@ describe("BT19-080 Takato Matsuki", () => {
     assertNoLoudGap(s);
   });
 
-  // --- [Your Turn] Raid + forced attack --------------------------------------------------
-
   it("grants ＜Raid＞ and attacks the player when a Digimon digivolves into a [Growlmon]", async () => {
     const s = setupEngine(
       {
@@ -267,14 +240,11 @@ describe("BT19-080 Takato Matsuki", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === SECURITY.length - 1);
 
-    // The digivolved permanent kept its identity and stacked the Lv.3 underneath.
     expect(s.perm("base").topCard?.cardId).toBe(GROWLMON);
     expect(s.perm("base").stack.map((c) => c.instanceId)).toEqual([baseCardId]);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(true);
-    // The suspend cost was paid on the Tamer, and the attack suspended the attacker.
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("base").isSuspended).toBe(true);
-    // The attack really hit the player: one security card checked, digivolve draw taken.
     expect(s.state.players[1]!.security).toHaveLength(SECURITY.length - 1);
     expect(
       s.events.some(
@@ -312,8 +282,6 @@ describe("BT19-080 Takato Matsuki", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === SECURITY.length - 1);
 
-    // Exactly ONE optional prompt was raised for this clause: the "by suspending this Tamer"
-    // cost. The attack that follows it never asks.
     expect(s.decisions.filter((d) => d.req.kind === "optional")).toHaveLength(1);
     expect(s.perm("base").isSuspended).toBe(true);
     assertNoLoudGap(s);
@@ -452,7 +420,6 @@ describe("BT19-080 Takato Matsuki", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
 
-    // Seat 1's real turn, reached through the turn loop rather than by setting `turnSeat`.
     await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {

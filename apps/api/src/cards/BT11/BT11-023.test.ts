@@ -188,7 +188,6 @@ describe("BT11-023 Veemon", () => {
         s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst(alias).instanceId),
       );
     }
-    // 10 - 3 + 1 - 3: only the first blue Tamer pays the inherited bonus.
     expect(s.state.memory).toBe(5);
 
     const nonBlue = setupEngine({

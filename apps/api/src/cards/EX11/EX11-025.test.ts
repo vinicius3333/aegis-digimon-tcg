@@ -99,9 +99,6 @@ describe("EX11-025 FunBeemon", () => {
     assertNoLoudGap(s);
   });
 
-  // "Add your top FACE-DOWN security card to the hand": a face-up security card (which this very
-  // card creates, and which KB Q5812/Q5813 keep revealed in the stack) is skipped. Drop
-  // `faceDownOnly` from the module and BT1-009 is taken instead, failing both assertions.
   it("skips a face-up security card and takes the top face-down one", async () => {
     const s = setupEngine(
       {

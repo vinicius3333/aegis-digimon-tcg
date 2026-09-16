@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT9-025 TeslaJellymon
-// [End of Attack][Once Per Turn] You may trash 2 cards in your hand (any kind) to
-//   unsuspend this Digimon.
-// The cost targets any card from hand (no kind filter), Unsuspend is the action.
 export const compiled: CompiledCard = {
   effects: [
     {

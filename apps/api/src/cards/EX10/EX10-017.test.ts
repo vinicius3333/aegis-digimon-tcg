@@ -197,7 +197,6 @@ describe("EX10-017 Mienumon", () => {
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("yujin").instanceId),
     );
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("wrongTamer").instanceId);
-    // Both links cost 1 each from the starting 2; EX10-062's play cost of 3 was never paid.
     expect(s.state.memory).toBe(0);
   });
 
@@ -233,8 +232,6 @@ describe("EX10-017 Mienumon", () => {
   });
 
   it("Q5048 trashes itself when an opposing Blocker suspends on our turn, then draws 1 and gains 1 memory", async () => {
-    // [All Turns], our half: the opponent's Blocker suspends to block, a public
-    // `declareBlock` intent, so no injected timing is involved.
     const s = setupEngine(
       {
         0: {
@@ -352,20 +349,14 @@ describe("EX10-017 Mienumon", () => {
     ).toEqual({ ok: true });
     await settle(() => p0.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId));
 
-    // The attacker suspended to declare the attack: that public suspension, not
-    // `advance.verb.suspend`, is what armed the linked clause.
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.perm("host").linked).toHaveLength(0);
     expect(p0.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("mienumon").instanceId);
     expect(p0.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
-    // The card arrived during the opponent's turn, so it is the effect's draw and not
-    // any draw step of our own turn.
     expect(p0.hand).toHaveLength(handBefore + 1);
     expect(s.state.memory).not.toBe(memoryBefore);
     const memoryAfterFirst = s.state.memory;
 
-    // No [Once Per Turn] on the linked clause, but the only copy is now in the trash,
-    // so a second opponent suspension in the same turn cannot pay the cost again.
     await advance(s.engine).verb.suspend([s.perm("attacker").permanentId], 1);
     expect(p0.trash.filter(({ cardId }) => cardId === CARD_ID)).toHaveLength(1);
     expect(s.state.memory).toBe(memoryAfterFirst);
@@ -433,8 +424,6 @@ describe("EX10-017 Mienumon", () => {
     await settle(() => inPlay().includes(s.inst("yujinA").instanceId));
     expect(p0.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("yujinB").instanceId);
 
-    // Same turn, second link: the condition still holds (1 Tamer is "1 or fewer"),
-    // so only the [Once Per Turn] gate can stop the second play.
     expect(p0.battleArea.filter(({ topCard }) => topCard.cardId === "EX10-062")).toHaveLength(1);
     expect(
       s.engine.applyIntent(0, {
@@ -447,7 +436,6 @@ describe("EX10-017 Mienumon", () => {
     expect(p0.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("yujinB").instanceId);
     expect(p0.battleArea.filter(({ topCard }) => topCard.cardId === "EX10-062")).toHaveLength(1);
 
-    // Real turn loop to the opponent's turn and back to ours resets the gate.
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
@@ -479,7 +467,6 @@ describe("EX10-017 Mienumon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
-    // Suspend it through a public attack, so the opponent has a legal target next turn.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -525,7 +512,6 @@ describe("EX10-017 Mienumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
-    // 6000 DP loses to the 10000 DP security Digimon, but ＜Jamming＞ (§16-9) keeps it alive.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain(CARD_ID);
   });

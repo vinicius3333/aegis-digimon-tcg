@@ -44,7 +44,6 @@ describe("BT17-062 Dorumon", () => {
         conditions: [
           {
             kind: "selfDigivolutionStackHasTrait",
-            // Printed [Kosuke Kisakata] is an exact name reference, not a substring.
             filter: { nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "nameExact" }] },
           },
           {
@@ -53,7 +52,6 @@ describe("BT17-062 Dorumon", () => {
           },
         ],
       },
-      // Printed [Dorugoramon] is exact: DexDorugoramon must not qualify.
       into: { nameOrTrait: [{ tokens: ["Dorugoramon"], match: "nameExact" }] },
     });
   });

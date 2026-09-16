@@ -1,10 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT22-023 (AeroVeedramon).
-// The inherited [All Turns] fires when THIS Digimon (which has [Veedramon] in its name)
-// suspends; if you have a blue Tamer, THIS Digimon may unsuspend. The target is isSelfRef
-// and the condition gates on having a blue Tamer.
 export const compiled: CompiledCard = {
   effects: [
     {

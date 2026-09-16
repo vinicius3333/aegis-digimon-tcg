@@ -74,7 +74,6 @@ describe("P-222 engine behavior", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("rosemon").instanceId),
     );
-    // Rosemon costs 11; the face-up Wind Guardians card reduces payment to 7.
     expect(s.state.memory).toBe(3);
   });
 

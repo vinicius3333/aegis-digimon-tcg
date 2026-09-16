@@ -127,8 +127,6 @@ describe("BT20-099 Singularity of Chaos", () => {
     const s = setupEngine(
       {
         0: {
-          // BT20-037 is [Chaosmon: Valdur Arm], proving the printed “in its name”
-          // matcher rather than requiring the exact card name Chaosmon.
           battleArea: [{ card: "BT20-037", as: "chaosmon", dp: 40000, under: ["BT20-099"] }],
           security: ["BT1-010"],
           deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],

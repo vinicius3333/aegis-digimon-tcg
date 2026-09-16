@@ -147,9 +147,6 @@ describe("EX2-013 Labramon", () => {
       },
       { autoOrderTriggers: true, autoSelectCards: true },
     );
-    // Memory 10 is the hard positive-side gauge cap. Start at 9 so the inherited +1 is
-    // observable; a start at 10 would correctly refuse the gain rather than expose a timing
-    // seam (see EX2-013-TURN-LOOP-MECHANISM.md).
     s.state.memory = 9;
     await s.ready();
     const loop = s.engine.startTurnLoop();
@@ -185,10 +182,6 @@ describe("EX2-013 Labramon", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => !observe(s.engine).isAttacking() && s.perm("host").isSuspended);
-      // The attack's later security/turn-loop cleanup may move the gauge independently of
-      // this card. Compare against the exact pre-attack baseline instead of assuming the
-      // settled gauge remains positive; a second inherited activation would still be visible
-      // as +1 from this baseline.
       expect(s.state.memory).not.toBe(secondBeforeAttack + 1);
 
       advance(s.engine).endMainPhaseIfOpen(0);

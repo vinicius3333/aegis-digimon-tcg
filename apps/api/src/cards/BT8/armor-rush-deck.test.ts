@@ -5,7 +5,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT8-012.js";
 import "./BT8-038.js";
 import "../BT9/BT9-044.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 describe("BT8/BT9 Armor Rush interactions", () => {
   it("keeps Flamedramon's attacking DP bonus after Armor Purge promotes its base", async () => {
@@ -85,8 +85,6 @@ describe("BT8/BT9 Armor Rush interactions", () => {
           security: ["BT1-001"],
           trash: ["BT8-021"],
         },
-        // A plain attacker: BT4-114 AncientGarurumon unsuspends itself with its own
-        // [When Attacking] clause, which would mask the post-attack suspension asserted below.
         1: { battleArea: [{ card: "BT1-024", as: "attacker", dp: 13_000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },

@@ -9,32 +9,6 @@ import { compiled } from "./EX13-056.js";
 
 const CARD_ID = "EX13-056";
 
-// Fixtures, and why each one is here. The two printed slots are "level 4 or lower black Digimon
-// card with ＜Blocker＞" (main, from the reveal) and "level 5 or lower black Digimon card with
-// ＜Blocker＞" (inherited, from hand), so every fixture pins exactly one of the four predicates.
-//
-//   BT13-061 Gotsumon    BLACK Lv.3, 1000 DP, printed text is ＜Blocker＞ and nothing else — the
-//                        cleanest positive for BOTH slots, and the legal Black Lv.3 bottom of the
-//                        digivolution stack.
-//   BT2-058  Guardromon  BLACK Lv.4, 7000 DP, play cost 5, printed ＜Blocker＞ — the top of the
-//                        main slot's level range, and the legal Black Lv.4 digivolution source
-//                        into this card. Its only other clause is "[Your Turn] This Digimon can't
-//                        attack", inert for every assertion here.
-//   BT2-061  Andromon    BLACK Lv.5, 7000 DP, play cost 7, printed ＜Blocker＞ and nothing else —
-//                        OUT of the main slot (level 5 > 4) but IN the inherited slot (level 5).
-//                        The one fixture that discriminates the two printed ceilings.
-//   BT13-077 Craniamon   BLACK Lv.6 with printed ＜Blocker＞ — above BOTH ceilings, so it is the
-//                        inherited slot's level negative.
-//   BT13-067 Gladimon    BLACK Lv.4 whose only printed keyword is ＜Jamming＞ — the NEAR-MATCH
-//                        keyword negative: a filter that merely asked "has some keyword" would
-//                        wrongly admit it.
-//   BT13-066 Dorugamon   BLACK Lv.4 with no printed text at all — the plain no-keyword negative.
-//   BT2-072  Vilemon     PURPLE Lv.4 with printed ＜Blocker＞ — the colour negative: every other
-//                        predicate matches.
-//   BT1-014  Kokatorimon inert RED Lv.4 — the neutral HOST that carries this card as a
-//                        digivolution card for the inherited clause, and the illegal
-//                        (wrong-colour) digivolution source.
-//   BT1-009..BT1-013     inert red main-deck Digimon — neutral deck, security and hand bulk.
 const MATCH_LV3 = "BT13-061";
 const MATCH_LV4 = "BT2-058";
 const MATCH_LV5 = "BT2-061";
@@ -52,7 +26,6 @@ function combatOf(s: ReturnType<typeof setupEngine>) {
   return (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
 }
 
-/** Seat 0 holding Giromon plus a deck whose top 3 are the named reveal fixtures. */
 function revealBoard(top: { card: string; as: string }[], extra?: { suspended?: boolean }) {
   return {
     0: {
@@ -89,7 +62,6 @@ describe("EX13-056 Giromon", () => {
     expect(definition.inheritedEffectText).toBe(
       "[Opponent's Turn] [Once Per Turn] When any of your Digimon suspend, you may play 1 level 5 or lower black Digimon card with ＜Blocker＞ from your hand without paying the cost.",
     );
-    // No security effect is printed; nothing in the module may claim one.
     expect(definition.securityEffectText ?? "").toBe("");
   });
 
@@ -97,7 +69,6 @@ describe("EX13-056 Giromon", () => {
     expect(compiled).toMatchObject({ cardId: CARD_ID, coverage: "full", residual: [] });
     expect(compiled.effects).toHaveLength(4);
 
-    // ＜Collision＞ and ＜Blocker＞, in printed order.
     expect(compiled.effects[0]).toEqual({
       trigger: "Static",
       actions: [],
@@ -107,7 +78,6 @@ describe("EX13-056 Giromon", () => {
       ],
     });
 
-    // [All Turns] [Once Per Turn] When this Digimon suspends, reveal 3 ...
     expect(compiled.effects[1]).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",
@@ -142,7 +112,6 @@ describe("EX13-056 Giromon", () => {
     });
     expect(compiled.effects[1]!.isInherited).toBeUndefined();
     expect(compiled.effects[1]!.sharedUseKey).toBeUndefined();
-    // "without paying the cost" is the full waiver, never a reduction.
     const mainReveal = (
       compiled.effects[1]!.actions[0] as {
         actions: { add: { costDelta?: number; totalPlayCostBudget?: number }[] }[];
@@ -151,7 +120,6 @@ describe("EX13-056 Giromon", () => {
     expect(mainReveal.add[0]!.costDelta).toBeUndefined();
     expect(mainReveal.add[0]!.totalPlayCostBudget).toBeUndefined();
 
-    // [Rule] Trait: Has [Machine] Type.
     expect(compiled.effects[2]).toMatchObject({
       trigger: "Rule",
       actions: [
@@ -164,7 +132,6 @@ describe("EX13-056 Giromon", () => {
       ],
     });
 
-    // [Opponent's Turn] [Once Per Turn] When any of your Digimon suspend, play from hand ...
     expect(compiled.effects[3]).toMatchObject({
       trigger: "OpponentsTurn",
       isInherited: true,
@@ -197,11 +164,8 @@ describe("EX13-056 Giromon", () => {
       ],
     });
     expect(compiled.effects[3]!.sharedUseKey).toBeUndefined();
-    // "any of your Digimon", not "this Digimon": a bundled self-gate would make the rest of the
-    // source filter inert (whenSuspendedSelfGate, interpreter/actions/subTrigger.ts).
     expect(compiled.effects[3]!.actions[0]).not.toMatchObject({ sourceFilter: { isSelfRef: true } });
 
-    // The card prints no [Digivolve] / [Assembly] header and no [Security] clause.
     expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.assemblyRequirement).toBeUndefined();
     expect(compiled.effects.some((effect) => effect.isSecurity === true)).toBe(false);
@@ -209,12 +173,6 @@ describe("EX13-056 Giromon", () => {
     expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
     expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
-
-  // ---------------------------------------------------------------------------
-  // [All Turns] [Once Per Turn] When this Digimon suspends, reveal the top 3 cards of your deck.
-  // You may play 1 level 4 or lower black Digimon card with ＜Blocker＞ among them without paying
-  // the cost. Trash the rest.
-  // ---------------------------------------------------------------------------
 
   it("free-plays the revealed Lv.4 black ＜Blocker＞ and trashes the other two revealed cards", async () => {
     const s = setupEngine(
@@ -233,18 +191,14 @@ describe("EX13-056 Giromon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     await settle();
 
-    // Guardromon entered the battle area beside the suspended Giromon.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId).sort()).toEqual(
       [s.inst("giromon").instanceId, s.inst("freePlay").instanceId].sort(),
     );
     expect(s.perm("giromon").isSuspended).toBe(true);
-    // "without paying the cost": Guardromon's printed play cost of 5 was waived entirely.
     expect(s.state.memory).toBe(0);
-    // "Trash the rest" — the two unchosen revealed cards, and nothing else.
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual(
       [s.inst("nearMiss").instanceId, s.inst("nonMatch").instanceId].sort(),
     );
-    // Exactly 3 cards were revealed; the fourth stayed in the deck, and nothing reached hand.
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("untouched").instanceId]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("spare").instanceId]);
     assertNoLoudGap(s);
@@ -268,7 +222,6 @@ describe("EX13-056 Giromon", () => {
       await settle(() => s.state.pendingDecision === undefined);
       await settle();
 
-      // Nothing was playable, so all three revealed cards were trashed and the board is unchanged.
       expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
       expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual(
         [s.inst("rejected").instanceId, s.inst("filler").instanceId, s.inst("alsoFiller").instanceId].sort(),
@@ -297,8 +250,6 @@ describe("EX13-056 Giromon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     await settle();
 
-    // The automation had exactly one legal candidate, which is the point: the purple ＜Blocker＞ and
-    // the keywordless black Lv.4 were never offered.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId).sort()).toEqual(
       [s.inst("giromon").instanceId, s.inst("freePlay").instanceId].sort(),
     );
@@ -310,8 +261,6 @@ describe("EX13-056 Giromon", () => {
   });
 
   it('trashes all three when the printed "You may" is declined', async () => {
-    // The optional `to: "play"` slot surfaces as a `selectCards` decision with `min: 0`, not an
-    // `optional` prompt, so the decline is answered with an empty selection by hand.
     const s = setupEngine(
       revealBoard([
         { card: MATCH_LV4, as: "declined" },
@@ -393,7 +342,6 @@ describe("EX13-056 Giromon", () => {
     await advance(s.engine).verb.suspend([s.perm("ally").permanentId]);
     await settle();
 
-    // Nothing was revealed, nothing was played, nothing was trashed.
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(4);
@@ -433,7 +381,6 @@ describe("EX13-056 Giromon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(6);
 
-    // Re-open a legal event in the SAME turn: the spent use does not come back.
     await advance(s.engine).verb.unsuspend([giromonId]);
     await advance(s.engine).verb.suspend([giromonId]);
     await settle();
@@ -441,7 +388,6 @@ describe("EX13-056 Giromon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(6);
 
-    // A real opponent turn, then the controller's own turn, restores the use.
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 0;
@@ -457,11 +403,6 @@ describe("EX13-056 Giromon", () => {
     );
     assertNoLoudGap(s);
   });
-
-  // ---------------------------------------------------------------------------
-  // ＜Collision＞ (§16-30) and ＜Blocker＞ (§16-4), both of which also drive the main clause:
-  // declaring an attack and blocking each suspend this Digimon.
-  // ---------------------------------------------------------------------------
 
   it("declares both keywords live, and the printed [Rule] Trait grants [Machine] on top of [Mine]", async () => {
     const s = setupEngine({
@@ -481,21 +422,13 @@ describe("EX13-056 Giromon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("giromon"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("giromon"), "Blocker")).toBe(true);
 
-    // The catalog prints only [Mine], so every [Machine] read comes from the printed Rule clause.
     expect(getCardDefinition(CARD_ID)?.types).toEqual(["Mine"]);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("giromon"), "Mine")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("giromon"), "Machine")).toBe(true);
-    // A Digimon merely CARRYING this card as a digivolution card is granted nothing: the Rule
-    // clause is the top card's own printed information (§4-23-2).
     expect(observe(s.engine).hasEffectiveTrait(s.perm("sourceOnly"), "Machine")).toBe(false);
   });
 
   it("is read as [Machine] by another card's trait-gated inherited grant", async () => {
-    // EX1-007 Megadramon's inherited clause is "[Your Turn] While this Digimon has [Machine] in its
-    // traits, it gains ＜Security Attack +1＞" — an INDEPENDENT reader of the trait, so the proof
-    // does not rest on this module's own observation helper. Three hosts carry it: this card (trait
-    // from its printed Rule clause only), BT15-061 Guardromon (printed [Machine] — the positive
-    // control that the reader works at all) and BT1-014 Kokatorimon ([Bird] — the negative).
     const s = setupEngine({
       0: {
         battleArea: [
@@ -532,7 +465,6 @@ describe("EX13-056 Giromon", () => {
     s.state.memory = 0;
     await s.ready();
     const blockerId = s.perm("forcedBlocker").permanentId;
-    // Muchomon has no printed ＜Blocker＞ of its own; ＜Collision＞ is the only reason it can block.
     expect(observe(s.engine).hasKeyword(blockerId, "Blocker")).toBe(false);
 
     expect(
@@ -547,18 +479,14 @@ describe("EX13-056 Giromon", () => {
       mustBlock: true,
       eligibleBlockerIds: [blockerId],
     });
-    // §16-30: the opponent is forced to block whenever possible.
     expect(s.engine.applyIntent(1, { type: "declineBlock" }).ok).toBe(false);
     expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.pendingDecision === undefined);
     await settle();
 
-    // The block redirected the attack, so security was never checked, and the 7000 DP Giromon beat
-    // the 5000 DP forced blocker.
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    // The attack declaration suspended Giromon, which is this card's own printed trigger.
     expect(s.perm("giromon").isSuspended).toBe(true);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId).sort()).toEqual(
       [s.inst("giromon").instanceId, s.inst("freePlay").instanceId].sort(),
@@ -602,8 +530,6 @@ describe("EX13-056 Giromon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 2);
     await settle();
 
-    // Security was untouched, the 7000 DP blocker beat the 5000 DP attacker, and the suspension the
-    // block itself cost fired the reveal.
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.perm("giromon").isSuspended).toBe(true);
@@ -613,12 +539,6 @@ describe("EX13-056 Giromon", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toHaveLength(2);
   });
 
-  // ---------------------------------------------------------------------------
-  // [Opponent's Turn] [Once Per Turn] When any of your Digimon suspend, you may play 1 level 5 or
-  // lower black Digimon card with ＜Blocker＞ from your hand without paying the cost.
-  // ---------------------------------------------------------------------------
-
-  /** A neutral host carrying this card as its only digivolution card, plus a hand to play from. */
   function inheritedBoard(hand: { card: string; as: string }[]) {
     return {
       0: {
@@ -651,11 +571,9 @@ describe("EX13-056 Giromon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 3);
     await settle();
 
-    // Andromon is level 5 — inside the inherited ceiling and outside the main clause's.
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
       s.inst("freePlay").instanceId,
     );
-    // "without paying the cost": Andromon's printed play cost of 7 was waived.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("spare").instanceId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -699,7 +617,6 @@ describe("EX13-056 Giromon", () => {
     await advance(s.engine).verb.suspend([s.perm("ally").permanentId]);
     await settle();
 
-    // Nothing in hand satisfies all four printed predicates, so the hand is untouched.
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.hand).toHaveLength(4);
     expect(s.state.memory).toBe(0);
@@ -751,7 +668,6 @@ describe("EX13-056 Giromon", () => {
     await advance(s.engine).verb.suspend([s.perm("theirs").permanentId]);
     await settle();
 
-    // "any of YOUR Digimon" — the opponent's suspension is not this watcher's event.
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(2);
   });
@@ -794,14 +710,12 @@ describe("EX13-056 Giromon", () => {
     await settle();
     expect(s.state.players[0]!.hand).toHaveLength(2);
 
-    // Same opponent turn: re-open the event and the spent use stays spent.
     await advance(s.engine).verb.unsuspend([allyId]);
     await advance(s.engine).verb.suspend([allyId]);
     await settle();
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
     expect(s.state.players[0]!.hand).toHaveLength(2);
 
-    // A real turn of the controller's own passes, then the next opponent turn reopens the use.
     s.state.turnSeat = 0;
     s.state.memory = 3;
     await advance(s.engine).runTurn(0);
@@ -847,10 +761,6 @@ describe("EX13-056 Giromon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(2);
   });
 
-  // ---------------------------------------------------------------------------
-  // Evolution: the catalog EvoCost (Black Lv.4 for 3) is the only printed route.
-  // ---------------------------------------------------------------------------
-
   it("digivolves from a Black Lv.4 for 3 with the bonus draw, keeping the source identity, and refuses a Red Lv.4", async () => {
     const s = setupEngine(
       {
@@ -878,16 +788,12 @@ describe("EX13-056 Giromon", () => {
     await settle(() => s.perm("source").topCard.cardId === CARD_ID);
     await settle(() => s.state.pendingDecision === undefined);
 
-    // Printed cost 3 was charged, and nothing reduced it.
     expect(s.state.memory).toBe(0);
-    // `Permanent.stack` holds only the cards beneath the top card, bottom first.
     expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("bottom").instanceId,
       s.inst("source").instanceId,
     ]);
-    // Digivolution's bonus draw moved exactly one deck card into hand.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
-    // Both keywords and the granted trait came with the new top card.
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Collision")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("source"), "Machine")).toBe(true);
 
@@ -903,7 +809,6 @@ describe("EX13-056 Giromon", () => {
     illegal.state.memory = 3;
     await illegal.ready();
 
-    // Kokatorimon is a RED Lv.4: the right level, the wrong colour.
     expect(
       illegal.engine.applyIntent(0, {
         type: "digivolve",
@@ -959,7 +864,6 @@ describe("EX13-056 Giromon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId).sort()).toEqual(
       [s.inst("giromon").instanceId, s.inst("freePlay").instanceId].sort(),
     );
-    // The Lv.4 source survives beneath the new top card.
     expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("source").instanceId]);
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);

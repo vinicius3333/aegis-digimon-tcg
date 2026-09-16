@@ -1,8 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored runtime fix: Q3385 binds "that Digimon" to the selected blue target, with the
-// entry-zone receipt gating the source-only unsuspend.
 export const compiled: CompiledCard = {
   effects: [
     {

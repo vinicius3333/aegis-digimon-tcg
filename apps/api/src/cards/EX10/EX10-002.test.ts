@@ -6,13 +6,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./EX10-002.js";
 
-/**
- * EX10-002 Koromon (Digi-Egg, Black, Lv.2 In-Training, [Lesser]).
- * Inherited: "[All Turns] [Once Per Turn] When attack targets change, ＜Draw 1＞".
- *
- * The attack target changes naturally when a ＜Blocker＞ is declared, so every clause below
- * is proved through the production block window (`declareBlock`), not injected timing.
- */
 describe("EX10-002 Koromon inherited draw when attack targets change", () => {
   it("matches the catalog: a Black Lv.2 [Lesser] Digi-Egg whose only text is inherited", () => {
     expect(getCardDefinition("EX10-002")).toMatchObject({
@@ -55,8 +48,6 @@ describe("EX10-002 Koromon inherited draw when attack targets change", () => {
     ).toEqual({ ok: true });
     await settle(() => p0.hand.length === handBefore + 1);
 
-    // The draw took the top card of the deck; security was never checked because the attack
-    // was redirected onto the blocker, which the 20000 DP host deletes.
     expect(p0.hand.length).toBe(handBefore + 1);
     expect(p0.hand.at(-1)!.cardId).toBe("BT1-013");
     expect(p0.deck.map((card) => card.cardId)).toEqual(["BT1-014"]);
@@ -130,8 +121,6 @@ describe("EX10-002 Koromon inherited draw when attack targets change", () => {
     await settle(() => p0.hand.length === handBefore + 1);
     expect(p0.hand.length).toBe(handBefore + 1);
 
-    // Second attack, same turn, second target change. The watcher is unscoped (it reacts to
-    // ANY attack-target change, not only its own host's), so only [Once Per Turn] can stop it.
     const blockedAgain = s.events.filter((event) => event.kind === "blocked").length;
     expect(
       s.engine.applyIntent(0, {
@@ -179,7 +168,6 @@ describe("EX10-002 Koromon inherited draw when attack targets change", () => {
     const p0 = s.state.players[0]!;
     const handAfterDraw = p0.hand.length;
 
-    // Own turn: my attack is blocked, the target changes, I draw.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -198,8 +186,6 @@ describe("EX10-002 Koromon inherited draw when attack targets change", () => {
     await advance(s.engine).waitForMainPhase(1);
     const handAtOpponentTurn = p0.hand.length;
 
-    // Opponent's turn: THEY attack, I block. The switch is theirs, but the draw belongs to
-    // the controller of the Digimon carrying Koromon, and the once-per-turn use has reset.
     const theirHandBefore = s.state.players[1]!.hand.length;
     expect(
       s.engine.applyIntent(1, {
@@ -244,14 +230,10 @@ describe("EX10-002 Koromon inherited draw when attack targets change", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT2-052");
-    // Digivolving costs 0 memory from a Lv.2 to BT2-052 and draws the usual 1 card, so the
-    // hand is read again after the move and only the inherited draw is measured below.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[0]!.breeding!.stack.map((card) => card.instanceId)).toEqual([eggInstanceId]);
 
-    // `moveFromBreeding` is gated on the Breeding phase; the turn loop is not running here,
-    // so the phase is set directly and restored, exactly as BT23-040's helper does.
     s.state.phase = Phase.Breeding;
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);

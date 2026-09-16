@@ -1,11 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Fixed: was GrantAuraToOpponents targeting opponent Digimon. The card text says
-// "1 of YOUR Digimon gains '[On Deletion] Gain 2 memory' until the end of your
-// opponent's next turn." Uses GrantStatic grant:"effects" + token "OnDeletionGain2Memory"
-// anchored on the controller's Digimon with duration untilOpponentTurnEnd (matching
-// the RB1-030 pattern for duration-scoped [On Deletion] effect grants).
 const compiled: CompiledCard = {
   effects: [
     {

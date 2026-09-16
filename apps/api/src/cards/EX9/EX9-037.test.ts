@@ -185,7 +185,6 @@ describe("EX9-037", () => {
     const currentTurn = s.engine.runOneTurn();
     await settle();
     await advance(s.engine).waitForMainPhase(1);
-    // Open the On Play window after this turn's unsuspend procedure has finished.
     await advance(s.engine).verb.playInstances([s.inst("source").instanceId]);
     await settle();
     advance(s.engine).endMainPhaseIfOpen(1);

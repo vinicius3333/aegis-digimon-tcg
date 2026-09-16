@@ -11,7 +11,6 @@ describe("LM-006 Cthyllamon", () => {
     const s = setupEngine(
       {
         0: {
-          // Kiyoshiro Higashimitarai costs 4, so the printed 11 play cost drops to 7.
           hand: ["BT1-027"],
           battleArea: [{ card: "BT9-086", as: "tamer" }],
           trash: [{ card: "LM-006", as: "cthyllamon" }],
@@ -42,7 +41,6 @@ describe("LM-006 Cthyllamon", () => {
       ),
     );
 
-    // The Tamer went to the bottom of the deck, and memory paid 11 - 4 = 7.
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT9-086");
     expect(s.state.memory).toBe(0);
     void turn;
@@ -65,7 +63,6 @@ describe("LM-006 Cthyllamon", () => {
     });
     await settle(() => s.perm("stacked").stack.length === 1, 2000);
 
-    // The bottom three go; the top-most digivolution card stays.
     expect(s.perm("stacked").stack.map((card) => card.cardId)).toEqual(["BT1-047"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-027", "BT1-028", "BT1-045"]);
   });

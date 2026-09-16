@@ -10,8 +10,6 @@ import type {
   SubTriggerInstall,
 } from "../../engine/effects/EffectContext.js";
 
-// Import each registered revealAdd card module so it self-registers on the registry.
-// ORC-02 cluster (Phase 9)
 import "../BT1/BT1-048.js";
 import "../BT12/BT12-045.js";
 import "../BT16/BT16-082.js";
@@ -22,7 +20,6 @@ import "../BT7/BT7-009.js";
 import "../EX2/EX2-030.js";
 import "../ST15/ST15-04.js";
 import "../ST4/ST4-03.js";
-// 10.1-01 cluster (Phase 10.1 — revealSpan + per-condition-class fix)
 import "../LM/LM-033.js";
 import "../LM/LM-045.js";
 import "../BT10/BT10-097.js";
@@ -30,44 +27,6 @@ import "../EX7/EX7-048.js";
 import "../P/P-112.js";
 import "../ST17/ST17-11.js";
 import "../ST21/ST21-14.js";
-
-// ---------------------------------------------------------------------------
-// RevealAdd cluster A3 — the EXIT proof for the 10 ORC-02 revealAdd cards.
-// ---------------------------------------------------------------------------
-//
-// Each card is driven through its REGISTERED module (getEffectModule, imported
-// above so it self-registers) and the engine interpreter's runRevealAdd path —
-// NOT a hand-built IR literal. This is the Pitfall-3 requirement: a recognizer
-// regression must be observable through this test, so the test must execute the
-// same IR the catalog ships.
-//
-// What is asserted per card:
-//   (i)  reveal(seat, revealCount) is called with the card's revealCount.
-//   (ii) the matching revealed instanceIds are added to hand (returnToHand).
-//   (iii) the non-matching revealed cards go to the correct rest zone:
-//          - ST15-04 -> TRASH (fx.trash)
-//          - the other 9 (incl. BT16-082) -> deck BOTTOM (returnToDeck, toTop falsy)
-//   For the three multi-add cards (BT1-048, BT5-049, EX2-030) the reveal stages
-//   >= 2 matching cards and the test asserts ALL of them land in hand (the
-//   count:"all" / ProcessForAll maxCount:-1 semantics — NOT just one).
-//   For BT16-082 the test also asserts the optional Hatch tail runs (fx.hatch).
-//
-// FAILS-WHEN-REVERTED LEVER (the honesty contract — the oracle score is a proxy,
-// never the exit):
-//   The 09-01 fix widened the documented behavior->IR reveal recognizer so these 10 cards compile
-//   to faithful `RevealAdd` IR. Reverting that recognizer widening (actions.mjs)
-//   — or equivalently restoring the pre-09-01 IR — recompiles every one of these
-//   cards to a bare `Return { filter:{ zone:"trash" }, to:"hand" }`. That IR routes
-//   to the engine's Return action, which walks battleArea/trash and NEVER calls
-//   reveal / returnToHand on a deck-top slice. With the recognizer reverted:
-//     - the `reveal` assertions go RED (no reveal call is ever made), and
-//     - the "matching instanceId added to hand" assertions go RED (returnToHand
-//       is never called with the staged deck-top instanceIds).
-//   To confirm locally: replace any one card's `RevealAdd` IR with the legacy
-//   `Return { target:{ filter:{ zone:"trash" }, count:1 }, to:"hand" }` action and
-//   re-run — that card's block turns RED. This test therefore proves the runtime
-//   reveal+add+rest behavior, not merely the IR shape (which 09-01's runtime record
-//   test already covers).
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -112,12 +71,6 @@ function fakeCardInstance(cardId: string, instanceId: string): CardInstance {
   return { cardId, instanceId, ownerSeat: 0 as Seat } as never;
 }
 
-/**
- * A source permanent for the card under test. `digivolutionStack` populates the
- * source's digivolution-cards stack so a Digi-Burst trash cost (BT5-046) is payable; `onField`
- * gives a stack-less card a permanent anyway, which a battle-area watcher needs before it will
- * install itself (BT16-082).
- */
 function makeSource(cardId: string, opts: { digivolutionStack?: CardInstance[]; onField?: boolean } = {}): CardSource {
   const stack = opts.digivolutionStack ?? [];
   const permanent =
@@ -151,8 +104,6 @@ function makeContext(opts: {
   installed?: SubTriggerInstall[];
   onField?: boolean;
 }): EffectContext {
-  // `eggDeck` is read by the Hatch action's legality check (BT16-082's optional tail), so both
-  // seats carry one egg — a player with an empty egg deck cannot hatch at all.
   const players = [
     {
       seat: 0 as Seat,
@@ -193,11 +144,6 @@ function makeContext(opts: {
     returnToHand: record("returnToHand"),
     returnToDeck: record("returnToDeck"),
     trash: record("trash"),
-    // BT5-046's <Digi-Burst 1> cost trashes a digivolution-stack card via the dedicated
-    // trashDigivolutionCards seam (not the flat `trash` primitive), so stack-trash watchers
-    // fire correctly (see subTriggerSeams.test.ts). Recorded, not asserted on by these cases.
-    // The engine treats the returned ids as the cards that actually moved (a Digi-Burst cost is
-    // unpaid when fewer come back), so the mock echoes what it was asked to trash.
     trashDigivolutionCards: async (permanentId: string, instanceIds: string[], options?: unknown) => {
       opts.recorder.calls.push({ verb: "trashDigivolutionCards", args: [permanentId, instanceIds, options] });
       return instanceIds;
@@ -206,8 +152,6 @@ function makeContext(opts: {
       opts.recorder.calls.push({ verb: "redirectDigivolutionTrashHosts", args: [hostPermanentIds] });
       return hostPermanentIds;
     },
-    // Reveal-used Options run with the same complete primitive surface as production.
-    // None of this fixture's Options digivolve, so an attempted call is still observable.
     digivolveFromInstance: async (...args: unknown[]) => {
       opts.recorder.calls.push({ verb: "digivolveFromInstance", args });
       return undefined;
@@ -217,15 +161,10 @@ function makeContext(opts: {
       return [];
     },
     hatch: record("hatch"),
-    // BT16-082's [Your Turn] clause is gated behind a "whenMovedFromBreeding" SubTrigger
-    // (KB Q2668-Q2671 confirm it only fires on that event, not unconditionally every turn).
-    // Record the install so the test can fire the watcher directly, same convention as
-    // other SubTrigger-driven card tests (see BT23-069.test.ts installWatcher()).
     subscribeSubTrigger: (sub: SubTriggerInstall): number => {
       (opts.installed ?? []).push(sub);
       return (opts.installed ?? []).length;
     },
-    // Anything unexpected surfaces loudly.
     draw: (...a: unknown[]) => {
       throw new Error(`Unexpected draw(${JSON.stringify(a)})`);
     },
@@ -241,7 +180,6 @@ function makeContext(opts: {
   } as unknown as Primitives;
 
   const ask: DecisionApi = {
-    // Optional gates (BT16-082 may-hatch, optional costs) are accepted.
     optional: async () => true,
     chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
     selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
@@ -257,8 +195,6 @@ async function resolveCard(cardId: string, timing: EffectTiming, ctx: EffectCont
   const module = getEffectModule(cardId);
   expect(module, `${cardId} must self-register on import`).toBeDefined();
   const source = ctx.source as CardSource;
-  // Handwritten [On Play] modules register on the board-wide companion window the engine fires
-  // alongside OnPlay (see engine/effects/builders.ts `onPlay`), so read both before failing.
   const effects =
     module!.effectsForTiming(timing, source).length > 0 || timing !== EffectTiming.OnPlay
       ? module!.effectsForTiming(timing, source)
@@ -267,18 +203,12 @@ async function resolveCard(cardId: string, timing: EffectTiming, ctx: EffectCont
   await effects[index]!.resolve(ctx);
 }
 
-// ---------------------------------------------------------------------------
-// Single-add ProcessForAll cards: reveal N, add matching to hand, rest -> deck bottom.
-// ---------------------------------------------------------------------------
-
 describe("RevealAdd cluster A3 — single-add ProcessForAll cards (rest -> deck bottom)", () => {
   interface SingleCase {
     cardId: string;
     timing: EffectTiming;
     revealCount: number;
-    // The matching card's definition override.
     match: { instanceId: string; cardId: string; def: Partial<CardDefinition> };
-    // Non-matching filler instanceIds (definitions deliberately do not match).
     fillerIds: string[];
     extra?: { digivolutionStack?: CardInstance[] };
   }
@@ -308,7 +238,7 @@ describe("RevealAdd cluster A3 — single-add ProcessForAll cards (rest -> deck 
     },
     {
       cardId: "BT5-046",
-      timing: EffectTiming.OnUseOption, // [Main] -> OnUseOption
+      timing: EffectTiming.OnUseOption,
       revealCount: 1,
       match: {
         instanceId: "bt5046-match",
@@ -316,13 +246,11 @@ describe("RevealAdd cluster A3 — single-add ProcessForAll cards (rest -> deck 
         def: { kinds: ["Digimon"] as never, colors: ["Green"] as never },
       },
       fillerIds: [],
-      // <Digi-Burst 1>: the RevealAdd carries a trash cost paid from this Digimon's
-      // digivolution stack — supply one so the cost is payable and the reveal fires.
       extra: { digivolutionStack: [fakeCardInstance("DIGIEGG", "burst-card")] },
     },
     {
       cardId: "BT6-005",
-      timing: EffectTiming.OnDestroyedAnyone, // [On Deletion]
+      timing: EffectTiming.OnDestroyedAnyone,
       revealCount: 1,
       match: {
         instanceId: "bt6-match",
@@ -333,7 +261,7 @@ describe("RevealAdd cluster A3 — single-add ProcessForAll cards (rest -> deck 
     },
     {
       cardId: "BT7-009",
-      timing: EffectTiming.OnUseAttack, // [When Attacking]
+      timing: EffectTiming.OnUseAttack,
       revealCount: 5,
       match: { instanceId: "bt7-match", cardId: "SISTERMON", def: { nameEn: "Sistermon Blanc" } },
       fillerIds: ["bt7-f1", "bt7-f2", "bt7-f3", "bt7-f4"],
@@ -345,7 +273,6 @@ describe("RevealAdd cluster A3 — single-add ProcessForAll cards (rest -> deck 
       const recorder: Recorder = { calls: [] };
       const matchInst = fakeCardInstance(tc.match.cardId, tc.match.instanceId);
       const fillers = tc.fillerIds.map((id) => fakeCardInstance("FILLER", id));
-      // Pad the reveal slice to revealCount with non-matching fillers when needed.
       const slice = [matchInst, ...fillers];
       while (slice.length < tc.revealCount) slice.push(fakeCardInstance("FILLER", `${tc.cardId}-pad-${slice.length}`));
 
@@ -362,28 +289,19 @@ describe("RevealAdd cluster A3 — single-add ProcessForAll cards (rest -> deck 
 
       await resolveCard(tc.cardId, tc.timing, ctx);
 
-      // (i) reveal called with the card's revealCount
       const reveals = revealCalls(recorder);
       expect(reveals).toHaveLength(1);
       expect(reveals[0]!.args[1]).toBe(tc.revealCount);
 
-      // (ii) matching card added to hand
       expect(handedIds(recorder)).toContain(tc.match.instanceId);
 
-      // (iii) non-matching revealed cards go to deck bottom (toTop falsy)
       const bottom = deckBottomIds(recorder);
       for (const f of fillers) expect(bottom).toContain(f.instanceId);
-      // The match must NOT be sent to the deck.
       expect(bottom).not.toContain(tc.match.instanceId);
-      // Nothing is trashed for these 9.
       expect(trashedIds(recorder)).not.toContain(tc.match.instanceId);
     });
   }
 });
-
-// ---------------------------------------------------------------------------
-// Multi-add (count:"all") cards: reveal includes >= 2 matching; ALL must be added.
-// ---------------------------------------------------------------------------
 
 describe('RevealAdd cluster A3 — multi-add count:"all" cards', () => {
   interface MultiCase {
@@ -442,12 +360,10 @@ describe('RevealAdd cluster A3 — multi-add count:"all" cards', () => {
       expect(reveals).toHaveLength(1);
       expect(reveals[0]!.args[1]).toBe(tc.revealCount);
 
-      // count:"all" — BOTH matching cards must be in hand, not just one.
       const handed = handedIds(recorder);
       expect(handed).toContain(`${tc.cardId}-m1`);
       expect(handed).toContain(`${tc.cardId}-m2`);
 
-      // Fillers within the reveal slice go to deck bottom.
       const bottom = deckBottomIds(recorder);
       for (const f of fillers.slice(0, Math.max(0, tc.revealCount - 2))) {
         expect(bottom).toContain(f.instanceId);
@@ -456,17 +372,12 @@ describe('RevealAdd cluster A3 — multi-add count:"all" cards', () => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// ST15-04: divergent rest disposition — the non-matching revealed card -> TRASH.
-// ---------------------------------------------------------------------------
-
 describe("RevealAdd cluster A3 — ST15-04 (rest -> trash)", () => {
   it("reveals 1, adds a Black card to hand, and sends the non-matching revealed card to TRASH", async () => {
     const recorder: Recorder = { calls: [] };
     const blackCard = fakeCardInstance("BLACK-CARD", "st15-black");
     const nonMatch = fakeCardInstance("NONBLACK", "st15-nonmatch");
 
-    // Case A — the revealed card matches (Black): goes to hand, nothing trashed.
     {
       const ctx = makeContext({
         cardId: "ST15-04",
@@ -480,8 +391,6 @@ describe("RevealAdd cluster A3 — ST15-04 (rest -> trash)", () => {
       expect(handedIds(recorder)).toContain("st15-black");
     }
 
-    // Case B — the revealed card does NOT match: the rest disposition sends it to TRASH,
-    // NOT to the deck bottom (the divergence the A3 must lock in).
     const recorderB: Recorder = { calls: [] };
     const ctxB = makeContext({
       cardId: "ST15-04",
@@ -492,29 +401,10 @@ describe("RevealAdd cluster A3 — ST15-04 (rest -> trash)", () => {
     await resolveCard("ST15-04", EffectTiming.OnPlay, ctxB);
     expect(revealCalls(recorderB)).toHaveLength(1);
     expect(trashedIds(recorderB)).toContain("st15-nonmatch");
-    // It must NOT have gone to the deck bottom.
     expect(deckBottomIds(recorderB)).not.toContain("st15-nonmatch");
     expect(handedIds(recorderB)).not.toContain("st15-nonmatch");
   });
 });
-
-// ---------------------------------------------------------------------------
-// 10.1-01 cluster: LM-set + BT10-097 + EX7-048 + P-112 + ST17-11 + ST21-14.
-// ---------------------------------------------------------------------------
-//
-// These cards were fixed by the revealSpan 1400→3500 widening (BT10-097 only
-// needed a larger span for its second rule implementation's mode/to to be
-// parsed) and by the per-condition-class extraction in actions.mjs (EX7-048
-// to:"play", P-112 per-condition to:"hand"). All LM-set cards are structurally
-// identical to LM-033 (reveal 3, add 1 Red/Black Digimon to hand, rest deck bottom).
-// FAILS-WHEN-REVERTED: reverting the revealSpan to 1400 (or reverting the
-// per-condition-class fix) causes the BT10-097 Kiriha Aonuma `to` to become
-// "hand" and EX7-048's `to` to become "hand", making `playInstances` never called
-// (returning the card to hand instead of playing it) — those assertions go RED.
-
-// ---------------------------------------------------------------------------
-// LM-033: representative of the 15 LM-set reveal-add option cards.
-// ---------------------------------------------------------------------------
 
 describe("RevealAdd cluster A3 — LM-033 (reveal 3, add 1 Red/Black Digimon to hand, Phase 10.1-01)", () => {
   it("reveals 3, adds a Red/Black Digimon to hand, rest -> deck bottom", async () => {
@@ -543,10 +433,6 @@ describe("RevealAdd cluster A3 — LM-033 (reveal 3, add 1 Red/Black Digimon to 
     expect(bottom).not.toContain("lm033-match");
   });
 });
-
-// ---------------------------------------------------------------------------
-// ST17-11: two-add (Green Digimon + Green Tamer), both to hand.
-// ---------------------------------------------------------------------------
 
 describe("RevealAdd cluster A3 — ST17-11 (reveal 3, add 1 Green Digimon + 1 Green Tamer, Phase 10.1-01)", () => {
   it("reveals 3, adds a Green Digimon and a Green Tamer to hand, rest -> deck bottom", async () => {
@@ -580,10 +466,6 @@ describe("RevealAdd cluster A3 — ST17-11 (reveal 3, add 1 Green Digimon + 1 Gr
   });
 });
 
-// ---------------------------------------------------------------------------
-// ST21-14: single-add ADVENTURE trait, to hand.
-// ---------------------------------------------------------------------------
-
 describe("RevealAdd cluster A3 — ST21-14 (reveal 3, add 1 ADVENTURE Digimon to hand, Phase 10.1-01)", () => {
   it("reveals 3, adds an ADVENTURE trait card to hand, rest -> deck bottom", async () => {
     const recorder: Recorder = { calls: [] };
@@ -612,12 +494,6 @@ describe("RevealAdd cluster A3 — ST21-14 (reveal 3, add 1 ADVENTURE Digimon to
   });
 });
 
-// ---------------------------------------------------------------------------
-// EX7-048: reveal a [Three Musketeers] Option and USE it without paying the cost.
-// This is the fails-when-reverted discriminator for the per-condition-class fix:
-// reverting the fix causes EX7-048 to emit to:"hand" and useOptionFromHand is never called.
-// ---------------------------------------------------------------------------
-
 describe("RevealAdd cluster A3 — EX7-048 (reveal 6, use 1 Three Musketeers Option, Phase 10.1-01)", () => {
   it("reveals 6, stages the match in hand, then uses it without cost; rest -> chosen deck end", async () => {
     const recorder: Recorder = { calls: [] };
@@ -640,7 +516,6 @@ describe("RevealAdd cluster A3 — EX7-048 (reveal 6, use 1 Three Musketeers Opt
     expect(reveals).toHaveLength(1);
     expect(reveals[0]!.args[1]).toBe(6);
 
-    // The matched card is staged in hand before the Option-use lifecycle runs.
     expect(handedIds(recorder)).toContain("ex7048-match");
 
     const optionUses = recorder.calls.filter((call) => call.verb === "useOptionFromHand");
@@ -648,17 +523,10 @@ describe("RevealAdd cluster A3 — EX7-048 (reveal 6, use 1 Three Musketeers Opt
     expect(optionUses[0]!.args[1]).toBe("ex7048-match");
     expect(optionUses[0]!.args[3]).toMatchObject({ payCost: false });
 
-    // "Return the rest to the top or bottom of the deck" — the mock's chooseOption picks
-    // option 0 ("Top of deck"), so the non-matching revealed cards go to the deck TOP.
     const top = deckTopIds(recorder);
     for (const f of fillers) expect(top).toContain(f.instanceId);
   });
 });
-
-// ---------------------------------------------------------------------------
-// P-112: two-add (Eosmon name + Menoa Bellucci name), both to hand.
-// Tests that per-condition-class correctly assigns to:"hand" to BOTH conditions
-// ---------------------------------------------------------------------------
 
 describe("RevealAdd cluster A3 — P-112 (reveal 3, add 1 Eosmon + 1 Menoa Bellucci to hand, Phase 10.1-01)", () => {
   it("reveals 3, adds 1 Eosmon and 1 Menoa Bellucci to hand (NOT play), rest -> deck bottom", async () => {
@@ -667,8 +535,6 @@ describe("RevealAdd cluster A3 — P-112 (reveal 3, add 1 Eosmon + 1 Menoa Bellu
     const menoa = fakeCardInstance("MENOA-CARD", "p112-menoa");
     const filler = fakeCardInstance("PLAIN-DIGI", "p112-filler");
 
-    // P-112 has a condition: "if you have 1+ Eosmon Digimon in play".
-    // Inject a battle-area Eosmon permanent so the condition passes.
     const eosmonOnField = fakeCardInstance("EOSMON-CARD", "p112-eosmon-field");
     const eosmonPermanent = {
       permanentId: "PERM#eosmon-field",
@@ -689,7 +555,6 @@ describe("RevealAdd cluster A3 — P-112 (reveal 3, add 1 Eosmon + 1 Menoa Bellu
       },
     });
 
-    // Inject the Eosmon permanent into seat 0's battle area so the condition evaluates.
     (ctx.game.player(0 as never) as { battleArea: unknown[] }).battleArea.push(eosmonPermanent);
 
     await resolveCard("P-112", EffectTiming.OnPlay, ctx);
@@ -698,20 +563,12 @@ describe("RevealAdd cluster A3 — P-112 (reveal 3, add 1 Eosmon + 1 Menoa Bellu
     expect(reveals).toHaveLength(1);
     expect(reveals[0]!.args[1]).toBe(3);
 
-    // Both must land in hand — not played (P-112 fix: both conditions are AddHand).
     const handed = handedIds(recorder);
     expect(handed).toContain("p112-eosmon");
     expect(handed).toContain("p112-menoa");
     expect(deckBottomIds(recorder)).toContain("p112-filler");
   });
 });
-
-// ---------------------------------------------------------------------------
-// BT10-097: two-add — Blue Flare trait count:2 to:hand + Kiriha Aonuma count:1 to:play.
-// The Kiriha Aonuma to:play is the discriminating assertion for the revealSpan fix:
-// reverting to 1400 causes the second condition's mode/coroutineRef to be cut off,
-// defaulting to to:"hand", and the playInstances assertion goes RED.
-// ---------------------------------------------------------------------------
 
 describe("RevealAdd cluster A3 — BT10-097 (reveal 6: Blue Flare x2 to hand + Kiriha Aonuma x1 to play, Phase 10.1-01)", () => {
   it("reveals 6, adds 2 Blue Flare to hand and 1 Kiriha Aonuma to PLAY, rest -> deck bottom", async () => {
@@ -734,7 +591,6 @@ describe("RevealAdd cluster A3 — BT10-097 (reveal 6: Blue Flare x2 to hand + K
       },
     });
 
-    // Extend the fx mock to support playInstances.
     const ctx: typeof baseCtx = {
       ...baseCtx,
       fx: {
@@ -752,25 +608,18 @@ describe("RevealAdd cluster A3 — BT10-097 (reveal 6: Blue Flare x2 to hand + K
     expect(reveals).toHaveLength(1);
     expect(reveals[0]!.args[1]).toBe(6);
 
-    // Blue Flare x2 -> hand.
     const handed = handedIds(recorder);
     expect(handed).toContain("bt10097-bf1");
     expect(handed).toContain("bt10097-bf2");
 
-    // Kiriha Aonuma -> play (returnToHand then playInstances — the discriminating assertion).
     expect(handed).toContain("bt10097-kiriha");
     expect(playInstancesCalls.length).toBeGreaterThanOrEqual(1);
     expect(playInstancesCalls.some((ids) => (ids as string[]).includes("bt10097-kiriha"))).toBe(true);
 
-    // Fillers -> deck bottom.
     const bottom = deckBottomIds(recorder);
     for (const f of fillers) expect(bottom).toContain(f.instanceId);
   });
 });
-
-// ---------------------------------------------------------------------------
-// BT16-082: RevealDeckTopCardsAndSelect (add 1) + optional Hatch tail.
-// ---------------------------------------------------------------------------
 
 describe("RevealAdd cluster A3 — BT16-082 (reveal 3, add 1 Digimon/Tamer, then optional Hatch)", () => {
   it("reveals 3, adds a Digimon or Tamer to hand, rest -> deck bottom, and runs the optional Hatch", async () => {
@@ -787,20 +636,14 @@ describe("RevealAdd cluster A3 — BT16-082 (reveal 3, add 1 Digimon/Tamer, then
         FILLER: { kinds: ["Option"] as never, colors: ["White"] as never, nameEn: "Filler" },
       },
       installed,
-      // The watcher is anchored to the battle-area permanent, so the source needs one.
       onField: true,
     });
 
-    // [Your Turn] -> EffectTiming.None installs a "whenMovedFromBreeding" SubTrigger watcher
-    // (cards.json: "When one of your Digimon moves from the breeding area to the battle
-    // area..."; KB Q2668-Q2671 confirm the effect is gated on that event, not unconditional
-    // every turn). Fire the installed watcher to simulate the move.
     await resolveCard("BT16-082", EffectTiming.None, ctx);
     const watcher = installed.find((s) => s.event === "whenMovedFromBreeding");
     expect(watcher, "BT16-082 must install a whenMovedFromBreeding watcher").toBeDefined();
     await watcher!.run(ctx);
 
-    // Reveal-add half.
     const reveals = revealCalls(recorder);
     expect(reveals).toHaveLength(1);
     expect(reveals[0]!.args[1]).toBe(3);
@@ -808,7 +651,6 @@ describe("RevealAdd cluster A3 — BT16-082 (reveal 3, add 1 Digimon/Tamer, then
     const bottom = deckBottomIds(recorder);
     for (const f of fillers) expect(bottom).toContain(f.instanceId);
 
-    // Optional Hatch tail ran (fx.hatch invoked for the owner seat).
     const hatches = recorder.calls.filter((c) => c.verb === "hatch");
     expect(hatches).toHaveLength(1);
     expect(hatches[0]!.args[0]).toBe(0);

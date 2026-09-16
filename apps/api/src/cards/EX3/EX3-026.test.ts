@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./EX3-023.js";
 import "./EX3-026.js";
-import "../index.js"; // the full catalog is registered in a real match
+import "../index.js";
 
 function candidateIds(payloadJson: string): string[] {
   return (JSON.parse(payloadJson) as { candidateInstanceIds?: string[] }).candidateInstanceIds ?? [];
@@ -479,8 +479,6 @@ describe("EX3-026 Aegisdramon", () => {
           { card: "BT1-011", as: "blockedSameTurn" },
           { card: "BT1-012", as: "nextTurnPlay" },
         ],
-        // Deep enough to survive Agumon's own [On Play] reveal of 5 plus the turn draws:
-        // decking out would freeze the turn before the next opponent Main phase.
         deck: [
           "BT1-012",
           "BT1-013",
@@ -531,7 +529,6 @@ describe("EX3-026 Aegisdramon", () => {
     s.state.turnSeat = 1;
     s.state.memory = 3;
     const nextOpponentTurn = s.engine.runOneTurn();
-    // With a deck to hatch from, the Breeding window now waits for an action; skip it.
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 1, 20000);
     if (s.state.phase === Phase.Breeding) s.engine.applyIntent(1, { type: "endPhase" });
     await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main, 20000);

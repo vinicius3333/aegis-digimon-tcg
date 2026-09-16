@@ -110,9 +110,6 @@ describe("P-166 Galemon", () => {
       expect(target).toBeDefined();
       expect(target!.isSuspended).toBe(true);
       expect(s.perm("galemon").topCard.cardId).toBe("BT5-053");
-      // P-166 costs 4 to play; Deramon costs 3 to evolve, reduced once per
-      // The optional first clause suspends the opponent's target; all other suspended Digimon
-      // (on either side) reduce this effect's digivolution cost.
       expect(s.state.memory).toBe(4 + suspendedHelpers);
     },
   );

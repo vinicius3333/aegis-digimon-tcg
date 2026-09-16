@@ -78,8 +78,6 @@ describe("EX1 MetalGarurumon hand toolbox deck", () => {
       5000,
     );
 
-    // EX1-017 is the attack's only memory gain: the played ST2-12 has no On Play
-    // memory effect, and EX1-021's gain belongs to its When Digivolving timing.
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand).toHaveLength(9);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(
@@ -88,8 +86,6 @@ describe("EX1 MetalGarurumon hand toolbox deck", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("firstSource").instanceId, s.inst("secondSource").instanceId]),
     );
-    // Returning to deck is not deletion, so Palmon's On Deletion suspend never fires on
-    // the otherwise eligible unsuspended spare Digimon.
     expect(s.perm("spareDigimon").isSuspended).toBe(false);
     expect(s.perm("metalGarurumon").isSuspended).toBe(true);
     assertNoLoudGap(s);

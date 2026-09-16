@@ -94,10 +94,8 @@ describe("BT17-060 Armageddemon", () => {
     expect(observe(s.engine).hasKeyword(armageddemon, "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(armageddemon, "Reboot")).toBe(true);
 
-    // Budget 15 exactly: the two 7+8 cost Digimon went, the 16-cost one is out of budget.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([unsuspendedTargetId]);
 
-    // [Your Turn] permission plus ＜Rush＞: it attacks an UNSUSPENDED Digimon the turn it was played.
     expect(s.perm("unsuspendedTarget").isSuspended ?? false).toBe(false);
     expect(
       s.engine.applyIntent(0, {
@@ -106,12 +104,10 @@ describe("BT17-060 Armageddemon", () => {
         target: { kind: "permanent", permanentId: unsuspendedTargetId },
       }),
     ).toEqual({ ok: true });
-    // The defender itself has ＜Blocker＞, so the defending seat's block window must be answered.
     await drainMicrotasks(50);
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    // Both are 15000 DP Armageddemon, so the battle deletes attacker and defender alike.
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT17-060")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-060")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
@@ -150,7 +146,6 @@ describe("BT17-060 Armageddemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // 7 + 12 = 19 exceeds the budget, so exactly one of them survives.
     const remaining = s.state.players[1]!.battleArea;
     expect(remaining).toHaveLength(1);
     const deletedCost = getCardDefinition(
@@ -186,9 +181,6 @@ describe("BT17-060 Armageddemon", () => {
   });
 
   it("counts only the eligible trash cards and leaves an ineligible peer behind", async () => {
-    // Comparative filter case: BT17-053 Keramon has the [Unidentified] trait, BT17-100
-    // Doomsday Clock has [Diaboromon] in its text only, and BT1-009 Monodramon has
-    // neither, so exactly two reductions are available (16 -> 14).
     const s = setupEngine(
       {
         0: {

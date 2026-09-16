@@ -30,9 +30,6 @@ describe("BT17-056 Locomon", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects).toHaveLength(3);
 
-    // Clause 1: [All Turns] [Once Per Turn] attack-target-switch reveal 3, place 1 eligible
-    // card as the BOTTOM digivolution card (`to: "placeUnder"` under this Digimon), trash rest.
-    // [Parasitemon] is a printed EXACT name reference -> `nameExact`, not substring `name`.
     expect(compiled.effects[0]).toEqual({
       trigger: "AllTurns",
       frequency: "OncePerTurn",
@@ -71,8 +68,6 @@ describe("BT17-056 Locomon", () => {
       ],
     });
 
-    // Clause 2: [All Turns] free digivolve into [GroundLocomon] (exact name) from the hand
-    // when one of your Digimon's effects adds to THIS Digimon's digivolution cards.
     expect(compiled.effects[1]).toEqual({
       trigger: "AllTurns",
       actions: [
@@ -98,7 +93,6 @@ describe("BT17-056 Locomon", () => {
       ],
     });
 
-    // Inherited: [Your Turn] ＜Collision＞ while the host has the [Machine] trait (exact trait).
     expect(compiled.effects[2]).toEqual({
       trigger: "YourTurn",
       isInherited: true,
@@ -161,13 +155,9 @@ describe("BT17-056 Locomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("locomon").topCard?.instanceId === groundLocomonId);
 
-    // The blocked attack switched the target; the reveal placed the level-3 BLACK Digimon
-    // under Locomon (bottom digivolution card) and trashed the Tamer and the Option.
     expect(s.perm("locomon").stack.some((card) => card.instanceId === eligibleId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(remainderIds));
     expect(s.state.players[0]!.deck).toHaveLength(0);
-    // Adding a digivolution card by this Digimon's own effect offered the free digivolve into
-    // [GroundLocomon] from hand, so the host's top card is now GroundLocomon and the hand is empty.
     expect(s.perm("locomon").topCard?.cardId).toBe("BT17-058");
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
@@ -231,8 +221,6 @@ describe("BT17-056 Locomon", () => {
         0: {
           battleArea: [
             { card: "BT17-056", as: "locomon" },
-            // Two Diaboromon: each carries its OWN [Once Per Turn] attack-target switch, so
-            // the same turn can produce two switches and expose Locomon's own once-per-turn gate.
             { card: "BT17-059", as: "switcherOne" },
             { card: "BT17-059", as: "switcherTwo" },
             { card: "BT17-059", as: "switcherThree" },
@@ -277,7 +265,6 @@ describe("BT17-056 Locomon", () => {
     await settle(() => s.perm("locomon").stack.some((card) => card.instanceId === firstEligibleId));
     expect(s.state.players[0]!.deck).toHaveLength(5);
 
-    // Second switch in the SAME turn: [Once Per Turn] refuses, so no further reveal.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -289,7 +276,6 @@ describe("BT17-056 Locomon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(5);
     expect(s.perm("locomon").stack.some((card) => card.instanceId === secondEligibleId)).toBe(false);
 
-    // Next own turn resets the once-per-turn gate: a switch reveals again.
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 0;
@@ -325,8 +311,6 @@ describe("BT17-056 Locomon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("machineHost"), "Collision")).toBe(true);
-    // Comparative peer: same inherited source, same controller, but Diaboromon is
-    // [Unidentified], so the [Machine]-trait condition withholds ＜Collision＞.
     expect(observe(s.engine).hasKeyword(s.perm("unidentifiedHost"), "Collision")).toBe(false);
   });
 });
