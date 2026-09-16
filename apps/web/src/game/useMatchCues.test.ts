@@ -257,8 +257,14 @@ it.each([0, 1] as const)(
     await advance(32);
     expect(result.current.drawFlights).toHaveLength(1);
     expect(result.current.phaseBanner).toBeNull();
-    // The draw lands first, and the collapsed burst still opens on the seat change.
-    await advance(result.current.drawFlights[0]!.duration + 32);
+    // One flight per drawn card: the server names a whole Draw 2 in a single event, and
+    // a flight per event sent one card back for two cards.
+    const flightMs = result.current.drawFlights[0]!.duration;
+    await advance(TIMINGS.drawFlightStagger);
+    expect(result.current.drawFlights).toHaveLength(2);
+    // Both land first, and the collapsed burst still opens on the seat change.
+    await advance(flightMs + 32);
+    expect(result.current.drawFlights).toHaveLength(0);
     expect(result.current.turnTransition).not.toBeNull();
     expect(result.current.phaseBanner).toBeNull();
     await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
@@ -1081,6 +1087,42 @@ describe("match cues", () => {
     await advance((TIMINGS.phaseBanner + TIMINGS.phaseBannerGap) * 2);
     expect(result.current.phaseBanner).toBeNull();
     expect(result.current.phaseTransitionPending).toBe(false);
+  });
+
+  it("releases the draw hold for an effect draw that flips the turn in the same patch", async () => {
+    const state = {
+      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+    } as unknown as GameState;
+    // What an Option that draws sends when the turn ends on its resolution: the draw and
+    // the whole next-turn pipeline coalesce into one patch.
+    const events: ServerEvent[] = [
+      { kind: "cardsMoved", from: "deck", to: "hand", instanceIds: ["drawn-a", "drawn-b"], seat: 0 },
+      UNSUSPEND_PHASE,
+      { ...UNSUSPEND_PHASE, phase: "Draw" },
+    ];
+    const { result, rerender } = renderHook(
+      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          state,
+          phaseEvents,
+          batches,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+    );
+    await advance(0);
+    rerender({ phaseEvents: events, batches: [] });
+    state.players[0]!.handCount = 7;
+    state.players[0]!.deckCount = 38;
+    rerender({ phaseEvents: events, batches: [singleServerBatch(events)] });
+    await advance(32);
+    // The Active banner armed the hold before the batch was read; the drawn cards belong
+    // to the turn that just ended, so they may not wait behind its ribbons.
+    expect(result.current.heldDrawState).toBeUndefined();
   });
 
   it("does not lock actions or hold a hand when reconnecting to phase history", async () => {

@@ -1391,7 +1391,27 @@ export function useMatchCues({
             eventDrawCountsRef.current[side] = state?.players[seat]?.handCount;
             const followsDigivolution =
               event.drawReason === "digivolution" && pendingDigivolutionDrawRef.current.has(seat);
-            launchDrawFlight(side, false, followsDigivolution ? CARD_BURST_PEAK_MS : 0);
+            const waitBeforeMs = followsDigivolution ? CARD_BURST_PEAK_MS : 0;
+            // One flight per card. The server names a whole Draw 2 in a single event, so a
+            // flight per event sent one card back for two cards and read as a single draw.
+            for (const [drawIndex] of event.instanceIds.entries())
+              launchDrawFlight(side, false, waitBeforeMs + drawIndex * TIMINGS.drawFlightStagger);
+            /**
+             * An effect draw releases the draw-phase hold.
+             *
+             * The hold freezes the presented hand at the previous revision so the draw the
+             * turn opens with stays hidden until its Draw banner. It is armed when the
+             * Active banner is ENQUEUED, which — when a turn flips in the same patch that
+             * carried the previous player's last effect — happens before this batch is read,
+             * so cards this effect drew were frozen out of the hand for as long as the
+             * banners took to run. Only the phase draw needs hiding, and that one moves
+             * through GameEngine.drawCards and emits no event at all: reaching this line
+             * means the cards came from an effect, and belong on screen now.
+             */
+            if (drawPhaseWaitingRef.current) {
+              drawPhaseWaitingRef.current = false;
+              setHeldDrawState(undefined);
+            }
             if (event.drawReason === "digivolution") pendingDigivolutionDrawRef.current.delete(seat);
           }
         }

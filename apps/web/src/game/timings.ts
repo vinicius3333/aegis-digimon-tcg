@@ -204,6 +204,9 @@ export const TIMINGS = {
   /** The gap between two cards of the opening five-card security deal. Paced in the cue
    * queue rather than in CSS: each card is its own flight. */
   securityDealStagger: 130,
+  /** The gap between the card backs of one multi-card effect draw. Paced in the cue queue
+   * for the same reason the deal is: each card is its own flight on its own track. */
+  drawFlightStagger: 110,
   /** One of the target arrow's two opening flashes. */
   arrowFlash: 85,
   /** A card growing to its inspected size. */
