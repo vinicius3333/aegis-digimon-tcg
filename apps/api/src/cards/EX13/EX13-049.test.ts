@@ -28,6 +28,9 @@ const NEITHER_EGG = "BT10-005";
 const X_ANTIBODY = "BT13-063";
 const CHRONICLE_TAMER = "BT20-087";
 const NON_MATCH = "BT1-009";
+//   BT9-095  Gaia Force ZERO — an Option with NO traits at all whose printed text contains
+//                        "[X Antibody]": the near-match that `match: "trait"` must refuse.
+const TEXT_ONLY_NEAR_MATCH = "BT9-095";
 
 /** Fire the inherited [When Attacking] window on a host carrying EX13-049 in its stack. */
 async function attackWindow(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
@@ -381,6 +384,43 @@ describe("EX13-049 Dorumon", () => {
     assertNoLoudGap(s);
   });
 
+  it("refuses a near-match that only prints [X Antibody] in its text and carries no such trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "dorumon" }],
+          deck: [
+            { card: TEXT_ONLY_NEAR_MATCH, as: "nearMatch" },
+            { card: "BT1-010", as: "restB" },
+            { card: "BT1-011", as: "restC" },
+            { card: "BT1-012", as: "sentinel" },
+          ],
+          security: ["BT1-013"],
+        },
+        1: { security: ["BT1-014"], deck: ["BT1-013"] },
+      },
+      { autoSelectCards: true, autoOrderCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dorumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    // `match: "trait"` is exact trait equality: the printed "[X Antibody]" inside BT9-095's own
+    // effect text is not a trait, so nothing is added and the near-match returns with the rest.
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("sentinel").instanceId,
+      s.inst("nearMatch").instanceId,
+      s.inst("restB").instanceId,
+      s.inst("restC").instanceId,
+    ]);
+    assertNoLoudGap(s);
+  });
+
   // ---------------------------------------------------------------------------
   // [When Moving] — the same clause on the public breeding-move route.
   // ---------------------------------------------------------------------------
@@ -496,6 +536,11 @@ describe("EX13-049 Dorumon", () => {
     );
     await s.ready();
 
+    // §11-2-3 caps each Digimon at ONE attack per turn, so a second REAL declaration by the same
+    // host is refused by the rule before the rider is reached (engine seam:
+    // `apps/api/src/engine/actions/attack.ts` `validateAttack` step 5). The printed [Once Per
+    // Turn] therefore has to be exercised on a second [When Attacking] WINDOW for the same host;
+    // the public attack route is proven in the test above.
     await attackWindow(s, "host");
     await settle(() => s.state.pendingDecision === undefined);
     const hit = ["first", "second"].filter((alias) => s.perm(alias).currentDP === 7000);
