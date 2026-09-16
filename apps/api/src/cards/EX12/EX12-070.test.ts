@@ -185,6 +185,43 @@ describe("EX12-070 Sanmyojin Arrival", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX12-070")).toBe(true);
   });
 
+  it("keeps a Delay played this turn out of the simultaneous-trigger prompt", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-063", as: "victim" }, { card: "EX12-070", as: "established" }],
+          hand: [
+            { card: "EX12-070", as: "option" },
+            { card: "EX12-063", as: "payment" },
+            { card: "EX12-065", as: "sanmyojin" },
+          ],
+          deck: ["BT1-009", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "EX12-070").length === 2,
+    );
+    const decisionsBefore = s.decisions.length;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-065"));
+
+    // §16-17-3 bars the copy played this turn, so only the established one reacts: offering both
+    // would put an entry in the chooser that the server then refuses.
+    expect(s.decisions.slice(decisionsBefore).some(({ req }) => req.kind === "orderTriggers")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-070")).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("established").instanceId)).toBe(
+      true,
+    );
+  });
+
   it("does not consume Delay when a level 4 TB Digimon leaves", async () => {
     const s = setupEngine(
       {

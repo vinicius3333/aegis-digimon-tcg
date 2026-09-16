@@ -1063,6 +1063,22 @@ export async function runSubTrigger(
   // "by suspending this Tamer" is unpayable while the Tamer is already suspended, so such a
   // watcher must not join the simultaneous-trigger ordering prompt it could only decline.
   const requiresSelfSuspend = costsSelfSuspend(action);
+  // §16-17-3 bars a ＜Delay＞ activation on the turn its card entered play. `run` enforces that
+  // below, but a watcher that can only refuse must not reach the simultaneous-trigger ordering
+  // prompt either: the client renders that prompt from what the server offers, so an entry the
+  // server would then block reads as a bug (EX12-070).
+  const delayArmedIntrinsic = (action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true;
+  const fireGates = [
+    ...(requiresSelfSuspend ? [(subCtx: EffectContext) => subCtx.source.permanent()?.isSuspended !== true] : []),
+    ...(delayArmedIntrinsic
+      ? [
+          (subCtx: EffectContext) => {
+            const delaySource = subCtx.source.permanent();
+            return delaySource !== undefined && delaySource.enterFieldTurnCount !== subCtx.game.state.turnCount;
+          },
+        ]
+      : []),
+  ];
   ctx.fx.subscribeSubTrigger({
     event,
     ...(ctx.activeEffectKey !== undefined || ctx.activeActionPath !== undefined
@@ -1070,7 +1086,7 @@ export async function runSubTrigger(
       : {}),
     ...(isInheritedSource ? { isInheritedSource: true } : {}),
     ...(isLinkedSource ? { isLinkedSource: true } : {}),
-    ...(requiresSelfSuspend ? { canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true } : {}),
+    ...(fireGates.length === 0 ? {} : { canFire: (subCtx) => fireGates.every((gate) => gate(subCtx)) }),
     // A discarded inherited source is intentionally not permanently anchored to its host: its
     // source instance is the identity used by the stack-card event gate. `matchTrashedSource`
     // below is the narrow exception; omit sourceInstanceId from the subscription so the host
