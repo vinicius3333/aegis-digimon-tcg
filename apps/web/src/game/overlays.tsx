@@ -1176,7 +1176,9 @@ export function playerFacingEffectClause({
   const boxes = inherited
     ? [definition?.inheritedEffectText]
     : [definition?.effectText, definition?.optionEffect, definition?.securityEffectText];
-  const supplied = description?.trim();
+  // A granted effect is not printed on this card, so its description is the only source.
+  const grantedPrefix = description?.trim().match(/^\[Granted\]\s*/)?.[0];
+  const supplied = grantedPrefix ? description!.trim().slice(grantedPrefix.length).trim() : description?.trim();
   const normalize = (text: string) => text.replace(/\s+/g, " ").trim();
   const exactPrintedClause = supplied
     ? boxes.flatMap((text) => text?.split("\n") ?? []).find((line) => normalize(line) === normalize(supplied))
@@ -1217,7 +1219,9 @@ export function playerFacingEffectClause({
       delayClause ||
       ((exactPrintedClause || containedPrintedClause) &&
         effectClauseForTiming(exactPrintedClause || containedPrintedClause, effectiveTiming))) ??
-    (effectiveTiming === undefined ? undefined : resolvedEffectClause(cardId, effectiveTiming, inherited));
+    (effectiveTiming === undefined || grantedPrefix
+      ? undefined
+      : resolvedEffectClause(cardId, effectiveTiming, inherited));
   const part = effectTextPart?.trim();
   const timingClause =
     part && matchingKeyword && effectiveTiming !== undefined
@@ -1252,7 +1256,7 @@ export function playerFacingEffectClause({
       [clause, timingClause].some((candidate) => candidate && normalize(candidate).includes(normalize(part))))
   )
     return part;
-  return clause;
+  return clause ?? (grantedPrefix ? supplied : undefined);
 }
 
 /** One hint per destination: each already says where card 1 ends up. */

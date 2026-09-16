@@ -428,6 +428,25 @@ describe("effectClauseForTiming", () => {
     expect(opponentTurn).not.toContain("De-Digivolve");
   });
 
+  it("shows both clauses of an end-of-attack trigger chooser, printed and granted", () => {
+    const inheritedClause = playerFacingEffectClause({
+      cardId: "EX12-046",
+      timing: "EndOfAttack",
+      description: "[EndOfAttack] Play without paying the cost",
+      isInherited: true,
+    });
+    const grantedClause = playerFacingEffectClause({
+      cardId: "EX12-065",
+      timing: "OnEndAttack",
+      description: "[Granted] ＜Execute＞: at the end of the attack, this Digimon is deleted.",
+      isInherited: false,
+    });
+
+    expect(inheritedClause).toBe(cardEffectClauseForTiming("EX12-046", "EndOfAttack", true));
+    expect(inheritedClause).toContain("[End of Attack]");
+    expect(grantedClause).toBe("＜Execute＞: at the end of the attack, this Digimon is deleted.");
+  });
+
   it("replaces declarative effect record action names with From Master to Disciple's printed clause", () => {
     const clause = playerFacingEffectClause({
       cardId: "ST12-15",
