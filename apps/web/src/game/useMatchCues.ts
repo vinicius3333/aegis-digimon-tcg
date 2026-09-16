@@ -22,7 +22,14 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import type { RefObject } from "react";
-import { getCardDefinition, isOption, type GameState, type Seat, type ServerEvent, type PresentationReport } from "@aegis/shared";
+import {
+  getCardDefinition,
+  isOption,
+  type GameState,
+  type Seat,
+  type ServerEvent,
+  type PresentationReport,
+} from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
 import { buildInstanceIndex, otherSeat } from "./boardModel";
 import { batchesAfter, type ServerBatch } from "../net/serverBatches";
@@ -230,6 +237,8 @@ export interface MatchCueAnchors {
   oppDeck: RefObject<HTMLDivElement | null>;
   yourHandDock: RefObject<HTMLDivElement | null>;
   oppHandStrip: RefObject<HTMLDivElement | null>;
+  yourSecurity: RefObject<HTMLDivElement | null>;
+  oppSecurity: RefObject<HTMLDivElement | null>;
 }
 
 export interface MatchCues {
@@ -323,6 +332,12 @@ export interface MatchCues {
   deckRiffles: ReadonlySet<string>;
   /** The seats whose security stack a recovered card is currently flying back onto. */
   securityFlights: ReadonlySet<number>;
+  /**
+   * While the opening five cards are being dealt, how many of them a seat's shield has
+   * already been seen to take. The stack is full on the server from the first patch, so
+   * the shield counts up with the deal rather than starting at its final figure.
+   */
+  securityDealCounts: ReadonlyMap<Seat, number>;
   /** Permanents currently taking the claw and the shake for a battle they lost. */
   combatImpactIds: ReadonlySet<string>;
   /** The board battle currently playing: its arrow stays up and its losers keep a ghost on the board. */
@@ -712,6 +727,7 @@ export function useMatchCues({
   const [effectSources, setEffectSources] = useState<readonly EffectActivation[]>([]);
   const [deckRiffles, setDeckRiffles] = useState<ReadonlySet<string>>(new Set());
   const [securityFlights, setSecurityFlights] = useState<ReadonlySet<number>>(new Set());
+  const [securityDealCounts, setSecurityDealCounts] = useState<ReadonlyMap<Seat, number>>(new Map());
 
   // Cues are observed twice for your own actions (the intent handler fires one
   // immediately, the server echo arrives later), so repeats are suppressed.
@@ -817,6 +833,9 @@ export function useMatchCues({
   const securityCountsRef = useRef<{ you: number; opp: number } | null>(null);
   const securityGrowthClaimedRef = useRef<Set<Seat>>(new Set());
   const securityGainKeyRef = useRef(0);
+  // The opening stack is dealt once. Security seen before that — a reconnection into a
+  // match already under way — retires the deal rather than playing it late.
+  const openingSecurityDealRef = useRef<"pending" | "done">("pending");
   // Destruction scenes enqueued and not yet finished. A chained effect (Medusamon's
   // Petrification tokens) trashes one security card per resolution step, so each trash
   // arrives in its own batch — and each batch's first shield break must NOT take the
@@ -1452,7 +1471,11 @@ export function useMatchCues({
         effectSourceKeyRef.current += 1;
         // The used Option already has the more legible dock presentation below. Do not
         // also make its final trash position look like the source of its own [Main].
-        if (usedOption?.kind === "cardPlayed" && event.kind === "effectActivated" && event.sourceCardId === usedOption.cardId)
+        if (
+          usedOption?.kind === "cardPlayed" &&
+          event.kind === "effectActivated" &&
+          event.sourceCardId === usedOption.cardId
+        )
           continue;
         const activation = effectActivationFromEvent(event, effectSourceKeyRef.current, cardSiteRef.current.locate);
         if (!activation) continue;
@@ -2832,6 +2855,38 @@ export function useMatchCues({
     });
   }
 
+  /**
+   * The opening five cards (Comprehensive Rules §5-2-1-6). The server sets the whole stack
+   * in one patch, so the deal is the client's own: one card back flies from the deck to the
+   * shield per card, and the shield's figure follows the cards rather than the patch.
+   */
+  function launchOpeningSecurityDeal(seat: Seat, count: number) {
+    setSecurityDealCounts((counts) => new Map(counts).set(seat, 0));
+    queue.enqueue({
+      id: `security-deal-${seat}`,
+      track: `securityDeal-${seat}`,
+      replace: true,
+      async run(context) {
+        try {
+          for (let dealt = 0; dealt < count; dealt += 1) {
+            if (context.cancelled) return;
+            launchDeckToSecurityFlight(seat);
+            await context.wait(TIMINGS.securityDealStagger);
+            setSecurityDealCounts((counts) => new Map(counts).set(seat, dealt + 1));
+          }
+          await context.wait(TIMINGS.securityFlight);
+        } finally {
+          setSecurityDealCounts((counts) => {
+            if (!counts.has(seat)) return counts;
+            const next = new Map(counts);
+            next.delete(seat);
+            return next;
+          });
+        }
+      },
+    });
+  }
+
   // A security stack that grew outside a recovery was stacked by an effect — a card
   // placed there from the hand, the deck or the trash. `cardsMoved` names no seat and
   // the stack is hidden from the opponent's view, so the growth is read off the count
@@ -2842,6 +2897,18 @@ export function useMatchCues({
     const previous = securityCountsRef.current;
     securityCountsRef.current = { you: you.securityCount, opp: opp.securityCount };
     if (!previous || mulliganOpen) return;
+    // The opening deal is not a gain: nothing was recovered or stacked, the match simply
+    // started. It is dealt to both seats out of the same empty board.
+    if (openingSecurityDealRef.current === "pending") {
+      const opening = previous.you === 0 && previous.opp === 0;
+      openingSecurityDealRef.current = "done";
+      if (opening) {
+        if (you.securityCount > 0) launchOpeningSecurityDeal(viewerSeat, you.securityCount);
+        if (opp.securityCount > 0) launchOpeningSecurityDeal(otherSeat(viewerSeat), opp.securityCount);
+        securityGrowthClaimedRef.current.clear();
+        return;
+      }
+    }
     const gains = [
       { seat: viewerSeat, side: "you" as const, amount: you.securityCount - previous.you },
       { seat: otherSeat(viewerSeat), side: "opp" as const, amount: opp.securityCount - previous.opp },
@@ -3099,6 +3166,42 @@ export function useMatchCues({
     });
   }
 
+  /** One card back from a seat's deck onto its security shield. */
+  function launchDeckToSecurityFlight(seat: Seat) {
+    const board = anchors.board.current;
+    const source = seat === viewerSeat ? anchors.yourDeck.current : anchors.oppDeck.current;
+    const target = seat === viewerSeat ? anchors.yourSecurity.current : anchors.oppSecurity.current;
+    if (!board || !source || !target) return;
+    const boardRect = board.getBoundingClientRect();
+    const sourceRect = source.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    // Layout-free environments (jsdom) report zero boxes: no geometry, no flight.
+    if (!sourceRect.width || !targetRect.width) return;
+    const x = sourceRect.left + sourceRect.width / 2 - boardRect.left;
+    const y = sourceRect.top + sourceRect.height / 2 - boardRect.top;
+    const key = (drawFlightKeyRef.current += 1);
+    const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
+    const flight: DrawFlight = {
+      key,
+      x,
+      y,
+      dx: targetRect.left + targetRect.width / 2 - boardRect.left - x,
+      dy: targetRect.top + targetRect.height / 2 - boardRect.top - y,
+      duration,
+    };
+    // Each card of the deal is its own track: they overlap on purpose, so the stack is
+    // built by a run of cards rather than by one card played five times.
+    queue.enqueue({
+      id: `security-deal-flight-${key}`,
+      track: `securityDealFlight-${key}`,
+      async run(context) {
+        setDrawFlights((flights) => [...flights, flight]);
+        await context.wait(duration);
+        setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
+      },
+    });
+  }
+
   function launchDeckToUnderFlight(seat: Seat, permanentId: string) {
     const board = anchors.board.current;
     const source = seat === viewerSeat ? anchors.yourDeck.current : anchors.oppDeck.current;
@@ -3220,6 +3323,7 @@ export function useMatchCues({
     effectSources,
     deckRiffles,
     securityFlights,
+    securityDealCounts,
     phaseBanner,
     phaseTransitionPending: pendingPhaseBanners > 0,
     heldDrawState,

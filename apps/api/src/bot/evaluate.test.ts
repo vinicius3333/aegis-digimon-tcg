@@ -309,6 +309,56 @@ describe("decision candidate ranking", () => {
     });
   });
 
+  it("pays an optional cost out of hand instead of declining it", () => {
+    // The P-193 shape: "[Main] By trashing 1 card from your hand, Draw 2. Then, place
+    // this card in the battle area." The cost arrives as a min:0 selectCards over our own
+    // hand, and answering it empty forfeits the draw AND the placement, trashing the
+    // Option for nothing. `purpose: "cost"` is what tells the two shapes apart.
+    const policy = createEvaluationPolicy({ profile: balanced, seed: 3 });
+    const cheap = handCard("BT1-010", getCardDefinition("BT1-010"));
+    const expensive = handCard("BT5-014", getCardDefinition("BT5-014"));
+    const state = view({ hand: [cheap, expensive] });
+
+    const intent = policy.answerDecision(state, {
+      decisionId: "d3",
+      seat: 1,
+      kind: "selectCards",
+      promptText: "The Wicked God Emerges!",
+      options: {
+        candidateInstanceIds: [cheap.instanceId, expensive.instanceId],
+        min: 0,
+        max: 1,
+        purpose: "cost",
+      },
+    });
+
+    expect(intent).toEqual({
+      type: "respondDecision",
+      decisionId: "d3",
+      response: { kind: "selectCards", instanceIds: [cheap.instanceId] },
+    });
+  });
+
+  it("still declines an optional selection that is not a cost", () => {
+    const policy = createEvaluationPolicy({ profile: balanced, seed: 3 });
+    const cheap = handCard("BT1-010", getCardDefinition("BT1-010"));
+    const state = view({ hand: [cheap] });
+
+    const intent = policy.answerDecision(state, {
+      decisionId: "d4",
+      seat: 1,
+      kind: "selectCards",
+      promptText: "You may trash 1 card",
+      options: { candidateInstanceIds: [cheap.instanceId], min: 0, max: 1 },
+    });
+
+    expect(intent).toEqual({
+      type: "respondDecision",
+      decisionId: "d4",
+      response: { kind: "selectCards", instanceIds: [] },
+    });
+  });
+
   it("recognises a board candidate offered under its top card's instance id", () => {
     const policy = createEvaluationPolicy({ profile: balanced, seed: 3 });
     const small = unit({ permanentId: "perm-e1", topCardInstanceId: "inst-1", dp: 3_000, level: 3 });

@@ -303,6 +303,19 @@ function pickInstances(view: BotView | undefined, request: DecisionRequest): str
   const ranked = [...candidates].sort((left, right) => rank(right) - rank(left));
 
   if (min > 0) return ranked.slice(0, min);
+  // A cost selection IS the payment: an empty answer declines the clause and, on a clause
+  // whose whole body is gated behind it, throws the card away for nothing (P-193 played
+  // its ＜Delay＞ body away by skipping the trash cost). Pay it in full, spending the
+  // cheapest cards we own — a card already committed to the cost is worth less than the
+  // effect it buys, and a partial payment is the same as no payment.
+  if (request.options?.purpose === "cost") {
+    const price = request.options.max ?? 1;
+    const affordable = ranked.filter((instanceId) => !opponentUnits.has(instanceId));
+    // `rank` already scores cards we own negatively by level, play cost and body, so the
+    // descending sort leaves the cheapest one to give up at the front of the pool.
+    const pool = affordable.length > 0 ? affordable : ranked;
+    return pool.length >= price ? pool.slice(0, price) : [];
+  }
   // An optional selection whose only candidates sit on the opponent's board is a removal
   // or disruption clause; taking one is strictly better than declining it.
   const firstIsOpponent = ranked[0] !== undefined && opponentUnits.has(ranked[0]);

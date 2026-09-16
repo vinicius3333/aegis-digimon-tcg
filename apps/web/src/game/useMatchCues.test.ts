@@ -134,7 +134,12 @@ const OPP_SECURITY_NOTICE: ServerEvent = {
   timing: "Security",
 };
 const OPP_TAIKI_PLAY: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT10-087", permanentId: "perm-taiki" };
-const YOUR_TAIKI_PLAY: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT10-087", permanentId: "perm-your-taiki" };
+const YOUR_TAIKI_PLAY: ServerEvent = {
+  kind: "cardPlayed",
+  seat: 0,
+  cardId: "BT10-087",
+  permanentId: "perm-your-taiki",
+};
 const OPP_ON_PLAY: ServerEvent = {
   kind: "effectTriggered",
   seat: 1,
@@ -158,6 +163,8 @@ const anchors: MatchCueAnchors = {
   oppDeck: { current: null },
   yourHandDock: { current: null },
   oppHandStrip: { current: null },
+  yourSecurity: { current: null },
+  oppSecurity: { current: null },
 };
 
 it("flies a face-down card from the deck to its Tamer and clears it after landing", async () => {
@@ -2669,6 +2676,37 @@ describe("security gains", () => {
     await advance(0);
     expect(result.current.securityFlights.size).toBe(0);
     expect(result.current.notices).toEqual([]);
+  });
+
+  it("deals the opening stack card by card instead of gaining five at once", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(0, 0));
+    await advance(0);
+
+    rerender({ events: [], state: boardWithSecurity(5, 5) });
+    await advance(0);
+    // Both shields start the deal empty and count up with the cards.
+    expect(result.current.securityDealCounts.get(VIEWER)).toBe(0);
+    expect(result.current.securityDealCounts.get(1)).toBe(0);
+    expect(result.current.notices).toEqual([]);
+    expect(result.current.securityFlights.size).toBe(0);
+
+    await advance(TIMINGS.securityDealStagger * 2);
+    expect(result.current.securityDealCounts.get(VIEWER)).toBe(2);
+
+    await advance(TIMINGS.securityDealStagger * 3 + TIMINGS.securityFlight);
+    // The deal hands the shields back to the live count once it has finished.
+    expect(result.current.securityDealCounts.size).toBe(0);
+    expect(result.current.notices).toEqual([]);
+  });
+
+  it("gains rather than deals when a stack grows after the opening", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({ events: [], state: boardWithSecurity(6, 5) });
+    await advance(0);
+    expect(result.current.securityDealCounts.size).toBe(0);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["securityGain"]);
   });
 });
 

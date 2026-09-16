@@ -505,6 +505,7 @@ export function ArenaDemo() {
           onDraw={drawCard}
           onVisualPlayback={playback.controller.controls.start}
           onSecurityBattle={playback.controller.controls.startSecurityBattle}
+          onOpeningSecurityDeal={playback.controller.controls.startOpeningSecurityDeal}
           onTurnStart={previewTurnStart}
           onImperial={previewImperial}
           onEffects={previewEffects}

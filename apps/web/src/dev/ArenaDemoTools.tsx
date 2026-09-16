@@ -9,6 +9,7 @@ export function ArenaDemoTools({
   onDraw,
   onVisualPlayback,
   onSecurityBattle,
+  onOpeningSecurityDeal,
   onTurnStart,
   onEffects,
   onImperial,
@@ -23,6 +24,7 @@ export function ArenaDemoTools({
   onDraw: (seat: Seat) => void;
   onVisualPlayback: () => void;
   onSecurityBattle?: (outcome: "attackerWins" | "attackerLoses") => void;
+  onOpeningSecurityDeal?: () => void;
   onTurnStart: () => void;
   onEffects?: () => void;
   onImperial?: () => void;
@@ -133,6 +135,18 @@ export function ArenaDemoTools({
                 </button>
               ))
             : null}
+          {onOpeningSecurityDeal ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onOpeningSecurityDeal();
+              }}
+            >
+              {portuguese ? "Reproduzir segurança inicial (5 cartas)" : "Preview opening security deal (5 cards)"}
+            </button>
+          ) : null}
           {onEffectActivation
             ? (["On Play", "When Digivolving", "When Attacking", "Start of Main Phase", "On Deletion"] as const).map(
                 (timing) => (

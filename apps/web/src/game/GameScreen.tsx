@@ -574,6 +574,8 @@ export function GameScreen({
       oppDeck: oppDeckRef,
       yourHandDock: yourHandDockRef,
       oppHandStrip: oppHandStripRef,
+      yourSecurity: yourSecRef,
+      oppSecurity: oppSecRef,
     },
     onActionRejected: (reason) => ping(rejectionMessage(reason, t)),
     onPresentationReport: (report) => {
@@ -597,6 +599,7 @@ export function GameScreen({
     deckRiffles,
     effectSources,
     securityFlights,
+    securityDealCounts,
     dpPulses,
     freezePulses,
     phaseBanner,
@@ -3197,7 +3200,10 @@ export function GameScreen({
                 width={arenaPileWidth}
                 className={`game-security-pile${securityHitSeat === viewerSeat ? " game-security-shield--hit" : ""}`}
                 compact={compactPiles}
-                count={shieldSecurityCount(shownYou.securityCount, heldSecurityCounts.get(viewerSeat))}
+                count={
+                  securityDealCounts.get(viewerSeat) ??
+                  shieldSecurityCount(shownYou.securityCount, heldSecurityCounts.get(viewerSeat))
+                }
                 shield="you"
                 armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
                 breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
@@ -3429,7 +3435,10 @@ export function GameScreen({
                   width={arenaPileWidth}
                   className={`game-security-pile${securityHitSeat === otherSeat(viewerSeat) ? " game-security-shield--hit" : ""}`}
                   compact={compactPiles}
-                  count={shieldSecurityCount(shownOpp.securityCount, heldSecurityCounts.get(otherSeat(viewerSeat)))}
+                  count={
+                    securityDealCounts.get(otherSeat(viewerSeat)) ??
+                    shieldSecurityCount(shownOpp.securityCount, heldSecurityCounts.get(otherSeat(viewerSeat)))
+                  }
                   shield="opp"
                   armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
                   breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}

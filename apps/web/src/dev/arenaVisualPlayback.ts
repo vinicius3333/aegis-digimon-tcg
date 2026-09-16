@@ -8,6 +8,7 @@ import {
   type ArenaVisualScenarioInfo,
   type ArenaVisualScene,
   type SecurityBattleOutcome,
+  type SecurityGainVariant,
 } from "./arenaVisualScenarios";
 
 export interface ArenaVisualPlaybackController {
@@ -20,6 +21,7 @@ export interface ArenaVisualPlaybackController {
   controls: {
     start: () => void;
     startSecurityBattle: (outcome?: SecurityBattleOutcome) => void;
+    startOpeningSecurityDeal: () => void;
     pause: () => void;
     stop: () => void;
     next: () => void;
@@ -49,13 +51,16 @@ export function useArenaVisualPlayback(
   const [run, setRun] = useState(0);
   const [seed, setSeed] = useState<{ state: GameState; labels: ArenaVisualScene["keywordLabels"] }>();
   const [securityOutcome, setSecurityOutcome] = useState<SecurityBattleOutcome>("attackerWins");
+  const [securityGain, setSecurityGain] = useState<SecurityGainVariant>("recovery");
   const [frame, setFrame] = useState<VisualFrame>();
   const [finished, setFinished] = useState(false);
   const scenario = catalog[index]!;
   const scene = useMemo(
     () =>
-      seed ? buildArenaVisualScene(seed.state, scenario.keyword, portuguese, seed.labels, securityOutcome) : undefined,
-    [seed, scenario.keyword, portuguese, securityOutcome, run],
+      seed
+        ? buildArenaVisualScene(seed.state, scenario.keyword, portuguese, seed.labels, securityOutcome, securityGain)
+        : undefined,
+    [seed, scenario.keyword, portuguese, securityOutcome, securityGain, run],
   );
   function resetScene(next: number) {
     setIndex(next);
@@ -64,6 +69,7 @@ export function useArenaVisualPlayback(
   const controls: ArenaVisualPlaybackController["controls"] = {
     start() {
       setSecurityOutcome("attackerWins");
+      setSecurityGain("recovery");
       if (!active) {
         setSeed({ state: snapshotGameState(manualState), labels: manualLabels });
         setRun((previous) => previous + 1);
@@ -71,8 +77,19 @@ export function useArenaVisualPlayback(
       }
       setPlaying(true);
     },
+    startOpeningSecurityDeal() {
+      setSecurityGain("openingDeal");
+      const recoveryIndex = catalog.findIndex((entry) => entry.keyword === "Recovery");
+      if (recoveryIndex < 0) return;
+      setSeed({ state: snapshotGameState(manualState), labels: manualLabels });
+      resetScene(recoveryIndex);
+      setActive(true);
+      // Run this scene once; keep the player available for replay and closing.
+      setPlaying(false);
+    },
     startSecurityBattle(outcome = "attackerWins") {
       setSecurityOutcome(outcome);
+      setSecurityGain("recovery");
       const securityIndex = catalog.findIndex((entry) => entry.keyword === "SecurityAttack");
       if (securityIndex < 0) return;
       setSeed({ state: snapshotGameState(manualState), labels: manualLabels });

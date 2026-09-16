@@ -488,6 +488,25 @@ export async function payCost(
   out?: { paidCount: number },
   opts?: { deferSuspendTriggers?: boolean },
 ): Promise<boolean> {
+  // Every decision raised below this point is a PAYMENT question, not a target choice.
+  // `decisionApi` reads the depth back and tags the request `purpose: "cost"`, which is
+  // the only thing that distinguishes "pick a card to trash as the cost" from "pick a
+  // card to trash as the effect" for a seat answering without the printed text. Restored
+  // in a `finally` so a throwing cost cannot leave the flag raised on a shared context.
+  ctx.payingCostDepth = (ctx.payingCostDepth ?? 0) + 1;
+  try {
+    return await payCostInner(ctx, cost, out, opts);
+  } finally {
+    ctx.payingCostDepth -= 1;
+  }
+}
+
+async function payCostInner(
+  ctx: EffectContext,
+  cost: Cost,
+  out?: { paidCount: number },
+  opts?: { deferSuspendTriggers?: boolean },
+): Promise<boolean> {
   const recordTrackedColors = (candidates: LooseCandidate[], chosen: readonly string[]) => {
     if (cost.trackColors === undefined) return;
     const colors = new Set<string>();

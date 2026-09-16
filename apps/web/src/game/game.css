@@ -7037,17 +7037,24 @@ button.side-panel__name:focus-visible {
   animation: battle-arrow-flash var(--t-arrow-flash, 85ms) steps(1, end) 2;
 }
 
+/* The stack takes the card rather than tipping over to receive it: the shield used
+   to swing in from -220deg, which read as the pile lying on its side and righting
+   itself. It now only absorbs the impact, in place and upright. */
 .game-security-shield--landing {
-  animation: battle-security-flight var(--t-security-flight, 200ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: battle-security-flight var(--t-security-flight, 200ms) cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes battle-security-flight {
   0% {
-    rotate: -220deg;
-    scale: 0.4;
+    translate: 0 -5px;
+    scale: 0.94;
+  }
+  55% {
+    translate: 0 0;
+    scale: 1.07;
   }
   100% {
-    rotate: 0deg;
+    translate: 0 0;
     scale: 1;
   }
 }

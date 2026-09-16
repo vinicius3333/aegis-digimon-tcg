@@ -82,6 +82,9 @@ function buildSeatScopedApi(
     ...(ctx.activeEffectIsInherited === true ? { isInherited: true } : {}),
     effectText: ctx.activeEffectText,
     ...(ctx.activeEffectTextPart !== undefined ? { effectTextPart: ctx.activeEffectTextPart } : {}),
+    // Raised by `payCost` for as long as a cost payment is on the stack. Without it a
+    // cost selection and a target selection reach the deciding seat as the same request.
+    ...((ctx.payingCostDepth ?? 0) > 0 ? { purpose: "cost" as const } : {}),
   });
   return {
     async optional(ctx: EffectContext, prompt: string): Promise<boolean> {

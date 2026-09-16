@@ -460,6 +460,15 @@ export interface DecisionRequest {
     /** What the resolving action will do to the permanents picked here (`chooseTargets` only). */
     targetFate?: TargetFate;
     promptKey?: "activateBlitz";
+    /**
+     * Why the engine is asking. `"cost"` means the selection IS the payment of a cost the
+     * resolving clause charges, so declining it (an empty selection on a `min: 0` request)
+     * forfeits the whole clause. A request without this field is an ordinary target/effect
+     * choice. The two are otherwise indistinguishable from the request shape — both arrive
+     * as `selectCards` over the controller's own cards — which is exactly what an automated
+     * seat needs to tell apart before answering.
+     */
+    purpose?: "cost";
   };
 }
 

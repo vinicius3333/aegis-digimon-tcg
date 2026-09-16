@@ -2047,6 +2047,15 @@ export interface EffectContext {
    * Display-only.
    */
   activeTargetFate?: TargetFate;
+  /**
+   * How many `payCost` frames are currently on the stack. Non-zero means every decision
+   * raised right now is asking the controller to PAY a cost, not to pick a target — the
+   * two are indistinguishable from the request shape alone (both arrive as `selectCards`
+   * over the controller's own cards). Costs nest (a `digivolve` cost runs its own cost
+   * inside), so this is a depth counter rather than a boolean; `payCost` increments on
+   * entry and restores in a `finally`. Surfaced as `purpose: "cost"` on the request.
+   */
+  payingCostDepth?: number;
   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
   effectRestrictions?: Set<string>;
   game: GameAccess;

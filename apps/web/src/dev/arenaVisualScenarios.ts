@@ -262,6 +262,9 @@ function looseCard(cardId: string, instanceId: string, seat: 0 | 1) {
 /** Which side survives the scripted security battle between the attacker and a Security Digimon. */
 export type SecurityBattleOutcome = "attackerWins" | "attackerLoses";
 
+/** Which security gain the Recovery scene plays: one recovered card, or the opening deal. */
+export type SecurityGainVariant = "recovery" | "openingDeal";
+
 /** Fresh public snapshots isolate scripted presentation from the manual demo and the engine. */
 export function buildArenaVisualScene(
   base: GameState,
@@ -269,6 +272,7 @@ export function buildArenaVisualScene(
   portuguese = false,
   baselineLabels: ArenaVisualScene["keywordLabels"] = {},
   securityOutcome: SecurityBattleOutcome = "attackerWins",
+  securityGain: SecurityGainVariant = "recovery",
 ): ArenaVisualScene {
   const state = snapshotGameState(base);
   state.stateVersion = 0;
@@ -382,6 +386,16 @@ export function buildArenaVisualScene(
   if (keyword === "UseReq" && optionCard) {
     own.hand.push(optionCard);
     own.handCount++;
+  }
+  // The opening deal is played off a board that has no security yet, so both stacks are
+  // emptied before the scene's first frame is taken and handed back by its one stage.
+  const openingDeal =
+    securityGain === "openingDeal" && mechanism === "recovery"
+      ? [own, opp].map((player) => ({ player, cards: [...player.security], count: player.securityCount }))
+      : undefined;
+  for (const { player } of openingDeal ?? []) {
+    player.security.splice(0, player.security.length);
+    player.securityCount = 0;
   }
   const stages: ArenaVisualStage[] = [];
   const initialState = snapshotGameState(state);
@@ -955,6 +969,13 @@ export function buildArenaVisualScene(
         own.deckCount--;
         own.handCount++;
         own.hand.push(looseCard("BT26-009", "visual-draw", 0));
+      }
+    });
+  } else if (openingDeal) {
+    stage(600, "Segurança inicial distribuída", "Opening security dealt", [], () => {
+      for (const { player, cards, count } of openingDeal) {
+        player.security.push(...cards);
+        player.securityCount = count;
       }
     });
   } else if (mechanism === "recovery") {

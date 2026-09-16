@@ -192,6 +192,9 @@ export const TIMINGS = {
   landingDust: 420,
   /** A recovered card spinning back onto the security stack. */
   securityFlight: 200,
+  /** The gap between two cards of the opening five-card security deal. Paced in the cue
+   * queue rather than in CSS: each card is its own flight. */
+  securityDealStagger: 130,
   /** One of the target arrow's two opening flashes. */
   arrowFlash: 85,
   /** A card growing to its inspected size. */
