@@ -20,8 +20,13 @@ export const intents = {
   ) => sendIntent(room, { type: "playCard", instanceId, targetSlot, digiXros, assembly, useAs }),
   linkCard: (room: AegisRoom, instanceId: string, targetPermanentId: string) =>
     sendIntent(room, { type: "linkCard", instanceId, targetPermanentId }),
-  digivolve: (room: AegisRoom, permanentId: string, instanceId: string, useAlternateCost?: boolean) =>
-    sendIntent(room, { type: "digivolve", permanentId, instanceId, useAlternateCost }),
+  digivolve: (
+    room: AegisRoom,
+    permanentId: string,
+    instanceId: string,
+    useAlternateCost?: boolean,
+    alternateRequirementIndex?: number,
+  ) => sendIntent(room, { type: "digivolve", permanentId, instanceId, useAlternateCost, alternateRequirementIndex }),
   dnaDigivolve: (room: AegisRoom, materialPermanentIds: string[], instanceId: string) =>
     sendIntent(room, { type: "dnaDigivolve", materialPermanentIds, instanceId }),
   appFusion: (room: AegisRoom, permanentId: string, instanceId: string, linkedInstanceId: string) =>

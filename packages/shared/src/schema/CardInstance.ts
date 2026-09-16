@@ -13,6 +13,27 @@ export class AppFusionRoute extends Schema {
 }
 
 /**
+ * A server-priced digivolution route projected onto the owning hand card. One entry per
+ * (base permanent x cost path) the server would accept right now, carrying the memory it
+ * would actually charge — every active continuous cost modifier already applied. The client
+ * must not re-derive this from printed EvoCosts: a modifier that rewrites the cost (BT24-101
+ * "Cost 1 for each of your security cards") lives in the engine, not in the card data.
+ */
+export class DigivolveRoute extends Schema {
+  @type("string") permanentId!: string;
+  /**
+   * Which cost path this route prices. -1 is the path the server picks when the intent names
+   * none (the printed EvoCost when it matches, otherwise the sole alternate or base-granted
+   * path). A value >= 0 indexes `digivolutionRequirementsFor(cardId)` and is echoed back as
+   * the intent's `alternateRequirementIndex`, so a card printing several alternate paths can
+   * be priced — and chosen — one path at a time.
+   */
+  @type("int8") alternateRequirementIndex!: number;
+  /** Memory this route would cost right now. Same figure `validateDigivolve` checked. */
+  @type("int8") projectedCost!: number;
+}
+
+/**
  * A specific physical card in the match. Static card facts (DP, cost, colors,
  * level, effect text) come from CardDefinition in @aegis/shared/cards, looked up
  * by cardId; the instance carries only per-copy runtime data.
@@ -53,6 +74,10 @@ export class CardInstance extends Schema {
   // primitive array breaks the client decoder in the scenario suite, so this shares
   // that projection's exposure of which hand cards have a legal recipient.
   @type(["string"]) linkTargetPermanentIds = new ArraySchema<string>();
+  /** Priced digivolution routes for this hand card, visible only with the owner's hand view.
+   * Parallel to `digivolveTargetPermanentIds` (which stays public for board highlighting):
+   * that array says WHERE this card may go, these say WHAT each path there costs. */
+  @view(PRIVATE_VIEW_TAG) @type([DigivolveRoute]) digivolveRoutes = new ArraySchema<DigivolveRoute>();
   /** Legal App Fusion routes for this hand card, visible only with the owner's hand view. */
   @view(PRIVATE_VIEW_TAG) @type([AppFusionRoute]) appFusionRoutes = new ArraySchema<AppFusionRoute>();
 }

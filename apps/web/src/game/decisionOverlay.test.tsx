@@ -13,6 +13,7 @@ import {
   EvoCostChoiceOverlay,
   WaitingOverlay,
 } from "./overlays";
+import type { EvoCostOption } from "./boardModel";
 import { CardOpenerProvider } from "./cardLinks";
 
 afterEach(() => cleanup());
@@ -2046,7 +2047,7 @@ describe("EX3-053 Metallicdramon decisions", () => {
 
 describe("digivolution cost choice", () => {
   it("shows Dracomon's two friendly routes and sends the selected alternate action", () => {
-    const onConfirm = vi.fn<(useAlternate: boolean) => void>();
+    const onConfirm = vi.fn<(option: EvoCostOption) => void>();
     render(
       <I18nProvider>
         <EvoCostChoiceOverlay
@@ -2054,7 +2055,7 @@ describe("digivolution cost choice", () => {
           baseName="Bebydomon"
           options={[
             { type: "normal", label: "Blue Lv.2", cost: 1 },
-            { type: "alternate", label: "Bebydomon", cost: 0 },
+            { type: "alternate", label: "Bebydomon", cost: 0, alternateRequirementIndex: 1 },
           ]}
           onConfirm={onConfirm}
           onCancel={vi.fn<() => void>()}
@@ -2065,7 +2066,12 @@ describe("digivolution cost choice", () => {
     expect(screen.getByText("Digivolve cost")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Blue Lv.2 · 1 memory" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Bebydomon · 0 memory" }));
-    expect(onConfirm).toHaveBeenCalledWith(true);
+    expect(onConfirm).toHaveBeenCalledWith({
+      type: "alternate",
+      label: "Bebydomon",
+      cost: 0,
+      alternateRequirementIndex: 1,
+    });
   });
 
   it("shows the digivolving card's art beside the title instead of a bare sigil", () => {
@@ -2075,7 +2081,7 @@ describe("digivolution cost choice", () => {
           evolvingCardId="EX3-037"
           baseName="Bebydomon"
           options={[{ type: "normal", label: "Blue Lv.2", cost: 1 }]}
-          onConfirm={vi.fn<(useAlternate: boolean) => void>()}
+          onConfirm={vi.fn<(option: EvoCostOption) => void>()}
           onCancel={vi.fn<() => void>()}
         />
       </I18nProvider>,
@@ -2829,7 +2835,9 @@ describe("decision board preview", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText("BetelGammamon · effect")).toBeTruthy();
+    // The art says which card asked; the sheet no longer spells its name out above the clause.
+    expect(screen.queryByText("BetelGammamon · effect")).toBeNull();
+    expect(screen.getByRole("dialog", { name: "BetelGammamon · effect" })).toBeTruthy();
     expect(screen.getByText("Do you want to activate Blitz?")).toBeTruthy();
     expect(screen.getByText(/\[When Digivolving\].*Blitz/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Yes, activate" }));

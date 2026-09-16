@@ -590,16 +590,16 @@ function alternateDigivolveMatches(
   base: Permanent,
   baseDef: NonNullable<ReturnType<typeof getCardDefinition>>,
   viewer: PlayerState | undefined,
-): { req: DigivolutionRequirement; cost: number }[] {
+): { req: DigivolutionRequirement; cost: number; requirementIndex?: number }[] {
   const requirements = digivolutionRequirementsFor(handCardId) ?? [];
   const tamerOntoSpec = tamerOntoDigivolveSpec(handCardId);
   const tamerOntoLevel = tamerOntoSpec?.asLevel;
-  const matches: { req: DigivolutionRequirement; cost: number }[] = [];
+  const matches: { req: DigivolutionRequirement; cost: number; requirementIndex?: number }[] = [];
 
-  for (const req of requirements) {
+  for (const [requirementIndex, req] of requirements.entries()) {
     // Tamer-onto cards: consult ONLY their specific named requirements from the compiled list.
     if (tamerOntoLevel !== undefined && !requirementHasIdentityGate(req)) continue;
-    if (altRequirementMatches(req, base, baseDef, viewer)) matches.push({ req, cost: req.cost });
+    if (altRequirementMatches(req, base, baseDef, viewer)) matches.push({ req, cost: req.cost, requirementIndex });
   }
 
   if (tamerOntoLevel !== undefined && baseDef.kinds.includes(CardKind.Tamer)) {
@@ -785,6 +785,20 @@ export interface EvoCostOption {
   /** Human-readable path label; the localized overlay renders the numeric memory cost. */
   label: string;
   cost: number;
+  /**
+   * Index into the card's printed alternate requirements, sent back as the digivolve intent's
+   * `alternateRequirementIndex` so the server charges the path the player actually picked.
+   * Absent for the printed EvoCost and for derived paths the server resolves on its own
+   * (Tamer-onto, base-granted), which it takes when the intent names no index.
+   */
+  alternateRequirementIndex?: number;
+}
+
+/** A server-priced route, as projected onto the hand card (`CardInstance.digivolveRoutes`). */
+export interface ProjectedDigivolveRoute {
+  permanentId: string;
+  alternateRequirementIndex: number;
+  projectedCost: number;
 }
 
 /**
@@ -797,6 +811,7 @@ export function getDigivolveCostOptions(
   base: Permanent,
   viewer?: PlayerState,
   opponent?: PlayerState,
+  projectedRoutes?: readonly ProjectedDigivolveRoute[],
 ): EvoCostOption[] {
   const hand = getCardDefinition(handCardId);
   const baseDef = base.topCard ? getCardDefinition(base.topCard.cardId) : undefined;
@@ -828,9 +843,14 @@ export function getDigivolveCostOptions(
   }
 
   // Alternate digivolution requirements (named paths + any derived Tamer-onto path).
-  for (const { req } of alternateDigivolveMatches(handCardId, hand, base, baseDef, viewer)) {
+  for (const { req, requirementIndex } of alternateDigivolveMatches(handCardId, hand, base, baseDef, viewer)) {
     const cost = Math.max(0, req.cost - intrinsicReduction);
-    options.push({ type: "alternate", label: alternateCostLabel(req, baseLevel), cost });
+    options.push({
+      type: "alternate",
+      label: alternateCostLabel(req, baseLevel),
+      cost,
+      ...(requirementIndex === undefined ? {} : { alternateRequirementIndex: requirementIndex }),
+    });
   }
 
   // Base-granted path (ST7-03/BT6-060): a fixed-cost path the base offers this card.
@@ -842,7 +862,28 @@ export function getDigivolveCostOptions(
     options.push({ type: "alternate", label: `${gate} · ${granted.cost} memory`, cost: granted.cost });
   }
 
-  return options;
+  return options.map((option) => priceFromServer(option, base.permanentId, projectedRoutes));
+}
+
+/**
+ * Replace a path's printed price with the server's own, when the server projected that path
+ * onto this base. Printed EvoCosts are only a starting point: an active continuous cost
+ * modifier can rewrite the figure (BT24-101 charges 1 per security card, and does so on EVERY
+ * path while an [Aegiochusmon] base is under it), and that rewrite lives in the engine. The
+ * printed figure survives only as the fallback for a path the server did not price — a
+ * prediction, never a promise, exactly like `projectedPlayCost`.
+ */
+function priceFromServer(
+  option: EvoCostOption,
+  permanentId: string,
+  projectedRoutes: readonly ProjectedDigivolveRoute[] | undefined,
+): EvoCostOption {
+  if (!projectedRoutes) return option;
+  const wanted = option.alternateRequirementIndex ?? -1;
+  const route = projectedRoutes.find(
+    (candidate) => candidate.permanentId === permanentId && candidate.alternateRequirementIndex === wanted,
+  );
+  return route === undefined ? option : { ...option, cost: route.projectedCost };
 }
 
 /** Human-readable label for an alternate digivolution path (gate + cost + any placement cost). */

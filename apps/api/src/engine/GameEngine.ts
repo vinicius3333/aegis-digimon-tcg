@@ -6,6 +6,8 @@ import {
   CardKind,
   getCardDefinition,
   AppFusionRoute,
+  DigivolveRoute,
+  digivolutionRequirementsFor,
   GameState,
   PlayerState,
   EffectTiming,
@@ -286,6 +288,23 @@ function playableFromHand(check: PlayCardCheck, cardId: string): boolean {
  */
 function replaceIfChanged(target: ArraySchema<string>, values: readonly string[]): void {
   if (target.length === values.length && values.every((value, index) => target[index] === value)) return;
+  target.splice(0, target.length);
+  for (const value of values) target.push(value);
+}
+
+function replaceDigivolveRoutesIfChanged(target: ArraySchema<DigivolveRoute>, values: readonly DigivolveRoute[]): void {
+  const same =
+    target.length === values.length &&
+    target.every((route, index) => {
+      const next = values[index];
+      return (
+        next !== undefined &&
+        route.permanentId === next.permanentId &&
+        route.alternateRequirementIndex === next.alternateRequirementIndex &&
+        route.projectedCost === next.projectedCost
+      );
+    });
+  if (same) return;
   target.splice(0, target.length);
   for (const value of values) target.push(value);
 }
@@ -4281,7 +4300,9 @@ export class GameEngine {
     // in place below, avoiding schema churn on an unchanged recompute.
     const activeHand = active?.player.hand;
     const clearOutsideActiveHand = (instance: CardInstance): void => {
-      if (activeHand?.includes(instance) !== true) replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
+      if (activeHand?.includes(instance) === true) return;
+      replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
+      replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
     };
     for (const player of this.state.players) {
       for (const instance of [
@@ -4311,6 +4332,7 @@ export class GameEngine {
           instance.playableFromHand = false;
           instance.projectedPlayCost = NO_PROJECTED_COST;
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
+          replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
           replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
           continue;
         }
@@ -4326,10 +4348,23 @@ export class GameEngine {
 
         if (!definition.kinds.includes(CardKind.Digimon)) {
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
+          replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
           replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
           continue;
         }
         const targets: string[] = [];
+        const digivolveRoutes: DigivolveRoute[] = [];
+        // Every alternate path the card PRINTS, priced one index at a time. The default path
+        // (-1) cannot stand in for them: when a printed EvoCost also matches the server takes
+        // the printed one, and a card may print several alternates at different costs.
+        const alternateIndices = (digivolutionRequirementsFor(instance.cardId) ?? []).map((_, index) => index);
+        const priceRoute = (permanentId: string, alternateRequirementIndex: number, projectedCost: number): void => {
+          const route = new DigivolveRoute();
+          route.permanentId = permanentId;
+          route.alternateRequirementIndex = alternateRequirementIndex;
+          route.projectedCost = projectedCost;
+          digivolveRoutes.push(route);
+        };
         const appFusionRoutes: AppFusionRoute[] = [];
         for (const base of active.bases) {
           const check = validateDigivolve(
@@ -4338,7 +4373,26 @@ export class GameEngine {
             { type: "digivolve", permanentId: base.permanentId, instanceId: instance.instanceId },
             active.digivolveDeps,
           );
-          if (check.ok) targets.push(base.permanentId);
+          if (check.ok) {
+            targets.push(base.permanentId);
+            // -1 = the path an intent that names none takes: the printed EvoCost when it
+            // matches, else the sole alternate/base-granted path.
+            priceRoute(base.permanentId, -1, check.cost);
+            for (const alternateRequirementIndex of alternateIndices) {
+              const alternateCheck = validateDigivolve(
+                this.state,
+                seat,
+                {
+                  type: "digivolve",
+                  permanentId: base.permanentId,
+                  instanceId: instance.instanceId,
+                  alternateRequirementIndex,
+                },
+                active.digivolveDeps,
+              );
+              if (alternateCheck.ok) priceRoute(base.permanentId, alternateRequirementIndex, alternateCheck.cost);
+            }
+          }
           if (base.controllerSeat === seat) {
             for (const linked of base.linked) {
               const fusionCheck = this.validateAppFusion(seat, {
@@ -4357,6 +4411,7 @@ export class GameEngine {
           }
         }
         replaceIfChanged(instance.digivolveTargetPermanentIds, targets);
+        replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, digivolveRoutes);
         replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, appFusionRoutes);
       }
     }

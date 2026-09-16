@@ -33,6 +33,51 @@ describe("BT24-101 Jupitermon", () => {
     expect(await paidToEvolveFromAegiochusmon(0)).toBe(0);
   });
 
+  it("charges the printed 5 on the [TS] path when no [Aegiochusmon] base rewrites it", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-039", as: "base" }],
+        hand: [{ card: "BT24-101", as: "jupitermon" }],
+        security: ["AD1-001", "AD1-001", "AD1-001"],
+      },
+    });
+    s.state.memory = 10;
+    await s.engine.recomputeContinuousEffects();
+    const before = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jupitermon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT24-101");
+    expect(before - s.state.memory).toBe(5);
+  });
+
+  it("prices every projected route at what it charges, not at the printed figure", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-014", as: "base" }],
+        hand: [{ card: "BT24-101", as: "jupitermon" }],
+        security: ["AD1-001", "AD1-001", "AD1-001"],
+      },
+    });
+    s.state.memory = 10;
+    await s.engine.recomputeContinuousEffects();
+
+    // Printed: Yellow Lv.5 costs 5, the [TS] path 3, the [Aegiochusmon] path 1. The static
+    // sets them all to 1 per security card, so with 3 security every route is worth 3 — the
+    // client must label what the gauge will actually move, on every path it offers.
+    const routes = [...s.inst("jupitermon").digivolveRoutes];
+    const basePermanentId = s.perm("base").permanentId;
+    expect(routes.map((route) => route.permanentId)).toEqual(routes.map(() => basePermanentId));
+    expect(routes.map((route) => route.alternateRequirementIndex).sort()).toEqual([-1, 0, 1]);
+    expect(routes.map((route) => route.projectedCost)).toEqual([3, 3, 3]);
+  });
+
   it("naturally plays and resolves the full On Play security/DP/recovery sequence", async () => {
     const s = setupEngine(
       {

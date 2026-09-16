@@ -820,13 +820,44 @@ describe("AD1-002 onto a [Takuya Kanbara] Tamer w/2+ [Hybrid] cards under it", (
   });
 });
 
+describe("server-priced digivolution routes", () => {
+  it("labels every path with the server's price, printed figures only where it published none", () => {
+    // BT24-101 prints Yellow Lv.5 = 5, [TS] = 5, [Aegiochusmon] = 1, but its own static
+    // rewrites all of them to 1 per security card. With 3 security the server prices every
+    // route at 3, and the overlay must say 3 — the printed 1 would promise a bargain that
+    // the gauge will not honor.
+    const base = permOf("BT24-014");
+    const priced = getDigivolveCostOptions("BT24-101", base, undefined, undefined, [
+      { permanentId: base.permanentId, alternateRequirementIndex: -1, projectedCost: 3 },
+      { permanentId: base.permanentId, alternateRequirementIndex: 0, projectedCost: 3 },
+      { permanentId: base.permanentId, alternateRequirementIndex: 1, projectedCost: 3 },
+    ]);
+    expect(priced.map((option) => option.cost)).toEqual(priced.map(() => 3));
+
+    // A route the server did not publish keeps its printed price rather than borrowing
+    // another path's: a prediction for a path nobody priced, never a silent substitution.
+    const partial = getDigivolveCostOptions("BT24-101", base, undefined, undefined, [
+      { permanentId: base.permanentId, alternateRequirementIndex: 0, projectedCost: 3 },
+    ]);
+    expect(partial).toContainEqual(expect.objectContaining({ alternateRequirementIndex: 0, cost: 3 }));
+    expect(partial).toContainEqual(expect.objectContaining({ alternateRequirementIndex: 1, cost: 1 }));
+    expect(partial).toContainEqual(expect.objectContaining({ type: "normal", cost: 5 }));
+
+    // Prices published for a DIFFERENT base never leak onto this one.
+    const otherBase = getDigivolveCostOptions("BT24-101", base, undefined, undefined, [
+      { permanentId: "perm-elsewhere", alternateRequirementIndex: -1, projectedCost: 0 },
+    ]);
+    expect(otherBase).toContainEqual(expect.objectContaining({ type: "normal", cost: 5 }));
+  });
+});
+
 describe("EX3-018 Coredramon evolution choices", () => {
   it("offers distinct, friendly normal and Dracomon paths without duplicating the localized memory cost", () => {
     const options = getDigivolveCostOptions("EX3-018", permOf("EX3-037"));
 
     expect(options).toEqual([
       { type: "normal", label: "Blue Lv.3", cost: 3 },
-      { type: "alternate", label: "Dracomon Lv.3", cost: 2 },
+      { type: "alternate", label: "Dracomon Lv.3", cost: 2, alternateRequirementIndex: 0 },
     ]);
     expect(options.every(({ label }) => !label.toLowerCase().includes("memory"))).toBe(true);
   });
@@ -836,7 +867,7 @@ describe("EX3-037 Dracomon evolution choices", () => {
   it("offers both the normal and 0-cost Bebydomon routes with friendly labels", () => {
     expect(getDigivolveCostOptions("EX3-037", permOf("EX3-001"))).toEqual([
       { type: "normal", label: "Blue Lv.2", cost: 1 },
-      { type: "alternate", label: "Bebydomon Lv.2", cost: 0 },
+      { type: "alternate", label: "Bebydomon Lv.2", cost: 0, alternateRequirementIndex: 0 },
     ]);
   });
 });
@@ -845,7 +876,7 @@ describe("EX3-039 Coredramon evolution choices", () => {
   it("offers friendly normal and cheaper Dracomon routes without duplicate multicolor costs", () => {
     expect(getDigivolveCostOptions("EX3-039", permOf("EX3-037"))).toEqual([
       { type: "normal", label: "Green Lv.3", cost: 3 },
-      { type: "alternate", label: "Dracomon Lv.3", cost: 2 },
+      { type: "alternate", label: "Dracomon Lv.3", cost: 2, alternateRequirementIndex: 0 },
     ]);
   });
 });
@@ -854,7 +885,7 @@ describe("EX3-020 Wingdramon evolution choices", () => {
   it("shows friendly normal and Coredramon routes with their distinct costs", () => {
     expect(getDigivolveCostOptions("EX3-020", permOf("EX3-018"))).toEqual([
       { type: "normal", label: "Blue Lv.4", cost: 4 },
-      { type: "alternate", label: "Coredramon Lv.4", cost: 3 },
+      { type: "alternate", label: "Coredramon Lv.4", cost: 3, alternateRequirementIndex: 0 },
     ]);
   });
 });

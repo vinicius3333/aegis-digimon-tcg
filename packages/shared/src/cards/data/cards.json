@@ -62830,7 +62830,7 @@
       "Iliad",
       "TS"
     ],
-    "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 3\n[Digivolve] Lv.5 w/[Aegiochusmon] in name: Cost 1 for each of your security cards \n\n[On Play] [When Digivolving] Trash your top security card and 1 of your opponent's Digimon gets -13000 DP until their turn ends. Then, if you have 1 or fewer security cards, ＜Recovery +2 (Deck)＞ \n[All Turns] [Once Per Turn] When your security stack is removed from, trash your opponent's top security card.\n[All Turns] [Once Per Turn] When any of your [TS] trait Digimon or Tamers would leave the battle area, by trashing your top security card, they don't leave.",
+    "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 5\n[Digivolve] Lv.5 w/[Aegiochusmon] in name: Cost 1 for each of your security cards \n\n[On Play] [When Digivolving] Trash your top security card and 1 of your opponent's Digimon gets -13000 DP until their turn ends. Then, if you have 1 or fewer security cards, ＜Recovery +2 (Deck)＞ \n[All Turns] [Once Per Turn] When your security stack is removed from, trash your opponent's top security card.\n[All Turns] [Once Per Turn] When any of your [TS] trait Digimon or Tamers would leave the battle area, by trashing your top security card, they don't leave.",
     "rarity": "UR",
     "maxCountInDeck": 4,
     "imageId": "BT24-101"

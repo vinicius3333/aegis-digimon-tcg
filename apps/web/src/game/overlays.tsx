@@ -22,13 +22,13 @@ import { Badge, Button, Dialog } from "../design/primitives";
 import { CardBack, CardFull, CardMini, Sigil } from "../design/cards";
 import { COLORS, colorKey } from "../design/theme";
 import { Icons } from "../design/icons";
-import { triggerCardId, triggerLabels } from "./boardModel";
+import { triggerCardId, triggerLabels, type EvoCostOption } from "./boardModel";
 import { formatKeyword, formatResolvedKeyword } from "./keywordDisplay";
 import { gameOverSplash, type GameOverOutcome } from "./gameOverSplash";
 import { pendingFateBadge, type PendingFateBadge } from "./pendingFate";
 import { inspectorPlacement, type PermanentDetail } from "./permanentDetail";
 import { useTranslation, type Translate, type TranslationKey } from "../i18n";
-import { CardLink, CardLinkedText } from "./cardLinks";
+import { CardLink, CardLinkedText, useCardOpener } from "./cardLinks";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { assemblyMaterialCount, eligibleAssemblyCandidateIds } from "./assemblyMaterialSelection";
 import { TOUCH_LAYOUT_QUERY, useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
@@ -1308,6 +1308,7 @@ export function DecisionOverlay({
   onRespond: (response: DecisionResponse) => void;
 }) {
   const { t } = useTranslation();
+  const openCard = useCardOpener();
   const wideDialog = useMediaQuery(WIDE_DIALOG_QUERY);
   const min = decisionSelectionMin(request);
   const max = request.options?.max ?? 1;
@@ -1423,6 +1424,18 @@ export function DecisionOverlay({
     }
   };
 
+  const viewBoardButton = (
+    <Button
+      className="decision-overlay__view-board"
+      size="lg"
+      variant="secondary"
+      icon={Icons.Map}
+      onClick={() => setIsViewingBoard(true)}
+    >
+      <span className="decision-overlay__view-board-label">{t("overlay.viewBoard")}</span>
+    </Button>
+  );
+
   const confirmSelect = () => {
     if (request.kind === "selectCards") onRespond({ kind: "selectCards", instanceIds: picks });
     else onRespond({ kind: "chooseTargets", instanceIds: picks });
@@ -1453,11 +1466,6 @@ export function DecisionOverlay({
       : !specificPrompt || (sourceCardId && specificPrompt === name(sourceCardId))
         ? genericPrompt
         : specificPrompt;
-  /* A generic title over the card's own clause says the same thing twice, and less
-     precisely ("Resolve effect" above the sentence that says what to resolve). It is
-     dropped there; a title the server wrote for this decision is kept, because the clause
-     does not carry the question it asks. */
-  const restatedTitle = Boolean(sourceEffectText) && promptText === genericPrompt;
 
   if (isViewingBoard) {
     const returnControl = (
@@ -1497,54 +1505,40 @@ export function DecisionOverlay({
       aria-label={dialogLabel}
       className={`game-modal__panel game-modal__panel--bare decision-overlay${wideDialog ? " decision-overlay--wide" : ""}`}
       onKeyDown={containDialogFocus}
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: 96,
-        transform: "translateX(-50%)",
-        zIndex: 80,
-        width: wideDialog ? 1000 : 600,
-        maxWidth: "calc(100% - 32px)",
-        maxHeight: "calc(100% - 112px)",
-        overflowY: "auto",
-        background: "var(--ds-surface)",
-        border: "2px solid var(--ds-accent)",
-        borderRadius: 20,
-        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
-        padding: 22,
-        animation: "battle-dialog-in 200ms ease-out",
-      }}
+      /* Geometry, surface and entrance all live in game.css: inline values could not be
+         overridden by the phone bottom-sheet rules, and an inline `animation` shorthand
+         hid both the shared `--t-dialog-in` timing and the reduced-motion override. */
+      style={{ width: wideDialog ? 1000 : 600 }}
     >
       {/* The card asking the question, and the question in the card's own printed words.
           The clause says what a restated title said less precisely, so the title is kept
           only for a decision no card text explains. */}
-      <div className="decision-overlay__header" style={{ marginBottom: 14 }}>
+      {/* The question itself is the headline, in a band across the top of the sheet. The
+          card's art already says which card asked it, so its name is not spelled out
+          again above the clause. */}
+      <div className="decision-overlay__heading">
+        <h2 className="decision-overlay__title">{promptText}</h2>
+      </div>
+      <div className="decision-overlay__header">
         {sourceCardId ? (
-          <span className="decision-overlay__source-art" aria-hidden="true">
-            <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
-          </span>
+          /* The art is now the only mention of the card, so it carries the link that the
+             spelled-out name used to: same route to the full card, one less line to read. */
+          openCard ? (
+            <button
+              type="button"
+              className="decision-overlay__source-art"
+              aria-label={t("feed.openCard", { card: name(sourceCardId) })}
+              onClick={() => openCard(sourceCardId)}
+            >
+              <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
+            </button>
+          ) : (
+            <span className="decision-overlay__source-art" aria-hidden="true">
+              <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
+            </span>
+          )
         ) : null}
-        <div className="decision-overlay__heading">
-          <div className="decision-overlay__eyebrow">
-            {sourceCardId ? (
-              <CardLinkedText text={t("overlay.cardEffect", { name: name(sourceCardId) })} cardIds={[sourceCardId]} />
-            ) : (
-              t("overlay.effect")
-            )}
-          </div>
-          {sourceEffectText ? <p className="decision-overlay__effect-text">{sourceEffectText}</p> : null}
-          {restatedTitle ? null : <div className="decision-overlay__title">{promptText}</div>}
-        </div>
-        <Button
-          className="decision-overlay__view-board"
-          size="sm"
-          variant="secondary"
-          icon={Icons.Map}
-          aria-label={t("overlay.viewBoard")}
-          onClick={() => setIsViewingBoard(true)}
-        >
-          <span className="decision-overlay__view-board-label">{t("overlay.viewBoard")}</span>
-        </Button>
+        {sourceEffectText ? <p className="decision-overlay__effect-text">{sourceEffectText}</p> : null}
       </div>
 
       {isSelect ? (
@@ -1769,39 +1763,43 @@ export function DecisionOverlay({
       ) : null}
 
       {isChoose ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="decision-overlay__footer decision-overlay__choices">
           {choices.map((label, i) => (
             <Button
               key={i}
               full
+              size="lg"
               variant={i === 0 ? "primary" : "secondary"}
               onClick={() => onRespond({ kind: "chooseOption", optionIndex: i })}
             >
               {choiceLabel(label)}
             </Button>
           ))}
+          {viewBoardButton}
         </div>
       ) : null}
 
       {isOptional ? (
-        <div className="game-actions-row">
-          <Button full icon={Icons.Sparkles} onClick={() => onRespond({ kind: "optional", accept: true })}>
+        <div className="game-actions-row decision-overlay__footer">
+          <Button full size="lg" icon={Icons.Sparkles} onClick={() => onRespond({ kind: "optional", accept: true })}>
             {t("overlay.activate")}
           </Button>
-          <Button full variant="secondary" onClick={() => onRespond({ kind: "optional", accept: false })}>
+          <Button full size="lg" variant="secondary" onClick={() => onRespond({ kind: "optional", accept: false })}>
             {t("overlay.decline")}
           </Button>
+          {viewBoardButton}
         </div>
       ) : null}
 
       {isSelect ? (
-        <div className="game-actions-row">
-          <Button full icon={Icons.Check} disabled={!canConfirm} onClick={confirmSelect}>
+        <div className="game-actions-row decision-overlay__footer">
+          <Button full size="lg" icon={Icons.Check} disabled={!canConfirm} onClick={confirmSelect}>
             {t("overlay.confirmTargets")}
           </Button>
           {min === 0 ? (
             <Button
               full
+              size="lg"
               variant="ghost"
               onClick={() =>
                 onRespond({ kind: request.kind === "selectCards" ? "selectCards" : "chooseTargets", instanceIds: [] })
@@ -1810,6 +1808,7 @@ export function DecisionOverlay({
               {t("common.none")}
             </Button>
           ) : null}
+          {viewBoardButton}
         </div>
       ) : null}
 
@@ -1883,7 +1882,9 @@ export function DecisionOverlay({
             <span className="trigger-chooser__selection" aria-live="polite">
               {selectedTriggerKeys.length === 1 ? triggerKeyLabels[triggerKeys.indexOf(selectedTriggerKeys[0]!)] : null}
             </span>
+            {viewBoardButton}
             <Button
+              size="lg"
               icon={Icons.Check}
               disabled={selectedTriggerKeys.length !== 1}
               onClick={() => onRespond({ kind: "orderTriggers", order: selectedTriggerKeys })}
@@ -1894,10 +1895,11 @@ export function DecisionOverlay({
         </div>
       ) : null}
       {isOrderCards ? (
-        <div className="decision-overlay__footer">
-          <Button full icon={Icons.Check} onClick={() => onRespond({ kind: "orderCards", order: cardOrder })}>
+        <div className="game-actions-row decision-overlay__footer">
+          <Button full size="lg" icon={Icons.Check} onClick={() => onRespond({ kind: "orderCards", order: cardOrder })}>
             {t("overlay.confirmOrder")}
           </Button>
+          {viewBoardButton}
         </div>
       ) : null}
     </div>
@@ -2087,8 +2089,10 @@ export function EvoCostChoiceOverlay({
 }: {
   evolvingCardId: string;
   baseName: string;
-  options: Array<{ type: "normal" | "alternate"; label: string; cost: number }>;
-  onConfirm: (useAlternate: boolean) => void;
+  options: readonly EvoCostOption[];
+  /** Receives the whole path, not just "is it alternate": a card can print several alternate
+   * paths at different costs, and only the path's own index tells the server which one. */
+  onConfirm: (option: EvoCostOption) => void;
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
@@ -2145,10 +2149,10 @@ export function EvoCostChoiceOverlay({
           .sort((a, b) => a.cost - b.cost)
           .map((opt) => (
             <Button
-              key={opt.type}
+              key={`${opt.type}:${opt.alternateRequirementIndex ?? -1}:${opt.label}`}
               full
               variant={opt.type === "alternate" ? "secondary" : "primary"}
-              onClick={() => onConfirm(opt.type === "alternate")}
+              onClick={() => onConfirm(opt)}
             >
               {t("overlay.costMemory", { label: opt.label, cost: opt.cost })}
             </Button>
@@ -2570,6 +2574,7 @@ export function CardZoomOverlay({
   details?: ReactNode;
 }) {
   const { t } = useTranslation();
+  const width = useCardZoomWidth();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -2585,7 +2590,7 @@ export function CardZoomOverlay({
       aria-label={getCardDefinition(cardId)?.nameEn ?? cardId}
       onClick={onClose}
     >
-      <CardFull cardId={cardId} artId={artId} width={340} />
+      <CardFull cardId={cardId} artId={artId} width={width} />
       <div className="card-zoom__details card-action-sheet__info" onClick={(e) => e.stopPropagation()}>
         {details ?? <PrintedCardInfo cardId={cardId} />}
       </div>
@@ -2595,6 +2600,32 @@ export function CardZoomOverlay({
     </div>
   );
   return inline ? panel : createPortal(panel, document.body);
+}
+
+/**
+ * The blow-up fills as much of the viewport as it can while leaving room for the
+ * details and the close button below it. Cards are drawn at a 1:1.4 ratio, so the
+ * height budget is what usually binds on a laptop and the width on a phone.
+ */
+const CARD_ZOOM_CHROME_HEIGHT = 220;
+const CARD_ZOOM_MAX_WIDTH = 560;
+const CARD_ZOOM_MIN_WIDTH = 260;
+
+function useCardZoomWidth() {
+  const measure = () =>
+    Math.round(
+      Math.max(
+        CARD_ZOOM_MIN_WIDTH,
+        Math.min(CARD_ZOOM_MAX_WIDTH, window.innerWidth * 0.9, (window.innerHeight - CARD_ZOOM_CHROME_HEIGHT) / 1.4),
+      ),
+    );
+  const [width, setWidth] = useState(measure);
+  useEffect(() => {
+    const onResize = () => setWidth(measure());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return width;
 }
 
 /** Name plus the printed level, play cost and DP, styled like the action sheet header. */

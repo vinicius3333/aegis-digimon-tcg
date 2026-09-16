@@ -10,7 +10,7 @@ import { CardBack, CardFull, CardMini } from "../design/cards";
 import { useEnterAnimation } from "./animations";
 import { CardBurst } from "./CardBurst";
 import type { PermanentBurst } from "./showcases";
-import { linkCardSlots } from "./boardModel";
+import { linkCardSlots, type ProjectedDigivolveRoute } from "./boardModel";
 import {
   memoryArcPath,
   memoryCellCenterFraction,
@@ -51,6 +51,9 @@ export interface HandEntry {
   digivolveTargetPermanentIds: readonly string[];
   /** Server projection: own battle-area Digimon this card may be linked to right now. */
   linkTargetPermanentIds: readonly string[];
+  /** Server-projected digivolution prices, one per (base x cost path); the board never
+   * derives a cost locally when the server published one. */
+  digivolveRoutes?: readonly ProjectedDigivolveRoute[];
   /** Server-projected App Fusion routes; the board never derives legality locally. */
   appFusionRoutes?: readonly {
     hostPermanentId: string;

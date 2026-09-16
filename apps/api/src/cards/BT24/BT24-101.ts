@@ -172,7 +172,7 @@ export const compiled: CompiledCard = {
     {
       level: 5,
       traits: ["TS"],
-      cost: 3,
+      cost: 5,
       isAlternate: true,
     },
     {

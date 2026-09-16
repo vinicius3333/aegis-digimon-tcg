@@ -449,25 +449,73 @@
     width: 100%;
   }
 }
-.decision-overlay__heading {
-  min-width: 0;
-  flex: 1;
+/* The sheet sits centred over the board on its own dimmed field. Geometry lives here
+   rather than inline so the phone bottom-sheet rules further down can still win. */
+.decision-overlay {
+  --decision-overlay-pad-bottom: 22px;
+
+  position: absolute;
+  top: 96px;
+  left: 50%;
+  z-index: 80;
+  translate: -50% 0;
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 112px);
+  padding: 0 22px var(--decision-overlay-pad-bottom);
+  overflow-y: auto;
+}
+/* The dimmed field is the sheet's own backdrop: a separate scrim element could not sit
+   between a panel that is positioned by these rules and the board under it. It fades on
+   its own — a keyframe that also moved it would slide the dimming off one edge. */
+/* `battle-dialog-in` animates `translate`, which on this sheet also carries the -50%
+   that centres it — a shared keyframe would drop the sheet to the left edge and, with
+   `both`, leave it there. This one rises without giving up the centring. */
+.decision-overlay {
+  animation: battle-decision-sheet-in var(--t-dialog-in, 180ms) ease-out both !important;
+}
+@keyframes battle-decision-sheet-in {
+  from {
+    translate: -50% 0.75rem;
+    opacity: 0;
+  }
+  to {
+    translate: -50% 0;
+    opacity: 1;
+  }
+}
+
+.decision-overlay::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background: var(--ds-scrim);
+  animation: game-modal-scrim-in var(--t-dialog-in, 180ms) ease-out both;
 }
 .decision-overlay__view-board {
   flex: none;
 }
-/* The confirm stays reachable while a long list scrolls under it. It reaches
-   into the panel's bottom padding (22px inline on the panel) so nothing shows
-   through beneath it. */
-.decision-overlay {
-  --decision-overlay-pad-bottom: 22px;
-}
+/* The confirm stays reachable while a long list scrolls under it. It reaches into the
+   panel's bottom padding so nothing shows through beneath it. */
 .decision-overlay__footer {
   position: sticky;
   bottom: calc(-1 * var(--decision-overlay-pad-bottom));
+  margin-top: var(--ds-space-4);
   margin-bottom: calc(-1 * var(--decision-overlay-pad-bottom));
-  padding: var(--ds-space-2) 0 var(--decision-overlay-pad-bottom);
-  background: var(--ds-surface);
+  padding: var(--ds-space-3) 0 var(--decision-overlay-pad-bottom);
+  border-top: 1px solid rgb(255 255 255 / 12%);
+  background: linear-gradient(180deg, rgb(12 21 38 / 0%) 0%, #0c1526 28%);
+}
+.decision-overlay__footer > .aegis-button {
+  min-height: 3rem;
+  font-size: var(--ds-text-base);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.decision-overlay__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
 }
 .decision-board-return {
   position: fixed;
@@ -2990,10 +3038,22 @@
   }
 }
 
-.decision-overlay__heading,
 .mulligan-title {
   padding: 0.7rem 1.2rem;
   margin: -0.2rem -0.2rem 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  border-bottom: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--battle-header-grad);
+}
+
+/* The sheet's title band runs edge to edge: it is the first thing in the panel, so it
+   reaches back over the panel's own side padding. */
+.decision-overlay__heading {
+  padding: 1rem 1.2rem;
+  margin: 0 -22px var(--ds-space-4);
   font-weight: 700;
   color: #fff;
   text-align: center;
@@ -4919,6 +4979,9 @@ button.side-panel__name:focus-visible {
     box-shadow: 0 -12px 40px rgb(4 14 31 / 45%) !important;
   }
   /* A bare panel carries no scrim of its own, so it pins itself to the viewport. */
+  .decision-overlay {
+    animation: battle-decision-sheet-up var(--t-dialog-in, 180ms) ease-out both !important;
+  }
   .game-modal__panel--bare {
     position: fixed !important;
     z-index: var(--ds-z-dialog);
@@ -4927,6 +4990,7 @@ button.side-panel__name:focus-visible {
     left: 0 !important;
     top: auto !important;
     transform: none !important;
+    translate: none;
   }
   /* Inline flex rows inside these panels default to min-width:auto, so long text
      refused to wrap and pushed the panel past the viewport. */
@@ -4963,13 +5027,9 @@ button.side-panel__name:focus-visible {
     border-bottom: 0;
     background: none;
   }
-  .decision-overlay__eyebrow {
-    font-size: 0.625rem !important;
-    letter-spacing: 0.08em !important;
-  }
   .decision-overlay__title {
     margin-top: 0 !important;
-    font-size: 0.875rem !important;
+    font-size: 1.0625rem !important;
     line-height: 1.25 !important;
   }
   .decision-overlay__view-board {
@@ -4996,6 +5056,16 @@ button.side-panel__name:focus-visible {
   }
   .decision-overlay {
     --decision-overlay-pad-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
+  }
+  /* A bottom sheet is already at the bottom edge; its actions stack full width there
+     rather than sharing one row with the board button. */
+  .decision-overlay__footer {
+    flex-wrap: wrap;
+    margin-top: var(--ds-space-3);
+  }
+  .decision-overlay__footer > .aegis-button {
+    min-height: 2.75rem;
+    font-size: var(--ds-text-sm);
   }
   .decision-overlay__order-row > .aegis-button {
     min-width: 44px;
@@ -7752,40 +7822,46 @@ button.side-panel__name:focus-visible {
   display: flex;
   gap: var(--ds-space-3);
   align-items: flex-start;
+  margin-bottom: var(--ds-space-4);
 }
 
 .decision-overlay__source-art {
   flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0.4rem;
+  background: none;
   line-height: 0;
+  cursor: pointer;
+}
+.decision-overlay__source-art:disabled {
+  cursor: default;
 }
 
-.decision-overlay__eyebrow {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--ds-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* The clause is the question: it takes the reading size, not the caption size it had when
-   a restated title sat above it. */
+/* The clause is the question in the card's own printed words, read under the headline
+   that asks it. */
 .decision-overlay__effect-text {
-  margin: 0.35rem 0 0;
-  padding: 0.5rem 0.75rem;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0.6rem 0.85rem;
   font-size: 0.95rem;
   line-height: 1.55;
   color: var(--ds-fg);
   border-radius: 0.6rem;
-  background: var(--ds-surface-muted);
+  background: rgb(255 255 255 / 6%);
 }
 
-/* Kept for a decision no card text explains. */
+/* The question is the headline: one line across the top of the sheet, at the size the
+   reference client gives it. */
 .decision-overlay__title {
-  margin-top: 2px;
+  margin: 0;
   font-family: var(--ds-font-display);
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--ds-fg);
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+  text-wrap: balance;
 }
 
 /* --- Board decision rail ---------------------------------------------- */
@@ -7853,4 +7929,16 @@ button.side-panel__name:focus-visible {
 .match-notice[data-variant="deletion"]::before,
 .match-notice[data-variant="deletion"]::after {
   content: none;
+}
+
+/* The phone bottom sheet enters from the edge it is anchored to. */
+@keyframes battle-decision-sheet-up {
+  from {
+    translate: 0 100%;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
 }

@@ -106,6 +106,7 @@ import {
   triggerCardId,
   viewerSeatOf,
   type EvoCostOption,
+  type ProjectedDigivolveRoute,
   type LogLine,
   canMoveFromBreeding,
   canUseBreedingAction,
@@ -1154,12 +1155,21 @@ export function GameScreen({
     projectedPlayCost: ci.projectedPlayCost,
     digivolveTargetPermanentIds: [...ci.digivolveTargetPermanentIds],
     linkTargetPermanentIds: [...ci.linkTargetPermanentIds],
+    digivolveRoutes: [...(ci.digivolveRoutes ?? [])].map((route) => ({
+      permanentId: route.permanentId,
+      alternateRequirementIndex: route.alternateRequirementIndex,
+      projectedCost: route.projectedCost,
+    })),
     appFusionRoutes: [...(ci.appFusionRoutes ?? [])].map((route) => ({
       hostPermanentId: route.hostPermanentId,
       linkedInstanceId: route.linkedInstanceId,
       projectedCost: route.projectedCost,
     })),
   }));
+  /** The server's prices for one hand card's digivolution paths, or undefined when it
+   * published none (the card is not in the turn player's Main-phase hand). */
+  const digivolveRoutesOf = (instanceId: string): readonly ProjectedDigivolveRoute[] | undefined =>
+    handEntries.find((candidate) => candidate.instanceId === instanceId)?.digivolveRoutes;
   /**
    * The hand follows the live server state independently of older field narration.
    * Only the turn-start draw may retain an earlier hand; retained cards still use live
@@ -1349,12 +1359,17 @@ export function GameScreen({
     }
     clearSel();
   };
-  const digivolve = (permanentId: string, instanceId: string, useAlternateCost?: boolean) => {
+  const digivolve = (
+    permanentId: string,
+    instanceId: string,
+    useAlternateCost?: boolean,
+    alternateRequirementIndex?: number,
+  ) => {
     if (mainActionBlocked) return;
     if (room) {
       lastPlayAttemptRef.current = instanceId;
       playGameCue("digivolve");
-      intents.digivolve(room, permanentId, instanceId, useAlternateCost);
+      intents.digivolve(room, permanentId, instanceId, useAlternateCost, alternateRequirementIndex);
     }
     clearSel();
   };
@@ -1400,7 +1415,7 @@ export function GameScreen({
     confirmDrop = false,
   ) => {
     if (mainActionBlocked) return;
-    const options = getDigivolveCostOptions(cardId, base, you, opp);
+    const options = getDigivolveCostOptions(cardId, base, you, opp, digivolveRoutesOf(instanceId));
     const distinctCosts = new Set(options.map((o) => o.cost));
     if (options.length > 1 && distinctCosts.size > 1) {
       setEvoCostChoice({
@@ -2043,9 +2058,15 @@ export function GameScreen({
     return printed !== undefined && printed >= 0 ? printed : undefined;
   })();
   /** The cheapest priced digivolution path onto `base`, or undefined when none is priced. */
-  const cheapestDigivolveCost = (cardId: string, base: Permanent | undefined): number | undefined => {
+  const cheapestDigivolveCost = (
+    cardId: string,
+    instanceId: string,
+    base: Permanent | undefined,
+  ): number | undefined => {
     if (!base) return undefined;
-    const costs = getDigivolveCostOptions(cardId, base, you, opp).map((option) => option.cost);
+    const costs = getDigivolveCostOptions(cardId, base, you, opp, digivolveRoutesOf(instanceId)).map(
+      (option) => option.cost,
+    );
     return costs.length > 0 ? Math.min(...costs) : undefined;
   };
   // What the hovered area would do with the card in the air, priced. Read off the same
@@ -2058,10 +2079,13 @@ export function GameScreen({
         return { kind: "field" };
       case "evolve": {
         const base = you.battleArea.find((permanent) => permanent.permanentId === dragHover.id);
-        return { kind: "permanent", digivolve: { cost: cheapestDigivolveCost(drag.cardId, base) } };
+        return { kind: "permanent", digivolve: { cost: cheapestDigivolveCost(drag.cardId, drag.instanceId, base) } };
       }
       case "breeding":
-        return { kind: "breeding", digivolve: { cost: cheapestDigivolveCost(drag.cardId, you.breeding) } };
+        return {
+          kind: "breeding",
+          digivolve: { cost: cheapestDigivolveCost(drag.cardId, drag.instanceId, you.breeding) },
+        };
       default:
         return { kind: "refused" };
     }
@@ -2612,9 +2636,16 @@ export function GameScreen({
           evolvingCardId={evoCostChoice.handCardId}
           baseName={evoCostChoice.baseName}
           options={evoCostChoice.options}
-          onConfirm={(useAlternate) => {
+          onConfirm={(option) => {
             if (mainActionBlocked) return;
-            if (room) intents.digivolve(room, evoCostChoice.permanentId, evoCostChoice.handInstanceId, useAlternate);
+            if (room)
+              intents.digivolve(
+                room,
+                evoCostChoice.permanentId,
+                evoCostChoice.handInstanceId,
+                option.type === "alternate",
+                option.alternateRequirementIndex,
+              );
             setEvoCostChoice(null);
             clearSel();
           }}

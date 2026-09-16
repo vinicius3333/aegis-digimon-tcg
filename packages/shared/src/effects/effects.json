@@ -100597,7 +100597,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "level": 5, "traits": ["TS"], "cost": 3, "isAlternate": true },
+      { "level": 5, "traits": ["TS"], "cost": 5, "isAlternate": true },
       { "level": 5, "names": ["Aegiochusmon"], "cost": 1, "isAlternate": true }
     ]
   },
