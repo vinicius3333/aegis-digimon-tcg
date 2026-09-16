@@ -5,7 +5,10 @@ const compiled = structuredClone(getCompiledCard("BT12-082")!);
 const hasBaalmonOrXAntibody = {
   kind: "anyOf" as const,
   conditions: [
-    { kind: "selfDigivolutionStackMatchesFilter" as const, filter: { nameOrTrait: [{ tokens: ["Baalmon"], match: "name" as const }] } },
+    {
+      kind: "selfDigivolutionStackMatchesFilter" as const,
+      filter: { nameOrTrait: [{ tokens: ["Baalmon"], match: "name" as const }] },
+    },
     {
       kind: "selfDigivolutionStackHasTrait" as const,
       filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" as const }] },

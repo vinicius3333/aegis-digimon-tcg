@@ -108,8 +108,16 @@ export function buildFieldClashScene({
   const defenderCardId = open.targetCardId ?? cardIdOf(open.targetPermanentId);
   return {
     key,
-    attacker: { permanentId: open.attackerPermanentId, cardId: open.attackerCardId, ...(attackerArtId ? { artId: attackerArtId } : {}) },
-    defender: { permanentId: open.targetPermanentId, ...(defenderCardId ? { cardId: defenderCardId } : {}), ...(defenderArtId ? { artId: defenderArtId } : {}) },
+    attacker: {
+      permanentId: open.attackerPermanentId,
+      cardId: open.attackerCardId,
+      ...(attackerArtId ? { artId: attackerArtId } : {}),
+    },
+    defender: {
+      permanentId: open.targetPermanentId,
+      ...(defenderCardId ? { cardId: defenderCardId } : {}),
+      ...(defenderArtId ? { artId: defenderArtId } : {}),
+    },
     loserPermanentIds: event.deletedPermanentIds,
     direction: open.seat === viewerSeat ? "up" : "down",
   };

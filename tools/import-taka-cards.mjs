@@ -264,6 +264,10 @@ if (validateSet) {
     if (variants.length) arts[card.cardNumber] = variants;
     else delete arts[card.cardNumber];
   }
-  writeFileSync(artsPath, JSON.stringify(Object.fromEntries(Object.entries(arts).sort(([a], [b]) => a.localeCompare(b, "en"))), null, 2) + "\n");
+  writeFileSync(
+    artsPath,
+    JSON.stringify(Object.fromEntries(Object.entries(arts).sort(([a], [b]) => a.localeCompare(b, "en"))), null, 2) +
+      "\n",
+  );
   console.log(`Added ${added.length} cards: ${added.sort().join(", ")}`);
 }

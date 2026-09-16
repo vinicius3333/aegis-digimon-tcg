@@ -9,7 +9,16 @@ import {
   getCardDefinition,
   isBetaOnlyCard,
 } from "@aegis/shared";
-import { Alert, Button, Dialog, Eyebrow, Field, IconButton, type PlayerIdentity, type Screen } from "../design/primitives";
+import {
+  Alert,
+  Button,
+  Dialog,
+  Eyebrow,
+  Field,
+  IconButton,
+  type PlayerIdentity,
+  type Screen,
+} from "../design/primitives";
 import { CoverThumb } from "../design/cards";
 import { COLORS } from "../design/theme";
 import { Icons, type IconComponent } from "../design/icons";
@@ -91,10 +100,13 @@ export function Lobby({
     return decks
       .map((deck) => ({
         deck,
-        legal: deckLegality(deck).legal && (betaSupported || ![...deck.mainDeck, ...deck.eggDeck].some((id) => {
-          const card = getCardDefinition(id);
-          return card !== undefined && isBetaOnlyCard(card);
-        })),
+        legal:
+          deckLegality(deck).legal &&
+          (betaSupported ||
+            ![...deck.mainDeck, ...deck.eggDeck].some((id) => {
+              const card = getCardDefinition(id);
+              return card !== undefined && isBetaOnlyCard(card);
+            })),
       }))
       .filter(({ deck }) => deck.name.toLocaleLowerCase().includes(query))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
@@ -249,14 +261,19 @@ export function Lobby({
                   disabled={!legal}
                   onSelect={() => onSelectDeck(deck.id)}
                   actions={
-                    <Button size="sm" variant="secondary" icon={Icons.FileText} onClick={() => {
-                      if (onEditDeck) {
-                        onEditDeck(deck);
-                        return;
-                      }
-                      onSelectDeck(deck.id);
-                      onNav("deck");
-                    }}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      icon={Icons.FileText}
+                      onClick={() => {
+                        if (onEditDeck) {
+                          onEditDeck(deck);
+                          return;
+                        }
+                        onSelectDeck(deck.id);
+                        onNav("deck");
+                      }}
+                    >
                       {t("common.edit")}
                     </Button>
                   }
@@ -522,7 +539,11 @@ export function Lobby({
                       full
                       icon={Icons.Bot}
                       disabled={!deckLegal}
-                      onClick={() => betaEnabled ? setBetaConfirmation("bot") : onStart("bot", undefined, botDeckId || undefined, false)}
+                      onClick={() =>
+                        betaEnabled
+                          ? setBetaConfirmation("bot")
+                          : onStart("bot", undefined, botDeckId || undefined, false)
+                      }
                     >
                       {t("lobby.playVsBot")}
                     </Button>
@@ -530,7 +551,13 @@ export function Lobby({
                 </>
               ) : betaEnabled ? (
                 <div className="lobby-launch">
-                  <Button size="lg" full icon={Icons.Swords} disabled={!deckLegal} onClick={() => setBetaConfirmation("beta")}>
+                  <Button
+                    size="lg"
+                    full
+                    icon={Icons.Swords}
+                    disabled={!deckLegal}
+                    onClick={() => setBetaConfirmation("beta")}
+                  >
                     {t("lobby.enterBetaQueue")}
                   </Button>
                 </div>
@@ -552,12 +579,19 @@ export function Lobby({
           <h2 id="lobby-beta-confirm-title">{t("lobby.betaConfirmTitle")}</h2>
           <p>{t("lobby.betaConfirmHint", { deck: active?.name ?? "" })}</p>
           <div className="lobby-beta-confirm-actions">
-            <Button variant="secondary" onClick={() => setBetaConfirmation(null)}>{t("common.cancel")}</Button>
-            <Button onClick={() => {
-              const startMode = betaConfirmation;
-              setBetaConfirmation(null);
-              if (deckLegal && betaEnabled) onStart(startMode, undefined, startMode === "bot" ? botDeckId || undefined : undefined, true);
-            }}>{t("common.confirm")}</Button>
+            <Button variant="secondary" onClick={() => setBetaConfirmation(null)}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={() => {
+                const startMode = betaConfirmation;
+                setBetaConfirmation(null);
+                if (deckLegal && betaEnabled)
+                  onStart(startMode, undefined, startMode === "bot" ? botDeckId || undefined : undefined, true);
+              }}
+            >
+              {t("common.confirm")}
+            </Button>
           </div>
         </Dialog>
       ) : null}

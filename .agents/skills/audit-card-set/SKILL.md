@@ -12,12 +12,12 @@ this skill is the set-level protocol around it.
 
 ## Roles
 
-| Role | Owns | Never touches |
-| --- | --- | --- |
-| Coordinator (you) | ledger, RUN.md, REVIEW-NOTES.md, catalog JSON, effects sync, shared data overrides, gates, commits | card modules, engine code |
-| Card lane (one per card) | `<SET>/<ID>.ts`, `<SET>/<ID>.test.ts`, report `<ID>.md` | engine, shared, catalog, other cards, ledger |
-| Engine lane (serialized, one at a time) | `apps/api/src/engine/**`, testkit, retained-red flips | catalog, ledger, notes |
-| Web lane | `apps/web/**` | everything else |
+| Role                                    | Owns                                                                                               | Never touches                                |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Coordinator (you)                       | ledger, RUN.md, REVIEW-NOTES.md, catalog JSON, effects sync, shared data overrides, gates, commits | card modules, engine code                    |
+| Card lane (one per card)                | `<SET>/<ID>.ts`, `<SET>/<ID>.test.ts`, report `<ID>.md`                                            | engine, shared, catalog, other cards, ledger |
+| Engine lane (serialized, one at a time) | `apps/api/src/engine/**`, testkit, retained-red flips                                              | catalog, ledger, notes                       |
+| Web lane                                | `apps/web/**`                                                                                      | everything else                              |
 
 Two rules make parallel lanes safe: card lanes edit only their three files,
 and only one engine lane runs at a time. A card lane that hits an engine gap

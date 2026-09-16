@@ -13,7 +13,8 @@ if (unsuspend?.kind === "Unsuspend") {
 }
 const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns");
 const watcher = allTurns?.actions.find((action) => action.kind === "SubTrigger");
-const returned = watcher?.kind === "SubTrigger" ? watcher.actions.find((action) => action.kind === "Return") : undefined;
+const returned =
+  watcher?.kind === "SubTrigger" ? watcher.actions.find((action) => action.kind === "Return") : undefined;
 if (returned?.kind === "Return") {
   returned.condition = {
     kind: "anyOf",

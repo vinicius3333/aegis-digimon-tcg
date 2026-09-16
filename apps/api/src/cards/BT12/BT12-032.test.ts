@@ -15,9 +15,9 @@ describe("BT12-032 AncientMermaimon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ancient"));
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("candidate").instanceId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("candidate").instanceId),
+    ).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 
@@ -45,9 +45,9 @@ describe("BT12-032 AncientMermaimon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("ancient"));
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("level4").instanceId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("level4").instanceId),
+    ).toBe(true);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("level5").instanceId);
   });
 });

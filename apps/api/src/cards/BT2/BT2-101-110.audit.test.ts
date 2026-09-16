@@ -38,7 +38,10 @@ describe("BT2-101 through BT2-110 IR coverage", () => {
         actions: [
           {
             kind: "Suspend",
-            target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: "all" },
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } },
+              count: "all",
+            },
           },
         ],
       },
@@ -63,13 +66,21 @@ describe("BT2-101 through BT2-110 IR coverage", () => {
       {
         trigger: "Main",
         actions: [
-          { kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 3000, duration: "forTheTurn" },
+          {
+            kind: "ModifyDP",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            amount: 3000,
+            duration: "forTheTurn",
+          },
         ],
       },
       {
         trigger: "Security",
         actions: [
-          { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Blocker"] }, count: 1 } },
+          {
+            kind: "Unsuspend",
+            target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Blocker"] }, count: 1 },
+          },
         ],
         isSecurity: true,
       },
@@ -79,13 +90,19 @@ describe("BT2-101 through BT2-110 IR coverage", () => {
       {
         trigger: "Main",
         actions: [
-          { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Blocker"] }, count: 1 } },
+          {
+            kind: "Unsuspend",
+            target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Blocker"] }, count: 1 },
+          },
         ],
       },
       {
         trigger: "Security",
         actions: [
-          { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Blocker"] }, count: "all" } },
+          {
+            kind: "Unsuspend",
+            target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Blocker"] }, count: "all" },
+          },
           {
             kind: "ModifyDP",
             target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Blocker"] }, count: "all" },
@@ -98,12 +115,30 @@ describe("BT2-101 through BT2-110 IR coverage", () => {
     ]);
 
     expect(card("BT2-105")?.effects).toEqual([
-      { trigger: "Main", actions: [{ kind: "DeDigivolve", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: 1 }] },
+      {
+        trigger: "Main",
+        actions: [
+          {
+            kind: "DeDigivolve",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            amount: 1,
+          },
+        ],
+      },
       { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
     ]);
 
     expect(card("BT2-106")?.effects).toEqual([
-      { trigger: "Main", actions: [{ kind: "DeDigivolve", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: 4 }] },
+      {
+        trigger: "Main",
+        actions: [
+          {
+            kind: "DeDigivolve",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            amount: 4,
+          },
+        ],
+      },
       { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
     ]);
 
@@ -111,7 +146,12 @@ describe("BT2-101 through BT2-110 IR coverage", () => {
       {
         trigger: "Main",
         actions: [
-          { kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 3000, duration: "forTheTurn" },
+          {
+            kind: "ModifyDP",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            amount: 3000,
+            duration: "forTheTurn",
+          },
         ],
       },
       { trigger: "Security", actions: [{ kind: "GainMemory", amount: 2 }], isSecurity: true },
@@ -139,7 +179,11 @@ describe("BT2-101 through BT2-110 IR coverage", () => {
         actions: [
           {
             kind: "Delete",
-            target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 2, upTo: true },
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+              count: 2,
+              upTo: true,
+            },
             cost: { kind: "deleteOwn", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
             optional: true,
           },
@@ -149,7 +193,15 @@ describe("BT2-101 through BT2-110 IR coverage", () => {
     ]);
 
     expect(card("BT2-110")?.effects).toEqual([
-      { trigger: "Main", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", unsuspended: true, kind: ["Digimon"] }, count: 1 } }] },
+      {
+        trigger: "Main",
+        actions: [
+          {
+            kind: "Delete",
+            target: { filter: { controller: "opponent", unsuspended: true, kind: ["Digimon"] }, count: 1 },
+          },
+        ],
+      },
       { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
     ]);
   });

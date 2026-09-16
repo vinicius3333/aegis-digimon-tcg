@@ -24,9 +24,9 @@ describe("BT10-076 Troopmon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT10-081"));
 
-    expect(s.state.players[1]!.battleArea[0]!.stack.some((card) => card.instanceId === s.inst("opponentSource").instanceId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[1]!.battleArea[0]!.stack.some((card) => card.instanceId === s.inst("opponentSource").instanceId),
+    ).toBe(true);
     expect(s.state.memory).toBe(-3);
   });
 
@@ -94,7 +94,14 @@ describe("BT10-076 Troopmon", () => {
 
   it("uses Save to place its physical card under a friendly Tamer", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT10-076", as: "troopmon" }, { card: "BT10-093", as: "yuu" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-076", as: "troopmon" },
+            { card: "BT10-093", as: "yuu" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const troopmonId = s.perm("troopmon").topCard.instanceId;

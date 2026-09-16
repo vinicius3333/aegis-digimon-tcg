@@ -41,11 +41,16 @@ describe("BT4-108 Cyclonic Kick", () => {
 
   it("suspends an opponent even with no own Digimon to unsuspend", async () => {
     const s = setupEngine(
-      { 0: { battleArea: ["BT1-088"], hand: [{ card: "BT4-108", as: "option" }] }, 1: { battleArea: [{ card: "BT4-045", as: "target" }] } },
+      {
+        0: { battleArea: ["BT1-088"], hand: [{ card: "BT4-108", as: "option" }] },
+        1: { battleArea: [{ card: "BT4-045", as: "target" }] },
+      },
       { autoSelectCards: true },
     );
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").isSuspended);
   });
 });

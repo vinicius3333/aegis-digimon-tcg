@@ -205,7 +205,13 @@ export function buildSecurityDockScene({
   defenderSeat: Seat;
   viewerSeat: Seat;
 }): SecurityBranchScene {
-  return { key, cardId: revealedCardId, ...(revealedArtId ? { artId: revealedArtId } : {}), side: defenderSeat === viewerSeat ? "you" : "opp", state: "docked" };
+  return {
+    key,
+    cardId: revealedCardId,
+    ...(revealedArtId ? { artId: revealedArtId } : {}),
+    side: defenderSeat === viewerSeat ? "you" : "opp",
+    state: "docked",
+  };
 }
 
 /**
@@ -229,7 +235,13 @@ export function buildSecurityBranchScene({
   viewerSeat: Seat;
 }): SecurityBranchScene | null {
   if (normalizeSecurityClashResolution(resolution) !== "effect") return null;
-  return { key, cardId: revealedCardId, ...(revealedArtId ? { artId: revealedArtId } : {}), side: defenderSeat === viewerSeat ? "you" : "opp", state: "settled" };
+  return {
+    key,
+    cardId: revealedCardId,
+    ...(revealedArtId ? { artId: revealedArtId } : {}),
+    side: defenderSeat === viewerSeat ? "you" : "opp",
+    state: "settled",
+  };
 }
 
 const RESOLUTIONS: readonly string[] = ["battle", "effect", "trashed"];
@@ -276,9 +288,21 @@ export function buildSecurityRevealScene({
   return {
     key,
     resolution: "pending",
-    revealed: { cardId: revealedCardId, ...(revealedArtId ? { artId: revealedArtId } : {}), side: defenderSide, dp: securityCardDP ?? comparableDp(revealedCardId) },
+    revealed: {
+      cardId: revealedCardId,
+      ...(revealedArtId ? { artId: revealedArtId } : {}),
+      side: defenderSide,
+      dp: securityCardDP ?? comparableDp(revealedCardId),
+    },
     ...(facing
-      ? { attacker: { cardId: facing.cardId, ...(facing.artId ? { artId: facing.artId } : {}), side: attackerSide, dp: attackerDP ?? comparableDp(facing.cardId) } }
+      ? {
+          attacker: {
+            cardId: facing.cardId,
+            ...(facing.artId ? { artId: facing.artId } : {}),
+            side: attackerSide,
+            dp: attackerDP ?? comparableDp(facing.cardId),
+          },
+        }
       : {}),
   };
 }
@@ -350,7 +374,13 @@ export function buildSecurityDestructionScene({
   viewerSeat: Seat;
 }): SecurityClashScene {
   return {
-    ...buildSecurityRevealScene({ key, revealedCardId: cardId, revealedArtId: artId, defenderSeat: trashedSeat, viewerSeat }),
+    ...buildSecurityRevealScene({
+      key,
+      revealedCardId: cardId,
+      revealedArtId: artId,
+      defenderSeat: trashedSeat,
+      viewerSeat,
+    }),
     resolution: "trashed",
     cause: "destruction",
     outcomeAtMs: DESTROY_OUTCOME_AT_MS,
@@ -400,7 +430,11 @@ export interface SecurityDestruction {
  */
 export function securityDestructionsFromEvents(
   events: readonly ServerEvent[],
-  lookup: { artId?: (instanceId: string) => string | undefined; cardId: (instanceId: string) => string | undefined; seat: (instanceId: string) => Seat | undefined },
+  lookup: {
+    artId?: (instanceId: string) => string | undefined;
+    cardId: (instanceId: string) => string | undefined;
+    seat: (instanceId: string) => Seat | undefined;
+  },
 ): readonly SecurityDestruction[] {
   const destroyed: SecurityDestruction[] = [];
   for (const event of events) {

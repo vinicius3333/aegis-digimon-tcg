@@ -414,8 +414,7 @@ one.
 Direct authority in `BT9-008.ts:8-96` carries two identical `RevealAdd`
 actions, one `OnPlay` and one `WhenDigivolving`, each with `revealCount: 3`,
 the two capped hand buckets, and `rest: deckBottom`. The alternate
-`digivolutionRequirement` at lines 89-94 requires exact name `Agumon` at cost
-0. Registration at line 98 is exclusive.
+`digivolutionRequirement` at lines 89-94 requires exact name `Agumon` at cost 0. Registration at line 98 is exclusive.
 
 The focused tests cover both timings' IR shape, Q1798's mandatory two-bucket
 maximum, Q1797's separate Greymon/Omnimon/X Antibody single-bucket branches,
@@ -802,8 +801,7 @@ proof and the shared peer cover the direct implementation's semantics.
 ### BT9-034 — Salamon (X Antibody)
 
 Catalog clause (`cards.json:66452-66476`): Yellow level 3 Rookie/Vaccine/Mammal/
-X Antibody Digimon, play cost 3, DP 3000, with Yellow level 2 evolution cost
-0. It has `Digivolve: 0 from [Salamon]` and `[When Digivolving]` look at the
+X Antibody Digimon, play cost 3, DP 3000, with Yellow level 2 evolution cost 0. It has `Digivolve: 0 from [Salamon]` and `[When Digivolving]` look at the
 top security card; the player may add it to hand, and if they do, perform
 Recovery +1 (Deck).
 
@@ -2260,94 +2258,94 @@ Result: corrected direct gap; corrected-card count 1. The correction count is th
 
 ### BT9-091 — Meiko Mochizuki
 
-* **Catalog contract:** `cards.json:67935-67948` identifies a Purple Tamer costing 3. On Play may reveal three, add one purple or yellow Digimon, and trash the rest. All Turns, when a two-color purple-and-yellow Digimon is played, this Tamer may suspend for one memory. Security plays itself without paying memory.
-* **KB/rules:** No card-query entry. `colors` is an any-color predicate, so the reveal accepts either purple or yellow; the All Turns clause requires both colors plus `multicolor`, not merely any two-color Digimon. The optional suspend is a cost choice and is not a once-per-turn effect.
-* **Direct authority:** `BT9-091.ts:7-84` emits RevealAdd count 3 with optional add and `rest:"trash"`; its All Turns SubTrigger at `:35-60` uses `and:[{colors:["Purple"]},{colors:["Yellow"]}]`, `multicolor:true`, and optional self-suspend GainMemory. Registration is exclusively `registerIrCard("BT9-091", compiled)` at `:87`.
-* **Tests and boundaries:** `BT9-091.test.ts:9-179` statically maps catalog/IR and covers reveal/trash, security play, multiple Meiko prompts, a positive Meicoomon trigger, and a purple/red negative. The direct `and` avoids the snapshot's broader `colors:["Yellow","Purple"]` source filter. Breeding-area and source-controller rules were checked; no evolution stack is required for this Tamer.
-* **Snapshot drift:** `effects.json:123158-123219` represents the All Turns source as `multicolor:true` plus an any-color list, which would admit purple/blue or yellow/blue two-color Digimon. It is read-only stale evidence; direct IR is authoritative.
-* **Correction:** None required in this pass.
+- **Catalog contract:** `cards.json:67935-67948` identifies a Purple Tamer costing 3. On Play may reveal three, add one purple or yellow Digimon, and trash the rest. All Turns, when a two-color purple-and-yellow Digimon is played, this Tamer may suspend for one memory. Security plays itself without paying memory.
+- **KB/rules:** No card-query entry. `colors` is an any-color predicate, so the reveal accepts either purple or yellow; the All Turns clause requires both colors plus `multicolor`, not merely any two-color Digimon. The optional suspend is a cost choice and is not a once-per-turn effect.
+- **Direct authority:** `BT9-091.ts:7-84` emits RevealAdd count 3 with optional add and `rest:"trash"`; its All Turns SubTrigger at `:35-60` uses `and:[{colors:["Purple"]},{colors:["Yellow"]}]`, `multicolor:true`, and optional self-suspend GainMemory. Registration is exclusively `registerIrCard("BT9-091", compiled)` at `:87`.
+- **Tests and boundaries:** `BT9-091.test.ts:9-179` statically maps catalog/IR and covers reveal/trash, security play, multiple Meiko prompts, a positive Meicoomon trigger, and a purple/red negative. The direct `and` avoids the snapshot's broader `colors:["Yellow","Purple"]` source filter. Breeding-area and source-controller rules were checked; no evolution stack is required for this Tamer.
+- **Snapshot drift:** `effects.json:123158-123219` represents the All Turns source as `multicolor:true` plus an any-color list, which would admit purple/blue or yellow/blue two-color Digimon. It is read-only stale evidence; direct IR is authoritative.
+- **Correction:** None required in this pass.
 
 ### BT9-092 — Cool Boy
 
-* **Catalog contract:** `cards.json:67951-67964` identifies a White Tamer costing 2. On Play reveals three and adds one X Antibody-trait Digimon and one X Antibody-trait Option when available, bottom-decking the rest in any order. On your turn, when one of your Digimon digivolves into a same-level X Antibody-trait Digimon, this Tamer may suspend for one memory and draw one. Security plays itself free.
-* **KB/rules:** Q1894/Q1895 require taking each available class match rather than choosing to bottom-deck a second available match. Trait matching is exact, and the same-level condition is distinct from merely seeing an X Antibody Digimon.
-* **Direct authority:** `BT9-092.ts:4-107` has two RevealAdd add slots, one Digimon and one Option with `match:"trait"`, `rest:"deckBottom"`; the SubTrigger at `:50-89` uses `triggerDigivolvedSameLevel`, exact trait filtering, optional suspend GainMemory with `abortOnDecline`, then mandatory Draw 1. Registration is exclusively at `:109`.
-* **Tests and boundaries:** `BT9-092.test.ts:7-142` covers both reveal classes, same-level positive, higher-level negative, and refusal of the suspend cost suppressing the draw. Peer reveal behavior was compared with BT9-064/BT9-090; stack-level behavior was compared with the shared trigger condition and an actual same-level evolution fixture.
-* **Snapshot drift:** `effects.json:123220-123332` omits the visible same-level fire condition and marks Draw optional. The direct action keeps Draw mandatory after the optional suspend cost is accepted, with `abortOnDecline` preserving the printed “may suspend ... to gain memory and draw” semantics.
-* **Correction:** None required in this pass.
+- **Catalog contract:** `cards.json:67951-67964` identifies a White Tamer costing 2. On Play reveals three and adds one X Antibody-trait Digimon and one X Antibody-trait Option when available, bottom-decking the rest in any order. On your turn, when one of your Digimon digivolves into a same-level X Antibody-trait Digimon, this Tamer may suspend for one memory and draw one. Security plays itself free.
+- **KB/rules:** Q1894/Q1895 require taking each available class match rather than choosing to bottom-deck a second available match. Trait matching is exact, and the same-level condition is distinct from merely seeing an X Antibody Digimon.
+- **Direct authority:** `BT9-092.ts:4-107` has two RevealAdd add slots, one Digimon and one Option with `match:"trait"`, `rest:"deckBottom"`; the SubTrigger at `:50-89` uses `triggerDigivolvedSameLevel`, exact trait filtering, optional suspend GainMemory with `abortOnDecline`, then mandatory Draw 1. Registration is exclusively at `:109`.
+- **Tests and boundaries:** `BT9-092.test.ts:7-142` covers both reveal classes, same-level positive, higher-level negative, and refusal of the suspend cost suppressing the draw. Peer reveal behavior was compared with BT9-064/BT9-090; stack-level behavior was compared with the shared trigger condition and an actual same-level evolution fixture.
+- **Snapshot drift:** `effects.json:123220-123332` omits the visible same-level fire condition and marks Draw optional. The direct action keeps Draw mandatory after the optional suspend cost is accepted, with `abortOnDecline` preserving the printed “may suspend ... to gain memory and draw” semantics.
+- **Correction:** None required in this pass.
 
 ### BT9-093 — Flare Rock Soul
 
-* **Catalog contract:** `cards.json:67967-67980` identifies a Red Option costing 3. Main deletes one opposing Digimon at 5000 DP or less, then may evolve one of your Digimon into a Shoutmon-name Digimon from hand for its evolution cost. Security repeats only the deletion clause.
-* **KB/rules:** Q1896 explicitly says the effect does not ignore evolution requirements. “Shoutmon in its name” is a substring name match, while the source remains one of the player's Digimon and the destination is the player's hand.
-* **Direct authority:** `BT9-093.ts:14-85` uses opponent Digimon DP `lte 5000`, then an optional own Digimon Digivolve from hand with `nameOrTrait` `match:"name"`, `payCost:true`, and explicit `ignoreRequirements:false`; Security repeats deletion. Exclusive registration is at `:87`.
-* **Tests and boundaries:** `BT9-093.test.ts:6-34` statically checks sequencing, payment, non-ignored requirements, and Security, with a 5000-DP deletion behavior case. The legal evolution-stack inspection followed `actions/digivolve.ts` requirement preflight and compared BT9-013/BT9-077 evolution-source handling; no artificial free evolution is inferred.
-* **Snapshot drift:** `effects.json:123294-123332` has a raw string `into` field and `freeCost:false`, but no structured Shoutmon filter or explicit requirement flag. It is not trusted over the direct module.
-* **Correction:** None required in this pass; the direct requirement-preserving fix is already present and remains the executable authority.
+- **Catalog contract:** `cards.json:67967-67980` identifies a Red Option costing 3. Main deletes one opposing Digimon at 5000 DP or less, then may evolve one of your Digimon into a Shoutmon-name Digimon from hand for its evolution cost. Security repeats only the deletion clause.
+- **KB/rules:** Q1896 explicitly says the effect does not ignore evolution requirements. “Shoutmon in its name” is a substring name match, while the source remains one of the player's Digimon and the destination is the player's hand.
+- **Direct authority:** `BT9-093.ts:14-85` uses opponent Digimon DP `lte 5000`, then an optional own Digimon Digivolve from hand with `nameOrTrait` `match:"name"`, `payCost:true`, and explicit `ignoreRequirements:false`; Security repeats deletion. Exclusive registration is at `:87`.
+- **Tests and boundaries:** `BT9-093.test.ts:6-34` statically checks sequencing, payment, non-ignored requirements, and Security, with a 5000-DP deletion behavior case. The legal evolution-stack inspection followed `actions/digivolve.ts` requirement preflight and compared BT9-013/BT9-077 evolution-source handling; no artificial free evolution is inferred.
+- **Snapshot drift:** `effects.json:123294-123332` has a raw string `into` field and `freeCost:false`, but no structured Shoutmon filter or explicit requirement flag. It is not trusted over the direct module.
+- **Correction:** None required in this pass; the direct requirement-preserving fix is already present and remains the executable authority.
 
 ### BT9-094 — Atomic Megalo Blaster
 
-* **Catalog contract:** `cards.json:67983-67996` identifies a Red Option costing 6. Main chooses any number of opposing Digimon whose total DP is 10000 or less and deletes them; Security activates Main.
-* **KB/rules:** Q1897 confirms a DP-deletion maximum bonus can raise the usable aggregate budget to 11000. Selection is aggregate, not one independent 10000-DP check per target.
-* **Direct authority:** `BT9-094.ts:8-38` emits one opponent-Digimon Delete with `count:"all"` and `totalDpCap:10000`, followed by Security ActivateMain. Exclusive registration is at `:40`.
-* **Tests and boundaries:** `BT9-094.test.ts:6-35` checks catalog, aggregate cap, Security, and a multi-target budget fixture. `targeting/permanents.ts:227-275` applies the shared deletion maximum modifier and revalidates the whole selected set; BT9-015 and related aggregate-DP peers were inspected.
-* **Snapshot drift:** `effects.json:123333-123352` matches the direct aggregate cap and Security behavior; no material snapshot drift was found for this card.
-* **Correction:** None required in this pass.
+- **Catalog contract:** `cards.json:67983-67996` identifies a Red Option costing 6. Main chooses any number of opposing Digimon whose total DP is 10000 or less and deletes them; Security activates Main.
+- **KB/rules:** Q1897 confirms a DP-deletion maximum bonus can raise the usable aggregate budget to 11000. Selection is aggregate, not one independent 10000-DP check per target.
+- **Direct authority:** `BT9-094.ts:8-38` emits one opponent-Digimon Delete with `count:"all"` and `totalDpCap:10000`, followed by Security ActivateMain. Exclusive registration is at `:40`.
+- **Tests and boundaries:** `BT9-094.test.ts:6-35` checks catalog, aggregate cap, Security, and a multi-target budget fixture. `targeting/permanents.ts:227-275` applies the shared deletion maximum modifier and revalidates the whole selected set; BT9-015 and related aggregate-DP peers were inspected.
+- **Snapshot drift:** `effects.json:123333-123352` matches the direct aggregate cap and Security behavior; no material snapshot drift was found for this card.
+- **Correction:** None required in this pass.
 
 ### BT9-095 — Gaia Force ZERO
 
-* **Catalog contract:** `cards.json:67999-68012` identifies a Red Option costing 8. When used, if an in-play Digimon has a digivolution card named exactly X Antibody, reduce this card's cost by 2. Main deletes one opposing Digimon at 13000 DP or less, then one of your Greymon-name Digimon may attack your opponent. Security deletes one opposing Digimon.
-* **KB/rules:** Q1898 blocks suspended and same-turn-played attackers; Q1899 requires exact stack-card name; Q1900 requires When Attacking activation; Q1901 limits the forced attack to the player. The “Greymon in its name” clause is substring matching, unlike the exact stack source.
-* **Direct authority:** `BT9-095.ts:8-69` uses a wouldBePlayed replacement with `digivolutionStackNameOrTrait` `match:"nameExact"`, Main deletion at `lte 13000`, and optional canonical Attack with Greymon `match:"name"` and `attackPlayer:true`; Security deletes any opponent Digimon. Exclusive registration is at `:71`.
-* **Tests and boundaries:** `BT9-095.test.ts:7-103` statically covers exact stack name, Main attack, and Security; behavior covers 13000-DP deletion, rejecting an X Antibody-form top card, accepting exact X Antibody in sources, and the optional Greymon attack. `actions/combat.ts:9-55` confirms ordinary attack legality/lifecycle and When Attacking timing; `matching/permanent.ts:503-518` confirms under-stack lookup. Peers BT9-013, BT9-077, and BT9-097 were compared.
-* **Snapshot drift:** `effects.json:123353-123410` is `coverage:"partial"` and retains RawUnparsed for the attack. Its reduction also uses broad `name` rather than exact stack-card name. Direct IR is complete and supersedes the snapshot.
-* **Correction:** None required in this pass; direct attack and exact stack-source corrections are already present.
+- **Catalog contract:** `cards.json:67999-68012` identifies a Red Option costing 8. When used, if an in-play Digimon has a digivolution card named exactly X Antibody, reduce this card's cost by 2. Main deletes one opposing Digimon at 13000 DP or less, then one of your Greymon-name Digimon may attack your opponent. Security deletes one opposing Digimon.
+- **KB/rules:** Q1898 blocks suspended and same-turn-played attackers; Q1899 requires exact stack-card name; Q1900 requires When Attacking activation; Q1901 limits the forced attack to the player. The “Greymon in its name” clause is substring matching, unlike the exact stack source.
+- **Direct authority:** `BT9-095.ts:8-69` uses a wouldBePlayed replacement with `digivolutionStackNameOrTrait` `match:"nameExact"`, Main deletion at `lte 13000`, and optional canonical Attack with Greymon `match:"name"` and `attackPlayer:true`; Security deletes any opponent Digimon. Exclusive registration is at `:71`.
+- **Tests and boundaries:** `BT9-095.test.ts:7-103` statically covers exact stack name, Main attack, and Security; behavior covers 13000-DP deletion, rejecting an X Antibody-form top card, accepting exact X Antibody in sources, and the optional Greymon attack. `actions/combat.ts:9-55` confirms ordinary attack legality/lifecycle and When Attacking timing; `matching/permanent.ts:503-518` confirms under-stack lookup. Peers BT9-013, BT9-077, and BT9-097 were compared.
+- **Snapshot drift:** `effects.json:123353-123410` is `coverage:"partial"` and retains RawUnparsed for the attack. Its reduction also uses broad `name` rather than exact stack-card name. Direct IR is complete and supersedes the snapshot.
+- **Correction:** None required in this pass; direct attack and exact stack-source corrections are already present.
 
 ### BT9-096 — Startling Thunder
 
-* **Catalog contract:** `cards.json:68015-68028` identifies a Blue Option costing 4. Main returns one opposing level 4 or lower Digimon to its owner's hand; then, if you have a Digimon with Jellymon in its name or an exact Jellymon card in its digivolution cards, returns one opposing Tamer to its owner's hand. Security activates Main.
-* **KB/rules:** No card-query entry. The first level boundary is `lte 4`; the second condition is an OR across top-card name substring versus an exact card under a stack. Controller and owner routing must remain opponent/owner hand.
-* **Direct authority:** `BT9-096.ts:8-75` emits Return opponent Digimon level `lte 4`, then conditional Return opponent Tamer using an explicit `anyOf` with top-card `name` and stack `nameExact`; Security activates Main. Exclusive registration is at `:77`.
-* **Tests and boundaries:** `BT9-096.test.ts:7-77` covers a positive exact Jellymon stack and a negative unrelated top-card/source case. Stack lookup was compared with `matching/permanent.ts:503-518` and level return peers BT9-078/BT9-080. No evolution payment is involved, but the source-stack condition was exercised through a realistic stack fixture.
-* **Snapshot drift:** `effects.json:123411-123451` duplicates `name` predicates for the top card and stack branch, so it does not preserve exact stack-card semantics. Direct IR is authoritative.
-* **Correction:** None required in this pass.
+- **Catalog contract:** `cards.json:68015-68028` identifies a Blue Option costing 4. Main returns one opposing level 4 or lower Digimon to its owner's hand; then, if you have a Digimon with Jellymon in its name or an exact Jellymon card in its digivolution cards, returns one opposing Tamer to its owner's hand. Security activates Main.
+- **KB/rules:** No card-query entry. The first level boundary is `lte 4`; the second condition is an OR across top-card name substring versus an exact card under a stack. Controller and owner routing must remain opponent/owner hand.
+- **Direct authority:** `BT9-096.ts:8-75` emits Return opponent Digimon level `lte 4`, then conditional Return opponent Tamer using an explicit `anyOf` with top-card `name` and stack `nameExact`; Security activates Main. Exclusive registration is at `:77`.
+- **Tests and boundaries:** `BT9-096.test.ts:7-77` covers a positive exact Jellymon stack and a negative unrelated top-card/source case. Stack lookup was compared with `matching/permanent.ts:503-518` and level return peers BT9-078/BT9-080. No evolution payment is involved, but the source-stack condition was exercised through a realistic stack fixture.
+- **Snapshot drift:** `effects.json:123411-123451` duplicates `name` predicates for the top card and stack branch, so it does not preserve exact stack-card semantics. Direct IR is authoritative.
+- **Correction:** None required in this pass.
 
 ### BT9-097 — Metal Storm
 
-* **Catalog contract:** `cards.json:68031-68044` identifies a Blue Option costing 7. When used, an exact X Antibody card in one of your Digimon's digivolution cards reduces this card's cost by 2. Main returns one opposing level 6 or lower Digimon to hand, then unsuspends one of your Garurumon-name Digimon. Security activates Main.
-* **KB/rules:** Q1902 requires exact X Antibody card name in the stack, not the trait. `Garurumon in its name` is a substring; the return boundary is level 6 inclusive, and Unsuspend is own Digimon only.
-* **Direct authority:** `BT9-097.ts:8-94` uses exact stack-name replacement, opponent Digimon level `lte 6` Return, own Digimon `name` substring Unsuspend, and Security ActivateMain. Exclusive registration is at `:96`.
-* **Tests and boundaries:** `BT9-097.test.ts:7-83` covers level 6 return, rejection of an X Antibody-form name, acceptance of exact X Antibody Option in a stack, and cost outcomes. Replacement peers BT9-095/BT9-097 and Unsuspend peers BT9-031/BT9-069 were inspected; stack source and name boundaries are explicit.
-* **Snapshot drift:** `effects.json:123452-123515` uses a stack `name` predicate for X Antibody rather than exact stack-card name. The direct `nameExact` predicate is required by Q1902.
-* **Correction:** None required in this pass.
+- **Catalog contract:** `cards.json:68031-68044` identifies a Blue Option costing 7. When used, an exact X Antibody card in one of your Digimon's digivolution cards reduces this card's cost by 2. Main returns one opposing level 6 or lower Digimon to hand, then unsuspends one of your Garurumon-name Digimon. Security activates Main.
+- **KB/rules:** Q1902 requires exact X Antibody card name in the stack, not the trait. `Garurumon in its name` is a substring; the return boundary is level 6 inclusive, and Unsuspend is own Digimon only.
+- **Direct authority:** `BT9-097.ts:8-94` uses exact stack-name replacement, opponent Digimon level `lte 6` Return, own Digimon `name` substring Unsuspend, and Security ActivateMain. Exclusive registration is at `:96`.
+- **Tests and boundaries:** `BT9-097.test.ts:7-83` covers level 6 return, rejection of an X Antibody-form name, acceptance of exact X Antibody Option in a stack, and cost outcomes. Replacement peers BT9-095/BT9-097 and Unsuspend peers BT9-031/BT9-069 were inspected; stack source and name boundaries are explicit.
+- **Snapshot drift:** `effects.json:123452-123515` uses a stack `name` predicate for X Antibody rather than exact stack-card name. The direct `nameExact` predicate is required by Q1902.
+- **Correction:** None required in this pass.
 
 ### BT9-098 — Awakening of the Golden Knight
 
-* **Catalog contract:** `cards.json:68047-68060` identifies a Yellow Option costing 3. While an Armor Form Digimon is in play, this card may ignore color requirements. Main may evolve an Armor Form Digimon into a Magnamon-name card from hand, ignoring evolution requirements and paying no memory cost; that result cannot have DP reduced by opponent effects until the end of the opponent's turn. Security returns one Magnamon-name card from trash and adds this Option to hand. Banlist restricts the card to one copy.
-* **KB/rules:** Restriction is a deck-construction fact, not a runtime effect. Trait `Armor Form` and name substring `Magnamon` are distinct filters. The free evolution must ignore requirements, bind the evolved result, and scope DP immunity only to opponent effects through the opponent-turn-end duration.
-* **Direct authority:** `BT9-098.ts:6-68` waives this Option's color requirement when an own in-play Armor Form Digimon exists; Main optionally evolves an own Armor Form Digimon from hand into own hand Magnamon-name Digimon with `payCost:false`, `ignoreDigivolutionRequirements:true`, and `bindResultAs`; Restrict targets the bound result with `dpImmune`, `untilOpponentTurnEnd`, and `byOpponentEffectsOnly:true`; Security returns a Magnamon-name trash card then AddToHandSelf. Exclusive registration is at `:70`.
-* **Tests and boundaries:** `BT9-098.test.ts:7-67` statically maps waiver/free evolution/immunity and behavior covers off-color Armor evolution plus rejection without Armor Form. Peers BT9-104/BT9-109/BT9-110 and `actions/restrictions.ts:96-121` were inspected. The legal evolution stack is explicit: Armor Form host, hand Magnamon-name result, no payment, ignored requirements, and bound-result immunity.
-* **Snapshot drift:** `effects.json:123516-123586` is `coverage:"partial"`; it has a RawUnparsed DP-immunity clause and omits the direct Restrict/AddToHandSelf details. Direct IR is complete and authoritative.
-* **Correction:** None required in this pass; the hand-corrected direct module is retained.
+- **Catalog contract:** `cards.json:68047-68060` identifies a Yellow Option costing 3. While an Armor Form Digimon is in play, this card may ignore color requirements. Main may evolve an Armor Form Digimon into a Magnamon-name card from hand, ignoring evolution requirements and paying no memory cost; that result cannot have DP reduced by opponent effects until the end of the opponent's turn. Security returns one Magnamon-name card from trash and adds this Option to hand. Banlist restricts the card to one copy.
+- **KB/rules:** Restriction is a deck-construction fact, not a runtime effect. Trait `Armor Form` and name substring `Magnamon` are distinct filters. The free evolution must ignore requirements, bind the evolved result, and scope DP immunity only to opponent effects through the opponent-turn-end duration.
+- **Direct authority:** `BT9-098.ts:6-68` waives this Option's color requirement when an own in-play Armor Form Digimon exists; Main optionally evolves an own Armor Form Digimon from hand into own hand Magnamon-name Digimon with `payCost:false`, `ignoreDigivolutionRequirements:true`, and `bindResultAs`; Restrict targets the bound result with `dpImmune`, `untilOpponentTurnEnd`, and `byOpponentEffectsOnly:true`; Security returns a Magnamon-name trash card then AddToHandSelf. Exclusive registration is at `:70`.
+- **Tests and boundaries:** `BT9-098.test.ts:7-67` statically maps waiver/free evolution/immunity and behavior covers off-color Armor evolution plus rejection without Armor Form. Peers BT9-104/BT9-109/BT9-110 and `actions/restrictions.ts:96-121` were inspected. The legal evolution stack is explicit: Armor Form host, hand Magnamon-name result, no payment, ignored requirements, and bound-result immunity.
+- **Snapshot drift:** `effects.json:123516-123586` is `coverage:"partial"`; it has a RawUnparsed DP-immunity clause and omits the direct Restrict/AddToHandSelf details. Direct IR is complete and authoritative.
+- **Correction:** None required in this pass; the hand-corrected direct module is retained.
 
 ### BT9-099 — Sunrise Buster
 
-* **Catalog contract:** `cards.json:68063-68076` identifies a Yellow/Red Option costing 5. Main may play one yellow or red Tamer from hand without paying memory. Then one opposing Digimon gets -3000 DP for the turn for each yellow and/or red Tamer you have in play. Security activates Main.
-* **KB/rules:** Q4665 concerns an opponent's prohibition on playing by effects and confirms that such an effect blocks Sunrise Buster when the opponent is the affected player; it does not make Sunrise Buster's own follow-up optional. “Then” is mandatory after the optional Tamer play, and `colors:["Red","Yellow"]` is an any-of color filter for each qualifying Tamer.
-* **Direct authority and correction:** Before this pass, `BT9-099.ts:28-47` incorrectly marked the ModifyDP action `optional:true`. The clause says “Then, 1 ... gets,” so the field was removed. The direct module now has optional PlayWithoutCost followed by mandatory ModifyDP with -3000, for-the-turn duration, opponent Digimon target, and scaling by own in-play Red/Yellow Tamers. Exclusive registration remains at `:65`.
-* **Focused proof:** `BT9-099.test.ts:7-35` now removes optional from the static IR expectation and uses two neutral valid Tamers (`BT1-085`, `BT1-087`) against the 11000-DP `BT1-025`, asserting exact 5000 DP after two -3000 modifiers. This is designed to prove the “each” scaling and the mandatory follow-up when the focused test is later executed; the test was not run under this task's prohibition.
-* **Peers and boundaries:** Tamer color/count scaling was compared with same-mechanism ModifyDP peers; `definition.ts:108-125` confirms the any-of color list, and Q4665's opponent-player restriction was kept separate from own-board Tamer counting. No evolution stack is applicable.
-* **Snapshot drift:** `effects.json:123587-123620` still marks ModifyDP optional. It is read-only stale evidence; direct IR and the strengthened test are the corrected authority.
-* **Correction count:** One corrected card, one direct field (`ModifyDP.optional` removed), and one focused fixture strengthened.
+- **Catalog contract:** `cards.json:68063-68076` identifies a Yellow/Red Option costing 5. Main may play one yellow or red Tamer from hand without paying memory. Then one opposing Digimon gets -3000 DP for the turn for each yellow and/or red Tamer you have in play. Security activates Main.
+- **KB/rules:** Q4665 concerns an opponent's prohibition on playing by effects and confirms that such an effect blocks Sunrise Buster when the opponent is the affected player; it does not make Sunrise Buster's own follow-up optional. “Then” is mandatory after the optional Tamer play, and `colors:["Red","Yellow"]` is an any-of color filter for each qualifying Tamer.
+- **Direct authority and correction:** Before this pass, `BT9-099.ts:28-47` incorrectly marked the ModifyDP action `optional:true`. The clause says “Then, 1 ... gets,” so the field was removed. The direct module now has optional PlayWithoutCost followed by mandatory ModifyDP with -3000, for-the-turn duration, opponent Digimon target, and scaling by own in-play Red/Yellow Tamers. Exclusive registration remains at `:65`.
+- **Focused proof:** `BT9-099.test.ts:7-35` now removes optional from the static IR expectation and uses two neutral valid Tamers (`BT1-085`, `BT1-087`) against the 11000-DP `BT1-025`, asserting exact 5000 DP after two -3000 modifiers. This is designed to prove the “each” scaling and the mandatory follow-up when the focused test is later executed; the test was not run under this task's prohibition.
+- **Peers and boundaries:** Tamer color/count scaling was compared with same-mechanism ModifyDP peers; `definition.ts:108-125` confirms the any-of color list, and Q4665's opponent-player restriction was kept separate from own-board Tamer counting. No evolution stack is applicable.
+- **Snapshot drift:** `effects.json:123587-123620` still marks ModifyDP optional. It is read-only stale evidence; direct IR and the strengthened test are the corrected authority.
+- **Correction count:** One corrected card, one direct field (`ModifyDP.optional` removed), and one focused fixture strengthened.
 
 ### BT9-100 — Grandis Scissor
 
-* **Catalog contract:** `cards.json:68079-68092` identifies a Green Option costing 4. Main suspends one opposing Digimon, then may unsuspend one own Insectoid-trait Digimon and have it attack an opponent's Digimon. Security suspends one opposing Digimon or Tamer.
-* **KB/rules:** Q1903 excludes a same-turn-played Insectoid attacker, Q1904 excludes an unsuspended opposing Digimon defender, and Q1905 excludes a defender with “can't be attacked.” The Insectoid requirement is an exact trait, while the attack must use canonical combat legality.
-* **Direct authority:** `BT9-100.ts:18-86` suspends an opponent Digimon, optionally unsuspends an own Insectoid trait Digimon with `bindAs:"unsuspendedInsectoid"` and `abortOnDecline:true`, then attacks from that selection with `attackPlayer:false`; Security targets opposing Digimon or Tamer. Exclusive registration is at `:88`.
-* **Tests and boundaries:** `BT9-100.test.ts:7-43` statically checks bound Insectoid attack/security IR and behavior checks the opponent suspension, own unsuspension, opponent-Digimon attack, and resulting deletion. Combat peers and `actions/combat.ts:9-55` were inspected to confirm canonical attack legality, including suspended/same-turn and “can't be attacked” checks. The stack case is applicable to the attacker: only a top-card Digimon with the Insectoid trait is selected, and the forced attack is tied to the exact unsuspended permanent.
-* **Snapshot drift:** `effects.json:123621-123660` retains only Suspend and optional Unsuspend, with opponent controller on the Unsuspend target and no bound Attack action. It is materially incomplete; direct IR is authoritative.
-* **Correction:** None required in this pass; the direct hand-authored attack binding and legality correction is retained.
+- **Catalog contract:** `cards.json:68079-68092` identifies a Green Option costing 4. Main suspends one opposing Digimon, then may unsuspend one own Insectoid-trait Digimon and have it attack an opponent's Digimon. Security suspends one opposing Digimon or Tamer.
+- **KB/rules:** Q1903 excludes a same-turn-played Insectoid attacker, Q1904 excludes an unsuspended opposing Digimon defender, and Q1905 excludes a defender with “can't be attacked.” The Insectoid requirement is an exact trait, while the attack must use canonical combat legality.
+- **Direct authority:** `BT9-100.ts:18-86` suspends an opponent Digimon, optionally unsuspends an own Insectoid trait Digimon with `bindAs:"unsuspendedInsectoid"` and `abortOnDecline:true`, then attacks from that selection with `attackPlayer:false`; Security targets opposing Digimon or Tamer. Exclusive registration is at `:88`.
+- **Tests and boundaries:** `BT9-100.test.ts:7-43` statically checks bound Insectoid attack/security IR and behavior checks the opponent suspension, own unsuspension, opponent-Digimon attack, and resulting deletion. Combat peers and `actions/combat.ts:9-55` were inspected to confirm canonical attack legality, including suspended/same-turn and “can't be attacked” checks. The stack case is applicable to the attacker: only a top-card Digimon with the Insectoid trait is selected, and the forced attack is tied to the exact unsuspended permanent.
+- **Snapshot drift:** `effects.json:123621-123660` retains only Suspend and optional Unsuspend, with opponent controller on the Unsuspend target and no bound Attack action. It is materially incomplete; direct IR is authoritative.
+- **Correction:** None required in this pass; the direct hand-authored attack binding and legality correction is retained.
 
 ### BT9-101 — Ground Fang
 
@@ -2420,8 +2418,7 @@ runtime later-entrant test was executed; provisional score: **8/10**.
 
 ### BT9-103 — Kongou
 
-**Catalog and clause evidence.** The catalog identifies a black Option costing
-2. Until the end of the opponent's turn, opponent Digimon with play cost 7 or
+**Catalog and clause evidence.** The catalog identifies a black Option costing 2. Until the end of the opponent's turn, opponent Digimon with play cost 7 or
 less cannot attack players, and cards cannot be added to security stacks by
 the opponent's effects. Security activates Main.
 
@@ -2475,8 +2472,7 @@ ordering details. No direct gap was found; provisional score: **8/10**.
 
 ### BT9-105 — Soul Digitalization
 
-**Catalog and clause evidence.** The catalog identifies a black Option costing
-5. Main reveals three cards, chooses one revealed X Antibody-trait Digimon,
+**Catalog and clause evidence.** The catalog identifies a black Option costing 5. Main reveals three cards, chooses one revealed X Antibody-trait Digimon,
 deletes one opponent Digimon with play cost no greater than the chosen card's
 play cost, trashes all revealed cards, and places one X Antibody-trait card
 from trash under an own X Antibody Digimon as its bottom card. Security
@@ -2552,8 +2548,7 @@ direct discard count. No direct gap was found; provisional score: **8/10**.
 
 ### BT9-108 — Eye of the Gorgon
 
-**Catalog and clause evidence.** The catalog identifies a purple Option costing
-8. Main deletes one opponent unsuspended Digimon; if that deletion occurs, it
+**Catalog and clause evidence.** The catalog identifies a purple Option costing 8. Main deletes one opponent unsuspended Digimon; if that deletion occurs, it
 may play one purple level-3 Digimon from trash without paying memory, and On
 Play effects on that Digimon do not activate. Security activates Main.
 
@@ -2629,8 +2624,7 @@ Provisional score: **8/10**.
 
 ### BT9-110 — X Program
 
-**Catalog and clause evidence.** The catalog identifies a white Option costing
-8. While the controller has a Digimon with Dex or DeathX in its name in play,
+**Catalog and clause evidence.** The catalog identifies a white Option costing 8. While the controller has a Digimon with Dex or DeathX in its name in play,
 the Option's color requirement may be ignored. Main deletes one Digimon without
 the X Antibody trait; if there are at least three Digimon in play, it deletes
 all Digimon without that trait instead. Security deletes one opponent Digimon

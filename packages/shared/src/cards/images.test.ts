@@ -14,12 +14,14 @@ describe("preview card art", () => {
   });
 });
 
-
 describe("alternate art provider fallback", () => {
   it("tries selected art providers before the original printing providers", () => {
     const urls = cardImageUrls("BT1-010", "BT1-010_P1");
     expect(urls.map((url) => url.split("/").at(-1))).toEqual([
-      "BT1-010_P1.webp", "BT1-010_P1-Sample.webp", "BT1-010.webp", "BT1-010-Sample.webp",
+      "BT1-010_P1.webp",
+      "BT1-010_P1-Sample.webp",
+      "BT1-010.webp",
+      "BT1-010-Sample.webp",
     ]);
   });
   it("does not duplicate the original fallback for default or invalid choices", () => {

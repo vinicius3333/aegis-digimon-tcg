@@ -78,7 +78,9 @@ describe("BT18-080 Oboromon", () => {
     const eligibleTamerId = s.perm("eligibleTamer").permanentId;
     const tooExpensiveTamerId = s.perm("tooExpensiveTamer").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("oboromon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("oboromon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT3-095"));
 
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === eligibleDigimonId)).toBe(false);

@@ -2210,8 +2210,10 @@ export function GameScreen({
             }
             focused={breedingActionsOpen}
             drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
-            // The raising slot answers the breeding step only once its actions open.
-            onClick={breedingActionsOpen ? onBreeding : undefined}
+            // An occupied slot reads like any other own card: the same routing as the
+            // battle area, which opens the detail menu (carrying "move to battle").
+            // An empty slot only answers the breeding step, once its actions open.
+            onClick={you.breeding ? onYourPerm(you.breeding) : breedingActionsOpen ? onBreeding : undefined}
           />
         </div>
       </div>
@@ -3423,11 +3425,7 @@ export function GameScreen({
                       compact={compactPiles}
                       burst={breedingOpp.breeding ? permanentBursts.get(breedingOpp.breeding.permanentId) : undefined}
                       width={arenaPileWidth}
-                      onClick={
-                        narrowGameLayout && breedingOpp.breeding
-                          ? () => showCardMenu(breedingOpp.breeding!.permanentId, "opp")
-                          : undefined
-                      }
+                      onClick={opp.breeding ? () => showCardMenu(opp.breeding!.permanentId, "opp") : undefined}
                     />
                   </div>
                 </div>

@@ -36,7 +36,9 @@ describe("BT4-112 Hell's Gate", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 8;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT4-112"));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });

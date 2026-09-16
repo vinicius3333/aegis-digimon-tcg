@@ -24,9 +24,9 @@ describe("BT10-077 MadLeomon", () => {
       addedToHand: { instanceIds: [s.inst("kept").instanceId] },
     });
 
-    expect(s.state.players[1]!.battleArea[0]!.stack.some((card) => card.instanceId === s.inst("opponentSource").instanceId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[1]!.battleArea[0]!.stack.some((card) => card.instanceId === s.inst("opponentSource").instanceId),
+    ).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 
@@ -116,7 +116,14 @@ describe("BT10-077 MadLeomon", () => {
 
   it("uses Save to place itself under a friendly Tamer", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT10-077", as: "madleomon" }, { card: "BT10-093", as: "yuu" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-077", as: "madleomon" },
+            { card: "BT10-093", as: "yuu" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const id = s.perm("madleomon").topCard.instanceId;

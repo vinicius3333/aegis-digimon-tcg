@@ -45,7 +45,6 @@ Source: `docs/audits/BT5-reaudit/RUN.md` (commit 6dde01ed6).
 
 Source: `docs/audits/BT5-STATIC-AUDIT.md` (commit eb1a58b75).
 
-
 - Static structure: 112 production modules, 112 direct focused tests, exactly one matching `registerIrCard` per module, no direct `registerCard`, no `RawUnparsed`, no TypeScript suppressions, full coverage, and empty residuals.
 - Persisted IR: `pnpm effects:check:set -- --set BT5 --base origin/main` reports 112 synchronized records, 70 semantic changes within BT5, and zero semantic or byte changes outside BT5.
 - Collection: 122 BT5 test files and 586 tests passed with one Vitest fork and file parallelism disabled.
@@ -134,7 +133,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   identity with no knowledge-base entries, so the catalog text is the governing
   contract. The applicable local rules are glossary `Your Turn` (the period
   from the start of the owner's turn through its end), glossary `Digivolution
-  Card` (an inherited effect can be activated by the digivolved Digimon),
+Card` (an inherited effect can be activated by the digivolved Digimon),
   comprehensive §2-3-1-3 ("with [XX] in its name" is a substring match),
   §15-3-1 (an inherited effect is gained from a digivolution card), and
   §15-8-2-1/§15-8-2-6 (persistent effects are constantly active while their
@@ -166,7 +165,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   faithful compiled IR; this audit added the missing owner-turn, exact-stack,
   and inherited-source negative assertions to `BT5-002.test.ts`.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-002.test.ts` — 1 file, 4 tests passed. No shared engine
+src/cards/BT5/BT5-002.test.ts` — 1 file, 4 tests passed. No shared engine
   seam changed, so no mechanism regression suite was required. Workspace
   `pnpm typecheck` is blocked by pre-existing unrelated errors in
   `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
@@ -232,7 +231,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   only the missing BT5-003 behavioral proof to
   `apps/api/src/cards/BT5/BT5-003.test.ts`.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-003.test.ts` — 1 file, 6 tests passed. No shared engine
+src/cards/BT5/BT5-003.test.ts` — 1 file, 6 tests passed. No shared engine
   seam changed, so no mechanism regression suite was required. Workspace
   `pnpm typecheck` is expected to retain the repository's pre-existing
   unrelated errors in `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
@@ -299,7 +298,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   legal-evolution, exact-target, and duration assertions to
   `apps/api/src/cards/BT5/BT5-004.test.ts`.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-004.test.ts` — 1 file, 4 tests passed. No shared engine
+src/cards/BT5/BT5-004.test.ts` — 1 file, 4 tests passed. No shared engine
   seam changed, so no mechanism regression suite was required. Workspace
   `pnpm typecheck` retains the repository's pre-existing unrelated errors in
   `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
@@ -369,7 +368,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   once-per-turn, and evolution-stack assertions to
   `apps/api/src/cards/BT5/BT5-005.test.ts`.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-005.test.ts` — 1 file, 5 tests passed. Affected
+src/cards/BT5/BT5-005.test.ts` — 1 file, 5 tests passed. Affected
   mechanism suites also pass: `capabilities.test.ts -t selfHasTrait` (3),
   `mechanic.test.ts -t Once Per Turn` (1),
   `conformance/glossary.test.ts -t Once Per Turn` (1), and
@@ -379,7 +378,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and `primitives.test.ts`; it reports no
   BT5-005 errors. Changed TypeScript file `pnpm exec oxfmt --check
-  apps/api/src/cards/BT5/BT5-005.test.ts` and `git diff --check` pass. No
+apps/api/src/cards/BT5/BT5-005.test.ts` and `git diff --check` pass. No
   shared engine seam was changed. Remaining ambiguity: none identified.
 
 ### BT5-006 — Gigimon
@@ -426,7 +425,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   focused BT5-006 assertions for turn ownership, opponent filtering, legal
   evolution stack, and duration expiry.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-006.test.ts` — 1 file, 3 tests passed. No shared engine
+src/cards/BT5/BT5-006.test.ts` — 1 file, 3 tests passed. No shared engine
   seam changed, so no mechanism regression suite was required. Typecheck,
   changed-file formatting, and `git diff --check` are run for delivery.
 - Remaining ambiguity: none identified.
@@ -472,7 +471,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   missing explicit exclusion-boundary assertion to
   `apps/api/src/cards/BT5/BT5-007.test.ts`.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-007.test.ts` — 1 file, 3 tests passed. No shared engine
+src/cards/BT5/BT5-007.test.ts` — 1 file, 3 tests passed. No shared engine
   seam changed, so no mechanism regression suite was required. Workspace
   `pnpm typecheck` builds shared and passes web typecheck but retains
   pre-existing unrelated API errors in `EX6-010.test.ts`,
@@ -527,8 +526,8 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   missing mixed-pool/controller and turn-gate behavioral assertions to
   `apps/api/src/cards/BT5/BT5-008.test.ts`.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-008.test.ts --pool=forks --poolOptions.forks.singleFork=true
-  --no-file-parallelism` — 1 file, 3 tests passed. The affected
+src/cards/BT5/BT5-008.test.ts --pool=forks --poolOptions.forks.singleFork=true
+--no-file-parallelism` — 1 file, 3 tests passed. The affected
   `irKindTier1Cluster.test.ts` mechanism suite ran 15/16 tests; its sole
   failure is the pre-existing BT1-093 fixture assertion (missing Security IR),
   while all 15 unrelated mechanism tests passed. `pnpm typecheck` builds
@@ -537,7 +536,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`; it reports no BT5-008 errors. Changed TypeScript
   formatting `pnpm exec oxfmt --check
-  apps/api/src/cards/BT5/BT5-008.test.ts` and `git diff --check` pass.
+apps/api/src/cards/BT5/BT5-008.test.ts` and `git diff --check` pass.
 - Remaining ambiguity: none identified; Q1287's fixed-cost exception is
   documented by the KB but belongs to the shared digivolution-cost consumer,
   not this card's restriction declaration.
@@ -552,10 +551,10 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 - Catalog evidence: Red Lv.3 Rookie Digimon, Data/Mini Dragon, play cost 3,
   1000 DP, red Lv.2 evolution cost 0, rarity U, and four-copy limit. Its
   complete text is `[On Play] Reveal 5 cards from the top of your deck. Add 1
-  Digimon card with [Shoutmon] in its name and 1 Digimon card with <Blitz>
-  among them to your hand. Place the remaining cards at the bottom of your
-  deck in any order.` Its inherited text is `[Your Turn] While this Digimon
-  has <Blitz>, it gets +2000 DP.`
+Digimon card with [Shoutmon] in its name and 1 Digimon card with <Blitz>
+among them to your hand. Place the remaining cards at the bottom of your
+deck in any order.` Its inherited text is `[Your Turn] While this Digimon
+has <Blitz>, it gets +2000 DP.`
 - Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-009`
   returns Q1288-Q1290. Q1288 establishes that either matching category may be
   added when both are not present; Q1289 establishes that two Shoutmon DX
@@ -591,8 +590,8 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   boundary and controller-turn assertions to
   `apps/api/src/cards/BT5/BT5-009.test.ts`.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-009.test.ts --pool=forks
-  --poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 5 tests
+src/cards/BT5/BT5-009.test.ts --pool=forks
+--poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 5 tests
   passed. No shared engine seam changed, so no mechanism regression suite was
   required. Workspace `pnpm typecheck` builds shared and web successfully but
   retains the pre-existing unrelated API errors in `EX6-010.test.ts`,
@@ -611,9 +610,9 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 - Catalog evidence: Red Lv.4 Champion Digimon, Vaccine/Dinosaur, play cost 5,
   5000 DP, and a red Lv.3 evolution cost of 2. Its complete text is
   `[When Digivolving] If this Digimon has [Agumon] in its digivolution cards,
-  gain 1 memory.` Its inherited text is `[Your Turn] While this Digimon has
-  [Omnimon] or [Greymon] (other than [DoruGreymon], [BurningGreymon], or
-  [DexDoruGreymon]) in its name, it gets +2000 DP.`
+gain 1 memory.` Its inherited text is `[Your Turn] While this Digimon has
+[Omnimon] or [Greymon] (other than [DoruGreymon], [BurningGreymon], or
+[DexDoruGreymon]) in its name, it gets +2000 DP.`
 - Knowledge base and rules evidence: `node tools/kb/query.mjs card BT5-010`
   returns the card identity with no knowledge-base entries, so the catalog
   text is the governing contract. The local rules manual's Digivolution Cards
@@ -651,11 +650,11 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   positive and negative name boundaries, owner-turn behavior, and missing-source
   coverage.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-010.test.ts --pool=forks
-  --poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 5 tests
+src/cards/BT5/BT5-010.test.ts --pool=forks
+--poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 5 tests
   passed. Affected peer regressions `BT5-007.test.ts` and `BT5-015.test.ts` —
   2 files, 6 tests passed. `pnpm exec oxfmt --check
-  apps/api/src/cards/BT5/BT5-010.ts apps/api/src/cards/BT5/BT5-010.test.ts`
+apps/api/src/cards/BT5/BT5-010.ts apps/api/src/cards/BT5/BT5-010.test.ts`
   passed. `git diff --check` is required below and is clean. `pnpm typecheck`
   builds shared and web successfully but retains the pre-existing unrelated API
   errors in `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
@@ -696,13 +695,13 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 - Defect corrected: no card or engine defect. Expanded only
   `apps/api/src/cards/BT5/BT5-011.test.ts` with controller and no-target cases.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-011.test.ts --pool=forks
-  --poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 2 tests
+src/cards/BT5/BT5-011.test.ts --pool=forks
+--poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 2 tests
   passed. Exact duration mechanism regression
   `pnpm --filter @aegis/api exec vitest run src/engine/effects/modifiers.test.ts
-  --pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` — 1
+--pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` — 1
   file, 26 tests passed. `pnpm exec oxfmt --check
-  apps/api/src/cards/BT5/BT5-011.ts apps/api/src/cards/BT5/BT5-011.test.ts`
+apps/api/src/cards/BT5/BT5-011.ts apps/api/src/cards/BT5/BT5-011.test.ts`
   and `git diff --check` pass. `pnpm typecheck` builds shared and web but
   retains unrelated API errors: `EX6-010.test.ts:78` (`abortOnDecline`),
   `interpreter/actions/removal.ts:129,131` (`trackCount`),
@@ -721,7 +720,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 - Catalog evidence: Red Lv.4 Champion Digimon, Data/Ankylosaur, play cost 6,
   5000 DP, and a red Lv.3 evolution cost of 1. Its complete text is
   `＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon
-  to force the opponent to attack it instead.) [When Attacking] Lose 2 memory.`
+to force the opponent to attack it instead.) [When Attacking] Lose 2 memory.`
   It has no inherited or Security text.
 - Knowledge base and rules evidence: `node tools/kb/query.mjs card BT5-012`
   returns `Monochromon` with no knowledge-base entries, so the catalog text is
@@ -752,8 +751,8 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 - Defect corrected: no card or engine defect. Existing source and tests already
   provide reproducible 10/10 evidence; only this audit record was appended.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-012.test.ts --pool=forks
-  --poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 2 tests
+src/cards/BT5/BT5-012.test.ts --pool=forks
+--poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 2 tests
   passed. Affected mechanism/regression command covering Blocker legality,
   keyword extraction, attack integration, comprehensive Blocker rules, and
   When Attacking timing (`keywords.test.ts`, `legality.test.ts`,
@@ -798,7 +797,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 - Defect corrected: none. Existing source and tests already provide
   reproducible 10/10 evidence; only this audit record was added.
 - Verification: focused `pnpm --filter @aegis/api exec vitest run
-  src/cards/BT5/BT5-013.test.ts` — 1 file, 2 tests passed. Full BT5 regression
+src/cards/BT5/BT5-013.test.ts` — 1 file, 2 tests passed. Full BT5 regression
   — 121 files, 318 tests passed. `git diff --check` passed. Workspace
   `pnpm typecheck` builds shared and web but retains only the known unrelated
   API errors in `EX6-010.test.ts`, interpreter removal/runAction/targeting
@@ -915,8 +914,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
   No errata, restriction, or unresolved ambiguity applies.
 - Implementation: `apps/api/src/cards/BT5/BT5-016.ts` encodes the qualifying
   Greymon stack-name gate with all three exclusions, an exact opponent Blocker
-  delete target, and an inherited When Attacking delete target capped at DP
-  3000. It declares `coverage: "full"`, `residual: []`, and registers only
+  delete target, and an inherited When Attacking delete target capped at DP 3000. It declares `coverage: "full"`, `residual: []`, and registers only
   through `registerIrCard("BT5-016", compiled)`.
 - Primitive, peer, and stack evidence: the stack predicate reads named
   digivolution sources and its exclusions; targeting applies opposing
@@ -1163,7 +1161,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 - Catalog evidence: Blue Lv.3 Rookie Digimon, Data/Mini Dragon, play cost 4,
   3000 DP, and blue Lv.2 evolution cost 0. It has no main or Security text.
   Its inherited effect is `[Your Turn][Once Per Turn] When you trash a
-  digivolution card of 1 of your opponent's Digimon, gain 1 memory.`
+digivolution card of 1 of your opponent's Digimon, gain 1 memory.`
 - Knowledge-base and rules evidence: Q1305 confirms that returning a Digimon
   to hand does not treat its digivolution cards as trashed. Q1306 confirms
   that trashing cards from two opposing Digimon at the same time grants only
@@ -1285,7 +1283,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 - Catalog evidence: Blue Lv.4 Champion Digimon, Data/Dragon, play cost 5,
   4000 DP, and blue Lv.3 evolution cost 2. Its sole effect is
   `[When Digivolving] Trash up to 2 digivolution cards from the bottom of 1
-  of your opponent's Digimon.` It has no inherited or Security text.
+of your opponent's Digimon.` It has no inherited or Security text.
 - Knowledge-base and rules evidence: the card query returns no card-specific
   QA, errata, restriction, or ruling entries. Comprehensive §1-3-6 requires at
   least one card when a choice can be made; §15-10-2-2 permits choosing fewer
@@ -1411,7 +1409,7 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 - Catalog evidence: Blue Lv.5 Ultimate Digimon, Data/Dragonkin, play cost 8,
   7000 DP, and blue Lv.4 evolution cost 3. `[When Digivolving]` trashes the
   bottom digivolution card of all opposing Digimon. Its inherited `[Your
-  Turn]` effect grants `<Security Attack +1>` while the opponent has a Digimon
+Turn]` effect grants `<Security Attack +1>` while the opponent has a Digimon
   with no digivolution cards in play.
 - Knowledge-base and rules evidence: the card query returns no card-specific
   QA, errata, restriction, or ruling entries. Local When Digivolving,

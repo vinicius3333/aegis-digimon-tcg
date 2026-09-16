@@ -9,14 +9,7 @@
       "archetype": "Glowing Dawn",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "Green",
-        "Purple",
-        "Yellow",
-        "Black",
-        "Blue",
-        "White"
-      ],
+      "colors": ["Green", "Purple", "Yellow", "Black", "Blue", "White"],
       "sourceType": "community_tournament_deck",
       "sourceUrl": "https://digitalgateopen.com/deck-local/6122/bt26-glowing-dawn-1st",
       "tournament": {
@@ -150,14 +143,7 @@
       "archetype": "Abbadomon",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "Black",
-        "Green",
-        "Red",
-        "Purple",
-        "White",
-        "Yellow"
-      ],
+      "colors": ["Black", "Green", "Red", "Purple", "White", "Yellow"],
       "sourceType": "community_tournament_deck",
       "sourceUrl": "https://digitalgateopen.com/deck-local/6123/bt26-abbadomon-2nd",
       "tournament": {
@@ -285,14 +271,7 @@
       "archetype": "Toho Braves",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "Blue",
-        "Purple",
-        "Red",
-        "Yellow",
-        "Green",
-        "White"
-      ],
+      "colors": ["Blue", "Purple", "Red", "Yellow", "Green", "White"],
       "sourceType": "community_tournament_deck",
       "sourceUrl": "https://digitalgateopen.com/deck-local/6071/bt26-toho-braves-1st",
       "tournament": {
@@ -443,13 +422,7 @@
       "archetype": "BeelStarmon",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "Purple",
-        "Red",
-        "Black",
-        "Green",
-        "Blue"
-      ],
+      "colors": ["Purple", "Red", "Black", "Green", "Blue"],
       "sourceType": "community_tournament_deck",
       "sourceUrl": "https://digitalgateopen.com/deck-local/6074/bt26-beelstarmon-4th",
       "tournament": {
@@ -582,14 +555,7 @@
       "archetype": "Chronomon",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "White",
-        "Red",
-        "Yellow",
-        "Purple",
-        "Green",
-        "Black"
-      ],
+      "colors": ["White", "Red", "Yellow", "Purple", "Green", "Black"],
       "sourceType": "community_tournament_deck",
       "sourceUrl": "https://digitalgateopen.com/deck-local/6077/bt26-chronomon-7th",
       "tournament": {
@@ -722,14 +688,7 @@
       "archetype": "Plutomon",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "Blue",
-        "Purple",
-        "Green",
-        "Red",
-        "Black",
-        "White"
-      ],
+      "colors": ["Blue", "Purple", "Green", "Red", "Black", "White"],
       "sourceType": "community_tournament_deck",
       "sourceUrl": "https://digitalgateopen.com/deck-local/6078/bt26-plutomon-8th",
       "tournament": {
@@ -886,15 +845,7 @@
       "archetype": "Dantemon",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "Black",
-        "Blue",
-        "Purple",
-        "Red",
-        "White",
-        "Green",
-        "Yellow"
-      ],
+      "colors": ["Black", "Blue", "Purple", "Red", "White", "Green", "Yellow"],
       "sourceType": "community_tournament_deck",
       "sourceUrl": "https://digitalgateopen.com/deck-local/6081/bt26-dantemon-11th",
       "tournament": {
@@ -1021,14 +972,7 @@
       "archetype": "Jupitermon",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "Blue",
-        "Yellow",
-        "Black",
-        "Purple",
-        "Red",
-        "White"
-      ],
+      "colors": ["Blue", "Yellow", "Black", "Purple", "Red", "White"],
       "sourceType": "community_tournament_deck",
       "sourceUrl": "https://digitalgateopen.com/deck-local/6083/bt26-jupitermon-13th",
       "tournament": {
@@ -1167,14 +1111,7 @@
       "archetype": "Chronomon",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "Red",
-        "Yellow",
-        "Black",
-        "Purple",
-        "Green",
-        "White"
-      ],
+      "colors": ["Red", "Yellow", "Black", "Purple", "Green", "White"],
       "sourceType": "product_recipe",
       "sourceUrl": "https://world.digimoncard.com/products/pack/ver26/",
       "mainDeck": [
@@ -1285,13 +1222,7 @@
       "archetype": "Plutomon",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "Purple",
-        "Black",
-        "Green",
-        "Red",
-        "Blue"
-      ],
+      "colors": ["Purple", "Black", "Green", "Red", "Blue"],
       "sourceType": "product_recipe",
       "sourceUrl": "https://world.digimoncard.com/products/pack/ver26/",
       "mainDeck": [
@@ -1444,15 +1375,7 @@
       "archetype": "Dantemon",
       "collection": "BT26",
       "formatBlock": "BT26",
-      "colors": [
-        "White",
-        "Red",
-        "Blue",
-        "Yellow",
-        "Green",
-        "Black",
-        "Purple"
-      ],
+      "colors": ["White", "Red", "Blue", "Yellow", "Green", "Black", "Purple"],
       "sourceType": "product_recipe",
       "sourceUrl": "https://world.digimoncard.com/products/pack/ver26/",
       "mainDeck": [

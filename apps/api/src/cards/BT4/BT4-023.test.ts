@@ -37,7 +37,9 @@ describe("BT4-023 Strabimon", () => {
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => player.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId));
 
     expect(player.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);

@@ -22,7 +22,9 @@ describe("BT4-104 Blinding Ray", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 1;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 3);
     expect(s.state.players[0]!.security).toHaveLength(0);
   });

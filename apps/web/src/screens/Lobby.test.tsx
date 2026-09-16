@@ -18,9 +18,15 @@ describe("famous deck selection", () => {
     deck.mainDeck[0] = "EX13-007";
     render(
       <I18nProvider>
-        <Lobby player={{ name: "Tamer", color: "Blue", shards: 0 }} decks={[deck]}
-          activeDeckId={deck.id} onSelectDeck={() => undefined} onCopyDeck={() => undefined}
-          onNav={() => undefined} onStart={onStart} />
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[deck]}
+          activeDeckId={deck.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
       </I18nProvider>,
     );
     expect(screen.getByText("Deck de batalha")).toBeTruthy();
@@ -38,14 +44,21 @@ describe("famous deck selection", () => {
     const invalid = { ...valid, id: "draft", name: "Draft build", mainDeck: [] };
     render(
       <I18nProvider>
-        <Lobby player={{ name: "Tamer", color: "Blue", shards: 0 }}
-          decks={[invalid, valid]} activeDeckId={valid.id}
-          onSelectDeck={onSelectDeck} onCopyDeck={() => undefined}
-          onNav={onNav} onStart={() => undefined} />
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[invalid, valid]}
+          activeDeckId={valid.id}
+          onSelectDeck={onSelectDeck}
+          onCopyDeck={() => undefined}
+          onNav={onNav}
+          onStart={() => undefined}
+        />
       </I18nProvider>,
     );
     const region = within(screen.getByLabelText("Your decks"));
-    const selectors = region.getAllByRole("button").filter((button) => button.classList.contains("deck-list-card__selector"));
+    const selectors = region
+      .getAllByRole("button")
+      .filter((button) => button.classList.contains("deck-list-card__selector"));
     expect(selectors.map((button) => button.getAttribute("aria-label"))).toEqual([valid.name, invalid.name]);
     expect((selectors[1] as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(selectors[1]!);

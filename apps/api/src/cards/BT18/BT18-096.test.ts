@@ -49,9 +49,7 @@ describe("BT18-096 Lord of Devastation and Rebirth", () => {
             { card: "BT18-090", as: "redGreenTamer" },
             { card: "BT18-092", as: "blackTamer" },
           ],
-          hand: [
-            { card: "BT18-096", as: "option" },
-          ],
+          hand: [{ card: "BT18-096", as: "option" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -59,7 +57,9 @@ describe("BT18-096 Lord of Devastation and Rebirth", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("susanoomon").stack.length === 4);
 
     expect(s.perm("susanoomon").stack).toHaveLength(4);
@@ -85,11 +85,15 @@ describe("BT18-096 Lord of Devastation and Rebirth", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("susanoomon").stack.length === 3);
 
     expect(s.perm("susanoomon").stack).toHaveLength(3);
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("redTamerB").permanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("redTamerB").permanentId)).toBe(
+      true,
+    );
     expect(s.state.memory).toBe(7);
   });
 
@@ -110,7 +114,9 @@ describe("BT18-096 Lord of Devastation and Rebirth", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("tamer").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("tamer").instanceId),
+    );
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("tamer").instanceId)).toBe(
       true,

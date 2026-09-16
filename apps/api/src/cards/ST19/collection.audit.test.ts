@@ -29,14 +29,19 @@ describe("ST19 collection audit gate", () => {
 
   it("imports every catalog card through the ST19 index", () => {
     for (const cardId of st19Ids) {
-      expect(indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")), `${cardId} index import`).toHaveLength(1);
+      expect(
+        indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")),
+        `${cardId} index import`,
+      ).toHaveLength(1);
     }
   });
 
   it.each(expectedIds)("%s is registered as complete executable IR", (cardId) => {
     const moduleSource = readFileSync(`${collectionDirectory}/${cardId}.ts`, "utf8");
 
-    expect(moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g"))).toHaveLength(1);
+    expect(
+      moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g")),
+    ).toHaveLength(1);
     expect(moduleSource, `${cardId} legacy registerCard call`).not.toMatch(/\bregisterCard\s*\(/);
     expect(hasRegisteredCompiledCard(cardId), `${cardId} direct compiled registration`).toBe(true);
     expect(getCompiledCard(cardId), `${cardId} must have committed IR`).toBeDefined();

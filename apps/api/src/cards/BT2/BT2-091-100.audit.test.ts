@@ -36,7 +36,10 @@ describe("BT2-091 through BT2-100 IR coverage", () => {
       {
         trigger: "Main",
         actions: [
-          { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 } },
+          {
+            kind: "Delete",
+            target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 },
+          },
         ],
       },
       { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
@@ -63,12 +66,18 @@ describe("BT2-091 through BT2-100 IR coverage", () => {
           {
             kind: "Delete",
             target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
-            condition: { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] } },
+            condition: {
+              kind: "youHave",
+              filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] },
+            },
           },
           {
             kind: "Delete",
             target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 5000 } }, count: 1 },
-            condition: { kind: "youHaveNone", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] } },
+            condition: {
+              kind: "youHaveNone",
+              filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] },
+            },
           },
         ],
       },
@@ -85,7 +94,12 @@ describe("BT2-091 through BT2-100 IR coverage", () => {
             amount: 1,
             choose: true,
           },
-          { kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 2000, duration: "forTheTurn" },
+          {
+            kind: "ModifyDP",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            amount: 2000,
+            duration: "forTheTurn",
+          },
         ],
       },
       { trigger: "Security", actions: [{ kind: "AddToHandSelf" }], isSecurity: true },
@@ -95,7 +109,11 @@ describe("BT2-091 through BT2-100 IR coverage", () => {
       {
         trigger: "Main",
         actions: [
-          { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 3, upTo: true }, to: "hand" },
+          {
+            kind: "Return",
+            target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 3, upTo: true },
+            to: "hand",
+          },
         ],
       },
     ]);
@@ -104,11 +122,21 @@ describe("BT2-091 through BT2-100 IR coverage", () => {
       {
         trigger: "Main",
         actions: [
-          { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } }, count: 1 }, to: "hand" },
+          {
+            kind: "Return",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+              count: 1,
+            },
+            to: "hand",
+          },
           {
             kind: "Unsuspend",
             target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-            condition: { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Blue"] } },
+            condition: {
+              kind: "youHave",
+              filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Blue"] },
+            },
           },
         ],
       },
@@ -119,7 +147,12 @@ describe("BT2-091 through BT2-100 IR coverage", () => {
       {
         trigger: "Main",
         actions: [
-          { kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 3 }, amount: -4000, duration: "forTheTurn" },
+          {
+            kind: "ModifyDP",
+            target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 3 },
+            amount: -4000,
+            duration: "forTheTurn",
+          },
         ],
       },
       { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
@@ -151,13 +184,24 @@ describe("BT2-091 through BT2-100 IR coverage", () => {
             event: "wouldBePlayed",
             mode: "reduceCost",
             amount: 1,
-            scaling: { per: 1, filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Yellow"] }, unit: "cards" },
+            scaling: {
+              per: 1,
+              filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Yellow"] },
+              unit: "cards",
+            },
           },
         ],
       },
       {
         trigger: "Main",
-        actions: [{ kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -12000, duration: "forTheTurn" }],
+        actions: [
+          {
+            kind: "ModifyDP",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            amount: -12000,
+            duration: "forTheTurn",
+          },
+        ],
       },
     ]);
 
@@ -166,7 +210,12 @@ describe("BT2-091 through BT2-100 IR coverage", () => {
         trigger: "Main",
         actions: [
           { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
-          { kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 2000, duration: "forTheTurn" },
+          {
+            kind: "ModifyDP",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            amount: 2000,
+            duration: "forTheTurn",
+          },
         ],
       },
     ]);

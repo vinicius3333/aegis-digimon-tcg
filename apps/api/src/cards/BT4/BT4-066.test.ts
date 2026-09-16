@@ -20,7 +20,12 @@ describe("BT4-066 Golemon", () => {
 
   it("does not give DP to a non-black Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-066", as: "gole" }, { card: "BT4-057", as: "nonBlack" }] },
+      0: {
+        battleArea: [
+          { card: "BT4-066", as: "gole" },
+          { card: "BT4-057", as: "nonBlack" },
+        ],
+      },
     });
     await s.engine.recomputeContinuousEffects();
 

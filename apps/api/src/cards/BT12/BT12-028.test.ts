@@ -8,7 +8,13 @@ import "./BT12-028.js";
 describe("BT12-028 Paildramon", () => {
   it("DNA digivolves from blue and green level 4s for 0, trashes up to three top sources from every opponent, and restricts two emptied Digimon", async () => {
     expect(dnaDigivolutionRequirementsFor("BT12-028")).toEqual([
-      { cost: 0, materials: [{ color: "Blue", level: 4 }, { color: "Green", level: 4 }] },
+      {
+        cost: 0,
+        materials: [
+          { color: "Blue", level: 4 },
+          { color: "Green", level: 4 },
+        ],
+      },
     ]);
     const s = setupEngine(
       {

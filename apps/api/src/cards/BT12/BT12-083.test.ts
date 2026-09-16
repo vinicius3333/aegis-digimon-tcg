@@ -137,20 +137,23 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
   });
 
   it("raises the placed Digimon level ceiling for each distinct Tamer color", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT12-083", as: "arrester" },
-          { card: "BT12-087", as: "tamer" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-083", as: "arrester" },
+            { card: "BT12-087", as: "tamer" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT12-087", as: "destination" },
+            { card: "BT12-010", as: "target", under: ["BT12-009"] },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT12-087", as: "destination" },
-          { card: "BT12-010", as: "target", under: ["BT12-009"] },
-        ],
-      },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("arrester"));
     expect(s.perm("destination").stack.map(({ cardId }) => cardId)).toContain("BT12-010");
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-010")).toBe(false);

@@ -74,7 +74,9 @@ describe("BT18-072 AncientBeetlemon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("first").stack.length === 0 && s.perm("second").stack.length === 0);
 
     expect(s.perm("first").stack).toHaveLength(0);
@@ -137,7 +139,12 @@ describe("BT18-072 AncientBeetlemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-072"));
 
-    expect(s.perm("ancient").stack.map(({ cardId }) => cardId).sort()).toEqual(["BT18-063", "BT18-067"].sort());
+    expect(
+      s
+        .perm("ancient")
+        .stack.map(({ cardId }) => cardId)
+        .sort(),
+    ).toEqual(["BT18-063", "BT18-067"].sort());
     expect(s.state.memory).toBe(3);
     assertNoLoudGap(s);
   });

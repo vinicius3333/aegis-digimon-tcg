@@ -27,13 +27,11 @@ describe("public App Fusion", () => {
     s.state.memory = 0;
     await s.ready();
     expect(
-      s
-        .inst("result")
-        .appFusionRoutes.map(({ hostPermanentId, linkedInstanceId, projectedCost }) => ({
-          hostPermanentId,
-          linkedInstanceId,
-          projectedCost,
-        })),
+      s.inst("result").appFusionRoutes.map(({ hostPermanentId, linkedInstanceId, projectedCost }) => ({
+        hostPermanentId,
+        linkedInstanceId,
+        projectedCost,
+      })),
     ).toEqual([
       { hostPermanentId: s.perm("host").permanentId, linkedInstanceId: s.inst("link").instanceId, projectedCost: 0 },
     ]);

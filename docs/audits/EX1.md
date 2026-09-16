@@ -58,13 +58,13 @@ that bracketed names match names containing the specified text.
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | IR evidence | Behavioral evidence |
-| --- | --- | --- |
-| `[When Attacking]` | `effects[0].trigger: "WhenAttacking"` | Every test attacks through `applyIntent`, then settles the effect stack. |
-| `[Once Per Turn]` | `effects[0].frequency: "OncePerTurn"` | The second test unsuspends and attacks again in the same turn; hand size does not increase a second time. |
-| Reveal top 3 | `RevealAdd.revealCount: 3` | First, second, no-match, and evolved-stack tests use decks where the first three cards are observable and assert the post-resolution deck/hand. |
-| Add 1 Tamer or 1 Agumon-name Digimon | `add[0].count: 1`, Tamer `kind: ["Tamer"]`, and `orFilters` for Digimon `nameOrTrait: Agumon`, `match: "name"`; destination `hand` | First test has both a Tamer and Agumon-name card and asserts exactly the first Tamer is added. Second accepts green `BT11-046` and rejects near-match `BT1-009`. No-match test leaves hand empty. |
-| Place remaining cards at bottom in any order | `rest: "deckBottom"` | First test asserts all three post-resolution deck cards are present; no-match test asserts all four cards are retained. Assertions intentionally do not impose an order. |
+| Printed clause                               | IR evidence                                                                                                                        | Behavioral evidence                                                                                                                                                                               |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[When Attacking]`                           | `effects[0].trigger: "WhenAttacking"`                                                                                              | Every test attacks through `applyIntent`, then settles the effect stack.                                                                                                                          |
+| `[Once Per Turn]`                            | `effects[0].frequency: "OncePerTurn"`                                                                                              | The second test unsuspends and attacks again in the same turn; hand size does not increase a second time.                                                                                         |
+| Reveal top 3                                 | `RevealAdd.revealCount: 3`                                                                                                         | First, second, no-match, and evolved-stack tests use decks where the first three cards are observable and assert the post-resolution deck/hand.                                                   |
+| Add 1 Tamer or 1 Agumon-name Digimon         | `add[0].count: 1`, Tamer `kind: ["Tamer"]`, and `orFilters` for Digimon `nameOrTrait: Agumon`, `match: "name"`; destination `hand` | First test has both a Tamer and Agumon-name card and asserts exactly the first Tamer is added. Second accepts green `BT11-046` and rejects near-match `BT1-009`. No-match test leaves hand empty. |
+| Place remaining cards at bottom in any order | `rest: "deckBottom"`                                                                                                               | First test asserts all three post-resolution deck cards are present; no-match test asserts all four cards are retained. Assertions intentionally do not impose an order.                          |
 
 The module has no `// @ts-nocheck`, has `coverage: "full"` and
 `residual: []`, and registers executable behavior only with
@@ -106,13 +106,13 @@ git diff --check                                                                
 
 #### Rubric
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog text, Q3187/Q3188, name matching, trigger, Once Per Turn, and bottom-deck rules traced. |
-| IR trace | 2/2 | Every printed clause maps to typed compiled IR; no nocheck, no residual, IR-only registration. |
-| Behavioral proof | 2/2 | Positive, exact one-card union, non-red acceptance, near-match/no-match negatives, same-turn limit, and resolved zones covered. |
-| Peer/stack proof | 2/2 | Public egg → EX1-001 → higher host evolution path passes; neighboring inherited-effect conventions reviewed. |
-| Delivery gates | 0/2 | Worker lane does not receive delivery credit. |
+| Area             | Score | Evidence                                                                                                                        |
+| ---------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Catalog text, Q3187/Q3188, name matching, trigger, Once Per Turn, and bottom-deck rules traced.                                 |
+| IR trace         |   2/2 | Every printed clause maps to typed compiled IR; no nocheck, no residual, IR-only registration.                                  |
+| Behavioral proof |   2/2 | Positive, exact one-card union, non-red acceptance, near-match/no-match negatives, same-turn limit, and resolved zones covered. |
+| Peer/stack proof |   2/2 | Public egg → EX1-001 → higher host evolution path passes; neighboring inherited-effect conventions reviewed.                    |
+| Delivery gates   |   0/2 | Worker lane does not receive delivery credit.                                                                                   |
 
 Final worker score: **8/10** (delivery credit intentionally 0).
 
@@ -139,13 +139,13 @@ Attacking, reactions, and Once Per Turn), `data/kb/rules/comprehensive.md`
 `apps/api/src/cards/EX1/EX1-002.ts:4-15` is compiled IR registered only via
 `registerIrCard("EX1-002", compiled)`:
 
-| Printed clause | IR proof |
-| --- | --- |
-| Inherited effect | `isInherited: true` |
-| [When Attacking] | `trigger: "WhenAttacking"` |
-| Once per turn | `frequency: "OncePerTurn"` |
-| Only when attacking a player | `condition: { kind: "attackTargetsPlayer" }` |
-| Draw 1 | `kind: "Draw", controller: "mine", amount: 1` |
+| Printed clause               | IR proof                                      |
+| ---------------------------- | --------------------------------------------- |
+| Inherited effect             | `isInherited: true`                           |
+| [When Attacking]             | `trigger: "WhenAttacking"`                    |
+| Once per turn                | `frequency: "OncePerTurn"`                    |
+| Only when attacking a player | `condition: { kind: "attackTargetsPlayer" }`  |
+| Draw 1                       | `kind: "Draw", controller: "mine", amount: 1` |
 
 Removed the module-level `// @ts-nocheck`; the actual `CompiledCard` typing now
 passes without weakening the IR. There is no duplicate legacy `registerCard`
@@ -206,14 +206,14 @@ PASS
 
 #### Score
 
-| Rubric | Score | Basis |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog clause, Q3189, and applicable timing rules reconciled. |
-| IR trace | 2/2 | Every printed clause maps to typed compiled IR; only `registerIrCard` is used. |
-| Behavioral proof | 2/2 | Positive, target-negative, Q&A timing, same-turn Once Per Turn, and resolved stack paths pass. |
-| Peer/stack proof | 2/2 | Real Blocker interaction, legal/illegal evolution-stack cases, same-turn refusal, and next-own-turn reset pass. |
-| Delivery gates | 0/2 | Worker does not commit, push, or claim collection-wide completion. |
-| **Total** | **8/10** |  |
+| Rubric           |    Score | Basis                                                                                                           |
+| ---------------- | -------: | --------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |      2/2 | Catalog clause, Q3189, and applicable timing rules reconciled.                                                  |
+| IR trace         |      2/2 | Every printed clause maps to typed compiled IR; only `registerIrCard` is used.                                  |
+| Behavioral proof |      2/2 | Positive, target-negative, Q&A timing, same-turn Once Per Turn, and resolved stack paths pass.                  |
+| Peer/stack proof |      2/2 | Real Blocker interaction, legal/illegal evolution-stack cases, same-turn refusal, and next-own-turn reset pass. |
+| Delivery gates   |      0/2 | Worker does not commit, push, or claim collection-wide completion.                                              |
+| **Total**        | **8/10** |                                                                                                                 |
 
 #### Remaining gap
 
@@ -239,7 +239,7 @@ Catalog data identifies Birdramon as a red level 4 Digimon (5000 DP, play cost
 printed effect is the inherited clause:
 
 > `[When Attacking] When this Digimon attacks a player, delete 1 of your
-> opponent's Digimon with 3000 DP or less.`
+opponent's Digimon with 3000 DP or less.`
 
 The local query returns Q3190: an inherited `[When Attacking]` effect resolves
 before the opponent may activate `<Blocker>`. The blocker-window test proves
@@ -248,15 +248,15 @@ that a remaining blocker is then the only eligible blocker.
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR evidence | Behavioral evidence |
-| --- | --- | --- |
-| `[When Attacking]` | `effects[0].trigger = "WhenAttacking"` | Player attack in the first, third, and fourth tests |
-| Inherited effect | `effects[0].isInherited = true` | First three tests use `EX1-003` under the attacking Digimon; fourth test evolves into it and then evolves a higher host |
-| Attacks a player only | `condition.kind = "attackTargetsPlayer"` | First test resolves deletion on a player attack; second test attacks a Digimon and proves no deletion |
-| Your opponent's Digimon | Delete target filter has `controller: "opponent"` and `kind: ["Digimon"]` | First and third tests prove opponent-only selection; no own permanent is eligible |
-| 3000 DP or less | Target filter has `dp: { op: "lte", value: 3000 }` | First test deletes exactly the 3000-DP target and leaves the 4000-DP target |
-| Delete 1 | Delete action has `count: 1` | First test leaves one opponent permanent; third test deletes one eligible blocker and leaves the other |
-| Blocker timing (Q3190) | Standard `WhenAttacking` trigger resolution before block window | Third test waits for `blockWindowOpened`, then asserts only the remaining blocker is eligible |
+| Contract clause         | IR evidence                                                               | Behavioral evidence                                                                                                     |
+| ----------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `[When Attacking]`      | `effects[0].trigger = "WhenAttacking"`                                    | Player attack in the first, third, and fourth tests                                                                     |
+| Inherited effect        | `effects[0].isInherited = true`                                           | First three tests use `EX1-003` under the attacking Digimon; fourth test evolves into it and then evolves a higher host |
+| Attacks a player only   | `condition.kind = "attackTargetsPlayer"`                                  | First test resolves deletion on a player attack; second test attacks a Digimon and proves no deletion                   |
+| Your opponent's Digimon | Delete target filter has `controller: "opponent"` and `kind: ["Digimon"]` | First and third tests prove opponent-only selection; no own permanent is eligible                                       |
+| 3000 DP or less         | Target filter has `dp: { op: "lte", value: 3000 }`                        | First test deletes exactly the 3000-DP target and leaves the 4000-DP target                                             |
+| Delete 1                | Delete action has `count: 1`                                              | First test leaves one opponent permanent; third test deletes one eligible blocker and leaves the other                  |
+| Blocker timing (Q3190)  | Standard `WhenAttacking` trigger resolution before block window           | Third test waits for `blockWindowOpened`, then asserts only the remaining blocker is eligible                           |
 
 #### Evolution and stack proof
 
@@ -296,14 +296,14 @@ No card-specific behavior gap was found. Collection-wide delivery gates,
 atomic commit, branch push, and coordinator reruns are intentionally outside
 this worker lane and receive zero delivery credit here.
 
-| Rubric | Score |
-| --- | ---: |
-| Catalog and rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer and evolution-stack proof | 2/2 |
-| Delivery gates (worker lane) | 0/2 |
-| **Total** | **8/10** |
+| Rubric                         |    Score |
+| ------------------------------ | -------: |
+| Catalog and rules evidence     |      2/2 |
+| IR implementation trace        |      2/2 |
+| Behavioral proof               |      2/2 |
+| Peer and evolution-stack proof |      2/2 |
+| Delivery gates (worker lane)   |      0/2 |
+| **Total**                      | **8/10** |
 
 ### EX1-004 — Greymon
 
@@ -327,7 +327,7 @@ The catalog identifies Greymon as a red level 4 Champion, 5000 DP, play cost
 only clause is the inherited effect:
 
 > `[When Attacking][Once Per Turn] You may play 1 [Tai Kamiya] with a play
-> cost of 3 or less from your hand without paying its memory cost.`
+cost of 3 or less from your hand without paying its memory cost.`
 
 The local query returns Q3191. It confirms that bracketed `[Tai Kamiya]` means
 the card must be specifically named `Tai Kamiya`; a card whose name merely
@@ -335,17 +335,17 @@ contains that text, such as `Izzy Izumi & Tai Kamiya` (AD1-022), is not legal.
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR evidence | Behavioral evidence |
-| --- | --- | --- |
-| `[When Attacking]` | `effects[0].trigger = "WhenAttacking"` | Real player attacks in tests at lines 48-76, 78-103, 105-130, 132-158, 160-199, and 201-254 |
-| Inherited effect | `isInherited: true` | `evolveIntoGreymon` publicly evolves into EX1-004, then into BT1-020; the higher host attacks with EX1-004 in its stack |
-| Once Per Turn | `frequency: "OncePerTurn"` | Same-turn second attack leaves `tai2` in hand (lines 160-199); public turn loop proves activation again on the next own turn (lines 201-254) |
-| Optional play | `optional: true` | Refusal test uses `autoDeclineOptional` and leaves ST1-12 in hand (lines 132-158) |
-| Play exactly 1 | `count: 1` | Positive attack creates exactly one Tai permanent and empties the three-card setup hand after evolution (lines 48-76) |
-| From hand | `from: ["hand"]` | Positive and negative tests observe the selected card leaving or remaining in hand |
-| Your card named `[Tai Kamiya]` | `controller: "mine"`, `nameOrTrait: [{ tokens: ["Tai Kamiya"], match: "nameExact" }]` | ST1-12 is played; AD1-022 remains in hand because its name only contains Tai Kamiya (lines 105-130) |
-| Play cost 3 or less | `playCostLte: 3` | ST1-12 (cost 2) is played; BT1-085 (cost 4) remains in hand (lines 78-103) |
-| Without paying memory | `kind: "PlayWithoutCost"`, `payCost: false` | Positive path resolves the play through the normal attack/effect stack with no play-cost payment |
+| Contract clause                | IR evidence                                                                           | Behavioral evidence                                                                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[When Attacking]`             | `effects[0].trigger = "WhenAttacking"`                                                | Real player attacks in tests at lines 48-76, 78-103, 105-130, 132-158, 160-199, and 201-254                                                  |
+| Inherited effect               | `isInherited: true`                                                                   | `evolveIntoGreymon` publicly evolves into EX1-004, then into BT1-020; the higher host attacks with EX1-004 in its stack                      |
+| Once Per Turn                  | `frequency: "OncePerTurn"`                                                            | Same-turn second attack leaves `tai2` in hand (lines 160-199); public turn loop proves activation again on the next own turn (lines 201-254) |
+| Optional play                  | `optional: true`                                                                      | Refusal test uses `autoDeclineOptional` and leaves ST1-12 in hand (lines 132-158)                                                            |
+| Play exactly 1                 | `count: 1`                                                                            | Positive attack creates exactly one Tai permanent and empties the three-card setup hand after evolution (lines 48-76)                        |
+| From hand                      | `from: ["hand"]`                                                                      | Positive and negative tests observe the selected card leaving or remaining in hand                                                           |
+| Your card named `[Tai Kamiya]` | `controller: "mine"`, `nameOrTrait: [{ tokens: ["Tai Kamiya"], match: "nameExact" }]` | ST1-12 is played; AD1-022 remains in hand because its name only contains Tai Kamiya (lines 105-130)                                          |
+| Play cost 3 or less            | `playCostLte: 3`                                                                      | ST1-12 (cost 2) is played; BT1-085 (cost 4) remains in hand (lines 78-103)                                                                   |
+| Without paying memory          | `kind: "PlayWithoutCost"`, `payCost: false`                                           | Positive path resolves the play through the normal attack/effect stack with no play-cost payment                                             |
 
 #### Evolution and stack proof
 
@@ -390,14 +390,14 @@ No card-specific behavior gap was found. Collection-wide delivery gates,
 atomic commit, branch push, and coordinator reruns are intentionally outside
 this worker lane and receive zero delivery credit here.
 
-| Rubric | Score |
-| --- | ---: |
-| Catalog and rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer and evolution-stack proof | 2/2 |
-| Delivery gates (worker lane) | 0/2 |
-| **Total** | **8/10** |
+| Rubric                         |    Score |
+| ------------------------------ | -------: |
+| Catalog and rules evidence     |      2/2 |
+| IR implementation trace        |      2/2 |
+| Behavioral proof               |      2/2 |
+| Peer and evolution-stack proof |      2/2 |
+| Delivery gates (worker lane)   |      0/2 |
+| **Total**                      | **8/10** |
 
 ### EX1-005 — Tyrannomon
 
@@ -416,14 +416,14 @@ Local KB query: `node tools/kb/query.mjs card EX1-005` returned Q2082, Q2480, Q3
 
 #### Clause-to-IR-to-test evidence
 
-| Contract | IR | Behavioral proof |
-| --- | --- | --- |
-| Free Taiga from hand only when no Taiga is in play; optional | `EX1-005.ts:10-43`: `WhenDigivolving` + `PlayWithoutCost`, hand source, exact `[Taiga]` Tamer filter, `youHaveNone`, `optional` | `EX1-005.test.ts:10-35` plays the matching Tamer while retaining a non-Taiga Tamer; `:37-63` proves an in-play Taiga blocks the second play; `:71-94` proves optional refusal leaves Taiga in hand |
-| Also treated as green during your turn | `EX1-005.ts:46-61`: `YourTurn` self `GrantStatic` color Green | `EX1-005.test.ts:96-101` observes Green; `:195-213` observes no Green on the opponent's turn |
-| Gained Green remains alongside changed original card information | The Green grant above composes with the shared original-info grant semantics | `EX1-005.test.ts:103-127` uses BT11-043 to change EX1-005 to White, original name Sukamon, and 3000 DP, then proves both White and gained Green (Q2082/Q2480) |
-| Inherited +2000 DP only for a Tyrannomon-named host on your turn | `EX1-005.ts:63-87`: inherited `YourTurn` `Aura`, `modifyDP: 2000`, `selfHasNameContaining("Tyrannomon")` | `EX1-005.test.ts:65-69` proves +2000; `:189-193` excludes a non-Tyrannomon host; `:195-213` proves opponent-turn expiry; `:215-219` excludes breeding |
-| Revealed card is not treated as green | No effect window fires merely from deck reveal; Green is a live Your Turn effect | `EX1-005.test.ts:129-150` uses ST4-03's real reveal/add filter and proves EX1-005 returns to deck rather than being added as Green (Q3192) |
-| Green level-4 evolution boundary | Continuous color is active only in battle area on your turn | `EX1-005.test.ts:152-169` legally evolves into EX1-039 from battle area (Q3193); `:171-187` rejects the same route from breeding (Q3194) |
+| Contract                                                         | IR                                                                                                                              | Behavioral proof                                                                                                                                                                                   |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free Taiga from hand only when no Taiga is in play; optional     | `EX1-005.ts:10-43`: `WhenDigivolving` + `PlayWithoutCost`, hand source, exact `[Taiga]` Tamer filter, `youHaveNone`, `optional` | `EX1-005.test.ts:10-35` plays the matching Tamer while retaining a non-Taiga Tamer; `:37-63` proves an in-play Taiga blocks the second play; `:71-94` proves optional refusal leaves Taiga in hand |
+| Also treated as green during your turn                           | `EX1-005.ts:46-61`: `YourTurn` self `GrantStatic` color Green                                                                   | `EX1-005.test.ts:96-101` observes Green; `:195-213` observes no Green on the opponent's turn                                                                                                       |
+| Gained Green remains alongside changed original card information | The Green grant above composes with the shared original-info grant semantics                                                    | `EX1-005.test.ts:103-127` uses BT11-043 to change EX1-005 to White, original name Sukamon, and 3000 DP, then proves both White and gained Green (Q2082/Q2480)                                      |
+| Inherited +2000 DP only for a Tyrannomon-named host on your turn | `EX1-005.ts:63-87`: inherited `YourTurn` `Aura`, `modifyDP: 2000`, `selfHasNameContaining("Tyrannomon")`                        | `EX1-005.test.ts:65-69` proves +2000; `:189-193` excludes a non-Tyrannomon host; `:195-213` proves opponent-turn expiry; `:215-219` excludes breeding                                              |
+| Revealed card is not treated as green                            | No effect window fires merely from deck reveal; Green is a live Your Turn effect                                                | `EX1-005.test.ts:129-150` uses ST4-03's real reveal/add filter and proves EX1-005 returns to deck rather than being added as Green (Q3192)                                                         |
+| Green level-4 evolution boundary                                 | Continuous color is active only in battle area on your turn                                                                     | `EX1-005.test.ts:152-169` legally evolves into EX1-039 from battle area (Q3193); `:171-187` rejects the same route from breeding (Q3194)                                                           |
 
 #### Peer and stack proof
 
@@ -449,14 +449,14 @@ Local KB query: `node tools/kb/query.mjs card EX1-005` returned Q2082, Q2480, Q3
 
 #### Rubric
 
-| Axis | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules and Q&A | 2/2 | Catalog text and all five local Q&A IDs identified and covered |
-| IR trace | 2/2 | Every printed clause maps to typed IR; sole registration is `registerIrCard` |
-| Behavioral proof | 2/2 | 12 focused tests cover positive, negative, refusal, timing, zones, rewrite composition, and exact boundaries |
-| Peer/evolution-stack proof | 2/2 | BT11-043 rewrite peer, ST4-03 reveal peer, legal stack, and breeding negative are exercised |
-| Delivery gates | 0/2 | Worker lane does not receive collection-wide delivery credit |
-| **Total** | **8/10** | Delivery remains coordinator-owned |
+| Axis                       |    Score | Evidence                                                                                                     |
+| -------------------------- | -------: | ------------------------------------------------------------------------------------------------------------ |
+| Catalog/rules and Q&A      |      2/2 | Catalog text and all five local Q&A IDs identified and covered                                               |
+| IR trace                   |      2/2 | Every printed clause maps to typed IR; sole registration is `registerIrCard`                                 |
+| Behavioral proof           |      2/2 | 12 focused tests cover positive, negative, refusal, timing, zones, rewrite composition, and exact boundaries |
+| Peer/evolution-stack proof |      2/2 | BT11-043 rewrite peer, ST4-03 reveal peer, legal stack, and breeding negative are exercised                  |
+| Delivery gates             |      0/2 | Worker lane does not receive collection-wide delivery credit                                                 |
+| **Total**                  | **8/10** | Delivery remains coordinator-owned                                                                           |
 
 #### Remaining gaps
 
@@ -515,13 +515,13 @@ Megadramon is a red level 5 Cyborg Digimon (7000 DP, play cost 7), with red or b
 
 #### Clause-to-IR-to-test evidence
 
-| Contract | IR evidence | Behavioral proof |
-| --- | --- | --- |
-| On Play timing and opponent Digimon target | `EX1-007.ts:8-23`: `trigger: "OnPlay"`, `Delete`, opponent `Digimon` filter | `EX1-007.test.ts:7-29` plays the card through `playCard` and deletes two eligible opposing Digimon |
-| Up to 2, including the zero and one-target boundaries | `count: 2`, `upTo: true` | `:31-48` proves no eligible target resolves cleanly; `:50-87` inspects the live `chooseTargets` request (`min: 0`, `max: 2`), chooses one of two eligible cards, and leaves the other plus the ineligible card |
-| Exact DP ceiling | `filter.dp: { op: "lte", value: 3000 }` | The positive path deletes the 3000 and 2000 DP cards while retaining the 4000 DP card; the manual one-target path confirms the 4000 DP card is absent from candidates |
-| Inherited Your Turn Machine gate | `EX1-007.ts:26-58`: inherited `YourTurn` `Aura`, `selfHasTrait` exact `Machine` trait, `SecurityAttack +1` | `:89-93` observes the keyword on a Machine host; `:116-129` rejects a non-Machine host; `:131-145` proves it is absent during the opponent's turn through the public turn loop |
-| Real Security Attack +1 behavior | `keyword: { keyword: "SecurityAttack", amount: 1 }` | `:95-114` attacks a player and observes two sequential security checks against a three-card security stack |
+| Contract                                              | IR evidence                                                                                                | Behavioral proof                                                                                                                                                                                               |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play timing and opponent Digimon target            | `EX1-007.ts:8-23`: `trigger: "OnPlay"`, `Delete`, opponent `Digimon` filter                                | `EX1-007.test.ts:7-29` plays the card through `playCard` and deletes two eligible opposing Digimon                                                                                                             |
+| Up to 2, including the zero and one-target boundaries | `count: 2`, `upTo: true`                                                                                   | `:31-48` proves no eligible target resolves cleanly; `:50-87` inspects the live `chooseTargets` request (`min: 0`, `max: 2`), chooses one of two eligible cards, and leaves the other plus the ineligible card |
+| Exact DP ceiling                                      | `filter.dp: { op: "lte", value: 3000 }`                                                                    | The positive path deletes the 3000 and 2000 DP cards while retaining the 4000 DP card; the manual one-target path confirms the 4000 DP card is absent from candidates                                          |
+| Inherited Your Turn Machine gate                      | `EX1-007.ts:26-58`: inherited `YourTurn` `Aura`, `selfHasTrait` exact `Machine` trait, `SecurityAttack +1` | `:89-93` observes the keyword on a Machine host; `:116-129` rejects a non-Machine host; `:131-145` proves it is absent during the opponent's turn through the public turn loop                                 |
+| Real Security Attack +1 behavior                      | `keyword: { keyword: "SecurityAttack", amount: 1 }`                                                        | `:95-114` attacks a player and observes two sequential security checks against a three-card security stack                                                                                                     |
 
 #### Peer and evolution-stack proof
 
@@ -547,14 +547,14 @@ Megadramon is a red level 5 Cyborg Digimon (7000 DP, play cost 7), with red or b
 
 #### Rubric
 
-| Axis | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules and Q&A | 2/2 | Catalog clauses, evolution requirements, general rules, and the no-Q&A query result are recorded |
-| IR trace | 2/2 | Every printed clause maps to typed IR; the sole registration is `registerIrCard` |
-| Behavioral proof | 2/2 | Ten focused tests cover positive, exact DP and count boundaries, zero/one-target paths, real security checks, trait and turn gates |
-| Peer/evolution-stack proof | 2/2 | Machine/non-Machine peers, legal red and black stacks, and illegal level-3 source are exercised through public intents |
-| Delivery gates | 0/2 | Worker lane does not receive collection-wide delivery credit |
-| **Total** | **8/10** | Delivery remains coordinator-owned |
+| Axis                       |    Score | Evidence                                                                                                                           |
+| -------------------------- | -------: | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules and Q&A      |      2/2 | Catalog clauses, evolution requirements, general rules, and the no-Q&A query result are recorded                                   |
+| IR trace                   |      2/2 | Every printed clause maps to typed IR; the sole registration is `registerIrCard`                                                   |
+| Behavioral proof           |      2/2 | Ten focused tests cover positive, exact DP and count boundaries, zero/one-target paths, real security checks, trait and turn gates |
+| Peer/evolution-stack proof |      2/2 | Machine/non-Machine peers, legal red and black stacks, and illegal level-3 source are exercised through public intents             |
+| Delivery gates             |      0/2 | Worker lane does not receive collection-wide delivery credit                                                                       |
+| **Total**                  | **8/10** | Delivery remains coordinator-owned                                                                                                 |
 
 #### Remaining gaps
 
@@ -578,14 +578,14 @@ Rules sources: local Q&A `Q3196` and `Q3197`; `data/kb/rules/comprehensive.md` �
 
 #### Clause-to-test-to-IR mapping
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| When Attacking against a player | `WhenAttacking` + `attackTargetsPlayer` | Exact 4000/5000 DP boundary test |
-| Delete one opposing Digimon at 4000 DP or less | `Delete`, opponent/Digimon, `dp: lte 4000`, count 1 | Positive attack test and Digimon-target negative |
-| Resolve before Blocker | Same mandatory attack trigger | Q3197 blocker-window test |
-| Your Turn inherited Piercing | inherited `YourTurn` `Aura`, `selfHasTrait` Machine OR Dragonkin | Machine/Dragonkin, opponent-turn, and real Piercing-battle tests |
-| Piercing remains pending after source loss / follows current Security Attack | Engine keyword resolution exercised by inherited Piercing | Q3196 two-check/de-digivolve tests |
-| Evolution requirements | Catalog requirements consumed by public `digivolve` intent | Legal red/black stack tests and invalid-source negative |
+| Clause                                                                       | IR                                                               | Behavioral proof                                                 |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
+| When Attacking against a player                                              | `WhenAttacking` + `attackTargetsPlayer`                          | Exact 4000/5000 DP boundary test                                 |
+| Delete one opposing Digimon at 4000 DP or less                               | `Delete`, opponent/Digimon, `dp: lte 4000`, count 1              | Positive attack test and Digimon-target negative                 |
+| Resolve before Blocker                                                       | Same mandatory attack trigger                                    | Q3197 blocker-window test                                        |
+| Your Turn inherited Piercing                                                 | inherited `YourTurn` `Aura`, `selfHasTrait` Machine OR Dragonkin | Machine/Dragonkin, opponent-turn, and real Piercing-battle tests |
+| Piercing remains pending after source loss / follows current Security Attack | Engine keyword resolution exercised by inherited Piercing        | Q3196 two-check/de-digivolve tests                               |
+| Evolution requirements                                                       | Catalog requirements consumed by public `digivolve` intent       | Legal red/black stack tests and invalid-source negative          |
 
 #### Verification commands
 
@@ -620,11 +620,11 @@ The committed catalog entry identifies EX1-009 as the red level 6 Mega WarGreymo
 
 `apps/api/src/cards/EX1/EX1-009.ts` is typed without `@ts-nocheck` and registers exactly once through `registerIrCard("EX1-009", compiled)`. The IR has `coverage: "full"` and no residual entries.
 
-| Printed clause | IR proof | Behavioral proof |
-| --- | --- | --- |
-| When Digivolving grants Blitz | A `WhenDigivolving` effect exposes the `Blitz` keyword (lines 7–15). | The real evolution test evolves from BT1-021 while memory is 1, settles the evolution, observes memory below zero, then successfully declares an attack and resolves a security check. |
-| Attack must target a player | The `WhenAttacking` delete action is guarded by `attackTargetsPlayer` (lines 17–45). | The Digimon-target attack leaves its Blocker alive and resolves combat. |
-| Controller must have a Tamer | The same action is guarded by `youHave` for a mine battle-area Tamer (lines 29–40). | The no-Tamer player attack leaves the opposing Blocker alive. |
+| Printed clause                                   | IR proof                                                                                               | Behavioral proof                                                                                                                                                                                           |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| When Digivolving grants Blitz                    | A `WhenDigivolving` effect exposes the `Blitz` keyword (lines 7–15).                                   | The real evolution test evolves from BT1-021 while memory is 1, settles the evolution, observes memory below zero, then successfully declares an attack and resolves a security check.                     |
+| Attack must target a player                      | The `WhenAttacking` delete action is guarded by `attackTargetsPlayer` (lines 17–45).                   | The Digimon-target attack leaves its Blocker alive and resolves combat.                                                                                                                                    |
+| Controller must have a Tamer                     | The same action is guarded by `youHave` for a mine battle-area Tamer (lines 29–40).                    | The no-Tamer player attack leaves the opposing Blocker alive.                                                                                                                                              |
 | Delete exactly one opposing Digimon with Blocker | The target filter requires opponent controller, Digimon kind, `Blocker`, and `count: 1` (lines 20–28). | The positive player attack deletes one printed Blocker and leaves a non-Blocker peer; the mixed inherited/printed fixture deletes the selected inherited Blocker and leaves the printed Blocker available. |
 
 #### Q&A, stack, and peer proof
@@ -651,14 +651,14 @@ git diff --check                                                                
 
 Changes are limited to the assigned card module, test, and this report: removed `@ts-nocheck`, replaced four prohibited Digi-Egg security fixtures with inert BT1-009 main-deck Digimon, and added effect-granted Blocker proof for Q3199. No engine/shared files were changed and no unresolved behavior gap remains for the printed clauses or Q3198/Q3199.
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog text, Q3198/Q3199, and applicable timing/keyword rules recorded. |
-| IR trace | 2/2 | Typed full-coverage IR maps all clauses to filters and conditions; sole `registerIrCard` registration. |
-| Behavioral proof | 2/2 | Six focused tests cover positive, target, Tamer, timing, effect/inherited Blocker, and real Blitz paths. |
-| Peer/stack proof | 2/2 | Printed, inherited, effect-granted, non-Blocker, and legal evolution-stack boundaries are exercised publicly. |
-| Delivery gates | 0/2 | Worker lane does not receive delivery credit; collection-wide closeout, atomic commit, and push remain coordinator responsibilities. |
-| **Total** | **8/10** | Worker maximum. |
+| Rubric           |    Score | Evidence                                                                                                                             |
+| ---------------- | -------: | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog/rules    |      2/2 | Catalog text, Q3198/Q3199, and applicable timing/keyword rules recorded.                                                             |
+| IR trace         |      2/2 | Typed full-coverage IR maps all clauses to filters and conditions; sole `registerIrCard` registration.                               |
+| Behavioral proof |      2/2 | Six focused tests cover positive, target, Tamer, timing, effect/inherited Blocker, and real Blitz paths.                             |
+| Peer/stack proof |      2/2 | Printed, inherited, effect-granted, non-Blocker, and legal evolution-stack boundaries are exercised publicly.                        |
+| Delivery gates   |      0/2 | Worker lane does not receive delivery credit; collection-wide closeout, atomic commit, and push remain coordinator responsibilities. |
+| **Total**        | **8/10** | Worker maximum.                                                                                                                      |
 
 ### EX1-010 — Phoenixmon
 
@@ -686,13 +686,13 @@ intent.
 
 #### Clause-to-IR-to-test evidence
 
-| Contract | IR evidence | Behavioral proof |
-| --- | --- | --- |
-| Security Attack +1 | `EX1-010.ts:5-7`: `Static` keyword `SecurityAttack`, amount `1` | First test observes the keyword and resolves a real player attack with exactly two `securityChecked` events; the evolution-stack test repeats the same after public evolution |
-| When Attacking timing | `EX1-010.ts:8-18`: `trigger: "WhenAttacking"` | First, second, and stack tests use public `attack` intents and `settle()` before asserting final state |
-| Player target only | `condition.kind = "attackTargetsPlayer"` | First and second tests draw on player attacks; third test attacks an opposing Digimon and proves hand remains empty |
-| Draw 2, own controller | `kind: "Draw", controller: "mine", amount: 2` | First test starts with an empty hand and observes exactly two cards; stack test observes the two additional cards after evolution draw |
-| Q3200 blocker ordering | Standard `WhenAttacking` trigger plus public combat flow | Second test waits for `blockWindowOpened`, asserts the draw already happened, then resolves `declareBlock` and `combatResolved` |
+| Contract               | IR evidence                                                     | Behavioral proof                                                                                                                                                              |
+| ---------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Security Attack +1     | `EX1-010.ts:5-7`: `Static` keyword `SecurityAttack`, amount `1` | First test observes the keyword and resolves a real player attack with exactly two `securityChecked` events; the evolution-stack test repeats the same after public evolution |
+| When Attacking timing  | `EX1-010.ts:8-18`: `trigger: "WhenAttacking"`                   | First, second, and stack tests use public `attack` intents and `settle()` before asserting final state                                                                        |
+| Player target only     | `condition.kind = "attackTargetsPlayer"`                        | First and second tests draw on player attacks; third test attacks an opposing Digimon and proves hand remains empty                                                           |
+| Draw 2, own controller | `kind: "Draw", controller: "mine", amount: 2`                   | First test starts with an empty hand and observes exactly two cards; stack test observes the two additional cards after evolution draw                                        |
+| Q3200 blocker ordering | Standard `WhenAttacking` trigger plus public combat flow        | Second test waits for `blockWindowOpened`, asserts the draw already happened, then resolves `declareBlock` and `combatResolved`                                               |
 
 #### Evolution and stack proof
 
@@ -732,14 +732,14 @@ security shortcut is used.
 
 #### Rubric
 
-| Axis | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules and Q&A | 2/2 | Catalog clauses, evolution requirement, Q3200, and applicable timing/stack rules are reconciled |
-| IR trace | 2/2 | Every printed clause maps to typed compiled IR; the sole registration is `registerIrCard` |
-| Behavioral proof | 2/2 | Positive keyword/draw path, player-vs-Digimon boundary, resolved security checks, and Q3200 blocker timing pass |
-| Peer/evolution-stack proof | 2/2 | Legal red Lv5 stack, exact cost/evolution draw, preserved source, and illegal red Lv4 source pass via public intents |
-| Delivery gates | 0/2 | Worker lane does not receive collection-wide rerun, commit, or push credit |
-| **Total** | **8/10** | Delivery remains coordinator-owned |
+| Axis                       |    Score | Evidence                                                                                                             |
+| -------------------------- | -------: | -------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules and Q&A      |      2/2 | Catalog clauses, evolution requirement, Q3200, and applicable timing/stack rules are reconciled                      |
+| IR trace                   |      2/2 | Every printed clause maps to typed compiled IR; the sole registration is `registerIrCard`                            |
+| Behavioral proof           |      2/2 | Positive keyword/draw path, player-vs-Digimon boundary, resolved security checks, and Q3200 blocker timing pass      |
+| Peer/evolution-stack proof |      2/2 | Legal red Lv5 stack, exact cost/evolution draw, preserved source, and illegal red Lv4 source pass via public intents |
+| Delivery gates             |      0/2 | Worker lane does not receive collection-wide rerun, commit, or push credit                                           |
+| **Total**                  | **8/10** | Delivery remains coordinator-owned                                                                                   |
 
 #### Remaining gaps
 
@@ -765,13 +765,13 @@ Applicable local rules are Comprehensive Rules §§11-1-3/11-1-4 (the attack dec
 
 `apps/api/src/cards/EX1/EX1-011.ts` is typed with `CompiledCard`, uses a single `registerIrCard("EX1-011", compiled)` registration, and declares full coverage with no residuals.
 
-| Printed clause | IR proof | Behavioral proof |
-| --- | --- | --- |
-| Inherited When Attacking trigger | `trigger: "WhenAttacking"` and `isInherited: true` | The source is placed under a higher-level attacker; the top-level EX1-011 negative does not activate. |
-| Once Per Turn | `frequency: "OncePerTurn"` | The same host attacks twice in one turn with a public unsuspend, then activates again after the next own turn begins. |
-| Reveal the top 3 | `RevealAdd` with `revealCount: 3` | The positive test asserts the three public `cardRevealed` IDs. |
+| Printed clause                                          | IR proof                                                                                                                  | Behavioral proof                                                                                                                           |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Inherited When Attacking trigger                        | `trigger: "WhenAttacking"` and `isInherited: true`                                                                        | The source is placed under a higher-level attacker; the top-level EX1-011 negative does not activate.                                      |
+| Once Per Turn                                           | `frequency: "OncePerTurn"`                                                                                                | The same host attacks twice in one turn with a public unsuspend, then activates again after the next own turn begins.                      |
+| Reveal the top 3                                        | `RevealAdd` with `revealCount: 3`                                                                                         | The positive test asserts the three public `cardRevealed` IDs.                                                                             |
 | Add one Tamer or one Digimon with [Gabumon] in its name | One `add` slot with `count: 1`, primary `kind: ["Tamer"]`, and `orFilters` for Digimon `nameOrTrait` name token `Gabumon` | Q3201 mixed reveal adds exactly one; Q3202 cases add a non-blue Gabumon and a non-blue Tamer; Garurumon and ordinary Digimon are rejected. |
-| Place all remaining cards at the bottom in any order | `rest: "deckBottom"` | A public `orderCards` response chooses a non-default order and the settled deck matches it. |
+| Place all remaining cards at the bottom in any order    | `rest: "deckBottom"`                                                                                                      | A public `orderCards` response chooses a non-default order and the settled deck matches it.                                                |
 
 #### Q&A, stack, and boundary proof
 
@@ -793,14 +793,14 @@ Applicable local rules are Comprehensive Rules §§11-1-3/11-1-4 (the attack dec
 
 Changes are limited to EX1-011.ts, EX1-011.test.ts, and this report. The module's `@ts-nocheck` directive was removed. Security/deck Digi-Egg fixtures were replaced with inert BT1-009 cards; the only remaining Digi-Egg is a valid breeding-area source. No engine, shared, catalog, or unrelated card files were changed by this lane. No unresolved gap remains for the printed contract or Q3201/Q3202.
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog contract, Q3201/Q3202, and reveal/attack/once-per-turn rules recorded. |
-| IR trace | 2/2 | Typed full-coverage IR maps every printed clause and registers only through `registerIrCard`. |
-| Behavioral proof | 2/2 | Eight focused tests cover positive, exact reveal count, union count, non-blue candidates, name negative, bottom ordering, inherited boundary, and once-per-turn reset. |
-| Peer/stack proof | 2/2 | Mixed matching/near-matching cards, legal source stack, standalone top-card negative, and public breeding evolution are exercised. |
-| Delivery gates | 0/2 | Worker lane receives no delivery credit; collection-wide closeout, atomic commit, and push remain coordinator responsibilities. |
-| **Total** | **8/10** | Worker maximum. |
+| Rubric           |    Score | Evidence                                                                                                                                                               |
+| ---------------- | -------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |      2/2 | Catalog contract, Q3201/Q3202, and reveal/attack/once-per-turn rules recorded.                                                                                         |
+| IR trace         |      2/2 | Typed full-coverage IR maps every printed clause and registers only through `registerIrCard`.                                                                          |
+| Behavioral proof |      2/2 | Eight focused tests cover positive, exact reveal count, union count, non-blue candidates, name negative, bottom ordering, inherited boundary, and once-per-turn reset. |
+| Peer/stack proof |      2/2 | Mixed matching/near-matching cards, legal source stack, standalone top-card negative, and public breeding evolution are exercised.                                     |
+| Delivery gates   |      0/2 | Worker lane receives no delivery credit; collection-wide closeout, atomic commit, and push remain coordinator responsibilities.                                        |
+| **Total**        | **8/10** | Worker maximum.                                                                                                                                                        |
 
 ### EX1-012 — Gomamon
 
@@ -819,12 +819,12 @@ Gomamon is a blue level 3 Rookie Digimon (2000 DP, play cost 3) with a blue leve
 
 #### Clause-to-IR-to-test evidence
 
-| Contract | IR evidence | Behavioral proof |
-| --- | --- | --- |
-| On Play timing | `EX1-012.ts` uses `trigger: "OnPlay"` | The play-intent tests resolve the complete effect stack before assertions. The legal evolution test confirms evolution does not incorrectly fire this On Play effect. |
-| One opposing Digimon | `TrashDigivolution` target has `controller: "opponent"`, `kind: ["Digimon"]`, and `count: 1` | The positive test trashes a source from an opposing battle-area Digimon; an own-side stacked Digimon is included in the target-zone boundary fixture and remains unaffected. |
-| Bottom source card | `amount: 1` and `fromTop: false` | The positive test identifies the bottom source instance and asserts that exact card reaches the opponent's trash while the upper source remains in the stack. |
-| Source and target boundaries | `digivolutionCards: "hasAny"`; default permanent targeting is the battle area | A stackless opposing Digimon is not selected, and an opposing breeding-area stack remains unchanged while a battle-area opponent stack is processed. |
+| Contract                     | IR evidence                                                                                  | Behavioral proof                                                                                                                                                             |
+| ---------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play timing               | `EX1-012.ts` uses `trigger: "OnPlay"`                                                        | The play-intent tests resolve the complete effect stack before assertions. The legal evolution test confirms evolution does not incorrectly fire this On Play effect.        |
+| One opposing Digimon         | `TrashDigivolution` target has `controller: "opponent"`, `kind: ["Digimon"]`, and `count: 1` | The positive test trashes a source from an opposing battle-area Digimon; an own-side stacked Digimon is included in the target-zone boundary fixture and remains unaffected. |
+| Bottom source card           | `amount: 1` and `fromTop: false`                                                             | The positive test identifies the bottom source instance and asserts that exact card reaches the opponent's trash while the upper source remains in the stack.                |
+| Source and target boundaries | `digivolutionCards: "hasAny"`; default permanent targeting is the battle area                | A stackless opposing Digimon is not selected, and an opposing breeding-area stack remains unchanged while a battle-area opponent stack is processed.                         |
 
 #### Evolution and stack proof
 
@@ -849,14 +849,14 @@ Gomamon is a blue level 3 Rookie Digimon (2000 DP, play cost 3) with a blue leve
 
 #### Rubric
 
-| Axis | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules and Q&A | 2/2 | Catalog metadata and printed effect are reconciled; the local query has no card-specific Q&A. |
-| IR trace | 2/2 | Typed full-coverage IR maps On Play, opponent controller, Digimon kind, source presence, one target, and bottom-source trash; sole registration is `registerIrCard`. |
-| Behavioral proof | 2/2 | Five focused tests cover positive resolution, exact bottom-source identity, no-source no-op, On Play timing, and target-zone boundaries. |
-| Peer/evolution-stack proof | 2/2 | Legal blue and illegal off-color evolution routes prove source-stack identity, zero cost, draw, and rejection boundaries through public intents. |
-| Delivery gates | 0/2 | Worker lane does not receive collection-wide rerun, atomic commit, or push credit. |
-| **Total** | **8/10** | Worker maximum; collection delivery remains coordinator-owned. |
+| Axis                       |    Score | Evidence                                                                                                                                                             |
+| -------------------------- | -------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules and Q&A      |      2/2 | Catalog metadata and printed effect are reconciled; the local query has no card-specific Q&A.                                                                        |
+| IR trace                   |      2/2 | Typed full-coverage IR maps On Play, opponent controller, Digimon kind, source presence, one target, and bottom-source trash; sole registration is `registerIrCard`. |
+| Behavioral proof           |      2/2 | Five focused tests cover positive resolution, exact bottom-source identity, no-source no-op, On Play timing, and target-zone boundaries.                             |
+| Peer/evolution-stack proof |      2/2 | Legal blue and illegal off-color evolution routes prove source-stack identity, zero cost, draw, and rejection boundaries through public intents.                     |
+| Delivery gates             |      0/2 | Worker lane does not receive collection-wide rerun, atomic commit, or push credit.                                                                                   |
+| **Total**                  | **8/10** | Worker maximum; collection delivery remains coordinator-owned.                                                                                                       |
 
 #### Remaining gaps
 
@@ -876,14 +876,14 @@ No card-specific behavior gap remains for the catalog text. Collection-wide reru
 
 #### Behavioral evidence
 
-| Clause / risk | Public proof |
-| --- | --- |
-| Main-phase unsuspend gains 1 memory | Existing BT1-036 public play flow unsuspends a suspended EX1-019 host and asserts the memory endpoint. |
-| Your Turn restriction | Existing opponent-turn flow attacks/suspends the host, advances to the opponent's main phase, and verifies no EX1-013 resolution. |
-| Q3203 already-unsuspended boundary | Existing test plays BT1-036 against an active host and asserts no EX1-013 resolution or memory gain. |
-| Once per turn | Existing test performs two genuine unsuspends in one turn and asserts one resolution. |
-| Once-per-turn reset | New test resolves a first unsuspend, completes a public opponent turn, then attacks and unsuspends again on the next own turn; two EX1-013 resolutions are observed. |
-| Evolution/source identity | New test publicly evolves `BT1-003` (breeding) → EX1-013 → BT1-032 → EX1-019, asserts the preserved source stack, attacks through the stack, and resolves EX1-019's public unsuspend path with EX1-013 as source. |
+| Clause / risk                       | Public proof                                                                                                                                                                                                      |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Main-phase unsuspend gains 1 memory | Existing BT1-036 public play flow unsuspends a suspended EX1-019 host and asserts the memory endpoint.                                                                                                            |
+| Your Turn restriction               | Existing opponent-turn flow attacks/suspends the host, advances to the opponent's main phase, and verifies no EX1-013 resolution.                                                                                 |
+| Q3203 already-unsuspended boundary  | Existing test plays BT1-036 against an active host and asserts no EX1-013 resolution or memory gain.                                                                                                              |
+| Once per turn                       | Existing test performs two genuine unsuspends in one turn and asserts one resolution.                                                                                                                             |
+| Once-per-turn reset                 | New test resolves a first unsuspend, completes a public opponent turn, then attacks and unsuspends again on the next own turn; two EX1-013 resolutions are observed.                                              |
+| Evolution/source identity           | New test publicly evolves `BT1-003` (breeding) → EX1-013 → BT1-032 → EX1-019, asserts the preserved source stack, attacks through the stack, and resolves EX1-019's public unsuspend path with EX1-013 as source. |
 
 All deck/security fixtures use inert main-deck Digimon; no Digi-Egg is placed in a deck or security zone. The only Digi-Egg is the legal `BT1-003` breeding source in the evolution-stack scenario.
 
@@ -897,9 +897,9 @@ All deck/security fixtures use inert main-deck Digimon; no Digi-Egg is placed in
 
 #### Score
 
-| Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 2 | 2 | 2 | 2 | 0 | **8/10** |
+| Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates |    Total |
+| ------------: | -------: | ---------------: | ---------------: | -------------: | -------: |
+|             2 |        2 |                2 |                2 |              0 | **8/10** |
 
 No unresolved card-specific ambiguity remains. Delivery remains coordinator-owned.
 
@@ -920,13 +920,13 @@ ExVeemon is a blue level 4 Champion Digimon (4000 DP, play cost 5) with blue lev
 
 #### Clause-to-IR-to-test evidence
 
-| Contract | IR evidence | Behavioral proof |
-| --- | --- | --- |
-| Printed Jamming | `EX1-014.ts` registers a `Static` effect with the `Jamming` keyword | The main-keyword test observes Jamming on an isolated ExVeemon, and the real losing Security battle confirms the attacker remains in the battle area. |
-| Inherited timing and self target | The inherited `YourTurn` effect targets its self reference with `isSelf: true` and permanently grants Jamming | Free and Imperialdramon-name hosts gain Jamming on their controller's turn; the controller-turn test observes an opponent's host without the grant on player 0's turn and with it on player 1's turn. |
-| Imperialdramon name branch | The condition uses `selfHasNameContaining` with `Imperialdramon` | `BT3-111 Imperialdramon: Dragon Mode` is a non-Free name-only positive, so the branch is not accidentally reduced to the Free trait. |
-| Free trait branch and trait boundary | The condition uses exact `selfHasTrait` matching for `Free` | `EX1-019 Paildramon` gains Jamming, while near-match `EX1-015 Garurumon` (Vaccine) does not. |
-| Evolution requirements | Catalog evolution data supplies blue or green level-3 sources at cost 2; no alternate registration is needed | Public `digivolve` intents succeed from blue `EX1-013` and green `BT1-064`, pay 2 memory, draw the inert `BT1-009`, retain the exact source in `stack`, and expose printed Jamming. Red `BT1-009` is rejected with memory, hand, and stack unchanged. |
+| Contract                             | IR evidence                                                                                                   | Behavioral proof                                                                                                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Printed Jamming                      | `EX1-014.ts` registers a `Static` effect with the `Jamming` keyword                                           | The main-keyword test observes Jamming on an isolated ExVeemon, and the real losing Security battle confirms the attacker remains in the battle area.                                                                                                 |
+| Inherited timing and self target     | The inherited `YourTurn` effect targets its self reference with `isSelf: true` and permanently grants Jamming | Free and Imperialdramon-name hosts gain Jamming on their controller's turn; the controller-turn test observes an opponent's host without the grant on player 0's turn and with it on player 1's turn.                                                 |
+| Imperialdramon name branch           | The condition uses `selfHasNameContaining` with `Imperialdramon`                                              | `BT3-111 Imperialdramon: Dragon Mode` is a non-Free name-only positive, so the branch is not accidentally reduced to the Free trait.                                                                                                                  |
+| Free trait branch and trait boundary | The condition uses exact `selfHasTrait` matching for `Free`                                                   | `EX1-019 Paildramon` gains Jamming, while near-match `EX1-015 Garurumon` (Vaccine) does not.                                                                                                                                                          |
+| Evolution requirements               | Catalog evolution data supplies blue or green level-3 sources at cost 2; no alternate registration is needed  | Public `digivolve` intents succeed from blue `EX1-013` and green `BT1-064`, pay 2 memory, draw the inert `BT1-009`, retain the exact source in `stack`, and expose printed Jamming. Red `BT1-009` is rejected with memory, hand, and stack unchanged. |
 
 #### Evolution and controller/trait proof
 
@@ -952,14 +952,14 @@ ExVeemon is a blue level 4 Champion Digimon (4000 DP, play cost 5) with blue lev
 
 #### Rubric
 
-| Axis | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules and Q&A | 2/2 | Catalog metadata, printed clauses, local rules, and the no-Q&A query result are reconciled. |
-| IR trace | 2/2 | Typed full-coverage IR maps printed Jamming, inherited Your Turn timing, self targeting, exact Free trait, Imperialdramon name matching, and sole `registerIrCard` registration. |
-| Behavioral proof | 2/2 | Eight focused tests cover printed keyword behavior, real Security battle resolution, positive and negative inherited conditions, controller timing, and legal/illegal evolution outcomes. |
-| Peer/evolution-stack proof | 2/2 | Blue and green public evolution routes retain their source cards and draw; an off-color source is rejected; Free, non-Free Imperialdramon, and Vaccine peers distinguish the inherited filter. |
-| Delivery gates | 0/2 | Worker lane does not receive collection-wide rerun, atomic commit, or push credit. |
-| **Total** | **8/10** | Worker maximum; collection delivery remains coordinator-owned. |
+| Axis                       |    Score | Evidence                                                                                                                                                                                       |
+| -------------------------- | -------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules and Q&A      |      2/2 | Catalog metadata, printed clauses, local rules, and the no-Q&A query result are reconciled.                                                                                                    |
+| IR trace                   |      2/2 | Typed full-coverage IR maps printed Jamming, inherited Your Turn timing, self targeting, exact Free trait, Imperialdramon name matching, and sole `registerIrCard` registration.               |
+| Behavioral proof           |      2/2 | Eight focused tests cover printed keyword behavior, real Security battle resolution, positive and negative inherited conditions, controller timing, and legal/illegal evolution outcomes.      |
+| Peer/evolution-stack proof |      2/2 | Blue and green public evolution routes retain their source cards and draw; an off-color source is rejected; Free, non-Free Imperialdramon, and Vaccine peers distinguish the inherited filter. |
+| Delivery gates             |      0/2 | Worker lane does not receive collection-wide rerun, atomic commit, or push credit.                                                                                                             |
+| **Total**                  | **8/10** | Worker maximum; collection delivery remains coordinator-owned.                                                                                                                                 |
 
 #### Remaining gaps
 
@@ -982,14 +982,14 @@ Garurumon is a blue level 4 Champion Digimon (5000 DP, play cost 5) with a blue 
 
 #### Clause-to-IR-to-test evidence
 
-| Contract | IR evidence | Behavioral proof |
-| --- | --- | --- |
-| Inherited When Attacking timing | `EX1-015.ts` registers an inherited effect with `trigger: "WhenAttacking"` and `isInherited: true` | Public attack intents on a host with EX1-015 underneath resolve the effect; a public evolution stack later retains EX1-015 and resolves the same inherited effect. |
-| Once-per-turn limit | The effect declares `frequency: "OncePerTurn"` | Two attacks in one turn, with a real unsuspension between them, produce exactly one EX1-015 resolution and leave the second Matt Ishida in hand. |
-| Optionality and refusal | `optional: true` on the `PlayWithoutCost` action | The refusal test uses `autoDeclineOptional` and confirms the eligible Matt Ishida remains in hand. |
-| Exact `[Matt Ishida]` name | Target filter uses `nameOrTrait: [{ tokens: ["Matt Ishida"], match: "nameExact" }]` | Exact ST2-12 and BT15-083 cards are played; combined-name `AD1-019` is rejected. |
-| Play-cost boundary and free play | Target filter uses `playCostLte: 3`; action uses `from: ["hand"]` and `payCost: false` | Cost 2 and exact cost 3 Matt Ishida cards leave hand and enter the battle area; cost 4 BT1-086 remains in hand. |
-| Controller and count | Filter uses `controller: "mine"`; target count is `1` | Positive tests only expose the controller's hand, and the once-per-turn multi-attack test proves at most one card is played. |
+| Contract                                 | IR evidence                                                                                                             | Behavioral proof                                                                                                                                                                                                                                                               |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Inherited When Attacking timing          | `EX1-015.ts` registers an inherited effect with `trigger: "WhenAttacking"` and `isInherited: true`                      | Public attack intents on a host with EX1-015 underneath resolve the effect; a public evolution stack later retains EX1-015 and resolves the same inherited effect.                                                                                                             |
+| Once-per-turn limit                      | The effect declares `frequency: "OncePerTurn"`                                                                          | Two attacks in one turn, with a real unsuspension between them, produce exactly one EX1-015 resolution and leave the second Matt Ishida in hand.                                                                                                                               |
+| Optionality and refusal                  | `optional: true` on the `PlayWithoutCost` action                                                                        | The refusal test uses `autoDeclineOptional` and confirms the eligible Matt Ishida remains in hand.                                                                                                                                                                             |
+| Exact `[Matt Ishida]` name               | Target filter uses `nameOrTrait: [{ tokens: ["Matt Ishida"], match: "nameExact" }]`                                     | Exact ST2-12 and BT15-083 cards are played; combined-name `AD1-019` is rejected.                                                                                                                                                                                               |
+| Play-cost boundary and free play         | Target filter uses `playCostLte: 3`; action uses `from: ["hand"]` and `payCost: false`                                  | Cost 2 and exact cost 3 Matt Ishida cards leave hand and enter the battle area; cost 4 BT1-086 remains in hand.                                                                                                                                                                |
+| Controller and count                     | Filter uses `controller: "mine"`; target count is `1`                                                                   | Positive tests only expose the controller's hand, and the once-per-turn multi-attack test proves at most one card is played.                                                                                                                                                   |
 | Evolution requirement and stack identity | The catalog supplies blue level 3 / 2-memory evolution data; the module uses only `registerIrCard("EX1-015", compiled)` | Publicly evolves from blue EX1-013 to EX1-015, then into blue level-5 BT1-038; memory changes by 2 each time, draws are observed through the inert deck, and stack identity is `[EX1-013, EX1-015]`. Red BT1-009 is rejected with top card, stack, memory, and hand unchanged. |
 
 #### Evolution and boundary proof
@@ -1016,14 +1016,14 @@ Garurumon is a blue level 4 Champion Digimon (5000 DP, play cost 5) with a blue 
 
 #### Rubric
 
-| Axis | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules and Q&A | 2/2 | Catalog metadata, printed inherited clause, general evolution rules, and the no-Q&A query result are reconciled. |
-| IR trace | 2/2 | Typed full-coverage IR maps inherited timing, once-per-turn identity, optional free play, exact name, controller, hand origin, count, and cost cap, with sole `registerIrCard` registration. |
-| Behavioral proof | 2/2 | Eight focused tests cover positive play, exact-name rejection, cost boundaries, refusal, once-per-turn, final zones, and resolved pending effects. |
-| Peer/evolution-stack proof | 2/2 | A legal blue stack retains EX1-015 below a level-5 top card and resolves its inherited effect; a red source is rejected without mutation. |
-| Delivery gates | 0/2 | Worker lane does not receive collection-wide rerun, atomic commit, or push credit. |
-| **Total** | **8/10** | Worker maximum; collection delivery remains coordinator-owned. |
+| Axis                       |    Score | Evidence                                                                                                                                                                                     |
+| -------------------------- | -------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules and Q&A      |      2/2 | Catalog metadata, printed inherited clause, general evolution rules, and the no-Q&A query result are reconciled.                                                                             |
+| IR trace                   |      2/2 | Typed full-coverage IR maps inherited timing, once-per-turn identity, optional free play, exact name, controller, hand origin, count, and cost cap, with sole `registerIrCard` registration. |
+| Behavioral proof           |      2/2 | Eight focused tests cover positive play, exact-name rejection, cost boundaries, refusal, once-per-turn, final zones, and resolved pending effects.                                           |
+| Peer/evolution-stack proof |      2/2 | A legal blue stack retains EX1-015 below a level-5 top card and resolves its inherited effect; a red source is rejected without mutation.                                                    |
+| Delivery gates             |      0/2 | Worker lane does not receive collection-wide rerun, atomic commit, or push credit.                                                                                                           |
+| **Total**                  | **8/10** | Worker maximum; collection delivery remains coordinator-owned.                                                                                                                               |
 
 #### Remaining gaps
 
@@ -1052,15 +1052,15 @@ The compiled IR contains one `YourTurn` effect targeting self with `GrantCanAtta
 
 `apps/api/src/cards/EX1/EX1-016.test.ts` has 7 focused tests:
 
-| Printed/rules boundary | Test evidence |
-| --- | --- |
-| Positive stackless unsuspended attack | Observes the Your Turn grant and declares an attack against an unsuspended opponent with no sources. |
-| Evolution-stack boundary | Rejects an unsuspended opponent with a legal blue source under the top Digimon. |
-| Suspended target boundary | Allows a suspended opponent with sources, proving the card does not add an unrelated stack restriction to ordinary attacks. |
-| Controller and zone boundaries | Rejects own Digimon and an opponent's breeding-area Digimon; accepts an opponent's stackless battle-area Digimon. |
-| Turn boundary | Observes the grant during the controller's main phase and its removal during the opponent's turn; the out-of-turn attack is rejected. |
-| Legal evolution stack | Evolves EX1-016 from blue level-3 EX1-013, verifies the source remains in `Permanent.stack`, memory decreases by 2, and the card leaves hand. |
-| Illegal evolution stack | Rejects evolution from red level-3 BT1-009, preserving the source, empty stack, hand, and memory. |
+| Printed/rules boundary                | Test evidence                                                                                                                                 |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Positive stackless unsuspended attack | Observes the Your Turn grant and declares an attack against an unsuspended opponent with no sources.                                          |
+| Evolution-stack boundary              | Rejects an unsuspended opponent with a legal blue source under the top Digimon.                                                               |
+| Suspended target boundary             | Allows a suspended opponent with sources, proving the card does not add an unrelated stack restriction to ordinary attacks.                   |
+| Controller and zone boundaries        | Rejects own Digimon and an opponent's breeding-area Digimon; accepts an opponent's stackless battle-area Digimon.                             |
+| Turn boundary                         | Observes the grant during the controller's main phase and its removal during the opponent's turn; the out-of-turn attack is rejected.         |
+| Legal evolution stack                 | Evolves EX1-016 from blue level-3 EX1-013, verifies the source remains in `Permanent.stack`, memory decreases by 2, and the card leaves hand. |
+| Illegal evolution stack               | Rejects evolution from red level-3 BT1-009, preserving the source, empty stack, hand, and memory.                                             |
 
 All fixtures use inert main-deck Digimon where deck cards are needed. No Digi-Egg appears in a deck or security fixture, and no numeric security shortcut is used.
 
@@ -1078,14 +1078,14 @@ No card-specific Q&A was returned. No shared engine seam or unsupported behavior
 
 #### Rubric
 
-| Area | Score |
-| --- | ---: |
-| Catalog/rules | 2/2 |
-| IR trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Area                       |    Score |
+| -------------------------- | -------: |
+| Catalog/rules              |      2/2 |
+| IR trace                   |      2/2 |
+| Behavioral proof           |      2/2 |
+| Peer/evolution-stack proof |      2/2 |
+| Delivery gates             |      0/2 |
+| **Total**                  | **8/10** |
 
 ### EX1-017 — WereGarurumon
 
@@ -1104,13 +1104,13 @@ additional EX1-017 ruling or erratum was exposed by the local KB index.
 
 #### Clause-to-implementation and proof mapping
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| When Digivolving, draw 1 | `Draw` amount 1 on `WhenDigivolving` | `draws 1 when digivolving` proves the card leaves the deck, enters hand, and resolves after a legal EX1-014 (blue Lv.4) evolution; it also asserts top card, preserved source stack, and 3-memory cost. |
-| Inherited attack effect | `GainMemory` amount 1 on `WhenAttacking`, `isInherited: true` | Attack tests place EX1-017 beneath EX1-021 and use the public `attack` intent. |
-| Exact threshold | `zoneCount` hand `gte: 8` | Separate 8-card and 7-card fixtures prove the inclusive boundary and negative path. |
-| Once per turn | `frequency: "OncePerTurn"` | Two attacks in one turn resolve EX1-017 once; a public `startTurnLoop` then proves it resolves again on the next own turn. |
-| Evolution legality | Catalog-derived engine evolution validation | Legal blue Lv.4 evolution preserves the source stack; a red Lv.3 source is rejected without changing stack, hand, or memory. |
+| Clause                   | IR                                                            | Behavioral proof                                                                                                                                                                                        |
+| ------------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| When Digivolving, draw 1 | `Draw` amount 1 on `WhenDigivolving`                          | `draws 1 when digivolving` proves the card leaves the deck, enters hand, and resolves after a legal EX1-014 (blue Lv.4) evolution; it also asserts top card, preserved source stack, and 3-memory cost. |
+| Inherited attack effect  | `GainMemory` amount 1 on `WhenAttacking`, `isInherited: true` | Attack tests place EX1-017 beneath EX1-021 and use the public `attack` intent.                                                                                                                          |
+| Exact threshold          | `zoneCount` hand `gte: 8`                                     | Separate 8-card and 7-card fixtures prove the inclusive boundary and negative path.                                                                                                                     |
+| Once per turn            | `frequency: "OncePerTurn"`                                    | Two attacks in one turn resolve EX1-017 once; a public `startTurnLoop` then proves it resolves again on the next own turn.                                                                              |
+| Evolution legality       | Catalog-derived engine evolution validation                   | Legal blue Lv.4 evolution preserves the source stack; a red Lv.3 source is rejected without changing stack, hand, or memory.                                                                            |
 
 All deck and Security fixtures use inert main-deck Digimon (`BT1-009` or
 `BT1-029`); no Digi-Egg or numeric Security shortcut is used.
@@ -1138,13 +1138,13 @@ git diff --check
 
 #### Rubric
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Catalog fields and printed clauses checked; KB query recorded with no Q&A. |
-| IR fidelity | 2/2 | Both effects, inherited status, threshold, and frequency map directly to compiled IR. |
-| Behavioral proof | 2/2 | Draw, attack, 8/7 boundary, public turn flow, once-per-turn, and final observable state pass. |
-| Peer and stack proof | 2/2 | Legal blue Lv.4 stack and illegal source rejection are proven; no trait-filter peer ambiguity applies. |
-| Delivery gates | 0/2 | Worker does not commit or push; collection gates are coordinator-owned. |
+| Area                 | Score | Evidence                                                                                               |
+| -------------------- | ----: | ------------------------------------------------------------------------------------------------------ |
+| Catalog and rules    |   2/2 | Catalog fields and printed clauses checked; KB query recorded with no Q&A.                             |
+| IR fidelity          |   2/2 | Both effects, inherited status, threshold, and frequency map directly to compiled IR.                  |
+| Behavioral proof     |   2/2 | Draw, attack, 8/7 boundary, public turn flow, once-per-turn, and final observable state pass.          |
+| Peer and stack proof |   2/2 | Legal blue Lv.4 stack and illegal source rejection are proven; no trait-filter peer ambiguity applies. |
+| Delivery gates       |   0/2 | Worker does not commit or push; collection gates are coordinator-owned.                                |
 
 **Total: 8/10 (worker maximum).**
 
@@ -1170,28 +1170,28 @@ No card-specific ambiguity or erratum was found.
 
 `apps/api/src/cards/EX1/EX1-018.ts` is typed without `@ts-nocheck` and registers executable behavior only through `registerIrCard("EX1-018", compiled)`.
 
-| Contract | IR evidence |
-| --- | --- |
-| When Digivolving bottom-source trash | `trigger: "WhenDigivolving"` with `TrashDigivolution`, opponent Digimon target, `amount: 1`, and `fromTop: false`. |
+| Contract                                                 | IR evidence                                                                                                                                           |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| When Digivolving bottom-source trash                     | `trigger: "WhenDigivolving"` with `TrashDigivolution`, opponent Digimon target, `amount: 1`, and `fromTop: false`.                                    |
 | Any opposing Digimon target, with no source prerequisite | Target filter is opponent + Digimon only; a stackless opponent is a valid target but the action resolves as a no-op when there is no source to trash. |
-| Your Turn unsuspended attack permission | `trigger: "YourTurn"` with self-targeted `GrantCanAttackUnsuspended`, permanent duration, and `noDigivolutionCards: true`. |
-| Sole registration | The module contains no legacy `registerCard` call. |
+| Your Turn unsuspended attack permission                  | `trigger: "YourTurn"` with self-targeted `GrantCanAttackUnsuspended`, permanent duration, and `noDigivolutionCards: true`.                            |
+| Sole registration                                        | The module contains no legacy `registerCard` call.                                                                                                    |
 
 #### Behavioral proof
 
 `apps/api/src/cards/EX1/EX1-018.test.ts` has 9 focused tests:
 
-| Boundary | Test evidence |
-| --- | --- |
-| Bottom versus top source | A two-source opposing stack loses exactly its bottom instance to the opponent's trash; the upper source remains in the stack and is not trashed. |
-| No-source target | A stackless opposing Digimon remains unchanged when the mandatory source-trash action has no source available. |
-| Controller and zone targeting | With an own stacked Digimon, an opposing battle-area stack, and an opposing breeding-area stack, only the opposing battle-area source is trashed; own and breeding stacks remain unchanged. |
-| Stackless attack positive path | Zudomon successfully attacks an opposing unsuspended battle-area Digimon with no evolution sources. |
-| Evolution-stack attack boundary | An unsuspended opposing Digimon with an evolution source is rejected as an illegal target. |
-| Controller and zone attack boundaries | Own Digimon and an opposing breeding-area Digimon are rejected; an opposing battle-area stackless Digimon is accepted. |
-| Turn boundary | The unsuspended-target permission is present during Zudomon's controller's turn and absent during the opponent's turn. |
-| Legal evolution | Zudomon evolves from blue level-4 EX1-014, costs 3 memory, leaves EX1-014 below the top card, and leaves the inert deck card in hand after the draw. |
-| Illegal evolution | Red level-4 BT1-014 is rejected with top card, stack, memory, and hand unchanged. |
+| Boundary                              | Test evidence                                                                                                                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bottom versus top source              | A two-source opposing stack loses exactly its bottom instance to the opponent's trash; the upper source remains in the stack and is not trashed.                                            |
+| No-source target                      | A stackless opposing Digimon remains unchanged when the mandatory source-trash action has no source available.                                                                              |
+| Controller and zone targeting         | With an own stacked Digimon, an opposing battle-area stack, and an opposing breeding-area stack, only the opposing battle-area source is trashed; own and breeding stacks remain unchanged. |
+| Stackless attack positive path        | Zudomon successfully attacks an opposing unsuspended battle-area Digimon with no evolution sources.                                                                                         |
+| Evolution-stack attack boundary       | An unsuspended opposing Digimon with an evolution source is rejected as an illegal target.                                                                                                  |
+| Controller and zone attack boundaries | Own Digimon and an opposing breeding-area Digimon are rejected; an opposing battle-area stackless Digimon is accepted.                                                                      |
+| Turn boundary                         | The unsuspended-target permission is present during Zudomon's controller's turn and absent during the opponent's turn.                                                                      |
+| Legal evolution                       | Zudomon evolves from blue level-4 EX1-014, costs 3 memory, leaves EX1-014 below the top card, and leaves the inert deck card in hand after the draw.                                        |
+| Illegal evolution                     | Red level-4 BT1-014 is rejected with top card, stack, memory, and hand unchanged.                                                                                                           |
 
 All fixtures avoid Digi-Eggs in decks or security and avoid numeric security shortcuts. No injected timing or raw effect trigger is used as proof; the tests use public `digivolve` and `attack` intents and settle pending effects before assertions.
 
@@ -1209,14 +1209,14 @@ No card-specific Q&A or shared engine seam was identified. Collection-wide rerun
 
 #### Rubric
 
-| Area | Score |
-| --- | ---: |
-| Catalog/rules | 2/2 |
-| IR trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Area                       |    Score |
+| -------------------------- | -------: |
+| Catalog/rules              |      2/2 |
+| IR trace                   |      2/2 |
+| Behavioral proof           |      2/2 |
+| Peer/evolution-stack proof |      2/2 |
+| Delivery gates             |      0/2 |
+| **Total**                  | **8/10** |
 
 ### EX1-019 — Paildramon
 
@@ -1239,26 +1239,26 @@ Catalog source: `packages/shared/src/cards/data/cards.json`.
 
 `apps/api/src/cards/EX1/EX1-019.ts` is typed without `@ts-nocheck` and registers executable behavior only through `registerIrCard("EX1-019", compiled)`.
 
-| Contract | IR evidence |
-| --- | --- |
-| Free-source When Digivolving unsuspend | `WhenDigivolving` has a self-targeted `Unsuspend` action guarded by `selfDigivolutionStackHasTrait` for the exact `Free` trait. |
-| Inherited Imperialdramon restriction | `YourTurn` is marked `isInherited: true`; its self-targeted aura applies `restriction: "cantBeBlocked"` only while the host name contains `Imperialdramon`. |
-| Sole registration | The module has no legacy `registerCard` call. |
+| Contract                               | IR evidence                                                                                                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free-source When Digivolving unsuspend | `WhenDigivolving` has a self-targeted `Unsuspend` action guarded by `selfDigivolutionStackHasTrait` for the exact `Free` trait.                             |
+| Inherited Imperialdramon restriction   | `YourTurn` is marked `isInherited: true`; its self-targeted aura applies `restriction: "cantBeBlocked"` only while the host name contains `Imperialdramon`. |
+| Sole registration                      | The module has no legacy `registerCard` call.                                                                                                               |
 
 #### Behavioral proof
 
 `apps/api/src/cards/EX1/EX1-019.test.ts` has 9 focused tests:
 
-| Boundary | Test evidence |
-| --- | --- |
-| Free-stack unsuspend | A legal blue EX1-014 evolution into Paildramon starts suspended, resolves through the public `digivolve` intent, unsuspends, leaves EX1-014 below EX1-019, pays exactly 3 memory, and empties the evolution card from hand. |
-| Trait negative | A legal blue BT1-032 evolution has no Free source, remains suspended, and still pays the normal evolution cost; the retained source stack proves the condition was not silently bypassed. |
-| Legal/illegal evolution routes | A red BT1-014 level-4 source is rejected as `invalid-evolution` with stack, suspension, memory, and hand unchanged. |
+| Boundary                        | Test evidence                                                                                                                                                                                                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free-stack unsuspend            | A legal blue EX1-014 evolution into Paildramon starts suspended, resolves through the public `digivolve` intent, unsuspends, leaves EX1-014 below EX1-019, pays exactly 3 memory, and empties the evolution card from hand.                                           |
+| Trait negative                  | A legal blue BT1-032 evolution has no Free source, remains suspended, and still pays the normal evolution cost; the retained source stack proves the condition was not silently bypassed.                                                                             |
+| Legal/illegal evolution routes  | A red BT1-014 level-4 source is rejected as `invalid-evolution` with stack, suspension, memory, and hand unchanged.                                                                                                                                                   |
 | Q3204/Q3206 real block boundary | An Imperialdramon: Dragon Mode carrying EX1-019 attacks the opponent's player with a real Blocker present; security resolves, no `blockWindowOpened` event occurs, the blocker remains unsuspended, and a public `declareBlock` attempt is rejected as `wrong-phase`. |
-| Q3205 suspended-Digimon target | The same inherited restriction does not prevent an attack against an opponent's suspended Digimon; public combat resolves and the weaker target is deleted without a block window. |
-| Name boundary | A Paildramon host carrying EX1-014 is not restricted, opens the real block window, and can be redirected by a Blocker. |
-| Controller boundary | An Imperialdramon host owned by seat 1 is restricted while seat 1 is the active turn owner. |
-| Turn duration | The own Imperialdramon host is restricted on seat 0's turn and unrestricted after public turn flow advances to seat 1's turn. |
+| Q3205 suspended-Digimon target  | The same inherited restriction does not prevent an attack against an opponent's suspended Digimon; public combat resolves and the weaker target is deleted without a block window.                                                                                    |
+| Name boundary                   | A Paildramon host carrying EX1-014 is not restricted, opens the real block window, and can be redirected by a Blocker.                                                                                                                                                |
+| Controller boundary             | An Imperialdramon host owned by seat 1 is restricted while seat 1 is the active turn owner.                                                                                                                                                                           |
+| Turn duration                   | The own Imperialdramon host is restricted on seat 0's turn and unrestricted after public turn flow advances to seat 1's turn.                                                                                                                                         |
 
 All tests use public `digivolve`, `attack`, `declareBlock`, turn-loop, and
 `settle()` behavior. Deck and Security fixtures use inert main-deck Digimon;
@@ -1279,14 +1279,14 @@ No unresolved EX1-019 rules ambiguity or engine seam was identified. The API typ
 
 #### Rubric
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Catalog clauses and Q3204-Q3206 were queried and recorded. |
-| IR fidelity | 2/2 | Both printed effects, inherited status, exact Free trait guard, and Imperialdramon name guard map directly to compiled IR. |
-| Behavioral proof | 2/2 | Free/non-Free unsuspend, real Blocker interactions, Q3204-Q3206, name/controller/turn boundaries, final zones, and public illegal actions pass. |
-| Peer and stack proof | 2/2 | Legal blue and illegal red evolution stacks, source identity, inherited host stack, and a near-matching Paildramon host are proven. |
-| Delivery gates | 0/2 | Worker does not commit or push; collection gates are coordinator-owned. |
-| **Total** | **8/10** | Worker maximum. |
+| Area                 |    Score | Evidence                                                                                                                                        |
+| -------------------- | -------: | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules    |      2/2 | Catalog clauses and Q3204-Q3206 were queried and recorded.                                                                                      |
+| IR fidelity          |      2/2 | Both printed effects, inherited status, exact Free trait guard, and Imperialdramon name guard map directly to compiled IR.                      |
+| Behavioral proof     |      2/2 | Free/non-Free unsuspend, real Blocker interactions, Q3204-Q3206, name/controller/turn boundaries, final zones, and public illegal actions pass. |
+| Peer and stack proof |      2/2 | Legal blue and illegal red evolution stacks, source identity, inherited host stack, and a near-matching Paildramon host are proven.             |
+| Delivery gates       |      0/2 | Worker does not commit or push; collection gates are coordinator-owned.                                                                         |
+| **Total**            | **8/10** | Worker maximum.                                                                                                                                 |
 
 ### EX1-020 — Plesiomon
 
@@ -1308,28 +1308,28 @@ No card-specific ambiguity or erratum was found.
 
 `apps/api/src/cards/EX1/EX1-020.ts` is typed without `@ts-nocheck` and registers executable behavior only through `registerIrCard("EX1-020", compiled)`.
 
-| Contract | IR evidence |
-| --- | --- |
-| Opponent source-trash reaction | `[Your Turn]` + `frequency: "OncePerTurn"` installs a `SubTrigger` for `whenDigivolutionTrashed` with `sourceFilter: { controller: "opponent", kind: ["Digimon"] }`. |
-| Optional once-per-turn Draw 2 | The watcher is `optional: true` and its sole payload is `{ kind: "Draw", amount: 2 }`; the once-per-turn key is threaded by the interpreter from the enclosing effect. |
-| Your Turn attack permission | A separate `[Your Turn]` effect grants the self `GrantCanAttackUnsuspended` permission with `noDigivolutionCards: true` until the controller's turn ends. |
-| Sole registration | The module contains no legacy `registerCard` call. |
+| Contract                       | IR evidence                                                                                                                                                            |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Opponent source-trash reaction | `[Your Turn]` + `frequency: "OncePerTurn"` installs a `SubTrigger` for `whenDigivolutionTrashed` with `sourceFilter: { controller: "opponent", kind: ["Digimon"] }`.   |
+| Optional once-per-turn Draw 2  | The watcher is `optional: true` and its sole payload is `{ kind: "Draw", amount: 2 }`; the once-per-turn key is threaded by the interpreter from the enclosing effect. |
+| Your Turn attack permission    | A separate `[Your Turn]` effect grants the self `GrantCanAttackUnsuspended` permission with `noDigivolutionCards: true` until the controller's turn ends.              |
+| Sole registration              | The module contains no legacy `registerCard` call.                                                                                                                     |
 
 #### Behavioral proof
 
 `apps/api/src/cards/EX1/EX1-020.test.ts` has 12 focused tests:
 
-| Boundary | Test evidence |
-| --- | --- |
-| Attack permission positive path | Plesiomon attacks an opposing unsuspended, stackless Digimon through the public `attack` intent. |
-| Attack target boundaries | Public attack intents reject own, opposing stacked, and opposing breeding-area Digimon; a separate public attack accepts an ordinary suspended opposing Digimon. |
-| Opponent source and zone scope | A public BT14-083 On Play effect trashes exactly an opposing battle-area source; Plesiomon draws 2 while own and opposing breeding stacks remain unchanged. |
-| Optional refusal | With `autoDeclineOptional`, the EX1-020 optional decision is observed and no cards are drawn after the opponent source is trashed. |
-| Once-per-turn boundary | Two opponent source trashes in one turn produce exactly one EX1-020 optional decision and one Draw 2. |
-| Next-own-turn reset | The public turn loop accepts the first Draw 2 in turn one, skips the second, then accepts another Draw 2 after the next own turn begins. |
-| Legal evolution stack | Plesiomon evolves from blue level-5 EX1-018 for 3 memory, draws the evolution card's bonus card, and preserves EX1-018 below the top card. |
-| Illegal evolution | Red level-5 BT1-021 is rejected with top card, stack, memory, and hand unchanged. |
-| Turn/source timing control | The opponent-turn public flow trashes only the opponent's own source and does not draw from the Plesiomon watcher. |
+| Boundary                        | Test evidence                                                                                                                                                    |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Attack permission positive path | Plesiomon attacks an opposing unsuspended, stackless Digimon through the public `attack` intent.                                                                 |
+| Attack target boundaries        | Public attack intents reject own, opposing stacked, and opposing breeding-area Digimon; a separate public attack accepts an ordinary suspended opposing Digimon. |
+| Opponent source and zone scope  | A public BT14-083 On Play effect trashes exactly an opposing battle-area source; Plesiomon draws 2 while own and opposing breeding stacks remain unchanged.      |
+| Optional refusal                | With `autoDeclineOptional`, the EX1-020 optional decision is observed and no cards are drawn after the opponent source is trashed.                               |
+| Once-per-turn boundary          | Two opponent source trashes in one turn produce exactly one EX1-020 optional decision and one Draw 2.                                                            |
+| Next-own-turn reset             | The public turn loop accepts the first Draw 2 in turn one, skips the second, then accepts another Draw 2 after the next own turn begins.                         |
+| Legal evolution stack           | Plesiomon evolves from blue level-5 EX1-018 for 3 memory, draws the evolution card's bonus card, and preserves EX1-018 below the top card.                       |
+| Illegal evolution               | Red level-5 BT1-021 is rejected with top card, stack, memory, and hand unchanged.                                                                                |
+| Turn/source timing control      | The opponent-turn public flow trashes only the opponent's own source and does not draw from the Plesiomon watcher.                                               |
 
 All fixtures use inert main-deck Digimon (`BT1-009` etc.); no Digi-Egg appears in a deck or security fixture, and no numeric security shortcut is used. No injected timing or raw effect trigger is used as proof; source trash, evolution, attacks, optional decisions, turn transitions, and settlement all use public intents and observable state.
 
@@ -1347,14 +1347,14 @@ No card-specific Q&A or shared engine seam was identified. Collection-wide rerun
 
 #### Rubric
 
-| Area | Score |
-| --- | ---: |
-| Catalog/rules | 2/2 |
-| IR trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Area                       |    Score |
+| -------------------------- | -------: |
+| Catalog/rules              |      2/2 |
+| IR trace                   |      2/2 |
+| Behavioral proof           |      2/2 |
+| Peer/evolution-stack proof |      2/2 |
+| Delivery gates             |      0/2 |
+| **Total**                  | **8/10** |
 
 ### EX1-021 — MetalGarurumon
 
@@ -1379,27 +1379,27 @@ No card-specific ambiguity or erratum was found.
 
 `apps/api/src/cards/EX1/EX1-021.ts` is typed without `@ts-nocheck` and registers executable behavior only through `registerIrCard("EX1-021", compiled)`.
 
-| Contract | IR evidence |
-| --- | --- |
-| When Digivolving hand scaling | The `WhenDigivolving` action uses `GainMemory` with `scaling.per: 4`, `unit: "cards"`, and a controller-owned `hand` filter. |
-| Attack condition | The `WhenAttacking` return action requires the `allOf` conditions `handAtLeast: 8` and `youHave` a controller-owned `Tamer`. |
-| On Deletion target | The opponent Digimon filter uses `nameOrTrait: [{ tokens: ["On Deletion"], match: "text" }]`, covering printed, inherited, and effect-granted text. |
+| Contract                       | IR evidence                                                                                                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| When Digivolving hand scaling  | The `WhenDigivolving` action uses `GainMemory` with `scaling.per: 4`, `unit: "cards"`, and a controller-owned `hand` filter.                                       |
+| Attack condition               | The `WhenAttacking` return action requires the `allOf` conditions `handAtLeast: 8` and `youHave` a controller-owned `Tamer`.                                       |
+| On Deletion target             | The opponent Digimon filter uses `nameOrTrait: [{ tokens: ["On Deletion"], match: "text" }]`, covering printed, inherited, and effect-granted text.                |
 | Bottom return and source trash | `to: "deckBottom"` delegates to the shared whole-permanent return primitive, which puts the top card at the owner's deck bottom and trashes every attached source. |
-| Frequency/registration | Neither effect has a `frequency`/OPT field; the file contains no legacy `registerCard` call. |
+| Frequency/registration         | Neither effect has a `frequency`/OPT field; the file contains no legacy `registerCard` call.                                                                       |
 
 #### Behavioral proof
 
 `apps/api/src/cards/EX1/EX1-021.test.ts` has 9 focused tests:
 
-| Boundary | Test evidence |
-| --- | --- |
-| Hand scaling positive and Q3207 | Public digivolution from a blue level-5 stack with 5 cards remaining after the normal digivolution draw gains exactly 1 memory; 8 cards gains 2. |
-| Hand scaling lower boundary | 3 cards remaining gains 0 memory, proving the floor at fewer than 4. |
-| Exact attack condition and source movement | With exactly 8 cards and a Tamer, a target with a printed `[On Deletion]` effect moves to the owner's deck bottom and both attached sources move to that owner's trash. |
-| Q3208 inherited target | A blue level-4 Digimon with a BT1-030 source (whose inherited text is `[On Deletion] Gain 1 memory`) is returned successfully; its top card reaches deck bottom and its inherited source reaches trash. |
-| Missing condition gates | Exactly 8 cards without a Tamer, and a Tamer with exactly 7 cards, both leave the opposing target in the battle area. |
-| No accidental OPT / repeat boundary | Two separate MetalGarurumon attackers resolve the return effect against two eligible targets in the same turn, proving no once-per-turn budget or reset is incorrectly imposed. |
-| Evolution-stack scope | The positive return case uses a legal blue egg → level 3 → level 4 stack and asserts source instance IDs are in trash while only the top card is in deck. |
+| Boundary                                   | Test evidence                                                                                                                                                                                           |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hand scaling positive and Q3207            | Public digivolution from a blue level-5 stack with 5 cards remaining after the normal digivolution draw gains exactly 1 memory; 8 cards gains 2.                                                        |
+| Hand scaling lower boundary                | 3 cards remaining gains 0 memory, proving the floor at fewer than 4.                                                                                                                                    |
+| Exact attack condition and source movement | With exactly 8 cards and a Tamer, a target with a printed `[On Deletion]` effect moves to the owner's deck bottom and both attached sources move to that owner's trash.                                 |
+| Q3208 inherited target                     | A blue level-4 Digimon with a BT1-030 source (whose inherited text is `[On Deletion] Gain 1 memory`) is returned successfully; its top card reaches deck bottom and its inherited source reaches trash. |
+| Missing condition gates                    | Exactly 8 cards without a Tamer, and a Tamer with exactly 7 cards, both leave the opposing target in the battle area.                                                                                   |
+| No accidental OPT / repeat boundary        | Two separate MetalGarurumon attackers resolve the return effect against two eligible targets in the same turn, proving no once-per-turn budget or reset is incorrectly imposed.                         |
+| Evolution-stack scope                      | The positive return case uses a legal blue egg → level 3 → level 4 stack and asserts source instance IDs are in trash while only the top card is in deck.                                               |
 
 All attack and evolution proof uses public intents, `settle()`, and observable game state. Security fixtures use inert main-deck Digimon (`BT1-012`, `BT1-013`); no Digi-Egg appears in deck or security, and no numeric security shortcut or injected timing was used.
 
@@ -1417,14 +1417,14 @@ No card-specific behavior gap or shared engine seam was identified. The API type
 
 #### Rubric
 
-| Area | Score |
-| --- | ---: |
-| Catalog/rules | 2/2 |
-| IR trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Area                       |    Score |
+| -------------------------- | -------: |
+| Catalog/rules              |      2/2 |
+| IR trace                   |      2/2 |
+| Behavioral proof           |      2/2 |
+| Peer/evolution-stack proof |      2/2 |
+| Delivery gates             |      0/2 |
+| **Total**                  | **8/10** |
 
 ### EX1-022 — Imperialdramon: Dragon Mode
 
@@ -1446,26 +1446,26 @@ No card-specific ambiguity or erratum was found.
 
 `apps/api/src/cards/EX1/EX1-022.ts` is typed without `@ts-nocheck` and registers executable behavior only through `registerIrCard("EX1-022", compiled)`.
 
-| Contract | IR evidence |
-| --- | --- |
+| Contract                             | IR evidence                                                                                                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Free-source When Digivolving actions | `WhenDigivolving` contains self-targeted `Unsuspend` and opponent-Digimon `Suspend` actions, both guarded by `selfDigivolutionStackHasTrait` for the exact `Free` trait. |
-| Your Turn DP bonus | `YourTurn` contains self-targeted `ModifyDP` for `1000`, permanent duration, scaling by `digivolutionCardColors`, which counts distinct source colors. |
-| Sole registration | The module contains no legacy `registerCard` call. |
+| Your Turn DP bonus                   | `YourTurn` contains self-targeted `ModifyDP` for `1000`, permanent duration, scaling by `digivolutionCardColors`, which counts distinct source colors.                   |
+| Sole registration                    | The module contains no legacy `registerCard` call.                                                                                                                       |
 
 #### Behavioral proof
 
 `apps/api/src/cards/EX1/EX1-022.test.ts` has 9 focused tests:
 
-| Boundary | Test evidence |
-| --- | --- |
-| Blue normal evolution | A suspended EX1-019 blue Lv.5 source legally evolves for exactly 3 memory; EX1-014 and EX1-019 remain below EX1-022 in order, the evolution draw is observed, and the Free actions unsuspend the host and suspend the opponent. |
-| Green normal evolution | A suspended EX1-041 green Lv.5 source legally evolves for exactly 3 memory, draws 1, preserves EX1-038/EX1-041 in the stack, and resolves the Free actions. |
+| Boundary                 | Test evidence                                                                                                                                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Blue normal evolution    | A suspended EX1-019 blue Lv.5 source legally evolves for exactly 3 memory; EX1-014 and EX1-019 remain below EX1-022 in order, the evolution draw is observed, and the Free actions unsuspend the host and suspend the opponent.             |
+| Green normal evolution   | A suspended EX1-041 green Lv.5 source legally evolves for exactly 3 memory, draws 1, preserves EX1-038/EX1-041 in the stack, and resolves the Free actions.                                                                                 |
 | DNA-created source stack | BT12-022 and BT12-050 legally DNA digivolve into BT12-028; that real stack then legally evolves into EX1-022 for 3, with both DNA sources and BT12-028 retained, exact memory and both evolution draws asserted, and Free actions resolved. |
-| Q3209 | Four blue source cards grant only +1000 DP, not +4000. |
-| Distinct-color scaling | One blue and one green source grant +2000 DP; duplicate blue sources grant only +1000 DP. |
-| Non-Free source | A legal BT1-041 blue Lv.5 route evolves normally but does not unsuspend the host or suspend the opponent. |
-| Invalid normal route | Red Lv.5 BT1-020 is rejected with memory, hand, top card, and stack unchanged. |
-| Invalid DNA route | A direct `dnaDigivolve` attempt into EX1-022 is rejected because the card has no DNA requirement, with both materials and memory unchanged. |
+| Q3209                    | Four blue source cards grant only +1000 DP, not +4000.                                                                                                                                                                                      |
+| Distinct-color scaling   | One blue and one green source grant +2000 DP; duplicate blue sources grant only +1000 DP.                                                                                                                                                   |
+| Non-Free source          | A legal BT1-041 blue Lv.5 route evolves normally but does not unsuspend the host or suspend the opponent.                                                                                                                                   |
+| Invalid normal route     | Red Lv.5 BT1-020 is rejected with memory, hand, top card, and stack unchanged.                                                                                                                                                              |
+| Invalid DNA route        | A direct `dnaDigivolve` attempt into EX1-022 is rejected because the card has no DNA requirement, with both materials and memory unchanged.                                                                                                 |
 
 All proof uses public evolution intents, settled observable state, exact memory/hand/stack endpoints, and inert main-deck Digimon. No Digi-Egg appears in a deck or Security fixture, no numeric Security shortcut is used, and no injected timing primitive is used as proof.
 
@@ -1483,14 +1483,14 @@ No unresolved EX1-022 rules ambiguity or engine seam was identified. The API typ
 
 #### Rubric
 
-| Area | Score |
-| --- | ---: |
-| Catalog and rules | 2/2 |
-| IR trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer and evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Area                           |    Score |
+| ------------------------------ | -------: |
+| Catalog and rules              |      2/2 |
+| IR trace                       |      2/2 |
+| Behavioral proof               |      2/2 |
+| Peer and evolution-stack proof |      2/2 |
+| Delivery gates                 |      0/2 |
+| **Total**                      | **8/10** |
 
 ### EX1-023 — Elecmon
 
@@ -1508,23 +1508,23 @@ Catalog source: `packages/shared/src/cards/data/cards.json`.
 
 `apps/api/src/cards/EX1/EX1-023.ts` is typed without `@ts-nocheck` and registers executable behavior only through `registerIrCard("EX1-023", compiled)`.
 
-| Contract | IR evidence |
-| --- | --- |
-| Inherited deletion trigger | The sole effect uses `trigger: "OnDeletion"` and `isInherited: true`. |
-| Opponent Digimon target | `GainKeyword` targets `controller: "opponent"`, `kind: ["Digimon"]`, with `count: 1`. |
-| Security Attack reduction | The keyword is `SecurityAttack`, amount `-1`, with the printed raw keyword text. |
-| Duration and registration | `duration: "forTheTurn"`; no legacy `registerCard` call exists. |
+| Contract                   | IR evidence                                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------- |
+| Inherited deletion trigger | The sole effect uses `trigger: "OnDeletion"` and `isInherited: true`.                 |
+| Opponent Digimon target    | `GainKeyword` targets `controller: "opponent"`, `kind: ["Digimon"]`, with `count: 1`. |
+| Security Attack reduction  | The keyword is `SecurityAttack`, amount `-1`, with the printed raw keyword text.      |
+| Duration and registration  | `duration: "forTheTurn"`; no legacy `registerCard` call exists.                       |
 
 #### Behavioral proof
 
 `apps/api/src/cards/EX1/EX1-023.test.ts` has 4 focused tests:
 
-| Boundary | Test evidence |
-| --- | --- |
+| Boundary                               | Test evidence                                                                                                                                                                                                                                        |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Real deletion and real security attack | A public ST6-15 play deletes the real host carrying EX1-023 in its evolution stack. The opposing ST6-08 then attacks the player through a public attack intent; with Security Attack -1, the defending player's two security cards remain unchanged. |
-| Controller and kind boundary | The same deletion leaves a separate own level-5 Digimon at Security Attack 0; a separate case with an opposing Tamer also remains at 0. The opposing Digimon receives the reduction. |
-| Duration | The positive reduction is observed during the deleting player's turn and is 0 after that turn ends. |
-| Evolution/inherited boundary | A top-card EX1-023 is deleted through the same public effect but does not supply inherited text: the opposing attacker has Security Attack 0 and removes exactly one security card. |
+| Controller and kind boundary           | The same deletion leaves a separate own level-5 Digimon at Security Attack 0; a separate case with an opposing Tamer also remains at 0. The opposing Digimon receives the reduction.                                                                 |
+| Duration                               | The positive reduction is observed during the deleting player's turn and is 0 after that turn ends.                                                                                                                                                  |
+| Evolution/inherited boundary           | A top-card EX1-023 is deleted through the same public effect but does not supply inherited text: the opposing attacker has Security Attack 0 and removes exactly one security card.                                                                  |
 
 All tests use `settle()` and observable game state. The actual deletion is effect-driven, and security behavior is exercised through real attack intents. Digi-Egg BT1-001 was removed from all deck/security fixtures; remaining deck/security fixtures use inert main-deck Digimon. No numeric security shortcut or injected timing primitive is used as proof.
 
@@ -1542,14 +1542,14 @@ No card-specific behavior gap or shared engine seam was identified. Collection-w
 
 #### Rubric
 
-| Area | Score |
-| --- | ---: |
-| Catalog and rules | 2/2 |
-| IR trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer and evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Area                           |    Score |
+| ------------------------------ | -------: |
+| Catalog and rules              |      2/2 |
+| IR trace                       |      2/2 |
+| Behavioral proof               |      2/2 |
+| Peer and evolution-stack proof |      2/2 |
+| Delivery gates                 |      0/2 |
+| **Total**                      | **8/10** |
 
 ### EX1-024 — Patamon
 
@@ -1562,15 +1562,15 @@ No card-specific behavior gap or shared engine seam was identified. Collection-w
 
 #### Clause-to-IR-to-test evidence
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| On Play | `effects[0].trigger: "OnPlay"` | Every focused test plays `EX1-024` through `playCard`. |
-| Reveal top 4 | `RevealAdd.revealCount: 4` | `reveals exactly 4...` asserts the four `cardRevealed` events and leaves the fifth card untouched above the returned cards. |
-| Add one Digimon matching any listed trait | `kind: ["Digimon"]`, `nameOrTrait` trait alternatives for `Angel`, `Archangel`, `Three Great Angels`, `count: 1`, `to: "hand"` | Parameterized tests cover `BT1-055`, `BT1-060`, and `BT1-063`; the first test puts two matching cards in the reveal and proves only one is added. |
-| Remaining cards to bottom in any order | `rest: "deckBottomAnyOrder"` | `bottom-decks all four non-matches...` disables automatic ordering, submits a non-default order, and asserts exact deck instance order. |
-| No-match path | Same `RevealAdd` disposition | Near-trait/non-Digimon negatives (`BT1-062`, `BT1-061`) prove no false match and all four cards return to deck. |
-| Optionality | No optional marker is printed or present in IR | `has no optional refusal branch...` runs with `autoDeclineOptional` and asserts the mandatory eligible card is still added and no optional decision exists. |
-| Evolution compatibility | Catalog evo requirement is enforced by engine | Yellow Digi-Egg → `EX1-024` succeeds at cost 0 and preserves source stack; red Digi-Egg → `EX1-024` is rejected without state mutation. |
+| Clause                                    | IR mapping                                                                                                                     | Behavioral proof                                                                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play                                   | `effects[0].trigger: "OnPlay"`                                                                                                 | Every focused test plays `EX1-024` through `playCard`.                                                                                                      |
+| Reveal top 4                              | `RevealAdd.revealCount: 4`                                                                                                     | `reveals exactly 4...` asserts the four `cardRevealed` events and leaves the fifth card untouched above the returned cards.                                 |
+| Add one Digimon matching any listed trait | `kind: ["Digimon"]`, `nameOrTrait` trait alternatives for `Angel`, `Archangel`, `Three Great Angels`, `count: 1`, `to: "hand"` | Parameterized tests cover `BT1-055`, `BT1-060`, and `BT1-063`; the first test puts two matching cards in the reveal and proves only one is added.           |
+| Remaining cards to bottom in any order    | `rest: "deckBottomAnyOrder"`                                                                                                   | `bottom-decks all four non-matches...` disables automatic ordering, submits a non-default order, and asserts exact deck instance order.                     |
+| No-match path                             | Same `RevealAdd` disposition                                                                                                   | Near-trait/non-Digimon negatives (`BT1-062`, `BT1-061`) prove no false match and all four cards return to deck.                                             |
+| Optionality                               | No optional marker is printed or present in IR                                                                                 | `has no optional refusal branch...` runs with `autoDeclineOptional` and asserts the mandatory eligible card is still added and no optional decision exists. |
+| Evolution compatibility                   | Catalog evo requirement is enforced by engine                                                                                  | Yellow Digi-Egg → `EX1-024` succeeds at cost 0 and preserves source stack; red Digi-Egg → `EX1-024` is rejected without state mutation.                     |
 
 #### Changes
 
@@ -1590,14 +1590,14 @@ No card-specific behavior gap or shared engine seam was identified. Collection-w
 
 #### Rubric score
 
-| Dimension | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates (worker scope) | 0/2 |
-| **Total** | **8/10** |
+| Dimension                     |    Score |
+| ----------------------------- | -------: |
+| Catalog/rules evidence        |      2/2 |
+| IR implementation trace       |      2/2 |
+| Behavioral proof              |      2/2 |
+| Peer/evolution-stack proof    |      2/2 |
+| Delivery gates (worker scope) |      0/2 |
+| **Total**                     | **8/10** |
 
 Remaining limitation: the local knowledge base has no EX1-024-specific Q&A to verify beyond the catalog and general interpreter/rules behavior. Collection-wide delivery gates remain coordinator-owned.
 
@@ -1612,15 +1612,15 @@ Remaining limitation: the local knowledge base has no EX1-024-specific Q&A to ve
 
 #### Clause-to-IR-to-test evidence
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Inherited When Attacking timing | `trigger: "WhenAttacking"`, `isInherited: true` | Public player attacks from an `EX1-028` host carrying `EX1-025`. |
-| Controller has at least 3 security | `condition.kind: "securityAtLeast"`, `value: 3` | Exact-three security draws; two own security with four opposing security does not draw. |
-| Draw 1 | `kind: "Draw"`, `controller: "mine"`, `amount: 1` | Deck and hand contents are asserted after the resolved attack. |
-| Once Per Turn | `frequency: "OncePerTurn"` | A second same-turn public attack after `BT1-036` unsuspends the host produces no second resolution. |
-| Turn duration/reset | Interpreter frequency state | A third attack on the next own turn resolves and draws again through the public turn loop. |
-| Stack boundary | `isInherited: true` | Salamon as the top card does not activate its inherited effect. |
-| Evolution boundaries | Catalog requirement enforced by engine | Yellow Digi-Egg → Salamon → Angemon preserves `[BT1-005, EX1-025]` and draws on attack; illegal red Lv.3 source is rejected without a stack change. |
+| Clause                             | IR mapping                                        | Behavioral proof                                                                                                                                    |
+| ---------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inherited When Attacking timing    | `trigger: "WhenAttacking"`, `isInherited: true`   | Public player attacks from an `EX1-028` host carrying `EX1-025`.                                                                                    |
+| Controller has at least 3 security | `condition.kind: "securityAtLeast"`, `value: 3`   | Exact-three security draws; two own security with four opposing security does not draw.                                                             |
+| Draw 1                             | `kind: "Draw"`, `controller: "mine"`, `amount: 1` | Deck and hand contents are asserted after the resolved attack.                                                                                      |
+| Once Per Turn                      | `frequency: "OncePerTurn"`                        | A second same-turn public attack after `BT1-036` unsuspends the host produces no second resolution.                                                 |
+| Turn duration/reset                | Interpreter frequency state                       | A third attack on the next own turn resolves and draws again through the public turn loop.                                                          |
+| Stack boundary                     | `isInherited: true`                               | Salamon as the top card does not activate its inherited effect.                                                                                     |
+| Evolution boundaries               | Catalog requirement enforced by engine            | Yellow Digi-Egg → Salamon → Angemon preserves `[BT1-005, EX1-025]` and draws on attack; illegal red Lv.3 source is rejected without a stack change. |
 
 #### Changes
 
@@ -1640,14 +1640,14 @@ Remaining limitation: the local knowledge base has no EX1-024-specific Q&A to ve
 
 #### Rubric score
 
-| Dimension | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates (worker scope) | 0/2 |
-| **Total** | **8/10** |
+| Dimension                     |    Score |
+| ----------------------------- | -------: |
+| Catalog/rules evidence        |      2/2 |
+| IR implementation trace       |      2/2 |
+| Behavioral proof              |      2/2 |
+| Peer/evolution-stack proof    |      2/2 |
+| Delivery gates (worker scope) |      0/2 |
+| **Total**                     | **8/10** |
 
 Remaining limitation: the local knowledge base has no EX1-025-specific Q&A. Collection-wide delivery gates remain coordinator-owned.
 
@@ -1662,14 +1662,14 @@ Remaining limitation: the local knowledge base has no EX1-025-specific Q&A. Coll
 
 #### Clause-to-IR-to-test evidence
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Inherited `[When Attacking]` | `effects[0].trigger: "WhenAttacking"`, `isInherited: true` | Public `attack` intents resolve the effect only from a host with EX1-026 below its top card. |
-| Once per turn | `frequency: "OncePerTurn"` | Two public attacks in one turn, with a public unsuspend between them, leave the target at -2000 only once. |
-| Controller has 3 or more security | `condition: { kind: "securityAtLeast", value: 3 }` | Exact three-security positive case reduces the opponent target from 5000 to 3000; the two-security case leaves it at 5000. |
-| One opponent Digimon only | `target.filter.controller: "opponent"`, `kind: ["Digimon"]`, `count: 1` | Mixed opposing Digimon targets prove one selected opponent Digimon changes while the other remains at 5000; own-controller targets are not eligible. |
-| -2000 DP for the turn | `amount: -2000`, `duration: "forTheTurn"` | The threshold test observes the target's security fall from 3 to 2 during the same public attack while its Digimon remains at 3000 DP; the public turn-loop test then observes 5000 DP after the attacking player's turn ends. Q3210's persistence follows from the activation-time condition plus this turn-scoped modifier. |
-| Evolution boundary | Catalog evolution requirements are enforced by the engine; no extra card behavior is encoded | Legal Yellow Lv.3 → EX1-026 → Yellow Lv.5 evolution preserves the source stack and resolves the inherited effect. A Red Lv.3 source is rejected without changing memory, hand, or stack. A top-card EX1-026 does not provide its own inherited effect. |
+| Clause                            | IR mapping                                                                                   | Behavioral proof                                                                                                                                                                                                                                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inherited `[When Attacking]`      | `effects[0].trigger: "WhenAttacking"`, `isInherited: true`                                   | Public `attack` intents resolve the effect only from a host with EX1-026 below its top card.                                                                                                                                                                                                                                  |
+| Once per turn                     | `frequency: "OncePerTurn"`                                                                   | Two public attacks in one turn, with a public unsuspend between them, leave the target at -2000 only once.                                                                                                                                                                                                                    |
+| Controller has 3 or more security | `condition: { kind: "securityAtLeast", value: 3 }`                                           | Exact three-security positive case reduces the opponent target from 5000 to 3000; the two-security case leaves it at 5000.                                                                                                                                                                                                    |
+| One opponent Digimon only         | `target.filter.controller: "opponent"`, `kind: ["Digimon"]`, `count: 1`                      | Mixed opposing Digimon targets prove one selected opponent Digimon changes while the other remains at 5000; own-controller targets are not eligible.                                                                                                                                                                          |
+| -2000 DP for the turn             | `amount: -2000`, `duration: "forTheTurn"`                                                    | The threshold test observes the target's security fall from 3 to 2 during the same public attack while its Digimon remains at 3000 DP; the public turn-loop test then observes 5000 DP after the attacking player's turn ends. Q3210's persistence follows from the activation-time condition plus this turn-scoped modifier. |
+| Evolution boundary                | Catalog evolution requirements are enforced by the engine; no extra card behavior is encoded | Legal Yellow Lv.3 → EX1-026 → Yellow Lv.5 evolution preserves the source stack and resolves the inherited effect. A Red Lv.3 source is rejected without changing memory, hand, or stack. A top-card EX1-026 does not provide its own inherited effect.                                                                        |
 
 #### Changes
 
@@ -1689,14 +1689,14 @@ Remaining limitation: the local knowledge base has no EX1-025-specific Q&A. Coll
 
 #### Rubric score
 
-| Dimension | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates (worker scope) | 0/2 |
-| **Total** | **8/10** |
+| Dimension                     |    Score |
+| ----------------------------- | -------: |
+| Catalog/rules evidence        |      2/2 |
+| IR implementation trace       |      2/2 |
+| Behavioral proof              |      2/2 |
+| Peer/evolution-stack proof    |      2/2 |
+| Delivery gates (worker scope) |      0/2 |
+| **Total**                     | **8/10** |
 
 Remaining limitation: collection-wide delivery gates remain coordinator-owned. No card-specific ambiguity remains after applying Q3210's activation-time interpretation.
 
@@ -1710,15 +1710,15 @@ Remaining limitation: collection-wide delivery gates remain coordinator-owned. N
 
 #### Clause-to-IR-to-test mapping
 
-| Contract | IR / proof |
-| --- | --- |
-| `[Security]` timing and owner-scoped threshold | `trigger: "Security"`; `zoneCount` on `seat: "mine"`, `zone: "security"`, `op: "lte"`, `value: 3`; real attack checks in the first four tests. |
-| Recovery +1 (Deck) | `SecurityManipulation` `op: "addTop"`, `source: "deck"`, `amount: 1`; tests assert the recovered instance is in the owner's security and exact final counts. |
-| Q3211 checked-card count | `counts the checked card as removed... (Q3211)` starts at 4 and ends at exactly 4 after check plus recovery. |
-| Security battle / survival | 6000-DP attacker beats 5000-DP Leomon and remains in battle area; Leomon is in the owner's trash. |
-| Security battle / deletion | 4000-DP attacker loses to Leomon and is in the opponent's trash; Recovery still belongs to security owner seat 0. |
-| Threshold negative | Five initial security cards become four after check with no recovery event. |
-| Evolution boundaries | Yellow BT1-046 to EX1-027 succeeds for cost 2; red BT1-009 is rejected with `invalid-evolution`, unchanged stack, and unchanged memory. |
+| Contract                                       | IR / proof                                                                                                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `[Security]` timing and owner-scoped threshold | `trigger: "Security"`; `zoneCount` on `seat: "mine"`, `zone: "security"`, `op: "lte"`, `value: 3`; real attack checks in the first four tests.               |
+| Recovery +1 (Deck)                             | `SecurityManipulation` `op: "addTop"`, `source: "deck"`, `amount: 1`; tests assert the recovered instance is in the owner's security and exact final counts. |
+| Q3211 checked-card count                       | `counts the checked card as removed... (Q3211)` starts at 4 and ends at exactly 4 after check plus recovery.                                                 |
+| Security battle / survival                     | 6000-DP attacker beats 5000-DP Leomon and remains in battle area; Leomon is in the owner's trash.                                                            |
+| Security battle / deletion                     | 4000-DP attacker loses to Leomon and is in the opponent's trash; Recovery still belongs to security owner seat 0.                                            |
+| Threshold negative                             | Five initial security cards become four after check with no recovery event.                                                                                  |
+| Evolution boundaries                           | Yellow BT1-046 to EX1-027 succeeds for cost 2; red BT1-009 is rejected with `invalid-evolution`, unchanged stack, and unchanged memory.                      |
 
 #### Fixes
 
@@ -1765,14 +1765,14 @@ does not remove the +1000 DP before the end of the opponent's next turn.
 `apps/api/src/cards/EX1/EX1-028.ts` now has no `@ts-nocheck` and registers only
 through `registerIrCard("EX1-028", compiled)`. The compiled IR maps:
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| When Attacking | `trigger: "WhenAttacking"` | public player attacks in tests 1–4, 6–7 |
-| Once Per Turn | `frequency: "OncePerTurn"` | test 4; second same-turn attack does not reapply; next own turn does |
-| inherited | `isInherited: true` | tests 1, 3–7; legal stack and top-card negative |
-| controller has ≥3 security | `securityAtLeast: 3` | tests 1–2; owner 2/opponent 4 negative |
-| +1000 DP | `ModifyDP amount: 1000`, self target | tests 1, 3–5 |
-| duration | `untilOpponentTurnEnd` | test 3 retains the bonus after Q3212 security loss, then clears after opponent turn |
+| Clause                     | IR                                   | Behavioral proof                                                                    |
+| -------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------- |
+| When Attacking             | `trigger: "WhenAttacking"`           | public player attacks in tests 1–4, 6–7                                             |
+| Once Per Turn              | `frequency: "OncePerTurn"`           | test 4; second same-turn attack does not reapply; next own turn does                |
+| inherited                  | `isInherited: true`                  | tests 1, 3–7; legal stack and top-card negative                                     |
+| controller has ≥3 security | `securityAtLeast: 3`                 | tests 1–2; owner 2/opponent 4 negative                                              |
+| +1000 DP                   | `ModifyDP amount: 1000`, self target | tests 1, 3–5                                                                        |
+| duration                   | `untilOpponentTurnEnd`               | test 3 retains the bonus after Q3212 security loss, then clears after opponent turn |
 
 #### Behavioral proof
 
@@ -1806,14 +1806,14 @@ Digi-Egg appears in deck or security and no numeric security shortcut is used.
 
 #### Score
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Axis                       |    Score |
+| -------------------------- | -------: |
+| Catalog/rules evidence     |      2/2 |
+| IR implementation trace    |      2/2 |
+| Behavioral proof           |      2/2 |
+| Peer/evolution-stack proof |      2/2 |
+| Delivery gates             |      0/2 |
+| **Total**                  | **8/10** |
 
 Remaining gate: serialized coordinator typecheck and collection delivery gates.
 
@@ -1862,13 +1862,13 @@ Fixtures use inert main-deck Digimon security/deck cards; no Digi-Eggs, numeric 
 
 #### Rubric (delivery gates are worker-zero)
 
-| Axis | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog text, Q3213, Q3214, and applicable security/duration rules traced. |
-| IR trace | 2/2 | Both printed clauses map to typed IR and IR-only registration. |
-| Behavioral proof | 1/2 | 8/9 focused tests pass; next-own-turn once-per-turn reset remains a reproducible red. |
-| Peer/stack proof | 2/2 | Legal yellow stack, inherited-source boundary, illegal non-yellow evolution, and top-card boundary are covered. |
-| Delivery gates | 0/2 | Worker does not commit, push, or claim collection completion. |
+| Axis             | Score | Evidence                                                                                                        |
+| ---------------- | ----: | --------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Catalog text, Q3213, Q3214, and applicable security/duration rules traced.                                      |
+| IR trace         |   2/2 | Both printed clauses map to typed IR and IR-only registration.                                                  |
+| Behavioral proof |   1/2 | 8/9 focused tests pass; next-own-turn once-per-turn reset remains a reproducible red.                           |
+| Peer/stack proof |   2/2 | Legal yellow stack, inherited-source boundary, illegal non-yellow evolution, and top-card boundary are covered. |
+| Delivery gates   |   0/2 | Worker does not commit, push, or claim collection completion.                                                   |
 
 **Total: 7/10.**
 
@@ -1882,8 +1882,8 @@ Angewomon is a yellow level-5 Digimon (7000 DP, play cost 8) with a yellow
 level-4 evolution cost 3. Its two clauses are:
 
 - `[When Attacking] If you have 3 or more security cards, 1 of your
-  opponent's Digimon and all of your opponent's Security Digimon get -3000 DP
-  for the turn.`
+opponent's Digimon and all of your opponent's Security Digimon get -3000 DP
+for the turn.`
 - `[Your Turn][Once Per Turn]` inherited: when a card is added to your
   security stack, 1 of your opponent's Digimon gets -2000 DP for the turn.
 
@@ -1901,14 +1901,14 @@ Security Digimon.
 `apps/api/src/cards/EX1/EX1-030.ts` has no `@ts-nocheck` and registers executable
 behavior only through `registerIrCard("EX1-030", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| When Attacking, owner has at least 3 security | `trigger: "WhenAttacking"`; `condition: { kind: "securityAtLeast", value: 3 }` | tests 1–3, 5–6 |
-| One opposing Digimon gets -3000 DP | opposing Digimon target with `count: 1`; `ModifyDP amount: -3000` | tests 1–3, 6 |
-| All opposing Security Digimon get -3000 DP | `ModifySecurityDP controller: "opponent", amount: -3000` | tests 1 and 5–6; Q3215 |
-| Reduction lasts for the turn | both attack actions use `duration: "forTheTurn"` | test 3; Q3216 test 6 |
-| Inherited Your Turn Once Per Turn watcher | `trigger: "YourTurn"`, `isInherited: true`, `frequency: "OncePerTurn"`, `SubTrigger event: "whenAddSecurity"` | tests 4, 7–8 |
-| One opposing Digimon gets -2000 DP | opposing Digimon target with `count: 1`; `ModifyDP amount: -2000`, `duration: "forTheTurn"` | tests 4, 7–8 |
+| Clause                                        | IR                                                                                                            | Behavioral proof       |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| When Attacking, owner has at least 3 security | `trigger: "WhenAttacking"`; `condition: { kind: "securityAtLeast", value: 3 }`                                | tests 1–3, 5–6         |
+| One opposing Digimon gets -3000 DP            | opposing Digimon target with `count: 1`; `ModifyDP amount: -3000`                                             | tests 1–3, 6           |
+| All opposing Security Digimon get -3000 DP    | `ModifySecurityDP controller: "opponent", amount: -3000`                                                      | tests 1 and 5–6; Q3215 |
+| Reduction lasts for the turn                  | both attack actions use `duration: "forTheTurn"`                                                              | test 3; Q3216 test 6   |
+| Inherited Your Turn Once Per Turn watcher     | `trigger: "YourTurn"`, `isInherited: true`, `frequency: "OncePerTurn"`, `SubTrigger event: "whenAddSecurity"` | tests 4, 7–8           |
+| One opposing Digimon gets -2000 DP            | opposing Digimon target with `count: 1`; `ModifyDP amount: -2000`, `duration: "forTheTurn"`                   | tests 4, 7–8           |
 
 #### Behavioral and stack proof
 
@@ -1949,14 +1949,14 @@ observable state. Fixtures use inert main-deck Digimon (`BT1-009` through
 
 #### Score
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Axis                       |    Score |
+| -------------------------- | -------: |
+| Catalog/rules evidence     |      2/2 |
+| IR implementation trace    |      2/2 |
+| Behavioral proof           |      2/2 |
+| Peer/evolution-stack proof |      2/2 |
+| Delivery gates             |      0/2 |
+| **Total**                  | **8/10** |
 
 No unresolved card-specific behavior remains. Collection-wide delivery gates,
 commits, and branch push are coordinator-owned and intentionally receive zero
@@ -2001,13 +2001,13 @@ All fixtures use inert main-deck Digimon; no Digi-Egg appears in deck or securit
 
 #### Rubric
 
-| Axis | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Both printed clauses and the catalog evolution boundary are identified; no card-specific Q&A exists. |
-| IR fidelity | 2/2 | Typed compiled IR maps Recovery and live opponent-turn suspended security DP exactly; registration is IR-only. |
-| Behavioral proof | 2/2 | Five focused tests cover positive, negative, controller, turn/duration, real security, zones, cost, and evolution boundaries. |
-| Peer/stack proof | 2/2 | Legal EX1-029 stack and illegal EX1-028 source are exercised with post-evolution source identity. |
-| Delivery gates | 0/2 | Worker lane does not commit, push, or claim collection-wide completion. |
+| Axis             | Score | Evidence                                                                                                                      |
+| ---------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Both printed clauses and the catalog evolution boundary are identified; no card-specific Q&A exists.                          |
+| IR fidelity      |   2/2 | Typed compiled IR maps Recovery and live opponent-turn suspended security DP exactly; registration is IR-only.                |
+| Behavioral proof |   2/2 | Five focused tests cover positive, negative, controller, turn/duration, real security, zones, cost, and evolution boundaries. |
+| Peer/stack proof |   2/2 | Legal EX1-029 stack and illegal EX1-028 source are exercised with post-evolution source identity.                             |
+| Delivery gates   |   0/2 | Worker lane does not commit, push, or claim collection-wide completion.                                                       |
 
 Worker score: **8/10** (delivery gates intentionally 0).
 
@@ -2025,9 +2025,9 @@ normally evolves from a yellow level-5 Digimon for 3 memory. Its printed
 clauses are:
 
 - `[When Digivolving] You may trash the top card of your security stack to
-  unsuspend this Digimon.`
+unsuspend this Digimon.`
 - `[When Attacking][Once Per Turn] If you have 3 or fewer security cards,
-  <Recovery +1 (Deck)>.` Recovery places the top card of the controller's deck
+<Recovery +1 (Deck)>.` Recovery places the top card of the controller's deck
   on top of that controller's security stack.
 
 The local query `node tools/kb/query.mjs card EX1-032` returns Q3217. Q3217
@@ -2039,13 +2039,13 @@ card even when the Digimon was already unsuspended before evolving.
 `apps/api/src/cards/EX1/EX1-032.ts` no longer uses `// @ts-nocheck` and registers
 only `registerIrCard("EX1-032", compiled)`.
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Optional When Digivolving top-security trash | `trigger: "WhenDigivolving"`; optional `Unsuspend` with a top-security trash cost | Tests 1–2 prove Q3217 acceptance, exact top-card movement, unsuspend state, refusal, and unchanged security |
-| Unsuspend this Digimon | `Unsuspend` self target | Test 1 starts unsuspended and observes it remains unsuspended after the accepted cost; test 2 starts suspended and observes refusal leaves it suspended |
-| When Attacking security threshold | `trigger: "WhenAttacking"`; `zoneCount` security `lte: 3` | Tests 3–4 prove exact-three positive and four-security negative paths through real attacks |
-| Recovery +1 from deck | `SecurityManipulation(op: "addTop", controller: "mine", source: "deck", amount: 1)` | Test 3 proves the exact recovered instance is security top and the deck remainder stays ordered |
-| Once Per Turn | `frequency: "OncePerTurn"` | Test 5 refuses the second same-turn attack after a public unsuspend; test 6 proves the gate resets on the next own turn |
+| Clause                                       | IR mapping                                                                          | Behavioral proof                                                                                                                                        |
+| -------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Optional When Digivolving top-security trash | `trigger: "WhenDigivolving"`; optional `Unsuspend` with a top-security trash cost   | Tests 1–2 prove Q3217 acceptance, exact top-card movement, unsuspend state, refusal, and unchanged security                                             |
+| Unsuspend this Digimon                       | `Unsuspend` self target                                                             | Test 1 starts unsuspended and observes it remains unsuspended after the accepted cost; test 2 starts suspended and observes refusal leaves it suspended |
+| When Attacking security threshold            | `trigger: "WhenAttacking"`; `zoneCount` security `lte: 3`                           | Tests 3–4 prove exact-three positive and four-security negative paths through real attacks                                                              |
+| Recovery +1 from deck                        | `SecurityManipulation(op: "addTop", controller: "mine", source: "deck", amount: 1)` | Test 3 proves the exact recovered instance is security top and the deck remainder stays ordered                                                         |
+| Once Per Turn                                | `frequency: "OncePerTurn"`                                                          | Test 5 refuses the second same-turn attack after a public unsuspend; test 6 proves the gate resets on the next own turn                                 |
 
 #### Behavioral and evolution proof
 
@@ -2089,13 +2089,13 @@ shortcut is used.
 
 #### Rubric
 
-| Axis | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Both printed clauses, the yellow level-5 evolution boundary, and Q3217 are identified. |
-| IR fidelity | 2/2 | Typed compiled IR maps optional top-security trash/unsuspend, thresholded Recovery +1, controller, deck-top order, and Once Per Turn; registration is IR-only. |
-| Behavioral proof | 2/2 | Seven focused tests cover positive and refusal paths, exact endpoints, real attacks, security/deck state, controller/turn boundaries, and Once Per Turn reset. |
-| Peer/stack proof | 2/2 | Legal EX1-029 evolution and illegal EX1-028 evolution are exercised with post-evolution stack and zone assertions. |
-| Delivery gates | 0/2 | Worker lane does not commit, push, or claim collection-wide completion. |
+| Axis             | Score | Evidence                                                                                                                                                       |
+| ---------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Both printed clauses, the yellow level-5 evolution boundary, and Q3217 are identified.                                                                         |
+| IR fidelity      |   2/2 | Typed compiled IR maps optional top-security trash/unsuspend, thresholded Recovery +1, controller, deck-top order, and Once Per Turn; registration is IR-only. |
+| Behavioral proof |   2/2 | Seven focused tests cover positive and refusal paths, exact endpoints, real attacks, security/deck state, controller/turn boundaries, and Once Per Turn reset. |
+| Peer/stack proof |   2/2 | Legal EX1-029 evolution and illegal EX1-028 evolution are exercised with post-evolution stack and zone assertions.                                             |
+| Delivery gates   |   0/2 | Worker lane does not commit, push, or claim collection-wide completion.                                                                                        |
 
 Worker score: **8/10** (delivery gates intentionally 0).
 
@@ -2137,13 +2137,13 @@ digivolution draw when a draw is possible).
 `apps/api/src/cards/EX1/EX1-033.ts` is typed and registers executable behavior
 only through `registerIrCard("EX1-033", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| When Attacking inherited trigger | `trigger: "WhenAttacking"`, `isInherited: true` | tests 1–7 use public `attack` intents and settle the resulting state |
-| One of your battle-area Digimon | `sourceFilter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" }` | test 1 attacks the host, then evolves a different own Digimon; test 5 rejects a red source without mutating it |
+| Clause                               | IR                                                                                                                | Behavioral proof                                                                                                             |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| When Attacking inherited trigger     | `trigger: "WhenAttacking"`, `isInherited: true`                                                                   | tests 1–7 use public `attack` intents and settle the resulting state                                                         |
+| One of your battle-area Digimon      | `sourceFilter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" }`                                     | test 1 attacks the host, then evolves a different own Digimon; test 5 rejects a red source without mutating it               |
 | Next matching hand digivolution only | `event: "wouldDigivolve"`, `consumeOnActivate: true`, and `into` trait predicate for `Insectoid`/`Ancient Insect` | tests 2–4 and 6 prove matching consumption, non-matching persistence, Ancient Insect matching, and multi-attack accumulation |
-| Reduce memory by 1 | `mode: "reduceCost"`, `amount: 1` | exact memory assertions in tests 1–7 |
-| No breeding-area reduction | source filter is limited to `zone: "battleArea"` | test 7 evolves a breeding-area Digimon for its full cost |
+| Reduce memory by 1                   | `mode: "reduceCost"`, `amount: 1`                                                                                 | exact memory assertions in tests 1–7                                                                                         |
+| No breeding-area reduction           | source filter is limited to `zone: "battleArea"`                                                                  | test 7 evolves a breeding-area Digimon for its full cost                                                                     |
 
 #### Behavioral and stack proof
 
@@ -2183,14 +2183,14 @@ Digi-Egg fixtures or numeric security shortcuts.
 
 #### Score
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Axis                       |    Score |
+| -------------------------- | -------: |
+| Catalog/rules evidence     |      2/2 |
+| IR implementation trace    |      2/2 |
+| Behavioral proof           |      2/2 |
+| Peer/evolution-stack proof |      2/2 |
+| Delivery gates             |      0/2 |
+| **Total**                  | **8/10** |
 
 No unresolved card-specific behavior remains. Collection-wide typecheck,
 delivery gates, commits, and branch push are coordinator-owned and intentionally
@@ -2208,14 +2208,14 @@ The local card query returned no card-specific Q&A or additional ruling. The man
 
 #### Clause mapping and proof
 
-| Clause | IR / test evidence |
-| --- | --- |
-| On Deletion | `compiled.effects[0].trigger = "OnDeletion"`; the first test deletes Palmon through a real public attack and observes the resolved suspension. |
-| 1 opposing Digimon | `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1`; the positive case suspends the opponent's target while the own 5000-DP candidate remains unsuspended. |
-| 5000 DP or less | `dp.op = "lte", value: 5000`; the positive case uses exactly 5000 DP and the second case proves 6000 DP is not selected. |
-| Battle-area target boundary | The no-eligible-target case places a 5000-DP opposing Digimon in breeding; it remains unsuspended and no decision remains pending. |
-| Legal evolution boundary | The fourth test publicly digivolves Palmon over a Green level 2 source in breeding, asserts the source stack, moves it publicly to the battle area, and deletes it through public `ST6-15`; the Palmon trigger suspends the opposing exact-5000 target. |
-| Illegal evolution boundary | The fifth test rejects evolution over a non-Green level 3 source without changing source stack, hand, memory, or pending decisions. |
+| Clause                      | IR / test evidence                                                                                                                                                                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Deletion                 | `compiled.effects[0].trigger = "OnDeletion"`; the first test deletes Palmon through a real public attack and observes the resolved suspension.                                                                                                          |
+| 1 opposing Digimon          | `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1`; the positive case suspends the opponent's target while the own 5000-DP candidate remains unsuspended.                                                                                        |
+| 5000 DP or less             | `dp.op = "lte", value: 5000`; the positive case uses exactly 5000 DP and the second case proves 6000 DP is not selected.                                                                                                                                |
+| Battle-area target boundary | The no-eligible-target case places a 5000-DP opposing Digimon in breeding; it remains unsuspended and no decision remains pending.                                                                                                                      |
+| Legal evolution boundary    | The fourth test publicly digivolves Palmon over a Green level 2 source in breeding, asserts the source stack, moves it publicly to the battle area, and deletes it through public `ST6-15`; the Palmon trigger suspends the opposing exact-5000 target. |
+| Illegal evolution boundary  | The fifth test rejects evolution over a non-Green level 3 source without changing source stack, hand, memory, or pending decisions.                                                                                                                     |
 
 All deck and Security fixtures use inert main-deck Digimon or a Tamer; no Digi-Egg appears in deck or Security.
 
@@ -2279,13 +2279,13 @@ and 15-16-5-1/15-16-3-1 ([When Attacking]/[When Digivolving] trigger windows).
 and registers executable behavior only through
 `registerIrCard("EX1-035", compiled)`.
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Optional [When Attacking] effect | `trigger: "WhenAttacking"`; `optional: true` | Tests 1–2 use public `attack` intents and prove acceptance and refusal. |
-| This Digimon only | Self target filter with `isSelfRef: true`, `isSelf: true` | All positive and negative routes attack the EX1-035 permanent. |
-| Digimon card in your hand | `from: ["hand"]`; `into.kind: ["Digimon"]`; `controllerDefault: "mine"` | Positive hand evolution and unchanged hand on refusal/invalid routes. |
-| `[Insectoid]` trait | `nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }]` | BT1-076/EX1-040 match; BT1-071 and BT7-054 are rejected for trait/level requirements. |
-| For its digivolution cost | `payCost: true` | Positive route pays exactly 2 memory; crossing route ends at exactly −1. |
+| Clause                           | IR mapping                                                              | Behavioral proof                                                                      |
+| -------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Optional [When Attacking] effect | `trigger: "WhenAttacking"`; `optional: true`                            | Tests 1–2 use public `attack` intents and prove acceptance and refusal.               |
+| This Digimon only                | Self target filter with `isSelfRef: true`, `isSelf: true`               | All positive and negative routes attack the EX1-035 permanent.                        |
+| Digimon card in your hand        | `from: ["hand"]`; `into.kind: ["Digimon"]`; `controllerDefault: "mine"` | Positive hand evolution and unchanged hand on refusal/invalid routes.                 |
+| `[Insectoid]` trait              | `nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }]`              | BT1-076/EX1-040 match; BT1-071 and BT7-054 are rejected for trait/level requirements. |
+| For its digivolution cost        | `payCost: true`                                                         | Positive route pays exactly 2 memory; crossing route ends at exactly −1.              |
 
 #### Behavioral, Q&A, and stack proof
 
@@ -2328,14 +2328,14 @@ not offered/played and that no stack transition occurs.
 
 #### Score
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
+| Axis                       |    Score |
+| -------------------------- | -------: |
+| Catalog/rules evidence     |      2/2 |
+| IR implementation trace    |      2/2 |
+| Behavioral proof           |      2/2 |
+| Peer/evolution-stack proof |      2/2 |
+| Delivery gates             |      0/2 |
+| **Total**                  | **8/10** |
 
 No unresolved card-specific behavior remains. Collection-wide typecheck,
 delivery gates, commits, and branch push remain coordinator-owned.
@@ -2351,13 +2351,13 @@ delivery gates, commits, and branch push remain coordinator-owned.
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR proof | Behavioral proof |
-| --- | --- | --- |
-| Your Turn | `trigger: "YourTurn"`, `isInherited: true` | Public turn-loop tests confirm the effect resolves on player 0's turn and not on player 1's turn. |
-| Once Per Turn | `frequency: "OncePerTurn"` | Two public opposing On Play suspensions in one turn produce one +2000 modifier; the next own turn accepts another trigger. |
+| Contract clause                                  | IR proof                                                                                          | Behavioral proof                                                                                                                   |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Your Turn                                        | `trigger: "YourTurn"`, `isInherited: true`                                                        | Public turn-loop tests confirm the effect resolves on player 0's turn and not on player 1's turn.                                  |
+| Once Per Turn                                    | `frequency: "OncePerTurn"`                                                                        | Two public opposing On Play suspensions in one turn produce one +2000 modifier; the next own turn accepts another trigger.         |
 | One of your opponent's Digimon becomes suspended | `SubTrigger event: "whenSuspended"` with `sourceFilter.controller: "opponent", kind: ["Digimon"]` | `BT1-070` On Play publicly suspends the selected opposing Digimon; own suspension and opponent-turn suspension are negative paths. |
-| This Digimon gets +2000 DP | self-reference target and `amount: 2000` | Observable DP changes from 3000 to 5000 and from 7000 to 9000 after legal evolution. |
-| For the turn | `duration: "forTheTurn"` | DP returns to base after the public turn transition. |
+| This Digimon gets +2000 DP                       | self-reference target and `amount: 2000`                                                          | Observable DP changes from 3000 to 5000 and from 7000 to 9000 after legal evolution.                                               |
+| For the turn                                     | `duration: "forTheTurn"`                                                                          | DP returns to base after the public turn transition.                                                                               |
 
 #### Evolution and stack proof
 
@@ -2393,10 +2393,10 @@ No card-specific Q&A applies. No shared engine or catalog changes were required.
 - Catalog: `EX1-037` is a green level-4 Champion Digimon (5,000 DP, play cost 5,
   green level-3 evolution cost 2) with the Insectoid trait.
 - Main text: `[Start of Your Turn] Suspend 1 of your opponent's Digimon with
-  3000 DP or less.`
+3000 DP or less.`
 - Inherited text: `[Your Turn] When this Digimon deletes one of your opponent's
-  Digimon in battle and survives, 1 of your opponent's suspended Digimon doesn't
-  unsuspend during their next unsuspend phase.`
+Digimon in battle and survives, 1 of your opponent's suspended Digimon doesn't
+unsuspend during their next unsuspend phase.`
 - `node tools/kb/query.mjs card EX1-037`: no card-specific knowledge-base
   entries or Q&A returned.
 - Comprehensive rules evidence: `data/kb/rules/comprehensive.md` §§6-2-1
@@ -2408,15 +2408,15 @@ No card-specific Q&A applies. No shared engine or catalog changes were required.
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Start of Your Turn | `trigger: "StartOfYourTurn"` | Public turn-loop test observes the effect before the first main phase. |
-| Suspend 1 opponent's Digimon | `kind: "Suspend"`, `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1` | Exact 3000-DP target suspends; a 4000-DP target and own cards do not. |
-| 3000 DP or less | `dp: { op: "lte", value: 3000 }` | Boundary is exercised with 3000 and 4000 DP Digimon. |
-| Your Turn inherited watcher | `trigger: "YourTurn"`, `isInherited: true`, `SubTrigger event: "whenDeletesInBattle"` | Real public attack tests show only the EX1-037-bearing host's own battle deletion can fire it. |
-| Deletes an opponent's Digimon in battle and survives | `sourceFilter: { isSelfRef: true }` | Winning host remains in play and restricts a target; a different attacker and a losing host do not. |
-| One suspended opposing Digimon doesn't unsuspend | `Restrict`, opposing suspended Digimon filter, `count: 1`, `restriction: "unsuspend"` | The selected target stays suspended through its next unsuspend phase. |
-| During their next unsuspend phase | `duration: "untilOpponentTurnEnd"` | The target remains suspended on the first opponent turn, then unsuspends on the following opponent turn and the restriction is gone. |
+| Contract clause                                      | IR mapping                                                                            | Behavioral proof                                                                                                                     |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Start of Your Turn                                   | `trigger: "StartOfYourTurn"`                                                          | Public turn-loop test observes the effect before the first main phase.                                                               |
+| Suspend 1 opponent's Digimon                         | `kind: "Suspend"`, `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1`          | Exact 3000-DP target suspends; a 4000-DP target and own cards do not.                                                                |
+| 3000 DP or less                                      | `dp: { op: "lte", value: 3000 }`                                                      | Boundary is exercised with 3000 and 4000 DP Digimon.                                                                                 |
+| Your Turn inherited watcher                          | `trigger: "YourTurn"`, `isInherited: true`, `SubTrigger event: "whenDeletesInBattle"` | Real public attack tests show only the EX1-037-bearing host's own battle deletion can fire it.                                       |
+| Deletes an opponent's Digimon in battle and survives | `sourceFilter: { isSelfRef: true }`                                                   | Winning host remains in play and restricts a target; a different attacker and a losing host do not.                                  |
+| One suspended opposing Digimon doesn't unsuspend     | `Restrict`, opposing suspended Digimon filter, `count: 1`, `restriction: "unsuspend"` | The selected target stays suspended through its next unsuspend phase.                                                                |
+| During their next unsuspend phase                    | `duration: "untilOpponentTurnEnd"`                                                    | The target remains suspended on the first opponent turn, then unsuspends on the following opponent turn and the restriction is gone. |
 
 #### Behavioral, controller, and evolution-stack proof
 
@@ -2451,14 +2451,14 @@ Digi-Egg or numeric security shortcut is used.
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (worker lane; coordinator owns collection gates, commits, and push) |
-| **Total** | **8/10** |
+| Axis                       |                                                                   Score |
+| -------------------------- | ----------------------------------------------------------------------: |
+| Catalog/rules evidence     |                                                                     2/2 |
+| IR implementation trace    |                                                                     2/2 |
+| Behavioral proof           |                                                                     2/2 |
+| Peer/evolution-stack proof |                                                                     2/2 |
+| Delivery gates             | 0/2 (worker lane; coordinator owns collection gates, commits, and push) |
+| **Total**                  |                                                                **8/10** |
 
 No unresolved card-specific behavior remains. Collection-wide gates, delivery,
 commit, and branch push remain coordinator-owned.
@@ -2473,16 +2473,16 @@ commit, and branch push remain coordinator-owned.
 
 #### Clause-to-proof map
 
-| Clause | Proof | Observable endpoint |
-| --- | --- | --- |
-| Main Piercing | `performs a real Piercing security check...` | Opposing suspended Digimon is deleted in battle and one of two security cards is checked (`EX1-038.test.ts:15-34`). |
-| Inherited Imperialdramon grant | `grants inherited Piercing to a legal Imperialdramon stack...` | Real attack deletes the opposing Digimon and checks security (`:36-55`). |
-| Inherited Free/name boundaries | `grants inherited Piercing only...` | Free host and Imperialdramon-name host pass; non-Free, non-Imperialdramon Digitamamon host fails (`:57-71`). |
-| Q3225: Piercing remains active after it triggers | `keeps checking after losing Piercing...` | Security Attack +1 causes two real checks; first De-Digivolve trashes the top Free host and the host loses inherited Piercing, but both checks complete (`:73-102`). |
-| Q3225: no future check if Security Attack is also removed | `stops the next Piercing check...` | First real check's De-Digivolve trashes the top host, removing both its Free trait and Security Attack +1; only one `securityChecked` event remains (`:104-133`). |
-| Your Turn and controller | `does not grant inherited Piercing outside your turn`; `limits...host controller's turn` | Owner's host has no grant during opponent turn; opponent host has no grant on player 0's turn and gains it when player 1's turn begins (`:135-178`). |
-| Evolution requirement | parameterized blue/green legal evolution | Each route appends EX1-038, preserves the source, pays exactly 2 memory, and exposes Piercing (`:180-205`). |
-| Illegal evolution boundary | `rejects evolution from an off-color...` | Red level-3 source returns `invalid-evolution` with unchanged hand, stack, and memory (`:207-227`). |
+| Clause                                                    | Proof                                                                                    | Observable endpoint                                                                                                                                                  |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Main Piercing                                             | `performs a real Piercing security check...`                                             | Opposing suspended Digimon is deleted in battle and one of two security cards is checked (`EX1-038.test.ts:15-34`).                                                  |
+| Inherited Imperialdramon grant                            | `grants inherited Piercing to a legal Imperialdramon stack...`                           | Real attack deletes the opposing Digimon and checks security (`:36-55`).                                                                                             |
+| Inherited Free/name boundaries                            | `grants inherited Piercing only...`                                                      | Free host and Imperialdramon-name host pass; non-Free, non-Imperialdramon Digitamamon host fails (`:57-71`).                                                         |
+| Q3225: Piercing remains active after it triggers          | `keeps checking after losing Piercing...`                                                | Security Attack +1 causes two real checks; first De-Digivolve trashes the top Free host and the host loses inherited Piercing, but both checks complete (`:73-102`). |
+| Q3225: no future check if Security Attack is also removed | `stops the next Piercing check...`                                                       | First real check's De-Digivolve trashes the top host, removing both its Free trait and Security Attack +1; only one `securityChecked` event remains (`:104-133`).    |
+| Your Turn and controller                                  | `does not grant inherited Piercing outside your turn`; `limits...host controller's turn` | Owner's host has no grant during opponent turn; opponent host has no grant on player 0's turn and gains it when player 1's turn begins (`:135-178`).                 |
+| Evolution requirement                                     | parameterized blue/green legal evolution                                                 | Each route appends EX1-038, preserves the source, pays exactly 2 memory, and exposes Piercing (`:180-205`).                                                          |
+| Illegal evolution boundary                                | `rejects evolution from an off-color...`                                                 | Red level-3 source returns `invalid-evolution` with unchanged hand, stack, and memory (`:207-227`).                                                                  |
 
 #### Verification
 
@@ -2514,8 +2514,8 @@ No card-specific behavioral gap remains in the assigned scope. Delivery and seri
 - Catalog: `EX1-039 Lillymon` is a green level-5 Ultimate Digimon (7,000 DP,
   play cost 6) with a green level-4 evolution requirement costing 3 memory.
 - Inherited text: `[Your Turn][Once Per Turn] When one of your opponent's
-  Digimon becomes suspended, this Digimon gains <Security Attack +1> for the
-  turn.` The reminder text means one additional security card is checked.
+Digimon becomes suspended, this Digimon gains <Security Attack +1> for the
+turn.` The reminder text means one additional security card is checked.
 - Local KB: `node tools/kb/query.mjs card EX1-039` returned no card-specific
   Q&A or rulings.
 - Comprehensive rules evidence: §§15-16-8-1 and 15-16-9-1 define Your Turn
@@ -2527,14 +2527,14 @@ No card-specific behavioral gap remains in the assigned scope. Delivery and seri
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Your Turn inherited effect | `trigger: "YourTurn"`, `isInherited: true` | The public turn-loop tests grant only during the host controller's turn and reject an opponent-turn suspension (`EX1-039.test.ts:111-147`). |
-| Opponent's Digimon becomes suspended | `SubTrigger event: "whenSuspended"` with `sourceFilter.controller: "opponent"` and `kind: ["Digimon"]` | Playing real BT1-070 Kuwagamon suspends an opposing Digimon and causes the grant (`:9-42`). |
-| Once Per Turn | `frequency: "OncePerTurn"` | Two distinct public suspensions in one turn produce only one grant; after the public turn ends the grant expires, and it re-arms on the next own turn (`:44-109`). |
-| Security Attack +1 for the turn | `GainKeyword` SecurityAttack amount 1, `duration: "forTheTurn"` | The host performs two real security checks against three inert main-deck Digimon security cards, leaving one card (`:9-42`). |
-| Legal green level-4 evolution | Catalog evolution requirement; engine's public `digivolve` intent | BT1-070 (green level 4) evolves into EX1-039, costs exactly 3 memory, preserves the source beneath the top card, and removes the evo card from hand (`:149-190`). |
-| Illegal off-color evolution | Engine evolution validation | EX1-039 from red BT1-009 returns `invalid-evolution` and preserves source, hand, stack, and memory (`:192-208`). |
+| Contract clause                      | IR mapping                                                                                             | Behavioral proof                                                                                                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Your Turn inherited effect           | `trigger: "YourTurn"`, `isInherited: true`                                                             | The public turn-loop tests grant only during the host controller's turn and reject an opponent-turn suspension (`EX1-039.test.ts:111-147`).                        |
+| Opponent's Digimon becomes suspended | `SubTrigger event: "whenSuspended"` with `sourceFilter.controller: "opponent"` and `kind: ["Digimon"]` | Playing real BT1-070 Kuwagamon suspends an opposing Digimon and causes the grant (`:9-42`).                                                                        |
+| Once Per Turn                        | `frequency: "OncePerTurn"`                                                                             | Two distinct public suspensions in one turn produce only one grant; after the public turn ends the grant expires, and it re-arms on the next own turn (`:44-109`). |
+| Security Attack +1 for the turn      | `GainKeyword` SecurityAttack amount 1, `duration: "forTheTurn"`                                        | The host performs two real security checks against three inert main-deck Digimon security cards, leaving one card (`:9-42`).                                       |
+| Legal green level-4 evolution        | Catalog evolution requirement; engine's public `digivolve` intent                                      | BT1-070 (green level 4) evolves into EX1-039, costs exactly 3 memory, preserves the source beneath the top card, and removes the evo card from hand (`:149-190`).  |
+| Illegal off-color evolution          | Engine evolution validation                                                                            | EX1-039 from red BT1-009 returns `invalid-evolution` and preserves source, hand, stack, and memory (`:192-208`).                                                   |
 
 #### Verification
 
@@ -2577,16 +2577,16 @@ No engine or shared-file changes were made.
 
 #### Clause-to-proof map
 
-| Clause | Proof | Observable endpoint |
-| --- | --- | --- |
-| Optional Insectoid evolution | `can digivolve into an Insectoid...` | Real attack moves BT1-083 from hand onto EX1-040 and checks security (`EX1-040.test.ts:6-27`). |
-| Q3226 chronology and continuation | `Q3226: applies the crossing...` | Digivolution `memoryChanged` occurs before `securityRevealed`/`securityChecked`; attack completes one check with memory -2 (`:29-62`). |
-| Ancient Insect branch | `can choose the Ancient Insect branch...` | Real attack evolves into BT7-054 and removes it from hand (`:64-84`). |
-| Q3227 gained-effect timing | `Q3227: does not open...` | Public EX1-035 attack evolves to EX1-040, preserves exact source stack, draws one card, leaves BT1-083 in hand, and pays 3; no second evolution occurs (`:128-164`). |
-| Q3228 optional refusal | `may decline...` | Public attack leaves EX1-040 top card and the legal evo card in hand (`:86-105`). |
-| Q3229 requirements remain mandatory | `does not ignore evolution requirements...` | Trait-matching level-4 EX1-038 is not evolved, remains in hand, and EX1-040 remains top (`:107-126`). |
-| Inherited battle-survival memory | `gains 1 memory...` | Real attack deletes suspended opposing Digimon, leaves host alive, and moves memory 5 → 6 (`:166-183`). |
-| Survival boundary | `does not gain memory... loses...` | Real battle deletion of the EX1-040 host leaves attacker deleted and memory unchanged at 5 (`:185-201`). |
+| Clause                              | Proof                                       | Observable endpoint                                                                                                                                                  |
+| ----------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Optional Insectoid evolution        | `can digivolve into an Insectoid...`        | Real attack moves BT1-083 from hand onto EX1-040 and checks security (`EX1-040.test.ts:6-27`).                                                                       |
+| Q3226 chronology and continuation   | `Q3226: applies the crossing...`            | Digivolution `memoryChanged` occurs before `securityRevealed`/`securityChecked`; attack completes one check with memory -2 (`:29-62`).                               |
+| Ancient Insect branch               | `can choose the Ancient Insect branch...`   | Real attack evolves into BT7-054 and removes it from hand (`:64-84`).                                                                                                |
+| Q3227 gained-effect timing          | `Q3227: does not open...`                   | Public EX1-035 attack evolves to EX1-040, preserves exact source stack, draws one card, leaves BT1-083 in hand, and pays 3; no second evolution occurs (`:128-164`). |
+| Q3228 optional refusal              | `may decline...`                            | Public attack leaves EX1-040 top card and the legal evo card in hand (`:86-105`).                                                                                    |
+| Q3229 requirements remain mandatory | `does not ignore evolution requirements...` | Trait-matching level-4 EX1-038 is not evolved, remains in hand, and EX1-040 remains top (`:107-126`).                                                                |
+| Inherited battle-survival memory    | `gains 1 memory...`                         | Real attack deletes suspended opposing Digimon, leaves host alive, and moves memory 5 → 6 (`:166-183`).                                                              |
+| Survival boundary                   | `does not gain memory... loses...`          | Real battle deletion of the EX1-040 host leaves attacker deleted and memory unchanged at 5 (`:185-201`).                                                             |
 
 #### Verification
 
@@ -2633,17 +2633,17 @@ No DNA requirement is present in the catalog.
 
 #### Clause-to-test-to-IR mapping
 
-| Clause | Behavioral proof | IR |
-| --- | --- | --- |
-| Lv.4 green/blue evolution for 3 | Parameterized public `digivolve` tests evolve from EX1-038 and EX1-014, assert memory 5 -> 2, bonus draw, and preserved source stack | Catalog evolution requirements; direct normal evolution engine path |
-| Illegal evolution boundary | Red Lv.3 Monodramon is rejected with unchanged hand, stack, and memory | Catalog requirement enforcement |
-| DNA boundary | Public `dnaDigivolve` using blue and green Lv.4 materials is rejected because EX1-041 has no DNA requirement | No `dnaRequirements` in catalog; engine intent rejection |
-| When Digivolving Free gate | Real evolution over Free EX1-038 suspends exactly one opposing 5000-DP target; 5001-DP and own targets remain unsuspended | `selfDigivolutionStackHasTrait(Free)` + `Suspend` opponent Digimon `dp <= 5000`, count 1 |
-| Missing Free gate | Real evolution over non-Free BT1-070 leaves the 5000-DP opposing target unsuspended | Same condition blocks the action |
-| Inherited battle memory | Real attack by Imperialdramon: Dragon Mode over EX1-041 deletes a 3000-DP opposing Digimon, survives, and changes memory 5 -> 6 | Inherited `YourTurn` + `whenDeletesInBattle`, source controller mine, Digimon kind, name containing Imperialdramon + `GainMemory 1` |
-| Name boundary | Paildramon over EX1-041 wins a real battle but gains no memory | `name` filter excludes non-Imperialdramon near-match |
-| Controller/turn boundary and re-arm | A real opposing-turn deletion by an opponent attacker leaves memory unchanged; after the next own turn begins, the Imperialdramon host wins another real battle and gains 1 memory | `YourTurn` and `controller: "mine"` source filter |
-| Survival boundary | Imperialdramon host losing a real battle gains no memory | `whenDeletesInBattle` event only resolves for the surviving winner |
+| Clause                              | Behavioral proof                                                                                                                                                                   | IR                                                                                                                                  |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Lv.4 green/blue evolution for 3     | Parameterized public `digivolve` tests evolve from EX1-038 and EX1-014, assert memory 5 -> 2, bonus draw, and preserved source stack                                               | Catalog evolution requirements; direct normal evolution engine path                                                                 |
+| Illegal evolution boundary          | Red Lv.3 Monodramon is rejected with unchanged hand, stack, and memory                                                                                                             | Catalog requirement enforcement                                                                                                     |
+| DNA boundary                        | Public `dnaDigivolve` using blue and green Lv.4 materials is rejected because EX1-041 has no DNA requirement                                                                       | No `dnaRequirements` in catalog; engine intent rejection                                                                            |
+| When Digivolving Free gate          | Real evolution over Free EX1-038 suspends exactly one opposing 5000-DP target; 5001-DP and own targets remain unsuspended                                                          | `selfDigivolutionStackHasTrait(Free)` + `Suspend` opponent Digimon `dp <= 5000`, count 1                                            |
+| Missing Free gate                   | Real evolution over non-Free BT1-070 leaves the 5000-DP opposing target unsuspended                                                                                                | Same condition blocks the action                                                                                                    |
+| Inherited battle memory             | Real attack by Imperialdramon: Dragon Mode over EX1-041 deletes a 3000-DP opposing Digimon, survives, and changes memory 5 -> 6                                                    | Inherited `YourTurn` + `whenDeletesInBattle`, source controller mine, Digimon kind, name containing Imperialdramon + `GainMemory 1` |
+| Name boundary                       | Paildramon over EX1-041 wins a real battle but gains no memory                                                                                                                     | `name` filter excludes non-Imperialdramon near-match                                                                                |
+| Controller/turn boundary and re-arm | A real opposing-turn deletion by an opponent attacker leaves memory unchanged; after the next own turn begins, the Imperialdramon host wins another real battle and gains 1 memory | `YourTurn` and `controller: "mine"` source filter                                                                                   |
+| Survival boundary                   | Imperialdramon host losing a real battle gains no memory                                                                                                                           | `whenDeletesInBattle` event only resolves for the surviving winner                                                                  |
 
 The inherited text has no printed `[Once Per Turn]` limit; therefore there is
 no OPT ledger to reset. The next-own-turn test proves the turn-scoped watcher
@@ -2684,7 +2684,7 @@ compiled IR already expressed the printed clauses faithfully.
   level-6 Mega/Data/Fairy Digimon with 11 play cost, 11,000 DP, and a green level-5
   evolution requirement costing 3 memory.
 - Printed effects: `[Your Turn] This Digimon gets +1000 DP for each of your opponent's
-  suspended Digimon.` and `[When Attacking] Suspend 1 of your opponent's Digimon.`
+suspended Digimon.` and `[When Attacking] Suspend 1 of your opponent's Digimon.`
 - Local KB: `node tools/kb/query.mjs card EX1-042` returned no card-specific Q&A or rulings.
 - Comprehensive rules evidence: §15-16-8-1 limits `[Your Turn]` effects to the controller's
   turn; §§6-5-1-2-1 and 8-1-2-3/8-1-2-6 cover hand evolution, stack identity, and invalid
@@ -2693,13 +2693,13 @@ compiled IR already expressed the printed clauses faithfully.
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Your Turn scaling | `trigger: "YourTurn"`; `ModifyDP` self target, `amount: 1000`, `duration: "permanent"`; scaling `per: 1`, `unit: "cards"` | `EX1-042.test.ts` proves two suspended opposing Digimon give +2000, while an own suspended Digimon, an unsuspended opposing Digimon, and a suspended opposing Tamer are excluded. |
-| Opponent/controller and zero boundary | Scaling filter `controller: "opponent"`, `suspended: true`, `kind: ["Digimon"]` | The zero-count fixture leaves Rosemon at 11,000 DP; changing `turnSeat` to the opponent and recomputing removes the Your Turn bonus. |
-| When Attacking suspension | `trigger: "WhenAttacking"`; `Suspend` target filter `controller: "opponent"`, `unsuspended: true`, `kind: ["Digimon"]`, `count: 1` | A public player attack suspends exactly one opposing unsuspended Digimon, leaves an already-suspended opponent and own Digimon untouched, and resolves against inert security cards. |
-| EX1-039 inherited peer stack | EX1-042 has no inherited clause; the test imports EX1-039 and places it beneath Rosemon | The attack's Rosemon suspension activates EX1-039's inherited watcher, grants Security Attack +1, and performs two real security checks while preserving `stack: ["EX1-039"]`. |
-| Normal evolution requirement | Catalog green Lv.5 → EX1-042 requirement; no duplicate legacy registration | Public digivolve from EX1-039 costs exactly 3 memory, moves EX1-042 from hand, and preserves EX1-039 beneath the new top card. A red Lv.5 source (`BT1-020`) is rejected with unchanged stack, hand, and memory. |
+| Contract clause                       | IR mapping                                                                                                                         | Behavioral proof                                                                                                                                                                                                 |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Your Turn scaling                     | `trigger: "YourTurn"`; `ModifyDP` self target, `amount: 1000`, `duration: "permanent"`; scaling `per: 1`, `unit: "cards"`          | `EX1-042.test.ts` proves two suspended opposing Digimon give +2000, while an own suspended Digimon, an unsuspended opposing Digimon, and a suspended opposing Tamer are excluded.                                |
+| Opponent/controller and zero boundary | Scaling filter `controller: "opponent"`, `suspended: true`, `kind: ["Digimon"]`                                                    | The zero-count fixture leaves Rosemon at 11,000 DP; changing `turnSeat` to the opponent and recomputing removes the Your Turn bonus.                                                                             |
+| When Attacking suspension             | `trigger: "WhenAttacking"`; `Suspend` target filter `controller: "opponent"`, `unsuspended: true`, `kind: ["Digimon"]`, `count: 1` | A public player attack suspends exactly one opposing unsuspended Digimon, leaves an already-suspended opponent and own Digimon untouched, and resolves against inert security cards.                             |
+| EX1-039 inherited peer stack          | EX1-042 has no inherited clause; the test imports EX1-039 and places it beneath Rosemon                                            | The attack's Rosemon suspension activates EX1-039's inherited watcher, grants Security Attack +1, and performs two real security checks while preserving `stack: ["EX1-039"]`.                                   |
+| Normal evolution requirement          | Catalog green Lv.5 → EX1-042 requirement; no duplicate legacy registration                                                         | Public digivolve from EX1-039 costs exactly 3 memory, moves EX1-042 from hand, and preserves EX1-039 beneath the new top card. A red Lv.5 source (`BT1-020`) is rejected with unchanged stack, hand, and memory. |
 
 #### Verification
 
@@ -2742,11 +2742,11 @@ changes were made.
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
+| Contract clause                                   | IR mapping                                                                                                                                                        | Behavioral proof                                                                                                                          |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | Qualifying battle deletion and optional unsuspend | Your Turn `OncePerTurn` optional `SubTrigger` on `whenDeletesInBattle`; source filter is own Digimon with `Insectoid` or `Ancient Insect`; action unsuspends self | EX1-043.test.ts proves Insectoid and Ancient Insect attackers, non-Insectoid exclusion, real battle survival, and once-per-turn limiting. |
-| DP scaling | Your Turn self `ModifyDP` +1000, `per: 1`, unit `digivolutionCards`, own Insectoid filter | Stack fixtures prove two qualifying sources give +2000 and a non-Insectoid source is excluded. |
-| Next-turn reset | Engine frequency is `OncePerTurn` under the Your Turn trigger | Public turn-loop test proves a qualifying deletion in the next own turn can unsuspend again. |
+| DP scaling                                        | Your Turn self `ModifyDP` +1000, `per: 1`, unit `digivolutionCards`, own Insectoid filter                                                                         | Stack fixtures prove two qualifying sources give +2000 and a non-Insectoid source is excluded.                                            |
+| Next-turn reset                                   | Engine frequency is `OncePerTurn` under the Your Turn trigger                                                                                                     | Public turn-loop test proves a qualifying deletion in the next own turn can unsuspend again.                                              |
 
 #### Verification
 
@@ -2758,14 +2758,14 @@ changes were made.
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 No card-specific ambiguity or engine changes remain. Collection gates, commit, and push remain coordinator-owned.
 
@@ -2785,10 +2785,10 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Your Turn inherited scaling | `trigger: "YourTurn"`, `isInherited: true`; self `ModifyDP` +1000 with one-card-per-match scaling | EX1-044.test.ts uses a legal EX1-044-under-Kurisarimon stack and observes the host DP. |
-| Same live host name | Scaling filter uses `isSameName: true`, battle-area Digimon, own controller, and `excludeSelf` | The test counts two exact Kurisarimon peers while excluding the EX1-044 card's printed name, a near/other name, and an opponent. |
+| Contract clause             | IR mapping                                                                                        | Behavioral proof                                                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Your Turn inherited scaling | `trigger: "YourTurn"`, `isInherited: true`; self `ModifyDP` +1000 with one-card-per-match scaling | EX1-044.test.ts uses a legal EX1-044-under-Kurisarimon stack and observes the host DP.                                           |
+| Same live host name         | Scaling filter uses `isSameName: true`, battle-area Digimon, own controller, and `excludeSelf`    | The test counts two exact Kurisarimon peers while excluding the EX1-044 card's printed name, a near/other name, and an opponent. |
 
 #### Verification
 
@@ -2800,14 +2800,14 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 Q3231's dynamic-name interpretation is implemented and proven. Collection gates, commit, and push remain coordinator-owned.
 
@@ -2819,7 +2819,7 @@ Q3231's dynamic-name interpretation is implemented and proven. Collection gates,
   level-3 Rookie/Virus/Machine Digimon with 2,000 DP and a black level-2
   evolution requirement costing 0 memory.
 - Printed effect: `[On Play] You may trash 1 Digimon card with [Machine] or
-  [Cyborg] in its traits in your hand to Draw 2.`
+[Cyborg] in its traits in your hand to Draw 2.`
 - Local KB: `node tools/kb/query.mjs card EX1-045` returns no card-specific Q&A.
 - Comprehensive rules evidence: §§6-5-1-2-1 and 8-1-2-3 govern play/stack state;
   §15-16-2 covers On Play timing and optional effects; §12-1-1 covers moving a
@@ -2827,11 +2827,11 @@ Q3231's dynamic-name interpretation is implemented and proven. Collection gates,
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| On Play optional effect | `trigger: "OnPlay"`, optional `Draw` action | EX1-045.test.ts proves acceptance and refusal. |
-| Exact cost filter | `trash` cost targets one own-hand Digimon with [Machine] or [Cyborg] | Tests prove Machine and Cyborg acceptance and rejection of a non-matching Digimon. |
-| Draw 2 | Draw action amount 2 after the trash cost | Positive tests verify the cost card reaches trash and hand/deck counts reflect exactly two draws. |
+| Contract clause         | IR mapping                                                           | Behavioral proof                                                                                  |
+| ----------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| On Play optional effect | `trigger: "OnPlay"`, optional `Draw` action                          | EX1-045.test.ts proves acceptance and refusal.                                                    |
+| Exact cost filter       | `trash` cost targets one own-hand Digimon with [Machine] or [Cyborg] | Tests prove Machine and Cyborg acceptance and rejection of a non-matching Digimon.                |
+| Draw 2                  | Draw action amount 2 after the trash cost                            | Positive tests verify the cost card reaches trash and hand/deck counts reflect exactly two draws. |
 
 #### Verification
 
@@ -2843,14 +2843,14 @@ Q3231's dynamic-name interpretation is implemented and proven. Collection gates,
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 No card-specific ambiguity or engine changes remain. Collection gates, commit, and push remain coordinator-owned.
 
@@ -2871,11 +2871,11 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Your Turn inherited watcher | `trigger: "YourTurn"`, `isInherited: true`, `frequency: "OncePerTurn"`, `SubTrigger` on `onDeletionOf` | EX1-046.test.ts uses real public attacks and deletion resolution. |
-| Own other Digimon with live same name | Source filter is own Digimon, `excludeSelf: true`, `isSameName: true` against the host top card | Tests prove own same-name deletion, different-name exclusion, opposing same-name exclusion, and correct Infermon host-name interpretation. |
-| Unsuspend and once-per-turn reset | Self Unsuspend action with once-per-turn frequency | Tests prove a second same-turn deletion is ignored and a qualifying deletion after the next own turn works again. |
+| Contract clause                       | IR mapping                                                                                             | Behavioral proof                                                                                                                           |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Your Turn inherited watcher           | `trigger: "YourTurn"`, `isInherited: true`, `frequency: "OncePerTurn"`, `SubTrigger` on `onDeletionOf` | EX1-046.test.ts uses real public attacks and deletion resolution.                                                                          |
+| Own other Digimon with live same name | Source filter is own Digimon, `excludeSelf: true`, `isSameName: true` against the host top card        | Tests prove own same-name deletion, different-name exclusion, opposing same-name exclusion, and correct Infermon host-name interpretation. |
+| Unsuspend and once-per-turn reset     | Self Unsuspend action with once-per-turn frequency                                                     | Tests prove a second same-turn deletion is ignored and a qualifying deletion after the next own turn works again.                          |
 
 #### Verification
 
@@ -2887,14 +2887,14 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 Q3232's dynamic-name interpretation is implemented and proven. Collection gates, commit, and push remain coordinator-owned.
 
@@ -2915,10 +2915,10 @@ Q3232's dynamic-name interpretation is implemented and proven. Collection gates,
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Blocker keyword | Static keyword `Blocker` | Test observes the public keyword and resolves a real opponent Blocker response. |
-| Can't attack on Your Turn | Your Turn self `Restrict` with `restriction: "attack"`, permanent duration | Test rejects a direct attack during the controller's turn. |
+| Contract clause                  | IR mapping                                                                                                | Behavioral proof                                                                                                      |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Blocker keyword                  | Static keyword `Blocker`                                                                                  | Test observes the public keyword and resolves a real opponent Blocker response.                                       |
+| Can't attack on Your Turn        | Your Turn self `Restrict` with `restriction: "attack"`, permanent duration                                | Test rejects a direct attack during the controller's turn.                                                            |
 | Inherited optional trash-to-draw | When Attacking inherited optional Draw 2 with one-hand-card trash cost filtered to Machine/Cyborg Digimon | Tests prove Machine and Cyborg costs, refusal, non-matching rejection, and draw/trash outcomes through a real attack. |
 
 #### Verification
@@ -2931,14 +2931,14 @@ Q3232's dynamic-name interpretation is implemented and proven. Collection gates,
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 No card-specific ambiguity or engine changes remain. Collection gates, commit, and push remain coordinator-owned.
 
@@ -2950,8 +2950,8 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
   level-5 Ultimate/Vaccine/Cyborg Digimon with 7,000 DP and a black level-4
   evolution requirement costing 3 memory.
 - Printed effects: `[When Digivolving] You may reveal the top 3 cards, add one
-  level-6 Digimon with [Machine] in its traits to hand, and trash the remaining
-  cards`; and inherited `[Opponent's Turn]`, while this Digimon has [Machine],
+level-6 Digimon with [Machine] in its traits to hand, and trash the remaining
+cards`; and inherited `[Opponent's Turn]`, while this Digimon has [Machine],
   it gains [Blocker].
 - Local KB: `node tools/kb/query.mjs card EX1-048` returns Q3233, confirming the
   reveal is optional but add/trash resolution is mandatory after revealing.
@@ -2961,12 +2961,12 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Optional reveal top 3 | `WhenDigivolving` optional `RevealAdd`, `revealCount: 3` | Tests prove refusal leaves the deck untouched and acceptance resolves. |
-| Add one level-6 Machine | Add filter is own Digimon, level 6, Machine trait, count 1, to hand | Positive test adds BT11-072; no-match test trashes all three. |
-| Trash remaining revealed cards | `rest: "trash"` | Positive and no-match tests assert exact trash outcomes. |
-| Inherited conditional Blocker | Opponent's Turn inherited Aura grants Blocker while `selfHasTrait` Machine | Public turn-loop tests prove a Machine host gains Blocker and a non-Machine host does not. |
+| Contract clause                | IR mapping                                                                 | Behavioral proof                                                                           |
+| ------------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Optional reveal top 3          | `WhenDigivolving` optional `RevealAdd`, `revealCount: 3`                   | Tests prove refusal leaves the deck untouched and acceptance resolves.                     |
+| Add one level-6 Machine        | Add filter is own Digimon, level 6, Machine trait, count 1, to hand        | Positive test adds BT11-072; no-match test trashes all three.                              |
+| Trash remaining revealed cards | `rest: "trash"`                                                            | Positive and no-match tests assert exact trash outcomes.                                   |
+| Inherited conditional Blocker  | Opponent's Turn inherited Aura grants Blocker while `selfHasTrait` Machine | Public turn-loop tests prove a Machine host gains Blocker and a non-Machine host does not. |
 
 #### Verification
 
@@ -2978,14 +2978,14 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 Q3233's optionality and post-reveal obligation are implemented and proven. Collection gates, commit, and push remain coordinator-owned.
 
@@ -2997,8 +2997,8 @@ Q3233's optionality and post-reveal obligation are implemented and proven. Colle
   level-5 Ultimate/Virus/Cyborg Digimon with 7,000 DP and a black level-4
   evolution requirement costing 3 memory.
 - Printed effects: `[When Digivolving] You may reveal the top 3 cards, add one
-  level-6 Digimon with [Machine] in its traits to hand, and trash the remaining
-  cards`; and inherited `[Opponent's Turn]`, while this Digimon has [Machine],
+level-6 Digimon with [Machine] in its traits to hand, and trash the remaining
+cards`; and inherited `[Opponent's Turn]`, while this Digimon has [Machine],
   it gains [Reboot].
 - Local KB: `node tools/kb/query.mjs card EX1-049` returns Q3234, confirming the
   reveal is optional but add/trash resolution is mandatory after revealing.
@@ -3008,12 +3008,12 @@ Q3233's optionality and post-reveal obligation are implemented and proven. Colle
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Optional reveal top 3 | `WhenDigivolving` optional `RevealAdd`, `revealCount: 3` | Tests prove refusal leaves the deck untouched and acceptance resolves. |
-| Add one level-6 Machine | Add filter is own Digimon, level 6, Machine trait, count 1, to hand | Positive test adds BT11-072; no-match test trashes all three. |
-| Trash remaining revealed cards | `rest: "trash"` | Positive and no-match tests assert exact trash outcomes. |
-| Inherited conditional Reboot | Opponent's Turn inherited Aura grants Reboot while `selfHasTrait` Machine | Public turn-loop tests prove a Machine host gains Reboot/unsuspends and a non-Machine host does not. |
+| Contract clause                | IR mapping                                                                | Behavioral proof                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Optional reveal top 3          | `WhenDigivolving` optional `RevealAdd`, `revealCount: 3`                  | Tests prove refusal leaves the deck untouched and acceptance resolves.                               |
+| Add one level-6 Machine        | Add filter is own Digimon, level 6, Machine trait, count 1, to hand       | Positive test adds BT11-072; no-match test trashes all three.                                        |
+| Trash remaining revealed cards | `rest: "trash"`                                                           | Positive and no-match tests assert exact trash outcomes.                                             |
+| Inherited conditional Reboot   | Opponent's Turn inherited Aura grants Reboot while `selfHasTrait` Machine | Public turn-loop tests prove a Machine host gains Reboot/unsuspends and a non-Machine host does not. |
 
 #### Verification
 
@@ -3025,14 +3025,14 @@ Q3233's optionality and post-reveal obligation are implemented and proven. Colle
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 Q3234's optionality and post-reveal obligation are implemented and proven. Collection gates, commit, and push remain coordinator-owned.
 
@@ -3044,12 +3044,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Optional reveal top 3 | `WhenDigivolving` + `RevealAdd`, `revealCount: 3`, `optional: true` | Positive evolution adds the matching level-6 Machine and trashes the other two; refusal leaves no reveal/trash side effect. |
-| Matching and short-deck boundaries | `kind: ["Digimon"]`, `levels: [6]`, trait `Machine`, remainder `trash` | No-match and fewer-than-three-deck tests trash only revealed non-matches and empty the short deck correctly. |
-| Inherited Machine attack deletion | Inherited `WhenAttacking` + `Delete`, opponent Digimon, `playCostLte: 5`, gated by `selfHasTrait(Machine)` | A real player attack deletes the cost-5 target and leaves the cost-6 target in play. |
-| Evolution stack | Catalog black Lv.4 → level-5 requirement; public `digivolve` intent | The focused evolution fixtures move EX1-050 from hand onto the host and resolve the inherited effect from a realistic stack. |
+| Clause                             | IR mapping                                                                                                 | Behavioral proof                                                                                                             |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Optional reveal top 3              | `WhenDigivolving` + `RevealAdd`, `revealCount: 3`, `optional: true`                                        | Positive evolution adds the matching level-6 Machine and trashes the other two; refusal leaves no reveal/trash side effect.  |
+| Matching and short-deck boundaries | `kind: ["Digimon"]`, `levels: [6]`, trait `Machine`, remainder `trash`                                     | No-match and fewer-than-three-deck tests trash only revealed non-matches and empty the short deck correctly.                 |
+| Inherited Machine attack deletion  | Inherited `WhenAttacking` + `Delete`, opponent Digimon, `playCostLte: 5`, gated by `selfHasTrait(Machine)` | A real player attack deletes the cost-5 target and leaves the cost-6 target in play.                                         |
+| Evolution stack                    | Catalog black Lv.4 → level-5 requirement; public `digivolve` intent                                        | The focused evolution fixtures move EX1-050 from hand onto the host and resolve the inherited effect from a realistic stack. |
 
 #### Verification
 
@@ -3075,12 +3075,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Opponent-turn level-5+ watcher | `OpponentsTurn` + `SubTrigger(whenOneOfYoursDigivolves)` with opponent controller, level `gte 5`, and `zone: battleArea` | A real opponent-turn level-5 digivolution gains one memory; a second same-turn digivolution is suppressed by `frequency: OncePerTurn`. |
-| Turn, zone, and source-lifetime boundaries | `frequency: OncePerTurn` and battle-area source filter | Breeding-area and own-turn digivolutions do not gain memory; Q3238 fixture confirms deletion of Infermon during the digivolution prevents the gain. |
-| Host-name inherited buff | Inherited `AllTurns` `ModifyDP`, `excludeSelf: true`, `isSameName: true`, count all | A host stack whose top card is BT11-072 buffs another BT11-072 but not Infermon itself or a different-name Digimon. |
-| Evolution stack | Catalog black Lv.4 → level-5 requirement; public digivolution fixtures preserve source stack and host identity | Same-name assertion uses the actual top card of the stack, proving Q3237's host-name interpretation. |
+| Clause                                     | IR mapping                                                                                                               | Behavioral proof                                                                                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Opponent-turn level-5+ watcher             | `OpponentsTurn` + `SubTrigger(whenOneOfYoursDigivolves)` with opponent controller, level `gte 5`, and `zone: battleArea` | A real opponent-turn level-5 digivolution gains one memory; a second same-turn digivolution is suppressed by `frequency: OncePerTurn`.              |
+| Turn, zone, and source-lifetime boundaries | `frequency: OncePerTurn` and battle-area source filter                                                                   | Breeding-area and own-turn digivolutions do not gain memory; Q3238 fixture confirms deletion of Infermon during the digivolution prevents the gain. |
+| Host-name inherited buff                   | Inherited `AllTurns` `ModifyDP`, `excludeSelf: true`, `isSameName: true`, count all                                      | A host stack whose top card is BT11-072 buffs another BT11-072 but not Infermon itself or a different-name Digimon.                                 |
+| Evolution stack                            | Catalog black Lv.4 → level-5 requirement; public digivolution fixtures preserve source stack and host identity           | Same-name assertion uses the actual top card of the stack, proving Q3237's host-name interpretation.                                                |
 
 #### Verification
 
@@ -3106,12 +3106,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Your-turn Etemon evolution discount | `YourTurn` `CostModifier`, `costType: "digivolve"`, amount 1, self target, `into` hand Digimon whose name contains Etemon | A real EX1-052 → EX1-053 evolution pays 2 instead of 3; a non-Etemon target pays the full cost. |
-| Controller/zone boundary | Your-turn trigger and self target | A breeding-area Etemon receives no discount, and an opponent-turn matching evolution receives no discount, matching Q3239. |
-| Inherited Jamming | Inherited `YourTurn` `GainKeyword(Jamming)` gated by `selfHasNameContaining(Etemon)` | Etemon-named host gains Jamming, a non-Etemon host does not, and the keyword expires when the opponent's turn begins. |
-| Evolution stack | Public stack fixtures place EX1-052 beneath both matching and nonmatching hosts | Assertions observe the resulting host name and inherited keyword from the physical stack. |
+| Clause                              | IR mapping                                                                                                                | Behavioral proof                                                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Your-turn Etemon evolution discount | `YourTurn` `CostModifier`, `costType: "digivolve"`, amount 1, self target, `into` hand Digimon whose name contains Etemon | A real EX1-052 → EX1-053 evolution pays 2 instead of 3; a non-Etemon target pays the full cost.                            |
+| Controller/zone boundary            | Your-turn trigger and self target                                                                                         | A breeding-area Etemon receives no discount, and an opponent-turn matching evolution receives no discount, matching Q3239. |
+| Inherited Jamming                   | Inherited `YourTurn` `GainKeyword(Jamming)` gated by `selfHasNameContaining(Etemon)`                                      | Etemon-named host gains Jamming, a non-Etemon host does not, and the keyword expires when the opponent's turn begins.      |
+| Evolution stack                     | Public stack fixtures place EX1-052 beneath both matching and nonmatching hosts                                           | Assertions observe the resulting host name and inherited keyword from the physical stack.                                  |
 
 #### Verification
 
@@ -3137,12 +3137,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Errata-corrected opponent-turn scaling | `OpponentsTurn` `ModifyDP` self target, +1000, scaling one per trash Digimon with name containing Etemon | Three trash cards including two Etemon-named Digimon produce +2000 on the opponent's turn; own-turn/no-trash baseline remains unchanged. |
-| On Deletion | `OnDeletion` + `DeDigivolve`, opponent Digimon, amount 1 | A real battle deletes MetalEtemon and de-digivolves the opposing stacked Digimon by one, moving the top card to trash and exposing its source. |
-| De-Digivolve boundary | Target is opponent Digimon and amount exactly 1 | The resulting source stack is empty after one source card is trashed; no extra card is removed. |
-| Evolution stack | Public battle fixture uses a stacked EX1-053 target and real combat deletion | The deletion trigger is proven from a physical stack, not an injected timing event. |
+| Clause                                 | IR mapping                                                                                               | Behavioral proof                                                                                                                               |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Errata-corrected opponent-turn scaling | `OpponentsTurn` `ModifyDP` self target, +1000, scaling one per trash Digimon with name containing Etemon | Three trash cards including two Etemon-named Digimon produce +2000 on the opponent's turn; own-turn/no-trash baseline remains unchanged.       |
+| On Deletion                            | `OnDeletion` + `DeDigivolve`, opponent Digimon, amount 1                                                 | A real battle deletes MetalEtemon and de-digivolves the opposing stacked Digimon by one, moving the top card to trash and exposing its source. |
+| De-Digivolve boundary                  | Target is opponent Digimon and amount exactly 1                                                          | The resulting source stack is empty after one source card is trashed; no extra card is removed.                                                |
+| Evolution stack                        | Public battle fixture uses a stacked EX1-053 target and real combat deletion                             | The deletion trigger is proven from a physical stack, not an injected timing event.                                                            |
 
 #### Verification
 
@@ -3168,12 +3168,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Reboot | Static keyword `Reboot` | A suspended Boltmon exposes Reboot without an immediate same-turn unsuspend; the public opponent active phase unsuspends it. |
-| When Digivolving de-digivolve 1 | `WhenDigivolving` + `DeDigivolve`, opponent Digimon, amount 1 | Real evolution triggers against a stacked opponent and trashes its top source card. |
-| No-source boundary | Same target and amount with engine no-op when stack has no source | A target with no digivolution cards stays in play and unchanged. |
-| Evolution stack | Public EX1-050 → EX1-054 evolution and stacked target | Assertions verify the source card is exposed after exactly one de-digivolution. |
+| Clause                          | IR mapping                                                        | Behavioral proof                                                                                                             |
+| ------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Reboot                          | Static keyword `Reboot`                                           | A suspended Boltmon exposes Reboot without an immediate same-turn unsuspend; the public opponent active phase unsuspends it. |
+| When Digivolving de-digivolve 1 | `WhenDigivolving` + `DeDigivolve`, opponent Digimon, amount 1     | Real evolution triggers against a stacked opponent and trashes its top source card.                                          |
+| No-source boundary              | Same target and amount with engine no-op when stack has no source | A target with no digivolution cards stays in play and unchanged.                                                             |
+| Evolution stack                 | Public EX1-050 → EX1-054 evolution and stacked target             | Assertions verify the source card is exposed after exactly one de-digivolution.                                              |
 
 #### Verification
 
@@ -3199,12 +3199,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Your-turn inherited watcher | Inherited `YourTurn` + `SubTrigger(onDeletionOf)` | A real battle deletion of another own Digimon draws one card; a deletion during the opponent's turn draws none. |
-| Other Digimon only | Source filter `controller: mine`, `excludeSelf: true`, kind Digimon | A host carrying Tapirmon is deleted without drawing, while a separate ally deletion draws. |
-| Once per turn and simultaneous deletion | `frequency: OncePerTurn`, shared inherited watcher | Simultaneous rule deletions and two separate same-turn battle deletions each produce exactly one draw. |
-| Evolution stack | Tapirmon is placed beneath an EX1-058 host in every positive fixture | The inherited effect is observed from a realistic stack and does not incorrectly activate when its host leaves. |
+| Clause                                  | IR mapping                                                           | Behavioral proof                                                                                                |
+| --------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Your-turn inherited watcher             | Inherited `YourTurn` + `SubTrigger(onDeletionOf)`                    | A real battle deletion of another own Digimon draws one card; a deletion during the opponent's turn draws none. |
+| Other Digimon only                      | Source filter `controller: mine`, `excludeSelf: true`, kind Digimon  | A host carrying Tapirmon is deleted without drawing, while a separate ally deletion draws.                      |
+| Once per turn and simultaneous deletion | `frequency: OncePerTurn`, shared inherited watcher                   | Simultaneous rule deletions and two separate same-turn battle deletions each produce exactly one draw.          |
+| Evolution stack                         | Tapirmon is placed beneath an EX1-058 host in every positive fixture | The inherited effect is observed from a realistic stack and does not incorrectly activate when its host leaves. |
 
 #### Verification
 
@@ -3230,12 +3230,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Retaliation | Static keyword `Retaliation` | The focused suite observes the keyword and resolves a real blocked attack where both Digimon are deleted. |
-| Your-turn Digimon-target restriction | `YourTurn` self `Aura` restriction `cantAttackDigimon` | Without Myotismon, a Digimon target is rejected while a player target is legal. |
-| Myotismon name/zone boundary | Aura `while: youHaveNone` over own battle-area Digimon whose name contains Myotismon | A battle-area Myotismon permits the attack; a breeding-area Myotismon does not. |
-| Turn duration and Q3242 | `YourTurn` trigger and public blocker flow | The restriction expires in the opponent's turn; a direct attack can be blocked and resolves Retaliation normally. |
+| Clause                               | IR mapping                                                                           | Behavioral proof                                                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Retaliation                          | Static keyword `Retaliation`                                                         | The focused suite observes the keyword and resolves a real blocked attack where both Digimon are deleted.         |
+| Your-turn Digimon-target restriction | `YourTurn` self `Aura` restriction `cantAttackDigimon`                               | Without Myotismon, a Digimon target is rejected while a player target is legal.                                   |
+| Myotismon name/zone boundary         | Aura `while: youHaveNone` over own battle-area Digimon whose name contains Myotismon | A battle-area Myotismon permits the attack; a breeding-area Myotismon does not.                                   |
+| Turn duration and Q3242              | `YourTurn` trigger and public blocker flow                                           | The restriction expires in the opponent's turn; a direct attack can be blocked and resolves Retaliation normally. |
 
 #### Verification
 
@@ -3261,12 +3261,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Retaliation keyword | Static `keywords: [Retaliation]` | The focused suite observes the keyword on Wizardmon. |
-| Your-turn inherited Rush grant | Inherited `YourTurn` `GainKeyword(Rush)` to all mine Digimon with `keywords: [Retaliation]` | A Retaliation recipient gains Rush, while a non-Retaliation Digimon and an opponent's Retaliation Digimon do not. |
-| Turn boundary | Inherited `YourTurn` trigger | The grant is present on the controller's turn and absent after the opponent's turn begins. |
-| Real play/evolution-stack interaction | Public `playCard` fixture with a host carrying EX1-057 | A newly played Retaliation Digimon receives Rush and can declare a real attack. |
+| Clause                                | IR mapping                                                                                  | Behavioral proof                                                                                                  |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Retaliation keyword                   | Static `keywords: [Retaliation]`                                                            | The focused suite observes the keyword on Wizardmon.                                                              |
+| Your-turn inherited Rush grant        | Inherited `YourTurn` `GainKeyword(Rush)` to all mine Digimon with `keywords: [Retaliation]` | A Retaliation recipient gains Rush, while a non-Retaliation Digimon and an opponent's Retaliation Digimon do not. |
+| Turn boundary                         | Inherited `YourTurn` trigger                                                                | The grant is present on the controller's turn and absent after the opponent's turn begins.                        |
+| Real play/evolution-stack interaction | Public `playCard` fixture with a host carrying EX1-057                                      | A newly played Retaliation Digimon receives Rush and can declare a real attack.                                   |
 
 #### Verification
 
@@ -3292,12 +3292,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Inherited On Deletion | Inherited `OnDeletion` `Return` to hand | A real host deletion returns the inherited Devimon to hand. |
+| Clause                                   | IR mapping                                                                                          | Behavioral proof                                                                                               |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Inherited On Deletion                    | Inherited `OnDeletion` `Return` to hand                                                             | A real host deletion returns the inherited Devimon to hand.                                                    |
 | Exact zone/controller/color/level filter | Target filter `zone: trash`, `controller: mine`, `kind: Digimon`, `colors: [Purple]`, level `lte 4` | Purple level-4 and lower cards are eligible; a non-purple/nonmatching card and cards in hand/deck are ignored. |
-| Mandatory return | No optional marker on the effect | With an eligible candidate the effect resolves a return; with none, no pending decision opens. |
-| Evolution stack and self-return ruling | Public deletion of a host carrying EX1-058 | The source card transitions from the deleted stack to trash and then to hand, proving Q3243. |
+| Mandatory return                         | No optional marker on the effect                                                                    | With an eligible candidate the effect resolves a return; with none, no pending decision opens.                 |
+| Evolution stack and self-return ruling   | Public deletion of a host carrying EX1-058                                                          | The source card transitions from the deleted stack to trash and then to hand, proving Q3243.                   |
 
 #### Verification
 
@@ -3323,12 +3323,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Main attack cost/effect | `WhenAttacking` `GainKeyword(SecurityAttack, +1)` with optional hand-trash cost and `forTheTurn` duration | A real player attack trashes exactly one card, checks the extra security, then loses the keyword at the turn boundary. |
-| Inherited attack cost/effect | Inherited `WhenAttacking` `ModifyDP +2000` with the same optional hand-trash cost and turn duration | A stacked host reaches 9000 DP for the attack and returns to 7000 afterward. |
-| Optional refusal and costs | Both actions carry optional hand-trash costs | Declining either prompt leaves hand/trash and the corresponding combat result unchanged. |
-| Multiple attackers | Separate attack windows/effect sources | Two legal attackers resolve their own optional prompts independently in one turn. |
+| Clause                       | IR mapping                                                                                                | Behavioral proof                                                                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Main attack cost/effect      | `WhenAttacking` `GainKeyword(SecurityAttack, +1)` with optional hand-trash cost and `forTheTurn` duration | A real player attack trashes exactly one card, checks the extra security, then loses the keyword at the turn boundary. |
+| Inherited attack cost/effect | Inherited `WhenAttacking` `ModifyDP +2000` with the same optional hand-trash cost and turn duration       | A stacked host reaches 9000 DP for the attack and returns to 7000 afterward.                                           |
+| Optional refusal and costs   | Both actions carry optional hand-trash costs                                                              | Declining either prompt leaves hand/trash and the corresponding combat result unchanged.                               |
+| Multiple attackers           | Separate attack windows/effect sources                                                                    | Two legal attackers resolve their own optional prompts independently in one turn.                                      |
 
 #### Verification
 
@@ -3354,12 +3354,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Optional top-three trash | `WhenDigivolving` `TrashTopDeck`, amount 3, optional | Positive evolution trashes three cards; refusal leaves the post-digivolution deck cards intact. |
-| Inherited trash-play watcher | Inherited `YourTurn` + `SubTrigger(whenPlayed)` with source filter `zone: trash`, mine, Digimon; `GainMemory 1` | Playing a Digimon from trash through a real option gains one memory. |
-| Once per turn | `frequency: OncePerTurn` | Two separate trash plays in one turn only refund the first; the fixture crosses a public turn boundary. |
-| Evolution stack | EX1-060 is placed beneath an EX1-063 host in the inherited tests | The watcher is observed from a physical evolution stack while the played trash Digimon enters suspended. |
+| Clause                       | IR mapping                                                                                                      | Behavioral proof                                                                                         |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Optional top-three trash     | `WhenDigivolving` `TrashTopDeck`, amount 3, optional                                                            | Positive evolution trashes three cards; refusal leaves the post-digivolution deck cards intact.          |
+| Inherited trash-play watcher | Inherited `YourTurn` + `SubTrigger(whenPlayed)` with source filter `zone: trash`, mine, Digimon; `GainMemory 1` | Playing a Digimon from trash through a real option gains one memory.                                     |
+| Once per turn                | `frequency: OncePerTurn`                                                                                        | Two separate trash plays in one turn only refund the first; the fixture crosses a public turn boundary.  |
+| Evolution stack              | EX1-060 is placed beneath an EX1-063 host in the inherited tests                                                | The watcher is observed from a physical evolution stack while the played trash Digimon enters suspended. |
 
 #### Verification
 
@@ -3385,13 +3385,13 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Your-turn Myotismon evolution discount | `YourTurn` `CostModifier` for digivolve, amount 1, self target, hand name filter `Myotismon` | A real matching evolution pays 2 instead of 3; a hand-only source and a nonmatching target receive no discount. |
-| Breeding-area boundary | Your-turn field effect with battle-area self relevance | A matching breeding-area evolution pays the full 4-memory cost, matching Q3246. |
-| Inherited Retaliation attack permission | Inherited `YourTurn` `GrantCanAttackUnsuspended`, mine Digimon with Retaliation, defender level max 4, gated by host name | A Retaliation Digimon may attack an unsuspended level-3 target but not an unsuspended level-5 target. |
-| Name, suspension, and turn boundaries | `selfHasNameContaining(Myotismon)` plus `defenderLevelMax: 4` | A non-Myotismon host grants no permission; it expires on the opponent's turn; ordinary attacks against suspended high-level targets remain legal. |
-| Evolution stack | Public stacks include EX1-061 beneath EX1-063 and Retaliation sources | Assertions observe host name and inherited permission from the resulting stack. |
+| Clause                                  | IR mapping                                                                                                                | Behavioral proof                                                                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Your-turn Myotismon evolution discount  | `YourTurn` `CostModifier` for digivolve, amount 1, self target, hand name filter `Myotismon`                              | A real matching evolution pays 2 instead of 3; a hand-only source and a nonmatching target receive no discount.                                   |
+| Breeding-area boundary                  | Your-turn field effect with battle-area self relevance                                                                    | A matching breeding-area evolution pays the full 4-memory cost, matching Q3246.                                                                   |
+| Inherited Retaliation attack permission | Inherited `YourTurn` `GrantCanAttackUnsuspended`, mine Digimon with Retaliation, defender level max 4, gated by host name | A Retaliation Digimon may attack an unsuspended level-3 target but not an unsuspended level-5 target.                                             |
+| Name, suspension, and turn boundaries   | `selfHasNameContaining(Myotismon)` plus `defenderLevelMax: 4`                                                             | A non-Myotismon host grants no permission; it expires on the opponent's turn; ordinary attacks against suspended high-level targets remain legal. |
+| Evolution stack                         | Public stacks include EX1-061 beneath EX1-063 and Retaliation sources                                                     | Assertions observe host name and inherited permission from the resulting stack.                                                                   |
 
 #### Verification
 
@@ -3417,13 +3417,13 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Security Attack +1 | Static `SecurityAttack` keyword amount 1 | A real player attack checks two security cards. |
-| End of Attack self-delete | `EndOfAttack` self `Delete` | After a normal attack SkullGreymon leaves play. |
-| On Deletion Agumon play | `OnDeletion` optional `PlayWithoutCost` from trash, suspended, exact `nameExact: Agumon` | A trash Agumon is played suspended; refusal leaves it in trash. |
+| Clause                        | IR mapping                                                                                              | Behavioral proof                                                                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Security Attack +1            | Static `SecurityAttack` keyword amount 1                                                                | A real player attack checks two security cards.                                                                                                         |
+| End of Attack self-delete     | `EndOfAttack` self `Delete`                                                                             | After a normal attack SkullGreymon leaves play.                                                                                                         |
+| On Deletion Agumon play       | `OnDeletion` optional `PlayWithoutCost` from trash, suspended, exact `nameExact: Agumon`                | A trash Agumon is played suspended; refusal leaves it in trash.                                                                                         |
 | Exact name and stack boundary | Name-exact filter excludes Agumon Expert and Bond of Bravery; security BT2-105 de-digivolves the source | Q3247 timing test confirms no stale End-of-Attack deletion after SkullGreymon leaves play, and a stacked Agumon can be played from the resulting trash. |
-| Evolution requirements | Catalog purple/red Lv.4 → level-5 paths | The focused suite uses public attack/evolution-stack transitions and no injected timing. |
+| Evolution requirements        | Catalog purple/red Lv.4 → level-5 paths                                                                 | The focused suite uses public attack/evolution-stack transitions and no injected timing.                                                                |
 
 #### Verification
 
@@ -3449,14 +3449,14 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Retaliation | Static `Retaliation` keyword | The focused suite observes the keyword on VenomMyotismon. |
-| When Attacking optional play | `WhenAttacking`, `frequency: OncePerTurn`, optional `PlayWithoutCost` from trash, mine purple Digimon, level `lte 4` | A real attack plays a qualifying EX1-056 from trash; declining leaves it in trash. |
-| Main-text Retaliation filter | `effectTextContains` for Retaliation text | An inherited-only Retaliation card (BT12-076) is rejected, matching Q3249. |
-| Level/color boundary | Purple, Digimon, level 4 or lower filter | A level-5 Retaliation Digimon is not played. |
-| Suppressed On Play and once-per-turn | `suppressOnPlayEffects: true`; `frequency: OncePerTurn` | A played BT18-077 does not trigger its On Play effect; two attacks with an unsuspension between them play only the first candidate. |
-| Evolution stack | Public attack fixtures and stacked EX1-061/EX1-057 sources | Triggered behavior is proved through observable attack/play transitions, not injected timing. |
+| Clause                               | IR mapping                                                                                                           | Behavioral proof                                                                                                                    |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Retaliation                          | Static `Retaliation` keyword                                                                                         | The focused suite observes the keyword on VenomMyotismon.                                                                           |
+| When Attacking optional play         | `WhenAttacking`, `frequency: OncePerTurn`, optional `PlayWithoutCost` from trash, mine purple Digimon, level `lte 4` | A real attack plays a qualifying EX1-056 from trash; declining leaves it in trash.                                                  |
+| Main-text Retaliation filter         | `effectTextContains` for Retaliation text                                                                            | An inherited-only Retaliation card (BT12-076) is rejected, matching Q3249.                                                          |
+| Level/color boundary                 | Purple, Digimon, level 4 or lower filter                                                                             | A level-5 Retaliation Digimon is not played.                                                                                        |
+| Suppressed On Play and once-per-turn | `suppressOnPlayEffects: true`; `frequency: OncePerTurn`                                                              | A played BT18-077 does not trigger its On Play effect; two attacks with an unsuspension between them play only the first candidate. |
+| Evolution stack                      | Public attack fixtures and stacked EX1-061/EX1-057 sources                                                           | Triggered behavior is proved through observable attack/play transitions, not injected timing.                                       |
 
 #### Verification
 
@@ -3482,12 +3482,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| On Play deletion | `OnPlay` `Delete`, opponent Digimon, unsuspended, level `lte 4`, count 4 | Four legal targets are deleted while a level-5 and suspended level-4 remain. |
-| Up-to-four boundary | Same target filter/count | Fewer than four legal targets deletes only those available; no-legal-target case is a no-op. |
+| Clause                       | IR mapping                                                                                                               | Behavioral proof                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| On Play deletion             | `OnPlay` `Delete`, opponent Digimon, unsuspended, level `lte 4`, count 4                                                 | Four legal targets are deleted while a level-5 and suspended level-4 remain.                         |
+| Up-to-four boundary          | Same target filter/count                                                                                                 | Fewer than four legal targets deletes only those available; no-legal-target case is a no-op.         |
 | Your-turn once-per-turn draw | `YourTurn` `SubTrigger(onDeletionOf)` opponent Digimon source, `GainMemory` not used; `Draw 1`, `frequency: OncePerTurn` | On Play's multiple simultaneous deletions and two later battle deletions each produce one draw only. |
-| Evolution/real deletion flow | Public play and attack intents | All proofs use observable game actions and settled state, with no injected timing. |
+| Evolution/real deletion flow | Public play and attack intents                                                                                           | All proofs use observable game actions and settled state, with no injected timing.                   |
 
 #### Verification
 
@@ -3513,12 +3513,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Security Token | `Security` `PlayToken([Diaboromon])`, no cost, optional | A real security check plays the token even when the attacker loses, and event ordering places it before the next security check. |
-| Optionality | `optional: true` on token action | The public security flow exercises the token path without direct timing injection. |
-| Opponent-turn Blocker | `OpponentsTurn` `GainKeyword(Blocker)` to all mine Diaboromon | Both source and other allied Diaboromon gain Blocker only during the opponent's turn. |
-| Source-lifetime boundary | Turned-on Blocker aura and real attack deletion | Deleting the source before blocker timing removes the token's Blocker, matching Q3251. |
+| Clause                   | IR mapping                                                    | Behavioral proof                                                                                                                 |
+| ------------------------ | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Security Token           | `Security` `PlayToken([Diaboromon])`, no cost, optional       | A real security check plays the token even when the attacker loses, and event ordering places it before the next security check. |
+| Optionality              | `optional: true` on token action                              | The public security flow exercises the token path without direct timing injection.                                               |
+| Opponent-turn Blocker    | `OpponentsTurn` `GainKeyword(Blocker)` to all mine Diaboromon | Both source and other allied Diaboromon gain Blocker only during the opponent's turn.                                            |
+| Source-lifetime boundary | Turned-on Blocker aura and real attack deletion               | Deleting the source before blocker timing removes the token's Blocker, matching Q3251.                                           |
 
 #### Verification
 
@@ -3544,12 +3544,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| On Play reveal/add/trash | `OnPlay` `RevealAdd` top 3, Digimon candidate, remainder trash | A public play decision adds the only Digimon and trashes the filler cards. |
+| Clause                                | IR mapping                                                                                                                            | Behavioral proof                                                                                                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play reveal/add/trash              | `OnPlay` `RevealAdd` top 3, Digimon candidate, remainder trash                                                                        | A public play decision adds the only Digimon and trashes the filler cards.                                                                                                  |
 | Deletion trigger and optional suspend | `AllTurns` `SubTrigger(onDeletionOf)` source filter mine Digimon, level `gte 5`, `digivolutionCards: hasAny`; optional self `Suspend` | Real battle deletion of a qualifying level-5 stack suspends Analog Youth, gains 1 memory, and hatches. Decline, level-3, no-source, and already-suspended cases do not pay. |
-| Breeding occupancy | `GainMemory` and `Hatch` gated by `ifThisEffectActed` | Q3254 test proves memory is gained after accepting suspension while hatch correctly fails with occupied Breeding Area. |
-| Security self-play | Security `PlayWithoutCost` self target | A real security check plays Analog Youth for its owner. |
+| Breeding occupancy                    | `GainMemory` and `Hatch` gated by `ifThisEffectActed`                                                                                 | Q3254 test proves memory is gained after accepting suspension while hatch correctly fails with occupied Breeding Area.                                                      |
+| Security self-play                    | Security `PlayWithoutCost` self target                                                                                                | A real security check plays Analog Youth for its owner.                                                                                                                     |
 
 #### Verification
 
@@ -3575,11 +3575,11 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Main deletion | `Main` `Delete`, opponent Digimon, `keywords: [Blocker]`, DP `lte 6000`, count 1 | A real Main play deletes the eligible Blocker while preserving a 7000-DP Blocker and a non-Blocker. |
-| Security activation | `Security` `ActivateMain` | A real security check activates Main and deletes the eligible Blocker. |
-| Exact numeric/keyword boundaries | DP and keyword filters | The focused fixture proves both the 6000-or-less and Blocker requirements. |
+| Clause                           | IR mapping                                                                       | Behavioral proof                                                                                    |
+| -------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Main deletion                    | `Main` `Delete`, opponent Digimon, `keywords: [Blocker]`, DP `lte 6000`, count 1 | A real Main play deletes the eligible Blocker while preserving a 7000-DP Blocker and a non-Blocker. |
+| Security activation              | `Security` `ActivateMain`                                                        | A real security check activates Main and deletes the eligible Blocker.                              |
+| Exact numeric/keyword boundaries | DP and keyword filters                                                           | The focused fixture proves both the 6000-or-less and Blocker requirements.                          |
 
 #### Verification
 
@@ -3605,12 +3605,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
+| Clause                          | IR mapping                                                                                                                      | Behavioral proof                                                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | Timed opponent-wide attack loss | Main `GrantAuraToOpponents`, effect text `[When Attacking] Lose 2 memory`, `untilOpponentTurnEnd`, `includeLaterEntrants: true` | Real attacks by existing and later-played Digimon lose 2 memory; two separately played Ice Walls stack; later-turn expiration is observed. |
-| Security gain | Security `GainMemory 2` | A real security check by the option's owner gains 2 memory. |
-| Q3255/Q3257 | Shared granted attack trigger and public Blitz evolution | Two grants cause two losses, and Blitz attacks still lose 2 memory. |
-| Q2120/Q2121 immunity timing | Timed aura integration | The focused suite proves expiry after the next opponent turn and removal when Option immunity is active. |
+| Security gain                   | Security `GainMemory 2`                                                                                                         | A real security check by the option's owner gains 2 memory.                                                                                |
+| Q3255/Q3257                     | Shared granted attack trigger and public Blitz evolution                                                                        | Two grants cause two losses, and Blitz attacks still lose 2 memory.                                                                        |
+| Q2120/Q2121 immunity timing     | Timed aura integration                                                                                                          | The focused suite proves expiry after the next opponent turn and removal when Option immunity is active.                                   |
 
 #### Verification
 
@@ -3636,11 +3636,11 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
+| Clause                    | IR mapping                                                                                | Behavioral proof                                                                                                                        |
+| ------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | Optional cost and payload | Main `GainMemory 2` with optional trash cost restricted to hand, Digimon, level 5, Cyborg | A real Main play trashes EX1-008, gains 2 memory, and draws one. Declining leaves the cost card in hand and skips both payload actions. |
-| Exact cost filter | `kind: Digimon`, `levels: [5]`, trait `Cyborg` | Wrong-level and wrong-trait cards are not offered as payment. |
-| Security activation | Security `ActivateMain` | A real security check activates Main for the option's owner and resolves the same cost/payload. |
+| Exact cost filter         | `kind: Digimon`, `levels: [5]`, trait `Cyborg`                                            | Wrong-level and wrong-trait cards are not offered as payment.                                                                           |
+| Security activation       | Security `ActivateMain`                                                                   | A real security check activates Main for the option's owner and resolves the same cost/payload.                                         |
 
 #### Verification
 
@@ -3666,12 +3666,12 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Main trash play | Main `PlayWithoutCost`, mine purple Digimon, level `lte 4`, from trash | A real Main play moves a qualifying purple level-4 Digimon onto the field. |
-| Conditional Blocker | Main `GainKeyword(Blocker)` one mine Digimon, `untilOpponentTurnEnd`, gated by `youHave(Myotismon)` | Myotismon present grants Blocker; absence does not; the grant remains through the opponent's turn and expires on the next own turn. |
-| Security trash play | Security `PlayWithoutCost` same purple level/zone filter | A real security check plays the qualifying card and leaves a level-5 card in trash. |
-| Numeric and controller boundaries | Purple, Digimon, level `lte 4`, mine filters | A level-5 non-qualifying card is untouched, and assertions observe the owner-side result. |
+| Clause                            | IR mapping                                                                                          | Behavioral proof                                                                                                                    |
+| --------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Main trash play                   | Main `PlayWithoutCost`, mine purple Digimon, level `lte 4`, from trash                              | A real Main play moves a qualifying purple level-4 Digimon onto the field.                                                          |
+| Conditional Blocker               | Main `GainKeyword(Blocker)` one mine Digimon, `untilOpponentTurnEnd`, gated by `youHave(Myotismon)` | Myotismon present grants Blocker; absence does not; the grant remains through the opponent's turn and expires on the next own turn. |
+| Security trash play               | Security `PlayWithoutCost` same purple level/zone filter                                            | A real security check plays the qualifying card and leaves a level-5 card in trash.                                                 |
+| Numeric and controller boundaries | Purple, Digimon, level `lte 4`, mine filters                                                        | A level-5 non-qualifying card is untouched, and assertions observe the owner-side result.                                           |
 
 #### Verification
 
@@ -3711,12 +3711,12 @@ Score: **8/10** pending coordinator typecheck, collection gates, commit, and bra
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Ignore this Option's color requirement with a Tamer | Static `WaiveColorRequirement` conditioned on an own battle-area Tamer | Tests accept use with a non-white Tamer and reject an opponent-only Tamer. |
-| Next Digimon digivolution this turn | Main `CostModifier`, digivolve cost type, amount 4, `nextDigivolveThisTurn`, battle-area scope | Tests cover ordinary, effect-driven, multicolor, DNA, alternate Tamer, and nonmatching evolutions. |
-| Optional same-color hand Digimon cost | Trash cost is resolved at the deferred evolution point against all effective destination/material colors | Positive tests trash red/blue/green matches; negative and refusal tests preserve the card and pay printed cost. |
-| Security return | Security `AddToHandSelf` | Both direct security resolution and a real security check return the Option to its owner. |
+| Contract clause                                     | IR mapping                                                                                               | Behavioral proof                                                                                                |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Ignore this Option's color requirement with a Tamer | Static `WaiveColorRequirement` conditioned on an own battle-area Tamer                                   | Tests accept use with a non-white Tamer and reject an opponent-only Tamer.                                      |
+| Next Digimon digivolution this turn                 | Main `CostModifier`, digivolve cost type, amount 4, `nextDigivolveThisTurn`, battle-area scope           | Tests cover ordinary, effect-driven, multicolor, DNA, alternate Tamer, and nonmatching evolutions.              |
+| Optional same-color hand Digimon cost               | Trash cost is resolved at the deferred evolution point against all effective destination/material colors | Positive tests trash red/blue/green matches; negative and refusal tests preserve the card and pay printed cost. |
+| Security return                                     | Security `AddToHandSelf`                                                                                 | Both direct security resolution and a real security check return the Option to its owner.                       |
 
 #### Behavioral and rules proof
 
@@ -3737,14 +3737,14 @@ removed; inert BT1-009 Digimon are used for deck/security filler.
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 No card-specific ambiguity or engine changes remain. Collection gates, commit, and push remain coordinator-owned.
 
@@ -3765,12 +3765,12 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Main lock through opponent's next turn | Main `RestrictPlay`, opponent seat, Option filter, `mode: "play"`, `duration: "untilOpponentTurnEnd"` | Public turn-loop tests reject an Option on the next opponent turn and allow it after that turn ends. |
-| Security lock for current turn | Security `RestrictPlay`, opponent seat, Option filter, `duration: "forTheTurn"` | Direct Security proof and a real attack/security check reject Option use while returning the card to its owner. |
-| Security return to owner | Security `AddToHandSelf` | Real and direct Security tests assert the exact owner hand receives EX1-072. |
-| Q3265/Q3266 exceptions | Restriction applies to `mode: "play"`; existing Security effects and Delay activations remain available | Dedicated tests prove a Security effect resolves during the lock and a pre-existing Option's Delay can activate. |
+| Contract clause                        | IR mapping                                                                                              | Behavioral proof                                                                                                 |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Main lock through opponent's next turn | Main `RestrictPlay`, opponent seat, Option filter, `mode: "play"`, `duration: "untilOpponentTurnEnd"`   | Public turn-loop tests reject an Option on the next opponent turn and allow it after that turn ends.             |
+| Security lock for current turn         | Security `RestrictPlay`, opponent seat, Option filter, `duration: "forTheTurn"`                         | Direct Security proof and a real attack/security check reject Option use while returning the card to its owner.  |
+| Security return to owner               | Security `AddToHandSelf`                                                                                | Real and direct Security tests assert the exact owner hand receives EX1-072.                                     |
+| Q3265/Q3266 exceptions                 | Restriction applies to `mode: "play"`; existing Security effects and Delay activations remain available | Dedicated tests prove a Security effect resolves during the lock and a pre-existing Option's Delay can activate. |
 
 #### Behavioral and rules proof
 
@@ -3790,14 +3790,14 @@ used for deck/security filler.
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 No card-specific ambiguity or engine changes remain. Collection gates, commit, and push remain coordinator-owned.
 
@@ -3822,12 +3822,12 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause | IR mapping | Behavioral proof |
-| --- | --- | --- |
-| Optional errata-corrected material placement | On Play optional `PlaceUnder`, up to 5, source zones hand/trash, red/black level 5 Digimon with Cyborg trait, distinct card numbers, bottom position | Tests prove mixed hand/trash placement, zero choice, five-card cap, wrong level/trait exclusion, and reuse of cards newly trashed by a peer effect. |
-| Gain 1 memory per placed card | `trackCount: "placedCyborgs"` and named-count scaling | Positive and cap tests assert exact memory gain. |
-| DP cannot be reduced | Static self `Restrict` with `restriction: "dpImmune"`, permanent duration | Test applies a real DP reduction effect and observes unchanged DP. |
-| Optional deletion prevention | All Turns self replacement on `wouldBeDeleted`; optional Prevent costs two own-stack level-5 Digimon cards | Tests prove insufficient sources fail, eligible sources prevent deletion, only this stack is used, optional prevention, and Q6030 sequential deletion prevention. |
+| Contract clause                              | IR mapping                                                                                                                                           | Behavioral proof                                                                                                                                                  |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Optional errata-corrected material placement | On Play optional `PlaceUnder`, up to 5, source zones hand/trash, red/black level 5 Digimon with Cyborg trait, distinct card numbers, bottom position | Tests prove mixed hand/trash placement, zero choice, five-card cap, wrong level/trait exclusion, and reuse of cards newly trashed by a peer effect.               |
+| Gain 1 memory per placed card                | `trackCount: "placedCyborgs"` and named-count scaling                                                                                                | Positive and cap tests assert exact memory gain.                                                                                                                  |
+| DP cannot be reduced                         | Static self `Restrict` with `restriction: "dpImmune"`, permanent duration                                                                            | Test applies a real DP reduction effect and observes unchanged DP.                                                                                                |
+| Optional deletion prevention                 | All Turns self replacement on `wouldBeDeleted`; optional Prevent costs two own-stack level-5 Digimon cards                                           | Tests prove insufficient sources fail, eligible sources prevent deletion, only this stack is used, optional prevention, and Q6030 sequential deletion prevention. |
 
 #### Behavioral and stack proof
 
@@ -3848,14 +3848,14 @@ deck/security filler.
 
 #### Rubric
 
-| Axis | Score |
-| --- | ---: |
-| Catalog/rules evidence | 2/2 |
-| IR implementation trace | 2/2 |
-| Behavioral proof | 2/2 |
-| Peer/evolution-stack proof | 2/2 |
-| Delivery gates | 0/2 (coordinator-owned) |
-| **Total** | **8/10** |
+| Axis                       |                   Score |
+| -------------------------- | ----------------------: |
+| Catalog/rules evidence     |                     2/2 |
+| IR implementation trace    |                     2/2 |
+| Behavioral proof           |                     2/2 |
+| Peer/evolution-stack proof |                     2/2 |
+| Delivery gates             | 0/2 (coordinator-owned) |
+| **Total**                  |                **8/10** |
 
 The erratum and Q3267/Q3268/Q6030 behavior are implemented and proven. Collection gates, commit, and push remain coordinator-owned.
 
@@ -3916,81 +3916,81 @@ Merged from `docs/audits/EX1-reaudit/KB-INDEX.md`.
 
 Generated on 2026-09-09 by running `node tools/kb/query.mjs card <ID>` for every catalog card. “No card-specific Q&A” is a recorded query result, not a claim that no general rule applies.
 
-| Card | Card-specific Q&A ids |
-| --- | --- |
-| EX1-001 | Q3187, Q3188 |
-| EX1-002 | Q3189 |
-| EX1-003 | Q3190 |
-| EX1-004 | Q3191 |
-| EX1-005 | Q2082, Q2480, Q3192, Q3193, Q3194 |
-| EX1-006 | Q3195 |
-| EX1-007 | No card-specific Q&A returned by the local query |
-| EX1-008 | Q3196, Q3197 |
-| EX1-009 | Q3198, Q3199 |
-| EX1-010 | Q3200 |
-| EX1-011 | Q3201, Q3202 |
-| EX1-012 | No card-specific Q&A returned by the local query |
-| EX1-013 | Q3203 |
-| EX1-014 | No card-specific Q&A returned by the local query |
-| EX1-015 | No card-specific Q&A returned by the local query |
-| EX1-016 | No card-specific Q&A returned by the local query |
-| EX1-017 | No card-specific Q&A returned by the local query |
-| EX1-018 | No card-specific Q&A returned by the local query |
-| EX1-019 | Q3204, Q3205, Q3206 |
-| EX1-020 | No card-specific Q&A returned by the local query |
-| EX1-021 | Q3207, Q3208 |
-| EX1-022 | Q3209 |
-| EX1-023 | No card-specific Q&A returned by the local query |
-| EX1-024 | No card-specific Q&A returned by the local query |
-| EX1-025 | No card-specific Q&A returned by the local query |
-| EX1-026 | Q3210 |
-| EX1-027 | Q3211 |
-| EX1-028 | Q3212 |
-| EX1-029 | Q3213, Q3214 |
-| EX1-030 | Q3215, Q3216 |
-| EX1-031 | No card-specific Q&A returned by the local query |
-| EX1-032 | Q3217 |
-| EX1-033 | Q3218, Q3219, Q3220, Q3221, Q3222 |
-| EX1-034 | No card-specific Q&A returned by the local query |
-| EX1-035 | Q1594, Q3223, Q3224, Q3227 |
-| EX1-036 | No card-specific Q&A returned by the local query |
-| EX1-037 | No card-specific Q&A returned by the local query |
-| EX1-038 | Q3225 |
-| EX1-039 | No card-specific Q&A returned by the local query |
-| EX1-040 | Q3226, Q3227, Q3228, Q3229 |
-| EX1-041 | No card-specific Q&A returned by the local query |
-| EX1-042 | No card-specific Q&A returned by the local query |
-| EX1-043 | Q3230 |
-| EX1-044 | Q3231 |
-| EX1-045 | No card-specific Q&A returned by the local query |
-| EX1-046 | Q3232 |
-| EX1-047 | No card-specific Q&A returned by the local query |
-| EX1-048 | Q3233 |
-| EX1-049 | Q3234 |
-| EX1-050 | Q3235 |
-| EX1-051 | Q3236, Q3237, Q3238 |
-| EX1-052 | Q3239 |
-| EX1-053 | No card-specific Q&A returned by the local query |
-| EX1-054 | No card-specific Q&A returned by the local query |
-| EX1-055 | Q3240 |
-| EX1-056 | Q3241, Q3242 |
-| EX1-057 | No card-specific Q&A returned by the local query |
-| EX1-058 | Q3243, Q3244 |
-| EX1-059 | No card-specific Q&A returned by the local query |
-| EX1-060 | Q3245 |
-| EX1-061 | Q3246 |
-| EX1-062 | Q3247, Q3248 |
-| EX1-063 | Q3249 |
-| EX1-064 | Q3250 |
-| EX1-065 | Q3251, Q3252, Q3253 |
-| EX1-066 | Q3254 |
-| EX1-067 | No card-specific Q&A returned by the local query |
-| EX1-068 | Q2120, Q2121, Q3255, Q3256, Q3257 |
-| EX1-069 | No card-specific Q&A returned by the local query |
-| EX1-070 | No card-specific Q&A returned by the local query |
+| Card    | Card-specific Q&A ids                                                |
+| ------- | -------------------------------------------------------------------- |
+| EX1-001 | Q3187, Q3188                                                         |
+| EX1-002 | Q3189                                                                |
+| EX1-003 | Q3190                                                                |
+| EX1-004 | Q3191                                                                |
+| EX1-005 | Q2082, Q2480, Q3192, Q3193, Q3194                                    |
+| EX1-006 | Q3195                                                                |
+| EX1-007 | No card-specific Q&A returned by the local query                     |
+| EX1-008 | Q3196, Q3197                                                         |
+| EX1-009 | Q3198, Q3199                                                         |
+| EX1-010 | Q3200                                                                |
+| EX1-011 | Q3201, Q3202                                                         |
+| EX1-012 | No card-specific Q&A returned by the local query                     |
+| EX1-013 | Q3203                                                                |
+| EX1-014 | No card-specific Q&A returned by the local query                     |
+| EX1-015 | No card-specific Q&A returned by the local query                     |
+| EX1-016 | No card-specific Q&A returned by the local query                     |
+| EX1-017 | No card-specific Q&A returned by the local query                     |
+| EX1-018 | No card-specific Q&A returned by the local query                     |
+| EX1-019 | Q3204, Q3205, Q3206                                                  |
+| EX1-020 | No card-specific Q&A returned by the local query                     |
+| EX1-021 | Q3207, Q3208                                                         |
+| EX1-022 | Q3209                                                                |
+| EX1-023 | No card-specific Q&A returned by the local query                     |
+| EX1-024 | No card-specific Q&A returned by the local query                     |
+| EX1-025 | No card-specific Q&A returned by the local query                     |
+| EX1-026 | Q3210                                                                |
+| EX1-027 | Q3211                                                                |
+| EX1-028 | Q3212                                                                |
+| EX1-029 | Q3213, Q3214                                                         |
+| EX1-030 | Q3215, Q3216                                                         |
+| EX1-031 | No card-specific Q&A returned by the local query                     |
+| EX1-032 | Q3217                                                                |
+| EX1-033 | Q3218, Q3219, Q3220, Q3221, Q3222                                    |
+| EX1-034 | No card-specific Q&A returned by the local query                     |
+| EX1-035 | Q1594, Q3223, Q3224, Q3227                                           |
+| EX1-036 | No card-specific Q&A returned by the local query                     |
+| EX1-037 | No card-specific Q&A returned by the local query                     |
+| EX1-038 | Q3225                                                                |
+| EX1-039 | No card-specific Q&A returned by the local query                     |
+| EX1-040 | Q3226, Q3227, Q3228, Q3229                                           |
+| EX1-041 | No card-specific Q&A returned by the local query                     |
+| EX1-042 | No card-specific Q&A returned by the local query                     |
+| EX1-043 | Q3230                                                                |
+| EX1-044 | Q3231                                                                |
+| EX1-045 | No card-specific Q&A returned by the local query                     |
+| EX1-046 | Q3232                                                                |
+| EX1-047 | No card-specific Q&A returned by the local query                     |
+| EX1-048 | Q3233                                                                |
+| EX1-049 | Q3234                                                                |
+| EX1-050 | Q3235                                                                |
+| EX1-051 | Q3236, Q3237, Q3238                                                  |
+| EX1-052 | Q3239                                                                |
+| EX1-053 | No card-specific Q&A returned by the local query                     |
+| EX1-054 | No card-specific Q&A returned by the local query                     |
+| EX1-055 | Q3240                                                                |
+| EX1-056 | Q3241, Q3242                                                         |
+| EX1-057 | No card-specific Q&A returned by the local query                     |
+| EX1-058 | Q3243, Q3244                                                         |
+| EX1-059 | No card-specific Q&A returned by the local query                     |
+| EX1-060 | Q3245                                                                |
+| EX1-061 | Q3246                                                                |
+| EX1-062 | Q3247, Q3248                                                         |
+| EX1-063 | Q3249                                                                |
+| EX1-064 | Q3250                                                                |
+| EX1-065 | Q3251, Q3252, Q3253                                                  |
+| EX1-066 | Q3254                                                                |
+| EX1-067 | No card-specific Q&A returned by the local query                     |
+| EX1-068 | Q2120, Q2121, Q3255, Q3256, Q3257                                    |
+| EX1-069 | No card-specific Q&A returned by the local query                     |
+| EX1-070 | No card-specific Q&A returned by the local query                     |
 | EX1-071 | Q1688, Q1736, Q3258, Q3259, Q3260, Q3261, Q3262, Q3263, Q3264, Q3359 |
-| EX1-072 | Q3265, Q3266 |
-| EX1-073 | Q3267, Q3268, Q6030 |
+| EX1-072 | Q3265, Q3266                                                         |
+| EX1-073 | Q3267, Q3268, Q6030                                                  |
 
 ## Open items
 
@@ -4025,4 +4025,5 @@ Superseded files, removed after their content was merged here. Raw evidence stay
 - `docs/audits/EX1-reaudit/WORKER-BRIEF.md` — `ac36ffe90`, 2026-09-09. Process instructions for the audit workers; not evidence, not carried forward.
 
 No code file referenced any of these paths, so no code reference needed updating.
+
 - `docs/audits/collections-summary.md` — never committed (untracked), generated 2026-08-22. Cross-set status table, deleted in favour of the generated index in `docs/audits/README.md`. It was the only record of this delivery evidence for EX1: PR #4582; commit `9d056bac7`.

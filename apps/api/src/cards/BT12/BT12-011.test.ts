@@ -31,7 +31,14 @@ describe("BT12-011 Shoutmon (King Version)", () => {
 
   it("can decline the named Tamer play", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT12-011", as: "king" }, { card: "BT12-087", as: "taiki" }] } },
+      {
+        0: {
+          hand: [
+            { card: "BT12-011", as: "king" },
+            { card: "BT12-087", as: "taiki" },
+          ],
+        },
+      },
       { autoAcceptOptional: false, autoSelectCards: true },
     );
     s.state.memory = 10;
@@ -48,7 +55,10 @@ describe("BT12-011 Shoutmon (King Version)", () => {
       {
         0: {
           battleArea: [{ card: "BT12-058", as: "base" }],
-          hand: [{ card: "BT12-011", as: "king" }, { card: "BT12-094", as: "yuu" }],
+          hand: [
+            { card: "BT12-011", as: "king" },
+            { card: "BT12-094", as: "yuu" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -86,7 +96,12 @@ describe("BT12-011 Shoutmon (King Version)", () => {
   it("uses one Save material for DigiXros -2", async () => {
     expect(digiXrosRequirementFor("BT12-011")).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
     const s = setupEngine({
-      0: { hand: [{ card: "BT12-011", as: "king" }, { card: "BT12-008", as: "material" }] },
+      0: {
+        hand: [
+          { card: "BT12-011", as: "king" },
+          { card: "BT12-008", as: "material" },
+        ],
+      },
     });
     s.state.memory = 10;
     expect(
@@ -107,7 +122,10 @@ describe("BT12-011 Shoutmon (King Version)", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT12-011", as: "king" }, { card: "BT12-094", as: "tamer" }],
+          battleArea: [
+            { card: "BT12-011", as: "king" },
+            { card: "BT12-094", as: "tamer" },
+          ],
           trash: [{ card: "BT12-008", as: "savedPeer" }],
         },
         1: { hand: [{ card: "ST7-06", as: "removal" }] },
@@ -117,11 +135,16 @@ describe("BT12-011 Shoutmon (King Version)", () => {
     const kingId = s.perm("king").topCard.instanceId;
     s.state.turnSeat = 1;
     s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("tamer").stack.length === 2);
-    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId).sort()).toEqual(
-      [kingId, s.inst("savedPeer").instanceId].sort(),
-    );
+    expect(
+      s
+        .perm("tamer")
+        .stack.map(({ instanceId }) => instanceId)
+        .sort(),
+    ).toEqual([kingId, s.inst("savedPeer").instanceId].sort());
   });
 
   it("deletes only a 4000 DP opponent through its inherited public attack", async () => {
@@ -129,7 +152,10 @@ describe("BT12-011 Shoutmon (King Version)", () => {
       {
         0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-011"] }], security: ["BT1-009"] },
         1: {
-          battleArea: [{ card: "BT12-021", dp: 4000 }, { card: "BT12-021", as: "tooLarge", dp: 5000 }],
+          battleArea: [
+            { card: "BT12-021", dp: 4000 },
+            { card: "BT12-021", as: "tooLarge", dp: 5000 },
+          ],
           security: ["BT1-009"],
         },
       },

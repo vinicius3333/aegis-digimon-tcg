@@ -3,9 +3,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled = structuredClone(getCompiledCard("BT12-031")!);
 const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
-const bottomDeck = whenDigivolving?.actions.find(
-  (action) => action.kind === "Return" && action.to === "deckBottom",
-);
+const bottomDeck = whenDigivolving?.actions.find((action) => action.kind === "Return" && action.to === "deckBottom");
 const returnToHand = whenDigivolving?.actions.find((action) => action.kind === "Return" && action.to === "hand");
 if (bottomDeck?.kind === "Return") {
   bottomDeck.target.count = "all";

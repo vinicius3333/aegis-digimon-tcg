@@ -23,7 +23,9 @@ describe("BT12-040 Sagomon", () => {
     });
     await s.ready();
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sagomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sagomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(6);
   });
@@ -31,7 +33,9 @@ describe("BT12-040 Sagomon", () => {
   it("pays the full play cost without an opposing Security Attack effect", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT12-040", as: "sagomon" }] }, 1: { battleArea: ["BT1-009"] } });
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sagomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sagomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(3);
   });

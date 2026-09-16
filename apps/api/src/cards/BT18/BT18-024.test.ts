@@ -61,7 +61,10 @@ describe("BT18-024 Calmaramon", () => {
       {
         0: {
           battleArea: [{ card: "BT18-023", as: "lanamon" }],
-          hand: [{ card: "BT18-024", as: "calmaramon" }, { card: "BT1-030", as: "blueLevel3" }],
+          hand: [
+            { card: "BT18-024", as: "calmaramon" },
+            { card: "BT1-030", as: "blueLevel3" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

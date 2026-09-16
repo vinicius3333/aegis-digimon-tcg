@@ -29,7 +29,10 @@ describe("BT12-037 Opossummon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT12-037", as: "opossum" }, { card: "BT26-087", as: "tamer" }],
+          battleArea: [
+            { card: "BT12-037", as: "opossum" },
+            { card: "BT26-087", as: "tamer" },
+          ],
           trash: [{ card: "BT12-008", as: "peer" }],
         },
         1: { hand: [{ card: "ST7-06", as: "removal" }] },
@@ -39,7 +42,9 @@ describe("BT12-037 Opossummon", () => {
     const sourceId = s.inst("opossum").instanceId;
     s.state.turnSeat = 1;
     s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("tamer").stack.length === 2);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("BT12-037");
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([sourceId, s.inst("peer").instanceId]);
@@ -49,7 +54,10 @@ describe("BT12-037 Opossummon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT12-037", as: "opossum" }, { card: "BT26-087", as: "tamer" }],
+          battleArea: [
+            { card: "BT12-037", as: "opossum" },
+            { card: "BT26-087", as: "tamer" },
+          ],
           trash: [{ card: "BT12-008", as: "peer" }],
         },
         1: { hand: [{ card: "ST7-06", as: "removal" }] },
@@ -60,7 +68,9 @@ describe("BT12-037 Opossummon", () => {
     const peerId = s.inst("peer").instanceId;
     s.state.turnSeat = 1;
     s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("tamer").stack.length === 1);
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([peerId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([sourceId]);

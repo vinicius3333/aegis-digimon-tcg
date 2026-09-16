@@ -33,9 +33,7 @@ describe("BT10-008 Shoutmon", () => {
         instanceId: standard.inst("standardShoutmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => standard.perm("redBase").topCard.instanceId === standard.inst("standardShoutmon").instanceId,
-    );
+    await settle(() => standard.perm("redBase").topCard.instanceId === standard.inst("standardShoutmon").instanceId);
     expect(standard.state.memory).toBe(0);
 
     const alternate = setupEngine({

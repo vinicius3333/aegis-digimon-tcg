@@ -12,7 +12,10 @@ describe("BT4-002 Bukamon", () => {
             {
               card: "BT1-019",
               as: "target",
-              under: [{ card: "BT1-001", as: "bottom" }, { card: "BT1-010", as: "upper" }],
+              under: [
+                { card: "BT1-001", as: "bottom" },
+                { card: "BT1-010", as: "upper" },
+              ],
             },
           ],
           security: ["BT1-011"],

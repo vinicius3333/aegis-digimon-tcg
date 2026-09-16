@@ -43,10 +43,12 @@ describe("BT4-115 Lucemon", () => {
     });
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("lucemon").permanentId,
-      instanceId: s.inst("nonLucemon").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lucemon").permanentId,
+        instanceId: s.inst("nonLucemon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

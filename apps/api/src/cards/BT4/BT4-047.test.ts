@@ -51,11 +51,7 @@ describe("BT4-047 Rasielmon", () => {
           { card: "BT4-047", as: "rasielA" },
           { card: "BT4-047", as: "rasielB" },
         ],
-        security: [
-          { card: "BT1-001", as: "top" },
-          { card: "BT1-002", as: "next" },
-          "BT1-003",
-        ],
+        security: [{ card: "BT1-001", as: "top" }, { card: "BT1-002", as: "next" }, "BT1-003"],
         deck: ["BT1-009"],
       },
       1: { deck: ["BT1-009"], hand: ["BT1-010"] },

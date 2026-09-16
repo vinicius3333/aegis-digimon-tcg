@@ -121,7 +121,10 @@ describe("BT2-051 RustTyrannomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT2-046", as: "base" }, { card: "BT1-089", as: "greenTamer" }],
+          battleArea: [
+            { card: "BT2-046", as: "base" },
+            { card: "BT1-089", as: "greenTamer" },
+          ],
           hand: [{ card: "BT2-051", as: "evolving" }],
         },
         1: {

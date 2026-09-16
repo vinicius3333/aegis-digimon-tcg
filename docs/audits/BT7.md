@@ -49,7 +49,6 @@ Source: `docs/audits/BT7-reaudit/RUN.md` (commit ecee49cca).
 
 Source: `docs/audits/BT7-STATIC-AUDIT.md` (commit eb1a58b75).
 
-
 - Static registration/catalog gate: 112 modules, 112 focused test files,
   exactly 112 `registerIrCard` calls, zero `registerCard`, zero TypeScript
   suppressions, and zero `RawUnparsed` actions.
@@ -914,8 +913,8 @@ Clause trace merged from `internal-docs/audits/BT7/BT7-031-040.md`. Statements i
 
 - **Catalog clause.** Yellow level-3 Digimon, Rookie/Data/Mammal, play cost 3,
   DP 2000, yellow level-2 evolution cost 0. Inherited: `[Your Turn] When this
-  card is trashed due to activating this Digimon's ＜Digi-Burst＞, return this
-  card to its owner's hand.`
+card is trashed due to activating this Digimon's ＜Digi-Burst＞, return this
+card to its owner's hand.`
 - **Direct implementation.** `apps/api/src/cards/BT7/BT7-031.ts:8–30` uses an
   inherited Your Turn `SubTrigger` on `onDigiBurstCardDiscarded`, with
   `sourceFilter: { isSelfRef: true }` and `AddToHandSelf`. The dedicated event
@@ -969,7 +968,7 @@ Clause trace merged from `internal-docs/audits/BT7/BT7-031-040.md`. Statements i
 - **Catalog clause.** Yellow level-4 Digimon, Champion/Vaccine/Dragonkin, play
   cost 4, DP 5000, yellow level-3 evolution cost 2. Inherited:
   `[Opponent's Turn] While you have 3 or more security cards, this Digimon
-  gains ＜Blocker＞.`
+gains ＜Blocker＞.`
 - **Direct implementation.** `BT7-033.ts:8–40` uses an inherited opponent-turn
   `Aura` on the host, grants only Blocker, and gates it with
   `securityAtLeast: 3`. It does not confuse the host's DP or its source card
@@ -1094,7 +1093,7 @@ Clause trace merged from `internal-docs/audits/BT7/BT7-031-040.md`. Statements i
 - **Catalog clause.** Yellow level-5 Digimon, Ultimate/Vaccine/Beastkin, play
   cost 6, DP 7000, yellow level-4 evolution cost 3. Inherited:
   `[Opponent's Turn] When an opponent's Digimon attacks a player, if the
-  controller has 3 or more security cards, unsuspend this Digimon.`
+controller has 3 or more security cards, unsuspend this Digimon.`
 - **Direct implementation.** `BT7-037.ts:9–48` uses an inherited opponent-turn
   watcher on `whenOpponentAttacks`, unsuspends only its own host, and requires
   both `attackTargetsPlayer` and `securityAtLeast: 3`. This excludes attacks on
@@ -1242,8 +1241,7 @@ Direct evidence in apps/api/src/cards/BT7/BT7-041.ts:
 - The Recovery branch is conditioned independently on the starting count being at most 2.
 - The corrected Recovery action is optional, moves one card per iteration, and stops at
   untilSecurityCount 3.
-- The Your Turn self-targeted GainKeyword grants SecurityAttack +1 while security count is at least
-  3.
+- The Your Turn self-targeted GainKeyword grants SecurityAttack +1 while security count is at least 3.
 - The module is full-coverage, residual-free, and exclusively registered with registerIrCard.
 
 Correction made: the original direct Recovery action used a mandatory amount-3 scaled form
@@ -1882,7 +1880,7 @@ Clause trace merged from `internal-docs/audits/BT7/BT7-061-070.md`. Statements i
   X Antibody, it gains Security Attack +1.
 - **Direct corrections.** `BT7-064.ts:8–55` now makes the first effect an
   ordinary `WhenDigivolving` effect by removing the erroneous `isInherited:
-  true`. It also removes the erroneous `kind: ["Digimon"]` restriction: the
+true`. It also removes the erroneous `kind: ["Digimon"]` restriction: the
   catalog says “black card,” and black `BT16-098 DORU-Din` is an Option with
   X-Antibody in its traits and is a valid stack card. The placement remains
   optional, hand-only, bottom-positioned, and gated by `ifThisEffectActed` for

@@ -61,7 +61,7 @@ precedence anywhere in Chapter 17. Neither engine "matches" the KB on ordering �
 serialize a rule the KB declares simultaneous — and reordering Aegis to match DCGO would
 buy zero rules correctness.
 
-What the KB *does* mandate governs the resulting triggers, not the sweeps:
+What the KB _does_ mandate governs the resulting triggers, not the sweeps:
 
 - §15-4-3-3 (`comprehensive.md:1985`): effects triggered by a rule check trigger
   simultaneously with other effects at that timing.
@@ -172,7 +172,7 @@ member or seam is needed.**
   the constructor default `-1` (`ICardEffect.cs:38`), so the gate at
   `MultipleSkills.cs:138-145` never opens.
 - If it ever did, `IsCutInEffectUsedMaxCount` (`AutoProcessing.cs:1099-1102`) is
-  **inverted**: it returns true while the effect is *below* the cap, and the caller skips
+  **inverted**: it returns true while the effect is _below_ the cap, and the caller skips
   on true — the effect would be blocked for its first N activations. Porting this would
   port a bug.
 - The sibling guard `IsCutInEffectHasUsed` is hardcoded `false`

@@ -85,7 +85,6 @@ Source: `docs/audits/BT6-reaudit/RUN.md` (commit a1e49c5df).
 
 Source: `docs/audits/BT6-STATIC-AUDIT.md` (commit eb1a58b75).
 
-
 - Static registration/catalog gate: 112 modules, 112 direct focused test
   files, exactly 112 `registerIrCard` calls, zero `registerCard`, zero
   TypeScript suppressions, and zero `RawUnparsed` actions.

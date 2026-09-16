@@ -18,7 +18,9 @@ describe("BT12-027 Mermaimon", () => {
     s.state.memory = 10;
     const movedTop = s.perm("cost").topCard.instanceId;
     const discardedSources = s.perm("cost").stack.map(({ instanceId }) => instanceId);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mermaimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mermaimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     const mermaimon = s.state.players[0]!.battleArea[0]!;
     expect(mermaimon.topCard.cardId).toBe("BT12-027");

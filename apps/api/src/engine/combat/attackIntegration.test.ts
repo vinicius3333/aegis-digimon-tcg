@@ -225,9 +225,9 @@ describe("GameEngine.applyIntent — block wiring", () => {
 
     // The window is still genuinely open: a late declareBlock still resolves the
     // attack normally, proving nothing was silently abandoned server-side.
-    expect(
-      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => (s.state.players[1]?.battleArea.length ?? 1) === 0, 1000);
     expect(s.state.players[1]?.battleArea).toHaveLength(0);
   });

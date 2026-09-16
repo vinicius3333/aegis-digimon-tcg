@@ -14,7 +14,9 @@ const { dnaDigivolutionRequirementsFor } = await import("../packages/shared/dist
 
 const cards = Array.isArray(cardsJson) ? cardsJson : cardsJson.cards;
 
-function nameOf(c) { return (c.nameEn ?? c.cardId).toLowerCase(); }
+function nameOf(c) {
+  return (c.nameEn ?? c.cardId).toLowerCase();
+}
 function matches(f, c) {
   if (f.or) return f.or.some((sub) => matches(sub, c));
   if (f.kind && !f.kind.some((k) => (c.kinds ?? []).includes(k))) return false;
@@ -33,7 +35,10 @@ function matches(f, c) {
 }
 
 function* dnaActions(node) {
-  if (Array.isArray(node)) { for (const n of node) yield* dnaActions(n); return; }
+  if (Array.isArray(node)) {
+    for (const n of node) yield* dnaActions(n);
+    return;
+  }
   if (node && typeof node === "object") {
     if (node.kind === "DnaDigivolve") yield node;
     for (const v of Object.values(node)) yield* dnaActions(v);
@@ -47,13 +52,25 @@ for (const [cardId, compiled] of registeredCompiledCards) {
     const into = action.into;
     if (!into) continue;
     const f = into.filter ?? into;
-    if (f.hasDnaDigivolutionRequirement) { flagged += 1; continue; }
+    if (f.hasDnaDigivolutionRequirement) {
+      flagged += 1;
+      continue;
+    }
     const pool = cards.filter((c) => (c.kinds ?? []).includes("Digimon") && matches(f, c));
     const noReq = pool.filter((c) => dnaDigivolutionRequirementsFor(c.cardId).length === 0);
-    leaks.push({ cardId, filter: JSON.stringify(f), pool: pool.length, noReq: noReq.length, sample: noReq.slice(0, 4).map((c) => `${c.cardId} ${c.nameEn}`) });
+    leaks.push({
+      cardId,
+      filter: JSON.stringify(f),
+      pool: pool.length,
+      noReq: noReq.length,
+      sample: noReq.slice(0, 4).map((c) => `${c.cardId} ${c.nameEn}`),
+    });
   }
 }
 leaks.sort((a, b) => b.noReq - a.noReq);
 console.log("DnaDigivolve into-filters carrying the flag:", flagged);
 console.log("DnaDigivolve into-filters missing hasDnaDigivolutionRequirement:", leaks.length);
-for (const l of leaks) console.log(`${l.noReq === 0 ? "OK  " : "LEAK"} ${l.cardId}  pool=${l.pool} noReq=${l.noReq}  ${l.filter}\n       e.g. ${l.sample.join(", ")}`);
+for (const l of leaks)
+  console.log(
+    `${l.noReq === 0 ? "OK  " : "LEAK"} ${l.cardId}  pool=${l.pool} noReq=${l.noReq}  ${l.filter}\n       e.g. ${l.sample.join(", ")}`,
+  );

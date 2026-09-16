@@ -37,7 +37,9 @@ describe("BT4-051 DoKunemon", () => {
     );
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => player.deck.length === 3);
 
     expect(player.hand.some((card) => card.cardId === "BT4-052")).toBe(false);

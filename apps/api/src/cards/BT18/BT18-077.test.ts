@@ -63,7 +63,9 @@ describe("BT18-077 KaiserLeomon", () => {
     );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kaiser").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kaiser").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-032"));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-032")).toBe(false);
@@ -77,7 +79,12 @@ describe("BT18-077 KaiserLeomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT18-075", as: "base" }], hand: [{ card: "BT18-077", as: "kaiser" }] },
-        1: { battleArea: [{ card: "BT1-032", as: "target" }, { card: "BT1-060", as: "tooLarge" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-032", as: "target" },
+            { card: "BT1-060", as: "tooLarge" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

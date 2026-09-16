@@ -66,82 +66,82 @@ One known-green diagnostic: the AD1-002 unsupported-effect log is asserted behav
 
 Scores below were independently recalculated on 2026-09-12 against current sources and gates; historical clause reports remain for detailed traceability. The earlier scores came from `docs/audits/EX7-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX7-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, and every card is 10/10.
 
-| Card    | Name                     | Catalog/rules | IR trace | Behavioral proof | Peer/stack | Gates | Total | Status                                                                                                                                                                                                                                           |
-| ------- | ------------------------ | ------------- | -------- | ---------------- | ---------- | ----- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| EX7-001 | DemiMeramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public hatch/digivolve/raise route, illegal-source negative, exact opponent count and turn-boundary proof; no card-specific Q&A or engine seam |
-| EX7-002 | Hiyarimon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; real attack, stack-condition negative, same-turn refusal and next-own-turn reset; no card-specific Q&A or engine seam |
-| EX7-003 | Kyaromon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; live security battles, non-Digimon and opponent-turn boundaries, legal hatch/evolution/raise stack and illegal-source negative; no Q&A or engine seam |
-| EX7-004 | Fluffymon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public battle and hatch/evolution proof plus same-turn suppression and next-turn re-arm; former retained red was a faulty memory-baseline assertion, engine regression green |
-| EX7-005 | Kapurimon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Option placement/provenance/filtering and continuous real-turn loop prove first activation, same-turn suppression, opponent-turn gate and next-own-turn reset; 8 pass |
-| EX7-006 | Yaamon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public attack/evolution/payment/decline/negative and next-turn recollection green; former retained red was a hand-count and post-evolution stack fixture error, engine regression green |
-| EX7-007 | Vorvomon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3828, reveal/add exact boundaries, inherited DP turn scope, legal evolution with exact standard draw/stack and illegal-source negative |
-| EX7-008 | ToyAgumon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3829, RevealAdd partial/no-match boundaries, exact cost-6 Option filter, legal/illegal alternate evolution and owner-turn inherited DP proof |
-| EX7-009 | Lavorvomon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public On Play/evolution/turn-loop proof, both printed color routes, exact cost/draw/stack, optional and Tamer-count boundaries; no card-specific Q&A or engine seam |
-| EX7-010 | Deputymon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3830 public own/opponent stack choices, optional refusal, legal evolution cost/draw/stack and illegal source green; Q3831 breeding negative green after correcting the false red fixture from same-color EX7-066 to purple EX7-071 |
-| EX7-011 | Megadramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public play/evolution/payment/draw/stack/Piercing and §15-7-5 payable `by` condition with no legal delete target green after narrow shared resolver fix; 65 mechanism and 6,775 engine tests passed |
-| EX7-012 | Lavogaritamon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public On Play/evolution/real-loop/attack proof, exact 6000 boundary, both color routes, cost/draw/stack and two security checks green; no card-specific Q&A or engine seam |
-| EX7-013 | MagnaKidmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3832 fixture corrected: BT10-077 pays its own stack cost to seat 1 trash and makes seat 0 trash five cards from its hand; 8 focused tests plus a real-watcher mechanism regression green |
-| EX7-014 | Volcanicdramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; all 10 Q&A green after generic move-to-breeding restriction and DigiXros leave-replacement fixes; 11 card tests, 2 mechanisms and 7,303 full-engine tests pass |
-| EX7-015 | Otamamon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3837-Q3840 green after routing the all-player play-cost restriction into DigiXros reduction; 8 focused/mechanism tests, 56 interaction tests and 7,301 full-engine tests pass |
-| EX7-016 | Bulucomon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3841 RevealAdd, rule trait, legal evolution exact cost/draw/stack, illegal source, inherited top-source trash and real next-turn once-per-turn reset all public green |
-| EX7-017 | SnowAgumon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Ice Clad count-over-DP combat, Security carve-out, Rule trait, legal evolution cost/draw/stack, illegal source, inherited top-source trash and real next-turn once-per-turn reset public green |
-| EX7-018 | Gekomon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public On Play/two-step evolution prove exact costs/draw/stacks, inherited Jamming correctly absent while top and present once EX7-018 becomes a source, plus illegal route; 6 pass |
-| EX7-019 | Sorcermon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; conditional public On Play positive/negative, live Blocker interception/Rule trait, legal evolution cost/draw/stack, illegal source, inherited top-source trash and real next-turn reset green |
-| EX7-020 | Paledramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; bottom-source trash, conditional Jamming/Blocker, Rule trait, legal and illegal evolution boundaries, inherited top-source trash and real-turn once-per-turn reset public green; 5 focused tests pass |
-| EX7-021 | CrysPaledramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3842/Q6041, exact cross-stack two-source trash, conditional unsuspend, Ice Clad Digimon/Security distinction, Rule trait, legal and illegal evolution boundaries public green; 10 focused tests pass |
-| EX7-022 | ShogunGekomon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3843, exact Tamer and all-own-NSp restrictions, target-change prevention, real duration expiry, legal alternate evolution cost/draw/stack and illegal source public green; 4 focused tests pass |
-| EX7-023 | Hexeblaumon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3844 dynamic source-relative restriction reopening green after live all-target predicate fix; 9 focused/mechanism, 87 proportional and 7,304 full-engine tests pass |
-| EX7-024 | Shoemon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3845/Q4882, battle-area-only Puppet evolution reduction, breeding negative, exact cost/draw/stack and inherited Security-Digimon DP through real battle green; 7 focused tests pass |
-| EX7-025 | ShoeShoemon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Tamer-count boundary, optional refusal, name/count negatives, exact legal/illegal evolution, inherited owner-turn Security DP and real Security battle proof green; 6 focused tests pass |
-| EX7-026 | Starmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public On Play/When Digivolving -3000 DP with turn expiry, standard/alternate evolution cost/draw/stack, illegal source and inherited Barrier payment through real combat green; 5 focused tests pass |
-| EX7-027 | Chaperomon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; errata Overclock, public evolution/free Puppet play/refusal, first inherited leave prevention, same-turn refusal and next-real-turn reset green; former red consumed the reset budget in a Security battle; 7 pass |
-| EX7-028 | Piximon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3846 Yellow-or-NSp union, public battle deletion/free play/refusal, exact legal/illegal evolution, funded two-attack same-turn persistence, expiry and re-arm green; 8 pass |
-| EX7-029 | SaberLeomon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public NSp/Leomon alternate routes, exact payment/draw/stack, Blast Digivolve, On Play/evolution DP duration, suspend/unsuspend/shared OPT, invalid route and Overflow 4 green; 9 pass |
-| EX7-030 | Cendrillmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; errata Overclock, public Main/evolution Familiar play/refusal, exact evolution, attack -6000, Q3847 combined 3000 DP and invalid route green; 7 pass |
-| EX7-031 | Pteromon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3848 breeding exclusion, Q5838 peer interaction, battle-area Bird reduction, non-Bird full cost, exact payment/draw/stack and real inherited battle ownership/deletion boundaries green; 15 focused/peer tests pass |
-| EX7-032 | Galemon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public exact-cost evolution/free Shoto play/refusal, zero/one/two-Tamer boundaries, legal/illegal stack proof, real battle ownership/deletion boundaries and real-turn inherited OPT reset green; 7 focused tests pass |
-| EX7-033 | Monochromon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; exact rule trait/inherited Piercing, live security check, non-green NSp alternate evolution with exact payment/draw/stack and wrong-trait rejection green; 5 focused tests pass |
-| EX7-034 | GrandGalemon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public exact evolution/stack, own/opponent suspension branches, live opposing-Digimon-effect protection, real end-turn Vortex, inherited Digimon-target OPT and wrong-color rejection green; 6 focused tests pass |
-| EX7-035 | Triceramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3849, public play/evolution same-target lock and two-turn duration, non-green NSp exact evolution, invalid route, live Dinosaur trait, exact Security trash and real-turn inherited OPT reset green; 7 focused tests pass |
-| EX7-036 | Zephagamon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public exact evolution, causal own/opponent/already-suspended branches, exact deck-bottom identity, real Vortex, Security Attack +1 two-check proof, live Bird Dragon trait and invalid route green; 8 focused tests pass |
-| EX7-037 | Tlalocmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3850 DNA matrix, public zero-cost DNA/two different-color NSp plays, invalid pair, exact ordinary evolution/one play, per-Digimon scaling, shared evolution/attack OPT and wrong-color route green; 6 focused tests pass |
-| EX7-038 | Gotsumon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Blocker redirection/combat, blue NSp zero-cost evolution with exact draw/stack, red non-NSp rejection and inherited Reboot through public host evolution/attack into the real opponent turn green; 5 focused tests pass |
-| EX7-039 | Jazamon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Rock/Earth Start-of-Main cost/draw/memory, refusal/no-eligible/single-prompt boundaries, exact red-route evolution, blue rejection, live Machine Dragon trait and real opponent-turn inherited DP transitions green; 8 pass |
-| EX7-040 | ToyAgumon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public On Play exact trait-cost/draw, refusal/no-eligible/no-prompt boundaries, exact alternate evolution stack, invalid off-color route and inherited Reboot through public evolution/attack into the opponent turn green; 7 pass |
-| EX7-041 | Tortomon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Blocker combat, actual opponent-effect protection, Q3851 rule deletion, off-color NSp exact evolution, non-NSp rejection and inherited Reboot through public evolution/attack/turn green; 7 pass |
-| EX7-042 | Jazardmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; fixed unreachable Hina zoneCount IR; public Rock/Earth On Play, refusal, zero/one/two-Tamer and Hina-refusal boundaries, exact red evolution/off-color rejection and inherited turn DP green; 10 pass |
-| EX7-043 | Tankmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; Q3852 mixed hand/trash cost, public On Play/evolution De-Digivolve, refusal/insufficient boundary, Q4558 Shotmon link disposal, exact alternate stack, invalid route and inherited Reboot green; 7 pass |
-| EX7-044 | Gigadramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public reveal/place/delete, exact rest destination/order, alternate stack, invalid route, Q4578 Shotmon link disposal and inherited Collision green; former red used illegal Digi-Eggs in the main deck; 8 pass |
-| EX7-045 | Jagamon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public play-cost/De-Digivolve, blue NSp exact alternate evolution, red non-NSp rejection, real owner/opponent turn aura and NSp-only Blocker combat green; 5 pass |
-| EX7-046 | Jazarichmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public On Play De-Digivolve, Red/Black exact evolution and level-5 condition boundary, inherited first/second opponent attacks and next-opponent-turn reset green; 3 focused scenarios |
-| EX7-047 | Eldradimon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public On Play/alternate-evolution cost-7 reveal budget/rest order, exact evolution, invalid route, live Blocker and real End-of-Turn Blue+Black DNA/no-target boundary green; 7 pass |
-| EX7-048 | Gundramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public reveal/free EX7-066 use/rest order, exact alternate evolution, no-match, global Three Musketeers replacement/non-trait exclusion, Q4585 Shotmon and live Blocker green; 8 pass |
-| EX7-049 | Metallicdramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public De-Digivolve/evolution/replacement, Q3853-Q3856/Q6719, live future-entrant restriction, immunity/breeding exclusions and expiry green; 9 pass |
-| EX7-050 | Impmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Dark Dragon/Evil Dragon/negative evolutions, explicit zero-cost Yaamon route, exact payment/draw/stack, Q3857 breeding boundary and inherited DP across a real opponent turn green; 7 pass |
-| EX7-051 | Sparrowmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; real Start-of-Main hand/trash bottom placement and draw, refusal, exact text-based evolution/invalid route, and inherited Retaliation through public unequal-DP combat green; 6 pass |
-| EX7-052 | Tsukaimon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public reveal split/rest order, exact legal/illegal evolution, Q3858 Armor Purge, Q3859 EndAttack, Q3860 immune attacker, same-turn suppression and next-opponent-turn re-arm green; 7 pass |
-| EX7-053 | Eyesmon: Scatter Mode | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public mandatory trash plus Evil/Dark Dragon/Evil Dragon returns, refusal, newly discarded eligible return, exact neutral evolution and inherited Retaliation through unequal-DP combat green; 8 pass |
-| EX7-054 | BlackGatomon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public evolution/deletion paid paired keywords and duration, exact stack, Q3861 Armor Purge, Q3862 EndAttack, Q3863 immunity, same-turn suppression and next-opponent-turn inherited re-arm green; 6 pass |
-| EX7-055 | Punkmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public zero/one/two-Tamer evolution thresholds, Yuuki refusal, exact Evil alternate route, off-color rejection, payment/draw/stack and inherited owner-turn DP across a real opponent turn green; 7 pass |
-| EX7-056 | Orochimon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public battle On Deletion exact cost/level targets, Tortomon protection with declined block, exact evolution payment/draw/stack, live Blocker and inherited Retaliation unequal-DP combat green; 7 pass |
-| EX7-057 | Loudmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public On Play/evolution exact trash and 7000-DP ceiling, Rule trait, Dark/Evil Dragon alternate and red standard stacks, plus inherited matching/nonmatching and four/five-hand real Security checks green; 7 pass |
-| EX7-058 | LadyDevimon (X Antibody) | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public evolution/play/attacks, Q3864/Q3865, inherited OPT and canonical token stats/Blocker/Retaliation green after live printed-keyword reader fix; 7 focused, 145 mechanism pass |
-| EX7-059 | BeelStarmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public On Play/evolution/attack Option flows, refusal/own-stack scope, real Blast over Digimon and Q6391 text-qualified Tamer, plus Overflow 4 green; 11 pass |
-| EX7-060 | Nidhoggmon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; client-visible trash Main at exact four/five-card boundary, 7-memory paid play/refusal, exact evolution stack, live Blocker, real battle-deletion Dark Dragon/Evil Dragon plays, and level-6/nonmatching exclusions green; 9 pass |
-| EX7-061 | Lilithmon (X Antibody) | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; corrected both turn branches under one deletion subscription; public standard/named evolution, battle/Retaliation replacement, Q3866/Q3867/Q5169, Security/free play, refusal, same-turn suppression and real-turn re-arm green; 14 focused + 19 peer pass |
-| EX7-062 | HeavyMetaldramon | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; restored missing Dark Dragon/Evil Dragon alternate route; public dual-standard/dual-trait evolution, exact trash/DP boundaries, three scaled end-turn trait branches, refusal/near misses and real-turn re-arm green; 13 pass |
-| EX7-063 | Arisa Kinosaki | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; real Start-of-Main and hand play, public Puppet/non-Puppet/token combat deletion, suspension/free-play/refusal, level/trait boundaries and real Security self-play green; 11 pass |
-| EX7-064 | Shoto Kazama | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; real Start-of-Main/hand play, Q3868/Q3869 both trigger orders, paired-keyword opponent-turn duration/expiry, refusal and real Security play green; EX2-007 banned pair recorded; 9 pass |
-| EX7-065 | Yuuki | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; real Start-of-Main/hand play, client-visible Main activation, Dark Dragon/Evil Dragon trash evolutions, exact costs/draw/stack, four/five-card boundary, refusal/trait miss and Security play green; 10 pass |
-| EX7-066 | Chaos Triangular | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public color waiver/Main use, distinct-name scaling/repeat exclusion, real EX7-059 attack-cost trash, +3000 opponent-turn duration/expiry and real Security 12000/12001 checks green; 11 pass |
-| EX7-067 | Summon Frost | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Main/Security flows, all-stack top-two trash, conditional Ice-Snow play, level/trait negatives, refusal, Q3870 final restriction and real-turn duration/expiry green; 10 pass |
-| EX7-068 | Wonder Stomp | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Main and real Security flows, exact draw/free-play/payment/zones, optional refusal, level-4 Puppet and level-3 non-Puppet negatives green; 8 pass |
-| EX7-069 | Wind Slicer | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Main and real Security flows, own/opponent suspension, conditional own unsuspension, refusal and exact level-6/7 boundary green; 8 pass |
-| EX7-070 | Der Blitz | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Main/real Security, Three Musketeers waiver/rejection, lowest-cost delete, placement and real EX7-059 attack-cost De-Digivolve green; 8 pass |
-| EX7-071 | Hurricane Screw Shot | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Main/real Security, Three Musketeers waiver/rejection, level 3/4/5 deletes, level 6/7 preservation, placement and real EX7-059 attack-cost +1 memory green; 6 pass |
-| EX7-072 | Seventh Fascination | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Main/evolution/Security and real turns prove Trash cost/refusal, global grants, Q3871 immunity, Q3872 Partition, Q5728/Q5729, exact-name and Security unsuspended filter; 9 pass |
-| EX7-073 | BeelStarmon (X Antibody) | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public standard/alternate evolution and attack, X-Antibody exclusion, free Option, exact source cost, highest-level delete, Security trash, refusal/insufficient cost and continuation green; 12 pass |
-| EX7-074 | Vortex Resonance | 2 | 2 | 2 | 2 | 2 | 10/10 | Re-reviewed; public Main/evolution/real Security prove Digimon/Tamer waiver, Q3873 breeding exclusion, reveal destinations, exact reduction, refusal, hand/trash Security play and self-return; 14 pass |
+| Card    | Name                     | Catalog/rules | IR trace | Behavioral proof | Peer/stack | Gates | Total | Status                                                                                                                                                                                                                                                                  |
+| ------- | ------------------------ | ------------- | -------- | ---------------- | ---------- | ----- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EX7-001 | DemiMeramon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public hatch/digivolve/raise route, illegal-source negative, exact opponent count and turn-boundary proof; no card-specific Q&A or engine seam                                                                                                             |
+| EX7-002 | Hiyarimon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; real attack, stack-condition negative, same-turn refusal and next-own-turn reset; no card-specific Q&A or engine seam                                                                                                                                      |
+| EX7-003 | Kyaromon                 | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; live security battles, non-Digimon and opponent-turn boundaries, legal hatch/evolution/raise stack and illegal-source negative; no Q&A or engine seam                                                                                                      |
+| EX7-004 | Fluffymon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public battle and hatch/evolution proof plus same-turn suppression and next-turn re-arm; former retained red was a faulty memory-baseline assertion, engine regression green                                                                               |
+| EX7-005 | Kapurimon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Option placement/provenance/filtering and continuous real-turn loop prove first activation, same-turn suppression, opponent-turn gate and next-own-turn reset; 8 pass                                                                               |
+| EX7-006 | Yaamon                   | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public attack/evolution/payment/decline/negative and next-turn recollection green; former retained red was a hand-count and post-evolution stack fixture error, engine regression green                                                                    |
+| EX7-007 | Vorvomon                 | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3828, reveal/add exact boundaries, inherited DP turn scope, legal evolution with exact standard draw/stack and illegal-source negative                                                                                                                    |
+| EX7-008 | ToyAgumon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3829, RevealAdd partial/no-match boundaries, exact cost-6 Option filter, legal/illegal alternate evolution and owner-turn inherited DP proof                                                                                                              |
+| EX7-009 | Lavorvomon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/evolution/turn-loop proof, both printed color routes, exact cost/draw/stack, optional and Tamer-count boundaries; no card-specific Q&A or engine seam                                                                                       |
+| EX7-010 | Deputymon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3830 public own/opponent stack choices, optional refusal, legal evolution cost/draw/stack and illegal source green; Q3831 breeding negative green after correcting the false red fixture from same-color EX7-066 to purple EX7-071                        |
+| EX7-011 | Megadramon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public play/evolution/payment/draw/stack/Piercing and §15-7-5 payable `by` condition with no legal delete target green after narrow shared resolver fix; 65 mechanism and 6,775 engine tests passed                                                        |
+| EX7-012 | Lavogaritamon            | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/evolution/real-loop/attack proof, exact 6000 boundary, both color routes, cost/draw/stack and two security checks green; no card-specific Q&A or engine seam                                                                                |
+| EX7-013 | MagnaKidmon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3832 fixture corrected: BT10-077 pays its own stack cost to seat 1 trash and makes seat 0 trash five cards from its hand; 8 focused tests plus a real-watcher mechanism regression green                                                                  |
+| EX7-014 | Volcanicdramon           | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; all 10 Q&A green after generic move-to-breeding restriction and DigiXros leave-replacement fixes; 11 card tests, 2 mechanisms and 7,303 full-engine tests pass                                                                                             |
+| EX7-015 | Otamamon                 | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3837-Q3840 green after routing the all-player play-cost restriction into DigiXros reduction; 8 focused/mechanism tests, 56 interaction tests and 7,301 full-engine tests pass                                                                             |
+| EX7-016 | Bulucomon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3841 RevealAdd, rule trait, legal evolution exact cost/draw/stack, illegal source, inherited top-source trash and real next-turn once-per-turn reset all public green                                                                                     |
+| EX7-017 | SnowAgumon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Ice Clad count-over-DP combat, Security carve-out, Rule trait, legal evolution cost/draw/stack, illegal source, inherited top-source trash and real next-turn once-per-turn reset public green                                                             |
+| EX7-018 | Gekomon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/two-step evolution prove exact costs/draw/stacks, inherited Jamming correctly absent while top and present once EX7-018 becomes a source, plus illegal route; 6 pass                                                                        |
+| EX7-019 | Sorcermon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; conditional public On Play positive/negative, live Blocker interception/Rule trait, legal evolution cost/draw/stack, illegal source, inherited top-source trash and real next-turn reset green                                                             |
+| EX7-020 | Paledramon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; bottom-source trash, conditional Jamming/Blocker, Rule trait, legal and illegal evolution boundaries, inherited top-source trash and real-turn once-per-turn reset public green; 5 focused tests pass                                                      |
+| EX7-021 | CrysPaledramon           | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3842/Q6041, exact cross-stack two-source trash, conditional unsuspend, Ice Clad Digimon/Security distinction, Rule trait, legal and illegal evolution boundaries public green; 10 focused tests pass                                                      |
+| EX7-022 | ShogunGekomon            | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3843, exact Tamer and all-own-NSp restrictions, target-change prevention, real duration expiry, legal alternate evolution cost/draw/stack and illegal source public green; 4 focused tests pass                                                           |
+| EX7-023 | Hexeblaumon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3844 dynamic source-relative restriction reopening green after live all-target predicate fix; 9 focused/mechanism, 87 proportional and 7,304 full-engine tests pass                                                                                       |
+| EX7-024 | Shoemon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3845/Q4882, battle-area-only Puppet evolution reduction, breeding negative, exact cost/draw/stack and inherited Security-Digimon DP through real battle green; 7 focused tests pass                                                                       |
+| EX7-025 | ShoeShoemon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Tamer-count boundary, optional refusal, name/count negatives, exact legal/illegal evolution, inherited owner-turn Security DP and real Security battle proof green; 6 focused tests pass                                                            |
+| EX7-026 | Starmon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/When Digivolving -3000 DP with turn expiry, standard/alternate evolution cost/draw/stack, illegal source and inherited Barrier payment through real combat green; 5 focused tests pass                                                      |
+| EX7-027 | Chaperomon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; errata Overclock, public evolution/free Puppet play/refusal, first inherited leave prevention, same-turn refusal and next-real-turn reset green; former red consumed the reset budget in a Security battle; 7 pass                                         |
+| EX7-028 | Piximon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3846 Yellow-or-NSp union, public battle deletion/free play/refusal, exact legal/illegal evolution, funded two-attack same-turn persistence, expiry and re-arm green; 8 pass                                                                               |
+| EX7-029 | SaberLeomon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public NSp/Leomon alternate routes, exact payment/draw/stack, Blast Digivolve, On Play/evolution DP duration, suspend/unsuspend/shared OPT, invalid route and Overflow 4 green; 9 pass                                                                     |
+| EX7-030 | Cendrillmon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; errata Overclock, public Main/evolution Familiar play/refusal, exact evolution, attack -6000, Q3847 combined 3000 DP and invalid route green; 7 pass                                                                                                       |
+| EX7-031 | Pteromon                 | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3848 breeding exclusion, Q5838 peer interaction, battle-area Bird reduction, non-Bird full cost, exact payment/draw/stack and real inherited battle ownership/deletion boundaries green; 15 focused/peer tests pass                                       |
+| EX7-032 | Galemon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public exact-cost evolution/free Shoto play/refusal, zero/one/two-Tamer boundaries, legal/illegal stack proof, real battle ownership/deletion boundaries and real-turn inherited OPT reset green; 7 focused tests pass                                     |
+| EX7-033 | Monochromon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; exact rule trait/inherited Piercing, live security check, non-green NSp alternate evolution with exact payment/draw/stack and wrong-trait rejection green; 5 focused tests pass                                                                            |
+| EX7-034 | GrandGalemon             | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public exact evolution/stack, own/opponent suspension branches, live opposing-Digimon-effect protection, real end-turn Vortex, inherited Digimon-target OPT and wrong-color rejection green; 6 focused tests pass                                          |
+| EX7-035 | Triceramon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3849, public play/evolution same-target lock and two-turn duration, non-green NSp exact evolution, invalid route, live Dinosaur trait, exact Security trash and real-turn inherited OPT reset green; 7 focused tests pass                                 |
+| EX7-036 | Zephagamon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public exact evolution, causal own/opponent/already-suspended branches, exact deck-bottom identity, real Vortex, Security Attack +1 two-check proof, live Bird Dragon trait and invalid route green; 8 focused tests pass                                  |
+| EX7-037 | Tlalocmon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3850 DNA matrix, public zero-cost DNA/two different-color NSp plays, invalid pair, exact ordinary evolution/one play, per-Digimon scaling, shared evolution/attack OPT and wrong-color route green; 6 focused tests pass                                  |
+| EX7-038 | Gotsumon                 | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Blocker redirection/combat, blue NSp zero-cost evolution with exact draw/stack, red non-NSp rejection and inherited Reboot through public host evolution/attack into the real opponent turn green; 5 focused tests pass                             |
+| EX7-039 | Jazamon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Rock/Earth Start-of-Main cost/draw/memory, refusal/no-eligible/single-prompt boundaries, exact red-route evolution, blue rejection, live Machine Dragon trait and real opponent-turn inherited DP transitions green; 8 pass                         |
+| EX7-040 | ToyAgumon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play exact trait-cost/draw, refusal/no-eligible/no-prompt boundaries, exact alternate evolution stack, invalid off-color route and inherited Reboot through public evolution/attack into the opponent turn green; 7 pass                         |
+| EX7-041 | Tortomon                 | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Blocker combat, actual opponent-effect protection, Q3851 rule deletion, off-color NSp exact evolution, non-NSp rejection and inherited Reboot through public evolution/attack/turn green; 7 pass                                                    |
+| EX7-042 | Jazardmon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; fixed unreachable Hina zoneCount IR; public Rock/Earth On Play, refusal, zero/one/two-Tamer and Hina-refusal boundaries, exact red evolution/off-color rejection and inherited turn DP green; 10 pass                                                      |
+| EX7-043 | Tankmon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3852 mixed hand/trash cost, public On Play/evolution De-Digivolve, refusal/insufficient boundary, Q4558 Shotmon link disposal, exact alternate stack, invalid route and inherited Reboot green; 7 pass                                                    |
+| EX7-044 | Gigadramon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public reveal/place/delete, exact rest destination/order, alternate stack, invalid route, Q4578 Shotmon link disposal and inherited Collision green; former red used illegal Digi-Eggs in the main deck; 8 pass                                            |
+| EX7-045 | Jagamon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public play-cost/De-Digivolve, blue NSp exact alternate evolution, red non-NSp rejection, real owner/opponent turn aura and NSp-only Blocker combat green; 5 pass                                                                                          |
+| EX7-046 | Jazarichmon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play De-Digivolve, Red/Black exact evolution and level-5 condition boundary, inherited first/second opponent attacks and next-opponent-turn reset green; 3 focused scenarios                                                                     |
+| EX7-047 | Eldradimon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/alternate-evolution cost-7 reveal budget/rest order, exact evolution, invalid route, live Blocker and real End-of-Turn Blue+Black DNA/no-target boundary green; 7 pass                                                                      |
+| EX7-048 | Gundramon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public reveal/free EX7-066 use/rest order, exact alternate evolution, no-match, global Three Musketeers replacement/non-trait exclusion, Q4585 Shotmon and live Blocker green; 8 pass                                                                      |
+| EX7-049 | Metallicdramon           | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public De-Digivolve/evolution/replacement, Q3853-Q3856/Q6719, live future-entrant restriction, immunity/breeding exclusions and expiry green; 9 pass                                                                                                       |
+| EX7-050 | Impmon                   | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Dark Dragon/Evil Dragon/negative evolutions, explicit zero-cost Yaamon route, exact payment/draw/stack, Q3857 breeding boundary and inherited DP across a real opponent turn green; 7 pass                                                          |
+| EX7-051 | Sparrowmon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; real Start-of-Main hand/trash bottom placement and draw, refusal, exact text-based evolution/invalid route, and inherited Retaliation through public unequal-DP combat green; 6 pass                                                                       |
+| EX7-052 | Tsukaimon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public reveal split/rest order, exact legal/illegal evolution, Q3858 Armor Purge, Q3859 EndAttack, Q3860 immune attacker, same-turn suppression and next-opponent-turn re-arm green; 7 pass                                                                |
+| EX7-053 | Eyesmon: Scatter Mode    | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public mandatory trash plus Evil/Dark Dragon/Evil Dragon returns, refusal, newly discarded eligible return, exact neutral evolution and inherited Retaliation through unequal-DP combat green; 8 pass                                                      |
+| EX7-054 | BlackGatomon             | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public evolution/deletion paid paired keywords and duration, exact stack, Q3861 Armor Purge, Q3862 EndAttack, Q3863 immunity, same-turn suppression and next-opponent-turn inherited re-arm green; 6 pass                                                  |
+| EX7-055 | Punkmon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public zero/one/two-Tamer evolution thresholds, Yuuki refusal, exact Evil alternate route, off-color rejection, payment/draw/stack and inherited owner-turn DP across a real opponent turn green; 7 pass                                                   |
+| EX7-056 | Orochimon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public battle On Deletion exact cost/level targets, Tortomon protection with declined block, exact evolution payment/draw/stack, live Blocker and inherited Retaliation unequal-DP combat green; 7 pass                                                    |
+| EX7-057 | Loudmon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/evolution exact trash and 7000-DP ceiling, Rule trait, Dark/Evil Dragon alternate and red standard stacks, plus inherited matching/nonmatching and four/five-hand real Security checks green; 7 pass                                        |
+| EX7-058 | LadyDevimon (X Antibody) | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public evolution/play/attacks, Q3864/Q3865, inherited OPT and canonical token stats/Blocker/Retaliation green after live printed-keyword reader fix; 7 focused, 145 mechanism pass                                                                         |
+| EX7-059 | BeelStarmon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/evolution/attack Option flows, refusal/own-stack scope, real Blast over Digimon and Q6391 text-qualified Tamer, plus Overflow 4 green; 11 pass                                                                                              |
+| EX7-060 | Nidhoggmon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; client-visible trash Main at exact four/five-card boundary, 7-memory paid play/refusal, exact evolution stack, live Blocker, real battle-deletion Dark Dragon/Evil Dragon plays, and level-6/nonmatching exclusions green; 9 pass                          |
+| EX7-061 | Lilithmon (X Antibody)   | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; corrected both turn branches under one deletion subscription; public standard/named evolution, battle/Retaliation replacement, Q3866/Q3867/Q5169, Security/free play, refusal, same-turn suppression and real-turn re-arm green; 14 focused + 19 peer pass |
+| EX7-062 | HeavyMetaldramon         | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; restored missing Dark Dragon/Evil Dragon alternate route; public dual-standard/dual-trait evolution, exact trash/DP boundaries, three scaled end-turn trait branches, refusal/near misses and real-turn re-arm green; 13 pass                              |
+| EX7-063 | Arisa Kinosaki           | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; real Start-of-Main and hand play, public Puppet/non-Puppet/token combat deletion, suspension/free-play/refusal, level/trait boundaries and real Security self-play green; 11 pass                                                                          |
+| EX7-064 | Shoto Kazama             | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; real Start-of-Main/hand play, Q3868/Q3869 both trigger orders, paired-keyword opponent-turn duration/expiry, refusal and real Security play green; EX2-007 banned pair recorded; 9 pass                                                                    |
+| EX7-065 | Yuuki                    | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; real Start-of-Main/hand play, client-visible Main activation, Dark Dragon/Evil Dragon trash evolutions, exact costs/draw/stack, four/five-card boundary, refusal/trait miss and Security play green; 10 pass                                               |
+| EX7-066 | Chaos Triangular         | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public color waiver/Main use, distinct-name scaling/repeat exclusion, real EX7-059 attack-cost trash, +3000 opponent-turn duration/expiry and real Security 12000/12001 checks green; 11 pass                                                              |
+| EX7-067 | Summon Frost             | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Main/Security flows, all-stack top-two trash, conditional Ice-Snow play, level/trait negatives, refusal, Q3870 final restriction and real-turn duration/expiry green; 10 pass                                                                       |
+| EX7-068 | Wonder Stomp             | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Main and real Security flows, exact draw/free-play/payment/zones, optional refusal, level-4 Puppet and level-3 non-Puppet negatives green; 8 pass                                                                                                   |
+| EX7-069 | Wind Slicer              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Main and real Security flows, own/opponent suspension, conditional own unsuspension, refusal and exact level-6/7 boundary green; 8 pass                                                                                                             |
+| EX7-070 | Der Blitz                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Main/real Security, Three Musketeers waiver/rejection, lowest-cost delete, placement and real EX7-059 attack-cost De-Digivolve green; 8 pass                                                                                                        |
+| EX7-071 | Hurricane Screw Shot     | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Main/real Security, Three Musketeers waiver/rejection, level 3/4/5 deletes, level 6/7 preservation, placement and real EX7-059 attack-cost +1 memory green; 6 pass                                                                                  |
+| EX7-072 | Seventh Fascination      | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Main/evolution/Security and real turns prove Trash cost/refusal, global grants, Q3871 immunity, Q3872 Partition, Q5728/Q5729, exact-name and Security unsuspended filter; 9 pass                                                                    |
+| EX7-073 | BeelStarmon (X Antibody) | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public standard/alternate evolution and attack, X-Antibody exclusion, free Option, exact source cost, highest-level delete, Security trash, refusal/insufficient cost and continuation green; 12 pass                                                      |
+| EX7-074 | Vortex Resonance         | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Main/evolution/real Security prove Digimon/Tamer waiver, Q3873 breeding exclusion, reveal destinations, exact reduction, refusal, hand/trash Security play and self-return; 14 pass                                                                 |
 
 ### EX7-001 — DemiMeramon
 
@@ -173,12 +173,12 @@ Applicable comprehensive-rules evidence:
 
 #### Clause → test → IR mapping
 
-| Contract clause | Observable proof | IR mapping |
-| --- | --- | --- |
-| Inherited-only effect | `matches the catalog and compiles the complete inherited clause`; public hatch/breeding proof | `isInherited: true` |
-| `[Your Turn]` | `is live only during the host controller's turn through the real turn loop` | `trigger: "YourTurn"` |
-| Opponent has 1 or fewer Digimon | `applies the exact 1-or-fewer boundary` covers 0 → 3000, 1 → 5000, 2 → 3000 | `while.kind: "opponentHas"`, `filter.kind: ["Digimon"]`, `countMax: 1` |
-| This Digimon gets +2000 DP | positive host DP and unchanged own peer/opponent Tamer | self-only `Aura` with `modifyDP.amount: 2000` |
+| Contract clause                 | Observable proof                                                                              | IR mapping                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Inherited-only effect           | `matches the catalog and compiles the complete inherited clause`; public hatch/breeding proof | `isInherited: true`                                                    |
+| `[Your Turn]`                   | `is live only during the host controller's turn through the real turn loop`                   | `trigger: "YourTurn"`                                                  |
+| Opponent has 1 or fewer Digimon | `applies the exact 1-or-fewer boundary` covers 0 → 3000, 1 → 5000, 2 → 3000                   | `while.kind: "opponentHas"`, `filter.kind: ["Digimon"]`, `countMax: 1` |
+| This Digimon gets +2000 DP      | positive host DP and unchanged own peer/opponent Tamer                                        | self-only `Aura` with `modifyDP.amount: 2000`                          |
 
 #### Q&A coverage
 
@@ -224,12 +224,12 @@ Status: fully card-audited; provisional **8/10**. The executed-gates column is i
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | IR mapping in `EX7-002.ts` | Behavioral proof in `EX7-002.test.ts` |
-| --- | --- | --- |
-| Inherited `[When Attacking]` | One effect with `trigger: "WhenAttacking"` and `isInherited: true`; the registration module routes it through the production attack timing. | `draws through a real attack only when the opponent has no digivolution cards`; the legal blue level-3 host stack is asserted as top `BT1-028` plus `EX7-002`. |
-| `[Once Per Turn]` | The same effect has `frequency: "OncePerTurn"`; registration threads the stable once-per-turn watcher key. | `draws only once across two legal attacks by the same inherited host` proves same-turn refusal; `resets the inherited draw on the next own turn through the real turn loop` proves reset. |
-| Opponent has no Digimon with digivolution cards | `condition.kind: "opponentHasNone"`, filter `controllerDefault: "opponent"`, `kind: ["Digimon"]`, `digivolutionCards: "hasAny"`; live matching rejects any opponent permanent whose `Permanent.stack.length > 0`. | Positive unstacked opponent draw and stacked `BT1-014` opponent no-draw cases. |
-| `＜Draw 1＞` | `kind: "Draw"`, `controller: "mine"`, `amount: 1`. | Positive cases assert hand/deck movement after the full effect stack settles. |
+| Printed clause                                  | IR mapping in `EX7-002.ts`                                                                                                                                                                                        | Behavioral proof in `EX7-002.test.ts`                                                                                                                                                     |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inherited `[When Attacking]`                    | One effect with `trigger: "WhenAttacking"` and `isInherited: true`; the registration module routes it through the production attack timing.                                                                       | `draws through a real attack only when the opponent has no digivolution cards`; the legal blue level-3 host stack is asserted as top `BT1-028` plus `EX7-002`.                            |
+| `[Once Per Turn]`                               | The same effect has `frequency: "OncePerTurn"`; registration threads the stable once-per-turn watcher key.                                                                                                        | `draws only once across two legal attacks by the same inherited host` proves same-turn refusal; `resets the inherited draw on the next own turn through the real turn loop` proves reset. |
+| Opponent has no Digimon with digivolution cards | `condition.kind: "opponentHasNone"`, filter `controllerDefault: "opponent"`, `kind: ["Digimon"]`, `digivolutionCards: "hasAny"`; live matching rejects any opponent permanent whose `Permanent.stack.length > 0`. | Positive unstacked opponent draw and stacked `BT1-014` opponent no-draw cases.                                                                                                            |
+| `＜Draw 1＞`                                    | `kind: "Draw"`, `controller: "mine"`, `amount: 1`.                                                                                                                                                                | Positive cases assert hand/deck movement after the full effect stack settles.                                                                                                             |
 
 The module is already complete compiled IR with `coverage: "full"`, an empty `residual`, and exactly one executable registration: `registerIrCard("EX7-002", compiled)`.
 
@@ -263,14 +263,14 @@ The module is already complete compiled IR with `coverage: "full"`, an empty `re
 
 #### Score
 
-| Dimension | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Catalog fields, printed clause, local KB query, general rules, and no-Q&A result recorded. |
-| IR trace | 2/2 | Exact persisted IR shape, full coverage, empty residual, live condition, draw action, and exclusive registration verified. |
-| Behavioral proof | 2/2 | Positive, exact stack-condition negative, same-turn refusal, and real next-turn reset pass. |
-| Peer and stack proof | 2/2 | Shared condition/once-per-turn paths reviewed; realistic inherited stack asserted; evolution requirement correctly marked N/A. |
-| Executed gates | 0/2 | Intentionally held at zero by the worker brief. |
-| **Total** | **8/10** | Maximum permitted for this audit lane. |
+| Dimension            |    Score | Evidence                                                                                                                       |
+| -------------------- | -------: | ------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and rules    |      2/2 | Catalog fields, printed clause, local KB query, general rules, and no-Q&A result recorded.                                     |
+| IR trace             |      2/2 | Exact persisted IR shape, full coverage, empty residual, live condition, draw action, and exclusive registration verified.     |
+| Behavioral proof     |      2/2 | Positive, exact stack-condition negative, same-turn refusal, and real next-turn reset pass.                                    |
+| Peer and stack proof |      2/2 | Shared condition/once-per-turn paths reviewed; realistic inherited stack asserted; evolution requirement correctly marked N/A. |
+| Executed gates       |      0/2 | Intentionally held at zero by the worker brief.                                                                                |
+| **Total**            | **8/10** | Maximum permitted for this audit lane.                                                                                         |
 
 ### EX7-003 — Kyaromon
 
@@ -283,15 +283,15 @@ Worker lane, session 1 (2026-09-09). No git write was performed. Files touched:
 
 The committed catalog entry (`packages/shared/src/cards/data/cards.json:85072-85087`) is:
 
-| Field | Catalog value |
-| --- | --- |
-| Name | Kyaromon |
-| Color | Yellow |
-| Kind / Level / Form | Digi-Egg / 2 / In-Training |
-| Play cost / DP | -1 / 0 |
-| Digivolution costs | None printed on EX7-003 |
-| Attribute / Traits | `-` / Lesser, LIBERATOR |
-| Rarity / Max in deck | U / 4 |
+| Field                | Catalog value              |
+| -------------------- | -------------------------- |
+| Name                 | Kyaromon                   |
+| Color                | Yellow                     |
+| Kind / Level / Form  | Digi-Egg / 2 / In-Training |
+| Play cost / DP       | -1 / 0                     |
+| Digivolution costs   | None printed on EX7-003    |
+| Attribute / Traits   | `-` / Lesser, LIBERATOR    |
+| Rarity / Max in deck | U / 4                      |
 
 Printed clauses:
 
@@ -320,15 +320,15 @@ Applicable local rules evidence:
 
 #### Clause → test → IR
 
-| Contract | IR mapping | Observable proof |
-| --- | --- | --- |
-| C1 is inherited and runs on Your Turn | `trigger: "YourTurn"`, `isInherited: true` | IR assertion in `EX7-003.test.ts:9-14`; own-turn and opponent-turn live checks in `:16-105` |
-| Affect the opponent's security Digimon by exactly -2000 DP | `ModifySecurityDP`, `controller: "opponent"`, `amount: -2000` | `:16-72` makes a 2000 attacker beat a 3000 Security Digimon only after reduction; `observe.securityDp(1) === -2000` |
-| Do not affect ordinary battle-area Digimon | Security-DP action, not `ModifyDP` | `:16-72` keeps the opposing 3000-DP battle-area Digimon at exactly 3000 |
-| Do not affect a non-Digimon security card | Security check consumer applies the ledger only to Security Digimon | `:56-72` checks a Tamer, expects `resolution: "trashed"`, and keeps the second attacker alive |
-| Opponent-turn boundary | YourTurn timing guard from the compiled trigger | `:75-105` observes zero and proves the 2000 attacker loses to the unmodified 3000 Security Digimon |
-| Inherited source survives a legal stack route | `duration: "permanent"` plus inherited source under the host | `:107-172` uses public `hatchEgg`, `digivolve`, `moveFromBreeding`, and `attack` intents; it asserts stack identity, zero memory cost, exact bonus-draw instance, and the resulting Security battle |
-| Wrong source is rejected | No EX7-003 evolution clause is invented; normal host requirements are enforced by the engine | `:174-214` hatches green EX7-004, rejects yellow BT1-045 with `invalid-evolution`, and proves no memory/draw/stack mutation |
+| Contract                                                   | IR mapping                                                                                   | Observable proof                                                                                                                                                                                    |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1 is inherited and runs on Your Turn                      | `trigger: "YourTurn"`, `isInherited: true`                                                   | IR assertion in `EX7-003.test.ts:9-14`; own-turn and opponent-turn live checks in `:16-105`                                                                                                         |
+| Affect the opponent's security Digimon by exactly -2000 DP | `ModifySecurityDP`, `controller: "opponent"`, `amount: -2000`                                | `:16-72` makes a 2000 attacker beat a 3000 Security Digimon only after reduction; `observe.securityDp(1) === -2000`                                                                                 |
+| Do not affect ordinary battle-area Digimon                 | Security-DP action, not `ModifyDP`                                                           | `:16-72` keeps the opposing 3000-DP battle-area Digimon at exactly 3000                                                                                                                             |
+| Do not affect a non-Digimon security card                  | Security check consumer applies the ledger only to Security Digimon                          | `:56-72` checks a Tamer, expects `resolution: "trashed"`, and keeps the second attacker alive                                                                                                       |
+| Opponent-turn boundary                                     | YourTurn timing guard from the compiled trigger                                              | `:75-105` observes zero and proves the 2000 attacker loses to the unmodified 3000 Security Digimon                                                                                                  |
+| Inherited source survives a legal stack route              | `duration: "permanent"` plus inherited source under the host                                 | `:107-172` uses public `hatchEgg`, `digivolve`, `moveFromBreeding`, and `attack` intents; it asserts stack identity, zero memory cost, exact bonus-draw instance, and the resulting Security battle |
+| Wrong source is rejected                                   | No EX7-003 evolution clause is invented; normal host requirements are enforced by the engine | `:174-214` hatches green EX7-004, rejects yellow BT1-045 with `invalid-evolution`, and proves no memory/draw/stack mutation                                                                         |
 
 The module remains exclusively IR-registered at `apps/api/src/cards/EX7/EX7-003.ts:8-27`:
 one compiled effect, `coverage: "full"`, `residual: []`, and
@@ -393,13 +393,13 @@ meteor npm run quave-check-ci                                 UNAVAILABLE: missi
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | All catalog fields and the sole inherited clause are recorded; applicable comprehensive/manual rules are identified; Q&A/errata/restrictions are explicitly empty. |
-| Direct IR | 2 / 2 | The exact inherited Your Turn, opponent controller, -2000 amount, permanent metadata, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Five focused tests use public intents and settled observable state for positive, exact-boundary, non-Digimon, opponent-turn, and live Security battle behavior. |
-| Peer / stack | 2 / 2 | BT5-038 peer semantics were compared; the real EX7-003 Digi-Egg route proves legal hatching, zero-cost evolution, bonus draw, source identity, move, and wrong-source rejection. |
-| Delivery gates | 0 | Worker-lane gate is forced to 0 by the brief; no git write or delivery action was performed. |
+| Column          | Score | Reason                                                                                                                                                                           |
+| --------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | All catalog fields and the sole inherited clause are recorded; applicable comprehensive/manual rules are identified; Q&A/errata/restrictions are explicitly empty.               |
+| Direct IR       | 2 / 2 | The exact inherited Your Turn, opponent controller, -2000 amount, permanent metadata, full coverage, residual, and exclusive registration are traced.                            |
+| Behaviour       | 2 / 2 | Five focused tests use public intents and settled observable state for positive, exact-boundary, non-Digimon, opponent-turn, and live Security battle behavior.                  |
+| Peer / stack    | 2 / 2 | BT5-038 peer semantics were compared; the real EX7-003 Digi-Egg route proves legal hatching, zero-cost evolution, bonus draw, source identity, move, and wrong-source rejection. |
+| Delivery gates  |     0 | Worker-lane gate is forced to 0 by the brief; no git write or delivery action was performed.                                                                                     |
 
 **Total: 8 / 10** (maximum requested; no card-specific red retained).
 
@@ -433,13 +433,13 @@ Applicable comprehensive-rules sources:
 
 #### Clause → test → IR mapping
 
-| Clause | Observable proof | IR mapping |
-| --- | --- | --- |
-| Inherited effect | `matches the catalog and compiles the complete inherited clause`; public stack route | `isInherited: true` |
-| `[Your Turn]` | Real-turn positive attack and real-turn transition in the once-per-turn test | `trigger: "YourTurn"`; interpreter derives owner-turn scope |
-| `[Once Per Turn]` | Same-turn second deletion produces no additional memory; after a real turn the ledger is clear and the next deletion gains exactly 1 memory | `frequency: "OncePerTurn"` carried to the watcher key |
-| This Digimon deletes an opponent’s Digimon in battle | Real public attacks; a different host’s deletion does not trigger this host, while the stacked host’s deletion does | `event: "whenDeletesInBattle"`, `sourceFilter: { isSelfRef: true }` |
-| Gain 1 memory | Positive battle assertions increase memory by exactly 1; failed battle leaves it unchanged | nested `GainMemory` with `amount: 1` |
+| Clause                                               | Observable proof                                                                                                                            | IR mapping                                                          |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Inherited effect                                     | `matches the catalog and compiles the complete inherited clause`; public stack route                                                        | `isInherited: true`                                                 |
+| `[Your Turn]`                                        | Real-turn positive attack and real-turn transition in the once-per-turn test                                                                | `trigger: "YourTurn"`; interpreter derives owner-turn scope         |
+| `[Once Per Turn]`                                    | Same-turn second deletion produces no additional memory; after a real turn the ledger is clear and the next deletion gains exactly 1 memory | `frequency: "OncePerTurn"` carried to the watcher key               |
+| This Digimon deletes an opponent’s Digimon in battle | Real public attacks; a different host’s deletion does not trigger this host, while the stacked host’s deletion does                         | `event: "whenDeletesInBattle"`, `sourceFilter: { isSelfRef: true }` |
+| Gain 1 memory                                        | Positive battle assertions increase memory by exactly 1; failed battle leaves it unchanged                                                  | nested `GainMemory` with `amount: 1`                                |
 
 #### Behavioral and evolution evidence
 
@@ -496,13 +496,13 @@ The implementation is compiled IR only and registers exclusively through
 `registerIrCard("EX7-005", compiled)`. No change was required in
 `apps/api/src/cards/EX7/EX7-005.ts`.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | The catalog assertion checks the exact EX7-005 identity and printed inherited clause. `node tools/kb/query.mjs card EX7-005` reports no card-specific KB entries/Q&A. |
-| Compiled IR | 2/2 | The test asserts the complete persisted IR: `YourTurn`, inherited, `OncePerTurn`, effect provenance, self-host binding, Option kind, exact `Three Musketeers` trait, and `GainMemory 1`; coverage is `full` and residual is empty. |
-| Observable behavior | 2/2 | Focused behavior proves legal public placement, payment, +1 memory, same-turn refusal, effect provenance, own-host binding, Option-only/exact-trait matching, opponent-turn rejection, and next-own-turn reset through a real continuous turn loop. |
-| Stack/evolution | 2/2 | The host is `EX7-048` Gundramon with EX7-005 beneath it. Public EX7-066 placement leaves the expected source stack beneath the host top card and the tests assert the exact card identity/order. EX7-005 is a Digi-Egg with no evolution cost, so a public evolution route for EX7-005 itself is N/A; Digi-Eggs are not placed in deck/security fixtures. |
-| Audit gates | 0/2 | This bounded worker lane does not claim collection-wide recalculation, mechanism-wide 10/10, or git commit/push completion. |
+| Area                | Score | Evidence                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | The catalog assertion checks the exact EX7-005 identity and printed inherited clause. `node tools/kb/query.mjs card EX7-005` reports no card-specific KB entries/Q&A.                                                                                                                                                                                     |
+| Compiled IR         |   2/2 | The test asserts the complete persisted IR: `YourTurn`, inherited, `OncePerTurn`, effect provenance, self-host binding, Option kind, exact `Three Musketeers` trait, and `GainMemory 1`; coverage is `full` and residual is empty.                                                                                                                        |
+| Observable behavior |   2/2 | Focused behavior proves legal public placement, payment, +1 memory, same-turn refusal, effect provenance, own-host binding, Option-only/exact-trait matching, opponent-turn rejection, and next-own-turn reset through a real continuous turn loop.                                                                                                       |
+| Stack/evolution     |   2/2 | The host is `EX7-048` Gundramon with EX7-005 beneath it. Public EX7-066 placement leaves the expected source stack beneath the host top card and the tests assert the exact card identity/order. EX7-005 is a Digi-Egg with no evolution cost, so a public evolution route for EX7-005 itself is N/A; Digi-Eggs are not placed in deck/security fixtures. |
+| Audit gates         |   0/2 | This bounded worker lane does not claim collection-wide recalculation, mechanism-wide 10/10, or git commit/push completion.                                                                                                                                                                                                                               |
 
 #### Clause-to-proof ledger
 
@@ -561,8 +561,8 @@ and traits `Lesser, LIBERATOR`. The card has no ordinary effect, main effect, or
 The sole printed clause is:
 
 - **C1 (inherited):** `[When Attacking] [Once Per Turn] If you have 4 or fewer cards in your hand,
-  this Digimon may digivolve into a Digimon card with the [Dark Dragon]/[Evil Dragon] trait in
-  the trash.`
+this Digimon may digivolve into a Digimon card with the [Dark Dragon]/[Evil Dragon] trait in
+the trash.`
 
 #### Rules and Q&A evidence
 
@@ -586,15 +586,15 @@ Applicable rules evidence:
 
 #### Clause → IR → behavioral proof
 
-| Contract | Direct IR evidence | Focused proof |
-| --- | --- | --- |
-| C1 is inherited and triggers when attacking | `EX7-006.ts` compiled effect has `trigger: "WhenAttacking"`, `isInherited: true` | Structural assertion in `EX7-006.test.ts` and live `attack` intents in the behavior tests |
-| Once Per Turn | `frequency: "OncePerTurn"` | Same-turn second attack leaves the first evolved top card, memory, and both remaining candidates unchanged; after the real turn the effect recollects when the hand is exactly four |
-| Hand condition is ≤4 | `condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 4 }` | Four-card hand activates; five-card hand leaves host, trash, and memory unchanged |
-| Candidate is a Digimon with Dark Dragon or Evil Dragon trait from trash | `into.controllerDefault: "mine"`, `into.kind: ["Digimon"]`, `nameOrTrait: [{ tokens: ["Dark Dragon", "Evil Dragon"], match: "trait" }]`, `from: ["trash"]` | BT11-079 DarkLizardmon evolves; BT3-083 Meramon (wrong trait) and BT2-013 Growlmon (matching trait but red-only evolution route) are rejected |
-| Evolution pays the printed cost | `payCost: true` | BT11-079 cost 2 changes memory 5 → 3; the hatch route’s BT11-075 zero-cost evolution leaves memory at 5 |
-| Inherited source remains on the stack | The module is exclusively `registerIrCard("EX7-006", compiled)` | Public `hatchEgg`, `digivolve`, `moveFromBreeding`, and `attack` intents preserve the EX7-006 instance beneath BT11-075 and then beneath BT11-079 |
-| Optional wording | `optional: true` | `autoDeclineOptional` attack leaves BT11-079 in trash, leaves BT11-075 on top, and does not pay memory |
+| Contract                                                                | Direct IR evidence                                                                                                                                         | Focused proof                                                                                                                                                                       |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1 is inherited and triggers when attacking                             | `EX7-006.ts` compiled effect has `trigger: "WhenAttacking"`, `isInherited: true`                                                                           | Structural assertion in `EX7-006.test.ts` and live `attack` intents in the behavior tests                                                                                           |
+| Once Per Turn                                                           | `frequency: "OncePerTurn"`                                                                                                                                 | Same-turn second attack leaves the first evolved top card, memory, and both remaining candidates unchanged; after the real turn the effect recollects when the hand is exactly four |
+| Hand condition is ≤4                                                    | `condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 4 }`                                                                        | Four-card hand activates; five-card hand leaves host, trash, and memory unchanged                                                                                                   |
+| Candidate is a Digimon with Dark Dragon or Evil Dragon trait from trash | `into.controllerDefault: "mine"`, `into.kind: ["Digimon"]`, `nameOrTrait: [{ tokens: ["Dark Dragon", "Evil Dragon"], match: "trait" }]`, `from: ["trash"]` | BT11-079 DarkLizardmon evolves; BT3-083 Meramon (wrong trait) and BT2-013 Growlmon (matching trait but red-only evolution route) are rejected                                       |
+| Evolution pays the printed cost                                         | `payCost: true`                                                                                                                                            | BT11-079 cost 2 changes memory 5 → 3; the hatch route’s BT11-075 zero-cost evolution leaves memory at 5                                                                             |
+| Inherited source remains on the stack                                   | The module is exclusively `registerIrCard("EX7-006", compiled)`                                                                                            | Public `hatchEgg`, `digivolve`, `moveFromBreeding`, and `attack` intents preserve the EX7-006 instance beneath BT11-075 and then beneath BT11-079                                   |
+| Optional wording                                                        | `optional: true`                                                                                                                                           | `autoDeclineOptional` attack leaves BT11-079 in trash, leaves BT11-075 on top, and does not pay memory                                                                              |
 
 The module has `coverage: "full"`, `residual: []`, and no duplicate `registerCard` registration.
 The test fixtures keep Digi-Eggs out of deck/security and use inert main-deck cards BT1-009 through
@@ -645,13 +645,13 @@ ledger, or other-card file was edited.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | Catalog fields, the sole clause, no-Q&A result, and applicable evolution/attack rules are recorded. |
-| Direct IR | 2 / 2 | Trigger, inherited flag, frequency, hand gate, trait/kind/source filters, optional flag, payment, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Public attack/evolution behavior, payment, refusal, negatives, same-turn suppression, and next-turn recollection pass. |
-| Peer / stack | 2 / 2 | Real hatch → zero-cost evolution → move → attack route proves bonus draw and source-stack identity; fixture boundaries are legal. |
-| Delivery gates | 0 | Forced to 0 by the worker brief; no git write was performed. |
+| Column          | Score | Reason                                                                                                                                                            |
+| --------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | Catalog fields, the sole clause, no-Q&A result, and applicable evolution/attack rules are recorded.                                                               |
+| Direct IR       | 2 / 2 | Trigger, inherited flag, frequency, hand gate, trait/kind/source filters, optional flag, payment, full coverage, residual, and exclusive registration are traced. |
+| Behaviour       | 2 / 2 | Public attack/evolution behavior, payment, refusal, negatives, same-turn suppression, and next-turn recollection pass.                                            |
+| Peer / stack    | 2 / 2 | Real hatch → zero-cost evolution → move → attack route proves bonus draw and source-stack identity; fixture boundaries are legal.                                 |
+| Delivery gates  |     0 | Forced to 0 by the worker brief; no git write was performed.                                                                                                      |
 
 **Total: 8 / 10.**
 
@@ -665,13 +665,13 @@ Score: **8/10** (audit cap applied; gates are 0/2).
 
 `apps/api/src/cards/EX7/EX7-007.ts` is complete compiled IR and registers executable behavior exclusively with `registerIrCard("EX7-007", compiled)`. No module or engine change was required.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | The test checks the exact catalog identity, two normal evolution requirements, On Play text, inherited text, colors, level, cost, DP, form, attribute, and trait. Local rules evidence is §15-15-3 for reveal processing, the Official Rule Manual reveal/bottom handling, §8-1-2-8 for evolution cards, and the glossary/Manual evolution procedure. |
-| Compiled IR | 2/2 | The test asserts the complete persisted IR: On Play `RevealAdd` of 3, one listed Dragon trait, one exact Hina Kurihara name, remaining cards to deck bottom, plus inherited Your Turn self `ModifyDP` +2000; coverage is `full` and residual is empty. |
-| Observable behavior | 2/2 | Public `playCard` proves the 3-memory play payment, both additions, deck-bottom result, Q3828 “as many as possible,” alternate Dragon-trait matching, exact Hina name matching, and non-matching exclusions. Inherited DP is +2000 only on the controller's turn. |
-| Stack/evolution | 2/2 | A public digivolve from a red level-2 Digi-Egg succeeds at cost 0, draws the exact inert main-deck instance, leaves EX7-007 on top of the source stack, and preserves the source in `Permanent.stack`; a level-3 source is rejected without payment or movement. Digi-Eggs appear only in breeding, never deck/security. |
-| Audit gates | 0/2 | This is one bounded card lane; no collection-wide recalculation, commit, or push is claimed. |
+| Area                | Score | Evidence                                                                                                                                                                                                                                                                                                                                              |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | The test checks the exact catalog identity, two normal evolution requirements, On Play text, inherited text, colors, level, cost, DP, form, attribute, and trait. Local rules evidence is §15-15-3 for reveal processing, the Official Rule Manual reveal/bottom handling, §8-1-2-8 for evolution cards, and the glossary/Manual evolution procedure. |
+| Compiled IR         |   2/2 | The test asserts the complete persisted IR: On Play `RevealAdd` of 3, one listed Dragon trait, one exact Hina Kurihara name, remaining cards to deck bottom, plus inherited Your Turn self `ModifyDP` +2000; coverage is `full` and residual is empty.                                                                                                |
+| Observable behavior |   2/2 | Public `playCard` proves the 3-memory play payment, both additions, deck-bottom result, Q3828 “as many as possible,” alternate Dragon-trait matching, exact Hina name matching, and non-matching exclusions. Inherited DP is +2000 only on the controller's turn.                                                                                     |
+| Stack/evolution     |   2/2 | A public digivolve from a red level-2 Digi-Egg succeeds at cost 0, draws the exact inert main-deck instance, leaves EX7-007 on top of the source stack, and preserves the source in `Permanent.stack`; a level-3 source is rejected without payment or movement. Digi-Eggs appear only in breeding, never deck/security.                              |
+| Audit gates         |   0/2 | This is one bounded card lane; no collection-wide recalculation, commit, or push is claimed.                                                                                                                                                                                                                                                          |
 
 #### Printed clauses and Q&A
 
@@ -731,8 +731,8 @@ Printed clauses:
 
 - **C1 (alternate evolution):** `[Digivolve] Lv.2 w/[Three Musketeers] in its text: Cost 0.`
 - **C2 (On Play):** `Reveal the top 3 cards of your deck. Add 1 card with [Three Musketeers] in
-  its text and 1 Option card with a cost of 6 among them to the hand. Return the rest to the
-  bottom of the deck.`
+its text and 1 Option card with a cost of 6 among them to the hand. Return the rest to the
+bottom of the deck.`
 - **C3 (inherited):** `[Your Turn] This Digimon gets +2000 DP.`
 
 #### KB-INDEX Q&A and rules evidence
@@ -759,14 +759,14 @@ Applicable local rules evidence:
 
 #### Clause → IR → behavioral proof
 
-| Contract | Direct implementation | Observable proof |
-| --- | --- | --- |
-| C1 alternate evolution | `EX7-008.ts:63-71`: `digivolutionRequirement: [{ level: 2, texts: ["Three Musketeers"], cost: 0, isAlternate: true }]` | `EX7-008.test.ts:112-145` publicly digivolves from Level-2 BT1-001 and asserts cost 0, bonus draw, and source stack; `:148-183` rejects Level-3 BT1-009 without mutation |
-| C2 reveal exactly three | `EX7-008.ts:12-42`: `RevealAdd`, `revealCount: 3`, two one-card hand destinations | `EX7-008.test.ts:42-74` uses public `playCard` and verifies both selected cards, the nonmatching remainder, play payment, and no pending decision; `:91-110` verifies three near-misses all return to the bottom |
-| C2 Three Musketeers-text target | `nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }]` | Q3829 positive pool uses EX7-071 and EX7-070; the partial pool uses EX7-059, whose card text contains Three Musketeers even though it is a Digimon rather than an Option |
-| C2 cost-6 Option target | `kind: ["Option"]`, `costComparison: { op: "eq", value: 6 }` | EX7-070 is added from the mixed top-three pool; EX7-069 cost 2 is retained at deck bottom |
-| C2 return rest to deck bottom | `rest: "deckBottom"` | Exact deck identity/order is asserted after full resolution in `EX7-008.test.ts:62-74`, `:101-107`; the mutation check also changed reveal count 3 → 2 and produced the expected structural and bottom-order failures |
-| C3 inherited owner-turn DP | `EX7-008.ts:45-60`: `trigger: "YourTurn"`, `isInherited: true`, `ModifyDP amount: 2000`, `duration: "permanent"` | `EX7-008.test.ts:185-195` observes 5000 DP on the owner's turn, 3000 on the opponent's turn, and 5000 again when ownership returns |
+| Contract                        | Direct implementation                                                                                                  | Observable proof                                                                                                                                                                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1 alternate evolution          | `EX7-008.ts:63-71`: `digivolutionRequirement: [{ level: 2, texts: ["Three Musketeers"], cost: 0, isAlternate: true }]` | `EX7-008.test.ts:112-145` publicly digivolves from Level-2 BT1-001 and asserts cost 0, bonus draw, and source stack; `:148-183` rejects Level-3 BT1-009 without mutation                                              |
+| C2 reveal exactly three         | `EX7-008.ts:12-42`: `RevealAdd`, `revealCount: 3`, two one-card hand destinations                                      | `EX7-008.test.ts:42-74` uses public `playCard` and verifies both selected cards, the nonmatching remainder, play payment, and no pending decision; `:91-110` verifies three near-misses all return to the bottom      |
+| C2 Three Musketeers-text target | `nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }]`                                                       | Q3829 positive pool uses EX7-071 and EX7-070; the partial pool uses EX7-059, whose card text contains Three Musketeers even though it is a Digimon rather than an Option                                              |
+| C2 cost-6 Option target         | `kind: ["Option"]`, `costComparison: { op: "eq", value: 6 }`                                                           | EX7-070 is added from the mixed top-three pool; EX7-069 cost 2 is retained at deck bottom                                                                                                                             |
+| C2 return rest to deck bottom   | `rest: "deckBottom"`                                                                                                   | Exact deck identity/order is asserted after full resolution in `EX7-008.test.ts:62-74`, `:101-107`; the mutation check also changed reveal count 3 → 2 and produced the expected structural and bottom-order failures |
+| C3 inherited owner-turn DP      | `EX7-008.ts:45-60`: `trigger: "YourTurn"`, `isInherited: true`, `ModifyDP amount: 2000`, `duration: "permanent"`       | `EX7-008.test.ts:185-195` observes 5000 DP on the owner's turn, 3000 on the opponent's turn, and 5000 again when ownership returns                                                                                    |
 
 The module uses `coverage: "full"`, `residual: []`, and registers executable behavior only with
 `registerIrCard("EX7-008", compiled)`. No duplicate `registerCard` registration exists.
@@ -834,13 +834,13 @@ No engine, shared, catalog, ledger, or other-card file was edited.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | All printed fields/clauses, Q3829, and applicable evolution/reveal rules are recorded. |
-| Direct IR | 2 / 2 | Alternate requirement, RevealAdd filters/count/bottom return, inherited timing/DP/duration, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Public play/evolution/turn-loop tests prove positive, partial, no-match, illegal-source, exact cost/draw, and owner-turn boundaries, including Q3829. |
-| Peer / stack | 2 / 2 | EX7-007 is compared; legal alternate evolution, exact source stack, bonus draw, and real hatch/evolution path pass. |
-| Delivery gates | 0 | Forced to 0 by the worker brief; no git write was performed. |
+| Column          | Score | Reason                                                                                                                                                      |
+| --------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | All printed fields/clauses, Q3829, and applicable evolution/reveal rules are recorded.                                                                      |
+| Direct IR       | 2 / 2 | Alternate requirement, RevealAdd filters/count/bottom return, inherited timing/DP/duration, full coverage, residual, and exclusive registration are traced. |
+| Behaviour       | 2 / 2 | Public play/evolution/turn-loop tests prove positive, partial, no-match, illegal-source, exact cost/draw, and owner-turn boundaries, including Q3829.       |
+| Peer / stack    | 2 / 2 | EX7-007 is compared; legal alternate evolution, exact source stack, bonus draw, and real hatch/evolution path pass.                                         |
+| Delivery gates  |     0 | Forced to 0 by the worker brief; no git write was performed.                                                                                                |
 
 **Total: 8 / 10.**
 
@@ -887,13 +887,13 @@ Applicable local rules evidence:
 
 #### Clause → IR → behavioral proof
 
-| Contract | Direct implementation | Observable proof |
-| --- | --- | --- |
-| Catalog identity and evolution routes | `EX7-009.test.ts:9-75` asserts `getCardDefinition` fields, Red/Black Lv.3 cost-2 routes, full coverage, and empty residuals | The same static test pins the committed card definition and every compiled effect shape |
-| C1 trait-or-name return | `EX7-009.ts:11-33`: `Return` to hand, `zone: "trash"`, own controller, one target, trait OR exact-name filters | `EX7-009.test.ts:78-104` publicly plays Lavorvomon and returns EX7-042 Machine Dragon; `:106-130` proves exact Hina matching while EX7-065 remains in trash |
-| C2 conditional free Hina play | `EX7-009.ts:37-65`: `WhenDigivolving`, hand source, exact Hina name, one target, `PlayWithoutCost`, `payCost: false`, optional, own battle-area Tamer count `lte 1` | `EX7-009.test.ts:132-166` publicly evolves, pays 2, draws 1, preserves the source stack, and plays Hina; `:168-197` proves optional refusal; `:199-228` proves two existing Tamers prevent the play |
-| Legal/illegal evolution and stack | Catalog costs are asserted at `EX7-009.test.ts:11-24`; normal compiled registration is `EX7-009.ts:91` | `EX7-009.test.ts:230-279` proves the Black Lv.3 route and rejects a Level-4 source with unchanged memory/hand/deck/top/stack; `:293-349` proves public hatch, intermediate evolution, move, final EX7-009 evolution, exact stack identity/order, and bonus draw through the real turn loop |
-| C3 inherited owner-turn DP | `EX7-009.ts:68-85`: inherited `YourTurn` `ModifyDP`, self target, permanent +2000 | `EX7-009.test.ts:281-291` observes 5000 DP on the owner's turn, 3000 on the opponent's turn, and 5000 after returning to the owner's turn |
+| Contract                              | Direct implementation                                                                                                                                               | Observable proof                                                                                                                                                                                                                                                                           |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog identity and evolution routes | `EX7-009.test.ts:9-75` asserts `getCardDefinition` fields, Red/Black Lv.3 cost-2 routes, full coverage, and empty residuals                                         | The same static test pins the committed card definition and every compiled effect shape                                                                                                                                                                                                    |
+| C1 trait-or-name return               | `EX7-009.ts:11-33`: `Return` to hand, `zone: "trash"`, own controller, one target, trait OR exact-name filters                                                      | `EX7-009.test.ts:78-104` publicly plays Lavorvomon and returns EX7-042 Machine Dragon; `:106-130` proves exact Hina matching while EX7-065 remains in trash                                                                                                                                |
+| C2 conditional free Hina play         | `EX7-009.ts:37-65`: `WhenDigivolving`, hand source, exact Hina name, one target, `PlayWithoutCost`, `payCost: false`, optional, own battle-area Tamer count `lte 1` | `EX7-009.test.ts:132-166` publicly evolves, pays 2, draws 1, preserves the source stack, and plays Hina; `:168-197` proves optional refusal; `:199-228` proves two existing Tamers prevent the play                                                                                        |
+| Legal/illegal evolution and stack     | Catalog costs are asserted at `EX7-009.test.ts:11-24`; normal compiled registration is `EX7-009.ts:91`                                                              | `EX7-009.test.ts:230-279` proves the Black Lv.3 route and rejects a Level-4 source with unchanged memory/hand/deck/top/stack; `:293-349` proves public hatch, intermediate evolution, move, final EX7-009 evolution, exact stack identity/order, and bonus draw through the real turn loop |
+| C3 inherited owner-turn DP            | `EX7-009.ts:68-85`: inherited `YourTurn` `ModifyDP`, self target, permanent +2000                                                                                   | `EX7-009.test.ts:281-291` observes 5000 DP on the owner's turn, 3000 on the opponent's turn, and 5000 after returning to the owner's turn                                                                                                                                                  |
 
 The module registers executable behavior only with `registerIrCard("EX7-009", compiled)` and
 has `coverage: "full"`, `residual: []` (`EX7-009.ts:87-91`). No duplicate `registerCard`
@@ -961,13 +961,13 @@ performed.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | All printed identity, evolution, clauses, applicable local rules, and the empty direct KB Q&A result are recorded. |
-| Direct IR | 2 / 2 | Return OR filter, exact Hina hand play, ≤1-Tamer condition, inherited timing/DP/duration, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Public positive/negative On Play and evolution tests cover target boundaries, optional refusal, legal/illegal sources, cost/draw, stack, real loop, and owner-turn DP. |
-| Peer / stack | 2 / 2 | Adjacent/effect peers are identified; both printed color routes and exact source-stack identity/order are proven. |
-| Delivery gates | 0 | Forced to 0 by the worker brief and task cap; no git write was performed. |
+| Column          | Score | Reason                                                                                                                                                                 |
+| --------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | All printed identity, evolution, clauses, applicable local rules, and the empty direct KB Q&A result are recorded.                                                     |
+| Direct IR       | 2 / 2 | Return OR filter, exact Hina hand play, ≤1-Tamer condition, inherited timing/DP/duration, full coverage, residual, and exclusive registration are traced.              |
+| Behaviour       | 2 / 2 | Public positive/negative On Play and evolution tests cover target boundaries, optional refusal, legal/illegal sources, cost/draw, stack, real loop, and owner-turn DP. |
+| Peer / stack    | 2 / 2 | Adjacent/effect peers are identified; both printed color routes and exact source-stack identity/order are proven.                                                      |
+| Delivery gates  |     0 | Forced to 0 by the worker brief and task cap; no git write was performed.                                                                                              |
 
 **Total: 8 / 10.**
 
@@ -981,13 +981,13 @@ Score: **8/10**. The audit cap leaves gates at 0/2; the card and mechanism evide
 
 `apps/api/src/cards/EX7/EX7-010.ts` is compiled IR and registers executable behavior exclusively through `registerIrCard("EX7-010", compiled)`. The serialized mechanism lane made no shared engine change: it proved the existing battle-area guard and corrected an invalid red-Option fixture.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | The test checks the catalog identity, red level 4, play cost 6, DP 6000, normal red level-3 evolution cost 2, alternate level-3/Three Musketeers-in-text evolution cost 2, Vaccine/Mutant properties, both effect clauses, and inherited text. Local rules evidence covers evolution procedure, stacked-card source identity, and optional reveal/choice processing. |
-| Compiled IR | 2/2 | The test checks both optional `Trash` triggers, `controller: any` stack targeting, battle-area `GrantStatic` for Three Musketeers, inherited +2000 DP, the alternate evolution requirement, `coverage: full`, and empty residual. |
-| Observable behavior | 2/2 | Public digivolve and attack prove opponent-stack and own-stack selection, optional refusal, cost, standard draw, and stack movement. Q3831’s battle-area positive places EX7-066 under Deputymon; the breeding-area negative uses the purple EX7-071 Three Musketeers Option and is rejected with `color-requirement-unmet`. |
-| Stack/evolution | 2/2 | Public alternate digivolution from EX7-008 succeeds for cost 2, draws the exact inert BT1-009 instance, empties the deck, preserves EX7-008 in `Permanent.stack`, and trashes an opponent Option. A blue level-3 source is rejected without payment, draw, or stack movement. There is no printed evolution bonus-draw clause, but standard game evolution draw is explicitly asserted. Digi-Eggs are not used in deck/security. |
-| Audit gates | 0/2 | This is a single bounded card lane with no collection-wide recalculation or git delivery claim. |
+| Area                | Score | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | The test checks the catalog identity, red level 4, play cost 6, DP 6000, normal red level-3 evolution cost 2, alternate level-3/Three Musketeers-in-text evolution cost 2, Vaccine/Mutant properties, both effect clauses, and inherited text. Local rules evidence covers evolution procedure, stacked-card source identity, and optional reveal/choice processing.                                                             |
+| Compiled IR         |   2/2 | The test checks both optional `Trash` triggers, `controller: any` stack targeting, battle-area `GrantStatic` for Three Musketeers, inherited +2000 DP, the alternate evolution requirement, `coverage: full`, and empty residual.                                                                                                                                                                                                |
+| Observable behavior |   2/2 | Public digivolve and attack prove opponent-stack and own-stack selection, optional refusal, cost, standard draw, and stack movement. Q3831’s battle-area positive places EX7-066 under Deputymon; the breeding-area negative uses the purple EX7-071 Three Musketeers Option and is rejected with `color-requirement-unmet`.                                                                                                     |
+| Stack/evolution     |   2/2 | Public alternate digivolution from EX7-008 succeeds for cost 2, draws the exact inert BT1-009 instance, empties the deck, preserves EX7-008 in `Permanent.stack`, and trashes an opponent Option. A blue level-3 source is rejected without payment, draw, or stack movement. There is no printed evolution bonus-draw clause, but standard game evolution draw is explicitly asserted. Digi-Eggs are not used in deck/security. |
+| Audit gates         |   0/2 | This is a single bounded card lane with no collection-wide recalculation or git delivery claim.                                                                                                                                                                                                                                                                                                                                  |
 
 #### Printed clauses and Q&A coverage
 
@@ -1096,16 +1096,16 @@ Applicable indexed rules evidence from `data/kb/rules-index.json`:
 
 #### Clause → IR → public proof
 
-| Printed contract | Direct implementation | Public behavioral evidence |
-| --- | --- | --- |
-| Level 5 Red Megadramon, play cost 7, DP 7000, Red Level 4 cost 3 | `EX7-011.test.ts:8-25` pins the catalog definition and compiled alternate requirement | Play and evolution assertions also verify memory deltas of 7 and 3 respectively |
-| Alternate evolution from Level 4 with `[Three Musketeers]` in its text for cost 3 | `EX7-011.ts:108-115` uses `{ level: 4, texts: ["Three Musketeers"], cost: 3, isAlternate: true }` | `EX7-011.test.ts:83-119` publicly evolves from EX7-010 with `alternateRequirementIndex: 0`; `:121-141` rejects Level-4 BT1-014, leaving source/top/hand/memory unchanged |
-| On Play and When Digivolving | `EX7-011.ts:11-91` has one compiled `Delete` action for each trigger | `EX7-011.test.ts:53-81` uses public `playCard`; `:83-119` uses public `digivolve`, with no injected timing fire |
-| Place one Three Musketeers Option from hand or trash as this Digimon's bottom card | Each action has a `place` cost, Option + Three Musketeers trait filter, `from: ["hand", "trash"]`, destination `digivolutionStack`, position `bottom`, host `self` | Hand source is placed exactly once at `:76-79`; trash source is removed from trash and is first/bottom in `[option, source]` at `:110-117` |
-| Delete one opposing Digimon at 6000 DP or less | Both actions use opponent Digimon, count 1, DP `lte 6000` | Exact 6000 target is deleted at `:63-80`; the no-target payable proof leaves a 7000 target alive at `:143-170` |
-| Optional `by` condition | Both actions carry `optional: true` and `abortOnDecline: true` | Declining publicly leaves the Option in hand and target alive at `:173-197` |
-| Inherited Piercing | `EX7-011.ts:95-104` marks the keyword block `isInherited: true` | Public attack from a Digimon carrying EX7-011 under it deletes a suspended defender and checks security at `:199-217` |
-| Complete implementation registration | `EX7-011.ts:106-118` has `coverage: "full"`, `residual: []`, and the sole `registerIrCard` call | Structural assertion at `:47` plus focused registration import prove the compiled path is exercised |
+| Printed contract                                                                   | Direct implementation                                                                                                                                              | Public behavioral evidence                                                                                                                                               |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Level 5 Red Megadramon, play cost 7, DP 7000, Red Level 4 cost 3                   | `EX7-011.test.ts:8-25` pins the catalog definition and compiled alternate requirement                                                                              | Play and evolution assertions also verify memory deltas of 7 and 3 respectively                                                                                          |
+| Alternate evolution from Level 4 with `[Three Musketeers]` in its text for cost 3  | `EX7-011.ts:108-115` uses `{ level: 4, texts: ["Three Musketeers"], cost: 3, isAlternate: true }`                                                                  | `EX7-011.test.ts:83-119` publicly evolves from EX7-010 with `alternateRequirementIndex: 0`; `:121-141` rejects Level-4 BT1-014, leaving source/top/hand/memory unchanged |
+| On Play and When Digivolving                                                       | `EX7-011.ts:11-91` has one compiled `Delete` action for each trigger                                                                                               | `EX7-011.test.ts:53-81` uses public `playCard`; `:83-119` uses public `digivolve`, with no injected timing fire                                                          |
+| Place one Three Musketeers Option from hand or trash as this Digimon's bottom card | Each action has a `place` cost, Option + Three Musketeers trait filter, `from: ["hand", "trash"]`, destination `digivolutionStack`, position `bottom`, host `self` | Hand source is placed exactly once at `:76-79`; trash source is removed from trash and is first/bottom in `[option, source]` at `:110-117`                               |
+| Delete one opposing Digimon at 6000 DP or less                                     | Both actions use opponent Digimon, count 1, DP `lte 6000`                                                                                                          | Exact 6000 target is deleted at `:63-80`; the no-target payable proof leaves a 7000 target alive at `:143-170`                                                           |
+| Optional `by` condition                                                            | Both actions carry `optional: true` and `abortOnDecline: true`                                                                                                     | Declining publicly leaves the Option in hand and target alive at `:173-197`                                                                                              |
+| Inherited Piercing                                                                 | `EX7-011.ts:95-104` marks the keyword block `isInherited: true`                                                                                                    | Public attack from a Digimon carrying EX7-011 under it deletes a suspended defender and checks security at `:199-217`                                                    |
+| Complete implementation registration                                               | `EX7-011.ts:106-118` has `coverage: "full"`, `residual: []`, and the sole `registerIrCard` call                                                                    | Structural assertion at `:47` plus focused registration import prove the compiled path is exercised                                                                      |
 
 #### Evolution, cost, draw, stack, and negative coverage
 
@@ -1187,13 +1187,13 @@ report paths changed; `EX7-011.ts` remains unchanged.
 
 #### Score
 
-| Category | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules / KB-INDEX | 2 / 2 | Catalog fields, all clauses, indexed rules, and the empty Q&A result are recorded. |
-| Direct IR | 2 / 2 | Both triggers, exact target/cost filters, optional sequencing, alternate requirement, inherited keyword, full coverage, residual, and exclusive registration are traced. |
-| Public behavior | 2 / 2 | Public play, digivolve, exact boundaries, decline, illegal source, draw/cost/stack, Piercing, and the §15-7-5 no-target placement are green. |
-| Evolution / peer / stack | 2 / 2 | Legal and illegal alternate routes plus exact source identity and bottom-first placement are proven; EX7-010 is the adjacent text-route peer. |
-| Delivery gates | 0 | Forced to 0 by the worker brief and task cap. |
+| Category                   | Score | Reason                                                                                                                                                                   |
+| -------------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules / KB-INDEX | 2 / 2 | Catalog fields, all clauses, indexed rules, and the empty Q&A result are recorded.                                                                                       |
+| Direct IR                  | 2 / 2 | Both triggers, exact target/cost filters, optional sequencing, alternate requirement, inherited keyword, full coverage, residual, and exclusive registration are traced. |
+| Public behavior            | 2 / 2 | Public play, digivolve, exact boundaries, decline, illegal source, draw/cost/stack, Piercing, and the §15-7-5 no-target placement are green.                             |
+| Evolution / peer / stack   | 2 / 2 | Legal and illegal alternate routes plus exact source identity and bottom-first placement are proven; EX7-010 is the adjacent text-route peer.                            |
+| Delivery gates             |     0 | Forced to 0 by the worker brief and task cap.                                                                                                                            |
 
 **Total: 8 / 10.**
 
@@ -1242,13 +1242,13 @@ Applicable local rules evidence:
 
 #### Clause → IR → behavioral proof
 
-| Contract | Direct implementation | Observable proof |
-| --- | --- | --- |
-| Catalog identity and evolution routes | `EX7-012.test.ts:9-28` asserts all relevant catalog fields, Red/Black Lv.4 cost-3 routes, and printed text | The committed catalog entry is pinned directly; no alternate evolution is present or claimed |
-| C1 On Play deletion | `EX7-012.ts:11-27`: `Delete`, opponent controller, Digimon kind, DP `lte 6000`, count 1 | `EX7-012.test.ts:74-104` publicly plays the card, deletes the 6000-DP target, leaves the 7000-DP near-match, pays play cost 7, and clears pending decisions; `:106-130` proves a 6001-DP target is not deleted |
-| C2 When Digivolving memory condition | `EX7-012.ts:29-48`: `GainMemory` amount 1 guarded by opponent-none over opponent Digimon at DP `lte 6000` | `EX7-012.test.ts:132-163` publicly evolves, pays 3, draws 1, preserves the source stack, and gains memory when only a 7000-DP opponent exists; `:165-192` proves exact 6000 DP blocks the gain |
-| C3 inherited Security Attack +1 | `EX7-012.ts:50-61`: inherited Static keyword `SecurityAttack` amount 1 | `EX7-012.test.ts:245-267` observes `securityAttack === 2` on a stacked host and uses a public attack to consume exactly two security cards |
-| Legal/illegal evolution and stack | Catalog routes are asserted at `EX7-012.test.ts:18-21`; executable registration is `EX7-012.ts:67` | `EX7-012.test.ts:194-243` proves both Red and Black Lv.4 routes; the Level-3 negative returns `invalid-evolution` with unchanged memory/hand/deck/top/stack; `:269-300` repeats a legal cost/draw/stack path through the real turn loop |
+| Contract                              | Direct implementation                                                                                      | Observable proof                                                                                                                                                                                                                        |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog identity and evolution routes | `EX7-012.test.ts:9-28` asserts all relevant catalog fields, Red/Black Lv.4 cost-3 routes, and printed text | The committed catalog entry is pinned directly; no alternate evolution is present or claimed                                                                                                                                            |
+| C1 On Play deletion                   | `EX7-012.ts:11-27`: `Delete`, opponent controller, Digimon kind, DP `lte 6000`, count 1                    | `EX7-012.test.ts:74-104` publicly plays the card, deletes the 6000-DP target, leaves the 7000-DP near-match, pays play cost 7, and clears pending decisions; `:106-130` proves a 6001-DP target is not deleted                          |
+| C2 When Digivolving memory condition  | `EX7-012.ts:29-48`: `GainMemory` amount 1 guarded by opponent-none over opponent Digimon at DP `lte 6000`  | `EX7-012.test.ts:132-163` publicly evolves, pays 3, draws 1, preserves the source stack, and gains memory when only a 7000-DP opponent exists; `:165-192` proves exact 6000 DP blocks the gain                                          |
+| C3 inherited Security Attack +1       | `EX7-012.ts:50-61`: inherited Static keyword `SecurityAttack` amount 1                                     | `EX7-012.test.ts:245-267` observes `securityAttack === 2` on a stacked host and uses a public attack to consume exactly two security cards                                                                                              |
+| Legal/illegal evolution and stack     | Catalog routes are asserted at `EX7-012.test.ts:18-21`; executable registration is `EX7-012.ts:67`         | `EX7-012.test.ts:194-243` proves both Red and Black Lv.4 routes; the Level-3 negative returns `invalid-evolution` with unchanged memory/hand/deck/top/stack; `:269-300` repeats a legal cost/draw/stack path through the real turn loop |
 
 The module reports `coverage: "full"`, `residual: []` and registers executable behavior only
 with `registerIrCard("EX7-012", compiled)` (`EX7-012.ts:63-67`). No duplicate `registerCard`
@@ -1322,13 +1322,13 @@ git write was performed.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | All printed identity, evolution routes, clauses, applicable rules, and the empty direct KB Q&A result are recorded. |
-| Direct IR | 2 / 2 | Delete target/count/boundary, conditional memory gain, inherited Security Attack keyword, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Public On Play, When Digivolving, attack, legal/illegal evolution, exact boundaries, cost/draw, stack, and real timing all pass. |
-| Peer / stack | 2 / 2 | Nearby deletion/security peers are identified; both color routes, source identity/order, and actual two-card security resolution are proven. |
-| Delivery gates | 0 | Forced to 0 by the worker brief and task cap; no git write was performed. |
+| Column          | Score | Reason                                                                                                                                                    |
+| --------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | All printed identity, evolution routes, clauses, applicable rules, and the empty direct KB Q&A result are recorded.                                       |
+| Direct IR       | 2 / 2 | Delete target/count/boundary, conditional memory gain, inherited Security Attack keyword, full coverage, residual, and exclusive registration are traced. |
+| Behaviour       | 2 / 2 | Public On Play, When Digivolving, attack, legal/illegal evolution, exact boundaries, cost/draw, stack, and real timing all pass.                          |
+| Peer / stack    | 2 / 2 | Nearby deletion/security peers are identified; both color routes, source identity/order, and actual two-card security resolution are proven.              |
+| Delivery gates  |     0 | Forced to 0 by the worker brief and task cap; no git write was performed.                                                                                 |
 
 **Total: 8 / 10.**
 
@@ -1342,13 +1342,13 @@ Score: **8/10**. Gates remain 0/2 for this bounded card lane. Q3832 is green: th
 
 `apps/api/src/cards/EX7/EX7-013.ts` is compiled IR and registers executable behavior exclusively with `registerIrCard("EX7-013", compiled)`. No production engine source change was made. The mechanism lane adds only a named testkit `drawByEffect` affordance and a focused engine regression.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | The catalog assertion checks the exact MagnaKidmon identity, red level 6, play cost 12, DP 12000, red level-5 evolution cost 4, Dragonkin/Three Musketeers traits, all printed effect text, and the inherited text. Local rules queries cover draw processing, turn procedures, optional effects, and stacked-card/evolution handling. |
-| Compiled IR | 2/2 | The test asserts the complete persisted IR: On Play and When Digivolving optional free use of a mine-hand Three Musketeers Option followed by draw-to-six, End of Your Turn `OncePerTurn` SelectBind/trash cost, Security Attack +1 duration, and the forced attack; coverage is `full` and residual is empty. |
-| Observable behavior | 2/2 | Public play, digivolve, end-phase, and attack flows prove the card’s costs, optional branches, draw-to-six, target stack restriction, Security Attack +1 attack, real-turn reset, and Q3832: BT10-077 observes the five-card add and causes seat 0 to trash exactly five cards while its BT1-104 cost card goes to seat 1’s trash. |
-| Peer/stack proof | 2/2 | EX7-066 supplies the matching Option peer fixture; EX7-011 is the legal level-5 source with Three Musketeers in its text; BT1-038 is an invalid blue level-5 source. Tests assert the exact drawn instance, cost, top card, and `Permanent.stack` source/Option identities. |
-| Audit gates | 0/2 | No collection-wide recalculation, ledger/RUN edit, commit, or push is claimed. |
+| Area                | Score | Evidence                                                                                                                                                                                                                                                                                                                               |
+| ------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | The catalog assertion checks the exact MagnaKidmon identity, red level 6, play cost 12, DP 12000, red level-5 evolution cost 4, Dragonkin/Three Musketeers traits, all printed effect text, and the inherited text. Local rules queries cover draw processing, turn procedures, optional effects, and stacked-card/evolution handling. |
+| Compiled IR         |   2/2 | The test asserts the complete persisted IR: On Play and When Digivolving optional free use of a mine-hand Three Musketeers Option followed by draw-to-six, End of Your Turn `OncePerTurn` SelectBind/trash cost, Security Attack +1 duration, and the forced attack; coverage is `full` and residual is empty.                         |
+| Observable behavior |   2/2 | Public play, digivolve, end-phase, and attack flows prove the card’s costs, optional branches, draw-to-six, target stack restriction, Security Attack +1 attack, real-turn reset, and Q3832: BT10-077 observes the five-card add and causes seat 0 to trash exactly five cards while its BT1-104 cost card goes to seat 1’s trash.     |
+| Peer/stack proof    |   2/2 | EX7-066 supplies the matching Option peer fixture; EX7-011 is the legal level-5 source with Three Musketeers in its text; BT1-038 is an invalid blue level-5 source. Tests assert the exact drawn instance, cost, top card, and `Permanent.stack` source/Option identities.                                                            |
+| Audit gates         |   0/2 | No collection-wide recalculation, ledger/RUN edit, commit, or push is claimed.                                                                                                                                                                                                                                                         |
 
 #### Printed clauses and Q&A coverage
 
@@ -1437,16 +1437,16 @@ Relevant rules evidence is Comprehensive Rules §3-4-7-2 through §3-4-7-8 (bree
 
 `EX7-014.test.ts` has **11/11 ordinary tests passing** in the final focused run.
 
-| Q&A / clause | Public evidence | Result |
-| --- | --- | --- |
-| C1 On Play | Lowest-DP opposing target is deleted exactly once; higher-DP card remains | Green |
-| C2 When Attacking | Public attack deletes the opposing lowest-DP Digimon | Green |
-| C3, Q3833, Q4673 | Opponent low-DP play is rejected, high-DP play is allowed, restriction expires at opponent turn end | Green |
-| Q3834, Q4675 | Volcanicdramon owner's effect may play a low-DP Digimon into the opponent area | Green |
-| Q4674 | Restricted revealed low-DP card is revealed but not played | Green |
-| Q4676 | Opponent-effect ownership distinction is preserved | Green |
-| Q3835, Q6509 | P-143's end-turn move into breeding is rejected; P-143 remains in battle and breeding is empty | Green |
-| Q3836, Q6718 | EX7-014 selected as DigiXros material activates its replacement; ST5-07 is a separate play and is not added to the Xros stack | Green |
+| Q&A / clause      | Public evidence                                                                                                               | Result |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------ |
+| C1 On Play        | Lowest-DP opposing target is deleted exactly once; higher-DP card remains                                                     | Green  |
+| C2 When Attacking | Public attack deletes the opposing lowest-DP Digimon                                                                          | Green  |
+| C3, Q3833, Q4673  | Opponent low-DP play is rejected, high-DP play is allowed, restriction expires at opponent turn end                           | Green  |
+| Q3834, Q4675      | Volcanicdramon owner's effect may play a low-DP Digimon into the opponent area                                                | Green  |
+| Q4674             | Restricted revealed low-DP card is revealed but not played                                                                    | Green  |
+| Q4676             | Opponent-effect ownership distinction is preserved                                                                            | Green  |
+| Q3835, Q6509      | P-143's end-turn move into breeding is rejected; P-143 remains in battle and breeding is empty                                | Green  |
+| Q3836, Q6718      | EX7-014 selected as DigiXros material activates its replacement; ST5-07 is a separate play and is not added to the Xros stack | Green  |
 
 The legal Red Lv.5 and Black Lv.5 routes each charge exactly 5, draw once, and preserve
 the source beneath EX7-014. The illegal Lv.4 source is rejected without changing hand,
@@ -1499,13 +1499,13 @@ The required workspace `pnpm typecheck` passes for shared, web, and API with no 
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | Catalog identity, all four clauses, ten direct Q&A entries, and applicable rules are recorded. |
-| Direct IR | 2 / 2 | Triggers, lowest-DP targeting, restriction boundary/duration, replacement scope/cause/frequency, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | All printed clauses and all ten Q&A behaviors are green through public flows. |
-| Peer / stack | 2 / 2 | Red/Black evolution cost, draw, stack, illegal source, and DigiXros replacement identity are proven. |
-| Delivery gates | 0 / 0 | Per the worker rubric, delivery gates are reported separately; scoped static, diff, and workspace typecheck gates pass. |
+| Column          | Score | Reason                                                                                                                                                           |
+| --------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | Catalog identity, all four clauses, ten direct Q&A entries, and applicable rules are recorded.                                                                   |
+| Direct IR       | 2 / 2 | Triggers, lowest-DP targeting, restriction boundary/duration, replacement scope/cause/frequency, full coverage, residual, and exclusive registration are traced. |
+| Behaviour       | 2 / 2 | All printed clauses and all ten Q&A behaviors are green through public flows.                                                                                    |
+| Peer / stack    | 2 / 2 | Red/Black evolution cost, draw, stack, illegal source, and DigiXros replacement identity are proven.                                                             |
+| Delivery gates  | 0 / 0 | Per the worker rubric, delivery gates are reported separately; scoped static, diff, and workspace typecheck gates pass.                                          |
 
 **Total: 8 / 10.** No other card, catalog, ledger, RUN, or review file was edited. No
 commit, branch, push, reset, or other git write was performed.
@@ -1540,13 +1540,13 @@ Q3838, Q3839, and Q3840. Relevant rules queries returned comprehensive
 
 #### Implementation mapping
 
-| Contract | IR/test evidence |
-| --- | --- |
-| All Turns, both players, play-cost reductions blocked permanently | `EX7-015.ts:9-20`; catalog/IR assertion in `EX7-015.test.ts:14-53`; Q3837/Q3839 real-turn test at `:55-94` |
-| Players affected, not only Otamamon's controller | `RestrictCostReduction` uses `seat: "any"`; the test plays BT2-112 once for seat 0 and once for seat 1 through `startTurnLoop()` |
-| Alternate Lv.2 NSp evolution for cost 0 | `EX7-015.ts:24-31`; `digivolutionRequirementsFor` assertion at `EX7-015.test.ts:32-37`; legal public `digivolve` at `:156-191` |
-| Standard evolution draw and stack transition | Legal evolution asserts the exact BT1-009 instance enters hand, deck shrinks to BT1-011, source P-148 is the only `Permanent.stack` card, and the top card is EX7-015 |
-| Illegal source refusal | BT1-009 Lv.3 source is rejected with unchanged source, empty stack, unchanged memory, hand, and deck at `EX7-015.test.ts:193-223` |
+| Contract                                                          | IR/test evidence                                                                                                                                                      |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| All Turns, both players, play-cost reductions blocked permanently | `EX7-015.ts:9-20`; catalog/IR assertion in `EX7-015.test.ts:14-53`; Q3837/Q3839 real-turn test at `:55-94`                                                            |
+| Players affected, not only Otamamon's controller                  | `RestrictCostReduction` uses `seat: "any"`; the test plays BT2-112 once for seat 0 and once for seat 1 through `startTurnLoop()`                                      |
+| Alternate Lv.2 NSp evolution for cost 0                           | `EX7-015.ts:24-31`; `digivolutionRequirementsFor` assertion at `EX7-015.test.ts:32-37`; legal public `digivolve` at `:156-191`                                        |
+| Standard evolution draw and stack transition                      | Legal evolution asserts the exact BT1-009 instance enters hand, deck shrinks to BT1-011, source P-148 is the only `Permanent.stack` card, and the top card is EX7-015 |
+| Illegal source refusal                                            | BT1-009 Lv.3 source is rejected with unchanged source, empty stack, unchanged memory, hand, and deck at `EX7-015.test.ts:193-223`                                     |
 
 The module exports `compiled`, declares `coverage: "full"`, has an empty
 `residual`, and registers behavior exclusively with
@@ -1618,13 +1618,13 @@ REVIEW-NOTES, catalog, shared, or other-card file was edited.
 
 #### Rubric
 
-| Area | Score | Basis |
-| --- | ---: | --- |
-| Catalog/rules evidence | 2/2 | Exact catalog fields, direct KB Q&A query, and relevant comprehensive-rule queries recorded |
-| IR fidelity | 2/2 | Static all-player permanent restriction and alternate evolution are represented without residuals or duplicate registration |
-| Behavioral/Q&A proof | 2/2 | Q3837, Q3838, Q3839, and Q3840 all pass through public intents with exact cost/state assertions |
-| Evolution/stack proof | 2/2 | Legal NSp Lv.2 route, cost 0, standard draw, exact source stack identity, and illegal source all pass |
-| Focused/static gates | 0/0 | Required gate column is scored zero by the brief; all required commands passed |
+| Area                   | Score | Basis                                                                                                                       |
+| ---------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules evidence |   2/2 | Exact catalog fields, direct KB Q&A query, and relevant comprehensive-rule queries recorded                                 |
+| IR fidelity            |   2/2 | Static all-player permanent restriction and alternate evolution are represented without residuals or duplicate registration |
+| Behavioral/Q&A proof   |   2/2 | Q3837, Q3838, Q3839, and Q3840 all pass through public intents with exact cost/state assertions                             |
+| Evolution/stack proof  |   2/2 | Legal NSp Lv.2 route, cost 0, standard draw, exact source stack identity, and illegal source all pass                       |
+| Focused/static gates   |   0/0 | Required gate column is scored zero by the brief; all required commands passed                                              |
 
 #### Gaps and seams
 
@@ -1674,12 +1674,12 @@ digivolution procedure and stacked-card rules.
 
 #### Implementation mapping
 
-| Contract | IR/test evidence |
-| --- | --- |
-| Reveal exactly 3, add one name match and one Ice-Snow match, bottom the rest | `EX7-016.ts:9-47`; exact IR assertion in `EX7-016.test.ts:35-94`; public On Play proof at `:96-136` |
-| Rule trait grant is self-scoped | `EX7-016.ts:48-64`; `GrantStatic` assertion at `EX7-016.test.ts:64-73`; `observe(...).hasEffectiveTrait(..., "Ice-Snow")` after public play at `:131` |
-| Inherited top-source trash, opponent-only, once per turn | `EX7-016.ts:65-84`; exact target/filter/frequency assertion at `EX7-016.test.ts:75-90`; real attack/turn-loop proof at `:206-268` |
-| Standard Blue Lv.2 evolution | Catalog assertion at `EX7-016.test.ts:17-33`; public evolution from Blue P-148 at `:138-171` |
+| Contract                                                                     | IR/test evidence                                                                                                                                      |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reveal exactly 3, add one name match and one Ice-Snow match, bottom the rest | `EX7-016.ts:9-47`; exact IR assertion in `EX7-016.test.ts:35-94`; public On Play proof at `:96-136`                                                   |
+| Rule trait grant is self-scoped                                              | `EX7-016.ts:48-64`; `GrantStatic` assertion at `EX7-016.test.ts:64-73`; `observe(...).hasEffectiveTrait(..., "Ice-Snow")` after public play at `:131` |
+| Inherited top-source trash, opponent-only, once per turn                     | `EX7-016.ts:65-84`; exact target/filter/frequency assertion at `EX7-016.test.ts:75-90`; real attack/turn-loop proof at `:206-268`                     |
+| Standard Blue Lv.2 evolution                                                 | Catalog assertion at `EX7-016.test.ts:17-33`; public evolution from Blue P-148 at `:138-171`                                                          |
 
 The module declares `coverage: "full"`, `residual: []`, and registers
 exclusively through `registerIrCard("EX7-016", compiled)` at line 90. There is
@@ -1742,13 +1742,13 @@ performed.
 
 #### Rubric
 
-| Area | Score | Basis |
-| --- | ---: | --- |
-| Catalog/rules evidence | 2/2 | Exact catalog fields, direct Q3841 query, and relevant rules queries recorded |
-| IR trace | 2/2 | On Play RevealAdd, self Rule trait grant, inherited target/frequency, full coverage, and exclusive registration all match |
-| Behavioral/Q&A proof | 2/2 | Q3841 and every printed clause pass through public intents and observable state |
-| Peer/stack proof | 2/2 | Legal cost-0 evolution, exact draw and source stack, illegal source, and real-turn inherited reset all pass |
-| Delivery gates | 0/2 | Coordinator-owned per the brief; focused/static gates themselves are green |
+| Area                   | Score | Basis                                                                                                                     |
+| ---------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules evidence |   2/2 | Exact catalog fields, direct Q3841 query, and relevant rules queries recorded                                             |
+| IR trace               |   2/2 | On Play RevealAdd, self Rule trait grant, inherited target/frequency, full coverage, and exclusive registration all match |
+| Behavioral/Q&A proof   |   2/2 | Q3841 and every printed clause pass through public intents and observable state                                           |
+| Peer/stack proof       |   2/2 | Legal cost-0 evolution, exact draw and source stack, illegal source, and real-turn inherited reset all pass               |
+| Delivery gates         |   0/2 | Coordinator-owned per the brief; focused/static gates themselves are green                                                |
 
 ### EX7-017 — SnowAgumon
 
@@ -1798,14 +1798,14 @@ Applicable local rules evidence:
 
 #### Clause → IR → behavioral proof
 
-| Contract | Direct implementation | Observable proof |
-| --- | --- | --- |
-| Catalog identity and evolution route | `EX7-017.test.ts:14-31` asserts all relevant catalog fields, including Blue Lv.2 cost 0 and both printed text fields | The committed catalog is pinned directly; no unprinted Security or non-inherited behavior is introduced |
-| C1 Ice Clad | `EX7-017.ts:9-19` publishes the `IceClad` static keyword | `EX7-017.test.ts:69-85` uses a public Digimon-vs-Digimon attack where SnowAgumon has 2 sources and DP 2000 against a 10000-DP source-less defender; SnowAgumon wins by source count |
-| C1 Security exception | Shared combat security path remains DP-based; module adds no Security override | `EX7-017.test.ts:88-105` attacks through two inert 4000-DP Security Digimon with a 2000-DP SnowAgumon carrying two sources; SnowAgumon loses the Security battle and is deleted |
-| C2 Rule Ice-Snow trait | `EX7-017.ts:20-35` uses self-scoped `GrantStatic` trait `Ice-Snow` | `EX7-017.test.ts:61-67` observes both the live Ice Clad keyword and effective Ice-Snow trait |
-| C3 inherited top-source trash | `EX7-017.ts:37-56` uses inherited `WhenAttacking`, opponent Digimon with `hasAny` sources, count 1, `fromTop: true`, frequency `OncePerTurn` | `EX7-017.test.ts:168-225` performs public attacks; the exact top source is trashed, the same-turn second attack leaves the remaining source intact, and a next-turn attack trashes it |
-| Exclusive executable registration | `EX7-017.ts:58-62` reports `coverage: "full"`, `residual: []`, and calls only `registerIrCard("EX7-017", compiled)` | No duplicate `registerCard` registration exists |
+| Contract                             | Direct implementation                                                                                                                        | Observable proof                                                                                                                                                                      |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog identity and evolution route | `EX7-017.test.ts:14-31` asserts all relevant catalog fields, including Blue Lv.2 cost 0 and both printed text fields                         | The committed catalog is pinned directly; no unprinted Security or non-inherited behavior is introduced                                                                               |
+| C1 Ice Clad                          | `EX7-017.ts:9-19` publishes the `IceClad` static keyword                                                                                     | `EX7-017.test.ts:69-85` uses a public Digimon-vs-Digimon attack where SnowAgumon has 2 sources and DP 2000 against a 10000-DP source-less defender; SnowAgumon wins by source count   |
+| C1 Security exception                | Shared combat security path remains DP-based; module adds no Security override                                                               | `EX7-017.test.ts:88-105` attacks through two inert 4000-DP Security Digimon with a 2000-DP SnowAgumon carrying two sources; SnowAgumon loses the Security battle and is deleted       |
+| C2 Rule Ice-Snow trait               | `EX7-017.ts:20-35` uses self-scoped `GrantStatic` trait `Ice-Snow`                                                                           | `EX7-017.test.ts:61-67` observes both the live Ice Clad keyword and effective Ice-Snow trait                                                                                          |
+| C3 inherited top-source trash        | `EX7-017.ts:37-56` uses inherited `WhenAttacking`, opponent Digimon with `hasAny` sources, count 1, `fromTop: true`, frequency `OncePerTurn` | `EX7-017.test.ts:168-225` performs public attacks; the exact top source is trashed, the same-turn second attack leaves the remaining source intact, and a next-turn attack trashes it |
+| Exclusive executable registration    | `EX7-017.ts:58-62` reports `coverage: "full"`, `residual: []`, and calls only `registerIrCard("EX7-017", compiled)`                          | No duplicate `registerCard` registration exists                                                                                                                                       |
 
 #### Evolution, stack, and timing
 
@@ -1870,13 +1870,13 @@ write was performed.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | All catalog fields, printed clauses, applicable Ice Clad/evolution rules, and the empty KB result are recorded. |
-| Direct IR | 2 / 2 | Ice Clad, Rule trait grant, inherited target/top/count/frequency, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Public live keyword/trait, count-over-DP battle, Security DP exception, inherited trash, same-turn refusal, and next-turn reset pass. |
-| Peer / stack | 2 / 2 | Legal hatch evolution, exact cost/draw/source stack, illegal color negative, and realistic inherited stack behavior pass against inert fixtures and peer patterns. |
-| Delivery gates | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit. |
+| Column          | Score | Reason                                                                                                                                                             |
+| --------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules | 2 / 2 | All catalog fields, printed clauses, applicable Ice Clad/evolution rules, and the empty KB result are recorded.                                                    |
+| Direct IR       | 2 / 2 | Ice Clad, Rule trait grant, inherited target/top/count/frequency, full coverage, residual, and exclusive registration are traced.                                  |
+| Behaviour       | 2 / 2 | Public live keyword/trait, count-over-DP battle, Security DP exception, inherited trash, same-turn refusal, and next-turn reset pass.                              |
+| Peer / stack    | 2 / 2 | Legal hatch evolution, exact cost/draw/source stack, illegal color negative, and realistic inherited stack behavior pass against inert fixtures and peer patterns. |
+| Delivery gates  | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit.                                                                                           |
 
 **Total: 8 / 10.**
 
@@ -1918,12 +1918,12 @@ digivolution procedure also requires its separate evolution bonus draw.
 
 #### Implementation mapping
 
-| Contract | IR/test evidence |
-| --- | --- |
-| On Play Draw 1 | `EX7-018.ts:9-19`; exact IR assertion in `EX7-018.test.ts:31-33`; public `playCard` proof at `:45-77` |
-| When Digivolving Draw 1 | `EX7-018.ts:20-29`; exact IR assertion at `EX7-018.test.ts:33`; legal public digivolution proof at `:79-120` |
-| Inherited Jamming | Inherited Static keyword at `EX7-018.ts:30-40`; a hand-laid host and a two-step public evolution both prove it appears only while EX7-018 is a digivolution card |
-| Alternate Lv.3 [NSp] evolution for cost 2 | `EX7-018.ts:44-50`; catalog/requirement assertion at `EX7-018.test.ts:15-30`; public legal route at `:79-120` |
+| Contract                                  | IR/test evidence                                                                                                                                                 |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play Draw 1                            | `EX7-018.ts:9-19`; exact IR assertion in `EX7-018.test.ts:31-33`; public `playCard` proof at `:45-77`                                                            |
+| When Digivolving Draw 1                   | `EX7-018.ts:20-29`; exact IR assertion at `EX7-018.test.ts:33`; legal public digivolution proof at `:79-120`                                                     |
+| Inherited Jamming                         | Inherited Static keyword at `EX7-018.ts:30-40`; a hand-laid host and a two-step public evolution both prove it appears only while EX7-018 is a digivolution card |
+| Alternate Lv.3 [NSp] evolution for cost 2 | `EX7-018.ts:44-50`; catalog/requirement assertion at `EX7-018.test.ts:15-30`; public legal route at `:79-120`                                                    |
 
 The module declares `coverage: "full"`, `residual: []`, and registers
 exclusively through `registerIrCard("EX7-018", compiled)` at line 54. No
@@ -1995,13 +1995,13 @@ performed.
 
 #### Rubric
 
-| Area | Score | Basis |
-| --- | ---: | --- |
-| Catalog/rules evidence | 2/2 | Exact catalog fields, direct no-Q&A query, and relevant rules sections recorded |
-| IR trace | 2/2 | Both printed Draw triggers, inherited Jamming, alternate requirement, full coverage, and exclusive registration match |
-| Behavioral/Q&A proof | 2/2 | Every printed clause is exercised through public timing/intents or observable inherited-stack behavior; no Q&A entries applied |
-| Peer/stack proof | 2/2 | Legal two-step evolution, exact cost/draw/stack identity, inherited-keyword transition, seeded peer stack and illegal source all pass |
-| Delivery gates | 0/2 | Coordinator-owned per the worker brief; focused/static commands themselves are green |
+| Area                   | Score | Basis                                                                                                                                 |
+| ---------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules evidence |   2/2 | Exact catalog fields, direct no-Q&A query, and relevant rules sections recorded                                                       |
+| IR trace               |   2/2 | Both printed Draw triggers, inherited Jamming, alternate requirement, full coverage, and exclusive registration match                 |
+| Behavioral/Q&A proof   |   2/2 | Every printed clause is exercised through public timing/intents or observable inherited-stack behavior; no Q&A entries applied        |
+| Peer/stack proof       |   2/2 | Legal two-step evolution, exact cost/draw/stack identity, inherited-keyword transition, seeded peer stack and illegal source all pass |
+| Delivery gates         |   0/2 | Coordinator-owned per the worker brief; focused/static commands themselves are green                                                  |
 
 ### EX7-019 — Sorcermon
 
@@ -2048,14 +2048,14 @@ Applicable local rules evidence:
 
 #### Clause → IR → behavioral proof
 
-| Contract | Direct implementation | Observable proof |
-| --- | --- | --- |
-| Catalog identity and evolution route | `EX7-019.test.ts:14-31` pins the catalog fields, Blue Lv.3 cost-2 route, and both printed text fields | The committed catalog is asserted directly; no Security or extra inherited behavior is introduced |
-| C1 Blocker | `EX7-019.ts:17-27` publishes the static Blocker keyword | `EX7-019.test.ts:110-138` runs a real opponent attack, accepts a public `declareBlock`, deletes the weaker attacker, and preserves Sorcermon and Security |
-| C2 conditional On Play unsuspend | `EX7-019.ts:28-50` targets one of the owner's Digimon only when the opponent has none with `digivolutionCards: "hasAny"` | `EX7-019.test.ts:66-88` publicly plays Sorcermon into a source-less opponent state and unsuspends the preferred ally; `:90-108` publicly plays against an opponent stacked Digimon and leaves the ally suspended |
-| C3 Rule Ice-Snow trait | `EX7-019.ts:51-65` self-scoped `GrantStatic` trait `Ice-Snow` | `EX7-019.test.ts:86-87` observes the live effective trait after public play |
-| C4 inherited top-source trash | `EX7-019.ts:67-85` uses inherited `WhenAttacking`, opponent Digimon with sources, count 1, `fromTop`, and `OncePerTurn` | `EX7-019.test.ts:193-253` publicly attacks, trashes exactly the top source, refuses same-turn reuse, and resets on the next real turn |
-| Exclusive executable registration | `EX7-019.ts:87-91` reports full coverage, zero residual, and only `registerIrCard("EX7-019", compiled)` | No duplicate legacy `registerCard` registration exists |
+| Contract                             | Direct implementation                                                                                                    | Observable proof                                                                                                                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog identity and evolution route | `EX7-019.test.ts:14-31` pins the catalog fields, Blue Lv.3 cost-2 route, and both printed text fields                    | The committed catalog is asserted directly; no Security or extra inherited behavior is introduced                                                                                                                |
+| C1 Blocker                           | `EX7-019.ts:17-27` publishes the static Blocker keyword                                                                  | `EX7-019.test.ts:110-138` runs a real opponent attack, accepts a public `declareBlock`, deletes the weaker attacker, and preserves Sorcermon and Security                                                        |
+| C2 conditional On Play unsuspend     | `EX7-019.ts:28-50` targets one of the owner's Digimon only when the opponent has none with `digivolutionCards: "hasAny"` | `EX7-019.test.ts:66-88` publicly plays Sorcermon into a source-less opponent state and unsuspends the preferred ally; `:90-108` publicly plays against an opponent stacked Digimon and leaves the ally suspended |
+| C3 Rule Ice-Snow trait               | `EX7-019.ts:51-65` self-scoped `GrantStatic` trait `Ice-Snow`                                                            | `EX7-019.test.ts:86-87` observes the live effective trait after public play                                                                                                                                      |
+| C4 inherited top-source trash        | `EX7-019.ts:67-85` uses inherited `WhenAttacking`, opponent Digimon with sources, count 1, `fromTop`, and `OncePerTurn`  | `EX7-019.test.ts:193-253` publicly attacks, trashes exactly the top source, refuses same-turn reuse, and resets on the next real turn                                                                            |
+| Exclusive executable registration    | `EX7-019.ts:87-91` reports full coverage, zero residual, and only `registerIrCard("EX7-019", compiled)`                  | No duplicate legacy `registerCard` registration exists                                                                                                                                                           |
 
 #### Evolution, stack, and timing
 
@@ -2117,13 +2117,13 @@ or other git write was performed.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | All catalog fields, four printed clauses, applicable rules, and the empty direct KB result are recorded. |
-| Direct IR | 2 / 2 | Blocker, exact conditional unsuspend predicate/target, Rule trait grant, inherited top-source/frequency, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Public play positive/negative, Blocker interception, legal/illegal evolution, inherited targeting, same-turn refusal, and next-turn reset pass. |
-| Peer / stack | 2 / 2 | Evolution cost/draw/source stack and inert mixed target stack proof pass against adjacent Ice-Snow/Blocker patterns. |
-| Delivery gates | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit. |
+| Column          | Score | Reason                                                                                                                                                                   |
+| --------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules | 2 / 2 | All catalog fields, four printed clauses, applicable rules, and the empty direct KB result are recorded.                                                                 |
+| Direct IR       | 2 / 2 | Blocker, exact conditional unsuspend predicate/target, Rule trait grant, inherited top-source/frequency, full coverage, residual, and exclusive registration are traced. |
+| Behaviour       | 2 / 2 | Public play positive/negative, Blocker interception, legal/illegal evolution, inherited targeting, same-turn refusal, and next-turn reset pass.                          |
+| Peer / stack    | 2 / 2 | Evolution cost/draw/source stack and inert mixed target stack proof pass against adjacent Ice-Snow/Blocker patterns.                                                     |
+| Delivery gates  | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit.                                                                                                 |
 
 **Total: 8 / 10.**
 
@@ -2167,13 +2167,13 @@ procedure.
 
 #### Implementation mapping
 
-| Contract | IR/test evidence |
-| --- | --- |
+| Contract                                                   | IR/test evidence                                                                                                                                                                   |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Trash the bottom 2 cards from one opposing stacked Digimon | `EX7-020.ts:9-25`; exact IR assertion at `EX7-020.test.ts:40-52`; public bottom-boundary proof at `:179-233` leaves the exact top source and trashes exact bottom/middle instances |
-| Conditional Jamming and Blocker until opponent turn end | `EX7-020.ts:26-73`; exact condition/duration assertions at `EX7-020.test.ts:53-73`; public true/false and expiry proof at `:107-177`; public Blocker declaration at `:158-170` |
-| Rule trait grants self Ice-Snow | `EX7-020.ts:76-92`; exact IR assertion at `EX7-020.test.ts:77-86`; public `hasEffectiveTrait` proof at `:148` |
-| Inherited top-source trash once per turn | `EX7-020.ts:93-112`; exact inherited/frequency assertion at `EX7-020.test.ts:88-103`; public attack proof at `:267-344` |
-| Blue Lv.3 evolution for cost 2 | Catalog/evolution assertion at `EX7-020.test.ts:21-38`; public legal evolution at `:107-151`; no alternate requirement is present |
+| Conditional Jamming and Blocker until opponent turn end    | `EX7-020.ts:26-73`; exact condition/duration assertions at `EX7-020.test.ts:53-73`; public true/false and expiry proof at `:107-177`; public Blocker declaration at `:158-170`     |
+| Rule trait grants self Ice-Snow                            | `EX7-020.ts:76-92`; exact IR assertion at `EX7-020.test.ts:77-86`; public `hasEffectiveTrait` proof at `:148`                                                                      |
+| Inherited top-source trash once per turn                   | `EX7-020.ts:93-112`; exact inherited/frequency assertion at `EX7-020.test.ts:88-103`; public attack proof at `:267-344`                                                            |
+| Blue Lv.3 evolution for cost 2                             | Catalog/evolution assertion at `EX7-020.test.ts:21-38`; public legal evolution at `:107-151`; no alternate requirement is present                                                  |
 
 The module declares `coverage: "full"`, `residual: []`, and registers
 exclusively through `registerIrCard("EX7-020", compiled)` at line 118. No
@@ -2247,13 +2247,13 @@ performed.
 
 #### Rubric
 
-| Area | Score | Basis |
-| --- | ---: | --- |
-| Catalog/rules evidence | 2/2 | Exact catalog fields, direct no-Q&A query, and relevant rules sections recorded |
-| IR trace | 2/2 | Bottom-trash target, conditional keyword grants/duration, Rule trait, inherited frequency, full coverage, and exclusive registration match |
-| Behavioral/Q&A proof | 2/2 | Every printed clause passes through public intents, observable state, and real timing; no Q&A entries apply |
-| Peer/stack proof | 2/2 | Legal cost/draw/stack identity, illegal source, exact bottom/top boundaries, inherited same-turn refusal, and next-turn reset all pass |
-| Delivery gates | 0/2 | Coordinator-owned per the worker brief; focused/static commands themselves are green |
+| Area                   | Score | Basis                                                                                                                                      |
+| ---------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog/rules evidence |   2/2 | Exact catalog fields, direct no-Q&A query, and relevant rules sections recorded                                                            |
+| IR trace               |   2/2 | Bottom-trash target, conditional keyword grants/duration, Rule trait, inherited frequency, full coverage, and exclusive registration match |
+| Behavioral/Q&A proof   |   2/2 | Every printed clause passes through public intents, observable state, and real timing; no Q&A entries apply                                |
+| Peer/stack proof       |   2/2 | Legal cost/draw/stack identity, illegal source, exact bottom/top boundaries, inherited same-turn refusal, and next-turn reset all pass     |
+| Delivery gates         |   0/2 | Coordinator-owned per the worker brief; focused/static commands themselves are green                                                       |
 
 ### EX7-021 — CrysPaledramon
 
@@ -2310,14 +2310,14 @@ Applicable local rules evidence:
 
 #### Clause → IR → behavioral proof
 
-| Contract | Direct implementation | Observable proof |
-| --- | --- | --- |
-| Catalog identity and evolution route | `EX7-021.test.ts:15-32` pins catalog identity, all fields, Blue Lv.4 cost 3 route, and exact printed text | The committed catalog and absence of Security text are asserted directly |
-| C1 Ice Clad | `EX7-021.ts:15-23` publishes `IceClad` | `EX7-021.test.ts:161-197` publicly proves source-count combat against a 10000-DP Digimon despite a 1000-DP attacker, then proves the Security exception by deleting that same low-DP attacker against a 3000-DP Security Digimon |
-| C2/C3 When Digivolving | `EX7-021.ts:25-61` pools exactly two opponent source cards with `acrossDigimon`, leaves `fromTop: false`, and self-unsuspends only under `opponentHasNone` | `EX7-021.test.ts:73-104` trashes one source from each of two opposing stacks and unsuspends; `:106-130` leaves one source and keeps CrysPaledramon suspended; `:132-152` proves the empty-opponent Q6041 case |
-| C4 Rule Ice-Snow | `EX7-021.ts:63-78` grants the self-scoped `Ice-Snow` trait | `EX7-021.test.ts:154-159` observes the live effective trait |
-| C5 inherited conditional keywords | `EX7-021.ts:80-147` uses an inherited Your Turn pair of self-scoped Auras, requiring Ice-Snow and no opposing source-bearing Digimon, granting Piercing and Security Attack +1 | `EX7-021.test.ts:253-285` observes both keywords and proves two Security checks when active, while a stacked opponent removes both grants |
-| Exclusive executable registration | `EX7-021.ts:148-153` reports `coverage: "full"`, `residual: []`, and calls only `registerIrCard("EX7-021", compiled)` | No duplicate legacy `registerCard` registration exists in the owned module |
+| Contract                             | Direct implementation                                                                                                                                                          | Observable proof                                                                                                                                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog identity and evolution route | `EX7-021.test.ts:15-32` pins catalog identity, all fields, Blue Lv.4 cost 3 route, and exact printed text                                                                      | The committed catalog and absence of Security text are asserted directly                                                                                                                                                         |
+| C1 Ice Clad                          | `EX7-021.ts:15-23` publishes `IceClad`                                                                                                                                         | `EX7-021.test.ts:161-197` publicly proves source-count combat against a 10000-DP Digimon despite a 1000-DP attacker, then proves the Security exception by deleting that same low-DP attacker against a 3000-DP Security Digimon |
+| C2/C3 When Digivolving               | `EX7-021.ts:25-61` pools exactly two opponent source cards with `acrossDigimon`, leaves `fromTop: false`, and self-unsuspends only under `opponentHasNone`                     | `EX7-021.test.ts:73-104` trashes one source from each of two opposing stacks and unsuspends; `:106-130` leaves one source and keeps CrysPaledramon suspended; `:132-152` proves the empty-opponent Q6041 case                    |
+| C4 Rule Ice-Snow                     | `EX7-021.ts:63-78` grants the self-scoped `Ice-Snow` trait                                                                                                                     | `EX7-021.test.ts:154-159` observes the live effective trait                                                                                                                                                                      |
+| C5 inherited conditional keywords    | `EX7-021.ts:80-147` uses an inherited Your Turn pair of self-scoped Auras, requiring Ice-Snow and no opposing source-bearing Digimon, granting Piercing and Security Attack +1 | `EX7-021.test.ts:253-285` observes both keywords and proves two Security checks when active, while a stacked opponent removes both grants                                                                                        |
+| Exclusive executable registration    | `EX7-021.ts:148-153` reports `coverage: "full"`, `residual: []`, and calls only `registerIrCard("EX7-021", compiled)`                                                          | No duplicate legacy `registerCard` registration exists in the owned module                                                                                                                                                       |
 
 #### Evolution, stack, and timing
 
@@ -2380,13 +2380,13 @@ other git write was performed.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | All catalog fields, five printed clauses, both direct KB Q&As, and applicable Ice Clad/evolution/stack rules are recorded. |
-| Direct IR | 2 / 2 | Ice Clad, exact two-card cross-stack trash, conditional self-unsuspend, Rule trait, inherited keyword predicates, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Every printed clause has public behavioral proof, including positive/negative source states, empty-opponent Q6041, Ice Clad's Security exception, and Q3842 timing. |
-| Peer / stack | 2 / 2 | Legal cost/draw/source-stack preservation, illegal source rejection, realistic inherited stack behavior, and source-count battle evidence pass. |
-| Delivery gates | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit. |
+| Column          | Score | Reason                                                                                                                                                                            |
+| --------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | All catalog fields, five printed clauses, both direct KB Q&As, and applicable Ice Clad/evolution/stack rules are recorded.                                                        |
+| Direct IR       | 2 / 2 | Ice Clad, exact two-card cross-stack trash, conditional self-unsuspend, Rule trait, inherited keyword predicates, full coverage, residual, and exclusive registration are traced. |
+| Behaviour       | 2 / 2 | Every printed clause has public behavioral proof, including positive/negative source states, empty-opponent Q6041, Ice Clad's Security exception, and Q3842 timing.               |
+| Peer / stack    | 2 / 2 | Legal cost/draw/source-stack preservation, illegal source rejection, realistic inherited stack behavior, and source-count battle evidence pass.                                   |
+| Delivery gates  | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit.                                                                                                          |
 
 **Total: 8 / 10.**
 
@@ -2432,12 +2432,12 @@ processing), and §6-2 (real unsuspend/turn-start timing).
 
 #### Implementation mapping
 
-| Contract | IR/test evidence |
-| --- | --- |
-| On Play: one opposing Digimon or Tamer cannot suspend until end of their turn | EX7-022.ts:9-24; exact IR assertion at EX7-022.test.ts:36-46; public play and exact Tamer selection at :70-135 |
-| Your Turn: all own NSp Digimon cannot have attack targets switched | EX7-022.ts:26-48; exact IR assertion at EX7-022.test.ts:48-64; public NSp/non-NSp boundary and attack proof at :112-125 and :131-133 |
-| Alternate Lv.4 [NSp] evolution for cost 3 | EX7-022.ts:52-59; catalog/requirement assertion at EX7-022.test.ts:20-35; legal public evolution at :137-174 |
-| Exclusive executable registration | registerIrCard("EX7-022", compiled) at EX7-022.ts:62; no second registerCard registration |
+| Contract                                                                      | IR/test evidence                                                                                                                     |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| On Play: one opposing Digimon or Tamer cannot suspend until end of their turn | EX7-022.ts:9-24; exact IR assertion at EX7-022.test.ts:36-46; public play and exact Tamer selection at :70-135                       |
+| Your Turn: all own NSp Digimon cannot have attack targets switched            | EX7-022.ts:26-48; exact IR assertion at EX7-022.test.ts:48-64; public NSp/non-NSp boundary and attack proof at :112-125 and :131-133 |
+| Alternate Lv.4 [NSp] evolution for cost 3                                     | EX7-022.ts:52-59; catalog/requirement assertion at EX7-022.test.ts:20-35; legal public evolution at :137-174                         |
+| Exclusive executable registration                                             | registerIrCard("EX7-022", compiled) at EX7-022.ts:62; no second registerCard registration                                            |
 
 The module declares coverage: full and residual: [].
 
@@ -2506,13 +2506,13 @@ No git write was performed.
 
 #### Rubric
 
-| Area | Score | Basis |
-| --- | ---: | --- |
-| Catalog/rules evidence | 2/2 | Exact catalog fields, Q3843, and relevant rules sections recorded |
-| IR trace | 2/2 | Both restrictions, exact targets/durations, alternate requirement, full coverage, and exclusive registration match |
-| Behavioral/Q&A proof | 2/2 | Q3843 and every printed clause pass through public intents, observable state, and real timing |
-| Peer/stack proof | 2/2 | Legal cost/draw/stack identity, illegal source, NSp/non-NSp boundaries, Tamer target, and phase-boundary expiry pass |
-| Delivery gates | 0/2 | Coordinator-owned per the worker brief; scoped gates themselves are green |
+| Area                   | Score | Basis                                                                                                                |
+| ---------------------- | ----: | -------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules evidence |   2/2 | Exact catalog fields, Q3843, and relevant rules sections recorded                                                    |
+| IR trace               |   2/2 | Both restrictions, exact targets/durations, alternate requirement, full coverage, and exclusive registration match   |
+| Behavioral/Q&A proof   |   2/2 | Q3843 and every printed clause pass through public intents, observable state, and real timing                        |
+| Peer/stack proof       |   2/2 | Legal cost/draw/stack identity, illegal source, NSp/non-NSp boundaries, Tamer target, and phase-boundary expiry pass |
+| Delivery gates         |   0/2 | Coordinator-owned per the worker brief; scoped gates themselves are green                                            |
 
 ### EX7-023 — Hexeblaumon
 
@@ -2536,14 +2536,14 @@ Attack +1. `apps/api/src/cards/EX7/EX7-023.ts` is compiled IR with `coverage: "f
 
 Printed clauses mapped to IR and public proof:
 
-| Clause | Implementation and observable proof | Result |
-| --- | --- | --- |
-| Security Attack +1 | Static `SecurityAttack: 1`; public attack checks two security cards | Green |
-| Ice Clad | Static `IceClad`; Digimon battles use source count while Security battles use DP | Green |
-| When Digivolving: trash any four opponent sources | `TrashDigivolution`, across opponent Digimon, exact four source instances leave stacks | Green |
-| Then, if no opponent Digimon has sources, bottom one opponent Tamer | `opponentHasNone` condition and `deckBottom` return are publicly observed | Green |
-| Opponent's Turn: opponent Digimon with as many or fewer sources cannot suspend | Source-relative continuous restriction; Q3844 now reopens after target gains a source | Green |
-| Rule: Ice-Snow type | Self-scoped Rule `GrantStatic` trait | Green |
+| Clause                                                                         | Implementation and observable proof                                                    | Result |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- | ------ |
+| Security Attack +1                                                             | Static `SecurityAttack: 1`; public attack checks two security cards                    | Green  |
+| Ice Clad                                                                       | Static `IceClad`; Digimon battles use source count while Security battles use DP       | Green  |
+| When Digivolving: trash any four opponent sources                              | `TrashDigivolution`, across opponent Digimon, exact four source instances leave stacks | Green  |
+| Then, if no opponent Digimon has sources, bottom one opponent Tamer            | `opponentHasNone` condition and `deckBottom` return are publicly observed              | Green  |
+| Opponent's Turn: opponent Digimon with as many or fewer sources cannot suspend | Source-relative continuous restriction; Q3844 now reopens after target gains a source  | Green  |
+| Rule: Ice-Snow type                                                            | Self-scoped Rule `GrantStatic` trait                                                   | Green  |
 
 Applicable rules evidence: Comprehensive Rules §16-35-1 through §16-35-4-3 for Ice Clad,
 §8-1-3-1 through §8-1-3-3 for evolution payment/stack/draw, §4-3-1 and §4-3-3 for
@@ -2599,13 +2599,13 @@ push, reset, or other git write was performed.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | Catalog identity, six printed clauses, Q3844, and applicable rules are recorded. |
-| Direct IR | 2 / 2 | Security Attack, Ice Clad, cross-stack trash, conditional Tamer return, source comparison, Rule trait, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | All clauses, source-count boundaries, Security exception, evolution behavior, and Q3844 dynamic reopening pass publicly. |
-| Peer / stack | 2 / 2 | Legal cost/draw/stack, exact source transitions, illegal source rejection, and mixed-stack boundary are proven. |
-| Delivery gates | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit. |
+| Column          | Score | Reason                                                                                                                                                                 |
+| --------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | Catalog identity, six printed clauses, Q3844, and applicable rules are recorded.                                                                                       |
+| Direct IR       | 2 / 2 | Security Attack, Ice Clad, cross-stack trash, conditional Tamer return, source comparison, Rule trait, full coverage, residual, and exclusive registration are traced. |
+| Behaviour       | 2 / 2 | All clauses, source-count boundaries, Security exception, evolution behavior, and Q3844 dynamic reopening pass publicly.                                               |
+| Peer / stack    | 2 / 2 | Legal cost/draw/stack, exact source transitions, illegal source rejection, and mixed-stack boundary are proven.                                                        |
+| Delivery gates  | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit.                                                                                               |
 
 **Total: 8 / 10.**
 
@@ -2652,14 +2652,14 @@ No once-per-turn clause is printed on EX7-024, so no once-per-turn reset proof i
 
 #### Rubric
 
-| Category | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog fields, printed clauses, direct Q3845/Q4882, and breeding/security/digivolution rule sources. |
-| IR trace | 2/2 | Complete two-clause IR, explicit Puppet and battle-area gates, full coverage, empty residual, exclusive registerIrCard. |
-| Behavioral proof | 2/2 | Seven focused tests cover both clauses, both Q&A paths, real timing, exact costs, draws, zones, and negative behavior. |
-| Peer/stack proof | 2/2 | BT22-036 Hand/Main peer boundary, non-Puppet peer, exact top/under identity, breeding stack, and Security Digimon battle. |
-| Delivery gates | 0/2 | Reserved for coordinator set-level gates. |
-| Total | 8/10 | Maximum lane score. |
+| Category         | Score | Evidence                                                                                                                  |
+| ---------------- | ----: | ------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Exact catalog fields, printed clauses, direct Q3845/Q4882, and breeding/security/digivolution rule sources.               |
+| IR trace         |   2/2 | Complete two-clause IR, explicit Puppet and battle-area gates, full coverage, empty residual, exclusive registerIrCard.   |
+| Behavioral proof |   2/2 | Seven focused tests cover both clauses, both Q&A paths, real timing, exact costs, draws, zones, and negative behavior.    |
+| Peer/stack proof |   2/2 | BT22-036 Hand/Main peer boundary, non-Puppet peer, exact top/under identity, breeding stack, and Security Digimon battle. |
+| Delivery gates   |   0/2 | Reserved for coordinator set-level gates.                                                                                 |
+| Total            |  8/10 | Maximum lane score.                                                                                                       |
 
 #### Commands and results
 
@@ -2712,12 +2712,12 @@ Applicable local rules evidence:
 
 #### Clause → IR → behavioral proof
 
-| Contract | Direct implementation | Observable proof |
-| --- | --- | --- |
-| Catalog identity and evolution route | `EX7-025.test.ts:15-33` pins all catalog fields, exact main/inherited text, and Yellow Lv.3 cost-2 route | The committed catalog is asserted directly; no extra Security or once-per-turn behavior is present |
-| C1 conditional optional Arisa play | `EX7-025.ts:11-41` uses `PlayWithoutCost`, exact `nameExact` Arisa target from hand, count 1, and a pre-play Tamer count `lte 1` condition with `optional: true` | `EX7-025.test.ts:64-108` evolves through the public path at exactly one existing Tamer and plays Arisa for free; `:110-141` declines the optional play; `:143-208` proves two Tamers block it and a non-Arisa Tamer is not substituted |
-| C2 inherited Security DP modifier | `EX7-025.ts:43-53` uses inherited `YourTurn`, opponent controller, `ModifySecurityDP -3000`, permanent duration | `EX7-025.test.ts:210-237` observes -3000 on the owner's turn, publicly wins a Security battle against a 10000-DP card with a 9000-DP host, and observes no modifier during the opponent's turn |
-| Exclusive executable registration | `EX7-025.ts:55-59` reports `coverage: "full"`, `residual: []`, and calls only `registerIrCard("EX7-025", compiled)` | No duplicate legacy `registerCard` registration exists in the owned module |
+| Contract                             | Direct implementation                                                                                                                                            | Observable proof                                                                                                                                                                                                                       |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog identity and evolution route | `EX7-025.test.ts:15-33` pins all catalog fields, exact main/inherited text, and Yellow Lv.3 cost-2 route                                                         | The committed catalog is asserted directly; no extra Security or once-per-turn behavior is present                                                                                                                                     |
+| C1 conditional optional Arisa play   | `EX7-025.ts:11-41` uses `PlayWithoutCost`, exact `nameExact` Arisa target from hand, count 1, and a pre-play Tamer count `lte 1` condition with `optional: true` | `EX7-025.test.ts:64-108` evolves through the public path at exactly one existing Tamer and plays Arisa for free; `:110-141` declines the optional play; `:143-208` proves two Tamers block it and a non-Arisa Tamer is not substituted |
+| C2 inherited Security DP modifier    | `EX7-025.ts:43-53` uses inherited `YourTurn`, opponent controller, `ModifySecurityDP -3000`, permanent duration                                                  | `EX7-025.test.ts:210-237` observes -3000 on the owner's turn, publicly wins a Security battle against a 10000-DP card with a 9000-DP host, and observes no modifier during the opponent's turn                                         |
+| Exclusive executable registration    | `EX7-025.ts:55-59` reports `coverage: "full"`, `residual: []`, and calls only `registerIrCard("EX7-025", compiled)`                                              | No duplicate legacy `registerCard` registration exists in the owned module                                                                                                                                                             |
 
 #### Evolution, stack, timing, and peer boundaries
 
@@ -2781,13 +2781,13 @@ ledger, RUN, or other git write was performed.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | All catalog fields, both printed clauses, empty KB result, and applicable evolution/stack/Security rules are recorded. |
-| Direct IR | 2 / 2 | Exact optional target, hand source, Tamer count boundary, free cost, inherited timing/controller/DP modifier, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Public positive, optional refusal, count and name negatives, inherited owner-turn timing, and actual Security battle behavior pass. |
-| Peer / stack | 2 / 2 | Legal cost/draw/top-under identity, illegal source rejection, realistic Yellow peer stacks, and Security boundary evidence pass. |
-| Delivery gates | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit. |
+| Column          | Score | Reason                                                                                                                                                                        |
+| --------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | All catalog fields, both printed clauses, empty KB result, and applicable evolution/stack/Security rules are recorded.                                                        |
+| Direct IR       | 2 / 2 | Exact optional target, hand source, Tamer count boundary, free cost, inherited timing/controller/DP modifier, full coverage, residual, and exclusive registration are traced. |
+| Behaviour       | 2 / 2 | Public positive, optional refusal, count and name negatives, inherited owner-turn timing, and actual Security battle behavior pass.                                           |
+| Peer / stack    | 2 / 2 | Legal cost/draw/top-under identity, illegal source rejection, realistic Yellow peer stacks, and Security boundary evidence pass.                                              |
+| Delivery gates  | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit.                                                                                                      |
 
 **Total: 8 / 10.**
 
@@ -2832,14 +2832,14 @@ Applicable local rules evidence:
 
 #### Clause → IR → behavioral proof
 
-| Contract | Direct implementation | Observable proof |
-| --- | --- | --- |
-| Catalog identity and evolution routes | `EX7-026.test.ts:15-33` pins all catalog fields, exact text, and the Yellow Lv.3 cost-2 route; `EX7-026.ts:58-65` carries the alternate NSp Lv.3 cost-2 route | `EX7-026.test.ts:89-123` exercises both the standard Yellow route and alternate NSp route through public digivolution |
-| C1 alternate NSp evolution | `EX7-026.ts:58-65` uses level 3, `traits: ["NSp"]`, cost 2, `isAlternate: true` | `EX7-026.test.ts:89-123` publicly evolves from NSp Blue Lv.3 EX7-015 with `useAlternateCost: true`, paying exactly 2 and preserving the source stack |
-| C2 On Play DP reduction | `EX7-026.ts:11-26` targets exactly one opponent Digimon for -3000 with `forTheTurn` duration | `EX7-026.test.ts:70-87` publicly plays Starmon, observes 4000 → 1000 DP, pays play cost 4, and observes restoration at the next real turn |
-| C3 When Digivolving DP reduction | `EX7-026.ts:27-43` repeats the same exact target, amount, and duration under `WhenDigivolving` | `EX7-026.test.ts:89-123` publicly resolves both legal evolution routes and observes the opponent target at 1000 DP |
-| C4 inherited Barrier | `EX7-026.ts:45-54` publishes inherited static `Barrier` | `EX7-026.test.ts:151-184` observes Barrier on a realistic host stack and accepts the public `respondBarrier` window, paying one Security card to preserve the host |
-| Exclusive executable registration | `EX7-026.ts:55-68` reports `coverage: "full"`, `residual: []`, and calls only `registerIrCard("EX7-026", compiled)` | No duplicate legacy `registerCard` registration exists in the owned module |
+| Contract                              | Direct implementation                                                                                                                                         | Observable proof                                                                                                                                                   |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog identity and evolution routes | `EX7-026.test.ts:15-33` pins all catalog fields, exact text, and the Yellow Lv.3 cost-2 route; `EX7-026.ts:58-65` carries the alternate NSp Lv.3 cost-2 route | `EX7-026.test.ts:89-123` exercises both the standard Yellow route and alternate NSp route through public digivolution                                              |
+| C1 alternate NSp evolution            | `EX7-026.ts:58-65` uses level 3, `traits: ["NSp"]`, cost 2, `isAlternate: true`                                                                               | `EX7-026.test.ts:89-123` publicly evolves from NSp Blue Lv.3 EX7-015 with `useAlternateCost: true`, paying exactly 2 and preserving the source stack               |
+| C2 On Play DP reduction               | `EX7-026.ts:11-26` targets exactly one opponent Digimon for -3000 with `forTheTurn` duration                                                                  | `EX7-026.test.ts:70-87` publicly plays Starmon, observes 4000 → 1000 DP, pays play cost 4, and observes restoration at the next real turn                          |
+| C3 When Digivolving DP reduction      | `EX7-026.ts:27-43` repeats the same exact target, amount, and duration under `WhenDigivolving`                                                                | `EX7-026.test.ts:89-123` publicly resolves both legal evolution routes and observes the opponent target at 1000 DP                                                 |
+| C4 inherited Barrier                  | `EX7-026.ts:45-54` publishes inherited static `Barrier`                                                                                                       | `EX7-026.test.ts:151-184` observes Barrier on a realistic host stack and accepts the public `respondBarrier` window, paying one Security card to preserve the host |
+| Exclusive executable registration     | `EX7-026.ts:55-68` reports `coverage: "full"`, `residual: []`, and calls only `registerIrCard("EX7-026", compiled)`                                           | No duplicate legacy `registerCard` registration exists in the owned module                                                                                         |
 
 #### Evolution, stack, timing, and boundaries
 
@@ -2902,13 +2902,13 @@ ledger, RUN, or other git write was performed.
 
 #### Score
 
-| Column | Score | Reason |
-| --- | ---: | --- |
-| Catalog / rules | 2 / 2 | All catalog fields, four printed clauses, empty KB result, and applicable evolution/stack/Barrier rules are recorded. |
-| Direct IR | 2 / 2 | Both DP triggers, exact target/amount/duration, alternate evolution requirement, inherited Barrier, full coverage, residual, and exclusive registration are traced. |
-| Behaviour | 2 / 2 | Public On Play and When Digivolving effects, duration restoration, legal/illegal routes, and Barrier combat all pass. |
-| Peer / stack | 2 / 2 | Standard and alternate legal routes, exact cost/draw/top-under identity, nonmatching source, and realistic inherited host stack pass. |
-| Delivery gates | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit. |
+| Column          | Score | Reason                                                                                                                                                              |
+| --------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules | 2 / 2 | All catalog fields, four printed clauses, empty KB result, and applicable evolution/stack/Barrier rules are recorded.                                               |
+| Direct IR       | 2 / 2 | Both DP triggers, exact target/amount/duration, alternate evolution requirement, inherited Barrier, full coverage, residual, and exclusive registration are traced. |
+| Behaviour       | 2 / 2 | Public On Play and When Digivolving effects, duration restoration, legal/illegal routes, and Barrier combat all pass.                                               |
+| Peer / stack    | 2 / 2 | Standard and alternate legal routes, exact cost/draw/top-under identity, nonmatching source, and realistic inherited host stack pass.                               |
+| Delivery gates  | 0 / 2 | Worker lanes do not receive coordinator-owned set-level delivery credit.                                                                                            |
 
 **Total: 8 / 10.**
 
@@ -2920,13 +2920,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. The card remains compiled IR registered exclusively through `registerIrCard`; all seven public tests pass.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Catalog identity, printed effects and the 2024-09-13 mandatory-Overclock erratum are asserted. |
-| Compiled IR | 2/2 | Overclock, optional When Digivolving Puppet play, inherited leave replacement, cause filter, cost, and `OncePerTurn` frequency are asserted with full coverage and empty residual. |
-| Observable behavior | 2/2 | Public evolution, optional acceptance/refusal, mandatory end-turn Overclock, first-use prevention, same-turn refusal, and next-real-turn reset pass. |
-| Peer/stack proof | 2/2 | Tests prove exact evolution payment/draw/top-under identity, legal Puppet selection, illegal source rejection, and realistic inherited host/fodder stacks. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                           |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Catalog identity, printed effects and the 2024-09-13 mandatory-Overclock erratum are asserted.                                                                                     |
+| Compiled IR         |   2/2 | Overclock, optional When Digivolving Puppet play, inherited leave replacement, cause filter, cost, and `OncePerTurn` frequency are asserted with full coverage and empty residual. |
+| Observable behavior |   2/2 | Public evolution, optional acceptance/refusal, mandatory end-turn Overclock, first-use prevention, same-turn refusal, and next-real-turn reset pass.                               |
+| Peer/stack proof    |   2/2 | Tests prove exact evolution payment/draw/top-under identity, legal Puppet selection, illegal source rejection, and realistic inherited host/fodder stacks.                         |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                       |
 
 #### Evidence
 
@@ -2955,13 +2955,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eight public tests pass; the former same-turn red did not fund Cerberusmon's second When Attacking cost.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact catalog identity, text, Q3846, and evolution/turn-duration rules are recorded. |
-| Compiled IR | 2/2 | The Yellow-or-NSp On Deletion union filter, cost ceiling, optional free play, inherited DP modifier, duration, frequency, alternate evolution, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public battle deletion, both Q3846 branches, refusal, two funded same-turn attacks, turn expiry, and next-own-turn re-arm pass. |
-| Peer/stack proof | 2/2 | Non-yellow NSp and Yellow peers, exact legal evolution payment/draw/stack, illegal source, and realistic inherited hosts are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                       |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact catalog identity, text, Q3846, and evolution/turn-duration rules are recorded.                                                                                                           |
+| Compiled IR         |   2/2 | The Yellow-or-NSp On Deletion union filter, cost ceiling, optional free play, inherited DP modifier, duration, frequency, alternate evolution, full coverage, and empty residual are asserted. |
+| Observable behavior |   2/2 | Public battle deletion, both Q3846 branches, refusal, two funded same-turn attacks, turn expiry, and next-own-turn re-arm pass.                                                                |
+| Peer/stack proof    |   2/2 | Non-yellow NSp and Yellow peers, exact legal evolution payment/draw/stack, illegal source, and realistic inherited hosts are covered.                                                          |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                   |
 
 #### Evidence
 
@@ -2990,13 +2990,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All nine focused tests pass; the former On Play red auto-passed an actionless Main phase.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, ACE/Overflow metadata, printed/alternate routes, text, and absence of card-specific Q&A/errata are recorded. |
-| Compiled IR | 2/2 | Blast Digivolve, both DP triggers, exact two-target suspension filter, shared evolution/attack OPT, conditional suspend/unsuspend, both alternate routes, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public Blast, On Play/evolution DP reductions and duration, suspend/unsuspend, shared once-per-turn, and Overflow pass. |
-| Peer/stack proof | 2/2 | NSp and non-NSp Leomon routes, exact payments/draws/stacks, wrong-route rejection, two distinct DP targets, and ACE battle removal are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                  |
+| ------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, ACE/Overflow metadata, printed/alternate routes, text, and absence of card-specific Q&A/errata are recorded.                                                                       |
+| Compiled IR         |   2/2 | Blast Digivolve, both DP triggers, exact two-target suspension filter, shared evolution/attack OPT, conditional suspend/unsuspend, both alternate routes, full coverage, and empty residual are asserted. |
+| Observable behavior |   2/2 | Public Blast, On Play/evolution DP reductions and duration, suspend/unsuspend, shared once-per-turn, and Overflow pass.                                                                                   |
+| Peer/stack proof    |   2/2 | NSp and non-NSp Leomon routes, exact payments/draws/stacks, wrong-route rejection, two distinct DP targets, and ACE battle removal are covered.                                                           |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                              |
 
 #### Evidence
 
@@ -3026,13 +3026,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass, including Q3847's Familiar/When Attacking combination.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, text, errata-mandated Overclock attack, Q3847, and Familiar Token definition are recorded. |
-| Compiled IR | 2/2 | Exact mandatory Overclock cost/attack, token creation at both timings, attack DP modifier, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public Main/evolution token creation/refusal, attack modifier, mandatory Overclock, and Q3847 pass. |
-| Peer/stack proof | 2/2 | Exact standard evolution payment/draw/stack, wrong-color rejection, synthetic Familiar peer, security target, and opposing DP target are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                          |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, text, errata-mandated Overclock attack, Q3847, and Familiar Token definition are recorded.                                 |
+| Compiled IR         |   2/2 | Exact mandatory Overclock cost/attack, token creation at both timings, attack DP modifier, full coverage, and empty residual are asserted.        |
+| Observable behavior |   2/2 | Public Main/evolution token creation/refusal, attack modifier, mandatory Overclock, and Q3847 pass.                                               |
+| Peer/stack proof    |   2/2 | Exact standard evolution payment/draw/stack, wrong-color rejection, synthetic Familiar peer, security target, and opposing DP target are covered. |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                      |
 
 #### Evidence
 
@@ -3062,13 +3062,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. Six focused tests and all nine EX11-032 peer tests pass.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, text, Q3848, and Q5838 are recorded and reconciled. |
-| Compiled IR | 2/2 | Exact battle-area source gate, Bird/Avian trait-contains filter, cost reduction, self-scoped inherited battle-deletion watcher, all-turn timing, once-per-turn frequency, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public breeding/battle-area evolutions, qualifying/nonqualifying targets, host-owned battle deletion, wrong-host exclusion, and losing-battle boundary are green; the identical inherited lifecycle also has real-turn proof on EX7-032. |
-| Peer/stack proof | 2/2 | Exact payments, draws, top/under identity, EX7-032 Bird peer, BT1-069 non-Bird peer, and EX11-032's public Q5838 hand-Main route are green. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                                                 |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, text, Q3848, and Q5838 are recorded and reconciled.                                                                                                                                                               |
+| Compiled IR         |   2/2 | Exact battle-area source gate, Bird/Avian trait-contains filter, cost reduction, self-scoped inherited battle-deletion watcher, all-turn timing, once-per-turn frequency, full coverage, and empty residual are asserted.                |
+| Observable behavior |   2/2 | Public breeding/battle-area evolutions, qualifying/nonqualifying targets, host-owned battle deletion, wrong-host exclusion, and losing-battle boundary are green; the identical inherited lifecycle also has real-turn proof on EX7-032. |
+| Peer/stack proof    |   2/2 | Exact payments, draws, top/under identity, EX7-032 Bird peer, BT1-069 non-Bird peer, and EX11-032's public Q5838 hand-Main route are green.                                                                                              |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                                             |
 
 #### Evidence
 
@@ -3097,13 +3097,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public evolution, selection, combat, and real-turn flows.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, printed evolution route, effect text, inherited text, and absence of card-specific Q&A/errata are recorded. |
-| Compiled IR | 2/2 | Exact Shoto name filter, one-or-fewer-Tamers condition, optional free play, self-scoped battle-deletion watcher, all-turn timing, once-per-turn frequency, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public evolution/free play/refusal, zero/one/two-Tamer boundaries, winning/losing combat, unrelated-host exclusion, same-turn refusal, and next-own-turn re-arm are green. |
-| Peer/stack proof | 2/2 | Exact 2-memory payment, bonus-draw identity, top/under identity, invalid-color rejection, and realistic inherited host are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                   |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, printed evolution route, effect text, inherited text, and absence of card-specific Q&A/errata are recorded.                                                                         |
+| Compiled IR         |   2/2 | Exact Shoto name filter, one-or-fewer-Tamers condition, optional free play, self-scoped battle-deletion watcher, all-turn timing, once-per-turn frequency, full coverage, and empty residual are asserted. |
+| Observable behavior |   2/2 | Public evolution/free play/refusal, zero/one/two-Tamer boundaries, winning/losing combat, unrelated-host exclusion, same-turn refusal, and next-own-turn re-arm are green.                                 |
+| Peer/stack proof    |   2/2 | Exact 2-memory payment, bonus-draw identity, top/under identity, invalid-color rejection, and realistic inherited host are covered.                                                                        |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                               |
 
 #### Evidence
 
@@ -3132,13 +3132,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All five focused tests pass with public evolution and combat evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, printed/alternate evolution, rule trait, inherited keyword, and absence of card-specific Q&A/errata are recorded. |
-| Compiled IR | 2/2 | Exact self-scoped Dinosaur grant, inherited Piercing keyword, NSp alternate route, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | The effective rule trait and inherited Piercing are observed on live stacks, and Piercing performs a real security check after battle deletion. |
-| Peer/stack proof | 2/2 | Non-green NSp evolution pays exactly 1 with exact draw/top/under identity; a non-green non-NSp source is rejected without mutation. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                        |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, printed/alternate evolution, rule trait, inherited keyword, and absence of card-specific Q&A/errata are recorded.        |
+| Compiled IR         |   2/2 | Exact self-scoped Dinosaur grant, inherited Piercing keyword, NSp alternate route, full coverage, and empty residual are asserted.              |
+| Observable behavior |   2/2 | The effective rule trait and inherited Piercing are observed on live stacks, and Piercing performs a real security check after battle deletion. |
+| Peer/stack proof    |   2/2 | Non-green NSp evolution pays exactly 1 with exact draw/top/under identity; a non-green non-NSp source is rejected without mutation.             |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                    |
 
 #### Evidence
 
@@ -3166,13 +3166,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All six focused tests pass with public evolution, opponent-effect, attack, and end-of-turn flows.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, Vortex reminder, effect text, inherited text, and absence of card-specific Q&A/errata are recorded. |
-| Compiled IR | 2/2 | Exact Vortex keyword, any-Digimon suspension, conditional self-protection source/owner/duration gates, inherited target condition, once-per-turn frequency, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public Vortex, own/opponent suspension branches, live opposing-Digimon-effect immunity, and inherited first/second-attack boundaries are green. |
-| Peer/stack proof | 2/2 | Exact standard evolution payment/draw/top/under identity, wrong-color rejection, public BT1-070 adversarial peer, and realistic inherited host are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                    |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, Vortex reminder, effect text, inherited text, and absence of card-specific Q&A/errata are recorded.                                                                                  |
+| Compiled IR         |   2/2 | Exact Vortex keyword, any-Digimon suspension, conditional self-protection source/owner/duration gates, inherited target condition, once-per-turn frequency, full coverage, and empty residual are asserted. |
+| Observable behavior |   2/2 | Public Vortex, own/opponent suspension branches, live opposing-Digimon-effect immunity, and inherited first/second-attack boundaries are green.                                                             |
+| Peer/stack proof    |   2/2 | Exact standard evolution payment/draw/top/under identity, wrong-color rejection, public BT1-070 adversarial peer, and realistic inherited host are covered.                                                 |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                |
 
 #### Evidence
 
@@ -3202,13 +3202,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public play, evolution, combat, and real-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, text, Q3849, rule trait, alternate route, and absence of errata/banlist entry are recorded. |
-| Compiled IR | 2/2 | Exact suspend/same-target lock at both timings, duration, Dinosaur grant, inherited self-scoped security trash, once-per-turn frequency, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public play/evolution, Q3849, two-turn lock expiry, live trait, exact security trash, same-turn suppression, and next-own-turn re-arm are green. |
-| Peer/stack proof | 2/2 | Non-green NSp evolution pays exactly 3 with exact draw/stack; wrong-trait rejection, distinct battle targets, and exact Security identities are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                 |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, text, Q3849, rule trait, alternate route, and absence of errata/banlist entry are recorded.                                                                       |
+| Compiled IR         |   2/2 | Exact suspend/same-target lock at both timings, duration, Dinosaur grant, inherited self-scoped security trash, once-per-turn frequency, full coverage, and empty residual are asserted. |
+| Observable behavior |   2/2 | Public play/evolution, Q3849, two-turn lock expiry, live trait, exact security trash, same-turn suppression, and next-own-turn re-arm are green.                                         |
+| Peer/stack proof    |   2/2 | Non-green NSp evolution pays exactly 3 with exact draw/stack; wrong-trait rejection, distinct battle targets, and exact Security identities are covered.                                 |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                             |
 
 #### Evidence
 
@@ -3238,13 +3238,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eight focused tests pass with public evolution, attack, Vortex, and Security evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, text, keywords, rule trait, and absence of card-specific Q&A/errata are recorded. |
-| Compiled IR | 2/2 | Security Attack +1, Vortex, both suspend/conditional-return timings, exact filters/destination, Bird Dragon grant, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public evolution and attack branches, causal own/opponent/already-suspended boundaries, Vortex, two Security checks, and live trait are green. |
-| Peer/stack proof | 2/2 | Exact evolution payment/draw/top/under identity, exact deck-bottom order/identity, wrong-color rejection, and distinct own/opponent peers are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                           |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and rules   |   2/2 | Exact identity, stats, text, keywords, rule trait, and absence of card-specific Q&A/errata are recorded.                                                           |
+| Compiled IR         |   2/2 | Security Attack +1, Vortex, both suspend/conditional-return timings, exact filters/destination, Bird Dragon grant, full coverage, and empty residual are asserted. |
+| Observable behavior |   2/2 | Public evolution and attack branches, causal own/opponent/already-suspended boundaries, Vortex, two Security checks, and live trait are green.                     |
+| Peer/stack proof    |   2/2 | Exact evolution payment/draw/top/under identity, exact deck-bottom order/identity, wrong-color rejection, and distinct own/opponent peers are covered.             |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                       |
 
 #### Evidence
 
@@ -3275,13 +3275,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All six focused tests pass with public DNA, ordinary evolution, free-play, and attack evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, text, Q3850, four DNA combinations, and absence of errata/banlist entry are recorded. |
-| Compiled IR | 2/2 | Exact normal/DNA free-play branches, NSp/cost/color filters, scaled DP modifier, shared OPT, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public DNA and normal evolution branches, two/one free plays, color distinction, scaling, and evolution-to-attack shared frequency are green. |
-| Peer/stack proof | 2/2 | Exact DNA/ordinary costs, draws, combined stacks, invalid combinations/routes, and multiple NSp/color/count peers are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                      |
+| ------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, text, Q3850, four DNA combinations, and absence of errata/banlist entry are recorded.                                  |
+| Compiled IR         |   2/2 | Exact normal/DNA free-play branches, NSp/cost/color filters, scaled DP modifier, shared OPT, full coverage, and empty residual are asserted.  |
+| Observable behavior |   2/2 | Public DNA and normal evolution branches, two/one free plays, color distinction, scaling, and evolution-to-attack shared frequency are green. |
+| Peer/stack proof    |   2/2 | Exact DNA/ordinary costs, draws, combined stacks, invalid combinations/routes, and multiple NSp/color/count peers are covered.                |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                  |
 
 #### Evidence
 
@@ -3311,13 +3311,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All five focused tests pass with public evolution, blocking, attack, and real-turn Reboot evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, two printed routes, NSp alternate route, keywords, and absence of Q&A/errata are recorded. |
-| Compiled IR | 2/2 | Exact Blocker and inherited Reboot keywords, alternate route, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public Blocker redirection/combat and inherited Reboot during the opponent's turn are green. |
-| Peer/stack proof | 2/2 | Blue NSp Digi-Egg evolution pays 0 with exact draw/stack; red non-NSp rejection and public level-4 host evolution are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                       |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and rules   |   2/2 | Exact identity, stats, two printed routes, NSp alternate route, keywords, and absence of Q&A/errata are recorded.              |
+| Compiled IR         |   2/2 | Exact Blocker and inherited Reboot keywords, alternate route, full coverage, and empty residual are asserted.                  |
+| Observable behavior |   2/2 | Public Blocker redirection/combat and inherited Reboot during the opponent's turn are green.                                   |
+| Peer/stack proof    |   2/2 | Blue NSp Digi-Egg evolution pays 0 with exact draw/stack; red non-NSp rejection and public level-4 host evolution are covered. |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                   |
 
 #### Evidence
 
@@ -3345,13 +3345,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eight focused tests pass with public Main-start, evolution, and real-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, Black/Red routes, text, rule trait, inherited timing, and absence of Q&A/errata are recorded. |
-| Compiled IR | 2/2 | Exact Rock/Earth cost filter, optional abort, mandatory draw/memory continuation, trait grant, opponent-turn modifier, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Both trait arms, refusal, no-eligible boundary, single-prompt behavior, live trait, and owner/opponent/owner DP transitions are green. |
-| Peer/stack proof | 2/2 | Exact red-route zero payment/draw/stack, blue rejection, Rock/Earth/nonqualifying peers, and realistic inherited host are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                               |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, Black/Red routes, text, rule trait, inherited timing, and absence of Q&A/errata are recorded.                                                   |
+| Compiled IR         |   2/2 | Exact Rock/Earth cost filter, optional abort, mandatory draw/memory continuation, trait grant, opponent-turn modifier, full coverage, and empty residual are asserted. |
+| Observable behavior |   2/2 | Both trait arms, refusal, no-eligible boundary, single-prompt behavior, live trait, and owner/opponent/owner DP transitions are green.                                 |
+| Peer/stack proof    |   2/2 | Exact red-route zero payment/draw/stack, blue rejection, Rock/Earth/nonqualifying peers, and realistic inherited host are covered.                                     |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                           |
 
 #### Evidence
 
@@ -3380,13 +3380,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public play, evolution, and real-turn inherited-keyword evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, printed evolution route, alternate text route, On Play cost, and inherited keyword are recorded; there is no card-specific Q&A, errata, or banlist entry. |
-| Compiled IR | 2/2 | Exact trait cost filter, optional abort, Draw 2, inherited Reboot, full coverage, empty residual, and text-based evolution requirement are asserted. |
-| Observable behavior | 2/2 | Public play proves exact payment/draw, decline, no-eligible/no-prompt, and inherited Reboot through a real attack and opponent turn. |
-| Peer/stack proof | 2/2 | Exact successful level-2 evolution draw/stack and a nonmatching level-2 rejection without mutation are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                         |
+| ------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, printed evolution route, alternate text route, On Play cost, and inherited keyword are recorded; there is no card-specific Q&A, errata, or banlist entry. |
+| Compiled IR         |   2/2 | Exact trait cost filter, optional abort, Draw 2, inherited Reboot, full coverage, empty residual, and text-based evolution requirement are asserted.                             |
+| Observable behavior |   2/2 | Public play proves exact payment/draw, decline, no-eligible/no-prompt, and inherited Reboot through a real attack and opponent turn.                                             |
+| Peer/stack proof    |   2/2 | Exact successful level-2 evolution draw/stack and a nonmatching level-2 rejection without mutation are covered.                                                                  |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                     |
 
 #### Evidence
 
@@ -3415,13 +3415,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public combat, card-effect, evolution, and real-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, routes, text, inherited keyword, and Q3851 are recorded. |
-| Compiled IR | 2/2 | Exact Blocker, opponent-turn effect-deletion protection, inherited Reboot, full coverage, empty residual, and NSp route are asserted. |
-| Observable behavior | 2/2 | Real Blocker combat, actual opponent-effect deletion prevention, Q3851 rule deletion, and inherited Reboot across a real turn are green. |
-| Peer/stack proof | 2/2 | Off-color NSp evolution has exact cost/draw/stack evidence; an off-color non-NSp peer is rejected without mutation. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                 |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, routes, text, inherited keyword, and Q3851 are recorded.                                                          |
+| Compiled IR         |   2/2 | Exact Blocker, opponent-turn effect-deletion protection, inherited Reboot, full coverage, empty residual, and NSp route are asserted.    |
+| Observable behavior |   2/2 | Real Blocker combat, actual opponent-effect deletion prevention, Q3851 rule deletion, and inherited Reboot across a real turn are green. |
+| Peer/stack proof    |   2/2 | Off-color NSp evolution has exact cost/draw/stack evidence; an off-color non-NSp peer is rejected without mutation.                      |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                             |
 
 #### Evidence
 
@@ -3450,13 +3450,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All ten focused tests pass after correcting an unreachable `zoneCount` condition in the compiled IR.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, Black/Red routes, both effects, inherited timing, and absence of card-specific rulings are recorded. |
-| Compiled IR | 2/2 | Exact trait-cost Draw 2, Hina name/zone/count condition, optionality, inherited modifier, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Both cost traits, refusal, Hina at zero/one Tamers, two-Tamer exclusion, Hina refusal, and owner/opponent/owner DP transitions are public and green. |
-| Peer/stack proof | 2/2 | Exact red evolution cost/draw/stack, off-color rejection, Rock/Earth peers, Hina identity, and realistic inherited host are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                             |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, Black/Red routes, both effects, inherited timing, and absence of card-specific rulings are recorded.                          |
+| Compiled IR         |   2/2 | Exact trait-cost Draw 2, Hina name/zone/count condition, optionality, inherited modifier, full coverage, and empty residual are asserted.            |
+| Observable behavior |   2/2 | Both cost traits, refusal, Hina at zero/one Tamers, two-Tamer exclusion, Hina refusal, and owner/opponent/owner DP transitions are public and green. |
+| Peer/stack proof    |   2/2 | Exact red evolution cost/draw/stack, off-color rejection, Rock/Earth peers, Hina identity, and realistic inherited host are covered.                 |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                         |
 
 #### Evidence
 
@@ -3487,13 +3487,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public play, evolution, link-rule, and real-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, alternate route, both timings, inherited keyword, Q3852, and Q4558 are recorded. |
-| Compiled IR | 2/2 | Exact mixed-zone Three Musketeers cost, optional abort, De-Digivolve boundary, inherited Reboot, full coverage, empty residual, and text route are asserted. |
-| Observable behavior | 2/2 | Public On Play/When Digivolving, mixed-zone payment, refusal, insufficient-cost boundary, Q4558 link disposal, and inherited Reboot are green. |
-| Peer/stack proof | 2/2 | Exact evolution cost/draw/stack, linked Shotmon peer, off-color rejection, three cost peers, and realistic inherited host are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                     |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and rules   |   2/2 | Exact identity, stats, alternate route, both timings, inherited keyword, Q3852, and Q4558 are recorded.                                                      |
+| Compiled IR         |   2/2 | Exact mixed-zone Three Musketeers cost, optional abort, De-Digivolve boundary, inherited Reboot, full coverage, empty residual, and text route are asserted. |
+| Observable behavior |   2/2 | Public On Play/When Digivolving, mixed-zone payment, refusal, insufficient-cost boundary, Q4558 link disposal, and inherited Reboot are green.               |
+| Peer/stack proof    |   2/2 | Exact evolution cost/draw/stack, linked Shotmon peer, off-color rejection, three cost peers, and realistic inherited host are covered.                       |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                 |
 
 #### Evidence
 
@@ -3523,13 +3523,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eight focused tests pass; the former reveal-rest red was an illegal Digi-Egg fixture.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, alternate route, both timings, inherited Collision, and Q4578 are recorded. |
-| Compiled IR | 2/2 | Exact RevealAdd/place-under, conditional deletion, destination choice, inherited keyword, full coverage, empty residual, and text route are asserted. |
-| Observable behavior | 2/2 | Public placement/deletion, exact reveal-rest destination/order, no-match boundary, Q4578, and Collision are green. |
-| Peer/stack proof | 2/2 | Off-color alternate evolution, exact cost/draw/stack, invalid route, Shotmon link peer, Digimon/Tamer targets, and inherited combat host are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                              |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, alternate route, both timings, inherited Collision, and Q4578 are recorded.                                                    |
+| Compiled IR         |   2/2 | Exact RevealAdd/place-under, conditional deletion, destination choice, inherited keyword, full coverage, empty residual, and text route are asserted. |
+| Observable behavior |   2/2 | Public placement/deletion, exact reveal-rest destination/order, no-match boundary, Q4578, and Collision are green.                                    |
+| Peer/stack proof    |   2/2 | Off-color alternate evolution, exact cost/draw/stack, invalid route, Shotmon link peer, Digimon/Tamer targets, and inherited combat host are covered. |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                          |
 
 #### Evidence
 
@@ -3561,13 +3561,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All five focused tests pass with public play, evolution, combat, and real-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, alternate route, On Play, opponent-turn aura, and absence of card-specific rulings are recorded. |
-| Compiled IR | 2/2 | Exact De-Digivolve boundary, all-own-NSp Blocker grant, timing, full coverage, empty residual, and NSp route are asserted. |
-| Observable behavior | 2/2 | Public De-Digivolve and real opponent-turn attack/block behavior prove both printed clauses and owner-turn exclusion. |
-| Peer/stack proof | 2/2 | Off-color NSp evolution has exact cost/draw/stack evidence; off-color non-NSp rejection and NSp/non-NSp combat peers are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                          |
+| ------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, alternate route, On Play, opponent-turn aura, and absence of card-specific rulings are recorded.           |
+| Compiled IR         |   2/2 | Exact De-Digivolve boundary, all-own-NSp Blocker grant, timing, full coverage, empty residual, and NSp route are asserted.        |
+| Observable behavior |   2/2 | Public De-Digivolve and real opponent-turn attack/block behavior prove both printed clauses and owner-turn exclusion.             |
+| Peer/stack proof    |   2/2 | Off-color NSp evolution has exact cost/draw/stack evidence; off-color non-NSp rejection and NSp/non-NSp combat peers are covered. |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                      |
 
 #### Evidence
 
@@ -3596,13 +3596,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All three focused scenarios pass with public play, evolution, attack, and multi-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, Black/Red routes, On Play, conditional evolution effect, inherited trigger, and absence of card-specific rulings are recorded. |
-| Compiled IR | 2/2 | Exact De-Digivolve, level-5 absence predicate, memory gain, opponent-attack subtrigger, optional redirect, shared frequency, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public De-Digivolve, both condition branches, first/second attack behavior, and next-opponent-turn reset are green. |
-| Peer/stack proof | 2/2 | Red and Black evolution peers, exact payment/draw/stack, level-4/level-5 opponent boundaries, and realistic inherited combat host are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                     |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, Black/Red routes, On Play, conditional evolution effect, inherited trigger, and absence of card-specific rulings are recorded.                        |
+| Compiled IR         |   2/2 | Exact De-Digivolve, level-5 absence predicate, memory gain, opponent-attack subtrigger, optional redirect, shared frequency, full coverage, and empty residual are asserted. |
+| Observable behavior |   2/2 | Public De-Digivolve, both condition branches, first/second attack behavior, and next-opponent-turn reset are green.                                                          |
+| Peer/stack proof    |   2/2 | Red and Black evolution peers, exact payment/draw/stack, level-4/level-5 opponent boundaries, and realistic inherited combat host are covered.                               |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                 |
 
 #### Evidence
 
@@ -3631,13 +3631,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public play, evolution, Blocker combat, and real end-of-turn DNA evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, alternate route, Blocker, both reveal timings, DNA clause, and absence of card-specific rulings are recorded. |
-| Compiled IR | 2/2 | Exact cost-7 reveal budget, NSp filters, free play/rest destination, hand-only two-material DNA, optionality/frequency, full coverage, and empty residual are asserted. |
-| Observable behavior | 2/2 | Public On Play/When Digivolving reveal budgets, real Blocker combat, real End of Turn DNA, and no-target DNA boundary are green. |
-| Peer/stack proof | 2/2 | Off-color NSp evolution, exact cost/draw/stack, non-NSp rejection, mixed reveal peers, and legal Blue+Black DNA materials are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, alternate route, Blocker, both reveal timings, DNA clause, and absence of card-specific rulings are recorded.                                    |
+| Compiled IR         |   2/2 | Exact cost-7 reveal budget, NSp filters, free play/rest destination, hand-only two-material DNA, optionality/frequency, full coverage, and empty residual are asserted. |
+| Observable behavior |   2/2 | Public On Play/When Digivolving reveal budgets, real Blocker combat, real End of Turn DNA, and no-target DNA boundary are green.                                        |
+| Peer/stack proof    |   2/2 | Off-color NSp evolution, exact cost/draw/stack, non-NSp rejection, mixed reveal peers, and legal Blue+Black DNA materials are covered.                                  |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                            |
 
 #### Evidence
 
@@ -3667,13 +3667,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eight focused tests pass with public reveal/use, evolution, replacement, link-rule, and combat evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, alternate route, Blocker, both reveal timings, global replacement, and Q4585 are recorded. |
-| Compiled IR | 2/2 | Exact reveal/useOption filter, free use/rest choice, replacement source/cause/cost scopes, full coverage, empty residual, and text route are asserted. |
-| Observable behavior | 2/2 | Public On Play/When Digivolving Option use, no-match, global protection, non-trait exclusion, Q4585, and Blocker combat are green. |
-| Peer/stack proof | 2/2 | Off-color text evolution, exact cost/draw/stack, EX7-066 execution/rest order, protected/nonprotected peers, Shotmon, and combat peers are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                               |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and rules   |   2/2 | Exact identity, stats, alternate route, Blocker, both reveal timings, global replacement, and Q4585 are recorded.                                      |
+| Compiled IR         |   2/2 | Exact reveal/useOption filter, free use/rest choice, replacement source/cause/cost scopes, full coverage, empty residual, and text route are asserted. |
+| Observable behavior |   2/2 | Public On Play/When Digivolving Option use, no-match, global protection, non-trait exclusion, Q4585, and Blocker combat are green.                     |
+| Peer/stack proof    |   2/2 | Off-color text evolution, exact cost/draw/stack, EX7-066 execution/rest order, protected/nonprotected peers, Shotmon, and combat peers are covered.    |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                           |
 
 #### Evidence
 
@@ -3704,13 +3704,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All nine focused tests pass, including Q3855's future entrant and Q3853's immunity exception.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, both evolution routes, De-Digivolve 4, evolution restriction, leave replacement, and Q3853-Q3856/Q6719 are recorded. |
-| Compiled IR | 2/2 | Both De-Digivolve timings, battle-area level filter, opponent-turn duration, leave cause, replacement play filter, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public play, evolution, attack, replacement, immunity, breeding, future entrant, and expiry flows are green. |
-| Peer/stack proof | 2/2 | Exact red-route payment/draw/stack, level-3 stop, immune and breeding peers, Rock Dragon replacement, and DigiXros interaction are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                         |
+| ------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, both evolution routes, De-Digivolve 4, evolution restriction, leave replacement, and Q3853-Q3856/Q6719 are recorded.                                      |
+| Compiled IR         |   2/2 | Both De-Digivolve timings, battle-area level filter, opponent-turn duration, leave cause, replacement play filter, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public play, evolution, attack, replacement, immunity, breeding, future entrant, and expiry flows are green.                                                                     |
+| Peer/stack proof    |   2/2 | Exact red-route payment/draw/stack, level-3 stop, immune and breeding peers, Rock Dragon replacement, and DigiXros interaction are covered.                                      |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                     |
 
 #### Evidence
 
@@ -3742,13 +3742,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public evolution and real-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, two standard routes, Yaamon route, both trait branches, inherited DP, and Q3857 are recorded. |
-| Compiled IR | 2/2 | Battle-area self scope, trait union, cost reduction, inherited modifier, alternate requirement, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public Dark Dragon/Evil Dragon/negative evolutions, Yaamon evolution, Q3857, and inherited owner-turn DP are green. |
-| Peer/stack proof | 2/2 | Both printed colors and traits, nonmatching Greymon, Yaamon, exact costs/draw/source identities, breeding boundary, and a real opponent turn are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                      |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, two standard routes, Yaamon route, both trait branches, inherited DP, and Q3857 are recorded.                                          |
+| Compiled IR         |   2/2 | Battle-area self scope, trait union, cost reduction, inherited modifier, alternate requirement, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public Dark Dragon/Evil Dragon/negative evolutions, Yaamon evolution, Q3857, and inherited owner-turn DP are green.                                           |
+| Peer/stack proof    |   2/2 | Both printed colors and traits, nonmatching Greymon, Yaamon, exact costs/draw/source identities, breeding boundary, and a real opponent turn are covered.     |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                  |
 
 #### Evidence
 
@@ -3777,13 +3777,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All six focused tests pass with public Start-of-Main, evolution, and battle evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, standard and text-based routes, Start-of-Main cost/draw, and inherited Retaliation are recorded. |
-| Compiled IR | 2/2 | Hand/trash Option filter, own-Digimon host, bottom placement, optional abort, draw, alternate requirement, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Real Start-of-Main hand/trash payments, refusal, alternate evolution, invalid route, and Retaliation combat are green. |
-| Peer/stack proof | 2/2 | Qualifying EX7-005, nonqualifying EX7-001, exact evolution draw/source, pre-existing host source, EX7-066, and stronger combat peer are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                 |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and rules   |   2/2 | Exact identity, stats, standard and text-based routes, Start-of-Main cost/draw, and inherited Retaliation are recorded.                                                  |
+| Compiled IR         |   2/2 | Hand/trash Option filter, own-Digimon host, bottom placement, optional abort, draw, alternate requirement, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Real Start-of-Main hand/trash payments, refusal, alternate evolution, invalid route, and Retaliation combat are green.                                                   |
+| Peer/stack proof    |   2/2 | Qualifying EX7-005, nonqualifying EX7-001, exact evolution draw/source, pre-existing host source, EX7-066, and stronger combat peer are covered.                         |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                             |
 
 #### Evidence
 
@@ -3812,13 +3812,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public play, evolution, attacks, and real-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, reveal split, inherited cost/attack ending, once-per-turn, and Q3858-Q3860 are recorded. |
-| Compiled IR | 2/2 | Reveal filters/destinations/rest, opponent-attack subtrigger, other-Digimon deletion cost, EndAttack, frequency, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public On Play, evolution, Q3858-Q3860, same-turn suppression, and next-opponent-turn reset are green. |
-| Peer/stack proof | 2/2 | Exact reveal identities/order, legal purple and illegal red level-2 stacks, Armor Purge, immune attacker, multiple attackers, and deletion fodder are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                       |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and rules   |   2/2 | Exact identity, stats, reveal split, inherited cost/attack ending, once-per-turn, and Q3858-Q3860 are recorded.                                                                |
+| Compiled IR         |   2/2 | Reveal filters/destinations/rest, opponent-attack subtrigger, other-Digimon deletion cost, EndAttack, frequency, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public On Play, evolution, Q3858-Q3860, same-turn suppression, and next-opponent-turn reset are green.                                                                         |
+| Peer/stack proof    |   2/2 | Exact reveal identities/order, legal purple and illegal red level-2 stacks, Armor Purge, immune attacker, multiple attackers, and deletion fodder are covered.                 |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                   |
 
 #### Evidence
 
@@ -3849,13 +3849,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eight focused tests pass with public play, evolution, and battle evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, On Play sequence, three-trait union, optional return, and inherited Retaliation are recorded. |
-| Compiled IR | 2/2 | Mandatory hand trash, owned-trash Digimon trait filter, optional hand return, inherited keyword, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public play for all trait branches, refusal, newly discarded return, evolution, and Retaliation combat are green. |
-| Peer/stack proof | 2/2 | Evil/Dark Dragon/Evil Dragon peers, neutral discard, exact payment/draw/source, neutral purple base, and stronger combat peer are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                       |
+| ------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, On Play sequence, three-trait union, optional return, and inherited Retaliation are recorded.                                           |
+| Compiled IR         |   2/2 | Mandatory hand trash, owned-trash Digimon trait filter, optional hand return, inherited keyword, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public play for all trait branches, refusal, newly discarded return, evolution, and Retaliation combat are green.                                              |
+| Peer/stack proof    |   2/2 | Evil/Dark Dragon/Evil Dragon peers, neutral discard, exact payment/draw/source, neutral purple base, and stronger combat peer are covered.                     |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                   |
 
 #### Evidence
 
@@ -3884,13 +3884,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All six focused tests pass with public evolution, deletion, attacks, and real-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, both main timings, paid paired keywords/duration, inherited attack ending, and Q3861-Q3863 are recorded. |
-| Compiled IR | 2/2 | Same-target conditional keywords, hand cost, duration, inherited other-Digimon delete cost, EndAttack, frequency, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public evolution/deletion grants, duration expiry, Q3861-Q3863, same-turn suppression, and next-opponent-turn reset are green. |
-| Peer/stack proof | 2/2 | Exact neutral-purple evolution stack, battle deletion, Armor Purge, immune attacker, multiple attackers/fodder, and real turns are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                        |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, both main timings, paid paired keywords/duration, inherited attack ending, and Q3861-Q3863 are recorded.                                                 |
+| Compiled IR         |   2/2 | Same-target conditional keywords, hand cost, duration, inherited other-Digimon delete cost, EndAttack, frequency, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public evolution/deletion grants, duration expiry, Q3861-Q3863, same-turn suppression, and next-opponent-turn reset are green.                                                  |
+| Peer/stack proof    |   2/2 | Exact neutral-purple evolution stack, battle deletion, Armor Purge, immune attacker, multiple attackers/fodder, and real turns are covered.                                     |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                    |
 
 #### Evidence
 
@@ -3921,13 +3921,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public evolution and real-turn evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, standard/alternate routes, Tamer threshold, optional Yuuki play, and inherited DP are recorded. |
-| Compiled IR | 2/2 | Exact-name hand filter, free play, zero/one-Tamer condition, Evil route, inherited modifier, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public zero/one/two-Tamer evolutions, refusal, alternate route, invalid route, and inherited turn transition are green. |
-| Peer/stack proof | 2/2 | Neutral purple base, Evil base, off-color non-Evil base, exact source/draw/payment, Tamer peers, Yuuki, and level-5 host are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                   |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, standard/alternate routes, Tamer threshold, optional Yuuki play, and inherited DP are recorded.                                     |
+| Compiled IR         |   2/2 | Exact-name hand filter, free play, zero/one-Tamer condition, Evil route, inherited modifier, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public zero/one/two-Tamer evolutions, refusal, alternate route, invalid route, and inherited turn transition are green.                                    |
+| Peer/stack proof    |   2/2 | Neutral purple base, Evil base, off-color non-Evil base, exact source/draw/payment, Tamer peers, Yuuki, and level-5 host are covered.                      |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                               |
 
 #### Evidence
 
@@ -3956,13 +3956,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public evolution, battle, blocking, and protection evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, Blocker, mandatory On Deletion sequence, level targets, and inherited Retaliation are recorded. |
-| Compiled IR | 2/2 | Static/inherited keywords, hand trash, separate level-3/4 deletes, opponent filters, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public battle deletion, protected target, evolution, Blocker redirection, and inherited Retaliation combat are green. |
-| Peer/stack proof | 2/2 | Exact neutral-purple evolution stack, level 3/4/5 peers, Tortomon, block combat, stronger Retaliation peer, and multi-source host are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                           |
+| ------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, Blocker, mandatory On Deletion sequence, level targets, and inherited Retaliation are recorded.                             |
+| Compiled IR         |   2/2 | Static/inherited keywords, hand trash, separate level-3/4 deletes, opponent filters, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public battle deletion, protected target, evolution, Blocker redirection, and inherited Retaliation combat are green.                              |
+| Peer/stack proof    |   2/2 | Exact neutral-purple evolution stack, level 3/4/5 peers, Tortomon, block combat, stronger Retaliation peer, and multi-source host are covered.     |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                       |
 
 #### Evidence
 
@@ -3991,13 +3991,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass with public play, evolution, and Security battle evidence.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, standard/alternate routes, both main timings, rule trait, and inherited aura are recorded. |
-| Compiled IR | 2/2 | Two-card trash, 7000-DP delete, rule grant, trait-union alternate route/aura, hand threshold, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public play/evolution, exact DP boundary, trait grant, route matrix, and real one/two Security checks are green. |
-| Peer/stack proof | 2/2 | Dark Dragon/Evil Dragon/red-standard bases, exact costs/draw/sources, 7000/8000 peers, matching/nonmatching aura targets, and four/five-card hands are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                        |
+| ------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, standard/alternate routes, both main timings, rule trait, and inherited aura are recorded.                                               |
+| Compiled IR         |   2/2 | Two-card trash, 7000-DP delete, rule grant, trait-union alternate route/aura, hand threshold, full coverage, empty residual, and registration are asserted.     |
+| Observable behavior |   2/2 | Public play/evolution, exact DP boundary, trait grant, route matrix, and real one/two Security checks are green.                                                |
+| Peer/stack proof    |   2/2 | Dark Dragon/Evil Dragon/red-standard bases, exact costs/draw/sources, 7000/8000 peers, matching/nonmatching aura targets, and four/five-card hands are covered. |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                    |
 
 #### Evidence
 
@@ -4027,13 +4027,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All seven focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, alternate route, both entry effects, token, inherited watcher, and Q3864-Q3865 are recorded. |
-| Compiled IR | 2/2 | Grant/duration, token source condition, exact token identity, LadyDevimon route, inherited filter/play/frequency, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public evolution/play/attacks, Q3864-Q3865, inherited play, and both printed token keywords are green. |
-| Peer/stack proof | 2/2 | LadyDevimon source, exact stack/draw, ordinary/immune/Partition attackers, token stats, and two-deletion inherited boundary are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                        |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, alternate route, both entry effects, token, inherited watcher, and Q3864-Q3865 are recorded.                                                             |
+| Compiled IR         |   2/2 | Grant/duration, token source condition, exact token identity, LadyDevimon route, inherited filter/play/frequency, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public evolution/play/attacks, Q3864-Q3865, inherited play, and both printed token keywords are green.                                                                          |
+| Peer/stack proof    |   2/2 | LadyDevimon source, exact stack/draw, ordinary/immune/Partition attackers, token stats, and two-deletion inherited boundary are covered.                                        |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                    |
 
 #### Evidence
 
@@ -4063,13 +4063,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eleven focused tests pass, including Q6391's text-qualified Tamer Blast base.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, ACE stats, routes, three timings, costs, optionality, Overflow, and Q6391 are recorded. |
-| Compiled IR | 2/2 | Blast, return/use sequencing, trait filters, own-stack Option cost, frequency, alternate route, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public play/evolution/attack/Blast/Overflow flows and Q6391 are green. |
-| Peer/stack proof | 2/2 | Exact EX7-044 stack, recovered/used EX7-066, other-stack negative, public Counter, Tamer peer, and ACE battle departure are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                      |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, ACE stats, routes, three timings, costs, optionality, Overflow, and Q6391 are recorded.                                                       |
+| Compiled IR         |   2/2 | Blast, return/use sequencing, trait filters, own-stack Option cost, frequency, alternate route, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public play/evolution/attack/Blast/Overflow flows and Q6391 are green.                                                                                        |
+| Peer/stack proof    |   2/2 | Exact EX7-044 stack, recovered/used EX7-066, other-stack negative, public Counter, Tamer peer, and ACE battle departure are covered.                          |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                  |
 
 #### Evidence
 
@@ -4099,13 +4099,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All nine focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, stats, evolution route, trash hand-count condition, cost reduction, Blocker, deletion level/trait union, and optionality are recorded; the local KB maps no card-specific Q&A, errata, or restriction. |
-| Compiled IR | 2/2 | Trash-resident Main activation, self target, paid play with reduction 4, hand boundary, Blocker, free deletion play, level ceiling, trait union, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public activation, evolution, blocking, and battle deletion flows prove every printed clause, exact costs, the boundary, refusal, zones, and free play. |
-| Peer/stack proof | 2/2 | EX7-056 supplies a legal Purple level-5 stack and Dark Dragon target; BT11-079 proves Evil Dragon; EX7-062 and BT10-022 prove the level and trait exclusions. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                               |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, stats, evolution route, trash hand-count condition, cost reduction, Blocker, deletion level/trait union, and optionality are recorded; the local KB maps no card-specific Q&A, errata, or restriction. |
+| Compiled IR         |   2/2 | Trash-resident Main activation, self target, paid play with reduction 4, hand boundary, Blocker, free deletion play, level ceiling, trait union, full coverage, empty residual, and registration are asserted.         |
+| Observable behavior |   2/2 | Public activation, evolution, blocking, and battle deletion flows prove every printed clause, exact costs, the boundary, refusal, zones, and free play.                                                                |
+| Peer/stack proof    |   2/2 | EX7-056 supplies a legal Purple level-5 stack and Dark Dragon target; BT11-079 proves Evil Dragon; EX7-062 and BT10-022 prove the level and trait exclusions.                                                          |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                           |
 
 #### Evidence
 
@@ -4134,13 +4134,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All 14 focused cases and 19 EX10-059 peer cases pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact identity, standard/named evolution routes, both All Turns once-per-turn effects, costs, turn branches, and Q3866/Q3867/Q5169 are recorded. |
-| Compiled IR | 2/2 | Non-battle leave replacement, stack predicate union, other-Digimon deletion cost, single deletion subscription with both turn branches, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Public evolution, combat, Retaliation, Armor Purge, Option, Security, refusal, same-turn suppression, and real-turn reset flows prove every printed clause and ruling. |
-| Peer/stack proof | 2/2 | Named Lilithmon and X Antibody sources, standard Purple level 5, illegal off-color source, EX7-056 Retaliation, EX7-066 mutual-replacement chain, and EX10-059 Q5169 interrupt all pass. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                              |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact identity, standard/named evolution routes, both All Turns once-per-turn effects, costs, turn branches, and Q3866/Q3867/Q5169 are recorded.                                                      |
+| Compiled IR         |   2/2 | Non-battle leave replacement, stack predicate union, other-Digimon deletion cost, single deletion subscription with both turn branches, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Public evolution, combat, Retaliation, Armor Purge, Option, Security, refusal, same-turn suppression, and real-turn reset flows prove every printed clause and ruling.                                |
+| Peer/stack proof    |   2/2 | Named Lilithmon and X Antibody sources, standard Purple level 5, illegal off-color source, EX7-056 Retaliation, EX7-066 mutual-replacement chain, and EX10-059 Q5169 interrupt all pass.              |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                          |
 
 #### Evidence
 
@@ -4172,13 +4172,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All 13 focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact dual-color identity, standard and trait evolution routes, mandatory hand trash, source-relative DP deletion, scaled play ceiling, trait union, optionality, and frequencies are recorded; the KB maps no card-specific Q&A, errata, or restriction. |
-| Compiled IR | 2/2 | Both effects, exact filters/scaling, full coverage, empty residual, registration, and the restored Dark Dragon/Evil Dragon alternate route are asserted. |
-| Observable behavior | 2/2 | Public evolution and production turn flows prove costs, draw/stack, hand payment, DP boundary, scaled ceilings, refusal, negatives, free play, and once-per-turn reset. |
-| Peer/stack proof | 2/2 | EX7-056 and BT21-077 prove both alternate traits; Purple and Red standard peers, all three play traits, an over-ceiling near miss, and a cost-eligible trait miss are covered. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                                                                  |
+| ------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact dual-color identity, standard and trait evolution routes, mandatory hand trash, source-relative DP deletion, scaled play ceiling, trait union, optionality, and frequencies are recorded; the KB maps no card-specific Q&A, errata, or restriction. |
+| Compiled IR         |   2/2 | Both effects, exact filters/scaling, full coverage, empty residual, registration, and the restored Dark Dragon/Evil Dragon alternate route are asserted.                                                                                                  |
+| Observable behavior |   2/2 | Public evolution and production turn flows prove costs, draw/stack, hand payment, DP boundary, scaled ceilings, refusal, negatives, free play, and once-per-turn reset.                                                                                   |
+| Peer/stack proof    |   2/2 | EX7-056 and BT21-077 prove both alternate traits; Purple and Red standard peers, all three play traits, an over-ceiling near miss, and a cost-eligible trait miss are covered.                                                                            |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                                                              |
 
 #### Evidence
 
@@ -4209,13 +4209,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All 11 focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Tamer identity/cost, conditional Start of Main memory, deletion trigger, Token/Puppet union, suspension cost, level-3 Puppet play, optionality, and Security play are recorded; no card-specific KB entry exists. |
-| Compiled IR | 2/2 | Exact conditions, source/target filters, token allowance, suspension cost, free-play zones, Security self-play, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Real Start-of-Main, hand play, combat deletion, token combat, refusal, filter boundaries, and Security-check flows prove every clause, cost, and zone transition. |
-| Peer/stack proof | 2/2 | BT11-035/BT13-035 prove Puppet deletion/play, a non-Puppet peer and EX7-025 prove both target exclusions, and TOKEN-Diaboromon proves the independent Token branch. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                                |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Tamer identity/cost, conditional Start of Main memory, deletion trigger, Token/Puppet union, suspension cost, level-3 Puppet play, optionality, and Security play are recorded; no card-specific KB entry exists. |
+| Compiled IR         |   2/2 | Exact conditions, source/target filters, token allowance, suspension cost, free-play zones, Security self-play, full coverage, empty residual, and registration are asserted.                                           |
+| Observable behavior |   2/2 | Real Start-of-Main, hand play, combat deletion, token combat, refusal, filter boundaries, and Security-check flows prove every clause, cost, and zone transition.                                                       |
+| Peer/stack proof    |   2/2 | BT11-035/BT13-035 prove Puppet deletion/play, a non-Puppet peer and EX7-025 prove both target exclusions, and TOKEN-Diaboromon proves the independent Token branch.                                                     |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                            |
 
 #### Evidence
 
@@ -4246,13 +4246,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All nine focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Tamer identity/cost, conditional memory, end-turn cost/keywords/duration/trait branch, Security play, Q3868/Q3869, and the EX2-007 banned pair effective 2025-03-28 are recorded. |
-| Compiled IR | 2/2 | Exact condition, bound target, suspension cost, paired keyword grants, duration, Vortex Warriors unsuspend, Security self-play, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Real Start-of-Main, hand play, both end-turn trigger orders, duration round trip, refusal, and Security-check flows prove every printed clause. |
-| Peer/stack proof | 2/2 | EX7-034 supplies the Vortex Warriors/Vortex interaction in both Q&A orders; a non-Vortex Digimon proves generic keyword eligibility and duration without the trait branch. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                      |
+| ------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Tamer identity/cost, conditional memory, end-turn cost/keywords/duration/trait branch, Security play, Q3868/Q3869, and the EX2-007 banned pair effective 2025-03-28 are recorded.       |
+| Compiled IR         |   2/2 | Exact condition, bound target, suspension cost, paired keyword grants, duration, Vortex Warriors unsuspend, Security self-play, full coverage, empty residual, and registration are asserted. |
+| Observable behavior |   2/2 | Real Start-of-Main, hand play, both end-turn trigger orders, duration round trip, refusal, and Security-check flows prove every printed clause.                                               |
+| Peer/stack proof    |   2/2 | EX7-034 supplies the Vortex Warriors/Vortex interaction in both Q&A orders; a non-Vortex Digimon proves generic keyword eligibility and duration without the trait branch.                    |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                  |
 
 #### Evidence
 
@@ -4283,13 +4283,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All ten focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Tamer identity/cost, Start-of-Main condition, four-card Main boundary, suspension cost, trash evolution trait union/payment, optionality, and Security play are recorded; no card-specific KB entry exists. |
-| Compiled IR | 2/2 | Exact Main source/target zones, hand condition, Dark Dragon/Evil Dragon union, paid evolution, suspension cost, Security self-play, full coverage, empty residual, and registration are asserted. |
-| Observable behavior | 2/2 | Real Start-of-Main, hand play, client-visible activation, trash evolution, refusal, hand/trait negatives, and Security-check flows prove every printed clause. |
-| Peer/stack proof | 2/2 | EX7-056→EX7-060 and EX7-053→BT21-077 prove both trait branches with distinct levels/costs; BT10-022 proves the trait miss. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                          |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Tamer identity/cost, Start-of-Main condition, four-card Main boundary, suspension cost, trash evolution trait union/payment, optionality, and Security play are recorded; no card-specific KB entry exists. |
+| Compiled IR         |   2/2 | Exact Main source/target zones, hand condition, Dark Dragon/Evil Dragon union, paid evolution, suspension cost, Security self-play, full coverage, empty residual, and registration are asserted.                 |
+| Observable behavior |   2/2 | Real Start-of-Main, hand play, client-visible activation, trash evolution, refusal, hand/trait negatives, and Security-check flows prove every printed clause.                                                    |
+| Peer/stack proof    |   2/2 | EX7-056→EX7-060 and EX7-053→BT21-077 prove both trait branches with distinct levels/costs; BT10-022 proves the trait miss.                                                                                        |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                      |
 
 #### Evidence
 
@@ -4320,13 +4320,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eleven focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Option identity/cost/trait, trash-source buff and duration, Three Musketeers color waiver, distinct-name Main ceiling and placement, and Security ceiling are recorded; no card-specific KB entry exists. |
-| Compiled IR | 2/2 | Each printed clause maps to compiled IR, full coverage, empty residual, and exclusive `registerIrCard` registration. |
-| Observable behavior | 2/2 | Public Option use, a real attack-cost digivolution-card trash, real turn progression, and real Security checks prove every printed clause and boundary. |
-| Peer/stack proof | 2/2 | Mixed Three Musketeers names, repeated names, a nonmatching host, and EX7-059's real attack cost prove trait, stack, and distinct-name interactions. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                        |
+| ------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Option identity/cost/trait, trash-source buff and duration, Three Musketeers color waiver, distinct-name Main ceiling and placement, and Security ceiling are recorded; no card-specific KB entry exists. |
+| Compiled IR         |   2/2 | Each printed clause maps to compiled IR, full coverage, empty residual, and exclusive `registerIrCard` registration.                                                                                            |
+| Observable behavior |   2/2 | Public Option use, a real attack-cost digivolution-card trash, real turn progression, and real Security checks prove every printed clause and boundary.                                                         |
+| Peer/stack proof    |   2/2 | Mixed Three Musketeers names, repeated names, a nonmatching host, and EX7-059's real attack cost prove trait, stack, and distinct-name interactions.                                                            |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                    |
 
 #### Evidence
 
@@ -4355,13 +4355,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All ten focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Option identity/cost, all-opponent top-two trash, conditional Ice-Snow play, final restriction, Security activation, and Q3870 are recorded. |
-| Compiled IR | 2/2 | All clauses map to ordered compiled actions with full coverage, empty residual, and exclusive `registerIrCard` registration. |
-| Observable behavior | 2/2 | Public Option use, real turns, and a real Security check prove the trash, play, restriction, refusal, duration, and boundary clauses. |
-| Peer/stack proof | 2/2 | Mixed opposing stacks plus level-3/5 Ice-Snow and level-3 non-Ice-Snow candidates prove stack, level, and trait behavior. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                           |
+| ------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Option identity/cost, all-opponent top-two trash, conditional Ice-Snow play, final restriction, Security activation, and Q3870 are recorded. |
+| Compiled IR         |   2/2 | All clauses map to ordered compiled actions with full coverage, empty residual, and exclusive `registerIrCard` registration.                       |
+| Observable behavior |   2/2 | Public Option use, real turns, and a real Security check prove the trash, play, restriction, refusal, duration, and boundary clauses.              |
+| Peer/stack proof    |   2/2 | Mixed opposing stacks plus level-3/5 Ice-Snow and level-3 non-Ice-Snow candidates prove stack, level, and trait behavior.                          |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                       |
 
 #### Evidence
 
@@ -4390,13 +4390,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eight focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Option identity/cost/trait, Draw 1, optional level-3 Puppet play, and Security activation are recorded; no card-specific KB entry exists. |
-| Compiled IR | 2/2 | Both ordered Main actions and Security activation map to full compiled IR with empty residual and exclusive `registerIrCard` registration. |
-| Observable behavior | 2/2 | Public Main use and a real Security check prove draw, free play, refusal, exact zones, and payment. |
-| Peer/stack proof | 2/2 | Level-3 Puppet, level-4 Puppet, and level-3 non-Puppet fixtures prove the complete level/trait filter. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                        |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Option identity/cost/trait, Draw 1, optional level-3 Puppet play, and Security activation are recorded; no card-specific KB entry exists. |
+| Compiled IR         |   2/2 | Both ordered Main actions and Security activation map to full compiled IR with empty residual and exclusive `registerIrCard` registration.      |
+| Observable behavior |   2/2 | Public Main use and a real Security check prove draw, free play, refusal, exact zones, and payment.                                             |
+| Peer/stack proof    |   2/2 | Level-3 Puppet, level-4 Puppet, and level-3 non-Puppet fixtures prove the complete level/trait filter.                                          |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                    |
 
 #### Evidence
 
@@ -4424,13 +4424,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eight focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Option identity/cost/trait, optional level-6-or-lower suspension, conditional own unsuspension, and Security activation are recorded; no card-specific KB entry exists. |
-| Compiled IR | 2/2 | Ordered Suspend/conditional Unsuspend and Security activation map to full compiled IR with empty residual and exclusive `registerIrCard` registration. |
-| Observable behavior | 2/2 | Public Main use and a real Security check prove own/opponent selection, conditional result, refusal, ceiling, payment, and zones. |
-| Peer/stack proof | 2/2 | Own and opponent level-3 fixtures plus a level-7 Digimon prove controller flexibility and the exact level ceiling. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                      |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Option identity/cost/trait, optional level-6-or-lower suspension, conditional own unsuspension, and Security activation are recorded; no card-specific KB entry exists. |
+| Compiled IR         |   2/2 | Ordered Suspend/conditional Unsuspend and Security activation map to full compiled IR with empty residual and exclusive `registerIrCard` registration.                        |
+| Observable behavior |   2/2 | Public Main use and a real Security check prove own/opponent selection, conditional result, refusal, ceiling, payment, and zones.                                             |
+| Peer/stack proof    |   2/2 | Own and opponent level-3 fixtures plus a level-7 Digimon prove controller flexibility and the exact level ceiling.                                                            |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                  |
 
 #### Evidence
 
@@ -4459,13 +4459,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All eight focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Option identity/cost/trait, inherited effect-trash De-Digivolve, Three Musketeers color waiver, lowest-cost Main deletion/placement, and Security deletion are recorded; no card-specific KB entry exists. |
-| Compiled IR | 2/2 | All inherited, Static, Main, and Security clauses map to full compiled IR with empty residual and exclusive `registerIrCard` registration. |
-| Observable behavior | 2/2 | Public Option use, real EX7-059 attack cost, and a real Security check prove deletion, placement, waiver, inherited trigger, and exact zones. |
-| Peer/stack proof | 2/2 | Mixed-cost opposing Digimon and a real EX7-059/Der Blitz stack prove lowest-cost selection and source-card behavior. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                         |
+| ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Option identity/cost/trait, inherited effect-trash De-Digivolve, Three Musketeers color waiver, lowest-cost Main deletion/placement, and Security deletion are recorded; no card-specific KB entry exists. |
+| Compiled IR         |   2/2 | All inherited, Static, Main, and Security clauses map to full compiled IR with empty residual and exclusive `registerIrCard` registration.                                                                       |
+| Observable behavior |   2/2 | Public Option use, real EX7-059 attack cost, and a real Security check prove deletion, placement, waiver, inherited trigger, and exact zones.                                                                    |
+| Peer/stack proof    |   2/2 | Mixed-cost opposing Digimon and a real EX7-059/Der Blitz stack prove lowest-cost selection and source-card behavior.                                                                                             |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                     |
 
 #### Evidence
 
@@ -4493,13 +4493,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All six focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Option identity/cost/trait, inherited effect-trash memory gain, Three Musketeers waiver, level 3/4/5 Main deletions/placement, and Security deletions are recorded; no card-specific KB entry exists. |
-| Compiled IR | 2/2 | All inherited, Static, Main, and Security clauses map to full compiled IR with empty residual and exclusive `registerIrCard` registration. |
-| Observable behavior | 2/2 | Public Option use, real EX7-059 attack cost, and a real Security check prove memory, waiver, three deletions, placement, payment, and exact zones. |
-| Peer/stack proof | 2/2 | A real EX7-059 stack plus opposing level 3 through 7 fixtures prove source-card behavior and exact level filtering. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                    |
+| ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Option identity/cost/trait, inherited effect-trash memory gain, Three Musketeers waiver, level 3/4/5 Main deletions/placement, and Security deletions are recorded; no card-specific KB entry exists. |
+| Compiled IR         |   2/2 | All inherited, Static, Main, and Security clauses map to full compiled IR with empty residual and exclusive `registerIrCard` registration.                                                                  |
+| Observable behavior |   2/2 | Public Option use, real EX7-059 attack cost, and a real Security check prove memory, waiver, three deletions, placement, payment, and exact zones.                                                          |
+| Peer/stack proof    |   2/2 | A real EX7-059 stack plus opposing level 3 through 7 fixtures prove source-card behavior and exact level filtering.                                                                                         |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                |
 
 #### Evidence
 
@@ -4527,13 +4527,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All nine focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Exact Option identity/cost/trait, Trash/Your Turn trigger and cost, global delayed grant, Security deletion, and Q3871/Q3872/Q5728/Q5729 are recorded. |
-| Compiled IR | 2/2 | Trash watcher, exact-name filter, deck-bottom cost, gained trigger/chooser/duration, and Security filter map to full IR with empty residual and exclusive `registerIrCard`. |
-| Observable behavior | 2/2 | Public Option use, public evolution, real turn progression, and a real Security check prove every clause and all four rulings. |
-| Peer/stack proof | 2/2 | Exact and near-name Lilithmon evolutions, two opposing Digimon, immune EX2-007, and a real Partition stack prove the critical interactions. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                    |
+| ------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Exact Option identity/cost/trait, Trash/Your Turn trigger and cost, global delayed grant, Security deletion, and Q3871/Q3872/Q5728/Q5729 are recorded.                      |
+| Compiled IR         |   2/2 | Trash watcher, exact-name filter, deck-bottom cost, gained trigger/chooser/duration, and Security filter map to full IR with empty residual and exclusive `registerIrCard`. |
+| Observable behavior |   2/2 | Public Option use, public evolution, real turn progression, and a real Security check prove every clause and all four rulings.                                              |
+| Peer/stack proof    |   2/2 | Exact and near-name Lilithmon evolutions, two opposing Digimon, immune EX2-007, and a real Partition stack prove the critical interactions.                                 |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                |
 
 #### Evidence
 
@@ -4562,13 +4562,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All twelve focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Identity/stats/traits, standard and alternate evolution, X-Antibody exclusion, optional free Option use, both costed triggers, highest-level deletion, and Security trash are recorded; no card-specific KB entry exists. |
-| Compiled IR | 2/2 | Both When Digivolving effects, When Attacking mirror, exact stack cost/filter, superlative target and Security action map to full IR with empty residual and exclusive `registerIrCard`. |
-| Observable behavior | 2/2 | Public standard/alternate evolution and attack flows prove all clauses, costs, refusal, insufficient payment, exact zones, and continuation after failed deletion. |
-| Peer/stack proof | 2/2 | EX7-013, EX7-058, EX7-059, Three Musketeers/nonmatching sources and an X-Antibody host prove the evolution and trait contracts across real stacks. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                                                                                  |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Identity/stats/traits, standard and alternate evolution, X-Antibody exclusion, optional free Option use, both costed triggers, highest-level deletion, and Security trash are recorded; no card-specific KB entry exists. |
+| Compiled IR         |   2/2 | Both When Digivolving effects, When Attacking mirror, exact stack cost/filter, superlative target and Security action map to full IR with empty residual and exclusive `registerIrCard`.                                  |
+| Observable behavior |   2/2 | Public standard/alternate evolution and attack flows prove all clauses, costs, refusal, insufficient payment, exact zones, and continuation after failed deletion.                                                        |
+| Peer/stack proof    |   2/2 | EX7-013, EX7-058, EX7-059, Three Musketeers/nonmatching sources and an X-Antibody host prove the evolution and trait contracts across real stacks.                                                                        |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                                                                              |
 
 #### Evidence
 
@@ -4598,13 +4598,13 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 Score: **8/10 provisional**. All fourteen focused tests pass; collection delivery gates remain coordinator-owned.
 
-| Area | Score | Evidence |
-| --- | ---: | --- |
-| Catalog and rules | 2/2 | Identity/cost/colors/trait, LIBERATOR Digimon-or-Tamer waiver, reveal/add/rest, reduced evolution, Security play/add-to-hand, and Q3873 are recorded. |
-| Compiled IR | 2/2 | Static waiver scope, RevealAdd destinations, paid reduced evolution, Security zones/filter/order map to full IR with empty residual and exclusive `registerIrCard`. |
-| Observable behavior | 2/2 | Public Main use, evolution, refusal, and real Security checks prove every printed clause, cost, destination, and boundary. |
-| Peer/stack proof | 2/2 | LIBERATOR Digimon/Tamer/breeding fixtures, mixed reveal cards, legal evolution stack, and hand/trash Security candidates prove the shared filters. |
-| Delivery gates | 0/2 | Set-wide closeout remains coordinator-owned. |
+| Area                | Score | Evidence                                                                                                                                                            |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and rules   |   2/2 | Identity/cost/colors/trait, LIBERATOR Digimon-or-Tamer waiver, reveal/add/rest, reduced evolution, Security play/add-to-hand, and Q3873 are recorded.               |
+| Compiled IR         |   2/2 | Static waiver scope, RevealAdd destinations, paid reduced evolution, Security zones/filter/order map to full IR with empty residual and exclusive `registerIrCard`. |
+| Observable behavior |   2/2 | Public Main use, evolution, refusal, and real Security checks prove every printed clause, cost, destination, and boundary.                                          |
+| Peer/stack proof    |   2/2 | LIBERATOR Digimon/Tamer/breeding fixtures, mixed reveal cards, legal evolution stack, and hand/trash Security candidates prove the shared filters.                  |
+| Delivery gates      |   0/2 | Set-wide closeout remains coordinator-owned.                                                                                                                        |
 
 #### Evidence
 
@@ -5254,6 +5254,7 @@ passed**; scoped Oxlint, Oxfmt, and `git diff --check` pass.
 
 - No Digi-Egg cards in deck or security.
 - No injected timing may count as behavioral proof.
+
 ### EX7-010 — Q3831 breeding-area static grant
 
 - The public battle-area trait-grant behavior passes.
@@ -5362,82 +5363,82 @@ All 74 committed catalog records were matched to 74 production modules and 74 di
 
 Generated from the committed local knowledge base with `node tools/kb/query.mjs card <ID> --json` on 2026-09-12. Every listed Q&A must be covered by the corresponding card report/test; `none` is backed by the command result, not inference.
 
-| Card | Q&A ids | Errata | Banlist |
-| --- | --- | --- | --- |
-| EX7-001 | none | none | none |
-| EX7-002 | none | none | none |
-| EX7-003 | none | none | none |
-| EX7-004 | none | none | none |
-| EX7-005 | none | none | none |
-| EX7-006 | none | none | none |
-| EX7-007 | Q3828 | none | none |
-| EX7-008 | Q3829 | none | none |
-| EX7-009 | none | none | none |
-| EX7-010 | Q3830, Q3831 | none | none |
-| EX7-011 | none | none | none |
-| EX7-012 | none | none | none |
-| EX7-013 | Q3832 | none | none |
-| EX7-014 | Q3833, Q3834, Q3835, Q3836, Q4673, Q4674, Q4675, Q4676, Q6509, Q6718 | none | none |
-| EX7-015 | Q3837, Q3838, Q3839, Q3840 | none | none |
-| EX7-016 | Q3841 | none | none |
-| EX7-017 | none | none | none |
-| EX7-018 | none | none | none |
-| EX7-019 | none | none | none |
-| EX7-020 | none | none | none |
-| EX7-021 | Q3842, Q6041 | none | none |
-| EX7-022 | Q3843 | none | none |
-| EX7-023 | Q3844 | none | none |
-| EX7-024 | Q3845, Q4882 | none | none |
-| EX7-025 | none | none | none |
-| EX7-026 | none | none | none |
-| EX7-027 | none | present | none |
-| EX7-028 | Q3846 | none | none |
-| EX7-029 | none | none | none |
-| EX7-030 | Q3847 | present | none |
-| EX7-031 | Q3848, Q5838 | none | none |
-| EX7-032 | none | none | none |
-| EX7-033 | none | none | none |
-| EX7-034 | none | none | none |
-| EX7-035 | Q3849 | none | none |
-| EX7-036 | none | none | none |
-| EX7-037 | Q3850 | none | none |
-| EX7-038 | none | none | none |
-| EX7-039 | none | none | none |
-| EX7-040 | none | none | none |
-| EX7-041 | Q3851 | none | none |
-| EX7-042 | none | none | none |
-| EX7-043 | Q3852, Q4558 | none | none |
-| EX7-044 | Q4578 | none | none |
-| EX7-045 | none | none | none |
-| EX7-046 | none | none | none |
-| EX7-047 | none | none | none |
-| EX7-048 | Q4585 | none | none |
-| EX7-049 | Q3853, Q3854, Q3855, Q3856, Q6719 | none | none |
-| EX7-050 | Q3857 | none | none |
-| EX7-051 | none | none | none |
-| EX7-052 | Q3858, Q3859, Q3860 | none | none |
-| EX7-053 | none | none | none |
-| EX7-054 | Q3861, Q3862, Q3863 | none | none |
-| EX7-055 | none | none | none |
-| EX7-056 | none | none | none |
-| EX7-057 | none | none | none |
-| EX7-058 | Q3864, Q3865 | none | none |
-| EX7-059 | Q6391 | none | none |
-| EX7-060 | none | none | none |
-| EX7-061 | Q3866, Q3867, Q5169 | none | none |
-| EX7-062 | none | none | none |
-| EX7-063 | none | none | none |
-| EX7-064 | Q3868, Q3869 | none | present |
-| EX7-065 | none | none | none |
-| EX7-066 | none | none | none |
-| EX7-067 | Q3870 | none | none |
-| EX7-068 | none | none | none |
-| EX7-069 | none | none | none |
-| EX7-070 | none | none | none |
-| EX7-071 | none | none | none |
-| EX7-072 | Q3871, Q3872, Q5728, Q5729 | none | none |
-| EX7-073 | none | none | none |
-| EX7-074 | Q3873 | none | none |
+| Card    | Q&A ids                                                              | Errata  | Banlist |
+| ------- | -------------------------------------------------------------------- | ------- | ------- |
+| EX7-001 | none                                                                 | none    | none    |
+| EX7-002 | none                                                                 | none    | none    |
+| EX7-003 | none                                                                 | none    | none    |
+| EX7-004 | none                                                                 | none    | none    |
+| EX7-005 | none                                                                 | none    | none    |
+| EX7-006 | none                                                                 | none    | none    |
+| EX7-007 | Q3828                                                                | none    | none    |
+| EX7-008 | Q3829                                                                | none    | none    |
+| EX7-009 | none                                                                 | none    | none    |
+| EX7-010 | Q3830, Q3831                                                         | none    | none    |
+| EX7-011 | none                                                                 | none    | none    |
+| EX7-012 | none                                                                 | none    | none    |
+| EX7-013 | Q3832                                                                | none    | none    |
+| EX7-014 | Q3833, Q3834, Q3835, Q3836, Q4673, Q4674, Q4675, Q4676, Q6509, Q6718 | none    | none    |
+| EX7-015 | Q3837, Q3838, Q3839, Q3840                                           | none    | none    |
+| EX7-016 | Q3841                                                                | none    | none    |
+| EX7-017 | none                                                                 | none    | none    |
+| EX7-018 | none                                                                 | none    | none    |
+| EX7-019 | none                                                                 | none    | none    |
+| EX7-020 | none                                                                 | none    | none    |
+| EX7-021 | Q3842, Q6041                                                         | none    | none    |
+| EX7-022 | Q3843                                                                | none    | none    |
+| EX7-023 | Q3844                                                                | none    | none    |
+| EX7-024 | Q3845, Q4882                                                         | none    | none    |
+| EX7-025 | none                                                                 | none    | none    |
+| EX7-026 | none                                                                 | none    | none    |
+| EX7-027 | none                                                                 | present | none    |
+| EX7-028 | Q3846                                                                | none    | none    |
+| EX7-029 | none                                                                 | none    | none    |
+| EX7-030 | Q3847                                                                | present | none    |
+| EX7-031 | Q3848, Q5838                                                         | none    | none    |
+| EX7-032 | none                                                                 | none    | none    |
+| EX7-033 | none                                                                 | none    | none    |
+| EX7-034 | none                                                                 | none    | none    |
+| EX7-035 | Q3849                                                                | none    | none    |
+| EX7-036 | none                                                                 | none    | none    |
+| EX7-037 | Q3850                                                                | none    | none    |
+| EX7-038 | none                                                                 | none    | none    |
+| EX7-039 | none                                                                 | none    | none    |
+| EX7-040 | none                                                                 | none    | none    |
+| EX7-041 | Q3851                                                                | none    | none    |
+| EX7-042 | none                                                                 | none    | none    |
+| EX7-043 | Q3852, Q4558                                                         | none    | none    |
+| EX7-044 | Q4578                                                                | none    | none    |
+| EX7-045 | none                                                                 | none    | none    |
+| EX7-046 | none                                                                 | none    | none    |
+| EX7-047 | none                                                                 | none    | none    |
+| EX7-048 | Q4585                                                                | none    | none    |
+| EX7-049 | Q3853, Q3854, Q3855, Q3856, Q6719                                    | none    | none    |
+| EX7-050 | Q3857                                                                | none    | none    |
+| EX7-051 | none                                                                 | none    | none    |
+| EX7-052 | Q3858, Q3859, Q3860                                                  | none    | none    |
+| EX7-053 | none                                                                 | none    | none    |
+| EX7-054 | Q3861, Q3862, Q3863                                                  | none    | none    |
+| EX7-055 | none                                                                 | none    | none    |
+| EX7-056 | none                                                                 | none    | none    |
+| EX7-057 | none                                                                 | none    | none    |
+| EX7-058 | Q3864, Q3865                                                         | none    | none    |
+| EX7-059 | Q6391                                                                | none    | none    |
+| EX7-060 | none                                                                 | none    | none    |
+| EX7-061 | Q3866, Q3867, Q5169                                                  | none    | none    |
+| EX7-062 | none                                                                 | none    | none    |
+| EX7-063 | none                                                                 | none    | none    |
+| EX7-064 | Q3868, Q3869                                                         | none    | present |
+| EX7-065 | none                                                                 | none    | none    |
+| EX7-066 | none                                                                 | none    | none    |
+| EX7-067 | Q3870                                                                | none    | none    |
+| EX7-068 | none                                                                 | none    | none    |
+| EX7-069 | none                                                                 | none    | none    |
+| EX7-070 | none                                                                 | none    | none    |
+| EX7-071 | none                                                                 | none    | none    |
+| EX7-072 | Q3871, Q3872, Q5728, Q5729                                           | none    | none    |
+| EX7-073 | none                                                                 | none    | none    |
+| EX7-074 | Q3873                                                                | none    | none    |
 
 ## Open items
 

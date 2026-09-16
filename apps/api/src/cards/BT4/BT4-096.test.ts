@@ -115,7 +115,9 @@ describe("BT4-096 Izzy Izumi", () => {
         response: { kind: "orderCards", order: orderedIds },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck[0]?.instanceId === orderedIds[0]);
+    await settle(
+      () => s.state.pendingDecision === undefined && s.state.players[0]!.deck[0]?.instanceId === orderedIds[0],
+    );
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([...orderedIds, sentinelId]);
   });

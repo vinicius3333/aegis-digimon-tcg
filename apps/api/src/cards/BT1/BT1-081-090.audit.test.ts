@@ -170,10 +170,7 @@ describe("BT1-081 through BT1-090 IR coverage", () => {
           choose: 1,
           condition: { kind: "allOf" },
           cost: { kind: "suspend" },
-          options: [
-            [{ kind: "Hatch" }],
-            [{ kind: "MovePermanent", direction: "toBattle" }],
-          ],
+          options: [[{ kind: "Hatch" }], [{ kind: "MovePermanent", direction: "toBattle" }]],
           optional: true,
         },
       ],

@@ -46,8 +46,9 @@ describe("BT2 persisted IR", () => {
     expect(productionFiles).toEqual(cardIds.map((cardId) => `${cardId}.ts`));
 
     const indexSource = readFileSync(join(bt2Directory, "index.ts"), "utf8");
-    const importedCardIds = Array.from(indexSource.matchAll(/import\s+["']\.\/(BT2-\d{3})\.js["'];/g), ([, cardId]) =>
-      cardId,
+    const importedCardIds = Array.from(
+      indexSource.matchAll(/import\s+["']\.\/(BT2-\d{3})\.js["'];/g),
+      ([, cardId]) => cardId,
     ).sort();
     expect(importedCardIds).toEqual(cardIds);
 

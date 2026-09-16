@@ -32,7 +32,9 @@ describe("BT4-037 Kudamon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT4-037"), 5000);
 
     expect(s.perm("target").currentDP).toBe(s.perm("target").baseDP);

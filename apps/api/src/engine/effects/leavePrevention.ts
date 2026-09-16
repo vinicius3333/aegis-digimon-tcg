@@ -139,7 +139,12 @@ export async function consultLeavePrevention(
       // A face-down inherited/linked card has no available effect text. Instance-only
       // delayed reactions have no permanent source to inspect and retain their existing
       // lifecycle; physical role validation applies only to source-backed subscriptions.
-      if (srcPerm !== undefined && repl.sourceInstanceId !== undefined && (sourceRole === undefined || sourceCard?.faceUp !== true)) continue;
+      if (
+        srcPerm !== undefined &&
+        repl.sourceInstanceId !== undefined &&
+        (sourceRole === undefined || sourceCard?.faceUp !== true)
+      )
+        continue;
       eligible.push({
         repl,
         ctx,

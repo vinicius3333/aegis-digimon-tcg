@@ -47,7 +47,6 @@ Source: `docs/audits/BT8-reaudit/RUN.md` (commit 59db5fece).
 
 Source: `docs/audits/BT8-STATIC-AUDIT.md` (commit eb1a58b75).
 
-
 - Focused changed-card batch: 9 files, 44 tests passed.
 - Catalog/module synchronization: 1 file, 116 tests passed.
 - Full BT8 collection: 125 files, 485 tests passed.
@@ -1482,14 +1481,14 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10; correcte
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65047-65075` identifies a purple Mega/Data Mysterious
+- Catalog: `cards.json:65047-65075` identifies a purple Mega/Data Mysterious
   Beast, level 6, play 11, DP 13000, with either purple or yellow level-5
   evolution for cost 3. The End of Attack clause is a free evolution into a
   Rasenmon in hand while ignoring requirements; End of Your Turn trashes the
   top security card; the inherited Your Turn clause reacts when this card is
   trashed by a Rasenmon effect, unsuspends one own Digimon, and grants +3000 DP
   for the turn.
-* Direct executable authority: `apps/api/src/cards/BT8/BT8-081.ts:8-102` has
+- Direct executable authority: `apps/api/src/cards/BT8/BT8-081.ts:8-102` has
   an EndOfAttack self Digivolve from hand filtered by the exact name Rasenmon,
   `payCost: false`, `ignoreReqs: true`, and optional; EndOfYourTurn uses
   SecurityManipulation/trashTop for the own security; the inherited SubTrigger
@@ -1497,17 +1496,17 @@ Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements i
   whose name is Rasenmon, then binds one own Digimon for Unsuspend and +3000
   forTheTurn. It ends with `coverage: "full"`, an empty residual, and one
   registerIrCard call.
-* Focused proof: `BT8-081.test.ts:12-19` statically asserts the requirement-free
+- Focused proof: `BT8-081.test.ts:12-19` statically asserts the requirement-free
   field combination; `:21-60` proves legal Rasenmon evolution and rejects a
   non-Rasenmon hand card; `:62-66` proves security trash; `:68-120` proves
   inherited Rasenmon Digi-Burst and rejects a non-Rasenmon source. The negative
   tests establish the name boundary, while the direct filter establishes the
   self/controller boundary.
-* Correction: the direct module initially omitted `ignoreReqs`; because the
+- Correction: the direct module initially omitted `ignoreReqs`; because the
   catalog explicitly says “ignoring its digivolution requirements,” this was a
   proven one-field gap. The field was added at line 36 and the static assertion
   was added; no snapshot file was changed.
-* Snapshot drift: `effects.json:118730-118787` already contained
+- Snapshot drift: `effects.json:118730-118787` already contained
   `ignoreReqs: true` at `:118744`, so the pre-fix direct module was stale versus
   the generated snapshot. After correction, the executable field and snapshot
   agree.
@@ -1519,26 +1518,26 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65078-65105` identifies a purple/yellow Mega/Vaccine
+- Catalog: `cards.json:65078-65105` identifies a purple/yellow Mega/Vaccine
   Fallen Angel, level 6, play 12, DP 12000, with purple or yellow level-5
   evolution for cost 4. When Digivolving, a purple stack card independently
   enables deletion of one opposing level-4-or-lower Digimon and a yellow stack
   card independently enables Recovery +1; On Deletion optionally plays one
   purple or yellow level-4-or-lower Digimon from trash for free.
-* Direct executable authority: `BT8-082.ts:7-75` uses two independent
+- Direct executable authority: `BT8-082.ts:7-75` uses two independent
   `selfDigivolutionStackHasColor` conditions, with opponent level <=4 deletion
   for Purple and own-deck `SecurityManipulation/addTop` for Yellow. Its
   OnDeletion action is optional `PlayWithoutCost`, from trash, own, Digimon,
   Purple-or-Yellow, level <=4, with no cost; registration is exclusive and
   residual is empty.
-* Focused proof and boundaries: `BT8-082.test.ts:11-95` tests both branches
+- Focused proof and boundaries: `BT8-082.test.ts:11-95` tests both branches
   from one purple-yellow source and each color alone; `:97-199` tests On
   Deletion play, a card from the deleted stack, and the resulting paired
   effect. These fixtures are the legal BT9-076 Maycrackmon -> BT8-082 stack.
   Q1761/Q1762 apply directly: separate branch actions can both resolve and a
   single purple-yellow stack card can satisfy both. The color boundary is
   stack-card color, not merely the host's printed colors.
-* Snapshot drift: `effects.json:118788-118838` expresses the same branches with
+- Snapshot drift: `effects.json:118788-118838` expresses the same branches with
   raw stack-color filters, while the direct module uses the structured
   `selfDigivolutionStackHasColor` primitive. This is representation drift, not
   a proven behavior gap; the direct module remains authoritative.
@@ -1550,25 +1549,25 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65108-65130` identifies a purple Mega/Virus Demon Lord,
+- Catalog: `cards.json:65108-65130` identifies a purple Mega/Virus Demon Lord,
   level 6, play 13, DP 12000, purple level-5 evolution cost 4. On Play, with
   at least five cards named Myotismon in own trash, it deletes one opposing
   unsuspended Digimon and trashes the top opposing security. When Digivolving,
   it trashes the top five own deck cards, then gains one memory if any
   Myotismon-named card is in own trash.
-* Direct executable authority: `BT8-083.ts:5-93` encodes both OnPlay actions
+- Direct executable authority: `BT8-083.ts:5-93` encodes both OnPlay actions
   with the same own-trash count >=5/name Myotismon condition and an opponent
   unsuspended Digimon target; its WhenDigivolving sequence is TrashTopDeck 5
   followed by a post-trash Myotismon count >=1 and GainMemory 1. It is full
   coverage with empty residual and one registerIrCard call.
-* Focused proof and boundaries: `BT8-083.test.ts:6-36` proves the two OnPlay
+- Focused proof and boundaries: `BT8-083.test.ts:6-36` proves the two OnPlay
   processes; `:38-61` proves exactly five cards are trashed and the conditional
   memory; `:63-78` rejects four Myotismon cards. The `BT8-080` Myotismon ->
   MaloMyotismon fixture checks the legal purple level-5 evolution/name boundary.
   Q5975 supports continuing the remaining activated process if the source
   leaves during the first process; the direct sequential actions preserve that
   interpretation.
-* Snapshot drift: `effects.json:118839-118899` matches the direct actions and
+- Snapshot drift: `effects.json:118839-118899` matches the direct actions and
   conditions. No correction was proven necessary.
 
 ### BT8-084 — Kimeramon
@@ -1578,28 +1577,28 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65133-65185` identifies a white level-5 Ultimate/Data
+- Catalog: `cards.json:65133-65185` identifies a white level-5 Ultimate/Data
   Composite, play 8, DP 8000, with every color's level-4 evolution cost 4.
   When Digivolving, it may place a level-5-or-lower Digimon card from own trash
   under itself, then up to four opposing Digimon get -1000 for each of this
   Digimon's colors until the end of the opponent's next turn. During the own
   turn it is also treated as having its evolution-card colors and gets +4000
   while it has at least four colors.
-* Direct executable authority: `BT8-084.ts:6-88` is hand-fixed IR. PlaceUnder
+- Direct executable authority: `BT8-084.ts:6-88` is hand-fixed IR. PlaceUnder
   selects one own Digimon level <=5 from `from: ["trash"]`, optional; the
   subsequent up-to-four opponent Digimon receive -1000 with
   `selfAndDigivolutionCardColors` scaling and `untilOpponentTurnEnd`. The
   YourTurn GrantStatic uses `hasAllDigivolutionColors`, and the Aura grants
   +4000 while structured `selfColorCount >= 4` holds. Coverage is full,
   residual empty, and registration is exclusive.
-* Focused proof and boundaries: `BT8-084.test.ts:6-35` uses legal AD1-001 red
+- Focused proof and boundaries: `BT8-084.test.ts:6-35` uses legal AD1-001 red
   level-4 -> Kimeramon evidence, places a blue card from trash, and checks the
   resulting three-color -1000 scaling against four opponent targets;
   `:37-44` proves stack-color treatment and +4000 at four colors. Q1763
   confirms effective white plus evolution-card colors; Q1940 confirms that an
   inherited timing effect cannot trigger after its timing has passed. The
   `place-under` source, self-host, color, and duration boundaries are explicit.
-* Snapshot drift: `effects.json:118900-118950` has a PlaceUnder shape with a
+- Snapshot drift: `effects.json:118900-118950` has a PlaceUnder shape with a
   generic `underFilter`/zone representation and raw `unit: "colors"` scaling.
   The direct hand-fixed module instead uses `from: ["trash"]` and
   `selfAndDigivolutionCardColors`, matching the catalog and interpreter
@@ -1613,24 +1612,24 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65188-65201` identifies a red play-3 Tamer. At the
+- Catalog: `cards.json:65188-65201` identifies a red play-3 Tamer. At the
   start of the own main phase, a red Digimon grants one memory. During the own
   turn, when an own Digimon with two or more colors attacks, suspending this
   Tamer may delete one opposing Digimon with DP <=3000. Security plays the
   card for free.
-* Direct executable authority: `BT8-085.ts:8-93` uses a StartOfYourMainPhase
+- Direct executable authority: `BT8-085.ts:8-93` uses a StartOfYourMainPhase
   own battle-area red Digimon condition, a YourTurn `whenAttacking` source
   filter requiring own Digimon and `multicolor: true`, and an optional
   self-suspend cost before deleting one opponent Digimon DP <=3000. Its
   Security effect is self PlayWithoutCost, `isSecurity: true`; coverage is
   full with no residual.
-* Focused proof and boundaries: `BT8-085.test.ts:8-32` proves multicolor
+- Focused proof and boundaries: `BT8-085.test.ts:8-32` proves multicolor
   attack, deletion, and Tamer suspension; `:34-60` proves that a color only in
   an evolution card does not make the attacker multicolor; `:62-75` proves the
   red main-phase memory; `:77-89` proves security play. The legal stack-only
   boundary uses BT10-059 under BT1-015. Q1764 and
   `matching/permanent.ts:672-706` support current permanent colors only.
-* Snapshot drift: `effects.json:118951-119006` matches the direct module. No
+- Snapshot drift: `effects.json:118951-119006` matches the direct module. No
   direct correction was proven necessary.
 
 ### BT8-086 — Hiro Amanokawa
@@ -1640,22 +1639,22 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65204-65217` identifies a red play-4 Tamer. At the
+- Catalog: `cards.json:65204-65217` identifies a red play-4 Tamer. At the
   start of the own turn, memory <=2 becomes 3. During the own turn, an attack
   with an own Digimon whose name contains Gammamon or whose level is >=5 lets
   this Tamer suspend to grant one own Digimon +2000 for the turn; Security
   plays it for free.
-* Direct executable authority: `BT8-086.ts:8-100` uses `memoryAtMost: 2` and
+- Direct executable authority: `BT8-086.ts:8-100` uses `memoryAtMost: 2` and
   exact SetMemory 3; its attack SubTrigger is an own Digimon OR condition,
   matching name Gammamon or level >=5, followed by optional self suspension
   and +2000 `forTheTurn` to one own Digimon. Security is self free play with
   `isSecurity: true`; coverage is full and residual empty.
-* Focused proof and boundaries: `BT8-086.test.ts:8-34` proves the level-5
+- Focused proof and boundaries: `BT8-086.test.ts:8-34` proves the level-5
   branch and +2000; `:36-61` adds static behavioral proof for the independent
   Gammamon-name branch using BT8-008; `:63-69` proves the <=2 memory boundary;
   `:71-79` proves security play. The OR/name/level boundary is represented in
   the direct filter rather than conflated into a single trait check.
-* Snapshot drift: `effects.json:119007-119058` matches the direct module. No
+- Snapshot drift: `effects.json:119007-119058` matches the direct module. No
   direct correction was proven necessary.
 
 ### BT8-087 — T.K. Takaishi
@@ -1665,21 +1664,21 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65220-65233` identifies a blue play-4 Tamer. At the
+- Catalog: `cards.json:65220-65233` identifies a blue play-4 Tamer. At the
   start of the own turn, memory <=2 becomes 3. During the opponent's turn,
   when an opponent Digimon attacks one of the own blue Digimon, suspending
   this Tamer may draw one; Security plays it for free.
-* Direct executable authority: `BT8-087.ts:5-80` uses exact SetMemory 3 under
+- Direct executable authority: `BT8-087.ts:5-80` uses exact SetMemory 3 under
   memory <=2. Its OpponentsTurn `whenOpponentAttacks` trigger has
   `triggerDefenderMatchesFilter` for an own blue Digimon, then optional
   self-suspend cost and Draw 1 with abort-on-decline. Security is free self
   play; coverage is full and residual empty.
-* Focused proof and boundaries: `BT8-087.test.ts:8-36` proves attack on a
+- Focused proof and boundaries: `BT8-087.test.ts:8-36` proves attack on a
   blue defender, suspension, and draw; `:38-66` rejects a non-blue defender;
   `:68-74` proves the memory gate; `:76-84` proves security play. This directly
   applies Q1765: the trigger is attack target/defender color, not a generic
   block event.
-* Snapshot drift: `effects.json:119059-119095` matches the direct module. No
+- Snapshot drift: `effects.json:119059-119095` matches the direct module. No
   direct correction was proven necessary.
 
 ### BT8-088 — Davis Motomiya & Ken Ichijoji
@@ -1689,24 +1688,24 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65236-65249` identifies a blue/green play-4 Tamer.
+- Catalog: `cards.json:65236-65249` identifies a blue/green play-4 Tamer.
   At the start of the own main phase, a blue Digimon independently grants one
   memory and a green Digimon independently grants one memory. During the own
   turn, when an own Digimon digivolves into a Digimon with two or more colors,
   suspending this Tamer may unsuspend that Digimon; Security plays it for free.
-* Direct executable authority: `BT8-088.ts:4-98` has two independent
+- Direct executable authority: `BT8-088.ts:4-98` has two independent
   `youHave`/GainMemory actions, one blue and one green, so a single blue-green
   permanent can satisfy both. Its own-turn SubTrigger is
   `whenOneOfYoursDigivolves` with an own `multicolor: true` source and an
   Unsuspend bound to `triggerSubject`, paid by optional self suspension.
   Security is free self play; coverage is full and residual empty.
-* Focused proof and boundaries: `BT8-088.test.ts:8-34` uses the legal BT8-010
+- Focused proof and boundaries: `BT8-088.test.ts:8-34` uses the legal BT8-010
   -> BT8-015 evolution to prove the target binding and self-suspend; `:36-50`
   proves both independent memory clauses from one BT8-053 blue-green card;
   `:52-60` proves Security play. Q1766/Q1767 support independent clauses and
   one multicolor card satisfying both. Q2150 is non-applicable because this
   catalog entry has no reveal effect.
-* Snapshot drift: `effects.json:119096-119157` matches the direct module. No
+- Snapshot drift: `effects.json:119096-119157` matches the direct module. No
   direct correction was proven necessary.
 
 ### BT8-089 — Cody Hida
@@ -1716,22 +1715,22 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65252-65265` identifies a yellow play-3 Tamer. At the
+- Catalog: `cards.json:65252-65265` identifies a yellow play-3 Tamer. At the
   start of the own main phase, a yellow Digimon grants one memory. During the
   own turn, when an own Digimon with two or more colors attacks, suspending
   this Tamer may give one opposing Digimon -2000 DP for the turn; Security
   plays it for free.
-* Direct executable authority: `BT8-089.ts:8-91` uses a StartOfYourMainPhase
+- Direct executable authority: `BT8-089.ts:8-91` uses a StartOfYourMainPhase
   own battle-area yellow condition, a YourTurn own multicolor attack source,
   and an optional self-suspend cost before ModifyDP -2000 to one opponent for
   the turn. Security is self free play; coverage is full and residual empty.
-* Focused proof and boundaries: `BT8-089.test.ts:8-34` proves multicolor attack,
+- Focused proof and boundaries: `BT8-089.test.ts:8-34` proves multicolor attack,
   -2000 DP, and suspension; `:36-62` proves stack-only colors do not satisfy
   multicolor; `:64-77` proves yellow main-phase memory; `:79-87` proves
   security play. The legal BT10-059-under-BT1-015 fixture and Q1768 establish
   the printed-color/name boundary. The direct action correctly gives -2000;
   it does not delete, matching the catalog wording.
-* Snapshot drift: `effects.json:119158-119217` matches the direct module. No
+- Snapshot drift: `effects.json:119158-119217` matches the direct module. No
   direct correction was proven necessary.
 
 ### BT8-090 — Kari Kamiya
@@ -1741,20 +1740,20 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-081-090.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65268-65281` identifies a yellow play-4 Tamer. At the
+- Catalog: `cards.json:65268-65281` identifies a yellow play-4 Tamer. At the
   start of the own turn, memory <=2 becomes 3. During the own turn, when a
   card is added to the own security stack, suspending this Tamer may gain one
   memory; Security plays it for free.
-* Direct executable authority: `BT8-090.ts:8-75` has exact SetMemory 3 under
+- Direct executable authority: `BT8-090.ts:8-75` has exact SetMemory 3 under
   `memoryAtMost: 2`; its YourTurn `whenAddSecurity` SubTrigger is gated by
   `triggerSecurityIsYours`, then optionally suspends itself to GainMemory 1.
   Security is self free play with `isSecurity: true`; coverage is full and
   residual empty.
-* Focused proof and boundaries: `BT8-090.test.ts:9-35` proves a card added to
+- Focused proof and boundaries: `BT8-090.test.ts:9-35` proves a card added to
   own security triggers the Tamer; `:37-43` proves the start-turn memory gate;
   `:45-53` proves security play. The `triggerSecurityIsYours` primitive keeps
   opponent security changes outside the trigger boundary.
-* Snapshot drift: `effects.json:119218-119259` matches the direct module. No
+- Snapshot drift: `effects.json:119218-119259` matches the direct module. No
   direct correction was proven necessary.
 
 ### BT8-091 — Willis
@@ -2301,7 +2300,7 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10.
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-111-112.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65604-65626` identifies Purple Creepymon as a level 6
+- Catalog: `cards.json:65604-65626` identifies Purple Creepymon as a level 6
   Mega/Virus Digimon, play cost 12, DP 11000, with a Purple level-5
   digivolution for cost 3 and traits Demon Lord plus Seven Great Demon Lords.
   Its first clause mills two own deck cards for each opposing Digimon in play;
@@ -2309,7 +2308,7 @@ Clause trace merged from `internal-docs/audits/BT8/BT8-111-112.md`. Statements i
   Digimon level 5 or lower from trash without paying memory cost. Its attack
   clause is once per turn and, for each ten cards in its trash, mills three
   opponent deck cards and gives itself +3000 DP for the turn.
-* Direct executable authority: `BT8-111.ts:4-46` uses a mine-controlled
+- Direct executable authority: `BT8-111.ts:4-46` uses a mine-controlled
   `TrashTopDeck` amount 2 with a battle-area opponent Digimon scaling filter,
   records the actual moved count as `creepymonMilled`, and gates an optional
   free trash-origin play to that count being at least 4. The target is exactly
@@ -2317,18 +2316,18 @@ Clause trace merged from `internal-docs/audits/BT8/BT8-111-112.md`. Statements i
   `WhenAttacking`/`OncePerTurn`, opponent deck trash amount 3, and two own
   trash-count-per-10 scalings: one for the mill and one for self +3000 DP
   `forTheTurn`. Registration at `:94` is exclusive IR registration.
-* Clause and boundary proof: `BT8-111.test.ts:7-55` statically asserts the
+- Clause and boundary proof: `BT8-111.test.ts:7-55` statically asserts the
   opponent-count mill, actual-count threshold, Purple/level-5-or-lower
   trash target, attack frequency, opponent deck destination, and per-ten
   scaling. Its runtime-shaped fixture at `:51-75` contains two opposing
   Digimon and a legal `BT10-012` Purple level-5 base, proving the intended
   evolution stack and the level/color play boundary by construction. There is
   no inherited, Security, or trait-filter clause to add.
-* Correction: no direct behavior gap was proven. `compiled` was exported at
+- Correction: no direct behavior gap was proven. `compiled` was exported at
   `BT8-111.ts:4` solely so the colocated static proof can inspect the exact
   registered object; registration remains the one `registerIrCard` call. The
   static test was strengthened without changing executable semantics.
-* Snapshot drift: `effects.json:120110-120165` matches the filters, amounts,
+- Snapshot drift: `effects.json:120110-120165` matches the filters, amounts,
   free-play target, and attack scaling, but omits `trackCount` and represents
   the >=4 condition as raw text (`:120138`) rather than the direct structured
   `namedCountAtLeast` condition. It also spells the direct `forTheTurn`
@@ -2343,7 +2342,7 @@ Static closeout (`docs/audits/BT8-STATIC-AUDIT.md`, 2026-09-05): 10/10; correcte
 
 Clause trace merged from `internal-docs/audits/BT8/BT8-111-112.md`. Statements in it about provisional scores, deferred gates, or snapshot drift describe the pre-closeout worker pass and are superseded by the Gates section above.
 
-* Catalog: `cards.json:65629-65656` identifies White Imperialdramon:
+- Catalog: `cards.json:65629-65656` identifies White Imperialdramon:
   Paladin Mode as a level 7 Mega/Vaccine Digimon, play cost 15, DP 16000,
   with either Blue level 6 or Green level 6 evolution for cost 7 and trait
   Ancient Holy Warrior. From hand, when one of the controller's Digimon would
@@ -2354,9 +2353,9 @@ Clause trace merged from `internal-docs/audits/BT8/BT8-111-112.md`. Statements i
   Digimon's own stack to its owner's deck bottom, trash all digivolution cards
   of one opponent Digimon, then return all opponent Digimon with no
   digivolution cards to their owners' deck bottoms in any order.
-* Direct executable authority: `BT8-112.ts:48-74` uses a
+- Direct executable authority: `BT8-112.ts:48-74` uses a
   `BeforePayCost` replacement for `wouldDigivolve` with exact `into:
-  {cardId: "BT8-112"}` and nested reduce-cost amount 4. Its cost targets one
+{cardId: "BT8-112"}` and nested reduce-cost amount 4. Its cost targets one
   own White level-7 Digimon from trash and returns it to deck bottom, matching
   the in-hand replacement and the two legal level-6 evolution alternatives.
   `BT8-112.ts:5-46` shares one body between both trigger timings. The first
@@ -2365,7 +2364,7 @@ Clause trace merged from `internal-docs/audits/BT8/BT8-111-112.md`. Statements i
   the source's own stack to deck bottom. The final Return targets all opponent
   Digimon with no stack and explicitly carries `order: "any"`. Registration at
   `:83` is exclusive IR registration.
-* Clause and boundary proof: `BT8-112.test.ts:5-31` statically asserts the
+- Clause and boundary proof: `BT8-112.test.ts:5-31` statically asserts the
   exact in-hand replacement, card ID, reduction amount, White level-7 trash
   filter, and deck-bottom cost destination. `:33-61` asserts that the first
   body action is optional, requires the source's own multicolor stack card,
@@ -2375,17 +2374,17 @@ Clause trace merged from `internal-docs/audits/BT8/BT8-111-112.md`. Statements i
   The legal stack boundary is the catalog's Blue-6-or-Green-6 requirement;
   the trait is not used as an accidental selector, and the White level-7
   requirement is restricted to the cost card in trash.
-* Corrections: four proven direct field gaps were corrected. `amount: "all"`
+- Corrections: four proven direct field gaps were corrected. `amount: "all"`
   models the printed unbounded stack trash without an arbitrary ceiling.
   `isSelfRef:
-  true` at `BT8-112.ts:24` prevents the return cost from selecting a
+true` at `BT8-112.ts:24` prevents the return cost from selecting a
   multicolor card under another own Digimon; `abortOnDecline: true` at `:17`
   prevents the final “Then” return from resolving when the optional first
   clause is declined, as required by comprehensive rule 15-7-2; and
   `order: "any"` at `:44` exposes the printed bottom-deck ordering choice to
   the shared Return primitive. These are card-local corrections; no shared
   engine primitive required a change.
-* Snapshot drift: `effects.json:120166-120252` represents the replacement as
+- Snapshot drift: `effects.json:120166-120252` represents the replacement as
   a Static action with a zone-based hand target and RawUnparsed reduction
   text, while the direct module has an executable `BeforePayCost` replacement
   with exact BT8-112 identity and structured cost. The trigger body snapshot

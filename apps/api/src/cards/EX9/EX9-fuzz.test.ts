@@ -87,7 +87,10 @@ describe("EX9 deterministic fuzz properties", () => {
       const setup = setupEngine(
         {
           0: {
-            hand: [{ card: payment, as: "payment" }, { card: "EX9-065", as: "titamon" }],
+            hand: [
+              { card: payment, as: "payment" },
+              { card: "EX9-065", as: "titamon" },
+            ],
             deck: ["BT1-009", "BT1-010", "BT1-011"],
           },
           1: { security: ["BT1-009", "BT1-010"] },

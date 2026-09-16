@@ -8,7 +8,10 @@ describe("BT12-010 Growlmon", () => {
       {
         0: {
           battleArea: [{ card: "BT12-007", as: "base" }],
-          hand: [{ card: "BT12-010", as: "growlmon" }, { card: "BT12-089", as: "takato" }],
+          hand: [
+            { card: "BT12-010", as: "growlmon" },
+            { card: "BT12-089", as: "takato" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -32,7 +35,10 @@ describe("BT12-010 Growlmon", () => {
       {
         0: {
           battleArea: [{ card: "BT12-007", as: "base" }],
-          hand: [{ card: "BT12-010", as: "growlmon" }, { card: "BT12-089", as: "takato" }],
+          hand: [
+            { card: "BT12-010", as: "growlmon" },
+            { card: "BT12-089", as: "takato" },
+          ],
         },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
@@ -53,8 +59,14 @@ describe("BT12-010 Growlmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT12-007", as: "base" }, { card: "BT12-089", as: "resident" }],
-          hand: [{ card: "BT12-010", as: "growlmon" }, { card: "BT12-089", as: "takato" }],
+          battleArea: [
+            { card: "BT12-007", as: "base" },
+            { card: "BT12-089", as: "resident" },
+          ],
+          hand: [
+            { card: "BT12-010", as: "growlmon" },
+            { card: "BT12-089", as: "takato" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

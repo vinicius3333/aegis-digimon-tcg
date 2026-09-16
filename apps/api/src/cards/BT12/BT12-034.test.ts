@@ -28,7 +28,9 @@ describe("BT12-034 Agumon", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT12-038", "BT12-092"]),
     );
-    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-010"]),
+    );
   });
 
   it("adds the single available search branch", async () => {

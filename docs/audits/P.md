@@ -41,9 +41,9 @@ Closing verification on 2026-09-12, with a global test lock, one worker and a 2 
 - Complete selection: 406 files, 3,671 tests passed. It contains all 265 Promo test files,
   139 mechanism files, persisted catalog parity and the audit-layout guard. Reproduce with:
   `TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/P
-  src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
-  src/engine/combatBattle.test.ts src/cards/promo-lm-rb.catalog-parity.test.ts
-  src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism`.
+src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
+src/engine/combatBattle.test.ts src/cards/promo-lm-rb.catalog-parity.test.ts
+src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism`.
 - Complete mechanisms independently passed 139 files / 2,081 tests after the sibling-prevention
   correction. The covered AD1-002 unsupported legacy payload diagnostic is outside Promo.
 - Final full `pnpm typecheck` passed shared, API and web with serialized workspace execution,
@@ -52,8 +52,8 @@ Closing verification on 2026-09-12, with a global test lock, one worker and a 2 
   and the corresponding `pnpm effects:check:set` passed: 249 synchronized records, 61 semantic
   Promo changes against the base, zero semantic or byte changes outside Promo.
 - Rendered UI regression: `pnpm --filter @aegis/web exec vitest run
-  test/promoEvolution.scenario.test.tsx test/ex10EvolutionStack.scenario.test.tsx
-  --maxWorkers=1 --no-file-parallelism` passed 2 files / 2 tests with a 2 GB heap.
+test/promoEvolution.scenario.test.tsx test/ex10EvolutionStack.scenario.test.tsx
+--maxWorkers=1 --no-file-parallelism` passed 2 files / 2 tests with a 2 GB heap.
 - Full Promo plus changed shared prevention/name files passed `pnpm exec oxlint` and
   `pnpm exec oxfmt --check` (520 files); `git diff --check` passed.
 - Catalog-aware TypeScript fixture scan found no Digi-Egg literals or constant references in
@@ -102,7 +102,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4113; no errata entry; no restriction entry.
 
-
 - Historical defect (fixed in `9b8a96b7f`): committed catalog specifies `[Your Turn][Once Per Turn]`. The historical module used `AllTurns` with no frequency. The accepted correction below implements both gates and proves the real next-turn reset.
 
 - Reaudit correction accepted (2026-09-12, commit `9b8a96b7f`): inherited trigger corrected from All Turns to Your Turn and given Once Per Turn; persisted IR synchronized with zero changes outside P. Six focused tests pass. Public P-004 → BT1-036 digivolution pays 2 and retains Gomamon; P-003 plays pay 4 and trash identified sources from a legal Lv.5 stack, gaining once, denying the second same-turn gain, and regaining after natural turns. Legal primitive fixtures retain bounce/by-opponent/opponent-turn negatives. Coordinator independently passed P-004/P-114: 2 files, 9 tests; At that checkpoint P-114 was pending; its subsequent accepted proof appears in the P-114 row.
@@ -138,7 +137,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-008.ts) · [test](../../apps/api/src/cards/P/P-008.test.ts) · clause review (source removed; see History)<br>“unsuspends with exact Garurumon and grants inherited Security Attack +1 at 8 cards”; “does not unsuspend with Garurumon (X Antibody)”
 
 - Local KB lookup (2026-09-12): Q4114; no errata entry; restriction entry: restricted.
-
 
 - Reaudit frequency proof accepted (2026-09-12): Real attacks unsuspend once, deny the second same-turn activation and renew after natural turns. The inherited Security Attack threshold is asserted at eight cards and denied at seven after a real hand-to-deck primitive movement. Coordinator independently passed three WereGarurumon tests and four Boutmon tests; focused lint and formatting are green. Collection closing gates remain pending.
 
@@ -374,7 +372,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4149, Q4150, Q5315; no errata entry; no restriction entry.
 
-
 - Reaudit shared proof accepted (2026-09-12, commit `eb75a8d48`): the existing shared test now resolves a public opponent Security attack, denies Delay on the entry turn and activates it after a natural owner Main transition. Exact +2 memory and the same Boost instance in trash are asserted without manual turn or age changes. Coordinator independently passed these six suites, the package regression and four repaired attack suites: 11 files, 46 tests; focused lint/format are green.
 
 ### P-036 — Blue Memory Boost!
@@ -384,7 +381,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-036.ts) · [test](../../apps/api/src/cards/P/P-036.test.ts) · clause review (source removed; see History)<br>“shows all 4 revealed cards, enables only the matching-color Digimon, and orders the rest”; “adds only its matching-color Digimon, then Delays for 2 memory on a later turn”; “does not let an Option permanent satisfy another copy's color requirement”; “places itself from security and offers Delay only from the next turn, without a color source”
 
 - Local KB lookup (2026-09-12): Q4151, Q4152; no errata entry; no restriction entry.
-
 
 - Reaudit shared proof accepted (2026-09-12, commit `eb75a8d48`): the existing shared test now resolves a public opponent Security attack, denies Delay on the entry turn and activates it after a natural owner Main transition. Exact +2 memory and the same Boost instance in trash are asserted without manual turn or age changes. Coordinator independently passed these six suites, the package regression and four repaired attack suites: 11 files, 46 tests; focused lint/format are green.
 
@@ -396,7 +392,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q1961, Q4153, Q4154; no errata entry; no restriction entry.
 
-
 - Reaudit shared proof accepted (2026-09-12, commit `eb75a8d48`): the existing shared test now resolves a public opponent Security attack, denies Delay on the entry turn and activates it after a natural owner Main transition. Exact +2 memory and the same Boost instance in trash are asserted without manual turn or age changes. Coordinator independently passed these six suites, the package regression and four repaired attack suites: 11 files, 46 tests; focused lint/format are green.
 
 ### P-038 — Green Memory Boost!
@@ -406,7 +401,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-038.ts) · [test](../../apps/api/src/cards/P/P-038.test.ts) · clause review (source removed; see History)<br>“shows all 4 revealed cards, enables only the matching-color Digimon, and orders the rest”; “adds only its matching-color Digimon, then Delays for 2 memory on a later turn”; “does not let an Option permanent satisfy another copy's color requirement”; “places itself from security and offers Delay only from the next turn, without a color source”
 
 - Local KB lookup (2026-09-12): Q4155, Q4156; no errata entry; no restriction entry.
-
 
 - Reaudit shared proof accepted (2026-09-12, commit `eb75a8d48`): the existing shared test now resolves a public opponent Security attack, denies Delay on the entry turn and activates it after a natural owner Main transition. Exact +2 memory and the same Boost instance in trash are asserted without manual turn or age changes. Coordinator independently passed these six suites, the package regression and four repaired attack suites: 11 files, 46 tests; focused lint/format are green.
 
@@ -418,7 +412,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4157, Q4158; no errata entry; no restriction entry.
 
-
 - Reaudit shared proof accepted (2026-09-12, commit `eb75a8d48`): the existing shared test now resolves a public opponent Security attack, denies Delay on the entry turn and activates it after a natural owner Main transition. Exact +2 memory and the same Boost instance in trash are asserted without manual turn or age changes. Coordinator independently passed these six suites, the package regression and four repaired attack suites: 11 files, 46 tests; focused lint/format are green.
 
 ### P-040 — Purple Memory Boost!
@@ -428,7 +421,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-040.ts) · [test](../../apps/api/src/cards/P/P-040.test.ts) · clause review (source removed; see History)<br>“shows all 4 revealed cards, enables only the matching-color Digimon, and orders the rest”; “adds only its matching-color Digimon, then Delays for 2 memory on a later turn”; “does not let an Option permanent satisfy another copy's color requirement”; “places itself from security and offers Delay only from the next turn, without a color source”
 
 - Local KB lookup (2026-09-12): Q4159, Q4160; no errata entry; no restriction entry.
-
 
 - Reaudit shared proof accepted (2026-09-12, commit `eb75a8d48`): the existing shared test now resolves a public opponent Security attack, denies Delay on the entry turn and activates it after a natural owner Main transition. Exact +2 memory and the same Boost instance in trash are asserted without manual turn or age changes. Coordinator independently passed these six suites, the package regression and four repaired attack suites: 11 files, 46 tests; focused lint/format are green.
 
@@ -480,7 +472,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4162, Q5519; no errata entry; no restriction entry.
 
-
 - Reaudit frequency proof accepted (2026-09-12): Public cost-1 Option plays trigger inherited memory once, deny the same-turn repeat and renew after natural turns; exact memory reflects the play cost and gain. Coordinator independently passed P-008/P-046/P-048 and catalog parity (4 files, 356 tests), plus Memory Boost and attack regression (11 files, 46 tests). Focused lint/format are green; collection closing gates remain pending.
 
 ### P-047 — AeroVeedramon Zero
@@ -499,7 +490,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4166, Q4167, Q4168; no errata entry; no restriction entry.
 
-
 - Reaudit frequency proof accepted (2026-09-12): Public cost-4 digivolution retains the original Lv.5 source, returns trash and unsuspends own Digimon/Tamer, finishing at 1 from 4. An actual trash-return action cycle denies the same-turn repeat and renews after natural turns; the natural-reset action proof complements the public digivolution trigger proof. Coordinator independently passed P-008/P-046/P-048 and catalog parity (4 files, 356 tests), plus Memory Boost and attack regression (11 files, 46 tests). Focused lint/format are green; collection closing gates remain pending.
 
 ### P-049 — Phoenixmon
@@ -509,7 +499,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-049.ts) · [test](../../apps/api/src/cards/P/P-049.test.ts) · clause review (source removed; see History)<br>“gains Security Attack +1 for the turn when a Tamer is in play”; “does not gain Security Attack without a Tamer”; “trashes the opponent's top security card when this Digimon is blocked”; “trashes security only once per turn even if it is blocked twice”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
-
 
 - Reaudit frequency proof accepted (2026-09-12): Three real blocked attacks trash distinct security cards only on the first attack and after natural turns; the second same-turn attack is denied. The final battle fully settles with combatResolved, idle attack and no pending decision. Coordinator independently passed P-008/P-046/P-048 and catalog parity (4 files, 356 tests), plus Memory Boost and attack regression (11 files, 46 tests). Focused lint/format are green; collection closing gates remain pending.
 
@@ -536,7 +525,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-052.ts) · [test](../../apps/api/src/cards/P/P-052.test.ts) · clause review (source removed; see History)<br>“restricts up to 3 opponent Digimon with no digivolution cards and excludes stacked Digimon”; “allows the UI decision to choose only 1 of 3 eligible Digimon for the up-to-3 restriction”; “restriction remains after the affected Digimon gains a digivolution card (Q4169)”; “returns only an opponent Digimon with no digivolution cards when attacking”; “returns an opponent Digimon only once per turn across two attacks”
 
 - Local KB lookup (2026-09-12): Q4169; no errata entry; no restriction entry.
-
 
 - Reaudit frequency proof accepted (2026-09-12): Three real attacks return identified no-source opposing Digimon only on the first attack and after natural turns. The second same-turn attack leaves its opponent in the battle area; final Security and attack resolution fully settle. Coordinator independently passed P-008/P-046/P-048 and catalog parity (4 files, 356 tests), plus Memory Boost and attack regression (11 files, 46 tests). Focused lint/format are green; collection closing gates remain pending.
 
@@ -746,7 +734,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4176; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
 - Reaudit frequency proof accepted (2026-09-12): A legal Yellow Lv.6 host over Boutmon unsuspends on a real attack at exactly three security, denies the second same-turn activation and renews on a real battle after natural turns. The final battle waits for body deletion, host unsuspension, no pending decision and idle attack. Coordinator independently passed three WereGarurumon tests and four Boutmon tests; focused lint and formatting are green. Collection closing gates remain pending.
@@ -885,7 +872,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4181; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
 - Reaudit frequency proof accepted (2026-09-12): Public digivolution pays 3 and retains its base. The first opponent attack returns three identified Jellymon-text trash cards in order and ends; a second same-turn attack leaves the remaining three in trash and checks security; after natural opponent → owner → opponent turns, the third attack returns the remaining identities and ends before an empty-security win. Coordinator independently passed both suites: 2 files, 4 tests; lint/format are green. Collection closing gates remain pending.
@@ -897,7 +883,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-090.ts) · [test](../../apps/api/src/cards/P/P-090.test.ts) · clause review (source removed; see History)<br>“requires the UI to choose exactly 2 opponent Digimon to suspend when digivolving”; “unsuspends an ally after another Digimon wins a battle while Angoramon is in its stack”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
@@ -938,7 +923,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-093.ts) · [test](../../apps/api/src/cards/P/P-093.test.ts) · clause review (source removed; see History)<br>“suspends exactly 1 opponent Digimon when Bastemon itself attacks”; “does not trigger when a different allied Digimon becomes suspended”; “reduces only the first digivolution cost of its inherited host each turn”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
@@ -999,7 +983,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-098.ts) · [test](../../apps/api/src/cards/P/P-098.test.ts) · clause review (source removed; see History)<br>“protects exactly the chosen blue Digimon from battle deletion through the opponent's turn”; “applies the same battle protection from its When Digivolving timing”; “Q4184 grants Rush when Nokia plays a Digimon by an effect, only once per turn”; “Q4184 does not react to an ordinary hand play”
 
 - Local KB lookup (2026-09-12): Q4184, Q4185; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
@@ -1135,7 +1118,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4215; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
 - Reaudit public-cycle proof accepted (2026-09-12): Legal Yellow level-4 evolution into P-111 pays 4 memory (10 to 6), retains the original parent, and applies -3000 DP plus Blocker. Legal Yellow level-6 inherited host retains the same P-111 source through three public attacks, proving first play, same-turn denial, and renewal after the natural 0-to-1-to-0 turn cycle. Coordinator independently passed the two-card focused run: 2 files, 6 tests; Oxlint, Oxfmt, and diff check green. Collection closing gates remain pending.
@@ -1162,7 +1144,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4219; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
 - Reaudit proof accepted (2026-09-12): Ordinary evolution pays 4 (10 to 6) and Blast evolution pays 0; both retain the exact original parent under the played P-113 instance. Three completed public permanent battles use the same watcher: first trashes Security, second same-turn does not, and third after the natural 0-to-1-to-0 cycle trashes again. Target preparation uses actual suspension after the opponent Active phase. Coordinator independently passed the focused checkpoint: 3 files, 11 tests; Oxlint/Oxfmt and diff check green. Package regressions now use legal Ghost Game hosts and a legal Purple chain while retaining the original Digi-Burst costs and isolated inherited Retaliation. Collection closing gates remain pending.
@@ -1178,7 +1159,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-114.ts) · [test](../../apps/api/src/cards/P/P-114.test.ts) · clause review (source removed; see History)<br>“plays a Diaboromon Token when digivolving and counts the token for deletion scaling”; “plays a Diaboromon Token from the When Attacking effect”
 
 - Local KB lookup (2026-09-12): Q4220, Q4221, Q4222; no errata entry; no restriction entry.
-
 
 - Reaudit proof accepted (2026-09-12): public cost-3 digivolution retains the exact Lv.5 source and creates a token. A preferred cost-8 opponent is excluded at the first printed limit of 7 while an eligible cost-2 opponent is deleted; a second same-turn token play cannot delete, and a real next-turn attack creates another token and deletes the preferred cost-8 opponent at the increased limit. Coordinator independently passed all three tests, lint and formatting. Collection closeout gates remain pending.
 
@@ -1211,7 +1191,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-117.ts) · [test](../../apps/api/src/cards/P/P-117.test.ts) · clause review (source removed; see History)<br>“reduces a Your Turn digivolution into a Free Digimon by 1 when a Tamer is present”; “draws through its inherited effect only when the host has two colors”
 
 - Local KB lookup (2026-09-12): Q4600, Q4704; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
@@ -1310,7 +1289,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
-
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-126 — Yolei Inoue
@@ -1324,7 +1302,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Reaudit proof accepted (2026-09-12): Four focused tests pass: both public On Play modes, actual Start of Main memory in the real turn loop, and real Security attack auto-play with the On Play choice fully resolved.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -1340,7 +1317,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
-
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-128 — Cody Hida
@@ -1355,7 +1331,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
-
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-129 — T.K. Takaishi
@@ -1369,7 +1344,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Reaudit proof accepted (2026-09-12): Five focused tests pass: both public On Play modes, equal/ahead security-count gates in real Start of Main, and real Security auto-play plus Patamon On Play resolution. Security resolution waits for a new securityChecked event, no pending decision, and idle attack state; security fixtures are regular cards.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -1401,7 +1375,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
-
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-133 — Shoto Kazama
@@ -1412,11 +1385,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): Public Avian digivolutions pay 2, preserve the original source instance, gain 1 and suspend Shoto only on the first trigger, deny the same-turn repeat after preparation, and regain after natural turns 0 → 1 → 0. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -1428,7 +1399,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): A legal Lv.4 inherited host attacks publicly: opposing DP is reduced by 2000 once, remains unchanged on a second same-turn attack, returns to baseline across natural turns and is reduced again on the next attack. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
 
 ### P-135 — ShoeShoemon
@@ -1439,11 +1409,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): A legal Lv.5 inherited host attacks publicly: opposing DP is reduced by 2000 once, denies a second same-turn reduction and renews the reduction after natural turns. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -1455,11 +1423,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): Public Puppet digivolutions pay 3, retain the original source instance, gain 1 and suspend Arisa once, deny the second same-turn trigger and renew after natural turns. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -1480,7 +1446,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-138.ts) · [test](../../apps/api/src/cards/P/P-138.test.ts) · clause review (source removed; see History)<br>“reveals three cards, adds a Veedramon and blue Tamer, and bottoms the rest”; “has the inherited once-per-turn memory gain when it becomes unsuspended”; “gains one memory when an inherited host becomes unsuspended”
 
 - Local KB lookup (2026-09-12): Q4244, Q4245; no errata entry; no restriction entry.
-
 
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): A legal Lv.5 inherited host gains 1 from natural Active-phase unsuspension, denies a prepared same-turn repeat and gains again after the real incoming 3-memory baseline. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
 
@@ -1508,8 +1473,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4247, Q4248; no errata entry; no restriction entry.
 
-
-
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): A legal Lv.6 inherited host wins three real battles: security trash occurs on the first, is denied on the second same-turn battle and renews after natural turns. Normal security fixtures are regular Tamers. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
 
 ### P-141 — MameTyramon
@@ -1519,7 +1482,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-141.ts) · [test](../../apps/api/src/cards/P/P-141.test.ts) · clause review (source removed; see History)<br>“encodes Collision, Blocker, and the Rule name treatment”; “encodes the once-per-turn unsuspend triggers for both top and inherited effects”; “unsuspends after an opponent Digimon becomes suspended”; “exposes both printed battle keywords and the Mamemon/Tyrannomon rule names”; “runs the inherited unsuspend trigger through a higher host”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
-
 
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): Public Pteromon plays actually suspend the opposing Digimon; MameTyramon unsuspends once, denies the same-turn repeat and renews after natural turns. The inherited watcher uses a legal Lv.6 host and the same compiled frequency mechanism. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
 
@@ -1543,7 +1505,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q3835, Q4250, Q4251, Q4252, Q4253, Q4254, Q4255, Q4256, Q4257, Q4258; no errata entry; no restriction entry.
 
-
 - Reaudit natural-cycle proof accepted (2026-09-12): The same Drimogemon moves into breeding at real owner End of Turn, is publicly raised during the next real owner Breeding phase and moves back at the following End of Turn. Moving into breeding removes it from the active battle-area watcher; the natural-cycle proof complements the compiled frequency guard and existing empty-breeding/optional unit cases. Coordinator independently passed both suites: 2 files, 13 tests; focused lint/format are green. Collection closing gates remain pending.
 
 ### P-144 — Gotsumon (X Antibody)
@@ -1553,7 +1514,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-144.ts) · [test](../../apps/api/src/cards/P/P-144.test.ts) · clause review (source removed; see History)<br>“keeps the Your Turn attack restriction when only an X Antibody card is underneath”; “encodes Blocker, target-switch unsuspension, and inherited Blocker DP”; “applies the inherited +1000 DP to Blocker Digimon”; “prevents attacking when no Gotsumon card is in the digivolution stack”; “allows attacking when a Gotsumon card is in the digivolution stack”; “unsuspends a Blocker when an opponent-turn attack target switches”; “only resolves the target-switch reaction once per opponent turn”
 
 - Local KB lookup (2026-09-12): Q4259; no errata entry; no restriction entry.
-
 
 - Reaudit natural-cycle proof accepted (2026-09-12): Three real opponent attacks and public blocks cause target switches. An explicitly suspended watcher unsuspends on the first, stays suspended on the second same-turn switch and unsuspends again after a full natural owner/opponent cycle. Combat resolution is idle with no pending decision; deck/security are regular cards and the inherited host is legal. Coordinator independently passed both suites: 2 files, 13 tests; focused lint/format are green. Collection closing gates remain pending.
 
@@ -1595,7 +1555,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4263, Q4264; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
 
 - Reaudit frequency proof accepted (2026-09-12): The printed attack effect legally places an eligible Lv.4 beneath Lv.3 Pal. The second same-turn attack leaves the second eligible card in hand; a real next turn permits the second source placement. Existing copied Exermon clauses and conditions remain tested. Coordinator independently passed P-008/P-046/P-048 and catalog parity (4 files, 356 tests), plus Memory Boost and attack regression (11 files, 46 tests). Focused lint/format are green; collection closing gates remain pending.
@@ -1608,7 +1567,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
 
 - Reaudit frequency proof accepted (2026-09-12): The existing behavior test now resolves four public attacks: NSp draws effect marker A, a separate non-NSp host does not draw marker B, the same NSp source denies a repeated same-turn draw, and after natural turns the ordinary draw takes B before the renewed effect draws C. Regular Tamer security avoids a premature battle deletion; no duplicate positive test was retained. Coordinator independently passed both suites: 2 files, 4 tests; lint/format are green. Collection closing gates remain pending.
@@ -1620,7 +1578,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-149.ts) · [test](../../apps/api/src/cards/P/P-149.test.ts) · clause review (source removed; see History)<br>“encodes the inherited once-per-turn hand-costed deletion”; “trashes a card to delete an opposing level-3 Digimon when the host has two colors”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -1715,6 +1672,7 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
 
 - Independently accepted repair (2026-09-12): legal Black level-3 host over Black P157; the reused deletion scenario proves exact Draw 1 with a Black Tamer and the same card staying on deck without one. Root P157/P188 focused checkpoint passed 2 files / 4 tests; P157 Oxfmt, Oxlint and diff checks are clean. P188 retains its separate frequency-proof hold.
+
 ### P-158 — Jeri (Fake)
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1737,7 +1695,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
-
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-160 — Tyrannomon (X Antibody)
@@ -1759,7 +1716,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -1808,6 +1764,7 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
 
 - Independently accepted repair (2026-09-12, 320c46068): public Yellow level-3 evolution pays 2 (10→8), retains the exact base source, and creates the token whose deletion applies -3000 DP. The inherited Barrier assertion is retained under a legal Yellow level-5 host. Root P153/P165/P188 focused checkpoint passed 3 files / 13 tests; P165 Oxfmt and Oxlint clean. Other cards in that checkpoint retain their separate holds.
+
 ### P-166 — Galemon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1861,6 +1818,7 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Independently accepted public-action repair (2026-09-12, 95260b584): public play resolves all opposing source trash before empty-stack deletion; public Blue level-5 evolution pays 3 memory (10→7), retains the exact original base source, and resolves the printed When Digivolving deletion using legal opposing source chains. Root focused validation: P035–P040 plus P171, 7 files / 28 tests green; Oxfmt, Oxlint and git diff --check clean.
+
 ### P-172 — Magnadramon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1921,7 +1879,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q5758, Q5759; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 ### P-178 — Sagittarimon
@@ -1932,10 +1889,10 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Independently accepted repair (2026-09-12): public named Veemon alternate evolution pays 2 (10→8), retains the exact base source, applies -3000 DP, then public attack deletes the 4000-DP opponent and preserves the 8000-DP opponent. Root focused validation: 3 files / 13 tests green; targeted Oxfmt, Oxlint and diff checks clean.
+
 ### P-179 — Justimon: Critical Arm
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1954,7 +1911,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 ### P-181 — Royal Base
@@ -1967,7 +1923,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Independently accepted repair (2026-09-12, 043b4368d): public Security attack fully resolves free Royal Base play with memory unchanged; three public alternate evolutions pay 1, 2 and 1 across a natural 0→1→0 turn cycle. Each exact original base source is retained and the same face-up P181 security instance remains throughout. Root focused validation P153/P165/P181: 3 files / 18 tests green; P181 Oxfmt, Oxlint and diff checks clean. P153/P165 in that checkpoint retain separate unresolved holds.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 ### P-182 — WarGreymon
@@ -1979,6 +1934,7 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Independently accepted repair (2026-09-12): public MetalGreymon alternate evolution pays 3 (10→7), retains the exact base source, counts allied Red/Black/Yellow colors to reach 15000 DP and deletes the equal-DP target while preserving 16000 DP. Root focused validation: 3 files / 13 tests green; targeted Oxfmt, Oxlint and diff checks clean.
+
 ### P-183 — Gaiomon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1986,8 +1942,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-183.ts) · [test](../../apps/api/src/cards/P/P-183.test.ts) · clause review (source removed; see History)<br>“encodes Reboot, Blocker, and the temporary opponent attack grant”; “trashes the opponent's top security card once per turn when an attack target changes”; “exposes Reboot and Blocker on the live Gaiomon”; “trashes the opponent's security when Blocker switches a real attack target”
 
 - Local KB lookup (2026-09-12): Q4627, Q4628; no errata entry; no restriction entry.
-
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2004,7 +1958,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Independently accepted repair (2026-09-12): public DoruGreymon alternate evolution pays 3 (10→7), retains the exact DoruGreymon and placed Kosuke sources, grants +3000 DP and unsuspends the SoC ally while preserving the suspended non-SoC control. Root focused validation: 3 files / 13 tests green; targeted Oxfmt, Oxlint and diff checks clean.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -2030,7 +1983,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4629, Q4630; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Independently accepted repair (2026-09-12): Commit `34cc46da9`: Japanese printed text and Q4629/Q4630 establish DP 13000 or more and any controller. Both executable timings use that threshold and scope. Actual play discount, 12000/13000/14000 boundaries, mandatory own-target deletion, conditional recovery and normal/alternate public evolution costs and sources are covered. Root 9 tests are green. Fresh read-only peer review found no actionable gap. Shared/API/Web types, targeted style, seven-record Promo sync/check with zero outside-set drift and diff checks are green.
@@ -2044,7 +1996,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Local KB lookup (2026-09-12): Q4631, Q4632; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2062,7 +2013,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Independently accepted repair (2026-09-12, ad540b39a): legal Blue level-3 host retains the same P188 Egg source and permanent throughout public Blue Tamer plays. Costs 10→7→4→0, full same-turn draw suppression, natural turn draw and resumed post-reset draw are separately asserted using exact instances. Root P153/P179/P188 focused validation: 3 files / 10 tests green; Oxfmt, Oxlint and diff checks clean.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 ### P-189 — Dimetromon
@@ -2072,7 +2022,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-189.ts) · [test](../../apps/api/src/cards/P/P-189.test.ts) · clause review (source removed; see History)<br>“plays an optional LIBERATOR card costing 4 or less from hand or trash in Security”; “actually plays a qualifying LIBERATOR from trash when revealed in Security”; “grants Progress and gains one memory once per turn when your opponent's security is removed”; “exposes Progress on the live Dimetromon”; “gains one memory once per turn when its host's attack removes opponent security”
 
 - Local KB lookup (2026-09-12): Q4979, Q6520; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2087,7 +2036,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-190.ts) · [test](../../apps/api/src/cards/P/P-190.test.ts) · clause review (source removed; see History)<br>“encodes Appmon evolution and Link requirements”; “keeps its printed linked-only Draw 1 watcher”; “draws on play”; “draws the top card when played”; “does not draw when a different card is linked to this host”; “draws when P-190 itself is linked from hand to an Appmon host”; “rejects linking P-190 to a non-Appmon host”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2127,7 +2075,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q4987; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Reopened executable/public-window hold (2026-09-12): Printed Main placement is mandatory once its optional hand-trash processing cost is paid; the module marks placement itself optional. Delay names exact Millenniummon, while its cost filter uses substring matching. The only Delay proof calls fireGlobal(OnEndTurn), not a natural End window; public Main uses memory 20. Correct both IR scopes and reuse/rework the existing tests for legal paid Main, exact cost/disposition, natural reactive Delay and eligible refusal. Generic injected timing does not establish this printed clause. [Official printed source](https://digimoncard.com/cards/?category=503901&search=true).
@@ -2141,7 +2088,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-194.ts) · [test](../../apps/api/src/cards/P/P-194.test.ts) · clause review (source removed; see History)<br>“requires a level 3 TS Digimon for evolution”; “has Blocker and Barrier, with inherited Barrier preserved”; “exposes Blocker and Barrier on the live Aegiomon”; “passes inherited Barrier through a real evolution stack”; “uses inherited Barrier to survive a battle deletion after the stack evolves”
 
 - Local KB lookup (2026-09-12): Q5576, Q5585, Q5670; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2162,8 +2108,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-196.ts) · [test](../../apps/api/src/cards/P/P-196.test.ts) · clause review (source removed; see History)<br>“requires a level 2 TS Digimon for evolution”; “allows free Sea Beast or TS hand digivolution at four or less memory”; “draws once per turn when attacking with seven or fewer hand cards”; “draws from the inherited attack effect with seven cards in hand”; “free-digivolves into a qualifying Sea Beast/TS card at the four-memory boundary”
 
 - Local KB lookup (2026-09-12): Q5760; no errata entry; no restriction entry.
-
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2186,8 +2130,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-198.ts) · [test](../../apps/api/src/cards/P/P-198.test.ts) · clause review (source removed; see History)<br>“encodes free Fallen Angel or TS hand digivolution at four or less memory”; “has the TS evolution requirement and inherited once-per-turn Draw 1 then hand trash”; “draws then trashes a card from hand when its inherited host attacks”; “free-digivolves into a qualifying Fallen Angel/TS card at the four-memory boundary”
 
 - Local KB lookup (2026-09-12): Q5762; no errata entry; no restriction entry.
-
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2225,7 +2167,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Independently accepted repair (2026-09-12): a legal Purple level-4 host retains the exact P201 source and same permanent across two natural opponent-turn endings. Each end pays the exact successive hand-trash cost and suspends the opponent, proving resumed inherited behavior after the intervening full turn cycle. Root focused suite: 1 file / 5 tests green; targeted Oxfmt, Oxlint and diff checks clean.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 ### P-202 — Tyrannomon
@@ -2256,11 +2197,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q5199; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Independently accepted repair (2026-09-12, commit `d78915dc2`): Intrinsic reactive Delay executes during either controller’s player attack, before Security checking. Actual Option trash, accepted/declined evolution, declined Delay retention, placement-turn and idle guards, and Digimon-target rejection are proved. Exact Grademon/Alphamon names retain the separate Chronicle alternatives; free evolution retains the permanent and original source IDs. Security activates the paid-cost-free Main effect and finishes the attack. The rejected post-attack Main proposal is superseded by the correct reactive implementation. Root 10 tests passed; independent read-only peer review passed. Root five-card focus passed 5 files / 35 tests. API typecheck, targeted Oxlint/Oxfmt and diff checks passed. Effects sync/check passed: 249 records, 13 semantic P changes in the current worktree against the base and zero semantic or byte changes outside P. Collection closing gates remain pending.
-
 
 - Final attack-completion proof hold (2026-09-12): the Digimon-target Delay negative must wait for an observable completed battle before asserting no offer; the existing immediate idle predicate may settle before attack dispatch. Public positive/decline and shared cost-gating proofs remain accepted.
 
@@ -2273,7 +2212,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-205.ts) · [test](../../apps/api/src/cards/P/P-205.test.ts) · clause review (source removed; see History)<br>“waives its color requirement only while you have a DM Digimon or Tamer”; “draws, trashes two, and places itself for Main and Security”; “deletes your low-cost Digimon and plays a named card from your trash with cost reduced by 3”; “draws two, trashes two cards, and places itself from Main”; “draws, trashes, and places itself from Security”; “activates Delay to delete a low-cost Digimon and play Millenniummon from trash”
 
 - Local KB lookup (2026-09-12): Q5200, Q5397; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2295,7 +2233,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Final coordinator acceptance (2026-09-12, commit `959570403`): Printed trait substrings and the independent TS branch are preserved. Public play pays twelve (10 to -2), legally free-plays Giant Bird Birdramon, and the same Minervamon uses an inert eligible Avian for Alliance: first two checks, second one, third two after natural reset. Exact played trash instances and completed battles prevent vacuous predicates. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
@@ -2309,7 +2246,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Local KB lookup (2026-09-12): Q5400; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2359,7 +2295,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 ### P-213 — Aegiochusmon
@@ -2369,7 +2304,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-213.ts) · [test](../../apps/api/src/cards/P/P-213.test.ts) · clause review (source removed; see History)<br>“has Raid, Decode, and the Aegiomon digivolution requirement”; “gains Rush and 3000 DP at three or fewer security, then may attack”; “grants Rush and +3000 DP at three security, but not at four”; “still permits the optional attack when the three-security bonus condition is false”
 
 - Local KB lookup (2026-09-12): Q5763; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2427,7 +2361,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
-
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-220 — Millenniummon
@@ -2445,7 +2378,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-221.ts) · [test](../../apps/api/src/cards/P/P-221.test.ts) · clause review (source removed; see History)<br>“naturally DNA digivolves from Yellow and Purple Lv.6 materials and records DNA immunity”; “reduces an opposing Digimon by exactly 10000 DP on When Digivolving”; “reduces an opposing Digimon by exactly 10000 DP when attacking”; “can choose an immune opposing Digimon, but its DP is not changed (Q5766)”; “has Security Attack +1 and the printed Partition requirement”; “grants DNA-only immunity to itself until the opponent's turn ends”; “gives one opposing Digimon -10000 DP on digivolution and when attacking”; “grants Security Attack +1 to a resident Chaosmon”
 
 - Local KB lookup (2026-09-12): Q5765, Q5766, Q5767, Q5768, Q5769, Q5770; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2493,7 +2425,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q5774; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 ### P-227 — Unique Emblem: Primal Impact
@@ -2504,11 +2435,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -2520,11 +2449,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -2536,11 +2463,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -2552,11 +2477,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q5964; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -2568,11 +2491,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -2584,11 +2505,9 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
-
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
@@ -2608,7 +2527,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): Q6522; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 ### P-235 — Digital Accident Tactics Squad
@@ -2619,7 +2537,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 ### P-236 — Glowing Dawn
@@ -2629,7 +2546,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-236.ts) · [test](../../apps/api/src/cards/P/P-236.test.ts) · clause review (source removed; see History)<br>“requires Glowing Dawn and reveals three cards before placement”; “gains two memory through Delay”; “places itself in the battle area from Security”; “adds a Glowing Dawn card from the top three and places itself”; “places itself after resolving its Security reveal”; “activates its armed Delay through the real effect intent and gains two memory”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2648,7 +2564,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-238.ts) · [test](../../apps/api/src/cards/P/P-238.test.ts) · clause review (source removed; see History)<br>“requires CS, deletes an opposing level 6 or lower Digimon, and places itself”; “permanently grants Delay after a CS Digimon attacks”; “deletes and places itself from Security”; “deletes an opposing level-6-or-lower Digimon and places itself”; “deletes an opposing Digimon and places itself when its Security effect resolves”; “grants Delay after a CS Digimon makes a real attack”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
@@ -2672,7 +2587,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
-
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Confirmed name-scope defect (2026-09-12): Official printed On Deletion text permits exact [Proximamon], not names containing that token. The module uses `match: "name"` for the free-play destination. Exact destination scope and attributable public leave/attack-redirection evidence remain pending. [Official collection list](https://world.digimoncard.com/cards/?category=522901&search=true).
@@ -2690,7 +2604,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-241.ts) · [test](../../apps/api/src/cards/P/P-241.test.ts) · clause review (source removed; see History)<br>“sets memory to three at the start of turn when memory is two or less”; “handles linking in one trigger: grants Appmon Vortex and DP, then permits App Fuse”; “grants the Leviathan trait by Rule and plays from Security”; “sets memory to exactly three at the start of a real turn from memory two”; “plays itself without cost from Security”; “reacts to a real link by suspending, granting Vortex, and adding 3000 DP”; “accepts the linked-trigger App Fuse and merges a legal hand target”
 
 - Local KB lookup (2026-09-12): Q6927; no errata entry; no restriction entry.
-
 
 - Final printed-clause/public-proof hold (2026-09-12): both Vortex and +3000 DP must affect the same selected Appmon after the suspend cost, with DP mandatory. Current independently selected optional DP is incorrect. Existing injected Start of Turn/Security cases require public flow; the App Fuse positive requires paid link cost and original permanent/source/link identity. Q6927 and shared abort-on-decline conformance govern the initial cost gate.
 
@@ -2711,7 +2624,6 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 - Evidence: [module](../../apps/api/src/cards/P/P-243.ts) · [test](../../apps/api/src/cards/P/P-243.test.ts) · clause review (source removed; see History)<br>“requires DM and trashes a hand card to draw two and place itself”; “arms Delay only when the opponent has a Digimon and returns a DM Digimon before playing”; “plays a qualifying DM card from hand or trash through Security”; “trashes a hand card, draws two, and places itself”; “uses its Delay at the start of turn to return and play a low-cost DM Digimon”; “plays a qualifying low-cost DM card from trash through its colocated Security target case”
 
 - Local KB lookup (2026-09-12): Q6929; no errata entry; no restriction entry.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 

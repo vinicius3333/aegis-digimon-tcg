@@ -84,12 +84,7 @@ describe("BT18-023 Lanamon", () => {
         0: {
           battleArea: [{ card: "BT18-024", as: "calmaramon" }],
           hand: [{ card: "BT18-023", as: "lanamon" }],
-          deck: [
-            { card: "BT1-009" },
-            { card: "BT1-033", as: "aqua" },
-            { card: "BT1-010" },
-            { card: "BT1-011" },
-          ],
+          deck: [{ card: "BT1-009" }, { card: "BT1-033", as: "aqua" }, { card: "BT1-010" }, { card: "BT1-011" }],
         },
       },
       { autoSelectCards: true, autoChooseOption: true },

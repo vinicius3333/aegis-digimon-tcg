@@ -16,10 +16,7 @@ if (whenDigivolving !== undefined) {
     optional: true,
     condition: {
       kind: "allOf",
-      conditions: [
-        { kind: "selfDigivolutionCountAtLeast", value: 4 },
-        { kind: "ifThisEffectDidNotAct" },
-      ],
+      conditions: [{ kind: "selfDigivolutionCountAtLeast", value: 4 }, { kind: "ifThisEffectDidNotAct" }],
     },
   };
 }

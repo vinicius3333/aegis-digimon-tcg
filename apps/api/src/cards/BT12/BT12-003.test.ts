@@ -47,7 +47,12 @@ describe("BT12-003 Koromon", () => {
   it("triggers for a yellow Tamer", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT12-034", under: ["BT12-003"] }, { card: "BT12-091", as: "tamer" }] },
+        0: {
+          battleArea: [
+            { card: "BT12-034", under: ["BT12-003"] },
+            { card: "BT12-091", as: "tamer" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoSelectCards: true },
@@ -63,7 +68,12 @@ describe("BT12-003 Koromon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT12-034", under: ["BT12-003"] }] },
-        1: { battleArea: [{ card: "BT12-089", as: "tamer" }, { card: "BT1-009", as: "target" }] },
+        1: {
+          battleArea: [
+            { card: "BT12-089", as: "tamer" },
+            { card: "BT1-009", as: "target" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

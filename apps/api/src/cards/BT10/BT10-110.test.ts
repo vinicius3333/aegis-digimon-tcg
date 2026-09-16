@@ -10,9 +10,7 @@ import "./BT10-112.js";
 
 describe("BT10-110 Seiken Meppa", () => {
   it("returns itself after Security", async () => {
-    const s = setupEngine(
-      { 0: { security: [{ card: "BT10-110", as: "option", faceUp: true }] } },
-    );
+    const s = setupEngine({ 0: { security: [{ card: "BT10-110", as: "option", faceUp: true }] } });
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
 

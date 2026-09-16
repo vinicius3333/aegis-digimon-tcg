@@ -296,6 +296,14 @@ export const PLAY_LEAD_IN_BUDGET_MS = 4000;
 /** When the showcase starts clearing out, which is also when the field may reveal. */
 export const SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold;
 
+/**
+ * When a landing burst has peaked. Its core, rays and rings all reach full opacity at 25%
+ * of `cardBurst` and only fade from there, so a cue that must read *after* the burst can
+ * start here instead of waiting out the fade — the digivolution draw did the latter and
+ * left a visible dead beat between the card landing and the deck flying.
+ */
+export const CARD_BURST_PEAK_MS = Math.round(TIMINGS.cardBurst * 0.25);
+
 /** A shake and the beat held after it — how long a shake cue owns its track. */
 export const CARD_SHAKE_TOTAL_MS = TIMINGS.cardShake + TIMINGS.cardShakeHold;
 

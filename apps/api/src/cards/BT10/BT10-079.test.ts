@@ -13,15 +13,26 @@ describe("BT10-079 Sandiramon ordinary lifecycle", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT10-074", as: "base" }],
-        hand: [{ card: "BT10-079", as: "evolving" }, { card: "BT10-079", as: "played" }],
+        hand: [
+          { card: "BT10-079", as: "evolving" },
+          { card: "BT10-079", as: "played" },
+        ],
       },
     });
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT10-079");
     expect(s.state.memory).toBe(8);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT10-074"]);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();

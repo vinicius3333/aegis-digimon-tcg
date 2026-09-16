@@ -22,6 +22,7 @@ import {
   PLAY_LEAD_IN_BUDGET_MS,
   SHOWCASE_TOTAL_MS,
   TIMINGS,
+  CARD_BURST_PEAK_MS,
   COMBAT_IMPACT_TOTAL_MS,
   FIELD_CLASH_TOTAL_MS,
 } from "./timings";
@@ -293,7 +294,7 @@ it("finishes an effect-driven digivolution burst before flying its bonus draw", 
   await advance(0);
   expect(result.current.permanentBursts.get("effect-evo")?.variant).toBe("evolve");
   expect(result.current.drawFlights).toHaveLength(0);
-  await advance(TIMINGS.cardBurst);
+  await advance(CARD_BURST_PEAK_MS);
   expect(result.current.drawFlights).toHaveLength(1);
 });
 

@@ -12,7 +12,6 @@ Deferred security notices retain their originating batch, state version and phas
 
 Effect toasts and confirmations resolve text from the committed printed card catalog. Engine descriptions may identify an exact printed clause, including siblings with the same timing, but never replace it with a summary. Compound actions can author `effectTextPart` as a verbatim passage; decision provenance carries it to the confirmation and target picker. The client accepts a part only when it belongs to the resolved printed clause. AD1-024 groups suspend/unsuspend together and scopes its conditional deck return to a second passage. A declined or completed nested action restores its caller’s display passage.
 
-
 ## Compound decision passages
 
 Cards define `effectTextPart` as literal printed passages on the IR actions that ask for input. Separate sequential steps use their own passages; an authorization for an entire block keeps its complete printed clause. Conditions, costs, restrictions, and parameter adjustments remain attached to the relevant passage. Automatic expansion uses explicit `Then,` boundaries and only unambiguous action-to-passage matches. Modal alternatives, conditional branches, delayed/granted effects, search composites, and ambiguous repeated action kinds retain their complete clauses until their steps have an explicit author mapping. Shared action objects must agree across every timing that references them.

@@ -110,6 +110,7 @@ import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "./phaseBann
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
 import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
 import {
+  CARD_BURST_PEAK_MS,
   CLASH_DOCK_AT_MS,
   CLASH_OUTCOME_AT_MS,
   CLASH_REVEAL_SHOWN_AT_MS,
@@ -1343,7 +1344,7 @@ export function useMatchCues({
             eventDrawCountsRef.current[side] = state?.players[seat]?.handCount;
             const followsDigivolution =
               event.drawReason === "digivolution" && pendingDigivolutionDrawRef.current.has(seat);
-            launchDrawFlight(side, false, followsDigivolution ? TIMINGS.cardBurst : 0);
+            launchDrawFlight(side, false, followsDigivolution ? CARD_BURST_PEAK_MS : 0);
             if (event.drawReason === "digivolution") pendingDigivolutionDrawRef.current.delete(seat);
           }
         }

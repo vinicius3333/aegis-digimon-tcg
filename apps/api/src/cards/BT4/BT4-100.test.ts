@@ -64,7 +64,9 @@ describe("BT4-100 Trident Revolver", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 8;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tamer").instanceId));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });

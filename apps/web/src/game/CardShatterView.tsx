@@ -11,7 +11,17 @@ import { CardBurst } from "./CardBurst";
 import { CARD_CRACK_VIEWBOX, cardCrackPaths, cardShards } from "./cardShatter";
 import type { ColorName } from "../design/theme";
 
-export function CardShatter({ cardId, artId, width, color }: { cardId: string; artId?: string; width: number; color: ColorName }) {
+export function CardShatter({
+  cardId,
+  artId,
+  width,
+  color,
+}: {
+  cardId: string;
+  artId?: string;
+  width: number;
+  color: ColorName;
+}) {
   return (
     <span className="game-card-shatter" aria-hidden="true" style={{ width, height: Math.round(width * 1.4) }}>
       {cardShards().map((shard, index) => (

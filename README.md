@@ -25,11 +25,11 @@
 
 ## Screens
 
-|                                                                Lobby                                                                |                                                                Deck builder                                                                |
-| :---------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                                Lobby                                                                |                                                        Deck builder                                                        |
+| :---------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------: |
 |      <img src="./docs/images/lobby.jpg" alt="Lobby: quick match, practice vs AI, private match, and preset decks" width="440">      | <img src="./docs/images/deck-builder.jpg" alt="Deck builder with card pool filters, search and the deck list" width="440"> |
-|                                                          **Card library**                                                           |                                                                  **Home**                                                                  |
-| <img src="./docs/images/collection.jpg" alt="Card library with 4,458 cards and filters for color, type, level and set" width="440"> |                <img src="./docs/images/home.jpg" alt="Home screen: play now, build a deck, and Discord account sync" width="440">                |
+|                                                          **Card library**                                                           |                                                          **Home**                                                          |
+| <img src="./docs/images/collection.jpg" alt="Card library with 4,458 cards and filters for color, type, level and set" width="440"> |     <img src="./docs/images/home.jpg" alt="Home screen: play now, build a deck, and Discord account sync" width="440">     |
 
 ## Architecture
 

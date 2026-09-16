@@ -37,7 +37,9 @@ describe("BT12-026 ShogunGekomon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await advance(declined.engine).fire(EffectTiming.WhenDigivolving, declined.perm("shogun"));
-    expect(declined.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(declined.inst("cost").instanceId);
+    expect(declined.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      declined.inst("cost").instanceId,
+    );
     expect(declined.perm("target").stack).toHaveLength(2);
 
     const tooHigh = setupEngine({
@@ -45,7 +47,9 @@ describe("BT12-026 ShogunGekomon", () => {
       1: { battleArea: [{ card: "BT12-025", as: "target", under: ["BT1-009", "BT1-010"] }] },
     });
     await advance(tooHigh.engine).fire(EffectTiming.WhenDigivolving, tooHigh.perm("shogun"));
-    expect(tooHigh.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(tooHigh.inst("cost").instanceId);
+    expect(tooHigh.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      tooHigh.inst("cost").instanceId,
+    );
     expect(tooHigh.perm("target").stack).toHaveLength(2);
   });
 

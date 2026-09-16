@@ -103,9 +103,7 @@ describe("BT18-031 Neemon", () => {
       s.inst("firstHybrid").instanceId,
       s.inst("inheritedTamer").instanceId,
     ]);
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("secondHybrid").instanceId,
-    ]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("secondHybrid").instanceId]);
     assertNoLoudGap(s);
   });
 

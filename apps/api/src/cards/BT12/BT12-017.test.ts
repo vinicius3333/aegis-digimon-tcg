@@ -98,5 +98,7 @@ it("can play Takuya from hand on deletion and can decline the optional play", as
     }
     return resolved;
   });
-  expect(declined.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(declined.inst("takuya").instanceId);
+  expect(declined.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+    declined.inst("takuya").instanceId,
+  );
 });

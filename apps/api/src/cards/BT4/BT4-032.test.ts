@@ -85,8 +85,8 @@ describe("BT4-032 MachGaogamon", () => {
     );
     const mach = s.perm("mach");
     const eventsBefore = s.events.length;
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(mach.topCard!)).find((effect) =>
-      effect.effectKey.startsWith("BT4-032/"),
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(mach.topCard!)).find(
+      (effect) => effect.effectKey.startsWith("BT4-032/"),
     )!.effectKey;
     await s.engine.recomputeContinuousEffects();
 

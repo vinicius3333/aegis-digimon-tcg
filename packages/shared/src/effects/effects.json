@@ -7577,7 +7577,10 @@
             "payCost": false,
             "condition": {
               "kind": "youHaveNone",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Yuu Amano"], "match": "nameExact" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [{ "tokens": ["Yuu Amano"], "match": "nameExact" }]
+              },
               "raw": "you don't have an [Yuu Amano] in play"
             },
             "optional": true
@@ -7597,7 +7600,10 @@
             "payCost": false,
             "condition": {
               "kind": "youHaveNone",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Yuu Amano"], "match": "nameExact" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [{ "tokens": ["Yuu Amano"], "match": "nameExact" }]
+              },
               "raw": "you don't have an [Yuu Amano] in play"
             },
             "optional": true
@@ -15585,7 +15591,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Takato Matsuki"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Takato Matsuki"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -15736,7 +15745,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Takuya Kanbara"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Takuya Kanbara"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -16058,7 +16070,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Takuya Kanbara"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Takuya Kanbara"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand", "trash"],
@@ -30077,7 +30092,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Satsuki Tamahime"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Satsuki Tamahime"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["digivolutionCards"],
@@ -30175,7 +30193,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Eiji Nagasumi"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Eiji Nagasumi"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["digivolutionCards"],
@@ -35552,7 +35573,10 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "nameOrTrait": [{ "tokens": ["Marvin Jackson"], "match": "nameExact" }] }, "count": 1 },
+            "target": {
+              "filter": { "nameOrTrait": [{ "tokens": ["Marvin Jackson"], "match": "nameExact" }] },
+              "count": 1
+            },
             "fromOwnDigivolutionStack": true,
             "payCost": false,
             "optional": true
@@ -41418,7 +41442,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -80807,7 +80834,10 @@
         "isFromHand": true,
         "condition": {
           "kind": "youHave",
-          "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Arisa Kinosaki"], "match": "nameExact" }] },
+          "filter": {
+            "controllerDefault": "mine",
+            "nameOrTrait": [{ "tokens": ["Arisa Kinosaki"], "match": "nameExact" }]
+          },
           "raw": "you have [Arisa Kinosaki]"
         },
         "actions": [
@@ -80816,7 +80846,10 @@
             "placeCost": {
               "kind": "placeFromTrash",
               "target": {
-                "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["ShoeShoemon"], "match": "nameExact" }] },
+                "filter": {
+                  "controller": "mine",
+                  "nameOrTrait": [{ "tokens": ["ShoeShoemon"], "match": "nameExact" }]
+                },
                 "count": 1
               },
               "destination": "digivolutionStack",
@@ -84181,7 +84214,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Agumon", "Gabumon"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Agumon", "Gabumon"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -84203,7 +84239,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Agumon", "Gabumon"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Agumon", "Gabumon"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -84339,7 +84378,10 @@
               {
                 "kind": "PlayWithoutCost",
                 "target": {
-                  "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Yao Qinglan"], "match": "nameExact" }] },
+                  "filter": {
+                    "controller": "mine",
+                    "nameOrTrait": [{ "tokens": ["Yao Qinglan"], "match": "nameExact" }]
+                  },
                   "count": 1
                 },
                 "from": ["hand"],
@@ -128223,7 +128265,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["MaloMyotismon"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["MaloMyotismon"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["trash"],
@@ -187064,7 +187109,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Abbadomon Core"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Abbadomon Core"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand", "trash"],
@@ -187091,7 +187139,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Abbadomon Core"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Abbadomon Core"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand", "trash"],
@@ -190005,7 +190056,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],

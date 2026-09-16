@@ -31,7 +31,6 @@ Final authoritative closeout, superseding the intermediate checkpoints below:
 - Atomic implementation commits: `fc44b340b` (runtime reducers), `ed5303ab9` (replacement payment), `d7520f12d` (ordered host payment), `4cb23500e` (EX6 card corrections/proofs and synchronized IR), pushed to `origin/audit-EX6-20260913-incomplete`. Reviewable draft [PR #4773](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4773) grants delivery 2/2; completion records are committed/pushed separately.
 - Chooser red provenance: temporary module-field removal in the current worktree before freeze, then restoration; **13 passed / 2 failed**, followed by **15/15 green**. These are supplemental timing/seat/physical-identity witnesses alongside existing legal producer coverage, not newly introduced public play/evolution witnesses.
 
-
 - Final structured Luna review (`autoreview --mode local --model gpt-5.6-luna --thinking high`) reports no remaining accepted/actionable EX6 finding after source verification. Its single proposed expansion to nested/fixed Breeding reducers in BT13/BT22/BT23 is rejected as a pre-existing cross-collection limitation: base `b88aeb69f` project-only calculation also skips prospective resident installation; those mode-less nested records do not enter the new cost-free amount-choice metadata path. Their runtime and projection paths are preserved, and this bounded EX6 mechanism does not certify them. The helper exits 1 for that reported expansion; this is not represented as a zero-finding helper result. Earlier same-subscription, current-choice/cold projection and mandatory chooser findings were accepted and corrected; targetless optional processing preflight was rejected under CR §15-7-5. Final API typecheck, 271-file / 2893-test runtime, 86-file style, effects check, audit index and diff checks pass. Delivery follows.
 
 - Final literal branch correction removes the mistakenly inserted chooser from NeoDevimon Delete actions and supplies it on both mandatory Trash actions. API typecheck passes on the corrected final module (4 GB heap, isolated). Final broad gate passes **271 files / 2893 tests**, 11.34 seconds; changed-TypeScript Oxlint/Oxfmt passes **86 files**. Shared/web typechecks remain green. These gates supersede the intermediate typecheck failure and the incomplete field insertion; final effects check and structured review follow.
@@ -136,82 +135,82 @@ Fresh 2026-09-13 recalculation: **74/74 cards at 10/10 (740/740)**. Every row re
 
 Fresh proof reconciliation: EX6-001–033 includes legal DNA and normal inherited hosts, real main/play/evolution/attack producers, first-turn Draw boundaries, source zones, shared optional budgets and repeated owner/opponent/next-owner turns. EX6-034–050 includes paid play/evolution and Then ordering, actual Start Main/token production, hand-cost placement under legal Legend-Arms hosts, placement provenance, Option-source prevention, real inherited attack/reset and opponent chooser/refusal. EX6-051–062 includes actual opponent discard acceptance/refusal, exact named leave/play payloads and costs, non-preventing replacement, physical deck-bottom payment, native hand-threshold auras, public opposing Option/battle Partition producers and invalid-source exclusions. EX6-063–074 includes real hand Main/Delay/Security producers, payment/refusal and source identity, lowest-level return/recovery, natural SGDL Delay and full Ogudomon Q6040 continuation. Existing supplemental timing probes are retained where a real positive producer and the shared mechanism prove the same printed payload; native keyword and clone mechanisms reuse engine conformance instead of redundant new tests. EX6-020/032 use explicitly imported neutral opponents and now pass the closing broad gate.
 
-| Card    | Status   | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total | Report    |
-| ------- | -------- | ------------: | -------: | ---------------: | ---------------: | -------------: | ----: | --------- |
-| EX6-001 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-001.test.ts) |
-| EX6-002 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-002.test.ts) |
-| EX6-003 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-003.test.ts) |
-| EX6-004 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-004.test.ts) |
-| EX6-005 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-005.test.ts) |
-| EX6-006 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-006.test.ts) |
-| EX6-007 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-007.test.ts) |
-| EX6-008 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-008.test.ts) |
-| EX6-009 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-009.test.ts) |
-| EX6-010 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-010.test.ts) |
-| EX6-011 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-011.test.ts) |
-| EX6-012 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-012.test.ts) |
-| EX6-013 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-013.test.ts) |
-| EX6-014 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-014.test.ts) |
-| EX6-015 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-015.test.ts) |
-| EX6-016 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-016.test.ts) |
-| EX6-017 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-017.test.ts) |
-| EX6-018 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-018.test.ts) |
-| EX6-019 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-019.test.ts) |
-| EX6-020 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-020.test.ts) |
-| EX6-021 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-021.test.ts) |
-| EX6-022 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-022.test.ts) |
-| EX6-023 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-023.test.ts) |
-| EX6-024 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-024.test.ts) |
-| EX6-025 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-025.test.ts) |
-| EX6-026 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-026.test.ts) |
-| EX6-027 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-027.test.ts) |
-| EX6-028 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-028.test.ts) |
-| EX6-029 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-029.test.ts) |
-| EX6-030 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-030.test.ts) |
-| EX6-031 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-031.test.ts) |
-| EX6-032 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-032.test.ts) |
-| EX6-033 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-033.test.ts) |
-| EX6-034 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-034.test.ts) |
-| EX6-035 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-035.test.ts) |
-| EX6-036 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-036.test.ts) |
-| EX6-037 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-037.test.ts) |
-| EX6-038 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-038.test.ts) |
-| EX6-039 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-039.test.ts) |
-| EX6-040 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-040.test.ts) |
-| EX6-041 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-041.test.ts) |
-| EX6-042 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-042.test.ts) |
-| EX6-043 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-043.test.ts) |
-| EX6-044 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-044.test.ts) |
-| EX6-045 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-045.test.ts) |
-| EX6-046 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-046.test.ts) |
-| EX6-047 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-047.test.ts) |
-| EX6-048 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-048.test.ts) |
-| EX6-049 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-049.test.ts) |
-| EX6-050 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-050.test.ts) |
-| EX6-051 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-051.test.ts) |
-| EX6-052 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-052.test.ts) |
-| EX6-053 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-053.test.ts) |
-| EX6-054 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-054.test.ts) |
-| EX6-055 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-055.test.ts) |
-| EX6-056 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-056.test.ts) |
-| EX6-057 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-057.test.ts) |
-| EX6-058 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-058.test.ts) |
-| EX6-059 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-059.test.ts) |
-| EX6-060 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-060.test.ts) |
-| EX6-061 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-061.test.ts) |
-| EX6-062 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-062.test.ts) |
-| EX6-063 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-063.test.ts) |
-| EX6-064 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-064.test.ts) |
-| EX6-065 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-065.test.ts) |
-| EX6-066 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-066.test.ts) |
-| EX6-067 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-067.test.ts) |
-| EX6-068 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-068.test.ts) |
-| EX6-069 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-069.test.ts) |
-| EX6-070 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-070.test.ts) |
-| EX6-071 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-071.test.ts) |
-| EX6-072 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-072.test.ts) |
-| EX6-073 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-073.test.ts) |
-| EX6-074 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-074.test.ts) |
+| Card    | Status   | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total | Report                                                |
+| ------- | -------- | ------------: | -------: | ---------------: | ---------------: | -------------: | ----: | ----------------------------------------------------- |
+| EX6-001 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-001.test.ts) |
+| EX6-002 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-002.test.ts) |
+| EX6-003 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-003.test.ts) |
+| EX6-004 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-004.test.ts) |
+| EX6-005 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-005.test.ts) |
+| EX6-006 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-006.test.ts) |
+| EX6-007 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-007.test.ts) |
+| EX6-008 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-008.test.ts) |
+| EX6-009 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-009.test.ts) |
+| EX6-010 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-010.test.ts) |
+| EX6-011 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-011.test.ts) |
+| EX6-012 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-012.test.ts) |
+| EX6-013 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-013.test.ts) |
+| EX6-014 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-014.test.ts) |
+| EX6-015 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-015.test.ts) |
+| EX6-016 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-016.test.ts) |
+| EX6-017 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-017.test.ts) |
+| EX6-018 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-018.test.ts) |
+| EX6-019 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-019.test.ts) |
+| EX6-020 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-020.test.ts) |
+| EX6-021 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-021.test.ts) |
+| EX6-022 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-022.test.ts) |
+| EX6-023 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-023.test.ts) |
+| EX6-024 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-024.test.ts) |
+| EX6-025 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-025.test.ts) |
+| EX6-026 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-026.test.ts) |
+| EX6-027 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-027.test.ts) |
+| EX6-028 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-028.test.ts) |
+| EX6-029 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-029.test.ts) |
+| EX6-030 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-030.test.ts) |
+| EX6-031 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-031.test.ts) |
+| EX6-032 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-032.test.ts) |
+| EX6-033 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-033.test.ts) |
+| EX6-034 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-034.test.ts) |
+| EX6-035 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-035.test.ts) |
+| EX6-036 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-036.test.ts) |
+| EX6-037 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-037.test.ts) |
+| EX6-038 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-038.test.ts) |
+| EX6-039 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-039.test.ts) |
+| EX6-040 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-040.test.ts) |
+| EX6-041 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-041.test.ts) |
+| EX6-042 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-042.test.ts) |
+| EX6-043 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-043.test.ts) |
+| EX6-044 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-044.test.ts) |
+| EX6-045 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-045.test.ts) |
+| EX6-046 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-046.test.ts) |
+| EX6-047 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-047.test.ts) |
+| EX6-048 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-048.test.ts) |
+| EX6-049 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-049.test.ts) |
+| EX6-050 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-050.test.ts) |
+| EX6-051 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-051.test.ts) |
+| EX6-052 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-052.test.ts) |
+| EX6-053 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-053.test.ts) |
+| EX6-054 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-054.test.ts) |
+| EX6-055 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-055.test.ts) |
+| EX6-056 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-056.test.ts) |
+| EX6-057 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-057.test.ts) |
+| EX6-058 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-058.test.ts) |
+| EX6-059 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-059.test.ts) |
+| EX6-060 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-060.test.ts) |
+| EX6-061 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-061.test.ts) |
+| EX6-062 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-062.test.ts) |
+| EX6-063 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-063.test.ts) |
+| EX6-064 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-064.test.ts) |
+| EX6-065 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-065.test.ts) |
+| EX6-066 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-066.test.ts) |
+| EX6-067 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-067.test.ts) |
+| EX6-068 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-068.test.ts) |
+| EX6-069 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-069.test.ts) |
+| EX6-070 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-070.test.ts) |
+| EX6-071 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-071.test.ts) |
+| EX6-072 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-072.test.ts) |
+| EX6-073 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-073.test.ts) |
+| EX6-074 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-074.test.ts) |
 
 ### EX6-001 — Sakuttomon
 

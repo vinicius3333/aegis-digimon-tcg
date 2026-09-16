@@ -20,7 +20,9 @@ describe("BT10-010 Asuramon", () => {
 
     s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === card.instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === card.instanceId),
+    );
     expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });

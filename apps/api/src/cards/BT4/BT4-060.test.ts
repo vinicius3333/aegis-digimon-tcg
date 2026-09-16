@@ -29,7 +29,9 @@ describe("BT4-060 Lotosmon", () => {
     s.state.memory = 6;
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("ultimate").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("ultimate").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-023"), 5000);
 
     expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-023")?.isSuspended).toBe(false);
@@ -44,7 +46,9 @@ describe("BT4-060 Lotosmon", () => {
     });
     s.state.memory = 4;
     await s.engine.recomputeContinuousEffects();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rookie").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rookie").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("rookie").isSuspended);
 
     expect(s.perm("rookie").isSuspended).toBe(true);

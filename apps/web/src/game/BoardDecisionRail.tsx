@@ -167,7 +167,7 @@ export function BoardSelectionRail({
           immediately discoverable, this prevents the rail from jumping when the first
           card is picked. */}
       <Button full icon={Icons.Check} disabled={pickCount === 0 || !canConfirm} onClick={onConfirm}>
-          {t("overlay.endSelection")}
+        {t("overlay.endSelection")}
       </Button>
       <Button full variant="secondary" onClick={onNoSelection}>
         {t("overlay.noSelection")}

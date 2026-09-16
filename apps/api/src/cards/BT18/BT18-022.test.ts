@@ -156,7 +156,9 @@ describe("BT18-022 Kumamon", () => {
         target: { kind: "permanent", permanentId: s.perm("host").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ownTamerId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ownTamerId),
+    );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ownTamerId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT18-022")).toBe(true);

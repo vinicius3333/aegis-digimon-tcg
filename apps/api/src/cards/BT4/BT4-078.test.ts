@@ -30,7 +30,10 @@ describe("BT4-078 Soundbirdmon", () => {
       {
         0: {
           battleArea: [{ card: "BT4-078", as: "sound" }],
-          hand: [{ card: "BT4-109", as: "first" }, { card: "BT4-109", as: "second" }],
+          hand: [
+            { card: "BT4-109", as: "first" },
+            { card: "BT4-109", as: "second" },
+          ],
         },
         1: { security: ["BT1-009"] },
       },
