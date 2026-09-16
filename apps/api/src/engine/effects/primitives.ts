@@ -17,6 +17,7 @@ import {
   type AttackTarget,
   type CardColor,
   type CardDefinition,
+  type PreventionKeyword,
   type GameState,
   type PlayerState,
   type Seat,
@@ -434,6 +435,22 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const effectSeatStack: Seat[] = [];
   const effectSourceKindsStack: string[][] = [];
   const effectSourcePermanentIdStack: (string | undefined)[] = [];
+  /**
+   * Tell the client that a keyword paid to prevent `saved`'s deletion. These keywords resolve
+   * through a plain decision and then a silent board change, so without this the viewer sees
+   * only the cost card leaving and a deletion that quietly did not happen. The battle path has
+   * its own copy of these keywords (combat/controller.ts) and emits the same event.
+   */
+  const emitDeletionPrevented = (keyword: PreventionKeyword, saved: Permanent, paidPermanentId?: string): void => {
+    engine.emit({
+      kind: "deletionPrevented",
+      keyword,
+      seat: saved.controllerSeat,
+      permanentId: saved.permanentId,
+      ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
+      ...(paidPermanentId === undefined ? {} : { paidPermanentId }),
+    });
+  };
   const enterEffectResolution: Primitives["enterEffectResolution"] = (seat, sourceKinds = [], sourcePermanentId) => {
     effectSeatStack.push(seat);
     effectSourceKindsStack.push(sourceKinds);
@@ -3843,7 +3860,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             } finally {
               decoyCostPermanentIds.delete(holder.permanentId);
             }
-            if (costDeleted > 0) decoySaved.add(permanentId);
+            if (costDeleted > 0) {
+              emitDeletionPrevented("Decoy", perm, holder.permanentId);
+              decoySaved.add(permanentId);
+            }
             break;
           }
         }
@@ -3869,6 +3889,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           "＜Armor Purge＞: trash this Digimon's top card to prevent its deletion?",
         );
         if (chosen.length === 0) continue;
+        // Before the purge: it promotes the digivolution card underneath, so reading the top
+        // card afterwards would name the card that replaced the holder, not the holder itself.
+        emitDeletionPrevented("Armor Purge", perm);
         await armorPurge(permanentId);
         armorPurged.add(permanentId);
       }
@@ -3896,6 +3919,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         );
         if (chosen.length < n) continue; // all-or-nothing: a partial pick is a decline
         await trashDigivolutionCards(permanentId, chosen);
+        emitDeletionPrevented("Fragment", perm);
         fragmentSaved.add(permanentId);
       }
       if (fragmentSaved.size > 0) toDelete = toDelete.filter((id) => !fragmentSaved.has(id));
@@ -3939,6 +3963,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         const sacrifice = candidates.find((p) => p.topCard?.instanceId === chosen[0]);
         if (sacrifice === undefined) continue;
         await deletePermanent([sacrifice.permanentId], "byEffect");
+        emitDeletionPrevented("Scapegoat", perm, sacrifice.permanentId);
         scapegoatSaved.add(permanentId);
       }
       if (scapegoatSaved.size > 0) toDelete = toDelete.filter((id) => !scapegoatSaved.has(id));

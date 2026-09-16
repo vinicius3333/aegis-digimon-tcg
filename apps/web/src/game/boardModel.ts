@@ -290,6 +290,25 @@ export function canUseBreedingAction({
 }
 
 /**
+ * What a click on the occupied breeding slot means. During the breeding step a
+ * Digimon that may move answers with the move itself, since that is the only verb
+ * the step offers for it; outside that step the slot behaves like any other own
+ * card and opens the detail menu. A pending selection keeps the detail routing,
+ * because the click then belongs to that selection (digivolve, link, deselect).
+ */
+export function breedingSlotClickAction({
+  breedingActionsOpen,
+  canMove,
+  hasPendingSelection,
+}: {
+  breedingActionsOpen: boolean;
+  canMove: boolean;
+  hasPendingSelection: boolean;
+}): "move" | "detail" {
+  return breedingActionsOpen && canMove && !hasPendingSelection ? "move" : "detail";
+}
+
+/**
  * Whether `perm` may declare a normal attack right now, and whether it may declare a
  * ＜Vortex＞ attack right now. Both read the server's own projection rather than
  * re-deriving the rules: turn, phase, summoning sickness (§16-1), the once-per-turn
@@ -1179,7 +1198,12 @@ export function describeEvent(
             ? t("log.targetDigimon")
             : cardName(targetCardId);
       return {
-        text: t("log.attackOnBy", { target, card: cardName(event.attackerCardId) }),
+        // A redirect re-narrates an attack the log already opened, so it reads as the
+        // switch it is rather than as a second declaration by the same attacker.
+        text:
+          event.redirected === true
+            ? t("log.attackTargetSwitched", { target })
+            : t("log.attackOnBy", { target, card: cardName(event.attackerCardId) }),
         kind: "sys",
         // Ordered as the sentence names them: the target, then the attacker.
         cardIds: [targetCardId, event.attackerCardId].filter((id): id is string => id !== undefined),
@@ -1228,6 +1252,17 @@ export function describeEvent(
       return {
         text: deleted.length ? t("log.combatResolvedDeleted", { count: deleted.length }) : t("log.combatResolved"),
         kind: "sys",
+      };
+    }
+    case "deletionPrevented": {
+      const cardId = event.cardId ?? identities.get(event.permanentId);
+      return {
+        text: t("log.deletionPrevented", {
+          keyword: event.keyword,
+          card: cardId === undefined ? t("log.targetDigimon") : cardName(cardId),
+        }),
+        kind: "sys",
+        ...(cardId === undefined ? {} : { cardIds: [cardId] }),
       };
     }
     case "securityChecked":

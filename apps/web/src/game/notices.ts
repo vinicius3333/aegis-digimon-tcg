@@ -11,7 +11,7 @@
    This module is the pure half: the model and the mapping from server events.
    Card text and translation belong to NoticeStack.tsx. */
 
-import { digiXrosRequirementFor, type Seat, type ServerEvent } from "@aegis/shared";
+import { digiXrosRequirementFor, type PreventionKeyword, type Seat, type ServerEvent } from "@aegis/shared";
 import { TIMINGS } from "./timings";
 
 /** How long a notice gets to be read. Nothing on the board shortens it any more. */
@@ -45,7 +45,24 @@ export type NoticeBody =
   | { variant: "keyword"; keyword: NoticeKeyword; cardId: string };
 
 /** The named mechanics the board calls out by name as they happen. */
-export type NoticeKeyword = "digiXros" | "cannotAttack" | "cannotBlock";
+export type NoticeKeyword =
+  | "digiXros"
+  | "cannotAttack"
+  | "cannotBlock"
+  | "scapegoat"
+  | "decoy"
+  | "guard"
+  | "fragment"
+  | "armorPurge";
+
+/** The notice each prevention keyword earns, keyed by the name the protocol uses. */
+const PREVENTION_NOTICE_KEYWORDS: Record<PreventionKeyword, NoticeKeyword> = {
+  Scapegoat: "scapegoat",
+  Decoy: "decoy",
+  Guard: "guard",
+  Fragment: "fragment",
+  "Armor Purge": "armorPurge",
+};
 
 /** One permanent named by a deletion call-out. */
 export interface DeletedCard {
@@ -176,6 +193,29 @@ export function securityGainNoticeFromEvent(
   if (event.kind !== "cardsMoved" || event.to !== "security" || event.seat === undefined) return null;
   if (event.instanceIds.length === 0) return null;
   return securityGainNotice(sideOf(event.seat, viewerSeat), event.instanceIds.length, id, nowMs);
+}
+
+/**
+ * The call-out a prevention keyword earns when it pays to keep a Digimon on the board.
+ *
+ * These keywords have no prompt/resolved event pair of their own: without this the viewer
+ * sees the cost card leave and the deletion silently not happen, with nothing naming the
+ * keyword that did it. The saved card is the subject, because it is the one still there.
+ */
+export function preventionNoticeFromEvent(
+  event: ServerEvent,
+  viewerSeat: Seat,
+  id: string,
+  nowMs: number,
+): MatchNotice | null {
+  if (event.kind !== "deletionPrevented" || event.cardId === undefined) return null;
+  return {
+    id,
+    side: sideOf(event.seat, viewerSeat),
+    fromSecurity: false,
+    body: { variant: "keyword", keyword: PREVENTION_NOTICE_KEYWORDS[event.keyword], cardId: event.cardId },
+    createdAt: nowMs,
+  };
 }
 
 /**

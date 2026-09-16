@@ -26,6 +26,8 @@ export interface NarrationItem {
   source?: string;
   /** When the item was presented, which is when its reading clock started. */
   createdAt: number;
+  /** Overrides the reading time the item's halves would earn. Set where the layout reads slower. */
+  lifetimeMs?: number;
   panel?: SidePanel;
   notice?: MatchNotice;
 }
@@ -36,6 +38,22 @@ export interface NarrationItem {
  * give the rest of the reading time back on release.
  */
 export const NARRATION_TICK_MS = 120;
+
+/**
+ * How many moments the phone's folded slot holds. A phone has no second column to spread
+ * a batch across, so a single slot meant every moment erased the one before it — on a
+ * screen where the notices are also the smallest. They queue downwards instead, past the
+ * height the slot is capped at: the column scrolls rather than dropping what it cannot
+ * show, and the cap here is only the wall that stops an unread queue growing forever.
+ */
+export const COLLAPSED_NARRATION_LIMIT = 6;
+
+/**
+ * How much longer a moment reads on the phone's folded slot. The same clause is set in a
+ * caption size there, competing with the board underneath it, so the desktop's clock is
+ * not enough time to read it.
+ */
+export const TOUCH_NARRATION_LIFETIME_SCALE = 1.6;
 
 /**
  * A refused action answers the viewer's own tap, so it is shown at once and never
@@ -65,7 +83,8 @@ export function panelSourceCardId(panel: SidePanel): string | undefined {
 }
 
 /** How long an item gets to be read. An item carrying both halves gets the longer clock. */
-export function narrationReadingTime(item: Pick<NarrationItem, "panel" | "notice">): number {
+export function narrationReadingTime(item: Pick<NarrationItem, "panel" | "notice" | "lifetimeMs">): number {
+  if (item.lifetimeMs !== undefined) return item.lifetimeMs;
   return Math.max(item.notice ? NOTICE_LIFETIME_MS : 0, item.panel ? SIDE_PANEL_LIFETIME_MS : 0);
 }
 

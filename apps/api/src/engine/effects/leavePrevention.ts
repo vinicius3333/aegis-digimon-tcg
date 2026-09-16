@@ -29,6 +29,12 @@ export interface LeavePreventionHost {
   markOncePerTurnFired?(key: string): void;
   /** Let the affected player order simultaneous non-preventing and preventing leave reactions. */
   orderReplacements?(replacements: ReplacementSubscription[], seat: Seat): Promise<ReplacementSubscription[]>;
+  /**
+   * Announce a keyword prevention that paid and succeeded. Only the keyword reactions carry an
+   * `activationIdentity`, and only they need this: an authored card's replacement already
+   * narrates itself through its own effect events.
+   */
+  keywordPrevented?(activationIdentity: string, sourcePermanentId: string | undefined, savedPermanentId: string): void;
 }
 
 /**
@@ -257,12 +263,21 @@ export async function consultLeavePrevention(
         opts.reentryGuard.activeReplacementKeys.delete(activationKey);
       }
       if (!did) continue;
+      const announce = (savedId: string) => {
+        if (repl.activationIdentity === undefined) return;
+        host.keywordPrevented?.(repl.activationIdentity, repl.sourcePermanentId, savedId);
+      };
+      announce(leavingId);
       prevented.add(leavingId);
       if (repl.affectsAll) {
         firedAll.add(repl.id);
         for (const simultaneousId of permanentIds) {
           if (host.permanentById(simultaneousId) === undefined) continue;
-          if (repl.protects === undefined || repl.protects(ctx, simultaneousId)) prevented.add(simultaneousId);
+          if (repl.protects !== undefined && !repl.protects(ctx, simultaneousId)) continue;
+          // One payment saving several permanents earns one announcement each: the viewer is
+          // told about every card the keyword actually kept on the board.
+          if (simultaneousId !== leavingId && !prevented.has(simultaneousId)) announce(simultaneousId);
+          prevented.add(simultaneousId);
         }
       }
       if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);

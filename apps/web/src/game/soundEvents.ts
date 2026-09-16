@@ -22,8 +22,9 @@ export function soundForEvent(event: ServerEvent, viewerSeat: Seat): SoundKind |
       return "digivolve";
     case "hatched":
       return "hatch";
+    // A redirect re-aims an attack that already sounded; it is not a second declaration.
     case "attackDeclared":
-      return "attackDeclare";
+      return event.redirected === true ? null : "attackDeclare";
     // The shield breaking, which is the reveal — not the outcome the check settles on later.
     case "securityRevealed":
       return "securityHit";

@@ -203,6 +203,17 @@ describe("§16-32 <Scapegoat> — delete another Digimon to prevent a non-owner-
 
     expect(p0.battleArea.some((p) => p.permanentId === scapegoater.permanentId)).toBe(true); // spared
     expect(p0.battleArea.some((p) => p.permanentId === other.permanentId)).toBe(false); // sacrificed
+    // Without this the client sees only the sacrifice leaving and a battle that quietly failed.
+    expect(s.events.filter((e) => e.kind === "deletionPrevented")).toEqual([
+      {
+        kind: "deletionPrevented",
+        keyword: "Scapegoat",
+        seat: 0,
+        permanentId: scapegoater.permanentId,
+        cardId: "BT20-080",
+        paidPermanentId: other.permanentId,
+      },
+    ]);
   });
 
   it("with no OTHER Digimon to sacrifice, a <Scapegoat> Digimon is deleted normally", async () => {
@@ -295,6 +306,16 @@ describe("§16-18 <Decoy> — delete this Digimon to prevent an opponent-effect 
     expect(p0.battleArea.some((p) => p.permanentId === protectedDigimon.permanentId)).toBe(true);
     expect(p0.battleArea.some((p) => p.permanentId === decoyHolder.permanentId)).toBe(false);
     expect(p0.trash.length).toBeGreaterThan(trashBefore);
+    expect(s.events.filter((e) => e.kind === "deletionPrevented")).toEqual([
+      {
+        kind: "deletionPrevented",
+        keyword: "Decoy",
+        seat: 0,
+        permanentId: protectedDigimon.permanentId,
+        cardId: "BT10-070",
+        paidPermanentId: decoyHolder.permanentId,
+      },
+    ]);
   });
 
   it("offers every matching <Decoy> holder and pays only the selected permanent", async () => {
@@ -483,6 +504,16 @@ describe("§16-19 <Armor Purge> — trash this Digimon's own top card to prevent
     expect(survivor?.stack.length).toBe(0);
     // The purged (old) top card is in trash — the "shed armor".
     expect(p0.trash.some((c) => c.cardId === "BT8-012")).toBe(true);
+    // Announced naming the holder, not the card the purge promoted in its place.
+    expect(s.events.filter((e) => e.kind === "deletionPrevented")).toEqual([
+      {
+        kind: "deletionPrevented",
+        keyword: "Armor Purge",
+        seat: 0,
+        permanentId: holder.permanentId,
+        cardId: "BT8-012",
+      },
+    ]);
   });
 
   it("NEGATIVE CONTROL: with NO digivolution card to reveal, an <Armor Purge> holder is deleted normally", async () => {
@@ -572,6 +603,15 @@ describe("§16-37 <Fragment (N)> — choose and trash N of this Digimon's own di
     for (const id of stackInstanceIds) {
       expect(p0.trash.some((c) => c.instanceId === id)).toBe(true);
     }
+    expect(s.events.filter((e) => e.kind === "deletionPrevented")).toEqual([
+      {
+        kind: "deletionPrevented",
+        keyword: "Fragment",
+        seat: 0,
+        permanentId: holder.permanentId,
+        cardId: "EX10-033",
+      },
+    ]);
   });
 
   it("NEGATIVE CONTROL: with FEWER than 3 digivolution cards, a <Fragment (3)> holder is deleted normally", async () => {

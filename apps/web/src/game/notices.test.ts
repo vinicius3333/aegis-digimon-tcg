@@ -6,6 +6,7 @@ import {
   isOwnEffectNotice,
   keywordNoticeFromEvent,
   noticeRemaining,
+  preventionNoticeFromEvent,
   NOTICE_LIFETIME_MS,
   recoveryNoticeFromEvent,
   rejectionNotice,
@@ -153,6 +154,43 @@ describe("keywordNoticeFromEvent", () => {
 
   it("ignores other events", () => {
     expect(keywordNoticeFromEvent(resolved(0), VIEWER, "k", 0)).toBeNull();
+  });
+});
+
+describe("preventionNoticeFromEvent", () => {
+  const prevented = (keyword: "Scapegoat" | "Armor Purge", seat: Seat = 0): ServerEvent => ({
+    kind: "deletionPrevented",
+    keyword,
+    seat,
+    permanentId: "p1",
+    cardId: "BT1-010",
+    paidPermanentId: "p2",
+  });
+
+  it("names the keyword that paid, over the card it kept on the board", () => {
+    expect(preventionNoticeFromEvent(prevented("Scapegoat"), VIEWER, "k", 4)).toEqual({
+      id: "k",
+      side: "you",
+      fromSecurity: false,
+      body: { variant: "keyword", keyword: "scapegoat", cardId: "BT1-010" },
+      createdAt: 4,
+    });
+    expect(preventionNoticeFromEvent(prevented("Armor Purge", 1), VIEWER, "k", 0)).toMatchObject({
+      side: "opp",
+      body: { keyword: "armorPurge" },
+    });
+  });
+
+  it("stays quiet without the saved card's identity, which the notice is drawn from", () => {
+    const { cardId: _dropped, ...anonymous } = prevented("Scapegoat") as Extract<
+      ServerEvent,
+      { kind: "deletionPrevented" }
+    >;
+    expect(preventionNoticeFromEvent(anonymous, VIEWER, "k", 0)).toBeNull();
+  });
+
+  it("ignores other events", () => {
+    expect(preventionNoticeFromEvent(resolved(0), VIEWER, "k", 0)).toBeNull();
   });
 });
 

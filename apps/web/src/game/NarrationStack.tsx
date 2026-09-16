@@ -4,7 +4,8 @@
    the same place for the same kind of thing. Each item owns its reading lifetime and
    dismissal; a portrait phone folds the two columns into one. */
 
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Icons } from "../design/icons";
 import { NoticeStack } from "./NoticeStack";
 import { SidePanelStack } from "./SidePanelStack";
 import { isCardListNotice, narrationRemaining, type NarrationItem, type NarrationSlot } from "./narration";
@@ -40,6 +41,11 @@ function NarrationItemView({
   );
 }
 
+/**
+ * A slot capped in height scrolls rather than dropping what it cannot show: the newest
+ * moment is kept in view at the bottom, and older ones stay one scroll up. A chevron from
+ * the shared icon set rides the top edge while there is something above it.
+ */
 function Slot({
   slot,
   count,
@@ -51,13 +57,36 @@ function Slot({
   children: ReactNode;
   securityDockActive?: boolean;
 }) {
+  const column = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  // Before paint, so a moment arriving never shows the column scrolled to the old one.
+  useLayoutEffect(() => {
+    const element = column.current;
+    if (!element) return;
+    element.scrollTop = element.scrollHeight;
+  }, [count]);
+  useEffect(() => {
+    const element = column.current;
+    if (!element) return;
+    const update = () => setMore(element.scrollTop > 1);
+    update();
+    element.addEventListener("scroll", update, { passive: true });
+    return () => element.removeEventListener("scroll", update);
+  }, [count]);
   return (
     <div
       className="narration-slot"
       data-slot={slot}
       data-security-dock={securityDockActive || undefined}
+      data-more={more || undefined}
+      ref={column}
       style={{ "--narration-count": count } as CSSProperties}
     >
+      {more ? (
+        <span className="narration-slot__more" aria-hidden="true">
+          <Icons.ChevronUp size={26} />
+        </span>
+      ) : null}
       {children}
     </div>
   );

@@ -305,6 +305,10 @@ describe("Guard departure lifecycle", () => {
     const princeId = s.inst("prince").instanceId;
     const a = s.inst("a").instanceId;
     const b = s.inst("b").instanceId;
+    // Read before the play: the payment deletes the Guard holder and saves the two it protects.
+    const princePermanentId = s.perm("prince").permanentId;
+    const aPermanentId = s.perm("a").permanentId;
+    const bPermanentId = s.perm("b").permanentId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
     expect(s.state.memory).toBe(2);
@@ -320,6 +324,26 @@ describe("Guard departure lifecycle", () => {
       [optionId, s.inst("black").instanceId].sort(),
     );
     expect(s.state.pendingDecision).toBeUndefined();
+    // One payment saving two Digimon is announced once per saved Digimon: ＜Guard＞ resolves as
+    // a silent replacement, so this event is all the client has to name what kept them there.
+    expect(s.events.filter((event) => event.kind === "deletionPrevented")).toEqual([
+      {
+        kind: "deletionPrevented",
+        keyword: "Guard",
+        seat: 1,
+        permanentId: aPermanentId,
+        cardId: "BT1-043",
+        paidPermanentId: princePermanentId,
+      },
+      {
+        kind: "deletionPrevented",
+        keyword: "Guard",
+        seat: 1,
+        permanentId: bPermanentId,
+        cardId: "BT1-043",
+        paidPermanentId: princePermanentId,
+      },
+    ]);
     assertNoLoudGap(s);
   });
 

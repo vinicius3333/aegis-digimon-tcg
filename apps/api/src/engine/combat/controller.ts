@@ -8,6 +8,7 @@ import {
   type ServerEvent,
   type CardColor,
   type CombatWindowKind,
+  type PreventionKeyword,
   CombatWindow,
   getCardDefinition,
 } from "@aegis/shared";
@@ -518,11 +519,29 @@ export class CombatController {
   }
 
   /**
+   * Tell the client that a keyword paid to prevent `saved`'s deletion. These keywords resolve
+   * through a plain decision and then a silent board change, so without this the viewer sees
+   * only the cost card leaving and a battle that quietly failed.
+   */
+  private emitDeletionPrevented(keyword: PreventionKeyword, saved: Permanent, paidPermanentId?: string): void {
+    this.hooks.emit({
+      kind: "deletionPrevented",
+      keyword,
+      seat: saved.controllerSeat,
+      permanentId: saved.permanentId,
+      ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
+      ...(paidPermanentId === undefined ? {} : { paidPermanentId }),
+    });
+  }
+
+  /**
    * Redirect the in-flight attack onto `target` (a Counter/When-Attacking effect
    * changing who is attacked). Mutates the resolving attack's target so the upcoming
    * block-window / battle resolution uses it (Comprehensive Rules §11-2-7-2: the
    * attack target may switch). A no-op when no attack is resolving. Re-narrates via
-   * `attackDeclared` (the new target) so the client log reflects the switch.
+   * `attackDeclared` (the new target) so the client log reflects the switch; the event
+   * carries `redirected` so the client re-aims the open attack rather than narrating a
+   * second declaration.
    */
   redirectTarget(target: AttackTarget): boolean {
     if (this.currentAttack === undefined) return false;
@@ -546,6 +565,7 @@ export class CombatController {
       ...(target.kind === "permanent" && this.access.permanentById(target.permanentId)?.topCard.artId
         ? { targetArtId: this.access.permanentById(target.permanentId)!.topCard.artId }
         : {}),
+      redirected: true,
     });
     return true;
   }
@@ -1505,6 +1525,9 @@ export class CombatController {
         "＜Armor Purge＞: trash this Digimon's top card to prevent its deletion?",
       );
       if (chosenInstanceId === undefined) continue;
+      // Emitted before the purge: it promotes the digivolution card underneath, so reading the
+      // top card afterwards would name the card that replaced the holder, not the holder itself.
+      this.emitDeletionPrevented("Armor Purge", perm);
       await this.hooks.armorPurge?.(permanentId);
       armorPurgedIds.add(permanentId);
     }
@@ -1527,6 +1550,7 @@ export class CombatController {
       );
       if (chosenIds === undefined || chosenIds.length < n) continue;
       await this.hooks.trashDigivolutionCards?.(permanentId, chosenIds);
+      this.emitDeletionPrevented("Fragment", perm);
       fragmentSavedIds.add(permanentId);
     }
     const postFragmentDeletedIds = postArmorPurgeDeletedIds.filter((id) => !fragmentSavedIds.has(id));
@@ -1584,6 +1608,7 @@ export class CombatController {
           removalCause: "byEffect",
         });
       }
+      this.emitDeletionPrevented("Scapegoat", perm, sacrifice.permanentId);
       scapegoatSavedIds.add(permanentId);
     }
     const postScapegoatDeletedIds = postFragmentDeletedIds.filter((id) => !scapegoatSavedIds.has(id));

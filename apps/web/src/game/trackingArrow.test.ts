@@ -56,6 +56,19 @@ describe("activeAttackArrow", () => {
     expect(activeAttackArrow(events)).toBeNull();
   });
 
+  it("re-aims the arrow onto the target a redirect switched to, without restarting it", () => {
+    const declared = activeAttackArrow([attackSecurity]);
+    const redirected = activeAttackArrow([attackSecurity, { ...attackDigimon, redirected: true }]);
+    expect(redirected?.to).toEqual([{ kind: "permanent", permanentId: "def" }]);
+    expect(redirected?.key).toBe(declared?.key);
+  });
+
+  it("puts an arrow up for a redirect that arrives with no attack open", () => {
+    expect(activeAttackArrow([{ ...attackDigimon, redirected: true }])?.to).toEqual([
+      { kind: "permanent", permanentId: "def" },
+    ]);
+  });
+
   it("keys each declaration apart so a second attack restarts the flashes", () => {
     const first = activeAttackArrow([attackDigimon])?.key;
     const second = activeAttackArrow([

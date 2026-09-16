@@ -28,6 +28,7 @@ describe("Raid public target choice", () => {
     );
     const firstId = s.perm("firstHigh").topCard.instanceId;
     const secondId = s.perm("secondHigh").topCard.instanceId;
+    const secondPermanentId = s.perm("secondHigh").permanentId;
     const attackerId = s.perm("attacker").topCard.instanceId;
     const securityId = s.inst("security").instanceId;
     await s.ready();
@@ -60,5 +61,16 @@ describe("Raid public target choice", () => {
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toEqual([firstId]);
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(attackerId);
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([securityId]);
+    // The switch re-narrates the attack that is already open. Flagging it is what stops the
+    // client from playing a second declaration — its sound, announcement and lunge at a
+    // security stack the attack no longer points at.
+    const declarations = s.events.filter((event) => event.kind === "attackDeclared");
+    expect(declarations).toHaveLength(2);
+    expect(declarations[0]).toMatchObject({ target: { kind: "player" } });
+    expect(declarations[0]).not.toHaveProperty("redirected");
+    expect(declarations[1]).toMatchObject({
+      target: { kind: "permanent", permanentId: secondPermanentId },
+      redirected: true,
+    });
   });
 });

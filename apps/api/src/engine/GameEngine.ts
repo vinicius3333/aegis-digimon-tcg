@@ -1517,6 +1517,21 @@ export class GameEngine {
         // (reset at each turn start alongside every other Once-Per-Turn limit).
         oncePerTurnFired: (key) => this.tracker.count(key, "replacement") > 0,
         markOncePerTurnFired: (key) => this.tracker.register(key, "replacement"),
+        // ＜Guard＞ is the one prevention keyword that resolves as a replacement subscription
+        // rather than inline in the deletion paths, so its announcement is wired here.
+        keywordPrevented: (activationIdentity, sourcePermanentId, savedPermanentId) => {
+          if (activationIdentity !== "keyword-guard") return;
+          const saved = this.access.permanentById(savedPermanentId);
+          if (saved === undefined) return;
+          this.hooks.emit({
+            kind: "deletionPrevented",
+            keyword: "Guard",
+            seat: saved.controllerSeat,
+            permanentId: saved.permanentId,
+            ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
+            ...(sourcePermanentId === undefined ? {} : { paidPermanentId: sourcePermanentId }),
+          });
+        },
         orderReplacements: async (replacements, seat) => {
           const keyed = replacements.map((replacement) => {
             const sourceInstance =

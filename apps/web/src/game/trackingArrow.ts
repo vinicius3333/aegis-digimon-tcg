@@ -40,6 +40,35 @@ function closesAttack(event: ServerEvent): boolean {
 }
 
 /**
+ * The open attack arrow after `event`: a declaration puts one up, a redirect and a block
+ * re-aim the one already up, and anything that ends the attack takes it down. `index`
+ * only feeds the key, which changes whenever a different attack takes over.
+ */
+function advanceArrow(arrow: TrackingArrow | null, event: ServerEvent, index: number): TrackingArrow | null {
+  if (closesAttack(event)) return null;
+  if (event.kind === "attackDeclared") {
+    // A player attack names no seat: the stack under attack is the other one's.
+    const target: ArrowEndpoint =
+      event.target.kind === "player"
+        ? { kind: "security", seat: (event.seat === 0 ? 1 : 0) as Seat }
+        : { kind: "permanent", permanentId: event.target.permanentId };
+    // A redirect re-aims the arrow the declaration already put up, the way a block does:
+    // keeping the key stops the flashes from replaying for an attack that never restarted.
+    if (event.redirected === true && arrow !== null) return { ...arrow, to: [target] };
+    return {
+      kind: "attack",
+      key: `attack:${index}:${event.attackerPermanentId}`,
+      from: { kind: "permanent", permanentId: event.attackerPermanentId },
+      to: [target],
+    };
+  }
+  if (event.kind === "blocked" && arrow !== null) {
+    return { ...arrow, to: [{ kind: "permanent", permanentId: event.blockerPermanentId }] };
+  }
+  return arrow;
+}
+
+/**
  * The attack arrow currently live, or null when no declared attack is still open.
  * A declaration on a player points at that player's security stack; a declaration
  * on a Digimon points at the permanent, and a block moves the point to the blocker.
@@ -49,27 +78,7 @@ export function activeAttackArrow(events: readonly ServerEvent[]): TrackingArrow
   let index = 0;
   for (const event of events) {
     index += 1;
-    if (closesAttack(event)) {
-      arrow = null;
-      continue;
-    }
-    if (event.kind === "attackDeclared") {
-      // A player attack names no seat: the stack under attack is the other one's.
-      const target: ArrowEndpoint =
-        event.target.kind === "player"
-          ? { kind: "security", seat: (event.seat === 0 ? 1 : 0) as Seat }
-          : { kind: "permanent", permanentId: event.target.permanentId };
-      arrow = {
-        kind: "attack",
-        key: `attack:${index}:${event.attackerPermanentId}`,
-        from: { kind: "permanent", permanentId: event.attackerPermanentId },
-        to: [target],
-      };
-      continue;
-    }
-    if (event.kind === "blocked" && arrow) {
-      arrow = { ...arrow, to: [{ kind: "permanent", permanentId: event.blockerPermanentId }] };
-    }
+    arrow = advanceArrow(arrow, event, index);
   }
   return arrow;
 }

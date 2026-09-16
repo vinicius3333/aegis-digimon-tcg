@@ -108,6 +108,7 @@ import {
   type EvoCostOption,
   type ProjectedDigivolveRoute,
   type LogLine,
+  breedingSlotClickAction,
   canMoveFromBreeding,
   canUseBreedingAction,
   type ActivatableEntry,
@@ -2210,10 +2211,22 @@ export function GameScreen({
             }
             focused={breedingActionsOpen}
             drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
-            // An occupied slot reads like any other own card: the same routing as the
-            // battle area, which opens the detail menu (carrying "move to battle").
+            // In the breeding step an occupied slot answers with the move itself;
+            // otherwise it reads like any other own card and opens the detail menu.
             // An empty slot only answers the breeding step, once its actions open.
-            onClick={you.breeding ? onYourPerm(you.breeding) : breedingActionsOpen ? onBreeding : undefined}
+            onClick={
+              you.breeding
+                ? breedingSlotClickAction({
+                    breedingActionsOpen,
+                    canMove: canMoveOutOfBreeding,
+                    hasPendingSelection: !!handSel || !!linkSel || selPerm === you.breeding.permanentId,
+                  }) === "move"
+                  ? onBreeding
+                  : onYourPerm(you.breeding)
+                : breedingActionsOpen
+                  ? onBreeding
+                  : undefined
+            }
           />
         </div>
       </div>

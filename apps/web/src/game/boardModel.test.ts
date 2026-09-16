@@ -11,6 +11,7 @@ import {
   mirroredCombatWindow,
   lastRejectedCombatAnswer,
   buildMatchLog,
+  breedingSlotClickAction,
   canMoveFromBreeding,
   canUseBreedingAction,
   decisionEffectSource,
@@ -1058,6 +1059,26 @@ describe("canUseBreedingAction", () => {
   it("never offers the action on the opponent's turn", () => {
     expect(canUseBreedingAction({ ...base, isMyTurn: false, canHatch: true })).toBe(false);
     expect(canUseBreedingAction({ ...base, isMyTurn: false, canMove: true })).toBe(false);
+  });
+});
+
+describe("breedingSlotClickAction", () => {
+  const base = { breedingActionsOpen: true, canMove: true, hasPendingSelection: false };
+
+  it("moves the Digimon out during the breeding step", () => {
+    expect(breedingSlotClickAction(base)).toBe("move");
+  });
+
+  it("opens the detail menu outside the breeding step", () => {
+    expect(breedingSlotClickAction({ ...base, breedingActionsOpen: false })).toBe("detail");
+  });
+
+  it("opens the detail menu for a Digimon that cannot move yet", () => {
+    expect(breedingSlotClickAction({ ...base, canMove: false })).toBe("detail");
+  });
+
+  it("leaves a pending selection its own routing", () => {
+    expect(breedingSlotClickAction({ ...base, hasPendingSelection: true })).toBe("detail");
   });
 });
 

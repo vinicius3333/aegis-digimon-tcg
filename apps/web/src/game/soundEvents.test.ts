@@ -31,6 +31,18 @@ describe("soundForEvent", () => {
     for (const { event, cue } of cases) expect(soundForEvent(event, 0)).toBe(cue);
   });
 
+  it("stays silent for a redirect, which re-aims an attack that already sounded", () => {
+    const redirect: ServerEvent = {
+      kind: "attackDeclared",
+      seat: 1,
+      attackerPermanentId: "p3",
+      attackerCardId: "BT1-020",
+      target: { kind: "permanent", permanentId: "p9" },
+      redirected: true,
+    };
+    expect(soundForEvent(redirect, 0)).toBeNull();
+  });
+
   it("picks the win cue only for the viewer who won", () => {
     const event: ServerEvent = { kind: "gameOver", result: { outcome: "win", winnerSeat: 0 }, reason: "security" };
     expect(soundForEvent(event, 0)).toBe("win");

@@ -49,6 +49,7 @@ import {
   isOwnEffectNotice,
   noticeRemaining,
   keywordNoticeFromEvent,
+  preventionNoticeFromEvent,
   recoveryNoticeFromEvent,
   rejectionNotice,
   securityGainNotice,
@@ -60,6 +61,8 @@ import {
   narrationReadingTime,
   pushNarrationItem,
   trimNarration,
+  COLLAPSED_NARRATION_LIMIT,
+  TOUCH_NARRATION_LIFETIME_SCALE,
   type NarrationItem,
 } from "./narration";
 import {
@@ -946,11 +949,19 @@ export function useMatchCues({
    */
   function presentableNarration(item: NarrationItem): NarrationItem | null {
     const { notice } = item;
+    // The folded slot reads slower than the board does, so its items get a longer clock.
+    const shown = (presented: NarrationItem): NarrationItem => ({
+      ...presented,
+      ...(collapseNarrationRef.current
+        ? { lifetimeMs: Math.round(narrationReadingTime(presented) * TOUCH_NARRATION_LIFETIME_SCALE) }
+        : {}),
+      createdAt: Date.now(),
+    });
     const suppressed =
       notice !== undefined && [...suppressedOwnEffectsRef.current].some((cardId) => isOwnEffectNotice(notice, cardId));
-    if (!suppressed) return { ...item, createdAt: Date.now() };
+    if (!suppressed) return shown(item);
     if (!item.panel) return null;
-    return { ...item, notice: undefined, createdAt: Date.now() };
+    return shown({ ...item, notice: undefined });
   }
 
   const effectNarrationTracksRef = useRef(new Map<Seat, string>());
@@ -1054,7 +1065,7 @@ export function useMatchCues({
           pushNarrationItem(
             items,
             shown,
-            collapseNarrationRef.current ? 1 : narrationLimitRef.current,
+            collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
             collapseNarrationRef.current,
           ),
         );
@@ -1088,7 +1099,11 @@ export function useMatchCues({
   // the map as one list would drop a clause because the other column happened to be full.
   useEffect(() => {
     setNarration((items) =>
-      trimNarration(items, collapseNarrationRef.current ? 1 : narrationLimit, collapseNarrationRef.current),
+      trimNarration(
+        items,
+        collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimit,
+        collapseNarrationRef.current,
+      ),
     );
   }, [narrationLimit]);
 
@@ -1194,6 +1209,15 @@ export function useMatchCues({
     const securityAttack = [...fresh]
       .reverse()
       .find((event) => event.kind === "attackDeclared" && event.target.kind === "player");
+    /**
+     * A redirect that moves the attack off the player (＜Raid＞, a Counter effect) leaves the
+     * lunge the declaration already played as the whole of what security gets: the battle is
+     * a field clash now. The attacker remembered for the centre-stage check has to be dropped
+     * with it, or the next check on this seat opens with the wrong card.
+     */
+    const redirectedOffPlayer = [...fresh]
+      .reverse()
+      .find((event) => event.kind === "attackDeclared" && event.redirected === true && event.target.kind !== "player");
     // Replayed steps still run, so their state lands in the right place — they
     // just run with every wait collapsed, which is no animation at all.
     const batchPhaseOrder = enqueuePhaseOrderRef.current;
@@ -1383,6 +1407,7 @@ export function useMatchCues({
                   effectNoticeFromEvent(event, viewerSeat, noticeId, now, securityEffectPendingRef.current) ??
                     recoveryNoticeFromEvent(event, viewerSeat, noticeId, now) ??
                     securityGainNoticeFromEvent(event, viewerSeat, noticeId, now) ??
+                    preventionNoticeFromEvent(event, viewerSeat, noticeId, now) ??
                     keywordNoticeFromEvent(event, viewerSeat, noticeId, now),
                 ];
               })();
@@ -1723,6 +1748,12 @@ export function useMatchCues({
         // the card instance rather than the permanent, so both ways in are kept.
         topInstanceId: cardSiteRef.current.topInstanceOf(securityAttack.attackerPermanentId),
       };
+    }
+    if (
+      redirectedOffPlayer?.kind === "attackDeclared" &&
+      securityAttackerRef.current?.permanentId === redirectedOffPlayer.attackerPermanentId
+    ) {
+      securityAttackerRef.current = undefined;
     }
     // A check now reaches the client as two events: `securityRevealed` the moment the card
     // is turned face up, and `securityChecked` once the server has resolved everything that

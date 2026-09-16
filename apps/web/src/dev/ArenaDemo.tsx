@@ -73,6 +73,12 @@ type DemoPermanent = {
   suspended?: boolean;
 };
 
+/** How many notices the burst preview raises, one per server batch. */
+const NOTICE_BURST_COUNT = 4;
+
+/** The gap between them: long enough to read one arriving, short enough that they overlap. */
+const NOTICE_BURST_GAP_MS = 700;
+
 const ARENA_DECKS: readonly {
   recipeId: string;
   name: string;
@@ -243,6 +249,10 @@ export function ArenaDemo() {
     null,
   );
   const [turnStartRun, setTurnStartRun] = useState(0);
+  /** How many of the four burst notices have been emitted, or null when none is running. */
+  const [noticeBurstStep, setNoticeBurstStep] = useState<number | null>(null);
+  /** The run number of the open hand-selection fixture, so repeating it asks again. */
+  const [handSelectionRun, setHandSelectionRun] = useState<number | null>(null);
   const keywordLabels = useMemo(() => demoKeywordLabels(keywordGrants), [keywordGrants]);
   const events = useMemo(() => batches.flatMap((batch) => batch.events), [batches]);
   const state = useMemo(() => {
@@ -300,6 +310,40 @@ export function ArenaDemo() {
     imperialActivated,
   ]);
   const playback = useArenaVisualPlayback(state, keywordLabels, portuguese);
+  const handSource = state.players[0]!.battleArea[0]?.topCard.cardId;
+  /**
+   * The hand-selection fixture: the same `selectCards` request an effect raises when it
+   * asks which cards to trash, over the viewer's own hand.
+   */
+  const handSelectionDecision: DecisionRequest | undefined =
+    handSelectionRun === null
+      ? undefined
+      : {
+          decisionId: `demo-hand-selection-${handSelectionRun}`,
+          seat: 0,
+          kind: "selectCards",
+          promptText: portuguese ? "Selecione até 2 cartas da sua mão" : "Select up to 2 cards from your hand",
+          ...(handSource ? { sourceCardId: handSource } : {}),
+          options: {
+            candidateInstanceIds: state.players[0]!.hand.map((instance) => instance.instanceId),
+            min: 1,
+            max: 2,
+            timing: "Main",
+            effectText: portuguese
+              ? "Prévia visual: escolha cartas da mão. Nada é descartado."
+              : "Visual preview: pick cards from your hand. Nothing is trashed.",
+          },
+        };
+  // One prompt at a time, and the fixture the tools just opened wins over a scenario
+  // left running from before it.
+  const decision = handSelectionDecision ?? imperialDecision;
+  function respondDecision(response: DecisionResponse) {
+    if (handSelectionDecision) {
+      setHandSelectionRun(null);
+      return;
+    }
+    respondImperial(response);
+  }
   function drawCard(seat: Seat) {
     if (!state.players.find((player) => player.seat === seat)?.deckCount) return;
     setDrawCounts((previous) => (seat === 0 ? [previous[0] + 1, previous[1]] : [previous[0], previous[1] + 1]));
@@ -319,6 +363,23 @@ export function ArenaDemo() {
       description: getCardDefinition(permanent.topCard.cardId)?.effectText ?? "",
     }));
     setBatches((previous) => [...previous, singleServerBatch(effects)]);
+  }
+  /**
+   * Four notices in a row, one server batch each, so the queued slots can be watched
+   * filling up rather than each moment replacing the one before it. Both seats raise
+   * them: on a phone they fold into the one centred slot, on a board they split.
+   */
+  function previewNoticeBurst() {
+    setNoticeBurstStep(0);
+  }
+  /**
+   * A selection over the viewer's own hand: the prompt the board opens when an effect
+   * asks which cards to trash. A visual fixture — answering it closes the prompt and
+   * narrates the choice; it trashes nothing, because the demo has no engine behind it.
+   */
+  function previewHandSelection() {
+    setBatches([]);
+    setHandSelectionRun((run) => (run ?? 0) + 1);
   }
   function previewEffectActivation(
     timing: "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion",
@@ -433,6 +494,39 @@ export function ArenaDemo() {
     // The demo emits one batch; production cues own the actual presentation clocks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnStartStep]);
+  useEffect(() => {
+    if (noticeBurstStep === null) return;
+    if (noticeBurstStep >= NOTICE_BURST_COUNT) {
+      setNoticeBurstStep(null);
+      return;
+    }
+    const timer = setTimeout(
+      () => {
+        const seat: Seat = noticeBurstStep % 2 === 0 ? 0 : 1;
+        const area = state.players[seat]!.battleArea;
+        const permanent = area[noticeBurstStep % Math.max(1, area.length)] ?? state.players[0]!.battleArea[0];
+        if (permanent) {
+          setBatches((previous) => [
+            ...previous,
+            singleServerBatch([
+              {
+                kind: "effectTriggered",
+                seat,
+                sourceCardId: permanent.topCard.cardId,
+                effectKey: `demo/burst/${noticeBurstStep}`,
+                description: getCardDefinition(permanent.topCard.cardId)?.effectText ?? "",
+              },
+            ]),
+          ]);
+        }
+        setNoticeBurstStep((step) => (step === null ? null : step + 1));
+      },
+      noticeBurstStep === 0 ? 0 : NOTICE_BURST_GAP_MS,
+    );
+    return () => clearTimeout(timer);
+    // The board fixture is stable for the length of a burst; only the step drives it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noticeBurstStep]);
   const battlefieldId = useSyncExternalStore(subscribeBattlefield, getBattlefieldId, getBattlefieldId);
 
   return (
@@ -509,6 +603,8 @@ export function ArenaDemo() {
           onTurnStart={previewTurnStart}
           onImperial={previewImperial}
           onEffects={previewEffects}
+          onNoticeBurst={previewNoticeBurst}
+          onHandSelection={previewHandSelection}
           onEffectActivation={previewEffectActivation}
           disabled={turnStartStep !== null}
         />
@@ -548,8 +644,8 @@ export function ArenaDemo() {
           events: playback.connection?.events ?? events,
           batches: playback.connection?.batches ?? batches,
           snapshots: playback.connection?.snapshots,
-          decision: imperialDecision,
-          respondDecision: respondImperial,
+          decision,
+          respondDecision,
           acknowledgeDecision: () => {},
           error: undefined,
           sessionId: "arena-demo-0",

@@ -267,6 +267,9 @@ export function attackAnnouncementFromEvent(
   nowMs: number,
 ): AttackAnnouncement | null {
   if (event.kind !== "attackDeclared") return null;
+  // A redirect re-aims an attack that has already been announced; announcing it again
+  // would read as the attacker declaring a second time.
+  if (event.redirected === true) return null;
   return {
     id,
     cardId: event.attackerCardId,

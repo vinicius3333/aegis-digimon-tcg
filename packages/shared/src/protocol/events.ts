@@ -59,6 +59,14 @@ export type DigivolveMechanic =
   | "digiXros"
   | "appFusion";
 
+/**
+ * The keywords that pay a cost to prevent a deletion or a leave, and so need the client
+ * told that they fired: each resolves through a plain decision prompt and then a silent
+ * board change (Comprehensive Rules §16-18, §16-19, §16-32, §16-37, and ＜Guard＞).
+ * ＜Evade＞ and ＜Barrier＞ are absent because they already have prompt/resolved events.
+ */
+export type PreventionKeyword = "Scapegoat" | "Decoy" | "Guard" | "Fragment" | "Armor Purge";
+
 export type ServerEvent =
   | { kind: "matchStarted"; firstSeat: Seat }
   | { kind: "phaseChanged"; phase: string; turnSeat: Seat; turnCount: number }
@@ -103,6 +111,14 @@ export type ServerEvent =
       /** Public identity of a permanent target at declaration time. */
       targetCardId?: string;
       targetArtId?: string;
+      /**
+       * Present and true when this re-narrates an attack that is already open, because its
+       * target switched (§11-2-7-2: ＜Raid＞, a Counter effect, a When Attacking redirect).
+       * The attack itself was declared by an earlier event, so the client re-aims what is
+       * already on screen — the arrow, the open attack — instead of narrating a new
+       * declaration: no second sound, announcement, feed entry or log line.
+       */
+      redirected?: boolean;
     }
   | {
       kind: "blockWindowOpened";
@@ -134,6 +150,25 @@ export type ServerEvent =
   | { kind: "barrierPrompt"; permanentId: string }
   | { kind: "barrierResolved"; permanentId: string; accepted: boolean }
   | { kind: "combatResolved"; seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] }
+  /**
+   * A deletion (or leave) that a keyword paid to prevent: ＜Scapegoat＞, ＜Decoy＞, ＜Guard＞,
+   * ＜Fragment＞ and ＜Armor Purge＞. Unlike ＜Evade＞ and ＜Barrier＞, these have no prompt
+   * event of their own — without this, the client sees only the cost card leaving and a
+   * battle that quietly failed, and the viewer is never told which keyword saved what.
+   * Emitted only when the prevention actually happened; a declined prompt emits nothing.
+   */
+  | {
+      kind: "deletionPrevented";
+      keyword: PreventionKeyword;
+      /** Controller of the permanent that was saved. */
+      seat: Seat;
+      /** The permanent whose deletion was prevented. */
+      permanentId: string;
+      /** Its public identity, kept so the notice survives the card later leaving. */
+      cardId?: string;
+      /** The Digimon deleted to pay for it (＜Decoy＞, ＜Scapegoat＞, ＜Guard＞). */
+      paidPermanentId?: string;
+    }
   | {
       // The top security card was turned face up. Emitted the moment the card is flipped —
       // before its [Security] effect, before the triggers the check fires, and before the
@@ -340,6 +375,7 @@ export const SERVER_EVENT_KINDS = [
   "barrierPrompt",
   "barrierResolved",
   "combatResolved",
+  "deletionPrevented",
   "securityRevealed",
   "securityChecked",
   "securityRecovered",

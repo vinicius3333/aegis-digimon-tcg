@@ -218,6 +218,18 @@ describe("attackAnnouncementFromEvent", () => {
     expect(attackAnnouncementFromEvent(attack(1), VIEWER, "b", 5)?.side).toBe("opp");
   });
 
+  it("ignores a redirect, which re-aims an attack that was already announced", () => {
+    const redirect: ServerEvent = {
+      kind: "attackDeclared",
+      seat: 0,
+      attackerPermanentId: "p1",
+      attackerCardId: "BT1-040",
+      target: { kind: "permanent", permanentId: "p9" },
+      redirected: true,
+    };
+    expect(attackAnnouncementFromEvent(redirect, VIEWER, "a", 5)).toBeNull();
+  });
+
   it("ignores other events", () => {
     expect(
       attackAnnouncementFromEvent({ kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 2 }, VIEWER, "a", 0),

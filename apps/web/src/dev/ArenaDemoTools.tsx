@@ -12,6 +12,8 @@ export function ArenaDemoTools({
   onOpeningSecurityDeal,
   onTurnStart,
   onEffects,
+  onNoticeBurst,
+  onHandSelection,
   onImperial,
   onEffectActivation,
   onSecurityFlip,
@@ -27,6 +29,10 @@ export function ArenaDemoTools({
   onOpeningSecurityDeal?: () => void;
   onTurnStart: () => void;
   onEffects?: () => void;
+  /** Four notices in a row, one batch each, for watching the queued slots fill. */
+  onNoticeBurst?: () => void;
+  /** Opens a selection over the viewer's own hand, as an effect asking which cards to trash. */
+  onHandSelection?: () => void;
   onImperial?: () => void;
   onEffectActivation?: (
     timing: "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion",
@@ -186,6 +192,30 @@ export function ArenaDemoTools({
               }}
             >
               {portuguese ? "Reproduzir efeitos simultâneos" : "Preview simultaneous effects"}
+            </button>
+          ) : null}
+          {onHandSelection ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onHandSelection();
+              }}
+            >
+              {portuguese ? "Selecionar cartas da mão" : "Select cards from hand"}
+            </button>
+          ) : null}
+          {onNoticeBurst ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onNoticeBurst();
+              }}
+            >
+              {portuguese ? "Reproduzir 4 avisos seguidos" : "Preview 4 notices in a row"}
             </button>
           ) : null}
           <button
