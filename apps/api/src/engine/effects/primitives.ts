@@ -1293,6 +1293,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const definition = requireCardDefinition(peek.cardId);
     // Strictly an Option-permanent path: do NOT broaden the normal permanent kinds.
     if (!isOption(definition)) return undefined;
+    // §9-1-5's placement exception: the card being placed may be the Option that is
+    // still resolving its own [Main] body, which `removeLooseInstance` claims out of
+    // `resolvingOption` below. That makes this movement the used Option's final
+    // routing, so it carries the same marker the trash route emits — the client's
+    // resolving-Option dock closes on it and would otherwise sit on screen until its
+    // failsafe ceiling.
+    const routesUsedOption = ownerPlayer.resolvingOption?.instanceId === instanceId;
     const instance = removeLooseInstance(state, instanceId);
     if (instance === undefined) return undefined;
     instance.faceUp = true;
@@ -1312,6 +1319,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       instanceIds: [instance.instanceId],
       from: "various",
       to: Zone.BattleArea,
+      ...(routesUsedOption ? { optionUsed: true as const } : {}),
     });
     // Option cards placed as permanents are a distinct event from using an Option effect:
     // inherited watchers such as BT13-007's Royal Knight clause react here, after the
@@ -1511,6 +1519,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         return undefined;
       }
     }
+    // ＜Arts Digivolve＞ (CR §4-19): the source may be the DUAL card still resolving as an
+    // Option, which this digivolution routes instead of the trash step. Same marker the
+    // trash and self-placement routes carry, so the client's resolving-Option dock closes.
+    const routesUsedOption = state.players.some((owner) => owner.resolvingOption?.instanceId === sourceInstanceId);
     const instance = removeLooseInstance(state, sourceInstanceId);
     if (instance === undefined) return undefined;
     instance.faceUp = true;
@@ -1533,7 +1545,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     permanent.currentDP = dp;
     ledger.recomputeDP(state, permanent.permanentId);
     permanent.isSuspended = carriedSuspended;
-    engine.emit({ kind: "cardsMoved", instanceIds: [instance.instanceId], from: "various", to: Zone.BattleArea });
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: [instance.instanceId],
+      from: "various",
+      to: Zone.BattleArea,
+      ...(routesUsedOption ? { optionUsed: true as const } : {}),
+    });
     // This is a real digivolution even though an effect initiated it. Without the
     // semantic event, clients see only an unexplained zone movement followed by a
     // draw and cannot run the digivolution presentation.

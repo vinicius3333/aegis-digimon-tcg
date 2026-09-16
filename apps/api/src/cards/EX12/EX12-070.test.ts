@@ -66,6 +66,16 @@ describe("EX12-070 Sanmyojin Arrival", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-070")).toBe(true);
+
+    // Self-placement is this Option's final routing, so it carries the marker the trash
+    // route carries. Without it the client's resolving-Option dock never learns the card
+    // is done and holds the screen until its failsafe ceiling.
+    const optionId = s.inst("option").instanceId;
+    expect(
+      s.events.some(
+        (event) => event.kind === "cardsMoved" && event.optionUsed === true && event.instanceIds.includes(optionId),
+      ),
+    ).toBe(true);
   });
 
   it("does not place itself or draw when the TB cost cannot be paid", async () => {
