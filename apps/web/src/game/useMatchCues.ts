@@ -381,7 +381,12 @@ const TOUCH_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: 
  * React can receive a complete automatic turn transition in one render. Playing every
  * intermediate ribbon after the server has already reached the final phase leaves the
  * presentation several seconds behind the match. Keep incremental transitions intact,
- * but collapse a burst containing the whole turn pipeline to its newest useful phase.
+ * but collapse a burst containing the whole turn pipeline to the two announcements that
+ * carry it: the turn change itself, and the newest phase the server actually reached.
+ *
+ * The turn change survives the collapse because it is the only announcement that says the
+ * seat changed. Dropping it left a turn opening on a Breeding ribbon and the turn-start
+ * draw alone, which read as the previous turn continuing.
  */
 export function compactPhaseArrivals(
   arrivals: readonly Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }>[],
@@ -411,7 +416,7 @@ export function compactPhaseArrivals(
       ? turnEndedIndex - 1
       : turnEndedIndex;
   if (arrivals.length - transitionStart < 5) return arrivals;
-  return [...arrivals.slice(0, transitionStart), automaticPhases.at(-1)!];
+  return [...arrivals.slice(0, transitionStart), turnEnded, automaticPhases.at(-1)!];
 }
 
 function prefersReducedMotion(): boolean {
@@ -630,6 +635,7 @@ export function useMatchCues({
           presentationReporterRef.current?.({
             ...event,
             ...(step.origin ?? stepBatchesRef.current.get(step)),
+            ...(step.side ? { side: step.side } : {}),
             stepId: step.id,
             track: step.track ?? "main",
             clientTimestamp: Date.now(),
@@ -2479,6 +2485,7 @@ export function useMatchCues({
         setPendingPhaseBanners((count) => count + 1);
         queue.enqueue({
           id: `turn-banner-${transition.turnCount}`,
+          side: openedPhase.nextSeat === viewerSeat ? "you" : "opp",
           track: "phaseBanner",
           async run(context) {
             try {
@@ -2533,6 +2540,7 @@ export function useMatchCues({
         }
         queue.enqueue({
           id: `phase-banner-${banner.key}`,
+          side: banner.side,
           track: "phaseBanner",
           async run(context) {
             try {
@@ -3241,6 +3249,7 @@ export function useMatchCues({
     // than queueing behind the other side's.
     queue.enqueue({
       id: `draw-flight-${key}`,
+      side,
       track: `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {
         if (waitBeforeMs > 0) await context.wait(waitBeforeMs);

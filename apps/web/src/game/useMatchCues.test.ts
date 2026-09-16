@@ -257,7 +257,11 @@ it.each([0, 1] as const)(
     await advance(32);
     expect(result.current.drawFlights).toHaveLength(1);
     expect(result.current.phaseBanner).toBeNull();
+    // The draw lands first, and the collapsed burst still opens on the seat change.
     await advance(result.current.drawFlights[0]!.duration + 32);
+    expect(result.current.turnTransition).not.toBeNull();
+    expect(result.current.phaseBanner).toBeNull();
+    await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
     expect(result.current.phaseBanner?.phase).toBe("Breeding");
   },
 );
@@ -298,7 +302,7 @@ it("finishes an effect-driven digivolution burst before flying its bonus draw", 
   expect(result.current.drawFlights).toHaveLength(1);
 });
 
-it("collapses a complete automatic phase burst to the phase the server actually reached", () => {
+it("collapses a complete automatic phase burst to the turn change and the phase the server actually reached", () => {
   const arrivals = [
     { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 },
     { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 },
@@ -308,7 +312,8 @@ it("collapses a complete automatic phase burst to the phase the server actually 
     { kind: "phaseChanged", phase: "Main", turnSeat: 1, turnCount: 2 },
   ] as const satisfies readonly Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }>[];
 
-  expect(compactPhaseArrivals(arrivals)).toEqual([arrivals.at(-1)]);
+  // The seat change survives; the ribbons between it and the newest phase do not.
+  expect(compactPhaseArrivals(arrivals)).toEqual([arrivals[1], arrivals.at(-1)]);
   expect(compactPhaseArrivals(arrivals.slice(0, 4))).toEqual(arrivals.slice(0, 4));
   const unrelated = [
     ...arrivals.slice(0, 3),
@@ -487,6 +492,9 @@ function renderCuesAwaitingAnswer() {
   };
 }
 
+/** How often the hook's prerequisite waits re-check, so a cue can open a poll late. */
+const POLL_MS = 16;
+
 /** Lets the queue's promise chain run out under fake timers. */
 async function advance(ms: number) {
   await act(async () => {
@@ -613,10 +621,15 @@ describe("match cues", () => {
       rerender(delivery !== "separate" ? [...phases, ATTACK, REVEAL, CHECK] : phases);
       await advance(100);
       if (delivery === "separate") rerender([...phases, ATTACK, REVEAL, CHECK]);
-      expect(result.current.phaseBanner?.phase).toBe("Main");
+      // The collapse keeps two announcements: the seat change, then the phase reached.
+      expect(result.current.turnTransition).not.toBeNull();
+      expect(result.current.phaseBanner).toBeNull();
       expect(result.current.attackAnnouncement).toBeNull();
       expect(result.current.attackLunge).toBeNull();
       expect(result.current.securityClash).toBeNull();
+      await advance(TIMINGS.turnBanner - 100 + TIMINGS.phaseBannerGap);
+      expect(result.current.phaseBanner?.phase).toBe("Main");
+      expect(result.current.attackAnnouncement).toBeNull();
       await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
       await advance(16);
       expect(result.current.attackAnnouncement).not.toBeNull();
@@ -1080,6 +1093,92 @@ describe("match cues", () => {
     expect(result.current.phaseTransitionPending).toBe(false);
     expect(result.current.heldDrawState).toBeUndefined();
     expect(result.current.phaseBanner).toBeNull();
+  });
+
+  /**
+   * The whole turn pipeline in one batch — End, turnEnded, Active, Draw, Breeding — which
+   * is what the server sends when the seat that just ended had nothing left to resolve.
+   * The presentation once collapsed that to the Breeding ribbon alone, so a turn opened on
+   * its turn-start draw with nothing saying the seat had changed.
+   */
+  it("announces the seat change when a whole turn pipeline arrives in one batch", async () => {
+    const board = document.createElement("div");
+    const deck = document.createElement("div");
+    const hand = document.createElement("div");
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    const state = {
+      players: [0, 1].map(() => ({ hand: [], handCount: 5, battleArea: [], trash: [] })),
+    } as unknown as GameState;
+    const reports: import("@aegis/shared").PresentationReport[] = [];
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      (events: readonly ServerEvent[]) =>
+        useMatchCues({
+          batches: feed(events),
+          phaseEvents: events,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          onPresentationReport: (report) => reports.push(report),
+          anchors: {
+            ...anchors,
+            board: { current: board },
+            yourDeck: { current: deck },
+            yourHandDock: { current: hand },
+            oppDeck: { current: deck },
+            oppHandStrip: { current: hand },
+          },
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerEvent[] },
+    );
+    await advance(0);
+
+    // The turn-start draw the new seat takes, which is the only other thing on screen.
+    state.players[VIEWER]!.handCount = 6;
+    rerender([
+      { kind: "phaseChanged", phase: "End", turnSeat: 1, turnCount: 4 },
+      { kind: "turnEnded", endingSeat: 1, nextSeat: VIEWER, turnCount: 4 },
+      { kind: "phaseChanged", phase: "Active", turnSeat: VIEWER, turnCount: 5 },
+      { kind: "phaseChanged", phase: "Draw", turnSeat: VIEWER, turnCount: 5 },
+      { kind: "phaseChanged", phase: "Breeding", turnSeat: VIEWER, turnCount: 5 },
+    ]);
+    await advance(0);
+
+    // The draw goes first: a ribbon waits out the cues the batch before it raised.
+    expect(result.current.drawFlights).toHaveLength(1);
+    expect(result.current.turnTransition).toBeNull();
+    expect(result.current.phaseBanner).toBeNull();
+    const drawMs = result.current.drawFlights[0]!.duration;
+
+    // The ribbon then names the seats of the turn that ended, and holds its own time.
+    // Both prerequisite waits poll, so every checkpoint below allows a poll of slack.
+    await advance(drawMs + TIMINGS.drawBurst + POLL_MS);
+    expect(result.current.turnTransition).toEqual({ endingSeat: 1, nextSeat: VIEWER, turnCount: 4 });
+    expect(result.current.phaseBanner).toBeNull();
+    await advance(TIMINGS.turnBanner - POLL_MS * 4);
+    expect(result.current.turnTransition).not.toBeNull();
+
+    // Only the phase the server actually reached follows it: the ribbons in between are
+    // what the collapse still drops, so the presentation cannot fall behind the match.
+    await advance(POLL_MS * 4 + TIMINGS.phaseBannerGap + POLL_MS * 2);
+    expect(result.current.turnTransition).toBeNull();
+    expect(result.current.phaseBanner?.phase).toBe("Breeding");
+    expect(result.current.phaseBanner?.side).toBe("you");
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.presenting).toBe(false);
+
+    const banners = reports.filter((report) => report.track === "phaseBanner" && report.phase === "started");
+    expect(banners.map((report) => report.stepId)).toEqual(["turn-banner-4", "phase-banner-1"]);
+    // The report says which side each once-per-side cue was drawn on, so a log can tell
+    // the viewer's turn-start draw from the opponent's.
+    expect(banners.map((report) => report.side)).toEqual(["you", "you"]);
+    const draws = reports.filter((report) => report.track.startsWith("turnDrawFlight-"));
+    expect(draws).not.toHaveLength(0);
+    expect(new Set(draws.map((report) => report.side))).toEqual(new Set(["you"]));
   });
 
   it("serializes real batched turn, unsuspend and draw announcements", async () => {

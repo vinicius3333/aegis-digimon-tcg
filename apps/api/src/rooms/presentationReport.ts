@@ -21,6 +21,7 @@ export function parsePresentationReport(payload: unknown): PresentationReport | 
     (value.batchId !== undefined && !shortText(value.batchId)) ||
     (value.sourceCardId !== undefined && !shortText(value.sourceCardId)) ||
     (value.timing !== undefined && !(typeof value.timing === "string" && /^[\w ./:-]{1,160}$/.test(value.timing))) ||
+    (value.side !== undefined && !["you", "opp"].includes(value.side as string)) ||
     (value.stateVersion !== undefined && (!number(value.stateVersion) || !Number.isInteger(value.stateVersion))) ||
     (value.durationMs !== undefined && (!number(value.durationMs) || (value.durationMs as number) > 3_600_000))
   )
@@ -38,6 +39,7 @@ export function parsePresentationReport(payload: unknown): PresentationReport | 
     ...(value.batchId !== undefined ? { batchId: value.batchId as string } : {}),
     ...(value.sourceCardId !== undefined ? { sourceCardId: value.sourceCardId as string } : {}),
     ...(value.timing !== undefined ? { timing: value.timing as string } : {}),
+    ...(value.side !== undefined ? { side: value.side as PresentationReport["side"] } : {}),
     ...(value.stateVersion !== undefined ? { stateVersion: value.stateVersion as number } : {}),
     ...(value.durationMs !== undefined ? { durationMs: value.durationMs as number } : {}),
   };

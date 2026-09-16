@@ -22,6 +22,13 @@ describe("client animation log validation", () => {
       report,
     );
   });
+  it("keeps the side a once-per-side cue was drawn on", () => {
+    expect(parsePresentationReport({ ...report, track: "turnDrawFlight-13", side: "you" })).toEqual({
+      ...report,
+      track: "turnDrawFlight-13",
+      side: "you",
+    });
+  });
   it.each([
     null,
     [],
@@ -32,6 +39,7 @@ describe("client animation log validation", () => {
     { ...report, pendingCount: 0.5 },
     { ...report, cancelled: "false" },
     { ...report, phase: "invented" },
+    { ...report, side: "both" },
   ])("rejects malformed diagnostic payloads", (payload) => {
     expect(parsePresentationReport(payload)).toBeUndefined();
   });

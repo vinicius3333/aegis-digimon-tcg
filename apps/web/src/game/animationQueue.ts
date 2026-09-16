@@ -34,6 +34,11 @@ export interface AnimationStep {
   /** Originating server batch, retained by steps spawned after later batches arrive. */
   origin?: { batchId: string; stateVersion: number; sourceCardId?: string; timing?: string; phaseOrder?: number };
   run(context: AnimationStepContext): void | Promise<void>;
+  /**
+   * Which side of the screen the step draws on, for the diagnostic report. Only the cues
+   * that exist once per side set it; the track name says the rest.
+   */
+  side?: "you" | "opp";
   /** Steps sharing a track run in order; separate tracks run concurrently. */
   track?: string;
   /** Cancel whatever the track is running or holding before this step starts. */
