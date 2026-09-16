@@ -36,7 +36,7 @@ export const en = {
   "beta.tag": "Beta",
   "lobby.betaBattleMode": "Beta battle mode",
   "lobby.betaBattleHint":
-    "Play with preview cards, including EX13 and upcoming promos. Beta battles use a separate, unranked queue.",
+    "You are using cards that have not been released yet, so you will play in a special queue with players using the same card pool.",
   "lobby.betaRequiredTitle": "This deck needs beta battle mode",
   "lobby.betaRequiredHint":
     "Beta cards can be played in Quick Match or Practice vs AI. Choose one of these modes to use this deck.",

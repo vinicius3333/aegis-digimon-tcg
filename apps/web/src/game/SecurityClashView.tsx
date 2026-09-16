@@ -123,15 +123,17 @@ function clashFate(scene: SecurityClashScene, role: "attacker" | "revealed"): Cl
 }
 
 /**
- * Whether the card leaves the board after the beat. The checked card does whenever the
- * check ends with it in the trash — CR 13-1-8-4 trashes it whichever way a compare went,
- * and a card with nothing to resolve is trashed outright — while the attacker is a
- * permanent whose own deletion is narrated by the board, not by this scene. A card that
- * resolves an effect is excluded: it detours through the branch scene, which plays its
- * own exit.
+ * Whether the card breaks apart at the end of the beat. The checked card does whenever
+ * the check ends with it in the trash — CR 13-1-8-4 trashes it whichever way a compare
+ * went, and a card with nothing to resolve is trashed outright. The attacker breaks only
+ * when the compare deleted it, so a security battle it loses reads as a deletion here,
+ * where the two cards are on stage, rather than only on the board behind the overlay. A
+ * card that resolves an effect is excluded: it detours through the branch scene, which
+ * plays its own exit.
  */
 function clashSpent(scene: SecurityClashScene, role: "attacker" | "revealed"): boolean {
-  return role === "revealed" && (scene.resolution === "battle" || scene.resolution === "trashed");
+  if (role === "attacker") return scene.resolution === "battle" && scene.loser?.attacker === true;
+  return scene.resolution === "battle" || scene.resolution === "trashed";
 }
 
 /** The revealed card breaks in its own colour, the way a deleted permanent does. */

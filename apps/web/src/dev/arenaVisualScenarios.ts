@@ -259,12 +259,16 @@ function looseCard(cardId: string, instanceId: string, seat: 0 | 1) {
   card.ownerSeat = seat;
   return card.toJSON() as CardInstance;
 }
+/** Which side survives the scripted security battle between the attacker and a Security Digimon. */
+export type SecurityBattleOutcome = "attackerWins" | "attackerLoses";
+
 /** Fresh public snapshots isolate scripted presentation from the manual demo and the engine. */
 export function buildArenaVisualScene(
   base: GameState,
   keyword: DemoKeyword,
   portuguese = false,
   baselineLabels: ArenaVisualScene["keywordLabels"] = {},
+  securityOutcome: SecurityBattleOutcome = "attackerWins",
 ): ArenaVisualScene {
   const state = snapshotGameState(base);
   state.stateVersion = 0;
@@ -295,6 +299,8 @@ export function buildArenaVisualScene(
     actor.securityAttack = 2;
     actor.securityAttackModifier = 1;
   }
+  const attackerLoses = mechanisms[keyword] === "security" && securityOutcome === "attackerLoses";
+  if (attackerLoses) actor.currentDP = 1000;
   const keywordLabels = {
     ...baselineLabels,
     [actor.permanentId]: { ...baselineLabels[actor.permanentId], [keyword]: demoKeywordLabel(grant) },
@@ -473,6 +479,8 @@ export function buildArenaVisualScene(
   }
   function security(atMs: number) {
     const revealedCardId = "BT26-066";
+    const securityCardDP = 2000;
+    const attackerDeleted = attackerLoses;
     stage(
       atMs,
       "Checagem de segurança",
@@ -486,7 +494,7 @@ export function buildArenaVisualScene(
           isDigimon: true,
           hasSecurityEffect: false,
           attackerDP: actor.currentDP,
-          securityCardDP: 2000,
+          securityCardDP,
         },
         {
           kind: "securityChecked",
@@ -495,15 +503,42 @@ export function buildArenaVisualScene(
           resolution: "battle",
           battle: {
             attackerDP: actor.currentDP,
-            securityCardDP: 2000,
-            attackerDeleted: false,
-            securityDigimonDeleted: true,
+            securityCardDP,
+            attackerDeleted,
+            securityDigimonDeleted: !attackerDeleted,
           },
         },
+        // The clash overlay only claws the attacker; the board draws its shatter from the
+        // deletion the engine publishes, so the scene has to publish it too.
+        ...(attackerDeleted
+          ? ([
+              {
+                kind: "cardsMoved" as const,
+                seat: 0,
+                instanceIds: [actor.topCard!.instanceId],
+                cardIds: [actor.topCard!.cardId],
+                from: "battleArea",
+                to: "trash",
+                deletedPermanents: [
+                  {
+                    permanentId: actor.permanentId,
+                    instanceId: actor.topCard!.instanceId,
+                    cardId: actor.topCard!.cardId,
+                    ...(actor.topCard!.artId ? { artId: actor.topCard!.artId } : {}),
+                    seat: 0,
+                  },
+                ],
+              },
+            ] satisfies ServerEvent[])
+          : []),
       ],
       () => {
         opp.securityCount = Math.max(0, opp.securityCount - 1);
+        // The Security Digimon is trashed at the end of the check whether or not it won.
         opp.trash.push(looseCard(revealedCardId, `visual-security-${atMs}`, 1));
+        if (!attackerDeleted) return;
+        own.battleArea.splice(own.battleArea.indexOf(actor), 1);
+        own.trash.push(actor.topCard!, ...actor.stack, ...actor.linked);
       },
     );
   }
@@ -890,7 +925,7 @@ export function buildArenaVisualScene(
   } else if (mechanism === "security") {
     declaration("security");
     security(1800);
-    if (keyword === "SecurityAttack") security(4700);
+    if (keyword === "SecurityAttack" && !attackerLoses) security(4700);
   } else if (mechanism === "unsuspend") {
     stage(600, "Retorno da posição suspensa", "Unsuspending", [], () => {
       actor.isSuspended = false;

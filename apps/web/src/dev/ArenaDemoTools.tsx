@@ -22,7 +22,7 @@ export function ArenaDemoTools({
   onKeywords: () => void;
   onDraw: (seat: Seat) => void;
   onVisualPlayback: () => void;
-  onSecurityBattle?: () => void;
+  onSecurityBattle?: (outcome: "attackerWins" | "attackerLoses") => void;
   onTurnStart: () => void;
   onEffects?: () => void;
   onImperial?: () => void;
@@ -112,18 +112,27 @@ export function ArenaDemoTools({
           >
             {portuguese ? "Reproduzir início do turno" : "Preview turn start"}
           </button>
-          {onSecurityBattle ? (
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                close();
-                onSecurityBattle();
-              }}
-            >
-              {portuguese ? "Reproduzir combate contra a segurança" : "Preview combat against security"}
-            </button>
-          ) : null}
+          {onSecurityBattle
+            ? (["attackerWins", "attackerLoses"] as const).map((outcome) => (
+                <button
+                  key={outcome}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    close();
+                    onSecurityBattle(outcome);
+                  }}
+                >
+                  {outcome === "attackerWins"
+                    ? portuguese
+                      ? "Batalha de segurança: seu Digimon vence"
+                      : "Security battle: your Digimon wins"
+                    : portuguese
+                      ? "Batalha de segurança: seu Digimon perde"
+                      : "Security battle: your Digimon loses"}
+                </button>
+              ))
+            : null}
           {onEffectActivation
             ? (["On Play", "When Digivolving", "When Attacking", "Start of Main Phase", "On Deletion"] as const).map(
                 (timing) => (

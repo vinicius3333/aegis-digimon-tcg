@@ -7,6 +7,7 @@ import {
   buildArenaVisualScene,
   type ArenaVisualScenarioInfo,
   type ArenaVisualScene,
+  type SecurityBattleOutcome,
 } from "./arenaVisualScenarios";
 
 export interface ArenaVisualPlaybackController {
@@ -18,7 +19,7 @@ export interface ArenaVisualPlaybackController {
   stageLabel: string;
   controls: {
     start: () => void;
-    startSecurityBattle: () => void;
+    startSecurityBattle: (outcome?: SecurityBattleOutcome) => void;
     pause: () => void;
     stop: () => void;
     next: () => void;
@@ -47,12 +48,14 @@ export function useArenaVisualPlayback(
   const [index, setIndex] = useState(0);
   const [run, setRun] = useState(0);
   const [seed, setSeed] = useState<{ state: GameState; labels: ArenaVisualScene["keywordLabels"] }>();
+  const [securityOutcome, setSecurityOutcome] = useState<SecurityBattleOutcome>("attackerWins");
   const [frame, setFrame] = useState<VisualFrame>();
   const [finished, setFinished] = useState(false);
   const scenario = catalog[index]!;
   const scene = useMemo(
-    () => (seed ? buildArenaVisualScene(seed.state, scenario.keyword, portuguese, seed.labels) : undefined),
-    [seed, scenario.keyword, portuguese, run],
+    () =>
+      seed ? buildArenaVisualScene(seed.state, scenario.keyword, portuguese, seed.labels, securityOutcome) : undefined,
+    [seed, scenario.keyword, portuguese, securityOutcome, run],
   );
   function resetScene(next: number) {
     setIndex(next);
@@ -60,6 +63,7 @@ export function useArenaVisualPlayback(
   }
   const controls: ArenaVisualPlaybackController["controls"] = {
     start() {
+      setSecurityOutcome("attackerWins");
       if (!active) {
         setSeed({ state: snapshotGameState(manualState), labels: manualLabels });
         setRun((previous) => previous + 1);
@@ -67,7 +71,8 @@ export function useArenaVisualPlayback(
       }
       setPlaying(true);
     },
-    startSecurityBattle() {
+    startSecurityBattle(outcome = "attackerWins") {
+      setSecurityOutcome(outcome);
       const securityIndex = catalog.findIndex((entry) => entry.keyword === "SecurityAttack");
       if (securityIndex < 0) return;
       setSeed({ state: snapshotGameState(manualState), labels: manualLabels });

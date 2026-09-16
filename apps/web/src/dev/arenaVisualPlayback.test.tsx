@@ -151,6 +151,22 @@ it("pauses between scenes, navigates and repeats with clean events, and stops/un
   expect(vi.getTimerCount()).toBe(0);
 });
 
+it("previews a security battle the attacker loses", () => {
+  vi.useFakeTimers();
+  const manual = createArenaDemoState();
+  const { result, unmount } = renderHook(() => useArenaVisualPlayback(manual, {}, false));
+  act(() => result.current.controller.controls.startSecurityBattle("attackerLoses"));
+  act(() => vi.advanceTimersByTime(1800));
+  const checks = result.current.connection!.events.filter((event) => event.kind === "securityChecked");
+  expect(checks).toHaveLength(1);
+  expect(checks[0]).toMatchObject({ battle: { attackerDeleted: true, securityDigimonDeleted: false } });
+  act(() => vi.advanceTimersByTime(30000));
+  // The attacker died on the first check, so Security Attack never runs a second one.
+  expect(result.current.connection!.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+  act(() => result.current.controller.controls.stop());
+  unmount();
+});
+
 it("previews security combat directly without advancing to another keyword", () => {
   vi.useFakeTimers();
   const manual = createArenaDemoState();

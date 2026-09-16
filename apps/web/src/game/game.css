@@ -7472,9 +7472,30 @@ button.side-panel__name:focus-visible {
 /* The card underneath goes as its shards leave. The whole chain is restated because
    the revealed card already carries its entrance and its impact on this element, and
    an `animation` shorthand replaces rather than adds to them. */
-.battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art {
+.battle-clash[data-resolution="battle"]
+  .battle-clash__card[data-role="revealed"][data-spent="true"]
+  .battle-clash__art {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+/* An attacker the compare deleted goes the same way, keeping its own entrance. */
+.battle-clash[data-resolution="battle"]
+  .battle-clash__card[data-role="attacker"][data-side="you"][data-spent="true"]
+  .battle-clash__art {
+  animation:
+    battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash[data-resolution="battle"]
+  .battle-clash__card[data-role="attacker"][data-side="opp"][data-spent="true"]
+  .battle-clash__art {
+  animation:
+    battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
     battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
     battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
