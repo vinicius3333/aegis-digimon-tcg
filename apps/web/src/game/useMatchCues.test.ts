@@ -2862,6 +2862,41 @@ describe("the narration feed", () => {
     expect(result.current.narration.size).toBe(0);
   });
 
+  /* The BT25-008 play of 2026-09-16: the clause that passed the turn was raised, and the
+     five ribbons the turn change queues covered it for 5.3s while its six-second clock ran
+     out underneath them. The clause reads first, then the ribbon takes the screen and it. */
+  it("reads the clause that passed the turn before the ribbon, and clears it as the ribbon opens", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([yourEffect("BT1-001")]);
+    await advance(0);
+    expect(cards(result.current.narration)).toEqual(["BT1-001"]);
+
+    rerender([
+      yourEffect("BT1-001"),
+      { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 },
+      { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 },
+    ]);
+    await advance(TIMINGS.phaseBannerNoticeRead - 200);
+    expect(result.current.phaseBanner).toBeNull();
+    expect(cards(result.current.narration)).toEqual(["BT1-001"]);
+
+    await advance(200 + 16);
+    expect(result.current.phaseBanner?.phase).toBe("End");
+    expect(result.current.narration.size).toBe(0);
+  });
+
+  it("does not hold a ribbon for a clause the same phase raised after it", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([
+      { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 },
+      { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 },
+    ]);
+    await advance(16);
+    expect(result.current.phaseBanner?.phase).toBe("End");
+  });
+
   it("expires each batch independently without resetting the earlier record", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

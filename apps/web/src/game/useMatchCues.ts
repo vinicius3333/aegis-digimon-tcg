@@ -568,6 +568,7 @@ export function useMatchCues({
   const phaseOrdersRef = useRef(new Map<ServerEvent, number>());
   const enqueuePhaseOrderRef = useRef<number | undefined>(undefined);
   const stepPhaseOrdersRef = useRef(new WeakMap<AnimationStep, number>());
+  const narrationPhaseOrdersRef = useRef(new Map<string, number>());
   const eventTimeline = phaseEvents ?? batches.flatMap((batch) => batch.events);
   const phaseStateRef = useRef({ events: eventTimeline, snapshots });
   phaseStateRef.current = { events: eventTimeline, snapshots };
@@ -993,6 +994,9 @@ export function useMatchCues({
       stateVersion: heldOrigin?.stateVersion ?? batchVersionsRef.current.get(item.batchId) ?? 0,
       ...(body?.variant === "effect" ? { sourceCardId: body.cardId, timing: body.timing } : {}),
     };
+    // Which phase raised the clause is what lets the ribbon that follows it wait for its
+    // beat and then clear it (`waitForPhasePrerequisites`).
+    narrationPhaseOrdersRef.current.set(item.id, origin.phaseOrder ?? completedPhaseOrderRef.current);
     function reportShown(stepId: string, context: AnimationStepContext) {
       try {
         presentationReporterRef.current?.({
@@ -1086,9 +1090,12 @@ export function useMatchCues({
     const timer = setTimeout(
       () => {
         const now = Date.now();
-        setNarration(
-          (items) => new Map([...items].filter(([, item]) => item.createdAt + narrationReadingTime(item) > now)),
-        );
+        setNarration((items) => {
+          const kept = new Map([...items].filter(([, item]) => item.createdAt + narrationReadingTime(item) > now));
+          for (const id of narrationPhaseOrdersRef.current.keys())
+            if (!kept.has(id)) narrationPhaseOrdersRef.current.delete(id);
+          return kept;
+        });
       },
       Math.max(0, expiresAt - Date.now()),
     );
@@ -2336,6 +2343,29 @@ export function useMatchCues({
 
   const phaseBatchesRef = useRef(batches);
   phaseBatchesRef.current = batches;
+  const narrationRef = useRef(narration);
+  narrationRef.current = narration;
+
+  /**
+   * The clauses a ribbon at `phaseOrder` would cover: everything an earlier phase raised.
+   *
+   * A notice reads for six seconds, so a turn change — five ribbons back to back — outlives
+   * it by far. Left alone, the clause is still on screen when the ribbons are done and reads
+   * as something the new turn did.
+   */
+  function narrationBefore(phaseOrder: number): NarrationItem[] {
+    return [...narrationRef.current.values()].filter(
+      (item) => (narrationPhaseOrdersRef.current.get(item.id) ?? 0) < phaseOrder,
+    );
+  }
+
+  /** Take those clauses off the screen: the ribbon is about to cover them anyway. */
+  function cutNarrationBefore(phaseOrder: number) {
+    const covered = new Set(narrationBefore(phaseOrder).map((item) => item.id));
+    if (covered.size === 0) return;
+    for (const id of covered) narrationPhaseOrdersRef.current.delete(id);
+    setNarration((items) => new Map([...items].filter(([id]) => !covered.has(id))));
+  }
 
   async function waitForPhasePrerequisites(
     context: AnimationStepContext,
@@ -2379,7 +2409,12 @@ export function useMatchCues({
           step.track !== SECURITY_DOCK_TRACK &&
           (stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder,
       );
-      if (!awaitingBatch && !awaitingCue) return;
+      // A clause the ribbon is about to cover gets one readable beat first. The same budget
+      // bounds it: a batch that keeps arriving must never hold the ribbon for good.
+      const awaitingRead =
+        Date.now() < batchDeadline &&
+        narrationBefore(phaseOrder).some((item) => Date.now() - item.createdAt < TIMINGS.phaseBannerNoticeRead);
+      if (!awaitingBatch && !awaitingCue && !awaitingRead) return;
       await context.wait(16);
     }
   }
@@ -2434,6 +2469,7 @@ export function useMatchCues({
               await waitForPhasePrerequisites(context, arrivals, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
               visiblePhaseBannerRef.current = true;
+              cutNarrationBefore(phaseOrder);
               playCue("turnChange");
               setTurnTransition(transition);
               await context.wait(TIMINGS.turnBanner);
@@ -2489,6 +2525,7 @@ export function useMatchCues({
               await waitForPhasePrerequisites(context, arrivals, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
               visiblePhaseBannerRef.current = true;
+              cutNarrationBefore(phaseOrder);
               if (isAnnouncedPhase(openedPhase.phase)) setAnnouncedPhase(openedPhase.phase);
               setPhaseBanner(banner);
               if (banner.phase === UNSUSPEND_PHASE) {
@@ -3291,6 +3328,7 @@ export function useMatchCues({
   function fastForward() {
     presentationTelemetry.countSkip();
     narrationSkipRef.current = true;
+    narrationPhaseOrdersRef.current.clear();
     setNarration(new Map());
     queue.skip();
     void queue.idle().then(() => {

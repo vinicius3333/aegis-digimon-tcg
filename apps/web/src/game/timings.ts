@@ -174,6 +174,15 @@ export const TIMINGS = {
   phaseBanner: 1100,
   /** Clear-board pause between consecutive turn and phase announcements. */
   phaseBannerGap: 250,
+  /**
+   * The beat a clause raised before a phase or turn announcement gets to itself.
+   *
+   * A notice reads for `noticeLifetime`, but the ribbon that follows it covers the whole
+   * column and a turn change queues five of them back to back — long enough for the clause
+   * to outlive the ribbons and read as something the NEXT turn did. So the ribbon waits
+   * this out and then takes what it would have covered off the screen (useMatchCues.ts).
+   */
+  phaseBannerNoticeRead: 1600,
   /** One lap of the ring turning around the turn control while it is actionable. */
   turnControlPulse: 3200,
   /** How long the turn control refuses a second click after the first (a UI guard, not a rule). */
