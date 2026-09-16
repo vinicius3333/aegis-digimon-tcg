@@ -25,7 +25,7 @@ import {
  * mulligan, security) with a hand-laid board and then hands control to the real turn loop, so
  * a developer lands mid-match instead of playing the opening turns every time.
  */
-export const DEV_SCENARIO_IDS = ["battle", "arena", "card-bugs"] as const;
+export const DEV_SCENARIO_IDS = ["battle", "arena", "card-bugs", "security-battle"] as const;
 export type DevScenarioId = (typeof DEV_SCENARIO_IDS)[number];
 
 export function isDevScenarioId(value: unknown): value is DevScenarioId {
@@ -231,10 +231,61 @@ function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Deckli
   state.memory = 5;
 }
 
+/**
+ * The check from match 87554e93, laid out so the bot reproduces it on its first turn.
+ *
+ * The point is the GAP. The engine closes a security check only once everything that check
+ * caused has resolved, so an attacker that dies to the revealed Digimon and then fires an
+ * [On Deletion] that stops to ask a question puts several seconds between `securityRevealed`
+ * and `securityChecked`. In the logged match that gap was 2.7 s, and the client used to let
+ * the revealed card play out and leave inside it — showing the attacker's death long before
+ * the blow that dealt it, then flashing the card back for its outcome beat.
+ *
+ * Gazimon (Lv.4, 5000 DP) attacks into Susanoomon (Lv.7, 16000 DP) and loses. Its own
+ * [On Deletion] and the DemiMeramon DigiEgg's inherited one both ask the bot to pay, and the
+ * level 6 in its hand makes the DigiEgg's payment a real question rather than a dead option.
+ */
+const DELAYED_BATTLE_ATTACKER_CARDS: readonly string[] = ["BT15-006", "BT19-069"];
+const DELAYED_BATTLE_SECURITY_CARD = "EX12-076";
+/** Level 5+ in the bot's hand, so the [On Deletion] that holds the check open can be paid. */
+const DELAYED_BATTLE_BOT_HAND_CARD = "BT24-017";
+
+function layDelayedSecurityBattleScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    for (let n = 0; n < OPENING_HAND_SIZE; n += 1) {
+      const card = takeTop(player, Zone.Deck);
+      if (card !== undefined) insertCard(player, Zone.Hand, card);
+    }
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    // The revealed card: a Digimon far too big to lose, and with no [Security] clause of its
+    // own, so the battle is the only thing the check has left to show.
+    insertCard(human, Zone.Security, faceDownCard("dev-security-0", DELAYED_BATTLE_SECURITY_CARD, 0), "top");
+    takeBottom(human, Zone.Security);
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, DELAYED_BATTLE_ATTACKER_CARDS));
+    insertCard(bot, Zone.Hand, faceDownCard("dev-hand-1", DELAYED_BATTLE_BOT_HAND_CARD, 1));
+  }
+  // The bot takes the turn, so the check that runs is the one against the viewer's security.
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
   "card-bugs": layCardBugsScenario,
+  "security-battle": layDelayedSecurityBattleScenario,
 };
 
 export function layDevScenario(scenario: DevScenarioId, state: GameState, decks: readonly [Decklist, Decklist]): void {

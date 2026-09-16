@@ -1,6 +1,11 @@
 /* Dev-only route (/dev/battle): a live bot match that starts mid-battle, with a Digimon on
    each side ready to fight. The reset button remounts the match screen, which leaves the
-   room and opens a fresh one laid out the same way. */
+   room and opens a fresh one laid out the same way.
+
+   `?scenario=security-battle` lays a different board instead: the bot takes the turn and
+   attacks into a security Digimon that kills it, and the [On Deletion] effects that death
+   sets off hold the check open for seconds. Watch the revealed card — it has to stay on
+   screen until the battle's verdict arrives, rather than leaving and being flashed back. */
 
 import { useMemo, useState } from "react";
 import { colorKey } from "../design/theme";
@@ -25,7 +30,10 @@ export function BattleLab() {
       deckId: deck?.id,
       deckName: deck?.name,
       deck: { mainDeck: deck?.mainDeck ?? [], eggDeck: deck?.eggDeck ?? [] },
-      devScenario: "battle",
+      devScenario:
+        new URLSearchParams(window.location.search).get("scenario") === "security-battle"
+          ? "security-battle"
+          : "battle",
     };
   }, [player]);
   const reset = () => setRun((current) => current + 1);
