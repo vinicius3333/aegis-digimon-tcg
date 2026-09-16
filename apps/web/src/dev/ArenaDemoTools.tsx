@@ -16,6 +16,7 @@ export function ArenaDemoTools({
   onHandSelection,
   onImperial,
   onEffectActivation,
+  onSecurityEffect,
   onSecurityFlip,
   securityFaceUpCount,
   disabled = false,
@@ -37,6 +38,8 @@ export function ArenaDemoTools({
   onEffectActivation?: (
     timing: "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion",
   ) => void;
+  /** The docked security card and a full narration column at once. */
+  onSecurityEffect?: () => void;
   onSecurityFlip?: () => void;
   securityFaceUpCount?: number;
   disabled?: boolean;
@@ -170,6 +173,18 @@ export function ArenaDemoTools({
                 ),
               )
             : null}
+          {onSecurityEffect ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onSecurityEffect();
+              }}
+            >
+              {portuguese ? "Reproduzir efeito de segurança" : "Play security-effect scenario"}
+            </button>
+          ) : null}
           {onImperial ? (
             <button
               type="button"

@@ -69,6 +69,19 @@ describe("SidePanelStack", () => {
     expect(screen.getByTestId("side-panel-stack").getAttribute("data-held")).toBe("true");
   });
 
+  it("hands the fan its card count, so a long reveal overlaps instead of wrapping", () => {
+    for (const count of [4, 6]) {
+      const cards = Array.from({ length: count }, (_, index) => ({ cardId: "BT1-001", badge: index + 1 }));
+      const { container, unmount } = renderPanel(panel({ titleKey: "panel.revealedCards", ordered: true, cards }));
+      const row = container.querySelector(".side-panel__cards") as HTMLElement;
+      expect(row.style.getPropertyValue("--panel-card-count")).toBe(String(count));
+      expect(container.querySelectorAll(".side-panel__card")).toHaveLength(count);
+      // Every card keeps its number, which is what makes an overlapped card readable.
+      expect(container.querySelectorAll(".side-panel__badge")).toHaveLength(count);
+      unmount();
+    }
+  });
+
   it("advances to the next moment through its close button", () => {
     const onDismiss = vi.fn<(id: string) => void>();
     renderPanel(panel(), onDismiss);

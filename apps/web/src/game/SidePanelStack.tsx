@@ -6,6 +6,7 @@
    frame is the same thing it always was. The panel contents come from
    ./sidePanels. */
 
+import type { CSSProperties } from "react";
 import { CardMini } from "../design/cards";
 import { useTranslation } from "../i18n";
 import { CardLink, CardLinkedText, cardDisplayName, useCardOpener } from "./cardLinks";
@@ -78,7 +79,8 @@ export function SidePanelStack({
             <span aria-hidden="true">×</span>
           </button>
         </header>
-        <ol className="side-panel__cards">
+        {/* The fan's overlap is computed from the count; see .side-panel__cards. */}
+        <ol className="side-panel__cards" style={{ "--panel-card-count": panel.cards.length } as CSSProperties}>
           {panel.cards.map((card) => (
             <SidePanelCardView
               key={`${panel.id}:${card.badge}`}

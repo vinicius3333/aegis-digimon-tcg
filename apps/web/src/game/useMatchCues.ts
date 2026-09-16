@@ -2332,6 +2332,24 @@ export function useMatchCues({
         }
       }
     }
+    /**
+     * A [Security] effect that PLAYS its own card leaves the dock nothing to show: the card
+     * is on the field now, so the dock goes at that play rather than waiting for the eventual
+     * `securityChecked` — otherwise the [On Play] clause and the cards it reveals read from
+     * behind a card that has already moved. A security card whose effect does NOT play it
+     * keeps its dock until the check closes. Last in the pass, so the played card's own
+     * arrival cue is already queued ahead of the dock's exit.
+     */
+    const dockedReveal = revealOnStageRef.current;
+    if (
+      dockedReveal?.docked === true &&
+      securityDockRef.current?.key === dockedReveal.key &&
+      fresh.some((event) => event.kind === "cardPlayed" && event.cardId === dockedReveal.scene.revealed.cardId)
+    ) {
+      undockSecurityReveal(dockedReveal.key);
+      // Seen and gone, not forgotten: the eventual close must not stage the card again.
+      revealOnStageRef.current = { ...dockedReveal, docked: false, exited: true };
+    }
     if (turnEnd?.kind === "turnEnded") {
       securityAttackerRef.current = undefined;
       securityEffectPendingRef.current = false;

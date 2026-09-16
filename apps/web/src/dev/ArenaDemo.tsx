@@ -22,6 +22,7 @@ import {
   subscribeBattlefield,
 } from "../design/battlefield";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
+import { SECURITY_CHECK_REPLAY } from "./securityCheckReplay";
 import { GameScreen } from "../game/GameScreen";
 import { TIMINGS } from "../game/timings";
 import { Icons } from "../design/icons";
@@ -78,6 +79,11 @@ const NOTICE_BURST_COUNT = 4;
 
 /** The gap between them: long enough to read one arriving, short enough that they overlap. */
 const NOTICE_BURST_GAP_MS = 700;
+/* Stands in for the server's own pacing: the real batches were 0.5-3 s apart. */
+const SECURITY_REPLAY_GAP_MS = 750;
+/* Matches the `cardPlayed` in the replay, so the client binds its entrance to this permanent. */
+const SECURITY_TAMER_CARD_ID = "BT10-087";
+const SECURITY_TAMER_PERMANENT_ID = "perm-4";
 
 const ARENA_DECKS: readonly {
   recipeId: string;
@@ -251,6 +257,10 @@ export function ArenaDemo() {
   const [turnStartRun, setTurnStartRun] = useState(0);
   /** How many of the four burst notices have been emitted, or null when none is running. */
   const [noticeBurstStep, setNoticeBurstStep] = useState<number | null>(null);
+  /** How many batches of the real security check have been emitted, or null when idle. */
+  const [securityReplayStep, setSecurityReplayStep] = useState<number | null>(null);
+  /** The board the replay has reached, kept after it ends: 0 none, 2 Taiki played, 6 Xros'd. */
+  const [securityBoardStep, setSecurityBoardStep] = useState(0);
   /** The run number of the open hand-selection fixture, so repeating it asks again. */
   const [handSelectionRun, setHandSelectionRun] = useState<number | null>(null);
   const keywordLabels = useMemo(() => demoKeywordLabels(keywordGrants), [keywordGrants]);
@@ -270,6 +280,12 @@ export function ArenaDemo() {
         ...(imperialReturned ? [] : [opponent]),
       );
       if (imperialReturned) next.players[1]!.deckCount += 1;
+    }
+    // Batch 2 plays BT10-087 onto the opponent's field; batch 6 places a Digimon under it.
+    if (securityBoardStep >= 2) {
+      const xros = securityBoardStep >= 6 ? ["BT19-014"] : [];
+      next.players[1]!.battleArea.push(fighter(SECURITY_TAMER_CARD_ID, SECURITY_TAMER_PERMANENT_ID, 1, xros));
+      next.players[1]!.securityCount = Math.max(0, next.players[1]!.securityCount - 1);
     }
     if (effectDemoDeleted) {
       const removed = next.players[0]!.battleArea.splice(0, 1)[0];
@@ -305,6 +321,7 @@ export function ArenaDemo() {
     securityScenario,
     securityFaceDownCount,
     effectDemoDeleted,
+    securityBoardStep,
     imperialStep,
     imperialReturned,
     imperialActivated,
@@ -454,6 +471,17 @@ export function ArenaDemo() {
     }, 300);
     return () => clearTimeout(timer);
   }, [effectPreview, effectPreviewRun, drawCounts, portuguese]);
+  /**
+   * The security check from a real match log, replayed batch by batch through the normal
+   * cue pipeline: the [Security] clause plays the Tamer onto the field and the dock leaves,
+   * then its [On Play] reveal reads in the card column, then the turn player's chain, then
+   * the check closes. The gaps stand in for the server's own pacing.
+   */
+  function previewSecurityEffect() {
+    setBatches([]);
+    setSecurityBoardStep(0);
+    setSecurityReplayStep(0);
+  }
   function previewTurnStart() {
     if (turnStartStep !== null || !state.players[0]!.deckCount) return;
     // A fresh screen clears any individually queued phase previews and establishes
@@ -539,6 +567,23 @@ export function ArenaDemo() {
     // The board fixture is stable for the length of a burst; only the step drives it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noticeBurstStep]);
+  useEffect(() => {
+    if (securityReplayStep === null) return;
+    if (securityReplayStep >= SECURITY_CHECK_REPLAY.length) {
+      setSecurityReplayStep(null);
+      return;
+    }
+    const timer = setTimeout(
+      () => {
+        setBatches((previous) => [...previous, singleServerBatch(SECURITY_CHECK_REPLAY[securityReplayStep]!)]);
+        // The board follows the events: the played Tamer enters, then its Xros card goes under.
+        setSecurityBoardStep(securityReplayStep + 1);
+        setSecurityReplayStep((step) => (step === null ? null : step + 1));
+      },
+      securityReplayStep === 0 ? 0 : SECURITY_REPLAY_GAP_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [securityReplayStep]);
   const battlefieldId = useSyncExternalStore(subscribeBattlefield, getBattlefieldId, getBattlefieldId);
 
   return (
@@ -618,6 +663,7 @@ export function ArenaDemo() {
           onNoticeBurst={previewNoticeBurst}
           onHandSelection={previewHandSelection}
           onEffectActivation={previewEffectActivation}
+          onSecurityEffect={previewSecurityEffect}
           disabled={turnStartStep !== null}
         />
         <span className="aegis-arena-demo-note" role="status">

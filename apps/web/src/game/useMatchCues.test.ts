@@ -1682,15 +1682,18 @@ describe("match cues", () => {
     // Nothing the play caused may be on screen while it is still arriving.
     expect(result.current.sidePanels).toEqual([]);
 
-    // Step 4: only after arrival, the effect and its results join the Security record.
+    // Step 4: the card is on the field, so the dock has nothing left to hold and leaves.
     await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
+    expect(result.current.securityBranch?.state).toBe("closing");
+
+    // Step 5: only once it has gone does the [On Play] result read out.
+    await advance(SECURITY_DOCK_CLOSE_MS);
+    expect(result.current.securityBranch).toBeNull();
     expect(result.current.notices).toHaveLength(2);
     expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
     expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
-    // The dock stays up until the check closes.
-    expect(result.current.securityBranch?.state).toBe("docked");
   });
 
   it("moves a resolved security card to the right before its played Tamer enters the field", async () => {
@@ -1817,7 +1820,6 @@ describe("match cues", () => {
     await advance(TIMINGS.effectSourceHold);
     expect(result.current.notices).toHaveLength(1);
     expect(result.current.notices[0]?.body.variant).toBe("effect");
-    expect(result.current.securityBranch?.state).toBe("docked");
 
     const panel = result.current.sidePanels.at(-1);
     expect(panel?.titleKey).toBe("panel.revealedCards");
@@ -1837,8 +1839,8 @@ describe("match cues", () => {
       await advance(20);
     });
 
-    // The dock outlives the whole presentation: it closes only on `securityChecked`.
-    expect(result.current.securityBranch?.state).toBe("docked");
+    // The [Security] clause played the card onto the field, so the dock has already gone.
+    expect(result.current.securityBranch).toBeNull();
   });
 
   it("orders the same live [Security] play when the server splits it across batches", async () => {
@@ -1860,8 +1862,8 @@ describe("match cues", () => {
       }
     });
 
-    // The dock outlives the whole presentation: it closes only on `securityChecked`.
-    expect(result.current.securityBranch?.state).toBe("docked");
+    // The [Security] clause played the card onto the field, so the dock has already gone.
+    expect(result.current.securityBranch).toBeNull();
   });
 
   /* A hidden tab (an automated screenshot run is one) puts the queue in `drain`: the
@@ -1937,8 +1939,11 @@ describe("match cues", () => {
     await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
+    // The dock leaves on the play, and the [On Play] clause reads out behind it.
+    expect(result.current.securityBranch?.state).toBe("closing");
+    await advance(SECURITY_DOCK_CLOSE_MS);
+    expect(result.current.securityBranch).toBeNull();
     expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect"]);
-    expect(result.current.securityBranch?.state).toBe("docked");
 
     await advance(NOTICE_ITEM_MS);
     expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
@@ -1958,6 +1963,42 @@ describe("match cues", () => {
 
     await advance(DOCKED_AT_MS + SHOWCASE_TOTAL_MS);
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
+  });
+
+  /* The real engine order: the reveal and its [Security] clause, then the play, then the
+     Tamer's [On Play]. The dock has nothing left to hold once the card is on the field, so
+     it must be gone before the [On Play] panels open. */
+  it("closes the dock on the security card's own play, before its [On Play] panels open", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE]);
+    await advance(DOCKED_AT_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
+    expect(result.current.sidePanels).toEqual([]);
+
+    rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY]);
+    await advance(SHOWCASE_TOTAL_MS);
+    expect(result.current.securityBranch?.state).toBe("closing");
+
+    rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY, OPP_ON_PLAY, ...TAIKI_REVEALS]);
+    await advance(SECURITY_DOCK_CLOSE_MS + SHOWCASE_TOTAL_MS + NOTICE_ITEM_MS);
+    expect(result.current.securityBranch).toBeNull();
+    expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
+  });
+
+  // A security card whose effect does NOT play it keeps its dock until the check closes.
+  it("keeps the dock for a [Security] effect that plays no card", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, EFFECT_REVEAL]);
+    await advance(DOCKED_AT_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
+
+    rerender([ATTACK, EFFECT_REVEAL, EFFECT_NOTICE]);
+    await advance(SHOWCASE_TOTAL_MS + NOTICE_ITEM_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
   });
 
   // A Digimon that also resolved a [Security] effect still has a battle to show, and the

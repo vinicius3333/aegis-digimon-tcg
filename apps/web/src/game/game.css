@@ -3227,26 +3227,51 @@
   font-size: 1.2rem;
 }
 
-/* Art in a centred row, wrapping into further rows: the panel answers "which cards?", and
-   a card is recognised by its picture faster than it is read by its name. The column is
-   narrow, so a long reveal grows the panel downwards instead of off the right edge. */
+/* Art in one row, never wrapped: the panel answers "which cards?", and a card is
+   recognised by its picture faster than it is read by its name. Past two cards the row
+   fans like a hand — each card partly over the one before it — so a six-card reveal
+   still reads as one line at the panel's width instead of growing a second row. */
 .side-panel__cards {
+  --panel-card-w: 104px;
+  /* The row is the panel's width: the same panel whether it lists two cards or six. */
+  --panel-row-w: 15.75rem;
+  /* Pitch between cards. Capped below the card's own width so the row always fans, and
+     otherwise whatever divides the fixed row evenly. */
+  --panel-card-step: min(
+    calc(var(--panel-card-w) * 0.62),
+    calc((var(--panel-row-w) - var(--panel-card-w)) / max(1, var(--panel-card-count, 1) - 1))
+  );
+
   display: flex;
+  box-sizing: content-box;
+  width: var(--panel-row-w);
   padding: 1rem 0.9rem 1.1rem;
   margin: 0;
-  flex-wrap: wrap;
-  gap: 0.8rem;
+  flex-wrap: nowrap;
+  gap: 0;
   align-items: flex-start;
   justify-content: center;
   list-style: none;
 }
 
 .side-panel__card {
+  position: relative;
   display: grid;
   flex: none;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.2rem;
   justify-items: center;
+}
+
+/* Each card slides onto the left edge of the one before it, so every badge stays clear. */
+.side-panel__card + .side-panel__card {
+  margin-inline-start: calc(var(--panel-card-step) - var(--panel-card-w));
+}
+
+/* Reading one card out of the fan lifts it clear of its neighbours. */
+.side-panel__card:hover,
+.side-panel__card:focus-within {
+  z-index: 2;
 }
 
 .side-panel__art {
@@ -3329,7 +3354,8 @@ button.side-panel__name:focus-visible {
   /* The floor is the icon-bodied notices' height: with it, a recovery chip and
      an effect chip in the same stack read as one family rather than two sizes. */
   min-height: 3.75rem;
-  padding: 0.55rem 2rem 0.55rem 0.55rem;
+  /* The right inset clears the corner close button. */
+  padding: 0.55rem 2.6rem 0.55rem 0.55rem;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.6rem;
   align-items: center;
@@ -3398,7 +3424,7 @@ button.side-panel__name:focus-visible {
 
 /* An effect notice reads text-first, with the card's picture at the end of the row. */
 .match-notice[data-variant="effect"] {
-  padding: 0.7rem 2rem 0.7rem 0.75rem;
+  padding: 0.7rem 2.6rem 0.7rem 0.75rem;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.75rem;
   align-items: start;
@@ -3487,10 +3513,14 @@ button.side-panel__name:focus-visible {
   opacity: 0.8;
 }
 
+/* The same corner control the panels use, so the two toasts read as one family. */
 .match-notice__close {
   position: absolute;
   top: 0.35rem;
   right: 0.35rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 1.2rem;
 }
 
 /* The attack call-out: a glance at the attacker while the arc and lunge play. */
@@ -7695,11 +7725,12 @@ button.side-panel__name:focus-visible {
 }
 
 /* Keep revealed cards beside the security effect's dock, never beneath it. */
-/* The docked security card holds the upper right for as long as its check takes. The card
-   column drops below it rather than crossing the board, because the left is now the text
-   column's for good. */
+/* The docked security card holds the right edge for as long as its check takes. The card
+   column steps left of it rather than under it: dropped below the dock, two panels of
+   revealed cards ran off the bottom of the board. The step is the dock's own width — a
+   150px card plus 0.45rem of padding and its border, ~10.4rem — and a 0.85rem gap. */
 .narration-slot[data-slot="narration-cards"][data-security-dock] {
-  top: calc(50% + 2rem);
+  right: calc(max(var(--ds-space-4), env(safe-area-inset-right, 0px)) + 11.25rem);
 }
 .narration-slot[data-slot="narration"][data-security-dock] {
   right: calc(8rem + env(safe-area-inset-right, 0px));
@@ -7711,15 +7742,27 @@ button.side-panel__name:focus-visible {
   max-width: 92px;
 }
 
+/* The landscape dock draws a 92px card, so the column steps ~7.5rem instead of 11.25rem.
+   After the rule above on purpose: the two selectors weigh the same. */
+@media (height < 520px) and (orientation: landscape) {
+  .narration-slot[data-slot="narration-cards"][data-security-dock] {
+    right: calc(max(var(--ds-space-2), env(safe-area-inset-right, 0px)) + 7.5rem);
+  }
+}
+
 @media (width <= 767px), (height < 520px) and (orientation: landscape) {
+  /* Same one-row fan on a narrow board, on the smaller card the phone panel draws. */
   .narration-item .side-panel__cards {
-    flex-wrap: wrap;
+    --panel-card-w: min(4.875rem, calc((100vw - 5rem) / 4));
+    --panel-row-w: min(13rem, calc(100vw - 6rem));
+
+    flex-wrap: nowrap;
     overflow: visible;
   }
 
   .narration-item .side-panel__card {
     flex-shrink: 0;
-    width: min(4.875rem, calc((100vw - 5rem) / 4));
+    width: var(--panel-card-w);
   }
 
   .narration-item .side-panel__art {
@@ -7771,14 +7814,24 @@ button.side-panel__name:focus-visible {
     width: min(32rem, calc(100% - var(--ds-space-8)));
   }
 
+  /* Bounded at the hand dock, the same floor the clause column keeps, so several panels
+     of revealed cards scroll inside the column instead of running off the board. */
   .narration-slot[data-slot="narration-cards"] {
     width: min(20rem, calc(100% - var(--ds-space-8)));
+    bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .match-notice {
     min-height: 6.5rem;
-    padding: 1.05rem 2.5rem 1.05rem 1.05rem;
+    padding: 1.05rem 2.9rem 1.05rem 1.05rem;
     gap: 1rem;
+  }
+
+  /* The variant rule outweighs the one above, so it repeats the desktop padding. */
+  .match-notice[data-variant="effect"] {
+    padding: 1.05rem 2.9rem 1.05rem 1.05rem;
   }
 
   .match-notice__icon {
@@ -7807,9 +7860,6 @@ button.side-panel__name:focus-visible {
   .match-notice__close {
     top: 0.5rem;
     right: 0.5rem;
-    width: 1.6rem;
-    height: 1.6rem;
-    font-size: 1.1rem;
   }
 }
 
