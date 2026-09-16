@@ -4,6 +4,7 @@ import {
   insertCard,
   placePermanent,
   pushOnStack,
+  replaceStack,
   setBreeding,
   setTopCard,
   takeBottom,
@@ -151,8 +152,10 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
     function permanent(id: string, cardIds: readonly string[]): Permanent {
       const result = establishedDigimon(seat, cardIds);
       result.permanentId = id;
-      result.stack.clear();
-      cardIds.slice(0, -1).forEach((cardId) => pushOnStack(result, take(cardId)));
+      replaceStack(
+        result,
+        cardIds.slice(0, -1).map((cardId) => take(cardId)),
+      );
       const top = take(cardIds[cardIds.length - 1]!);
       top.faceUp = true;
       setTopCard(result, top);
