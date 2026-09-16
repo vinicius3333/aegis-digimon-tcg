@@ -141,9 +141,9 @@ scenario("trigger-order", () => {
     // "orderTriggers" decision opens before the turn's own Breeding window (it
     // gates the whole turn's timing resolution).
     // This prompt waits out the whole turn-change presentation, which is the longest
-    // lead-in the match has: measured at 11.3s before the turn ribbon survived the phase
-    // collapse and 12.5s after it, against the 10s the other scenario waits use.
-    await screen.findByText(/multiple effects are triggered/i, {}, { timeout: 20_000 });
+    // lead-in the match has: every phase of the turn change gets its own ribbon, so the
+    // five of them plus their gaps run well past the 10s the other scenario waits use.
+    await screen.findByText(/multiple effects are triggered/i, {}, { timeout: 30_000 });
     const dialog = screen.getByRole("dialog");
 
     const taiButton = within(dialog).getByRole("button", { name: /tai kamiya/i });

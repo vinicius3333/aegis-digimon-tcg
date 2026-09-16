@@ -3,7 +3,7 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CardInstance, Permanent, Phase, type GameState, type ServerEvent } from "@aegis/shared";
-import { compactPhaseArrivals, useMatchCues, type MatchCueAnchors } from "./useMatchCues";
+import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import {
   CLASH_OUTCOME_AT_MS,
@@ -262,12 +262,17 @@ it.each([0, 1] as const)(
     const flightMs = result.current.drawFlights[0]!.duration;
     await advance(TIMINGS.drawFlightStagger);
     expect(result.current.drawFlights).toHaveLength(2);
-    // Both land first, and the collapsed burst still opens on the seat change.
+    // Both land first, and the burst then plays every ribbon it carries, in order.
     await advance(flightMs + 32);
     expect(result.current.drawFlights).toHaveLength(0);
+    expect(result.current.phaseBanner?.phase).toBe("End");
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 32);
     expect(result.current.turnTransition).not.toBeNull();
-    expect(result.current.phaseBanner).toBeNull();
-    await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
+    await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap + 32);
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 32);
+    expect(result.current.phaseBanner?.phase).toBe("Draw");
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 32);
     expect(result.current.phaseBanner?.phase).toBe("Breeding");
   },
 );
@@ -306,27 +311,6 @@ it("finishes an effect-driven digivolution burst before flying its bonus draw", 
   expect(result.current.drawFlights).toHaveLength(0);
   await advance(CARD_BURST_PEAK_MS);
   expect(result.current.drawFlights).toHaveLength(1);
-});
-
-it("collapses a complete automatic phase burst to the turn change and the phase the server actually reached", () => {
-  const arrivals = [
-    { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 },
-    { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 },
-    { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
-    { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 2 },
-    { kind: "phaseChanged", phase: "Breeding", turnSeat: 1, turnCount: 2 },
-    { kind: "phaseChanged", phase: "Main", turnSeat: 1, turnCount: 2 },
-  ] as const satisfies readonly Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }>[];
-
-  // The seat change survives; the ribbons between it and the newest phase do not.
-  expect(compactPhaseArrivals(arrivals)).toEqual([arrivals[1], arrivals.at(-1)]);
-  expect(compactPhaseArrivals(arrivals.slice(0, 4))).toEqual(arrivals.slice(0, 4));
-  const unrelated = [
-    ...arrivals.slice(0, 3),
-    { kind: "phaseChanged", phase: "End", turnSeat: 1, turnCount: 2 },
-    { kind: "phaseChanged", phase: "Main", turnSeat: 0, turnCount: 3 },
-  ] as const;
-  expect(compactPhaseArrivals(unrelated)).toEqual(unrelated);
 });
 
 /**
@@ -611,7 +595,7 @@ describe("match cues", () => {
   });
 
   it.each(["separate", "combined", "raw"])(
-    "collapses a bot's queued turn phases before presenting its attack (%s batch)",
+    "plays every queued turn ribbon a bot raised before presenting its attack (%s batch)",
     async (delivery) => {
       const { result, rerender } = renderCues([], undefined, delivery === "raw");
       const turnEnd: ServerEvent = { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 3 };
@@ -627,17 +611,18 @@ describe("match cues", () => {
       rerender(delivery !== "separate" ? [...phases, ATTACK, REVEAL, CHECK] : phases);
       await advance(100);
       if (delivery === "separate") rerender([...phases, ATTACK, REVEAL, CHECK]);
-      // The collapse keeps two announcements: the seat change, then the phase reached.
+      // The seat change opens, then every phase the burst carried, in order.
       expect(result.current.turnTransition).not.toBeNull();
       expect(result.current.phaseBanner).toBeNull();
       expect(result.current.attackAnnouncement).toBeNull();
       expect(result.current.attackLunge).toBeNull();
       expect(result.current.securityClash).toBeNull();
-      await advance(TIMINGS.turnBanner - 100 + TIMINGS.phaseBannerGap);
-      expect(result.current.phaseBanner?.phase).toBe("Main");
-      expect(result.current.attackAnnouncement).toBeNull();
-      await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
-      await advance(16);
+      await advance(TIMINGS.turnBanner - 100 + TIMINGS.phaseBannerGap + 16);
+      for (const phase of ["Active", "Draw", "Breeding", "Main"]) {
+        expect(result.current.phaseBanner?.phase).toBe(phase);
+        expect(result.current.attackAnnouncement).toBeNull();
+        await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 16);
+      }
       expect(result.current.attackAnnouncement).not.toBeNull();
     },
   );
@@ -1189,24 +1174,34 @@ describe("match cues", () => {
     ]);
     await advance(0);
 
-    // The draw goes first: a ribbon waits out the cues the batch before it raised.
-    expect(result.current.drawFlights).toHaveLength(1);
+    // The ending seat's End ribbon opens the burst.
+    expect(result.current.drawFlights).toHaveLength(0);
     expect(result.current.turnTransition).toBeNull();
-    expect(result.current.phaseBanner).toBeNull();
-    const drawMs = result.current.drawFlights[0]!.duration;
+    expect(result.current.phaseBanner?.phase).toBe("End");
+    expect(result.current.phaseBanner?.side).toBe("opp");
 
     // The ribbon then names the seats of the turn that ended, and holds its own time.
     // Both prerequisite waits poll, so every checkpoint below allows a poll of slack.
-    await advance(drawMs + TIMINGS.drawBurst + POLL_MS);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + POLL_MS);
     expect(result.current.turnTransition).toEqual({ endingSeat: 1, nextSeat: VIEWER, turnCount: 4 });
     expect(result.current.phaseBanner).toBeNull();
     await advance(TIMINGS.turnBanner - POLL_MS * 4);
     expect(result.current.turnTransition).not.toBeNull();
 
-    // Only the phase the server actually reached follows it: the ribbons in between are
-    // what the collapse still drops, so the presentation cannot fall behind the match.
+    // Every phase the burst carried follows it, in order. The turn-start draw is held
+    // back until its own Draw ribbon names it.
     await advance(POLL_MS * 4 + TIMINGS.phaseBannerGap + POLL_MS * 2);
     expect(result.current.turnTransition).toBeNull();
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(result.current.phaseBanner?.side).toBe("you");
+    expect(result.current.drawFlights).toHaveLength(0);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + POLL_MS * 2);
+    expect(result.current.phaseBanner?.phase).toBe("Draw");
+    expect(result.current.drawFlights).toHaveLength(1);
+    const drawMs = result.current.drawFlights[0]!.duration;
+    await advance(drawMs + TIMINGS.drawBurst + POLL_MS);
+    expect(result.current.drawFlights).toHaveLength(0);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + POLL_MS * 2);
     expect(result.current.phaseBanner?.phase).toBe("Breeding");
     expect(result.current.phaseBanner?.side).toBe("you");
     await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
@@ -1214,10 +1209,16 @@ describe("match cues", () => {
     expect(result.current.presenting).toBe(false);
 
     const banners = reports.filter((report) => report.track === "phaseBanner" && report.phase === "started");
-    expect(banners.map((report) => report.stepId)).toEqual(["turn-banner-4", "phase-banner-1"]);
+    expect(banners.map((report) => report.stepId)).toEqual([
+      "phase-banner-1",
+      "turn-banner-4",
+      "phase-banner-2",
+      "phase-banner-3",
+      "phase-banner-4",
+    ]);
     // The report says which side each once-per-side cue was drawn on, so a log can tell
     // the viewer's turn-start draw from the opponent's.
-    expect(banners.map((report) => report.side)).toEqual(["you", "you"]);
+    expect(banners.map((report) => report.side)).toEqual(["opp", "you", "you", "you", "you"]);
     const draws = reports.filter((report) => report.track.startsWith("turnDrawFlight-"));
     expect(draws).not.toHaveLength(0);
     expect(new Set(draws.map((report) => report.side))).toEqual(new Set(["you"]));

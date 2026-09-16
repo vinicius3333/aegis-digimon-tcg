@@ -377,48 +377,6 @@ const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 /** The phone layouts, matching GameScreen's `NARROW_LAYOUT_QUERY` and the touch block in game.css. */
 const TOUCH_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";
 
-/**
- * React can receive a complete automatic turn transition in one render. Playing every
- * intermediate ribbon after the server has already reached the final phase leaves the
- * presentation several seconds behind the match. Keep incremental transitions intact,
- * but collapse a burst containing the whole turn pipeline to the two announcements that
- * carry it: the turn change itself, and the newest phase the server actually reached.
- *
- * The turn change survives the collapse because it is the only announcement that says the
- * seat changed. Dropping it left a turn opening on a Breeding ribbon and the turn-start
- * draw alone, which read as the previous turn continuing.
- */
-export function compactPhaseArrivals(
-  arrivals: readonly Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }>[],
-): readonly Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }>[] {
-  let turnEndedIndex = -1;
-  for (let index = arrivals.length - 1; index >= 0; index -= 1) {
-    if (arrivals[index]?.kind !== "turnEnded") continue;
-    turnEndedIndex = index;
-    break;
-  }
-  if (turnEndedIndex < 0) return arrivals;
-  const turnEnded = arrivals[turnEndedIndex];
-  if (turnEnded?.kind !== "turnEnded") return arrivals;
-  const automaticPhases = arrivals.slice(turnEndedIndex + 1);
-  if (automaticPhases.length < 3) return arrivals;
-  const phaseRanks = new Map(["Active", "Draw", "Breeding", "Main"].map((phase, index) => [phase, index]));
-  let previousRank = -1;
-  for (const event of automaticPhases) {
-    if (event.kind !== "phaseChanged" || event.turnSeat !== turnEnded.nextSeat) return arrivals;
-    const rank = phaseRanks.get(event.phase);
-    if (rank === undefined || rank <= previousRank) return arrivals;
-    previousRank = rank;
-  }
-  const preceding = arrivals[turnEndedIndex - 1];
-  const transitionStart =
-    preceding?.kind === "phaseChanged" && preceding.phase === "End" && preceding.turnSeat === turnEnded.endingSeat
-      ? turnEndedIndex - 1
-      : turnEndedIndex;
-  if (arrivals.length - transitionStart < 5) return arrivals;
-  return [...arrivals.slice(0, transitionStart), turnEnded, automaticPhases.at(-1)!];
-}
-
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
   return window.matchMedia(REDUCED_MOTION_QUERY).matches;
@@ -2481,7 +2439,7 @@ export function useMatchCues({
       phaseBaselineRef.current = true;
       return;
     }
-    const fresh = compactPhaseArrivals(phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0));
+    const fresh = phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0);
     for (const openedPhase of fresh) {
       if (openedPhase.kind === "phaseChanged" && !isAnnouncedPhase(openedPhase.phase)) continue;
       const phaseOrder = ++nextPhaseOrderRef.current;
