@@ -26,6 +26,7 @@ describe("BT21-052 Examon (X Antibody)", () => {
       {
         kind: "Suspend",
         target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: "all" },
+        effectTextPart: "[When Digivolving] Suspend all of your opponent's Digimon and Tamers.",
       },
       {
         kind: "Delete",
@@ -33,6 +34,7 @@ describe("BT21-052 Examon (X Antibody)", () => {
           filter: { controller: "opponent", suspended: true, kind: ["Digimon", "Tamer"] },
           count: 1,
         },
+        effectTextPart: "Then, delete 1 of their suspended Digimon or Tamers.",
       },
     ]);
   });

@@ -145,7 +145,9 @@ describe("EX7-064 Shoto Kazama", () => {
         }),
       ]);
       expect(s.state.players[1]!.battleArea).toHaveLength(0);
-      expect(s.state.players[1]!.security).toHaveLength(shotoFirst ? 1 : 2);
+      // The Vortex attack pauses for its pending effects: Shoto's grant resolves before the
+      // Counter/security step in BOTH orderings, so ＜Piercing＞ is live for the check either way.
+      expect(s.state.players[1]!.security).toHaveLength(1);
       expect(s.perm("shoto").isSuspended).toBe(true);
       expect(s.perm("vortex").isSuspended).toBe(shotoFirst);
       expect(observe(s.engine).hasPierce(s.perm("vortex"))).toBe(true);

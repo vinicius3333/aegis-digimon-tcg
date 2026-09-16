@@ -168,15 +168,8 @@ describe("EX11-018 Ryugumon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    const pending = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: pending.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("ally").permanentId] },
-      }),
-    ).toEqual({ ok: true });
+    // The cost is offered BEFORE any target is chosen: declining it ends the clause without
+    // ever raising the unsuspend target selection.
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const optional = s.state.pendingDecision!;
     expect(

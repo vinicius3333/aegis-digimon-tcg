@@ -40,8 +40,16 @@ describe("EX7-013 MagnaKidmon", () => {
             payCost: false,
             from: ["hand"],
             optional: true,
+            effectTextPart:
+              "[On Play] [When Digivolving] You may use 1 Option card with the [Three Musketeers] trait from your hand without paying the cost.",
           },
-          { kind: "Draw", amount: 1, untilHandSize: 6, controller: "mine" },
+          {
+            kind: "Draw",
+            amount: 1,
+            untilHandSize: 6,
+            controller: "mine",
+            effectTextPart: "Then, draw cards until there are 6 cards in your hand.",
+          },
         ],
       },
       {
@@ -57,8 +65,16 @@ describe("EX7-013 MagnaKidmon", () => {
             payCost: false,
             from: ["hand"],
             optional: true,
+            effectTextPart:
+              "[On Play] [When Digivolving] You may use 1 Option card with the [Three Musketeers] trait from your hand without paying the cost.",
           },
-          { kind: "Draw", amount: 1, untilHandSize: 6, controller: "mine" },
+          {
+            kind: "Draw",
+            amount: 1,
+            untilHandSize: 6,
+            controller: "mine",
+            effectTextPart: "Then, draw cards until there are 6 cards in your hand.",
+          },
         ],
       },
       {

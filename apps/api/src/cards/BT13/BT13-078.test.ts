@@ -8,8 +8,17 @@ describe("BT13-078 Phascomon", () => {
   it("draws 1 and then trashes 1 card on deletion", () => {
     const effect = compiled.effects?.find((entry) => entry.trigger === "OnDeletion");
     expect(effect?.actions).toEqual([
-      { kind: "Draw", controller: "mine", amount: 1 },
-      { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+      {
+        kind: "Draw",
+        controller: "mine",
+        amount: 1,
+        effectTextPart: "[On Deletion] ＜Draw 1＞ (Draw 1 card from your deck.)",
+      },
+      {
+        kind: "Trash",
+        target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        effectTextPart: "Then, trash 1 card in your hand.",
+      },
     ]);
   });
 

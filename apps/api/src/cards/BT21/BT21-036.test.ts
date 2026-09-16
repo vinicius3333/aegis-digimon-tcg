@@ -51,6 +51,8 @@ describe("BT21-036 compiled implementation", () => {
           },
           unit: "trash",
         },
+        effectTextPart:
+          "Then, to 1 of your opponent's Digimon give -2000 DP for the turn for each card with the [Armor Form] trait in your trash.",
       },
     ]);
   });

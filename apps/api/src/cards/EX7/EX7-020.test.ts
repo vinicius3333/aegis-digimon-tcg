@@ -49,6 +49,7 @@ describe("EX7-020 Paledramon", () => {
             },
             amount: 2,
             fromTop: false,
+            effectTextPart: "[When Digivolving] Trash the bottom 2 digivolution card of 1 of your opponent's Digimon.",
           },
           {
             kind: "GainKeyword",
@@ -60,6 +61,8 @@ describe("EX7-020 Paledramon", () => {
               filter: { controllerDefault: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
               raw: "your opponent has no Digimon with digivolution cards",
             },
+            effectTextPart:
+              "Then, if your opponent has no Digimon with digivolution cards, this Digimon gains ＜Jamming＞and ＜Blocker＞until the end of your opponent's turn.",
           },
           {
             kind: "GainKeyword",
@@ -71,6 +74,8 @@ describe("EX7-020 Paledramon", () => {
               filter: { controllerDefault: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
               raw: "your opponent has no Digimon with digivolution cards",
             },
+            effectTextPart:
+              "Then, if your opponent has no Digimon with digivolution cards, this Digimon gains ＜Jamming＞and ＜Blocker＞until the end of your opponent's turn.",
           },
         ],
       },

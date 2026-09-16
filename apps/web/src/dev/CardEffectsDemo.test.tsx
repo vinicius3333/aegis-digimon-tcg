@@ -727,7 +727,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.getByRole("dialog", { name: /Imperialdramon: Dragon Mode · effect/i })).toBeTruthy();
     expect(await screen.findByText("Choose 1 of your Digimon to keep")).toBeTruthy();
-    expect(await screen.findByText(/Delete all of their other Digimon\. Then, Blitz/i)).toBeTruthy();
+    // The dialog prints the card's own clause, so the keyword keeps its printed brackets.
+    expect(await screen.findByText(/Delete all of their other Digimon\. Then, ＜Blitz＞/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: /Groundramon, 7,000 DP/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /WarGreymon, 10,000 DP/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Omnimon, 14,000 DP/ })).toBeTruthy();
@@ -2247,9 +2248,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.getByRole("region", { name: /Entmon · effect/i })).toBeTruthy();
     expect(await screen.findByText(/Usar Digisorption -3 de Entmon/i)).toBeTruthy();
-    expect(
-      await screen.findByText(/you may suspend 1 of your Digimon to reduce the digivolution cost by 3/i),
-    ).toBeTruthy();
+    // A keyword activation is shown as the keyword itself; its reminder prose is not repeated.
+    expect(await screen.findByText("＜Digisorption -3＞")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Not use" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Use" })).toBeTruthy();
   });
@@ -3582,7 +3582,9 @@ describe("CardEffectsDemo", () => {
   });
 
   it.each([
-    ["no-dragon", 3, /Veedramon/i],
+    // The dialog no longer repeats the source card in its visible title — the card is the
+    // dialog's accessible name, asserted below — so both boundaries read by their own prompt.
+    ["no-dragon", 3, /Escolha a ordem/i],
     ["no-categories", 4, /Escolha a ordem/i],
   ] as const)("applies Veedramon's Q3408 search boundary for %s", (effect, count, prompt) => {
     mockDesktop();

@@ -21,11 +21,17 @@ describe("BT21-051 Puppetmon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect?.actions).toEqual([
-        { kind: "DeDigivolve", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: 2 },
+        {
+          kind: "DeDigivolve",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: 2,
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
+        },
         {
           kind: "Return",
           target: { filter: { controller: "opponent", suspended: true, kind: ["Digimon"] }, count: 1 },
           to: "deckBottom",
+          effectTextPart: "Then, return 1 of their suspended Digimon to the bottom of the deck.",
         },
       ]);
     }

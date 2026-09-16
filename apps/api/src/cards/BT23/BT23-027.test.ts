@@ -462,7 +462,12 @@ describe("BT23-027 Angemon", () => {
   it("draws one, then may DNA digivolve two of your Digimon into Shakkoumon on your turn", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const actions = compiled.effects.find((entry) => entry.trigger === trigger)!.actions;
-      expect(actions[0]).toEqual({ kind: "Draw", controller: "mine", amount: 1 });
+      expect(actions[0]).toEqual({
+        kind: "Draw",
+        controller: "mine",
+        amount: 1,
+        effectTextPart: "[On Play] [When Digivolving] ＜Draw 1＞",
+      });
       expect(actions[1]).toMatchObject({
         kind: "DnaDigivolve",
         materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },

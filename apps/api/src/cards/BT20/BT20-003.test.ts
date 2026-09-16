@@ -184,7 +184,9 @@ describe("BT20-003 Bibimon", () => {
 
     // Main reopened in the same turn. Eiji detaches again during the second EOT,
     // restoring the no-Tamer condition while Bibimon's Once Per Turn identity stays used.
-    expect(s.events.filter((event) => event.kind === "phaseChanged" && event.phase === Phase.Main)).toHaveLength(2);
+    // CR 6-6-4 CONTINUES the Main phase rather than re-entering it, so the reopening emits
+    // no second `phaseChanged` — `waitForMainPhase` above is what proves input reopened.
+    expect(s.events.filter((event) => event.kind === "phaseChanged" && event.phase === Phase.Main)).toHaveLength(1);
     options.autoOrderTriggers = true;
     advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.state.pendingDecision === undefined);

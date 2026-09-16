@@ -36,12 +36,14 @@ describe("BT21-037 compiled implementation", () => {
       {
         kind: "Suspend",
         target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        effectTextPart: "[When Digivolving] Suspend 1 of your opponent's Digimon.",
       },
       {
         kind: "ModifyDP",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         amount: 2000,
         duration: "untilOpponentTurnEnd",
+        effectTextPart: "Then, this Digimon gets +2000 DP until your opponent's turn ends.",
       },
     ]);
   });

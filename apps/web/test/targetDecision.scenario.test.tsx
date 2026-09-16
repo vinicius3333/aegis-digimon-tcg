@@ -133,6 +133,20 @@ scenario("target-decision", () => {
         { timeout: 10_000 },
       );
       await vi.waitFor(() => expect(document.querySelector(".game-input-lock")).toBeNull(), { timeout: 10_000 });
+      // The board refuses ordinary actions while it is still presenting the attack, and the
+      // next attacker is picked off the presented board, so wait for the presentation to end
+      // and for the suspension the server already applied to appear.
+      await vi.waitFor(() => expect(screen.queryByTestId("skip-presentation")).toBeNull(), { timeout: 10_000 });
+      await vi.waitFor(
+        () =>
+          expect(
+            within(yourBattleArea())
+              .getAllByRole("img", { name: /monodramon/i })
+              .map((image) => image.closest('[data-drop="perm-you"]'))
+              .filter((permanent) => permanent?.querySelector('[data-state="suspended"]') !== null),
+          ).toHaveLength(attacked + 1),
+        { timeout: 10_000 },
+      );
     }
 
     // Both legal targets are now visibly suspended before the Option is used.
@@ -149,8 +163,8 @@ scenario("target-decision", () => {
 
     // Brave Shield's [Main] Unsuspend target can't auto-resolve (2 Monodramon in
     // play) — the real "chooseTargets" decision overlay opens.
-    const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
-    expect(within(dialog).getAllByText(/brave shield/i).length).toBeGreaterThan(0);
+    // The dialog carries the source card as its accessible name; its body no longer repeats it.
+    const dialog = await screen.findByRole("dialog", { name: /brave shield/i }, { timeout: 10_000 });
 
     // Pick the first candidate and confirm once. "That Digimon" binds the Blocker
     // grant to the Digimon chosen for Unsuspend, so no second target dialog may open.

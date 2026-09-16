@@ -35,7 +35,7 @@ describe("BT13-080 ProtoGizmon", () => {
 
   it("draws then trashes on play and cannot digivolve", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toEqual([
-      { kind: "Draw", controller: "mine", amount: 1 },
+      { kind: "Draw", controller: "mine", amount: 1, effectTextPart: "[On Play] ＜Draw 1＞." },
       expect.objectContaining({ kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } }),
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions?.[0]).toMatchObject({

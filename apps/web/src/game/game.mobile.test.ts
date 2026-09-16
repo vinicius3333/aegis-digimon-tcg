@@ -148,7 +148,7 @@ describe("mobile portrait match layout", () => {
     // pill — so the card grid and the confirm button keep the screen.
     expect(portraitRules).toMatch(/\.decision-overlay__header \{[^}]*align-items:\s*center[^}]*flex-wrap:\s*nowrap/);
     expect(portraitRules).toMatch(/\.decision-overlay__heading \{[^}]*padding:\s*0[^}]*background:\s*none/);
-    expect(portraitRules).toMatch(/\.decision-overlay__title \{[^}]*font-size:\s*0\.875rem/);
+    expect(portraitRules).toMatch(/\.decision-overlay__title \{[^}]*font-size:\s*1\.0625rem/);
     // The pill shares the header line but still answers to the touch floor.
     expect(portraitRules).toMatch(
       /\.decision-overlay__view-board \{[^}]*width:\s*auto[^}]*min-height:\s*44px[^}]*border-radius:\s*999px/,
@@ -595,20 +595,20 @@ describe("the board-mode rail becomes a bottom sheet on a phone in portrait", ()
   });
 });
 
-describe("the trigger chooser is a row of compact tiles on a phone in portrait", () => {
-  it("lays the pending effects across one scrolling row instead of stacking full cards", () => {
-    expect(phonePortraitRules).toMatch(/\.trigger-chooser \{[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto/);
-    expect(phonePortraitRules).toMatch(/\.trigger-chooser__option \{[^}]*flex:\s*0 0 auto[^}]*max-width:\s*8rem/);
+describe("the trigger chooser is one readable column on a phone in portrait", () => {
+  it("stacks the pending effects instead of splitting the width between them", () => {
+    expect(phonePortraitRules).toMatch(/\.trigger-chooser \{[^}]*grid-template-columns:\s*1fr/);
+    expect(phonePortraitRules).toMatch(/\.trigger-chooser__option \{[^}]*min-width:\s*0/);
   });
 
-  it("shrinks the art to a thumbnail and drops the clause the dialog already prints", () => {
+  it("shrinks the art to a thumbnail so the printed clause keeps the width", () => {
     expect(phonePortraitRules).toMatch(/\.trigger-chooser__card > div \{[^}]*width:\s*64px/);
-    expect(phonePortraitRules).toMatch(/\.trigger-chooser__summary \{[^}]*display:\s*none/);
+    expect(phonePortraitRules).toMatch(/\.trigger-chooser__meta \{[^}]*max-width:\s*100%/);
   });
 
-  it("keeps the desktop chooser wrapping at full card size", () => {
-    expect(gameCss).toMatch(/\n\.trigger-chooser \{[^}]*flex-wrap:\s*wrap/);
-    expect(gameCss).toMatch(/\n\.trigger-chooser__timing \{[^}]*font-weight:\s*800/);
+  it("keeps the desktop chooser on a grid that fits as many full cards as the width allows", () => {
+    expect(gameCss).toMatch(/\n\.trigger-chooser \{[^}]*grid-template-columns:\s*repeat\(auto-fit/);
+    expect(gameCss).toMatch(/\n\.trigger-chooser__option \{[^}]*flex-direction:\s*column/);
   });
 });
 

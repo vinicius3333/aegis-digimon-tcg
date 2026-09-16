@@ -16,12 +16,15 @@ describe("EX8-043", () => {
         kind: "Suspend",
         optional: true,
         target: { filter: { controllerDefault: "any", kind: ["Digimon"] }, count: 1 },
+        effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
       },
       {
         kind: "DeDigivolve",
         amount: 1,
         condition: { kind: "selfIsSuspended", raw: "this Digimon is suspended" },
         target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        effectTextPart:
+          "Then, if this Digimon is suspended, ＜De-Digivolve1＞ 1 of your opponent's Digimon , and this Digimon isn't returned to hand or deck by an opponent's effect, and isn't affected by ＜De-Digivolve＞ effects until the end of your opponent's turn.",
       },
       {
         kind: "Restrict",

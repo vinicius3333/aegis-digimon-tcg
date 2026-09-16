@@ -75,7 +75,8 @@ it("shows a non-blocking notice when the viewer's mandatory effect resolves", as
 
   const notice = await screen.findByRole("status");
   expect(within(notice).getByText("From Master to Disciple")).toBeDefined();
-  expect(within(notice).getByText(clause)).toBeDefined();
+  // The clause is rendered as linked fragments, so it is read off the notice as a whole.
+  expect(notice.textContent).toContain(clause);
   expect(notice.getAttribute("data-variant")).toBe("effect");
   expect(screen.queryByRole("dialog")).toBeNull();
 });
@@ -113,7 +114,8 @@ it("shows the exact inherited clause instead of SaviorHuckmon's main effect", as
   );
 
   const notice = await screen.findByRole("status");
-  expect(within(notice).getByText(inherited)).toBeDefined();
+  // Printed as the card prints it: the inherited box carries no "[Inherited]" marker.
+  expect(notice.textContent).toContain(inherited.replace("[Inherited]", ""));
   expect(within(notice).queryByText(/\[When Digivolving\].*unsuspended Digimon/)).toBeNull();
 });
 

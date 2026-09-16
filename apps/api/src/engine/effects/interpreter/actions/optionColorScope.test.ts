@@ -126,13 +126,16 @@ describe("Glowing Dawn peer Option use", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === optionId));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
     expect(s.state.memory).toBe(1);
     expect(s.perm("tamer").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.map((c) => c.instanceId)).toContain(s.inst("enemy").instanceId);
+    // CR §4-19 Arts Digivolve: the used DUAL card's pending trash is replaced by the free
+    // digivolution the harness accepts, so the Option ends on the board, not in the trash.
+    expect(s.perm("base").topCard?.instanceId).toBe(optionId);
   });
 
   it.each([true, false])(

@@ -108,7 +108,7 @@ describe("BT25-083 LadyDevimon", () => {
           hand: [{ card: "BT25-085", as: "option" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Arts Digivolve"] },
     );
     s.state.memory = 5;
     await s.ready();
@@ -137,7 +137,7 @@ describe("BT25-083 LadyDevimon", () => {
           deck: ["AD1-001"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false, declinePrompts: ["Arts Digivolve"] },
     );
     await s.ready();
     await advance(s.engine).verb.placeUnder(s.perm("lady").permanentId, [s.inst("sourceOption").instanceId]);
@@ -179,7 +179,7 @@ describe("BT25-083 LadyDevimon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Arts Digivolve"] },
     );
     s.state.memory = 10;
     await s.ready();

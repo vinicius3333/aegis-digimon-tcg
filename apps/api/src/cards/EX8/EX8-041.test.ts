@@ -11,7 +11,11 @@ describe("EX8-041", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Reptile"], cost: 2, isAlternate: true }]);
     const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
     expect(onPlay?.actions).toEqual([
-      { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: 1 } },
+      {
+        kind: "Suspend",
+        target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: 1 },
+        effectTextPart: "[On Play] [When Digivolving] Suspend 1 of your opponent's Tamers.",
+      },
       {
         kind: "Restrict",
         target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: 1 },

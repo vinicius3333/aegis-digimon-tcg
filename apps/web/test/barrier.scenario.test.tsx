@@ -137,6 +137,9 @@ scenario("barrier", () => {
       // control the player cannot actually reach — and the press would be refused anyway
       // (GameScreen's `boardLocked` guard), leaving the turn stuck here.
       await vi.waitFor(() => expect(document.querySelector(".game-input-lock")).toBeNull(), { timeout: 10_000 });
+      // The board also refuses ordinary actions for as long as it is still presenting the
+      // check, and the skip control is the only thing on screen that says it still is.
+      await vi.waitFor(() => expect(screen.queryByTestId("skip-presentation")).toBeNull(), { timeout: 10_000 });
       fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
     }
 

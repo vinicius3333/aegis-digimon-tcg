@@ -106,8 +106,14 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
 
   it("preserves BT4-104's security trash followed by unconditional memory gain", () => {
     expect(effect("BT4-104", "Main").actions).toEqual([
-      { kind: "SecurityManipulation", op: "trashTop", controller: "mine", amount: 1 },
-      { kind: "GainMemory", amount: 2 },
+      {
+        kind: "SecurityManipulation",
+        op: "trashTop",
+        controller: "mine",
+        amount: 1,
+        effectTextPart: "[Main] Trash the top card of your security stack.",
+      },
+      { kind: "GainMemory", amount: 2, effectTextPart: "Then, gain 2 memory." },
     ]);
     expect(card("BT4-104").effects).toHaveLength(1);
   });
@@ -196,6 +202,8 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
         keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
         duration: "untilOpponentTurnEnd",
         condition: { kind: "lastTargetDpAtLeast", value: 13000 },
+        effectTextPart:
+          "Then, if that Digimon has 16000 DP or more, that Digimon gains ＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead), ＜Reboot＞ (Unsuspend this Digimon during your opponent's unsuspend phase), and ＜Security Attack +1＞ (This Digimon checks 1 additional security card) until the end of your opponent's next turn.",
       },
       {
         kind: "GainKeyword",
@@ -203,6 +211,8 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
         keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
         duration: "untilOpponentTurnEnd",
         condition: { kind: "lastTargetDpAtLeast", value: 13000 },
+        effectTextPart:
+          "Then, if that Digimon has 16000 DP or more, that Digimon gains ＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead), ＜Reboot＞ (Unsuspend this Digimon during your opponent's unsuspend phase), and ＜Security Attack +1＞ (This Digimon checks 1 additional security card) until the end of your opponent's next turn.",
       },
       {
         kind: "GainKeyword",
@@ -210,6 +220,8 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
         keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
         duration: "untilOpponentTurnEnd",
         condition: { kind: "lastTargetDpAtLeast", value: 13000 },
+        effectTextPart:
+          "Then, if that Digimon has 16000 DP or more, that Digimon gains ＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead), ＜Reboot＞ (Unsuspend this Digimon during your opponent's unsuspend phase), and ＜Security Attack +1＞ (This Digimon checks 1 additional security card) until the end of your opponent's next turn.",
       },
     ]);
     expect(effect("BT4-109", "Security")).toMatchObject({ isSecurity: true, actions: [{ kind: "AddToHandSelf" }] });

@@ -71,7 +71,11 @@ describe("EX2-063 Kazu Shioda", () => {
                   optional: true,
                   abortOnDecline: true,
                 },
-                { kind: "Trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
+                {
+                  kind: "Trash",
+                  target: { filter: { zone: "hand", controller: "mine" }, count: 1 },
+                  effectTextPart: "Then, trash 1 card in your hand.",
+                },
               ],
             }),
           ],

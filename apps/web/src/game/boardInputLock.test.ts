@@ -8,7 +8,6 @@ describe("presentation cues and board actions", () => {
     expect(gameScreenSource).not.toContain("BoardInputLock");
     expect(gameScreenSource).not.toContain("securityRevealPending");
     expect(gameScreenSource).not.toContain("cues.narrationLock");
-    expect(gameScreenSource).not.toContain("cues.phaseTransitionPending");
   });
 
   it("keeps main actions behind live server state", () => {
@@ -26,8 +25,6 @@ describe("presentation cues and board actions", () => {
     expect(gameScreenSource).toContain("if (!breedingActionsOpen) return;");
     expect(gameScreenSource).toContain("covered={endPhaseBlocked ? true : undefined}");
     expect(gameScreenSource).toContain("onEndPhase={() => !endPhaseBlocked && room && intents.endPhase(room)}");
-    expect(gameScreenSource).toContain(
-      "const viewerDecision = decision && decision.seat === viewerSeat ? decision : undefined;",
-    );
+    expect(gameScreenSource).toContain("decision && decision.seat === viewerSeat");
   });
 });

@@ -32,7 +32,12 @@ describe("EX5-052 Makuramon", () => {
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toEqual([
-      { kind: "Draw", controller: "mine", amount: 1 },
+      {
+        kind: "Draw",
+        controller: "mine",
+        amount: 1,
+        effectTextPart: "[On Play] ＜Draw 1＞ (Draw 1 card from your deck).",
+      },
       {
         kind: "PlayWithoutCost",
         target: {
@@ -44,6 +49,8 @@ describe("EX5-052 Makuramon", () => {
         breeding: true,
         notSameNameAs: ["battleArea", "trash"],
         optional: true,
+        effectTextPart:
+          "Then, you may play 1 [Deva] trait Digimon card without the same name as the cards in your battle area or trash from your hand to an empty space in your breeding area without paying the cost.",
       },
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn" && !entry.isInherited)).toMatchObject({

@@ -137,9 +137,12 @@ describe("BT17-035 Taomon", () => {
         instanceId: s.inst("taomon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === highCostOptionId));
+    await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === highCostOptionId));
+    await settle();
 
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(highCostOptionId);
+    // BT25-043 is a DUAL card, so CR §4-19 Arts Digivolve replaces the used Option's pending
+    // trash with a free digivolution onto the base: the proof it was used is that it left hand.
+    expect(s.perm("base").topCard?.instanceId).toBe(highCostOptionId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(wrongOptionId);
     expect(s.state.memory).toBe(3);
   });

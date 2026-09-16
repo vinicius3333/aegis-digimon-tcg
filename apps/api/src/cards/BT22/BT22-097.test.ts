@@ -20,7 +20,10 @@ describe("BT22-097 Music of the Heart", () => {
 
   it("draws and places itself in the battle area from Main", () => {
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
-    expect(main?.actions).toEqual([{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "PlaceInBattleAreaSelf" }]);
+    expect(main?.actions).toEqual([
+      { kind: "Draw", controller: "mine", amount: 1, effectTextPart: "[Main] ＜Draw 1＞" },
+      { kind: "PlaceInBattleAreaSelf" },
+    ]);
   });
 
   it("gates the Delay link under the own-Appmon played event", () => {

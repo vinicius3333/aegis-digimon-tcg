@@ -12,7 +12,7 @@ import { permanentMatchesFilter } from "../matching/permanent.js";
 import { scaleFactor } from "../scaling.js";
 import { targetFateOf } from "../targetFate.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
-import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidatePermanents, raiseDeletionDpCap, resolvePermanentTargets } from "../targeting/permanents.js";
 import { targetAfterSelfPlacementCost } from "../targeting/afterCost.js";
 import { runBoardAction } from "./board.js";
 import { runCombatAction } from "./combat.js";
@@ -454,7 +454,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !dynamicallyScaledDeleteTarget &&
     !placeCostProducesDeleteTarget &&
     !looseCostDefinesDeleteTarget &&
-    candidatePermanents(ctx, action.target, { includeUnaffectable: true }).length === 0
+    // Through the raised cap, not the printed one: a DP-deletion-maximum modifier already on
+    // the ledger (EX8-074's "+3000 per other suspended Digimon") widens who is a legal target,
+    // and skipping the prompt against the printed `<= N` would drop the clause outright.
+    candidatePermanents(ctx, raiseDeletionDpCap(ctx, action.target), { includeUnaffectable: true }).length === 0
   ) {
     clearDeleteOutcome(ctx, action);
     return false;
