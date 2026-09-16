@@ -1522,6 +1522,48 @@ describe("match cues", () => {
     expect(result.current.optionBranch).toBeNull();
   });
 
+  // EX12-074 places ITSELF as a security card partway through its [Main] clause and keeps
+  // resolving, so its routing marker arrives while the viewer still has the Option's own
+  // prompts open. The marker alone would pull the card off the right of the screen with the
+  // questions about it still on the board.
+  it("keeps a self-relocating Option docked until its own prompts are answered", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    await advance(0);
+
+    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true });
+    await advance(0);
+    expect(result.current.optionBranch?.state).toBe("docked");
+
+    // Past the point the marker alone would have closed it.
+    await advance(TIMINGS.optionDockHold + SECURITY_DOCK_CLOSE_MS + TIMINGS.securityDockPoll * 4);
+    expect(result.current.optionBranch?.state).toBe("docked");
+
+    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: false });
+    await advance(TIMINGS.securityDockPoll * 2);
+    expect(result.current.optionBranch?.state).toBe("closing");
+    await advance(SECURITY_DOCK_CLOSE_MS);
+    expect(result.current.optionBranch).toBeNull();
+  });
+
+  // The dock's hold is open-ended by design: it ends when the viewer answers the Option's
+  // own prompts. A phase ribbon that waited for it would wait for an answer that cannot
+  // arrive — every other cue is gated behind the ribbon, so one docked Option used to
+  // freeze the whole screen until the hold's 45-second failsafe ceiling.
+  it("plays phase ribbons while a used Option is still docked", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    // No routing event: the Option is mid-resolution and its dock stays open.
+    rerender([OPTION_USE]);
+    await advance(0);
+    expect(result.current.optionBranch?.state).toBe("docked");
+
+    rerender([OPTION_USE, { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 }]);
+    await advance(32);
+    expect(result.current.phaseBanner?.phase).toBe("End");
+    expect(result.current.optionBranch?.state).toBe("docked");
+  });
+
   it("owes the screen a reveal from the check until the scene has played it", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

@@ -220,6 +220,18 @@ function holdsTheBoard(step: AnimationStep): boolean {
 const SECURITY_DOCK_TRACK = "securityDock";
 
 /**
+ * The used Option's own dock: its entrance, and the open-ended hold that keeps the card on
+ * screen until the Option finishes resolving. Open-ended for the same reason the security dock
+ * is — the Option finishes by the viewer ANSWERING its decisions — so these two tracks are
+ * exempt from the same barriers. A phase ribbon that waits for them waits for an answer that
+ * cannot arrive until the ribbon lets the prompt through, and every other cue is gated behind
+ * the ribbon: one docked Option freezes the whole screen until the dock's failsafe ceiling.
+ */
+const OPTION_DOCK_TRACK = "optionDock";
+const OPTION_DOCK_HOLD_TRACK = "optionDockHold";
+const OPTION_DOCK_TRACKS: readonly string[] = [OPTION_DOCK_TRACK, OPTION_DOCK_HOLD_TRACK];
+
+/**
  * The open-ended wait that keeps a revealed Digimon centre-stage until the battle it is in
  * has actually been decided. Same reasoning as the dock, and for the same reason not the
  * centre-stage track: the deletion the battle causes, and everything that reacts to it,
@@ -1643,7 +1655,7 @@ export function useMatchCues({
         optionDockRef.current = { key, closed: optionRouted };
         enqueue({
           id: `option-dock-in-${key}`,
-          track: "optionDock",
+          track: OPTION_DOCK_TRACK,
           skippable: false,
           // The dock's own entrance is part of that same wait (see the hold below).
           blocksDecision: false,
@@ -1654,7 +1666,7 @@ export function useMatchCues({
         });
         enqueue({
           id: `option-dock-hold-${key}`,
-          track: "optionDockHold",
+          track: OPTION_DOCK_HOLD_TRACK,
           skippable: false,
           // Same reason the security dock is excluded from the decision barrier: this hold
           // waits for the docked Option to finish, and the Option finishes by the viewer
@@ -1667,7 +1679,17 @@ export function useMatchCues({
               await context.wait(TIMINGS.securityDockPoll);
               waitedMs += TIMINGS.securityDockPoll;
             }
-            while (!context.cancelled && !optionDockRef.current?.closed && waitedMs < TIMINGS.securityDockMax) {
+            // The routing marker says the card left its no-area slot, which for a plain Option
+            // is the end of its resolution. An Option that relocates ITSELF mid-clause (placing
+            // itself as a security card, onto the field) is marked at that placement and goes on
+            // resolving, so the marker alone would pull the card off screen while the viewer is
+            // still answering prompts about it. The dock exists to keep it readable through
+            // exactly those prompts, so an open decision holds it too — under the same ceiling.
+            while (
+              !context.cancelled &&
+              (!optionDockRef.current?.closed || decisionPendingRef.current) &&
+              waitedMs < TIMINGS.securityDockMax
+            ) {
               await context.wait(TIMINGS.securityDockPoll);
               waitedMs += TIMINGS.securityDockPoll;
             }
@@ -2540,6 +2562,7 @@ export function useMatchCues({
         (step) =>
           step.track !== "phaseBanner" &&
           step.track !== SECURITY_DOCK_TRACK &&
+          !OPTION_DOCK_TRACKS.includes(step.track ?? "") &&
           (stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder,
       );
       // A clause the ribbon is about to cover gets one readable beat first. The same budget
