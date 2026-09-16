@@ -35,7 +35,12 @@ function recordingTransport(): { transport: DecisionTransport; sent: Array<{ sea
 function makeCtx(): EffectContext {
   return {
     activeTiming: "OnDestroyedAnyone",
-    source: { ownerSeat: 0 as Seat, cardId: "BT26-072", definition: { nameEn: "Peckmon" } },
+    source: {
+      ownerSeat: 0 as Seat,
+      cardId: "BT26-072",
+      definition: { nameEn: "Peckmon" },
+      permanent: () => undefined,
+    },
     game: { opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat },
   } as unknown as EffectContext;
 }

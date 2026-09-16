@@ -551,7 +551,9 @@ describe("EX10-020 Puppetmon", () => {
     const payload = orderPayload(decision.payloadJson);
     expect(payload.triggerKeys).toHaveLength(2);
     // One key per pending processing, both in the turn-end window, both on this permanent.
-    expect(payload.triggerTimings).toEqual(["OnEndTurn", "OnEndTurn"]);
+    // The chooser is labelled with each effect's PRINTED timing, not the engine window: the
+    // Apocalymon clause reads [End of Your Turn], the delayed deletion is the rule processing.
+    expect(payload.triggerTimings).toEqual(["EndOfYourTurn", "endOfTurn"]);
     expect(payload.triggerCardIds).toEqual(["BT15-102", "BT15-102"]);
     expect(triggerKeyFor(payload, "delete")).toContain(DELAYED_DELETE);
     expect(triggerKeyFor(payload, "apocalymon")).toContain("BT15-102/");

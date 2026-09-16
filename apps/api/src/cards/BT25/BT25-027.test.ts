@@ -514,7 +514,9 @@ describe("BT25-027 MachGaogamon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("secondBottomFaceDown").instanceId] },
+        // The face-down cards are hidden, so the cost offers the HOST Tamers as the
+        // selectable identity; the bottom card under the chosen Tamer is what gets trashed.
+        response: { kind: "selectCards", instanceIds: [s.inst("secondTamer").instanceId] },
       }),
     ).toEqual({ ok: true });
     expect(await deleting).toBe(0);

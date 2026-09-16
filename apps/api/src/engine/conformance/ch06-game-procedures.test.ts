@@ -484,7 +484,9 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
         "be postponed and the current phase will continue.' TurnStateMachine re-checks " +
         "MemoryGauge.hasCrossedToOpponent() after the OnEndTurn window: the gauge has to have " +
         "been on the opponent's side going IN and be back on the turn player's side coming OUT " +
-        "(§6-6-4 is a MOVE), at which point the Main phase re-runs and the window re-opens.",
+        "(§6-6-4 is a MOVE), at which point the Main phase CONTINUES — its input window re-opens " +
+        "and the end-of-turn window with it, without re-entering the phase or re-firing its " +
+        "start-of-phase effects ('the current phase will continue', not a new phase).",
       "f9f5cfa75ac379673e9728afe910b1d8fb6c69c088fc27db80dc43203515bdba",
     );
 
@@ -493,6 +495,7 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
     state.memory = -DEFAULT_TURN_END_MIN_MEMORY; // already crossed: without a move, the turn ends
     const phaseLog: string[] = [];
     let endTurnWindows = 0;
+    let mainPhaseRuns = 0;
     const { hooks } = recordingHooks({
       // A once-per-turn OnEndTurn effect grants the turn player enough memory to un-cross the
       // gauge — exactly the §6-6-4 postponement trigger (turn-relative memory >= 0 favors the
@@ -503,6 +506,7 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
         if (endTurnWindows === 1) state.memory = 0;
       },
       async runMainPhase() {
+        mainPhaseRuns += 1;
         return "crossed" as MainPhaseEnd;
       },
     });
@@ -512,8 +516,10 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
 
     await machine.runTurn();
 
-    // Postponed once: the Main phase ran a second time and the end-of-turn window re-opened.
-    expect(phaseLog.filter((p) => p === Phase.Main).length).toBe(2);
+    // Postponed once: Main input re-opened and the end-of-turn window with it. The phase itself
+    // CONTINUES, so it is entered exactly once — no second phaseChanged, no repeated start-of-Main.
+    expect(mainPhaseRuns).toBe(2);
+    expect(phaseLog.filter((p) => p === Phase.Main).length).toBe(1);
     expect(endTurnWindows).toBe(2);
     // ...and then the turn actually ended — postponement is not a hang.
     expect(phaseLog.at(-1)).toBe(Phase.End);
