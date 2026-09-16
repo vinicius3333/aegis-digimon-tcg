@@ -20,7 +20,11 @@ const CARD_ID = "EX13-029";
 //     legal source through the catalog EvoCost, so the observable difference is the cost.
 //   BT1-064 Goblimon — GREEN Lv.3, NO printed text: the illegal source. Neither the Yellow/Red
 //     EvoCosts nor the header's Lv.3-with-[Witchelny]-text predicate admits it.
-//   BT9-035 Starmon — YELLOW Lv.4, ["Star"], no printed text: the negative host for the inherited
+//   BT18-036 Wizardmon — YELLOW Lv.4 whose printed TYPES are ["Wizard","Witchelny"]: the positive
+//     host for the inherited replacement. EX13-029 itself is deliberately NOT the host here: its
+//     own printed ＜Armor Purge＞ is a second deletion prevention and would confound every
+//     prevented/not-prevented assertion below.
+//   BT9-035 Starmon — YELLOW Lv.4, ["Mutant"], no printed text: the negative host for the inherited
 //     replacement.
 //   BT1-037 Gorillamon — BLUE Lv.4, 6000 DP, no printed text. At its printed DP, -4000 leaves
 //     2000, which the delete then removes THROUGH THE EFFECT rather than through the DP-zero rule;
@@ -29,6 +33,7 @@ const CARD_ID = "EX13-029";
 const WITCHELNY_TEXT_SOURCE = "BT18-030";
 const PLAIN_YELLOW_SOURCE = "BT1-045";
 const ILLEGAL_SOURCE = "BT1-064";
+const WITCHELNY_HOST = "BT18-036";
 const NON_WITCHELNY_HOST = "BT9-035";
 const OPPONENT = "BT1-037";
 const INERT = "BT1-009";
@@ -175,11 +180,12 @@ describe("EX13-029 FlameWizardmon", () => {
       s.inst("middle").instanceId,
       s.inst("bottom").instanceId,
     ]);
-    // 4000 DP - 4000 = 0, and the post-cost stack is 2 (<= 3), so the delete lands.
+    // The post-cost stack is 2 (<= 3), so the delete lands.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain(OPPONENT);
     // 6000 - 4000 = 2000, which is above zero, so the removal is the printed DELETE and not the
-    // DP-reaching-zero rule.
+    // DP-reaching-zero rule. No fixture in this file is seeded at exactly 4000 DP, because a
+    // target the debuff drove to 0 would be swept by that rule and prove nothing here.
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -425,7 +431,7 @@ describe("EX13-029 FlameWizardmon", () => {
     const protectedBoard = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "host", under: [CARD_ID] }],
+          battleArea: [{ card: WITCHELNY_HOST, as: "host", under: [CARD_ID] }],
           security: [
             { card: "BT1-010", as: "top" },
             { card: "BT1-011", as: "bottom" },
@@ -470,5 +476,164 @@ describe("EX13-029 FlameWizardmon", () => {
 
     expect(unprotected.state.players[0]!.battleArea).toHaveLength(0);
     expect(unprotected.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("fires the delete when the post-cost security stack is exactly 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WITCHELNY_TEXT_SOURCE, as: "source" }],
+          hand: [{ card: CARD_ID, as: "flameWizardmon" }],
+          security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: DECK,
+        },
+        1: { battleArea: [{ card: OPPONENT, as: "victim" }], security: [INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("flameWizardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 3);
+
+    // 4 - 1 = 3, exactly the printed gate, so the delete lands. The 5-card sibling above proves
+    // the other side of the boundary at 4.
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain(OPPONENT);
+  });
+
+  it("deletes a target the debuff leaves at exactly 4000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WITCHELNY_TEXT_SOURCE, as: "source" }],
+          hand: [{ card: CARD_ID, as: "flameWizardmon" }],
+          security: ["BT1-010", "BT1-011"],
+          deck: DECK,
+        },
+        1: {
+          battleArea: [{ card: OPPONENT, as: "victim", dp: 8000 }],
+          security: [INERT],
+          deck: DECK,
+        },
+      },
+      AUTOMATION,
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("flameWizardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    // 8000 - 4000 = 4000, exactly the printed ceiling and far above zero, so this is the printed
+    // delete and not the DP-reaching-zero rule. The 9000 sibling proves the other side.
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain(OPPONENT);
+  });
+
+  it("ignores the host's own effects and cannot prevent with an empty security stack", async () => {
+    const ownEffect = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WITCHELNY_HOST, as: "host", under: [CARD_ID] }],
+          security: [{ card: "BT1-010", as: "top" }],
+          deck: DECK,
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    await ownEffect.ready();
+    const ownHostId = ownEffect.perm("host").permanentId;
+
+    advance(ownEffect.engine).verb.enterEffectResolution(0, ["Digimon"]);
+    expect(await advance(ownEffect.engine).verb.deletePermanent([ownHostId], "byEffect")).toBe(1);
+    advance(ownEffect.engine).verb.leaveEffectResolution();
+    await settle(() => ownEffect.state.pendingDecision === undefined);
+
+    // "by your opponent's effects" only: the controller's own effect goes through unanswered and
+    // no security card is paid.
+    expect(ownEffect.state.players[0]!.battleArea).toHaveLength(0);
+    expect(ownEffect.state.players[0]!.security).toHaveLength(1);
+
+    const noSecurity = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WITCHELNY_HOST, as: "host", under: [CARD_ID] }],
+          security: [],
+          deck: DECK,
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    await noSecurity.ready();
+    const hostId = noSecurity.perm("host").permanentId;
+
+    advance(noSecurity.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(noSecurity.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
+    advance(noSecurity.engine).verb.leaveEffectResolution();
+    await settle(() => noSecurity.state.pendingDecision === undefined);
+
+    // A "by" condition can never be paid partly (manual §1), so the host leaves.
+    expect(noSecurity.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("prevents only one departure per turn and reopens next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WITCHELNY_HOST, as: "host", under: [CARD_ID] }],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: DECK,
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    // The single printed quota was spent, so the second departure goes through unpaid.
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+
+    const revived = s.putOnBoard(0, { card: WITCHELNY_HOST, as: "host2", under: [CARD_ID] });
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([revived.permanentId], "byEffect")).toBe(0);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(revived.permanentId);
+    // A third security card was paid for the reopened prevention.
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
