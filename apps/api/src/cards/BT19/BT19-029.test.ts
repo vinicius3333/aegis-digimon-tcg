@@ -601,6 +601,101 @@ describe("BT19-029 Tapirmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT19-029", "BT3-037"]);
   });
 
+  it("does not prevent a leave caused by the controller's OWN effect", async () => {
+    // BT7-107 Calling From the Darkness is played by seat 0 itself, so the removal is "by your
+    // effects" — outside the printed "by your opponent's effects" window. The purple DemiDevimon
+    // is only there to satisfy the option's colour requirement.
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-037", as: "host", dp: 4000, under: [{ card: "BT19-029", as: "tapir" }] },
+            { card: "BT2-067", as: "purpleSource", dp: 3000 },
+          ],
+          security: [
+            { card: "BT1-009", as: "secTop" },
+            { card: "BT1-011", as: "secNext" },
+          ],
+          deck: ["BT1-012", "BT1-012"],
+          hand: [
+            { card: "BT7-107", as: "callingFromTheDarkness" },
+            { card: "BT1-012", as: "spare" },
+          ],
+        },
+        1: {
+          security: INERT_SECURITY,
+          deck: ["BT1-012", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    preferInstanceIds.push(s.perm("host").topCard!.instanceId, s.perm("host").permanentId);
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("callingFromTheDarkness").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    closeMain(s, 0);
+    await stopLoop(s, loop, 0);
+
+    // The host left, and no security was spent: the clause never offered a prevention.
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT2-067"]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("secTop").instanceId,
+      s.inst("secNext").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT19-029", "BT3-037", "BT7-107"]);
+  });
+
+  it("does not protect a yellow host whose only near-match trait is [DATA SQUAD], not [Data]", async () => {
+    // AD1-016 ShineGreymon is yellow and carries [DATA SQUAD], a trait that merely CONTAINS the
+    // token "Data". The printed clause says "with the [Data]/[Witchelny] trait", so the refs are
+    // `match: "trait"` (exact) rather than `traitContains`, and this host is not protected.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-016", as: "host", dp: 4000, under: [{ card: "BT19-029", as: "tapir" }] }],
+          security: [
+            { card: "BT1-009", as: "secTop" },
+            { card: "BT1-011", as: "secNext" },
+          ],
+          deck: ["BT1-012", "BT1-012"],
+          hand: [{ card: "BT1-012", as: "spare" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "opponentRedSource", dp: 20_000 }],
+          hand: [
+            { card: "BT2-091", as: "flare" },
+            { card: "BT1-012", as: "opponentSpare" },
+          ],
+          security: INERT_SECURITY,
+          deck: ["BT1-012", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flare").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    closeMain(s, 1);
+    await stopLoop(s, loop, 1);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("secTop").instanceId,
+      s.inst("secNext").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["AD1-016", "BT19-029"]);
+  });
+
   it.each([
     ["BT19-029", "the Tapirmon prevention"],
     ["BT19-041", "the host's own [All Turns] clause"],
