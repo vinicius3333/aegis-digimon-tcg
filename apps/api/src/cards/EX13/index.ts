@@ -23,6 +23,7 @@ import "./EX13-021.js";
 import "./EX13-022.js";
 import "./EX13-023.js";
 import "./EX13-024.js";
+import "./EX13-025.js";
 import "./EX13-026.js";
 import "./EX13-027.js";
 import "./EX13-028.js";
