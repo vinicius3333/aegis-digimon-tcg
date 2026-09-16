@@ -384,6 +384,52 @@ describe("EX13-055 Raptordramon", () => {
     assertNoLoudGap(s);
   });
 
+  it("digivolves during a REAL declared attack, fires the new top card's [When Digivolving], and the attack continues", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "raptor", under: ["BT1-010"], dp: 5000 }],
+          hand: [
+            { card: CHRONICLE_LV5, as: "grademon" },
+            { card: NAME_ONLY_SOURCE, as: "dorumon" },
+          ],
+          deck: [{ card: NON_MATCH, as: "bonusDraw" }, "BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: { deck: ["BT1-013"], security: [{ card: "BT1-014", as: "topSecurity" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const raptorId = s.perm("raptor").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: raptorId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("raptor").topCard.cardId === CHRONICLE_LV5);
+
+    // BT20-053's own [When Digivolving] resolved mid-attack: Dorumon reached the empty breeding
+    // area, and its "during an attack" +5000 DP landed on the 7000 DP Grademon.
+    await settle(() => s.state.players[0]!.breeding !== undefined);
+    expect(s.state.players[0]!.breeding!.topCard.cardId).toBe(NAME_ONLY_SOURCE);
+    expect(s.perm("raptor").currentDP).toBe(12000);
+
+    // The attack was never cancelled: it resolved into the opponent's security.
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("raptor").permanentId).toBe(raptorId);
+    expect(s.perm("raptor").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", CARD_ID]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("topSecurity").instanceId)).toBe(
+      true,
+    );
+    assertNoLoudGap(s);
+  });
+
   it("refuses a same-name Lv.5 without the [Chronicle] trait", async () => {
     const s = setupEngine(
       {
@@ -452,6 +498,65 @@ describe("EX13-055 Raptordramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("bystander"), "Barrier")).toBe(false);
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("source").instanceId]);
+  });
+
+  it("resolves inherited ＜Barrier＞ in a real battle: accepting trashes the top security and saves the host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-014", as: "host", under: [{ card: CARD_ID, as: "source" }], dp: 3000 }],
+        security: [{ card: "BT1-013", as: "topSecurity" }],
+        deck: ["BT1-011", "BT1-012"],
+      },
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true, dp: 12000 }], deck: ["BT1-011"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("host").permanentId, accept: true }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("topSecurity").instanceId)).toBe(
+      true,
+    );
+  });
+
+  it("declining inherited ＜Barrier＞ lets the battle delete the host and keeps security intact", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-014", as: "host", under: [{ card: CARD_ID, as: "source" }], dp: 3000 }],
+        security: ["BT1-013"],
+        deck: ["BT1-011", "BT1-012"],
+      },
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true, dp: 12000 }], deck: ["BT1-011"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("host").permanentId, accept: false }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
   it("does not give its own top card ＜Barrier＞ — the keyword is printed only in inherited text", async () => {
