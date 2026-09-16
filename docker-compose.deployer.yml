@@ -1,0 +1,25 @@
+# The one-shot deploy controller Dokploy runs in place of `compose up --build`.
+#
+# It exists as a compose file, rather than as a bare `docker run`, so the image is
+# built by the same command that runs it. Dokploy's Docker cleanup prunes every
+# image no running container holds, and this container is `--rm`: a pre-built
+# `aegis-deployer:1` is therefore deleted between releases, and every deployment
+# after the first prune failed with "Unable to find image 'aegis-deployer:1'".
+# `compose run --build` rebuilds it each time, so the prune cannot break a release.
+#
+# Installed Dokploy command (see docs/deployment-room-continuity.md):
+#   compose -p aegis-deployer -f <code>/docker-compose.deployer.yml \
+#     run --rm --build deployer deploy --source <code> --env-file <code>/.env
+services:
+  deployer:
+    build:
+      context: .
+      dockerfile: docker/Deployer.Dockerfile
+    image: aegis-deployer:1
+    volumes:
+      # The controller builds images and starts slot stacks on the host daemon.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # The checked-out source and its environment file, read-only.
+      - /etc/dokploy:/etc/dokploy:ro
+      # Rollout state: the routing manifest, releases and slot records.
+      - /opt/aegis-rollout:/opt/aegis-rollout
