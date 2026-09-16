@@ -47,15 +47,22 @@ it("previews five trigger timings and can repeat a deletion without losing its a
     fireEvent.click(screen.getByRole("button", { name: "Demo tools" }));
     fireEvent.click(screen.getByRole("menuitem", { name: `Preview activation: ${timing}` }));
     await advance(300);
-    expect(screen.queryByText("Visual preview: the card glows before this notice.")).toBeNull();
+    // The notice prints the source card's own rules text, so this reads the notice's clause
+    // element rather than the fixture's words: what is being timed is when it arrives.
+    const clause = () => document.querySelector(".match-notice__text");
+    expect(clause()).toBeNull();
     expect(container.querySelector(".game-delete-burst") !== null).toBe(timing === "On Deletion");
     if (timing !== "When Attacking")
       await advance(
-        timing === "Start of Main Phase" ? TIMINGS.phaseBanner + TIMINGS.phaseBannerGap : TIMINGS.cardBurst,
+        // The phase banner plays in before it holds, so the source glow that follows it starts
+        // one `phaseBannerIn` later than the banner's own hold-plus-gap.
+        timing === "Start of Main Phase"
+          ? TIMINGS.phaseBannerIn + TIMINGS.phaseBanner + TIMINGS.phaseBannerGap
+          : TIMINGS.cardBurst,
       );
     expect(container.querySelector(".game-permanent--effect-source,.game-pile--effect-source")).not.toBeNull();
-    expect(screen.queryByText("Visual preview: the card glows before this notice.")).toBeNull();
+    expect(clause()).toBeNull();
     await advance(TIMINGS.effectSourceHold);
-    expect(screen.getByText("Visual preview: the card glows before this notice.")).toBeTruthy();
+    expect(clause()).not.toBeNull();
   }
 });

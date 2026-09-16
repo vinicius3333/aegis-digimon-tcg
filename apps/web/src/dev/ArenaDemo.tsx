@@ -473,15 +473,27 @@ export function ArenaDemo() {
           setTurnStartStep(Phase.Active);
           setPhase(Phase.Breeding);
           drawCard(0);
+          const phaseChanged = (next: Phase) => ({
+            kind: "phaseChanged" as const,
+            phase: next,
+            turnSeat: 0 as const,
+            turnCount: 5,
+          });
           setBatches([
             singleServerBatch([
               { kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 5 },
-              ...[Phase.Active, Phase.Draw, Phase.Breeding].map((next) => ({
-                kind: "phaseChanged" as const,
-                phase: next,
-                turnSeat: 0 as const,
-                turnCount: 5,
+              phaseChanged(Phase.Active),
+              // The unsuspend step is what a server reports, one move per permanent; the
+              // presentation releases each card's held suspension off these, so a preview
+              // that only flipped the board would leave it suspended on screen.
+              ...state.players[0]!.battleArea.map((permanent) => ({
+                kind: "cardsMoved" as const,
+                instanceIds: [permanent.permanentId],
+                from: "suspended",
+                to: "unsuspended",
               })),
+              phaseChanged(Phase.Draw),
+              phaseChanged(Phase.Breeding),
             ]),
           ]);
         } else {
