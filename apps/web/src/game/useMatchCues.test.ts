@@ -2898,11 +2898,12 @@ describe("the narration feed", () => {
       await advance(0);
       view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
       await advance(0);
-      // All three are clauses, so they all read out of the one text column. It holds two,
-      // and the phone's folded slot holds one, so the oldest is what falls off.
-      expect(cards(view.result.current.narration)).toEqual(portrait ? ["BT1-009"] : ["BT1-002", "BT1-009"]);
+      // All three are clauses, so they all read out of the one text column. It holds two, so
+      // the oldest falls off; the phone's folded slot queues them instead of dropping any.
+      const expected = portrait ? ["BT1-001", "BT1-002", "BT1-009"] : ["BT1-002", "BT1-009"];
+      expect(cards(view.result.current.narration)).toEqual(expected);
       await advance(TIMINGS.effectAnnounce);
-      expect(cards(view.result.current.narration)).toEqual(portrait ? ["BT1-009"] : ["BT1-002", "BT1-009"]);
+      expect(cards(view.result.current.narration)).toEqual(expected);
       expect(view.result.current.narrationLock).toBe(false);
       expect(view.result.current.presenting).toBe(false);
     },

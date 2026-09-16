@@ -1602,6 +1602,8 @@ export function useMatchCues({
           id: `option-dock-in-${key}`,
           track: "optionDock",
           skippable: false,
+          // The dock's own entrance is part of that same wait (see the hold below).
+          blocksDecision: false,
           async run(context) {
             setOptionBranch(dock);
             await context.wait(SECURITY_BRANCH_IN_MS);
@@ -1611,6 +1613,10 @@ export function useMatchCues({
           id: `option-dock-hold-${key}`,
           track: "optionDockHold",
           skippable: false,
+          // Same reason the security dock is excluded from the decision barrier: this hold
+          // waits for the docked Option to finish, and the Option finishes by the viewer
+          // ANSWERING its decision. Blocking the decision on it deadlocks both.
+          blocksDecision: false,
           async run(context) {
             // Keep even a one-batch Option long enough for its activated effects to read.
             let waitedMs = 0;
