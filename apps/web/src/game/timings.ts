@@ -309,6 +309,25 @@ export const SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold + TIM
  */
 export const PLAY_LEAD_IN_BUDGET_MS = 4000;
 
+/**
+ * How long the viewer's prompt may stay closed with the queue making no progress at all.
+ *
+ * `PLAY_LEAD_IN_BUDGET_MS` bounds how far the *board* may lag behind the question. It does
+ * not bound the other gate: the prompt also waits for every finite beat to finish, and that
+ * wait has no clock. A beat that starts and never finishes — a main thread that stalls, a
+ * transition whose end event never fires — therefore holds the prompt closed forever, and
+ * the match is stuck, because the server cannot move until the answer arrives.
+ *
+ * So the wait is on progress, not on total time: every queue change restarts this clock, and
+ * only a queue that has gone this long without a single change is treated as stalled. A long
+ * but healthy sequence of beats keeps its full run; a frozen one hands the prompt over.
+ *
+ * Ten seconds, because no single beat comes close to it — the longest hold in `TIMINGS` is
+ * `noticeLifetime`, and narration reads outside the queue. Anything past this is broken, not
+ * slow, so the clock never cuts a beat that was going to finish.
+ */
+export const DECISION_STALL_BUDGET_MS = 10_000;
+
 /** When the showcase starts clearing out, which is also when the field may reveal. */
 export const SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold;
 

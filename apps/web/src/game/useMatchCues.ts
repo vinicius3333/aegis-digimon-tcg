@@ -119,6 +119,7 @@ import {
   CLASH_REVEAL_SHOWN_AT_MS,
   CLASH_TOTAL_MS,
   COMBAT_IMPACT_TOTAL_MS,
+  DECISION_STALL_BUDGET_MS,
   dpPulseTotalMs,
   FIELD_CLASH_IMPACT_AT_MS,
   FIELD_CLASH_LUNGE_AT_MS,
@@ -532,6 +533,12 @@ export function useMatchCues({
     [],
   );
   const [decisionAnimationsPending, setDecisionAnimationsPending] = useState(false);
+  // Every queue change bumps this. Nothing reads what it counts — it is the proof that the
+  // queue is still moving, which is what the decision stall watchdog waits on.
+  const [queueActivity, setQueueActivity] = useState(0);
+  // The watchdog fired: the queue stopped moving while the viewer had a question to answer,
+  // so the prompt is handed over whatever the queue still claims to owe.
+  const [decisionStalled, setDecisionStalled] = useState(false);
   const queueChangedRef = useRef<() => void>(() => {});
   const visiblePhaseBannerRef = useRef(false);
   // A cue belongs after its preceding phase announcement, not merely after whichever
@@ -650,10 +657,12 @@ export function useMatchCues({
   // Every finite cue is a prerequisite for a new choice. The security dock is
   // deliberately excluded: it waits for the answer itself and would deadlock.
   // Toast reading happens outside the queue, so it never delays a decision.
-  queueChangedRef.current = () =>
+  queueChangedRef.current = () => {
     setDecisionAnimationsPending(
       queue.hasPendingStep((step) => step.track !== SECURITY_DOCK_TRACK && step.blocksDecision !== false),
     );
+    setQueueActivity((count) => count + 1);
+  };
   // Assigned on every render so the queue's bookkeeping always reaches the current setter.
   publishPresentedRef.current = () => setPresentedStateVersion(progress.current());
 
@@ -2745,6 +2754,31 @@ export function useMatchCues({
     return () => clearTimeout(timer);
   }, [decisionPending, decisionStateVersion, progress]);
 
+  /**
+   * Decision stall watchdog. `decisionAnimationsPending` waits for finite beats to finish and
+   * has no clock of its own, so a beat that starts and never finishes holds the prompt closed
+   * for good — and with the server blocked on that answer, the match is over without ending.
+   *
+   * The wait is on progress: any queue change restarts the clock, so a long healthy sequence
+   * runs in full. Only a queue that has not moved for {@link DECISION_STALL_BUDGET_MS} is
+   * stalled, and then the prompt is handed over. A fast-forward goes with it, to release
+   * whatever skippable waits are still holding the frozen beat.
+   */
+  useEffect(() => {
+    if (!decisionPending || !decisionAnimationsPending) {
+      setDecisionStalled(false);
+      return;
+    }
+    if (decisionStalled) return;
+    const timer = setTimeout(() => {
+      presentationTelemetry.countDecisionStallHit();
+      queue.skip();
+      setDecisionStalled(true);
+    }, DECISION_STALL_BUDGET_MS);
+    return () => clearTimeout(timer);
+    // `queueActivity` is the heartbeat this effect waits on, not a value it reads.
+  }, [decisionPending, decisionAnimationsPending, decisionStalled, queueActivity, queue]);
+
   // The barrier's own release: the queue has reached the revision the question was asked
   // at (or run dry), so the prompt may open over that board and never over an older one.
   useEffect(() => {
@@ -3424,7 +3458,7 @@ export function useMatchCues({
     optionBranch,
     securityRevealPending: pendingRevealKey !== null,
     decisionBarrierPending: decisionBarrier !== null,
-    decisionAnimationsPending,
+    decisionAnimationsPending: decisionAnimationsPending && !decisionStalled,
     presentedStateVersion,
     presenting: presentedStateVersion !== undefined || pendingPhaseBanners > 0,
     unsuspendSweep,

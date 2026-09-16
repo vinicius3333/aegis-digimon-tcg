@@ -53,6 +53,7 @@ describe("presentation telemetry", () => {
     telemetry.countBoardBudgetHit();
     telemetry.countDecisionBudgetHit();
     telemetry.countDecisionBudgetHit();
+    telemetry.countDecisionStallHit();
     telemetry.countSkip();
     telemetry.countManualAdvance();
     telemetry.countManualAdvance();
@@ -61,6 +62,7 @@ describe("presentation telemetry", () => {
     expect(telemetry.read().counters).toEqual({
       boardBudgetHits: 1,
       decisionBudgetHits: 2,
+      decisionStallHits: 1,
       skips: 1,
       manualAdvances: 3,
     });
@@ -84,7 +86,7 @@ describe("presentation telemetry", () => {
     telemetry.reset();
     expect(telemetry.read()).toEqual({
       batches: [],
-      counters: { boardBudgetHits: 0, decisionBudgetHits: 0, skips: 0, manualAdvances: 0 },
+      counters: { boardBudgetHits: 0, decisionBudgetHits: 0, decisionStallHits: 0, skips: 0, manualAdvances: 0 },
     });
   });
 });

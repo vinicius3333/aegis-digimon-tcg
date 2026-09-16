@@ -25,6 +25,8 @@ export interface PresentationCounters {
   boardBudgetHits: number;
   /** A prompt opened because `PLAY_LEAD_IN_BUDGET_MS` ran out. */
   decisionBudgetHits: number;
+  /** A prompt opened because the queue stalled: `DECISION_STALL_BUDGET_MS` ran out. */
+  decisionStallHits: number;
   /** Explicit fast-forwards: the skip button, or a board tap with nothing to advance. */
   skips: number;
   /** Taps that moved a narration item on rather than skipping. */
@@ -45,6 +47,7 @@ export interface PresentationTelemetry {
   settle(): void;
   countBoardBudgetHit(): void;
   countDecisionBudgetHit(): void;
+  countDecisionStallHit(): void;
   countSkip(): void;
   countManualAdvance(): void;
   read(): PresentationTelemetrySnapshot;
@@ -59,7 +62,7 @@ interface OpenRecord extends PresentationBatchRecord {
 }
 
 function emptyCounters(): PresentationCounters {
-  return { boardBudgetHits: 0, decisionBudgetHits: 0, skips: 0, manualAdvances: 0 };
+  return { boardBudgetHits: 0, decisionBudgetHits: 0, decisionStallHits: 0, skips: 0, manualAdvances: 0 };
 }
 
 export function createPresentationTelemetry(now: () => number = Date.now): PresentationTelemetry {
@@ -92,6 +95,9 @@ export function createPresentationTelemetry(now: () => number = Date.now): Prese
     },
     countDecisionBudgetHit() {
       counters = { ...counters, decisionBudgetHits: counters.decisionBudgetHits + 1 };
+    },
+    countDecisionStallHit() {
+      counters = { ...counters, decisionStallHits: counters.decisionStallHits + 1 };
     },
     countSkip() {
       counters = { ...counters, skips: counters.skips + 1 };
