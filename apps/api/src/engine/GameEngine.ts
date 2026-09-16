@@ -6210,6 +6210,8 @@ export class GameEngine {
           ...initialEnv.collect(EffectTiming.OnSecurityCheck),
           ...initialEnv.collect(EffectTiming.OnLoseSecurity),
         ];
+        // Effects parked while the [Security] effect resolves are derived from it.
+        const parkedBeforeSecurityEffect = new Set(this.pendingNestedTimingEffects);
         return async () => {
           const outermost = this.beginResolvingWindow();
           const enclosing = this.pendingWindowSubTriggers;
@@ -6221,12 +6223,25 @@ export class GameEngine {
                 framework,
                 this.resolutionDeps(() => [], { outermost }),
               );
-              await this.withPendingPoolDrain(outermost, () =>
-                resolveTiming(EffectTiming.OnSecurityCheck, {
+              const derivedFromSecurityEffect = (): CollectedEffect[] =>
+                this.pendingNestedTimingEffects.filter(
+                  (pending) =>
+                    !parkedBeforeSecurityEffect.has(pending) && this.nestedTriggerSourceStillResident(pending),
+                );
+              await this.withPendingPoolDrain(outermost, async () => {
+                // CR §15-4-5-2/3: the [Security] effect's derived triggers activate before the
+                // watchers already pending when the check began, whichever seat owns them.
+                if (derivedFromSecurityEffect().length > 0) {
+                  await resolveTiming(EffectTiming.OnSecurityCheck, {
+                    ...env,
+                    collect: derivedFromSecurityEffect,
+                  });
+                }
+                await resolveTiming(EffectTiming.OnSecurityCheck, {
                   ...env,
                   collect: () => [...initial, ...this.pendingWindowCollected()],
-                }),
-              );
+                });
+              });
               if (outermost) {
                 await this.flushDeferredTimingWindows();
                 await this.flushDeferredSecurityRemovalTriggers();
