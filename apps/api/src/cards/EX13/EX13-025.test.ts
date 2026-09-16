@@ -144,18 +144,92 @@ describe("EX13-025 Candlemon", () => {
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
     await settle(() => s.state.players[0]!.security.length === 3);
 
-    // One end of the stack was trashed (the controller's top-or-bottom choice); the MIDDLE card
-    // is untouchable by this clause and must still be there.
-    const securityIds = s.state.players[0]!.security.map((card) => card.instanceId);
-    expect(securityIds).toContain(s.inst("middle").instanceId);
-    // The [Witchelny] hand card is the new BOTTOM card.
-    expect(securityIds[securityIds.length - 1]).toBe(s.inst("witchelny").instanceId);
-    expect(securityIds).toHaveLength(3);
+    // "Security Top" is option index 0, which `autoChooseOption` takes: the TOP card is trashed,
+    // the rest of the stack keeps its printed order, and the [Witchelny] hand card is appended as
+    // the new BOTTOM card.
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("middle").instanceId,
+      s.inst("bottom").instanceId,
+      s.inst("witchelny").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("top").instanceId);
+    // Nothing in the printed sentence reveals the placed card: it goes in face down.
+    expect(s.state.players[0]!.security.at(-1)?.faceUp).not.toBe(true);
 
     // ＜Draw 1＞ and "gain 1 memory".
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("spare").instanceId,
+      s.inst("drawn").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("takes the BOTTOM security card when the controller picks that end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "candlemon" }],
+          hand: [{ card: WITCHELNY_TYPE_CARD, as: "witchelny" }],
+          security: [
+            { card: "BT1-010", as: "top" },
+            { card: "BT1-011", as: "middle" },
+            { card: "BT1-012", as: "bottom" },
+          ],
+          deck: DECK,
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      // "Security Bottom" is option index 1 of the top-or-bottom prompt.
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
+    await settle(() => s.state.players[0]!.security.length === 3);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("top").instanceId,
+      s.inst("middle").instanceId,
+      s.inst("witchelny").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("keeps the [Witchelny] card in hand when the printed “may” is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "candlemon" }],
+          hand: [{ card: WITCHELNY_TYPE_CARD, as: "witchelny" }],
+          security: [
+            { card: "BT1-010", as: "top" },
+            { card: "BT1-011", as: "middle" },
+            { card: "BT1-012", as: "bottom" },
+          ],
+          deck: [{ card: "BT1-013", as: "drawn" }, "BT1-014", INERT],
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      { autoDeclineOptional: true, autoChooseOption: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
+    await settle(() => s.state.memory === 1);
+
+    // The first sentence is mandatory and still ran; only the placement was refused.
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("middle").instanceId,
+      s.inst("bottom").instanceId,
+    ]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("witchelny").instanceId,
       s.inst("drawn").instanceId,
     ]);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -416,5 +490,21 @@ describe("EX13-025 Candlemon", () => {
     // paid.
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(2);
+
+    // A fresh host and a real turn in between restore the budget.
+    const revived = s.putOnBoard(0, { card: WITCHELNY_TYPE_CARD, as: "host2", under: [CARD_ID] });
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([revived.permanentId], "byEffect")).toBe(0);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(revived.permanentId);
+    // A third security card was paid for the reopened prevention.
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
