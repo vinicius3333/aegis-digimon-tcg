@@ -116,9 +116,14 @@ scenario("digi-xros", () => {
     // The material left the hand (it was consumed as a DigiXros material, not
     // discarded loose) — the plain "Shoutmon" card is gone from hand, and the
     // battle area shows only the DigiXros result, not a separate Shoutmon permanent.
-    await vi.waitFor(() => {
-      expect(within(screen.getByTestId("hand")).queryByRole("img", { name: /^shoutmon$/i })).toBeNull();
-    });
+    // The hand is held at its pre-play figure while the ribbons of the turn play out,
+    // so this waits the same budget as the other checkpoints above.
+    await vi.waitFor(
+      () => {
+        expect(within(screen.getByTestId("hand")).queryByRole("img", { name: /^shoutmon$/i })).toBeNull();
+      },
+      { timeout: 10_000 },
+    );
     expect(within(yourBattleArea()).queryByRole("img", { name: /^shoutmon$/i })).toBeNull();
 
     // Prove the material was actually STACKED under the DigiXros card (not merely
