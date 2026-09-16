@@ -3647,23 +3647,52 @@ it("shows Analog Youth's On Play before its trash result across server batches",
   });
 });
 
-it("plays the security battle when the server closes the check after its reveal has exited", async () => {
+// The engine closes a check only once everything it caused has resolved, so a removal
+// reaction that stops to ask a question lands between the reveal and the battle's verdict.
+// A revealed Digimon waits on stage for that verdict rather than playing out, leaving, and
+// being flashed back for an outcome beat on a board it had already handed over.
+it("holds a revealed Digimon on stage until the server closes its battle", async () => {
+  const REVEALED_DIGIMON: ServerEvent = {
+    ...REVEAL,
+    isDigimon: true,
+    hasSecurityEffect: false,
+    attackerDP: 2000,
+    securityCardDP: 4000,
+  };
   const { result, rerender } = renderCues();
   rerender([ATTACK]);
   await advance(10000);
-  rerender([ATTACK, { ...REVEAL, isDigimon: true, hasSecurityEffect: false, attackerDP: 2000, securityCardDP: 4000 }]);
+  rerender([ATTACK, REVEALED_DIGIMON]);
   await advance(10000);
-  expect(result.current.securityClash).toBeNull();
+  // Long past the scene's own length, and the card is still up with no verdict on it.
+  expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+  expect(result.current.securityClash?.resolution).toBe("pending");
+
   rerender([
     ATTACK,
-    { ...REVEAL, isDigimon: true, hasSecurityEffect: false, attackerDP: 2000, securityCardDP: 4000 },
+    REVEALED_DIGIMON,
     {
       ...CHECK,
       battle: { attackerDP: 2000, securityCardDP: 4000, attackerDeleted: true, securityDigimonDeleted: true },
     },
   ]);
   await advance(0);
+  // The verdict lands on the card that was already there: no second entrance.
   expect(result.current.securityClash?.resolution).toBe("battle");
+
+  await advance(CLASH_TOTAL_MS);
+  expect(result.current.securityClash).toBeNull();
+});
+
+// The hold is open-ended, so it is bounded: a close that never comes must not park a card
+// on the centre of the screen for the rest of the match.
+it("gives up the battle hold when the check never closes", async () => {
+  const { result, rerender } = renderCues();
+  rerender([ATTACK]);
+  await advance(10000);
+  rerender([ATTACK, { ...REVEAL, isDigimon: true, hasSecurityEffect: false, attackerDP: 2000, securityCardDP: 4000 }]);
+  await advance(TIMINGS.securityDockMax + TIMINGS.securityDockPoll);
+  expect(result.current.securityClash).toBeNull();
 });
 
 it("highlights the field host for a Succession effect even with another copy of the level 6 in hand", async () => {

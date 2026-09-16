@@ -219,6 +219,14 @@ function holdsTheBoard(step: AnimationStep): boolean {
  */
 const SECURITY_DOCK_TRACK = "securityDock";
 
+/**
+ * The open-ended wait that keeps a revealed Digimon centre-stage until the battle it is in
+ * has actually been decided. Same reasoning as the dock, and for the same reason not the
+ * centre-stage track: the deletion the battle causes, and everything that reacts to it,
+ * has to be able to play while the card is still up.
+ */
+const SECURITY_HOLD_TRACK = "securityHold";
+
 /** Index of the last event of a kind in the batch, or -1. */
 function lastIndexOfKind(events: readonly ServerEvent[], kind: ServerEvent["kind"]): number {
   for (let index = events.length - 1; index >= 0; index -= 1) if (events[index]!.kind === kind) return index;
@@ -654,12 +662,15 @@ export function useMatchCues({
       },
     };
   }, [progress]);
-  // Every finite cue is a prerequisite for a new choice. The security dock is
-  // deliberately excluded: it waits for the answer itself and would deadlock.
-  // Toast reading happens outside the queue, so it never delays a decision.
+  // Every finite cue is a prerequisite for a new choice. The security dock and the
+  // battle hold are deliberately excluded: both wait for the answer itself and would
+  // deadlock. Toast reading happens outside the queue, so it never delays a decision.
   queueChangedRef.current = () => {
     setDecisionAnimationsPending(
-      queue.hasPendingStep((step) => step.track !== SECURITY_DOCK_TRACK && step.blocksDecision !== false),
+      queue.hasPendingStep(
+        (step) =>
+          step.track !== SECURITY_DOCK_TRACK && step.track !== SECURITY_HOLD_TRACK && step.blocksDecision !== false,
+      ),
     );
     setQueueActivity((count) => count + 1);
   };
@@ -777,6 +788,9 @@ export function useMatchCues({
   // The dock the centre-stage track is currently holding open, if any. The dock step polls
   // it: the check closing (or a newer reveal claiming the key) is what lets the card go.
   const securityDockRef = useRef<{ key: number; closed: boolean } | null>(null);
+  // The battle hold the centre of the screen is currently keeping open, if any. Polled the
+  // same way the dock is: the check closing is what releases the card into its outcome beat.
+  const securityHoldRef = useRef<{ key: number; closed: boolean } | null>(null);
   // A used Option has the same open-ended lifetime as a docked Security card: it starts
   // at cardPlayed and closes only when the server confirms its post-resolution routing.
   const optionDockRef = useRef<{ key: number; closed: boolean } | null>(null);
@@ -1810,6 +1824,13 @@ export function useMatchCues({
         securityDockRef.current = null;
         setSecurityBranch((current) => (current?.key === stale.key ? null : current));
       }
+      // A battle hold is bounded the same way, and for the same reason: it no longer shares
+      // a track with the reveal, so a newer check has to retire it by hand.
+      const staleHold = securityHoldRef.current;
+      if (staleHold && staleHold.key !== key) {
+        securityHoldRef.current = null;
+        setSecurityClash((current) => (current?.key === staleHold.key ? null : current));
+      }
       // The board drops the checked card as soon as its patch lands; the shield keeps the
       // figure that still counts it until the reveal has actually put the card on screen.
       holdSecurityCard(key, seat, securityCountOf(seat));
@@ -1960,6 +1981,54 @@ export function useMatchCues({
       });
     }
 
+    /**
+     * Keeps the revealed Digimon centre-stage until the server says how its battle ended.
+     * The engine closes a check only once everything that check caused has resolved, so a
+     * removal reaction that stops to ask a question — even a bot's, which took 2.7s in the
+     * log this was written from — lands between the reveal and the outcome. Letting the card
+     * leave in that gap put the attacker's death on screen seconds before the blow that
+     * dealt it, and then flashed the card back for its outcome beat on a board it had
+     * already handed over. It waits here instead, and the outcome plays on the card itself.
+     *
+     * Open-ended, so it is bounded in every direction it can be, exactly as the dock is: it
+     * ends on the matching `securityChecked`, on a newer reveal claiming the key, on
+     * cancellation, and at the latest on `TIMINGS.securityDockMax`.
+     */
+    function holdSecurityReveal(key: number) {
+      securityHoldRef.current = { key, closed: false };
+      enqueue({
+        id: `security-clash-hold-${key}`,
+        track: SECURITY_HOLD_TRACK,
+        skippable: false,
+        async run(context) {
+          // Replay collapses every wait, so there is no time to hold the card through and
+          // a poll would spin: a replayed check goes straight to its final state.
+          if (context.mode === "replay") return;
+          let waitedMs = 0;
+          try {
+            while (!context.cancelled && waitedMs < TIMINGS.securityDockMax) {
+              const held = securityHoldRef.current;
+              if (held === null || held.key !== key || held.closed) return;
+              await context.wait(TIMINGS.securityDockPoll);
+              waitedMs += TIMINGS.securityDockPoll;
+            }
+            // Cancelled, or the close never came: the card is not left on stage for good.
+            giveUp();
+          } finally {
+            if (securityHoldRef.current?.key === key) securityHoldRef.current = null;
+            if (context.cancelled) giveUp();
+          }
+          // The card has left without its verdict, so the close that eventually arrives has
+          // to bring it back for its battle rather than settle a scene no longer on screen.
+          function giveUp() {
+            setSecurityClash((current) => (current?.key === key ? null : current));
+            const staged = revealOnStageRef.current;
+            if (staged?.key === key) revealOnStageRef.current = { ...staged, exited: true };
+          }
+        },
+      });
+    }
+
     /** Reads out what the check has to say, beside the card it is about. */
     function readOutSecurityNotices(
       key: number,
@@ -2059,8 +2128,19 @@ export function useMatchCues({
           { notices: heldNotices, panels: heldPanels },
         );
       } else if (!closingCheck) {
-        clearSecurityReveal(key);
-        revealOnStageRef.current = { key, scene: settled, exited: true };
+        // A revealed Digimon with an attacker still standing is in a battle whose verdict
+        // only the close carries. That card stays up until it has one, so the blow and the
+        // deletion it causes read in the order they happened. Anything else — an Option, a
+        // Tamer with no clause, a check whose attacker is already gone — has nothing left to
+        // show, so it plays out and leaves, and its consequences read on a clear board.
+        const battlePending = securityReveal.isDigimon === true && securityAttackerRef.current !== undefined;
+        if (battlePending) {
+          holdSecurityReveal(key);
+          revealOnStageRef.current = { key, scene: settled };
+        } else {
+          clearSecurityReveal(key);
+          revealOnStageRef.current = { key, scene: settled, exited: true };
+        }
         readOutSecurityNotices(key, { notices: heldNotices, panels: heldPanels });
       }
       // An unfinished check parks at the right before its eventual close, so its free
@@ -2073,6 +2153,10 @@ export function useMatchCues({
       // replay) or an older server: stage the finished scene now so the card is still
       // shown before its outcome.
       const key = staged?.key ?? (securityClashKeyRef.current += 1);
+      // The verdict is here, so the hold that was waiting for it releases the card. Marked
+      // rather than cleared: the poll owns the ref and drops it as it returns.
+      const heldForBattle = securityHoldRef.current;
+      if (heldForBattle?.key === key) heldForBattle.closed = true;
       // A scene that has been holding the card on stage since an earlier batch starts its
       // outcome beat now; one staged in this batch keeps the reference client's lead-in.
       const heldOnStage = staged !== null && !closesFreshReveal;
