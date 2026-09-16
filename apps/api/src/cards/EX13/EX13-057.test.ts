@@ -449,20 +449,16 @@ describe("EX13-057 Grademon", () => {
     assertNoLoudGap(s);
   });
 
-  // RETAINED RED — engine seam, not a card-module gap.
+  // Public route to the printed "If during an attack": a real declared attack by EX13-055,
+  // whose [When Attacking] clause digivolves the attacker into this card while its own attack
+  // is still open, so this card's [When Digivolving] window resolves DURING an attack.
   //
-  // Public route to the printed "If during an attack": EX13-055's [When Attacking] clause
-  // digivolves the attacker into this card while its own attack is open, so this card's
-  // [When Digivolving] window resolves DURING an attack and the rider must apply.
-  //
-  // Seam: `apps/api/src/engine/effects/interpreter/conditions.ts:650` decides `duringAttack`
-  // purely from `ctx.trigger.attackerPermanentId`, and the [When Digivolving] trigger raised by an
-  // effect-driven mid-attack digivolve is built WITHOUT that field (the open attack lives in the
-  // combat state, not on the new trigger payload). Expected: recipient at 14000 DP with a
-  // Digimon-sourced `beAffected` immunity. Actual: 9000 DP and no immunity — the unconditional
-  // ＜Reboot＞/＜Blocker＞ half still lands. BT20-053 prints the same rider with the same encoding
-  // and has the same gap, so this is shared and not specific to EX13-057.
-  it.fails("applies the rider when EX13-055 digivolves into it mid-attack (engine seam)", async () => {
+  // The attack must be declared through the public `attack` intent: the open attack lives in
+  // the combat controller, and `GameEngine.fireEnteredByEffect` copies
+  // `combat.currentAttackerId` onto the [When Digivolving] trigger it raises. An injected
+  // `advance().fireForPermanent(OnUseAttack, ...)` opens no attack, so the rider correctly
+  // does not apply there.
+  it("applies the rider when EX13-055 digivolves into it mid-attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -483,13 +479,15 @@ describe("EX13-057 Grademon", () => {
     s.state.memory = 8;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("raptor"), {
-      attackerPermanentId: s.perm("raptor").permanentId,
-    });
-    await settle(() => s.perm("raptor").topCard.cardId === CARD_ID);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("raptor").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
-    // The unconditional half lands either way; the rider is what this red is about.
     expect(observe(s.engine).hasKeyword(s.perm("chronicle"), "Reboot")).toBe(true);
     expect(s.perm("chronicle").currentDP).toBe(14_000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon")).toBe(true);
