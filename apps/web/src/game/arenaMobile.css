@@ -22,13 +22,22 @@
     --arena-memory-height: 56px;
     --arena-hand-width: 76px;
     --arena-hand-height: 160px;
+    /* The counter strip band the hand cards must never grow into. */
+    --arena-hand-reserved: 40px;
+    --arena-hand-card-height: min(
+      calc(var(--arena-hand-width) * 1.4),
+      calc(var(--arena-hand-height) - var(--arena-hand-reserved))
+    );
     --arena-header-height: 52px;
     --arena-source-step: 3px;
     --arena-source-top: 3px;
     --arena-security-depth: 3px;
     --arena-security-shadow: 5px;
     display: grid !important;
-    grid-template-rows: var(--arena-header-height) minmax(0, 1fr) var(--arena-hand-height);
+    grid-template-rows:
+      var(--arena-header-height)
+      minmax(0, 1fr)
+      calc(var(--arena-hand-height) + env(safe-area-inset-bottom, 0px));
     min-width: 0;
     min-height: 0;
     overflow: hidden;
@@ -365,7 +374,8 @@
     width: 100%;
     min-width: 44px;
     min-height: 44px;
-    height: 56px;
+    /* Card stack, count badge and label are stacked bands: 30 + 20 + 10 plus gaps. */
+    height: 68px;
     aspect-ratio: auto;
     clip-path: none;
     overflow: visible;
@@ -429,6 +439,7 @@
     background: #18303a;
     transform: translateX(-50%);
     font: 700 12px/14px var(--ds-font-mono);
+    text-align: center;
   }
 
   .game-board .game-security-shield__label {
@@ -436,7 +447,7 @@
     display: block;
     left: 0;
     right: 0;
-    bottom: -4px;
+    bottom: 0;
     overflow: hidden;
     color: #c4e6ed;
     font: 600 8px/10px var(--ds-font-sans);
@@ -661,7 +672,7 @@
     display: flex !important;
     min-height: 0;
     height: auto;
-    padding: 29px 0 env(safe-area-inset-bottom, 0px);
+    padding: var(--arena-hand-reserved) 0 env(safe-area-inset-bottom, 0px);
     margin: 4px 8px 0;
     border: 1px solid rgb(155 222 234 / 60%) !important;
     border-radius: 12px 12px 0 0;
@@ -672,17 +683,42 @@
       0 -3px 9px rgb(13 33 40 / 18%);
   }
 
+  /* The strip keeps its own band above the hand; the z-index only guards the
+     count badges, which hang below each icon. */
   .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
     position: absolute;
+    z-index: 4;
     top: 3px;
     right: 10px;
     bottom: auto;
-    height: 23px;
+    height: 24px;
   }
 
+  /* The global 44px touch floor would stretch the chip over the hand, so the
+     target moves to a centered pseudo-element and the chip keeps its own size. */
   .game-player-dock > .game-arena-counters[data-side="you"] .game-arena-counter {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
+    min-height: 0;
+  }
+
+  .game-player-dock > .game-arena-counters[data-side="you"] .game-arena-counter strong {
+    right: -4px;
+    bottom: -5px;
+    min-width: 14px;
+    padding: 1px 3px;
+    border-radius: 3px;
+    font-size: 9px;
+  }
+
+  .game-player-dock > .game-arena-counters[data-side="you"] .game-arena-counter::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    content: "";
   }
 
   .game-player-dock > .game-arena-counters[data-side="you"] .game-arena-counter svg {
@@ -734,8 +770,8 @@
   }
 
   .game-board .game-player-dock [data-testid="hand"] > .game-hand-card > div {
-    width: var(--arena-hand-width) !important;
-    height: calc(var(--arena-hand-width) * 1.4) !important;
+    width: calc(var(--arena-hand-card-height) / 1.4) !important;
+    height: var(--arena-hand-card-height) !important;
   }
 
   .game-board .game-hand-card img {
@@ -771,6 +807,7 @@
     --arena-memory-height: 52px;
     --arena-hand-width: 60px;
     --arena-hand-height: 132px;
+    --arena-hand-reserved: 36px;
     --arena-source-step: 2px;
     --arena-source-top: 2px;
   }
@@ -780,9 +817,6 @@
   }
   .game-board .game-battle-zones > .game-battle-row {
     padding: 7px 10px 9px !important;
-  }
-  .game-board .game-player-dock {
-    padding-top: 23px;
   }
   .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
     top: 0;
@@ -796,6 +830,7 @@
     --arena-memory-height: 48px;
     --arena-hand-width: 44px;
     --arena-hand-height: 104px;
+    --arena-hand-reserved: 36px;
     --arena-header-height: 44px;
     --arena-source-step: 1.25px;
     --arena-source-top: 2px;
@@ -818,7 +853,6 @@
   }
   .game-board .game-player-dock {
     margin-top: 2px;
-    padding-top: 23px;
   }
   .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
     top: 0;
@@ -884,7 +918,7 @@
   .game-board .game-security-shield,
   .game-board .game-security-shield-wrap {
     width: 180px;
-    height: 66px;
+    height: 80px;
     justify-self: center;
   }
   .game-security-cards i {
@@ -913,7 +947,6 @@
   }
   .game-board .game-player-dock {
     margin-inline: 16px;
-    padding-top: 30px;
   }
 }
 
