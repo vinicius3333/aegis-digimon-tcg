@@ -5067,10 +5067,7 @@ button.side-panel__name:focus-visible {
     border-radius: 999px;
     font-size: 0.625rem;
     letter-spacing: 0.04em;
-  }
-  /* The board button keeps its icon only; its label is the accessible name. */
-  .decision-overlay__view-board-label {
-    display: none;
+    white-space: nowrap;
   }
   /* The effect text is the wording the choice hinges on: it flows at a denser
      size and always in full; the sheet's own scroll is the only scroll. */
