@@ -110,7 +110,15 @@ const chronicleEntryAttack = (): Action => ({
 // `PlayWithoutCost` with `payCost: true` + `reduceCostBy: 6` is the "with the cost reduced by N"
 // encoding (the reduction is folded into the play verb and floored at 0). The printed subject is
 // "1 ... card", not "1 Digimon card", so no `kind` narrows the pool: a [Chronicle] Tamer
-// (BT20-087) or Option (P-204) is an equally legal pick.
+// (EX13-072) is an equally legal pick alongside a [Chronicle] Digimon.
+//
+// An OPTION is NOT in that pool, and that is the rules reading rather than an engine gap.
+// Comprehensive rules §6-5 separate the Main-phase actions "play a Digimon card or a Tamer card
+// from the hand" from "USE an Option card from the hand", so a printed "play 1 card" never
+// reaches an Option; the printed rider "It gains ＜Rush＞ for the turn" points the same way,
+// because only a Digimon can hold the keyword. `playableCandidates` in
+// `apps/api/src/engine/effects/interpreter/actions/play.ts` drops Option-only cards from a
+// kind-less play pool for exactly that reason, and the test asserts the exclusion positively.
 //
 // "without [Alphamon] in its name" is `excludeNames`, which is SUBSTRING-based — exactly the
 // printed "in its name" reading, so it also refuses BT20-060 "Alphamon: Ouryuken" and this card's

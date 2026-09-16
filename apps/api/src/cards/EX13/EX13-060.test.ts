@@ -19,8 +19,8 @@ const CARD_ID = "EX13-060";
 //   BT13-066 Dorugamon   Black Lv.4 [X Antibody] with NO [Chronicle]: the illegal Assembly slot.
 //   EX13-072 Kota Domoto a [Chronicle] TAMER, play cost 4 — the "or Tamers" half of the watcher
 //                        and the cheap [End of Your Turn] play.
-//   BT20-095 Fellowship of Hope's Keepers — a [Chronicle] OPTION, so "1 ... card" is proven to be
-//                        wider than "1 Digimon card".
+//   BT20-095 Fellowship of Hope's Keepers — a [Chronicle] OPTION: the kind-less play pool is
+//                        proven to reach Digimon and Tamers but NOT Options (§6-5 play vs use).
 //   BT20-056 Alphamon    a Lv.6 [Chronicle] Digimon card WITH [Alphamon] in its name: the printed
 //                        exclusion on the [End of Your Turn] clause.
 //   BT1-009..BT1-014     inert main-deck Digimon — deck filler, victims and attack fodder.
@@ -436,6 +436,50 @@ describe("EX13-060 Alphamon", () => {
     expect(poor.state.memory).toBe(-4);
   });
 
+  it("keeps the -8000 through the opponent's turn and lets it lapse when that turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: NEITHER_SOURCE, as: "base" }],
+          hand: [{ card: CARD_ID, as: "alphamon" }],
+          deck: [{ card: NON_MATCH, as: "bonusDraw" }, "BT1-010"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: NON_MATCH, as: "victim", dp: 12_000 }],
+          deck: ["BT1-013"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("alphamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("victim").currentDP).toBe(4000);
+
+    // "until their turn ends": still in force once the opponent's Main phase is open.
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const theirTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("victim").currentDP).toBe(4000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await theirTurn;
+    await settle();
+
+    expect(s.perm("victim").currentDP).toBe(12_000);
+  });
+
   // ---------------------------------------------------------------------------
   // [Your Turn] [Once Per Turn] When any of your [Chronicle] Digimon or Tamers are played.
   // ---------------------------------------------------------------------------
@@ -567,6 +611,91 @@ describe("EX13-060 Alphamon", () => {
     expect(plain.perm("alphamon").isSuspended).toBe(false);
   });
 
+  it("declines the optional attack and the optional re-run, leaving the board untouched", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+          hand: [{ card: CHRONICLE_LV3, as: "dorumon" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: NON_MATCH, as: "victim", dp: 12_000 }],
+          deck: ["BT1-013"],
+          security: [{ card: "BT1-014", as: "theirSecurity" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dorumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    // Both halves are printed "may": nothing attacked, nothing was re-run.
+    expect(s.perm("alphamon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("victim").currentDP).toBe(12_000);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the [Once Per Turn] watcher on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+          hand: [
+            { card: CHRONICLE_LV3, as: "first" },
+            { card: CHRONICLE_LV3, as: "second" },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: [
+            { card: NON_MATCH, as: "victim", dp: 12_000 },
+            { card: "BT1-012", as: "other", dp: 12_000 },
+          ],
+          deck: ["BT1-013", "BT1-011", "BT1-012"],
+          // Three security cards: the two attacks this test drives must not win the game before
+          // the turn loop can close seat 0's Main phase.
+          security: ["BT1-014", "BT1-013", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    const firstHit = ["victim", "other"].filter((alias) => s.perm(alias).currentDP === 4000);
+    expect(firstHit).toHaveLength(1);
+
+    // A real opponent turn, then a real own turn: the per-turn ledger key is cleared and the
+    // second [Chronicle] play wakes the watcher again.
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    const secondHit = ["victim", "other"].filter((alias) => s.perm(alias).currentDP === 4000);
+    expect(secondHit).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+
   // ---------------------------------------------------------------------------
   // [End of Your Turn] [Once Per Turn] play 1 [Chronicle] card with the cost reduced by 6.
   // ---------------------------------------------------------------------------
@@ -597,6 +726,14 @@ describe("EX13-060 Alphamon", () => {
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     assertNoLoudGap(s);
+
+    // "for the turn": a real opponent turn passes and the grant is gone.
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    await settle();
+    const stillThere = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === TRAIT_ONLY_SOURCE)!;
+    expect(observe(s.engine).hasKeyword(stillThere, "Rush")).toBe(false);
   });
 
   it("reaches a [Chronicle] TAMER — the printed subject is '1 card', not '1 Digimon card'", async () => {
@@ -625,38 +762,99 @@ describe("EX13-060 Alphamon", () => {
     assertNoLoudGap(s);
   });
 
-  // RETAINED RED — the EXPECTATION is under review, not the engine.
-  //
-  // This test asserts that the "1 [Chronicle] trait card" pool reaches an OPTION (BT20-095, a
-  // black [X Antibody]/[Chronicle] Option whose cost 3 floors at 0 under the reduction).
-  // `playableCandidates` in `apps/api/src/engine/effects/interpreter/actions/play.ts` drops
-  // Option-only cards from a kind-less play pool on purpose, and comprehensive rules §6-5 backs
-  // that: the Main-phase actions are "play a Digimon card or Tamer card from the hand" versus
-  // "USE an Option card from the hand", so "play 1 card" never reaches an Option. The printed
-  // rider "It gains ＜Rush＞ for the turn" points the same way — an Option has nothing to gain it.
-  //
-  // Making kind-less pools include Options would change every kind-less play IR in the catalog
-  // (BT21-098 and friends), so it needs an explicit rules decision before the engine moves.
-  // See `docs/audits/engine/kindless-play-pool-options.md`.
-  it.fails("reaches a [Chronicle] OPTION from hand (expectation under review)", async () => {
-    const s = setupEngine(
+  // The kind-less "1 [Chronicle] trait card" pool deliberately EXCLUDES Option cards.
+  // Comprehensive rules §6-5 separate the Main-phase actions "play a Digimon card or a Tamer card
+  // from the hand" from "USE an Option card from the hand", so a printed "play 1 card" never
+  // reaches an Option; the printed rider "It gains ＜Rush＞ for the turn" reads the same way,
+  // because only a Digimon can hold the keyword. `playableCandidates` in
+  // `apps/api/src/engine/effects/interpreter/actions/play.ts` encodes exactly that reading.
+  it("never plays a [Chronicle] OPTION, while the same pool reaches a [Chronicle] Digimon", async () => {
+    const board = (hand: { card: string; as: string }[]) =>
+      setupEngine(
+        {
+          0: {
+            battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+            hand,
+            deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+            security: ["BT1-013"],
+          },
+          1: { deck: ["BT1-013"], security: ["BT1-014"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+
+    // An Option is the ONLY [Chronicle] card in hand: the window finds no legal pick at all.
+    const optionOnly = board([{ card: CHRONICLE_OPTION, as: "option" }]);
+    optionOnly.state.memory = 8;
+    await optionOnly.ready();
+    await advance(optionOnly.engine).fire(EffectTiming.EndOfYourTurn, optionOnly.perm("alphamon"));
+    await settle(() => optionOnly.state.pendingDecision === undefined);
+    expect(optionOnly.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([CHRONICLE_OPTION]);
+    expect(optionOnly.state.players[0]!.battleArea).toHaveLength(1);
+    expect(optionOnly.state.memory).toBe(8);
+
+    // The [Chronicle] TAMER half of the pool is proven by the neighbouring test; it cannot be
+    // paired with the Option fixture here, because EX13-072 Kota Domoto's own printed clause
+    // uses a [Chronicle] Option from hand when a [Chronicle] Digimon attacks, and this card's
+    // [Your Turn] watcher makes exactly that attack happen.
+    // Beside a [Chronicle] DIGIMON the Digimon is taken and the Option is left behind.
+    const withDigimon = board([
+      { card: CHRONICLE_OPTION, as: "option" },
+      { card: CHRONICLE_LV3, as: "dorumon" },
+    ]);
+    withDigimon.state.memory = 8;
+    await withDigimon.ready();
+    await advance(withDigimon.engine).fire(EffectTiming.EndOfYourTurn, withDigimon.perm("alphamon"));
+    await settle(() => withDigimon.state.players[0]!.hand.length === 1);
+    await settle(() => withDigimon.state.pendingDecision === undefined);
+    expect(withDigimon.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([CHRONICLE_OPTION]);
+    expect(withDigimon.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([
+      CARD_ID,
+      CHRONICLE_LV3,
+    ]);
+  });
+
+  it("offers nothing when the only card in hand has no [Chronicle] trait, and takes the decline", async () => {
+    const nonChronicle = setupEngine(
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
-          hand: [{ card: CHRONICLE_OPTION, as: "played" }],
-          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          hand: [{ card: NON_MATCH, as: "plain" }],
+          deck: ["BT1-011", "BT1-012"],
           security: ["BT1-013"],
         },
-        1: { battleArea: [{ card: NON_MATCH, as: "victim", dp: 12_000 }], deck: ["BT1-013"], security: ["BT1-014"] },
+        1: { deck: ["BT1-013"], security: ["BT1-014"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.memory = 8;
-    await s.ready();
+    nonChronicle.state.memory = 8;
+    await nonChronicle.ready();
+    await advance(nonChronicle.engine).fire(EffectTiming.EndOfYourTurn, nonChronicle.perm("alphamon"));
+    await settle(() => nonChronicle.state.pendingDecision === undefined);
+    expect(nonChronicle.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([NON_MATCH]);
+    expect(nonChronicle.state.players[0]!.battleArea).toHaveLength(1);
+    expect(nonChronicle.state.memory).toBe(8);
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("alphamon"));
-    await settle(() => s.state.pendingDecision === undefined);
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    // "You may": declining leaves the legal [Chronicle] pick in hand and the gauge untouched.
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+          hand: [{ card: CHRONICLE_LV3, as: "dorumon" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: { deck: ["BT1-013"], security: ["BT1-014"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    declined.state.memory = 8;
+    await declined.ready();
+    await advance(declined.engine).fire(EffectTiming.EndOfYourTurn, declined.perm("alphamon"));
+    await settle(() => declined.state.pendingDecision === undefined);
+    expect(declined.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([CHRONICLE_LV3]);
+    expect(declined.state.players[0]!.battleArea).toHaveLength(1);
+    expect(declined.state.memory).toBe(8);
   });
 
   it("never offers a [Chronicle] card with [Alphamon] in its name, and runs once per turn", async () => {
