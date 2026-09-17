@@ -8,6 +8,10 @@
    re-exported here so existing importers keep one entry point. */
 
 import { EffectText } from "./EffectText";
+import { Scrim } from "./overlay/Scrim";
+import { CardArt } from "./overlay/CardArt";
+import { ROLE_LABEL_KEYS } from "./overlay/constants";
+import { printedCardName } from "./overlay/printedCardName";
 import {
   TIMING_LABELS,
   cardEffectClauseForTiming,
@@ -50,7 +54,6 @@ import { decisionSelectionMin } from "./decisionPresentation";
 import { useState, useEffect, useId, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
-  cardImageUrls,
   getCardDefinition,
   type DecisionRequest,
   type AssemblyRequirement,
@@ -73,44 +76,8 @@ import { assemblyMaterialCount, eligibleAssemblyCandidateIds } from "./assemblyM
 import { TOUCH_LAYOUT_QUERY, useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
 import { ArenaPermanentInspector, type ArenaInspectionOptions } from "./ArenaPermanentInspector";
 
-const name = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
-
 /** The art of the card asking the question, big enough to recognise beside its clause. */
 const DECISION_SOURCE_ART_WIDTH = 76;
-
-function Scrim({
-  children,
-  onClick,
-  align = "center",
-  className,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  align?: "center" | "flex-end";
-  className?: string;
-}) {
-  return (
-    <div
-      onClick={onClick}
-      className={className}
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 80,
-        background: "var(--ds-scrim)",
-        display: "flex",
-        alignItems: align,
-        justifyContent: "center",
-        // A scrim covers the whole board, so it may only fade: a keyframe that also moved it
-        // would slide the dimming off one edge and flash the board through the gap. The
-        // panel it holds owns the entrance.
-        animation: "game-modal-scrim-in 180ms ease-out",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
 
 /* ---------------- WAITING / CONNECTION ---------------- */
 export function WaitingOverlay({
@@ -306,7 +273,7 @@ export function BlockOverlay({
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
             {attackerCardId ? (
               <CardLinkedText
-                text={t("overlay.isAttacking", { name: name(attackerCardId) })}
+                text={t("overlay.isAttacking", { name: printedCardName(attackerCardId) })}
                 cardIds={[attackerCardId]}
               />
             ) : (
@@ -327,7 +294,7 @@ export function BlockOverlay({
             });
             return (
               <button
-                aria-label={`${name(b.cardId)}, ${b.currentDP.toLocaleString()} DP, ${sourceLabel}`}
+                aria-label={`${printedCardName(b.cardId)}, ${b.currentDP.toLocaleString()} DP, ${sourceLabel}`}
                 key={b.permanentId}
                 onClick={() => onBlock(b.permanentId)}
                 style={{
@@ -345,7 +312,9 @@ export function BlockOverlay({
               >
                 <Sigil cardId={b.cardId} color={colorKey(def?.colors[0])} size={26} />
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ds-fg)" }}>{name(b.cardId)}</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ds-fg)" }}>
+                    {printedCardName(b.cardId)}
+                  </div>
                   <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 11, color: "var(--ds-fg-muted)" }}>
                     {b.currentDP.toLocaleString()} DP
                   </div>
@@ -388,7 +357,7 @@ export function AllianceOverlay({
   onPass: () => void;
 }) {
   const { t } = useTranslation();
-  const triggerName = triggerCardId ? name(triggerCardId) : t("overlay.yourDigimon");
+  const triggerName = triggerCardId ? printedCardName(triggerCardId) : t("overlay.yourDigimon");
   const kw = { label: "＜Alliance＞", icon: Icons.Users, action: t("overlay.allianceAction") };
   const sourceKey = colorKey(getCardDefinition(triggerCardId ?? "")?.colors[0]);
 
@@ -456,7 +425,7 @@ export function AllianceOverlay({
               <button
                 key={ally.permanentId}
                 onClick={() => onChoose(ally.permanentId)}
-                aria-label={`${t("overlay.suspendAlly", { name: name(ally.cardId), dp: ally.currentDP.toLocaleString() })}, ${sourceLabel}`}
+                aria-label={`${t("overlay.suspendAlly", { name: printedCardName(ally.cardId), dp: ally.currentDP.toLocaleString() })}, ${sourceLabel}`}
                 style={{
                   position: "relative",
                   padding: 0,
@@ -563,7 +532,7 @@ export function CounterOverlay({
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
             {attackerCardId ? (
               <CardLinkedText
-                text={t("overlay.isAttacking", { name: name(attackerCardId) })}
+                text={t("overlay.isAttacking", { name: printedCardName(attackerCardId) })}
                 cardIds={[attackerCardId]}
               />
             ) : (
@@ -598,7 +567,7 @@ export function CounterOverlay({
                 {/* Inside the button that activates the counter, so the name cannot also be a
                     link — a button inside a button is invalid and unreachable by keyboard. */}
                 <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ds-fg)" }}>
-                  {cardId ? name(cardId) : t("overlay.card")}
+                  {cardId ? printedCardName(cardId) : t("overlay.card")}
                 </span>
                 <span style={{ fontSize: 11.5, color: "var(--ds-fg-muted)" }}>{c.description}</span>
               </button>
@@ -667,7 +636,10 @@ export function EvadeOverlay({
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
             {cardId ? (
-              <CardLinkedText text={t("overlay.wouldBeDeleted", { name: name(cardId) })} cardIds={[cardId]} />
+              <CardLinkedText
+                text={t("overlay.wouldBeDeleted", { name: printedCardName(cardId) })}
+                cardIds={[cardId]}
+              />
             ) : (
               t("overlay.wouldBeDeleted", { name: t("overlay.yourDigimon") })
             )}
@@ -676,7 +648,7 @@ export function EvadeOverlay({
       </div>
       <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 18, lineHeight: 1.5 }}>
         {cardId ? (
-          <CardLinkedText text={t("overlay.evadePrompt", { name: name(cardId) })} cardIds={[cardId]} />
+          <CardLinkedText text={t("overlay.evadePrompt", { name: printedCardName(cardId) })} cardIds={[cardId]} />
         ) : (
           t("overlay.evadePrompt", { name: t("overlay.thisDigimon") })
         )}
@@ -744,7 +716,10 @@ export function BarrierOverlay({
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
             {cardId ? (
-              <CardLinkedText text={t("overlay.wouldBeDeleted", { name: name(cardId) })} cardIds={[cardId]} />
+              <CardLinkedText
+                text={t("overlay.wouldBeDeleted", { name: printedCardName(cardId) })}
+                cardIds={[cardId]}
+              />
             ) : (
               t("overlay.wouldBeDeleted", { name: t("overlay.yourDigimon") })
             )}
@@ -753,7 +728,7 @@ export function BarrierOverlay({
       </div>
       <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 18, lineHeight: 1.5 }}>
         {cardId ? (
-          <CardLinkedText text={t("overlay.barrierPrompt", { name: name(cardId) })} cardIds={[cardId]} />
+          <CardLinkedText text={t("overlay.barrierPrompt", { name: printedCardName(cardId) })} cardIds={[cardId]} />
         ) : (
           t("overlay.barrierPrompt", { name: t("overlay.thisDigimon") })
         )}
@@ -1106,7 +1081,9 @@ export function DecisionOverlay({
   /* The dialog is named by a plain string rather than by its visible title: that title
      now carries the source card as a link, and an aria-labelledby would read the link's
      own label ("Open …") in place of the card's name. */
-  const dialogLabel = sourceCardId ? t("overlay.cardEffect", { name: name(sourceCardId) }) : t("overlay.effect");
+  const dialogLabel = sourceCardId
+    ? t("overlay.cardEffect", { name: printedCardName(sourceCardId) })
+    : t("overlay.effect");
 
   const genericPrompt = t(
     isOptional ? "overlay.useEffectPrompt" : isChoose ? "overlay.chooseEffectPrompt" : "overlay.resolveEffect",
@@ -1116,7 +1093,7 @@ export function DecisionOverlay({
   const promptText =
     request.options?.promptKey === "activateBlitz"
       ? t("overlay.activateBlitzPrompt")
-      : !specificPrompt || (sourceCardId && specificPrompt === name(sourceCardId))
+      : !specificPrompt || (sourceCardId && specificPrompt === printedCardName(sourceCardId))
         ? genericPrompt
         : specificPrompt;
 
@@ -1180,7 +1157,7 @@ export function DecisionOverlay({
             <button
               type="button"
               className="decision-overlay__source-art"
-              aria-label={t("feed.openCard", { card: name(sourceCardId) })}
+              aria-label={t("feed.openCard", { card: printedCardName(sourceCardId) })}
               onClick={() => openCard(sourceCardId)}
             >
               <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
@@ -1244,7 +1221,7 @@ export function DecisionOverlay({
               return (
                 <button
                   type="button"
-                  aria-label={`${abstractLabel ?? (cand.cardId ? name(cand.cardId) : t("overlay.card"))}${liveLabels.length ? `, ${liveLabels.join(", ")}` : ""}${copyLabel ? `, ${copyLabel}` : ""}${on ? t("overlay.selected") : ""}`}
+                  aria-label={`${abstractLabel ?? (cand.cardId ? printedCardName(cand.cardId) : t("overlay.card"))}${liveLabels.length ? `, ${liveLabels.join(", ")}` : ""}${copyLabel ? `, ${copyLabel}` : ""}${on ? t("overlay.selected") : ""}`}
                   aria-pressed={on}
                   disabled={!selectable}
                   key={cand.instanceId}
@@ -1396,7 +1373,7 @@ export function DecisionOverlay({
                     variant="ghost"
                     disabled={index === 0}
                     onClick={() => moveOrderedCard(index, -1)}
-                    aria-label={`${t("overlay.moveUp")}, ${card?.cardId ? name(card.cardId) : t("overlay.card")}, ${index + 1}`}
+                    aria-label={`${t("overlay.moveUp")}, ${card?.cardId ? printedCardName(card.cardId) : t("overlay.card")}, ${index + 1}`}
                   >
                     <Icons.ChevronUp size={18} />
                   </Button>
@@ -1404,7 +1381,7 @@ export function DecisionOverlay({
                     variant="ghost"
                     disabled={index === cardOrder.length - 1}
                     onClick={() => moveOrderedCard(index, 1)}
-                    aria-label={`${t("overlay.moveDown")}, ${card?.cardId ? name(card.cardId) : t("overlay.card")}, ${index + 1}`}
+                    aria-label={`${t("overlay.moveDown")}, ${card?.cardId ? printedCardName(card.cardId) : t("overlay.card")}, ${index + 1}`}
                   >
                     <Icons.ChevronDown size={18} />
                   </Button>
@@ -1792,7 +1769,7 @@ export function EvoCostChoiceOverlay({
               marginTop: 2,
             }}
           >
-            {name(evolvingCardId)} → {baseName}
+            {printedCardName(evolvingCardId)} → {baseName}
           </div>
         </div>
       </div>
@@ -2290,53 +2267,6 @@ export function PrintedCardInfo({ cardId }: { cardId: string }) {
   );
 }
 
-/**
- * Turns a synced keyword into its printed spelling. The server normalizes printed
- * keyword icons to a parameterless base name (＜Security Attack +1＞ → "SecurityAttack"),
- * so the numeric parameter is not available here — only the keyword itself.
- */
-const ROLE_LABEL_KEYS: Record<StackCard["role"], "overlay.role.top" | "overlay.role.stack" | "overlay.role.linked"> = {
-  top: "overlay.role.top",
-  stack: "overlay.role.stack",
-  linked: "overlay.role.linked",
-};
-
-/** Self-contained card art with image fallback to the color Sigil (no hover zoom). */
-function CardArt({ cardId, artId, width }: { cardId: string; artId?: string; width: number }) {
-  const def = getCardDefinition(cardId);
-  const urls = cardImageUrls(cardId, artId);
-  const [idx, setIdx] = useState(0);
-  useEffect(() => setIdx(0), [cardId, artId]);
-  const h = Math.round(width * 1.4);
-  if (!def) return <CardBack width={width} label={cardId} />;
-  if (idx >= urls.length) {
-    return (
-      <div
-        style={{
-          width,
-          height: h,
-          borderRadius: 10,
-          background: `radial-gradient(${COLORS[colorKey(def.colors[0])].soft}, var(--ds-surface-muted))`,
-          display: "grid",
-          placeItems: "center",
-          flexShrink: 0,
-        }}
-      >
-        <Sigil cardId={def.cardId} color={colorKey(def.colors[0])} size={Math.round(h * 0.4)} />
-      </div>
-    );
-  }
-  return (
-    <img
-      src={urls[idx]}
-      alt={def.nameEn}
-      onError={() => setIdx((i) => i + 1)}
-      style={{ width, height: h, borderRadius: 10, objectFit: "cover", objectPosition: "top", flexShrink: 0 }}
-    />
-  );
-}
-
-/** The computed half of the stack viewer: the figures and keywords the server resolved. */
 function StackViewerState({ detail, fate }: { detail: PermanentDetail; fate?: PendingFateBadge }) {
   const { t } = useTranslation();
   const granted = new Set(detail.grantedKeywords);
@@ -3294,7 +3224,7 @@ export function DigiXrosMaterialOverlay({
               id={titleId}
               style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 18, color: "var(--ds-fg)" }}
             >
-              {t("overlay.xrosTitle", { name: name(playingCardId) })}
+              {t("overlay.xrosTitle", { name: printedCardName(playingCardId) })}
             </div>
             <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", marginTop: 2 }}>
               {t("overlay.xrosDetail", { reduction: reductionLabel })}
@@ -3355,7 +3285,7 @@ export function DigiXrosMaterialOverlay({
                     </span>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: "var(--ds-fg)" }}>
                       {t("overlay.xrosSuspendToUnlock", {
-                        name: name(e.cardId),
+                        name: printedCardName(e.cardId),
                         limits: maxParts.length ? t("overlay.xrosLimits", { limits: maxParts.join(", ") }) : "",
                       })}
                     </span>
@@ -3497,7 +3427,7 @@ export function AssemblyMaterialOverlay({
               id={titleId}
               style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 18, color: "var(--ds-fg)" }}
             >
-              {t("overlay.assemblyTitle", { name: name(playingCardId) })}
+              {t("overlay.assemblyTitle", { name: printedCardName(playingCardId) })}
             </div>
             <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", marginTop: 2 }}>
               {t("overlay.assemblyDetail", { reduction: requirement.reduceCost, cost: reducedCost })}
@@ -3516,7 +3446,7 @@ export function AssemblyMaterialOverlay({
               const selected = picks.includes(candidate.instanceId);
               const disabled = !selected && !eligibleIds.has(candidate.instanceId);
               const accessibleName = t("overlay.xrosMaterialLabel", {
-                name: name(candidate.cardId),
+                name: printedCardName(candidate.cardId),
                 zone: t("overlay.zone.trash"),
               });
               return (

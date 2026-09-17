@@ -1,4 +1,5 @@
 import { type CombatPromptEvent, type DecisionKind } from "@aegis/shared";
+import type { StackCard } from "./types";
 
 /**
  * BlockOverlay, CounterOverlay, AllianceOverlay, EvadeOverlay and BarrierOverlay
@@ -40,3 +41,12 @@ type _SupportedDecisionKindsComplete =
   Exclude<DecisionKind, (typeof SUPPORTED_DECISION_KINDS)[number]> extends never ? true : never;
 const _supportedDecisionKindsComplete: _SupportedDecisionKindsComplete = true;
 void _supportedDecisionKindsComplete;
+
+export const ROLE_LABEL_KEYS: Record<
+  StackCard["role"],
+  "overlay.role.top" | "overlay.role.stack" | "overlay.role.linked"
+> = {
+  top: "overlay.role.top",
+  stack: "overlay.role.stack",
+  linked: "overlay.role.linked",
+};

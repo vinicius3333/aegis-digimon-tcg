@@ -17,8 +17,14 @@ integrates, and owns every commit.
 Mirror tests: `useMatchCues.test.ts` (~4400), `decisionOverlay.test.tsx` (~3200).
 
 Exit targets: no source file over 400 lines, no function over 120 lines, no
-component over 250 lines, comment lines under 8% per file, every folder matching
-the pattern below.
+component over 250 lines, every folder matching the pattern below.
+
+Comment density is judged per file, not capped at a number. An earlier flat 8%
+target was wrong: `overlay/effectText.ts` is legitimately 25% comment because its
+job is encoding per-card exceptions to the printed-clause rules (AD1-001,
+EX3-026, EX3-054, BT26-016, BT16-101/EX12-019), and that reasoning is recorded
+nowhere else. The binding rule is rule 2 below — no comment restates the code —
+not an arithmetic target.
 
 Out of scope: `game.css` and every class name — the Tailwind migration owns those
 on `worktree-tailwind-migration`.
@@ -105,6 +111,13 @@ deliberate exclusion exists — and lift it to the new module's header, where it
 now covers the whole file. Where three call sites repeat one rule, the rule is
 stated once in the header and the call sites say nothing.
 
+A lifted comment is **rewritten, not relocated**. Comments in these files encode
+their own position — "the overlays above dispatch on", "DecisionOverlay below
+branches on" — and those claims turn false the moment the code moves. Name the
+file or the symbol instead. Net comment lines must go down or stay flat; a new
+module header that merely adds to the per-function docs it was supposed to
+absorb is a failed extraction.
+
 `useMatchCues.ts` is 24% comment because the same ordering rules are re-explained
 at each site. That is where most of the reduction comes from; the prose itself is
 good and must survive at module level.
@@ -133,10 +146,18 @@ Replace these inline unions:
 | `DragState.kind: "play" \| "attack"`  | `enum DragKind`                                  |
 | `DropTarget` (`dragIntents.ts`)       | `enum DropTarget`                                |
 | track id string constants             | `enum CueTrack`                                  |
-| `TIMING_LABELS` keys (`overlays.tsx`) | `enum PrintedTiming`                             |
 
-`Side` is the one with reach — the `"you"`/`"opp"` pair threaded through all four
-files. Introduce it first, alone, in wave 0.
+`Side` lands **last**, not first. Measurement killed the original wave-0 plan:
+`"you" | "opp"` spans ~30 files and ~200 literal sites, most of them in tests
+outside the four files in scope, and a string enum is not assignable from a bare
+`"you"`. Introducing it up front would have meant a 30-file diff colliding with
+every later wave. Once the giants are decomposed it is a cheap sweep over many
+small files.
+
+`PrintedTiming` is dropped. `TIMING_LABELS` is keyed by two external vocabularies
+at once — the shared `EffectTiming` enum keys and the IR trigger names, mapped
+many-to-one — so an enum there would duplicate `EffectTiming`. It stays
+`Record<string, string>`.
 
 ### Naming
 
@@ -316,9 +337,10 @@ REPORT  - files created, with line counts
 
 | #   | Wave                                                                                                                | Mode   | Agents           | Manager's commit                         |
 | --- | ------------------------------------------------------------------------------------------------------------------- | ------ | ---------------- | ---------------------------------------- |
-| 0   | `Side` enum across all four files                                                                                   | —      | 0                | `refactor(web): introduce the Side enum` |
-| 1   | `overlay/effectText.ts` + `overlay/enums.ts` + `overlay/constants.ts` — the pure text layer out of `overlays.tsx`   | author | 3                | one                                      |
-| 2   | `overlay/combat/`, `choice/`, `viewer/`, `match/` — 17 components, one file each                                    | author | 8, then 9        | two                                      |
+| 1   | `overlay/effectText.ts` + `types.ts` + `constants.ts` — the pure text layer out of `overlays.tsx` ✅ done           | author | 2                | `refactor(web): extract the overlay text layer` |
+| 2a  | `overlay/Scrim.tsx` + `overlay/printedCardName.ts` — the shared internals every component below needs               | author | 1                | one                                      |
+| 2b  | `overlay/combat/`, `choice/`, `viewer/`, `match/` — the 13 components that are a straight move                     | author | 8                | two                                      |
+| 2c  | The 4 components that blow the 250-line cap and need internal decomposition                                        | author | 4                | one each                                 |
 | 3   | `piece/` — 12 components + `handLayout.ts` + `shieldShards.ts`                                                      | author | 7                | two                                      |
 | 4   | `match/` and `screen/` types, enums, constants, queries                                                             | author | 4                | one per area                             |
 | 5   | `match/` pure core: `tracks`, `environment`, `eventLookup`, `cardSiteIndex`, `presentableNarration`                 | author | 5                | one                                      |
@@ -327,7 +349,19 @@ REPORT  - files created, with line counts
 | 8   | `match/present/*` — `segments`, `batchFacts`, then `combat`, `arrivals`, `deletions`, `sounds`, then `presentBatch` | owner  | 1, sequential    | one per module                           |
 | 9   | `match/` hooks: `state`, `queue`, `narration`, `security`, `flights`, `watchers`                                    | owner  | 1                | one per module                           |
 | 9'  | `screen/` hooks + `layout/`                                                                                         | owner  | 1, parallel to 9 | one per module                           |
-| 10  | Delete the four barrels, rewrite every import site                                                                  | —      | 0                | one                                      |
+| 10  | `Side` enum sweep, then delete the four barrels and rewrite every import site                                       | mixed  | 2                | two                                      |
+
+Wave 2c's four: `DecisionOverlay` (642 lines), the `StackViewerOverlay` cluster
+(493, counting its three private parts), `DigiXrosMaterialOverlay` (386) and
+`CardActionMenu` (377). Each needs its internals named and split, not just moved,
+so each gets its own agent and its own commit.
+
+### What the wave gate must catch
+
+Author mode cannot see the hole it leaves. After every integration the manager
+runs `pnpm lint:files` over the touched files specifically to catch imports that
+went dead when the declarations left — wave 1 left three (`CombatPromptEvent`,
+`DecisionKind`, and a self-import). Typecheck does not flag those; lint does.
 
 Waves 1–3 are wide and low-risk, and they build the folder pattern that waves
 4–9 then follow. Waves 8 and 9 are the ordering-sensitive ones: `useMatchCues`
