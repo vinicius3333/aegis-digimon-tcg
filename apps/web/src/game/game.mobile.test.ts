@@ -24,7 +24,12 @@ function overlaySource(name: string): string {
   return source;
 }
 const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
-const boardPiecesSource = readFileSync(new URL("./boardPieces.tsx", import.meta.url), "utf8");
+/** The board pieces live one per file under ./piece, so the hand's gesture and
+ *  overflow chrome is spread across the component, its hook and its layout maths. */
+const boardPiecesSource = readdirSync(new URL("./piece/", import.meta.url), { withFileTypes: true })
+  .filter((entry) => entry.isFile())
+  .map((entry) => readFileSync(new URL(`./piece/${entry.name}`, import.meta.url), "utf8"))
+  .join("\n");
 // The phone block's condition is a list — narrow, or short and on its side — so
 // the header is matched loosely up to its brace.
 const portraitRules = gameCss.match(
