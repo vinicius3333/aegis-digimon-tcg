@@ -4,7 +4,6 @@ import {
   CardKind,
   EffectTiming,
   Zone,
-  getCardDefinition,
   GameState,
   PlayerState,
   EffectDuration,
@@ -14,6 +13,7 @@ import {
   type CardInstance,
   type Seat,
 } from "@aegis/shared";
+import type { RemovalCause } from "./effects/EffectContext.js";
 import type { Intent, IntentResult } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import {
@@ -25,14 +25,12 @@ import {
 import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
 import { GameStateAccess, insertCard, markRoutedUsedOption, takeTop } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
-import { detachLeaveReplacements, detachTraitTokens } from "./effects/detach.js";
-import { guardLeaveReplacements } from "./effects/guard.js";
 import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
 import { WinCheck } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
 import { DpDeleteBudgetLedger } from "./dpDeleteBudget.js";
-import { lookupDefinition, definitionOf, colorsOf, isDigimon } from "./cards/cardData.js";
+import { lookupDefinition, colorsOf, isDigimon } from "./cards/cardData.js";
 import { DecisionManager } from "./decisions/index.js";
 import { createDecisionApi } from "./decisions/decisionApi.js";
 import { createResolverDecisions, type ResolverDecisions } from "./decisions/resolverDecisions.js";
@@ -42,8 +40,6 @@ import { createPrimitives, ModifierLedger } from "./effects/primitives.js";
 import { ContinuousEffectLedger, effectiveColors } from "./effects/continuous.js";
 import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription } from "./effects/subtriggers.js";
-import { consultLeavePrevention } from "./effects/leavePrevention.js";
-import { consultDigivolutionTrashRedirect } from "./effects/digivolutionTrashRedirect.js";
 import { type CardStateLookup } from "./cards/CardSource.js";
 import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
 import { buildResolutionEnv } from "./effects/index.js";
@@ -58,7 +54,6 @@ import type {
   Primitives,
   DecisionApi,
   TriggerInfo,
-  RemovalCause,
   SubTriggerEventName,
   SubTriggerSourceScope,
 } from "./effects/EffectContext.js";
@@ -128,6 +123,7 @@ import {
   effectEnvironment,
   forgetUsesOfCardsLeavingField,
 } from "./gameEngine/effectContext.js";
+import { engineConsultDigivolutionTrashRedirect, engineConsultLeavePrevention } from "./gameEngine/effectContext.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
@@ -876,7 +872,7 @@ export class GameEngine {
         digivolveDeps(this).fireWouldDigivolve!(this.state, seat, target, into),
       consultLeavePrevention: (ids, cause, resolvingSeat, opts) =>
         this.consultLeavePrevention(ids, cause, resolvingSeat, opts),
-      consultDigivolutionTrashRedirect: (ids) => this.consultDigivolutionTrashRedirect(ids),
+      consultDigivolutionTrashRedirect: (ids) => engineConsultDigivolutionTrashRedirect(this, ids),
       get combat() {
         return getCombat();
       },
@@ -952,147 +948,7 @@ export class GameEngine {
   readonly cardSourceByInstance = new WeakMap<CardInstance, CardSource>();
 
   /** Guards each immediate prevention from reactivating during its own resolution. */
-  private preventReentryGuard = { activeReplacementKeys: new Set<string>() };
-
-  /**
-   * Consult active "prevent" leave/delete replacements for the permanents an effect is about to
-   * remove (subsystem: delayed-and-rule-effects). Delegates to the standalone
-   * `consultLeavePrevention` (testable in isolation), supplying this engine's registry,
-   * permanent lookup, and context builder. Returns the subset whose removal was prevented;
-   * default-safe (empty when no prevent replacement is active).
-   */
-  async consultLeavePrevention(
-    permanentIds: string[],
-    cause: RemovalCause = "byEffect",
-    resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean; isDigiXros?: boolean },
-  ): Promise<Set<string>> {
-    // Immediate reactions must observe the rebuilt continuous registry, never its
-    // clear-before-refill interval during an overlapping effect-resolution flow.
-    await this.recomputeContinuousEffects();
-    return consultLeavePrevention(
-      {
-        subTriggers: this.subTriggers,
-        keywordReplacements: (ids) => [
-          ...detachLeaveReplacements(ids, {
-            permanentById: (id) => this.access.permanentById(id),
-            hasDetach: (id) => this.continuous.hasKeyword(id, "Detach"),
-            traitTokens: (id) => {
-              const permanent = this.access.permanentById(id);
-              if (permanent?.topCard === undefined) return [];
-              const printed = detachTraitTokens(definitionOf(permanent.topCard));
-              const granted = this.continuous.keywordGrantSources(id, "Detach").flatMap((source) => {
-                const definition =
-                  source.sourceCardId === undefined ? undefined : getCardDefinition(source.sourceCardId);
-                return detachTraitTokens({ effectText: source.effectText ?? definition?.effectText });
-              });
-              return [...new Set([...printed, ...granted])];
-            },
-            definitionOf: (card) => definitionOf(card),
-            trash: (paymentIds) => this.primitives.trash(paymentIds),
-          }),
-          ...guardLeaveReplacements(
-            [...this.state.players].flatMap((player) => player.battleArea.map((permanent) => permanent.permanentId)),
-            {
-              idOffset: ids.length,
-              permanentById: (id) => this.access.permanentById(id),
-              isBattleAreaDigimon: (permanent) => this.access.isBattleAreaDigimon(permanent, this.continuous),
-              hasGuard: (id) => this.continuous.hasKeyword(id, "Guard"),
-            },
-          ),
-        ],
-        permanentById: (id) => this.access.permanentById(id),
-        buildContext: (srcPerm, leavingId) =>
-          buildEffectContext(this, cardSourceOf(this, srcPerm.topCard!), {
-            deletedPermanentId: leavingId,
-            deletedPermanentIds: permanentIds,
-          }),
-        buildInstanceContext: (sourceInstanceId, leavingId) => {
-          const sourceInstance = findLooseInstance(this, sourceInstanceId);
-          return sourceInstance === undefined
-            ? undefined
-            : buildEffectContext(this, cardSourceOf(this, sourceInstance), {
-                deletedPermanentId: leavingId,
-                deletedPermanentIds: permanentIds,
-              });
-        },
-        turnSeat: this.state.turnSeat,
-        // Once-per-turn prevention ledger (＜Barrier＞), keyed in the shared per-turn UseTracker
-        // (reset at each turn start alongside every other Once-Per-Turn limit).
-        oncePerTurnFired: (key) => this.tracker.count(key, "replacement") > 0,
-        markOncePerTurnFired: (key) => this.tracker.register(key, "replacement"),
-        // ＜Guard＞ is the one prevention keyword that resolves as a replacement subscription
-        // rather than inline in the deletion paths, so its announcement is wired here.
-        keywordPrevented: (activationIdentity, sourcePermanentId, savedPermanentId) => {
-          if (activationIdentity !== "keyword-guard") return;
-          const saved = this.access.permanentById(savedPermanentId);
-          if (saved === undefined) return;
-          this.hooks.emit({
-            kind: "deletionPrevented",
-            keyword: "Guard",
-            seat: saved.controllerSeat,
-            permanentId: saved.permanentId,
-            ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
-            ...(sourcePermanentId === undefined ? {} : { paidPermanentId: sourcePermanentId }),
-          });
-        },
-        orderReplacements: async (replacements, seat) => {
-          const keyed = replacements.map((replacement) => {
-            const sourceInstance =
-              replacement.sourceInstanceId === undefined
-                ? undefined
-                : findLooseInstance(this, replacement.sourceInstanceId);
-            return {
-              replacement,
-              key: `replacement/${replacement.id}/${sourceInstance?.cardId ?? replacement.sourceInstanceId ?? replacement.sourcePermanentId ?? "source"}`,
-            };
-          });
-          const response = await this.decisions.request({
-            seat,
-            kind: "orderTriggers",
-            promptText: "Choose the order for simultaneous would-leave effects.",
-            options: { triggerKeys: keyed.map(({ key }) => key) },
-          });
-          if (response.kind !== "orderTriggers" || response.order.length === 0) return replacements;
-          const selected = keyed.find(({ key }) => key === response.order[0]);
-          return selected === undefined
-            ? replacements
-            : [
-                selected.replacement,
-                ...replacements.filter((replacement) => replacement.id !== selected.replacement.id),
-              ];
-        },
-      },
-      permanentIds,
-      cause,
-      resolvingSeat,
-      {
-        isBounce: opts?.isBounce,
-        playerAction: opts?.playerAction,
-        isDigiXros: opts?.isDigiXros,
-        insteadOnly: opts?.insteadOnly,
-        reentryGuard: this.preventReentryGuard,
-      },
-    );
-  }
-
-  /**
-   * Consult active digivolution-card-trash "redirect" replacements (subsystem:
-   * delayed-and-rule-effects; BT10-084 Tactimon, KB Q2002-Q2008) for a trash operation about to
-   * target `hostPermanentIds`. Delegates to the standalone `consultDigivolutionTrashRedirect`
-   * (testable in isolation), supplying this engine's registry, permanent lookup, and context
-   * builder. Returns the redirected host id, or undefined when nothing changed.
-   */
-  private consultDigivolutionTrashRedirect(hostPermanentIds: string[]): Promise<string | undefined> {
-    return consultDigivolutionTrashRedirect(
-      {
-        subTriggers: this.subTriggers,
-        permanentById: (id) => this.access.permanentById(id),
-        buildContext: (srcPerm) => buildEffectContext(this, cardSourceOf(this, srcPerm.topCard!), {}),
-      },
-      hostPermanentIds,
-    );
-  }
+  preventReentryGuard = { activeReplacementKeys: new Set<string>() };
 
   /**
    * Expire duration-scoped modifiers/rules at a turn/phase boundary, then re-derive
@@ -1945,6 +1801,20 @@ export class GameEngine {
 
   buildEffectContext(source: CardSource, trigger: TriggerInfo, askOverride?: DecisionApi): EffectContext {
     return buildEffectContext(this, source, trigger, askOverride);
+  }
+
+  /**
+   * Leave prevention, consulted before any removal. Kept as a method because
+   * ex7VolcanicdramonMechanism replaces it on the instance to force a prevented material;
+   * a module-to-module call would walk past the replacement.
+   */
+  consultLeavePrevention(
+    permanentIds: string[],
+    cause: RemovalCause = "byEffect",
+    resolvingSeat?: Seat,
+    opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean; isDigiXros?: boolean },
+  ): Promise<Set<string>> {
+    return engineConsultLeavePrevention(this, permanentIds, cause, resolvingSeat, opts);
   }
 
   fireSubTrigger(

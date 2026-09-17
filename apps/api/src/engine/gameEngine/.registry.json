@@ -99,6 +99,14 @@
   "export": "combatTriggerInfo",
   "module": "timing"
  },
+ "consultDigivolutionTrashRedirect": {
+  "export": "engineConsultDigivolutionTrashRedirect",
+  "module": "effectContext"
+ },
+ "consultLeavePrevention": {
+  "export": "engineConsultLeavePrevention",
+  "module": "effectContext"
+ },
  "continueMainVerb": {
   "export": "continueMainVerb",
   "module": "intents"

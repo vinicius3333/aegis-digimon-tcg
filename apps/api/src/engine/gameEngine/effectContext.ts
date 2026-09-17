@@ -1,14 +1,27 @@
 import { isTimingActivationDisabled } from "../effects/timingActivation.js";
-import { Zone, type CardInstance, type ServerEvent, type Seat } from "@aegis/shared";
+import { Zone, getCardDefinition, type CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
 import { canAttackerDeclare } from "../combat/legality.js";
 import { resolveKeywords } from "../combat/keywords.js";
 import { effectiveKinds, effectiveNames, effectiveTraits } from "../effects/continuous.js";
-import { createGameAccess, createCardStateLookup, createEffectContext } from "../effects/context.js";
+import { createCardStateLookup, createEffectContext, createGameAccess } from "../effects/context.js";
 import { createCardSource } from "../cards/CardSource.js";
 import { type EffectEnvironment } from "../effects/index.js";
 import type { CardSource } from "../effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives, DecisionApi, TriggerInfo } from "../effects/EffectContext.js";
+import type {
+  DecisionApi,
+  EffectContext,
+  GameAccess,
+  Primitives,
+  RemovalCause,
+  TriggerInfo,
+} from "../effects/EffectContext.js";
 import type { GameEngine } from "../GameEngine.js";
+import { detachLeaveReplacements, detachTraitTokens } from "../effects/detach.js";
+import { guardLeaveReplacements } from "../effects/guard.js";
+import { definitionOf } from "../cards/cardData.js";
+import { consultLeavePrevention } from "../effects/leavePrevention.js";
+import { consultDigivolutionTrashRedirect } from "../effects/digivolutionTrashRedirect.js";
+import { findLooseInstance } from "./intents.js";
 
 export function effectAccess(engine: GameEngine): GameAccess {
   engine.gameAccess ??= createGameAccess(
@@ -137,4 +150,144 @@ export function dropPermanentSubscriptions(engine: GameEngine, permanentId: stri
   engine.modifiers.dropPermanent(permanentId);
   engine.continuous.dropPermanent(permanentId);
   engine.subTriggers.dropPermanent(permanentId);
+}
+
+/**
+ * Consult active "prevent" leave/delete replacements for the permanents an effect is about to
+ * remove (subsystem: delayed-and-rule-effects). Delegates to the standalone
+ * `consultLeavePrevention` (testable in isolation), supplying engine engine's registry,
+ * permanent lookup, and context builder. Returns the subset whose removal was prevented;
+ * default-safe (empty when no prevent replacement is active).
+ */
+export async function engineConsultLeavePrevention(
+  engine: GameEngine,
+  permanentIds: string[],
+  cause: RemovalCause = "byEffect",
+  resolvingSeat?: Seat,
+  opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean; isDigiXros?: boolean },
+): Promise<Set<string>> {
+  // Immediate reactions must observe the rebuilt continuous registry, never its
+  // clear-before-refill interval during an overlapping effect-resolution flow.
+  await engine.recomputeContinuousEffects();
+  return consultLeavePrevention(
+    {
+      subTriggers: engine.subTriggers,
+      keywordReplacements: (ids) => [
+        ...detachLeaveReplacements(ids, {
+          permanentById: (id) => engine.access.permanentById(id),
+          hasDetach: (id) => engine.continuous.hasKeyword(id, "Detach"),
+          traitTokens: (id) => {
+            const permanent = engine.access.permanentById(id);
+            if (permanent?.topCard === undefined) return [];
+            const printed = detachTraitTokens(definitionOf(permanent.topCard));
+            const granted = engine.continuous.keywordGrantSources(id, "Detach").flatMap((source) => {
+              const definition = source.sourceCardId === undefined ? undefined : getCardDefinition(source.sourceCardId);
+              return detachTraitTokens({ effectText: source.effectText ?? definition?.effectText });
+            });
+            return [...new Set([...printed, ...granted])];
+          },
+          definitionOf: (card) => definitionOf(card),
+          trash: (paymentIds) => engine.primitives.trash(paymentIds),
+        }),
+        ...guardLeaveReplacements(
+          [...engine.state.players].flatMap((player) => player.battleArea.map((permanent) => permanent.permanentId)),
+          {
+            idOffset: ids.length,
+            permanentById: (id) => engine.access.permanentById(id),
+            isBattleAreaDigimon: (permanent) => engine.access.isBattleAreaDigimon(permanent, engine.continuous),
+            hasGuard: (id) => engine.continuous.hasKeyword(id, "Guard"),
+          },
+        ),
+      ],
+      permanentById: (id) => engine.access.permanentById(id),
+      buildContext: (srcPerm, leavingId) =>
+        buildEffectContext(engine, cardSourceOf(engine, srcPerm.topCard!), {
+          deletedPermanentId: leavingId,
+          deletedPermanentIds: permanentIds,
+        }),
+      buildInstanceContext: (sourceInstanceId, leavingId) => {
+        const sourceInstance = findLooseInstance(engine, sourceInstanceId);
+        return sourceInstance === undefined
+          ? undefined
+          : buildEffectContext(engine, cardSourceOf(engine, sourceInstance), {
+              deletedPermanentId: leavingId,
+              deletedPermanentIds: permanentIds,
+            });
+      },
+      turnSeat: engine.state.turnSeat,
+      // Once-per-turn prevention ledger (＜Barrier＞), keyed in the shared per-turn UseTracker
+      // (reset at each turn start alongside every other Once-Per-Turn limit).
+      oncePerTurnFired: (key) => engine.tracker.count(key, "replacement") > 0,
+      markOncePerTurnFired: (key) => engine.tracker.register(key, "replacement"),
+      // ＜Guard＞ is the one prevention keyword that resolves as a replacement subscription
+      // rather than inline in the deletion paths, so its announcement is wired here.
+      keywordPrevented: (activationIdentity, sourcePermanentId, savedPermanentId) => {
+        if (activationIdentity !== "keyword-guard") return;
+        const saved = engine.access.permanentById(savedPermanentId);
+        if (saved === undefined) return;
+        engine.hooks.emit({
+          kind: "deletionPrevented",
+          keyword: "Guard",
+          seat: saved.controllerSeat,
+          permanentId: saved.permanentId,
+          ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
+          ...(sourcePermanentId === undefined ? {} : { paidPermanentId: sourcePermanentId }),
+        });
+      },
+      orderReplacements: async (replacements, seat) => {
+        const keyed = replacements.map((replacement) => {
+          const sourceInstance =
+            replacement.sourceInstanceId === undefined
+              ? undefined
+              : findLooseInstance(engine, replacement.sourceInstanceId);
+          return {
+            replacement,
+            key: `replacement/${replacement.id}/${sourceInstance?.cardId ?? replacement.sourceInstanceId ?? replacement.sourcePermanentId ?? "source"}`,
+          };
+        });
+        const response = await engine.decisions.request({
+          seat,
+          kind: "orderTriggers",
+          promptText: "Choose the order for simultaneous would-leave effects.",
+          options: { triggerKeys: keyed.map(({ key }) => key) },
+        });
+        if (response.kind !== "orderTriggers" || response.order.length === 0) return replacements;
+        const selected = keyed.find(({ key }) => key === response.order[0]);
+        return selected === undefined
+          ? replacements
+          : [selected.replacement, ...replacements.filter((replacement) => replacement.id !== selected.replacement.id)];
+      },
+    },
+    permanentIds,
+    cause,
+    resolvingSeat,
+    {
+      isBounce: opts?.isBounce,
+      playerAction: opts?.playerAction,
+      isDigiXros: opts?.isDigiXros,
+      insteadOnly: opts?.insteadOnly,
+      reentryGuard: engine.preventReentryGuard,
+    },
+  );
+}
+
+/**
+ * Consult active digivolution-card-trash "redirect" replacements (subsystem:
+ * delayed-and-rule-effects; BT10-084 Tactimon, KB Q2002-Q2008) for a trash operation about to
+ * target `hostPermanentIds`. Delegates to the standalone `consultDigivolutionTrashRedirect`
+ * (testable in isolation), supplying engine engine's registry, permanent lookup, and context
+ * builder. Returns the redirected host id, or undefined when nothing changed.
+ */
+export function engineConsultDigivolutionTrashRedirect(
+  engine: GameEngine,
+  hostPermanentIds: string[],
+): Promise<string | undefined> {
+  return consultDigivolutionTrashRedirect(
+    {
+      subTriggers: engine.subTriggers,
+      permanentById: (id) => engine.access.permanentById(id),
+      buildContext: (srcPerm) => buildEffectContext(engine, cardSourceOf(engine, srcPerm.topCard!), {}),
+    },
+    hostPermanentIds,
+  );
 }
