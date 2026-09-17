@@ -509,3 +509,89 @@ and `useRef` declarations that the plan's `state/` slot was meant to take.
 
 The two mirror tests are still unsplit, for the same reason as before: they were
 the safety net for every commit here.
+
+---
+
+## Third pass: both files under 1000 lines
+
+The target this pass was set: `useMatchCues.ts` and `GameScreen.tsx` both under a
+thousand lines. Nine commits, the suite green at 177 files / 2138 tests after
+every one.
+
+| File              | Second pass | Third pass |
+| ----------------- | ----------- | ---------- |
+| `useMatchCues.ts` | 1308        | 900        |
+| `GameScreen.tsx`  | 3183        | 989        |
+
+### `useMatchCues.ts`
+
+`presentBatch` — still ~400 lines of one function — moved whole into
+`match/present/presentBatch.ts`. The hook keeps the wrapper that names the sixty
+refs, setters and collaborators the pass reads. They are gathered at call time
+rather than at render time, because the flight launchers are declared after the
+effect that starts the pass; a context object built during render would hit the
+temporal dead zone.
+
+The board budget, the snapshot barrier, the stall watchdog and the two releases
+were five effects; they are `match/queue/useDecisionBarrier.ts` now, called where
+they used to sit so the effect order is unchanged.
+
+### `GameScreen.tsx`
+
+The component is composition now. What came out, in order:
+
+- `screen/model/pendingMatchNotice.ts` + `screen/layout/PendingMatchBoard.tsx` —
+  what the board says before there is a match.
+- `screen/hooks/useDragPlumbing.ts` — the press-to-drag gesture, the window
+  listeners and the two drag starters.
+- `screen/hooks/useAttackPreviewArrow.ts` — the per-frame endpoint solver.
+- `screen/hooks/useBoardSelection.ts` and `screen/hooks/useOverlayState.ts` — what
+  the viewer has picked up, and every surface the board can have open.
+- `screen/matchIntents.ts` — the ten senders and the prompts a play settles first.
+- `screen/boardActions.ts` — what a tap or a drop means.
+- `screen/model/`: `presentedSeats`, `actionGuards`, `handEntries`,
+  `triggerDetails`, `appFusionLive`, `memoryPreviewInputs`, `spotlightRequest`.
+- `screen/combatAnswers.ts` and `screen/playChoiceAnswers.ts` — how each prompt is
+  answered, so the overlay stack reads as a list of surfaces.
+- `screen/layout/`: fifteen board components (the opponent bar, the ticker, the
+  turn banner, the two pile columns, the three parts of the battle zones, the
+  raising dock, the player dock, the arrow, ghost and burst layers, the drag
+  ghost), nine overlay components, and then `MatchOverlays.tsx` and
+  `BoardStage.tsx`, which compose them.
+
+One component per file throughout.
+
+### Two deliberate reorders
+
+The pointer listeners now register with the drag state instead of after the cue
+hook. They have no dependencies, read no state and only attach window handlers.
+
+The selection and overlay effects — Escape, the attacker the server took the
+attack away from, and the reset on a new decision — moved above `useMatchCues`
+with the state they belong to. None of them is read by a cue effect; the cue
+hook's own inputs are computed during render, not from this state.
+
+### What the gate caught
+
+`pnpm lint:files` again caught every dead import, and typecheck caught none of
+them. Two real regressions surfaced in the suite rather than in review: a demo
+connection with no `respondDecision` stopped acknowledging its own decisions when
+the guard was narrowed from `demoConnection` to that one function, and the
+opponent's shield lost its seat check when the break cue was passed pre-filtered.
+Both were caught by the full run and fixed before the commit.
+
+Five source-text tests moved with the code: `boardInputLock.test.ts` and
+`opponentSleeves.test.ts` now read `GameScreen.tsx` together with `./screen`, the
+way `game.mobile.test.ts` already did, and three assertions were re-pointed at the
+names the decomposition gave them.
+
+### Still not done
+
+The two mirror tests — `useMatchCues.test.ts` (4035 lines) and
+`decisionOverlay.test.tsx` (3431) — are still unsplit, for the third time and the
+same reason: they were the safety net for every commit here.
+
+`screen/layout/BoardStage.tsx` (466), `screen/boardActions.ts` (370) and
+`screen/layout/MatchOverlays.tsx` (369) all clear the plan's 400-line target or sit
+just under it. They are composition and routing rather than logic, but they are
+the next things to look at.
