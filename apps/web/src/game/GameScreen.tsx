@@ -13,6 +13,31 @@ import {
   SHORT_BOARD_QUERY,
 } from "./screen/queries";
 import { dropZoneAt, permanentVisualElement } from "./screen/dropZones";
+import {
+  appFusionHostIdsOf as modelAppFusionHostIdsOf,
+  digivolveRoutesOf as modelDigivolveRoutesOf,
+  digivolveTargetsOf as modelDigivolveTargetsOf,
+  eligibleBase as modelEligibleBase,
+  linkTargetsOfPermanent as modelLinkTargetsOfPermanent,
+} from "./screen/model/eligibility";
+import {
+  baseDropIntentAttrs as modelBaseDropIntentAttrs,
+  dragIntentAt as modelDragIntentAt,
+  dropIntentAttrs as modelDropIntentAttrs,
+} from "./screen/model/screenDragIntents";
+import { decisionAllowsPick as modelDecisionAllowsPick, nextDecisionPicks } from "./screen/model/decisionPicks";
+import {
+  previewDropTarget as modelPreviewDropTarget,
+  previewEntry as modelPreviewEntry,
+} from "./screen/model/memoryPreview";
+import {
+  gameOverReason as modelGameOverReason,
+  gameOverResult as modelGameOverResult,
+  viewerTurnOrder as modelViewerTurnOrder,
+} from "./screen/model/gameOutcome";
+import { phaseField as presentedPhaseField } from "./screen/model/presentedBoard";
+import { stackCardsOf as modelStackCardsOf } from "./screen/model/stackCardsOf";
+import { spotlightIds as modelSpotlightIds } from "./screen/model/spotlightIds";
 import type { DragState, DropZoneHit, TrackingArrowGeometry } from "./screen/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -75,13 +100,7 @@ import {
   TurnControl,
   type HandEntry,
 } from "./boardPieces";
-import {
-  dragIntentFor,
-  dragIntentLabelOffsetPx,
-  dragIntentLabelKey,
-  type DragIntent,
-  type DropTarget,
-} from "./dragIntents";
+import { dragIntentLabelOffsetPx, dragIntentLabelKey, type DropTarget } from "./dragIntents";
 import { isBreedingWindow, turnControlState } from "./turnControl";
 import {
   bothSeated,
@@ -92,11 +111,9 @@ import {
   lastRejectedCombatAnswer,
   buildInstanceIndex,
   decisionCardColors,
-  differentColorsAllowCandidate,
   decisionSourceCounts,
   decisionPermanentDetails,
   decisionVisibleCards,
-  distinctCardIdsAllow,
   digivolveBasePermanentIds,
   findDnaMaterialCombination,
   attackTargetIdsOf,
@@ -118,7 +135,6 @@ import {
   triggerCardId,
   viewerSeatOf,
   type EvoCostOption,
-  type ProjectedDigivolveRoute,
   type LogLine,
   breedingSlotClickAction,
   canMoveFromBreeding,
@@ -149,7 +165,6 @@ import {
   type AssemblyCandidate,
   type DigiXrosCandidate,
   type DigiXrosEligibleExpander,
-  type StackCard,
 } from "./overlays";
 import { PlayLogSidebar } from "./OpponentActionFeedView";
 import { AttackAnnouncementBanner } from "./SidePanelStack";
@@ -175,7 +190,7 @@ import { shieldSecurityCount } from "./securityClash";
 import { activeAttackArrow, effectTargetArrow, type ArrowEndpoint, type TrackingArrow } from "./trackingArrow";
 import { beamBetweenBoxes, clipToBox, type ArrowBox } from "./arrowGeometry";
 import { predictedMemory } from "./memoryArc";
-import { memoryCostPreview, type MemoryDropTarget } from "./memoryCostPreview";
+import { memoryCostPreview } from "./memoryCostPreview";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
 import {
   decisionPresentation,
@@ -999,18 +1014,8 @@ export function GameScreen({
   const presentedOppBase = shownState?.players[otherSeat(viewerSeat)] ?? opp;
   const phaseYou = cues.heldPhaseState?.players[viewerSeat];
   const phaseOpp = cues.heldPhaseState?.players[otherSeat(viewerSeat)];
-  function phaseField(player: typeof presentedYouBase, held: typeof phaseYou) {
-    if (!held) return player;
-    return {
-      ...player,
-      // Hold rotation, not membership: a start-turn effect may introduce a
-      // permanent that the viewer must select before Main can open.
-      battleArea: player.battleArea.map((permanent) => {
-        const previous = held.battleArea.find((candidate) => candidate.permanentId === permanent.permanentId);
-        return previous ? ({ ...permanent, isSuspended: previous.isSuspended } as Permanent) : permanent;
-      }),
-    };
-  }
+
+  const phaseField = (player: typeof presentedYouBase, held: typeof phaseYou) => presentedPhaseField({ player, held });
   const presentedYou = phaseField(presentedYouBase, phaseYou);
   const presentedOpp = phaseField(presentedOppBase, phaseOpp);
   // Only the seat whose Draw ribbon is still queued is held back: the other seat's cards
@@ -1086,10 +1091,8 @@ export function GameScreen({
       projectedCost: route.projectedCost,
     })),
   }));
-  /** The server's prices for one hand card's digivolution paths, or undefined when it
-   * published none (the card is not in the turn player's Main-phase hand). */
-  const digivolveRoutesOf = (instanceId: string): readonly ProjectedDigivolveRoute[] | undefined =>
-    handEntries.find((candidate) => candidate.instanceId === instanceId)?.digivolveRoutes;
+
+  const digivolveRoutesOf = (instanceId: string) => modelDigivolveRoutesOf({ handEntries, instanceId });
   /**
    * The hand follows the live server state independently of older field narration.
    * Only the turn-start draw may retain an earlier hand; retained cards still use live
@@ -1453,71 +1456,22 @@ export function GameScreen({
   // projects (CardInstance.digivolveTargetPermanentIds / Permanent.attackablePermanentIds).
   // The client renders affordances; it does not re-derive the rules behind them.
   const handIsDigi = selDef?.kinds.includes(CardKind.Digimon) ?? false;
-  const digivolveTargetsOf = (instanceId: string | undefined): readonly string[] =>
-    (instanceId
-      ? handEntries.find((entry) => entry.instanceId === instanceId)?.digivolveTargetPermanentIds
-      : undefined) ?? [];
-  /** Server-projected Digimon this battle-area permanent's top card may be linked to. */
-  const linkTargetsOfPermanent = (perm: Permanent): readonly string[] =>
-    isMyTurn && perm.topCard ? [...perm.topCard.linkTargetPermanentIds] : [];
-  const appFusionHostIdsOf = (instanceId: string | undefined): readonly string[] => {
-    const entry = instanceId ? handEntries.find((candidate) => candidate.instanceId === instanceId) : undefined;
-    if (!entry) return [];
-    return you.battleArea
-      .filter((host) => appFusionRoutesForHost(entry.appFusionRoutes ?? [], host).length > 0)
-      .map((host) => host.permanentId);
-  };
-  const eligibleBase = (perm: Permanent): boolean =>
-    digivolveTargetsOf(handSel ?? undefined).includes(perm.permanentId) ||
-    appFusionHostIdsOf(handSel ?? undefined).includes(perm.permanentId);
+
+  const digivolveTargetsOf = (instanceId: string | undefined) => modelDigivolveTargetsOf({ handEntries, instanceId });
+
+  const linkTargetsOfPermanent = (perm: Permanent) => modelLinkTargetsOfPermanent({ isMyTurn, perm });
+
+  const appFusionHostIdsOf = (instanceId: string | undefined) =>
+    modelAppFusionHostIdsOf({ handEntries, you, instanceId });
+
+  const eligibleBase = (perm: Permanent) => modelEligibleBase({ handEntries, you, handSel, perm });
   const dragCardId = drag && drag.started ? drag.cardId : undefined;
   const dragIsPlay = drag?.kind === DragKind.Play && drag.started;
 
-  /**
-   * What releasing here would do, or null where the drop would be refused. Every
-   * answer is the server's projection read back through `dragIntents.ts`; the
-   * board only paints it.
-   */
-  const dragIntentAt = (hit: DropZoneHit | null): DragIntent | null => {
-    if (!hit || !drag?.started) return null;
-    if (drag.kind === DragKind.Attack) {
-      const attacker = you.battleArea.find((p) => p.permanentId === drag.permanentId);
-      return dragIntentFor({
-        drag: { kind: DragKind.Attack },
-        target: hit.target,
-        canAttackPlayer: attacker?.canAttackPlayer === true,
-        attackable: hit.id !== undefined && attacker?.attackablePermanentIds.includes(hit.id) === true,
-      });
-    }
-    const definition = getCardDefinition(drag.cardId);
-    const held = {
-      kind: DragKind.Play as const,
-      isOption: definition?.kinds.includes(CardKind.Option) ?? false,
-      isDigiEgg: definition?.kinds.includes(CardKind.DigiEgg) ?? false,
-    };
-    const base = hit.target === "perm-you" ? you.battleArea.find((p) => p.permanentId === hit.id) : undefined;
-    const route = base
-      ? handCardEvolutionRoute(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId).includes(hit.id ?? ""))
-      : undefined;
-    const appFusion = base
-      ? appFusionRoutesForHost(
-          handEntries.find((entry) => entry.instanceId === drag.instanceId)?.appFusionRoutes ?? [],
-          base,
-        ).length > 0
-      : false;
-    return dragIntentFor({
-      drag: held,
-      target: hit.target,
-      evolutionRoute: appFusion ? "normal" : route?.kind,
-      digivolvable: !!you.breeding && digivolveTargetsOf(drag.instanceId).includes(you.breeding.permanentId),
-    });
-  };
+  const dragIntentAt = (hit: DropZoneHit | null) => modelDragIntentAt({ hit, drag, you, handEntries });
 
-  /** The `data-drag-intent` an area wears while it would accept the card in the air. */
-  const dropIntentAttrs = (target: DropTarget, id?: string): Record<string, string> => {
-    const intent = dragIntentAt({ target, id });
-    return intent ? { "data-drag-intent": intent } : {};
-  };
+  const dropIntentAttrs = (target: DropTarget, id?: string) =>
+    modelDropIntentAttrs({ target, id, drag, you, handEntries });
 
   const hoveredDragIntent = dragIntentAt(dragHover);
 
@@ -1533,11 +1487,8 @@ export function GameScreen({
       : [],
   );
 
-  /** The `data-drag-intent` an own permanent wears: only while it is a base for the drag. */
-  const baseDropIntentAttrs = (permanentId: string): Record<string, string> =>
-    dragBasePermanentIds.has(permanentId) ? dropIntentAttrs("perm-you", permanentId) : {};
-
-  // ----- drag plumbing -----
+  const baseDropIntentAttrs = (permanentId: string) =>
+    modelBaseDropIntentAttrs({ permanentId, dragBasePermanentIds, drag, you, handEntries });
   const startHandDrag = (index: number, e: React.PointerEvent) => {
     // The index is a position in the hand the viewer can see, so it is resolved there.
     const entry = shownHandEntries[index];
@@ -1745,20 +1696,7 @@ export function GameScreen({
     setStackView(null);
   };
 
-  /** Flatten a permanent into its [active, digivolution…, linked…] cards for the modal. */
-  const stackCardsOf = (perm: Permanent): StackCard[] => {
-    const cards: StackCard[] = [];
-    if (perm.topCard?.cardId) cards.push({ cardId: perm.topCard.cardId, artId: perm.topCard.artId, role: "top" });
-    for (const ci of perm.stack)
-      cards.push({
-        cardId: ci.faceUp ? ci.cardId : "",
-        artId: ci.faceUp ? ci.artId : undefined,
-        faceDown: !ci.faceUp,
-        role: "stack",
-      });
-    for (const ci of perm.linked) cards.push({ cardId: ci.cardId, artId: ci.artId, role: "linked" });
-    return cards;
-  };
+  const stackCardsOf = (perm: Permanent) => modelStackCardsOf({ perm });
 
   function openOwnPermanent(permanentId: string) {
     if (!state) return;
@@ -1847,30 +1785,16 @@ export function GameScreen({
 
   // ----- log + game over -----
   const log: LogLine[] = buildMatchLog(events, viewerSeat, instanceIndex, t);
-  const gameOverReason = (() => {
-    for (let i = events.length - 1; i >= 0; i -= 1) {
-      const e = events[i]!;
-      if (e.kind === "gameOver") return e.reason;
-    }
-    return "security";
-  })();
-  const gameOverResult: "win" | "loss" | "draw" = (() => {
-    for (let i = events.length - 1; i >= 0; i -= 1) {
-      const e = events[i]!;
-      if (e.kind === "gameOver")
-        return e.result.outcome === "draw" ? "draw" : e.result.winnerSeat === viewerSeat ? "win" : "loss";
-    }
-    if (state.winnerSeat === -1) return "draw";
-    return state.winnerSeat === viewerSeat ? "win" : "loss";
-  })();
 
-  // Turn order is server truth: `matchStarted` names the seat that takes turn 1.
-  // Nothing is shown until that event has arrived rather than inferring a side.
-  const viewerTurnOrder = (() => {
-    const started = events.find((event) => event.kind === "matchStarted");
-    if (started?.kind !== "matchStarted") return undefined;
-    return started.firstSeat === viewerSeat ? ("first" as const) : ("second" as const);
-  })();
+  const gameOverReason = modelGameOverReason({ events });
+
+  const gameOverResult: "win" | "loss" | "draw" = modelGameOverResult({
+    events,
+    viewerSeat,
+    winnerSeat: state.winnerSeat,
+  });
+
+  const viewerTurnOrder = modelViewerTurnOrder({ events, viewerSeat });
 
   const attackerPerm = selPerm ? you.battleArea.find((p) => p.permanentId === selPerm) : undefined;
   const draggedAttackerPerm =
@@ -1915,18 +1839,21 @@ export function GameScreen({
   const decisionDistinctCardIds = viewerDecision?.options?.distinctCardIds === true;
   // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
   // picks stay legal as long as a distinct color can still be assigned to each.
+
   const decisionAllowsPick = (instanceId: string) =>
-    decisionSelectable.has(instanceId) &&
-    differentColorsAllowCandidate(instanceId, picks, decisionInstanceColors, decisionDifferentColors) &&
-    distinctCardIdsAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctCardIds);
+    modelDecisionAllowsPick({
+      decisionSelectable,
+      instanceId,
+      picks,
+      decisionInstanceColors,
+      decisionDifferentColors,
+      decisionVisibleCardIds,
+      decisionDistinctCardIds,
+    });
+
   const toggleDecisionPick = (instanceId: string) => {
     if (!decisionAllowsPick(instanceId)) return;
-    setPicks((current) => {
-      if (current.includes(instanceId)) return current.filter((id) => id !== instanceId);
-      const max = viewerDecision?.options?.max ?? 1;
-      const keep = max > 1 ? current.slice(-(max - 1)) : [];
-      return [...keep, instanceId];
-    });
+    setPicks((current) => nextDecisionPicks({ picks: current, instanceId, max: decisionMax }));
   };
   const decisionMin = decisionSelectionMin(viewerDecision);
   const decisionMax = viewerDecision?.options?.max ?? 1;
@@ -1941,13 +1868,18 @@ export function GameScreen({
   // for the chosen hand card. Only the tap flows arm the mask: a drag already
   // carries its own ghost and outlined drop areas, and a second dark pass over
   // that would be noise. The breeding step keeps its own dim (`breedingWindow`).
-  const spotlightIds = (() => {
-    if (breedingWindow) return [];
-    if (linkSel) return linkSel.targetPermanentIds;
-    if (selPerm) return attackTargetIdsOf(attackerPerm, vortexMode);
-    if (handSel && handIsDigi) return you.battleArea.filter(eligibleBase).map((p) => p.permanentId);
-    return [];
-  })();
+
+  const spotlightIds = modelSpotlightIds({
+    breedingWindow,
+    linkSel,
+    selPerm,
+    attackerPerm,
+    vortexMode,
+    handSel,
+    handIsDigi,
+    you,
+    handEntries,
+  });
   const spotlightAttacker = !breedingWindow ? (selPerm ?? undefined) : undefined;
   const spotlightSecurity = !!spotlightAttacker && canAttackSecurity;
   spotlightRequestRef.current = {
@@ -1965,51 +1897,30 @@ export function GameScreen({
   // the server offered); the printed figure is only the fallback for a card it did not
   // project. Still a dashed prediction that gates nothing: a [BeforePayCost] reducer can
   // lower it again at pay time, which the server cannot resolve without prompting.
-  const previewEntry = (() => {
-    if (dragIsPlay && drag) return handEntries.find((candidate) => candidate.instanceId === drag.instanceId);
-    const instanceId = hoveredHandInstanceId ?? handSel ?? undefined;
-    if (instanceId === undefined) return undefined;
-    return handEntries.find((candidate) => candidate.instanceId === instanceId);
-  })();
+
+  const previewEntry = modelPreviewEntry({
+    dragIsPlay,
+    drag,
+    hoveredHandInstanceId,
+    handSel,
+    handEntries,
+  });
   const previewPlayCost = (() => {
     if (!previewEntry) return undefined;
     if (previewEntry.projectedPlayCost >= 0) return previewEntry.projectedPlayCost;
     const printed = getCardDefinition(previewEntry.cardId)?.playCost;
     return printed !== undefined && printed >= 0 ? printed : undefined;
   })();
-  /** The cheapest priced digivolution path onto `base`, or undefined when none is priced. */
-  const cheapestDigivolveCost = (
-    cardId: string,
-    instanceId: string,
-    base: Permanent | undefined,
-  ): number | undefined => {
-    if (!base) return undefined;
-    const costs = getDigivolveCostOptions(cardId, base, you, opp, digivolveRoutesOf(instanceId)).map(
-      (option) => option.cost,
-    );
-    return costs.length > 0 ? Math.min(...costs) : undefined;
-  };
-  // What the hovered area would do with the card in the air, priced. Read off the same
-  // intent the board paints, so the preview and the drop can never disagree.
-  const previewDropTarget = ((): MemoryDropTarget | undefined => {
-    if (!dragIsPlay || !drag || !dragHover) return undefined;
-    switch (hoveredDragIntent) {
-      case "play":
-      case "use":
-        return { kind: "field" };
-      case "evolve": {
-        const base = you.battleArea.find((permanent) => permanent.permanentId === dragHover.id);
-        return { kind: "permanent", digivolve: { cost: cheapestDigivolveCost(drag.cardId, drag.instanceId, base) } };
-      }
-      case "breeding":
-        return {
-          kind: "breeding",
-          digivolve: { cost: cheapestDigivolveCost(drag.cardId, drag.instanceId, you.breeding) },
-        };
-      default:
-        return { kind: "refused" };
-    }
-  })();
+
+  const previewDropTarget = modelPreviewDropTarget({
+    dragIsPlay,
+    drag,
+    dragHover,
+    hoveredDragIntent,
+    you,
+    opp,
+    handEntries,
+  });
   const memoryCostCandidate = memoryCostPreview({
     heldCard: previewEntry
       ? { playable: previewEntry.playableFromHand === true, playCost: previewPlayCost }
