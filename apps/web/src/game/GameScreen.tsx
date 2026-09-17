@@ -22,18 +22,11 @@ import { AttackArrowLayer } from "./screen/layout/AttackArrowLayer";
 import { BattleZones } from "./screen/layout/BattleZones";
 import { BoardBurstLayer } from "./screen/layout/BoardBurstLayer";
 import { BreedingDock } from "./screen/layout/BreedingDock";
-import { CombatWindowPrompts } from "./screen/layout/CombatWindowPrompts";
-import { DecisionPrompts } from "./screen/layout/DecisionPrompts";
-import { FieldCardMenu } from "./screen/layout/FieldCardMenu";
-import { MatchStatusOverlays } from "./screen/layout/MatchStatusOverlays";
-import { PermanentStackView } from "./screen/layout/PermanentStackView";
-import { PileViewers } from "./screen/layout/PileViewers";
-import { PlayChoicePrompts } from "./screen/layout/PlayChoicePrompts";
-import { SecurityScenes } from "./screen/layout/SecurityScenes";
 import { DragGhost } from "./screen/layout/DragGhost";
 import { FieldClashGhosts } from "./screen/layout/FieldClashGhosts";
 import { LeftPileColumn } from "./screen/layout/LeftPileColumn";
 import { LogTicker } from "./screen/layout/LogTicker";
+import { MatchOverlays } from "./screen/layout/MatchOverlays";
 import { MemoryBand } from "./screen/layout/MemoryBand";
 import { OpponentBar } from "./screen/layout/OpponentBar";
 import { OpponentBattleRow } from "./screen/layout/OpponentBattleRow";
@@ -41,7 +34,6 @@ import { PlayerDock } from "./screen/layout/PlayerDock";
 import { RightPileColumn } from "./screen/layout/RightPileColumn";
 import { TurnBanner } from "./screen/layout/TurnBanner";
 import { ViewerBattleRow } from "./screen/layout/ViewerBattleRow";
-import { HandCardPreview } from "./screen/layout/HandCardPreview";
 import { Sidebar } from "./screen/layout/Sidebar";
 
 export { HandCardPreview } from "./screen/layout/HandCardPreview";
@@ -118,15 +110,11 @@ import {
   canAttackPlayerWith,
   canAttackWith,
   displayMemory,
-  parseActivatable,
   otherSeat,
   viewerSeatOf,
   type LogLine,
   breedingSlotClickAction,
-  canMoveFromBreeding,
-  canUseBreedingAction,
 } from "./boardModel";
-import { MulliganOverlay } from "./overlay";
 import { AttackAnnouncementBanner } from "./SidePanelStack";
 import { NarrationStack } from "./NarrationStack";
 import { CardOpenerProvider } from "./cardLinks";
@@ -235,6 +223,7 @@ export function GameScreen({
     });
   }, [vsBot, room, status, botDeckId, t]);
 
+  const selectionState = useBoardSelection({ state, viewerSeat });
   const {
     handSel,
     setHandSel,
@@ -247,27 +236,21 @@ export function GameScreen({
     vortexMode,
     setVortexMode,
     clearSel,
-  } = useBoardSelection({ state, viewerSeat });
+  } = selectionState;
+  const overlayState = useOverlayState({ decision, state, clearSel });
   const {
     cardMenu,
     setCardMenu,
     stackView,
     setStackView,
-    trashView,
     setTrashView,
-    securityView,
     setSecurityView,
     picks,
     setPicks,
     decisionAsDialog,
-    setDecisionAsDialog,
-    historyOpen,
     setHistoryOpen,
-    zoomCardId,
     setZoomCardId,
-    zoomArtId,
     setZoomArtId,
-    bugReportOpen,
     setBugReportOpen,
     dualPlay,
     setDualPlay,
@@ -281,7 +264,7 @@ export function GameScreen({
     setAppFusionChoice,
     actionConfirm,
     setActionConfirm,
-  } = useOverlayState({ decision, state, clearSel });
+  } = overlayState;
   // A play leaves the hand visually at the same instant the intent is dispatched. The
   // synchronized state will confirm that departure; a rejection rolls it back.
   const [optimisticPlayedInstanceId, setOptimisticPlayedInstanceId] = useState<string>();
@@ -605,17 +588,7 @@ export function GameScreen({
     setDigiXrosPick,
     setEvoCostChoice,
   };
-  const {
-    dispatchPlayCard,
-    playCard,
-    beginLink,
-    linkCard,
-    attack,
-    respondDecision,
-    respondMulligan,
-    activateEffect,
-    digivolveWithChoice,
-  } = matchIntents({
+  const matchSenders = matchIntents({
     room,
     localConnection: demoConnection,
     decision,
@@ -634,18 +607,19 @@ export function GameScreen({
     selection,
     overlays: overlayControls,
   });
+  const { dispatchPlayCard, playCard, linkCard, attack, digivolveWithChoice } = matchSenders;
 
-  const { blockWindow, counterWindow, allianceWindow, evadeWindow, barrierWindow, markCombatWindowAnswered } =
-    combatWindowsFor({
-      events,
-      state,
-      viewerSeat,
-      isMyTurn,
-      mirroredWindow,
-      openCombatWindow: openCombatWindowForBarrier,
-      answeredCombatWindowKeyRef,
-      rolledBackRejectionSeqRef,
-    });
+  const combatWindows = combatWindowsFor({
+    events,
+    state,
+    viewerSeat,
+    isMyTurn,
+    mirroredWindow,
+    openCombatWindow: openCombatWindowForBarrier,
+    answeredCombatWindowKeyRef,
+    rolledBackRejectionSeqRef,
+  });
+  const { markCombatWindowAnswered } = combatWindows;
 
   // ----- eligibility helpers -----
   // Every "can I do this?" answer below is the server's, read off the state it already
@@ -687,19 +661,7 @@ export function GameScreen({
     modelBaseDropIntentAttrs({ permanentId, dragBasePermanentIds, drag, you, handEntries });
   /** An App Fusion is an ordinary Main-phase action, so it follows the same guard. */
   const appFusionActionAvailable = () => !mainActionBlocked;
-  const {
-    findPermanent,
-    findPresentedPermanent,
-    showCardMenu,
-    beginAttack,
-    stackCardsOf,
-    selectHandCard,
-    handleTap,
-    handleDrop,
-    onYourPerm,
-    onOppPerm,
-    onBreeding,
-  } = boardActions({
+  const actions = boardActions({
     state,
     shownState,
     viewer: you,
@@ -729,6 +691,8 @@ export function GameScreen({
     eligibleBase,
     linkTargetsOfPermanent,
   });
+  const { findPermanent, showCardMenu, selectHandCard, handleTap, handleDrop, onYourPerm, onOppPerm, onBreeding } =
+    actions;
   handleTapRef.current = handleTap;
   handleDropRef.current = handleDrop;
   const combatWindowAnswers = combatAnswers({
@@ -761,20 +725,7 @@ export function GameScreen({
 
   const allPermanents = [...you.battleArea, ...opp.battleArea];
   const handInstanceIds = handEntries.map((entry) => entry.instanceId);
-  const {
-    viewerDecision,
-    answerOnBoard,
-    decisionSourceCardId,
-    decisionHighlightPermanentId,
-    decisionSelectable,
-    decisionVisible,
-    decisionVisibleCardIds,
-    decisionInstanceColors,
-    decisionDifferentColors,
-    decisionDistinctCardIds,
-    decisionMin,
-    decisionMax,
-  } = decisionViewFor({
+  const decisionView = decisionViewFor({
     decision,
     decisionAnimationsPending: cues.decisionAnimationsPending,
     decisionAsDialog,
@@ -785,6 +736,17 @@ export function GameScreen({
     permanents: allPermanents,
     handInstanceIds,
   });
+  const {
+    viewerDecision,
+    answerOnBoard,
+    decisionHighlightPermanentId,
+    decisionSelectable,
+    decisionVisibleCardIds,
+    decisionInstanceColors,
+    decisionDifferentColors,
+    decisionDistinctCardIds,
+    decisionMax,
+  } = decisionView;
 
   // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
   // picks stay legal as long as a distinct color can still be assigned to each.
@@ -916,235 +878,50 @@ export function GameScreen({
     />
   );
   const overlays = (
-    <>
-      {decision && decision.seat === viewerSeat && decision.kind === "mulligan" ? (
-        <MulliganOverlay
-          handCardIds={handEntries.map((h) => h.cardId)}
-          turnOrder={viewerTurnOrder}
-          onKeep={() => respondMulligan(true)}
-          onMulligan={() => respondMulligan(false)}
-        />
-      ) : null}
-
-      {handPreviewEntry ? (
-        <HandCardPreview
-          arenaInspection={{
-            side: Side.Viewer,
-            container: boardRef.current,
-            returnFocusTo:
-              yourHandDockRef.current?.querySelectorAll<HTMLElement>(".game-hand-card")[
-                shownHandEntries.findIndex((entry) => entry.instanceId === handPreviewEntry.instanceId)
-              ],
-          }}
-          cardId={handPreviewEntry.cardId}
-          artId={handPreviewEntry.artId}
-          activatableEffects={parseActivatable(handPreviewActions?.activatableEffectsJson ?? "")}
-          canPlay={handPreviewActions?.playableFromHand === true}
-          canDigivolve={
-            (handPreviewActions?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
-            (!!handPreviewActions && appFusionHostIdsOf(handPreviewActions.instanceId).length > 0)
-          }
-          canLink={(handPreviewActions?.linkTargetPermanentIds.length ?? 0) > 0}
-          onPlay={() => {
-            if (handSel) playCard(handSel);
-            setHandPreview(null);
-          }}
-          onLink={() =>
-            handPreviewActions &&
-            beginLink(
-              handPreviewActions.instanceId,
-              handPreviewActions.cardId,
-              handPreviewActions.linkTargetPermanentIds,
-            )
-          }
-          onActivateEffect={(effect) => {
-            activateEffect(effect.instanceId, effect.effectKey);
-            setHandPreview(null);
-            clearSel();
-          }}
-          onChooseBase={() => setHandPreview(null)}
-          onCancel={() => {
-            setHandPreview(null);
-            clearSel();
-          }}
-        />
-      ) : null}
-
-      <DecisionPrompts
-        decision={viewerDecision}
-        answerOnBoard={answerOnBoard}
-        permanents={allPermanents}
-        sourceCardId={decisionSourceCardId}
-        candidates={decisionVisible}
-        allowsPick={decisionAllowsPick}
-        picks={picks}
-        min={decisionMin}
-        max={decisionMax}
-        triggerDetails={triggerDetails}
-        opponentSelecting={
-          Boolean(state.pendingDecision) &&
-          state.pendingDecision?.seat !== viewerSeat &&
-          !state.gameOver &&
-          !cues.zoneShowcase
-        }
-        onTogglePick={toggleDecisionPick}
-        onRespond={respondDecision}
-        onOpenDialog={() => setDecisionAsDialog(true)}
-      />
-
-      <CombatWindowPrompts
-        state={state}
-        blockWindow={blockWindow}
-        counterWindow={counterWindow}
-        allianceWindow={allianceWindow}
-        evadeWindow={evadeWindow}
-        barrierWindow={barrierWindow}
-        {...combatWindowAnswers}
-      />
-
-      {!state.gameOver ? (
-        <SecurityScenes
-          securityBreak={securityBreak}
-          securityClash={securityClash}
-          securityBranch={securityBranch}
-          optionBranch={optionBranch}
-          zoneShowcase={zoneShowcase}
-          compact={collapseNotices}
-        />
-      ) : null}
-
-      <MatchStatusOverlays
-        log={log}
-        historyOpen={historyOpen}
-        zoomCardId={zoomCardId}
-        zoomArtId={zoomArtId}
-        bugReportOpen={bugReportOpen}
-        matchLogId={state.matchLogId}
-        signedIn={signedIn}
-        opponentDropped={!vsBot && !opp.connected && !state.gameOver}
-        gameOver={
-          state.gameOver
-            ? {
-                result: gameOverResult,
-                reason: gameOverReason,
-                stats: [
-                  { value: state.turnCount, label: t("game.stats.turns") },
-                  { value: opp.battleArea.length, label: t("game.stats.oppBoard") },
-                  { value: you.securityCount, label: t("game.stats.yourSecurity") },
-                ],
-              }
-            : undefined
-        }
-        onCloseHistory={() => setHistoryOpen(false)}
-        onOpenCard={setZoomCardId}
-        onCloseZoom={() => setZoomCardId(null)}
-        onCloseBugReport={() => setBugReportOpen(false)}
-        onMenu={() => onExit("home")}
-        onRematch={() => onExit("lobby")}
-      />
-
-      <PlayChoicePrompts
-        dualPlay={dualPlay}
-        actionConfirm={actionConfirm}
-        appFusion={
-          appFusionChoice && appFusion
-            ? {
-                resultCardId: appFusion.entry?.cardId ?? "",
-                hostCardId: appFusion.host?.topCard?.cardId ?? "",
-                routes: appFusion.routes,
-                canEvolveNormally: appFusion.normalEvolutionLegal,
-              }
-            : null
-        }
-        evoCostChoice={evoCostChoice}
-        assemblyPick={assemblyPick}
-        digiXrosPick={digiXrosPick}
-        {...playAnswers}
-      />
-
-      {cardMenuPermanent && cardMenu && !decision ? (
-        <FieldCardMenu
-          permanent={cardMenuPermanent}
-          presentedPermanent={findPresentedPermanent(cardMenuPermanent.permanentId) ?? cardMenuPermanent}
-          side={cardMenu.side}
-          x={cardMenu.x}
-          y={cardMenu.y}
-          container={boardRef.current}
-          returnFocusTo={permRefs.current[cardMenuPermanent.permanentId]}
-          keywordLabels={demoConnection?.keywordLabels?.[cardMenuPermanent.permanentId]}
-          fate={fateBadges.get(cardMenuPermanent.permanentId)}
-          sheet={narrowGameLayout}
-          stackCards={stackCardsOf(cardMenuPermanent)}
-          mine={cardMenu.side === "you"}
-          activatable={cardMenu.side === "you" && isMyTurn}
-          // Same gate as the action bar: a breeding Digimon only moves out at
-          // level 3, so below that the action would just refuse.
-          promotable={
-            cardMenu.side === Side.Viewer &&
-            cardMenuPermanent.inBreeding &&
-            canUseBreedingAction({
-              phase: state.phase,
-              isMyTurn,
-              canHatch: false,
-              canMove: canMoveFromBreeding(cardMenuPermanent),
-            })
-          }
-          linkTargets={linkTargetsOfPermanent(cardMenuPermanent)}
-          onPromote={() => {
-            setCardMenu(null);
-            onBreeding();
-          }}
-          onActivateEffect={(instanceId, effectKey) => {
-            setCardMenu(null);
-            activateEffect(instanceId, effectKey);
-          }}
-          onLink={beginLink}
-          onViewStack={() => {
-            setStackView(cardMenu.permanentId);
-            setCardMenu(null);
-          }}
-          onAttack={() => beginAttack(cardMenu.permanentId)}
-          onVortex={() => beginAttack(cardMenu.permanentId, true)}
-          onClose={() => setCardMenu(null)}
-        />
-      ) : null}
-
-      {stackViewPermanent ? (
-        <PermanentStackView
-          permanent={stackViewPermanent}
-          presentedPermanent={findPresentedPermanent(stackViewPermanent.permanentId) ?? stackViewPermanent}
-          mine={stackViewPermanent.controllerSeat === viewerSeat}
-          side={
-            (findPresentedPermanent(stackViewPermanent.permanentId) ?? stackViewPermanent).controllerSeat === viewerSeat
-              ? Side.Viewer
-              : Side.Opponent
-          }
-          container={boardRef.current}
-          returnFocusTo={permRefs.current[stackViewPermanent.permanentId]}
-          keywordLabels={
-            demoConnection?.keywordLabels?.[
-              (findPresentedPermanent(stackViewPermanent.permanentId) ?? stackViewPermanent).permanentId
-            ]
-          }
-          cards={stackCardsOf(stackViewPermanent)}
-          fate={fateBadges.get(stackViewPermanent.permanentId)}
-          onAttack={() => beginAttack(stackViewPermanent.permanentId)}
-          onVortex={() => beginAttack(stackViewPermanent.permanentId, true)}
-          onClose={() => setStackView(null)}
-        />
-      ) : null}
-
-      <PileViewers
-        trashView={trashView}
-        securityView={securityView}
-        viewer={you}
-        opponent={opp}
-        opponentName={shownOpp.displayName || t("game.opponent")}
-        sheet={narrowGameLayout}
-        onCloseTrash={() => setTrashView(null)}
-        onCloseSecurity={() => setSecurityView(null)}
-      />
-    </>
+    <MatchOverlays
+      state={state}
+      viewer={you}
+      opponent={opp}
+      viewerSeat={viewerSeat}
+      opponentName={shownOpp.displayName || t("game.opponent")}
+      decision={decision}
+      decisionView={decisionView}
+      allPermanents={allPermanents}
+      triggerDetails={triggerDetails}
+      fateBadges={fateBadges}
+      allowsPick={decisionAllowsPick}
+      onTogglePick={toggleDecisionPick}
+      combatWindows={combatWindows}
+      combatWindowAnswers={combatWindowAnswers}
+      scenes={{ securityBreak, securityClash, securityBranch, optionBranch, zoneShowcase }}
+      collapseNotices={collapseNotices}
+      log={log}
+      signedIn={signedIn}
+      opponentDropped={!vsBot && !opp.connected && !state.gameOver}
+      gameOver={state.gameOver ? { result: gameOverResult, reason: gameOverReason } : undefined}
+      overlays={overlayState}
+      selection={selectionState}
+      intents={matchSenders}
+      actions={actions}
+      playAnswers={playAnswers}
+      appFusion={appFusion}
+      handPreviewEntry={handPreviewEntry}
+      handPreviewActions={handPreviewActions}
+      appFusionHostIdsOf={appFusionHostIdsOf}
+      cardMenuPermanent={cardMenuPermanent}
+      stackViewPermanent={stackViewPermanent}
+      keywordLabels={demoConnection?.keywordLabels}
+      narrowGameLayout={narrowGameLayout}
+      isMyTurn={isMyTurn}
+      linkTargetsOfPermanent={linkTargetsOfPermanent}
+      handEntries={handEntries}
+      shownHandEntries={shownHandEntries}
+      viewerTurnOrder={viewerTurnOrder}
+      boardRef={boardRef}
+      permanentRefs={permRefs}
+      handDockRef={yourHandDockRef}
+      onExit={onExit}
+    />
   );
 
   /** What both battle rows put on a permanent; only the sweep's stagger differs. */
