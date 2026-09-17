@@ -3534,12 +3534,18 @@ describe("triggered effect source prelude", () => {
     await advance(TIMINGS.effectSourceHold - 1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
     await advance(1);
-    expect(result.current.effectSources).toHaveLength(0);
+    /* The punch is over, but the source does not go dark: it is handed to the clause it
+       raised and stays lit for as long as that clause is on screen, so the toast and the
+       card it is about are one moment rather than two signals a beat apart. */
+    expect(result.current.effectSources).toMatchObject([{ site: { zone: "trash" }, linked: true }]);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
     await advance(TIMINGS.noticeLifetime - 1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+    expect(result.current.effectSources).toHaveLength(1);
     await advance(1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    // The clause leaving is what takes the light with it.
+    expect(result.current.effectSources).toHaveLength(0);
   });
 
   it("preserves both triggered notices when an automatic second evolution arrives", async () => {

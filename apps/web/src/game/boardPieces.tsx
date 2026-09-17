@@ -445,6 +445,7 @@ export function PermanentView({
   dpPulse,
   freezePulse,
   effectSource,
+  effectLinked,
   suspendDelayMs,
   heldSuspended = false,
   width,
@@ -474,6 +475,12 @@ export function PermanentView({
   freezePulse?: FreezePulse;
   /** This permanent's own effect is activating: it glows and throws a small particle. */
   effectSource?: boolean;
+  /**
+   * The clause this permanent raised is on screen. The activation punch is over; what is
+   * left is a steady light saying "this card is the one that toast is about", so the two
+   * are read as one moment rather than as a flash and, later, a sentence somewhere else.
+   */
+  effectLinked?: boolean;
   /** The colour-keyed burst this permanent is playing, behind the card. */
   burst?: PermanentBurst;
   /** Held back while the card is still being announced centre-screen. */
@@ -562,6 +569,7 @@ export function PermanentView({
           shake ? "game-permanent-shake" : "",
           freezePulse ? "game-permanent-freeze" : "",
           effectSource ? "game-permanent--effect-source" : "",
+          effectLinked ? "game-permanent--effect-linked" : "",
           candidate ? "game-permanent--candidate" : "",
         ]
           .filter(Boolean)
@@ -576,7 +584,7 @@ export function PermanentView({
         // The reference client hides the destination until the centre-screen
         // announcement is over, rather than flying the card across the board.
         visibility: pending ? "hidden" : undefined,
-        transform: highlight || effectSource ? "translateY(-6px)" : "none",
+        transform: highlight || effectSource || effectLinked ? "translateY(-6px)" : "none",
         transition: "transform 160ms, opacity 160ms",
       }}
     >

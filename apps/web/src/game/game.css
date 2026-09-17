@@ -6918,7 +6918,7 @@ button.side-panel__name:focus-visible {
 
 /* A permanent's own effect: it glows where it stands and throws a halo of sparks. */
 .game-permanent--effect-source {
-  animation: battle-effect-source-glow var(--t-effect-source-hold, 480ms) ease-out both;
+  animation: battle-effect-source-glow var(--t-effect-source-hold, 720ms) ease-out both;
 }
 
 @keyframes battle-effect-source-glow {
@@ -6928,6 +6928,31 @@ button.side-panel__name:focus-visible {
   }
   40% {
     filter: drop-shadow(0 0 14px var(--battle-arrow-effect)) brightness(1.25);
+  }
+}
+
+/* The punch is over and the clause is on screen: the card holds a steady light for as long
+   as the toast that names it, so the two read as one moment. It breathes rather than sits,
+   because a static outline on a board full of outlines is just another border. */
+.game-permanent--effect-linked {
+  animation: battle-effect-linked-hold var(--t-effect-linked-breath, 1600ms) ease-in-out infinite;
+}
+
+@keyframes battle-effect-linked-hold {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px var(--battle-arrow-effect-glow)) brightness(1.06);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 13px var(--battle-arrow-effect)) brightness(1.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-permanent--effect-linked {
+    filter: drop-shadow(0 0 8px var(--battle-arrow-effect-glow)) brightness(1.08);
+    animation: none;
   }
 }
 
@@ -6951,7 +6976,7 @@ button.side-panel__name:focus-visible {
   border-radius: 50%;
   background: radial-gradient(circle, #fff 0 18%, var(--battle-arrow-effect) 42%, transparent 74%);
   box-shadow: 0 0 8px var(--battle-arrow-effect);
-  animation: battle-effect-source-particle var(--t-effect-source-hold, 480ms) ease-out both;
+  animation: battle-effect-source-particle var(--t-effect-source-hold, 720ms) ease-out both;
   animation-delay: calc(var(--effect-particle-index) * 34ms);
 }
 
@@ -6977,7 +7002,7 @@ button.side-panel__name:focus-visible {
   outline: 2px solid var(--battle-arrow-effect);
   outline-offset: 2px;
   border-radius: 8px;
-  animation: battle-effect-trash-rise var(--t-effect-trash-rise, 420ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: battle-effect-trash-rise var(--t-effect-trash-rise, 620ms) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes battle-effect-trash-rise {
@@ -6998,7 +7023,7 @@ button.side-panel__name:focus-visible {
   outline: 2px solid var(--battle-arrow-effect);
   outline-offset: 2px;
   border-radius: 10px;
-  animation: battle-effect-hand-rise var(--t-effect-hand-rise, 360ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: battle-effect-hand-rise var(--t-effect-hand-rise, 540ms) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes battle-effect-hand-rise {
@@ -7864,33 +7889,6 @@ button.side-panel__name:focus-visible {
   }
 }
 
-/* A deletion names cards, not a sentence: the notice drops its icon column and lays the
-   art of everything it took in one centred row, on the same grammar the panels use. */
-.match-notice[data-variant="deletion"] {
-  padding: 0.8rem 0.9rem 1.1rem;
-  grid-template-columns: minmax(0, 1fr);
-  text-align: center;
-}
-
-.match-notice[data-variant="deletion"] .match-notice__copy {
-  align-items: center;
-}
-
-.match-notice__cards {
-  display: flex;
-  padding: 0;
-  margin: 0.45rem 0 0;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  align-items: flex-start;
-  justify-content: center;
-  list-style: none;
-}
-
-.match-notice__card {
-  flex: none;
-}
-
 /* The scrim only fades, so the sheet it holds does the rising. It is laid out by the
    scrim's flexbox rather than centred by a transform, so a plain rise is safe here —
    unlike the board's centred prompts, which take `battle-dialog-in` instead. */
@@ -8008,13 +8006,6 @@ button.side-panel__name:focus-visible {
   }
 }
 
-/* The card column is a list of art, not prose: the corner brackets are the clause
-   column's grammar, and on a panel of pictures they only added an edge to explain. */
-.match-notice[data-variant="deletion"]::before,
-.match-notice[data-variant="deletion"]::after {
-  content: none;
-}
-
 /* The phone bottom sheet enters from the edge it is anchored to. */
 @keyframes battle-decision-sheet-up {
   from {
@@ -8095,20 +8086,141 @@ button.side-panel__name:focus-visible {
    shrunken notice: folding the full panel with CSS left its close button and its card name
    hanging below a band a third of their height. The row IS the control, so a tap anywhere
    on it opens the column, and it stands in a full touch target. */
+/* The band is drawn in one accent, and every tone below only swaps that accent. It is the
+   board's own effect amber by default, matching the light the source card holds and the
+   arrow leaving it, so the three read as one moment — and deliberately not the cyan, which
+   on this board already means an attack. The channels are kept separate from the solid
+   colour because the border, the ring and the tint all need it at different alphas. */
 .narration-peek {
+  --narration-peek-rgb: 255 166 61;
+  --narration-peek-ink: rgb(255 199 130);
+  --narration-peek-tint: 60 38 14;
+
+  position: relative;
   display: flex;
+  overflow: hidden;
   width: 100%;
+  max-width: 100vw;
   min-height: 4rem;
+  margin-inline: auto;
   padding: 0.4rem 0.55rem 0.4rem 0.45rem;
-  border: 1px solid rgb(120 170 240 / 26%);
+  border: 1px solid rgb(var(--narration-peek-rgb) / 52%);
+  /* The rail on the leading edge is what the eye catches first. */
+  border-left: 3px solid rgb(var(--narration-peek-rgb));
   border-radius: 0.5rem;
-  background: linear-gradient(180deg, rgb(20 40 76 / 82%) 0%, rgb(10 20 40 / 82%) 100%);
-  color: rgb(214 232 255);
+  background: linear-gradient(180deg, rgb(var(--narration-peek-tint) / 88%) 0%, rgb(20 15 10 / 90%) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--narration-peek-rgb) / 12%),
+    0 6px 18px rgb(2 8 20 / 45%);
+  color: rgb(255 244 232);
   cursor: pointer;
   gap: 0.45rem;
   align-items: center;
   pointer-events: auto;
   backdrop-filter: blur(2px);
+  /* Opening out of a pill, then announcing itself once. Both replay per moment because the
+     row is remounted for each one rather than rewritten in place. */
+  animation:
+    narration-peek-morph 420ms cubic-bezier(0.22, 1.2, 0.36, 1),
+    narration-peek-flash 900ms ease-out;
+}
+
+/* A refusal answers the viewer's own tap and is the one line here that is bad news. */
+.narration-peek[data-tone="rejection"] {
+  --narration-peek-rgb: 255 45 31;
+  --narration-peek-ink: rgb(255 186 178);
+  --narration-peek-tint: 58 16 12;
+}
+
+/* Cards leaving the board: the attack red, because that is what deletion is drawn in. */
+.narration-peek[data-tone="deletion"] {
+  --narration-peek-rgb: 255 82 64;
+  --narration-peek-ink: rgb(255 190 180);
+  --narration-peek-tint: 54 20 16;
+}
+
+/* A named mechanic keeps the pink pill the notices call it out in. */
+.narration-peek[data-tone="keyword"] {
+  --narration-peek-rgb: 233 30 120;
+  --narration-peek-ink: rgb(255 180 213);
+  --narration-peek-tint: 56 14 36;
+}
+
+/* The two lines that are good news for whoever they name. */
+.narration-peek[data-tone="gain"] {
+  --narration-peek-rgb: 74 222 128;
+  --narration-peek-ink: rgb(187 247 208);
+  --narration-peek-tint: 12 46 26;
+}
+
+/**
+ * Out of a pill and into the row, the way a phone's own status island does. Movement of
+ * shape is what peripheral vision actually catches — the band already arrived in colour and
+ * was still being missed — and it also says which direction the thing came from.
+ *
+ * `max-width` rather than `width`: the row still lays out at its full size, so nothing
+ * around it reflows while it opens, and the content is simply clipped until there is room
+ * for it. A percentage cannot be interpolated against a rem, hence the viewport unit.
+ */
+@keyframes narration-peek-morph {
+  0% {
+    max-width: 3.5rem;
+    border-radius: 999px;
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    max-width: 100vw;
+    border-radius: 0.5rem;
+    opacity: 1;
+  }
+}
+
+/* One ring of accent, wide enough to catch peripheral vision over a busy board and gone
+   before it becomes something to look at. */
+@keyframes narration-peek-flash {
+  0%,
+  100% {
+    border-color: rgb(var(--narration-peek-rgb) / 52%);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--narration-peek-rgb) / 12%),
+      0 6px 18px rgb(2 8 20 / 45%);
+  }
+
+  22% {
+    border-color: rgb(var(--narration-peek-rgb) / 95%);
+    box-shadow:
+      0 0 0 3px rgb(var(--narration-peek-rgb) / 45%),
+      0 6px 24px rgb(var(--narration-peek-rgb) / 34%);
+  }
+}
+
+/* The running clock, on the band's bottom edge: the same reading time the opened notice
+   erodes around its frame, in the one line the folded layout has room for. */
+.narration-peek__life {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgb(var(--narration-peek-rgb)) 0%, var(--narration-peek-ink) 100%);
+  pointer-events: none;
+  transform-origin: left center;
+  animation: narration-peek-life linear forwards;
+}
+
+@keyframes narration-peek-life {
+  from {
+    scale: 1 1;
+  }
+
+  to {
+    scale: 0 1;
+  }
 }
 
 /* Cropped rather than scaled: a scaled thumbnail still reserves the full card's height,
@@ -8153,7 +8265,7 @@ button.side-panel__name:focus-visible {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgb(150 196 255);
+  color: var(--narration-peek-ink);
 }
 
 .narration-peek__name {
@@ -8173,24 +8285,62 @@ button.side-panel__name:focus-visible {
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgb(186 210 240);
+  color: rgb(232 219 202);
 }
 
-/* How much is queued behind this one, so a folded band never hides that more is running. */
+/* How much is queued behind this one, so a folded band never hides that more is running.
+   It pops when the count changes, because a digit rewritten in place is not a change
+   anyone watching the board notices. */
 .narration-peek__more {
   flex: none;
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
-  background: rgb(120 170 240 / 22%);
+  background: rgb(var(--narration-peek-rgb) / 28%);
   font-size: 0.72rem;
   font-weight: 700;
+  color: var(--narration-peek-ink);
+  animation: narration-peek-count-pop 420ms ease-out;
+}
+
+@keyframes narration-peek-count-pop {
+  0% {
+    scale: 1;
+  }
+
+  40% {
+    scale: 1.35;
+  }
+
+  100% {
+    scale: 1;
+  }
 }
 
 .narration-peek__chevron {
   display: grid;
   flex: none;
-  color: rgb(150 196 255);
+  color: var(--narration-peek-ink);
   place-items: center;
+}
+
+/* With motion off the band still has to be found, so what it loses in movement it is
+   given back as a standing accent ring rather than simply going quiet. */
+@media (prefers-reduced-motion: reduce) {
+  .narration-peek {
+    box-shadow:
+      0 0 0 2px rgb(var(--narration-peek-rgb) / 40%),
+      0 6px 18px rgb(2 8 20 / 45%);
+    animation: none;
+  }
+
+  .narration-peek__life,
+  .narration-peek__more {
+    animation: none;
+  }
+
+  .narration-peek__life {
+    opacity: 0.45;
+  }
 }
 
 /* Rides the open column's corner, clear of each notice's close button. The explicit

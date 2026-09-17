@@ -19,6 +19,7 @@ export function ArenaDemoTools({
   onSecurityEffect,
   onNoticeOrdering,
   onSplitToasts,
+  onPlutomon,
   onSecurityFlip,
   securityFaceUpCount,
   disabled = false,
@@ -46,6 +47,8 @@ export function ArenaDemoTools({
   onNoticeOrdering?: () => void;
   /** One moment in both columns: the clause on the left, the cards it turned up on the right. */
   onSplitToasts?: () => void;
+  /** The opponent's [All Turns] clause deleting the viewer's Digimon, with nothing asked of them. */
+  onPlutomon?: () => void;
   onSecurityFlip?: () => void;
   securityFaceUpCount?: number;
   disabled?: boolean;
@@ -215,6 +218,20 @@ export function ArenaDemoTools({
               }}
             >
               {portuguese ? "Reproduzir avisos da esquerda e da direita" : "Play the left and right toasts"}
+            </button>
+          ) : null}
+          {onPlutomon ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onPlutomon();
+              }}
+            >
+              {portuguese
+                ? "Reproduzir Plutomon: All Turns exclui seus Digimon"
+                : "Play Plutomon: All Turns deletes your Digimon"}
             </button>
           ) : null}
           {onImperial ? (
