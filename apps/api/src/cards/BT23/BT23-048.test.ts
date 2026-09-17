@@ -476,9 +476,12 @@ describe("BT23-048 Gotsumon", () => {
     );
     await settle();
 
+    // The attack owns the board until it ends; the turn cannot be passed out from under it.
+    await advance(s.engine).finishAttack();
     endMainPhase(s, 0);
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
+    await advance(s.engine).finishAttack();
     endMainPhase(s, 1);
     await settleAcrossTimers(() => s.state.pendingDecision?.kind === "orderTriggers");
     const pending = s.state.pendingDecision;

@@ -61,7 +61,7 @@ export type {
 export { CueTrack, LungeDirection, SecurityBreakPhase } from "./match/enums";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { type StateSnapshot } from "../net/presentedState";
+import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import { type GameState, type Seat, type ServerEvent, type PresentationReport } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
 import { otherSeat } from "./boardModel";
@@ -81,6 +81,7 @@ import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClas
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress } from "./presentationProgress";
+import type { DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
 import { presentationTelemetry } from "./presentationTelemetry";
 import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
 import { type FieldClashScene, type OpenAttack } from "./fieldClash";
@@ -320,6 +321,7 @@ export function useMatchCues({
   const [pendingPhaseBanners, setPendingPhaseBanners] = useState(0);
   const [heldDrawState, setHeldDrawState] = useState<{ seat: Seat; state: GameState } | undefined>();
   const [heldPhaseState, setHeldPhaseState] = useState<GameState | undefined>();
+  const [heldBlowState, setHeldBlowState] = useState<GameState | undefined>();
   const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
   const [announcedTurn, setAnnouncedTurn] = useState<{ seat: Seat; count: number } | undefined>(
@@ -387,7 +389,13 @@ export function useMatchCues({
   const securityDockRef = useRef<{ key: number; closed: boolean } | null>(null);
   // The battle hold the centre of the screen is currently keeping open, if any. Polled the
   // same way the dock is: the check closing is what releases the card into its outcome beat.
-  const securityHoldRef = useRef<{ key: number; closed: boolean } | null>(null);
+  const securityHoldRef = useRef<{ key: number; closed: boolean; handedOver?: boolean } | null>(null);
+  // The blow a security battle has yet to land. A field battle makes its losers wait on
+  // FIELD_CLASH_TOTAL_MS, a constant, because its scene is a constant; a check's scene is
+  // not — its hold runs as long as the server takes to answer what the check asked. So the
+  // wait is a gate rather than a duration: it opens when the outcome beat has played, and
+  // whatever the check deleted shatters then, not seconds ahead of the battle that did it.
+  const securityBlowRef = useRef<{ key: number; landed: boolean; gate: PresentationGate } | null>(null);
   // A used Option has the same open-ended lifetime as a docked Security card: it starts
   // at cardPlayed and closes only when the server confirms its post-resolution routing.
   const optionDockRef = useRef<{ key: number; closed: boolean } | null>(null);
@@ -411,7 +419,12 @@ export function useMatchCues({
   const freezePulseKeyRef = useRef(0);
   const effectSourceKeyRef = useRef(0);
   const optionDockKeyRef = useRef(0);
-  const deletionReadyAtRef = useRef(new Map<string, { readyAt: number; instanceId?: string }>());
+  const deletionReadyAtRef = useRef(new Map<string, DeletionReadyAt>());
+  // The announcement a batch is holding its consequences behind, the one whatever is being
+  // queued right now must wait for, and a gate armed before its clause was known.
+  const effectAnnounceGateRef = useRef<PresentationGate | null>(null);
+  const causingEffectGateRef = useRef<PresentationGate | null>(null);
+  const pendingAnnounceGateRef = useRef<PendingAnnounceGate | null>(null);
   const deckRiffleKeyRef = useRef(0);
   // Where every card the viewer can see currently sits, so an activation can be
   // played at its source and a reshuffle at the pile it landed in.
@@ -523,6 +536,8 @@ export function useMatchCues({
     narrationSkipRef,
     deletionReadyAtRef,
     effectSourceKeyRef,
+    effectAnnounceGateRef,
+    pendingAnnounceGateRef,
     setEffectSources,
     setNarration,
     collapseNarrationRef,
@@ -534,6 +549,21 @@ export function useMatchCues({
     narrationSequenceRef,
     narrationRef,
   });
+
+  /* A lit source belongs to the clause it raised: it goes out when that clause does, not
+     on a clock of its own. Only a clause that actually reached the screen is followed —
+     an activation still waiting for its own is not missing, it is early. */
+  useEffect(() => {
+    setEffectSources((sources) => {
+      const kept = sources.filter(
+        (source) => source.linked !== true || source.itemId === undefined || narration.has(source.itemId),
+      );
+      return kept.length === sources.length ? sources : kept;
+    });
+  }, [narration]);
+
+  // Each record expires on its own clock, including while a decision is open.
+  // Schedule only the next expiry, and cancel on unmount or replacement.
   useEffect(() => {
     if (narration.size === 0) return;
     const expiresAt = Math.min(...[...narration.values()].map((item) => item.createdAt + narrationReadingTime(item)));
@@ -563,6 +593,33 @@ export function useMatchCues({
       ),
     );
   }, [narrationLimit]);
+
+  /**
+   * The board a security check's battle still needs: the attacker standing and suspended,
+   * the cards still where the reveal found them. Taken here rather than from
+   * `previousDrawStateRef`, which lags a render — that copy predates the declaration, so
+   * the attacker it carries stands unsuspended and the board would answer the blow by
+   * rotating the dying card upright.
+   */
+  function blowHoldState(): GameState | undefined {
+    if (!state) return undefined;
+    const live = snapshotGameState(state);
+    const attackerId = securityAttackerRef.current?.permanentId;
+    const standing = (board: GameState) =>
+      board.players.some((player) => player.battleArea.some((permanent) => permanent.permanentId === attackerId));
+    if (attackerId === undefined || standing(live)) return live;
+    const source = [...(phaseStateRef.current.snapshots ?? [])]
+      .reverse()
+      .map((snapshot) => snapshot.state)
+      .find(standing);
+    if (!source) return live;
+    const held = snapshotGameState(source);
+    for (const player of held.players) {
+      const attacker = player.battleArea.find((permanent) => permanent.permanentId === attackerId);
+      if (attacker) attacker.isSuspended = true;
+    }
+    return held;
+  }
 
   /**
    * Present one server batch. The pass itself lives in `match/present/presentBatch.ts`;
@@ -633,6 +690,12 @@ export function useMatchCues({
       queuedSecurityKeyRef,
       securityDockRef,
       securityHoldRef,
+      securityBlowRef,
+      blowHoldState,
+      setHeldBlowState,
+      causingEffectGateRef,
+      effectAnnounceGateRef,
+      pendingAnnounceGateRef,
       securityClashKeyRef,
       securityAttackerRef,
       pendingDestructionsRef,
@@ -725,14 +788,22 @@ export function useMatchCues({
     queue,
     progress,
     flushHeldNotices,
+    securityHoldRef,
     setDecisionBarrier,
     setDecisionStalled,
     setPendingRevealKey,
   });
 
-  useDpPulses({ state, queue, dpByPermanentRef, dpPulseKeyRef, setDpPulses });
+  useDpPulses({ state, queue, dpByPermanentRef, dpPulseKeyRef, causingEffectGateRef, setDpPulses });
 
-  useRestrictionPulses({ state, queue, restrictionsByPermanentRef, freezePulseKeyRef, setFreezePulses });
+  useRestrictionPulses({
+    state,
+    queue,
+    restrictionsByPermanentRef,
+    freezePulseKeyRef,
+    causingEffectGateRef,
+    setFreezePulses,
+  });
 
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
@@ -741,6 +812,7 @@ export function useMatchCues({
       queue,
       anchors,
       viewerSeat,
+      causingEffectGateRef,
       securityGainKeyRef,
       drawFlightKeyRef,
       setSecurityFlights,
@@ -883,6 +955,7 @@ export function useMatchCues({
     phaseTransitionPending: pendingPhaseBanners > 0,
     heldDrawState,
     heldPhaseState,
+    heldBlowState,
     heldBreedingState,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
     displayedTurn: pendingPhaseBanners > 0 ? announcedTurn : state && { seat: state.turnSeat, count: state.turnCount },

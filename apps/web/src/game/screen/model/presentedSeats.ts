@@ -12,7 +12,7 @@
 
 import type { GameState, PlayerState, Seat } from "@aegis/shared";
 import { otherSeat } from "../../boardModel";
-import { phaseField } from "./presentedBoard";
+import { blowField, phaseField } from "./presentedBoard";
 import type { PresentedPlayer } from "../types";
 
 export function presentedSeats({
@@ -21,6 +21,7 @@ export function presentedSeats({
   opponent,
   viewerSeat,
   heldPhaseState,
+  heldBlowState,
   heldDrawState,
   heldBreedingState,
   optimisticPlayedInstanceId,
@@ -30,18 +31,25 @@ export function presentedSeats({
   opponent: PlayerState;
   viewerSeat: Seat;
   heldPhaseState: GameState | undefined;
+  heldBlowState: GameState | undefined;
   heldDrawState: { seat: Seat; state: GameState } | undefined;
   heldBreedingState: { seat: Seat; player: PlayerState } | undefined;
   /** A card a play has already taken out of the hand, pending the server's word. */
   optimisticPlayedInstanceId: string | undefined;
 }) {
-  const presentedViewer = phaseField({
-    player: shownState.players[viewerSeat] ?? viewer,
-    held: heldPhaseState?.players[viewerSeat],
+  const presentedViewer = blowField({
+    player: phaseField({
+      player: shownState.players[viewerSeat] ?? viewer,
+      held: heldPhaseState?.players[viewerSeat],
+    }),
+    held: heldBlowState?.players[viewerSeat],
   });
-  const presentedOpponent = phaseField({
-    player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
-    held: heldPhaseState?.players[otherSeat(viewerSeat)],
+  const presentedOpponent = blowField({
+    player: phaseField({
+      player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
+      held: heldPhaseState?.players[otherSeat(viewerSeat)],
+    }),
+    held: heldBlowState?.players[otherSeat(viewerSeat)],
   });
   const heldViewer = heldDrawState?.seat === viewerSeat ? heldDrawState.state.players[viewerSeat] : undefined;
   const heldOpponent =

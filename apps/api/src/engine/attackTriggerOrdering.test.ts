@@ -186,4 +186,43 @@ describe("attack trigger ordering", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("attackerSource").instanceId);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
   });
+  it("resolves an effect-driven attacker's [When Attacking] before the security check it opens", async () => {
+    // Match 89641815: BT26-015's "when your effect adds cards to a deck, 1 of your Digimon may
+    // get +3000 DP and attack" ordered the attack from inside its own resolving body, so the
+    // attacker's inherited BT26-009 [When Attacking] was parked as a nested pending trigger and
+    // only drained once the security card had already been flipped — the hand prompt landing on
+    // top of the reveal animation. §11-1 runs the When Attacking window before the check.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-014", as: "attacker", under: [{ card: "BT26-009" }] }],
+          hand: [{ card: "BT26-015", as: "butenmon" }],
+          trash: [{ card: "BT1-011", as: "returned" }],
+          deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "prey", dp: 9000 }],
+          security: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("butenmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+
+    const whenAttacking = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT26-009",
+    );
+    const revealed = s.events.findIndex((event) => event.kind === "securityRevealed");
+    expect(whenAttacking).toBeGreaterThanOrEqual(0);
+    expect(revealed).toBeGreaterThanOrEqual(0);
+    expect(whenAttacking).toBeLessThan(revealed);
+    expect(
+      s.events.find((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT26-009"),
+    ).not.toMatchObject({ duringSecurityCheck: true });
+  });
 });

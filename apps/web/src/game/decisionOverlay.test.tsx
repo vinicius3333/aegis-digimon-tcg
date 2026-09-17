@@ -442,6 +442,65 @@ describe("EX3-059 DarkTyrannomon decisions", () => {
   });
 });
 
+describe("phone target grid", () => {
+  function stubViewportWidth(matched: string): void {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === matched,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }));
+  }
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  function renderTargets(): HTMLElement {
+    const { container } = render(
+      <I18nProvider>
+        <DecisionOverlay
+          request={{
+            decisionId: "narrow-targets",
+            seat: 0,
+            kind: "chooseTargets",
+            promptText: "Choose an opponent's Digimon to suspend",
+            options: { candidateInstanceIds: ["elecmon", "gabumon", "agumon"], min: 1, max: 2 },
+          }}
+          candidates={[
+            { instanceId: "elecmon", cardId: "BT1-028" },
+            { instanceId: "gabumon", cardId: "BT1-029" },
+            { instanceId: "agumon", cardId: "BT1-009" },
+          ]}
+          picks={[]}
+          onTogglePick={vi.fn<(instanceId: string) => void>()}
+          onRespond={vi.fn<(response: DecisionResponse) => void>()}
+        />
+      </I18nProvider>,
+    );
+    const grid = container.querySelector<HTMLElement>(".decision-overlay__grid");
+    expect(grid).not.toBeNull();
+    return grid as HTMLElement;
+  }
+
+  // Three tiles, their gaps and the row's badge gutter have to clear the sheet's
+  // padding on the narrowest phones; at the wider size the row was sliced by the
+  // screen edge instead of fitting.
+  it("steps the candidate cards down on a phone narrower than the grid's breakpoint", () => {
+    stubViewportWidth("(width < 400px)");
+    const cards = renderTargets().querySelectorAll<HTMLElement>("button > div");
+    expect([...cards].map((card) => card.style.width)).toEqual(["96px", "96px", "96px"]);
+  });
+
+  it("keeps the compact size on a phone wide enough for it", () => {
+    stubViewportWidth("(width < 600px)");
+    const cards = renderTargets().querySelectorAll<HTMLElement>("button > div");
+    expect([...cards].map((card) => card.style.width)).toEqual(["110px", "110px", "110px"]);
+  });
+});
+
 describe("EX3-061 Dinobeemon decisions", () => {
   it.each([
     [

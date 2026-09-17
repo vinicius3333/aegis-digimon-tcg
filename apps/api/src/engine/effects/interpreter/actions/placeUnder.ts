@@ -7,7 +7,6 @@ import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
-import { EffectDuration } from "@aegis/shared";
 import type { Action, Filter, Target, ZoneRef } from "@aegis/shared";
 
 type MixedSourceCandidate = { instanceId: string; cardId: string; permanentId?: string };
@@ -551,9 +550,6 @@ export async function runPlaceUnder(
         belowTop: action.position !== "bottom",
         faceUp: action.faceDown !== true,
       });
-    }
-    for (const instanceId of placementIds) {
-      ctx.fx.conferStackEffects?.(hostId, instanceId, EffectDuration.Permanent, { inheritedOnly: true });
     }
   }
   if (action.bindHostAs && chosen.length > 0) {

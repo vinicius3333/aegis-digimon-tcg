@@ -110,10 +110,16 @@ export function usePhaseBanners({
     await Promise.resolve();
     const batchDeadline = Date.now() + PRESENTED_BOARD_BUDGET_MS;
     while (!context.cancelled && !context.skipping && context.mode === "live") {
+      // A batch that has slid out of the tracked window is never coming back, so waiting
+      // for it is waiting for nothing.
+      const oldestTrackedSeq = phaseBatchesRef.current[0]?.events[0]?.seq;
+      const evictedFromWindow = (event: ServerEvent) =>
+        oldestTrackedSeq !== undefined && "seq" in event && typeof event.seq === "number" && event.seq < oldestTrackedSeq;
       const awaitingBatch =
         Date.now() < batchDeadline &&
         arrivals.some(
           (event) =>
+            !evictedFromWindow(event) &&
             !phaseBatchesRef.current.some((batch) =>
               batch.events.some(
                 (candidate) =>
@@ -286,23 +292,21 @@ export function usePhaseBanners({
                         : [],
                     ),
                 );
+                // Both boards release here, not just the turn player's: ＜Reboot＞
+                // unsuspends the opposing Digimon in this same phase (§16-11), and the
+                // server reports it among this phase's moves. Releasing only the turn
+                // seat left a Reboot holder rotated until the hold lifted a phase later.
                 setHeldPhaseState((held) =>
                   held
                     ? ({
                         ...held,
-                        players: held.players.map((player, seat) =>
-                          seat === openedPhase.turnSeat
-                            ? {
-                                ...player,
-                                battleArea: player.battleArea.map((permanent) => ({
-                                  ...permanent,
-                                  isSuspended: unsuspendedIds.has(permanent.permanentId)
-                                    ? false
-                                    : permanent.isSuspended,
-                                })),
-                              }
-                            : player,
-                        ),
+                        players: held.players.map((player) => ({
+                          ...player,
+                          battleArea: player.battleArea.map((permanent) => ({
+                            ...permanent,
+                            isSuspended: unsuspendedIds.has(permanent.permanentId) ? false : permanent.isSuspended,
+                          })),
+                        })),
                       } as GameState)
                     : held,
                 );

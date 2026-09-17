@@ -1,7 +1,8 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
@@ -211,8 +212,20 @@ describe("EX11-024 Cendrillmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("opponent").currentDP === 6000);
     expect(s.perm("opponent").currentDP).toBe(6000);
+    // The attack owns the board until it ends; the turn cannot be passed out from under it.
+    await advance(s.engine).finishAttack();
     if (s.state.turnSeat === 0) s.engine.applyIntent(0, { type: "endPhase" });
-    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1);
+    // ＜Overclock＞ offers a second attack at the end of the turn. This test is about the DP
+    // math of the first one, so decline and let the turn hand over.
+    await settleAcrossTimers(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settleAcrossTimers(() => s.state.phase === "Main" && s.state.turnSeat === 1);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);

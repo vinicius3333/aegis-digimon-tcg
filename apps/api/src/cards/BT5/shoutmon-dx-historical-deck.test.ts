@@ -53,7 +53,7 @@ describe("BT5 Shoutmon DX historical deck gauntlet", () => {
     expect(s.state.phase).toBe(Phase.Main);
     expect(s.perm("omniShoutmon").stack.map(({ cardId }) => cardId)).toEqual(["BT5-014", "BT5-014"]);
     expect(observe(s.engine).hasKeyword(s.perm("omniShoutmon"), "Blitz")).toBe(true);
-    expect(observe(s.engine).keywordAmount(s.perm("omniShoutmon"), "SecurityAttack")).toBe(3);
+    expect(observe(s.engine).keywordAmount(s.perm("omniShoutmon"), "SecurityAttack")).toBe(2);
 
     expect(
       s.engine.applyIntent(0, {

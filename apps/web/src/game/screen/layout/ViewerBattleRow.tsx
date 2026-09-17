@@ -90,6 +90,7 @@ export function ViewerBattleRow({
             }}
             candidate={isBasePermanent(p)}
             effectSource={chrome.effectSourcePermanentIds.has(p.permanentId)}
+            effectLinked={chrome.effectLinkedPermanentIds.has(p.permanentId)}
             // A board-mode optional prompt points at the permanent whose
             // effect is asking, so the rail and the field read as one.
             highlight={

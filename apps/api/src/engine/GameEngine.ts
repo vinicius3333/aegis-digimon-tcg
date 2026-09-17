@@ -273,6 +273,36 @@ const NO_LINK_TARGETS: readonly string[] = [];
 /** `CardInstance.projectedPlayCost` sentinel: this card has no projectable play cost right now. */
 const NO_PROJECTED_COST = -1;
 
+/**
+ * The verbs refused while an attack is resolving. Everything a seat does to its own board
+ * belongs to a Main-phase action window, and CR section 11 gives the attack the board until
+ * the battle ends. The combat responses (`declareBlock`, `declineBlock`, `respondCounter`,
+ * `respondAlliance`, `respondEvade`, `respondBarrier`), `respondDecision`, `ready` and
+ * `surrender` are deliberately absent: they drive the attack forward or end the match.
+ */
+const ATTACK_BLOCKED_INTENTS: ReadonlySet<Intent["type"]> = new Set([
+  "playCard",
+  "appFusion",
+  "digivolve",
+  "dnaDigivolve",
+  "linkCard",
+  "attack",
+  "activateEffect",
+  "endPhase",
+  "hatchEgg",
+  "moveFromBreeding",
+]);
+
+/**
+ * A ＜Blast Digivolve＞ / ＜Blast DNA Digivolve＞ declaration, the one digivolve that belongs to
+ * the defending seat's §11-3 Counter Timing window rather than to a Main-phase action window.
+ * Its own validator enforces the open window, so {@link ATTACK_BLOCKED_INTENTS} exempts it
+ * instead of refusing the keyword outright.
+ */
+function isBlastDigivolve(intent: Intent): boolean {
+  return (intent.type === "digivolve" || intent.type === "dnaDigivolve") && intent.useBlastDigivolve === true;
+}
+
 /** A hand card reads as playable when it validates, or when only memory is short of a material-cost route. */
 function playableFromHand(check: PlayCardCheck, cardId: string): boolean {
   return check.ok || (check.reason === "insufficient-memory" && hasMaterialCostRoute(cardId));
@@ -1192,6 +1222,7 @@ export class GameEngine {
       finishEffectBody: () => {
         this.effectResolutionDepth = Math.max(0, this.effectResolutionDepth - 1);
       },
+      drainPendingAttackTriggers: () => this.drainPendingAttackTriggers(),
       resolveAttackTimingWindow: async (drain) => {
         // An effect-directed attack pauses its enclosing effect bodies while the
         // attack's pending effects resolve. State-based rules run between those
@@ -1208,6 +1239,7 @@ export class GameEngine {
       baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
         this.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
       emit: (event) => this.hooks.emit(event),
+      inSecurityCheck: () => this.securityCheckDepth > 0,
       nextPermanentId: () => this.nextPermanentId(),
       nextInstanceId: () => this.nextInstanceId(),
       memory: this.memory,
@@ -2709,6 +2741,32 @@ export class GameEngine {
    * pooled rule-check window calls this directly: at that point the fixpoint has converged
    * and no card body is on the stack, so there is nothing left to defer behind.
    */
+  /**
+   * Resolve the nested pending pool for an effect-directed attack whose ordering body is a
+   * watcher rather than a timing window, so nothing else would drain it before Counter Timing
+   * and the security check (§11-1). The pool is the ONLY source here — candidate instances are
+   * narrowed to none — so this drains what the attack and its ordering body already triggered
+   * rather than re-opening a [When Attacking] window of its own.
+   */
+  private async drainPendingAttackTriggers(): Promise<void> {
+    if (this.pendingWindowCollected().length === 0) return;
+    const wasOutermostWindow = this.beginResolvingWindow();
+    try {
+      await this.withTriggeredMutations(() =>
+        this.withPendingPoolDrain(wasOutermostWindow, () =>
+          runTiming(
+            EffectTiming.OnUseAttack,
+            this.effectEnvironment({}),
+            this.resolutionDeps(() => [], { outermost: true }),
+          ),
+        ),
+      );
+      await this.recomputeContinuousEffects();
+    } finally {
+      this.endResolvingWindow(wasOutermostWindow);
+    }
+  }
+
   private async runTimingWindow(
     timing: EffectTiming,
     trigger: TriggerInfo,
@@ -6284,11 +6342,11 @@ export class GameEngine {
         log("[securityCheck]", card.cardId, `isDigimon=${result} kinds=`, lookupDefinition(card.cardId)?.kinds);
         return result;
       },
-      deletePermanents: async (permanentIds) => {
+      deletePermanents: async (permanentIds, afterMovement) => {
         // Security battles use the authoritative deletion primitive too. It owns the complete
         // replacement pipeline (Armor Purge, Decoy, Material Save, On Deletion and teardown),
         // preventing this seam from drifting from field-battle and effect deletion behavior.
-        await this.primitives.deletePermanent(permanentIds, "byBattle");
+        await this.primitives.deletePermanent(permanentIds, "byBattle", { afterMovement });
       },
     };
     const emitWithLog = (event: ServerEvent) => {
@@ -7046,6 +7104,24 @@ export class GameEngine {
     if (intent.type === "endPhase" && this.mainEntryPending && mainActionWhileResolving) {
       this.deferredEndPhaseSeat = seat;
       return { ok: true };
+    }
+    // CR section 11: an attack runs from declaration to the end of the battle as one
+    // uninterrupted process. While it is in flight — including while it is parked on a
+    // combat prompt the defending seat still owes an answer to (block, Counter Timing,
+    // Alliance, Evade, Barrier) — no board verb is accepted from either seat. Those
+    // prompts are mirrored in `state.combatWindow`, not in `state.pendingDecision`, so
+    // the per-verb `decision-pending` gates do not see them; without this the turn
+    // player could play Digimon between a redirected attack and its battle, and end the
+    // turn with the attack never resolved. The room's answer-timeout backstop
+    // (`expireCombatWindow`) guarantees the window always closes, so this cannot wedge
+    // the turn. The combat response verbs, `respondDecision`, `ready` and `surrender`
+    // stay open: they are how the attack makes progress or the match ends.
+    if (
+      this.combat.currentAttackerId !== undefined &&
+      ATTACK_BLOCKED_INTENTS.has(intent.type) &&
+      !isBlastDigivolve(intent)
+    ) {
+      return { ok: false, reason: "wrong-phase" };
     }
     switch (intent.type) {
       case "playCard":

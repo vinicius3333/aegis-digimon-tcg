@@ -3,6 +3,8 @@ import type { GameState } from "@aegis/shared";
 import type { AnimationQueue } from "../../animationQueue";
 import { dpPulses as diffDpPulses, type DpPulse } from "../../dpPulse";
 import { dpPulseTotalMs } from "../../timings";
+import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
+
 
 /**
  * A DP figure that moved gets a pulse.
@@ -19,6 +21,7 @@ export function useDpPulses({
   queue,
   dpByPermanentRef,
   dpPulseKeyRef,
+  causingEffectGateRef,
   setDpPulses,
 }: {
   state: GameState | undefined;
@@ -26,6 +29,8 @@ export function useDpPulses({
   /** Mutated: last read of every permanent's live DP, so the next commit can diff it. */
   dpByPermanentRef: MutableRefObject<Map<string, number> | null>;
   dpPulseKeyRef: MutableRefObject<number>;
+  /** The clause that moved the figure, which is read out before the number pulses. */
+  causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   setDpPulses: Dispatch<SetStateAction<ReadonlyMap<string, DpPulse>>>;
 }) {
   const dpSignature = state
@@ -47,6 +52,7 @@ export function useDpPulses({
     const pulses = diffDpPulses({ previous, next: current, nextKey: dpPulseKeyRef.current });
     if (pulses.length === 0) return;
     dpPulseKeyRef.current += pulses.length;
+    const causingEffectGate = causingEffectGateRef.current;
     for (const pulse of pulses) {
       queue.enqueue({
         id: `dp-pulse-${pulse.key}`,
@@ -54,6 +60,8 @@ export function useDpPulses({
         replace: true,
         async run(context) {
           if (context.mode !== "live") return;
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+          if (context.cancelled) return;
           try {
             setDpPulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));
             await context.wait(dpPulseTotalMs(pulse.kind === "debuffFatal"));

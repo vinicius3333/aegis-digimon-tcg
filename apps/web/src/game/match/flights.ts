@@ -5,11 +5,14 @@ import { Side } from "../side";
 import { isTouchLayout } from "./environment";
 import { TIMINGS } from "../timings";
 import type { DrawBurst, DrawFlight, MatchCueAnchors } from "./types";
+import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "./presentationGate";
 
 export interface CueFlightsDeps {
   queue: AnimationQueue;
   anchors: MatchCueAnchors;
   viewerSeat: Seat;
+  /** The clause a flight is a consequence of, which is read out before the cards move. */
+  causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   securityGainKeyRef: MutableRefObject<number>;
   drawFlightKeyRef: MutableRefObject<number>;
   setSecurityFlights: Dispatch<SetStateAction<ReadonlySet<number>>>;
@@ -24,6 +27,7 @@ export function cueFlights(deps: CueFlightsDeps) {
     queue,
     anchors,
     viewerSeat,
+    causingEffectGateRef,
     securityGainKeyRef,
     drawFlightKeyRef,
     setSecurityFlights,
@@ -35,12 +39,15 @@ export function cueFlights(deps: CueFlightsDeps) {
   /** The card lands on the stack: the same shield bounce a recovery plays. */
   function launchSecurityGainFlight(seat: Seat) {
     const key = (securityGainKeyRef.current += 1);
+    const causingEffectGate = causingEffectGateRef.current;
     queue.enqueue({
       id: `security-gain-flight-${seat}-${key}`,
       track: `securityFlight-${seat}`,
       replace: true,
       async run(context) {
         if (context.mode !== "live") return;
+        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+        if (context.cancelled) return;
         try {
           setSecurityFlights((seats) => new Set(seats).add(seat));
           await context.wait(TIMINGS.securityFlight);
@@ -94,6 +101,8 @@ export function cueFlights(deps: CueFlightsDeps) {
    * which is what makes an opponent's draw visible at all.
    */
   function launchDrawFlight(side: Side, turnStart = false, waitBeforeMs = 0) {
+    // A turn's own draw is not the consequence of any clause; every other draw is.
+    const causingEffectGate = turnStart ? null : causingEffectGateRef.current;
     const board = anchors.board.current;
     const source = side === Side.Viewer ? anchors.yourDeck.current : anchors.oppDeck.current;
     const target = side === Side.Viewer ? anchors.yourHandDock.current : anchors.oppHandStrip.current;
@@ -126,7 +135,10 @@ export function cueFlights(deps: CueFlightsDeps) {
       side,
       track: `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {
-        if (waitBeforeMs > 0) await context.wait(waitBeforeMs);
+        await Promise.all([
+          waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS),
+          waitBeforeMs > 0 ? context.wait(waitBeforeMs) : Promise.resolve(),
+        ]);
         if (context.cancelled) return;
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);
@@ -190,10 +202,13 @@ export function cueFlights(deps: CueFlightsDeps) {
     const key = ++drawFlightKeyRef.current;
     const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
     const flight: DrawFlight = { key, x, y, dx: target.x - x, dy: target.y - y, duration };
+    const causingEffectGate = causingEffectGateRef.current;
     queue.enqueue({
       id: `deck-under-flight-${key}`,
       track: `deckUnder-${permanentId}`,
       async run(context) {
+        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+        if (context.cancelled) return;
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);
         setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));

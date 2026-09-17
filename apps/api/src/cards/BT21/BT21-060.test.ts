@@ -228,6 +228,8 @@ describe("BT21-060 Destromon", () => {
     });
     await settle(() => s.perm("source").topCard.cardId === "BT21-056");
     expect(s.perm("source").topCard.cardId).toBe("BT21-056");
+    // The attack owns the board until it ends; the turn cannot be passed out from under it.
+    await advance(s.engine).finishAttack();
     advance(s.engine).endMainPhaseIfOpen(1);
     await nextOpponentTurn;
   });

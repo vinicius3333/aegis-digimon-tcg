@@ -34,6 +34,15 @@ export interface EffectActivation {
   seat: Seat;
   cardId: string;
   site: EffectSourceSite;
+  /**
+   * The narration item this activation belongs to. The announcement is a punch of half a
+   * second, but the clause it announces reads for many: the source stays lit for as long
+   * as its clause is on screen, so the toast and the card that raised it are one thing
+   * rather than two signals the viewer has to connect from memory.
+   */
+  itemId?: string;
+  /** Set once that clause is actually on screen, which is when the card's hold begins. */
+  linked?: boolean;
 }
 
 /**

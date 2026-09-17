@@ -11,7 +11,7 @@
    Each budget exists because the thing it bounds has no clock of its own, and a prompt that
    never opens is a match that ends without ending: the server is blocked on that answer. */
 
-import { useEffect, type Dispatch, type SetStateAction } from "react";
+import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import type { AnimationQueue } from "../../animationQueue";
 import { type PresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "../../presentationProgress";
 import { presentationTelemetry } from "../../presentationTelemetry";
@@ -30,6 +30,7 @@ export function useDecisionBarrier({
   queue,
   progress,
   flushHeldNotices,
+  securityHoldRef,
   setDecisionBarrier,
   setDecisionStalled,
   setPendingRevealKey,
@@ -48,6 +49,8 @@ export function useDecisionBarrier({
   queue: AnimationQueue;
   progress: PresentationProgress;
   flushHeldNotices: () => void;
+  /** Mutated: the battle hold is handed over, the question having taken the board back. */
+  securityHoldRef: MutableRefObject<{ key: number; closed: boolean; handedOver?: boolean } | null>;
   setDecisionBarrier: Dispatch<SetStateAction<number | null>>;
   setDecisionStalled: Dispatch<SetStateAction<boolean>>;
   setPendingRevealKey: Dispatch<SetStateAction<number | null>>;
@@ -141,6 +144,8 @@ export function useDecisionBarrier({
       skippable: false,
       run() {
         flushHeldNotices();
+        const held = securityHoldRef.current;
+        if (held?.key === key && !held.closed) held.handedOver = true;
         setPendingRevealKey((current) => (current === key ? null : current));
       },
     });

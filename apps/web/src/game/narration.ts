@@ -103,6 +103,33 @@ export function isCardListNotice(notice: MatchNotice): boolean {
 }
 
 /**
+ * The deletion call-out as the panel it always was.
+ *
+ * It is a title over a list of cards, which is the side panel's whole definition, and the
+ * two are read out of the same column — often in the same batch, "Deleted" directly above
+ * "Trashed cards". Drawn as a notice it wore the notice's frame instead: a different
+ * background, a different radius and a caption where the panel has a header, so one moment
+ * looked like two systems. It is built here rather than drawn twice, so there is one panel
+ * component and no second copy of its styling to keep in step.
+ */
+export function deletionPanel(notice: MatchNotice): SidePanel | undefined {
+  if (notice.body.variant !== "deletion") return undefined;
+  return {
+    id: notice.id,
+    titleKey: "notice.deletion",
+    side: notice.side,
+    cards: notice.body.cards.map((card, index) => ({
+      cardId: card.cardId,
+      ...(card.artId ? { artId: card.artId } : {}),
+      badge: index + 1,
+    })),
+    // Nothing ordered them: an effect that took three permanents took them at once.
+    ordered: false,
+    createdAt: notice.createdAt,
+  };
+}
+
+/**
  * Every column this item appears in. A moment carrying both a clause and the cards it
  * moved is read in both: the clause on the left, the list on the right.
  */

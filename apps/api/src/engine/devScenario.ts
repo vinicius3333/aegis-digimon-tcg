@@ -25,7 +25,7 @@ import {
  * mulligan, security) with a hand-laid board and then hands control to the real turn loop, so
  * a developer lands mid-match instead of playing the opening turns every time.
  */
-export const DEV_SCENARIO_IDS = ["battle", "arena", "card-bugs", "security-battle"] as const;
+export const DEV_SCENARIO_IDS = ["battle", "arena", "card-bugs", "security-battle", "security-chain"] as const;
 export type DevScenarioId = (typeof DEV_SCENARIO_IDS)[number];
 
 export function isDevScenarioId(value: unknown): value is DevScenarioId {
@@ -250,7 +250,43 @@ const DELAYED_BATTLE_SECURITY_CARD = "EX12-076";
 /** Level 5+ in the bot's hand, so the [On Deletion] that holds the check open can be paid. */
 const DELAYED_BATTLE_BOT_HAND_CARD = "BT24-017";
 
+/**
+ * The same gap, opened twice over. `security-battle` asks the bot one question and holds the
+ * check for roughly one think time; production hit a check that asked two in a row and held it
+ * for 5.3 s, which is the shape worth watching because it is the one the single-question board
+ * does not reach.
+ *
+ * ZeigGreymon (Lv.6, 11000 DP) attacks into Susanoomon (Lv.7, 16000 DP) and loses. Its
+ * [All Turns] "would leave the battle area" clause asks the bot to accept the replacement and
+ * then to pick which Digimon to play from its own digivolution cards — two decisions, back to
+ * back, both inside the open check. Shoutmon (Lv.3) and OmniShoutmon (Lv.5) sit under it so the
+ * pick has two real candidates; the Pickmons DigiEgg under both carries the inherited
+ * [When Attacking] draw, so the attack also opens with an effect of its own.
+ *
+ * Listed bottom to top, matching the production stack card for card.
+ */
+const SECURITY_CHAIN_ATTACKER_CARDS: readonly string[] = ["BT10-003", "BT19-008", "BT21-021", "AD1-013"];
+
 function layDelayedSecurityBattleScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  laySecurityCheckScenario(state, decks, DELAYED_BATTLE_ATTACKER_CARDS, DELAYED_BATTLE_BOT_HAND_CARD);
+}
+
+/** The two-question variant. See `SECURITY_CHAIN_ATTACKER_CARDS`. */
+function laySecurityChainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  laySecurityCheckScenario(state, decks, SECURITY_CHAIN_ATTACKER_CARDS);
+}
+
+/**
+ * Both security-check boards: the viewer holds the oversized Digimon on top of security, the
+ * bot holds the turn and an established attacker that loses to it. Only the attacker — and
+ * whatever its clauses need in hand — tells the two apart.
+ */
+function laySecurityCheckScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  attackerCards: readonly string[],
+  botHandCard?: string,
+): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
     if (player === undefined) continue;
@@ -271,8 +307,8 @@ function layDelayedSecurityBattleScenario(state: GameState, decks: readonly [Dec
   }
   const bot = state.players[1];
   if (bot !== undefined) {
-    placePermanent(bot, establishedDigimon(1, DELAYED_BATTLE_ATTACKER_CARDS));
-    insertCard(bot, Zone.Hand, faceDownCard("dev-hand-1", DELAYED_BATTLE_BOT_HAND_CARD, 1));
+    placePermanent(bot, establishedDigimon(1, attackerCards));
+    if (botHandCard !== undefined) insertCard(bot, Zone.Hand, faceDownCard("dev-hand-1", botHandCard, 1));
   }
   // The bot takes the turn, so the check that runs is the one against the viewer's security.
   state.turnSeat = 1;
@@ -286,6 +322,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   arena: layArenaScenario,
   "card-bugs": layCardBugsScenario,
   "security-battle": layDelayedSecurityBattleScenario,
+  "security-chain": laySecurityChainScenario,
 };
 
 export function layDevScenario(scenario: DevScenarioId, state: GameState, decks: readonly [Decklist, Decklist]): void {

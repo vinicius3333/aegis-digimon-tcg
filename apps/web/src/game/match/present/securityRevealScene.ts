@@ -1,5 +1,5 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
-import type { Seat } from "@aegis/shared";
+import type { GameState, Seat } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
 import type { MatchNotice } from "../../notices";
 import type { SidePanel } from "../../sidePanels";
@@ -16,6 +16,7 @@ import {
 import { CueTrack } from "../enums";
 import type { SecurityBreakCue } from "../types";
 import { shieldBreakStep } from "../steps/shieldBreakStep";
+import { createPresentationGate, type PresentationGate } from "../presentationGate";
 
 /** The revealed card `stageSecurityReveal` currently holds on stage. */
 export interface RevealOnStage {
@@ -36,7 +37,12 @@ export interface SecurityRevealSceneDeps {
   revealOnStageRef: MutableRefObject<RevealOnStage | null>;
   queuedSecurityKeyRef: MutableRefObject<number | null>;
   securityDockRef: MutableRefObject<{ key: number; closed: boolean } | null>;
-  securityHoldRef: MutableRefObject<{ key: number; closed: boolean } | null>;
+  securityHoldRef: MutableRefObject<{ key: number; closed: boolean; handedOver?: boolean } | null>;
+  /** Mutated: armed at the reveal, released once the check's battle has been drawn. */
+  securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
+  /** The board this check's battle still needs, held from the reveal until the blow lands. */
+  blowHoldState: () => GameState | undefined;
+  setHeldBlowState: Dispatch<SetStateAction<GameState | undefined>>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   setSecurityBreak: Dispatch<SetStateAction<SecurityBreakCue | null>>;
@@ -82,6 +88,9 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     queuedSecurityKeyRef,
     securityDockRef,
     securityHoldRef,
+    securityBlowRef,
+    blowHoldState,
+    setHeldBlowState,
     heldNoticesRef,
     heldPanelsRef,
     setSecurityBreak,
@@ -105,6 +114,12 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
   ) {
     // Only an unfinished check may be replaced. Completed checks still owed to the
     // viewer stay on the serial track, even when their events arrived in one render.
+    // Armed with the reveal and released by the outcome, so anything this check deletes
+    // in between waits for the blow instead of shattering over a battle not yet drawn.
+    securityBlowRef.current = { key, landed: false, gate: createPresentationGate() };
+    // The board as it is at the reveal — attacker suspended on the field, cards still in
+    // security — is what stays on screen until that battle has been drawn.
+    setHeldBlowState(blowHoldState());
     const replace = revealOnStageRef.current !== null || queuedSecurityKeyRef.current === null;
     if (revealOnStageRef.current !== null) flushHeldNotices();
     queuedSecurityKeyRef.current = key;
@@ -308,7 +323,12 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
         try {
           while (!context.cancelled && waitedMs < TIMINGS.securityDockMax) {
             const held = securityHoldRef.current;
-            if (held === null || held.key !== key || held.closed) return;
+            if (held === null || held.key !== key) return;
+            if (held.closed) return;
+            if (held.handedOver) {
+              giveUp();
+              return;
+            }
             await context.wait(TIMINGS.securityDockPoll);
             waitedMs += TIMINGS.securityDockPoll;
           }
@@ -379,8 +399,22 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     releaseSecurityPresentation(key);
   }
 
+  /**
+   * Let go of whatever this check's battle was holding back. Called from every path that
+   * ends a check — the outcome beat, a close with no battle to draw, a cancelled scene —
+   * because a gate this one-sided wedges the shatter forever if a path forgets it.
+   */
+  function releaseSecurityBlow(key: number) {
+    const blow = securityBlowRef.current;
+    if (blow?.key !== key) return;
+    blow.landed = true;
+    blow.gate.release();
+    setHeldBlowState(undefined);
+  }
+
   return {
     stageSecurityReveal,
+    releaseSecurityBlow,
     dockSecurityReveal,
     undockSecurityReveal,
     clearSecurityReveal,

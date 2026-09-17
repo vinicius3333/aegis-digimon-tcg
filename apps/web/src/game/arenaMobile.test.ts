@@ -66,3 +66,17 @@ describe("portrait security shield", () => {
     );
   });
 });
+
+describe("portrait memory marker", () => {
+  it("drops the yellow marker for a red one once memory sits on the opponent's side", () => {
+    const opponentMarker = portraitRules?.match(
+      /\.game-board \.game-memory-coin--marker\[data-memory-side="opp"\]::before \{(?<rule>[^}]*)\}/,
+    )?.groups?.rule;
+    expect(opponentMarker).toBeDefined();
+    expect(opponentMarker).not.toMatch(/#ffe980/);
+    expect(opponentMarker).toMatch(/border-color:\s*#ff9a6e/);
+    expect(portraitRules).toMatch(
+      /\.game-board \.game-memory-coin--marker\[data-memory-side="opp"\] \.game-memory-coin__n \{[^}]*color:\s*#ffe0d0/,
+    );
+  });
+});

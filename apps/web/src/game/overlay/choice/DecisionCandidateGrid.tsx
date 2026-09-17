@@ -1,4 +1,5 @@
 import { CardFull } from "../../../design/cards";
+import { NARROW_DIALOG_QUERY, useMediaQuery } from "../../../design/useMediaQuery";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
 import { printedCardName } from "../printedCardName";
@@ -31,7 +32,11 @@ export function DecisionCandidateGrid({
   onTogglePick: (instanceId: string) => void;
 }) {
   const { t } = useTranslation();
-  const candidateCardWidth = wideDialog ? 154 : 110;
+  const narrowDialog = useMediaQuery(NARROW_DIALOG_QUERY);
+  // Three tiles plus their gaps and the row's own badge gutter have to clear the
+  // sheet's padding; on a phone narrower than the grid's breakpoint they only do
+  // at the smaller size, and below that the row wraps rather than being clipped.
+  const candidateCardWidth = wideDialog ? 154 : narrowDialog ? 96 : 110;
   // Past this many the grid would wrap into rows taller than the sheet, so it
   // becomes one scrolling row with a visible track instead (reference #110).
   const scrollCandidates = candidates.length > 6;

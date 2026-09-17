@@ -9,6 +9,14 @@ import { otherSeat } from "../../boardModel";
 import { TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
 import { presentableNarration } from "./presentableNarration";
+import {
+  CONSEQUENCE_GATE_MAX_MS,
+  createPresentationGate,
+  waitForGate,
+  type DeletionReadyAt,
+  type PendingAnnounceGate,
+  type PresentationGate,
+} from "../presentationGate";
 
 export interface NarrationStreamDeps {
   viewerSeat: Seat;
@@ -26,8 +34,12 @@ export interface NarrationStreamDeps {
   completedPhaseOrderRef: MutableRefObject<number>;
   presentationReporterRef: MutableRefObject<((report: PresentationReport) => void) | undefined>;
   narrationSkipRef: MutableRefObject<boolean>;
-  deletionReadyAtRef: MutableRefObject<Map<string, { readyAt: number; instanceId?: string }>>;
+  deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   effectSourceKeyRef: MutableRefObject<number>;
+  /** The announcement this batch is still holding its consequences behind. */
+  effectAnnounceGateRef: MutableRefObject<PresentationGate | null>;
+  /** A gate a batch armed before it knew which clause would carry it. */
+  pendingAnnounceGateRef: MutableRefObject<PendingAnnounceGate | null>;
   setEffectSources: Dispatch<SetStateAction<readonly EffectActivation[]>>;
   setNarration: Dispatch<SetStateAction<ReadonlyMap<string, NarrationItem>>>;
   collapseNarrationRef: MutableRefObject<boolean>;
@@ -55,6 +67,8 @@ export function narrationStream(deps: NarrationStreamDeps) {
     narrationSkipRef,
     deletionReadyAtRef,
     effectSourceKeyRef,
+    effectAnnounceGateRef,
+    pendingAnnounceGateRef,
     setEffectSources,
     setNarration,
     collapseNarrationRef,
@@ -82,6 +96,15 @@ export function narrationStream(deps: NarrationStreamDeps) {
           ? CueTrack.CenterStage
           : `burst-${initialSite.permanentId}`
         : undefined;
+    const causingEffectGate = effectAnnounceGateRef.current;
+    const pending = pendingAnnounceGateRef.current;
+    const adopted =
+      body?.variant === "effect" && pending?.batchId === item.batchId && !pending.deleted.has(`${seat}:${body.cardId}`)
+        ? pending.gate
+        : null;
+    const announceGate = body?.variant === "effect" ? (adopted ?? createPresentationGate()) : null;
+    if (adopted) pendingAnnounceGateRef.current = null;
+    if (announceGate) effectAnnounceGateRef.current = announceGate;
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
     const precedingTrack = effectNarrationTracksRef.current.get(seat);
     const track =
@@ -122,79 +145,107 @@ export function narrationStream(deps: NarrationStreamDeps) {
       holdsBoard: false,
       blocksDecision: false,
       async run(context) {
-        if (context.mode === "replay" || narrationSkipRef.current) return;
-        if (onPlay && initialSite?.zone === "field") {
-          while (
-            queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
-            context.mode === "live" &&
-            !context.cancelled &&
-            !context.skipping
-          )
-            await context.wait(16);
-        }
-        if (context.mode === "live" && body?.variant === "effect") {
-          // Let this batch register its deletion beats before locating the source.
-          await Promise.resolve();
-          if (/on.?deletion/i.test(body.timing ?? "")) {
-            const deletion = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
-            await context.wait(Math.max(0, (deletion?.readyAt ?? 0) - Date.now()));
+        /* The source card is lit before its clause and stays lit until the clause leaves
+           (the prune in `useMatchCues`). A run that ends before the clause is ever published —
+           cancelled, skipped, or nothing presentable left — owns the light it turned on,
+           because no clause will arrive for the prune to follow. */
+        let activation: EffectActivation | undefined;
+        let linked = false;
+        try {
+          await runNarrationStep();
+        } finally {
+          announceGate?.release();
+          if (activation && !linked) {
+            const key = activation.key;
+            setEffectSources((sources) => sources.filter((source) => source.key !== key));
           }
+        }
+
+        async function runNarrationStep() {
+          if (context.mode === "replay" || narrationSkipRef.current) return;
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
           if (context.cancelled || narrationSkipRef.current) return;
-          const deletion = /on.?deletion/i.test(body.timing ?? "")
-            ? deletionReadyAtRef.current.get(`${seat}:${body.cardId}`)
-            : undefined;
-          const site = deletion?.instanceId
-            ? { zone: "trash" as const, instanceId: deletion.instanceId }
-            : cardSiteRef.current.locate(body.cardId, seat, body);
-          if (site && context.mode === "live") {
-            const activation: EffectActivation = {
-              key: ++effectSourceKeyRef.current,
-              cardId: body.cardId,
-              seat,
-              site,
-            };
-            try {
-              setEffectSources((sources) => [...sources, activation]);
+          if (onPlay && initialSite?.zone === "field") {
+            while (
+              queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
+              context.mode === "live" &&
+              !context.cancelled &&
+              !context.skipping
+            )
+              await context.wait(16);
+          }
+          if (context.mode === "live" && body?.variant === "effect") {
+            // Let this batch register its deletion beats before locating the source.
+            await Promise.resolve();
+            const shatter = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+            if (shatter) {
+              await waitForGate(shatter.shattered, context, TIMINGS.securityDockMax);
+              await context.wait(Math.max(0, shatter.readyAt - Date.now()));
+            }
+            if (context.cancelled || narrationSkipRef.current) return;
+            const deletion = /on.?deletion/i.test(body.timing ?? "")
+              ? deletionReadyAtRef.current.get(`${seat}:${body.cardId}`)
+              : undefined;
+            const site = deletion?.instanceId
+              ? { zone: "trash" as const, instanceId: deletion.instanceId }
+              : cardSiteRef.current.locate(body.cardId, seat, body);
+            if (site && context.mode === "live") {
+              activation = {
+                key: ++effectSourceKeyRef.current,
+                cardId: body.cardId,
+                seat,
+                site,
+                itemId: item.id,
+              };
+              setEffectSources((sources) => [...sources, activation as EffectActivation]);
               reportShown(`effect-source-${activation.key}`, context);
+              // The punch this card earns on its own, ahead of the clause it raised.
               await context.wait(effectSourceHoldMs);
-            } finally {
-              setEffectSources((sources) => sources.filter((source) => source.key !== activation.key));
             }
           }
-        }
-        if (context.cancelled || narrationSkipRef.current) return;
-        const shown = presentableNarration(item, {
-          collapseNarration: collapseNarrationRef.current,
-          suppressedOwnEffects: suppressedOwnEffectsRef.current,
-        });
-        if (!shown) return;
-        const push = (published: NarrationItem) =>
-          setNarration((items) =>
-            pushNarrationItem(
-              items,
-              published,
-              collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
-              collapseNarrationRef.current,
-            ),
-          );
-        // Left, then right. A moment carrying both halves is a sentence and its result, so
-        // the clause takes the screen first and the cards it moved follow a beat later.
-        // The folded phone slot draws both halves in one item, so it is published whole.
-        const staggered = !collapseNarrationRef.current && shown.notice !== undefined && shown.panel !== undefined;
-        if (staggered) {
-          const { panel: _panel, ...clauseOnly } = shown;
-          push(clauseOnly);
-          await context.wait(TIMINGS.narrationCardsLag);
           if (context.cancelled || narrationSkipRef.current) return;
+          const shown = presentableNarration(item, {
+            collapseNarration: collapseNarrationRef.current,
+            suppressedOwnEffects: suppressedOwnEffectsRef.current,
+          });
+          if (!shown) return;
+          const push = (published: NarrationItem) =>
+            setNarration((items) =>
+              pushNarrationItem(
+                items,
+                published,
+                collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
+                collapseNarrationRef.current,
+              ),
+            );
+          // Left, then right. A moment carrying both halves is a sentence and its result, so
+          // the clause takes the screen first and the cards it moved follow a beat later.
+          // The folded phone slot draws both halves in one item, so it is published whole.
+          const staggered = !collapseNarrationRef.current && shown.notice !== undefined && shown.panel !== undefined;
+          if (staggered) {
+            const { panel: _panel, ...clauseOnly } = shown;
+            push(clauseOnly);
+            await context.wait(TIMINGS.narrationCardsLag);
+            if (context.cancelled || narrationSkipRef.current) return;
+          }
+          push(shown);
+          if (activation) {
+            const key = activation.key;
+            linked = true;
+            setEffectSources((sources) =>
+              sources.map((source) => (source.key === key ? { ...source, linked: true } : source)),
+            );
+          }
+          announceGate?.release();
+          reportShown(`narration-step-${item.id}`, context);
+          // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
+          // single moment, give every clause one readable beat before the next server event
+          // can replace it; a column with room shows a batch together instead.
+          if (shown.notice && narrationLimitRef.current === 1) await context.wait(TIMINGS.effectAnnounce);
         }
-        push(shown);
-        reportShown(`narration-step-${item.id}`, context);
-        // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
-        // single moment, give every clause one readable beat before the next server event
-        // can replace it; a column with room shows a batch together instead.
-        if (shown.notice && narrationLimitRef.current === 1) await context.wait(TIMINGS.effectAnnounce);
       },
     });
+    if (announceGate) void queue.idle().then(() => announceGate.release());
   }
 
   /**

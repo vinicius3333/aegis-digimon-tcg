@@ -5,6 +5,11 @@
     "reason": "The vendored community-DB snapshot duplicates the word 'trait' in '[DATA SQUAD] trait trait card'. The committed text removes that scrape typo and matches the executable filter and direct card proof."
   },
   {
+    "cardId": "BT26-009",
+    "field": "inheritedEffectText",
+    "reason": "Hyokomon: the vendored community-DB snapshot predates the printed card and omits the [Once Per Turn] tag the released card carries on its inherited [When Attacking] clause. The committed text restores it and matches the executable frequency."
+  },
+  {
     "cardId": "BT26-018",
     "field": "effectText",
     "reason": "The snapshot's specialDigivolve header is field-shifted ('Lv.0 w/[2] trait: Cost DS'). Its structured digivolveCondition correctly records blue Lv.2, cost 0; the committed '[DS] trait' header preserves those internally consistent values."
@@ -25,24 +30,19 @@
     "reason": "Jupitermon: Wrath Mode — same <Recovery +2> reminder-clause drift as BT26-083: the source has since trimmed '(Place the top 2 cards of your deck as your top security card.)'. Wording-only."
   },
   {
-    "cardId": "P-240",
-    "field": "effectText",
-    "reason": "Imported (2026-06-14) before the importer read the 'assembly' header field on 2026-08-05; source now reconstructs with a leading '[Assembly -6] ...' header ours lacks. The committed record still needs the same header backfill."
-  },
-  {
     "cardId": "EX12-016",
     "field": "effectText",
     "reason": "Verified 2026-08-06: the missing '[Assembly -2] ...' header was added to cards.json. This entry stays because the source ALSO drops the printed <Security A. +1> keyword and rewords 'their Digimon' to 'your opponent's Digimon' — a genuine source regression, not adopted. Committed text is correct; source is wrong here."
   },
   {
+    "cardId": "EX12-035",
+    "field": "nameJp",
+    "reason": "Verified 2026-09-13 against the official card page (https://digimoncard.com/rule/?card_no=EX12-035): the committed Japanese name メタルガルルモン is correct; the community snapshot's ウォーグレイモン is wrong."
+  },
+  {
     "cardId": "EX12-037",
     "field": "effectText",
     "reason": "Verified 2026-08-06: backfilled the missing '[DNA Digivolve] ...' header. Kept diffing because the source's own dnaDigivolve field glues '[Digivolve] ... Cost 5 [DNA Digivolve] ...' with a space instead of a newline (a scrape defect verified against the raw fixture row — sibling cards EX12-044/-017 store the same two headers newline-separated). Repaired the missing newline rather than reproducing the source's run-on line; the resulting text is intentionally not byte-identical to the source reconstruction."
-  },
-  {
-    "cardId": "EX12-048",
-    "field": "playCost",
-    "reason": "Verified 2026-08-06: confirmed known-bad — the community DB's playCost (13) is implausible for a Lv.6 card and internally inconsistent with the rest of this card's record. Not adopted; committed value (5) stands."
   },
   {
     "cardId": "EX12-048",
@@ -53,6 +53,11 @@
     "cardId": "EX12-048",
     "field": "effectText",
     "reason": "Verified 2026-08-06: backfilled the missing '[Assembly -6] ...' header text (descriptive, not numeric). Kept diffing because the source's digivolve cost ('Cost 4') sits in the same suspect numeric cluster as this card's known-bad playCost/dp above; not adopted alongside them. Committed 'Cost 3' stands until the record can be independently verified."
+  },
+  {
+    "cardId": "EX12-048",
+    "field": "playCost",
+    "reason": "Verified 2026-08-06: confirmed known-bad — the community DB's playCost (13) is implausible for a Lv.6 card and internally inconsistent with the rest of this card's record. Not adopted; committed value (5) stands."
   },
   {
     "cardId": "EX12-052",
@@ -75,9 +80,9 @@
     "reason": "Verified 2026-08-06: backfilled the missing '[DNA Digivolve] ...' header, repairing the same missing-newline scrape defect as EX12-037 (source glues 'Cost 5 [DNA Digivolve]' with a space, not a newline). Resulting text is intentionally not byte-identical to the source reconstruction."
   },
   {
-    "cardId": "EX12-035",
-    "field": "nameJp",
-    "reason": "Verified 2026-09-13 against the official card page (https://digimoncard.com/rule/?card_no=EX12-035): the committed Japanese name メタルガルルモン is correct; the community snapshot's ウォーグレイモン is wrong."
+    "cardId": "P-240",
+    "field": "effectText",
+    "reason": "Imported (2026-06-14) before the importer read the 'assembly' header field on 2026-08-05; source now reconstructs with a leading '[Assembly -6] ...' header ours lacks. The committed record still needs the same header backfill."
   },
   {
     "cardId": "P-244",

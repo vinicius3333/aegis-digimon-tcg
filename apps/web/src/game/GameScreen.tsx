@@ -417,16 +417,30 @@ export function GameScreen({
      the field: the trash pile throws its top card up, the hand raises the Option.
      Which zone the source is in comes from the board (`effectSource.ts`), not from
      the event, which names only the card. */
-  const effectSourceSeats = new Map(effectSources.map((activation) => [activation.key, activation]));
+  /* An activation outlives its own punch: it stays on for as long as the clause it raised is
+     being read (`effectSource.ts`). Only a permanent on the field has somewhere to hold that
+     light — it glows in place. The trash throwing its top card up and the hand raising an
+     Option are finite moves, so they answer to the announcing beat alone; left on the
+     sustained flag they stayed thrown up for the whole clause, which reads as the board
+     having frozen rather than as the card being pointed at. */
+  const announcing = effectSources.filter((activation) => activation.linked !== true);
   const trashEffectSource = (seat: Seat): string | undefined =>
-    [...effectSourceSeats.values()].some((activation) => activation.seat === seat && activation.site.zone === "trash")
+    announcing.some((activation) => activation.seat === seat && activation.site.zone === "trash")
       ? "game-pile--effect-source"
       : undefined;
-  const handEffectSourceInstanceId = effectSources.find(
+  const handEffectSourceInstanceId = announcing.find(
     (activation) => activation.seat === viewerSeat && activation.site.zone === "hand",
   )?.site;
+  /* Two states, never both on one card: the half-second punch as the effect activates, and
+     the steady light it holds for as long as its clause is on screen. Overlapping them
+     would leave two animations fighting over the same filter. */
   const effectSourcePermanentIds = new Set(
-    effectSources.flatMap((activation) => (activation.site.zone === "field" ? [activation.site.permanentId] : [])),
+    announcing.flatMap((activation) => (activation.site.zone === "field" ? [activation.site.permanentId] : [])),
+  );
+  const effectLinkedPermanentIds = new Set(
+    effectSources.flatMap((activation) =>
+      activation.linked === true && activation.site.zone === "field" ? [activation.site.permanentId] : [],
+    ),
   );
 
   const you = state?.players[viewerSeat];
@@ -506,6 +520,7 @@ export function GameScreen({
     opponent: opp,
     viewerSeat,
     heldPhaseState: cues.heldPhaseState,
+    heldBlowState: cues.heldBlowState,
     heldDrawState: cues.heldDrawState,
     heldBreedingState: cues.heldBreedingState,
     optimisticPlayedInstanceId,
@@ -894,6 +909,7 @@ export function GameScreen({
     width: landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth,
     permanentRefs: permRefs,
     effectSourcePermanentIds,
+    effectLinkedPermanentIds,
     decisionHighlightPermanentId,
     permanentBursts,
     pendingPermanentIds,

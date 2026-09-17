@@ -89,6 +89,7 @@ export interface PermanentChrome {
   width: number;
   permanentRefs: RefObject<Record<string, HTMLDivElement | null>>;
   effectSourcePermanentIds: ReadonlySet<string>;
+  effectLinkedPermanentIds: ReadonlySet<string>;
   decisionHighlightPermanentId?: string;
   permanentBursts: ReadonlyMap<string, PermanentBurst>;
   pendingPermanentIds: ReadonlySet<string>;

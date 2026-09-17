@@ -141,30 +141,6 @@ describe("NoticeStack", () => {
     expect(shown.querySelector("img")).toBeNull();
   });
 
-  it("names a card deleted from the field", () => {
-    renderNotice(notice({ body: { variant: "deletion", cards: [{ cardId: "BT1-010", artId: "BT1-010_P2" }] } }));
-    expect(screen.getByTestId("match-notice").textContent).toContain("Deleted");
-    expect(screen.getByTestId("match-notice").textContent).toContain("Agumon");
-  });
-
-  it("keeps a deleted card's alternate art in the toast and card opener", () => {
-    const opened: Array<[string, string | undefined]> = [];
-    render(
-      <I18nProvider>
-        <CardOpenerProvider onOpenCard={(cardId, artId) => opened.push([cardId, artId])}>
-          <NoticeStack
-            notice={notice({ body: { variant: "deletion", cards: [{ cardId: "BT1-010", artId: "BT1-010_P2" }] } })}
-            remainingMs={NOTICE_LIFETIME_MS}
-            onDismiss={() => undefined}
-          />
-        </CardOpenerProvider>
-      </I18nProvider>,
-    );
-    expect(screen.getByTestId("match-notice").querySelector('img[src*="BT1-010_P2"]')).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Open Agumon" }));
-    expect(opened).toEqual([["BT1-010", "BT1-010_P2"]]);
-  });
-
   it("marks a refused action apart from the rest", () => {
     renderNotice(notice({ body: { variant: "rejection", reason: "Not enough memory." } }));
     const shown = screen.getByTestId("match-notice");

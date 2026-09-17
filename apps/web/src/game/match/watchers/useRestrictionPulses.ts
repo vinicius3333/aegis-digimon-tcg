@@ -3,6 +3,8 @@ import type { GameState } from "@aegis/shared";
 import type { AnimationQueue } from "../../animationQueue";
 import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "../../freezePulse";
 import { TIMINGS } from "../../timings";
+import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
+
 
 /**
  * A permanent that just had "can't attack" / "can't block" imposed on it jolts.
@@ -20,6 +22,7 @@ export function useRestrictionPulses({
   queue,
   restrictionsByPermanentRef,
   freezePulseKeyRef,
+  causingEffectGateRef,
   setFreezePulses,
 }: {
   state: GameState | undefined;
@@ -27,6 +30,8 @@ export function useRestrictionPulses({
   /** Mutated: last read of every permanent's restrictions, so the next commit can diff it. */
   restrictionsByPermanentRef: MutableRefObject<Map<string, FreezeFlags> | null>;
   freezePulseKeyRef: MutableRefObject<number>;
+  /** The clause that imposed the lock, which is read out before the card jolts. */
+  causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   setFreezePulses: Dispatch<SetStateAction<ReadonlyMap<string, FreezePulse>>>;
 }) {
   const restrictionSignature = state
@@ -54,6 +59,7 @@ export function useRestrictionPulses({
     const pulses = diffFreezePulses({ previous, next: current, nextKey: freezePulseKeyRef.current });
     if (pulses.length === 0) return;
     freezePulseKeyRef.current += pulses.length;
+    const causingEffectGate = causingEffectGateRef.current;
     for (const pulse of pulses) {
       queue.enqueue({
         id: `freeze-pulse-${pulse.key}`,
@@ -61,6 +67,8 @@ export function useRestrictionPulses({
         replace: true,
         async run(context) {
           if (context.mode !== "live") return;
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+          if (context.cancelled) return;
           try {
             setFreezePulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));
             await context.wait(TIMINGS.freezeShake);

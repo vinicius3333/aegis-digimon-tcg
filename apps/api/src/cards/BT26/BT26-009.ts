@@ -34,7 +34,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          effectTextPart: "[When Attacking] ＜Draw 1＞",
+          effectTextPart: "[When Attacking] [Once Per Turn] ＜Draw 1＞",
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -49,6 +49,7 @@ export const compiled: CompiledCard = {
         },
       ],
       isInherited: true,
+      frequency: "OncePerTurn",
     },
   ],
   coverage: "full",

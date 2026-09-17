@@ -600,6 +600,9 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("discard").instanceId]);
 
+    // The attack BT21-061 granted owns the board until it ends; the turn cannot be passed
+    // out from under it.
+    await advance(s.engine).finishAttack();
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });

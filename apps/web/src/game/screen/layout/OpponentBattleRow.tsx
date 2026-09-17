@@ -75,6 +75,7 @@ export function OpponentBattleRow({
             }}
             candidate={isCand}
             effectSource={chrome.effectSourcePermanentIds.has(p.permanentId)}
+            effectLinked={chrome.effectLinkedPermanentIds.has(p.permanentId)}
             highlight={chrome.decisionHighlightPermanentId === p.permanentId}
             burst={chrome.permanentBursts.get(p.permanentId)}
             pending={chrome.pendingPermanentIds.has(p.permanentId)}

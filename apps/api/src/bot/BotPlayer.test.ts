@@ -657,3 +657,83 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents).toEqual([]);
   });
 });
+
+/**
+ * Observed in match fd8ad770-b50f-40ef-ba29-94f51d697c13: the last security check of the
+ * match froze the board for 5.2 seconds. The reveal was up, the engine was holding the
+ * attack open, and the bot was sitting on a `chooseTargets` from a card its own security
+ * replacement had just played — paced on the main-phase think clock and stretched by the
+ * narration it was itself blocking.
+ */
+describe("BotPlayer — a decision inside a security check", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function securityCheckBot() {
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
+    bot.onEvent({
+      kind: "securityRevealed",
+      seat: 0,
+      revealedCardId: "BT26-085",
+      attackerPermanentId: "large",
+      isDigimon: true,
+    });
+    return { bot, intents };
+  }
+
+  it("answers on the reflex clock while the reveal is still on screen", async () => {
+    vi.useFakeTimers();
+    const { bot, intents } = securityCheckBot();
+
+    // The replacement plays a card, whose [On Play] then asks the bot to pick a target.
+    bot.onEvent({ kind: "cardPlayed", seat: 1, cardId: "BT19-051", permanentId: "played" });
+    bot.onEvent({
+      kind: "effectTriggered",
+      seat: 1,
+      sourceCardId: "BT19-051",
+      effectKey: "BT19-051/ir-6-0",
+      description: "[OnPlay] Modify DP by 3000",
+      timing: "OnPlay",
+      duringSecurityCheck: true,
+    });
+    bot.onDecisionRequested({
+      decisionId: "dec-20",
+      seat: 1,
+      kind: "chooseTargets",
+      promptText: "AtlurBallistamon",
+      options: { candidateInstanceIds: ["small"], min: 1, max: 1 },
+    });
+
+    await advance(COMBAT_REFLEX_MIN_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(COMBAT_REFLEX_MAX_MS - COMBAT_REFLEX_MIN_MS + 1);
+    expect(intents).toMatchObject([{ type: "respondDecision", decisionId: "dec-20" }]);
+  });
+
+  it("goes back to the think clock once the check has closed", async () => {
+    vi.useFakeTimers();
+    const { bot, intents } = securityCheckBot();
+    bot.onEvent({
+      kind: "securityChecked",
+      seat: 0,
+      revealedCardId: "BT26-085",
+      resolution: "battle",
+    });
+
+    bot.onDecisionRequested({
+      decisionId: "after-check",
+      seat: 1,
+      kind: "chooseTargets",
+      promptText: "Ordinary main-phase choice",
+      options: { candidateInstanceIds: ["small"], min: 1, max: 1 },
+    });
+
+    await advance(COMBAT_REFLEX_MAX_MS + 1);
+    expect(intents.filter((intent) => intent.type === "respondDecision")).toEqual([]);
+    await advance(SECURITY_CHECK_NARRATION_MS + DEFAULT_MAX_ACTION_DELAY_MS);
+    expect(intents).toContainEqual(expect.objectContaining({ type: "respondDecision", decisionId: "after-check" }));
+  });
+});

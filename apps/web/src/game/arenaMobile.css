@@ -627,6 +627,22 @@
     font: 800 16px/1 var(--ds-font-mono);
   }
 
+  /* Memory in the opponent's half decides whose turn it is, so on a phone — where
+     the chips under the marker are too thin to read at a glance — the marker drops
+     its yellow there and burns red instead. */
+  .game-board .game-memory-coin--marker[data-memory-side="opp"]::before {
+    border-color: #ff9a6e;
+    background: radial-gradient(circle at 35% 25%, #7c4234, #431a19);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 50%),
+      0 0 0 2px rgb(255 154 110 / 22%),
+      0 2px 5px rgb(0 0 0 / 35%);
+  }
+
+  .game-board .game-memory-coin--marker[data-memory-side="opp"] .game-memory-coin__n {
+    color: #ffe0d0;
+  }
+
   .game-board .game-memory-gauge__phase {
     position: absolute;
     display: block;

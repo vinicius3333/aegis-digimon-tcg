@@ -18,15 +18,11 @@ import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { CardLink, useCardOpener } from "./cardLinks";
 import { TIMING_LABELS, playerFacingEffectClause } from "./overlay";
-import { type DeletedCard, type MatchNotice, type NoticeKeyword } from "./notices";
+import { type MatchNotice, type NoticeKeyword } from "./notices";
 
 /** The art beside the clause: a thumbnail on a phone, a readable card on a desktop board. */
 const NOTICE_THUMB_WIDTH = 46;
 const NOTICE_THUMB_WIDTH_DESKTOP = 92;
-/* A deletion is a card list, so its art is sized like the panels' beside it rather than
-   like the thumbnail that sits next to a clause. */
-const DELETION_CARD_WIDTH = 74;
-const DELETION_CARD_WIDTH_DESKTOP = 104;
 
 /**
  * The notice's art, opening the card when the board has somewhere to open it.
@@ -34,16 +30,10 @@ const DELETION_CARD_WIDTH_DESKTOP = 104;
  * Decorative: the notice already names the card next to it as a link, and a
  * second accessible copy would make every card on screen ambiguous.
  */
-function NoticeThumb({ cardId, artId, listed = false }: { cardId: string; artId?: string; listed?: boolean }) {
+function NoticeThumb({ cardId, artId }: { cardId: string; artId?: string }) {
   const openCard = useCardOpener();
   const desktop = useMediaQuery(DESKTOP_NOTICE_QUERY);
-  const width = listed
-    ? desktop
-      ? DELETION_CARD_WIDTH_DESKTOP
-      : DELETION_CARD_WIDTH
-    : desktop
-      ? NOTICE_THUMB_WIDTH_DESKTOP
-      : NOTICE_THUMB_WIDTH;
+  const width = desktop ? NOTICE_THUMB_WIDTH_DESKTOP : NOTICE_THUMB_WIDTH;
   return (
     <span className="match-notice__thumb" aria-hidden="true">
       <CardMini
@@ -91,29 +81,6 @@ function EffectNoticeBody({
           <EffectText text={clause} />
         </p>
       ) : null}
-    </div>
-  );
-}
-
-/**
- * The deletion call-out: a label over the art of every permanent the moment took, in one
- * row. It answers "which cards?", so it reads as a card list beside the panels rather than
- * as a sentence — a card is recognised by its picture faster than it is read by its name,
- * and the name stays as the link a keyboard and a screen reader reach it by.
- */
-function DeletionNoticeBody({ cards }: { cards: readonly DeletedCard[] }) {
-  const { t } = useTranslation();
-  return (
-    <div className="match-notice__copy">
-      <span className="match-notice__label">{t("notice.deletion")}</span>
-      <ul className="match-notice__cards">
-        {cards.map((card) => (
-          <li className="match-notice__card" key={`${card.cardId}:${card.artId ?? ""}`}>
-            <NoticeThumb cardId={card.cardId} artId={card.artId} listed />
-            <CardLink cardId={card.cardId} artId={card.artId} className="side-panel__name" />
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -206,8 +173,6 @@ export function NoticeStack({
             />
             <NoticeThumb cardId={body.cardId} />
           </>
-        ) : body.variant === "deletion" ? (
-          <DeletionNoticeBody cards={body.cards} />
         ) : body.variant === "recovery" || body.variant === "securityGain" ? (
           <SecurityGainNoticeBody
             amount={body.amount}
@@ -216,9 +181,12 @@ export function NoticeStack({
           />
         ) : body.variant === "keyword" ? (
           <KeywordNoticeBody keyword={body.keyword} cardId={body.cardId} />
-        ) : (
+        ) : body.variant === "rejection" ? (
           <RejectionNoticeBody reason={body.reason} />
-        )}
+        ) : /* A deletion is a titled list of cards, so the board draws it with the panel
+               component the trashed-cards list already uses (`narration.ts`,
+               `deletionPanel`) rather than in this frame. */
+        null}
         <button
           className="match-notice__close"
           type="button"

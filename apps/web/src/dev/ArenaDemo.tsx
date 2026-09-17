@@ -90,6 +90,12 @@ const SECURITY_TAMER_PERMANENT_ID = "perm-4";
    attack fired, then the check, then the turn change — each far enough apart to be read,
    close enough that the previous toasts are still on screen when the next beat lands. */
 const NOTICE_ORDER_GAPS_MS = [0, 1200, 1700, 2200] as const;
+/** The opponent's Digimon on the demo board whose [All Turns] clause the preview plays. */
+const PLUTOMON_CARD_ID = "BT26-059";
+/* The gap between Plutomon's clause and the deletion it carries out. Long enough that the
+   card is seen to light up and the clause is seen to arrive before anything leaves the
+   board, which is the order a real batch presents them in. */
+const PLUTOMON_GAPS_MS = [0, 1400] as const;
 
 /* The card the scripted check turns up. A Digimon, so the reveal plays its battle. */
 const NOTICE_ORDER_SECURITY_CARD_ID = "BT1-010";
@@ -270,6 +276,11 @@ export function ArenaDemo() {
   const [securityReplayStep, setSecurityReplayStep] = useState<number | null>(null);
   /** The board the replay has reached, kept after it ends: 0 none, 2 Taiki played, 6 Xros'd. */
   const [securityBoardStep, setSecurityBoardStep] = useState(0);
+  /** Which beat of the Plutomon preview has been emitted, or null when idle. */
+  const [plutomonStep, setPlutomonStep] = useState<number | null>(null);
+  const [plutomonRun, setPlutomonRun] = useState(0);
+  /** The viewer's Digimon are off the board once Plutomon's clause has taken them. */
+  const [plutomonDeleted, setPlutomonDeleted] = useState(false);
   /** Which beat of the notice-ordering preview has been emitted, or null when idle. */
   const [noticeOrderStep, setNoticeOrderStep] = useState<number | null>(null);
   const [noticeOrderRun, setNoticeOrderRun] = useState(0);
@@ -303,6 +314,15 @@ export function ArenaDemo() {
       const removed = next.players[0]!.battleArea.splice(0, 1)[0];
       if (removed) next.players[0]!.trash.push(removed.topCard);
     }
+    if (plutomonDeleted) {
+      const taken = next.players[0]!.battleArea.filter((permanent) =>
+        getCardDefinition(permanent.topCard?.cardId ?? "")?.kinds.includes(CardKind.Digimon),
+      );
+      for (const permanent of taken) {
+        next.players[0]!.battleArea.splice(next.players[0]!.battleArea.indexOf(permanent), 1);
+        next.players[0]!.trash.push(permanent.topCard, ...permanent.stack);
+      }
+    }
     if (securityScenario) {
       for (let index = 0; index < securityFaceDownCount; index++) {
         const securityCard = next.players[0]?.security[index + 2];
@@ -333,6 +353,7 @@ export function ArenaDemo() {
     securityScenario,
     securityFaceDownCount,
     effectDemoDeleted,
+    plutomonDeleted,
     securityBoardStep,
     imperialStep,
     imperialReturned,
@@ -592,6 +613,80 @@ export function ArenaDemo() {
    * passes the turn, and every toast still on screen keeps its own clock through the
    * ribbons rather than being cleared by them.
    */
+  /**
+   * The opponent's [All Turns] clause deleting the viewer's Digimon — Plutomon, which is
+   * already on the demo board.
+   *
+   * This is the moment the board used to explain worst: nothing asks the viewer anything,
+   * so there is no targeting arrow, and the cards simply left while a clause appeared at
+   * the far edge of the screen. It is the fixture for the source staying lit through its
+   * own clause and for the arrow that points from it at what it took.
+   */
+  function previewPlutomon() {
+    setBatches([]);
+    setPhase(Phase.Main);
+    setPlutomonDeleted(false);
+    setPlutomonRun((run) => run + 1);
+    setPlutomonStep(0);
+  }
+  useEffect(() => {
+    if (plutomonStep === null) return;
+    if (plutomonStep >= PLUTOMON_GAPS_MS.length) {
+      setPlutomonStep(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      const board = createArenaDemoState(drawCounts);
+      const plutomon = board.players[1]!.battleArea.find((permanent) => permanent.topCard.cardId === PLUTOMON_CARD_ID);
+      const taken = board.players[0]!.battleArea.filter((permanent) =>
+        getCardDefinition(permanent.topCard?.cardId ?? "")?.kinds.includes(CardKind.Digimon),
+      );
+      if (!plutomon || taken.length === 0) {
+        setPlutomonStep(null);
+        return;
+      }
+      const beats: readonly ServerEvent[][] = [
+        [
+          {
+            kind: "effectTriggered",
+            seat: 1,
+            sourceCardId: plutomon.topCard.cardId,
+            sourcePermanentId: plutomon.permanentId,
+            effectKey: "demo/plutomon/all-turns",
+            timing: "AllTurns",
+            description: portuguese
+              ? "[Todos os Turnos] Exclua os Digimon do oponente com o menor nível."
+              : "[All Turns] Delete your opponent's lowest-level Digimon.",
+          },
+        ],
+        [
+          {
+            kind: "cardsMoved",
+            seat: 0,
+            from: "battleArea",
+            to: "trash",
+            instanceIds: taken.map((permanent) => permanent.topCard.instanceId),
+            cardIds: taken.map((permanent) => permanent.topCard.cardId),
+            /* The board handles are what the arrow points at: by the time this beat is
+               narrated the permanents have already left, and only their ids can find
+               where they stood. */
+            deletedPermanents: taken.map((permanent) => ({
+              permanentId: permanent.permanentId,
+              instanceId: permanent.topCard.instanceId,
+              cardId: permanent.topCard.cardId,
+              seat: 0 as const,
+            })),
+          },
+        ],
+      ];
+      setBatches((previous) => [...previous, singleServerBatch(beats[plutomonStep]! as ServerEvent[])]);
+      if (plutomonStep === 1) setPlutomonDeleted(true);
+      setPlutomonStep((step) => (step === null ? null : step + 1));
+    }, PLUTOMON_GAPS_MS[plutomonStep]!);
+    return () => clearTimeout(timer);
+    // The board fixture is stable for the length of the preview; only the beat drives it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plutomonStep, plutomonRun]);
   function previewNoticeOrdering() {
     setBatches([]);
     setPhase(Phase.Main);
@@ -807,6 +902,7 @@ export function ArenaDemo() {
           onSecurityEffect={previewSecurityEffect}
           onNoticeOrdering={previewNoticeOrdering}
           onSplitToasts={previewSplitToasts}
+          onPlutomon={previewPlutomon}
           disabled={turnStartStep !== null}
         />
         <span className="aegis-arena-demo-note" role="status">

@@ -59,7 +59,7 @@ export function presentSecurityClose({
   securityClashKeyRef: MutableRefObject<number>;
   securityAttackerRef: MutableRefObject<SecurityClashAttacker | undefined>;
   /** Mutated: the battle hold is marked closed, and the poll that owns it drops it. */
-  securityHoldRef: MutableRefObject<{ key: number; closed: boolean } | null>;
+  securityHoldRef: MutableRefObject<{ key: number; closed: boolean; handedOver?: boolean } | null>;
   /** Mutated: cleared, the card on stage now being this close's to finish with. */
   revealOnStageRef: MutableRefObject<RevealOnStage | null>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
@@ -141,9 +141,14 @@ export function presentSecurityClose({
           await context.wait(restagedBattle ? CLASH_TOTAL_MS : CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
         } finally {
           setSecurityClash((current) => (current?.key === key ? null : current));
+          stage.releaseSecurityBlow(key);
         }
       },
     });
+  } else {
+    // No outcome beat to wait for — the check closed on something with no battle to
+    // draw — so nothing it deleted should keep waiting on one.
+    stage.releaseSecurityBlow(key);
   }
   // Step 10b: the revealed card takes its place at the side of the screen BEFORE its clause is
   // read out, so the notice lands beside the card it explains rather than ahead of it (the

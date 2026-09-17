@@ -46,6 +46,7 @@ export function enqueueArrivals({
   raised,
   combatLeadInMs,
   securityReveal,
+  securityBlowRef,
   queue,
   showcaseKeyRef,
   presentationBatchRef,
@@ -65,6 +66,8 @@ export function enqueueArrivals({
   raised: readonly MatchNotice[];
   combatLeadInMs: number;
   securityReveal: ServerEvent | undefined;
+  /** The check whose battle has not been drawn yet, which owns the centre of the screen. */
+  securityBlowRef: MutableRefObject<{ key: number; landed: boolean } | null>;
   queue: AnimationQueue;
   /** Mutated: incremented per event so each arrival gets its own key. */
   showcaseKeyRef: MutableRefObject<number>;
@@ -119,6 +122,20 @@ export function enqueueArrivals({
         },
       });
     }
+    /**
+     * The centre of the screen belongs to the check until its battle has been drawn.
+     * A card a removal reaction plays mid-check wants the same spot for its showcase,
+     * and being serial the centre-stage track simply hands it over: the 1.8s showcase
+     * ran between the clash and its outcome, so the battle broke in half and the verdict
+     * arrived a scene later. The card still lands, on its burst — it just does not take
+     * the stage the check is still using.
+     */
+    // The revealed card playing ITSELF is the check's own scene, not an interruption of
+    // it: that showcase is the whole point of a [Security] play and stays.
+    const playsItself =
+      event.kind === "cardPlayed" && event.cardId === revealOnStageRef.current?.scene.revealed.cardId;
+    const blocked =
+      securityBlowRef.current !== null && !securityBlowRef.current.landed && !securityReveal && !playsItself;
     const step = zoneChangeStep({
       queue,
       presentationBatchRef,
@@ -127,7 +144,7 @@ export function enqueueArrivals({
       setZoneShowcase,
       setPermanentBursts,
       key,
-      showcase,
+      showcase: blocked ? null : showcase,
       burst,
       leadInMs,
     });

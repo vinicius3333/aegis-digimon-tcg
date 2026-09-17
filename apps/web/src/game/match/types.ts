@@ -165,6 +165,14 @@ export interface MatchCues {
   heldDrawState: { seat: Seat; state: GameState } | undefined;
   /** Keep card rotation from exposing a Main attack before its phase announcement. */
   heldPhaseState: GameState | undefined;
+  /**
+   * The board as it stood when a security check revealed its card, held until that check's
+   * battle has been drawn. The server trashes the loser before it closes the check, and the
+   * board draws whatever state says the moment the patch lands, so without this the attacker
+   * leaves the field and the cards reach the trash while the clash that kills them is still
+   * playing centre stage — the viewer watches a battle between two cards already in the bin.
+   */
+  heldBlowState: GameState | undefined;
   /** Keep the raising area unchanged until its Breeding announcement finishes. */
   heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
   /** The last announced phase persists through the gaps between ribbons. */

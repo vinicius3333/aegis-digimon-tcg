@@ -2,7 +2,7 @@
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CardInstance, Permanent, Phase, type GameState, type ServerEvent } from "@aegis/shared";
+import { CardInstance, Permanent, Phase, type GameState, type SequencedServerEvent, type ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import {
@@ -739,6 +739,32 @@ describe("match cues", () => {
     expect(result.current.turnTransition).not.toBeNull();
   });
 
+  it("does not wait for an arrival whose batch already left the tracked window", async () => {
+    const evictedPlay: SequencedServerEvent = { ...OPP_PLAY, seq: 1, batch: "batch-old", stateVersion: 1 };
+    const turnEnd: SequencedServerEvent = { ...TURN_END, seq: 60, batch: "batch-new", stateVersion: 2 };
+    const raw: ServerEvent[] = [evictedPlay, turnEnd];
+    const { result, rerender } = renderHook(
+      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          phaseEvents,
+          batches,
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+    );
+    rerender({
+      phaseEvents: raw,
+      batches: [{ id: "batch-new", stateVersion: 2, events: [turnEnd] }],
+    });
+    await advance(100);
+    expect(result.current.turnTransition).not.toBeNull();
+  });
+
   it("announces unrelated phases in order when they arrive in one batch", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
@@ -954,6 +980,46 @@ describe("match cues", () => {
     await advance(TIMINGS.phaseBanner);
     expect(result.current.heldBreedingState).toBeUndefined();
     expect(result.current.heldPhaseState).toBeUndefined();
+  });
+
+  it("unsuspends a ＜Reboot＞ holder on the other board during the same unsuspend phase", async () => {
+    const state = {
+      phase: Phase.Main,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    // Seat 1 takes the turn; seat 0 holds a ＜Reboot＞ Digimon beside a plain suspended one.
+    const turnPlayer = new Permanent();
+    turnPlayer.permanentId = "turnPlayer";
+    turnPlayer.isSuspended = true;
+    state.players[1]!.battleArea.push(turnPlayer);
+    const reboot = new Permanent();
+    reboot.permanentId = "reboot";
+    reboot.isSuspended = true;
+    state.players[0]!.battleArea.push(reboot);
+    const plain = new Permanent();
+    plain.permanentId = "plain";
+    plain.isSuspended = true;
+    state.players[0]!.battleArea.push(plain);
+    const { result, rerender } = renderCuesOverBoard(state);
+    await advance(0);
+    rerender([
+      { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
+      { kind: "cardsMoved", instanceIds: ["turnPlayer"], from: "suspended", to: "unsuspended" },
+      { kind: "cardsMoved", instanceIds: ["reboot"], from: "suspended", to: "unsuspended" },
+      { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 2 },
+    ]);
+    await advance(0);
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended).toBe(false);
+    expect(result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended).toBe(false);
+    expect(result.current.heldPhaseState?.players[0]?.battleArea[1]?.isSuspended).toBe(true);
   });
 
   it.each(["hatched", "movedFromBreeding"] as const)(
@@ -3534,12 +3600,18 @@ describe("triggered effect source prelude", () => {
     await advance(TIMINGS.effectSourceHold - 1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
     await advance(1);
-    expect(result.current.effectSources).toHaveLength(0);
+    /* The punch is over, but the source does not go dark: it is handed to the clause it
+       raised and stays lit for as long as that clause is on screen, so the toast and the
+       card it is about are one moment rather than two signals a beat apart. */
+    expect(result.current.effectSources).toMatchObject([{ site: { zone: "trash" }, linked: true }]);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
     await advance(TIMINGS.noticeLifetime - 1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+    expect(result.current.effectSources).toHaveLength(1);
     await advance(1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    // The clause leaving is what takes the light with it.
+    expect(result.current.effectSources).toHaveLength(0);
   });
 
   it("preserves both triggered notices when an automatic second evolution arrives", async () => {

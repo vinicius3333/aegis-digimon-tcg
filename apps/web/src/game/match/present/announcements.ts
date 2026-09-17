@@ -49,6 +49,7 @@ export function collectBatchAnnouncements({
   state,
   now,
   showcasePlays,
+  attackLeadInMs,
   securityReveal,
   revealOnStageRef,
   pendingDigivolutionDrawRef,
@@ -67,6 +68,8 @@ export function collectBatchAnnouncements({
   state: GameState | undefined;
   /** One clock for the whole batch, so everything it raises shares a start time. */
   now: number;
+  /** The beat an attack call-out owns before anything the attack caused may be drawn. */
+  attackLeadInMs: number;
   /**
    * Whether the centre-stage showcase will run. It runs only in `live` mode, so under reduced
    * motion or a hidden tab the panel is the only thing left to announce an arrival, and
@@ -116,7 +119,7 @@ export function collectBatchAnnouncements({
         const side = seat === viewerSeat ? Side.Viewer : Side.Opponent;
         eventDrawCountsRef.current[side] = state?.players[seat]?.handCount;
         const followsDigivolution = event.drawReason === "digivolution" && pendingDigivolutionDrawRef.current.has(seat);
-        const waitBeforeMs = followsDigivolution ? CARD_BURST_PEAK_MS : 0;
+        const waitBeforeMs = followsDigivolution ? CARD_BURST_PEAK_MS : attackLeadInMs;
         // One flight per card. The server names a whole Draw 2 in a single event, so a
         // flight per event sent one card back for two cards and read as a single draw.
         for (const [drawIndex] of event.instanceIds.entries())

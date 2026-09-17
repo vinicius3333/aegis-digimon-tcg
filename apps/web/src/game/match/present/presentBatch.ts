@@ -29,6 +29,7 @@ import type { Side } from "../../side";
 import type { AttackLunge, DeleteBurst, MatchCueAnchors, RevealOnStage, SecurityBreakCue } from "../types";
 import { securityCheckSegments } from "../../securityClash";
 import { hasTurnStartDraw } from "../../showcases";
+import { TIMINGS } from "../../timings";
 import { otherSeat } from "../../boardModel";
 import { CueTrack } from "../enums";
 import { withoutId } from "../eventLookup";
@@ -50,6 +51,12 @@ import { enqueueSecurityGrowth } from "./securityGrowth";
 import { securityRevealScene } from "./securityRevealScene";
 import { presentSecurityClose } from "./securityClose";
 import { presentSecurityRevealed } from "./securityReveal";
+import {
+  createPresentationGate,
+  type DeletionReadyAt,
+  type PendingAnnounceGate,
+  type PresentationGate,
+} from "../presentationGate";
 
 /** How `useMatchCues` re-enters this pass for one segment of a split batch. */
 export type PresentSegment = (
@@ -116,6 +123,12 @@ export function presentServerBatch({
   queuedSecurityKeyRef,
   securityDockRef,
   securityHoldRef,
+  securityBlowRef,
+  blowHoldState,
+  setHeldBlowState,
+  causingEffectGateRef,
+  effectAnnounceGateRef,
+  pendingAnnounceGateRef,
   securityClashKeyRef,
   securityAttackerRef,
   pendingDestructionsRef,
@@ -200,12 +213,18 @@ export function presentServerBatch({
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   queuedSecurityKeyRef: MutableRefObject<number | null>;
   securityDockRef: MutableRefObject<{ key: number; closed: boolean } | null>;
-  securityHoldRef: MutableRefObject<{ key: number; closed: boolean } | null>;
+  securityHoldRef: MutableRefObject<{ key: number; closed: boolean; handedOver?: boolean } | null>;
+  securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
+  blowHoldState: () => GameState | undefined;
+  setHeldBlowState: Dispatch<SetStateAction<GameState | undefined>>;
+  causingEffectGateRef: MutableRefObject<PresentationGate | null>;
+  effectAnnounceGateRef: MutableRefObject<PresentationGate | null>;
+  pendingAnnounceGateRef: MutableRefObject<PendingAnnounceGate | null>;
   securityClashKeyRef: MutableRefObject<number>;
   securityAttackerRef: MutableRefObject<SecurityClashAttacker | undefined>;
   pendingDestructionsRef: MutableRefObject<number>;
   deleteBurstKeyRef: MutableRefObject<number>;
-  deletionReadyAtRef: MutableRefObject<Map<string, { readyAt: number; instanceId?: string }>>;
+  deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   deletionBurstPresentedRef: MutableRefObject<Set<string>>;
   setPendingPermanentIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
@@ -240,6 +259,9 @@ export function presentServerBatch({
     return;
   }
   enqueuePhaseOrderRef.current = phaseOrderFor(fresh);
+  // Whatever this batch queues waits on the announcement the batch before it is still
+  // reading out, so a consequence never overtakes the clause that caused it.
+  causingEffectGateRef.current = effectAnnounceGateRef.current;
   lastBatchIdRef.current = batchId;
   // Everything enqueued from here belongs to this batch, and the board it is narrated
   // over is the board this batch produced.
@@ -260,6 +282,15 @@ export function presentServerBatch({
     usedOption,
     optionRouted,
   } = batchFacts({ fresh });
+  /**
+   * An attack owns the screen for its call-out, the way a played card owns it for its
+   * showcase. A [When Attacking] clause resolves in the same batch as the declaration that
+   * fired it, so with no lead-in its draw and its toast land on the very frame of the lunge
+   * — the clause going off before the attack that triggered it has been read. It waits the
+   * same beat `attackAnnounce` gives the call-out, for the same reason `effectAnnounce`
+   * gives one to an [On Play].
+   */
+  const attackLeadInMs = fresh.some((event) => event.kind === "attackDeclared") ? TIMINGS.attackAnnounce : 0;
   // Replayed steps still run, so their state lands in the right place — they
   // just run with every wait collapsed, which is no animation at all.
   const batchPhaseOrder = enqueuePhaseOrderRef.current;
@@ -339,6 +370,21 @@ export function presentServerBatch({
   if (!replayingHistory) {
     enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
     const now = Date.now();
+    const deletedThisBatch = new Set(
+      fresh.flatMap((event) =>
+        event.kind === "cardsMoved"
+          ? (event.deletedPermanents ?? []).map((deleted) => `${deleted.seat}:${deleted.cardId}`)
+          : [],
+      ),
+    );
+    const announcesEffect = fresh.some(
+      (event) => event.kind === "effectTriggered" && !deletedThisBatch.has(`${event.seat}:${event.sourceCardId}`),
+    );
+    const batchAnnounceGate = announcesEffect ? createPresentationGate() : null;
+    if (batchAnnounceGate) {
+      pendingAnnounceGateRef.current = { batchId, gate: batchAnnounceGate, deleted: deletedThisBatch };
+      causingEffectGateRef.current = batchAnnounceGate;
+    }
     const showcasePlays = queue.getMode() === "live";
     const { announcement, opened, raised, panelAt, noticeAt } = collectBatchAnnouncements({
       fresh,
@@ -346,6 +392,7 @@ export function presentServerBatch({
       state,
       now,
       showcasePlays,
+      attackLeadInMs,
       securityReveal,
       revealOnStageRef,
       pendingDigivolutionDrawRef,
@@ -366,6 +413,7 @@ export function presentServerBatch({
       raised,
       combatLeadInMs,
       securityReveal,
+      securityBlowRef,
       queue,
       showcaseKeyRef,
       presentationBatchRef,
@@ -411,6 +459,17 @@ export function presentServerBatch({
         phaseOrder: enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current,
       });
     const presenting = raised.length > 0 || opened.length > 0;
+    // Nothing this batch raised will carry the gate, so it must not hold the next batch's
+    // consequences behind a clause that is never coming.
+    if (
+      batchAnnounceGate &&
+      !raised.some(
+        (notice) =>
+          notice.body.variant === "effect" &&
+          !deletedThisBatch.has(`${notice.side === "you" ? viewerSeat : otherSeat(viewerSeat)}:${notice.body.cardId}`),
+      )
+    )
+      batchAnnounceGate.release();
     enqueueOptionDock({
       usedOption,
       optionRouted,
@@ -483,6 +542,9 @@ export function presentServerBatch({
     queuedSecurityKeyRef,
     securityDockRef,
     securityHoldRef,
+    securityBlowRef,
+    blowHoldState,
+    setHeldBlowState,
     heldNoticesRef,
     heldPanelsRef,
     setSecurityBreak,
@@ -561,6 +623,7 @@ export function presentServerBatch({
     enqueue,
   });
   enqueueDeletionBursts({
+    queue,
     fresh,
     beaten,
     clashLoserIds,
@@ -569,6 +632,8 @@ export function presentServerBatch({
     deleteBurstKeyRef,
     deletionReadyAtRef,
     deletionBurstPresentedRef,
+    securityBlowRef,
+    causingEffectGate: causingEffectGateRef.current,
     setDeleteBursts,
     enqueue,
   });

@@ -110,7 +110,18 @@ export const TIMINGS = {
   clashReveal: 233,
   /** How long the two cards stay readable before they resolve. The reference client holds 170 + 300ms. */
   clashHold: 900,
-  /** The outcome beat: the reference client's parallel 250ms claw and shake, then its 100ms settle (`Effects.cs:2039-2160`). */
+  /**
+   * The outcome beat: the reference client's parallel 250ms claw and shake, then its 100ms
+   * settle (`Effects.cs:2039-2160`).
+   *
+   * NOTE: this also bounds the death it shows. `CLASH_SHATTER_MS` fits the shards inside this
+   * beat, so a card deleted in a clash breaks in 260ms while the same card deleted on the
+   * board takes `cardShatter`'s 520ms — half the speed of every other death in the game.
+   * Widening it is wanted, but it is not a one-number change: the CSS fallbacks for
+   * `--t-clash-outcome` and `--t-clash-outcome-at` mirror this table by hand, and
+   * `SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS` must stay inside
+   * `SECURITY_DESTRUCTION_NARRATION_MS` (1900ms), which 610 here overruns at 2123.
+   */
   clashOutcome: 350,
   /** The scene fading back out, on the turn banner's 160ms wipe. */
   clashExit: 160,
@@ -215,8 +226,19 @@ export const TIMINGS = {
   arrowFlash: 85,
   /** A card growing to its inspected size. */
   cardMagnify: 120,
-  /** The glow a field permanent holds while its effect activates, before its toast appears. */
-  effectSourceHold: 480,
+  /**
+   * The glow and lift a field permanent holds while its effect activates, before its toast
+   * appears. Paced to be watched rather than caught: at half a second the rise was over
+   * before the eye had found the card it happened on, which is the one thing this beat
+   * exists to do. The whole activation family below is pitched to match it.
+   */
+  effectSourceHold: 720,
+  /**
+   * One breath of the steady light the source card holds for as long as its clause is on
+   * screen. Slow on purpose: it has to stay legible under a toast that reads for seconds
+   * without becoming the thing being looked at.
+   */
+  effectLinkedBreath: 1600,
   /**
    * How long a security check waits for the clauses the attack already raised.
    *
@@ -241,9 +263,9 @@ export const TIMINGS = {
    */
   effectAnnounce: 800,
   /** A card flying up out of the trash pile as its effect activates. */
-  effectTrashRise: 420,
+  effectTrashRise: 620,
   /** An Option rising out of the hand fan as it activates. */
-  effectHandRise: 360,
+  effectHandRise: 540,
   /** The card's own art breaking into shards where it was deleted. */
   cardShatter: 520,
 } as const;
@@ -440,6 +462,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-arrow-flash": TIMINGS.arrowFlash,
   "--t-card-magnify": TIMINGS.cardMagnify,
   "--t-effect-source-hold": TIMINGS.effectSourceHold,
+  "--t-effect-linked-breath": TIMINGS.effectLinkedBreath,
   "--t-effect-trash-rise": TIMINGS.effectTrashRise,
   "--t-effect-hand-rise": TIMINGS.effectHandRise,
   "--t-card-shatter": TIMINGS.cardShatter,

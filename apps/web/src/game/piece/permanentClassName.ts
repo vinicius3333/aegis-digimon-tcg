@@ -6,12 +6,14 @@ export function permanentClassName({
   shake,
   freezePulse,
   effectSource,
+  effectLinked,
   candidate,
 }: {
   lunge?: "up" | "down";
   shake?: boolean;
   freezePulse?: FreezePulse;
   effectSource?: boolean;
+  effectLinked?: boolean;
   candidate?: boolean;
 }): string | undefined {
   return (
@@ -20,6 +22,7 @@ export function permanentClassName({
       shake ? "game-permanent-shake" : "",
       freezePulse ? "game-permanent-freeze" : "",
       effectSource ? "game-permanent--effect-source" : "",
+      effectLinked ? "game-permanent--effect-linked" : "",
       candidate ? "game-permanent--candidate" : "",
     ]
       .filter(Boolean)
