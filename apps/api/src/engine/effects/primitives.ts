@@ -138,6 +138,11 @@ export interface PrimitivesEngine {
   finishEffectBody?(): void;
   /** Pause enclosing card bodies while an effect-directed attack drains pending effects. */
   resolveAttackTimingWindow?(drain: () => Promise<void>): Promise<void>;
+  /**
+   * Resolve whatever an effect-directed attack left in the nested pending pool. Used as the
+   * attack's drain when the body that ordered it is a watcher rather than a timing window.
+   */
+  drainPendingAttackTriggers?(): Promise<void>;
   /** The authoritative match state (the only state these verbs read/mutate). */
   readonly state: GameState;
   /** Resolve a static evolution path granted by the base permanent. */
@@ -6165,9 +6170,20 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           }
         }
       },
-      drainTimingWindow: opts?.drainTimingWindow
-        ? () => engine.resolveAttackTimingWindow?.(opts.drainTimingWindow!) ?? opts.drainTimingWindow!()
-        : undefined,
+      // An attack ordered from inside a resolving body parks the attacker's [When Attacking]
+      // triggers in the nested pending pool (§15-4-4), where they pool with whatever else that
+      // body triggered — a DNA-produced attacker orders its When Digivolving and When Attacking
+      // effects together from exactly this pool (Q3944). §11-1 still requires the pool to resolve
+      // BEFORE Counter Timing and the security check, which the enclosing timing window's drain
+      // does. A watcher body has no such window, so without the fallback nothing drained the pool
+      // until the security check's own resolver did, and the attacker's inherited draw resolved
+      // on top of the flipped card (match 89641815: BT26-015 ordering an attack by BT26-009's
+      // host).
+      drainTimingWindow: ((): (() => Promise<void>) | undefined => {
+        const drain = opts?.drainTimingWindow ?? engine.drainPendingAttackTriggers;
+        if (drain === undefined) return undefined;
+        return () => engine.resolveAttackTimingWindow?.(drain) ?? drain();
+      })(),
     });
   };
 
