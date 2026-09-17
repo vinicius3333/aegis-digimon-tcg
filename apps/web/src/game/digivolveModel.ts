@@ -1,0 +1,533 @@
+/* Digivolution routes and their prices: which stacks a hand card can evolve onto, which
+   requirement a candidate satisfies, and what each route costs the viewer. */
+
+import {
+  getCardDefinition,
+  digivolutionRequirementsFor,
+  effectiveExactNames,
+  effectiveStaticNames,
+  nameIncludesToken,
+  tamerOntoDigivolveSpec,
+  baseGrantedDigivolveFor,
+  dnaDigivolutionRequirementsFor,
+  intrinsicDigivolutionCostReductionFor,
+  type BaseGrantedDigivolve,
+  type DigivolutionRequirement,
+  type Permanent,
+  type PlayerState,
+  CardKind,
+} from "@aegis/shared";
+
+/** Find one server-valid-looking DNA material assignment for a hand card on the current board. */
+export function findDnaMaterialCombination(cardId: string, permanents: readonly Permanent[]): string[] | undefined {
+  // Same source of truth as the server's `matchingDnaDigivolveCost`: the hand-authored
+  // overrides carry the printed DNA header that the pre-EX9 card imports dropped.
+  const requirements = dnaDigivolutionRequirementsFor(cardId);
+  if (requirements.length === 0) return undefined;
+  const digimon = permanents.filter((permanent) => {
+    const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
+    return def?.kinds.includes(CardKind.Digimon) === true;
+  });
+  for (const requirement of requirements) {
+    if (requirement.materials.length < 2) continue;
+    const matches = (permanent: Permanent, spec: (typeof requirement.materials)[number]) => {
+      const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
+      if (!def) return false;
+      if (spec.level !== undefined && def.level !== spec.level) return false;
+      if (spec.color !== undefined && !def.colors.some((color) => color.toLowerCase() === spec.color!.toLowerCase()))
+        return false;
+      const name = (def.nameEn ?? def.cardId).toLowerCase();
+      if (spec.names?.length && !spec.names.some((token) => nameIncludesToken(def.nameEn, token))) return false;
+      if (spec.namesExact?.length && !spec.namesExact.some((token) => name === token.toLowerCase())) return false;
+      if (spec.namesInText?.length) {
+        const text = `${def.effectText ?? ""}\n${def.inheritedEffectText ?? ""}`.toLowerCase();
+        if (!spec.namesInText.some((token) => text.includes(token.toLowerCase()))) return false;
+      }
+      const traits = [...(def.forms ?? []), ...(def.attributes ?? []), ...(def.types ?? [])];
+      if (spec.traits?.length && !spec.traits.some((trait) => traits.includes(trait))) return false;
+      return true;
+    };
+    const assign = (slot: number, used: Set<string>, result: string[]): string[] | undefined => {
+      if (slot === requirement.materials.length) return result;
+      for (const permanent of digimon) {
+        if (used.has(permanent.permanentId) || !matches(permanent, requirement.materials[slot]!)) continue;
+        const nextUsed = new Set(used).add(permanent.permanentId);
+        const found = assign(slot + 1, nextUsed, [...result, permanent.permanentId]);
+        if (found) return found;
+      }
+      return undefined;
+    };
+    const found = assign(0, new Set(), []);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+export type HandCardEvolutionRoute =
+  | { kind: "normal" }
+  | { kind: "dna"; materialPermanentIds: string[] }
+  | { kind: "both"; materialPermanentIds: string[] }
+  | undefined;
+
+export interface AppFusionOverlayRoute {
+  linkedInstanceId: string;
+  linkedCardId: string;
+  projectedCost: number;
+}
+
+/**
+ * Projects server-authorized App Fusion routes for the currently selected host.
+ * A route is shown only while both its host and linked physical card are still
+ * present; legality and projected cost remain server-owned.
+ */
+export function appFusionRoutesForHost(
+  routes: readonly { hostPermanentId: string; linkedInstanceId: string; projectedCost: number }[],
+  host: Permanent | undefined,
+): AppFusionOverlayRoute[] {
+  if (host === undefined) return [];
+  const linkedById = new Map((host.linked ?? []).map((card) => [card.instanceId, card.cardId]));
+  return routes
+    .filter((route) => route.hostPermanentId === host.permanentId && linkedById.has(route.linkedInstanceId))
+    .map((route) => ({
+      linkedInstanceId: route.linkedInstanceId,
+      linkedCardId: linkedById.get(route.linkedInstanceId)!,
+      projectedCost: route.projectedCost,
+    }));
+}
+
+/**
+ * Resolve the legal evolution modes when a hand card is dropped onto one of its possible
+ * bases. `normal` is the server's own verdict for this (card, base) pair
+ * (`CardInstance.digivolveTargetPermanentIds`); only the DNA route is shape-matched here,
+ * because a DNA declaration names its materials and so has no server projection to read.
+ */
+export function handCardEvolutionRoute(
+  cardId: string,
+  battleArea: readonly Permanent[],
+  normal: boolean,
+): HandCardEvolutionRoute {
+  const materialPermanentIds = findDnaMaterialCombination(cardId, battleArea);
+  if (normal && materialPermanentIds) return { kind: "both", materialPermanentIds };
+  if (normal) return { kind: "normal" };
+  return materialPermanentIds ? { kind: "dna", materialPermanentIds } : undefined;
+}
+
+/**
+ * The battle-area permanents a digivolution of `cardId` would build on: the bases the
+ * server offered for this hand card (`CardInstance.digivolveTargetPermanentIds`, passed in
+ * as `serverBasePermanentIds`) plus the materials a DNA declaration would consume. Dropping
+ * the card anywhere else on the field plays it instead — an offer the battle area itself
+ * carries — so no other permanent, Tamer or Digimon, is a digivolution target.
+ */
+export function digivolveBasePermanentIds(
+  cardId: string,
+  battleArea: readonly Permanent[],
+  serverBasePermanentIds: readonly string[],
+): string[] {
+  const bases = new Set([...serverBasePermanentIds, ...(findDnaMaterialCombination(cardId, battleArea) ?? [])]);
+  return battleArea.filter((permanent) => bases.has(permanent.permanentId)).map((permanent) => permanent.permanentId);
+}
+
+/** True when `def` has `trait` anywhere in its forms, attributes, or types. Case-insensitive to
+ * tolerate printed-text vs card-data casing drift (e.g. "[NSP]" vs "NSp"); mirrors the server's
+ * cardHasTrait. Trait values are whole-token identities, so case folding cannot over-match. */
+function cardHasTrait(def: ReturnType<typeof getCardDefinition>, trait: string): boolean {
+  if (!def) return false;
+  const want = trait.toLowerCase();
+  return (
+    (def.forms ?? []).some((t) => t.toLowerCase() === want) ||
+    (def.attributes ?? []).some((t) => t.toLowerCase() === want) ||
+    (def.types ?? []).some((t) => t.toLowerCase() === want)
+  );
+}
+
+/** How many of `player`'s hand+trash cards satisfy an alternate requirement's `placementCost`
+ *  predicate (kind ∈ kinds OR a trait ∈ traits, over the listed `from` zones). */
+function placementCostAvailable(
+  player: PlayerState | undefined,
+  spec: NonNullable<DigivolutionRequirement["placementCost"]>,
+): number {
+  if (!player) return 0;
+  const matches = (cardId: string): boolean => {
+    const def = getCardDefinition(cardId);
+    if (!def) return false;
+    if ((spec.kinds ?? []).some((k) => def.kinds.includes(CardKind[k]))) return true;
+    return (spec.traits ?? []).some((t) => cardHasTrait(def, t));
+  };
+  let n = 0;
+  for (const zone of spec.from) {
+    const cards = zone === "hand" ? player.hand : player.trash;
+    for (const c of cards) if (matches(c.cardId)) n += 1;
+  }
+  return n;
+}
+
+/**
+ * Whether an alternate digivolution requirement matches `baseDef`. Mirrors the server's
+ * `matchingAlternateDigivolutionRequirement` gates (level/trait/name/text + the Tamer-base
+ * gate). When the requirement carries a non-memory `placementCost`, the digivolve is only
+ * legal while the viewer can pay it — checked against `viewer`'s hand+trash when provided.
+ */
+function requirementHasGate(req: DigivolutionRequirement): boolean {
+  return (
+    req.level !== undefined ||
+    req.levelMin !== undefined ||
+    req.levelMax !== undefined ||
+    (req.traits !== undefined && req.traits.length > 0) ||
+    (req.names !== undefined && req.names.length > 0) ||
+    (req.namesExact !== undefined && req.namesExact.length > 0) ||
+    (req.texts !== undefined && req.texts.length > 0) ||
+    req.baseIsTamer === true
+  );
+}
+
+/**
+ * Whether a requirement carries a base-IDENTITY gate (name/trait/text) rather than only a
+ * "is a Tamer"/level shape. Mirrors the server's `requirementHasIdentityGate`: a Tamer-onto
+ * card (BT17-012) prints SPECIFIC named requirements ([Takuya Kanbara]: Cost 2, [Agunimon]:
+ * Cost 1) alongside the generic "onto any <color> Tamer as level N" effect; only the named
+ * paths come from its `digivolutionRequirement` list — its stale gateless/`baseIsTamer`-only
+ * entry must be ignored in favor of the derived generic path.
+ */
+function requirementHasIdentityGate(req: DigivolutionRequirement): boolean {
+  return (
+    (req.names !== undefined && req.names.length > 0) ||
+    (req.namesExact !== undefined && req.namesExact.length > 0) ||
+    (req.texts !== undefined && req.texts.length > 0) ||
+    (req.traits !== undefined && req.traits.length > 0)
+  );
+}
+
+/**
+ * The alternate digivolution requirements that apply when evolving `handCardId` onto `baseDef`,
+ * each paired with its memory cost — mirrors the server's `matchingAlternateDigivolutionRequirement`.
+ * For a Tamer-onto card, only its SPECIFIC named requirements are drawn from the compiled list,
+ * and the generic "onto any <shared-color> Tamer as level N" path is derived from the card's
+ * EvoCosts (so the cost label matches what the server charges); its stale `baseIsTamer`-only
+ * compiled entry is ignored. For every other card, all gated requirements apply as-is.
+ */
+function alternateDigivolveMatches(
+  handCardId: string,
+  hand: NonNullable<ReturnType<typeof getCardDefinition>>,
+  base: Permanent,
+  baseDef: NonNullable<ReturnType<typeof getCardDefinition>>,
+  viewer: PlayerState | undefined,
+): { req: DigivolutionRequirement; cost: number; requirementIndex?: number }[] {
+  const requirements = digivolutionRequirementsFor(handCardId) ?? [];
+  const tamerOntoSpec = tamerOntoDigivolveSpec(handCardId);
+  const tamerOntoLevel = tamerOntoSpec?.asLevel;
+  const matches: { req: DigivolutionRequirement; cost: number; requirementIndex?: number }[] = [];
+
+  for (const [requirementIndex, req] of requirements.entries()) {
+    // Tamer-onto cards: consult ONLY their specific named requirements from the compiled list.
+    if (tamerOntoLevel !== undefined && !requirementHasIdentityGate(req)) continue;
+    if (altRequirementMatches(req, base, baseDef, viewer)) matches.push({ req, cost: req.cost, requirementIndex });
+  }
+
+  if (tamerOntoLevel !== undefined && baseDef.kinds.includes(CardKind.Tamer)) {
+    // Generic "onto one of your <color> Tamers as if a level-N Digimon": legal onto a Tamer that
+    // satisfies the printed Tamer-color filter and shares a color with an EvoCost at the "as if"
+    // level. A printed fixed cost takes precedence over the ordinary level-N EvoCost.
+    if (
+      tamerOntoSpec?.baseColors !== undefined &&
+      !tamerOntoSpec.baseColors.some((color) => baseDef.colors.includes(color as (typeof baseDef.colors)[number]))
+    ) {
+      return matches;
+    }
+    const evo = hand.evoCosts.find((ev) => ev.level === tamerOntoLevel && baseDef.colors.includes(ev.color));
+    if (evo) {
+      const cost = tamerOntoSpec?.costOverride ?? evo.memoryCost;
+      matches.push({
+        req: {
+          cost,
+          isAlternate: true,
+          baseIsTamer: true,
+          ...(tamerOntoSpec?.baseColors === undefined ? {} : { baseColors: tamerOntoSpec.baseColors }),
+        },
+        cost,
+      });
+    }
+  }
+
+  return matches;
+}
+
+function altRequirementMatches(
+  req: DigivolutionRequirement,
+  base: Permanent,
+  baseDef: NonNullable<ReturnType<typeof getCardDefinition>>,
+  viewer: PlayerState | undefined,
+): boolean {
+  // A gateless requirement is a data defect, never an "any base" rule (mirror the server's
+  // matchingAlternateDigivolutionRequirement guard) — match nothing rather than highlight every base.
+  if (!requirementHasGate(req)) return false;
+  const baseLevel = baseDef.level;
+  if (req.baseIsTamer && !baseDef.kinds.includes(CardKind.Tamer)) return false;
+  if (
+    req.baseColors &&
+    req.baseColors.length > 0 &&
+    !req.baseColors.some((color) => baseDef.colors.includes(color as (typeof baseDef.colors)[number]))
+  )
+    return false;
+  if (req.level !== undefined && baseLevel !== req.level) return false;
+  if (req.levelMin !== undefined && (baseLevel === undefined || baseLevel < req.levelMin)) return false;
+  if (req.levelMax !== undefined && (baseLevel === undefined || baseLevel > req.levelMax)) return false;
+  if (req.traits && req.traits.length > 0 && !req.traits.some((t) => cardHasTrait(baseDef, t))) return false;
+  // Name gates read the base's EFFECTIVE names (printed name + aliases such as AD1-020's
+  // "Tommy, Takuya, & Zoe" answering to [Takuya Kanbara]) — same source as the server.
+  // The substring gate reads the alias union; the exact gate reads the exact channel only, so a
+  // card "treated as having [X] in its name" (EX4-030 Kuzuhamon, Q2868) never satisfies an exact
+  // [X] route — mirrors matchGatedRequirement in apps/api/src/engine/cards/cardData.ts.
+  const baseNames = effectiveStaticNames(baseDef);
+  if (req.names && req.names.length > 0 && !req.names.some((n) => baseNames.some((name) => nameIncludesToken(name, n))))
+    return false;
+  const baseExactNames = effectiveExactNames(baseDef);
+  if (req.namesExact && req.namesExact.length > 0 && !req.namesExact.some((n) => baseExactNames.includes(n)))
+    return false;
+  if (
+    req.texts &&
+    req.texts.length > 0 &&
+    (!baseDef.effectText || !req.texts.some((t) => baseDef.effectText!.includes(t)))
+  )
+    return false;
+  if (req.placementCost && viewer && placementCostAvailable(viewer, req.placementCost) < req.placementCost.count)
+    return false;
+  if (!stackGatesSatisfied(req, base)) return false;
+  return true;
+}
+
+/**
+ * Digivolution-stack gates on the BASE — "[Takuya Kanbara] w/2 or more [Hybrid] trait cards
+ * under it" (AD1-002) and friends. Mirrors steps 4d/4d-2/4e of the server's validateDigivolve
+ * so the client does not offer a path the server will reject.
+ */
+function stackGatesSatisfied(req: DigivolutionRequirement, base: Permanent): boolean {
+  const stackDefs = [...base.stack].map((card) => getCardDefinition(card.cardId));
+
+  if (req.minTraitStackCount !== undefined) {
+    const traits = req.minTraitStackTraits ?? [];
+    const matching = stackDefs.filter((def) => def && traits.some((t) => cardHasTrait(def, t))).length;
+    if (matching < req.minTraitStackCount) return false;
+  }
+
+  if (req.minNameStackNames !== undefined) {
+    const matching = stackDefs.filter(
+      (def) =>
+        def &&
+        req.minNameStackNames!.some((n) =>
+          req.minNameStackMatch === "contains" ? nameIncludesToken(def.nameEn, n) : def.nameEn === n,
+        ),
+    ).length;
+    if (matching < (req.minNameStackCount ?? 1)) return false;
+  }
+
+  if (req.requiredDigivolutionCardCount !== undefined) {
+    const { trait, min } = req.requiredDigivolutionCardCount;
+    const matching = stackDefs.filter((def) => def && cardHasTrait(def, trait)).length;
+    if (matching < min) return false;
+  }
+
+  return true;
+}
+
+/**
+ * Whether the BASE permanent grants `handCardId` a digivolution path onto it (ST7-03/BT6-060):
+ * a static on the base lets a specific hand card digivolve onto it, ignoring color/level. Keyed by
+ * the base card; the target predicate matches the evolving (hand) card. Mirrors the server's
+ * GameEngine.matchBaseGrantedDigivolve — the base must be on the battle area, and a conditional
+ * grant needs `opponent` (the digivolving seat's opponent) to evaluate its activation gate.
+ * Returns the matched grant, or undefined.
+ */
+function baseGrantConditionHolds(
+  condition: NonNullable<BaseGrantedDigivolve["condition"]>,
+  viewer: PlayerState | undefined,
+  opponent: PlayerState | undefined,
+): boolean {
+  if (condition.kind === "anyOf") {
+    return condition.conditions.some((nested) => baseGrantConditionHolds(nested, viewer, opponent));
+  }
+  if (condition.kind === "opponentHasDigimonLevelAtLeast") {
+    if (!opponent) return false;
+    return opponent.battleArea.some((p) => {
+      const def = p.topCard ? getCardDefinition(p.topCard.cardId) : undefined;
+      return def?.kinds.includes(CardKind.Digimon) && def.level !== undefined && def.level >= condition.level;
+    });
+  }
+  if (condition.kind === "distinctNamedTamersWithTrait") {
+    if (!viewer) return false;
+    const names = new Set<string>();
+    for (const p of viewer.battleArea) {
+      const def = p.topCard ? getCardDefinition(p.topCard.cardId) : undefined;
+      if (!def?.kinds.includes(CardKind.Tamer) || !cardHasTrait(def, condition.trait)) continue;
+      names.add(def.nameEn);
+    }
+    return names.size >= condition.count;
+  }
+  if (condition.kind === "tamerHasExactName") {
+    if (!viewer) return false;
+    return viewer.battleArea.some((p) => {
+      const def = p.topCard ? getCardDefinition(p.topCard.cardId) : undefined;
+      return def?.kinds.includes(CardKind.Tamer) && def.nameEn === condition.name;
+    });
+  }
+  return false;
+}
+
+function baseGrantedMatch(
+  handDef: NonNullable<ReturnType<typeof getCardDefinition>>,
+  base: Permanent,
+  viewer: PlayerState | undefined,
+  opponent: PlayerState | undefined,
+): BaseGrantedDigivolve | undefined {
+  if (base.inBreeding || !base.topCard) return undefined;
+  const grants = baseGrantedDigivolveFor(base.topCard.cardId);
+  if (grants === undefined) return undefined;
+  return grants.find((g) => {
+    const t = g.target;
+    const targetMatch =
+      Boolean(t.namesExact?.some((n) => handDef.nameEn === n)) ||
+      Boolean(t.names?.some((n) => nameIncludesToken(handDef.nameEn, n))) ||
+      Boolean(t.traits?.some((tr) => cardHasTrait(handDef, tr)));
+    if (!targetMatch) return false;
+    // A conditional grant needs the board state its gate reads; without it, do not highlight
+    // (the server still validates).
+    return g.condition === undefined || baseGrantConditionHolds(g.condition, viewer, opponent);
+  });
+}
+
+/** A cost path for digivolving a hand card onto a base permanent. */
+export interface EvoCostOption {
+  type: "normal" | "alternate";
+  /** Human-readable path label; the localized overlay renders the numeric memory cost. */
+  label: string;
+  cost: number;
+  /**
+   * Index into the card's printed alternate requirements, sent back as the digivolve intent's
+   * `alternateRequirementIndex` so the server charges the path the player actually picked.
+   * Absent for the printed EvoCost and for derived paths the server resolves on its own
+   * (Tamer-onto, base-granted), which it takes when the intent names no index.
+   */
+  alternateRequirementIndex?: number;
+}
+
+/** A server-priced route, as projected onto the hand card (`CardInstance.digivolveRoutes`). */
+export interface ProjectedDigivolveRoute {
+  permanentId: string;
+  alternateRequirementIndex: number;
+  projectedCost: number;
+}
+
+/**
+ * Returns all valid digivolution cost paths (normal + alternate) for evolving
+ * `handCardId` onto `base`. When only one path matches, returns a single-element
+ * array. When both match, returns both so the UI can offer a choice.
+ */
+export function getDigivolveCostOptions(
+  handCardId: string,
+  base: Permanent,
+  viewer?: PlayerState,
+  opponent?: PlayerState,
+  projectedRoutes?: readonly ProjectedDigivolveRoute[],
+): EvoCostOption[] {
+  const hand = getCardDefinition(handCardId);
+  const baseDef = base.topCard ? getCardDefinition(base.topCard.cardId) : undefined;
+  if (!hand || !baseDef) return [];
+  if (!hand.kinds.includes(CardKind.Digimon)) return [];
+
+  const baseLevel = baseDef.level;
+  const options: EvoCostOption[] = [];
+  const intrinsicReduction = intrinsicDigivolutionCostReductionFor(
+    handCardId,
+    base.stack.map((card) => card.cardId),
+    base.topCard?.cardId,
+    base.stack.filter((card) => !card.faceUp).length,
+  );
+
+  // Normal printed EvoCosts
+  for (const ev of hand.evoCosts) {
+    if (ev.level === baseLevel && baseDef.colors.includes(ev.color)) {
+      const cost = Math.max(0, ev.memoryCost - intrinsicReduction);
+      // A multicolor base may satisfy multiple printed color rows with the same cost. They
+      // are the same server intent, so presenting duplicate buttons adds no player choice.
+      if (options.some((option) => option.type === "normal" && option.cost === cost)) continue;
+      options.push({
+        type: "normal",
+        label: `${ev.color} Lv.${ev.level}`,
+        cost,
+      });
+    }
+  }
+
+  // Alternate digivolution requirements (named paths + any derived Tamer-onto path).
+  for (const { req, requirementIndex } of alternateDigivolveMatches(handCardId, hand, base, baseDef, viewer)) {
+    const cost = Math.max(0, req.cost - intrinsicReduction);
+    options.push({
+      type: "alternate",
+      label: alternateCostLabel(req, baseLevel),
+      cost,
+      ...(requirementIndex === undefined ? {} : { alternateRequirementIndex: requirementIndex }),
+    });
+  }
+
+  // Base-granted path (ST7-03/BT6-060): a fixed-cost path the base offers this card.
+  const granted = baseGrantedMatch(hand, base, viewer, opponent);
+  if (granted) {
+    const gate = granted.target.traits?.length
+      ? `[${granted.target.traits.join("/")}]`
+      : (granted.target.namesExact ?? granted.target.names ?? []).join("/");
+    options.push({ type: "alternate", label: `${gate} · ${granted.cost} memory`, cost: granted.cost });
+  }
+
+  return options.map((option) => priceFromServer(option, base.permanentId, projectedRoutes));
+}
+
+/**
+ * Replace a path's printed price with the server's own, when the server projected that path
+ * onto this base. Printed EvoCosts are only a starting point: an active continuous cost
+ * modifier can rewrite the figure (BT24-101 charges 1 per security card, and does so on EVERY
+ * path while an [Aegiochusmon] base is under it), and that rewrite lives in the engine. The
+ * printed figure survives only as the fallback for a path the server did not price — a
+ * prediction, never a promise, exactly like `projectedPlayCost`.
+ */
+function priceFromServer(
+  option: EvoCostOption,
+  permanentId: string,
+  projectedRoutes: readonly ProjectedDigivolveRoute[] | undefined,
+): EvoCostOption {
+  if (!projectedRoutes) return option;
+  const wanted = option.alternateRequirementIndex ?? -1;
+  const route = projectedRoutes.find(
+    (candidate) => candidate.permanentId === permanentId && candidate.alternateRequirementIndex === wanted,
+  );
+  return route === undefined ? option : { ...option, cost: route.projectedCost };
+}
+
+/** Human-readable label for an alternate digivolution path (gate + cost + any placement cost). */
+function alternateCostLabel(req: DigivolutionRequirement, baseLevel: number | undefined): string {
+  const gate = req.baseIsTamer
+    ? "onto a Tamer"
+    : req.traits && req.traits.length > 0
+      ? `[${req.traits.join("/")}] trait`
+      : req.names && req.names.length > 0
+        ? req.names.join("/")
+        : req.namesExact && req.namesExact.length > 0
+          ? req.namesExact.join("/")
+          : "alternate";
+  const levelLabel = req.baseIsTamer
+    ? ""
+    : req.level !== undefined
+      ? ` Lv.${req.level}`
+      : req.levelMin !== undefined || req.levelMax !== undefined
+        ? ` Lv.${req.levelMin ?? "?"}-${req.levelMax ?? "?"}`
+        : baseLevel !== undefined
+          ? ` Lv.${baseLevel}`
+          : "";
+  let label = `${gate}${levelLabel}`;
+  if (req.placementCost) {
+    const kinds = (req.placementCost.kinds ?? []).join("/");
+    const traits = (req.placementCost.traits ?? []).map((t) => `[${t}]`).join("/");
+    const what = [traits, kinds].filter(Boolean).join("/");
+    label += ` + place ${req.placementCost.count} ${what} cards`;
+  }
+  return label;
+}

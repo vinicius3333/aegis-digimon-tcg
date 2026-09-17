@@ -24,7 +24,7 @@ import {
 } from "@aegis/shared";
 import { playSound, type SoundKind } from "../../design/sound";
 import { intents } from "../../net/intents";
-import { getDigivolveCostOptions, type ProjectedDigivolveRoute } from "../boardModel";
+import { getDigivolveCostOptions, type ProjectedDigivolveRoute } from "../digivolveModel";
 import type { HandEntry } from "../piece";
 import { DragKind } from "./enums";
 import { prePlayPromptFor } from "./model/prePlayPrompt";

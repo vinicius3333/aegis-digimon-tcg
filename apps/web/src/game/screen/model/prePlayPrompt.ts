@@ -10,7 +10,7 @@ import {
   type PlayerState,
 } from "@aegis/shared";
 import { assemblyPossible } from "../../assemblyMaterialSelection";
-import { findDnaMaterialCombination } from "../../boardModel";
+import { findDnaMaterialCombination } from "../../digivolveModel";
 import type { AssemblyCandidate, DigiXrosCandidate, DigiXrosEligibleExpander } from "../../overlay";
 import type { HandEntry } from "../../piece";
 import { DragKind } from "../enums";

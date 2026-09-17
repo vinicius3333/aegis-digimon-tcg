@@ -1,6 +1,7 @@
 import type { DecisionRequest, GameState, Permanent, Seat, SequencedServerEvent } from "@aegis/shared";
 import { buildInstanceArtIndex } from "../../sidePanels";
-import { decisionCardColors, decisionEffectSource, decisionVisibleCards } from "../../boardModel";
+import { decisionCardColors, decisionVisibleCards } from "../../decisionModel";
+import { decisionEffectSource } from "../../matchLog";
 import { decisionPresentation, decisionSelectionMin, sourcePermanentIdOf } from "../../decisionPresentation";
 
 /** The open decision as the board shows it, and where the viewer answers it. */

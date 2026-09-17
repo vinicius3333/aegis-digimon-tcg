@@ -1,5 +1,5 @@
 import { CardKind, getCardDefinition, type PlayerState } from "@aegis/shared";
-import { appFusionRoutesForHost, handCardEvolutionRoute } from "../../boardModel";
+import { appFusionRoutesForHost, handCardEvolutionRoute } from "../../digivolveModel";
 import type { HandEntry } from "../../piece";
 import { dragIntentFor, type DragIntent, type DropTarget } from "../../dragIntents";
 import { DragKind } from "../enums";

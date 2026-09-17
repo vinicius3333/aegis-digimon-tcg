@@ -26,7 +26,7 @@ import { PileViewers } from "./PileViewers";
 import { Side } from "../../side";
 import type { GameOverOutcome } from "../../gameOverSplash";
 import type { TurnOrder } from "../../overlay";
-import type { LogLine } from "../../boardModel";
+import type { LogLine } from "../../matchLog";
 import type { PendingFateBadge } from "../../pendingFate";
 import type { HandEntry } from "../../piece";
 import type { AppFusionRoute } from "../../AppFusionChoiceOverlay";

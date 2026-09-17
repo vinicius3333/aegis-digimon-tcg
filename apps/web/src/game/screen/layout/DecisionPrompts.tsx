@@ -7,7 +7,7 @@
 import type { DecisionRequest, DecisionResponse, Permanent } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../../BoardDecisionRail";
-import { decisionPermanentDetails, decisionSourceCounts } from "../../boardModel";
+import { decisionPermanentDetails, decisionSourceCounts } from "../../decisionModel";
 import { DecisionOverlay, playerFacingEffectClause, playerFacingPromptText } from "../../overlay";
 import type { TriggerDetail } from "../../overlay";
 

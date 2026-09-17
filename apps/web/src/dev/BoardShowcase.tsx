@@ -20,7 +20,7 @@ import { pendingFateBadge } from "../game/pendingFate";
 import { buildPermanentDetail } from "../game/permanentDetail";
 import { CardShatter } from "../game/CardShatterView";
 import { PlayLogSidebar } from "../game/OpponentActionFeedView";
-import type { LogLine } from "../game/boardModel";
+import type { LogLine } from "../game/matchLog";
 import { TARGET_FATES, Phase } from "@aegis/shared";
 import { dragIntentLabelKey } from "../game/dragIntents";
 import {

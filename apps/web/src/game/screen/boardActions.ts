@@ -24,15 +24,14 @@ import {
 import { playSound, type SoundKind } from "../../design/sound";
 import { intents } from "../../net/intents";
 import {
-  appFusionRoutesForHost,
   attackTargetIdsOf,
   canAttackWith,
   canMoveFromBreeding,
   canUseBreedingAction,
   canVortexAttackWith,
-  handCardEvolutionRoute,
   parseActivatable,
 } from "../boardModel";
+import { appFusionRoutesForHost, handCardEvolutionRoute } from "../digivolveModel";
 import { ownPermanentTapDestination } from "../ownPermanentStack";
 import { Side } from "../side";
 import type { HandEntry } from "../piece";

@@ -6,7 +6,7 @@ import { useTranslation } from "../../../i18n";
 import { BugReportDialog } from "../../../bugs/BugReportDialog";
 import { PlayLogSidebar } from "../../OpponentActionFeedView";
 import { CardZoomOverlay, GameOverOverlay, WaitingOverlay } from "../../overlay";
-import type { LogLine } from "../../boardModel";
+import type { LogLine } from "../../matchLog";
 import type { GameOverOutcome } from "../../gameOverSplash";
 
 export function MatchStatusOverlays({

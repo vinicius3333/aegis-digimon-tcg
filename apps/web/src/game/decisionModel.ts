@@ -1,0 +1,164 @@
+/* Reads of a decision request and of the state it points at: which cards a prompt shows,
+   what colors and sources they carry, and how to find a permanent or instance by id. */
+
+import {
+  getCardDefinition,
+  canAssignDistinctColors,
+  type CardInstance,
+  type DecisionRequest,
+  type GameState,
+  type Permanent,
+  type Seat,
+} from "@aegis/shared";
+
+/** Map every visible card instance to its card id (board, breeding, trash, your hand). */
+export function buildInstanceIndex(state: GameState, viewerSeat: Seat): Map<string, string> {
+  const index = new Map<string, string>();
+  const add = (ci: CardInstance | undefined) => {
+    if (ci && ci.instanceId && ci.cardId) index.set(ci.instanceId, ci.cardId);
+  };
+  const addPermanent = (perm: Permanent | undefined) => {
+    if (!perm) return;
+    add(perm.topCard);
+    // A Colyseus state patch can briefly expose a permanent before all of its
+    // collection fields have been materialized on the client. The board only
+    // needs the cards that are present, so skip a missing collection instead
+    // of taking the whole game screen down during that render.
+    perm.stack?.forEach(add);
+    perm.linked?.forEach(add);
+    if (perm.permanentId && perm.topCard?.cardId) index.set(perm.permanentId, perm.topCard.cardId);
+  };
+  state.players.forEach((player, seat) => {
+    player.battleArea.forEach(addPermanent);
+    addPermanent(player.breeding);
+    player.trash.forEach(add);
+    // Deck and egg deck are absent by design — the server never encodes them (see
+    // HIDDEN_ZONE_VIEW_TAG), so there is nothing to index. A deck card whose identity an
+    // effect legitimately reveals arrives in the decision payload instead, which
+    // `decisionVisibleCards` already prefers over this index.
+    if (seat === viewerSeat) player.hand.forEach(add);
+  });
+  return index;
+}
+
+/** Resolve decision cards from the request first; zone state can lag a reveal decision by one patch. */
+export function decisionVisibleCards(
+  options: DecisionRequest["options"],
+  instanceIndex: ReadonlyMap<string, string>,
+  artIndex?: ReadonlyMap<string, string>,
+): { instanceId: string; cardId?: string; artId?: string }[] {
+  const authoritative = new Map((options?.visibleCards ?? []).map((card) => [card.instanceId, card]));
+  const visible = options?.visibleInstanceIds ?? options?.candidateInstanceIds ?? [];
+  return visible.map((instanceId) => {
+    const revealed = authoritative.get(instanceId);
+    const cardId = revealed?.cardId ?? instanceIndex.get(instanceId);
+    const artId = revealed?.artId ?? artIndex?.get(instanceId);
+    return { instanceId, cardId, ...(cardId && artId ? { artId } : {}) };
+  });
+}
+
+/** Resolve candidate colors from the same authoritative identities used to render a decision. */
+export function decisionCardColors(cards: readonly { instanceId: string; cardId?: string }[]): Map<string, string[]> {
+  const colors = new Map<string, string[]>();
+  for (const card of cards) {
+    if (card.cardId !== undefined) {
+      colors.set(card.instanceId, getCardDefinition(card.cardId)?.colors ?? []);
+    }
+  }
+  return colors;
+}
+
+/** Whether adding a decision candidate can still assign one distinct color to every pick. */
+export function differentColorsAllowCandidate(
+  candidateInstanceId: string,
+  picks: readonly string[],
+  colorsByInstance: ReadonlyMap<string, readonly string[]>,
+  enabled: boolean,
+): boolean {
+  if (!enabled || picks.includes(candidateInstanceId)) return true;
+  const candidateColors = colorsByInstance.get(candidateInstanceId) ?? [];
+  if (candidateColors.length === 0) return true;
+  return canAssignDistinctColors([
+    ...picks.map((instanceId) => colorsByInstance.get(instanceId) ?? []),
+    candidateColors,
+  ]);
+}
+
+/** Whether a decision candidate has a card number not already represented in the picks. */
+export function distinctCardIdsAllow(
+  candidateInstanceId: string,
+  picks: readonly string[],
+  cardIdByInstance: ReadonlyMap<string, string | undefined>,
+  enabled: boolean,
+): boolean {
+  if (!enabled || picks.includes(candidateInstanceId)) return true;
+  const candidateCardId = cardIdByInstance.get(candidateInstanceId);
+  if (candidateCardId === undefined) return false;
+  return picks.every((pickedId) => cardIdByInstance.get(pickedId) !== candidateCardId);
+}
+
+/** Index permanent source counts by either identifier a public decision may carry. */
+export function decisionSourceCounts(permanents: readonly Permanent[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const permanent of permanents) {
+    const count = permanent.stack.length;
+    counts.set(permanent.permanentId, count);
+    if (permanent.topCard?.instanceId) counts.set(permanent.topCard.instanceId, count);
+  }
+  return counts;
+}
+
+export interface DecisionPermanentDetails {
+  currentDP: number;
+  isSuspended: boolean;
+}
+
+/** Live board details for distinguishing otherwise-identical decision candidates. */
+export function decisionPermanentDetails(permanents: readonly Permanent[]): Map<string, DecisionPermanentDetails> {
+  const details = new Map<string, DecisionPermanentDetails>();
+  for (const permanent of permanents) {
+    const value = {
+      currentDP: permanent.currentDP,
+      isSuspended: permanent.isSuspended,
+    };
+    details.set(permanent.permanentId, value);
+    if (permanent.topCard?.instanceId) details.set(permanent.topCard.instanceId, value);
+  }
+  return details;
+}
+
+/** Card id on top of a permanent anywhere on the board, by permanentId. */
+export function permCardId(state: GameState, permanentId: string): string | undefined {
+  for (const player of state.players) {
+    for (const perm of player.battleArea) if (perm.permanentId === permanentId) return perm.topCard?.cardId;
+    if (player.breeding?.permanentId === permanentId) return player.breeding.topCard?.cardId;
+  }
+  return undefined;
+}
+
+/** Locate any card instance on the board by instanceId (topCard / stack / linked) and return its cardId. */
+export function instanceCardId(state: GameState, instanceId: string): string | undefined {
+  const onPermanent = (perm: Permanent): CardInstance | undefined =>
+    [perm.topCard, ...perm.stack, ...perm.linked].find((c) => c?.instanceId === instanceId);
+  for (const player of state.players) {
+    for (const perm of player.battleArea) {
+      const found = onPermanent(perm);
+      if (found) return found.cardId;
+    }
+    if (player.breeding) {
+      const found = onPermanent(player.breeding);
+      if (found) return found.cardId;
+    }
+  }
+  return undefined;
+}
+
+/** Locate a permanent anywhere on the board by permanentId. */
+export function findPermanentInState(state: GameState, permanentId: string): Permanent | undefined {
+  for (const player of state.players) {
+    const inBattle = player.battleArea.find((p) => p.permanentId === permanentId);
+    if (inBattle) return inBattle;
+    if (player.breeding?.permanentId === permanentId) return player.breeding;
+  }
+  return undefined;
+}

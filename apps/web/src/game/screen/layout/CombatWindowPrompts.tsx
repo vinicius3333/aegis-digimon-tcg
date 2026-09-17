@@ -5,7 +5,7 @@
    one while a decision is unanswered — so at most one of these is ever on screen. */
 
 import type { GameState } from "@aegis/shared";
-import { findPermanentInState, instanceCardId, permCardId } from "../../boardModel";
+import { findPermanentInState, instanceCardId, permCardId } from "../../decisionModel";
 import { AllianceOverlay, BarrierOverlay, BlockOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
 import type { CombatWindows } from "../model/combatWindows";
 

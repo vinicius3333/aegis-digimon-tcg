@@ -1,6 +1,6 @@
 import { Button } from "../../../design/primitives";
 import { useTranslation } from "../../../i18n";
-import type { EvoCostOption } from "../../boardModel";
+import type { EvoCostOption } from "../../digivolveModel";
 import { CardArt } from "../CardArt";
 import { printedCardName } from "../printedCardName";
 

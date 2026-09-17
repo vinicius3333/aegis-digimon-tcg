@@ -1,4 +1,4 @@
-import type { ProjectedDigivolveRoute } from "../boardModel";
+import type { ProjectedDigivolveRoute } from "../digivolveModel";
 
 export type DropAttrs = Record<string, string>;
 

@@ -8,7 +8,8 @@
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
-import { canAttackPlayerWith, canAttackWith, otherSeat, type LogLine } from "../../boardModel";
+import { canAttackPlayerWith, canAttackWith, otherSeat } from "../../boardModel";
+import { type LogLine } from "../../matchLog";
 import { intents } from "../../../net/intents";
 import { CardOpenerProvider } from "../../cardLinks";
 import { NarrationStack } from "../../NarrationStack";

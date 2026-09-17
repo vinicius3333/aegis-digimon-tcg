@@ -7,7 +7,7 @@
 
 import { type AssemblyPlan, type DigiXrosPlan, type Permanent, type PlayerState } from "@aegis/shared";
 import { intents } from "../../net/intents";
-import { appFusionRoutesForHost, type EvoCostOption } from "../boardModel";
+import { appFusionRoutesForHost, type EvoCostOption } from "../digivolveModel";
 import type { HandEntry } from "../piece";
 import type { SoundKind } from "../../design/sound";
 import { DragKind } from "./enums";

@@ -1,4 +1,4 @@
-import { differentColorsAllowCandidate, distinctCardIdsAllow } from "../../boardModel";
+import { differentColorsAllowCandidate, distinctCardIdsAllow } from "../../decisionModel";
 
 // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
 // picks stay legal as long as a distinct color can still be assigned to each.

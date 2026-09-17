@@ -2,7 +2,8 @@ import { Phase } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { Badge, Button, Logo } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
-import { canUseBreedingAction, type LogLine } from "../../boardModel";
+import { canUseBreedingAction } from "../../boardModel";
+import { type LogLine } from "../../matchLog";
 import { PHASES } from "../constants";
 
 /** Exported for its own test; the match screen is the only place that renders it. */

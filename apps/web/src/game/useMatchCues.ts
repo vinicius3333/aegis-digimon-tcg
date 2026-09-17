@@ -64,7 +64,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { type StateSnapshot } from "../net/presentedState";
 import { type GameState, type Seat, type ServerEvent, type PresentationReport } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
-import { buildInstanceIndex, otherSeat } from "./boardModel";
+import { otherSeat } from "./boardModel";
+import { buildInstanceIndex } from "./decisionModel";
 import { batchesAfter, type ServerBatch } from "../net/serverBatches";
 import { shouldPlayCue, type CueTimestamps } from "./soundEvents";
 import {

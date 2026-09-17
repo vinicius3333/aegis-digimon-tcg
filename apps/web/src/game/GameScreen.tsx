@@ -82,19 +82,17 @@ import "./arenaMobile.css";
 import { type DropTarget } from "./dragIntents";
 import {
   bothSeated,
-  openCombatWindow,
-  mirroredCombatWindow,
-  buildInstanceIndex,
-  digivolveBasePermanentIds,
   attackTargetIdsOf,
-  buildMatchLog,
   canAttackPlayerWith,
   displayMemory,
   otherSeat,
   viewerSeatOf,
-  type LogLine,
   breedingSlotClickAction,
 } from "./boardModel";
+import { openCombatWindow, mirroredCombatWindow } from "./combatWindowModel";
+import { buildInstanceIndex } from "./decisionModel";
+import { digivolveBasePermanentIds } from "./digivolveModel";
+import { buildMatchLog, type LogLine } from "./matchLog";
 import { useMatchCues } from "./useMatchCues";
 import { TIMINGS } from "./timings";
 import { pendingFateBadges } from "./pendingFate";

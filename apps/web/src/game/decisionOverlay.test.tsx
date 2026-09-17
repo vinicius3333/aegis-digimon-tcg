@@ -13,7 +13,7 @@ import {
   EvoCostChoiceOverlay,
   WaitingOverlay,
 } from "./overlay";
-import type { EvoCostOption } from "./boardModel";
+import type { EvoCostOption } from "./digivolveModel";
 import { CardOpenerProvider } from "./cardLinks";
 
 afterEach(() => cleanup());

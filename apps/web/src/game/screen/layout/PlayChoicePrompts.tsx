@@ -20,7 +20,7 @@ import {
   type DigiXrosEligibleExpander,
 } from "../../overlay";
 import type { AppFusionRoute } from "../../AppFusionChoiceOverlay";
-import type { EvoCostOption } from "../../boardModel";
+import type { EvoCostOption } from "../../digivolveModel";
 import { DragKind } from "../enums";
 import type { PendingActionConfirmation } from "../types";
 

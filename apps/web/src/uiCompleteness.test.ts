@@ -88,7 +88,7 @@ const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
 };
 
 describe("server event coverage", () => {
-  const logged = narratedEventKinds("game/boardModel.ts", "describeEvent");
+  const logged = narratedEventKinds("game/matchLog.ts", "describeEvent");
   const fed = narratedEventKinds("game/opponentActionFeed.ts", "opponentActionFromEvent");
   const surfaced = new Set<string>([...logged, ...fed, ...SUPPORTED_COMBAT_PROMPTS]);
 

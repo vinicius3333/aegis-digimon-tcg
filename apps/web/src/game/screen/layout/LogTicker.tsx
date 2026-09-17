@@ -4,7 +4,7 @@
 
 import { useTranslation } from "../../../i18n";
 import type { Seat } from "@aegis/shared";
-import type { LogLine } from "../../boardModel";
+import type { LogLine } from "../../matchLog";
 
 export function LogTicker({
   log,

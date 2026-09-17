@@ -5,7 +5,7 @@
    confirmation. */
 
 import type { Permanent, PlayerState } from "@aegis/shared";
-import { appFusionRoutesForHost } from "../../boardModel";
+import { appFusionRoutesForHost } from "../../digivolveModel";
 import type { AppFusionRoute } from "../../AppFusionChoiceOverlay";
 import type { HandEntry } from "../../piece";
 import type { AppFusionChoice } from "../types";

@@ -3,11 +3,11 @@ import type { GameState, Seat, SequencedServerEvent } from "@aegis/shared";
 import {
   activeBlockWindow,
   activeCounterWindow,
-  findPermanentInState,
   lastRejectedCombatAnswer,
   type MirroredCombatWindow,
   type OpenCombatWindow,
-} from "../../boardModel";
+} from "../../combatWindowModel";
+import { findPermanentInState } from "../../decisionModel";
 
 /** The five combat prompts, each present only when this viewer still owes it an answer. */
 export type CombatWindows = {

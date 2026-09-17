@@ -3,7 +3,7 @@
 // The client renders affordances; it does not re-derive the rules behind them.
 
 import type { Permanent, PlayerState } from "@aegis/shared";
-import { appFusionRoutesForHost, type ProjectedDigivolveRoute } from "../../boardModel";
+import { appFusionRoutesForHost, type ProjectedDigivolveRoute } from "../../digivolveModel";
 import type { HandEntry } from "../../piece";
 
 export function digivolveTargetsOf(input: {

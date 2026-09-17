@@ -1,7 +1,7 @@
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import type { AssemblyRequirement, DigiXrosRequirement, Permanent, PlayerState } from "@aegis/shared";
 import type { DropTarget } from "../dragIntents";
-import type { EvoCostOption } from "../boardModel";
+import type { EvoCostOption } from "../digivolveModel";
 import type { AssemblyCandidate, DigiXrosCandidate, DigiXrosEligibleExpander } from "../overlay";
 import type { Side } from "../side";
 import type { DpPulse } from "../dpPulse";
