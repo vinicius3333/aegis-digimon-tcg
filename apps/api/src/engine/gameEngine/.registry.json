@@ -27,6 +27,10 @@
   "export": "attackDeps",
   "module": "actionDeps"
  },
+ "beginBattleScope": {
+  "export": "beginBattleScope",
+  "module": "turnFlow"
+ },
  "beginResolvingWindow": {
   "export": "beginResolvingWindow",
   "module": "windows"
@@ -143,6 +147,10 @@
   "export": "drainPendingAttackTriggers",
   "module": "timing"
  },
+ "drawCards": {
+  "export": "drawCards",
+  "module": "turnFlow"
+ },
  "dropPermanentSubscriptions": {
   "export": "dropPermanentSubscriptions",
   "module": "effectContext"
@@ -158,6 +166,10 @@
  "effectPrimitives": {
   "export": "effectPrimitives",
   "module": "effectContext"
+ },
+ "endBattleScope": {
+  "export": "endBattleScope",
+  "module": "turnFlow"
  },
  "endResolvingWindow": {
   "export": "endResolvingWindow",
@@ -407,6 +419,10 @@
   "export": "ruleProcess",
   "module": "ruleProcess"
  },
+ "runBreedingPhase": {
+  "export": "runBreedingPhase",
+  "module": "turnFlow"
+ },
  "runCrossPermanentPlayReducers": {
   "export": "runCrossPermanentPlayReducers",
   "module": "timing"
@@ -450,6 +466,30 @@
  "subTriggerTurnLedger": {
   "export": "subTriggerTurnLedger",
   "module": "subTriggers"
+ },
+ "sweepBattleDurations": {
+  "export": "sweepBattleDurations",
+  "module": "turnFlow"
+ },
+ "sweepCombatDurations": {
+  "export": "sweepCombatDurations",
+  "module": "turnFlow"
+ },
+ "sweepDurations": {
+  "export": "sweepDurations",
+  "module": "turnFlow"
+ },
+ "unsuspendAllForSeat": {
+  "export": "unsuspendAllForSeat",
+  "module": "turnFlow"
+ },
+ "unsuspendForActivePhase": {
+  "export": "unsuspendForActivePhase",
+  "module": "turnFlow"
+ },
+ "unsuspendRebootForSeat": {
+  "export": "unsuspendRebootForSeat",
+  "module": "turnFlow"
  },
  "validateAppFusion": {
   "export": "validateAppFusion",

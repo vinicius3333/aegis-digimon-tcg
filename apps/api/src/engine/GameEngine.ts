@@ -3,7 +3,6 @@ import type { Client } from "colyseus";
 import {
   CardKind,
   EffectTiming,
-  Zone,
   GameState,
   PlayerState,
   EffectDuration,
@@ -23,7 +22,7 @@ import {
   syncPublicCounts,
 } from "./state/visibility.js";
 import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
-import { GameStateAccess, insertCard, markRoutedUsedOption, takeTop } from "./state/access.js";
+import { GameStateAccess, markRoutedUsedOption } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
 import { WinCheck } from "./security/index.js";
@@ -63,7 +62,6 @@ import { runSetup, finalizeSecurity, mulliganRedraw, type Rng, type Decklist } f
 import { layDevScenario, type DevScenarioId } from "./devScenario.js";
 import { validateDecklist } from "./deckValidation.js";
 import { MulliganCoordinator } from "./mulligan.js";
-import { canHatch, canMove } from "./actions/breeding.js";
 import { mergeRuleDeletions, type PooledRuleDeletion } from "./gameEngine/ruleDeletions.js";
 import { DigivolveSupport } from "./gameEngine/digivolveSupport.js";
 import { BoardProjection } from "./gameEngine/projections.js";
@@ -124,6 +122,14 @@ import {
   forgetUsesOfCardsLeavingField,
 } from "./gameEngine/effectContext.js";
 import { engineConsultDigivolutionTrashRedirect, engineConsultLeavePrevention } from "./gameEngine/effectContext.js";
+import {
+  beginBattleScope,
+  endBattleScope,
+  sweepBattleDurations,
+  sweepCombatDurations,
+  unsuspendAllForSeat,
+  unsuspendForActivePhase,
+} from "./gameEngine/turnFlow.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
@@ -373,7 +379,7 @@ export class GameEngine {
     const player = this.state.players[seat];
     if (player) player.securityDpDelta = delta;
   });
-  private battleScopeSequence = 0;
+  battleScopeSequence = 0;
   /** Continuous DP-based-deletion maximum bonuses (rebuilt each continuous recompute). */
   private readonly deletionMaxDp = new DeletionMaxDpLedger();
   /** Continuous DP-based-deletion BUDGET bonuses (BT19-011's inherited modifier; rebuilt each continuous recompute). */
@@ -639,10 +645,10 @@ export class GameEngine {
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
       trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(this, seat),
-      sweepEndOfAttack: () => this.sweepCombatDurations(),
-      beginBattleScope: () => this.beginBattleScope(),
-      sweepEndOfBattle: (scopeId) => this.sweepBattleDurations(scopeId),
-      endBattleScope: (scopeId) => this.endBattleScope(scopeId),
+      sweepEndOfAttack: () => sweepCombatDurations(this),
+      beginBattleScope: () => beginBattleScope(this),
+      sweepEndOfBattle: (scopeId) => sweepBattleDurations(this, scopeId),
+      endBattleScope: (scopeId) => endBattleScope(this, scopeId),
       recomputeBattleEffects: () => this.recomputeContinuousEffects(),
       continuous: this.continuous,
       hasKeyword: (permanentId, keyword) => {
@@ -949,231 +955,6 @@ export class GameEngine {
 
   /** Guards each immediate prevention from reactivating during its own resolution. */
   preventReentryGuard = { activeReplacementKeys: new Set<string>() };
-
-  /**
-   * Expire duration-scoped modifiers/rules at a turn/phase boundary, then re-derive
-   * the continuous tier (subsystems: static-continuous-effects, effect-primitives).
-   * Maps the turn-machine's boundary vocabulary to the ledgers' `DurationBoundary`
-   * (whose seat-relative sweeps mirror how the engine's `Until*Effects`
-   * clearing): a per-turn-end boundary sweeps both ledgers relative to the seat whose
-   * turn just ended, so an `UntilOwnerTurnEnd` buff clears on its owner's end and an
-   * `UntilOpponentTurnEnd` buff clears on the opponent's. The recompute that follows
-   * re-applies the still-valid persistent effects from the post-sweep board.
-   *
-   * `ownerTurnStart` carries no modifier expiry of its own. `ownerActivePhaseEnd`
-   * sweeps phase-scoped entries after the active-phase unsuspend, including the
-   * `UntilNextUntap` window used by "during the next unsuspend phase" effects.
-   */
-  async sweepDurations(boundary: TurnBoundary): Promise<void> {
-    const seat = this.state.turnSeat;
-    const sweep = (b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd" | "ownerActivePhase" | "nextUntap"): void => {
-      this.modifiers.sweep(this.state, b, seat);
-      this.continuous.sweep(this.state, b, seat);
-    };
-    switch (boundary) {
-      case "ownerTurnEnd":
-        sweep("ownerTurnEnd");
-        // GRANTED timed watchers (BT23-056's [Start of Your Main Phase] install) expire at
-        // their owner's turn end. `seat` is the seat whose turn
-        // just ended, so a watcher anchored on that seat's permanent is now dropped.
-        this.subTriggers.sweepExpired(seat);
-        break;
-      case "opponentTurnEnd":
-        sweep("opponentTurnEnd");
-        break;
-      case "eachTurnEnd":
-        sweep("eachTurnEnd");
-        this.securityDp.sweepTurnEnd(seat);
-        break;
-      case "ownerTurnStart":
-        break; // the recompute below refreshes the persistent tier for the new turn
-      case "ownerActivePhaseEnd":
-        // Active-phase unsuspend runs before this boundary. A restriction with
-        // UntilNextUntap must therefore block that unsuspend, then expire here.
-        sweep("ownerActivePhase");
-        sweep("nextUntap");
-        break;
-    }
-    this.projection.recomputeExpiredAffectationRecipients();
-    // Re-derive the persistent tier from the post-sweep board.
-    await this.recomputeContinuousEffects();
-  }
-
-  /** Open an identity token for one battle, so nested battles do not sweep parent grants. */
-  beginBattleScope(): number {
-    const scopeId = ++this.battleScopeSequence;
-    this.modifiers.beginBattleScope(scopeId);
-    this.continuous.beginBattleScope(scopeId);
-    return scopeId;
-  }
-
-  endBattleScope(scopeId: number): void {
-    this.modifiers.endBattleScope(scopeId);
-    this.continuous.endBattleScope(scopeId);
-  }
-
-  /** Expire battle grants after its reactions, independently of the enclosing attack. */
-  async sweepBattleDurations(scopeId?: number): Promise<void> {
-    this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
-    this.continuous.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
-    this.projection.recomputeExpiredAffectationRecipients();
-    await this.recomputeContinuousEffects();
-    if (scopeId !== undefined) this.endBattleScope(scopeId);
-  }
-
-  /** Expire attack grants, including unused battle grants when no battle occurred. */
-  private async sweepCombatDurations(): Promise<void> {
-    for (const boundary of ["endBattle", "endAttack"] as const) {
-      this.modifiers.sweep(this.state, boundary, this.state.turnSeat);
-      this.continuous.sweep(this.state, boundary, this.state.turnSeat);
-    }
-    this.projection.recomputeExpiredAffectationRecipients();
-    await this.recomputeContinuousEffects();
-  }
-
-  /**
-   * Unsuspend the turn player's permanents at the start of the Active phase
-   * (Comprehensive Rules §6-2: "the turn player unsuspends all of their Digimon and
-   * Tamers on the field at the same time"). Returns the permanent ids actually
-   * flipped from suspended to unsuspended (for the event log). Breeding-area
-   * permanents are also unsuspended (the source ActivePhase unsuspends every
-   * controlled permanent).
-   *
-   * §16-11 ＜Reboot＞: opponent's Digimon with this keyword also unsuspend during
-   * the turn player's unsuspend phase.
-   */
-  async unsuspendForActivePhase(seat: Seat): Promise<string[]> {
-    // The active-turn gate changes at passTurn(), and OpponentsTurn watchers are
-    // continuous effects derived from that gate. Rebuild immediately before the
-    // actual unsuspend operation so the transition cannot outrun watcher install.
-    await this.recomputeContinuousEffects();
-    const flipped = await this.unsuspendAllForSeat(seat);
-    // ＜Reboot＞: the opponent's Digimon also unsuspend (§16-11)
-    const oppSeat = seat === 0 ? 1 : 0;
-    const oppFlipped = this.unsuspendRebootForSeat(oppSeat);
-    const allFlipped = [...flipped, ...oppFlipped];
-    // SubTrigger bus: "when [this/a matching] Digimon/Tamer becomes unsuspended" watchers
-    // (23-card cluster). Covers both the turn player's own unsuspend and the opponent's
-    // ＜Reboot＞ unsuspend — both are genuine suspended -> unsuspended transitions.
-    for (const permanentId of allFlipped) {
-      // Both seams of "becomes unsuspended": the timing window handwritten modules listen on
-      // (BT11-032's bounce) and the SubTrigger bus the compiled watchers use. Dispatch the
-      // event bus against the watcher armed immediately before this unsuspend first; the
-      // legacy timing window performs a trailing continuous recompute and would otherwise
-      // invalidate that watcher before it could resolve.
-      const payload = { unsuspendedPermanentId: permanentId };
-      await this.fireSubTrigger("whenUnsuspended", payload);
-      await fireTiming(this, EffectTiming.OnUnTappedAnyone, payload);
-    }
-    return allFlipped;
-  }
-
-  private async unsuspendAllForSeat(seat: Seat): Promise<string[]> {
-    const player = this.state.players[seat];
-    if (player === undefined) return [];
-    const flipped: string[] = [];
-    const permanents = [...player.battleArea];
-    if (player.breeding !== undefined) permanents.push(player.breeding);
-    for (const permanent of permanents) {
-      if (permanent.isSuspended) {
-        if (this.continuous.hasRestriction(permanent.permanentId, "unsuspend")) continue;
-        if (
-          this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringOwnUnsuspendPhase") ||
-          this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringUnsuspendPhase")
-        )
-          continue;
-        const handTrashCost = this.continuous.restrictionCount(permanent.permanentId, "unsuspendHandTrashCost");
-        if (handTrashCost > 0) {
-          if (player.hand.length < handTrashCost) continue;
-          const response = await this.decisions.request({
-            seat,
-            kind: "selectCards",
-            promptText: `Trash ${handTrashCost} card${handTrashCost === 1 ? "" : "s"} from your hand to unsuspend this Digimon?`,
-            options: {
-              candidateInstanceIds: Array.from(player.hand, (card) => card.instanceId),
-              min: 0,
-              max: handTrashCost,
-            },
-          });
-          if (response.kind !== "selectCards" || response.instanceIds.length !== handTrashCost) continue;
-          await this.primitives.trash(response.instanceIds);
-        }
-        permanent.isSuspended = false;
-        flipped.push(permanent.permanentId);
-      }
-    }
-    return flipped;
-  }
-
-  /**
-   * Unsuspend every opponent permanent that has ＜Reboot＞ and is eligible
-   * to unsuspend (§16-11).
-   */
-  private unsuspendRebootForSeat(seat: Seat): string[] {
-    const player = this.state.players[seat];
-    if (player === undefined) return [];
-    const flipped: string[] = [];
-    for (const permanent of player.battleArea) {
-      if (!permanent.isSuspended) continue;
-      if (this.continuous.hasRestriction(permanent.permanentId, "unsuspend")) continue;
-      if (this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringUnsuspendPhase")) continue;
-      if (!this.continuous.hasKeyword(permanent.permanentId, "Reboot")) continue;
-      permanent.isSuspended = false;
-      flipped.push(permanent.permanentId);
-    }
-    if (
-      player.breeding?.isSuspended &&
-      this.continuous.hasKeyword(player.breeding.permanentId, "Reboot") &&
-      !this.continuous.hasRestriction(player.breeding.permanentId, "unsuspend") &&
-      !this.continuous.hasRestriction(player.breeding.permanentId, "unsuspendDuringUnsuspendPhase")
-    ) {
-      player.breeding.isSuspended = false;
-      flipped.push(player.breeding.permanentId);
-    }
-    return flipped;
-  }
-
-  /**
-   * Drive the interactive breeding phase (Comprehensive Rules §6-4). Opens the
-   * breeding window for the turn player via the BreedingPhaseController; the player
-   * takes at most one breeding action (the hatchEgg / moveFromBreeding intents drive
-   * it) or skips with endPhase. When no breeding action is possible the window
-   * auto-skips with no client round-trip (§6-4-1-3).
-   */
-  async runBreedingPhase(seat: Seat): Promise<void> {
-    const possible = canHatch(this.state, seat) || canMove(this.state, seat);
-    await this.breeding.run(seat, !possible);
-  }
-
-  /**
-   * Interim draw primitive: move the top `n` cards from a seat's deck to its hand,
-   * returning the moved instances. Mirrors the source `rule implementation(owner, n).Draw()`
-   * (deck top -> hand). The deck-out loss check is the security-and-win-check
-   * subsystem's responsibility; this stops at an empty deck and returns fewer cards.
-   *
-   * TODO(effect-primitives / deck-and-setup): replace with the canonical draw once
-   *   that subsystem lands (which will also fire OnDraw and trigger deck-out loss).
-   */
-  async drawCards(seat: Seat, n: number): Promise<CardInstance[]> {
-    const player = this.state.players[seat];
-    if (player === undefined) return [];
-    const drawn: CardInstance[] = [];
-    for (let i = 0; i < n; i++) {
-      const top = takeTop(player, Zone.Deck);
-      if (top === undefined) break; // deck-out; handled elsewhere
-      insertCard(player, Zone.Hand, top);
-      drawn.push(top);
-    }
-    if (drawn.length > 0) {
-      // Both halves of one draw: the OnDraw window and the reactive watchers. The event
-      // carries the drawing seat; the gate in runSubTrigger (interpreter.ts) fires a watcher
-      // only when drawingSeat is the OPPONENT of the watcher's controller seat.
-      await withPendingSubTriggers(this, ["whenOpponentDraws"], { drawingSeat: seat }, () =>
-        fireTiming(this, EffectTiming.OnDraw, { drawnInstanceIds: drawn.map((c) => c.instanceId) }),
-      );
-    }
-    return drawn;
-  }
 
   /** Stable effect key for a BT3-056-style ＜Digisorption＞ redirect's once-per-turn accounting. */
 
@@ -1815,6 +1596,18 @@ export class GameEngine {
     opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean; isDigiXros?: boolean },
   ): Promise<Set<string>> {
     return engineConsultLeavePrevention(this, permanentIds, cause, resolvingSeat, opts);
+  }
+
+  /**
+   * The two unsuspend sweeps opponentTurnFrequency and whenUnsuspended wrap on the instance
+   * to record which seam each ＜Reboot＞ / Active-phase fire came from.
+   */
+  unsuspendForActivePhase(seat: Seat): Promise<string[]> {
+    return unsuspendForActivePhase(this, seat);
+  }
+
+  unsuspendAllForSeat(seat: Seat): Promise<string[]> {
+    return unsuspendAllForSeat(this, seat);
   }
 
   fireSubTrigger(

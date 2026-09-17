@@ -3,6 +3,7 @@ import type { GameEngine } from "../GameEngine.js";
 import type { Primitives, RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { drainMicrotasks } from "./harness.js";
 import { internalsOf } from "./internals.js";
+import { drawCards } from "../gameEngine/turnFlow.js";
 import { beginResolvingWindow, endResolvingWindow } from "../gameEngine/windows.js";
 import { fireTimingForPermanent } from "../gameEngine/timing.js";
 
@@ -312,7 +313,7 @@ export function advance(engine: GameEngine) {
       },
       async draw(seat: Seat, count: number): Promise<CardInstance[]> {
         await internals.recomputeContinuousEffects();
-        return internals.drawCards(seat, count);
+        return drawCards(engine, seat, count);
       },
       /** Draw through the effect primitive, including effect-driven hand-add watchers. */
       async drawByEffect(seat: Seat, count: number): Promise<CardInstance[]> {

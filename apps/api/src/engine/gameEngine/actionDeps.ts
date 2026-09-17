@@ -63,6 +63,7 @@ import {
 import { listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
 import { settleBetweenEffects } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
+import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -364,7 +365,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
     costWaived: (_state, instance) => hasBlastDigivolveKeyword(instance.cardId),
     blastWindowAllowed: (_state, seat) =>
       engine.combat.hasOpenCounterWindow && engine.combat.counterWindowSeat === seat,
-    draw: (_state, seat, count) => engine.drawCards(seat, count),
+    draw: (_state, seat, count) => drawCards(engine, seat, count),
     fireWhenDigivolving: async (_state, seat, permanent, previousLevel, baseWasDigimon) => {
       // Turn-scoped fact consumed by inherited effects such as BT1-007. Register before
       // firing When Digivolving so effects in that window can observe the completed evolution.
@@ -834,10 +835,10 @@ export function dnaDigivolveDeps(engine: GameEngine): DnaDigivolveDeps {
 export function buildTurnFlowHooks(engine: GameEngine): TurnFlowHooks {
   return {
     fireTiming: async (timing) => engine.fireTiming(timing),
-    draw: async (seat, count) => (await engine.drawCards(seat, count)).length,
+    draw: async (seat, count) => (await drawCards(engine, seat, count)).length,
     deckCount: (seat) => engine.state.players[seat]?.deck.length ?? 0,
     unsuspendForActivePhase: async (seat) => engine.unsuspendForActivePhase(seat),
-    runBreedingPhase: async (seat) => engine.runBreedingPhase(seat),
+    runBreedingPhase: async (seat) => runBreedingPhase(engine, seat),
     runMainPhase: async (seat) => {
       engine.mainEntryPending = true;
       try {
@@ -879,7 +880,7 @@ export function buildTurnFlowHooks(engine: GameEngine): TurnFlowHooks {
         engine.crossedMemoryRushAttackers.clear();
         engine.blitzDecisionInFlight = false;
       }
-      await engine.sweepDurations(boundary);
+      await sweepDurations(engine, boundary);
     },
   };
 }

@@ -20,6 +20,7 @@ import {
   withTriggeredMutations,
 } from "./windows.js";
 import { buildEffectContext, cardSourceOf, effectEnvironment } from "./effectContext.js";
+import { beginBattleScope, endBattleScope, sweepBattleDurations } from "./turnFlow.js";
 
 export async function engineRunSecurityCheck(
   engine: GameEngine,
@@ -34,9 +35,9 @@ export async function engineRunSecurityCheck(
   // a one-shot stale value left from an earlier window.
   await engine.recomputeContinuousEffects();
   const deps: SecurityCheckDeps = {
-    beginBattleScope: () => engine.beginBattleScope(),
-    sweepEndOfBattle: (scopeId) => engine.sweepBattleDurations(scopeId),
-    endBattleScope: (scopeId) => engine.endBattleScope(scopeId),
+    beginBattleScope: () => beginBattleScope(engine),
+    sweepEndOfBattle: (scopeId) => sweepBattleDurations(engine, scopeId),
+    endBattleScope: (scopeId) => endBattleScope(engine, scopeId),
     recomputeContinuousEffects: () => engine.recomputeContinuousEffects(),
     // Strike = the number of security cards checked: base 1 plus every ＜Security
     // Attack +N＞ granted to the attacker. The securityAttack IR producer writes these
