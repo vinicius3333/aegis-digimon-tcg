@@ -31,6 +31,7 @@ import { deleteBurstStep } from "./match/steps/deleteBurstStep";
 import { zoneChangeStep } from "./match/steps/zoneChangeStep";
 import { batchFacts } from "./match/present/batchFacts";
 import { combatScenes } from "./match/present/combat";
+import { collectBatchAnnouncements } from "./match/present/announcements";
 import { enqueueBatchSounds } from "./match/present/sounds";
 import { enqueueDeckRiffles } from "./match/present/deckRiffles";
 import { enqueueEffectSources } from "./match/present/effectSources";
@@ -47,6 +48,7 @@ import type {
   DrawFlight,
   MatchCueAnchors,
   MatchCues,
+  RevealOnStage,
   SecurityBreakCue,
   TurnTransitionCue,
   UnsuspendSweep,
@@ -73,27 +75,13 @@ import { buildInstanceIndex, otherSeat } from "./boardModel";
 import { batchesAfter, type ServerBatch } from "../net/serverBatches";
 import { shouldPlayCue, type CueTimestamps } from "./soundEvents";
 import {
-  attackAnnouncementFromEvent,
   buildInstanceSeatIndex,
   buildInstanceArtIndex,
-  sidePanelFromEvent,
   type AttackAnnouncement,
   type SidePanel,
   type SidePanelLookup,
 } from "./sidePanels";
-import {
-  effectNoticeFromEvent,
-  deletionNoticesFromEvent,
-  isOwnEffectNotice,
-  noticeRemaining,
-  keywordNoticeFromEvent,
-  preventionNoticeFromEvent,
-  recoveryNoticeFromEvent,
-  rejectionNotice,
-  securityGainNotice,
-  securityGainNoticeFromEvent,
-  type MatchNotice,
-} from "./notices";
+import { isOwnEffectNotice, noticeRemaining, rejectionNotice, securityGainNotice, type MatchNotice } from "./notices";
 import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
 import {
   buildSecurityBranchScene,
@@ -128,7 +116,6 @@ import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "./phaseBann
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
 import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
 import {
-  CARD_BURST_PEAK_MS,
   CLASH_OUTCOME_AT_MS,
   CLASH_TOTAL_MS,
   COMBAT_IMPACT_TOTAL_MS,
@@ -437,17 +424,7 @@ export function useMatchCues({
   // half of what an effect did, so it waits on exactly the cue the notice waits on —
   // otherwise the panel prints an [On Play] result beside a card still mid-reveal.
   const heldPanelsRef = useRef<readonly SidePanel[]>([]);
-  // The revealed card currently held on stage by a check the server has not closed yet.
-  // `securityRevealed` stages it and `securityChecked` settles it, which may be a decision
-  // or two later — everything in between is that card's consequence and queues behind it.
-  const revealOnStageRef = useRef<{
-    key: number;
-    scene: SecurityClashScene;
-    /** True once the card has played out and left the centre of the screen on its own. */
-    exited?: boolean;
-    /** True while the card is parked in the side dock waiting for its check to close. */
-    docked?: boolean;
-  } | null>(null);
+  const revealOnStageRef = useRef<RevealOnStage | null>(null);
   // The dock the centre-stage track is currently holding open, if any. The dock step polls
   // it: the check closing (or a newer reveal claiming the key) is what lets the card go.
   const securityDockRef = useRef<{ key: number; closed: boolean } | null>(null);
@@ -760,110 +737,26 @@ export function useMatchCues({
     if (!replayingHistory) {
       enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
       const now = Date.now();
-      let announcement: AttackAnnouncement | null = null;
-      const opened: SidePanel[] = [];
-      const raised: MatchNotice[] = [];
-      // Which event each panel and each notice came from. The server delivers a whole
-      // `[Security]` resolution in ONE batch — the reveal, the free play it grants and the
-      // [On Play] reveals that follow are all `fresh` together — so "before the card was
-      // played" and "after it was played" is a position in this array, not a batch boundary.
-      const panelAt: number[] = [];
-      const noticeAt: number[] = [];
-      // The centre-stage showcase runs only in `live` mode, so under reduced motion or a
-      // hidden tab the panel is the only thing left to announce an opponent's arrival.
       const showcasePlays = queue.getMode() === "live";
-      /* The card a check is currently holding on screen. A `[Security]` clause that plays
-         its own card raises the ordinary "played card" panel, which under reduced motion or
-         a hidden tab is the only announcement a play gets — but here it is not: the dock is
-         holding that exact card up, so the panel would name it twice, in the column the
-         [On Play] result needs. */
-      const dockedCardId =
-        securityReveal?.kind === "securityRevealed"
-          ? securityReveal.revealedCardId
-          : revealOnStageRef.current?.scene.revealed.cardId;
-      for (const [eventIndex, event] of fresh.entries()) {
-        if (event.kind === "digivolved") pendingDigivolutionDrawRef.current.add(event.seat);
-        if (event.kind === "cardsMoved" && event.from === "deck" && event.to === "hand") {
-          const seat =
-            event.seat ??
-            event.instanceIds.map((id) => sidePanelLookupRef.current.seat(id)).find((owner) => owner !== undefined);
-          if (seat !== undefined) {
-            const side = seat === viewerSeat ? Side.Viewer : Side.Opponent;
-            eventDrawCountsRef.current[side] = state?.players[seat]?.handCount;
-            const followsDigivolution =
-              event.drawReason === "digivolution" && pendingDigivolutionDrawRef.current.has(seat);
-            const waitBeforeMs = followsDigivolution ? CARD_BURST_PEAK_MS : 0;
-            // One flight per card. The server names a whole Draw 2 in a single event, so a
-            // flight per event sent one card back for two cards and read as a single draw.
-            for (const [drawIndex] of event.instanceIds.entries())
-              launchDrawFlight(side, false, waitBeforeMs + drawIndex * TIMINGS.drawFlightStagger);
-            /**
-             * An effect draw by the held seat releases that seat's draw-phase hold.
-             *
-             * The hold freezes the presented hand at the previous revision so the draw the
-             * turn opens with stays hidden until its Draw banner. Only the phase draw needs
-             * hiding, and that one moves through GameEngine.drawCards and emits no event at
-             * all: reaching this line means the cards came from an effect, and belong on
-             * screen now.
-             *
-             * The seat matters. A turn that flips in the same patch that carried the
-             * PREVIOUS player's last effect arms the hold for the incoming seat before this
-             * batch is read; releasing it here on the outgoing seat's draw let the incoming
-             * seat's turn-start draw fly ribbons ahead of its own Draw banner.
-             */
-            if (drawPhaseWaitingRef.current === seat) {
-              drawPhaseWaitingRef.current = null;
-              setHeldDrawState(undefined);
-            }
-            if (event.drawReason === "digivolution") pendingDigivolutionDrawRef.current.delete(seat);
-          }
-        }
-        if (event.kind === "cardsMoved" && event.deckToUnder) {
-          const { seat, permanentId, count } = event.deckToUnder;
-          for (let index = 0; index < count; index += 1) launchDeckToUnderFlight(seat, permanentId);
-        }
-        sidePanelSequenceRef.current += 1;
-        const id = `side-panel-${sidePanelSequenceRef.current}`;
-        const announced = sidePanelFromEvent(event, viewerSeat, sidePanelLookupRef.current, id, now, showcasePlays);
-        const panel =
-          announced?.titleKey === "panel.playedCard" && announced.cards[0]?.cardId === dockedCardId ? null : announced;
-        if (panel) {
-          opened.push(panel);
-          panelAt.push(eventIndex);
-        }
-        announcement = attackAnnouncementFromEvent(event, viewerSeat, id, now) ?? announcement;
-        // A security card that resolves an effect owns the next notice, which is
-        // why the flag is read here rather than derived from the event alone.
-        if (event.kind === "securityChecked") securityEffectPendingRef.current = event.resolution === "effect";
-        const candidateNotices =
-          event.kind === "cardsMoved" && (event.deletedPermanents?.length ?? 0) > 0
-            ? deletionNoticesFromEvent(
-                event,
-                viewerSeat,
-                () => {
-                  noticeSequenceRef.current += 1;
-                  return `notice-${noticeSequenceRef.current}`;
-                },
-                now,
-              )
-            : (() => {
-                noticeSequenceRef.current += 1;
-                const noticeId = `notice-${noticeSequenceRef.current}`;
-                return [
-                  effectNoticeFromEvent(event, viewerSeat, noticeId, now, securityEffectPendingRef.current) ??
-                    recoveryNoticeFromEvent(event, viewerSeat, noticeId, now) ??
-                    securityGainNoticeFromEvent(event, viewerSeat, noticeId, now) ??
-                    preventionNoticeFromEvent(event, viewerSeat, noticeId, now) ??
-                    keywordNoticeFromEvent(event, viewerSeat, noticeId, now),
-                ];
-              })();
-        for (const notice of candidateNotices)
-          if (notice) {
-            if (notice.body.variant === "effect") securityEffectPendingRef.current = false;
-            raised.push(notice);
-            noticeAt.push(eventIndex);
-          }
-      }
+      const { announcement, opened, raised, panelAt, noticeAt } = collectBatchAnnouncements({
+        fresh,
+        viewerSeat,
+        state,
+        now,
+        showcasePlays,
+        securityReveal,
+        revealOnStageRef,
+        pendingDigivolutionDrawRef,
+        eventDrawCountsRef,
+        drawPhaseWaitingRef,
+        sidePanelLookupRef,
+        sidePanelSequenceRef,
+        noticeSequenceRef,
+        securityEffectPendingRef,
+        launchDrawFlight,
+        launchDeckToUnderFlight,
+        setHeldDrawState,
+      });
       // Zone changes own the centre of the screen: the opponent's card is held
       // up, the destination stays hidden behind it, and only then does the
       // permanent reveal on its burst. The viewer's own moves keep the burst and

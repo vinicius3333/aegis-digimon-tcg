@@ -48,6 +48,21 @@ export type UnsuspendSweep = { seat: Seat; key: number };
 
 export type TurnTransitionCue = { endingSeat: number; nextSeat: number; turnCount: number };
 
+/**
+ * The revealed card a check the server has not closed yet is holding on stage.
+ *
+ * `securityRevealed` stages it and `securityChecked` settles it, which may be a decision or
+ * two later — everything in between is that card's consequence and queues behind it.
+ */
+export type RevealOnStage = {
+  key: number;
+  scene: SecurityClashScene;
+  /** True once the card has played out and left the centre of the screen on its own. */
+  exited?: boolean;
+  /** True while the card is parked in the side dock waiting for its check to close. */
+  docked?: boolean;
+};
+
 /** The board elements a draw flight is measured between. */
 export interface MatchCueAnchors {
   board: RefObject<HTMLDivElement | null>;
