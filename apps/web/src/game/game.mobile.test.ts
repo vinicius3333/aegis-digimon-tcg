@@ -467,7 +467,7 @@ describe("the drag intent label reads the pointer, not the viewport", () => {
     // A touchscreen laptop is wide, so a width breakpoint would leave the label
     // under the finger on exactly the devices that need it lifted.
     expect(gameScreenSource).toMatch(/COARSE_POINTER_QUERY/);
-    expect(gameScreenSource).toMatch(/top:\s*drag!\.y - dragIntentLabelOffsetPx\(coarsePointer\)/);
+    expect(gameScreenSource).toMatch(/top:\s*y - dragIntentLabelOffsetPx\(coarsePointer\)/);
   });
 });
 
@@ -559,7 +559,8 @@ describe("the viewer's own moves on a phone", () => {
       /\.game-opponent-bar \{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto auto auto auto/,
     );
     expect(portraitRules).toMatch(/\.game-mobile-surrender,\s*\.game-mobile-log,\s*\.game-mobile-bug \{/);
-    expect(gameScreenSource).toMatch(/className="game-mobile-log"[\s\S]*?onClick=\{\(\) => setHistoryOpen\(true\)\}/);
+    expect(gameScreenSource).toMatch(/className="game-mobile-log"[\s\S]*?onClick=\{onOpenLog\}/);
+    expect(gameScreenSource).toMatch(/onOpenLog=\{\(\) => setHistoryOpen\(true\)\}/);
     expect(gameScreenSource).not.toMatch(/game-mobile-fullscreen|game-log-strip/);
     expect(portraitRules).not.toMatch(/game-log-strip/);
   });
@@ -764,7 +765,7 @@ describe("landscape phone match layout", () => {
     // Even the compact Digimon (106px) is taller than a row here.
     expect(gameScreenSource).toMatch(/const LANDSCAPE_PHONE_PERMANENT_WIDTH = \d+;/);
     expect(gameScreenSource).toMatch(
-      /width=\{landscapePhone \? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth\}/,
+      /width:\s*landscapePhone \? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth/,
     );
   });
 });

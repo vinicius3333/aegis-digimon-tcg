@@ -1,7 +1,21 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
+/** Every source file of a folder and its subfolders, barrels excluded. */
+function folderSources(folder: string): string[] {
+  return readdirSync(new URL(folder, import.meta.url), { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory()
+      ? folderSources(`${folder}${entry.name}/`)
+      : entry.name === "index.ts"
+        ? []
+        : [readFileSync(new URL(`${folder}${entry.name}`, import.meta.url), "utf8")],
+  );
+}
+/** The screen's hooks, model, layout, queries and shared types all sit under ./screen. */
+const gameScreenSource = [
+  readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8"),
+  ...folderSources("./screen/"),
+].join("\n");
 
 describe("presentation cues and board actions", () => {
   it("does not install a presentation-owned input shield", () => {
@@ -24,7 +38,8 @@ describe("presentation cues and board actions", () => {
     expect(gameScreenSource).toContain("const breedingActionsOpen = breedingWindow && !turnActionBlocked;");
     expect(gameScreenSource).toContain("if (!breedingActionsOpen) return;");
     expect(gameScreenSource).toContain("covered={endPhaseBlocked ? true : undefined}");
-    expect(gameScreenSource).toContain("onEndPhase={() => !endPhaseBlocked && room && intents.endPhase(room)}");
+    expect(gameScreenSource).toContain("onEndPhase={() => !endPhaseBlocked && onEndPhase()}");
+    expect(gameScreenSource).toContain("onEndPhase={() => room && intents.endPhase(room)}");
     expect(gameScreenSource).toContain("decision && decision.seat === viewerSeat");
   });
 });
