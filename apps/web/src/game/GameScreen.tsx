@@ -5,14 +5,17 @@
 
 import { DragKind } from "./screen/enums";
 import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
-import { dropZoneAt, permanentVisualElement } from "./screen/dropZones";
+import { dropZoneAt } from "./screen/dropZones";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
 import { decisionViewFor } from "./screen/model/decisionView";
 import { prePlayPromptFor } from "./screen/model/prePlayPrompt";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
+import { useAttackPreviewArrow } from "./screen/hooks/useAttackPreviewArrow";
+import { useDragPlumbing } from "./screen/hooks/useDragPlumbing";
 import { useTrackingArrow } from "./screen/hooks/useTrackingArrow";
-import { BoardShell } from "./screen/layout/BoardShell";
+import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
+import { pendingMatchNotice } from "./screen/model/pendingMatchNotice";
 import { AttackArrowLayer } from "./screen/layout/AttackArrowLayer";
 import { BattleZones } from "./screen/layout/BattleZones";
 import { BoardBurstLayer } from "./screen/layout/BoardBurstLayer";
@@ -136,7 +139,6 @@ import {
 import {
   MulliganOverlay,
   playerFacingEffectClause,
-  WaitingOverlay,
   type AssemblyCandidate,
   type DigiXrosCandidate,
   type DigiXrosEligibleExpander,
@@ -147,11 +149,9 @@ import { CardOpenerProvider } from "./cardLinks";
 import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
-import { pressGesture, swallowNextClick } from "./pressGesture";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import { pendingFateBadges } from "./pendingFate";
 import { shieldSecurityCount } from "./securityClash";
-import { beamBetweenBoxes, type ArrowBox } from "./arrowGeometry";
 import { predictedMemory } from "./memoryArc";
 import { memoryCostPreview } from "./memoryCostPreview";
 import { fieldSlots, triggerClauseSummary, triggerSource, type TriggerSource } from "./decisionPresentation";
@@ -324,12 +324,7 @@ export function GameScreen({
     | null
   >(null);
 
-  const dragRef = useRef<DragState | null>(null);
-  const [drag, setDragState] = useState<DragState | null>(null);
-  const setDrag = (d: DragState | null) => {
-    dragRef.current = d;
-    setDragState(d);
-  };
+  const { drag, dragHover, handleTapRef, handleDropRef, startHandDrag, startPermDrag } = useDragPlumbing();
 
   const battlefield = useBattlefieldStyle();
   const boardRef = useRef<HTMLDivElement | null>(null);
@@ -349,13 +344,15 @@ export function GameScreen({
   const yourHandDockRef = useRef<HTMLDivElement | null>(null);
   const oppHandStripRef = useRef<HTMLDivElement | null>(null);
   const attackPreviewTargetRef = useRef<{ security: boolean; permanentId?: string }>({ security: false });
-  const [arrow, setArrow] = useState<{ from: { x: number; y: number }; to: { x: number; y: number } } | null>(null);
+  const arrow = useAttackPreviewArrow({
+    attackerPermanentId: selPerm,
+    state,
+    boardRef,
+    permanentRefs: permRefs,
+    opponentSecurityRef: oppSecRef,
+    targetRef: attackPreviewTargetRef,
+  });
 
-  const handleTapRef = useRef<((d: DragState) => void) | null>(null);
-  const handleDropRef = useRef<((d: DragState, cx: number, cy: number) => void) | null>(null);
-  // The drop area the pointer is currently over, so the ghost can carry the name
-  // of the intent that release would send.
-  const [dragHover, setDragHover] = useState<DropZoneHit | null>(null);
   // Which hand card the pointer is over, so the memory gauge can trace where a
   // play would put memory before the card is even picked up.
   const [hoveredHandInstanceId, setHoveredHandInstanceId] = useState<string | undefined>(undefined);
@@ -561,100 +558,6 @@ export function GameScreen({
     effectSources.flatMap((activation) => (activation.site.zone === "field" ? [activation.site.permanentId] : [])),
   );
 
-  // Attack arrow: from the selected attacker to the opponent's security pile.
-  useEffect(() => {
-    if (!selPerm) {
-      setArrow(null);
-      return;
-    }
-    let frame = 0;
-    let applied = "";
-    const measure = () => {
-      frame = window.requestAnimationFrame(measure);
-      const b = boardRef.current;
-      const a = permRefs.current[selPerm];
-      const preview = attackPreviewTargetRef.current;
-      const target = preview.security
-        ? oppSecRef.current
-        : preview.permanentId
-          ? permRefs.current[preview.permanentId]
-          : null;
-      if (!b || !a || !target) {
-        setArrow(null);
-        return;
-      }
-      const br = b.getBoundingClientRect();
-      const boxOf = (rect: DOMRect): ArrowBox => ({
-        x: rect.left + rect.width / 2 - br.left,
-        y: rect.top + rect.height / 2 - br.top,
-        halfWidth: rect.width / 2,
-        halfHeight: rect.height / 2,
-      });
-      const next = beamBetweenBoxes(
-        boxOf(permanentVisualElement(a).getBoundingClientRect()),
-        boxOf((preview.security ? target : permanentVisualElement(target)).getBoundingClientRect()),
-      );
-      const signature = `${Math.round(next.from.x)},${Math.round(next.from.y)}|${Math.round(next.to.x)},${Math.round(next.to.y)}`;
-      if (signature === applied) return;
-      applied = signature;
-      setArrow(next);
-    };
-    frame = window.requestAnimationFrame(measure);
-    return () => window.cancelAnimationFrame(frame);
-  }, [selPerm, state]);
-
-  useEffect(() => {
-    const move = (e: PointerEvent) => {
-      const d = dragRef.current;
-      if (!d) return;
-      // `deferred` is set for every non-mouse pointer, so it also says which slop applies.
-      const gesture = pressGesture({ dx: e.clientX - d.ox, dy: e.clientY - d.oy, touch: d.deferred === true });
-      if (!d.started && gesture === "press") {
-        setDrag({ ...d, x: e.clientX, y: e.clientY });
-        return;
-      }
-      if (!d.started) {
-        if (gesture === "scroll") {
-          setDrag(null);
-          return;
-        }
-        e.preventDefault();
-        d.capture?.setPointerCapture?.(e.pointerId);
-      }
-      setDrag({ ...d, x: e.clientX, y: e.clientY, started: true });
-      const hit = dropZoneAt(e.clientX, e.clientY);
-      setDragHover((current) => (current?.target === hit?.target && current?.id === hit?.id ? current : (hit ?? null)));
-    };
-    const up = (e: PointerEvent) => {
-      const d = dragRef.current;
-      if (d) {
-        if (d.started) handleDropRef.current?.(d, e.clientX, e.clientY);
-        else {
-          // A tap opens a sheet right under the finger that made it, and the click the
-          // browser sends after the tap would land on whatever mounted there — zooming
-          // the card, or dismissing the sheet before it was ever read.
-          swallowNextClick();
-          handleTapRef.current?.(d);
-        }
-      }
-      setDrag(null);
-      setDragHover(null);
-    };
-    const cancel = () => {
-      setDrag(null);
-      setDragHover(null);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-    window.addEventListener("pointercancel", cancel);
-    return () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      window.removeEventListener("pointercancel", cancel);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
 
@@ -686,72 +589,17 @@ export function GameScreen({
   });
 
   // ----- pre-match / connection gates -----
-  if (status === "reconnecting") {
+  if (status === "reconnecting" || status === "error" || botError || !state || !you || !opp || !bothSeated(state)) {
+    const notice = pendingMatchNotice({ status, botError, error, vsBot, startMode, hostRoomCode, joinOptions, t });
     return (
-      <BoardShell>
-        <WaitingOverlay title={t("game.reconnecting")} detail={t("game.reconnectingDetail")} />
-      </BoardShell>
-    );
-  }
-  if (status === "error" || botError) {
-    return (
-      <BoardShell>
-        <WaitingOverlay
-          spinner={false}
-          title={botError ? t("game.botConnectionFailed") : t("game.connectionLost")}
-          detail={botError ?? error ?? t("game.connectionLostDetail")}
-          actionLabel={t("game.returnToLobby")}
-          onAction={() => onExit("lobby")}
-        />
-      </BoardShell>
-    );
-  }
-  if (!state || !you || !opp || !bothSeated(state)) {
-    const waitingTitle = vsBot
-      ? t("game.waitingBot")
-      : startMode === "private_host"
-        ? t("game.waitingOpponent")
-        : startMode === "private_guest"
-          ? t("game.waitingJoinPrivate")
-          : t("game.waitingFinding");
-    const waitingDetail = vsBot
-      ? t("game.waitingBotDetail")
-      : startMode === "private_host"
-        ? hostRoomCode
-          ? t("game.shareCode", { code: hostRoomCode })
-          : t("game.creatingRoom")
-        : startMode === "private_guest"
-          ? t("game.connectingPrivate")
-          : t("game.queuedDetail", { name: joinOptions.displayName });
-    return (
-      <BoardShell>
-        <WaitingOverlay title={waitingTitle} detail={waitingDetail} />
-        {startMode === "private_host" && hostRoomCode ? (
-          <div style={{ position: "absolute", bottom: 48, left: "50%", transform: "translateX(-50%)", zIndex: 81 }}>
-            <code
-              onClick={() => navigator.clipboard?.writeText(hostRoomCode)}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "12px 32px",
-                borderRadius: 14,
-                background: "var(--ds-surface)",
-                border: "1px solid var(--ds-border)",
-                color: "var(--ds-foreground)",
-                fontSize: 24,
-                fontWeight: 800,
-                fontFamily: "var(--ds-font-mono)",
-                letterSpacing: "0.2em",
-                cursor: "pointer",
-              }}
-              title={t("game.clickToCopy")}
-            >
-              {hostRoomCode}
-            </code>
-          </div>
-        ) : null}
-      </BoardShell>
+      <PendingMatchBoard
+        title={notice.title}
+        detail={notice.detail}
+        spinner={notice.spinner}
+        actionLabel={notice.actionLabel}
+        roomCode={notice.roomCode}
+        onAction={notice.exitTo ? () => onExit(notice.exitTo!) : undefined}
+      />
     );
   }
 
@@ -1090,57 +938,6 @@ export function GameScreen({
 
   const baseDropIntentAttrs = (permanentId: string) =>
     modelBaseDropIntentAttrs({ permanentId, dragBasePermanentIds, drag, you, handEntries });
-  const startHandDrag = (index: number, e: React.PointerEvent) => {
-    // The index is a position in the hand the viewer can see, so it is resolved there.
-    const entry = shownHandEntries[index];
-    if (!entry) return;
-    const deferred = e.pointerType !== "mouse";
-    // Claiming the pointer up front (preventDefault + capture) kills the browser's
-    // native pan, which is how the hand scrolls on touch. Defer both until `move`
-    // has decided the gesture is a drag rather than a sideways swipe.
-    if (!deferred) {
-      e.preventDefault();
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-    }
-    setDrag({
-      kind: DragKind.Play,
-      index,
-      instanceId: entry.instanceId,
-      cardId: entry.cardId,
-      artId: entry.artId,
-      x: e.clientX,
-      y: e.clientY,
-      ox: e.clientX,
-      oy: e.clientY,
-      started: false,
-      deferred,
-      capture: e.currentTarget,
-    });
-  };
-  const startPermDrag = (perm: Permanent, e: React.PointerEvent) => {
-    if (perm.isSuspended) return;
-    const def = perm.topCard ? getCardDefinition(perm.topCard.cardId) : undefined;
-    if (!def?.kinds.includes(CardKind.Digimon)) return;
-    const deferred = e.pointerType !== "mouse";
-    if (!deferred) {
-      e.preventDefault();
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-    }
-    setDrag({
-      kind: DragKind.Attack,
-      permanentId: perm.permanentId,
-      cardId: perm.topCard?.cardId ?? "",
-      artId: perm.topCard?.artId,
-      x: e.clientX,
-      y: e.clientY,
-      ox: e.clientX,
-      oy: e.clientY,
-      started: false,
-      deferred,
-      capture: e.currentTarget,
-    });
-  };
-
   const selectHandCard = (entry: HandEntry) => {
     playSound("select");
     setHandSel(entry.instanceId);
@@ -2254,7 +2051,7 @@ export function GameScreen({
             handCount={shownHandCount}
             deckCount={shownYou.deckCount}
             trashCount={shownYou.trash.length}
-            startDrag={startHandDrag}
+            startDrag={(index, event) => startHandDrag(index, shownHandEntries[index], event)}
             selectCard={(index) => {
               const entry = shownHandEntries[index];
               if (entry) selectHandCard(entry);
