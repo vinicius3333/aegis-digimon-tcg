@@ -612,7 +612,19 @@ export async function runActivateMain(ctx: EffectContext): Promise<void> {
     ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, [CardKind.Option], ctx.source.permanent()?.permanentId);
   }
   try {
-    for (const effect of mains) await runEffect(mainCtx, effect);
+    for (const [index, effect] of mains.entries()) {
+      const resolved = ctx.fx.announceEffect?.(ctx, {
+        effectKey: effect.effectKey ?? `${ctx.source.cardId}/main/${index}`,
+        description: describeEffect(effect),
+        timing: "Main",
+        ...(effect.isInherited === true ? { isInherited: true } : {}),
+      });
+      try {
+        await runEffect(mainCtx, effect);
+      } finally {
+        resolved?.();
+      }
+    }
   } finally {
     if (activatesDualOptionFace) ctx.fx.leaveEffectResolution?.();
   }

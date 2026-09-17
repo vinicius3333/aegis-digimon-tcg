@@ -135,6 +135,22 @@ describe("the revealed card's [Security] clause announces itself", () => {
     const events = await check("BT1-010");
     expect(securityTriggered(events)).toHaveLength(0);
   });
+
+  it("announces the [Main] clause a [Security] activation hands over to", async () => {
+    const events = await check("BT1-094");
+    const triggered = events.filter((e): e is EffectTriggeredEvent => e.kind === "effectTriggered");
+    expect(triggered.map((e) => e.timing)).toEqual(["Security", "Main"]);
+    const main = triggered[1]!;
+    expect(main).toMatchObject({ seat: 1, sourceCardId: "BT1-094", duringSecurityCheck: true });
+    expect(main.description).not.toContain("[Security]");
+    expect(main.description).not.toBe(triggered[0]!.description);
+    const resolvedMain = events.findIndex(
+      (e) => e.kind === "effectResolved" && e.effectKey === main.effectKey && e.timing === "Main",
+    );
+    const checkIndex = events.findIndex((e) => e.kind === "securityChecked");
+    expect(resolvedMain).toBeGreaterThan(events.indexOf(main));
+    expect(resolvedMain).toBeLessThan(checkIndex);
+  });
 });
 
 /** The player-directed win on empty security is untouched by the ＜Piercing＞ guard. */

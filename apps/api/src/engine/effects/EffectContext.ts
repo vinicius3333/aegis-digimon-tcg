@@ -1170,6 +1170,11 @@ export interface Primitives {
   /** Resolution-source stack used by ownership, source-kind, and deletion-provenance checks. */
   enterEffectResolution?(seat: Seat, sourceKinds?: string[], sourcePermanentId?: string): void;
   leaveEffectResolution?(): void;
+  /** Emits `effectTriggered`; the returned closer emits `effectResolved`. */
+  announceEffect?(
+    ctx: EffectContext,
+    effect: { effectKey: string; description: string; timing: string; isInherited?: boolean },
+  ): () => void;
   restrictSecurityAddsFromEffect?(blockedEffectSeat: Seat, granterSeat: Seat, duration: EffectDuration): void;
   grantPierce(permanentId: string, duration: EffectDuration, opts?: { continuous?: boolean }): void;
   /**

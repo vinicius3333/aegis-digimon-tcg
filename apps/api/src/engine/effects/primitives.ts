@@ -154,6 +154,7 @@ export interface PrimitivesEngine {
   ): { cost: number } | undefined;
   /** Emit a server event (narration/log). */
   emit(event: ServerEvent): void;
+  inSecurityCheck?(): boolean;
   /** Allocate a permanentId unique within the match (play-from-hand/security). */
   nextPermanentId(): string;
   /** Allocate an instanceId for token spawn / synthetic instances. */
@@ -456,6 +457,21 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
       ...(paidPermanentId === undefined ? {} : { paidPermanentId }),
     });
+  };
+  const announceEffect: Primitives["announceEffect"] = (ctx, effect) => {
+    const announced = {
+      seat: ctx.source.ownerSeat,
+      sourceCardId: ctx.source.cardId,
+      sourceInstanceId: ctx.source.instanceId,
+      sourcePermanentId: ctx.source.permanent()?.permanentId,
+      effectKey: effect.effectKey,
+      description: effect.description,
+      timing: effect.timing,
+      ...(effect.isInherited === true ? { isInherited: true } : {}),
+      ...(engine.inSecurityCheck?.() === true ? { duringSecurityCheck: true } : {}),
+    };
+    engine.emit({ kind: "effectTriggered", ...announced });
+    return () => engine.emit({ kind: "effectResolved", ...announced });
   };
   const enterEffectResolution: Primitives["enterEffectResolution"] = (seat, sourceKinds = [], sourcePermanentId) => {
     effectSeatStack.push(seat);
@@ -6459,6 +6475,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     addSecurity,
     enterEffectResolution,
     leaveEffectResolution,
+    announceEffect,
     restrictSecurityAddsFromEffect,
     grantPierce,
     changeEvoCost,

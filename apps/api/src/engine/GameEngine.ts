@@ -1239,6 +1239,7 @@ export class GameEngine {
       baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
         this.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
       emit: (event) => this.hooks.emit(event),
+      inSecurityCheck: () => this.securityCheckDepth > 0,
       nextPermanentId: () => this.nextPermanentId(),
       nextInstanceId: () => this.nextInstanceId(),
       memory: this.memory,
