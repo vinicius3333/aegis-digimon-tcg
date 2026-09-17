@@ -61,10 +61,18 @@ function batchFeed(): (fresh: readonly ServerEvent[]) => readonly ServerBatch[] 
   };
 }
 
-function renderOrderingCues(state: GameState | undefined = BOARD) {
+function renderOrderingCues(initialState: GameState | undefined = BOARD) {
   const feed = batchFeed();
   const view = renderHook(
-    ({ batches, decisionPending }: { batches: readonly ServerBatch[]; decisionPending: boolean }) =>
+    ({
+      batches,
+      decisionPending,
+      state,
+    }: {
+      batches: readonly ServerBatch[];
+      decisionPending: boolean;
+      state: GameState | undefined;
+    }) =>
       useMatchCues({
         narrationLimit: 3,
         batches,
@@ -75,15 +83,19 @@ function renderOrderingCues(state: GameState | undefined = BOARD) {
         anchors,
         onActionRejected: vi.fn<(reason: string) => void>(),
       }),
-    { initialProps: { batches: [] as readonly ServerBatch[], decisionPending: false } },
+    { initialProps: { batches: [] as readonly ServerBatch[], decisionPending: false, state: initialState } },
   );
   let pending = false;
+  let board = initialState;
   return {
     ...view,
-    feedBatch: (fresh: readonly ServerEvent[]) => view.rerender({ batches: feed(fresh), decisionPending: pending }),
+    feedBatch: (fresh: readonly ServerEvent[], nextState: GameState | undefined = board) => {
+      board = nextState;
+      view.rerender({ batches: feed(fresh), decisionPending: pending, state: board });
+    },
     setDecisionPending: (value: boolean) => {
       pending = value;
-      view.rerender({ batches: feed([]), decisionPending: value });
+      view.rerender({ batches: feed([]), decisionPending: value, state: board });
     },
   };
 }
@@ -176,6 +188,97 @@ describe("an effect's consequences follow the toast that names it", () => {
     expect(order[0]).toBe("announce");
     expect(order).toContain("shatter");
     expect(order).toContain("victimToast");
+  });
+});
+
+const ONE_BATCH: ServerEvent[] = [
+  { kind: "cardsMoved", instanceIds: ["s0-27"], from: "hand", to: "battleArea" },
+  { kind: "digivolved", seat: 0, permanentId: "perm-3", cardId: "AD1-002", mechanic: "normal", inBreeding: false },
+  {
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "AD1-002",
+    sourceInstanceId: "s0-27",
+    sourcePermanentId: "perm-3",
+    effectKey: "AD1-002/ir-7-0",
+    description: "[WhenDigivolving] Delete 1 target(s)",
+    timing: "WhenDigivolving",
+  },
+  {
+    kind: "cardsMoved",
+    instanceIds: ["s1-51", "s1-17"],
+    from: "battleArea",
+    to: "trash",
+    deletedPermanents: [{ permanentId: "perm-1", instanceId: "s1-17", cardId: "BT18-015", seat: 1 }],
+  },
+  {
+    kind: "effectResolved",
+    seat: 0,
+    sourceCardId: "AD1-002",
+    sourceInstanceId: "s0-27",
+    sourcePermanentId: "perm-3",
+    effectKey: "AD1-002/ir-7-0",
+    description: "[WhenDigivolving] Delete 1 target(s)",
+    timing: "WhenDigivolving",
+  },
+] as ServerEvent[];
+
+const FREEZE_BATCH: ServerEvent[] = [
+  {
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "AD1-002",
+    sourceInstanceId: "s0-27",
+    sourcePermanentId: "perm-3",
+    effectKey: "AD1-002/ir-9-0",
+    description: "[WhenDigivolving] This Digimon can't attack",
+    timing: "WhenDigivolving",
+  },
+] as ServerEvent[];
+
+function frozenBoard(): GameState {
+  const board = structuredClone(BOARD) as GameState;
+  (board.players[1]!.battleArea[0] as unknown as { cannotAttack: boolean }).cannotAttack = true;
+  return board;
+}
+
+describe("one batch carries a clause and what it deleted", () => {
+  it("shows the toast before the shatter", async () => {
+    const view = renderOrderingCues();
+    await advance(0);
+    view.feedBatch(ONE_BATCH);
+    await advance(16);
+    const order = await firstSeenOrder(
+      {
+        announce: () =>
+          view.result.current.notices.some(
+            (notice) => notice.body.variant === "effect" && notice.body.cardId === "AD1-002",
+          ),
+        shatter: () => view.result.current.deleteBursts.length > 0,
+      },
+      6000,
+    );
+    expect(order).toEqual(["announce", "shatter"]);
+  });
+});
+
+describe("one batch carries a clause and the Digimon it locked down", () => {
+  it("shows the toast before the jolt", async () => {
+    const view = renderOrderingCues();
+    await advance(0);
+    view.feedBatch(FREEZE_BATCH, frozenBoard());
+    await advance(16);
+    const order = await firstSeenOrder(
+      {
+        announce: () =>
+          view.result.current.notices.some(
+            (notice) => notice.body.variant === "effect" && notice.body.cardId === "AD1-002",
+          ),
+        jolt: () => view.result.current.freezePulses.size > 0,
+      },
+      6000,
+    );
+    expect(order).toEqual(["announce", "jolt"]);
   });
 });
 

@@ -1046,6 +1046,11 @@ export function useMatchCues({
   const effectNarrationTracksRef = useRef(new Map<Seat, string>());
   const effectAnnounceGateRef = useRef<PresentationGate | null>(null);
   const causingEffectGateRef = useRef<PresentationGate | null>(null);
+  const pendingAnnounceGateRef = useRef<{
+    batchId: string;
+    gate: PresentationGate;
+    deleted: ReadonlySet<string>;
+  } | null>(null);
 
   /** Publish the clause before the results queued behind its arrival. */
   function enqueueNarrationItem(item: NarrationItem, effectSourceHoldMs: number = TIMINGS.effectSourceHold) {
@@ -1063,7 +1068,13 @@ export function useMatchCues({
           : `burst-${initialSite.permanentId}`
         : undefined;
     const causingEffectGate = effectAnnounceGateRef.current;
-    const announceGate = body?.variant === "effect" ? createPresentationGate() : null;
+    const pending = pendingAnnounceGateRef.current;
+    const adopted =
+      body?.variant === "effect" && pending?.batchId === item.batchId && !pending.deleted.has(`${seat}:${body.cardId}`)
+        ? pending.gate
+        : null;
+    const announceGate = body?.variant === "effect" ? (adopted ?? createPresentationGate()) : null;
+    if (adopted) pendingAnnounceGateRef.current = null;
     if (announceGate) effectAnnounceGateRef.current = announceGate;
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
     const precedingTrack = effectNarrationTracksRef.current.get(seat);
@@ -1497,6 +1508,21 @@ export function useMatchCues({
       // played" and "after it was played" is a position in this array, not a batch boundary.
       const panelAt: number[] = [];
       const noticeAt: number[] = [];
+      const deletedThisBatch = new Set(
+        fresh.flatMap((event) =>
+          event.kind === "cardsMoved"
+            ? (event.deletedPermanents ?? []).map((deleted) => `${deleted.seat}:${deleted.cardId}`)
+            : [],
+        ),
+      );
+      const announcesEffect = fresh.some(
+        (event) => event.kind === "effectTriggered" && !deletedThisBatch.has(`${event.seat}:${event.sourceCardId}`),
+      );
+      const batchAnnounceGate = announcesEffect ? createPresentationGate() : null;
+      if (batchAnnounceGate) {
+        pendingAnnounceGateRef.current = { batchId, gate: batchAnnounceGate, deleted: deletedThisBatch };
+        causingEffectGateRef.current = batchAnnounceGate;
+      }
       // The centre-stage showcase runs only in `live` mode, so under reduced motion or a
       // hidden tab the panel is the only thing left to announce an opponent's arrival.
       const showcasePlays = queue.getMode() === "live";
@@ -1774,6 +1800,15 @@ export function useMatchCues({
           phaseOrder: enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current,
         });
       const presenting = raised.length > 0 || opened.length > 0;
+      if (
+        batchAnnounceGate &&
+        !raised.some(
+          (notice) =>
+            notice.body.variant === "effect" &&
+            !deletedThisBatch.has(`${notice.side === "you" ? viewerSeat : otherSeat(viewerSeat)}:${notice.body.cardId}`),
+        )
+      )
+        batchAnnounceGate.release();
       if (usedOption?.kind === "cardPlayed") {
         optionDockKeyRef.current += 1;
         const key = optionDockKeyRef.current;
@@ -3193,6 +3228,7 @@ export function useMatchCues({
     const pulses = diffFreezePulses({ previous, next: current, nextKey: freezePulseKeyRef.current });
     if (pulses.length === 0) return;
     freezePulseKeyRef.current += pulses.length;
+    const causingEffectGate = causingEffectGateRef.current;
     for (const pulse of pulses) {
       queue.enqueue({
         id: `freeze-pulse-${pulse.key}`,
@@ -3202,6 +3238,8 @@ export function useMatchCues({
         replace: true,
         async run(context) {
           if (context.mode !== "live") return;
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+          if (context.cancelled) return;
           /* The jolt on the card and the badge under it already say the Digimon lost the
              action, and the effect's own clause is on screen beside them, so no notice. */
           try {
@@ -3259,12 +3297,15 @@ export function useMatchCues({
   /** The card lands on the stack: the same shield bounce a recovery plays. */
   function launchSecurityGainFlight(seat: Seat) {
     const key = (securityGainKeyRef.current += 1);
+    const causingEffectGate = causingEffectGateRef.current;
     queue.enqueue({
       id: `security-gain-flight-${seat}-${key}`,
       track: `securityFlight-${seat}`,
       replace: true,
       async run(context) {
         if (context.mode !== "live") return;
+        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+        if (context.cancelled) return;
         try {
           setSecurityFlights((seats) => new Set(seats).add(seat));
           await context.wait(TIMINGS.securityFlight);
@@ -3454,10 +3495,11 @@ export function useMatchCues({
       track: `deleteBurst-${key}`,
       async run(context) {
         if (context.mode !== "live") return shattered.release();
-        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+        await Promise.all([
+          waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS),
+          delayMs > 0 ? context.wait(delayMs) : Promise.resolve(),
+        ]);
         if (context.cancelled) return shattered.release();
-        // A permanent beaten in battle takes the blow before it breaks.
-        if (delayMs > 0) await context.wait(delayMs);
         // A security battle's blow has no duration to wait out: its scene runs as long as
         // the check takes. Wait on its gate instead, under the dock's ceiling, so a close
         // that never comes cannot hold the shatter for good. This runs on the burst's own
@@ -3582,6 +3624,7 @@ export function useMatchCues({
    * which is what makes an opponent's draw visible at all.
    */
   function launchDrawFlight(side: "you" | "opp", turnStart = false, waitBeforeMs = 0) {
+    const causingEffectGate = turnStart ? null : causingEffectGateRef.current;
     const board = anchors.board.current;
     const source = side === "you" ? anchors.yourDeck.current : anchors.oppDeck.current;
     const target = side === "you" ? anchors.yourHandDock.current : anchors.oppHandStrip.current;
@@ -3614,7 +3657,10 @@ export function useMatchCues({
       side,
       track: `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {
-        if (waitBeforeMs > 0) await context.wait(waitBeforeMs);
+        await Promise.all([
+          waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS),
+          waitBeforeMs > 0 ? context.wait(waitBeforeMs) : Promise.resolve(),
+        ]);
         if (context.cancelled) return;
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);
@@ -3678,10 +3724,13 @@ export function useMatchCues({
     const key = ++drawFlightKeyRef.current;
     const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
     const flight: DrawFlight = { key, x, y, dx: target.x - x, dy: target.y - y, duration };
+    const causingEffectGate = causingEffectGateRef.current;
     queue.enqueue({
       id: `deck-under-flight-${key}`,
       track: `deckUnder-${permanentId}`,
       async run(context) {
+        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+        if (context.cancelled) return;
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);
         setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
