@@ -2,7 +2,7 @@
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CardInstance, Permanent, Phase, type GameState, type ServerEvent } from "@aegis/shared";
+import { CardInstance, Permanent, Phase, type GameState, type SequencedServerEvent, type ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import {
@@ -736,6 +736,32 @@ describe("match cues", () => {
     await advance(100);
     expect(result.current.turnTransition).toBeNull();
     await advance(PRESENTED_BOARD_BUDGET_MS + 16);
+    expect(result.current.turnTransition).not.toBeNull();
+  });
+
+  it("does not wait for an arrival whose batch already left the tracked window", async () => {
+    const evictedPlay: SequencedServerEvent = { ...OPP_PLAY, seq: 1, batch: "batch-old", stateVersion: 1 };
+    const turnEnd: SequencedServerEvent = { ...TURN_END, seq: 60, batch: "batch-new", stateVersion: 2 };
+    const raw: ServerEvent[] = [evictedPlay, turnEnd];
+    const { result, rerender } = renderHook(
+      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          phaseEvents,
+          batches,
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+    );
+    rerender({
+      phaseEvents: raw,
+      batches: [{ id: "batch-new", stateVersion: 2, events: [turnEnd] }],
+    });
+    await advance(100);
     expect(result.current.turnTransition).not.toBeNull();
   });
 

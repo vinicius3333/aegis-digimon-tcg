@@ -2705,10 +2705,14 @@ export function useMatchCues({
     await Promise.resolve();
     const batchDeadline = Date.now() + PRESENTED_BOARD_BUDGET_MS;
     while (!context.cancelled && !context.skipping && context.mode === "live") {
+      const oldestTrackedSeq = phaseBatchesRef.current[0]?.events[0]?.seq;
+      const evictedFromWindow = (event: ServerEvent) =>
+        oldestTrackedSeq !== undefined && "seq" in event && typeof event.seq === "number" && event.seq < oldestTrackedSeq;
       const awaitingBatch =
         Date.now() < batchDeadline &&
         arrivals.some(
           (event) =>
+            !evictedFromWindow(event) &&
             !phaseBatchesRef.current.some((batch) =>
               batch.events.some(
                 (candidate) =>
