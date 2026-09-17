@@ -10,6 +10,7 @@
    the moment the combat resolves. */
 
 import type { ServerEvent, Seat } from "@aegis/shared";
+import { LungeDirection } from "./match/enums";
 
 /** The attack currently declared and not yet resolved, remembered across batches. */
 export interface OpenAttack {
@@ -40,7 +41,7 @@ export interface FieldClashScene {
   /** Board identities the compare deleted; they take the claw and the shake. */
   loserPermanentIds: readonly string[];
   /** The viewer's attacker leans up the board; the opponent's leans down. */
-  direction: "up" | "down";
+  direction: LungeDirection;
 }
 
 /**
@@ -119,6 +120,6 @@ export function buildFieldClashScene({
       ...(defenderArtId ? { artId: defenderArtId } : {}),
     },
     loserPermanentIds: event.deletedPermanentIds,
-    direction: open.seat === viewerSeat ? "up" : "down",
+    direction: open.seat === viewerSeat ? LungeDirection.Up : LungeDirection.Down,
   };
 }

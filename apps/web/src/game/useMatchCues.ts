@@ -19,9 +19,40 @@
    The client owns no rules here: every cue is a reaction to a server event
    (ARCHITECTURE.md §4). */
 
+import { CueTrack, LungeDirection, SecurityBreakPhase } from "./match/enums";
+import { REDUCED_MOTION_QUERY } from "./match/environment";
+import { DELETE_BURST_SIZE, UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "./match/constants";
+import { OPTION_DOCK_TRACKS, holdsTheBoard } from "./match/tracks";
+import { isTouchLayout, liveMode } from "./match/environment";
+import { lastIndexOfKind, withoutId } from "./match/eventLookup";
+import { buildCardSiteIndex } from "./match/cardSiteIndex";
+import type {
+  AttackLunge,
+  DeleteBurst,
+  DrawBurst,
+  DrawFlight,
+  MatchCueAnchors,
+  MatchCues,
+  SecurityBreakCue,
+  TurnTransitionCue,
+  UnsuspendSweep,
+} from "./match/types";
+
+export type {
+  AttackLunge,
+  DeleteBurst,
+  DrawBurst,
+  DrawFlight,
+  MatchCueAnchors,
+  MatchCues,
+  SecurityBreakCue,
+  TurnTransitionCue,
+  UnsuspendSweep,
+} from "./match/types";
+export { CueTrack, LungeDirection, SecurityBreakPhase } from "./match/enums";
+
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
-import type { RefObject } from "react";
 import {
   getCardDefinition,
   isOption,
@@ -92,12 +123,7 @@ import {
   type PermanentBurst,
   type ZoneShowcase,
 } from "./showcases";
-import {
-  createAnimationQueue,
-  type AnimationQueueMode,
-  type AnimationStep,
-  type AnimationStepContext,
-} from "./animationQueue";
+import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 import { presentationTelemetry } from "./presentationTelemetry";
 import {
@@ -105,7 +131,6 @@ import {
   effectActivationTrack,
   type EffectActivation,
   type EffectSourceLookup,
-  type EffectSourceSite,
 } from "./effectSource";
 import { deckRiffleFromEvent, type DeckRiffle } from "./deckChrome";
 import { buildFieldClashScene, trackOpenAttack, type FieldClashScene, type OpenAttack } from "./fieldClash";
@@ -130,370 +155,6 @@ import {
   SHOWCASE_TOTAL_MS,
   TIMINGS,
 } from "./timings";
-import type { ColorName } from "../design/theme";
-
-/**
- * Card back sent from a deck pile to the hand that just grew, in board coordinates.
- * `x`/`y` are the centre of the deck pile: `.game-draw-flight` pulls itself back
- * over that point with its own negative margins, so the card back can be resized
- * per layout without the launch point drifting.
- */
-export type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number; duration: number };
-
-/** Starburst left where a turn-start draw lands, in board coordinates. */
-export type DrawBurst = { key: number; x: number; y: number };
-
-export type AttackLunge = { permanentId: string; direction: "up" | "down" };
-
-/** The shield break, and which of its two beats the defender's shield is playing. */
-export type SecurityBreakCue = SecurityBreakScene & { phase: "arm" | "break" };
-
-/** The green-and-orange burst left where a deleted permanent stood, in board coordinates. */
-export type DeleteBurst = {
-  key: number;
-  x: number;
-  y: number;
-  /** Effect deletions get a brief energy ring in addition to the card shatter. */
-  effectDeletion?: boolean;
-  /** The card that was there, so its own art can be the thing that shatters. */
-  cardId?: string;
-  artId?: string;
-  color?: ColorName;
-};
-
-/** The unsuspend phase sweeping one player's board, ordered by slot. */
-export type UnsuspendSweep = { seat: Seat; key: number };
-
-/** Must match `.game-delete-burst` in game.css. */
-const DELETE_BURST_SIZE = 96;
-
-/** The phase name the protocol uses for the step that unsuspends the turn player's board. */
-const UNSUSPEND_PHASE = "Active";
-
-/** Slots the sweep staggers across before the last card has started turning. */
-const UNSUSPEND_SWEEP_SLOTS = 8;
-
-/** How long the whole board takes to finish unsuspending, last slot included. */
-const UNSUSPEND_SWEEP_MS = TIMINGS.suspendRotate + UNSUSPEND_SWEEP_SLOTS * TIMINGS.suspendStagger;
-
-/**
- * The centre-screen showcase and the security clash share one track, so the
- * board never holds two cards up at once — a security check replaces whatever
- * showcase was mid-flight rather than painting over it.
- */
-const CENTER_STAGE_TRACK = "centerStage";
-
-/**
- * Whether a step is a MOMENT — something the viewer is being told — rather than decoration.
- *
- * Only a moment holds the board back (net/presentedState.ts): while a deletion's trigger is
- * being read out, the board still shows the permanent it is about. Decoration (a draw
- * flight, a DP pulse, a burst) is drawn over whatever board is on screen and must never
- * freeze it, and the security dock waits on the server rather than on a reader, so it would
- * freeze the board for as long as the check takes.
- */
-const BOARD_HOLDING_TRACKS: readonly string[] = [
-  CENTER_STAGE_TRACK,
-  // The battle and the blow that ends it: the board stays the board the battle was fought
-  // on until it has been fought, whatever the server has resolved since.
-  "combatImpact",
-  "combatNotices",
-];
-
-function holdsTheBoard(step: AnimationStep): boolean {
-  if (step.holdsBoard === false) return false;
-  const track = step.track ?? "";
-  return (
-    step.id.startsWith("narration-step-") ||
-    track.startsWith("narration") ||
-    track.startsWith("deleteBurst-") ||
-    BOARD_HOLDING_TRACKS.includes(track)
-  );
-}
-
-/**
- * The open-ended wait that keeps a `[Security]` card parked in its dock until the check
- * closes. It is deliberately NOT the centre-stage track: the dock stays up across whole
- * batches, and the cues the docked card's effect provokes must be able to follow its
- * arrival on the centre-stage track instead of waiting for it to leave.
- */
-const SECURITY_DOCK_TRACK = "securityDock";
-
-/**
- * The used Option's own dock: its entrance, and the open-ended hold that keeps the card on
- * screen until the Option finishes resolving. Open-ended for the same reason the security dock
- * is — the Option finishes by the viewer ANSWERING its decisions — so these two tracks are
- * exempt from the same barriers. A phase ribbon that waits for them waits for an answer that
- * cannot arrive until the ribbon lets the prompt through, and every other cue is gated behind
- * the ribbon: one docked Option freezes the whole screen until the dock's failsafe ceiling.
- */
-const OPTION_DOCK_TRACK = "optionDock";
-const OPTION_DOCK_HOLD_TRACK = "optionDockHold";
-const OPTION_DOCK_TRACKS: readonly string[] = [OPTION_DOCK_TRACK, OPTION_DOCK_HOLD_TRACK];
-
-/**
- * The open-ended wait that keeps a revealed Digimon centre-stage until the battle it is in
- * has actually been decided. Same reasoning as the dock, and for the same reason not the
- * centre-stage track: the deletion the battle causes, and everything that reacts to it,
- * has to be able to play while the card is still up.
- */
-const SECURITY_HOLD_TRACK = "securityHold";
-
-/** Index of the last event of a kind in the batch, or -1. */
-function lastIndexOfKind(events: readonly ServerEvent[], kind: ServerEvent["kind"]): number {
-  for (let index = events.length - 1; index >= 0; index -= 1) if (events[index]!.kind === kind) return index;
-  return -1;
-}
-
-export type TurnTransitionCue = { endingSeat: number; nextSeat: number; turnCount: number };
-
-/** The board elements a draw flight is measured between. */
-export interface MatchCueAnchors {
-  board: RefObject<HTMLDivElement | null>;
-  /**
-   * Where a permanent last stood, in board coordinates, by permanent id or by the instance
-   * id of its top card. Deletions are narrated after the board has already dropped the
-   * permanent, so the caller keeps the last measurement rather than the element.
-   */
-  permanentCenter?: (permanentId: string) => { x: number; y: number } | undefined;
-  /** The card that was on top of a permanent, kept the same way and for the same reason. */
-  permanentCardId?: (permanentId: string) => string | undefined;
-  yourDeck: RefObject<HTMLDivElement | null>;
-  oppDeck: RefObject<HTMLDivElement | null>;
-  yourHandDock: RefObject<HTMLDivElement | null>;
-  oppHandStrip: RefObject<HTMLDivElement | null>;
-  yourSecurity: RefObject<HTMLDivElement | null>;
-  oppSecurity: RefObject<HTMLDivElement | null>;
-}
-
-export interface MatchCues {
-  /** Recent moments, keyed by occurrence ID and ordered by presentation. */
-  narration: ReadonlyMap<string, NarrationItem>;
-  /** The viewer's own refused action: immediate, and outside the queue. */
-  rejection: MatchNotice | null;
-  dismissRejection: () => void;
-  /** Dismiss one item by ID, or the oldest when omitted. */
-  advanceNarration: (id?: string) => boolean;
-  /** Compatibility signal: recent narration never locks input. */
-  narrationLock: boolean;
-  /** The side panels currently on screen, oldest slot first. A read-only view of {@link narration}. */
-  sidePanels: readonly SidePanel[];
-  /** The notices currently on screen, the refusal included. A read-only view of {@link narration}. */
-  notices: readonly MatchNotice[];
-  /**
-   * Drops the viewer's own effect notice for a card whose decision dialog is now open —
-   * the dialog already names the card and prints the clause the notice would repeat.
-   */
-  dismissOwnEffectNotice: (cardId: string) => void;
-  /** Raises a notice for a refused action, which no server event narrates for the viewer. */
-  raiseRejection: (reason: string) => void;
-  attackAnnouncement: AttackAnnouncement | null;
-  turnTransition: TurnTransitionCue | null;
-  securityClash: SecurityClashScene | null;
-  /** The defender's shield arming and shattering, ahead of the reveal. */
-  securityBreak: SecurityBreakCue | null;
-  /** The revealed card, held to the side while its effect resolves. */
-  securityBranch: SecurityBranchScene | null;
-  /** A used Option parked with the security-effect animation while its [Main] resolves. */
-  optionBranch: SecurityBranchScene | null;
-  /**
-   * True from the moment a security check is queued until the centre-stage scene has
-   * finished showing the revealed card. Nothing that speaks for that card — its effect
-   * notice, its branch, the decision it asks the viewer — may be presented while it is
-   * set (battle-animation-spec.md §4b: the reveal is steps 6–9, the effect is step 10b).
-   * A card an effect trashes out of a stack holds the same way, until its scene is over.
-   */
-  securityRevealPending: boolean;
-  /**
-   * The viewer's prompt is waiting for the presentation to reach the board the question
-   * was asked about. The queue is fast-forwarding through the batches in between and the
-   * prompt opens as soon as it arrives, or at the latest after
-   * {@link PLAY_LEAD_IN_BUDGET_MS} — a beat that never runs can never leave the viewer
-   * unable to answer (docs/presentation-queue-plan.md 3.2, decision barrier).
-   */
-  decisionBarrierPending: boolean;
-  /** Finite visual beats must finish before any new decision is displayed. */
-  decisionAnimationsPending: boolean;
-  /**
-   * The server revision the queue is presenting, or undefined when it is caught up and
-   * the live state is what to show. `GameScreen` renders the snapshot at this revision
-   * (net/presentedState.ts); interactivity keeps reading the live state.
-   */
-  presentedStateVersion: number | undefined;
-  /**
-   * The queue has something on screen to fast-forward: a moment is being read out, or the
-   * board is still held at an older revision than the live state. Desktop shows its skip
-   * button while this is set; a phone taps the board instead.
-   */
-  presenting: boolean;
-  /** The player whose board the unsuspend phase is currently sweeping. */
-  unsuspendSweep: UnsuspendSweep | null;
-  /** Bursts left where permanents were deleted, in board coordinates. */
-  deleteBursts: readonly DeleteBurst[];
-  /** The opponent's card, held centre-screen while its zone change is announced. */
-  zoneShowcase: ZoneShowcase | null;
-  /** The colour-keyed burst each permanent is currently playing, by permanent id. */
-  permanentBursts: ReadonlyMap<string, PermanentBurst>;
-  /** Permanents held back from the board while their showcase is still up. */
-  pendingPermanentIds: ReadonlySet<string>;
-  attackLunge: AttackLunge | null;
-  /** "Breeding Phase" / "Main Phase", announced as the phase opens. */
-  phaseBanner: PhaseBanner | null;
-  /** Turn actions wait until all queued phase announcements have finished. */
-  phaseTransitionPending: boolean;
-  /**
-   * Hand/deck presentation for the seat whose queued draw phase has not reached the
-   * screen yet. Only that seat is held: the other one keeps drawing on screen, because
-   * its cards belong to a turn the ribbons have already announced.
-   */
-  heldDrawState: { seat: Seat; state: GameState } | undefined;
-  /** Keep card rotation from exposing a Main attack before its phase announcement. */
-  heldPhaseState: GameState | undefined;
-  /** Keep the raising area unchanged until its Breeding announcement finishes. */
-  heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
-  /** The last announced phase persists through the gaps between ribbons. */
-  displayedPhase: GameState["phase"] | undefined;
-  /**
-   * The turn the ribbons have reached. The live state flips the moment the server resolves
-   * the handover, which on a fast opponent lands in the same patch as the cues for the turn
-   * that just ended; a readout bound to it announces the next turn over a card still in
-   * flight. Bind the readout to this instead — legality still reads the live state.
-   */
-  displayedTurn: { seat: Seat; count: number } | undefined;
-  /** Keep last turn's suspended cards rotated until their Unsuspend announcement starts. */
-  heldSuspendedIds: ReadonlySet<string>;
-  /** The zone-specific moment each activating effect source is currently playing. */
-  effectSources: readonly EffectActivation[];
-  /** The deck piles currently riffling, as `${seat}:${pile}`. */
-  deckRiffles: ReadonlySet<string>;
-  /** The seats whose security stack a recovered card is currently flying back onto. */
-  securityFlights: ReadonlySet<number>;
-  /**
-   * While the opening five cards are being dealt, how many of them a seat's shield has
-   * already been seen to take. The stack is full on the server from the first patch, so
-   * the shield counts up with the deal rather than starting at its final figure.
-   */
-  securityDealCounts: ReadonlyMap<Seat, number>;
-  /** Permanents currently taking the claw and the shake for a battle they lost. */
-  combatImpactIds: ReadonlySet<string>;
-  /** The board battle currently playing: its arrow stays up and its losers keep a ghost on the board. */
-  fieldClash: FieldClashScene | null;
-  /** The DP change each permanent is currently pulsing over, by permanent id. */
-  dpPulses: ReadonlyMap<string, DpPulse>;
-  /** The attack/block lock each permanent is currently jolting over, by permanent id. */
-  freezePulses: ReadonlyMap<string, FreezePulse>;
-  securityHitSeat: number | null;
-  /**
-   * The figure each shield must keep while a scene is still holding a card the board has
-   * already dropped. Pass it through {@link shieldSecurityCount} with the live count —
-   * absent for a seat whose stack nothing is currently spending.
-   */
-  heldSecurityCounts: ReadonlyMap<Seat, number>;
-  drawFlights: readonly DrawFlight[];
-  drawBursts: readonly DrawBurst[];
-  /** Plays a cue for a locally triggered action, sharing the repeat suppression with the event fan-out. */
-  playCue: (kind: SoundKind) => void;
-  /** Fast-forward the decorative cues currently in flight. */
-  skipAnimations: () => void;
-}
-
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-
-/** The phone layouts, matching GameScreen's `NARROW_LAYOUT_QUERY` and the touch block in game.css. */
-const TOUCH_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";
-
-function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
-}
-
-function isTouchLayout(): boolean {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-  return window.matchMedia(TOUCH_LAYOUT_QUERY).matches;
-}
-
-function remove(ids: ReadonlySet<string>, id: string): ReadonlySet<string> {
-  if (!ids.has(id)) return ids;
-  const next = new Set(ids);
-  next.delete(id);
-  return next;
-}
-
-function documentHidden(): boolean {
-  return typeof document !== "undefined" && document.hidden === true;
-}
-
-function liveMode(): AnimationQueueMode {
-  return prefersReducedMotion() || documentHidden() ? "drain" : "live";
-}
-
-/**
- * Where every card the viewer can see currently sits: which permanent, trash or
- * hand holds it, and which seat owns each visible instance. A pure read of the
- * synchronized state — the client learns nothing here it was not already sent.
- */
-function buildCardSiteIndex(state: GameState): {
-  locate: EffectSourceLookup;
-  seatOf: (instanceId: string) => Seat | undefined;
-  topInstanceOf: (permanentId: string) => string | undefined;
-} {
-  const sites = new Map<string, ReturnType<EffectSourceLookup>>();
-  const instances = new Map<string, EffectSourceSite>();
-  const hosts = new Map<string, EffectSourceSite>();
-  const seats = new Map<string, Seat>();
-  const tops = new Map<string, string>();
-  state.players.forEach((player, playerSeat) => {
-    const seat = playerSeat as Seat;
-    const key = (cardId: string) => `${seat}:${cardId}`;
-    const permanents = [...player.battleArea, ...(player.breeding ? [player.breeding] : [])];
-    for (const permanent of permanents) {
-      const site: EffectSourceSite = { zone: "field", permanentId: permanent.permanentId };
-      hosts.set(key(permanent.permanentId), site);
-      for (const card of [permanent.topCard, ...(permanent.stack ?? []), ...(permanent.linked ?? [])]) {
-        if (card?.instanceId) instances.set(key(card.instanceId), site);
-      }
-      const cardId = permanent.topCard?.cardId;
-      if (cardId && !sites.has(key(cardId)))
-        sites.set(key(cardId), { zone: "field", permanentId: permanent.permanentId });
-      if (permanent.topCard?.instanceId) tops.set(permanent.permanentId, permanent.topCard.instanceId);
-    }
-    // Inherited and copied effects (Succession) keep naming their source card
-    // after it moves under the current top. Its host owns the field highlight.
-    // Check all tops first, then sources, before looking for loose copies.
-    for (const permanent of permanents) {
-      for (const card of [...(permanent.stack ?? []), ...(permanent.linked ?? [])]) {
-        if (card?.cardId && !sites.has(key(card.cardId)))
-          sites.set(key(card.cardId), { zone: "field", permanentId: permanent.permanentId });
-      }
-    }
-    for (const card of player.trash) {
-      if (card?.instanceId) instances.set(key(card.instanceId), { zone: "trash", instanceId: card.instanceId });
-      if (card?.cardId && !sites.has(key(card.cardId)))
-        sites.set(key(card.cardId), { zone: "trash", instanceId: card.instanceId });
-    }
-    for (const card of player.hand ?? []) {
-      if (card?.instanceId) instances.set(key(card.instanceId), { zone: "hand", instanceId: card.instanceId });
-      if (card?.cardId && !sites.has(key(card.cardId)))
-        sites.set(key(card.cardId), { zone: "hand", instanceId: card.instanceId });
-      if (card?.instanceId) seats.set(card.instanceId, seat);
-    }
-    // No deck/eggDeck entries: those zones are never sent to any client (HIDDEN_ZONE_VIEW_TAG),
-    // so a card only becomes locatable once it reaches a zone the viewer can see.
-  });
-  return {
-    locate: (cardId, seat, source) => {
-      if (source?.sourcePermanentId) {
-        const host = hosts.get(`${seat}:${source.sourcePermanentId}`);
-        if (host) return host;
-      }
-      if (source?.sourceInstanceId) return instances.get(`${seat}:${source.sourceInstanceId}`);
-      if (source?.sourcePermanentId) return undefined;
-      return sites.get(`${seat}:${cardId}`);
-    },
-    seatOf: (instanceId) => seats.get(instanceId),
-    topInstanceOf: (permanentId) => tops.get(permanentId),
-  };
-}
 
 export function useMatchCues({
   batches,
@@ -681,7 +342,7 @@ export function useMatchCues({
     setDecisionAnimationsPending(
       queue.hasPendingStep(
         (step) =>
-          step.track !== SECURITY_DOCK_TRACK && step.track !== SECURITY_HOLD_TRACK && step.blocksDecision !== false,
+          step.track !== CueTrack.SecurityDock && step.track !== CueTrack.SecurityHold && step.blocksDecision !== false,
       ),
     );
     setQueueActivity((count) => count + 1);
@@ -993,7 +654,7 @@ export function useMatchCues({
     const arrivalTrack =
       /on.?play|when.?digivolving/i.test(timing) && initialSite?.zone === "field"
         ? onPlay
-          ? CENTER_STAGE_TRACK
+          ? CueTrack.CenterStage
           : `burst-${initialSite.permanentId}`
         : undefined;
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
@@ -1337,7 +998,7 @@ export function useMatchCues({
       if (arrivalHoldIds.length === 0) return;
       const ids = [...arrivalHoldIds];
       void queue.idle().then(() => {
-        setPendingPermanentIds((held) => ids.reduce((next, id) => remove(next, id), held));
+        setPendingPermanentIds((held) => ids.reduce((next, id) => withoutId(next, id), held));
       });
     }
     function enqueueDeferredSecurityArrivals(key: number) {
@@ -1354,7 +1015,7 @@ export function useMatchCues({
       const arrivalPanels = afterArrivalPanels;
       enqueue({
         id: `security-arrival-notices-${key}`,
-        track: CENTER_STAGE_TRACK,
+        track: CueTrack.CenterStage,
         skippable: false,
         run() {
           narrate(arrivalNotices, arrivalPanels, batchId);
@@ -1516,7 +1177,7 @@ export function useMatchCues({
           const callout = calloutNotices;
           enqueue({
             id: `showcase-callout-${key}`,
-            track: CENTER_STAGE_TRACK,
+            track: CueTrack.CenterStage,
             skippable: false,
             async run(context) {
               await context.wait(combatLeadInMs);
@@ -1655,7 +1316,7 @@ export function useMatchCues({
         optionDockRef.current = { key, closed: optionRouted };
         enqueue({
           id: `option-dock-in-${key}`,
-          track: OPTION_DOCK_TRACK,
+          track: CueTrack.OptionDock,
           skippable: false,
           // The dock's own entrance is part of that same wait (see the hold below).
           blocksDecision: false,
@@ -1666,7 +1327,7 @@ export function useMatchCues({
         });
         enqueue({
           id: `option-dock-hold-${key}`,
-          track: OPTION_DOCK_HOLD_TRACK,
+          track: CueTrack.OptionDockHold,
           skippable: false,
           // Same reason the security dock is excluded from the decision barrier: this hold
           // waits for the docked Option to finish, and the Option finishes by the viewer
@@ -1722,7 +1383,7 @@ export function useMatchCues({
         const latePanels = opened;
         enqueue({
           id,
-          track: CENTER_STAGE_TRACK,
+          track: CueTrack.CenterStage,
           skippable: false,
           run() {
             openHeld(lateNotices, latePanels);
@@ -1747,7 +1408,7 @@ export function useMatchCues({
           : 0;
         enqueue({
           id: `showcase-notices-${showcaseKeyRef.current}`,
-          track: CENTER_STAGE_TRACK,
+          track: CueTrack.CenterStage,
           skippable: false,
           run() {
             narrate(heldForShowcase, panelsForShowcase, batchId, effectSourceHoldMs);
@@ -1797,7 +1458,7 @@ export function useMatchCues({
     if (securityAttack?.kind === "attackDeclared") {
       const lunge: AttackLunge = {
         permanentId: securityAttack.attackerPermanentId,
-        direction: securityAttack.seat === viewerSeat ? "up" : "down",
+        direction: securityAttack.seat === viewerSeat ? LungeDirection.Up : LungeDirection.Down,
       };
       enqueue({
         id: `lunge-${lunge.permanentId}`,
@@ -1887,7 +1548,7 @@ export function useMatchCues({
       // decoration the board can be taken back from at any time.
       enqueue({
         id: `security-clash-${key}`,
-        track: CENTER_STAGE_TRACK,
+        track: CueTrack.CenterStage,
         skippable: false,
         async run(context) {
           try {
@@ -1934,7 +1595,7 @@ export function useMatchCues({
       securityDockRef.current = { key, closed: false };
       enqueue({
         id: `security-dock-in-${key}`,
-        track: CENTER_STAGE_TRACK,
+        track: CueTrack.CenterStage,
         // It carries the revealed card, which is the one thing on screen worth reading.
         skippable: false,
         async run(context) {
@@ -1955,7 +1616,7 @@ export function useMatchCues({
       // behind its departure.
       enqueue({
         id: `security-dock-hold-${key}`,
-        track: SECURITY_DOCK_TRACK,
+        track: CueTrack.SecurityDock,
         skippable: false,
         async run(context) {
           // Replay collapses every wait, so there is no time to hold the card through and
@@ -1985,7 +1646,7 @@ export function useMatchCues({
       if (held?.key === key) held.closed = true;
       enqueue({
         id: `security-dock-out-${key}`,
-        track: CENTER_STAGE_TRACK,
+        track: CueTrack.CenterStage,
         skippable: false,
         async run(context) {
           try {
@@ -2007,7 +1668,7 @@ export function useMatchCues({
     function clearSecurityReveal(key: number) {
       enqueue({
         id: `security-clash-exit-${key}`,
-        track: CENTER_STAGE_TRACK,
+        track: CueTrack.CenterStage,
         // The card is the one thing on screen worth reading, so its last beat keeps its time.
         skippable: false,
         async run(context) {
@@ -2037,7 +1698,7 @@ export function useMatchCues({
       securityHoldRef.current = { key, closed: false };
       enqueue({
         id: `security-clash-hold-${key}`,
-        track: SECURITY_HOLD_TRACK,
+        track: CueTrack.SecurityHold,
         skippable: false,
         async run(context) {
           // Replay collapses every wait, so there is no time to hold the card through and
@@ -2082,7 +1743,7 @@ export function useMatchCues({
       }
       enqueue({
         id: `security-notices-${key}`,
-        track: CENTER_STAGE_TRACK,
+        track: CueTrack.CenterStage,
         skippable: false,
         run() {
           openHeld(notices, panels);
@@ -2099,7 +1760,7 @@ export function useMatchCues({
     function releaseSecurityPresentation(key: number) {
       enqueue({
         id: `security-presented-${key}`,
-        track: CENTER_STAGE_TRACK,
+        track: CueTrack.CenterStage,
         skippable: false,
         run() {
           setPendingRevealKey((current) => (current === key ? null : current));
@@ -2256,7 +1917,7 @@ export function useMatchCues({
       if (restoreBattle || (staged?.exited !== true && !docked)) {
         enqueue({
           id: `security-clash-outcome-${key}`,
-          track: CENTER_STAGE_TRACK,
+          track: CueTrack.CenterStage,
           async run(context) {
             try {
               // The verdict reaches the scene here, so a card held through a long resolution
@@ -2281,7 +1942,7 @@ export function useMatchCues({
         // the card simply appears at the side.
         enqueue({
           id: `security-branch-in-${key}`,
-          track: CENTER_STAGE_TRACK,
+          track: CueTrack.CenterStage,
           async run(context) {
             setSecurityBranch(branch);
             await context.wait(SECURITY_BRANCH_IN_MS);
@@ -2300,7 +1961,7 @@ export function useMatchCues({
         // The card holds next to its notice, then the centre of the board is given back.
         enqueue({
           id: `security-branch-${key}`,
-          track: CENTER_STAGE_TRACK,
+          track: CueTrack.CenterStage,
           // It holds the revealed card next to the notice that explains it.
           skippable: false,
           async run(context) {
@@ -2351,7 +2012,7 @@ export function useMatchCues({
       pendingDestructionsRef.current += 1;
       enqueue({
         id: `security-destroyed-${key}`,
-        track: CENTER_STAGE_TRACK,
+        track: CueTrack.CenterStage,
         // Which card the stack just lost is information, not decoration: it keeps its
         // time even under reduced motion or on a hidden tab.
         skippable: false,
@@ -2561,7 +2222,7 @@ export function useMatchCues({
       const awaitingCue = queue.hasPendingStep(
         (step) =>
           step.track !== "phaseBanner" &&
-          step.track !== SECURITY_DOCK_TRACK &&
+          step.track !== CueTrack.SecurityDock &&
           !OPTION_DOCK_TRACKS.includes(step.track ?? "") &&
           (stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder,
       );
@@ -2922,7 +2583,7 @@ export function useMatchCues({
     const key = pendingRevealKey;
     queue.enqueue({
       id: `security-decision-${key}`,
-      track: CENTER_STAGE_TRACK,
+      track: CueTrack.CenterStage,
       skippable: false,
       run() {
         flushHeldNotices();
@@ -3182,7 +2843,7 @@ export function useMatchCues({
   ): AnimationStep {
     return {
       id: `security-break-${scene.key}`,
-      track: CENTER_STAGE_TRACK,
+      track: CueTrack.CenterStage,
       // The check owns the centre of the screen from here, so whatever was being
       // announced there gives way at the break rather than during the reveal. Only the
       // FIRST break of a run takes the track: a destruction that spends several cards
@@ -3209,10 +2870,10 @@ export function useMatchCues({
           if (context.cancelled) return;
         }
         try {
-          setSecurityBreak({ ...scene, phase: "arm" });
+          setSecurityBreak({ ...scene, phase: SecurityBreakPhase.Arm });
           await context.wait(SECURITY_BREAK_TIMINGS.armMs);
           if (context.cancelled) return;
-          setSecurityBreak({ ...scene, phase: "break" });
+          setSecurityBreak({ ...scene, phase: SecurityBreakPhase.Break });
           setSecurityHitSeat(scene.seat);
           await context.wait(SECURITY_BREAK_TIMINGS.breakMs + SECURITY_BREAK_TIMINGS.holdMs);
         } finally {
@@ -3297,7 +2958,7 @@ export function useMatchCues({
           setDeckRiffles((piles) => new Set(piles).add(id));
           await context.wait(TIMINGS.deckRiffle);
         } finally {
-          setDeckRiffles((piles) => remove(piles, id));
+          setDeckRiffles((piles) => withoutId(piles, id));
         }
       },
     };
@@ -3324,18 +2985,18 @@ export function useMatchCues({
     };
     return {
       id: `zone-change-${key}`,
-      track: CENTER_STAGE_TRACK,
+      track: CueTrack.CenterStage,
       async run(context) {
         // The caller may already be holding the permanent off the board on this step's
         // behalf, so every exit — including the ones that draw nothing — hands it back.
         if (context.mode !== "live") {
-          if (burst) setPendingPermanentIds((held) => remove(held, burst.permanentId));
+          if (burst) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
           return;
         }
         // A card that changed zones because of a battle waits for the battle to play.
         if (leadInMs > 0) await context.wait(leadInMs);
         if (context.cancelled) {
-          if (burst) setPendingPermanentIds((held) => remove(held, burst.permanentId));
+          if (burst) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
           return;
         }
         if (showcase) {
@@ -3347,7 +3008,7 @@ export function useMatchCues({
             // A replacing cue (a security check) cancels the wait, and the board
             // must not be left holding a card up or hiding a permanent.
             setZoneShowcase((current) => (current?.key === showcase.key ? null : current));
-            if (burst) setPendingPermanentIds((held) => remove(held, burst.permanentId));
+            if (burst) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
           }
           if (context.cancelled) return;
         }
@@ -3355,7 +3016,7 @@ export function useMatchCues({
         // A Security play belonging to the viewer has no centre-screen showcase, but it
         // may still have been held until the source card completed its right-hand move.
         // Hand the field back at this landing beat, together with its burst.
-        if (!showcase) setPendingPermanentIds((held) => remove(held, burst.permanentId));
+        if (!showcase) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
         // The permanent's track also carries its effect prelude. Serialize later
         // arrivals so an automatic evolution cannot cancel the earlier toast.
         queue.enqueue({

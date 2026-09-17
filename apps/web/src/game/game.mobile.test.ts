@@ -23,7 +23,13 @@ function overlaySource(name: string): string {
   if (source === undefined) throw new Error(`no overlay component file for ${name}`);
   return source;
 }
-const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
+/** The screen's layout queries and shared types sit beside it under ./screen. */
+const gameScreenSource = [
+  readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8"),
+  ...readdirSync(new URL("./screen/", import.meta.url), { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => readFileSync(new URL(`./screen/${entry.name}`, import.meta.url), "utf8")),
+].join("\n");
 /** The board pieces live one per file under ./piece, so the hand's gesture and
  *  overflow chrome is spread across the component, its hook and its layout maths. */
 const boardPiecesSource = readdirSync(new URL("./piece/", import.meta.url), { withFileTypes: true })

@@ -3,6 +3,18 @@
    client owns zero rules: every action is an intent the server validates, and the
    board is a pure render of what the server sends back (ARCHITECTURE.md §4). */
 
+import { DragKind } from "./screen/enums";
+import { FIELD_CLASH_GHOST_HEIGHT, FIELD_CLASH_GHOST_WIDTH, PHASES } from "./screen/constants";
+import {
+  COMPACT_PILES_QUERY,
+  LANDSCAPE_PHONE_PERMANENT_WIDTH,
+  LANDSCAPE_PHONE_QUERY,
+  NARROW_LAYOUT_QUERY,
+  SHORT_BOARD_QUERY,
+} from "./screen/queries";
+import { dropZoneAt, permanentVisualElement } from "./screen/dropZones";
+import type { DragState, DropZoneHit, TrackingArrowGeometry } from "./screen/types";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -174,109 +186,6 @@ import {
   triggerSource,
   type TriggerSource,
 } from "./decisionPresentation";
-
-const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
-
-/** A battle loser's stand-in card, sized to the shatter that takes over from it. */
-const FIELD_CLASH_GHOST_WIDTH = 72;
-const FIELD_CLASH_GHOST_HEIGHT = Math.round(FIELD_CLASH_GHOST_WIDTH * 1.4);
-
-/**
- * Phone layout: touch sheets, compact everything. Mirrors the CSS blocks of the
- * same name — a phone on its side is ~800px wide, so the layout is keyed on the
- * short viewport as well, or a landscape phone would fall into the pointer
- * layout and lose the action strip along with every touch sheet.
- */
-/** A solved target arrow: the ids resolved to real positions in board coordinates. */
-interface TrackingArrowGeometry {
-  key: string;
-  kind: TrackingArrow["kind"];
-  from: { x: number; y: number };
-  to: { x: number; y: number }[];
-}
-
-const NARROW_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";
-/**
- * Tablet and split-screen widths. The board keeps its pointer interactions but the
- * piles shrink, because the sidebar moves under the board and leaves the rails too
- * short to hold four full-size piles.
- */
-const COMPACT_PILES_QUERY = "(width < 960px), (height < 520px) and (orientation: landscape)";
-/**
- * A board this short cannot show a full-size Digimon in each battle row, so the
- * permanents drop to their compact size rather than being clipped by the row.
- */
-const SHORT_BOARD_QUERY = "(height < 820px)";
-/**
- * A phone on its side. Both battle rows, the memory band, the dock and the
- * header share ~390px, which is under what even a compact Digimon needs, so the
- * battle rows name their own card width.
- */
-const LANDSCAPE_PHONE_QUERY = "(height < 520px) and (orientation: landscape)";
-/** Card width in a battle row on a landscape phone. */
-const LANDSCAPE_PHONE_PERMANENT_WIDTH = 58;
-/**
- * `deferred` marks a touch gesture whose direction is not yet known: the pointer is
- * left to the browser until `move` decides between a sideways swipe (scroll the row)
- * and a drag (play / attack). `capture` is the element to capture onto once it does.
- */
-type DragOrigin = { deferred?: boolean; capture?: Element };
-
-/** Draw around the printed card; the permanent wrapper stays the interaction target. */
-function permanentVisualElement(element: HTMLElement): HTMLElement {
-  return element.querySelector<HTMLElement>(".game-card-enter > [data-state]") ?? element;
-}
-
-/** A drop area under the pointer: the `data-drop` name it carries, and the id it names. */
-type DropZoneHit = { target: DropTarget; id?: string };
-
-/**
- * The drop area under a point — the smallest one, so a permanent inside the
- * battle row wins over the row itself. The same lookup answers "what would this
- * drop do" while the card is still in the air and "what did it do" on release.
- */
-function dropZoneAt(cx: number, cy: number): DropZoneHit | null {
-  let zone: Element | null = null;
-  let bestArea = Infinity;
-  document.querySelectorAll("[data-drop]").forEach((candidate) => {
-    const rect = candidate.getBoundingClientRect();
-    if (cx < rect.left || cx > rect.right || cy < rect.top || cy > rect.bottom) return;
-    const area = rect.width * rect.height;
-    if (area >= bestArea) return;
-    bestArea = area;
-    zone = candidate;
-  });
-  if (!zone) return null;
-  const element = zone as Element;
-  const target = element.getAttribute("data-drop");
-  if (!target) return null;
-  return { target: target as DropTarget, id: element.getAttribute("data-id") ?? undefined };
-}
-
-type DragState =
-  | ({
-      kind: "play";
-      index: number;
-      instanceId: string;
-      cardId: string;
-      artId?: string;
-      x: number;
-      y: number;
-      ox: number;
-      oy: number;
-      started: boolean;
-    } & DragOrigin)
-  | ({
-      kind: "attack";
-      permId: string;
-      cardId: string;
-      artId?: string;
-      x: number;
-      y: number;
-      ox: number;
-      oy: number;
-      started: boolean;
-    } & DragOrigin);
 
 export function GameScreen({
   joinOptions,
@@ -467,7 +376,7 @@ export function GameScreen({
     hostPermanentId: string;
   } | null>(null);
   const [actionConfirm, setActionConfirm] = useState<
-    | { kind: "play"; instanceId: string; cardId: string }
+    | { kind: DragKind.Play; instanceId: string; cardId: string }
     | { kind: "digivolve"; instanceId: string; cardId: string; permanentId: string; baseCardId: string }
     | { kind: "dna"; instanceId: string; cardId: string; materialPermanentIds: string[]; normalPermanentId?: string }
     | null
@@ -698,7 +607,7 @@ export function GameScreen({
   // the log, so the scene keeps its own arrow up while it plays.
   const fieldClashArrow: TrackingArrow | null = fieldClash
     ? {
-        kind: "attack",
+        kind: DragKind.Attack,
         key: `clash:${fieldClash.key}`,
         from: { kind: "permanent", permanentId: fieldClash.attacker.permanentId },
         to: [{ kind: "permanent", permanentId: fieldClash.defender.permanentId }],
@@ -1340,7 +1249,7 @@ export function GameScreen({
         }
       }
       if (confirmDrop && actionConfirmationsEnabled) {
-        setActionConfirm({ kind: "play", instanceId, cardId: entry.cardId });
+        setActionConfirm({ kind: DragKind.Play, instanceId, cardId: entry.cardId });
         return;
       }
     }
@@ -1562,7 +1471,7 @@ export function GameScreen({
     digivolveTargetsOf(handSel ?? undefined).includes(perm.permanentId) ||
     appFusionHostIdsOf(handSel ?? undefined).includes(perm.permanentId);
   const dragCardId = drag && drag.started ? drag.cardId : undefined;
-  const dragIsPlay = drag?.kind === "play" && drag.started;
+  const dragIsPlay = drag?.kind === DragKind.Play && drag.started;
 
   /**
    * What releasing here would do, or null where the drop would be refused. Every
@@ -1571,10 +1480,10 @@ export function GameScreen({
    */
   const dragIntentAt = (hit: DropZoneHit | null): DragIntent | null => {
     if (!hit || !drag?.started) return null;
-    if (drag.kind === "attack") {
-      const attacker = you.battleArea.find((p) => p.permanentId === drag.permId);
+    if (drag.kind === DragKind.Attack) {
+      const attacker = you.battleArea.find((p) => p.permanentId === drag.permanentId);
       return dragIntentFor({
-        drag: { kind: "attack" },
+        drag: { kind: DragKind.Attack },
         target: hit.target,
         canAttackPlayer: attacker?.canAttackPlayer === true,
         attackable: hit.id !== undefined && attacker?.attackablePermanentIds.includes(hit.id) === true,
@@ -1582,7 +1491,7 @@ export function GameScreen({
     }
     const definition = getCardDefinition(drag.cardId);
     const held = {
-      kind: "play" as const,
+      kind: DragKind.Play as const,
       isOption: definition?.kinds.includes(CardKind.Option) ?? false,
       isDigiEgg: definition?.kinds.includes(CardKind.DigiEgg) ?? false,
     };
@@ -1642,7 +1551,7 @@ export function GameScreen({
       e.currentTarget.setPointerCapture?.(e.pointerId);
     }
     setDrag({
-      kind: "play",
+      kind: DragKind.Play,
       index,
       instanceId: entry.instanceId,
       cardId: entry.cardId,
@@ -1666,8 +1575,8 @@ export function GameScreen({
       e.currentTarget.setPointerCapture?.(e.pointerId);
     }
     setDrag({
-      kind: "attack",
-      permId: perm.permanentId,
+      kind: DragKind.Attack,
+      permanentId: perm.permanentId,
       cardId: perm.topCard?.cardId ?? "",
       artId: perm.topCard?.artId,
       x: e.clientX,
@@ -1690,12 +1599,12 @@ export function GameScreen({
   };
 
   const handleTap = (d: DragState) => {
-    if (d.kind === "play") {
+    if (d.kind === DragKind.Play) {
       const entry = handEntries.find((candidate) => candidate.instanceId === d.instanceId);
       if (entry) selectHandCard(entry);
     } else if (!handSel) {
-      if (selPerm === d.permId) clearSel();
-      else openOwnPermanent(d.permId);
+      if (selPerm === d.permanentId) clearSel();
+      else openOwnPermanent(d.permanentId);
     }
   };
 
@@ -1704,7 +1613,7 @@ export function GameScreen({
     if (!zone) return;
     const { target, id } = zone;
 
-    if (d.kind === "play") {
+    if (d.kind === DragKind.Play) {
       const def = getCardDefinition(d.cardId);
       if (def?.kinds.includes(CardKind.DigiEgg)) {
         ping(t("game.hint.eggsHatch"));
@@ -1760,17 +1669,17 @@ export function GameScreen({
       }
     }
 
-    if (d.kind === "attack") {
+    if (d.kind === DragKind.Attack) {
       if (target === "opp-security") {
-        const attacker = you.battleArea.find((x) => x.permanentId === d.permId);
-        if (attacker?.canAttackPlayer) return attack(d.permId, { kind: "player" });
+        const attacker = you.battleArea.find((x) => x.permanentId === d.permanentId);
+        if (attacker?.canAttackPlayer) return attack(d.permanentId, { kind: "player" });
         ping(t("game.hint.onlySuspended"));
         return;
       }
       if (target === "perm-opp" && id) {
-        const attacker = you.battleArea.find((x) => x.permanentId === d.permId);
+        const attacker = you.battleArea.find((x) => x.permanentId === d.permanentId);
         if (attacker?.attackablePermanentIds.includes(id)) {
-          return attack(d.permId, { kind: "permanent", permanentId: id });
+          return attack(d.permanentId, { kind: "permanent", permanentId: id });
         }
         ping(t("game.hint.onlySuspended"));
         return;
@@ -1965,7 +1874,7 @@ export function GameScreen({
 
   const attackerPerm = selPerm ? you.battleArea.find((p) => p.permanentId === selPerm) : undefined;
   const draggedAttackerPerm =
-    drag?.kind === "attack" ? you.battleArea.find((p) => p.permanentId === drag.permId) : undefined;
+    drag?.kind === DragKind.Attack ? you.battleArea.find((p) => p.permanentId === drag.permanentId) : undefined;
   const canAttackSecurity = canAttackPlayerWith(attackerPerm, vortexMode);
   attackPreviewTargetRef.current = {
     security: canAttackSecurity,
@@ -2563,7 +2472,7 @@ export function GameScreen({
           cardId={actionConfirm.cardId}
           title={actionConfirm.kind === "dna" ? t("overlay.confirmDnaTitle") : t("overlay.confirmActionTitle")}
           detail={
-            actionConfirm.kind === "play"
+            actionConfirm.kind === DragKind.Play
               ? t("overlay.confirmPlayDetail", {
                   card: getCardDefinition(actionConfirm.cardId)?.nameEn ?? actionConfirm.cardId,
                 })
@@ -2578,7 +2487,7 @@ export function GameScreen({
                   })
           }
           confirmLabel={
-            actionConfirm.kind === "play"
+            actionConfirm.kind === DragKind.Play
               ? t("overlay.confirmPlay")
               : actionConfirm.kind === "dna"
                 ? t("overlay.confirmDna")
@@ -2590,12 +2499,12 @@ export function GameScreen({
           onConfirm={() => {
             if (mainActionBlocked) return;
             if (room) {
-              if (actionConfirm.kind === "play") dispatchPlayCard(room, actionConfirm.instanceId);
+              if (actionConfirm.kind === DragKind.Play) dispatchPlayCard(room, actionConfirm.instanceId);
               else if (actionConfirm.kind === "digivolve")
                 intents.digivolve(room, actionConfirm.permanentId, actionConfirm.instanceId);
               else intents.dnaDigivolve(room, actionConfirm.materialPermanentIds, actionConfirm.instanceId);
             }
-            playGameCue(actionConfirm.kind === "play" ? "cardPlay" : "digivolve");
+            playGameCue(actionConfirm.kind === DragKind.Play ? "cardPlay" : "digivolve");
             setActionConfirm(null);
             clearSel();
           }}
@@ -3578,7 +3487,7 @@ export function GameScreen({
                   const entry = shownHandEntries[index];
                   if (entry) selectHandCard(entry);
                 }}
-                draggingInstanceId={dragIsPlay && drag?.kind === "play" ? drag.instanceId : undefined}
+                draggingInstanceId={dragIsPlay && drag?.kind === DragKind.Play ? drag.instanceId : undefined}
                 shakeInstanceId={shakeHandInstanceId}
                 onHoverChange={setHoveredHandInstanceId}
               />
