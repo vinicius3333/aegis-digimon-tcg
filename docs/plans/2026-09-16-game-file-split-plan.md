@@ -135,17 +135,17 @@ a function genuinely needs React, it is a named hook in `hooks/` and says so.
 House style is a string-valued `export enum` (`packages/shared/src/schema/enums.ts`).
 Replace these inline unions:
 
-| Inline union today                    | Becomes                                          |
-| ------------------------------------- | ------------------------------------------------ |
-| `"you" \| "opp"` (5 sites)            | `enum Side { Viewer = "you", Opponent = "opp" }` |
-| `"arm" \| "break"`                    | `enum SecurityBreakPhase`                        |
-| `"up" \| "down"`                      | `enum LungeDirection`                            |
-| `"pending" \| "done"`                 | `enum OpeningDealState`                          |
-| `"win" \| "loss" \| "draw"`           | `enum MatchOutcome`                              |
-| `"board" \| "dialog"`                 | `enum DecisionSurface`                           |
-| `DragState.kind: "play" \| "attack"`  | `enum DragKind`                                  |
-| `DropTarget` (`dragIntents.ts`)       | `enum DropTarget`                                |
-| track id string constants             | `enum CueTrack`                                  |
+| Inline union today                   | Becomes                                          |
+| ------------------------------------ | ------------------------------------------------ |
+| `"you" \| "opp"` (5 sites)           | `enum Side { Viewer = "you", Opponent = "opp" }` |
+| `"arm" \| "break"`                   | `enum SecurityBreakPhase`                        |
+| `"up" \| "down"`                     | `enum LungeDirection`                            |
+| `"pending" \| "done"`                | `enum OpeningDealState`                          |
+| `"win" \| "loss" \| "draw"`          | `enum MatchOutcome`                              |
+| `"board" \| "dialog"`                | `enum DecisionSurface`                           |
+| `DragState.kind: "play" \| "attack"` | `enum DragKind`                                  |
+| `DropTarget` (`dragIntents.ts`)      | `enum DropTarget`                                |
+| track id string constants            | `enum CueTrack`                                  |
 
 `Side` lands **last**, not first. Measurement killed the original wave-0 plan:
 `"you" | "opp"` spans ~30 files and ~200 literal sites, most of them in tests
@@ -335,21 +335,21 @@ REPORT  - files created, with line counts
 
 ### Waves
 
-| #   | Wave                                                                                                                | Mode   | Agents           | Manager's commit                         |
-| --- | ------------------------------------------------------------------------------------------------------------------- | ------ | ---------------- | ---------------------------------------- |
+| #   | Wave                                                                                                                | Mode   | Agents           | Manager's commit                                |
+| --- | ------------------------------------------------------------------------------------------------------------------- | ------ | ---------------- | ----------------------------------------------- |
 | 1   | `overlay/effectText.ts` + `types.ts` + `constants.ts` — the pure text layer out of `overlays.tsx` ✅ done           | author | 2                | `refactor(web): extract the overlay text layer` |
-| 2a  | `overlay/Scrim.tsx` + `overlay/printedCardName.ts` — the shared internals every component below needs               | author | 1                | one                                      |
-| 2b  | `overlay/combat/`, `choice/`, `viewer/`, `match/` — the 13 components that are a straight move                     | author | 8                | two                                      |
-| 2c  | The 4 components that blow the 250-line cap and need internal decomposition                                        | author | 4                | one each                                 |
-| 3   | `piece/` — 12 components + `handLayout.ts` + `shieldShards.ts`                                                      | author | 7                | two                                      |
-| 4   | `match/` and `screen/` types, enums, constants, queries                                                             | author | 4                | one per area                             |
-| 5   | `match/` pure core: `tracks`, `environment`, `eventLookup`, `cardSiteIndex`, `presentableNarration`                 | author | 5                | one                                      |
-| 6   | `match/steps/*` — the four step builders                                                                            | author | 4                | one                                      |
-| 7   | `screen/model/*` — 10 pure derivations                                                                              | author | 8                | two, batched                             |
-| 8   | `match/present/*` — `segments`, `batchFacts`, then `combat`, `arrivals`, `deletions`, `sounds`, then `presentBatch` | owner  | 1, sequential    | one per module                           |
-| 9   | `match/` hooks: `state`, `queue`, `narration`, `security`, `flights`, `watchers`                                    | owner  | 1                | one per module                           |
-| 9'  | `screen/` hooks + `layout/`                                                                                         | owner  | 1, parallel to 9 | one per module                           |
-| 10  | `Side` enum sweep, then delete the four barrels and rewrite every import site                                       | mixed  | 2                | two                                      |
+| 2a  | `overlay/Scrim.tsx` + `overlay/printedCardName.ts` — the shared internals every component below needs               | author | 1                | one                                             |
+| 2b  | `overlay/combat/`, `choice/`, `viewer/`, `match/` — the 13 components that are a straight move                      | author | 8                | two                                             |
+| 2c  | The 4 components that blow the 250-line cap and need internal decomposition                                         | author | 4                | one each                                        |
+| 3   | `piece/` — 12 components + `handLayout.ts` + `shieldShards.ts`                                                      | author | 7                | two                                             |
+| 4   | `match/` and `screen/` types, enums, constants, queries                                                             | author | 4                | one per area                                    |
+| 5   | `match/` pure core: `tracks`, `environment`, `eventLookup`, `cardSiteIndex`, `presentableNarration`                 | author | 5                | one                                             |
+| 6   | `match/steps/*` — the four step builders                                                                            | author | 4                | one                                             |
+| 7   | `screen/model/*` — 10 pure derivations                                                                              | author | 8                | two, batched                                    |
+| 8   | `match/present/*` — `segments`, `batchFacts`, then `combat`, `arrivals`, `deletions`, `sounds`, then `presentBatch` | owner  | 1, sequential    | one per module                                  |
+| 9   | `match/` hooks: `state`, `queue`, `narration`, `security`, `flights`, `watchers`                                    | owner  | 1                | one per module                                  |
+| 9'  | `screen/` hooks + `layout/`                                                                                         | owner  | 1, parallel to 9 | one per module                                  |
+| 10  | `Side` enum sweep, then delete the four barrels and rewrite every import site                                       | mixed  | 2                | two                                             |
 
 Wave 2c's four: `DecisionOverlay` (642 lines), the `StackViewerOverlay` cluster
 (493, counting its three private parts), `DigiXrosMaterialOverlay` (386) and
@@ -390,3 +390,49 @@ The Tailwind migration is live on `worktree-tailwind-migration`. This plan
 touches no class names, but waves 2, 3 and 9' move JSX between files, which will
 conflict on merge. Land this branch first, land Tailwind first, or freeze
 `layout/` until Tailwind merges?
+
+---
+
+## Outcome
+
+All waves landed on `worktree-game-file-split`, twelve commits, the suite green at
+177 files / 2138 tests throughout.
+
+| File              | Before | After                  |
+| ----------------- | ------ | ---------------------- |
+| `overlays.tsx`    | 3994   | `overlay/index.ts`, 57 |
+| `boardPieces.tsx` | 1643   | `piece/index.ts`, 30   |
+| `useMatchCues.ts` | 3612   | 2407                   |
+| `GameScreen.tsx`  | 4185   | 3580                   |
+
+131 files under `overlay/`, `piece/`, `match/` and `screen/`. The largest is
+`match/present/securityRevealScene.ts` at 389 lines; nothing else clears 400.
+
+Five enums replaced sixteen inline unions and three competing aliases: `Side`,
+`CueTrack`, `LungeDirection`, `SecurityBreakPhase`, `DragKind`.
+
+### What the gate actually caught
+
+Typecheck never caught a dead import. `pnpm lint:files` over the touched files
+caught them in every single wave — 30-odd across the run, including a whole
+adapter (`cheapestDigivolveCost`) whose only caller had moved out from under it.
+Author mode cannot see the hole it leaves; the manager has to look.
+
+`game.mobile.test.ts` asserts on source text and broke in four consecutive waves.
+Each time the fix was to point it at the decomposed folder, and each time its
+assertions then passed unchanged — which is a stronger statement about fidelity
+than any diff of ours.
+
+### Known flakes, pre-existing
+
+`test/digivolveNormal.scenario.test.tsx` and `test/block.scenario.test.tsx` both
+fail intermittently in a full run and pass in isolation. Neither is related to
+this work; both were observed failing before it and are timing assertions around
+DOM renders.
+
+### Not done
+
+The two mirror tests were not split. `useMatchCues.test.ts` (4035 lines) and
+`decisionOverlay.test.tsx` (3431) still exercise the whole surface through the
+old entry points, which is exactly why they were a usable safety net for every
+wave. Splitting them is its own piece of work and wants its own plan.
