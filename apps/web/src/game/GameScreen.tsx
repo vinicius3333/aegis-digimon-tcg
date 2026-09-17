@@ -9,6 +9,7 @@ import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { dropZoneAt, permanentVisualElement } from "./screen/dropZones";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
+import { prePlayPromptFor } from "./screen/model/prePlayPrompt";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
 import { useTrackingArrow } from "./screen/hooks/useTrackingArrow";
 import { BoardShell } from "./screen/layout/BoardShell";
@@ -51,10 +52,6 @@ import {
   CardKind,
   Phase,
   PRESENTATION_CHANNEL,
-  assemblyRequirementFor,
-  digiXrosRequirementFor,
-  digiXrosTrashNameAllowanceFor,
-  digiXrosZoneExpanderFor,
   getCardDefinition,
   parseTriggerKey,
   type AssemblyRequirement,
@@ -115,7 +112,6 @@ import {
   decisionPermanentDetails,
   decisionVisibleCards,
   digivolveBasePermanentIds,
-  findDnaMaterialCombination,
   attackTargetIdsOf,
   buildMatchLog,
   canAttackPlayerWith,
@@ -176,7 +172,6 @@ import { CardShatter } from "./CardShatterView";
 import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
-import { assemblyPossible } from "./assemblyMaterialSelection";
 import { pressGesture, swallowNextClick } from "./pressGesture";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import { pendingFateBadges } from "./pendingFate";
@@ -943,122 +938,42 @@ export function GameScreen({
   };
   const playCard = (instanceId: string, confirmDrop = false) => {
     if (mainActionBlocked) return;
-    const entry = handEntries.find((h) => h.instanceId === instanceId);
-    if (entry) {
-      if (getCardDefinition(entry.cardId)?.isDualCard) {
-        setDualPlay({ instanceId, cardId: entry.cardId });
-        return;
-      }
-      const dnaMaterials = findDnaMaterialCombination(entry.cardId, you.battleArea);
-      if (dnaMaterials) {
-        if (actionConfirmationsEnabled) {
-          setActionConfirm({ kind: "dna", instanceId, cardId: entry.cardId, materialPermanentIds: dnaMaterials });
-        } else if (room) {
-          playGameCue("digivolve");
-          intents.dnaDigivolve(room, dnaMaterials, instanceId);
-          clearSel();
-        }
-        return;
-      }
-      const reqs = digiXrosRequirementFor(entry.cardId);
-      if (reqs && reqs.length > 0) {
-        const playingDefinition = getCardDefinition(entry.cardId);
-        const candidates: DigiXrosCandidate[] = [
-          ...you.hand
-            .filter((ci) => ci.instanceId !== instanceId)
-            .map((ci) => ({ instanceId: ci.instanceId, cardId: ci.cardId, artId: ci.artId, zone: "hand" as const })),
-          ...you.battleArea
-            .filter((p) => p.topCard)
-            .map((p) => ({
-              instanceId: p.topCard!.instanceId,
-              cardId: p.topCard!.cardId,
-              artId: p.topCard!.artId,
-              zone: "battle" as const,
-              digiXrosNames: [...p.digiXrosNames],
-              canSubstitute: p.keywords.includes("DigiXrosSubstitute"),
-            })),
-        ];
-        // `.flatMap()` isn't supported on Colyseus's `ArraySchema` proxy (it throws at
-        // runtime — "ArraySchema#flatMap() is not supported"), unlike `.map()`/`.filter()`;
-        // build with `.map().flat()` over a real array instead.
-        const lockedCandidates: DigiXrosCandidate[] = [
-          ...you.trash.map((ci) => ({
-            instanceId: ci.instanceId,
-            cardId: ci.cardId,
-            artId: ci.artId,
-            zone: "trash" as const,
-          })),
-          ...you.battleArea
-            .map((p) => {
-              if (!p.topCard || !getCardDefinition(p.topCard.cardId)?.kinds.includes(CardKind.Tamer)) return [];
-              return p.stack.map((ci) => ({
-                instanceId: ci.instanceId,
-                cardId: ci.cardId,
-                artId: ci.artId,
-                zone: "underTamer" as const,
-              }));
-            })
-            .flat(),
-        ];
-        const eligibleExpanders: DigiXrosEligibleExpander[] = playingDefinition
-          ? you.battleArea
-              .map((p) => {
-                if (!p.topCard || p.isSuspended) return [];
-                if (!getCardDefinition(p.topCard.cardId)?.kinds.includes(CardKind.Tamer)) return [];
-                const expander = digiXrosZoneExpanderFor(p.topCard.cardId);
-                if (!expander?.appliesTo(playingDefinition)) return [];
-                return [
-                  {
-                    permanentId: p.permanentId,
-                    cardId: p.topCard.cardId,
-                    underTamerMax: expander.underTamerMax,
-                    trashMax: expander.trashMax,
-                  },
-                ];
-              })
-              .flat()
-          : [];
-        const intrinsicTrashNames = digiXrosTrashNameAllowanceFor(entry.cardId);
-        const intrinsicTrashMax =
-          intrinsicTrashNames !== undefined &&
-          you.battleArea.every((permanent) => {
-            if (!permanent.topCard) return true;
-            const definition = getCardDefinition(permanent.topCard.cardId);
-            return !definition?.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(definition.nameEn);
-          })
-            ? (reqs[0]?.maxMaterials ?? 0)
-            : 0;
-        setDigiXrosPick({
+    const prompt = prePlayPromptFor({
+      entry: handEntries.find((h) => h.instanceId === instanceId),
+      viewer: you,
+      confirmDrop,
+      actionConfirmationsEnabled,
+    });
+    if (prompt?.kind === "dual") {
+      setDualPlay({ instanceId, cardId: prompt.cardId });
+      return;
+    }
+    if (prompt?.kind === "dna") {
+      if (actionConfirmationsEnabled) {
+        setActionConfirm({
+          kind: "dna",
           instanceId,
-          cardId: entry.cardId,
-          requirements: reqs,
-          candidates,
-          lockedCandidates,
-          eligibleExpanders,
-          intrinsicTrashMax,
+          cardId: prompt.cardId,
+          materialPermanentIds: prompt.materialPermanentIds,
         });
-        return;
+      } else if (room) {
+        playGameCue("digivolve");
+        intents.dnaDigivolve(room, prompt.materialPermanentIds, instanceId);
+        clearSel();
       }
-      const assemblyRequirement = assemblyRequirementFor(entry.cardId)?.[0];
-      if (assemblyRequirement) {
-        const candidates: AssemblyCandidate[] = you.trash.map((ci) => ({
-          instanceId: ci.instanceId,
-          cardId: ci.cardId,
-          artId: ci.artId,
-        }));
-        const candidateDefinitions = candidates.flatMap((candidate) => {
-          const definition = getCardDefinition(candidate.cardId);
-          return definition ? [{ instanceId: candidate.instanceId, definition }] : [];
-        });
-        if (assemblyPossible(assemblyRequirement, candidateDefinitions)) {
-          setAssemblyPick({ instanceId, cardId: entry.cardId, requirement: assemblyRequirement, candidates });
-          return;
-        }
-      }
-      if (confirmDrop && actionConfirmationsEnabled) {
-        setActionConfirm({ kind: DragKind.Play, instanceId, cardId: entry.cardId });
-        return;
-      }
+      return;
+    }
+    if (prompt?.kind === "digiXros") {
+      setDigiXrosPick(prompt);
+      return;
+    }
+    if (prompt?.kind === "assembly") {
+      setAssemblyPick(prompt);
+      return;
+    }
+    if (prompt?.kind === DragKind.Play) {
+      setActionConfirm({ kind: DragKind.Play, instanceId, cardId: prompt.cardId });
+      return;
     }
     if (room) {
       playGameCue("cardPlay");
