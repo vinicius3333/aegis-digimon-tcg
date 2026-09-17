@@ -1,0 +1,324 @@
+import type { ModifierLedger } from "../modifiers.js";
+import type { ContinuousEffectLedger } from "../continuous.js";
+import type { DnaMemoryGain, SubTriggerRegistry } from "../subtriggers.js";
+import type { SubTriggerSourceScope } from "../EffectContext.js";
+import type {
+  AttackTarget,
+  CardDefinition,
+  CardInstance,
+  GameState,
+  Permanent,
+  Seat,
+  ServerEvent,
+  ZoneRef,
+} from "@aegis/shared";
+
+/**
+ * What `createPrimitives` needs from the engine, and the three ports it reaches
+ * the rest of the server through. `PrimitivesEngine` is the seam: the verbs never
+ * import GameEngine, they are handed this.
+ */
+
+export interface PrimitivesEngine {
+  /** Replace a used DUAL Option's pending trash with its optional free digivolution. */
+  artsDigivolve?(
+    seat: Seat,
+    instance: CardInstance,
+    definition: CardDefinition,
+    duringAttack?: boolean,
+  ): Promise<boolean>;
+  /** Notify the engine that one triggered effect body has begun resolving. */
+  beginEffectBody?(): void;
+  /** Notify the engine that one triggered effect body has completely resolved. */
+  finishEffectBody?(): void;
+  /** Pause enclosing card bodies while an effect-directed attack drains pending effects. */
+  resolveAttackTimingWindow?(drain: () => Promise<void>): Promise<void>;
+  /**
+   * Resolve whatever an effect-directed attack left in the nested pending pool. Used as the
+   * attack's drain when the body that ordered it is a watcher rather than a timing window.
+   */
+  drainPendingAttackTriggers?(): Promise<void>;
+  /** The authoritative match state (the only state these verbs read/mutate). */
+  readonly state: GameState;
+  /** Resolve a static evolution path granted by the base permanent. */
+  baseGrantedDigivolve?(
+    seat: Seat,
+    base: Permanent,
+    evolving: CardDefinition,
+    sourceZone?: ZoneRef,
+  ): { cost: number } | undefined;
+  /** Emit a server event (narration/log). */
+  emit(event: ServerEvent): void;
+  inSecurityCheck?(): boolean;
+  /** Allocate a permanentId unique within the match (play-from-hand/security). */
+  nextPermanentId(): string;
+  /** Allocate an instanceId for token spawn / synthetic instances. */
+  nextInstanceId?(): string;
+  /** Transient security-DP modifiers for the active security check. */
+  securityDp?: import("../../security/securityDp.js").SecurityDpLedger;
+  /** Continuous DP-based-deletion maximum bonuses (static-continuous-effects). */
+  deletionMaxDp?: import("../../deletionMaxDp.js").DeletionMaxDpLedger;
+  /** Continuous DP-based-deletion BUDGET bonuses (BT19-011's inherited `AddToDPDeleteBudget`). */
+  dpDeleteBudget?: import("../../dpDeleteBudget.js").DpDeleteBudgetLedger;
+  /** Match win declaration (security-and-win-check subsystem). */
+  win?: import("../../security/winCheck.js").WinCheck;
+  /** Fire a timing window (optional; used before deletion / draw hooks). */
+  fireTiming?: (
+    timing: import("@aegis/shared").EffectTiming,
+    trigger?: import("../EffectContext.js").TriggerInfo,
+  ) => Promise<void>;
+  /** Resolve simultaneous [On Deletion]/<Ascension> reactions in controller-chosen order. */
+  resolveDeletionReactions?: (
+    trigger: import("../EffectContext.js").TriggerInfo,
+    ascensionCandidates: readonly { instanceId: string; seat: Seat }[],
+    transientCandidates?: readonly CardInstance[],
+  ) => Promise<void>;
+  /**
+   * Fire the SubTrigger bus (System B) for an event, running armed watchers whose captured
+   * sourceFilter matches the payload (delayed-and-rule-effects). Optional on the port so the
+   * existing fake engines in tests need no change; absent => no watcher runs (no-op). Used at
+   * the deletion / placeUnder seams that have no co-located EffectTiming analogue exposed here.
+   */
+  fireSubTrigger?: (
+    event: import("../EffectContext.js").SubTriggerEventName,
+    payload?: import("../EffectContext.js").TriggerInfo,
+    sourceScope?: SubTriggerSourceScope,
+  ) => Promise<void>;
+  /** Pay Barrier's security cost through the generic removal bus before deletion continues. */
+  trashTopSecurityForBarrier?(seat: Seat): Promise<void>;
+  /** Reinstall continuous effects after a permanent enters play, before its entry timing. */
+  recomputeContinuousEffects?: () => Promise<void>;
+  /** Complete a rule check before an effect-driven digivolution's own timing window. */
+  processRulesBeforeWhenDigivolving?: () => Promise<void>;
+  /** Resolve the normal When Digivolving window for a public digivolution-like entry. */
+  fireWhenDigivolving?: (seat: Seat, permanent: Permanent, previousLevel?: number) => Promise<void>;
+  /** Run the would-digivolve and before-cost windows for effect-driven App Fusion. */
+  prepareAppFusion?: (seat: Seat, target: Permanent, result: CardInstance, into: CardDefinition) => Promise<void>;
+  /** Apply active ordinary-digivolution target restrictions to effect-driven App Fusion. */
+  appFusionTargetAllowed?: (seat: Seat, target: Permanent, result: CardInstance) => boolean;
+  /** Resolve the would-digivolve window after effect-route cost decisions complete. */
+  fireWouldDigivolve?: (seat: Seat, target: Permanent, into: CardDefinition) => Promise<void>;
+  /**
+   * Resolve the played loose card's own pay-time reducers ("when this card would be
+   * played") before effect-driven play. Free play runs the same window with a
+   * zero base and ignores the result, preserving optional processing costs.
+   */
+  finalizeEffectPlayCost?: (
+    instanceId: string,
+    baseCost: number,
+    useAsOption?: boolean,
+    originZone?: ZoneRef,
+    projectOnly?: boolean,
+  ) => Promise<number>;
+  /** Activate matching would-be-played replacements before an effect-driven DigiXros picker. */
+  prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;
+  prepareDigiXrosPlays?(instanceIds: readonly string[]): Promise<Record<string, string[]>>;
+  /** Resolve passive and interactive cost reducers for an effect-driven paid digivolution. */
+  finalizeEffectDigivolveCost?: (
+    target: Permanent,
+    evolvingInstanceId: string,
+    into: CardDefinition,
+    baseCost: number,
+  ) => Promise<number>;
+  /** Read the effective hand-use cost for eligibility checks that must include automatic self reducers. */
+  effectiveLooseUseCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
+  /** Resolve each newly linked physical card's own [When Linking] window. */
+  fireWhenLinking?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
+  /** Resolve the trashed card's own deck-trash trigger without requiring a field watcher. */
+  resolveSelfWhenTrashedFromDeck?: (instanceId: string, byEffectCardId?: string) => Promise<void>;
+  /** Memory rewards printed on materials that successfully participate in a DNA digivolution. */
+  dnaDigivolveMemoryGains?: (materialPermanentIds: readonly string[], into: CardDefinition) => DnaMemoryGain[];
+  /**
+   * Fire EffectTiming.OnDiscardSecurity for each given instance — cards an EFFECT just moved from a
+   * security stack to trash (the `trash` / `trashFromSecurity` verbs). The card now sits in trash (a
+   * candidate zone), so its own module's OnDiscardSecurity clause runs (ST22-10). A normal security
+   * CHECK trashes via a different path (securityCheck.trashIfStillLoose) and never reaches here, so
+   */
+  fireDiscardedFromSecurity?: (instanceIds: string[]) => Promise<void>;
+  /** Re-activate one (or all) of a target permanent's own effects at the given timing(s)
+   * (EX3-065 and its generalization — see `Primitives.reactivateOnPlay`). Engine-backed;
+   * re-exposed as Primitives.reactivateOnPlay. Returns whether an effect actually activated. */
+  reactivateOnPlay?: (
+    permanentId: string,
+    opts?: {
+      timings?: import("@aegis/shared").EffectTiming[];
+      chooseOne?: boolean;
+      outsideTriggerWindow?: boolean;
+    },
+  ) => Promise<boolean>;
+  /**
+   * Fire the entering card's OWN OnPlay / WhenDigivolving window when an EFFECT played or
+   * digivolved it (the producer for the `triggerEnteredByEffect` gate, BT25-084). The trigger's
+   * `enteredByEffect` is set to the entering card's controller seat. This is also what makes an
+   * effect-played Digimon's [On Play] fire at all — the effect-driven play/digivolve verbs
+   * previously placed the permanent without firing its entry window. Optional => no-op in fakes.
+   */
+  fireEnteredByEffect?: (
+    timing: import("@aegis/shared").EffectTiming,
+    instanceId: string,
+    ownerSeat: Seat,
+    opts?: {
+      isDnaDigivolve?: boolean;
+      digivolvedFromZone?: import("@aegis/shared").ZoneRef;
+      baseWasDigimon?: boolean;
+      playedFromZone?: import("@aegis/shared").ZoneRef;
+      digiXrosMaterialCount?: number;
+      playedByEffectSourceCardId?: string;
+      deferWhenPlayed?: boolean;
+    },
+  ) => Promise<void>;
+  /**
+   * Consult active digivolution-card-trash "redirect" replacements (BT10-084 Tactimon; KB
+   * Q2002-Q2008) BEFORE a trash operation selects which cards to take. Returns the redirected
+   * single-host id when a reaction fired, or undefined when nothing changed (no reaction
+   * installed / not every host eligible / declined). Optional on the port so existing fake
+   * engines in tests need no change.
+   */
+  consultDigivolutionTrashRedirect?: (hostPermanentIds: string[]) => Promise<string | undefined>;
+  /**
+   * Consult active "prevent" leave/delete replacements for the permanents about to be removed
+   * by an effect. Returns the subset whose removal the controller chose to PREVENT (by paying
+   * the reaction's cost). Default-safe: empty when no prevent-replacement matches.
+   */
+  consultLeavePrevention?: (
+    permanentIds: string[],
+    cause: import("../EffectContext.js").RemovalCause,
+    resolvingSeat?: Seat,
+    opts?: { isBounce?: boolean; playerAction?: boolean },
+  ) => Promise<Set<string>>;
+  /** The shared memory gauge (memory-gauge subsystem); single owner of memory math. */
+  readonly memory: MemoryPort;
+  /** Duration-scoped modifier store (DP buffs, pierce, evo-cost). */
+  readonly modifiers: ModifierLedger;
+  /**
+   * Continuous-rule store (restrictions, name/trait aliases, color waivers). Optional
+   * on the port so the existing fake engines in tests need no change; when absent a
+   * private ledger is used (the verbs still mutate real server state, just not the
+   * engine's shared one — production supplies the shared instance).
+   */
+  readonly continuous?: ContinuousEffectLedger;
+  /** Delayed / triggered sub-effect + replacement registry (optional; see `continuous`). */
+  readonly subTriggers?: SubTriggerRegistry;
+  /**
+   * Combat lifecycle driver (attack-and-block subsystem), used by the effect-driven
+   * attack / redirect verbs. Optional on the port so the existing fake engines in
+   * tests need no change; when absent those verbs narrate the gap instead of running.
+   */
+  readonly combat?: CombatPort;
+  /** Player-decision API (effect-stack-resolution); used by selection verbs. */
+  readonly ask: SelectionPort;
+  /**
+   * The seat currently driving resolution (the turn player / effect controller). Some
+   * verbs default a target seat or a "you" reference to the controller; the engine
+   * supplies it from `state.turnSeat`. Kept on the port (rather than re-deriving from
+   * state inside each verb) so the controller is unambiguous when a future verb needs
+   * it during nested resolution.
+   */
+  controllerSeat(): Seat;
+  /**
+   * True while the engine is RE-FIRING persistent (static / `EffectTiming.None`)
+   * effects in its continuous-recompute pass. When true, the continuous-capable verbs
+   * (modifyDP / restrict / grantKeyword / grantNameTrait / grantPierce / waiveColor /
+   * the cost modifiers) tag what they record as `continuous`, so the next recompute can
+   * clear and re-derive it without double-applying. Absent (or false) for ordinary
+   * one-shot effect resolution. Optional on the port so the test fakes need no change.
+   */
+  inContinuousPass?(): boolean;
+  /** True while a triggered timing window is resolving, including nested windows. */
+  inResolvingWindow?(): boolean;
+  /**
+   * Once-per-turn prevention ledger (＜Barrier＞). `barrierFired` returns true
+   * when the given per-permanent key has already prevented a removal this turn;
+   * `markBarrierFired` records it after a successful prevent.
+   */
+  barrierFired?: (key: string) => boolean;
+  markBarrierFired?: (key: string) => void;
+  /**
+   * Report cards that were JUST linked to a permanent. Comprehensive Rules §4-9-5: when
+   * linking to a Digimon that has already reached its link limit, "the same number of the
+   * EXISTING link cards are trashed at the same time as the newly linked cards" — the card
+   * that just arrived is never the one that goes. The over-limit trim itself is a rule check
+   * (§17-1-3-2-5) that runs later and cannot tell new from existing on its own, so the link
+   * verb tells it. Optional on the port: a fake that never links needs no implementation.
+   */
+  noteLinked?(instanceIds: readonly string[]): void;
+}
+
+/** The slice of MemoryGauge the primitives use (memory-gauge subsystem owns the impl). */
+export interface MemoryPort {
+  memoryFor(seat: Seat): number;
+  gainMemory(amount: number, reason?: string): void;
+  addMemoryForSeat(seat: Seat, amount: number, reason?: string, opts?: { isTamerEffect?: boolean }): void;
+  setMemory(value: number, reason?: string): void;
+  setMemoryForSeat(seat: Seat, value: number, reason?: string): void;
+  setTurnEndMinMemory?(seat: Seat, minimum: number): void;
+  pay(seat: Seat, cost: number, reason?: string): number;
+  maxCostFor(seat: Seat): number;
+}
+
+/**
+ * The slice of the CombatController the effect-driven attack verbs use
+ * (attack-and-block subsystem owns the impl). `resolveAttack` runs a full attack;
+ * `isAttacking` guards against unsafe nesting; `redirectTarget` switches the
+ * in-flight attack's target.
+ */
+export interface CombatPort {
+  readonly isAttacking: boolean;
+  readonly currentAttackerId: string | undefined;
+  /** Resolve a direct rules battle without creating an attack declaration. */
+  resolveBattle?(attacker: Permanent, defender: Permanent): Promise<void>;
+  resolveAttack(
+    attackerSeat: Seat,
+    attacker: Permanent,
+    target: AttackTarget,
+    opts?: {
+      withoutTap?: boolean;
+      attackMechanic?: string;
+      /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
+      afterAttackDeclaration?: () => Promise<void>;
+      afterAttackTriggers?: () => Promise<void>;
+      artsDigivolveOptionInstanceId?: string;
+      drainTimingWindow?: () => Promise<void>;
+    },
+  ): Promise<void>;
+  redirectTarget(target: AttackTarget): boolean;
+  /** An actual suspend -> unsuspend transition lets that permanent declare another attack. */
+  resetAttackEligibility?(permanentId: string): void;
+  /** End the in-flight attack (BT23-069) — transition to end-of-attack, skipping block/battle. */
+  endAttack(): boolean;
+  /**
+   * Open an ＜Evade＞ decision window for a single permanent and await the
+   * controller's accept/decline (Comprehensive Rules §16-22-3: activation is an
+   * optional processing condition). Shared with the combat (battle-loss) path so
+   * both routes use the same evadePrompt/respondEvade plumbing.
+   */
+  runEvadeDecision(seat: Seat, permanentId: string): Promise<boolean>;
+  /**
+   * Open a ＜Barrier＞ decision window for a single permanent and await the
+   * controller's accept/decline (Comprehensive Rules §16-25-3: activation is an
+   * optional processing condition). Shared with the combat (battle-loss) path so
+   * both routes use the same barrierPrompt/respondBarrier plumbing.
+   */
+  runBarrierDecision(seat: Seat, permanentId: string): Promise<boolean>;
+}
+
+/**
+ * The slice of the decision API the selection verbs use. The full DecisionApi
+ * (EffectContext.ts) is keyed by an EffectContext; primitives that need a choice are
+ * invoked from inside a card's resolve where the seat is known, so this narrower
+ * seat-keyed form is what the engine adapts to. effect-stack-resolution owns the impl.
+ */
+export interface SelectionPort {
+  /**
+   * Ask `seat` to pick between `min` and `max` of `candidateInstanceIds`; returns the
+   * chosen instance ids (the engine enforces the count and that they are candidates).
+   */
+  selectInstances(
+    seat: Seat,
+    candidateInstanceIds: string[],
+    min: number,
+    max: number,
+    promptText: string,
+    provenance?: { sourceCardId?: string; timing?: string; effectText?: string },
+  ): Promise<string[]>;
+}
