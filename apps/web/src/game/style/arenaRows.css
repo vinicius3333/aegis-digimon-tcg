@@ -1,0 +1,297 @@
+/* The security and battle rows, the phase ribbon that crosses the memory line
+   and the glint that follows the announcement. */
+
+/* Security and battle rows have separate vertical bounds, including their counters. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-field {
+    --arena-security-top: 7rem;
+    --arena-security-bottom: 0.5rem;
+    --arena-security-height: 3rem;
+    --arena-memory-offset: 2rem;
+  }
+
+  .game-board .game-battle-zones > .game-battle-row {
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    padding: 0.25rem 0.75rem !important;
+    min-height: 0 !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .game-board .game-battle-zones > .game-battle-row--opp {
+    top: calc(var(--arena-security-top) + var(--arena-security-height) + 2rem);
+    bottom: calc(50% - var(--arena-memory-offset) + 2rem);
+  }
+
+  .game-board .game-battle-zones > .game-battle-row--you {
+    top: calc(50% + var(--arena-memory-offset) + 2rem);
+    bottom: calc(var(--arena-security-bottom) + var(--arena-security-height) + 2rem);
+  }
+
+  .game-pile__top,
+  .game-pile__top > div,
+  .game-pile__layer,
+  .game-breeding-slot__box {
+    border-radius: 0.25rem !important;
+  }
+
+  .game-pile__top {
+    overflow: visible !important;
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 65%),
+      0 8px 12px rgb(15 23 29 / 38%) !important;
+  }
+
+  .game-pile__layer {
+    background: linear-gradient(135deg, #f0ece2, #99a5af) !important;
+    border-color: #596773 !important;
+  }
+
+  .game-breeding-slot__box {
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .game-breeding-dock > div:nth-child(2) {
+    flex-direction: row;
+    align-items: flex-start !important;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 760px) and (max-height: 899px) {
+  .game-field {
+    --arena-security-top: 6rem;
+    --arena-security-height: 3rem;
+    --arena-memory-offset: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-battle-row {
+    perspective: 900px;
+    perspective-origin: center;
+  }
+
+  .game-battle-row > div {
+    transform-style: preserve-3d;
+  }
+
+  .game-battle-row .game-card-enter {
+    rotate: none;
+    filter: drop-shadow(0 2px 1px rgb(19 27 32 / 50%)) drop-shadow(0 8px 5px rgb(19 27 32 / 30%));
+    transition:
+      translate 180ms ease,
+      filter 180ms ease;
+  }
+
+  .game-pile {
+    /* Horizontal card edges and a gentle floor shear match the arena reference. */
+    transform: perspective(1200px) rotateX(8deg) skewX(8deg);
+    transform-origin: center;
+  }
+
+  .game-pile--egg,
+  .game-breeding-slot__box {
+    transform: perspective(1200px) rotateX(8deg) skewX(-8deg);
+    transform-origin: center;
+  }
+
+  .game-pile-column--left > div:first-child {
+    flex-direction: column-reverse !important;
+  }
+
+  .game-end-turn-orb {
+    left: auto;
+    right: calc(-26.087% - 0.25rem);
+    margin: 0;
+  }
+
+  .game-end-turn-orb__ring {
+    animation: none;
+    rotate: none;
+    border-style: solid;
+  }
+
+  .game-memory-gauge__phase {
+    left: auto;
+    right: calc(-26.087% + 8.25rem);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .game-breeding-slot .game-card-enter {
+    rotate: none;
+    filter: drop-shadow(0 3px 3px rgb(32 24 18 / 30%));
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-pile-column--left > div:first-child {
+    top: 0.75rem;
+    gap: 4px !important;
+  }
+
+  .game-pile-column--left > div:first-child :has(> .game-pile) {
+    gap: 1px !important;
+  }
+
+  .game-pile-column--left > div:first-child .game-pile + span {
+    padding-block: 1px;
+  }
+
+  .game-topbar-actions {
+    margin-right: 7.5rem;
+  }
+
+  .game-end-turn-orb {
+    width: 6rem;
+    height: 6rem;
+    right: calc(-26.087% + 2rem);
+  }
+
+  .game-pile-column--right > div:last-child {
+    bottom: -5rem;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 760px) and (max-height: 819px) {
+  .game-field {
+    --arena-security-top: 5rem;
+    --arena-security-height: 2.5rem;
+  }
+
+  .game-security-shield--opp,
+  .game-security-shield-wrap:has(.game-security-shield--opp) {
+    top: 5rem;
+  }
+
+  .game-security-shield,
+  .game-security-cards i {
+    height: 2.5rem;
+  }
+
+  .game-security-shield-wrap > .game-security-shield {
+    top: auto;
+  }
+}
+
+.game-arena-counters {
+  display: flex;
+  gap: 0.5rem;
+  align-self: flex-start;
+  color: #a0f0fb;
+}
+
+.game-arena-counter {
+  display: grid;
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid rgb(160 240 251 / 50%);
+  border-radius: 50%;
+  background: rgb(14 43 58 / 85%);
+  box-shadow:
+    inset 0 0 10px rgb(100 217 237 / 20%),
+    0 2px 5px rgb(0 0 0 / 25%);
+}
+
+.game-arena-counter svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.game-arena-counter strong {
+  position: absolute;
+  right: -0.25rem;
+  bottom: -0.25rem;
+  min-width: 1.25rem;
+  padding: 0.125rem 0.25rem;
+  color: #fff;
+  border-radius: 50%;
+  background: #172a34;
+  font: 700 0.875rem/1 var(--ds-font-mono);
+  text-align: center;
+}
+
+/* The phase ribbon crosses the memory line without intercepting board input. */
+.game-board .game-phase-banner {
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.game-board .game-phase-banner span {
+  width: 100%;
+  padding: 1rem 2rem;
+  text-align: center;
+  font-family: var(--ds-font-sans);
+  font-size: clamp(1.1rem, 3.2vw, 3.5rem);
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 0;
+  border-block: 2px solid rgb(255 181 171 / 55%);
+  background: linear-gradient(90deg, transparent, rgb(143 35 37 / 80%) 20%, rgb(143 35 37 / 80%) 80%, transparent);
+  text-shadow: 0 2px 8px rgb(69 12 18 / 50%);
+  position: relative;
+  overflow: hidden;
+  animation-name: arena-phase-ribbon;
+}
+
+.game-board .game-phase-banner[data-side="you"] span {
+  border-color: rgb(172 239 251 / 55%);
+  background: linear-gradient(90deg, transparent, rgb(24 100 124 / 85%) 20%, rgb(24 100 124 / 85%) 80%, transparent);
+}
+
+/* A single glint follows the phase announcement, then leaves the board quiet. */
+.game-board .game-phase-banner span::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 40%, rgb(224 250 255 / 20%) 49%, transparent 58%);
+  translate: -110% 0;
+  animation: arena-phase-glint var(--t-phase-banner, 1100ms) ease-out both;
+  pointer-events: none;
+  content: "";
+}
+
+@keyframes arena-phase-glint {
+  15% {
+    translate: -110% 0;
+  }
+  70%,
+  100% {
+    translate: 110% 0;
+  }
+}
+
+@keyframes arena-phase-ribbon {
+  0% {
+    opacity: 0;
+    translate: 12% 0;
+    scale: 1 0.7;
+  }
+  25%,
+  75% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: -12% 0;
+    scale: 1 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-board .game-phase-banner span,
+  .game-board .game-phase-banner span::after {
+    animation: none;
+  }
+}

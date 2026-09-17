@@ -1,12 +1,10 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { mediaRules, readStylesheet } from "./style/stylesheetSource";
 
-const arenaMobileCss = readFileSync(new URL("./arenaMobile.css", import.meta.url), "utf8");
+const arenaMobileCss = readStylesheet("arenaMobile.css");
 
 /** The portrait block that lays out the whole phone board. */
-const portraitRules = arenaMobileCss.match(
-  /@media \(max-width: 1023px\) and \(orientation: portrait\) \{(?<rules>[\s\S]*?)\n\}\n/,
-)?.groups?.rules;
+const portraitRules = mediaRules(arenaMobileCss, "(max-width: 1023px) and (orientation: portrait)");
 
 describe("portrait player dock", () => {
   it("reserves a band for the counter strip that the hand cannot grow into", () => {

@@ -114,7 +114,10 @@ export function usePhaseBanners({
       // for it is waiting for nothing.
       const oldestTrackedSeq = phaseBatchesRef.current[0]?.events[0]?.seq;
       const evictedFromWindow = (event: ServerEvent) =>
-        oldestTrackedSeq !== undefined && "seq" in event && typeof event.seq === "number" && event.seq < oldestTrackedSeq;
+        oldestTrackedSeq !== undefined &&
+        "seq" in event &&
+        typeof event.seq === "number" &&
+        event.seq < oldestTrackedSeq;
       const awaitingBatch =
         Date.now() < batchDeadline &&
         arrivals.some(

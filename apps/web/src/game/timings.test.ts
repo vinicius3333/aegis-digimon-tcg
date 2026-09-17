@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readGameCss } from "./style/gameCssSource";
+import { readStylesheet } from "./style/stylesheetSource";
 import { ATTACK_ANNOUNCE_MS, SIDE_PANEL_LIFETIME_MS, SIDE_PANEL_MERGE_WINDOW_MS } from "./sidePanels";
 import { NOTICE_LIFETIME_MS } from "./notices";
 import {
@@ -31,7 +31,7 @@ import {
   SHOWCASE_TOTAL_MS,
 } from "./timings";
 
-const gameCss = readGameCss();
+const gameCss = readStylesheet("game.css");
 
 /** The keyframe offsets of one `@keyframes` block, which CSS can only express as percentages. */
 function keyframePercents(name: string): readonly number[] {

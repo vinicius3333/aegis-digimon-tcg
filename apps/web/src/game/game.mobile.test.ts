@@ -1,8 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { readGameCss } from "./style/gameCssSource";
+import { mediaRules, readStylesheet } from "./style/stylesheetSource";
 
-const gameCss = readGameCss();
+const gameCss = readStylesheet("game.css");
 
 /**
  * The overlays live one component per file under ./overlay, so a component's own
@@ -46,42 +46,18 @@ const boardPiecesSource = readdirSync(new URL("./piece/", import.meta.url), { wi
   .filter((entry) => entry.isFile() && entry.name !== "index.ts")
   .map((entry) => readFileSync(new URL(`./piece/${entry.name}`, import.meta.url), "utf8"))
   .join("\n");
-/**
- * Every rule inside the media blocks whose condition matches, in source order.
- * The stylesheet is split across files, so one condition can open more than one
- * block; matching the header and then balancing braces keeps those halves
- * together and does not depend on what sits between two blocks.
- */
-function mediaRules(condition: string): string {
-  const header = `@media ${condition} {`;
-  const bodies: string[] = [];
-  for (let start = gameCss.indexOf(header); start > -1; start = gameCss.indexOf(header, start + 1)) {
-    let depth = 0;
-    let index = start + header.length - 1;
-    for (; index < gameCss.length; index += 1) {
-      if (gameCss[index] === "{") depth += 1;
-      if (gameCss[index] === "}") {
-        depth -= 1;
-        if (depth === 0) break;
-      }
-    }
-    bodies.push(gameCss.slice(start + header.length, index));
-  }
-  return bodies.join("\n");
-}
-
 /** The phone block: narrow, or short and on its side. */
-const portraitRules = mediaRules("(width < 600px), (height < 520px) and (orientation: landscape)");
+const portraitRules = mediaRules(gameCss, "(width < 600px), (height < 520px) and (orientation: landscape)");
 /** The landscape-phone block, which re-lays the board for a short viewport. */
-const landscapeRules = mediaRules("(height < 520px) and (orientation: landscape)");
+const landscapeRules = mediaRules(gameCss, "(height < 520px) and (orientation: landscape)");
 /** Where the sidebar stops being a column and becomes a strip along the bottom. */
-const stripRules = mediaRules("(width < 960px)");
+const stripRules = mediaRules(gameCss, "(width < 960px)");
 /** Phone portrait only: the floating stacks and the board-mode sheet. */
-const phonePortraitRules = mediaRules("(width < 600px) and (orientation: portrait)");
+const phonePortraitRules = mediaRules(gameCss, "(width < 600px) and (orientation: portrait)");
 /** Narrow width at any orientation — a landscape phone is ~844px wide, so it is not this. */
-const narrowWidthRules = mediaRules("(width < 600px)");
+const narrowWidthRules = mediaRules(gameCss, "(width < 600px)");
 /** Pointer widths, which keep the full-size fanned hand. */
-const pointerWidthRules = mediaRules("(width >= 960px)");
+const pointerWidthRules = mediaRules(gameCss, "(width >= 960px)");
 
 describe("mobile portrait match layout", () => {
   it("keeps the match inside the viewport and limits scrolling to cards", () => {

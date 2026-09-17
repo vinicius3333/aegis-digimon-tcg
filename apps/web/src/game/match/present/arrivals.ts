@@ -132,8 +132,7 @@ export function enqueueArrivals({
      */
     // The revealed card playing ITSELF is the check's own scene, not an interruption of
     // it: that showcase is the whole point of a [Security] play and stays.
-    const playsItself =
-      event.kind === "cardPlayed" && event.cardId === revealOnStageRef.current?.scene.revealed.cardId;
+    const playsItself = event.kind === "cardPlayed" && event.cardId === revealOnStageRef.current?.scene.revealed.cardId;
     const blocked =
       securityBlowRef.current !== null && !securityBlowRef.current.landed && !securityReveal && !playsItself;
     const step = zoneChangeStep({

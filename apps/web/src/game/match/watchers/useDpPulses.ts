@@ -5,7 +5,6 @@ import { dpPulses as diffDpPulses, type DpPulse } from "../../dpPulse";
 import { dpPulseTotalMs } from "../../timings";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
 
-
 /**
  * A DP figure that moved gets a pulse.
  *

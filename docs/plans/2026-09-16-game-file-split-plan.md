@@ -776,7 +776,25 @@ phone halves come back as one string, and the assertions did not change.
 suite (178 files, 2,153 tests) all pass — including `test/block.scenario.test.tsx`,
 the flake the earlier passes recorded.
 
+### The two arena stylesheets
+
+`arenaMobile.css` (1,064) and `arena.css` (1,023) went the same way in the same
+pass, into the same folder and with the same concatenation check:
+
+- `arenaMobile.css` → `arenaPortrait.css` (634), `arenaPortraitStrip.css` (194),
+  `arenaPortraitSizes.css` (248). The portrait block is 818 lines on its own, so
+  it takes the same two-blocks-one-condition treatment the phone block took.
+- `arena.css` → `arenaZones.css` (467), `arenaRows.css` (297),
+  `arenaPieces.css` (265).
+
+`gameCssSource.ts` became `style/stylesheetSource.ts`: `readStylesheet(manifest)`
+serves all three, and `mediaRules(css, condition)` is shared by
+`game.mobile.test.ts` and `arenaMobile.test.ts`, which had the same brittle
+regex.
+
 ### Still not done
 
-`arenaMobile.css` (1,064) and `arena.css` (1,023) are the next two, and
-`design/primitives.css` (761) after them.
+`design/primitives.css` (761) is under the 1,000-line target but over the
+400-line one, as are a dozen smaller sheets. The remaining `game/` parts above
+400 — `cardCues` (930), `feedbackPort` (767), `decisionPrompts` (697) — are the
+next cut if that target is taken literally for CSS.

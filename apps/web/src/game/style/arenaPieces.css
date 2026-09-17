@@ -1,0 +1,265 @@
+/* Physical pieces — rim, contact shadow and a light from the upper left — and
+   the layouts that give them room. */
+
+/* Physical pieces: a beveled rim, contact shadow, and a light from the upper left.
+   Keep this on the pieces; transforming the board would distort drag coordinates. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-security-cards {
+    perspective: 700px;
+  }
+
+  .game-security-cards i {
+    position: relative;
+    transform: rotateX(16deg);
+    background: linear-gradient(135deg, #c4fbff 0%, #65dbe9 20%, #299bb8 85%);
+    box-shadow:
+      inset 0 0 0 2px rgb(230 255 255 / 25%),
+      0 2px 0 #227c94,
+      0 var(--arena-security-depth) 0 #17596c,
+      0 var(--arena-security-shadow) 8px rgb(16 41 47 / 32%);
+  }
+
+  .game-security-cards i::before {
+    position: absolute;
+    inset: 20% 26%;
+    clip-path: polygon(0 0, 100% 0, 100% 65%, 50% 100%, 0 65%);
+    background: linear-gradient(145deg, rgb(237 255 255 / 65%), rgb(188 249 255 / 12%));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%);
+    content: "";
+  }
+
+  .game-security-shield__count {
+    z-index: 1;
+    box-shadow:
+      0 2px 0 #302b24,
+      0 4px 6px rgb(0 0 0 / 30%);
+  }
+
+  .game-memory-coin {
+    background-image: linear-gradient(145deg, rgb(255 255 255 / 30%), transparent 45%, rgb(0 0 0 / 25%)) !important;
+    box-shadow:
+      inset 0 1px 1px rgb(255 255 255 / 65%),
+      inset 0 -2px 2px rgb(0 0 0 / 30%),
+      0 3px 0 #394d50,
+      0 5px 5px rgb(21 33 37 / 35%);
+  }
+
+  .game-memory-coin--marker {
+    box-shadow:
+      inset 0 1px 2px rgb(255 255 255 / 70%),
+      0 3px 0 #726033,
+      0 0 18px rgb(255 233 128 / 65%);
+  }
+
+  .game-security-cards i::after {
+    position: absolute;
+    inset: 8% 12%;
+    border-top: 1px solid rgb(255 255 255 / 55%);
+    border-radius: 2px;
+    content: "";
+  }
+
+  .game-pile__top::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(125deg, rgb(255 255 255 / 22%), transparent 42%, rgb(0 0 0 / 12%));
+    pointer-events: none;
+    content: "";
+  }
+
+  .game-pile {
+    transition: translate 180ms ease;
+  }
+
+  .game-pile + span,
+  .game-breeding-slot > span {
+    padding: 2px 6px;
+    border: 1px solid rgb(190 221 225 / 38%);
+    border-radius: 3px;
+    color: #edfaff !important;
+    background: var(--arena-ink);
+    text-shadow: 0 1px 2px #142630;
+  }
+
+  .game-end-turn-orb {
+    box-shadow:
+      0 0 0 5px #bd3c68,
+      inset 0 2px 0 4px #7e2144,
+      inset 0 12px 16px rgb(255 220 232 / 25%),
+      0 8px 0 4px #6e203e,
+      0 15px 18px rgb(27 19 28 / 40%);
+    transition:
+      translate 160ms ease,
+      filter 160ms ease;
+  }
+
+  .game-end-turn-orb:active:not(:disabled) {
+    translate: 0 3px;
+  }
+
+  .game-hand-card > div {
+    box-shadow:
+      0 2px 1px rgb(12 24 31 / 50%),
+      0 12px 18px rgb(12 24 31 / 40%);
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-board .game-battle-zones > .game-battle-row--opp {
+    top: calc(var(--arena-security-top) + var(--arena-security-height) + 1.5rem);
+    bottom: calc(50% - var(--arena-memory-offset) + 0.5rem);
+    padding-block: 0.5rem 0.75rem !important;
+  }
+
+  .game-board .game-battle-zones > .game-battle-row--you {
+    top: calc(50% + var(--arena-memory-offset) + 0.5rem);
+    bottom: calc(var(--arena-security-bottom) + var(--arena-security-height) + 1.5rem);
+    padding-block: 0.5rem 0.75rem !important;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .game-battle-row > [role="button"]:hover .game-card-enter,
+  .game-battle-row > :focus-visible .game-card-enter {
+    translate: 0 -3px;
+    filter: drop-shadow(0 3px 2px rgb(19 27 32 / 45%)) drop-shadow(0 10px 7px rgb(19 27 32 / 40%));
+  }
+
+  [role="button"]:hover > .game-pile,
+  [role="button"]:focus-visible > .game-pile {
+    translate: 0 -4px;
+  }
+
+  .game-end-turn-orb:hover:not(:disabled) {
+    filter: brightness(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-pile,
+  .game-battle-row .game-card-enter,
+  .game-end-turn-orb {
+    transition: none;
+  }
+}
+
+/* Short desktop keeps the larger stacks intact with the fixed control beside them. */
+@media (min-width: 1024px) and (min-height: 760px) and (max-height: 899px) {
+  .game-end-turn-orb {
+    right: calc(-26.087% + 9rem);
+  }
+
+  .game-memory-gauge__phase {
+    right: calc(-26.087% + 9.5rem);
+    top: calc(50% + 3.5rem);
+    transform: none;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) and (min-height: 760px) and (max-height: 899px) {
+  .game-memory-band {
+    right: 24%;
+  }
+
+  .game-end-turn-orb {
+    right: calc(-38.095% + 9rem);
+  }
+
+  .game-memory-gauge__phase {
+    right: calc(-38.095% + 9.5rem);
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 760px) and (max-height: 819px) {
+  .game-pile-column--right > div:last-child {
+    bottom: -6.5rem;
+  }
+
+  .game-opponent-hand {
+    --arena-opponent-card-width: 3rem;
+    --arena-opponent-card-height: 4.2rem;
+  }
+
+  /* The accessible hand count is already present in the opponent counters. */
+  .game-opponent-hand > span {
+    display: none;
+  }
+}
+
+/* A desktop hand that cannot fit its readable slivers becomes a bounded tray. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-player-dock:has([data-testid="hand"][data-hand-overflow="true"]) {
+    height: 13rem;
+    min-height: 13rem;
+    padding-top: 0;
+  }
+
+  .game-player-dock:has([data-testid="hand"][data-hand-overflow="true"]) .game-hand-dock {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding-top: 0 !important;
+  }
+
+  .game-player-dock:has([data-testid="hand"][data-hand-overflow="true"]) .game-action-bar--idle {
+    display: none !important;
+  }
+
+  .game-player-dock [data-testid="hand"][data-hand-overflow="true"] {
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto !important;
+    padding-block: 0 6px !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--arena-cyan) var(--arena-ink);
+  }
+
+  .game-player-dock [data-testid="hand"][data-hand-overflow="true"]::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .game-player-dock [data-testid="hand"][data-hand-overflow="true"]::-webkit-scrollbar-track {
+    background: var(--arena-ink);
+  }
+
+  .game-player-dock [data-testid="hand"][data-hand-overflow="true"]::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: var(--arena-cyan);
+  }
+}
+
+/* Reserve source-card room beside the opponent's complete breeding area. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-board .game-battle-zones > .game-battle-row--opp {
+    left: max(12%, 15rem);
+  }
+}
+
+/* Non-arena compact layouts keep both pieces together in their existing rail. */
+@media (min-width: 1024px) and (max-height: 759px), (max-width: 1023px) and (orientation: landscape) {
+  .game-opponent-breeding {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Landscape has enough width to keep eggs, raising and security in one row. */
+@media (max-width: 1023px) and (height < 520px) and (orientation: landscape) {
+  .game-field {
+    grid-template-columns: var(--game-rail) minmax(0, 1fr) 12rem;
+  }
+
+  .game-opponent-breeding {
+    flex-direction: row;
+  }
+}
+
+/* Short desktops give the battlefield more room without shrinking phone cards. */
+@media (min-width: 1024px) and (min-height: 760px) and (max-height: 819px) {
+  .game-player-dock:has([data-testid="hand"][data-hand-overflow="true"]) {
+    height: 11.5rem;
+    min-height: 11.5rem;
+  }
+}

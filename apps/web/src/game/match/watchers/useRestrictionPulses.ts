@@ -5,7 +5,6 @@ import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } 
 import { TIMINGS } from "../../timings";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
 
-
 /**
  * A permanent that just had "can't attack" / "can't block" imposed on it jolts.
  *
