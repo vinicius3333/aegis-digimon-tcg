@@ -821,7 +821,15 @@ describe("the phone hand strip during a board-mode selection", () => {
 });
 
 describe("the draw cue on a phone", () => {
-  const useMatchCuesSource = readFileSync(new URL("./useMatchCues.ts", import.meta.url), "utf8");
+  // The cue hook's flights, steps and scenes live one concern per file under ./match.
+  const useMatchCuesSource = [
+    readFileSync(new URL("./useMatchCues.ts", import.meta.url), "utf8"),
+    ...["", "steps/", "present/", "narration/"].flatMap((group) =>
+      readdirSync(new URL(`./match/${group}`, import.meta.url), { withFileTypes: true })
+        .filter((entry) => entry.isFile())
+        .map((entry) => readFileSync(new URL(`./match/${group}${entry.name}`, import.meta.url), "utf8")),
+    ),
+  ].join("\n");
   const reducedMotionRules = gameCss.match(/@media \(prefers-reduced-motion: reduce\) \{(?<rules>[\s\S]*)$/)?.groups
     ?.rules;
 

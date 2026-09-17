@@ -23,7 +23,7 @@ import { CueTrack, LungeDirection } from "./match/enums";
 import { REDUCED_MOTION_QUERY } from "./match/environment";
 import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "./match/constants";
 import { OPTION_DOCK_TRACKS, holdsTheBoard } from "./match/tracks";
-import { isTouchLayout, liveMode } from "./match/environment";
+import { liveMode } from "./match/environment";
 import { withoutId } from "./match/eventLookup";
 import { buildCardSiteIndex } from "./match/cardSiteIndex";
 import { shieldBreakStep } from "./match/steps/shieldBreakStep";
@@ -33,6 +33,9 @@ import { zoneChangeStep } from "./match/steps/zoneChangeStep";
 import { batchFacts } from "./match/present/batchFacts";
 import { combatScenes } from "./match/present/combat";
 import { securityRevealScene } from "./match/present/securityRevealScene";
+import { securityHold } from "./match/securityHold";
+import { cueFlights } from "./match/flights";
+import { narrationStream } from "./match/narration/narrationStream";
 import type {
   AttackLunge,
   DeleteBurst,
@@ -87,15 +90,7 @@ import {
   securityGainNoticeFromEvent,
   type MatchNotice,
 } from "./notices";
-import {
-  buildNarrationItems,
-  narrationReadingTime,
-  pushNarrationItem,
-  trimNarration,
-  COLLAPSED_NARRATION_LIMIT,
-  TOUCH_NARRATION_LIFETIME_SCALE,
-  type NarrationItem,
-} from "./narration";
+import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
 import {
   buildSecurityBranchScene,
   buildSecurityBreakScene,
@@ -347,6 +342,8 @@ export function useMatchCues({
 
   const [narration, setNarration] = useState<ReadonlyMap<string, NarrationItem>>(new Map());
   const [rejection, setRejection] = useState<MatchNotice | null>(null);
+  const narrationRef = useRef(narration);
+  narrationRef.current = narration;
   const [attackAnnouncement, setAttackAnnouncement] = useState<AttackAnnouncement | null>(null);
   const [turnTransition, setTurnTransition] = useState<TurnTransitionCue | null>(null);
   const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
@@ -561,21 +558,11 @@ export function useMatchCues({
     cardSiteRef.current = buildCardSiteIndex(state);
   });
 
-  /**
-   * The figure this seat's shield is showing right now. Read as a scene is staged, which
-   * is normally before the patch that removes the card has even landed — the server sends
-   * events as they happen and patches on its own tick — so it is the figure that still
-   * counts the card the scene is about to spend.
-   */
-  function securityCountOf(seat: Seat): number | undefined {
-    return state?.players[seat]?.securityCount;
-  }
-
-  /** Keep this seat's shield on `count` until the scene `key` has shown the card leaving. */
-  function holdSecurityCard(key: number, seat: Seat, count: number | undefined) {
-    if (count === undefined) return;
-    setHeldSecurityCards((held) => new Map(held).set(key, { seat, count }));
-  }
+  const { securityCountOf, holdSecurityCard, releaseSecurityCardWhenIdle, releaseSecurityCard } = securityHold({
+    queue,
+    state,
+    setHeldSecurityCards,
+  });
 
   /**
    * The highest figure any scene is still holding for each seat, which is what the shield
@@ -590,182 +577,33 @@ export function useMatchCues({
     return highest;
   }, [heldSecurityCards]);
 
-  /**
-   * A scene the queue drops before it ever starts — a newer check replacing the track —
-   * runs no `finally`, and its hold would keep a card on the shield for the rest of the
-   * match. Whatever it was holding is given back at the latest when nothing is running.
-   * Call after the scene's steps are enqueued, or the queue is idle at that instant and
-   * the figure is handed back before the scene has shown anything.
-   */
-  function releaseSecurityCardWhenIdle(key: number) {
-    void queue.idle().then(() => releaseSecurityCard(key));
-  }
-
-  /** The card has been seen to go, so the shield catches up with the board. */
-  function releaseSecurityCard(key: number) {
-    setHeldSecurityCards((held) => {
-      if (!held.has(key)) return held;
-      const next = new Map(held);
-      next.delete(key);
-      return next;
-    });
-  }
-
-  /**
-   * The item as it will be shown, or null when there is nothing left of it.
-   *
-   * A clause whose own decision dialog has opened since the item was queued is dropped
-   * here rather than read out beside a dialog printing the same words; the panel it
-   * travelled with, which the dialog does not repeat, stays.
-   */
-  function presentableNarration(item: NarrationItem): NarrationItem | null {
-    const { notice } = item;
-    // The folded slot reads slower than the board does, so its items get a longer clock.
-    const shown = (presented: NarrationItem): NarrationItem => ({
-      ...presented,
-      ...(collapseNarrationRef.current
-        ? { lifetimeMs: Math.round(narrationReadingTime(presented) * TOUCH_NARRATION_LIFETIME_SCALE) }
-        : {}),
-      createdAt: Date.now(),
-    });
-    const suppressed =
-      notice !== undefined && [...suppressedOwnEffectsRef.current].some((cardId) => isOwnEffectNotice(notice, cardId));
-    if (!suppressed) return shown(item);
-    if (!item.panel) return null;
-    return shown({ ...item, notice: undefined });
-  }
-
   const effectNarrationTracksRef = useRef(new Map<Seat, string>());
 
-  /** Publish the clause before the results queued behind its arrival. */
-  function enqueueNarrationItem(item: NarrationItem, effectSourceHoldMs: number = TIMINGS.effectSourceHold) {
-    const body = item.notice?.body;
-    const seat = item.side === "you" ? viewerSeat : otherSeat(viewerSeat);
-    const initialSite = body?.variant === "effect" ? cardSiteRef.current.locate(body.cardId, seat, body) : undefined;
-    const timing = body?.variant === "effect" ? (body.timing ?? "") : "";
-    // Follow the actual arrival track, including its field burst, rather than
-    // estimating when a normal play or evolution will be finished.
-    const onPlay = /on.?play/i.test(timing) && initialSite?.zone === "field";
-    const arrivalTrack =
-      /on.?play|when.?digivolving/i.test(timing) && initialSite?.zone === "field"
-        ? onPlay
-          ? CueTrack.CenterStage
-          : `burst-${initialSite.permanentId}`
-        : undefined;
-    if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
-    const precedingTrack = effectNarrationTracksRef.current.get(seat);
-    const track =
-      arrivalTrack ??
-      (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack) ? precedingTrack : "narration");
-    const heldOrigin = heldOriginsRef.current.get(item.notice ?? item.panel ?? item);
-    const origin = {
-      phaseOrder: heldOrigin?.phaseOrder ?? enqueuePhaseOrderRef.current,
-      batchId: item.batchId,
-      stateVersion: heldOrigin?.stateVersion ?? batchVersionsRef.current.get(item.batchId) ?? 0,
-      ...(body?.variant === "effect" ? { sourceCardId: body.cardId, timing: body.timing } : {}),
-    };
-    // Which phase raised the clause is what lets the ribbon that follows it wait for its
-    // beat and then clear it (`waitForPhasePrerequisites`).
-    narrationPhaseOrdersRef.current.set(item.id, origin.phaseOrder ?? completedPhaseOrderRef.current);
-    function reportShown(stepId: string, context: AnimationStepContext) {
-      try {
-        presentationReporterRef.current?.({
-          ...origin,
-          phase: "shown",
-          stepId,
-          track,
-          clientTimestamp: Date.now(),
-          mode: context.mode,
-          cancelled: context.cancelled,
-          skipping: context.skipping,
-          failed: false,
-          pendingCount: queue.pendingCount(),
-        });
-      } catch {
-        // Diagnostic transport must never interrupt the presentation.
-      }
-    }
-    queue.enqueue({
-      id: `narration-step-${item.id}`,
-      origin,
-      track,
-      holdsBoard: false,
-      blocksDecision: false,
-      async run(context) {
-        if (context.mode === "replay" || narrationSkipRef.current) return;
-        if (onPlay && initialSite?.zone === "field") {
-          while (
-            queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
-            context.mode === "live" &&
-            !context.cancelled &&
-            !context.skipping
-          )
-            await context.wait(16);
-        }
-        if (context.mode === "live" && body?.variant === "effect") {
-          // Let this batch register its deletion beats before locating the source.
-          await Promise.resolve();
-          if (/on.?deletion/i.test(body.timing ?? "")) {
-            const deletion = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
-            await context.wait(Math.max(0, (deletion?.readyAt ?? 0) - Date.now()));
-          }
-          if (context.cancelled || narrationSkipRef.current) return;
-          const deletion = /on.?deletion/i.test(body.timing ?? "")
-            ? deletionReadyAtRef.current.get(`${seat}:${body.cardId}`)
-            : undefined;
-          const site = deletion?.instanceId
-            ? { zone: "trash" as const, instanceId: deletion.instanceId }
-            : cardSiteRef.current.locate(body.cardId, seat, body);
-          if (site && context.mode === "live") {
-            const activation: EffectActivation = {
-              key: ++effectSourceKeyRef.current,
-              cardId: body.cardId,
-              seat,
-              site,
-            };
-            try {
-              setEffectSources((sources) => [...sources, activation]);
-              reportShown(`effect-source-${activation.key}`, context);
-              await context.wait(effectSourceHoldMs);
-            } finally {
-              setEffectSources((sources) => sources.filter((source) => source.key !== activation.key));
-            }
-          }
-        }
-        if (context.cancelled || narrationSkipRef.current) return;
-        const shown = presentableNarration(item);
-        if (!shown) return;
-        const push = (published: NarrationItem) =>
-          setNarration((items) =>
-            pushNarrationItem(
-              items,
-              published,
-              collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
-              collapseNarrationRef.current,
-            ),
-          );
-        // Left, then right. A moment carrying both halves is a sentence and its result, so
-        // the clause takes the screen first and the cards it moved follow a beat later.
-        // The folded phone slot draws both halves in one item, so it is published whole.
-        const staggered = !collapseNarrationRef.current && shown.notice !== undefined && shown.panel !== undefined;
-        if (staggered) {
-          const { panel: _panel, ...clauseOnly } = shown;
-          push(clauseOnly);
-          await context.wait(TIMINGS.narrationCardsLag);
-          if (context.cancelled || narrationSkipRef.current) return;
-        }
-        push(shown);
-        reportShown(`narration-step-${item.id}`, context);
-        // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
-        // single moment, give every clause one readable beat before the next server event
-        // can replace it; a column with room shows a batch together instead.
-        if (shown.notice && narrationLimitRef.current === 1) await context.wait(TIMINGS.effectAnnounce);
-      },
-    });
-  }
-
-  // Each record expires on its own clock, including while a decision is open.
-  // Schedule only the next expiry, and cancel on unmount or replacement.
+  const { narrate, flushHeldNotices, openHeld, narrationBefore } = narrationStream({
+    viewerSeat,
+    queue,
+    cardSiteRef,
+    effectNarrationTracksRef,
+    heldOriginsRef,
+    enqueuePhaseOrderRef,
+    batchVersionsRef,
+    narrationPhaseOrdersRef,
+    completedPhaseOrderRef,
+    presentationReporterRef,
+    narrationSkipRef,
+    deletionReadyAtRef,
+    effectSourceKeyRef,
+    setEffectSources,
+    setNarration,
+    collapseNarrationRef,
+    narrationLimitRef,
+    suppressedOwnEffectsRef,
+    heldNoticesRef,
+    heldPanelsRef,
+    lastBatchIdRef,
+    narrationSequenceRef,
+    narrationRef,
+  });
   useEffect(() => {
     if (narration.size === 0) return;
     const expiresAt = Math.min(...[...narration.values()].map((item) => item.createdAt + narrationReadingTime(item)));
@@ -795,55 +633,6 @@ export function useMatchCues({
       ),
     );
   }, [narrationLimit]);
-
-  /**
-   * Queues one moment's worth of narration: the panels and the notices the same beat
-   * raised, folded into as few items as they honestly make (narration.ts).
-   */
-  function narrate(
-    notices: readonly MatchNotice[],
-    panels: readonly SidePanel[],
-    batchId: string,
-    effectSourceHoldMs: number = TIMINGS.effectSourceHold,
-  ) {
-    if (notices.length === 0 && panels.length === 0) return;
-    const items = buildNarrationItems({
-      batchId,
-      notices,
-      panels,
-      nowMs: Date.now(),
-      nextId: () => `narration-${(narrationSequenceRef.current += 1)}`,
-    });
-    for (const item of items) enqueueNarrationItem(item, effectSourceHoldMs);
-  }
-
-  /** Raises whatever a security check has still not said, on the clock it is raised at. */
-  function flushHeldNotices() {
-    openHeld(heldNoticesRef.current, heldPanelsRef.current);
-  }
-
-  /**
-   * Raises exactly these, on the clock they are raised at, and takes them out of the held
-   * buckets. Targeted rather than draining: a check is presented in several cues — the dock,
-   * the arrival of a card it played, what that card then did — and each cue must say its own
-   * part only. Draining let the dock read out an [On Play] result that had not happened on
-   * screen yet, because a later batch had parked it in the same bucket.
-   */
-  function openHeld(ownNotices: readonly MatchNotice[], ownPanels: readonly SidePanel[]) {
-    if (ownNotices.length === 0 && ownPanels.length === 0) return;
-    heldNoticesRef.current = heldNoticesRef.current.filter((held) => !ownNotices.includes(held));
-    heldPanelsRef.current = heldPanelsRef.current.filter((held) => !ownPanels.includes(held));
-    const origins = new Set(
-      [...ownNotices, ...ownPanels].map((item) => heldOriginsRef.current.get(item)?.batchId ?? lastBatchIdRef.current),
-    );
-    for (const batchId of origins) {
-      narrate(
-        ownNotices.filter((item) => (heldOriginsRef.current.get(item)?.batchId ?? lastBatchIdRef.current) === batchId),
-        ownPanels.filter((item) => (heldOriginsRef.current.get(item)?.batchId ?? lastBatchIdRef.current) === batchId),
-        batchId,
-      );
-    }
-  }
 
   /**
    * Present one server batch: everything the rules resolved in one entry into the engine.
@@ -1889,21 +1678,6 @@ export function useMatchCues({
 
   const phaseBatchesRef = useRef(batches);
   phaseBatchesRef.current = batches;
-  const narrationRef = useRef(narration);
-  narrationRef.current = narration;
-
-  /**
-   * The clauses a ribbon at `phaseOrder` would cover: everything an earlier phase raised.
-   *
-   * The ribbon waits one readable beat for them, but it no longer takes them off the
-   * screen: a clause keeps its own six-second clock across the turn change, so a moment
-   * raised at the end of a turn is still readable once the ribbons are done.
-   */
-  function narrationBefore(phaseOrder: number): NarrationItem[] {
-    return [...narrationRef.current.values()].filter(
-      (item) => (narrationPhaseOrdersRef.current.get(item.id) ?? 0) < phaseOrder,
-    );
-  }
 
   async function waitForPhasePrerequisites(
     context: AnimationStepContext,
@@ -2458,67 +2232,20 @@ export function useMatchCues({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.handCount, opp?.handCount, phaseBanner]);
 
-  /** The card lands on the stack: the same shield bounce a recovery plays. */
-  function launchSecurityGainFlight(seat: Seat) {
-    const key = (securityGainKeyRef.current += 1);
-    queue.enqueue({
-      id: `security-gain-flight-${seat}-${key}`,
-      track: `securityFlight-${seat}`,
-      replace: true,
-      async run(context) {
-        if (context.mode !== "live") return;
-        try {
-          setSecurityFlights((seats) => new Set(seats).add(seat));
-          await context.wait(TIMINGS.securityFlight);
-        } finally {
-          setSecurityFlights((seats) => {
-            if (!seats.has(seat)) return seats;
-            const next = new Set(seats);
-            next.delete(seat);
-            return next;
-          });
-        }
-      },
-    });
-  }
+  const { launchSecurityGainFlight, launchOpeningSecurityDeal, launchDrawFlight, launchDeckToUnderFlight } = cueFlights(
+    {
+      queue,
+      anchors,
+      viewerSeat,
+      securityGainKeyRef,
+      drawFlightKeyRef,
+      setSecurityFlights,
+      setSecurityDealCounts,
+      setDrawFlights,
+      setDrawBursts,
+    },
+  );
 
-  /**
-   * The opening five cards (Comprehensive Rules §5-2-1-6). The server sets the whole stack
-   * in one patch, so the deal is the client's own: one card back flies from the deck to the
-   * shield per card, and the shield's figure follows the cards rather than the patch.
-   */
-  function launchOpeningSecurityDeal(seat: Seat, count: number) {
-    setSecurityDealCounts((counts) => new Map(counts).set(seat, 0));
-    queue.enqueue({
-      id: `security-deal-${seat}`,
-      track: `securityDeal-${seat}`,
-      replace: true,
-      async run(context) {
-        try {
-          for (let dealt = 0; dealt < count; dealt += 1) {
-            if (context.cancelled) return;
-            launchDeckToSecurityFlight(seat);
-            await context.wait(TIMINGS.securityDealStagger);
-            setSecurityDealCounts((counts) => new Map(counts).set(seat, dealt + 1));
-          }
-          await context.wait(TIMINGS.securityFlight);
-        } finally {
-          setSecurityDealCounts((counts) => {
-            if (!counts.has(seat)) return counts;
-            const next = new Map(counts);
-            next.delete(seat);
-            return next;
-          });
-        }
-      },
-    });
-  }
-
-  // A security stack that grew outside a recovery was stacked by an effect — a card
-  // placed there from the hand, the deck or the trash. `cardsMoved` names no seat and
-  // the stack is hidden from the opponent's view, so the growth is read off the count
-  // the server publishes for exactly this purpose. The dealt opening stack is only a
-  // baseline, and a growth a `securityRecovered` event claimed is not narrated twice.
   useEffect(() => {
     if (you === undefined || opp === undefined) return;
     const previous = securityCountsRef.current;
@@ -2553,119 +2280,6 @@ export function useMatchCues({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.securityCount, opp?.securityCount]);
-
-  /**
-   * Sends a card back from a deck pile to the hand that just grew. The reference
-   * client presents a draw centre-screen; the web port keeps the deck→hand read,
-   * which is what makes an opponent's draw visible at all.
-   */
-  function launchDrawFlight(side: "you" | "opp", turnStart = false, waitBeforeMs = 0) {
-    const board = anchors.board.current;
-    const source = side === "you" ? anchors.yourDeck.current : anchors.oppDeck.current;
-    const target = side === "you" ? anchors.yourHandDock.current : anchors.oppHandStrip.current;
-    if (!board || !source || !target) return;
-    const boardRect = board.getBoundingClientRect();
-    const sourceRect = source.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    // Layout-free environments (jsdom) report zero boxes: no geometry, no flight,
-    // and so no step is ever enqueued there.
-    if (!sourceRect.width || !targetRect.width) return;
-    const from = {
-      x: sourceRect.left + sourceRect.width / 2 - boardRect.left,
-      y: sourceRect.top + sourceRect.height / 2 - boardRect.top,
-    };
-    const to = {
-      x: targetRect.left + targetRect.width / 2 - boardRect.left,
-      y: targetRect.top + targetRect.height / 2 - boardRect.top,
-    };
-    const key = (drawFlightKeyRef.current += 1);
-    // The card back is hand-card sized on a phone; at 340ms that size crosses a
-    // 393px screen too fast to register, so the touch layouts get a longer trip.
-    // The element animates on this same number, set inline by GameScreen, so the
-    // unmount below can never cut the flight short.
-    const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
-    const flight: DrawFlight = { key, x: from.x, y: from.y, dx: to.x - from.x, dy: to.y - from.y, duration };
-    // Two hands can grow at once, so each flight gets a track of its own rather
-    // than queueing behind the other side's.
-    queue.enqueue({
-      id: `draw-flight-${key}`,
-      side,
-      track: `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
-      async run(context) {
-        if (waitBeforeMs > 0) await context.wait(waitBeforeMs);
-        if (context.cancelled) return;
-        setDrawFlights((flights) => [...flights, flight]);
-        await context.wait(duration);
-        setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
-        // Only the draw the turn opens with gets the starburst: an effect draw is
-        // already narrated by its own notice, and two cues would read as two draws.
-        if (!turnStart || context.mode !== "live" || context.cancelled) return;
-        setDrawBursts((bursts) => [...bursts, { key, x: to.x, y: to.y }]);
-        await context.wait(TIMINGS.drawBurst);
-        setDrawBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
-      },
-    });
-  }
-
-  /** One card back from a seat's deck onto its security shield. */
-  function launchDeckToSecurityFlight(seat: Seat) {
-    const board = anchors.board.current;
-    const source = seat === viewerSeat ? anchors.yourDeck.current : anchors.oppDeck.current;
-    const target = seat === viewerSeat ? anchors.yourSecurity.current : anchors.oppSecurity.current;
-    if (!board || !source || !target) return;
-    const boardRect = board.getBoundingClientRect();
-    const sourceRect = source.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    // Layout-free environments (jsdom) report zero boxes: no geometry, no flight.
-    if (!sourceRect.width || !targetRect.width) return;
-    const x = sourceRect.left + sourceRect.width / 2 - boardRect.left;
-    const y = sourceRect.top + sourceRect.height / 2 - boardRect.top;
-    const key = (drawFlightKeyRef.current += 1);
-    const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
-    const flight: DrawFlight = {
-      key,
-      x,
-      y,
-      dx: targetRect.left + targetRect.width / 2 - boardRect.left - x,
-      dy: targetRect.top + targetRect.height / 2 - boardRect.top - y,
-      duration,
-    };
-    // Each card of the deal is its own track: they overlap on purpose, so the stack is
-    // built by a run of cards rather than by one card played five times.
-    queue.enqueue({
-      id: `security-deal-flight-${key}`,
-      track: `securityDealFlight-${key}`,
-      async run(context) {
-        setDrawFlights((flights) => [...flights, flight]);
-        await context.wait(duration);
-        setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
-      },
-    });
-  }
-
-  function launchDeckToUnderFlight(seat: Seat, permanentId: string) {
-    const board = anchors.board.current;
-    const source = seat === viewerSeat ? anchors.yourDeck.current : anchors.oppDeck.current;
-    const target = anchors.permanentCenter?.(permanentId);
-    if (!board || !source || !target) return;
-    const boardRect = board.getBoundingClientRect();
-    const sourceRect = source.getBoundingClientRect();
-    if (!sourceRect.width) return;
-    const x = sourceRect.left + sourceRect.width / 2 - boardRect.left;
-    const y = sourceRect.top + sourceRect.height / 2 - boardRect.top;
-    const key = ++drawFlightKeyRef.current;
-    const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
-    const flight: DrawFlight = { key, x, y, dx: target.x - x, dy: target.y - y, duration };
-    queue.enqueue({
-      id: `deck-under-flight-${key}`,
-      track: `deckUnder-${permanentId}`,
-      async run(context) {
-        setDrawFlights((flights) => [...flights, flight]);
-        await context.wait(duration);
-        setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
-      },
-    });
-  }
 
   /** The items on screen, in slot order, so the read-only views below are stable. */
   const presented = useMemo(() => [...narration.values()], [narration]);
