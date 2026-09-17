@@ -12,6 +12,7 @@ import {
   type CardInstance,
   type Seat,
 } from "@aegis/shared";
+import { recomputeContinuousEffects, runContinuousPass } from "./gameEngine/continuousPass.js";
 import type { RemovalCause } from "./effects/EffectContext.js";
 import type { Intent, IntentResult } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
@@ -40,12 +41,11 @@ import { ContinuousEffectLedger, effectiveColors } from "./effects/continuous.js
 import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription } from "./effects/subtriggers.js";
 import { type CardStateLookup } from "./cards/CardSource.js";
-import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
+import { UseTracker } from "./effects/kernel.js";
 import { buildResolutionEnv } from "./effects/index.js";
-import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from "./effects/collect.js";
-import { grantedTokenEffectsForTiming, resolveSelfWhenTrashedFromDeck } from "./effects/interpreter.js";
+import { effectsOf } from "./effects/collect.js";
+import { resolveSelfWhenTrashedFromDeck } from "./effects/interpreter.js";
 import type { CardSource } from "./effects/CardSource.js";
-import type { Effect } from "./effects/Effect.js";
 import type { CollectedEffect } from "./effects/collect.js";
 import type {
   EffectContext,
@@ -66,7 +66,6 @@ import { mergeRuleDeletions, type PooledRuleDeletion } from "./gameEngine/ruleDe
 import { DigivolveSupport } from "./gameEngine/digivolveSupport.js";
 import { BoardProjection } from "./gameEngine/projections.js";
 import { RuleChecks } from "./gameEngine/ruleChecks.js";
-import { sameNumericMap } from "./gameEngine/schemaSync.js";
 import { securityStrikeCount } from "./gameEngine/securityStrike.js";
 import { type ArmedSubTrigger } from "./gameEngine/subTriggerIdentity.js";
 import type { GameEngineHooks, SeatJoinOptions } from "./gameEngine/types.js";
@@ -340,9 +339,9 @@ export class GameEngine {
   /** Monotonic source of permanentIds unique within the match. */
   permanentSeq = 0;
   /** Shared completion barrier for the current continuous recompute batch. */
-  private recomputeInFlight: Promise<void> | undefined;
+  recomputeInFlight: Promise<void> | undefined;
   /** Coalesces external recompute requests that arrive while a pass is rebuilding the ledgers. */
-  private recomputeQueued = false;
+  recomputeQueued = false;
 
   /**
    * Cards linked since the last over-limit rule check (fed by the link verb through
@@ -381,9 +380,9 @@ export class GameEngine {
   });
   battleScopeSequence = 0;
   /** Continuous DP-based-deletion maximum bonuses (rebuilt each continuous recompute). */
-  private readonly deletionMaxDp = new DeletionMaxDpLedger();
+  readonly deletionMaxDp = new DeletionMaxDpLedger();
   /** Continuous DP-based-deletion BUDGET bonuses (BT19-011's inherited modifier; rebuilt each continuous recompute). */
-  private readonly dpDeleteBudget = new DpDeleteBudgetLedger();
+  readonly dpDeleteBudget = new DpDeleteBudgetLedger();
   /** Monotonic source of instanceIds for token spawn. */
   instanceSeq = 0;
 
@@ -974,231 +973,6 @@ export class GameEngine {
    */
 
   /**
-   * Re-derive every continuous (persistent / `EffectTiming.None`) effect from a clean
-   * slate (subsystem: static-continuous-effects). Comprehensive Rules §15-8-2:
-   * persistent effects ("[Your Turn] This Digimon gets +1000 DP", "can't attack", a
-   * granted ＜Blocker＞, a continuous cost reduction) are "constantly activated without
-   * being triggered" — there is no firing window, so the engine recomputes the whole
-   * tier at each relevant decision point.
-   *
-   * Clear-then-recompute (so nothing double-applies): drop only the CONTINUOUS tier of
-   * both ledgers (the `continuous`-tagged DP/pierce/evo/play-cost modifiers and the
-   * `continuous`-tagged restrictions/keywords/aliases/waivers) — one-shot,
-   * duration-scoped modifiers from triggered effects are untouched — then re-fire the
-   * `None`-timing effects with `continuousMode` on, so each re-records itself as
-   * `continuous`. Unlike a triggered window this does NOT touch the per-turn use ledger
-   * and never prompts (persistent effects are mandatory and make no choices); a static
-   * effect whose own `when`/`condition` gate fails simply contributes nothing this pass,
-   * which is exactly how a `[Your Turn]`/`while ...` effect lapses when its gate stops
-   * holding.
-   *
-   * Re-entrant calls from inside the continuous pass are no-ops. Concurrent requests from a
-   * different async flow instead wait for the in-flight pass and queue one final refresh. That
-   * completion barrier prevents consumers from observing the clear-before-refill interval of
-   * the continuous ledgers. Public so callers/tests can force a recompute at a decision point
-   * the timing/boundary hooks do not already cover.
-   */
-  async recomputeContinuousEffects(): Promise<void> {
-    if (this.recomputeInFlight !== undefined) {
-      if (this.continuousScope.getStore() === true) return;
-      this.recomputeQueued = true;
-      await this.recomputeInFlight;
-      return;
-    }
-    // Continuous effects are passive modifiers and never prompt (ARCHITECTURE.md §5);
-    // a Static effect whose action has `optional:true` must be auto-declined here so
-    // we don't open a nested DecisionManager request that collides with an already-open
-    // dec-1 (#residual-gaps/nested-decision-crash).
-    const noPromptAsk: DecisionApi = {
-      optional: async () => false,
-      chooseTargets: async () => [],
-      selectCards: async () => [],
-      selectPermanents: async () => [],
-      chooseOption: async () => 0,
-    };
-    // Defer the driver by one microtask so `recomputeInFlight` is installed before the
-    // first pass can recursively reach this method through a static effect primitive.
-    const task = Promise.resolve().then(async () => {
-      do {
-        this.recomputeQueued = false;
-        // Everything each pass records is a continuous effect, and the tier tag has to follow
-        // THIS async chain: a timing window resolving concurrently (a play whose trailing
-        // recompute is still in flight) must not read the tag from a shared field.
-        //
-        // A continuous gate may read a value produced by another continuous effect (for
-        // example, EX10-010's DP threshold on two facing copies). Re-derive from a clean tier
-        // each time so stale grants and duplicate watchers cannot accumulate, but seed each
-        // pass with the previous pass's DP deltas so the dependency chain can reach a fixpoint.
-        // The cap protects the resolver from a genuinely oscillating set of card effects.
-        const maxFixpointPasses = 32;
-        let seed = this.projection.continuousDpSeeds();
-        let converged = false;
-        for (let pass = 0; pass < maxFixpointPasses; pass++) {
-          await this.continuousScope.run(true, () => this.runContinuousPass(noPromptAsk, seed));
-          this.projection.updateContinuousDpSeeds();
-          const next = this.projection.continuousDpSeeds();
-          if (sameNumericMap(seed, next)) {
-            converged = true;
-            break;
-          }
-          seed = next;
-        }
-        if (!converged) {
-          throw new Error(`continuous effects did not converge after ${maxFixpointPasses} passes`);
-        }
-      } while (this.recomputeQueued);
-
-      this.projection.syncActivatableEffects();
-      this.projection.syncKeywords();
-      this.projection.syncSummoningSickness();
-      this.projection.syncRestrictions();
-      this.projection.syncAttackTargets();
-      this.projection.syncHandAffordances();
-      this.projection.syncLinkTargets();
-    });
-    this.recomputeInFlight = task;
-    try {
-      await task;
-    } finally {
-      if (this.recomputeInFlight === task) this.recomputeInFlight = undefined;
-    }
-  }
-
-  /**
-   * The body of one continuous recompute: clear the continuous tier of every ledger, then
-   * re-fire the persistent (`EffectTiming.None`) effects, the effects conferred by a
-   * "gains all effects" grant, and the named custom-effect grants. Always run inside the
-   * continuous scope (see {@link recomputeContinuousEffects}).
-   */
-  private async runContinuousPass(
-    noPromptAsk: DecisionApi,
-    seed: ReadonlyMap<string, number> = new Map(),
-  ): Promise<void> {
-    this.modifiers.clearContinuous(this.state);
-    // clearContinuous recomputes each touched permanent from the non-continuous layer. Reapply
-    // only the previous pass's continuous deltas, so gates can observe the prior derived value
-    // while this pass still rebuilds a clean ledger.
-    for (const player of this.state.players) {
-      const permanents = player.breeding === undefined ? player.battleArea : [...player.battleArea, player.breeding];
-      for (const permanent of permanents) {
-        const delta = seed.get(permanent.permanentId);
-        if (delta !== undefined) permanent.currentDP += delta;
-      }
-    }
-    this.continuous.clearContinuous();
-    this.memory.clearTurnEndMinMemoryOverrides();
-    // The SubTrigger registry holds CONTINUOUS Static/[Breeding] Replacement (reduceCost) and
-    // SubTrigger watcher installs, re-derived each recompute alongside the other continuous
-    // tiers. Clear them here so a `Static` reduceCost re-installs exactly once per recompute
-    // (CR-01) rather than accumulating to N, 2N, 3N… across the multiple recomputes per turn.
-    // One-shot installs from triggered windows (BT23-056's granted timed trigger) carry no
-    // `continuous` flag and survive.
-    this.subTriggers.clearContinuous();
-    this.deletionMaxDp.clear();
-    this.dpDeleteBudget.clear();
-    // The security-DP ledger holds the CONTINUOUS ModifySecurityDP deltas (ST3-12's
-    // [Opponent's Turn] +2000), re-derived each recompute alongside the other continuous
-    // tiers. Clear it here so a re-fire under the [Opponent's Turn] guard re-applies the
-    // delta exactly once (IR-01) rather than accumulating across recomputes.
-    this.securityDp.clearContinuous();
-
-    const continuousEffects: { source: CardSource; effect: Effect }[] = [];
-    for (const instance of listCandidateInstances(this)) {
-      const source = cardSourceOf(this, instance);
-      for (const effect of effectsOf(EffectTiming.None, source)) {
-        continuousEffects.push({ source, effect });
-      }
-    }
-    continuousEffects.sort(
-      (left, right) => (left.effect.continuousPriority ?? 0) - (right.effect.continuousPriority ?? 0),
-    );
-    for (const { source, effect } of continuousEffects) {
-      const ctx = buildEffectContext(this, source, {}, noPromptAsk);
-      ctx.continuousPass = true;
-      // Persistent effects re-apply whenever their guard holds; canTrigger here is
-      // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).
-      if (!canTrigger(effect, ctx, this.tracker)) continue;
-      if (!canActivate(effect, ctx, this.tracker)) continue;
-      await effect.resolve(ctx);
-    }
-    // A GrantStatic "gain all effects" source is established during the base static pass.
-    // Its conferred card can itself have an [All Turns]/Static watcher (EX3-013 under
-    // BT12-072), so resolve those newly-visible continuous effects in the same recompute.
-    // Triggered timings already use collectConferredEffects through the normal resolver;
-    // without this companion pass only their discrete effects existed, while leave
-    // replacements silently failed to install.
-    const candidates = listCandidateInstances(this);
-    const sourceByInstanceId = new Map(
-      candidates.map((instance) => [instance.instanceId, cardSourceOf(this, instance)] as const),
-    );
-    const conferredContinuous = collectConferredEffects(
-      EffectTiming.None,
-      this.continuous.listStackEffectConferrals(),
-      (instanceId) => sourceByInstanceId.get(instanceId),
-      (source, effect, conferredToPermanentId, conferralGranterInstanceId) => ({
-        ...buildEffectContext(this, source, {}, noPromptAsk),
-        activeTiming: EffectTiming[EffectTiming.None],
-        activeEffectText: effect.description,
-        continuousPass: true,
-        conferredToPermanentId,
-        conferralGranterInstanceId,
-      }),
-      this.tracker,
-    );
-    for (const { source, effect, conferredToPermanentId, conferralGranterInstanceId } of conferredContinuous) {
-      const ctx: EffectContext = {
-        ...buildEffectContext(this, source, {}, noPromptAsk),
-        activeTiming: EffectTiming[EffectTiming.None],
-        activeEffectText: effect.description,
-        continuousPass: true,
-        conferredToPermanentId,
-        conferralGranterInstanceId,
-      };
-      await effect.resolve(ctx);
-    }
-    // Named custom effect grants ("1 of your opponent's Digimon gains '[All Turns] When this
-    // Digimon becomes suspended, lose 2 memory.'"). Discrete timings already reach these through
-    // gatherTriggeredEffects -> collectGrantedCustomEffects, but a granted [All Turns]/Static
-    // clause lives in the CONTINUOUS window: its SubTrigger/Replacement watcher has to be
-    // installed by this pass or it is never armed at all. Without this the grant is recorded in
-    // the ledger, reads as active on the board, and silently never fires.
-    const grantedContinuous = collectGrantedCustomEffects(
-      EffectTiming.None,
-      this.continuous.listCustomEffectGrants(),
-      (instanceId) => sourceByInstanceId.get(instanceId),
-      (token, source) => grantedTokenEffectsForTiming(token, EffectTiming.None, source),
-      (source, effect) => ({
-        ...buildEffectContext(this, source, {}, noPromptAsk),
-        activeTiming: EffectTiming[EffectTiming.None],
-        activeEffectText: effect.description,
-        continuousPass: true,
-      }),
-      this.tracker,
-    );
-    for (const { source, effect } of grantedContinuous) {
-      const ctx: EffectContext = {
-        ...buildEffectContext(this, source, {}, noPromptAsk),
-        activeTiming: EffectTiming[EffectTiming.None],
-        activeEffectText: effect.description,
-        continuousPass: true,
-      };
-      if (!canActivate(effect, ctx, this.tracker)) continue;
-      await effect.resolve(ctx);
-    }
-
-    // BT23-024 suspend-restriction-with-superlative-exception: for every ARMED source, re-derive
-    // the affected opponent set (all opponent Digimon MINUS the highest-play-cost one) and record
-    // a CONTINUOUS `suspend` restriction per affected permanent. Done here (not in a card's
-    // resolve) because the exempt set is a computed exclusion over the live board, recomputed each
-    // pass so it tracks plays/digivolves/removals (KB Q5250/Q5252; Q6025/Q6026 all-restricted).
-    this.projection.applySuspendRestrictionRecompute();
-
-    // A seed is only an input to this pass. Recompute every seeded permanent from the rebuilt
-    // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.
-    for (const permanentId of seed.keys()) this.modifiers.recomputeDP(this.state, permanentId);
-  }
-
-  /**
    * Guards `doRuleProcess` against re-entry while a state-based-action pass is mid-flight
    * (a deletion can fire an [On Deletion] effect that itself drives `resolveTiming`, which
    */
@@ -1608,6 +1382,19 @@ export class GameEngine {
 
   unsuspendAllForSeat(seat: Seat): Promise<string[]> {
     return unsuspendAllForSeat(this, seat);
+  }
+
+  /**
+   * Rebuild every continuous effect. Public: the room, the testkit and 500-odd tests await it
+   * between steps, and st312SecurityRecompute drives it directly. {@link runContinuousPass}
+   * keeps a method too -- tests replace it on the instance to count passes.
+   */
+  recomputeContinuousEffects(): Promise<void> {
+    return recomputeContinuousEffects(this);
+  }
+
+  runContinuousPass(noPromptAsk: DecisionApi, seed: ReadonlyMap<string, number> = new Map()): Promise<void> {
+    return runContinuousPass(this, noPromptAsk, seed);
   }
 
   fireSubTrigger(

@@ -395,6 +395,10 @@
   "export": "reactivateOnPlay",
   "module": "timing"
  },
+ "recomputeContinuousEffects": {
+  "export": "recomputeContinuousEffects",
+  "module": "continuousPass"
+ },
  "residentPlayCostEffects": {
   "export": "residentPlayCostEffects",
   "module": "timing"
@@ -422,6 +426,10 @@
  "runBreedingPhase": {
   "export": "runBreedingPhase",
   "module": "turnFlow"
+ },
+ "runContinuousPass": {
+  "export": "runContinuousPass",
+  "module": "continuousPass"
  },
  "runCrossPermanentPlayReducers": {
   "export": "runCrossPermanentPlayReducers",
