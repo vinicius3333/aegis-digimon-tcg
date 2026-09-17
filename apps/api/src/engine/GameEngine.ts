@@ -19,7 +19,6 @@ import {
   type CardInstance,
   type Intent,
   type IntentResult,
-  type DecisionRequest,
   Zone,
   type RejectReason,
   type ServerEvent,
@@ -28,8 +27,6 @@ import {
   type DigivolutionRequirement,
   type BaseGrantedDigivolve,
   baseGrantedDigivolveFor,
-  digiXrosRequirementFor,
-  assemblyRequirementFor,
   appFusionCostFor,
   nameIncludesToken,
 } from "@aegis/shared";
@@ -106,7 +103,6 @@ import {
   createEffectContext,
   gatherTriggeredEffects,
 } from "./effects/context.js";
-import { ArraySchema } from "@colyseus/schema";
 import { createCardSource, type CardStateLookup } from "./cards/CardSource.js";
 import { digisorptionAmountFor, isDigisorptionRedirector } from "./cards/digisorptionDigivolve.js";
 import { tamerOntoDigivolveLevel } from "./cards/tamerOntoDigivolve.js";
@@ -160,7 +156,6 @@ import {
   canHatch,
   canMove,
   type BreedingDeps,
-  type BreedingRejection,
   type HatchEggIntent,
   type MoveFromBreedingIntent,
 } from "./actions/breeding.js";
@@ -169,7 +164,6 @@ import {
   applyDigivolve,
   memoryDepsFromGauge,
   validatePlayCard,
-  type PlayCardCheck,
   applyPlayCard,
   validateAttack,
   applyAttack,
@@ -180,21 +174,17 @@ import {
   applyRespondBarrier,
   type DigivolveDeps,
   type DigivolveIntent,
-  type DigivolveRejection,
   type PlayCardDeps,
   type PlayCardIntent,
-  type PlayCardRejection,
   type PlayMode,
   validateDigiXros,
   applyDigiXros,
   type DigiXrosDeps,
   type DigiXrosIntent,
-  type DigiXrosRejection,
   validateAssembly,
   applyAssembly,
   type AssemblyDeps,
   type AssemblyIntent,
-  type AssemblyRejection,
   type AttackDeps,
   type AttackIntent,
   type BlockDeps,
@@ -203,158 +193,52 @@ import {
   applyLinkCard,
   type LinkCardDeps,
   type LinkCardIntent,
-  type LinkCardRejection,
   validateDnaDigivolve,
   applyDnaDigivolve,
   type DnaDigivolveDeps,
   type DnaDigivolveIntent,
-  type DnaDigivolveRejection,
   validateRespondCounter,
   applyRespondCounter,
   type RespondCounterDeps,
   type RespondCounterIntent,
 } from "./actions/index.js";
+import {
+  ATTACK_BLOCKED_INTENTS,
+  isBlastDigivolve,
+  NO_DIGIVOLVE_TARGETS,
+  NO_LINK_TARGETS,
+  NO_PROJECTED_COST,
+  playableFromHand,
+} from "./gameEngine/intentGating.js";
+import {
+  mapAssemblyReason,
+  mapBreedingReason,
+  mapDigivolveReason,
+  mapDigiXrosReason,
+  mapDnaDigivolveReason,
+  mapLinkReason,
+  mapPlayCardReason,
+} from "./gameEngine/rejectionReasons.js";
+import { mergeRuleDeletions, type PooledRuleDeletion } from "./gameEngine/ruleDeletions.js";
+import {
+  clearAttackProjection,
+  replaceAppFusionRoutesIfChanged,
+  replaceDigivolveRoutesIfChanged,
+  replaceIfChanged,
+  sameNumericMap,
+} from "./gameEngine/schemaSync.js";
+import { securityStrikeCount } from "./gameEngine/securityStrike.js";
+import {
+  digivolvedFromTamerBase,
+  subTriggerDescriptionFor,
+  subTriggerIdentity,
+  uniqueOncePerTurnWatcherOccurrences,
+  type ArmedSubTrigger,
+} from "./gameEngine/subTriggerIdentity.js";
+import type { AppFusionValidation, GameEngineHooks, SeatJoinOptions } from "./gameEngine/types.js";
 
-function sameNumericMap(left: ReadonlyMap<string, number>, right: ReadonlyMap<string, number>): boolean {
-  if (left.size !== right.size) return false;
-  for (const [key, value] of left) if (right.get(key) !== value) return false;
-  return true;
-}
-
-/**
- * Hooks the engine uses to talk back to the room (and thus to clients) without
- * importing Colyseus transport concerns. Supplied by AegisRoom.onCreate.
- */
-export interface GameEngineHooks {
-  seed: number;
-  requestDecision: (seat: Seat, req: DecisionRequest) => void;
-  emit: (event: ServerEvent) => void;
-  /** Fires once, the first time both seats have sent `ready` (see {@link GameEngine.intentRouterDeps}). */
-  onBothReady?: () => void;
-  /** Notifies in-process actors only after an asynchronous action has fully settled. */
-  onActionSettled?: (seat: Seat, intentType: Intent["type"]) => void;
-}
-
-/**
- * The subset of a client's join payload {@link GameEngine.seatPlayer} needs to seat a
- * player: a display name and a decklist. Engine-owned so the rules engine does not import
- * the transport-layer join type — the room's full join payload (`AegisJoinOptions`, which
- * additionally carries a private-room code the engine never needs) extends this instead.
- */
-export interface SeatJoinOptions {
-  displayName: string;
-  deck: { mainDeck: string[]; eggDeck: string[]; mainDeckArts?: string[]; eggDeckArts?: string[] }; // arrays of card ids
-  /**
-   * Opts this seat's deck into beta battle mode, the only mode where a card from an
-   * announced-but-unreleased product (`isBetaOnlyCard`) is legal. Both seats must set
-   * the same value — {@link AegisRoom} enforces that before either seat is staged.
-   */
-  betaBattleMode?: boolean;
-}
-
-/**
- * The number of security cards an attacker checks: base 1 plus every ＜Security Attack ±N＞ grant
- * (each amount sign-flipped when an SA-sign-inversion is active on the attacker — EX6-031). Per
- * Comprehensive Rules §16-4-4 the result is floored at 0: if modifiers drive it below 0, the actual
- * number of security checks is 0, never negative. Exported so the floor is a unit-testable contract
- * rather than an unobservable defensive guard (the consumer also treats <= 0 as "no check").
- */
-export function securityStrikeCount(saGrants: ReadonlyArray<{ amount?: number }>, invert: boolean): number {
-  const sum = saGrants.reduce((acc, g) => {
-    const amount = g.amount ?? 1;
-    return acc + (invert ? -amount : amount);
-  }, 0);
-  return Math.max(0, 1 + sum);
-}
-
-const NO_DIGIVOLVE_TARGETS: readonly string[] = [];
-const NO_LINK_TARGETS: readonly string[] = [];
-
-/** `CardInstance.projectedPlayCost` sentinel: this card has no projectable play cost right now. */
-const NO_PROJECTED_COST = -1;
-
-/**
- * The verbs refused while an attack is resolving. Everything a seat does to its own board
- * belongs to a Main-phase action window, and CR section 11 gives the attack the board until
- * the battle ends. The combat responses (`declareBlock`, `declineBlock`, `respondCounter`,
- * `respondAlliance`, `respondEvade`, `respondBarrier`), `respondDecision`, `ready` and
- * `surrender` are deliberately absent: they drive the attack forward or end the match.
- */
-const ATTACK_BLOCKED_INTENTS: ReadonlySet<Intent["type"]> = new Set([
-  "playCard",
-  "appFusion",
-  "digivolve",
-  "dnaDigivolve",
-  "linkCard",
-  "attack",
-  "activateEffect",
-  "endPhase",
-  "hatchEgg",
-  "moveFromBreeding",
-]);
-
-/**
- * A ＜Blast Digivolve＞ / ＜Blast DNA Digivolve＞ declaration, the one digivolve that belongs to
- * the defending seat's §11-3 Counter Timing window rather than to a Main-phase action window.
- * Its own validator enforces the open window, so {@link ATTACK_BLOCKED_INTENTS} exempts it
- * instead of refusing the keyword outright.
- */
-function isBlastDigivolve(intent: Intent): boolean {
-  return (intent.type === "digivolve" || intent.type === "dnaDigivolve") && intent.useBlastDigivolve === true;
-}
-
-/** A hand card reads as playable when it validates, or when only memory is short of a material-cost route. */
-function playableFromHand(check: PlayCardCheck, cardId: string): boolean {
-  return check.ok || (check.reason === "insufficient-memory" && hasMaterialCostRoute(cardId));
-}
-
-/**
- * Overwrite a synchronized string list only when its contents actually changed.
- *
- * The keyword and affordance projections run for every permanent and every hand card on every
- * continuous recompute — several times per player action — and a clear-and-refill marks the list
- * dirty even when the contents come back identical, costing the encoder a re-serialization each
- * pass. Same result, written only on a real change.
- */
-function replaceIfChanged(target: ArraySchema<string>, values: readonly string[]): void {
-  if (target.length === values.length && values.every((value, index) => target[index] === value)) return;
-  target.splice(0, target.length);
-  for (const value of values) target.push(value);
-}
-
-function replaceDigivolveRoutesIfChanged(target: ArraySchema<DigivolveRoute>, values: readonly DigivolveRoute[]): void {
-  const same =
-    target.length === values.length &&
-    target.every((route, index) => {
-      const next = values[index];
-      return (
-        next !== undefined &&
-        route.permanentId === next.permanentId &&
-        route.alternateRequirementIndex === next.alternateRequirementIndex &&
-        route.projectedCost === next.projectedCost
-      );
-    });
-  if (same) return;
-  target.splice(0, target.length);
-  for (const value of values) target.push(value);
-}
-
-function replaceAppFusionRoutesIfChanged(target: ArraySchema<AppFusionRoute>, values: readonly AppFusionRoute[]): void {
-  const same =
-    target.length === values.length &&
-    target.every((route, index) => {
-      const next = values[index];
-      return (
-        next !== undefined &&
-        route.hostPermanentId === next.hostPermanentId &&
-        route.linkedInstanceId === next.linkedInstanceId &&
-        route.projectedCost === next.projectedCost
-      );
-    });
-  if (same) return;
-  target.splice(0, target.length);
-  for (const value of values) target.push(value);
-}
+export { mergeRuleDeletions, securityStrikeCount };
+export type { GameEngineHooks, SeatJoinOptions };
 
 /**
  * The brain of a single match. The ONLY object permitted to mutate GameState
@@ -365,166 +249,6 @@ function replaceAppFusionRoutesIfChanged(target: ArraySchema<AppFusionRoute>, va
  * boot path compiles/runs, but the rules engine itself is intentionally stubbed.
  * Each subsystem below maps to an entry in historical migration ledger
  */
-/**
- * A watcher's identity ACROSS continuous recomputes. Every recompute clears the continuous
- * subscriptions and re-installs them, so `sub.id` is stable only within one recompute cycle;
- * the (event, anchor, description, per-turn identity) tuple is what distinguishes the same
- * watcher across reinstalls while preserving separately conferred copies (BT10-011 Q1943).
- */
-function subTriggerIdentity(sub: SubTriggerSubscription): string {
-  return [
-    sub.event,
-    sub.sourcePermanentId ?? "",
-    sub.sourceInstanceId ?? "",
-    sub.description,
-    sub.oncePerTurnKey ?? "",
-    sub.dedupeKey ?? "",
-  ].join("|");
-}
-
-/**
- * A single printed `[Once Per Turn]` watcher can observe several simultaneous subjects of one
- * effect (for example, MoonMillenniummon deletes two Tamers). They are separate bus events, but
- * they are not separate activations that the player may order: only one copy of that exact
- * watcher may enter the pending-trigger UI. Keep distinct action paths, which carry different
- * `dedupeKey`s, independently selectable for cards whose one printed OPT genuinely contains
- * multiple triggered clauses.
- */
-function uniqueOncePerTurnWatcherOccurrences(items: readonly ArmedSubTrigger[]): ArmedSubTrigger[] {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    if (item.sub.oncePerTurnKey === undefined) return true;
-    const identity = subTriggerIdentity(item.sub);
-    if (seen.has(identity)) return false;
-    seen.add(identity);
-    return true;
-  });
-}
-
-/**
- * Whether the card directly beneath this permanent's top — the base it just digivolved from —
- * is a Tamer.
- *
- * KB Q6708 (BT23-101 Hudiemon, which may digivolve from a Tamer): "Digivolve from the Tamer as
- * such, and do not treat it as if it is a digivolving Digimon", so a watcher that reads "when a
- * Digimon digivolves" must not fire. The digivolving card's own [When Digivolving] window and
- * the digivolution bonus draw (Q6709) are unaffected — only the Digimon-digivolve watchers are.
- *
- * `stack` is ordered bottom..just-below-top (see `pushDigivolution`), so `at(-1)` is the base.
- */
-function digivolvedFromTamerBase(permanent: Permanent | undefined): boolean {
-  const base = permanent?.stack.at(-1);
-  if (base === undefined) return false;
-  const definition = lookupDefinition(base.cardId);
-  return definition !== undefined && isTamer(definition);
-}
-
-/**
- * A watcher's description as the players should read it. A player-scoped watcher tags its
- * description with the instance that installed it, so it can be told apart from the copy
- * conferred on another card; that tag is bookkeeping and never belongs in an announcement.
- */
-function subTriggerDescriptionFor(sub: SubTriggerSubscription, ctx: EffectContext): string {
-  const tag = ` [${ctx.source.instanceId}]`;
-  return sub.description.endsWith(tag) ? sub.description.slice(0, -tag.length) : sub.description;
-}
-
-/** A watcher that triggered, with the EffectContext bound at the moment its event fired. */
-interface ArmedSubTrigger {
-  sub: SubTriggerSubscription;
-  /** Context as of the event — what the ordering prompt is built from (controller, card). */
-  ctx: EffectContext;
-  /**
-   * Context to run the body against, resolved when this watcher's turn actually comes. The
-   * ordering prompt runs BETWEEN bodies, so an earlier body may have moved the board: a watcher
-   * whose trigger condition stopped being met by then can no longer activate (CR §15-4-4-5), and
-   * `fireSnapshot` drops it by re-checking `matches` against this fresh context. The deferred
-   * paths pass the context bound when their event happened instead, because their trigger has
-   * already activated (KB Q2611/Q2629).
-   */
-  contextAtFireTime: () => EffectContext | undefined;
-  /** Unique occurrence captured by one `armedSubTriggers` call. */
-  occurrence: {
-    /** Once-per-turn keys that were unused when this event snapshot was armed. */
-    oncePerTurnSnapshotKeys: ReadonlySet<string>;
-    /** Shared success ledger for ordered bodies resolving this same event snapshot. */
-    oncePerTurnSuccessfulKeys: Set<string>;
-  };
-}
-
-/** One deletion a rule-check sweep performed, held until the whole pass can react to it. */
-interface PooledRuleDeletion {
-  trigger: TriggerInfo;
-  ascensionCandidates: { instanceId: string; seat: Seat }[];
-  /** Token cards vanish on deletion, so retain their sources until this window flushes. */
-  transientCandidates: CardInstance[];
-}
-
-/**
- * Fuse a rule-check pass's pooled deletions into the ONE trigger the pass's single
- * [On Deletion] window runs on. The card sets are unioned because the window admits its
- * candidates by them; the scalars keep the first pooled value, since a pass produces one
- * cause (`byRule`) and the fields naming "the deleted permanent" describe a batch that is
- * now the whole pass. `deletedByDpZero` is already a per-batch "any of them" flag inside a
- * single sweep, and stays one across the pass; `deletedByDpZeroInstanceIds` carries the
- * per-card truth an effect needs.
- */
-export function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDeletion {
-  const merged = pool.reduce<TriggerInfo>((into, { trigger }) => {
-    const union = (
-      key:
-        | "deletedInstanceIds"
-        | "deletedWasStackInstanceIds"
-        | "deletedWasLinkedInstanceIds"
-        | "deletedByDpZeroInstanceIds"
-        | "fortitudeInstanceIds",
-    ): string[] => [...(into[key] ?? []), ...(trigger[key] ?? [])];
-    return {
-      ...trigger,
-      ...into,
-      deletedInstanceIds: union("deletedInstanceIds"),
-      deletedWasStackInstanceIds: union("deletedWasStackInstanceIds"),
-      deletedWasLinkedInstanceIds: union("deletedWasLinkedInstanceIds"),
-      deletedByDpZeroInstanceIds: union("deletedByDpZeroInstanceIds"),
-      fortitudeInstanceIds: union("fortitudeInstanceIds"),
-      deletedHostInstanceByInstanceId: {
-        ...trigger.deletedHostInstanceByInstanceId,
-        ...into.deletedHostInstanceByInstanceId,
-      },
-      deletedLinkHostInstanceByLinkedInstanceId: {
-        ...trigger.deletedLinkHostInstanceByLinkedInstanceId,
-        ...into.deletedLinkHostInstanceByLinkedInstanceId,
-      },
-      deletedByDpZero: into.deletedByDpZero === true || trigger.deletedByDpZero === true,
-      deletedPermanentIds: [...(into.deletedPermanentIds ?? []), ...(trigger.deletedPermanentIds ?? [])],
-      deletedEffectiveColorsByInstanceId: {
-        ...trigger.deletedEffectiveColorsByInstanceId,
-        ...into.deletedEffectiveColorsByInstanceId,
-      },
-      deletedPermanentSnapshots: [
-        ...(into.deletedPermanentSnapshots ?? []),
-        ...(trigger.deletedPermanentSnapshots ?? []),
-      ],
-    };
-  }, {});
-  return {
-    trigger: merged,
-    ascensionCandidates: pool.flatMap((entry) => entry.ascensionCandidates),
-    transientCandidates: pool.flatMap((entry) => entry.transientCandidates),
-  };
-}
-
-type AppFusionValidation =
-  | { ok: false; reason: RejectReason }
-  | {
-      ok: true;
-      source: Permanent;
-      result: CardInstance;
-      resultDefinition: CardDefinition;
-      linked: CardInstance;
-      printedCost: number;
-      projectedCost: number;
-    };
 
 export class GameEngine {
   private readonly memory: MemoryGauge;
@@ -8387,248 +8111,5 @@ export class GameEngine {
     // grace period and its clock are owned by AegisRoom.onLeave (Colyseus
     // allowReconnection), which calls handleDisconnect(seat, true) if the grace
     // period elapses without a reconnect.
-  }
-}
-
-/** Reset one permanent's four projected attack affordances before a fresh sync pass. */
-function clearAttackProjection(perm: Permanent): void {
-  perm.attackablePermanentIds.splice(0, perm.attackablePermanentIds.length);
-  perm.canAttackPlayer = false;
-  perm.vortexAttackablePermanentIds.splice(0, perm.vortexAttackablePermanentIds.length);
-  perm.canVortexAttackPlayer = false;
-}
-
-/**
- * Whether this card can be played through a material declaration (DigiXros §7-2 or
- * Assembly §7-3) that lowers its cost. The reduction depends on materials the player
- * has not chosen yet, so the plain play cost is not the price such a card actually
- * pays — see {@link GameEngine.syncHandAffordances}.
- */
-function hasMaterialCostRoute(cardId: string): boolean {
-  return (digiXrosRequirementFor(cardId)?.length ?? 0) > 0 || (assemblyRequirementFor(cardId)?.length ?? 0) > 0;
-}
-
-/** Map play-card internal rejection reasons to client-surfaceable RejectReason codes. */
-function mapPlayCardReason(reason: PlayCardRejection): RejectReason {
-  switch (reason) {
-    case "not-your-turn":
-      return "not-your-turn";
-    case "wrong-phase":
-      return "wrong-phase";
-    case "decision-pending":
-      return "decision-pending";
-    case "insufficient-memory":
-      return "insufficient-memory";
-    case "card-not-in-zone":
-      return "card-not-in-zone";
-    case "not-playable-kind":
-      return "not-playable-kind";
-    case "no-empty-slot":
-      return "no-empty-slot";
-    case "play-prohibited":
-      return "play-prohibited";
-    case "color-requirement-unmet":
-      return "color-requirement-unmet";
-    case "no-such-player":
-    case "game-over":
-      return "illegal-target";
-    default: {
-      const exhaustive: never = reason;
-      void exhaustive;
-      return "illegal-target";
-    }
-  }
-}
-
-/** Map DigiXros internal rejection reasons to client-surfaceable RejectReason codes. */
-function mapDigiXrosReason(reason: DigiXrosRejection): RejectReason {
-  switch (reason) {
-    case "not-your-turn":
-      return "not-your-turn";
-    case "wrong-phase":
-      return "wrong-phase";
-    case "decision-pending":
-      return "decision-pending";
-    case "insufficient-memory":
-      return "insufficient-memory";
-    case "card-not-in-zone":
-      return "card-not-in-zone";
-    case "not-playable-kind":
-      return "not-playable-kind";
-    case "not-digixros":
-      return "not-digixros";
-    case "no-materials":
-      return "no-materials";
-    case "invalid-material":
-      return "invalid-material";
-    case "invalid-expander":
-      return "invalid-expander";
-    case "no-such-player":
-    case "game-over":
-      return "illegal-target";
-    default: {
-      const exhaustive: never = reason;
-      void exhaustive;
-      return "illegal-target";
-    }
-  }
-}
-
-/** Map Assembly internal rejection reasons to client-surfaceable RejectReason codes. */
-function mapAssemblyReason(reason: AssemblyRejection): RejectReason {
-  switch (reason) {
-    case "not-your-turn":
-      return "not-your-turn";
-    case "wrong-phase":
-      return "wrong-phase";
-    case "decision-pending":
-      return "decision-pending";
-    case "insufficient-memory":
-      return "insufficient-memory";
-    case "card-not-in-zone":
-      return "card-not-in-zone";
-    case "not-playable-kind":
-      return "not-playable-kind";
-    case "not-assembly":
-      return "not-assembly";
-    case "no-materials":
-      return "no-materials";
-    case "invalid-material":
-      return "invalid-material";
-    case "no-such-player":
-    case "game-over":
-      return "illegal-target";
-    default: {
-      const exhaustive: never = reason;
-      void exhaustive;
-      return "illegal-target";
-    }
-  }
-}
-
-/** Map breeding internal rejection reasons to client-surfaceable RejectReason codes. */
-function mapBreedingReason(reason: BreedingRejection): RejectReason {
-  switch (reason) {
-    case "not-your-turn":
-      return "not-your-turn";
-    case "wrong-phase":
-      return "wrong-phase";
-    case "decision-pending":
-      return "decision-pending";
-    case "breeding-occupied":
-      return "breeding-occupied";
-    case "egg-deck-empty":
-      return "egg-deck-empty";
-    case "breeding-empty":
-      return "breeding-empty";
-    case "not-movable":
-      return "not-movable";
-    case "move-prohibited":
-      return "move-prohibited";
-    case "no-such-player":
-    case "game-over":
-      return "illegal-target";
-    default: {
-      const exhaustive: never = reason;
-      void exhaustive;
-      return "illegal-target";
-    }
-  }
-}
-
-/** Map digivolve internal rejection reasons to client-surfaceable RejectReason codes. */
-function mapDigivolveReason(reason: DigivolveRejection): RejectReason {
-  switch (reason) {
-    case "not-your-turn":
-      return "not-your-turn";
-    case "wrong-phase":
-      return "wrong-phase";
-    case "decision-pending":
-      return "decision-pending";
-    case "invalid-evolution":
-      return "invalid-evolution";
-    case "insufficient-memory":
-      return "insufficient-memory";
-    case "card-not-in-zone":
-      return "card-not-in-zone";
-    case "no-such-permanent":
-      return "no-such-permanent";
-    case "not-controller":
-      return "not-controller";
-    case "not-a-digimon":
-      return "not-a-digimon";
-    case "no-such-player":
-    case "game-over":
-      return "illegal-target";
-    default: {
-      const exhaustive: never = reason;
-      void exhaustive;
-      return "illegal-target";
-    }
-  }
-}
-
-/** Map dnaDigivolve internal rejection reasons to client-surfaceable RejectReason codes. */
-function mapDnaDigivolveReason(reason: DnaDigivolveRejection): RejectReason {
-  switch (reason) {
-    case "not-your-turn":
-      return "not-your-turn";
-    case "wrong-phase":
-      return "wrong-phase";
-    case "decision-pending":
-      return "decision-pending";
-    case "invalid-evolution":
-      return "invalid-evolution";
-    case "insufficient-memory":
-      return "insufficient-memory";
-    case "card-not-in-zone":
-      return "card-not-in-zone";
-    case "no-such-permanent":
-      return "no-such-permanent";
-    case "not-controller":
-      return "not-controller";
-    case "not-a-digimon":
-      return "not-a-digimon";
-    case "no-such-player":
-    case "game-over":
-      return "illegal-target";
-    default: {
-      const exhaustive: never = reason;
-      void exhaustive;
-      return "illegal-target";
-    }
-  }
-}
-
-/** Map linkCard internal rejection reasons to client-surfaceable RejectReason codes. */
-function mapLinkReason(reason: LinkCardRejection): RejectReason {
-  switch (reason) {
-    case "not-your-turn":
-      return "not-your-turn";
-    case "wrong-phase":
-      return "wrong-phase";
-    case "decision-pending":
-      return "decision-pending";
-    case "card-not-in-zone":
-      return "card-not-in-zone";
-    case "not-linkable":
-      return "not-linkable";
-    case "no-such-permanent":
-      return "no-such-permanent";
-    case "not-controller":
-      return "not-controller";
-    case "link-requirement-unmet":
-      return "link-requirement-unmet";
-    case "insufficient-memory":
-      return "insufficient-memory";
-    case "no-such-player":
-    case "game-over":
-    case "illegal-target":
-      return "illegal-target";
-    default: {
-      const exhaustive: never = reason;
-      void exhaustive;
-      return "illegal-target";
-    }
   }
 }
