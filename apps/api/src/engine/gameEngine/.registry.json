@@ -1,602 +1,602 @@
 {
- "activateEffectDeps": {
-  "export": "activateEffectDeps",
-  "module": "actionDeps"
- },
- "announceSubTrigger": {
-  "export": "announceSubTrigger",
-  "module": "subTriggers"
- },
- "applyIntent": {
-  "export": "applyIntent",
-  "module": "intents"
- },
- "armedAsPendingCollected": {
-  "export": "armedAsPendingCollected",
-  "module": "subTriggers"
- },
- "armedSubTriggers": {
-  "export": "armedSubTriggers",
-  "module": "subTriggers"
- },
- "assemblyDeps": {
-  "export": "assemblyDeps",
-  "module": "actionDeps"
- },
- "attackDeps": {
-  "export": "attackDeps",
-  "module": "actionDeps"
- },
- "beginBattleScope": {
-  "export": "beginBattleScope",
-  "module": "turnFlow"
- },
- "beginResolvingWindow": {
-  "export": "beginResolvingWindow",
-  "module": "windows"
- },
- "blastDnaCounterChoices": {
-  "export": "blastDnaCounterChoices",
-  "module": "intents"
- },
- "blockDeps": {
-  "export": "blockDeps",
-  "module": "actionDeps"
- },
- "breedingActionSpentReason": {
-  "export": "breedingActionSpentReason",
-  "module": "intents"
- },
- "breedingDeps": {
-  "export": "breedingDeps",
-  "module": "actionDeps"
- },
- "breedingHidesSubjectFrom": {
-  "export": "breedingHidesSubjectFrom",
-  "module": "subTriggers"
- },
- "buildEffectContext": {
-  "export": "buildEffectContext",
-  "module": "effectContext"
- },
- "buildPrimitives": {
-  "export": "buildPrimitives",
-  "module": "effectContext"
- },
- "buildSubTriggerContext": {
-  "export": "buildSubTriggerContext",
-  "module": "subTriggers"
- },
- "buildSubTriggerSourceContext": {
-  "export": "buildSubTriggerSourceContext",
-  "module": "subTriggers"
- },
- "buildTurnFlowHooks": {
-  "export": "buildTurnFlowHooks",
-  "module": "actionDeps"
- },
- "candidateSourceLocation": {
-  "export": "candidateSourceLocation",
-  "module": "ruleProcess"
- },
- "cardSourceOf": {
-  "export": "cardSourceOf",
-  "module": "effectContext"
- },
- "checkTurnEndAfterVerb": {
-  "export": "checkTurnEndAfterVerb",
-  "module": "intents"
- },
- "chooseFirstPlayer": {
-  "export": "chooseFirstPlayer",
-  "module": "matchLifecycle"
- },
- "clearReady": {
-  "export": "clearReady",
-  "module": "matchLifecycle"
- },
- "collectNestedTimingEffects": {
-  "export": "collectNestedTimingEffects",
-  "module": "windows"
- },
- "collectPermanentInstances": {
-  "export": "collectPermanentInstances",
-  "module": "ruleProcess"
- },
- "collectRuleProcessMovements": {
-  "export": "collectRuleProcessMovements",
-  "module": "ruleProcess"
- },
- "collectStagedDecks": {
-  "export": "collectStagedDecks",
-  "module": "matchLifecycle"
- },
- "combatDecisionDeps": {
-  "export": "combatDecisionDeps",
-  "module": "actionDeps"
- },
- "combatTriggerInfo": {
-  "export": "combatTriggerInfo",
-  "module": "timing"
- },
- "consultDigivolutionTrashRedirect": {
-  "export": "engineConsultDigivolutionTrashRedirect",
-  "module": "effectContext"
- },
- "consultLeavePrevention": {
-  "export": "engineConsultLeavePrevention",
-  "module": "effectContext"
- },
- "continueMainVerb": {
-  "export": "continueMainVerb",
-  "module": "intents"
- },
- "counterEligibleSources": {
-  "export": "counterEligibleSources",
-  "module": "intents"
- },
- "crossPermanentPlayReducerWatchers": {
-  "export": "crossPermanentPlayReducerWatchers",
-  "module": "timing"
- },
- "deferNestedTimingEffects": {
-  "export": "deferNestedTimingEffects",
-  "module": "windows"
- },
- "digiXrosDeps": {
-  "export": "digiXrosDeps",
-  "module": "actionDeps"
- },
- "digivolveDeps": {
-  "export": "digivolveDeps",
-  "module": "actionDeps"
- },
- "discardedStackSourceContextPayload": {
-  "export": "discardedStackSourceContextPayload",
-  "module": "subTriggers"
- },
- "dnaDigivolveDeps": {
-  "export": "dnaDigivolveDeps",
-  "module": "actionDeps"
- },
- "drainPendingAttackTriggers": {
-  "export": "drainPendingAttackTriggers",
-  "module": "timing"
- },
- "drawCards": {
-  "export": "drawCards",
-  "module": "turnFlow"
- },
- "dropPermanentSubscriptions": {
-  "export": "dropPermanentSubscriptions",
-  "module": "effectContext"
- },
- "effectAccess": {
-  "export": "effectAccess",
-  "module": "effectContext"
- },
- "effectEnvironment": {
-  "export": "effectEnvironment",
-  "module": "effectContext"
- },
- "effectPrimitives": {
-  "export": "effectPrimitives",
-  "module": "effectContext"
- },
- "effectiveColorsOf": {
-  "export": "effectiveColorsOf",
-  "module": "matchLifecycle"
- },
- "endBattleScope": {
-  "export": "endBattleScope",
-  "module": "turnFlow"
- },
- "endResolvingWindow": {
-  "export": "endResolvingWindow",
-  "module": "windows"
- },
- "expireCombatWindow": {
-  "export": "expireCombatWindow",
-  "module": "matchLifecycle"
- },
- "exposeCardToView": {
-  "export": "exposeCardToView",
-  "module": "matchLifecycle"
- },
- "findInstance": {
-  "export": "findInstance",
-  "module": "intents"
- },
- "findLooseInstance": {
-  "export": "findLooseInstance",
-  "module": "intents"
- },
- "fireBeforeDigivolveCost": {
-  "export": "fireBeforeDigivolveCost",
-  "module": "timing"
- },
- "fireBeforePayCost": {
-  "export": "fireBeforePayCost",
-  "module": "timing"
- },
- "fireEnteredByEffectTiming": {
-  "export": "fireEnteredByEffectTiming",
-  "module": "timing"
- },
- "fireOneSubTrigger": {
-  "export": "fireOneSubTrigger",
-  "module": "subTriggers"
- },
- "firePlayEntryWindows": {
-  "export": "firePlayEntryWindows",
-  "module": "timing"
- },
- "fireSubTrigger": {
-  "export": "fireSubTrigger",
-  "module": "subTriggers"
- },
- "fireSubTriggerSnapshot": {
-  "export": "fireSubTriggerSnapshot",
-  "module": "subTriggers"
- },
- "fireTiming": {
-  "export": "fireTiming",
-  "module": "timing"
- },
- "fireTimingForInstance": {
-  "export": "fireTimingForInstance",
-  "module": "timing"
- },
- "fireTimingForPermanent": {
-  "export": "fireTimingForPermanent",
-  "module": "timing"
- },
- "flushDeferredSecurityRemovalTriggers": {
-  "export": "flushDeferredSecurityRemovalTriggers",
-  "module": "windows"
- },
- "flushDeferredTimingWindows": {
-  "export": "flushDeferredTimingWindows",
-  "module": "windows"
- },
- "flushRuleTriggerPool": {
-  "export": "flushRuleTriggerPool",
-  "module": "ruleProcess"
- },
- "forgetUsesOfCardsLeavingField": {
-  "export": "forgetUsesOfCardsLeavingField",
-  "module": "effectContext"
- },
- "handleActivateEffect": {
-  "export": "handleActivateEffect",
-  "module": "intents"
- },
- "handleAppFusion": {
-  "export": "handleAppFusion",
-  "module": "intents"
- },
- "handleAssembly": {
-  "export": "handleAssembly",
-  "module": "intents"
- },
- "handleAttack": {
-  "export": "handleAttack",
-  "module": "intents"
- },
- "handleBreedingSkip": {
-  "export": "handleBreedingSkip",
-  "module": "intents"
- },
- "handleDigiXros": {
-  "export": "handleDigiXros",
-  "module": "intents"
- },
- "handleDigivolve": {
-  "export": "handleDigivolve",
-  "module": "intents"
- },
- "handleDisconnect": {
-  "export": "handleDisconnect",
-  "module": "matchLifecycle"
- },
- "handleDnaDigivolve": {
-  "export": "handleDnaDigivolve",
-  "module": "intents"
- },
- "handleHatchEgg": {
-  "export": "handleHatchEgg",
-  "module": "intents"
- },
- "handleLinkCard": {
-  "export": "handleLinkCard",
-  "module": "intents"
- },
- "handleMoveFromBreeding": {
-  "export": "handleMoveFromBreeding",
-  "module": "intents"
- },
- "handlePlayCard": {
-  "export": "handlePlayCard",
-  "module": "intents"
- },
- "handleReconnect": {
-  "export": "handleReconnect",
-  "module": "matchLifecycle"
- },
- "handleRespondCounter": {
-  "export": "handleRespondCounter",
-  "module": "intents"
- },
- "hasAnyMainPhaseAction": {
-  "export": "hasAnyMainPhaseAction",
-  "module": "intents"
- },
- "inContinuousPass": {
-  "export": "inContinuousPass",
-  "module": "windows"
- },
- "installVisibility": {
-  "export": "installVisibility",
-  "module": "matchLifecycle"
- },
- "instanceOnPermanent": {
-  "export": "instanceOnPermanent",
-  "module": "intents"
- },
- "instancesById": {
-  "export": "instancesById",
-  "module": "ruleProcess"
- },
- "intentRouterDeps": {
-  "export": "intentRouterDeps",
-  "module": "actionDeps"
- },
- "isNewlyPlayedRushAttacker": {
-  "export": "isNewlyPlayedRushAttacker",
-  "module": "intents"
- },
- "linkCardDeps": {
-  "export": "linkCardDeps",
-  "module": "actionDeps"
- },
- "linkMaxOf": {
-  "export": "linkMaxOf",
-  "module": "matchLifecycle"
- },
- "listCandidateInstances": {
-  "export": "listCandidateInstances",
-  "module": "ruleProcess"
- },
- "looseSourceLeftInstallZone": {
-  "export": "looseSourceLeftInstallZone",
-  "module": "subTriggers"
- },
- "makeStateView": {
-  "export": "makeStateView",
-  "module": "matchLifecycle"
- },
- "materializePlayerCustomEffects": {
-  "export": "materializePlayerCustomEffects",
-  "module": "timing"
- },
- "nestedTriggerSourceStillResident": {
-  "export": "nestedTriggerSourceStillResident",
-  "module": "subTriggers"
- },
- "nextInstanceId": {
-  "export": "nextInstanceId",
-  "module": "ruleProcess"
- },
- "nextPermanentId": {
-  "export": "nextPermanentId",
-  "module": "ruleProcess"
- },
- "parkArmedForEnclosingWindow": {
-  "export": "parkArmedForEnclosingWindow",
-  "module": "subTriggers"
- },
- "parkedEntryCollected": {
-  "export": "parkedEntryCollected",
-  "module": "subTriggers"
- },
- "payBarrierSecurityCost": {
-  "export": "payBarrierSecurityCost",
-  "module": "securityCheck"
- },
- "pendingWindowCollected": {
-  "export": "pendingWindowCollected",
-  "module": "subTriggers"
- },
- "playCardDeps": {
-  "export": "playCardDeps",
-  "module": "actionDeps"
- },
- "playedTrigger": {
-  "export": "playedTrigger",
-  "module": "timing"
- },
- "prepareDigiXrosPlay": {
-  "export": "prepareDigiXrosPlay",
-  "module": "timing"
- },
- "prepareDigiXrosPlays": {
-  "export": "prepareDigiXrosPlays",
-  "module": "timing"
- },
- "prepareFrozenSubTrigger": {
-  "export": "prepareFrozenSubTrigger",
-  "module": "subTriggers"
- },
- "prepareSubTrigger": {
-  "export": "prepareSubTrigger",
-  "module": "subTriggers"
- },
- "projectLooseUseCost": {
-  "export": "projectLooseUseCost",
-  "module": "timing"
- },
- "purpleDigimonUnderTamers": {
-  "export": "purpleDigimonUnderTamers",
-  "module": "timing"
- },
- "reactivateOnPlay": {
-  "export": "reactivateOnPlay",
-  "module": "timing"
- },
- "recomputeContinuousEffects": {
-  "export": "recomputeContinuousEffects",
-  "module": "continuousPass"
- },
- "refreshStateView": {
-  "export": "refreshStateView",
-  "module": "matchLifecycle"
- },
- "residentPlayCostEffects": {
-  "export": "residentPlayCostEffects",
-  "module": "timing"
- },
- "resolutionDeps": {
-  "export": "resolutionDeps",
-  "module": "actionDeps"
- },
- "resolveDeletionReactions": {
-  "export": "resolveDeletionReactions",
-  "module": "timing"
- },
- "resolveSecurityEffect": {
-  "export": "resolveSecurityEffect",
-  "module": "securityCheck"
- },
- "respondCounterDeps": {
-  "export": "respondCounterDeps",
-  "module": "actionDeps"
- },
- "ruleProcess": {
-  "export": "ruleProcess",
-  "module": "ruleProcess"
- },
- "runBreedingPhase": {
-  "export": "runBreedingPhase",
-  "module": "turnFlow"
- },
- "runContinuousPass": {
-  "export": "runContinuousPass",
-  "module": "continuousPass"
- },
- "runCrossPermanentPlayReducers": {
-  "export": "runCrossPermanentPlayReducers",
-  "module": "timing"
- },
- "runMatch": {
-  "export": "runMatch",
-  "module": "matchLifecycle"
- },
- "runMulliganWindow": {
-  "export": "runMulliganWindow",
-  "module": "matchLifecycle"
- },
- "runOneTurn": {
-  "export": "runOneTurn",
-  "module": "matchLifecycle"
- },
- "runRuleProcessFixpoint": {
-  "export": "runRuleProcessFixpoint",
-  "module": "ruleProcess"
- },
- "runSecurityCheck": {
-  "export": "engineRunSecurityCheck",
-  "module": "securityCheck"
- },
- "runSubTriggersInChosenOrder": {
-  "export": "runSubTriggersInChosenOrder",
-  "module": "subTriggers"
- },
- "runTimingWindow": {
-  "export": "runTimingWindow",
-  "module": "timing"
- },
- "seatPlayer": {
-  "export": "seatPlayer",
-  "module": "matchLifecycle"
- },
- "securityEffectsFor": {
-  "export": "securityEffectsFor",
-  "module": "securityCheck"
- },
- "settleBetweenEffects": {
-  "export": "settleBetweenEffects",
-  "module": "windows"
- },
- "shouldDeferNestedTiming": {
-  "export": "shouldDeferNestedTiming",
-  "module": "windows"
- },
- "startDevScenario": {
-  "export": "startDevScenario",
-  "module": "matchLifecycle"
- },
- "startMatch": {
-  "export": "startMatch",
-  "module": "matchLifecycle"
- },
- "startTurnLoop": {
-  "export": "startTurnLoop",
-  "module": "matchLifecycle"
- },
- "subTriggerAsCollected": {
-  "export": "subTriggerAsCollected",
-  "module": "subTriggers"
- },
- "subTriggerStillActivatable": {
-  "export": "subTriggerStillActivatable",
-  "module": "subTriggers"
- },
- "subTriggerTurnLedger": {
-  "export": "subTriggerTurnLedger",
-  "module": "subTriggers"
- },
- "sweepBattleDurations": {
-  "export": "sweepBattleDurations",
-  "module": "turnFlow"
- },
- "sweepCombatDurations": {
-  "export": "sweepCombatDurations",
-  "module": "turnFlow"
- },
- "sweepDurations": {
-  "export": "sweepDurations",
-  "module": "turnFlow"
- },
- "syncCounts": {
-  "export": "syncCounts",
-  "module": "matchLifecycle"
- },
- "unsuspendAllForSeat": {
-  "export": "unsuspendAllForSeat",
-  "module": "turnFlow"
- },
- "unsuspendForActivePhase": {
-  "export": "unsuspendForActivePhase",
-  "module": "turnFlow"
- },
- "unsuspendRebootForSeat": {
-  "export": "unsuspendRebootForSeat",
-  "module": "turnFlow"
- },
- "validateAppFusion": {
-  "export": "validateAppFusion",
-  "module": "intents"
- },
- "withPendingPoolDrain": {
-  "export": "withPendingPoolDrain",
-  "module": "windows"
- },
- "withPendingSubTriggers": {
-  "export": "withPendingSubTriggers",
-  "module": "subTriggers"
- },
- "withTriggeredMutations": {
-  "export": "withTriggeredMutations",
-  "module": "windows"
- }
+  "activateEffectDeps": {
+    "export": "activateEffectDeps",
+    "module": "actionDeps"
+  },
+  "announceSubTrigger": {
+    "export": "announceSubTrigger",
+    "module": "subTriggers"
+  },
+  "applyIntent": {
+    "export": "applyIntent",
+    "module": "intents"
+  },
+  "armedAsPendingCollected": {
+    "export": "armedAsPendingCollected",
+    "module": "subTriggers"
+  },
+  "armedSubTriggers": {
+    "export": "armedSubTriggers",
+    "module": "subTriggers"
+  },
+  "assemblyDeps": {
+    "export": "assemblyDeps",
+    "module": "actionDeps"
+  },
+  "attackDeps": {
+    "export": "attackDeps",
+    "module": "actionDeps"
+  },
+  "beginBattleScope": {
+    "export": "beginBattleScope",
+    "module": "turnFlow"
+  },
+  "beginResolvingWindow": {
+    "export": "beginResolvingWindow",
+    "module": "windows"
+  },
+  "blastDnaCounterChoices": {
+    "export": "blastDnaCounterChoices",
+    "module": "intents"
+  },
+  "blockDeps": {
+    "export": "blockDeps",
+    "module": "actionDeps"
+  },
+  "breedingActionSpentReason": {
+    "export": "breedingActionSpentReason",
+    "module": "intents"
+  },
+  "breedingDeps": {
+    "export": "breedingDeps",
+    "module": "actionDeps"
+  },
+  "breedingHidesSubjectFrom": {
+    "export": "breedingHidesSubjectFrom",
+    "module": "subTriggers"
+  },
+  "buildEffectContext": {
+    "export": "buildEffectContext",
+    "module": "effectContext"
+  },
+  "buildPrimitives": {
+    "export": "buildPrimitives",
+    "module": "effectContext"
+  },
+  "buildSubTriggerContext": {
+    "export": "buildSubTriggerContext",
+    "module": "subTriggers"
+  },
+  "buildSubTriggerSourceContext": {
+    "export": "buildSubTriggerSourceContext",
+    "module": "subTriggers"
+  },
+  "buildTurnFlowHooks": {
+    "export": "buildTurnFlowHooks",
+    "module": "actionDeps"
+  },
+  "candidateSourceLocation": {
+    "export": "candidateSourceLocation",
+    "module": "ruleProcess"
+  },
+  "cardSourceOf": {
+    "export": "cardSourceOf",
+    "module": "effectContext"
+  },
+  "checkTurnEndAfterVerb": {
+    "export": "checkTurnEndAfterVerb",
+    "module": "intents"
+  },
+  "chooseFirstPlayer": {
+    "export": "chooseFirstPlayer",
+    "module": "matchLifecycle"
+  },
+  "clearReady": {
+    "export": "clearReady",
+    "module": "matchLifecycle"
+  },
+  "collectNestedTimingEffects": {
+    "export": "collectNestedTimingEffects",
+    "module": "windows"
+  },
+  "collectPermanentInstances": {
+    "export": "collectPermanentInstances",
+    "module": "ruleProcess"
+  },
+  "collectRuleProcessMovements": {
+    "export": "collectRuleProcessMovements",
+    "module": "ruleProcess"
+  },
+  "collectStagedDecks": {
+    "export": "collectStagedDecks",
+    "module": "matchLifecycle"
+  },
+  "combatDecisionDeps": {
+    "export": "combatDecisionDeps",
+    "module": "actionDeps"
+  },
+  "combatTriggerInfo": {
+    "export": "combatTriggerInfo",
+    "module": "timing"
+  },
+  "consultDigivolutionTrashRedirect": {
+    "export": "engineConsultDigivolutionTrashRedirect",
+    "module": "effectContext"
+  },
+  "consultLeavePrevention": {
+    "export": "engineConsultLeavePrevention",
+    "module": "effectContext"
+  },
+  "continueMainVerb": {
+    "export": "continueMainVerb",
+    "module": "intents"
+  },
+  "counterEligibleSources": {
+    "export": "counterEligibleSources",
+    "module": "intents"
+  },
+  "crossPermanentPlayReducerWatchers": {
+    "export": "crossPermanentPlayReducerWatchers",
+    "module": "timing"
+  },
+  "deferNestedTimingEffects": {
+    "export": "deferNestedTimingEffects",
+    "module": "windows"
+  },
+  "digiXrosDeps": {
+    "export": "digiXrosDeps",
+    "module": "actionDeps"
+  },
+  "digivolveDeps": {
+    "export": "digivolveDeps",
+    "module": "actionDeps"
+  },
+  "discardedStackSourceContextPayload": {
+    "export": "discardedStackSourceContextPayload",
+    "module": "subTriggers"
+  },
+  "dnaDigivolveDeps": {
+    "export": "dnaDigivolveDeps",
+    "module": "actionDeps"
+  },
+  "drainPendingAttackTriggers": {
+    "export": "drainPendingAttackTriggers",
+    "module": "timing"
+  },
+  "drawCards": {
+    "export": "drawCards",
+    "module": "turnFlow"
+  },
+  "dropPermanentSubscriptions": {
+    "export": "dropPermanentSubscriptions",
+    "module": "effectContext"
+  },
+  "effectAccess": {
+    "export": "effectAccess",
+    "module": "effectContext"
+  },
+  "effectEnvironment": {
+    "export": "effectEnvironment",
+    "module": "effectContext"
+  },
+  "effectPrimitives": {
+    "export": "effectPrimitives",
+    "module": "effectContext"
+  },
+  "effectiveColorsOf": {
+    "export": "effectiveColorsOf",
+    "module": "matchLifecycle"
+  },
+  "endBattleScope": {
+    "export": "endBattleScope",
+    "module": "turnFlow"
+  },
+  "endResolvingWindow": {
+    "export": "endResolvingWindow",
+    "module": "windows"
+  },
+  "expireCombatWindow": {
+    "export": "expireCombatWindow",
+    "module": "matchLifecycle"
+  },
+  "exposeCardToView": {
+    "export": "exposeCardToView",
+    "module": "matchLifecycle"
+  },
+  "findInstance": {
+    "export": "findInstance",
+    "module": "intents"
+  },
+  "findLooseInstance": {
+    "export": "findLooseInstance",
+    "module": "intents"
+  },
+  "fireBeforeDigivolveCost": {
+    "export": "fireBeforeDigivolveCost",
+    "module": "timing"
+  },
+  "fireBeforePayCost": {
+    "export": "fireBeforePayCost",
+    "module": "timing"
+  },
+  "fireEnteredByEffectTiming": {
+    "export": "fireEnteredByEffectTiming",
+    "module": "timing"
+  },
+  "fireOneSubTrigger": {
+    "export": "fireOneSubTrigger",
+    "module": "subTriggers"
+  },
+  "firePlayEntryWindows": {
+    "export": "firePlayEntryWindows",
+    "module": "timing"
+  },
+  "fireSubTrigger": {
+    "export": "fireSubTrigger",
+    "module": "subTriggers"
+  },
+  "fireSubTriggerSnapshot": {
+    "export": "fireSubTriggerSnapshot",
+    "module": "subTriggers"
+  },
+  "fireTiming": {
+    "export": "fireTiming",
+    "module": "timing"
+  },
+  "fireTimingForInstance": {
+    "export": "fireTimingForInstance",
+    "module": "timing"
+  },
+  "fireTimingForPermanent": {
+    "export": "fireTimingForPermanent",
+    "module": "timing"
+  },
+  "flushDeferredSecurityRemovalTriggers": {
+    "export": "flushDeferredSecurityRemovalTriggers",
+    "module": "windows"
+  },
+  "flushDeferredTimingWindows": {
+    "export": "flushDeferredTimingWindows",
+    "module": "windows"
+  },
+  "flushRuleTriggerPool": {
+    "export": "flushRuleTriggerPool",
+    "module": "ruleProcess"
+  },
+  "forgetUsesOfCardsLeavingField": {
+    "export": "forgetUsesOfCardsLeavingField",
+    "module": "effectContext"
+  },
+  "handleActivateEffect": {
+    "export": "handleActivateEffect",
+    "module": "intents"
+  },
+  "handleAppFusion": {
+    "export": "handleAppFusion",
+    "module": "intents"
+  },
+  "handleAssembly": {
+    "export": "handleAssembly",
+    "module": "intents"
+  },
+  "handleAttack": {
+    "export": "handleAttack",
+    "module": "intents"
+  },
+  "handleBreedingSkip": {
+    "export": "handleBreedingSkip",
+    "module": "intents"
+  },
+  "handleDigiXros": {
+    "export": "handleDigiXros",
+    "module": "intents"
+  },
+  "handleDigivolve": {
+    "export": "handleDigivolve",
+    "module": "intents"
+  },
+  "handleDisconnect": {
+    "export": "handleDisconnect",
+    "module": "matchLifecycle"
+  },
+  "handleDnaDigivolve": {
+    "export": "handleDnaDigivolve",
+    "module": "intents"
+  },
+  "handleHatchEgg": {
+    "export": "handleHatchEgg",
+    "module": "intents"
+  },
+  "handleLinkCard": {
+    "export": "handleLinkCard",
+    "module": "intents"
+  },
+  "handleMoveFromBreeding": {
+    "export": "handleMoveFromBreeding",
+    "module": "intents"
+  },
+  "handlePlayCard": {
+    "export": "handlePlayCard",
+    "module": "intents"
+  },
+  "handleReconnect": {
+    "export": "handleReconnect",
+    "module": "matchLifecycle"
+  },
+  "handleRespondCounter": {
+    "export": "handleRespondCounter",
+    "module": "intents"
+  },
+  "hasAnyMainPhaseAction": {
+    "export": "hasAnyMainPhaseAction",
+    "module": "intents"
+  },
+  "inContinuousPass": {
+    "export": "inContinuousPass",
+    "module": "windows"
+  },
+  "installVisibility": {
+    "export": "installVisibility",
+    "module": "matchLifecycle"
+  },
+  "instanceOnPermanent": {
+    "export": "instanceOnPermanent",
+    "module": "intents"
+  },
+  "instancesById": {
+    "export": "instancesById",
+    "module": "ruleProcess"
+  },
+  "intentRouterDeps": {
+    "export": "intentRouterDeps",
+    "module": "actionDeps"
+  },
+  "isNewlyPlayedRushAttacker": {
+    "export": "isNewlyPlayedRushAttacker",
+    "module": "intents"
+  },
+  "linkCardDeps": {
+    "export": "linkCardDeps",
+    "module": "actionDeps"
+  },
+  "linkMaxOf": {
+    "export": "linkMaxOf",
+    "module": "matchLifecycle"
+  },
+  "listCandidateInstances": {
+    "export": "listCandidateInstances",
+    "module": "ruleProcess"
+  },
+  "looseSourceLeftInstallZone": {
+    "export": "looseSourceLeftInstallZone",
+    "module": "subTriggers"
+  },
+  "makeStateView": {
+    "export": "makeStateView",
+    "module": "matchLifecycle"
+  },
+  "materializePlayerCustomEffects": {
+    "export": "materializePlayerCustomEffects",
+    "module": "timing"
+  },
+  "nestedTriggerSourceStillResident": {
+    "export": "nestedTriggerSourceStillResident",
+    "module": "subTriggers"
+  },
+  "nextInstanceId": {
+    "export": "nextInstanceId",
+    "module": "ruleProcess"
+  },
+  "nextPermanentId": {
+    "export": "nextPermanentId",
+    "module": "ruleProcess"
+  },
+  "parkArmedForEnclosingWindow": {
+    "export": "parkArmedForEnclosingWindow",
+    "module": "subTriggers"
+  },
+  "parkedEntryCollected": {
+    "export": "parkedEntryCollected",
+    "module": "subTriggers"
+  },
+  "payBarrierSecurityCost": {
+    "export": "payBarrierSecurityCost",
+    "module": "securityCheck"
+  },
+  "pendingWindowCollected": {
+    "export": "pendingWindowCollected",
+    "module": "subTriggers"
+  },
+  "playCardDeps": {
+    "export": "playCardDeps",
+    "module": "actionDeps"
+  },
+  "playedTrigger": {
+    "export": "playedTrigger",
+    "module": "timing"
+  },
+  "prepareDigiXrosPlay": {
+    "export": "prepareDigiXrosPlay",
+    "module": "timing"
+  },
+  "prepareDigiXrosPlays": {
+    "export": "prepareDigiXrosPlays",
+    "module": "timing"
+  },
+  "prepareFrozenSubTrigger": {
+    "export": "prepareFrozenSubTrigger",
+    "module": "subTriggers"
+  },
+  "prepareSubTrigger": {
+    "export": "prepareSubTrigger",
+    "module": "subTriggers"
+  },
+  "projectLooseUseCost": {
+    "export": "projectLooseUseCost",
+    "module": "timing"
+  },
+  "purpleDigimonUnderTamers": {
+    "export": "purpleDigimonUnderTamers",
+    "module": "timing"
+  },
+  "reactivateOnPlay": {
+    "export": "reactivateOnPlay",
+    "module": "timing"
+  },
+  "recomputeContinuousEffects": {
+    "export": "recomputeContinuousEffects",
+    "module": "continuousPass"
+  },
+  "refreshStateView": {
+    "export": "refreshStateView",
+    "module": "matchLifecycle"
+  },
+  "residentPlayCostEffects": {
+    "export": "residentPlayCostEffects",
+    "module": "timing"
+  },
+  "resolutionDeps": {
+    "export": "resolutionDeps",
+    "module": "actionDeps"
+  },
+  "resolveDeletionReactions": {
+    "export": "resolveDeletionReactions",
+    "module": "timing"
+  },
+  "resolveSecurityEffect": {
+    "export": "resolveSecurityEffect",
+    "module": "securityCheck"
+  },
+  "respondCounterDeps": {
+    "export": "respondCounterDeps",
+    "module": "actionDeps"
+  },
+  "ruleProcess": {
+    "export": "ruleProcess",
+    "module": "ruleProcess"
+  },
+  "runBreedingPhase": {
+    "export": "runBreedingPhase",
+    "module": "turnFlow"
+  },
+  "runContinuousPass": {
+    "export": "runContinuousPass",
+    "module": "continuousPass"
+  },
+  "runCrossPermanentPlayReducers": {
+    "export": "runCrossPermanentPlayReducers",
+    "module": "timing"
+  },
+  "runMatch": {
+    "export": "runMatch",
+    "module": "matchLifecycle"
+  },
+  "runMulliganWindow": {
+    "export": "runMulliganWindow",
+    "module": "matchLifecycle"
+  },
+  "runOneTurn": {
+    "export": "runOneTurn",
+    "module": "matchLifecycle"
+  },
+  "runRuleProcessFixpoint": {
+    "export": "runRuleProcessFixpoint",
+    "module": "ruleProcess"
+  },
+  "runSecurityCheck": {
+    "export": "engineRunSecurityCheck",
+    "module": "securityCheck"
+  },
+  "runSubTriggersInChosenOrder": {
+    "export": "runSubTriggersInChosenOrder",
+    "module": "subTriggers"
+  },
+  "runTimingWindow": {
+    "export": "runTimingWindow",
+    "module": "timing"
+  },
+  "seatPlayer": {
+    "export": "seatPlayer",
+    "module": "matchLifecycle"
+  },
+  "securityEffectsFor": {
+    "export": "securityEffectsFor",
+    "module": "securityCheck"
+  },
+  "settleBetweenEffects": {
+    "export": "settleBetweenEffects",
+    "module": "windows"
+  },
+  "shouldDeferNestedTiming": {
+    "export": "shouldDeferNestedTiming",
+    "module": "windows"
+  },
+  "startDevScenario": {
+    "export": "startDevScenario",
+    "module": "matchLifecycle"
+  },
+  "startMatch": {
+    "export": "startMatch",
+    "module": "matchLifecycle"
+  },
+  "startTurnLoop": {
+    "export": "startTurnLoop",
+    "module": "matchLifecycle"
+  },
+  "subTriggerAsCollected": {
+    "export": "subTriggerAsCollected",
+    "module": "subTriggers"
+  },
+  "subTriggerStillActivatable": {
+    "export": "subTriggerStillActivatable",
+    "module": "subTriggers"
+  },
+  "subTriggerTurnLedger": {
+    "export": "subTriggerTurnLedger",
+    "module": "subTriggers"
+  },
+  "sweepBattleDurations": {
+    "export": "sweepBattleDurations",
+    "module": "turnFlow"
+  },
+  "sweepCombatDurations": {
+    "export": "sweepCombatDurations",
+    "module": "turnFlow"
+  },
+  "sweepDurations": {
+    "export": "sweepDurations",
+    "module": "turnFlow"
+  },
+  "syncCounts": {
+    "export": "syncCounts",
+    "module": "matchLifecycle"
+  },
+  "unsuspendAllForSeat": {
+    "export": "unsuspendAllForSeat",
+    "module": "turnFlow"
+  },
+  "unsuspendForActivePhase": {
+    "export": "unsuspendForActivePhase",
+    "module": "turnFlow"
+  },
+  "unsuspendRebootForSeat": {
+    "export": "unsuspendRebootForSeat",
+    "module": "turnFlow"
+  },
+  "validateAppFusion": {
+    "export": "validateAppFusion",
+    "module": "intents"
+  },
+  "withPendingPoolDrain": {
+    "export": "withPendingPoolDrain",
+    "module": "windows"
+  },
+  "withPendingSubTriggers": {
+    "export": "withPendingSubTriggers",
+    "module": "subTriggers"
+  },
+  "withTriggeredMutations": {
+    "export": "withTriggeredMutations",
+    "module": "windows"
+  }
 }

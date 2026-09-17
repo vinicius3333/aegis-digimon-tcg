@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { checkTurnEndAfterVerb } from "../../engine/gameEngine/intents.js";
 import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -191,7 +192,7 @@ describe("EX8-026", () => {
     s.state.turnSeat = 1;
     s.state.memory = -1;
     await s.ready();
-    (s.engine as unknown as { checkTurnEndAfterVerb: () => void }).checkTurnEndAfterVerb();
+    checkTurnEndAfterVerb(s.engine);
     await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("blitz").permanentId));
     expect(s.state.phase).toBe("Main");
     expect(s.engine.hasAcceptedBlitzAttack(s.perm("blitz").permanentId)).toBe(true);

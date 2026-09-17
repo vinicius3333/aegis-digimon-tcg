@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { ruleProcess, rulePassCap } from "../gameEngine/ruleProcess.js";
 import {
   GameState,
   PlayerState,
@@ -282,33 +283,30 @@ describe("§18-3 Infinite Loops (comprehensive-0270)", () => {
       "DIVERGENCE: §18-3-2 'If an infinite loop occurs and neither player has the ability to " +
         "stop it, that game ends in a draw.' GameEngine.ts's ruleProcess() fixpoint (and " +
         "effects/stack.ts's resolveTiming fixpoint) both guard against non-termination with a " +
-        "hardcoded pass cap (MAX_RULE_PROCESS_PASSES / MAX_RESOLUTION_PASSES = 1000) that " +
+        "hardcoded pass cap (rulePassCap.max / MAX_RESOLUTION_PASSES = 1000) that " +
         "THROWS a plain Error on overflow — there is no draw-outcome branch anywhere in this " +
         "path (contrast security/winCheck.ts's real `{ outcome: 'draw' }` emit for simultaneous " +
         "double-loss, which exists but is never reached from here). The cap is lowered to 0 " +
-        "below (via a runtime override of the class's own static field) so the SAME throw " +
+        "below (via a runtime override of the fixpoint's own pass cap) so the SAME throw " +
         "statement a genuine runaway loop would hit is reached deterministically and fast, " +
         "without needing to actually construct 1000 real passes.",
       "57b8cd9db14a91b10edbf2efb3667ef40bd7db6beeb5523388cf30d436730040",
     );
 
     const s = setup();
-    const engineCtor = GameEngine as unknown as { MAX_RULE_PROCESS_PASSES: number };
-    const original = engineCtor.MAX_RULE_PROCESS_PASSES;
-    engineCtor.MAX_RULE_PROCESS_PASSES = 0;
+    const original = rulePassCap.max;
+    rulePassCap.max = 0;
     try {
       const p0 = s.state.players[0] as PlayerState;
       const violator = digimon(0, 0); // one real §17-1-3-1-1 violation is enough to trip pass #1
       p0.battleArea.push(violator);
 
-      const engineAny = s.engine as unknown as { ruleProcess(): Promise<void> };
-
       // EXPECTED (per §18-3-2): this resolves the match to a draw, it does not reject/throw.
-      await expect(engineAny.ruleProcess()).resolves.toBeUndefined();
+      await expect(ruleProcess(s.engine)).resolves.toBeUndefined();
       expect(s.state.gameOver).toBe(true);
       expect(s.events.some((e) => e.kind === "gameOver" && "result" in e && e.result?.outcome === "draw")).toBe(true);
     } finally {
-      engineCtor.MAX_RULE_PROCESS_PASSES = original;
+      rulePassCap.max = original;
     }
   });
 

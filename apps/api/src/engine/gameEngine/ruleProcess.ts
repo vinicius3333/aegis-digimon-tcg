@@ -13,8 +13,11 @@ import { withTriggeredMutations } from "./windows.js";
  * card cannot re-enter the same condition), so termination is structural; the cap only
  * guards against an unforeseen non-decreasing pass (a crafted board hanging the server —
  * RESEARCH Pitfall 3 / threat T-02-03).
+ *
+ * A holder rather than a bare const: ch18-other-information lowers the cap to 0 so the
+ * §18-3-2 draw branch is reached deterministically instead of by building 1000 real passes.
  */
-const MAX_RULE_PROCESS_PASSES = 1000;
+export const rulePassCap = { max: 1000 };
 
 /**
  * The state-based-action sweep: a faithful port of `the engine.RuleProcess`'s
@@ -112,7 +115,7 @@ export async function collectRuleProcessMovements(engine: GameEngine): Promise<P
 export async function runRuleProcessFixpoint(engine: GameEngine): Promise<void> {
   let passes = 0;
   while (engine.ruleChecks.doRuleProcess()) {
-    if (++passes > MAX_RULE_PROCESS_PASSES) {
+    if (++passes > rulePassCap.max) {
       // CR 18-3-2: an infinite loop neither player can stop ends the game in a draw.
       // A non-converging state-based-action fixpoint is exactly that, so resolve the
       // match rather than throwing an error the players cannot act on.
