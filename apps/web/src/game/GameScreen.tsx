@@ -4,7 +4,7 @@
    board is a pure render of what the server sends back (ARCHITECTURE.md §4). */
 
 import { DragKind } from "./screen/enums";
-import { FIELD_CLASH_GHOST_HEIGHT, FIELD_CLASH_GHOST_WIDTH, PHASES } from "./screen/constants";
+import { FIELD_CLASH_GHOST_HEIGHT, FIELD_CLASH_GHOST_WIDTH } from "./screen/constants";
 import {
   COMPACT_PILES_QUERY,
   LANDSCAPE_PHONE_PERMANENT_WIDTH,
@@ -13,6 +13,13 @@ import {
   SHORT_BOARD_QUERY,
 } from "./screen/queries";
 import { dropZoneAt, permanentVisualElement } from "./screen/dropZones";
+import { BoardShell } from "./screen/layout/BoardShell";
+import { ActionBar } from "./screen/layout/ActionBar";
+import { HandCardPreview } from "./screen/layout/HandCardPreview";
+import { Sidebar } from "./screen/layout/Sidebar";
+
+export { HandCardPreview } from "./screen/layout/HandCardPreview";
+export { Sidebar } from "./screen/layout/Sidebar";
 import {
   appFusionHostIdsOf as modelAppFusionHostIdsOf,
   digivolveRoutesOf as modelDigivolveRoutesOf,
@@ -71,7 +78,7 @@ import { joinWithBot } from "../net/client";
 import type { CSSProperties } from "react";
 import type { StartMode } from "../screens/Lobby";
 import type { AegisJoinOptions } from "../net/types";
-import { Badge, Button, Logo, type Screen } from "../design/primitives";
+import { type Screen } from "../design/primitives";
 import type { DigimonWorldAvatarId } from "../account/avatars";
 import { CardBack, CardFull } from "../design/cards";
 import { AppFusionChoiceOverlay } from "./AppFusionChoiceOverlay";
@@ -86,7 +93,6 @@ import "./arena.css";
 import { BattleRow } from "./BattleRow";
 import { ArenaCounters } from "./ArenaCounters";
 import "./arenaMobile.css";
-import { ArenaPermanentInspector, type ArenaInspectionOptions } from "./ArenaPermanentInspector";
 import {
   AttackArrow,
   BreedingSlot,
@@ -131,7 +137,6 @@ import {
   otherSeat,
   instanceCardId,
   permCardId,
-  playButtonLabel,
   triggerCardId,
   viewerSeatOf,
   type EvoCostOption,
@@ -139,7 +144,6 @@ import {
   breedingSlotClickAction,
   canMoveFromBreeding,
   canUseBreedingAction,
-  type ActivatableEntry,
 } from "./boardModel";
 import {
   AllianceOverlay,
@@ -184,7 +188,7 @@ import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import type { SpotlightSubject } from "./spotlight";
 import { pendingFateBadges } from "./pendingFate";
-import { buildPermanentDetail, buildPrintedCardDetail } from "./permanentDetail";
+import { buildPermanentDetail } from "./permanentDetail";
 import { hasFaceUpSecurity, securityAttackLabelKey } from "./securityChrome";
 import { shieldSecurityCount } from "./securityClash";
 import { activeAttackArrow, effectTargetArrow, type ArrowEndpoint, type TrackingArrow } from "./trackingArrow";
@@ -3573,433 +3577,5 @@ export function GameScreen({
           : null}
       </main>
     </CardOpenerProvider>
-  );
-}
-
-/** The frame the board renders into while waiting/connecting (so overlays have a stage). */
-function BoardShell({ children }: { children: React.ReactNode }) {
-  const surface = useBattlefieldStyle();
-  return <div style={{ height: "100%", position: "relative", ...surface }}>{children}</div>;
-}
-
-export function HandCardPreview({
-  cardId,
-  artId,
-  arenaInspection,
-  activatableEffects,
-  canPlay,
-  canDigivolve,
-  canLink = false,
-  onPlay,
-  onActivateEffect,
-  onChooseBase,
-  onLink,
-  onCancel,
-}: {
-  cardId: string;
-  artId?: string;
-  arenaInspection?: ArenaInspectionOptions;
-  activatableEffects: ActivatableEntry[];
-  canPlay: boolean;
-  canDigivolve: boolean;
-  /** Server projection: some own Digimon accepts this card as a link right now. */
-  canLink?: boolean;
-  onPlay: () => void;
-  onActivateEffect: (effect: ActivatableEntry) => void;
-  onChooseBase: () => void;
-  onLink?: () => void;
-  onCancel: () => void;
-}) {
-  const { t } = useTranslation();
-  const card = getCardDefinition(cardId);
-  const [zoomed, setZoomed] = useState(false);
-  if (arenaInspection) {
-    const actions =
-      activatableEffects.length || canPlay || canDigivolve || (canLink && onLink) ? (
-        <>
-          {activatableEffects.map((effect) => (
-            <Button
-              key={`${effect.instanceId}:${effect.effectKey}`}
-              size="sm"
-              variant="secondary"
-              icon={Icons.Sparkles}
-              onClick={() => onActivateEffect(effect)}
-            >
-              {effect.description || t("game.activateEffect")}
-            </Button>
-          ))}
-          {canPlay ? (
-            <Button size="sm" icon={Icons.Sparkles} onClick={onPlay}>
-              {playButtonLabel(card?.kinds ?? [], t)}
-            </Button>
-          ) : null}
-          {canDigivolve ? (
-            <Button size="sm" variant="secondary" icon={Icons.ChevronUp} onClick={onChooseBase}>
-              {t("game.clickToDigivolve")}
-            </Button>
-          ) : null}
-          {canLink && onLink ? (
-            <Button size="sm" variant="secondary" icon={Icons.Link2} onClick={onLink}>
-              {t("game.link")}
-            </Button>
-          ) : null}
-        </>
-      ) : undefined;
-    return (
-      <>
-        <ArenaPermanentInspector
-          detail={buildPrintedCardDetail(cardId, artId)}
-          inspection={arenaInspection}
-          actions={actions}
-          zoomed={zoomed}
-          onZoom={() => setZoomed(true)}
-          onClose={onCancel}
-        />
-        {zoomed ? <CardZoomOverlay cardId={cardId} artId={artId} onClose={() => setZoomed(false)} /> : null}
-      </>
-    );
-  }
-  return createPortal(
-    // Same bottom sheet as the field-card actions, so tapping a card reads the same
-    // whether it is in hand or on the board.
-    <div
-      className="card-action-sheet"
-      role="dialog"
-      aria-modal="true"
-      aria-label={card?.nameEn ?? cardId}
-      onClick={onCancel}
-    >
-      <div className="card-action-sheet__panel" onClick={(event) => event.stopPropagation()}>
-        <div className="card-action-sheet__grip" aria-hidden />
-        <div className="card-action-sheet__body">
-          <button
-            type="button"
-            className="card-action-sheet__zoom"
-            onClick={() => setZoomed(true)}
-            aria-label={t("overlay.zoomCard")}
-          >
-            <CardFull cardId={cardId} artId={artId} width={190} />
-          </button>
-          <div className="card-action-sheet__info">
-            <strong>{card?.nameEn ?? cardId}</strong>
-            <div className="card-action-sheet__stats">
-              {card?.level ? <span>Lv.{card.level}</span> : null}
-              <span>
-                {card && card.playCost >= 0 ? t("game.costsMemory", { count: card.playCost }) : t("game.noCost")}
-              </span>
-              {card?.dp ? <span>{card.dp.toLocaleString()} DP</span> : null}
-            </div>
-          </div>
-        </div>
-        <div className="card-action-sheet__actions" aria-label={t("game.actions")}>
-          {activatableEffects.map((effect, index) => (
-            <Button
-              key={`${effect.instanceId}:${effect.effectKey}`}
-              size="md"
-              full
-              variant="secondary"
-              icon={Icons.Sparkles}
-              onClick={() => onActivateEffect(effect)}
-              autoFocus={index === 0}
-            >
-              {t("game.activateEffect")}
-              {activatableEffects.length > 1 ? ` ${index + 1}` : ""}
-            </Button>
-          ))}
-          {canPlay ? (
-            <Button size="md" full icon={Icons.Sparkles} onClick={onPlay} autoFocus={activatableEffects.length === 0}>
-              {playButtonLabel(card?.kinds ?? [], t)}
-            </Button>
-          ) : null}
-          {canDigivolve ? (
-            <Button
-              size="md"
-              full
-              variant="secondary"
-              icon={Icons.ChevronUp}
-              onClick={onChooseBase}
-              autoFocus={activatableEffects.length === 0 && !canPlay}
-            >
-              {t("game.clickToDigivolve")}
-            </Button>
-          ) : null}
-          {canLink && onLink ? (
-            <Button size="md" full variant="secondary" icon={Icons.Link2} onClick={onLink}>
-              {t("game.link")}
-            </Button>
-          ) : null}
-          <Button
-            size="sm"
-            full
-            variant="ghost"
-            onClick={onCancel}
-            autoFocus={activatableEffects.length === 0 && !canPlay && !canDigivolve && !canLink}
-          >
-            {t("common.cancel")}
-          </Button>
-        </div>
-        {zoomed ? <CardZoomOverlay cardId={cardId} artId={artId} onClose={() => setZoomed(false)} /> : null}
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
-function ActionBar({
-  selCardId,
-  hasBase,
-  linkingCardId,
-  onCancel,
-}: {
-  selCardId?: string;
-  hasBase: boolean;
-  /** A link declaration is armed for this card; the bar shows the target hint. */
-  linkingCardId?: string;
-  onCancel: () => void;
-}) {
-  const { t } = useTranslation();
-  const linkingDef = linkingCardId ? getCardDefinition(linkingCardId) : undefined;
-  if (linkingDef) {
-    return (
-      <div
-        className="game-action-bar game-action-bar--contextual"
-        style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, padding: "4px 0 9px" }}
-      >
-        <span style={{ fontSize: 13, color: "var(--ds-foreground-muted)" }}>
-          <strong style={{ color: "var(--ds-foreground)" }}>{linkingDef.nameEn}</strong>
-        </span>
-        <span
-          style={{ fontSize: 12.5, color: "var(--ds-primary)", display: "inline-flex", alignItems: "center", gap: 5 }}
-        >
-          <Icons.Link2 size={14} />
-          {t("game.clickToLink")}
-        </span>
-        <Button size="sm" variant="ghost" onClick={onCancel}>
-          {t("common.cancel")}
-        </Button>
-      </div>
-    );
-  }
-  const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
-  if (selDef) {
-    return hasBase ? (
-      <div
-        className="game-action-bar game-action-bar--contextual"
-        style={{ display: "flex", justifyContent: "center", padding: "4px 0 9px" }}
-      >
-        <span
-          style={{ fontSize: 12.5, color: "var(--ds-primary)", display: "inline-flex", alignItems: "center", gap: 5 }}
-        >
-          <Icons.ChevronUp size={14} />
-          {t("game.clickToDigivolve")}
-        </span>
-      </div>
-    ) : null;
-  }
-
-  return (
-    <div
-      className="game-action-bar game-action-bar--idle"
-      style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 6px 4px" }}
-    >
-      <span style={{ fontSize: 12.5, color: "var(--ds-foreground-muted)" }}>{t("game.dragHint")}</span>
-    </div>
-  );
-}
-
-/** Exported for its own test; the match screen is the only place that renders it. */
-export function Sidebar({
-  phase,
-  turnCount,
-  memory,
-  isMyTurn,
-  canMove,
-  hasBreeding,
-  canHatch,
-  narrow,
-  log,
-  onHatchOrMove,
-  onSurrender,
-  onReportBug,
-}: {
-  phase: Phase;
-  turnCount: number;
-  memory: number;
-  isMyTurn: boolean;
-  canMove: boolean;
-  hasBreeding: boolean;
-  canHatch: boolean;
-  /** Touch layout: the action row is a two-button bar, not a labelled panel. */
-  narrow?: boolean;
-  log: LogLine[];
-  onHatchOrMove: () => void;
-  onSurrender: () => void;
-  onReportBug: () => void;
-}) {
-  const { t } = useTranslation();
-  const canBreed = canUseBreedingAction({ phase, isMyTurn, canHatch, canMove });
-  return (
-    <aside
-      className="game-sidebar"
-      style={{
-        width: 296,
-        flexShrink: 0,
-        borderLeft: "1px solid var(--ds-border)",
-        background: "var(--ds-surface)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ padding: "16px 18px", borderBottom: "1px solid var(--ds-border)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <Logo size={18} sub={false} />
-          <Badge tone={isMyTurn ? "primary" : "neutral"}>
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: isMyTurn ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
-              }}
-            />
-            {isMyTurn ? t("game.yourTurn") : t("game.opponentsTurn")}
-          </Badge>
-        </div>
-        <div style={{ display: "flex", gap: 3 }}>
-          {PHASES.map((p) => (
-            <div
-              key={p}
-              style={{
-                flex: 1,
-                textAlign: "center",
-                padding: "6px 2px",
-                borderRadius: 8,
-                background: phase === p ? "var(--ds-primary)" : "var(--ds-surface-muted)",
-                color: phase === p ? "#fff" : "var(--ds-foreground-muted)",
-                fontSize: 9.5,
-                fontWeight: 700,
-              }}
-            >
-              {t(`game.phase.${p}` as const)}
-            </div>
-          ))}
-        </div>
-        <div
-          style={{
-            fontFamily: "var(--ds-font-mono)",
-            fontSize: 11,
-            color: "var(--ds-foreground-muted)",
-            marginTop: 8,
-            textAlign: "center",
-          }}
-        >
-          {t("game.turnAndMemory", { turn: turnCount, memory: `${memory > 0 ? "+" : ""}${memory}` })}
-        </div>
-      </div>
-
-      <div
-        style={{
-          padding: "14px 18px",
-          borderBottom: "1px solid var(--ds-border)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--ds-foreground-muted)",
-          }}
-        >
-          {t("game.actions")}
-        </div>
-        {/* On a phone the action row is a bare button bar with no heading, so a
-            disabled button reads as an available one. Drop it instead. Ending the
-            phase lives on the memory band's circular orb, like the reference client. */}
-        {narrow && !canBreed ? null : (
-          <Button size="sm" variant="secondary" full icon={Icons.Dices} onClick={onHatchOrMove} disabled={!canBreed}>
-            {hasBreeding ? (canMove ? t("game.moveToBattle") : t("game.raising")) : t("game.hatchEgg")}
-          </Button>
-        )}
-      </div>
-
-      <div style={{ flex: 1, overflowY: "auto", padding: "14px 18px" }}>
-        <div
-          style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--ds-foreground-muted)",
-            marginBottom: 10,
-          }}
-        >
-          {t("game.matchLog")}
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-          {log.length === 0 ? (
-            <span style={{ fontSize: 12, color: "var(--ds-foreground-disabled)" }}>{t("game.noActions")}</span>
-          ) : null}
-          {log.map((e, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 8,
-                fontSize: 12,
-                lineHeight: 1.35,
-                opacity: i === 0 ? 1 : Math.max(0.4, 0.78 - i * 0.05),
-              }}
-            >
-              <span
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: "50%",
-                  marginTop: 5,
-                  flexShrink: 0,
-                  background:
-                    e.kind === "you"
-                      ? "var(--ds-primary)"
-                      : e.kind === "opp"
-                        ? "var(--ds-danger)"
-                        : "var(--ds-foreground-disabled)",
-                }}
-              />
-              <span style={{ color: "var(--ds-foreground-secondary)" }}>{e.text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Touch layout: both controls sit in the match header instead. */}
-      {narrow ? null : (
-        <div
-          className="game-sidebar__footer"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 6,
-            padding: "12px 16px",
-            borderTop: "1px solid var(--ds-border)",
-            background: "var(--ds-surface-muted)",
-          }}
-        >
-          {/* The board fills the viewport, so the report button the rest of the client shows in the
-              top bar would sit on top of the play area. This is its in-match home. */}
-          <Button size="sm" variant="ghost" full icon={Icons.Bug} onClick={onReportBug}>
-            {t("bugReport.button")}
-          </Button>
-          <Button size="sm" variant="ghost" full icon={Icons.LogOut} onClick={onSurrender}>
-            {t("game.surrender")}
-          </Button>
-        </div>
-      )}
-    </aside>
   );
 }
