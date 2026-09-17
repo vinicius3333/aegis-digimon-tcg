@@ -21,8 +21,7 @@
 
 import { CueTrack, OpeningDealState } from "./match/enums";
 import { REDUCED_MOTION_QUERY } from "./match/environment";
-import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "./match/constants";
-import { OPTION_DOCK_TRACKS, holdsTheBoard } from "./match/tracks";
+import { holdsTheBoard } from "./match/tracks";
 import { liveMode } from "./match/environment";
 import { withoutId } from "./match/eventLookup";
 import { buildCardSiteIndex } from "./match/cardSiteIndex";
@@ -46,12 +45,12 @@ import { presentSecurityClose } from "./match/present/securityClose";
 import { presentSecurityRevealed } from "./match/present/securityReveal";
 import { securityHold } from "./match/securityHold";
 import { cueFlights } from "./match/flights";
+import { usePhaseBanners } from "./match/queue/usePhaseBanners";
 import { useDpPulses } from "./match/watchers/useDpPulses";
 import { useDrawWatcher } from "./match/watchers/useDrawWatcher";
 import { useRestrictionPulses } from "./match/watchers/useRestrictionPulses";
 import { useSecurityCountWatcher } from "./match/watchers/useSecurityCountWatcher";
 import { narrationStream } from "./match/narration/narrationStream";
-import { Side } from "./side";
 import type {
   AttackLunge,
   DeleteBurst,
@@ -106,10 +105,10 @@ import { createPresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "./present
 import { presentationTelemetry } from "./presentationTelemetry";
 import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
 import { type FieldClashScene, type OpenAttack } from "./fieldClash";
-import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
+import { type PhaseBanner } from "./phaseBanner";
 import { type DpPulse } from "./dpPulse";
 import { type FreezeFlags, type FreezePulse } from "./freezePulse";
-import { DECISION_STALL_BUDGET_MS, PLAY_LEAD_IN_BUDGET_MS, TIMINGS } from "./timings";
+import { DECISION_STALL_BUDGET_MS, PLAY_LEAD_IN_BUDGET_MS } from "./timings";
 
 export function useMatchCues({
   batches,
@@ -429,9 +428,7 @@ export function useMatchCues({
   const fieldClashKeyRef = useRef(0);
   const drawFlightKeyRef = useRef(0);
   const deleteBurstKeyRef = useRef(0);
-  const unsuspendSweepKeyRef = useRef(0);
   const showcaseKeyRef = useRef(0);
-  const phaseBannerKeyRef = useRef(0);
   const dpPulseKeyRef = useRef(0);
   const freezePulseKeyRef = useRef(0);
   const effectSourceKeyRef = useRef(0);
@@ -984,294 +981,35 @@ export function useMatchCues({
     }
   }
 
-  const phaseBatchesRef = useRef(batches);
-  phaseBatchesRef.current = batches;
-
-  async function waitForPhasePrerequisites(
-    context: AnimationStepContext,
-    arrivals: readonly ServerEvent[],
-    phaseOrder: number,
-  ) {
-    // Batch presentation registers its cues in the following layout effect.
-    await Promise.resolve();
-    const batchDeadline = Date.now() + PRESENTED_BOARD_BUDGET_MS;
-    while (!context.cancelled && !context.skipping && context.mode === "live") {
-      const awaitingBatch =
-        Date.now() < batchDeadline &&
-        arrivals.some(
-          (event) =>
-            !phaseBatchesRef.current.some((batch) =>
-              batch.events.some(
-                (candidate) =>
-                  candidate === event ||
-                  ("seq" in event &&
-                    "batch" in event &&
-                    candidate.seq === event.seq &&
-                    candidate.batch === event.batch) ||
-                  (!("seq" in event) &&
-                    (event.kind === "cardPlayed" ||
-                      event.kind === "digivolved" ||
-                      event.kind === "hatched" ||
-                      event.kind === "movedFromBreeding" ||
-                      event.kind === "cardsMoved") &&
-                    candidate.kind === event.kind &&
-                    (event.kind === "cardsMoved" && candidate.kind === "cardsMoved"
-                      ? candidate.instanceIds.join(",") === event.instanceIds.join(",")
-                      : candidate.kind !== "cardsMoved" &&
-                        event.kind !== "cardsMoved" &&
-                        candidate.permanentId === event.permanentId)),
-              ),
-            ),
-        );
-      const awaitingCue = queue.hasPendingStep(
-        (step) =>
-          step.track !== "phaseBanner" &&
-          step.track !== CueTrack.SecurityDock &&
-          !OPTION_DOCK_TRACKS.includes(step.track ?? "") &&
-          (stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder,
-      );
-      // A clause the ribbon is about to cover gets one readable beat first. The same budget
-      // bounds it: a batch that keeps arriving must never hold the ribbon for good.
-      const awaitingRead =
-        Date.now() < batchDeadline &&
-        narrationBefore(phaseOrder).some((item) => Date.now() - item.createdAt < TIMINGS.phaseBannerNoticeRead);
-      if (!awaitingBatch && !awaitingCue && !awaitingRead) return;
-      await context.wait(16);
-    }
-  }
-
-  const phaseHistory = useMemo(
-    () =>
-      (phaseEvents ?? batches.flatMap((batch) => batch.events)).filter(
-        (event) => event.kind === "phaseChanged" || event.kind === "turnEnded",
-      ),
-    [phaseEvents, batches],
-  );
-  // Establish the old hand/rotation before paint when a patch and its phases arrive together.
-  useLayoutEffect(() => {
-    for (const [event, order] of phaseOrdersRef.current) {
-      if (order <= completedPhaseOrderRef.current && !phaseHistory.includes(event as (typeof phaseHistory)[number])) {
-        phaseOrdersRef.current.delete(event);
-      }
-    }
-    const last = lastPhaseEventRef.current;
-    lastPhaseEventRef.current = phaseHistory.at(-1);
-    if (!phaseBaselineRef.current) {
-      phaseBaselineRef.current = true;
-      return;
-    }
-    const fresh = phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0);
-    for (const openedPhase of fresh) {
-      if (openedPhase.kind === "phaseChanged" && !isAnnouncedPhase(openedPhase.phase)) continue;
-      const phaseOrder = ++nextPhaseOrderRef.current;
-      phaseOrdersRef.current.set(openedPhase, phaseOrder);
-      const arrivals = eventTimeline
-        .slice(last ? eventTimeline.lastIndexOf(last) + 1 : 0, eventTimeline.indexOf(openedPhase))
-        .filter(
-          (event) =>
-            event.kind === "cardPlayed" ||
-            event.kind === "digivolved" ||
-            event.kind === "hatched" ||
-            event.kind === "movedFromBreeding" ||
-            event.kind === "cardsMoved",
-        );
-      if (openedPhase.kind === "turnEnded") {
-        const transition: TurnTransitionCue = {
-          endingSeat: openedPhase.endingSeat,
-          nextSeat: openedPhase.nextSeat,
-          turnCount: openedPhase.turnCount,
-        };
-        setPendingPhaseBanners((count) => count + 1);
-        queue.enqueue({
-          id: `turn-banner-${transition.turnCount}`,
-          side: openedPhase.nextSeat === viewerSeat ? Side.Viewer : Side.Opponent,
-          track: "phaseBanner",
-          async run(context) {
-            try {
-              await waitForPhasePrerequisites(context, arrivals, phaseOrder);
-              if (context.cancelled || context.mode !== "live") return;
-              visiblePhaseBannerRef.current = true;
-              // The count belongs to the turn that just ended; the new one arrives with the
-              // phase ribbons that follow, which carry it.
-              setAnnouncedTurn((current) => ({
-                seat: openedPhase.nextSeat,
-                count: current?.count ?? openedPhase.turnCount,
-              }));
-              playCue("turnChange");
-              setTurnTransition(transition);
-              await context.wait(TIMINGS.turnBanner);
-              setTurnTransition((current) => (current === transition ? null : current));
-              await context.wait(TIMINGS.phaseBannerGap);
-            } finally {
-              visiblePhaseBannerRef.current = false;
-              completedPhaseOrderRef.current = phaseOrder;
-              setTurnTransition((current) => (current === transition ? null : current));
-              setPendingPhaseBanners((count) => count - 1);
-            }
-          },
-        });
-        continue;
-      }
-      if (openedPhase.kind !== "phaseChanged") continue;
-      phaseBannerKeyRef.current += 1;
-      const banner = phaseBannerFrom({
-        phase: openedPhase.phase,
-        turnSeat: openedPhase.turnSeat,
-        viewerSeat,
-        key: phaseBannerKeyRef.current,
-      });
-      if (banner) {
-        setPendingPhaseBanners((count) => count + 1);
-        if (banner.phase === UNSUSPEND_PHASE) {
-          drawPhaseWaitingRef.current = openedPhase.turnSeat;
-          const drawState = previousDrawStateRef.current;
-          setHeldDrawState(drawState && { seat: openedPhase.turnSeat, state: drawState });
-          setHeldPhaseState(previousDrawStateRef.current);
-          const player = previousDrawStateRef.current?.players[openedPhase.turnSeat];
-          if (player) setHeldBreedingState({ seat: openedPhase.turnSeat, player });
-          setHeldSuspendedIds(
-            new Set(
-              previousDrawStateRef.current?.players[openedPhase.turnSeat]?.battleArea
-                .filter((permanent) => permanent.isSuspended)
-                .map((permanent) => permanent.permanentId) ?? [],
-            ),
-          );
-        }
-        queue.enqueue({
-          id: `phase-banner-${banner.key}`,
-          side: banner.side,
-          track: "phaseBanner",
-          async run(context) {
-            try {
-              if (context.mode !== "live") {
-                setHeldSuspendedIds(new Set());
-                setHeldPhaseState(undefined);
-                setHeldBreedingState(undefined);
-                drawPhaseWaitingRef.current = null;
-                setHeldDrawState(undefined);
-                return;
-              }
-              await waitForPhasePrerequisites(context, arrivals, phaseOrder);
-              if (context.cancelled || context.mode !== "live") return;
-              visiblePhaseBannerRef.current = true;
-              if (isAnnouncedPhase(openedPhase.phase)) setAnnouncedPhase(openedPhase.phase);
-              setAnnouncedTurn({ seat: openedPhase.turnSeat, count: openedPhase.turnCount });
-              setPhaseBanner(banner);
-              if (banner.phase === UNSUSPEND_PHASE) {
-                setHeldSuspendedIds(new Set());
-                const timeline = phaseStateRef.current.events;
-                const activeIndex = timeline.indexOf(openedPhase);
-                const afterActive = timeline.slice(activeIndex + 1);
-                const nextPhaseIndex = afterActive.findIndex((event) => event.kind === "phaseChanged");
-                const unsuspendedIds = new Set(
-                  afterActive
-                    .slice(0, nextPhaseIndex < 0 ? undefined : nextPhaseIndex)
-                    .flatMap((event) =>
-                      event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended"
-                        ? event.instanceIds
-                        : [],
-                    ),
-                );
-                setHeldPhaseState((held) =>
-                  held
-                    ? ({
-                        ...held,
-                        players: held.players.map((player, seat) =>
-                          seat === openedPhase.turnSeat
-                            ? {
-                                ...player,
-                                battleArea: player.battleArea.map((permanent) => ({
-                                  ...permanent,
-                                  isSuspended: unsuspendedIds.has(permanent.permanentId)
-                                    ? false
-                                    : permanent.isSuspended,
-                                })),
-                              }
-                            : player,
-                        ),
-                      } as GameState)
-                    : held,
-                );
-                const sweep: UnsuspendSweep = { seat: openedPhase.turnSeat, key: ++unsuspendSweepKeyRef.current };
-                queue.enqueue({
-                  id: `unsuspend-sweep-${sweep.key}`,
-                  track: "unsuspendSweep",
-                  replace: true,
-                  async run(sweepContext) {
-                    if (sweepContext.mode !== "live") return;
-                    try {
-                      setUnsuspendSweep(sweep);
-                      await sweepContext.wait(UNSUSPEND_SWEEP_MS);
-                    } finally {
-                      setUnsuspendSweep((current) => (current?.key === sweep.key ? null : current));
-                    }
-                  },
-                });
-              }
-              // The first turn can skip drawing; breeding also releases the hold.
-              if (banner.phase === "Draw" || banner.phase === "Breeding" || banner.phase === "Main") {
-                drawPhaseWaitingRef.current = null;
-                setHeldDrawState(undefined);
-              }
-              await context.wait(TIMINGS.phaseBanner);
-              if (banner.phase === "Breeding") {
-                // A fast bot may already have evolved in Main. Present the raising
-                // area at the Main boundary first, so its hatch remains visible.
-                const main = phaseStateRef.current.events.find(
-                  (event) =>
-                    event.kind === "phaseChanged" &&
-                    event.phase === "Main" &&
-                    event.turnSeat === openedPhase.turnSeat &&
-                    event.turnCount === openedPhase.turnCount,
-                );
-                // Event revisions precede the patch. The closed batch names the
-                // resulting revision, including a hatch coalesced with Main's patch.
-                const mainBatch =
-                  main &&
-                  phaseBatchesRef.current.find((batch) =>
-                    batch.events.some(
-                      (event) =>
-                        event.kind === "phaseChanged" &&
-                        event.phase === "Main" &&
-                        event.turnSeat === openedPhase.turnSeat &&
-                        event.turnCount === openedPhase.turnCount,
-                    ),
-                  );
-                const version =
-                  mainBatch?.stateVersion ?? (main && "stateVersion" in main ? main.stateVersion : undefined);
-                const snapshot =
-                  version === undefined
-                    ? undefined
-                    : phaseStateRef.current.snapshots?.filter((candidate) => candidate.stateVersion <= version).at(-1);
-                const player = snapshot?.state.players[openedPhase.turnSeat];
-                setHeldBreedingState(player ? { seat: openedPhase.turnSeat, player } : undefined);
-              } else if (banner.phase === "Main") {
-                setHeldBreedingState(undefined);
-                setHeldPhaseState(undefined);
-              }
-              setPhaseBanner((current) => (current?.key === banner.key ? null : current));
-              await context.wait(TIMINGS.phaseBannerGap);
-            } finally {
-              visiblePhaseBannerRef.current = false;
-              completedPhaseOrderRef.current = phaseOrder;
-              setPhaseBanner((current) => (current?.key === banner.key ? null : current));
-              setPendingPhaseBanners((count) => count - 1);
-              if (context.cancelled || context.mode !== "live") {
-                setHeldSuspendedIds(new Set());
-                setHeldPhaseState(undefined);
-                setHeldBreedingState(undefined);
-                drawPhaseWaitingRef.current = null;
-                setHeldDrawState(undefined);
-              }
-            }
-          },
-        });
-      }
-    }
-    // Raw events, rather than batch closes, own the phase clock: the server closes
-    // each batch only after sending its resulting state patch.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phaseHistory]);
+  usePhaseBanners({
+    batches,
+    phaseEvents,
+    eventTimeline,
+    viewerSeat,
+    queue,
+    phaseOrdersRef,
+    nextPhaseOrderRef,
+    completedPhaseOrderRef,
+    stepPhaseOrdersRef,
+    lastPhaseEventRef,
+    phaseBaselineRef,
+    visiblePhaseBannerRef,
+    drawPhaseWaitingRef,
+    previousDrawStateRef,
+    phaseStateRef,
+    setPendingPhaseBanners,
+    setTurnTransition,
+    setAnnouncedTurn,
+    setAnnouncedPhase,
+    setPhaseBanner,
+    setHeldDrawState,
+    setHeldPhaseState,
+    setHeldBreedingState,
+    setHeldSuspendedIds,
+    setUnsuspendSweep,
+    playCue,
+    narrationBefore,
+  });
 
   useLayoutEffect(() => {
     // Capture the queue before paint so a decision cannot flash over a new batch.
