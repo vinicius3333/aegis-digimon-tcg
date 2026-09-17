@@ -5,7 +5,6 @@
 
 import { DragKind } from "./screen/enums";
 import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
-import { dropZoneAt } from "./screen/dropZones";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
 import { decisionViewFor } from "./screen/model/decisionView";
@@ -15,6 +14,7 @@ import { useBoardSelection } from "./screen/hooks/useBoardSelection";
 import { useOverlayState } from "./screen/hooks/useOverlayState";
 import { useDragPlumbing } from "./screen/hooks/useDragPlumbing";
 import { useTrackingArrow } from "./screen/hooks/useTrackingArrow";
+import { boardActions } from "./screen/boardActions";
 import { matchIntents } from "./screen/matchIntents";
 import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
 import { pendingMatchNotice } from "./screen/model/pendingMatchNotice";
@@ -68,16 +68,16 @@ import {
   gameOverResult as modelGameOverResult,
   viewerTurnOrder as modelViewerTurnOrder,
 } from "./screen/model/gameOutcome";
-import { phaseField as presentedPhaseField } from "./screen/model/presentedBoard";
-import { stackCardsOf as modelStackCardsOf } from "./screen/model/stackCardsOf";
+import { actionGuards } from "./screen/model/actionGuards";
+import { handEntriesOf } from "./screen/model/handEntries";
+import { presentedSeats } from "./screen/model/presentedSeats";
 import { spotlightIds as modelSpotlightIds } from "./screen/model/spotlightIds";
-import type { DragState, DropZoneHit, PermanentChrome } from "./screen/types";
+import type { DropZoneHit, PermanentChrome } from "./screen/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   CardKind,
-  Phase,
   PRESENTATION_CHANNEL,
   getCardDefinition,
   parseTriggerKey,
@@ -105,9 +105,8 @@ import "./game.css";
 import "./arena.css";
 import { Side } from "./side";
 import "./arenaMobile.css";
-import { type HandEntry } from "./piece";
 import { type DropTarget } from "./dragIntents";
-import { isBreedingWindow, turnControlState } from "./turnControl";
+import { turnControlState } from "./turnControl";
 import {
   bothSeated,
   openCombatWindow,
@@ -118,9 +117,7 @@ import {
   buildMatchLog,
   canAttackPlayerWith,
   canAttackWith,
-  canVortexAttackWith,
   displayMemory,
-  handCardEvolutionRoute,
   appFusionRoutesForHost,
   parseActivatable,
   otherSeat,
@@ -137,7 +134,6 @@ import { NarrationStack } from "./NarrationStack";
 import { CardOpenerProvider } from "./cardLinks";
 import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
-import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import { pendingFateBadges } from "./pendingFate";
 import { shieldSecurityCount } from "./securityClash";
@@ -546,113 +542,56 @@ export function GameScreen({
       presentedStateVersion: cues.presentedStateVersion,
     }) ?? state;
 
-  // Presentation (the seats as the board the narration has reached has them).
-  const presentedYouBase = shownState?.players[viewerSeat] ?? you;
-  const presentedOppBase = shownState?.players[otherSeat(viewerSeat)] ?? opp;
-  const phaseYou = cues.heldPhaseState?.players[viewerSeat];
-  const phaseOpp = cues.heldPhaseState?.players[otherSeat(viewerSeat)];
-
-  const phaseField = (player: typeof presentedYouBase, held: typeof phaseYou) => presentedPhaseField({ player, held });
-  const presentedYou = phaseField(presentedYouBase, phaseYou);
-  const presentedOpp = phaseField(presentedOppBase, phaseOpp);
-  // Only the seat whose Draw ribbon is still queued is held back: the other seat's cards
-  // belong to a turn the ribbons have already announced, so they land as they arrive.
-  const heldDraw = cues.heldDrawState;
-  const heldYou = heldDraw?.seat === viewerSeat ? heldDraw.state.players[viewerSeat] : undefined;
-  const heldOpp = heldDraw?.seat === otherSeat(viewerSeat) ? heldDraw.state.players[otherSeat(viewerSeat)] : undefined;
-  const shownYou = heldYou
-    ? { ...presentedYou, hand: heldYou.hand, handCount: heldYou.handCount, deckCount: heldYou.deckCount }
-    : presentedYou;
-  const shownOpp = heldOpp
-    ? { ...presentedOpp, handCount: heldOpp.handCount, deckCount: heldOpp.deckCount }
-    : presentedOpp;
-  const breedingYou = cues.heldBreedingState?.seat === viewerSeat ? cues.heldBreedingState.player : shownYou;
-  const breedingOpp = cues.heldBreedingState?.seat === otherSeat(viewerSeat) ? cues.heldBreedingState.player : shownOpp;
-  const shownHand = heldYou?.hand ?? you.hand;
-  const shownHandCount = Math.max(
-    0,
-    (heldYou?.handCount ?? you.handCount) -
-      (optimisticPlayedInstanceId && you.hand.some((card) => card.instanceId === optimisticPlayedInstanceId) ? 1 : 0),
-  );
-  const shownOpponentHandCount = heldOpp?.handCount ?? opp.handCount;
-  const isMyTurn = state.turnSeat === viewerSeat;
+  const {
+    shownViewer: shownYou,
+    shownOpponent: shownOpp,
+    breedingViewer: breedingYou,
+    breedingOpponent: breedingOpp,
+    shownHand,
+    shownHandCount,
+    shownOpponentHandCount,
+    handHeld,
+  } = presentedSeats({
+    shownState,
+    viewer: you,
+    opponent: opp,
+    viewerSeat,
+    heldPhaseState: cues.heldPhaseState,
+    heldDrawState: cues.heldDrawState,
+    heldBreedingState: cues.heldBreedingState,
+    optimisticPlayedInstanceId,
+  });
   // What the ribbons have announced, for the readouts only: the live turn is what every
   // guard below reads, and what `isMyTurn` must keep meaning.
   const displayedTurnSeat = cues.displayedTurn?.seat ?? shownState.turnSeat;
   const displayedTurnCount = cues.displayedTurn?.count ?? shownState.turnCount;
-  // Ordinary actions wait for the presented board to catch up, then follow the live
-  // match, decision, turn and phase guards. Effect responses use their own controls.
-  const pendingServerDecision = Boolean(decision || state.pendingDecision);
-  const pendingCombatWindow = Boolean(state.combatWindow);
-  // The server can reach Breeding/Main while the turn, unsuspend and draw banners
-  // are still queued. Their phase clock must release ordinary actions explicitly.
-  const phasePresentationPending = cues.phaseTransitionPending || turnTransition !== null || phaseBanner !== null;
-  const turnActionBlocked =
-    state.gameOver ||
-    pendingServerDecision ||
-    pendingCombatWindow ||
-    cues.presenting ||
-    phasePresentationPending ||
-    !isMyTurn;
-  const mainActionBlocked = turnActionBlocked || state.phase !== Phase.Main;
-  const endPhaseBlocked = turnActionBlocked || (state.phase !== Phase.Main && state.phase !== Phase.Breeding);
-  const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
-  // The breeding step is answered on the board rather than in a dialog: the egg
-  // deck hatches, the raising slot moves out and the turn control ends the step.
-  // These drive the highlights and the hint that stand in for the old modal.
-  const canHatchEgg = you.eggDeckCount > 0 && !you.breeding;
-  const canMoveOutOfBreeding = canMoveFromBreeding(you.breeding);
-  // Breeding actions open only after the phase presentation has finished.
-  const breedingActionsOpen = breedingWindow && !turnActionBlocked;
+  const {
+    isMyTurn,
+    mainActionBlocked,
+    endPhaseBlocked,
+    breedingWindow,
+    canHatchEgg,
+    canMoveOutOfBreeding,
+    breedingActionsOpen,
+  } = actionGuards({
+    state,
+    viewer: you,
+    viewerSeat,
+    decisionOpen: Boolean(decision || state.pendingDecision),
+    presenting: cues.presenting,
+    phasePresentationPending: cues.phaseTransitionPending || turnTransition !== null || phaseBanner !== null,
+  });
   // The gauge is part of the scene, so it moves when the moment that moved it is narrated.
   const memory = displayMemory(shownState, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
 
-  const handEntries: HandEntry[] = you.hand.map((ci) => ({
-    instanceId: ci.instanceId,
-    cardId: ci.cardId,
-    artId: ci.artId,
-    activatableEffectsJson: ci.activatableEffectsJson,
-    playableFromHand: ci.playableFromHand,
-    projectedPlayCost: ci.projectedPlayCost,
-    digivolveTargetPermanentIds: [...ci.digivolveTargetPermanentIds],
-    linkTargetPermanentIds: [...ci.linkTargetPermanentIds],
-    digivolveRoutes: [...(ci.digivolveRoutes ?? [])].map((route) => ({
-      permanentId: route.permanentId,
-      alternateRequirementIndex: route.alternateRequirementIndex,
-      projectedCost: route.projectedCost,
-    })),
-    appFusionRoutes: [...(ci.appFusionRoutes ?? [])].map((route) => ({
-      hostPermanentId: route.hostPermanentId,
-      linkedInstanceId: route.linkedInstanceId,
-      projectedCost: route.projectedCost,
-    })),
-  }));
-
+  const { handEntries, shownHandEntries } = handEntriesOf({
+    viewer: you,
+    shownHand,
+    handHeld,
+    optimisticPlayedInstanceId,
+  });
   const digivolveRoutesOf = (instanceId: string) => modelDigivolveRoutesOf({ handEntries, instanceId });
-  /**
-   * The hand follows the live server state independently of older field narration.
-   * Only the turn-start draw may retain an earlier hand; retained cards still use live
-   * legality, and a card already removed by the server cannot be acted on.
-   */
-  const shownHandEntries: HandEntry[] = (
-    !heldYou
-      ? handEntries
-      : [...(shownHand ?? [])].map(
-          (ci) =>
-            handEntries.find((entry) => entry.instanceId === ci.instanceId) ?? {
-              instanceId: ci.instanceId,
-              cardId: ci.cardId,
-              artId: ci.artId,
-              activatableEffectsJson: "",
-              playableFromHand: false,
-              projectedPlayCost: -1,
-              digivolveTargetPermanentIds: [],
-              linkTargetPermanentIds: [],
-              appFusionRoutes: [],
-            },
-        )
-  ).filter((entry) => entry.instanceId !== optimisticPlayedInstanceId);
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
   const selCardId = selEntry?.cardId;
   const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
@@ -751,248 +690,52 @@ export function GameScreen({
 
   const baseDropIntentAttrs = (permanentId: string) =>
     modelBaseDropIntentAttrs({ permanentId, dragBasePermanentIds, drag, you, handEntries });
-  const selectHandCard = (entry: HandEntry) => {
-    playSound("select");
-    setHandSel(entry.instanceId);
-    setHandPreview(entry.instanceId);
-    setSelPerm(null);
-    setCardMenu(null);
-    setStackView(null);
-  };
-
-  const handleTap = (d: DragState) => {
-    if (d.kind === DragKind.Play) {
-      const entry = handEntries.find((candidate) => candidate.instanceId === d.instanceId);
-      if (entry) selectHandCard(entry);
-    } else if (!handSel) {
-      if (selPerm === d.permanentId) clearSel();
-      else openOwnPermanent(d.permanentId);
-    }
-  };
-
-  const handleDrop = (d: DragState, cx: number, cy: number) => {
-    const zone = dropZoneAt(cx, cy);
-    if (!zone) return;
-    const { target, id } = zone;
-
-    if (d.kind === DragKind.Play) {
-      const def = getCardDefinition(d.cardId);
-      if (def?.kinds.includes(CardKind.DigiEgg)) {
-        ping(t("game.hint.eggsHatch"));
-        return;
-      }
-      if (target === "perm-you" && id) {
-        const perm =
-          you.battleArea.find((p) => p.permanentId === id) ??
-          (you.breeding?.permanentId === id ? you.breeding : undefined);
-        const appFusionRoute = handEntries
-          .find((entry) => entry.instanceId === d.instanceId)
-          ?.appFusionRoutes?.some((route) => {
-            const host = you.battleArea.find((candidate) => candidate.permanentId === id);
-            return host !== undefined && appFusionRoutesForHost([route], host).length > 0;
-          });
-        if (perm && appFusionRoute) return openAppFusionChoice(d.instanceId, id);
-        const evolutionRoute =
-          perm && !perm.inBreeding
-            ? handCardEvolutionRoute(
-                d.cardId,
-                you.battleArea,
-                digivolveTargetsOf(d.instanceId).includes(perm.permanentId),
-              )
-            : undefined;
-        if (perm && evolutionRoute?.kind === "normal")
-          return digivolveWithChoice(perm.permanentId, d.instanceId, d.cardId, perm, true);
-        if (evolutionRoute?.kind === "dna") return playCard(d.instanceId);
-        if (perm && evolutionRoute?.kind === "both") {
-          setActionConfirm({
-            kind: "dna",
-            instanceId: d.instanceId,
-            cardId: d.cardId,
-            materialPermanentIds: evolutionRoute.materialPermanentIds,
-            normalPermanentId: perm.permanentId,
-          });
-          return;
-        }
-        if (!def?.kinds.includes(CardKind.Option)) return playCard(d.instanceId, true);
-        ping(t("game.hint.dropOption"));
-        return;
-      }
-      if (target === "breeding-you") {
-        if (you.breeding && digivolveTargetsOf(d.instanceId).includes(you.breeding.permanentId)) {
-          return digivolveWithChoice(you.breeding.permanentId, d.instanceId, d.cardId, you.breeding, true);
-        }
-        ping(t("game.hint.cantDigivolveHere"));
-        return;
-      }
-      if (target === "battle-you") return playCard(d.instanceId, true);
-      if (target === "opp-security" || target === "perm-opp") {
-        ping(t("game.hint.cantPlayOnOpponent"));
-        return;
-      }
-    }
-
-    if (d.kind === DragKind.Attack) {
-      if (target === "opp-security") {
-        const attacker = you.battleArea.find((x) => x.permanentId === d.permanentId);
-        if (attacker?.canAttackPlayer) return attack(d.permanentId, { kind: "player" });
-        ping(t("game.hint.onlySuspended"));
-        return;
-      }
-      if (target === "perm-opp" && id) {
-        const attacker = you.battleArea.find((x) => x.permanentId === d.permanentId);
-        if (attacker?.attackablePermanentIds.includes(id)) {
-          return attack(d.permanentId, { kind: "permanent", permanentId: id });
-        }
-        ping(t("game.hint.onlySuspended"));
-        return;
-      }
-      ping(t("game.hint.dragTarget"));
-    }
-  };
+  /** An App Fusion is an ordinary Main-phase action, so it follows the same guard. */
+  const appFusionActionAvailable = () => !mainActionBlocked;
+  const {
+    findPermanent,
+    findPresentedPermanent,
+    showCardMenu,
+    beginAttack,
+    stackCardsOf,
+    selectHandCard,
+    handleTap,
+    handleDrop,
+    onYourPerm,
+    onOppPerm,
+    onBreeding,
+  } = boardActions({
+    state,
+    shownState,
+    viewer: you,
+    room,
+    t,
+    handEntries,
+    handSel,
+    selPerm,
+    selCardId,
+    linkSel,
+    vortexMode,
+    isMyTurn,
+    mainActionBlocked,
+    breedingActionsOpen,
+    permanentRefs: permRefs,
+    ping,
+    playGameCue,
+    selection,
+    overlays: overlayControls,
+    setAppFusionChoice,
+    playCard,
+    attack,
+    linkCard,
+    digivolveWithChoice,
+    digivolveTargetsOf,
+    appFusionHostIdsOf,
+    eligibleBase,
+    linkTargetsOfPermanent,
+  });
   handleTapRef.current = handleTap;
   handleDropRef.current = handleDrop;
-
-  // ----- field-card menu / stack viewer -----
-  const findPermanent = (permanentId: string): Permanent | undefined => {
-    for (const player of state.players) {
-      const inBattle = player.battleArea.find((p) => p.permanentId === permanentId);
-      if (inBattle) return inBattle;
-      if (player.breeding?.permanentId === permanentId) return player.breeding;
-    }
-    return undefined;
-  };
-
-  const findPresentedPermanent = (permanentId: string): Permanent | undefined => {
-    for (const player of shownState.players) {
-      const inBattle = player.battleArea.find((permanent) => permanent.permanentId === permanentId);
-      if (inBattle) return inBattle;
-      if (player.breeding?.permanentId === permanentId) return player.breeding;
-    }
-    return undefined;
-  };
-
-  const openAppFusionChoice = (handInstanceId: string, hostPermanentId: string) => {
-    if (!appFusionActionAvailable()) return;
-    const entry = handEntries.find((candidate) => candidate.instanceId === handInstanceId);
-    const host = you.battleArea.find((candidate) => candidate.permanentId === hostPermanentId);
-    if (!entry || !host) return;
-    setAppFusionChoice({ handInstanceId, hostPermanentId });
-  };
-
-  const appFusionActionAvailable = () => Boolean(!mainActionBlocked);
-
-  /** Open the action menu anchored above a field card. */
-  const showCardMenu = (permanentId: string, side: Side) => {
-    // Breeding-area permanents register no `permRefs` entry, so there is no anchor
-    // rect for them. The bottom sheet ignores the anchor, so fall back to the
-    // viewport centre rather than dropping the tap.
-    const rect = permRefs.current[permanentId]?.getBoundingClientRect();
-    setStackView(null);
-    setCardMenu({
-      permanentId,
-      side,
-      x: rect ? rect.left + rect.width / 2 : window.innerWidth / 2,
-      y: rect ? rect.top : window.innerHeight / 2,
-    });
-    setHandSel(null);
-  };
-
-  /** Begin attack-target selection with `permanentId` as the attacker; `vortex` declares a ＜Vortex＞ attack. */
-  const beginAttack = (permanentId: string, vortex = false) => {
-    playSound("select");
-    setSelPerm(permanentId);
-    setVortexMode(vortex);
-    setHandSel(null);
-    setCardMenu(null);
-    setStackView(null);
-  };
-
-  const stackCardsOf = (perm: Permanent) => modelStackCardsOf({ perm });
-
-  function openOwnPermanent(permanentId: string) {
-    if (!state) return;
-    const perm = findPermanent(permanentId);
-    if (!perm) return;
-    const canPromote =
-      perm.inBreeding &&
-      canUseBreedingAction({
-        phase: state.phase,
-        isMyTurn,
-        canHatch: false,
-        canMove: canMoveFromBreeding(perm),
-      });
-    const activatable = isMyTurn ? parseActivatable(perm.activatableEffectsJson) : [];
-    const destination = ownPermanentTapDestination({
-      canAttack: canAttackWith(perm),
-      canVortex: canVortexAttackWith(perm),
-      canPromote,
-      canLink: linkTargetsOfPermanent(perm).length > 0,
-      hasEffects: activatable.length > 0,
-    });
-    if (destination === "menu") showCardMenu(perm.permanentId, Side.Viewer);
-    else {
-      setCardMenu(null);
-      setStackView(perm.permanentId);
-    }
-  }
-
-  // ----- click routing -----
-  const onYourPerm = (perm: Permanent): (() => void) | undefined => {
-    if (selPerm === perm.permanentId) return clearSel;
-    if (linkSel) {
-      if (linkSel.targetPermanentIds.includes(perm.permanentId)) {
-        return () => linkCard(linkSel.instanceId, perm.permanentId);
-      }
-      return () => ping(t("game.hint.cantLinkHere"));
-    }
-    if (selCardId && handSel) {
-      if (appFusionHostIdsOf(handSel).includes(perm.permanentId)) {
-        return () => openAppFusionChoice(handSel, perm.permanentId);
-      }
-      const route = handCardEvolutionRoute(selCardId, you.battleArea, eligibleBase(perm));
-      if (route?.kind === "both")
-        return () =>
-          setActionConfirm({
-            kind: "dna",
-            instanceId: handSel,
-            cardId: selCardId,
-            materialPermanentIds: route.materialPermanentIds,
-            normalPermanentId: perm.permanentId,
-          });
-      if (route?.kind === "dna") return () => playCard(handSel);
-      if (route?.kind === "normal") return () => digivolveWithChoice(perm.permanentId, handSel, selCardId, perm);
-    }
-    if (handSel) return undefined;
-    return () => openOwnPermanent(perm.permanentId);
-  };
-  const onOppPerm = (perm: Permanent): (() => void) | undefined => {
-    const attacker = selPerm ? you.battleArea.find((candidate) => candidate.permanentId === selPerm) : undefined;
-    if (attackTargetIdsOf(attacker, vortexMode).includes(perm.permanentId)) {
-      return () => attack(selPerm!, { kind: "permanent", permanentId: perm.permanentId }, vortexMode);
-    }
-    return () => showCardMenu(perm.permanentId, Side.Opponent);
-  };
-
-  const onBreeding = () => {
-    if (selCardId && you.breeding && eligibleBase(you.breeding)) {
-      if (!mainActionBlocked) return digivolveWithChoice(you.breeding.permanentId, handSel!, selCardId!, you.breeding);
-      return;
-    }
-    if (!breedingActionsOpen) return;
-    if (you.breeding) {
-      if (canMoveFromBreeding(you.breeding) && room) {
-        playSound("confirm");
-        intents.moveFromBreeding(room, you.breeding.permanentId);
-        return;
-      }
-      ping(t("game.hint.needLevel3"));
-      return;
-    }
-    if (room) {
-      playGameCue("hatch");
-      intents.hatchEgg(room);
-    }
-  };
 
   // ----- log + game over -----
   const log: LogLine[] = buildMatchLog(events, viewerSeat, instanceIndex, t);

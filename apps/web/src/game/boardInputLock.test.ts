@@ -25,8 +25,8 @@ describe("presentation cues and board actions", () => {
   });
 
   it("keeps main actions behind live server state", () => {
-    expect(gameScreenSource).toContain("const pendingServerDecision = Boolean(decision || state.pendingDecision);");
-    expect(gameScreenSource).toContain("const mainActionBlocked = turnActionBlocked || state.phase !== Phase.Main;");
+    expect(gameScreenSource).toContain("decisionOpen: Boolean(decision || state.pendingDecision),");
+    expect(gameScreenSource).toContain("mainActionBlocked: turnActionBlocked || state.phase !== Phase.Main,");
     for (const sender of ["playCard", "digivolve", "attack", "activateEffect"]) {
       const start = gameScreenSource.indexOf(`  const ${sender} = `);
       const end = gameScreenSource.indexOf("\n  };", start);
@@ -35,7 +35,7 @@ describe("presentation cues and board actions", () => {
   });
 
   it("keeps breeding and turn controls behind live phase, turn, and decision state", () => {
-    expect(gameScreenSource).toContain("const breedingActionsOpen = breedingWindow && !turnActionBlocked;");
+    expect(gameScreenSource).toContain("breedingActionsOpen: breedingWindow && !turnActionBlocked,");
     expect(gameScreenSource).toContain("if (!breedingActionsOpen) return;");
     expect(gameScreenSource).toContain("covered={endPhaseBlocked ? true : undefined}");
     expect(gameScreenSource).toContain("onEndPhase={() => !endPhaseBlocked && onEndPhase()}");
