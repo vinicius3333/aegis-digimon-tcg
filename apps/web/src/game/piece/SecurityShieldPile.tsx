@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { CardInstance } from "@aegis/shared";
 import { CardBurst } from "../CardBurst";
 import { SecurityCardSlot } from "../SecurityCardSlot";
+import type { Side } from "../side";
 import { buildShieldShards } from "./shieldShards";
 import type { DropAttrs } from "./types";
 
@@ -30,7 +31,7 @@ export function SecurityShieldPile({
   dim?: boolean;
   glow?: boolean;
   /** Red for the viewer, blue for the opponent. */
-  shield: "you" | "opp";
+  shield: Side;
   /** The stack is under attack: the pane pulses before it breaks. */
   armed?: boolean;
   /** The pane is shattering on a security check. */

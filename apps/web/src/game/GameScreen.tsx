@@ -92,6 +92,7 @@ import "./game.css";
 import "./arena.css";
 import { BattleRow } from "./BattleRow";
 import { ArenaCounters } from "./ArenaCounters";
+import { Side } from "./side";
 import "./arenaMobile.css";
 import {
   AttackArrow,
@@ -352,12 +353,10 @@ export function GameScreen({
   } | null>(null);
   const [dualPlay, setDualPlay] = useState<{ instanceId: string; cardId: string } | null>(null);
   const [vortexMode, setVortexMode] = useState(false); // the selected attack is a ＜Vortex＞ declaration
-  const [cardMenu, setCardMenu] = useState<{ permanentId: string; side: "you" | "opp"; x: number; y: number } | null>(
-    null,
-  );
+  const [cardMenu, setCardMenu] = useState<{ permanentId: string; side: Side; x: number; y: number } | null>(null);
   const [stackView, setStackView] = useState<string | null>(null); // permanentId whose stack modal is open
-  const [trashView, setTrashView] = useState<"you" | "opp" | null>(null); // which player's trash modal is open
-  const [securityView, setSecurityView] = useState<"you" | "opp" | null>(null); // which player's security modal is open
+  const [trashView, setTrashView] = useState<Side | null>(null); // which player's trash modal is open
+  const [securityView, setSecurityView] = useState<Side | null>(null); // which player's security modal is open
   const [picks, setPicks] = useState<string[]>([]);
   // A board-mode decision the viewer asked to see in the dialog instead (Escape
   // or the rail's back arrow). Reset with every new decision.
@@ -1675,7 +1674,7 @@ export function GameScreen({
   const appFusionActionAvailable = () => Boolean(!mainActionBlocked);
 
   /** Open the action menu anchored above a field card. */
-  const showCardMenu = (permanentId: string, side: "you" | "opp") => {
+  const showCardMenu = (permanentId: string, side: Side) => {
     // Breeding-area permanents register no `permRefs` entry, so there is no anchor
     // rect for them. The bottom sheet ignores the anchor, so fall back to the
     // viewport centre rather than dropping the tap.
@@ -1722,7 +1721,7 @@ export function GameScreen({
       canLink: linkTargetsOfPermanent(perm).length > 0,
       hasEffects: activatable.length > 0,
     });
-    if (destination === "menu") showCardMenu(perm.permanentId, "you");
+    if (destination === "menu") showCardMenu(perm.permanentId, Side.Viewer);
     else {
       setCardMenu(null);
       setStackView(perm.permanentId);
@@ -1763,7 +1762,7 @@ export function GameScreen({
     if (attackTargetIdsOf(attacker, vortexMode).includes(perm.permanentId)) {
       return () => attack(selPerm!, { kind: "permanent", permanentId: perm.permanentId }, vortexMode);
     }
-    return () => showCardMenu(perm.permanentId, "opp");
+    return () => showCardMenu(perm.permanentId, Side.Opponent);
   };
 
   const onBreeding = () => {
@@ -2089,7 +2088,7 @@ export function GameScreen({
       {handPreviewEntry ? (
         <HandCardPreview
           arenaInspection={{
-            side: "you",
+            side: Side.Viewer,
             container: boardRef.current,
             returnFocusTo:
               yourHandDockRef.current?.querySelectorAll<HTMLElement>(".game-hand-card")[
@@ -2595,7 +2594,7 @@ export function GameScreen({
                 promote={
                   // Same gate as the action bar: a breeding Digimon only moves out at
                   // level 3, so below that the action would just refuse.
-                  cardMenu.side === "you" &&
+                  cardMenu.side === Side.Viewer &&
                   perm.inBreeding &&
                   canUseBreedingAction({
                     phase: state.phase,
@@ -2654,7 +2653,7 @@ export function GameScreen({
             return (
               <StackViewerOverlay
                 arenaInspection={{
-                  side: presentedPermanent.controllerSeat === viewerSeat ? "you" : "opp",
+                  side: presentedPermanent.controllerSeat === viewerSeat ? Side.Viewer : Side.Opponent,
                   container: boardRef.current,
                   returnFocusTo: permRefs.current[perm.permanentId],
                 }}
@@ -2677,9 +2676,9 @@ export function GameScreen({
 
       {trashView
         ? (() => {
-            const owner = trashView === "you" ? you : opp;
+            const owner = trashView === Side.Viewer ? you : opp;
             const ownerLabel =
-              trashView === "you"
+              trashView === Side.Viewer
                 ? t("game.yourTrash")
                 : t("game.oppTrash", { name: shownOpp.displayName || t("game.opponent") });
             return (
@@ -2696,9 +2695,9 @@ export function GameScreen({
 
       {securityView
         ? (() => {
-            const owner = securityView === "you" ? you : opp;
+            const owner = securityView === Side.Viewer ? you : opp;
             const ownerLabel =
-              securityView === "you"
+              securityView === Side.Viewer
                 ? t("game.yourSecurityPile")
                 : t("game.oppSecurityPile", { name: shownOpp.displayName || t("game.opponent") });
             // Only face-up security cards are public; face-down cards stay hidden
@@ -2772,7 +2771,7 @@ export function GameScreen({
             }}
           >
             <ArenaCounters
-              side="opp"
+              side={Side.Opponent}
               eggs={breedingOpp.eggDeckCount}
               hand={shownOpponentHandCount}
               deck={shownOpp.deckCount}
@@ -3036,7 +3035,7 @@ export function GameScreen({
                   label={t("game.pile.trash")}
                   topCardId={shownOpp.trash[shownOpp.trash.length - 1]?.cardId}
                   topArtId={shownOpp.trash[shownOpp.trash.length - 1]?.artId}
-                  onClick={shownOpp.trash.length ? () => setTrashView("opp") : undefined}
+                  onClick={shownOpp.trash.length ? () => setTrashView(Side.Opponent) : undefined}
                   useSelectedSleeve={false}
                 />
               </div>
@@ -3049,7 +3048,7 @@ export function GameScreen({
                   securityDealCounts.get(viewerSeat) ??
                   shieldSecurityCount(shownYou.securityCount, heldSecurityCounts.get(viewerSeat))
                 }
-                shield="you"
+                shield={Side.Viewer}
                 armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
                 breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
                 shardSeed={securityBreak?.key}
@@ -3061,7 +3060,7 @@ export function GameScreen({
                 refEl={(el) => {
                   yourSecRef.current = el;
                 }}
-                onClick={shownYou.securityCount ? () => setSecurityView("you") : undefined}
+                onClick={shownYou.securityCount ? () => setSecurityView(Side.Viewer) : undefined}
               />
             </aside>
 
@@ -3268,7 +3267,7 @@ export function GameScreen({
                       compact={compactPiles}
                       burst={breedingOpp.breeding ? permanentBursts.get(breedingOpp.breeding.permanentId) : undefined}
                       width={arenaPileWidth}
-                      onClick={opp.breeding ? () => showCardMenu(opp.breeding!.permanentId, "opp") : undefined}
+                      onClick={opp.breeding ? () => showCardMenu(opp.breeding!.permanentId, Side.Opponent) : undefined}
                     />
                   </div>
                 </div>
@@ -3280,7 +3279,7 @@ export function GameScreen({
                     securityDealCounts.get(otherSeat(viewerSeat)) ??
                     shieldSecurityCount(shownOpp.securityCount, heldSecurityCounts.get(otherSeat(viewerSeat)))
                   }
-                  shield="opp"
+                  shield={Side.Opponent}
                   armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
                   breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}
                   shardSeed={securityBreak?.key}
@@ -3304,7 +3303,7 @@ export function GameScreen({
                     selPerm && canAttackSecurity
                       ? () => attack(selPerm, { kind: "player" }, vortexMode)
                       : shownOpp.securityCount
-                        ? () => setSecurityView("opp")
+                        ? () => setSecurityView(Side.Opponent)
                         : undefined
                   }
                 />
@@ -3330,7 +3329,7 @@ export function GameScreen({
                   label={t("game.pile.trash")}
                   topCardId={shownYou.trash[shownYou.trash.length - 1]?.cardId}
                   topArtId={shownYou.trash[shownYou.trash.length - 1]?.artId}
-                  onClick={shownYou.trash.length ? () => setTrashView("you") : undefined}
+                  onClick={shownYou.trash.length ? () => setTrashView(Side.Viewer) : undefined}
                 />
               </div>
             </aside>
@@ -3408,7 +3407,7 @@ export function GameScreen({
               />
             </div>
             <ArenaCounters
-              side="you"
+              side={Side.Viewer}
               eggs={breedingYou.eggDeckCount}
               hand={shownHandCount}
               deck={shownYou.deckCount}

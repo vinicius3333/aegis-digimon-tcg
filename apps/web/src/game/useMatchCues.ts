@@ -36,6 +36,7 @@ import { securityRevealScene } from "./match/present/securityRevealScene";
 import { securityHold } from "./match/securityHold";
 import { cueFlights } from "./match/flights";
 import { narrationStream } from "./match/narration/narrationStream";
+import { Side } from "./side";
 import type {
   AttackLunge,
   DeleteBurst,
@@ -794,7 +795,7 @@ export function useMatchCues({
             event.seat ??
             event.instanceIds.map((id) => sidePanelLookupRef.current.seat(id)).find((owner) => owner !== undefined);
           if (seat !== undefined) {
-            const side = seat === viewerSeat ? "you" : "opp";
+            const side = seat === viewerSeat ? Side.Viewer : Side.Opponent;
             eventDrawCountsRef.current[side] = state?.players[seat]?.handCount;
             const followsDigivolution =
               event.drawReason === "digivolution" && pendingDigivolutionDrawRef.current.has(seat);
@@ -1056,7 +1057,7 @@ export function useMatchCues({
           key,
           cardId: usedOption.cardId,
           ...(usedOption.artId ? { artId: usedOption.artId } : {}),
-          side: usedOption.seat === viewerSeat ? "you" : "opp",
+          side: usedOption.seat === viewerSeat ? Side.Viewer : Side.Opponent,
           state: "docked",
           source: "option",
         };
@@ -1776,7 +1777,7 @@ export function useMatchCues({
         setPendingPhaseBanners((count) => count + 1);
         queue.enqueue({
           id: `turn-banner-${transition.turnCount}`,
-          side: openedPhase.nextSeat === viewerSeat ? "you" : "opp",
+          side: openedPhase.nextSeat === viewerSeat ? Side.Viewer : Side.Opponent,
           track: "phaseBanner",
           async run(context) {
             try {
@@ -2212,22 +2213,26 @@ export function useMatchCues({
     // The held side keeps every figure it had: its count, the flag that says the growth is
     // a turn-start draw, and the event count that proves the draw was already narrated.
     // They are read again on the pass the Draw ribbon releases.
-    const heldSide = heldSeat === null ? undefined : heldSeat === viewerSeat ? "you" : "opp";
+    const heldSide: Side | undefined =
+      heldSeat === null ? undefined : heldSeat === viewerSeat ? Side.Viewer : Side.Opponent;
     const previous = handCountsRef.current;
     handCountsRef.current = {
-      you: heldSide === "you" && previous ? previous.you : you.handCount,
-      opp: heldSide === "opp" && previous ? previous.opp : opp.handCount,
+      you: heldSide === Side.Viewer && previous ? previous.you : you.handCount,
+      opp: heldSide === Side.Opponent && previous ? previous.opp : opp.handCount,
     };
     if (!previous || mulliganOpen) {
       turnStartDrawRef.current = { you: false, opp: false };
       return;
     }
     const turnStart = turnStartDrawRef.current;
-    turnStartDrawRef.current = { you: heldSide === "you" && turnStart.you, opp: heldSide === "opp" && turnStart.opp };
-    if (heldSide !== "opp" && opp.handCount > previous.opp && eventDrawCountsRef.current.opp !== opp.handCount)
-      launchDrawFlight("opp", turnStart.opp);
-    if (heldSide !== "you" && you.handCount > previous.you && eventDrawCountsRef.current.you !== you.handCount)
-      launchDrawFlight("you", turnStart.you);
+    turnStartDrawRef.current = {
+      you: heldSide === Side.Viewer && turnStart.you,
+      opp: heldSide === Side.Opponent && turnStart.opp,
+    };
+    if (heldSide !== Side.Opponent && opp.handCount > previous.opp && eventDrawCountsRef.current.opp !== opp.handCount)
+      launchDrawFlight(Side.Opponent, turnStart.opp);
+    if (heldSide !== Side.Viewer && you.handCount > previous.you && eventDrawCountsRef.current.you !== you.handCount)
+      launchDrawFlight(Side.Viewer, turnStart.you);
     eventDrawCountsRef.current = heldSide ? { [heldSide]: eventDrawCountsRef.current[heldSide] } : {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.handCount, opp?.handCount, phaseBanner]);
@@ -2264,8 +2269,8 @@ export function useMatchCues({
       }
     }
     const gains = [
-      { seat: viewerSeat, side: "you" as const, amount: you.securityCount - previous.you },
-      { seat: otherSeat(viewerSeat), side: "opp" as const, amount: opp.securityCount - previous.opp },
+      { seat: viewerSeat, side: Side.Viewer, amount: you.securityCount - previous.you },
+      { seat: otherSeat(viewerSeat), side: Side.Opponent, amount: opp.securityCount - previous.opp },
     ];
     for (const { seat, side, amount } of gains) {
       if (amount <= 0) continue;

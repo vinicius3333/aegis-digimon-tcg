@@ -2,10 +2,9 @@
    the same moment. The animation queue publishes each item at the correct beat;
    useMatchCues expires it independently while subsequent actions continue. */
 
-import { NOTICE_LIFETIME_MS, type MatchNotice, type NoticeSide } from "./notices";
+import { NOTICE_LIFETIME_MS, type MatchNotice } from "./notices";
 import { pushSidePanel, SIDE_PANEL_LIFETIME_MS, type SidePanel } from "./sidePanels";
-
-export type NarrationSide = NoticeSide;
+import { Side } from "./side";
 
 /**
  * Where an item is presented. The board reads in two columns, split by what a moment is
@@ -19,7 +18,7 @@ export type NarrationSlot = "narration" | "narration-text" | "narration-cards";
 
 export interface NarrationItem {
   id: string;
-  side: NarrationSide;
+  side: Side;
   /** The server batch this moment belongs to. */
   batchId: string;
   /** The card the moment is about, when both halves can name the same one. */

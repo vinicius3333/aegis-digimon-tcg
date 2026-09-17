@@ -4,6 +4,7 @@
    owns the timeline the CSS keyframes are cut to. */
 
 import { getCardDefinition, isDigimon, type SecurityBattleResult, type Seat, type ServerEvent } from "@aegis/shared";
+import { Side } from "./side";
 import {
   CLASH_OUTCOME_AT_MS,
   CLASH_REVEAL_AT_MS,
@@ -21,7 +22,6 @@ import {
  * resolves. The other three come from the server's `securityChecked.resolution`.
  */
 export type SecurityClashResolution = "pending" | "battle" | "effect" | "trashed";
-export type SecurityClashSide = "you" | "opp";
 
 /** The attack the check belongs to, remembered from the last `attackDeclared`. */
 export interface SecurityClashAttacker {
@@ -37,7 +37,7 @@ export interface SecurityClashAttacker {
 export interface SecurityClashFighter {
   cardId: string;
   artId?: string;
-  side: SecurityClashSide;
+  side: Side;
   /** Only Digimon carry a comparable DP; anything else omits the number. */
   dp?: number;
 }
@@ -144,7 +144,7 @@ export interface SecurityBreakScene {
   key: number;
   /** The checked player's seat, which is the shield that shatters. */
   seat: Seat;
-  side: SecurityClashSide;
+  side: Side;
   /**
    * Throws this break's shards. The pane is the same six pieces every time, but a
    * fixed set of directions makes back-to-back checks (Strike 2, a second attack)
@@ -169,7 +169,7 @@ export interface SecurityBranchScene {
   key: number;
   cardId: string;
   artId?: string;
-  side: SecurityClashSide;
+  side: Side;
   state: SecurityBranchState;
   /** The same dock animation also presents a used Option during its [Main] resolution. */
   source?: "security" | "option";
@@ -184,7 +184,7 @@ export function buildSecurityBreakScene({
   defenderSeat: Seat;
   viewerSeat: Seat;
 }): SecurityBreakScene {
-  return { key, seat: defenderSeat, side: defenderSeat === viewerSeat ? "you" : "opp", seed: key };
+  return { key, seat: defenderSeat, side: defenderSeat === viewerSeat ? Side.Viewer : Side.Opponent, seed: key };
 }
 
 /**
@@ -209,7 +209,7 @@ export function buildSecurityDockScene({
     key,
     cardId: revealedCardId,
     ...(revealedArtId ? { artId: revealedArtId } : {}),
-    side: defenderSeat === viewerSeat ? "you" : "opp",
+    side: defenderSeat === viewerSeat ? Side.Viewer : Side.Opponent,
     state: "docked",
   };
 }
@@ -239,7 +239,7 @@ export function buildSecurityBranchScene({
     key,
     cardId: revealedCardId,
     ...(revealedArtId ? { artId: revealedArtId } : {}),
-    side: defenderSeat === viewerSeat ? "you" : "opp",
+    side: defenderSeat === viewerSeat ? Side.Viewer : Side.Opponent,
     state: "settled",
   };
 }
@@ -280,8 +280,8 @@ export function buildSecurityRevealScene({
   securityCardDP?: number;
   attackerDP?: number;
 }): SecurityClashScene {
-  const defenderSide: SecurityClashSide = defenderSeat === viewerSeat ? "you" : "opp";
-  const attackerSide: SecurityClashSide = defenderSide === "you" ? "opp" : "you";
+  const defenderSide: Side = defenderSeat === viewerSeat ? Side.Viewer : Side.Opponent;
+  const attackerSide: Side = defenderSide === Side.Viewer ? Side.Opponent : Side.Viewer;
   // An attack context left over from the other seat's attack would face the wrong
   // way, so it is only used when it actually opposes the checked player.
   const facing = attacker && attacker.seat !== defenderSeat ? attacker : undefined;
@@ -460,7 +460,7 @@ export function orderSecurityClashFighters(
   const revealed = { role: "revealed", fighter: scene.revealed } as const;
   if (!scene.attacker) return [revealed];
   const attacker = { role: "attacker", fighter: scene.attacker } as const;
-  return scene.attacker.side === "opp" ? [attacker, revealed] : [revealed, attacker];
+  return scene.attacker.side === Side.Opponent ? [attacker, revealed] : [revealed, attacker];
 }
 
 /** Keep each reveal and its consequences together without discarding earlier checks. */

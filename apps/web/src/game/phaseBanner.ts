@@ -1,6 +1,7 @@
 /* Phase announcements driven by the server, in the order they arrive. */
 
 import { Phase, type Seat } from "@aegis/shared";
+import { Side } from "./side";
 
 export interface PhaseBanner {
   /** Re-mounts the banner so its keyframes restart on a repeat of the same phase. */
@@ -9,7 +10,7 @@ export interface PhaseBanner {
   /** Translation key for the announced phase name. */
   labelKey: PhaseBannerLabelKey;
   /** Whose phase it is, from the viewer's side. */
-  side: "you" | "opp";
+  side: Side;
 }
 
 const BANNER_LABEL_KEYS = {
@@ -43,5 +44,10 @@ export function phaseBannerFrom({
   key: number;
 }): PhaseBanner | null {
   if (!isAnnouncedPhase(phase)) return null;
-  return { key, phase, labelKey: BANNER_LABEL_KEYS[phase], side: turnSeat === viewerSeat ? "you" : "opp" };
+  return {
+    key,
+    phase,
+    labelKey: BANNER_LABEL_KEYS[phase],
+    side: turnSeat === viewerSeat ? Side.Viewer : Side.Opponent,
+  };
 }

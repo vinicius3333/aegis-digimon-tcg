@@ -11,6 +11,7 @@ import { PermanentDetailInspector, StackViewerOverlay } from "./overlays";
 import { buildPermanentDetail } from "./permanentDetail";
 import { SecurityClash } from "./SecurityClashView";
 import { buildSecurityClashScene, buildSecurityDestructionScene } from "./securityClash";
+import { Side } from "./side";
 
 afterEach(() => cleanup());
 
@@ -104,7 +105,7 @@ describe("security feedback", () => {
         <NoticeStack
           notice={{
             id: "n1",
-            side: "you",
+            side: Side.Viewer,
             fromSecurity: false,
             createdAt: 0,
             body: { variant: "recovery", amount: 2 },

@@ -5,6 +5,7 @@ import { afterEach, expect, it } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Pile } from "./boardPieces";
 import { TrashViewerOverlay } from "./overlays";
+import { Side } from "./side";
 
 afterEach(cleanup);
 
@@ -15,7 +16,9 @@ it("renders public security art in its slot without exposing hidden identities",
   const hidden = new CardInstance();
   hidden.cardId = "BT1-010";
   hidden.faceUp = false;
-  const { container } = render(<Pile shield="you" count={2} label="Security" securityCards={[hidden, revealed]} />);
+  const { container } = render(
+    <Pile shield={Side.Viewer} count={2} label="Security" securityCards={[hidden, revealed]} />,
+  );
   const slots = container.querySelectorAll(".game-security-cards i");
   expect(slots).toHaveLength(2);
   expect(slots[0]!.querySelector("img")).toBeNull();

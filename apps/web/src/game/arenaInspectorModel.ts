@@ -1,5 +1,6 @@
 import type { StackCard } from "./overlays";
 import type { EvoCost } from "@aegis/shared";
+import { Side } from "./side";
 
 export interface InspectorEvolutionCost {
   level: number;
@@ -23,8 +24,8 @@ export function groupedInspectorEvolutionCosts(costs: readonly EvoCost[]): Inspe
   return groups;
 }
 
-export function inspectedArenaHalf(side: "you" | "opp"): "upper" | "lower" {
-  return side === "you" ? "upper" : "lower";
+export function inspectedArenaHalf(side: Side): "upper" | "lower" {
+  return side === Side.Viewer ? "upper" : "lower";
 }
 
 /** Schema sources run bottom..below-top; the reading runs directly below top..bottom. */

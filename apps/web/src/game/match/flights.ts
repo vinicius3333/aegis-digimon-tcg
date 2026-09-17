@@ -1,6 +1,7 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { Seat } from "@aegis/shared";
 import type { AnimationQueue } from "../animationQueue";
+import { Side } from "../side";
 import { isTouchLayout } from "./environment";
 import { TIMINGS } from "../timings";
 import type { DrawBurst, DrawFlight, MatchCueAnchors } from "./types";
@@ -92,10 +93,10 @@ export function cueFlights(deps: CueFlightsDeps) {
    * client presents a draw centre-screen; the web port keeps the deck→hand read,
    * which is what makes an opponent's draw visible at all.
    */
-  function launchDrawFlight(side: "you" | "opp", turnStart = false, waitBeforeMs = 0) {
+  function launchDrawFlight(side: Side, turnStart = false, waitBeforeMs = 0) {
     const board = anchors.board.current;
-    const source = side === "you" ? anchors.yourDeck.current : anchors.oppDeck.current;
-    const target = side === "you" ? anchors.yourHandDock.current : anchors.oppHandStrip.current;
+    const source = side === Side.Viewer ? anchors.yourDeck.current : anchors.oppDeck.current;
+    const target = side === Side.Viewer ? anchors.yourHandDock.current : anchors.oppHandStrip.current;
     if (!board || !source || !target) return;
     const boardRect = board.getBoundingClientRect();
     const sourceRect = source.getBoundingClientRect();

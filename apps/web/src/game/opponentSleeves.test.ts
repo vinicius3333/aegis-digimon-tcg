@@ -17,7 +17,7 @@ describe("opponent hidden-card backs", () => {
     );
     // The security shield's count goes through `shieldSecurityCount`, which holds the
     // figure while a scene is still showing a card leaving, so it is matched by its own
-    // `shield="opp"` marker instead.
-    expect(gameScreenSource).toMatch(/shield="opp"[\s\S]*?useSelectedSleeve=\{false\}/);
+    // `shield={Side.Opponent}` marker instead.
+    expect(gameScreenSource).toMatch(/shield=\{Side\.Opponent\}[\s\S]*?useSelectedSleeve=\{false\}/);
   });
 });

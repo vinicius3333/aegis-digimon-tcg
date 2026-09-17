@@ -2,16 +2,21 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { Pile } from "./boardPieces";
+import { Side } from "./side";
 
 afterEach(cleanup);
 
 it("shows the public security DP modifier and removes it when the effect expires", () => {
-  const { rerender } = render(<Pile shield="opp" count={5} label="Opponent security" securityDpDelta={-3000} />);
+  const { rerender } = render(
+    <Pile shield={Side.Opponent} count={5} label="Opponent security" securityDpDelta={-3000} />,
+  );
   expect(screen.getByText("−3000 DP")).toBeTruthy();
   expect(screen.getByRole("img").getAttribute("aria-label")).toContain("−3000 DP");
-  rerender(<Pile shield="opp" count={5} label="Opponent security" securityDpDelta={0} />);
+  rerender(<Pile shield={Side.Opponent} count={5} label="Opponent security" securityDpDelta={0} />);
   expect(screen.queryByText("−3000 DP")).toBeNull();
-  rerender(<Pile shield="you" count={5} label="Your security" securityDpDelta={2000} attackLabel="Security attack" />);
+  rerender(
+    <Pile shield={Side.Viewer} count={5} label="Your security" securityDpDelta={2000} attackLabel="Security attack" />,
+  );
   expect(screen.getByText("+2000 DP")).toBeTruthy();
   expect(screen.getByText("Security attack")).toBeTruthy();
 });

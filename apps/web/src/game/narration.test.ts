@@ -13,11 +13,12 @@ import {
 } from "./narration";
 import { NOTICE_LIFETIME_MS, type MatchNotice } from "./notices";
 import { SIDE_PANEL_LIFETIME_MS, SIDE_PANEL_MERGE_WINDOW_MS, type SidePanel } from "./sidePanels";
+import { Side } from "./side";
 
 function notice(overrides: Partial<MatchNotice> = {}): MatchNotice {
   return {
     id: "n1",
-    side: "you",
+    side: Side.Viewer,
     fromSecurity: false,
     body: { variant: "effect", cardId: "BT1-001", timing: "OnDeletion", description: "Gain 1 memory." },
     createdAt: 0,
@@ -29,7 +30,7 @@ function panel(overrides: Partial<SidePanel> = {}): SidePanel {
   return {
     id: "p1",
     titleKey: "panel.deletedCards",
-    side: "you",
+    side: Side.Viewer,
     cards: [{ cardId: "BT1-001", badge: 1 }],
     ordered: false,
     createdAt: 0,
@@ -52,7 +53,7 @@ describe("folding a batch into moments", () => {
   it("makes one moment of a panel and the clause about the same card", () => {
     const items = build({ panels: [panel()], notices: [notice()] });
     expect(items).toHaveLength(1);
-    expect(items[0]).toMatchObject({ batchId: "b1", side: "you", source: "BT1-001" });
+    expect(items[0]).toMatchObject({ batchId: "b1", side: Side.Viewer, source: "BT1-001" });
     expect(items[0]?.panel?.id).toBe("p1");
     expect(items[0]?.notice?.id).toBe("n1");
   });
@@ -69,7 +70,9 @@ describe("folding a batch into moments", () => {
   });
 
   it("keeps the opponent's clause out of the viewer's panel", () => {
-    expect(build({ panels: [panel({ side: "you" })], notices: [notice({ side: "opp" })] })).toHaveLength(2);
+    expect(build({ panels: [panel({ side: Side.Viewer })], notices: [notice({ side: Side.Opponent })] })).toHaveLength(
+      2,
+    );
   });
 
   it("leaves a panel of several cards unmerged: it is about the effect, not about one card", () => {
@@ -150,8 +153,8 @@ describe("which column presents a moment", () => {
   // Split by what the moment is, not by whose it is: both players' clauses read on the
   // left and both players' card lists on the right.
   it("puts a clause in the text column whichever side raised it", () => {
-    expect(narrationSlot({ notice: notice({ side: "you" }) }, false)).toBe("narration-text");
-    expect(narrationSlot({ notice: notice({ side: "opp" }) }, false)).toBe("narration-text");
+    expect(narrationSlot({ notice: notice({ side: Side.Viewer }) }, false)).toBe("narration-text");
+    expect(narrationSlot({ notice: notice({ side: Side.Opponent }) }, false)).toBe("narration-text");
   });
 
   it("puts a panel of cards in the card column", () => {
@@ -175,14 +178,14 @@ describe("which column presents a moment", () => {
 describe("pushing a moment into its column", () => {
   const clause = (id: string): NarrationItem => ({
     id,
-    side: "you",
+    side: Side.Viewer,
     batchId: "b1",
     createdAt: 0,
     notice: notice(),
   });
   const cards = (id: string): NarrationItem => ({
     id,
-    side: "opp",
+    side: Side.Opponent,
     batchId: "b1",
     createdAt: 0,
     panel: panel(),

@@ -41,6 +41,7 @@ import { NoticeStack } from "../game/NoticeStack";
 import { SidePanelStack } from "../game/SidePanelStack";
 import { NOTICE_LIFETIME_MS, type MatchNotice } from "../game/notices";
 import { SIDE_PANEL_LIFETIME_MS, type SidePanel } from "../game/sidePanels";
+import { Side } from "../game/side";
 import { useTranslation, type TranslationKey } from "../i18n";
 import "../game/game.css";
 import "./boardShowcase.css";
@@ -229,8 +230,8 @@ const showcaseCardName = (cardId: string) => getCardDefinition(cardId)?.nameEn ?
 const BATTLE_CLASH: SecurityClashScene = {
   key: 1,
   resolution: "battle",
-  revealed: { cardId: CARDS.opponentChampion, side: "opp", dp: 4000 },
-  attacker: { cardId: CARDS.champion, side: "you", dp: 6000 },
+  revealed: { cardId: CARDS.opponentChampion, side: Side.Opponent, dp: 4000 },
+  attacker: { cardId: CARDS.champion, side: Side.Viewer, dp: 6000 },
 };
 
 const SHOWCASE_LOG: LogLine[] = [
@@ -251,7 +252,7 @@ const SHOWCASE_NOW = 1_000;
 function showcasePanel({
   id,
   titleKey,
-  side = "you",
+  side = Side.Viewer,
   cardIds,
   ordered = false,
   age = 0,
@@ -299,7 +300,7 @@ const PANEL_CASES: { label: string; panels: SidePanel[] }[] = [
       showcasePanel({
         id: "revealed",
         titleKey: "panel.revealedCards",
-        side: "opp",
+        side: Side.Opponent,
         cardIds: [CARDS.opponentChampion, CARDS.opponentUltimate, CARDS.egg],
         ordered: true,
       }),
@@ -311,7 +312,7 @@ const PANEL_CASES: { label: string; panels: SidePanel[] }[] = [
       showcasePanel({
         id: "deleted",
         titleKey: "panel.deletedCards",
-        side: "opp",
+        side: Side.Opponent,
         cardIds: [CARDS.opponentUltimate],
       }),
     ],
@@ -319,7 +320,12 @@ const PANEL_CASES: { label: string; panels: SidePanel[] }[] = [
   {
     label: "Played Card (opponent)",
     panels: [
-      showcasePanel({ id: "played", titleKey: "panel.playedCard", side: "opp", cardIds: [CARDS.opponentChampion] }),
+      showcasePanel({
+        id: "played",
+        titleKey: "panel.playedCard",
+        side: Side.Opponent,
+        cardIds: [CARDS.opponentChampion],
+      }),
     ],
   },
   {
@@ -332,7 +338,7 @@ const PANEL_CASES: { label: string; panels: SidePanel[] }[] = [
       showcasePanel({
         id: "digivolution",
         titleKey: "panel.digivolutionCards",
-        side: "opp",
+        side: Side.Opponent,
         cardIds: [CARDS.egg, CARDS.rookie, CARDS.champion],
         ordered: true,
       }),
@@ -341,7 +347,7 @@ const PANEL_CASES: { label: string; panels: SidePanel[] }[] = [
 ];
 
 function showcaseNotice(id: string, body: MatchNotice["body"], overrides: Partial<MatchNotice> = {}): MatchNotice {
-  return { id, side: "you", fromSecurity: false, body, createdAt: SHOWCASE_NOW, ...overrides };
+  return { id, side: Side.Viewer, fromSecurity: false, body, createdAt: SHOWCASE_NOW, ...overrides };
 }
 
 const NOTICE_CASES: { label: string; notices: MatchNotice[] }[] = [
@@ -367,7 +373,7 @@ const NOTICE_CASES: { label: string; notices: MatchNotice[] }[] = [
           timing: "WhenDigivolving",
           description: "Draw 1 card.",
         },
-        { side: "opp" },
+        { side: Side.Opponent },
       ),
     ],
   },
@@ -727,16 +733,16 @@ export function BoardShowcase() {
         note="Shields are red for the viewer and blue for the opponent; the glow marks an attackable stack."
       >
         <Case label="yours">
-          <Pile count={5} label="Security" shield="you" />
+          <Pile count={5} label="Security" shield={Side.Viewer} />
         </Case>
         <Case label="opponent">
-          <Pile count={3} label="Security" shield="opp" />
+          <Pile count={3} label="Security" shield={Side.Opponent} />
         </Case>
         <Case label="opponent, attackable">
-          <Pile count={3} label="Security" shield="opp" glow onClick={noop} />
+          <Pile count={3} label="Security" shield={Side.Opponent} glow onClick={noop} />
         </Case>
         <Case label="empty">
-          <Pile count={0} label="Security" shield="you" dim />
+          <Pile count={0} label="Security" shield={Side.Viewer} dim />
         </Case>
         <Case label="deck pile">
           <Pile count={40} label="Deck" />
@@ -755,19 +761,19 @@ export function BoardShowcase() {
         note="What an attack on security plays before the reveal: the defender's shield arms, its pane shatters into shards over a blue burst, and the light washes in from the defender's edge of the board. Held mid-sequence here; in a match the three beats run back to back and reduced motion drops them."
       >
         <Case label="armed (attack declared)">
-          <Pile count={4} label="Security" shield="you" armed />
+          <Pile count={4} label="Security" shield={Side.Viewer} armed />
         </Case>
         <Case label="breaking (yours)">
-          <Pile count={3} label="Security" shield="you" breaking />
+          <Pile count={3} label="Security" shield={Side.Viewer} breaking />
         </Case>
         <Case label="breaking (opponent's)">
-          <Pile count={2} label="Security" shield="opp" breaking />
+          <Pile count={2} label="Security" shield={Side.Opponent} breaking />
         </Case>
         <Stage label="edge flash, viewer attacked" height={220}>
-          <SecurityEdgeFlash scene={{ key: 1, seat: 0, side: "you", seed: 1 }} />
+          <SecurityEdgeFlash scene={{ key: 1, seat: 0, side: Side.Viewer, seed: 1 }} />
         </Stage>
         <Stage label="edge flash, opponent attacked" height={220}>
-          <SecurityEdgeFlash scene={{ key: 2, seat: 1, side: "opp", seed: 2 }} />
+          <SecurityEdgeFlash scene={{ key: 2, seat: 1, side: Side.Opponent, seed: 2 }} />
         </Stage>
       </Section>
 
@@ -778,10 +784,10 @@ export function BoardShowcase() {
         stacked
       >
         <Stage label="viewer's security resolving" height={460}>
-          <SecurityBranch scene={{ key: 1, cardId: CARDS.option, side: "you", state: "docked" }} />
+          <SecurityBranch scene={{ key: 1, cardId: CARDS.option, side: Side.Viewer, state: "docked" }} />
         </Stage>
         <Stage label="opponent's security resolving" height={460}>
-          <SecurityBranch scene={{ key: 2, cardId: CARDS.opponentChampion, side: "opp", state: "settled" }} />
+          <SecurityBranch scene={{ key: 2, cardId: CARDS.opponentChampion, side: Side.Opponent, state: "settled" }} />
         </Stage>
       </Section>
 
@@ -1209,13 +1215,13 @@ export function BoardShowcase() {
         note="A face-up card in the stack is badged; while the stack is a legal target the label says which kind of attack it would be."
       >
         <Stage label="face-up card in the stack" height={160}>
-          <Pile count={4} label="Security" shield="opp" faceUp />
+          <Pile count={4} label="Security" shield={Side.Opponent} faceUp />
         </Stage>
         <Stage label="security attack (cards left)" height={160}>
-          <Pile count={3} label="Security" shield="opp" attackLabel="Security Attack" />
+          <Pile count={3} label="Security" shield={Side.Opponent} attackLabel="Security Attack" />
         </Stage>
         <Stage label="direct attack (stack empty)" height={160}>
-          <Pile count={0} label="Security" shield="opp" attackLabel="Direct Attack" />
+          <Pile count={0} label="Security" shield={Side.Opponent} attackLabel="Direct Attack" />
         </Stage>
       </Section>
 

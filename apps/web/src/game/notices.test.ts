@@ -13,13 +13,14 @@ import {
   REJECTION_LIFETIME_MS,
   type MatchNotice,
 } from "./notices";
+import { Side } from "./side";
 
 const VIEWER: Seat = 0;
 
 function notice(overrides: Partial<MatchNotice> = {}): MatchNotice {
   return {
     id: "n1",
-    side: "you",
+    side: Side.Viewer,
     fromSecurity: false,
     body: { variant: "effect", cardId: "BT1-001" },
     createdAt: 0,
@@ -62,7 +63,7 @@ describe("deletionNoticesFromEvent", () => {
     );
     expect(result).toMatchObject([
       {
-        side: "opp",
+        side: Side.Opponent,
         body: { variant: "deletion", cards: [{ cardId: "BT1-010", artId: "BT1-010_P2" }] },
         createdAt: 42,
       },
@@ -140,7 +141,7 @@ describe("keywordNoticeFromEvent", () => {
   it("calls out a played card that could only have reached the field by DigiXros", () => {
     expect(keywordNoticeFromEvent(played("BT10-066"), VIEWER, "k", 4)).toEqual({
       id: "k",
-      side: "you",
+      side: Side.Viewer,
       fromSecurity: false,
       body: { variant: "keyword", keyword: "digiXros", cardId: "BT10-066" },
       createdAt: 4,
@@ -170,13 +171,13 @@ describe("preventionNoticeFromEvent", () => {
   it("names the keyword that paid, over the card it kept on the board", () => {
     expect(preventionNoticeFromEvent(prevented("Scapegoat"), VIEWER, "k", 4)).toEqual({
       id: "k",
-      side: "you",
+      side: Side.Viewer,
       fromSecurity: false,
       body: { variant: "keyword", keyword: "scapegoat", cardId: "BT1-010" },
       createdAt: 4,
     });
     expect(preventionNoticeFromEvent(prevented("Armor Purge", 1), VIEWER, "k", 0)).toMatchObject({
-      side: "opp",
+      side: Side.Opponent,
       body: { keyword: "armorPurge" },
     });
   });
@@ -198,7 +199,7 @@ describe("effectNoticeFromEvent", () => {
   it("carries the clause and its card for either seat", () => {
     expect(effectNoticeFromEvent(resolved(0), VIEWER, "a", 7)).toEqual({
       id: "a",
-      side: "you",
+      side: Side.Viewer,
       fromSecurity: false,
       body: { variant: "effect", cardId: "BT1-010", timing: "OnPlay", description: "Draw 1." },
       createdAt: 7,
@@ -224,7 +225,7 @@ describe("recoveryNoticeFromEvent", () => {
   it("lands on the recovering player's side", () => {
     expect(recoveryNoticeFromEvent({ kind: "securityRecovered", seat: 1, amount: 2 }, VIEWER, "a", 0)).toEqual({
       id: "a",
-      side: "opp",
+      side: Side.Opponent,
       fromSecurity: false,
       body: { variant: "recovery", amount: 2 },
       createdAt: 0,
@@ -240,7 +241,7 @@ describe("rejectionNotice", () => {
   it("is always the viewer's own", () => {
     expect(rejectionNotice("Not enough memory.", "a", 1)).toEqual({
       id: "a",
-      side: "you",
+      side: Side.Viewer,
       fromSecurity: false,
       body: { variant: "rejection", reason: "Not enough memory." },
       createdAt: 1,
@@ -268,9 +269,9 @@ describe("notice lifetimes", () => {
 
 describe("isOwnEffectNotice", () => {
   it("names the viewer's own clause for one card, and nobody else's", () => {
-    expect(isOwnEffectNotice(notice({ side: "you" }), "BT1-001")).toBe(true);
-    expect(isOwnEffectNotice(notice({ side: "you" }), "BT1-002")).toBe(false);
-    expect(isOwnEffectNotice(notice({ side: "opp" }), "BT1-001")).toBe(false);
+    expect(isOwnEffectNotice(notice({ side: Side.Viewer }), "BT1-001")).toBe(true);
+    expect(isOwnEffectNotice(notice({ side: Side.Viewer }), "BT1-002")).toBe(false);
+    expect(isOwnEffectNotice(notice({ side: Side.Opponent }), "BT1-001")).toBe(false);
     expect(isOwnEffectNotice(notice({ body: { variant: "recovery", amount: 1 } }), "BT1-001")).toBe(false);
   });
 });

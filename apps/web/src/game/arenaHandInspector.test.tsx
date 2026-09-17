@@ -7,6 +7,7 @@ import { I18nProvider } from "../i18n";
 import type { AegisRoom } from "../net/client";
 import type { ActivatableEntry } from "./boardModel";
 import { GameScreen, HandCardPreview } from "./GameScreen";
+import { Side } from "./side";
 
 beforeEach(() => {
   localStorage.clear();
@@ -150,7 +151,7 @@ it("preserves distinct hand effects and art zoom in the shared inspector", () =>
   render(
     <I18nProvider>
       <HandCardPreview
-        arenaInspection={{ side: "you", container: null }}
+        arenaInspection={{ side: Side.Viewer, container: null }}
         cardId="BT10-025"
         activatableEffects={effects}
         canPlay={false}
@@ -174,7 +175,7 @@ it("shows the Option name and effect alongside the Digimon effect for dual cards
   render(
     <I18nProvider>
       <HandCardPreview
-        arenaInspection={{ side: "you", container: null }}
+        arenaInspection={{ side: Side.Viewer, container: null }}
         cardId={card.cardId}
         activatableEffects={[]}
         onActivateEffect={() => undefined}

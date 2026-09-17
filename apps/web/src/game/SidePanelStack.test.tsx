@@ -6,6 +6,7 @@ import { I18nProvider } from "../i18n";
 import { CardOpenerProvider } from "./cardLinks";
 import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
 import { SIDE_PANEL_LIFETIME_MS, type SidePanel } from "./sidePanels";
+import { Side } from "./side";
 
 afterEach(cleanup);
 
@@ -13,7 +14,7 @@ function panel(overrides: Partial<SidePanel> = {}): SidePanel {
   return {
     id: "p1",
     titleKey: "panel.discardedCards",
-    side: "you",
+    side: Side.Viewer,
     cards: [
       { cardId: "BT1-001", badge: 1 },
       { cardId: "BT1-002", badge: 2 },
@@ -51,7 +52,7 @@ describe("SidePanelStack", () => {
   });
 
   it("marks whose cards moved, so the slot it sits in can be read at a glance", () => {
-    renderPanel(panel({ side: "opp" }));
+    renderPanel(panel({ side: Side.Opponent }));
     expect(screen.getByTestId("side-panel").getAttribute("data-side")).toBe("opp");
   });
 
@@ -125,7 +126,7 @@ describe("AttackAnnouncementBanner", () => {
   it("names the attacking card", () => {
     render(
       <I18nProvider>
-        <AttackAnnouncementBanner announcement={{ id: "a", cardId: "BT1-001", side: "opp", createdAt: 0 }} />
+        <AttackAnnouncementBanner announcement={{ id: "a", cardId: "BT1-001", side: Side.Opponent, createdAt: 0 }} />
       </I18nProvider>,
     );
     expect(screen.getByTestId("attack-announcement").textContent).toContain("is attacking");
@@ -136,7 +137,7 @@ describe("AttackAnnouncementBanner", () => {
     render(
       <I18nProvider>
         <CardOpenerProvider onOpenCard={(cardId) => opened.push(cardId)}>
-          <AttackAnnouncementBanner announcement={{ id: "a", cardId: "BT1-001", side: "opp", createdAt: 0 }} />
+          <AttackAnnouncementBanner announcement={{ id: "a", cardId: "BT1-001", side: Side.Opponent, createdAt: 0 }} />
         </CardOpenerProvider>
       </I18nProvider>,
     );

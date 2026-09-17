@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "../i18n";
+import { Side } from "./side";
 import "./arenaControls.css";
 
 export function ArenaCounters({
@@ -10,7 +11,7 @@ export function ArenaCounters({
   deck,
   trash,
 }: {
-  side: "you" | "opp";
+  side: Side;
   eggs: number;
   hand: number;
   deck: number;
@@ -35,7 +36,7 @@ export function ArenaCounters({
     trigger.current = button;
     const rect = button.getBoundingClientRect();
     const width = Math.min(240, window.innerWidth - 16);
-    const above = window.innerHeight - rect.bottom < 80 || side === "you";
+    const above = window.innerHeight - rect.bottom < 80 || side === Side.Viewer;
     setOpen({
       id,
       left: Math.max(8, Math.min(rect.left + rect.width / 2 - width / 2, window.innerWidth - width - 8)),

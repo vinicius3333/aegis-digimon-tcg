@@ -1,6 +1,7 @@
 import type { CardInstance } from "@aegis/shared";
 import { CardBack, CardMini } from "../../design/cards";
 import { deckLayerCount } from "../deckChrome";
+import type { Side } from "../side";
 import { SecurityShieldPile } from "./SecurityShieldPile";
 import type { DropAttrs } from "./types";
 
@@ -39,7 +40,7 @@ export function Pile({
   glow?: boolean;
   compact?: boolean;
   /** Render as a shield-shaped security counter (red for the viewer, blue for the opponent). */
-  shield?: "you" | "opp";
+  shield?: Side;
   /** The stack is under attack: the pane pulses before it breaks. */
   armed?: boolean;
   /** The pane is shattering on a security check. */
