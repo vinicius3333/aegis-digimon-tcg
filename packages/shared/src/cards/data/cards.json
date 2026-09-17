@@ -48007,7 +48007,7 @@
     "effectText": "[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 \n\n[When Digivolving] By trashing the top security card of 1 player with the most security cards, 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.\n[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card from under any of your Tamers, ＜Recovery +1＞ ",
     "isDualCard": true,
     "dualEffect": "Gonozan: Murashigure",
-    "optionEffect": "＜Use Req. ([GlowingDawn] trait)＞ \n[Main] 1 of your opponent's Digimon gets -8000 DP until their turn ends. By trashing your top security card, it further gets -5000 DP.",
+    "optionEffect": "＜Use Req. ([Glowing Dawn] trait)＞ \n[Main] 1 of your opponent's Digimon gets -8000 DP until their turn ends. By trashing your top security card, it further gets -5000 DP.",
     "optionColorRequirements": ["Yellow"],
     "nameJp": "ムラサメモン/豪ノ斬・叢時雨"
   },
@@ -48394,7 +48394,7 @@
     "forms": ["Mega"],
     "attributes": ["Free"],
     "types": ["Insectoid", "Titan", "TS"],
-    "effectText": "[Digivolve] Lv.5 w/[Insectoid]/[TS] trait: Cost 3 \n\nWhen this card would be played, if your hand has fewer cards than your opponent's, reduce the cost by 4.\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may play 1 level 4 or lower [Insectoid] or [Titan] trait Digimon card from your hand without paying the cost.\n[Your Turn] All of your [Insectoid] or [Titan] trait Digimon gain ＜Alliance＞ , ＜Piercing＞ and ＜Vortex＞ ",
+    "effectText": "[Digivolve] Lv.5 w/[Insectoid]/[TS] trait: Cost 3 \n\nWhen this card would be played, if your hand has fewer cards than your opponent's, reduce the cost by 4.\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may play 1 level 4 or lower [Insectoid] or [Titan] trait Digimon card from your hand without paying the cost.\n[Your Turn] All of your [Insectoid] or [Titan] trait Digimon gain ＜Alliance＞ (When this Digimon attacks, by suspending 1 of your other Digimon, add the suspended Digimon's DP to this Digimon and it gains ＜Security A. +1＞ for the attack.), ＜Piercing＞ and ＜Vortex＞ ",
     "nameJp": "グランクワガーモン"
   },
   {
@@ -48734,7 +48734,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Vaccine"],
     "types": ["Beastkin", "Glowing Dawn", "BEATBREAK"],
-    "effectText": "[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 \n\n[When Digivolving] By trashing the bottom face-down card under card from under any of your Tamers, until your opponent's turn ends, their Digimon effects don't affect this Digimon, and it gets +3000 DP. [All Turns] [Once Per Turn] When attack targets change or effects trash cards from under your Tamers, this Digimon may unsuspend.",
+    "effectText": "[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 \n\n[When Digivolving] By trashing the bottom face-down card under card from under any of your Tamers, until your opponent's turn ends, their Digimon effects don't affect this Digimon, and it gets +3000 DP.\n[All Turns] [Once Per Turn] When attack targets change or effects trash cards from under your Tamers, this Digimon may unsuspend.",
     "isDualCard": true,
     "dualEffect": "Penetrate Blow",
     "optionEffect": "＜Use Req. ([GlowingDawn] trait)＞ \n[Main] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
@@ -49438,7 +49438,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Shaman", "Olympos XII", "Iliad", "TS"],
-    "effectText": "[Digivolve] [Minervamon]: Cost 2\n[Digivolve] Lv.5 w/[TS] trait: Cost 4 \n[Assembly -5] [Minervamon]\n\n[On Play] [When Digivolving] You may play up to 8 play cost's total worth of [Iliad] trait cards from your hand or trash without paying the costs. Then, to 1 of your opponent's Digimon, give -4000 DP until their turn ends for each of your [Iliad] or [TS] trait Digimon or Tamers.\n[All Turns] All of your [Iliad] trait Digimon gain ＜Alliance＞ , ＜Reboot＞ , ＜Blocker＞ and +2000 DP.",
+    "effectText": "[Digivolve] [Minervamon]: Cost 2\n[Digivolve] Lv.5 w/[TS] trait: Cost 4 \n[Assembly -5] [Minervamon]\n\n[On Play] [When Digivolving] You may play up to 8 play cost's total worth of [Iliad] trait cards from your hand or trash without paying the costs. Then, to 1 of your opponent's Digimon, give -4000 DP until their turn ends for each of your [Iliad] or [TS] trait Digimon or Tamers.\n[All Turns] All of your [Iliad] trait Digimon gain ＜Alliance＞ (When this Digimon attacks, by suspending 1 of your other Digimon, add the suspended Digimon's DP to this Digimon and it gains ＜Security A. +1＞ for the attack.), ＜Reboot＞ , ＜Blocker＞ and +2000 DP.",
     "nameJp": "メルヴァモン"
   },
   {
