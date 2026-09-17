@@ -8,6 +8,7 @@ import { FIELD_CLASH_GHOST_HEIGHT, FIELD_CLASH_GHOST_WIDTH } from "./screen/cons
 import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { dropZoneAt, permanentVisualElement } from "./screen/dropZones";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
+import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
 import { useTrackingArrow } from "./screen/hooks/useTrackingArrow";
 import { BoardShell } from "./screen/layout/BoardShell";
 import { ActionBar } from "./screen/layout/ActionBar";
@@ -180,7 +181,6 @@ import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { assemblyPossible } from "./assemblyMaterialSelection";
 import { pressGesture, swallowNextClick } from "./pressGesture";
 import { TargetingSpotlight } from "./TargetingSpotlight";
-import type { SpotlightSubject } from "./spotlight";
 import { pendingFateBadges } from "./pendingFate";
 import { buildPermanentDetail } from "./permanentDetail";
 import { hasFaceUpSecurity, securityAttackLabelKey } from "./securityChrome";
@@ -408,8 +408,6 @@ export function GameScreen({
   const [shakeHandInstanceId, setShakeHandInstanceId] = useState<string | undefined>(undefined);
   const lastPlayAttemptRef = useRef<string | undefined>(undefined);
   // Measured boxes of the permanents a target prompt is offering, for the mask.
-  const [spotlightSubjects, setSpotlightSubjects] = useState<readonly SpotlightSubject[]>([]);
-  const [boardSize, setBoardSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
   // Declared before `cues` because the cue hook reports rejections through it;
   // both bodies only run once the other binding exists.
@@ -719,94 +717,15 @@ export function GameScreen({
     if (rejected) setOptimisticPlayedInstanceId(undefined);
   }, [events, optimisticPlayedInstanceId, you]);
 
-  // Re-measured whenever the board's population changes, which is also the commit that
-  // drops a deleted permanent: the survivors are re-measured and the deleted permanent's
-  // last position stays behind for its burst.
-  const battleAreaSignature = `${you?.battleArea.map((p) => p.permanentId).join(",") ?? ""}|${
-    opp?.battleArea.map((p) => p.permanentId).join(",") ?? ""
-  }`;
-  const permInstanceIds = new Map(
-    [...(you?.battleArea ?? []), ...(opp?.battleArea ?? [])].flatMap((perm) =>
-      perm.topCard?.instanceId ? [[perm.permanentId, perm.topCard.instanceId] as const] : [],
-    ),
-  );
-  const permCardIds = new Map(
-    [...(you?.battleArea ?? []), ...(opp?.battleArea ?? [])].flatMap((perm) =>
-      perm.topCard?.cardId ? [[perm.permanentId, perm.topCard.cardId] as const] : [],
-    ),
-  );
-  useEffect(() => {
-    const board = boardRef.current;
-    if (!board) return;
-    const boardRect = board.getBoundingClientRect();
-    for (const [permanentId, element] of Object.entries(permRefs.current)) {
-      if (!element?.isConnected) continue;
-      const rect = permanentVisualElement(element).getBoundingClientRect();
-      if (!rect.width) continue;
-      const center = {
-        x: rect.left + rect.width / 2 - boardRect.left,
-        y: rect.top + rect.height / 2 - boardRect.top,
-      };
-      permCentersRef.current[permanentId] = center;
-      // A deletion by an effect names the card instance rather than the permanent, so the
-      // top card is remembered as a second way in to the same position.
-      const topInstanceId = permInstanceIds.get(permanentId);
-      if (topInstanceId) permCentersRef.current[topInstanceId] = center;
-      const topCardId = permCardIds.get(permanentId);
-      if (topCardId) {
-        permCardIdsRef.current[permanentId] = topCardId;
-        if (topInstanceId) permCardIdsRef.current[topInstanceId] = topCardId;
-      }
-    }
-  }, [battleAreaSignature]);
-
-  // The mask's holes. The prompt's candidate list is written to the ref during
-  // render (it is derived far below, after the connection gates); the boxes are
-  // measured here, and the state is only replaced when the geometry actually
-  // moved, so an effect that runs on every commit still settles in one pass.
-  const spotlightRequestRef = useRef<{ ids: readonly string[]; attacker?: string; security: boolean }>({
-    ids: [],
-    security: false,
-  });
-  const spotlightAppliedRef = useRef("");
-  useEffect(() => {
-    const board = fieldRef.current;
-    const { ids, attacker, security } = spotlightRequestRef.current;
-    if (!board || (ids.length === 0 && !attacker && !security)) {
-      if (spotlightAppliedRef.current !== "") {
-        spotlightAppliedRef.current = "";
-        setSpotlightSubjects([]);
-      }
-      return;
-    }
-    const boardRect = board.getBoundingClientRect();
-    const next: SpotlightSubject[] = [];
-    const subjects = [...ids.map((id) => ({ id, element: permRefs.current[id], ring: true }))];
-    if (attacker) subjects.push({ id: attacker, element: permRefs.current[attacker], ring: false });
-    if (security && oppSecRef.current) subjects.push({ id: "security-opp", element: oppSecRef.current, ring: true });
-    for (const { id, element, ring } of subjects) {
-      if (!element?.isConnected) continue;
-      const rect = permanentVisualElement(element).getBoundingClientRect();
-      if (!rect.width || !rect.height) continue;
-      next.push({
-        id,
-        x: rect.left - boardRect.left,
-        y: rect.top - boardRect.top,
-        width: rect.width,
-        height: rect.height,
-        ring,
-      });
-    }
-    const signature = `${Math.round(boardRect.width)}x${Math.round(boardRect.height)}|${next
-      .map(
-        (subject) =>
-          `${subject.id}:${Math.round(subject.x)}:${Math.round(subject.y)}:${Math.round(subject.width)}:${Math.round(subject.height)}:${subject.ring === false ? 0 : 1}`,
-      )
-      .join(",")}`;
-    if (signature === spotlightAppliedRef.current) return;
-    spotlightAppliedRef.current = signature;
-    setSpotlightSubjects(next);
-    setBoardSize({ width: boardRect.width, height: boardRect.height });
+  const { spotlightRequestRef, spotlightSubjects, boardSize } = useBoardMeasurements({
+    viewer: you,
+    opponent: opp,
+    boardRef,
+    fieldRef,
+    permRefs,
+    permCentersRef,
+    permCardIdsRef,
+    opponentSecurityRef: oppSecRef,
   });
 
   // ----- pre-match / connection gates -----
