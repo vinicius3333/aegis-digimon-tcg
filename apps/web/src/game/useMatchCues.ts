@@ -427,6 +427,53 @@ function remove(ids: ReadonlySet<string>, id: string): ReadonlySet<string> {
   return next;
 }
 
+interface PresentationGate {
+  open: boolean;
+  opened: Promise<void>;
+  release(): void;
+}
+
+const GATE_POLL_MS = 16;
+const CONSEQUENCE_GATE_MAX_MS = 5_000;
+
+function createPresentationGate(): PresentationGate {
+  let openGate = () => {};
+  const opened = new Promise<void>((resolve) => {
+    openGate = resolve;
+  });
+  const gate: PresentationGate = {
+    open: false,
+    opened,
+    release() {
+      if (gate.open) return;
+      gate.open = true;
+      openGate();
+    },
+  };
+  return gate;
+}
+
+async function waitForGate(
+  gate: PresentationGate | null | undefined,
+  context: AnimationStepContext,
+  ceilingMs: number,
+): Promise<void> {
+  if (!gate || gate.open || context.mode === "replay") return;
+  const deadline = Date.now() + ceilingMs;
+  while (!gate.open && !context.cancelled && Date.now() < deadline) {
+    let stopPolling = () => {};
+    const poll = new Promise<void>((resolve) => {
+      const timer = setTimeout(resolve, GATE_POLL_MS);
+      stopPolling = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+    });
+    await Promise.race([gate.opened, poll]);
+    stopPolling();
+  }
+}
+
 function documentHidden(): boolean {
   return typeof document !== "undefined" && document.hidden === true;
 }
@@ -811,13 +858,13 @@ export function useMatchCues({
   const securityDockRef = useRef<{ key: number; closed: boolean } | null>(null);
   // The battle hold the centre of the screen is currently keeping open, if any. Polled the
   // same way the dock is: the check closing is what releases the card into its outcome beat.
-  const securityHoldRef = useRef<{ key: number; closed: boolean } | null>(null);
+  const securityHoldRef = useRef<{ key: number; closed: boolean; handedOver?: boolean } | null>(null);
   // The blow a security battle has yet to land. A field battle makes its losers wait on
   // FIELD_CLASH_TOTAL_MS, a constant, because its scene is a constant; a check's scene is
   // not — its hold runs as long as the server takes to answer what the check asked. So the
   // wait is a gate rather than a duration: it opens when the outcome beat has played, and
   // whatever the check deleted shatters then, not seconds ahead of the battle that did it.
-  const securityBlowRef = useRef<{ key: number; landed: boolean } | null>(null);
+  const securityBlowRef = useRef<{ key: number; landed: boolean; gate: PresentationGate } | null>(null);
   // A used Option has the same open-ended lifetime as a docked Security card: it starts
   // at cardPlayed and closes only when the server confirms its post-resolution routing.
   const optionDockRef = useRef<{ key: number; closed: boolean } | null>(null);
@@ -843,7 +890,9 @@ export function useMatchCues({
   const freezePulseKeyRef = useRef(0);
   const effectSourceKeyRef = useRef(0);
   const optionDockKeyRef = useRef(0);
-  const deletionReadyAtRef = useRef(new Map<string, { readyAt: number; instanceId?: string }>());
+  const deletionReadyAtRef = useRef(
+    new Map<string, { readyAt: number; instanceId?: string; shattered?: PresentationGate }>(),
+  );
   const deckRiffleKeyRef = useRef(0);
   // Where every card the viewer can see currently sits, so an activation can be
   // played at its source and a reshuffle at the pile it landed in.
@@ -995,6 +1044,8 @@ export function useMatchCues({
   }
 
   const effectNarrationTracksRef = useRef(new Map<Seat, string>());
+  const effectAnnounceGateRef = useRef<PresentationGate | null>(null);
+  const causingEffectGateRef = useRef<PresentationGate | null>(null);
 
   /** Publish the clause before the results queued behind its arrival. */
   function enqueueNarrationItem(item: NarrationItem, effectSourceHoldMs: number = TIMINGS.effectSourceHold) {
@@ -1011,6 +1062,9 @@ export function useMatchCues({
           ? CENTER_STAGE_TRACK
           : `burst-${initialSite.permanentId}`
         : undefined;
+    const causingEffectGate = effectAnnounceGateRef.current;
+    const announceGate = body?.variant === "effect" ? createPresentationGate() : null;
+    if (announceGate) effectAnnounceGateRef.current = announceGate;
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
     const precedingTrack = effectNarrationTracksRef.current.get(seat);
     const track =
@@ -1060,6 +1114,7 @@ export function useMatchCues({
         try {
           await runNarrationStep();
         } finally {
+          announceGate?.release();
           if (activation && !linked) {
             const key = activation.key;
             setEffectSources((sources) => sources.filter((source) => source.key !== key));
@@ -1068,6 +1123,8 @@ export function useMatchCues({
 
         async function runNarrationStep() {
           if (context.mode === "replay" || narrationSkipRef.current) return;
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+          if (context.cancelled || narrationSkipRef.current) return;
           if (onPlay && initialSite?.zone === "field") {
             while (
               queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
@@ -1080,9 +1137,10 @@ export function useMatchCues({
           if (context.mode === "live" && body?.variant === "effect") {
             // Let this batch register its deletion beats before locating the source.
             await Promise.resolve();
-            if (/on.?deletion/i.test(body.timing ?? "")) {
-              const deletion = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
-              await context.wait(Math.max(0, (deletion?.readyAt ?? 0) - Date.now()));
+            const shatter = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+            if (shatter) {
+              await waitForGate(shatter.shattered, context, TIMINGS.securityDockMax);
+              await context.wait(Math.max(0, shatter.readyAt - Date.now()));
             }
             if (context.cancelled || narrationSkipRef.current) return;
             const deletion = /on.?deletion/i.test(body.timing ?? "")
@@ -1135,6 +1193,7 @@ export function useMatchCues({
               sources.map((source) => (source.key === key ? { ...source, linked: true } : source)),
             );
           }
+          announceGate?.release();
           reportShown(`narration-step-${item.id}`, context);
           // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
           // single moment, give every clause one readable beat before the next server event
@@ -1143,6 +1202,7 @@ export function useMatchCues({
         }
       },
     });
+    if (announceGate) void queue.idle().then(() => announceGate.release());
   }
 
   /* A lit source belongs to the clause it raised: it goes out when that clause does, not
@@ -1267,6 +1327,7 @@ export function useMatchCues({
       return;
     }
     enqueuePhaseOrderRef.current = phaseOrderFor(fresh);
+    causingEffectGateRef.current = effectAnnounceGateRef.current;
     lastBatchIdRef.current = batchId;
     // Everything enqueued from here belongs to this batch, and the board it is narrated
     // over is the board this batch produced.
@@ -1925,7 +1986,7 @@ export function useMatchCues({
       queuedSecurityKeyRef.current = key;
       // Armed with the reveal and released by the outcome, so anything this check deletes
       // in between waits for the blow instead of shattering over a battle not yet drawn.
-      securityBlowRef.current = { key, landed: false };
+      securityBlowRef.current = { key, landed: false, gate: createPresentationGate() };
       // The board as it is at the reveal — attacker suspended on the field, cards still in
       // security — is what stays on screen until that battle has been drawn. Snapshotted
       // here rather than taken from `previousDrawStateRef`, which lags a render: that copy
@@ -2066,8 +2127,10 @@ export function useMatchCues({
      * because a gate this one-sided wedges the shatter forever if a path forgets it.
      */
     function releaseSecurityBlow(key: number) {
-      if (securityBlowRef.current?.key !== key) return;
-      securityBlowRef.current = { key, landed: true };
+      const blow = securityBlowRef.current;
+      if (blow?.key !== key) return;
+      blow.landed = true;
+      blow.gate.release();
       setHeldBlowState(undefined);
     }
 
@@ -2139,7 +2202,12 @@ export function useMatchCues({
           try {
             while (!context.cancelled && waitedMs < TIMINGS.securityDockMax) {
               const held = securityHoldRef.current;
-              if (held === null || held.key !== key || held.closed) return;
+              if (held === null || held.key !== key) return;
+              if (held.closed) return;
+              if (held.handedOver) {
+                giveUp();
+                return;
+              }
               await context.wait(TIMINGS.securityDockPoll);
               waitedMs += TIMINGS.securityDockPoll;
             }
@@ -3030,6 +3098,8 @@ export function useMatchCues({
       skippable: false,
       run() {
         flushHeldNotices();
+        const held = securityHoldRef.current;
+        if (held?.key === key && !held.closed) held.handedOver = true;
         setPendingRevealKey((current) => (current === key ? null : current));
       },
     });
@@ -3061,6 +3131,7 @@ export function useMatchCues({
     const pulses = diffDpPulses({ previous, next: current, nextKey: dpPulseKeyRef.current });
     if (pulses.length === 0) return;
     dpPulseKeyRef.current += pulses.length;
+    const causingEffectGate = causingEffectGateRef.current;
     for (const pulse of pulses) {
       queue.enqueue({
         id: `dp-pulse-${pulse.key}`,
@@ -3070,6 +3141,8 @@ export function useMatchCues({
         replace: true,
         async run(context) {
           if (context.mode !== "live") return;
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+          if (context.cancelled) return;
           try {
             setDpPulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));
             await context.wait(dpPulseTotalMs(pulse.kind === "debuffFatal"));
@@ -3351,11 +3424,15 @@ export function useMatchCues({
     // The reference client shatters the card's own art rather than swapping it for
     // a generic puff, so the burst carries whichever card was standing there.
     const cardId = metadataCardId ?? anchors.permanentCardId?.(anchorId);
+    const shattered = createPresentationGate();
+    const causingEffectGate = causingEffectGateRef.current;
+    void queue.idle().then(() => shattered.release());
     if (cardId && metadataSeat !== undefined) {
       const now = Date.now();
       deletionReadyAtRef.current.set(`${metadataSeat}:${cardId}`, {
         readyAt: now + delayMs + Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter),
         instanceId: metadataInstanceId,
+        shattered,
       });
     }
     const burst: DeleteBurst = {
@@ -3372,27 +3449,25 @@ export function useMatchCues({
       // own track instead of queueing behind the others.
       track: `deleteBurst-${key}`,
       async run(context) {
-        if (context.mode !== "live") return;
+        if (context.mode !== "live") return shattered.release();
+        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+        if (context.cancelled) return shattered.release();
         // A permanent beaten in battle takes the blow before it breaks.
         if (delayMs > 0) await context.wait(delayMs);
         // A security battle's blow has no duration to wait out: its scene runs as long as
-        // the check takes. Poll for it instead, on the dock's clock and under the dock's
-        // ceiling, so a close that never comes cannot hold the shatter for good. This runs
-        // on the burst's own track, so nothing on centre stage is waiting behind it.
+        // the check takes. Wait on its gate instead, under the dock's ceiling, so a close
+        // that never comes cannot hold the shatter for good. This runs on the burst's own
+        // track, so nothing on centre stage is waiting behind it.
         if (blowKey !== undefined) {
-          let waitedMs = 0;
-          while (!context.cancelled && waitedMs < TIMINGS.securityDockMax) {
-            const blow = securityBlowRef.current;
-            if (blow === null || blow.key !== blowKey || blow.landed) break;
-            await context.wait(TIMINGS.securityDockPoll);
-            waitedMs += TIMINGS.securityDockPoll;
-          }
+          const blow = securityBlowRef.current;
+          if (blow !== null && blow.key === blowKey) await waitForGate(blow.gate, context, TIMINGS.securityDockMax);
         }
-        if (context.cancelled) return;
+        if (context.cancelled) return shattered.release();
         try {
           setDeleteBursts((bursts) => [...bursts, burst]);
           await context.wait(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
         } finally {
+          shattered.release();
           setDeleteBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
         }
       },
