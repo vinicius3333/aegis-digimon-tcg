@@ -191,7 +191,7 @@ export function observe(engine: GameEngine) {
 
     /** The activatable-effect payload the client would see for a permanent. */
     activatableEffects(permanent: Permanent): ActivatableEffectObservation[] {
-      internals.syncActivatableEffects();
+      internals.projection.syncActivatableEffects();
       if (permanent.activatableEffectsJson === "") return [];
       const parsed: unknown = JSON.parse(permanent.activatableEffectsJson);
       if (!Array.isArray(parsed) || !parsed.every(isActivatableEffectObservation)) {

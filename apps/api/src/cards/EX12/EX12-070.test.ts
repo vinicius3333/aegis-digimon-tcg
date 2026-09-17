@@ -189,7 +189,10 @@ describe("EX12-070 Sanmyojin Arrival", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX12-063", as: "victim" }, { card: "EX12-070", as: "established" }],
+          battleArea: [
+            { card: "EX12-063", as: "victim" },
+            { card: "EX12-070", as: "established" },
+          ],
           hand: [
             { card: "EX12-070", as: "option" },
             { card: "EX12-063", as: "payment" },

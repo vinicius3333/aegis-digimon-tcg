@@ -36,7 +36,7 @@ interface ActivatableEntry {
   description: string;
 }
 function activatableEffects(s: EngineSetup, perm: { activatableEffectsJson?: string }): ActivatableEntry[] {
-  (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+  (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
   return perm.activatableEffectsJson ? (JSON.parse(perm.activatableEffectsJson) as ActivatableEntry[]) : [];
 }
 

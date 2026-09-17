@@ -23,7 +23,7 @@ describe("Memory Boost support package", () => {
     for (let index = 0; index < cards.length; index += 1) {
       const delay = s.perm(`boost${index}`);
       delay.enterFieldTurnCount = s.state.turnCount - 1;
-      (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+      (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
       const entries = JSON.parse(delay.activatableEffectsJson ?? "[]") as Array<{
         instanceId: string;
         effectKey: string;

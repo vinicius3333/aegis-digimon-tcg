@@ -37,7 +37,8 @@ export interface EngineInternals {
   /** Main is open but its start-of-main timing has not finished handing over the turn yet. */
   readonly mainEntryPending: boolean;
   recomputeContinuousEffects(): Promise<void>;
-  syncActivatableEffects(): void;
+  /** The engine's board projections (gameEngine/projections.ts). */
+  readonly projection: { syncActivatableEffects(): void };
   hasAnyMainPhaseAction(seat: Seat): boolean;
   fireTiming(timing: EffectTiming, trigger?: TriggerInfo): Promise<void>;
   fireTimingForPermanent(timing: EffectTiming, permanent: Permanent, trigger?: TriggerInfo): Promise<void>;

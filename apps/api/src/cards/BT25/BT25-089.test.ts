@@ -13,7 +13,7 @@ function activatableEffects(
   s: ReturnType<typeof setupEngine>,
   permanent: { activatableEffectsJson?: string },
 ): ActivatableEntry[] {
-  (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+  (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
   return permanent.activatableEffectsJson ? (JSON.parse(permanent.activatableEffectsJson) as ActivatableEntry[]) : [];
 }
 

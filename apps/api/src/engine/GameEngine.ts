@@ -5,9 +5,6 @@ import type { Client } from "colyseus";
 import {
   CardKind,
   getCardDefinition,
-  AppFusionRoute,
-  DigivolveRoute,
-  digivolutionRequirementsFor,
   GameState,
   PlayerState,
   EffectTiming,
@@ -42,7 +39,7 @@ import { GameStateAccess, insertCard, markRoutedUsedOption, setTopCard, takeTop 
 import { CombatController, type CombatTrigger } from "./combat/controller.js";
 import { detachLeaveReplacements, detachTraitTokens } from "./effects/detach.js";
 import { guardLeaveReplacements } from "./effects/guard.js";
-import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
+import { canAttackerDeclare } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
 import { WinCheck, runSecurityCheck, type SecurityCheckDeps, type SecurityCheckReason } from "./security/index.js";
@@ -74,7 +71,6 @@ import {
 import {
   validateActivateEffect,
   applyActivateEffect,
-  ACTIVATE_TIMING,
   type ActivateEffectIntent,
   type ActivateEffectDeps,
 } from "./actions/activateEffect.js";
@@ -92,7 +88,7 @@ import {
   effectiveTraits,
 } from "./effects/continuous.js";
 import { blastDnaChoices } from "./actions/blastDnaDigivolve.js";
-import { linkEligible, linkMax } from "./effects/mindLink.js";
+import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription, type SubTriggerTurnLedger } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "./effects/digivolutionTrashRedirect.js";
@@ -201,14 +197,7 @@ import {
   type RespondCounterDeps,
   type RespondCounterIntent,
 } from "./actions/index.js";
-import {
-  ATTACK_BLOCKED_INTENTS,
-  isBlastDigivolve,
-  NO_DIGIVOLVE_TARGETS,
-  NO_LINK_TARGETS,
-  NO_PROJECTED_COST,
-  playableFromHand,
-} from "./gameEngine/intentGating.js";
+import { ATTACK_BLOCKED_INTENTS, isBlastDigivolve, playableFromHand } from "./gameEngine/intentGating.js";
 import {
   mapAssemblyReason,
   mapBreedingReason,
@@ -220,14 +209,9 @@ import {
 } from "./gameEngine/rejectionReasons.js";
 import { linkRequirementSatisfied } from "./gameEngine/boardQueries.js";
 import { mergeRuleDeletions, type PooledRuleDeletion } from "./gameEngine/ruleDeletions.js";
+import { BoardProjection } from "./gameEngine/projections.js";
 import { RuleChecks } from "./gameEngine/ruleChecks.js";
-import {
-  clearAttackProjection,
-  replaceAppFusionRoutesIfChanged,
-  replaceDigivolveRoutesIfChanged,
-  replaceIfChanged,
-  sameNumericMap,
-} from "./gameEngine/schemaSync.js";
+import { sameNumericMap } from "./gameEngine/schemaSync.js";
 import { securityStrikeCount } from "./gameEngine/securityStrike.js";
 import {
   digivolvedFromTamerBase,
@@ -544,6 +528,8 @@ export class GameEngine {
   private readonly primitives: Primitives;
   /** The §17-1-3 state-based-action sweeps (the fixpoint that drives them stays here). */
   private readonly ruleChecks: RuleChecks;
+  /** The client-visible derivations of the board (keywords, affordances, targets). */
+  private readonly projection: BoardProjection;
   /** The player-decision API (ctx.ask.*) backed by the DecisionManager. */
   private readonly decisionApi: DecisionApi;
   /** The stack-resolver's controller prompts (chooseOrder / askOptional). */
@@ -712,6 +698,25 @@ export class GameEngine {
       requestDecision: (seat, req) => this.hooks.requestDecision(seat, req),
     });
     this.primitives = this.buildPrimitives();
+    this.projection = new BoardProjection({
+      state: this.state,
+      access: this.access,
+      continuous: this.continuous,
+      modifiers: this.modifiers,
+      memory: this.memory,
+      tracker: this.tracker,
+      continuousDpSeedState: this.continuousDpSeedState,
+      acceptedBlitzAttackers: this.acceptedBlitzAttackers,
+      effectEnvironment: (trigger) => this.effectEnvironment(trigger),
+      buildEffectContext: (source, trigger) => this.buildEffectContext(source, trigger),
+      isNewlyPlayedRushAttacker: (permanentId) => this.isNewlyPlayedRushAttacker(permanentId),
+      listCandidateInstances: () => this.listCandidateInstances(),
+      validateAppFusion: (seat, intent) => this.validateAppFusion(seat, intent),
+      attackDeps: () => this.attackDeps(),
+      digivolveDeps: () => this.digivolveDeps(),
+      playCardDeps: () => this.playCardDeps(),
+      linkCardDeps: () => this.linkCardDeps(),
+    });
     this.ruleChecks = new RuleChecks({
       state: this.state,
       access: this.access,
@@ -1405,7 +1410,7 @@ export class GameEngine {
 
     // 1. Activatable [Main] effects on every zone the projection covers: battle area,
     //    breeding, hand ([Hand][Main]) and trash ([Trash][Main]).
-    this.syncActivatableEffects();
+    this.projection.syncActivatableEffects();
     const effectPermanents = [...player.battleArea];
     if (player.breeding !== undefined) effectPermanents.push(player.breeding);
     for (const perm of effectPermanents) {
@@ -1416,7 +1421,7 @@ export class GameEngine {
     }
 
     // 1b. Declare a link (§6-5-1-4) from hand or from a battle-area top card.
-    this.syncLinkTargets();
+    this.projection.syncLinkTargets();
     for (const instance of player.hand) {
       if (instance.linkTargetPermanentIds.length > 0) return true;
     }
@@ -1636,20 +1641,9 @@ export class GameEngine {
         sweep("nextUntap");
         break;
     }
-    this.recomputeExpiredAffectationRecipients();
+    this.projection.recomputeExpiredAffectationRecipients();
     // Re-derive the persistent tier from the post-sweep board.
     await this.recomputeContinuousEffects();
-  }
-
-  /**
-   * A Digimon that just lost "isn't affected by effects" is affected again by an effect it was
-   * given while immune (KB Q5328). The DP ledger suppresses such a modifier live but keeps the
-   * stored `currentDP` until something recomputes it, so recompute each recipient here.
-   */
-  private recomputeExpiredAffectationRecipients(): void {
-    for (const permanentId of this.continuous.takeExpiredAffectationRecipients()) {
-      this.modifiers.recomputeDP(this.state, permanentId);
-    }
   }
 
   /** Open an identity token for one battle, so nested battles do not sweep parent grants. */
@@ -1669,7 +1663,7 @@ export class GameEngine {
   private async sweepBattleDurations(scopeId?: number): Promise<void> {
     this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
     this.continuous.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
-    this.recomputeExpiredAffectationRecipients();
+    this.projection.recomputeExpiredAffectationRecipients();
     await this.recomputeContinuousEffects();
     if (scopeId !== undefined) this.endBattleScope(scopeId);
   }
@@ -1680,7 +1674,7 @@ export class GameEngine {
       this.modifiers.sweep(this.state, boundary, this.state.turnSeat);
       this.continuous.sweep(this.state, boundary, this.state.turnSeat);
     }
-    this.recomputeExpiredAffectationRecipients();
+    this.projection.recomputeExpiredAffectationRecipients();
     await this.recomputeContinuousEffects();
   }
 
@@ -3573,12 +3567,12 @@ export class GameEngine {
         // pass with the previous pass's DP deltas so the dependency chain can reach a fixpoint.
         // The cap protects the resolver from a genuinely oscillating set of card effects.
         const maxFixpointPasses = 32;
-        let seed = this.continuousDpSeeds();
+        let seed = this.projection.continuousDpSeeds();
         let converged = false;
         for (let pass = 0; pass < maxFixpointPasses; pass++) {
           await this.continuousScope.run(true, () => this.runContinuousPass(noPromptAsk, seed));
-          this.updateContinuousDpSeeds();
-          const next = this.continuousDpSeeds();
+          this.projection.updateContinuousDpSeeds();
+          const next = this.projection.continuousDpSeeds();
           if (sameNumericMap(seed, next)) {
             converged = true;
             break;
@@ -3590,13 +3584,13 @@ export class GameEngine {
         }
       } while (this.recomputeQueued);
 
-      this.syncActivatableEffects();
-      this.syncKeywords();
-      this.syncSummoningSickness();
-      this.syncRestrictions();
-      this.syncAttackTargets();
-      this.syncHandAffordances();
-      this.syncLinkTargets();
+      this.projection.syncActivatableEffects();
+      this.projection.syncKeywords();
+      this.projection.syncSummoningSickness();
+      this.projection.syncRestrictions();
+      this.projection.syncAttackTargets();
+      this.projection.syncHandAffordances();
+      this.projection.syncLinkTargets();
     });
     this.recomputeInFlight = task;
     try {
@@ -3604,118 +3598,6 @@ export class GameEngine {
     } finally {
       if (this.recomputeInFlight === task) this.recomputeInFlight = undefined;
     }
-  }
-
-  /** Capture continuous DP deltas without including one-shot duration modifiers. */
-  private continuousDpSeeds(): Map<string, number> {
-    const seeds = new Map<string, number>();
-    const liveIds = new Set<string>();
-    for (const player of this.state.players) {
-      const permanents = player.breeding === undefined ? player.battleArea : [...player.battleArea, player.breeding];
-      for (const permanent of permanents) {
-        liveIds.add(permanent.permanentId);
-        const seed = this.continuousDpSeedState.get(permanent.permanentId);
-        if (seed !== undefined && seed !== 0) seeds.set(permanent.permanentId, seed);
-      }
-    }
-    for (const permanentId of this.continuousDpSeedState.keys()) {
-      if (!liveIds.has(permanentId)) this.continuousDpSeedState.delete(permanentId);
-    }
-    return seeds;
-  }
-
-  private updateContinuousDpSeeds(): void {
-    const liveIds = new Set<string>();
-    for (const player of this.state.players) {
-      const permanents = player.breeding === undefined ? player.battleArea : [...player.battleArea, player.breeding];
-      for (const permanent of permanents) {
-        const permanentId = permanent.permanentId;
-        liveIds.add(permanentId);
-        if (!this.modifiers.hasContinuousDp(permanentId)) {
-          this.continuousDpSeedState.delete(permanentId);
-          continue;
-        }
-        const contribution = this.modifiers.continuousDpSeed(this.state, permanentId);
-        if (contribution === 0) this.continuousDpSeedState.delete(permanentId);
-        else this.continuousDpSeedState.set(permanentId, contribution);
-      }
-    }
-    for (const permanentId of this.continuousDpSeedState.keys()) {
-      if (!liveIds.has(permanentId)) this.continuousDpSeedState.delete(permanentId);
-    }
-  }
-
-  /**
-   * The number of security cards an attack by `permanentId` checks. Single reader for both
-   * the live security-check loop (`strikeFor`) and the {@link syncRestrictions}
-   * projection, so the inspector value cannot drift from the rule.
-   */
-  private securityStrikeFor(permanentId: string): number {
-    // When SA-sign inversion is active on the attacker, each existing ＜Security Attack ±N＞
-    // grant has its amount NEGATED per-instance before summing (two ＜SA -1＞ → two ＜SA +1＞ =
-    // +2 to the strike, NOT ＜SA +2＞ recomputed). The sign is applied per grant inside the
-    // reduce, so the composition is faithful to the per-instance flip with no value math here.
-    const invert = this.continuous.securityAttackInverted(permanentId);
-    const saGrants = this.continuous.grantedKeywords(permanentId).filter((g) => g.keyword === "SecurityAttack");
-    return securityStrikeCount(saGrants, invert);
-  }
-
-  /**
-   * Publish the blanket restrictions imposed on each permanent, plus its resolved
-   * ＜Security Attack＞ count. Both seats and every phase, like {@link syncSummoningSickness}
-   * and unlike {@link syncAttackTargets}: these are board-state facts about the permanent
-   * itself, not "can this attack be declared right now", so the client can pulse a freeze
-   * the moment a restriction lands, wear a standing debuff badge for as long as one holds,
-   * and show a truthful strike count in the inspector.
-   */
-  private syncRestrictions(): void {
-    for (const player of this.state.players) {
-      for (const perm of player.battleArea) this.projectRestrictions(perm);
-      // A permanent in the raising area can neither attack nor block by the rules of the
-      // area itself, so those two have nothing to add there; the unsuspend and [When
-      // Digivolving] locks do apply in the raising area, and {@link projectRestrictions}
-      // publishes every one of them from the same ledger the rules read.
-      if (player.breeding) this.projectRestrictions(player.breeding);
-    }
-  }
-
-  private projectRestrictions(perm: Permanent): void {
-    perm.immuneToOpponentDigimonEffects = this.continuous.hasRestriction(perm.permanentId, "beAffected", "Digimon", {
-      byOpponentEffect: true,
-    });
-    perm.immuneToOpponentOptionEffects = this.continuous.hasRestriction(perm.permanentId, "beAffected", "Option", {
-      byOpponentEffect: true,
-    });
-    perm.immuneToOpponentTamerEffects = this.continuous.hasRestriction(perm.permanentId, "beAffected", "Tamer", {
-      byOpponentEffect: true,
-    });
-    perm.protectedFromDpReduction = this.continuous.hasRestriction(perm.permanentId, "dpImmune", undefined, {
-      byOpponentEffect: true,
-    });
-    perm.protectedFromDeDigivolve = this.continuous.hasRestriction(perm.permanentId, "cantBeDeDigivolved", undefined, {
-      byOpponentEffect: true,
-    });
-    perm.protectedFromEffectDeletion = this.continuous.hasRestriction(perm.permanentId, "beDeleted", undefined, {
-      byOpponentEffect: true,
-    });
-    perm.protectedFromEffectReturn = this.continuous.hasRestriction(perm.permanentId, "beReturned", undefined, {
-      byOpponentEffect: true,
-    });
-    perm.cannotAttack = this.continuous.hasRestriction(perm.permanentId, "attack");
-    perm.cannotBlock = this.continuous.hasRestriction(perm.permanentId, "block");
-    perm.cannotSuspend = this.continuous.hasRestriction(perm.permanentId, "suspend");
-    perm.cannotDigivolve = this.continuous.hasRestriction(perm.permanentId, "digivolve");
-    perm.cannotUnsuspend = this.continuous.hasRestriction(perm.permanentId, "unsuspend");
-    perm.cannotActivateWhenDigivolving = this.continuous.hasRestriction(
-      perm.permanentId,
-      "cannotActivateWhenDigivolving",
-    );
-    perm.securityAttack = this.securityStrikeFor(perm.permanentId);
-    const invert = this.continuous.securityAttackInverted(perm.permanentId);
-    perm.securityAttackModifier = this.continuous
-      .grantedKeywords(perm.permanentId)
-      .filter((grant) => grant.keyword === "SecurityAttack")
-      .reduce((sum, grant) => sum + (grant.amount ?? 1) * (invert ? -1 : 1), 0);
   }
 
   /**
@@ -3845,406 +3727,11 @@ export class GameEngine {
     // a CONTINUOUS `suspend` restriction per affected permanent. Done here (not in a card's
     // resolve) because the exempt set is a computed exclusion over the live board, recomputed each
     // pass so it tracks plays/digivolves/removals (KB Q5250/Q5252; Q6025/Q6026 all-restricted).
-    this.applySuspendRestrictionRecompute();
+    this.projection.applySuspendRestrictionRecompute();
 
     // A seed is only an input to this pass. Recompute every seeded permanent from the rebuilt
     // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.
     for (const permanentId of seed.keys()) this.modifiers.recomputeDP(this.state, permanentId);
-  }
-
-  /**
-   * BT23-024 suspend-restriction-with-superlative-exception. For each ARMED source (its [All
-   * Turns] link trigger fired `ArmSuspendRestriction` this turn), restrict every OPPONENT
-   * battle-area Digimon from suspending EXCEPT the recomputed highest-play-cost one. The exempt
-   * set tracks the live board: a newly-played higher-cost Digimon becomes exempt and the prior
-   * top loses its exemption (Q5250/Q5251); removing the top re-exempts the next (Q5252); if no
-   * opponent Digimon has a play cost, NONE is exempt and all are restricted (Q6025/Q6026). The
-   * recorded restrictions are CONTINUOUS, so the recompute's `clearContinuous` drops the prior
-   * pass's set before this re-derives it — no accumulation (CR-01). The consume-site is
-   * combat/legality.canAttackerDeclare (a "can't suspend" Digimon can't declare a tapping attack).
-   */
-  private applySuspendRestrictionRecompute(): void {
-    for (const player of this.state.players) {
-      for (const armer of player.battleArea) {
-        if (!this.continuous.hasSuspendRestrictionSource(armer.permanentId)) continue;
-        const opponentSeat = this.access.opponentOf(armer.controllerSeat);
-        const opponentDigimon = this.access
-          .player(opponentSeat)
-          .battleArea.filter((p) => this.access.isBattleAreaDigimon(p));
-        const exemptIds = this.highestPlayCostExemptions(opponentDigimon);
-        for (const target of opponentDigimon) {
-          if (exemptIds.has(target.permanentId)) continue;
-          this.continuous.addRestriction(target.permanentId, "suspend", EffectDuration.UntilOpponentTurnEnd, {
-            continuous: true,
-          });
-        }
-      }
-    }
-  }
-
-  /**
-   * The set of permanents EXEMPT from the BT23-024 suspend restriction: those tied for the highest
-   * play cost in `pool`. Permanents with no play cost never qualify (Q6025/Q6026 — when NONE has a
-   * cost the set is empty and all are restricted). On a tie the KB exempts EACH highest-cost
-   * Digimon (Q5249 "either can be suspended"), so the whole tied group is returned.
-   */
-  private highestPlayCostExemptions(pool: readonly Permanent[]): Set<string> {
-    let best = Number.NEGATIVE_INFINITY;
-    const costs = new Map<string, number>();
-    for (const p of pool) {
-      if (p.topCard === undefined) continue;
-      const cost = lookupDefinition(p.topCard.cardId)?.playCost;
-      // Negative play costs are sentinels for tokens / cards with no printed play cost;
-      // they must not become the highest-cost exemption when every candidate is uncosted.
-      if (cost === undefined || cost < 0) continue;
-      costs.set(p.permanentId, cost);
-      if (cost > best) best = cost;
-    }
-    const exempt = new Set<string>();
-    if (best === Number.NEGATIVE_INFINITY) return exempt; // no opponent Digimon has a play cost
-    for (const [id, cost] of costs) if (cost === best) exempt.add(id);
-    return exempt;
-  }
-
-  /**
-   * Recompute which [Main] activated abilities are currently usable for the turn
-   * player's battle-area/breeding permanents, hand cards and trash cards. The server projects the result
-   * onto each source so the client can render affordances without embedding rules
-   * logic. Hand is private state; loose-card projections are cleared before every
-   * pass so an ability cannot leak after the card changes zones.
-   */
-  private syncActivatableEffects(): void {
-    for (const instance of this.listCandidateInstances()) instance.activatableEffectsJson = "";
-    for (const player of this.state.players) {
-      for (const p of player.battleArea) p.activatableEffectsJson = "";
-      if (player.breeding) player.breeding.activatableEffectsJson = "";
-    }
-    if (this.state.phase !== Phase.Main) return;
-
-    const turnPlayer = this.state.players[this.state.turnSeat];
-    if (!turnPlayer) return;
-
-    const activatablePermanents = [...turnPlayer.battleArea];
-    if (turnPlayer.breeding !== undefined) activatablePermanents.push(turnPlayer.breeding);
-    for (const perm of activatablePermanents) {
-      const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-      const candidates = [perm.topCard, ...perm.stack, ...perm.linked].filter(Boolean);
-      for (const { source, effect } of this.activatableEffectsFor(candidates)) {
-        entries.push({
-          instanceId: source.instanceId,
-          effectKey: effect.effectKey,
-          description: effect.description,
-        });
-      }
-      perm.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
-    }
-
-    for (const instance of turnPlayer.hand) {
-      const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-      for (const { source, effect } of this.activatableEffectsFor([instance])) {
-        entries.push({
-          instanceId: source.instanceId,
-          effectKey: effect.effectKey,
-          description: effect.description,
-        });
-      }
-      instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
-    }
-
-    // `[Trash][Main]` abilities are activated from their card's actual trash-zone
-    // instance (Q5653), just as hand-resident Main abilities are projected from hand.
-    // `canTrigger` keeps ordinary Main effects out because only effects registered with
-    // `isFromTrash` accept a source whose current zone is trash.
-    for (const instance of turnPlayer.trash) {
-      const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-      for (const { source, effect } of this.activatableEffectsFor([instance])) {
-        entries.push({
-          instanceId: source.instanceId,
-          effectKey: effect.effectKey,
-          description: effect.description,
-        });
-      }
-      instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
-    }
-  }
-
-  /**
-   * Collect currently usable [Main] effects for these physical cards, including
-   * own effects conferred from a buried digivolution card onto its host.
-   */
-  private activatableEffectsFor(instances: readonly CardInstance[]): CollectedEffect[] {
-    return gatherTriggeredEffects(this.effectEnvironment({}), ACTIVATE_TIMING, instances).filter((collected) =>
-      canActivate(collected.effect, this.activationContext(collected), this.tracker),
-    );
-  }
-
-  /** Build a direct-activation context while retaining stack-conferral provenance. */
-  private activationContext(collected: CollectedEffect): EffectContext {
-    return {
-      ...this.buildEffectContext(collected.source, {}),
-      activeTiming: collected.effect.irTrigger ?? EffectTiming[ACTIVATE_TIMING],
-      activeEffectText: collected.effect.description,
-      activeEffectKey: collected.effect.effectKey,
-      ...(collected.conferredToPermanentId === undefined
-        ? {}
-        : { conferredToPermanentId: collected.conferredToPermanentId }),
-      ...(collected.conferralGranterInstanceId === undefined
-        ? {}
-        : { conferralGranterInstanceId: collected.conferralGranterInstanceId }),
-    };
-  }
-
-  /**
-   * Re-derive each permanent's resolved keyword list (printed icons ∪ continuous grants)
-   * into the synchronized `Permanent.keywords` field so the client can drive keyword-gated
-   * affordances (e.g. a ＜Vortex＞ attack) without embedding rules logic. Both seats'
-   * battle areas plus breeding are projected (keywords are public information). Run after
-   * the continuous-recompute pass has re-derived the grant store, so grants are reflected.
-   */
-  private syncKeywords(): void {
-    for (const player of this.state.players) {
-      for (const perm of player.battleArea) this.projectKeywords(perm);
-      if (player.breeding) this.projectKeywords(player.breeding);
-    }
-  }
-
-  private projectKeywords(perm: Permanent): void {
-    const resolved = resolveKeywords(perm, this.continuous);
-    const granted = new Set(this.continuous.grantedKeywords(perm.permanentId).map(({ keyword }) => keyword));
-    // Temporary Piercing grants live in the battle modifier ledger because
-    // combat consumes them directly. Publish that active state too; otherwise
-    // the client either hides a real grant or has to guess from card prose.
-    if (this.modifiers.hasPierce(perm.permanentId) && !resolved.includes("Piercing")) {
-      resolved.push("Piercing");
-      granted.add("Piercing");
-    }
-    replaceIfChanged(perm.keywords, resolved);
-    replaceIfChanged(perm.grantedKeywords, [...granted]);
-    replaceIfChanged(perm.digiXrosNames, this.continuous.grantedDigiXrosNames(perm.permanentId));
-  }
-
-  /**
-   * Publish which permanents entered the field this turn without ＜Rush＞, i.e. which ones
-   * cannot declare an ordinary attack yet (Comprehensive Rules §16-1). Both seats and every
-   * phase, unlike {@link syncAttackTargets}: the client draws the summoning-sickness ring
-   * from this flag and must not re-derive the rule from `enterFieldTurnCount`.
-   */
-  private syncSummoningSickness(): void {
-    for (const player of this.state.players) {
-      for (const perm of player.battleArea) {
-        perm.summoningSick = hasSummoningSickness(perm, this.state.turnCount, this.continuous);
-      }
-      // A permanent in the raising area cannot attack at all, so summoning sickness has
-      // nothing to say about it.
-      if (player.breeding) player.breeding.summoningSick = false;
-    }
-  }
-
-  /**
-   * Publish the exact attack targets accepted by the server's combat legality seam.
-   * This keeps click, drag and highlighting clients correct for unsuspended-target
-   * grants and target-specific restrictions without duplicating card rules in React.
-   */
-  private syncAttackTargets(): void {
-    for (const player of this.state.players) {
-      for (const perm of player.battleArea) clearAttackProjection(perm);
-      if (player.breeding) clearAttackProjection(player.breeding);
-    }
-
-    const seat = this.state.turnSeat;
-    const player = this.state.players[seat];
-    const opponent = this.state.players[this.access.opponentOf(seat)];
-    if (!player || !opponent) return;
-    const deps = this.attackDeps();
-    for (const attacker of player.battleArea) {
-      // Once memory has crossed, only a Blitz opportunity explicitly accepted by the
-      // player is actionable. Before acceptance the decision overlay owns the input.
-      if (
-        this.memory.hasCrossedToOpponent() &&
-        !this.acceptedBlitzAttackers.has(attacker.permanentId) &&
-        !this.isNewlyPlayedRushAttacker(attacker.permanentId)
-      )
-        continue;
-      attacker.canAttackPlayer =
-        validateAttack(deps, seat, {
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "player" },
-        }) === null;
-      for (const defender of opponent.battleArea) {
-        const legal =
-          validateAttack(deps, seat, {
-            attackerPermanentId: attacker.permanentId,
-            target: { kind: "permanent", permanentId: defender.permanentId },
-          }) === null;
-        if (legal) attacker.attackablePermanentIds.push(defender.permanentId);
-      }
-      // The ＜Vortex＞ declaration is a separate legality question (§16-33 / §16-33-1),
-      // so it gets its own pass — but only for a Digimon that actually has the keyword,
-      // which is the overwhelming majority-case skip.
-      if (!attacker.keywords.includes("Vortex")) continue;
-      attacker.canVortexAttackPlayer =
-        validateAttack(deps, seat, {
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "player" },
-          vortex: true,
-        }) === null;
-      for (const defender of opponent.battleArea) {
-        const legal =
-          validateAttack(deps, seat, {
-            attackerPermanentId: attacker.permanentId,
-            target: { kind: "permanent", permanentId: defender.permanentId },
-            vortex: true,
-          }) === null;
-        if (legal) attacker.vortexAttackablePermanentIds.push(defender.permanentId);
-      }
-    }
-  }
-
-  /**
-   * Publish, per card in the turn player's hand, whether it can be played right now and
-   * which of that player's permanents it can legally digivolve onto — the play-side
-   * counterpart to {@link syncAttackTargets}. Hand is private state (`@view`-tagged), so
-   * only its owner receives these fields; every other card's projection is cleared each
-   * pass so an affordance cannot survive a zone change.
-   *
-   * A card whose only affordable route is a material declaration (DigiXros / Assembly)
-   * cannot be validated without the materials the player has not chosen yet, so an
-   * `insufficient-memory` rejection is not treated as unplayable for those cards: the
-   * cost reduction is applied from the declaration. Every other rejection still hides it.
-   */
-  private syncHandAffordances(): void {
-    const seat = this.state.turnSeat;
-    const turnPlayer = this.state.phase === Phase.Main ? this.state.players[seat] : undefined;
-    const active =
-      turnPlayer === undefined
-        ? undefined
-        : {
-            player: turnPlayer,
-            playDeps: this.playCardDeps(),
-            digivolveDeps: this.digivolveDeps(),
-            bases: [...turnPlayer.battleArea, ...(turnPlayer.breeding ? [turnPlayer.breeding] : [])],
-          };
-
-    // Routes are private hand affordances and must not survive a zone change. Clear only
-    // physical instances outside the active turn player's hand; current hand routes are compared
-    // in place below, avoiding schema churn on an unchanged recompute.
-    const activeHand = active?.player.hand;
-    const clearOutsideActiveHand = (instance: CardInstance): void => {
-      if (activeHand?.includes(instance) === true) return;
-      replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
-      replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
-    };
-    for (const player of this.state.players) {
-      for (const instance of [
-        ...player.deck,
-        ...player.eggDeck,
-        ...player.security,
-        ...player.trash,
-        ...player.delayZone,
-      ]) {
-        clearOutsideActiveHand(instance);
-      }
-      if (player.resolvingOption !== undefined) clearOutsideActiveHand(player.resolvingOption);
-      for (const permanent of [...player.battleArea, ...(player.breeding ? [player.breeding] : [])]) {
-        for (const instance of [...permanent.stack, ...permanent.linked]) clearOutsideActiveHand(instance);
-        clearOutsideActiveHand(permanent.topCard);
-      }
-    }
-
-    // One pass that writes each card's final affordance, rather than clearing every hand and
-    // refilling the turn player's: an ArraySchema splice is a wire-level change even when the
-    // contents come back identical, and this projection runs on every continuous recompute.
-    for (const player of this.state.players) {
-      for (const instance of player.hand) {
-        const definition =
-          active !== undefined && player === active.player ? lookupDefinition(instance.cardId) : undefined;
-        if (active === undefined || definition === undefined) {
-          instance.playableFromHand = false;
-          instance.projectedPlayCost = NO_PROJECTED_COST;
-          replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
-          replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
-          replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
-          continue;
-        }
-
-        // A DigiEgg is never played from hand, so it skips the validation entirely.
-        const playCheck = definition.kinds.includes(CardKind.DigiEgg)
-          ? undefined
-          : validatePlayCard(this.state, seat, { type: "playCard", instanceId: instance.instanceId }, active.playDeps);
-        instance.playableFromHand = playCheck !== undefined && playableFromHand(playCheck, instance.cardId);
-        // Only the success branch carries a cost. A card that reads as playable through the
-        // material-route escape hatch was rejected for memory, so it has no figure to publish.
-        instance.projectedPlayCost = playCheck?.ok === true ? playCheck.cost : NO_PROJECTED_COST;
-
-        if (!definition.kinds.includes(CardKind.Digimon)) {
-          replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
-          replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
-          replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
-          continue;
-        }
-        const targets: string[] = [];
-        const digivolveRoutes: DigivolveRoute[] = [];
-        // Every alternate path the card PRINTS, priced one index at a time. The default path
-        // (-1) cannot stand in for them: when a printed EvoCost also matches the server takes
-        // the printed one, and a card may print several alternates at different costs.
-        const alternateIndices = (digivolutionRequirementsFor(instance.cardId) ?? []).map((_, index) => index);
-        const priceRoute = (permanentId: string, alternateRequirementIndex: number, projectedCost: number): void => {
-          const route = new DigivolveRoute();
-          route.permanentId = permanentId;
-          route.alternateRequirementIndex = alternateRequirementIndex;
-          route.projectedCost = projectedCost;
-          digivolveRoutes.push(route);
-        };
-        const appFusionRoutes: AppFusionRoute[] = [];
-        for (const base of active.bases) {
-          const check = validateDigivolve(
-            this.state,
-            seat,
-            { type: "digivolve", permanentId: base.permanentId, instanceId: instance.instanceId },
-            active.digivolveDeps,
-          );
-          if (check.ok) {
-            targets.push(base.permanentId);
-            // -1 = the path an intent that names none takes: the printed EvoCost when it
-            // matches, else the sole alternate/base-granted path.
-            priceRoute(base.permanentId, -1, check.cost);
-            for (const alternateRequirementIndex of alternateIndices) {
-              const alternateCheck = validateDigivolve(
-                this.state,
-                seat,
-                {
-                  type: "digivolve",
-                  permanentId: base.permanentId,
-                  instanceId: instance.instanceId,
-                  alternateRequirementIndex,
-                },
-                active.digivolveDeps,
-              );
-              if (alternateCheck.ok) priceRoute(base.permanentId, alternateRequirementIndex, alternateCheck.cost);
-            }
-          }
-          if (base.controllerSeat === seat) {
-            for (const linked of base.linked) {
-              const fusionCheck = this.validateAppFusion(seat, {
-                type: "appFusion",
-                permanentId: base.permanentId,
-                instanceId: instance.instanceId,
-                linkedInstanceId: linked.instanceId,
-              });
-              if (!fusionCheck.ok) continue;
-              const route = new AppFusionRoute();
-              route.hostPermanentId = base.permanentId;
-              route.linkedInstanceId = linked.instanceId;
-              route.projectedCost = fusionCheck.projectedCost;
-              appFusionRoutes.push(route);
-            }
-          }
-        }
-        replaceIfChanged(instance.digivolveTargetPermanentIds, targets);
-        replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, digivolveRoutes);
-        replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, appFusionRoutes);
-      }
-    }
   }
 
   /**
@@ -5641,7 +5128,7 @@ export class GameEngine {
         // amount NEGATED per-instance before summing (two ＜SA -1＞ → two ＜SA +1＞ = +2 to the
         // strike, NOT ＜SA +2＞ recomputed). The sign is applied per grant inside the reduce, so the
         // composition is faithful to the per-instance flip with no per-permanent value math.
-        return this.securityStrikeFor(attacker.permanentId);
+        return this.projection.securityStrikeFor(attacker.permanentId);
       },
       permanentById: (permanentId) => this.access.permanentById(permanentId),
       fireTiming: async (timing, info) =>
@@ -6179,8 +5666,8 @@ export class GameEngine {
         // turn-end check. If an effect pushed memory across before the throw, no later
         // verb is legal to re-trigger that check, so the Main phase would hang open
         // until a manual endPhase (field bug: api.log 2026-08-20, BT21-021).
-        this.syncAttackTargets();
-        this.syncHandAffordances();
+        this.projection.syncAttackTargets();
+        this.projection.syncHandAffordances();
         this.checkTurnEndAfterVerb();
       },
     };
@@ -6665,7 +6152,7 @@ export class GameEngine {
             this.resolvedBlitzOpportunities.add(candidate);
             if (response.kind === "optional" && response.accept) {
               this.acceptedBlitzAttackers.add(candidate);
-              this.syncAttackTargets();
+              this.projection.syncAttackTargets();
             }
           })
           .finally(() => {
@@ -6756,9 +6243,9 @@ export class GameEngine {
           this.acceptedBlitzAttackers.delete(intent.attackerPermanentId);
           this.crossedMemoryRushAttackers.delete(intent.attackerPermanentId);
           this.resolvedBlitzOpportunities.add(intent.attackerPermanentId);
-          this.syncAttackTargets();
+          this.projection.syncAttackTargets();
           // Combat moves memory, so what the hand can afford moved with it.
-          this.syncHandAffordances();
+          this.projection.syncHandAffordances();
           this.checkTurnEndAfterVerb();
           this.hooks.onActionSettled?.(seat, "attack");
         },
@@ -6825,9 +6312,9 @@ export class GameEngine {
           });
           // Tracker was updated by applyActivateEffect; re-derive the activatable set
           // so the UI reflects the consumed use immediately (maxPerTurn exhausted).
-          this.syncActivatableEffects();
+          this.projection.syncActivatableEffects();
           // An ability that paid or gained memory changes what the hand can afford.
-          this.syncHandAffordances();
+          this.projection.syncHandAffordances();
         }
       },
       (err) => {
@@ -7060,13 +6547,13 @@ export class GameEngine {
     return {
       findInstance: (instanceId) => this.findInstance(instanceId),
       cardSourceOf: (instance) => this.cardSourceOf(instance),
-      activationEffectsFor: (instance) => this.activatableEffectsFor([instance]),
+      activationEffectsFor: (instance) => this.projection.activatableEffectsFor([instance]),
       // A directly-activated [Main] ability has no incoming trigger payload (it is
       // not reacting to another event), so the TriggerInfo is empty. It still carries
       // the named effect's provenance because every nested decision must render this
       // exact [Main]/Delay clause rather than guessing from the card's first text box.
       makeContext: (source, effect, conferredToPermanentId, conferralGranterInstanceId) =>
-        this.activationContext({
+        this.projection.activationContext({
           source,
           effect,
           ...(conferredToPermanentId === undefined ? {} : { conferredToPermanentId }),
@@ -7486,57 +6973,6 @@ export class GameEngine {
       link: (targetPermanentId, instanceIds) => this.primitives.link(targetPermanentId, instanceIds),
       ruleProcess: () => this.ruleProcess(),
     };
-  }
-
-  /**
-   * Publish, on every card the turn player could declare a link with (hand cards and
-   * battle-area top cards, §6-5-1-4), the battle-area Digimon that `validateLinkCard`
-   * accepts as its recipient right now. Cleared on every other instance so a card that
-   * changed zones never keeps a stale affordance.
-   */
-  private syncLinkTargets(): void {
-    const seat = this.state.turnSeat;
-    const turnPlayer = this.state.phase === Phase.Main ? this.state.players[seat] : undefined;
-    const deps = turnPlayer === undefined ? undefined : this.linkCardDeps();
-    const sources = new Set<CardInstance>();
-    if (turnPlayer !== undefined) {
-      for (const instance of turnPlayer.hand) sources.add(instance);
-      for (const permanent of turnPlayer.battleArea) sources.add(permanent.topCard);
-    }
-    for (const player of this.state.players) {
-      const loose = [
-        ...player.hand,
-        ...player.deck,
-        ...player.eggDeck,
-        ...player.security,
-        ...player.trash,
-        ...player.delayZone,
-        ...(player.resolvingOption !== undefined ? [player.resolvingOption] : []),
-      ];
-      for (const permanent of [...player.battleArea, ...(player.breeding ? [player.breeding] : [])]) {
-        loose.push(permanent.topCard, ...permanent.stack, ...permanent.linked);
-      }
-      for (const instance of loose) {
-        if (!sources.has(instance)) replaceIfChanged(instance.linkTargetPermanentIds, NO_LINK_TARGETS);
-      }
-    }
-    if (turnPlayer === undefined || deps === undefined) return;
-    for (const instance of sources) {
-      const targets: string[] = [];
-      const definition = lookupDefinition(instance.cardId);
-      if (definition !== undefined && linkEligible(definition)) {
-        for (const recipient of turnPlayer.battleArea) {
-          const check = validateLinkCard(
-            this.state,
-            seat,
-            { type: "linkCard", instanceId: instance.instanceId, targetPermanentId: recipient.permanentId },
-            deps,
-          );
-          if (check.ok) targets.push(recipient.permanentId);
-        }
-      }
-      replaceIfChanged(instance.linkTargetPermanentIds, targets);
-    }
   }
 
   /**

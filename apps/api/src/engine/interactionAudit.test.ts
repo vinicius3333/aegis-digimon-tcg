@@ -52,7 +52,7 @@ interface ActivatableEntry {
 
 /** The [Main] abilities a permanent currently offers, as the client would see them. */
 function activatableEffects(s: EngineSetup, permanent: { activatableEffectsJson?: string }): ActivatableEntry[] {
-  (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+  (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
   return permanent.activatableEffectsJson ? (JSON.parse(permanent.activatableEffectsJson) as ActivatableEntry[]) : [];
 }
 
