@@ -27,7 +27,7 @@ shape, no default exports, no `utils.ts`. Two rules earn their keep here:
 | 3 | `engine/combat/controller.ts` | 1,964 | types out; class blocked | partial |
 | 4 | `engine/effects/primitives.ts` | 7,033 | medium — 146 mutually recursive verbs | done |
 | 5 | `engine/effects/continuous.ts` | 1,895 | shapes out; ledger blocked | partial |
-| 6 | `engine/GameEngine.ts` | 8,634 | high — its own plan, one slice per commit |
+| 6 | `engine/GameEngine.ts` | 8,634 | four subjects out; class core blocked | partial |
 
 `shared/effects/data.ts` (2,141), `SeriesStore.ts` (1,454) and `AegisRoom.ts`
 (1,199) sit below that line.
@@ -136,3 +136,73 @@ readers. `ContinuousEffectLedger` (1,300 lines) stays whole, for the same reason
 `CombatController` did: 42 private arrays, one per grant kind, with `allEntries`,
 the boundary sweep and the battle-scope machinery walking all of them. One
 sub-ledger per grant kind is a plausible design — and a design decision.
+
+## 6. `GameEngine.ts` → `engine/gameEngine/`
+
+8,634 lines, one class of 207 methods plus the free functions around it. Four
+passes, one commit each, the full API suite green after every one.
+
+| Pass | What moved | Lines |
+| ---- | ---------- | ----- |
+| 1 | the module helpers and shapes around the class | 554 |
+| 2 | the §17-1-3 rule-check sweeps (`RuleChecks`) + `boardQueries` | 331 |
+| 3 | the board projections (`BoardProjection`) | 567 |
+| 4 | the digivolution support paths (`DigivolveSupport`) | 373 |
+
+GameEngine.ts is 6,872 and keeps its path: `securityStrikeCount`,
+`mergeRuleDeletions`, `GameEngineHooks` and `SeatJoinOptions` still re-export
+from it, so none of the 35 import sites moved.
+
+### The seam
+
+A class is not a closure, so the primitives' late-bound context does not
+transfer: a method cannot read another module's `private`. Each pass therefore
+takes the seam this repo already uses for `actions/` — a collaborator over an
+explicit deps interface (`RuleCheckDeps`, `ProjectionDeps`,
+`DigivolveSupportDeps`), built once in the constructor. Collaborators and
+mutable state are passed by reference; anything that must be read live (the
+`ruleProcessing` latch, the lazily built `primitives`) is passed as a thunk.
+
+That makes the deps interface the measure of whether a group is a file move or
+a design decision. Counting each candidate's distinct `this.` references
+outside itself:
+
+| Candidate | Lines | External refs | Verdict |
+| --------- | ----- | ------------- | ------- |
+| projections | 573 | 17 | moved |
+| digivolve support | 394 | 14 | moved |
+| rule checks | 331 | 10 | moved |
+| turn-boundary sweeps | 176 | 12 | left: the ratio stops paying |
+| security check | 394 | 36 | left |
+| sub-triggers | 783 | 28 | left |
+| timing windows | 941 | 51 | left |
+| intent handlers | 947 | 47 | left |
+| deps builders | 1,143 | 92 | left |
+
+**The class core did not split, and should not be forced.** The four groups
+left are the engine's own composition: the deps builders exist to hand `this`
+to `actions/`, and the timing / sub-trigger / intent trio shares the window
+bookkeeping (`activeWindowToken`, the pending and parked pools, the resolution
+depths) that makes one effect resolution ONE event. Threading 50–90 members
+through a deps object would not separate them; it would name the coupling and
+keep it. Splitting them means deciding how the engine is composed — the same
+verdict `CombatController` and `ContinuousEffectLedger` got.
+
+### What the split surfaced
+
+Three tests reached the moved methods through `as unknown as` casts
+(`doRuleProcess`, `anyExcessLinkCards`, `syncActivatableEffects` at 14 sites).
+They now reach the same methods on `engine.ruleChecks` / `engine.projection`,
+and `testkit/internals.ts` — the repo's declared internal seam — carries
+`projection` so the harness has one route rather than fourteen.
+
+`parseLinkCategory` came out as a pure function and got the unit test it never
+had: the four printed `[Link]` header shapes, plus the unrecognized shape that
+must invent no gate.
+
+### Still over 400
+
+`GameEngine.ts` (6,872), `projections.ts` (661) and `digivolveSupport.ts` (442).
+Inside the class the mass is now in single methods — the constructor (342),
+`digivolveDeps` (281), `fireBeforePayCost` (253), `buildPrimitives` (198) — which
+are function-size problems, not grouping problems.
