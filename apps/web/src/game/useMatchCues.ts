@@ -32,6 +32,9 @@ import { batchFacts } from "./match/present/batchFacts";
 import { combatScenes } from "./match/present/combat";
 import { collectBatchAnnouncements } from "./match/present/announcements";
 import { enqueueArrivals } from "./match/present/arrivals";
+import { enqueueAttackAnnouncement } from "./match/present/attackAnnouncement";
+import { enqueueOptionDock } from "./match/present/optionDock";
+import { routeBatchNotices } from "./match/present/noticeRouting";
 import { enqueueBatchSounds } from "./match/present/sounds";
 import { enqueueDeckRiffles } from "./match/present/deckRiffles";
 import { enqueueEffectSources } from "./match/present/effectSources";
@@ -119,8 +122,6 @@ import {
   FIELD_CLASH_TOTAL_MS,
   PLAY_LEAD_IN_BUDGET_MS,
   SECURITY_BRANCH_IN_MS,
-  SECURITY_DOCK_CLOSE_MS,
-  SHOWCASE_TOTAL_MS,
   TIMINGS,
 } from "./timings";
 
@@ -802,157 +803,43 @@ export function useMatchCues({
           phaseOrder: enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current,
         });
       const presenting = raised.length > 0 || opened.length > 0;
-      if (usedOption?.kind === "cardPlayed") {
-        optionDockKeyRef.current += 1;
-        const key = optionDockKeyRef.current;
-        const dock: SecurityBranchScene = {
-          key,
-          cardId: usedOption.cardId,
-          ...(usedOption.artId ? { artId: usedOption.artId } : {}),
-          side: usedOption.seat === viewerSeat ? Side.Viewer : Side.Opponent,
-          state: "docked",
-          source: "option",
-        };
-        optionDockRef.current = { key, closed: optionRouted };
-        enqueue({
-          id: `option-dock-in-${key}`,
-          track: CueTrack.OptionDock,
-          skippable: false,
-          // The dock's own entrance is part of that same wait (see the hold below).
-          blocksDecision: false,
-          async run(context) {
-            setOptionBranch(dock);
-            await context.wait(SECURITY_BRANCH_IN_MS);
-          },
-        });
-        enqueue({
-          id: `option-dock-hold-${key}`,
-          track: CueTrack.OptionDockHold,
-          skippable: false,
-          // Same reason the security dock is excluded from the decision barrier: this hold
-          // waits for the docked Option to finish, and the Option finishes by the viewer
-          // ANSWERING its decision. Blocking the decision on it deadlocks both.
-          blocksDecision: false,
-          async run(context) {
-            // Keep even a one-batch Option long enough for its activated effects to read.
-            let waitedMs = 0;
-            while (!context.cancelled && waitedMs < TIMINGS.optionDockHold) {
-              await context.wait(TIMINGS.securityDockPoll);
-              waitedMs += TIMINGS.securityDockPoll;
-            }
-            // The routing marker says the card left its no-area slot, which for a plain Option
-            // is the end of its resolution. An Option that relocates ITSELF mid-clause (placing
-            // itself as a security card, onto the field) is marked at that placement and goes on
-            // resolving, so the marker alone would pull the card off screen while the viewer is
-            // still answering prompts about it. The dock exists to keep it readable through
-            // exactly those prompts, so an open decision holds it too — under the same ceiling.
-            while (
-              !context.cancelled &&
-              (!optionDockRef.current?.closed || decisionPendingRef.current) &&
-              waitedMs < TIMINGS.securityDockMax
-            ) {
-              await context.wait(TIMINGS.securityDockPoll);
-              waitedMs += TIMINGS.securityDockPoll;
-            }
-            if (optionDockRef.current?.key === key) optionDockRef.current = null;
-            setOptionBranch((current) => (current?.key === key ? { ...current, state: "closing" } : current));
-            await context.wait(SECURITY_DOCK_CLOSE_MS);
-            setOptionBranch((current) => (current?.key === key ? null : current));
-          },
-        });
-      }
-      if (securityReveal) {
-        deferredZoneChanges = zoneChanges;
-        // Split at the play. What the revealed card itself did — its `[Security]` clause —
-        // reads beside it as soon as it is on screen; what the card it PLAYED went on to do
-        // waits for that card to be seen arriving on the field.
-        heldNotices = raised.filter((_, index) => noticeAt[index]! < firstArrivalIndex);
-        heldPanels = opened.filter((_, index) => panelAt[index]! < firstArrivalIndex);
-        afterArrivalNotices = raised.filter((_, index) => noticeAt[index]! >= firstArrivalIndex);
-        afterArrivalPanels = opened.filter((_, index) => panelAt[index]! >= firstArrivalIndex);
-      } else if (revealOnStageRef.current !== null && presenting) {
-        // A reveal from an earlier batch is still holding the centre of the screen, either
-        // mid-clash or parked in its dock. These are that check's consequences, so they
-        // queue behind the reveal on its own track rather than talking over it — behind the
-        // dock's arrival, and behind the card-enter cue this same batch enqueued above.
-        noticeSequenceRef.current += 1;
-        const id = `security-notices-late-${noticeSequenceRef.current}`;
-        heldNoticesRef.current = [...heldNoticesRef.current, ...raised];
-        heldPanelsRef.current = [...heldPanelsRef.current, ...opened];
-        const lateNotices = raised;
-        const latePanels = opened;
-        enqueue({
-          id,
-          track: CueTrack.CenterStage,
-          skippable: false,
-          run() {
-            openHeld(lateNotices, latePanels);
-          },
-        });
-      } else if (arriving && presenting) {
-        const heldForShowcase = showcased ? afterShowcaseNotices : raised;
-        const panelsForShowcase = opened;
-        const deletesFromField = fresh.some(
-          (event) => event.kind === "cardsMoved" && (event.deletedPermanents?.length ?? 0) > 0,
-        );
-        // The clause the played card triggered gets the beat after the showcase to itself:
-        // it is read out, and only then does what it did reach the board. A deletion keeps
-        // the final 200 ms of the source glow under the toast, then breaks immediately.
-        const clauseRead = heldForShowcase.some((notice) => notice.body.variant === "effect");
-        const effectSourceHoldMs = deletesFromField
-          ? TIMINGS.effectSourceHold - TIMINGS.noticeIn
-          : TIMINGS.effectSourceHold;
-        playLeadInMs = showcasePlays
-          ? (showcased ? SHOWCASE_TOTAL_MS : 0) +
-            (clauseRead ? (deletesFromField ? TIMINGS.effectSourceHold : TIMINGS.effectAnnounce) : 0)
-          : 0;
-        enqueue({
-          id: `showcase-notices-${showcaseKeyRef.current}`,
-          track: CueTrack.CenterStage,
-          skippable: false,
-          run() {
-            narrate(heldForShowcase, panelsForShowcase, batchId, effectSourceHoldMs);
-          },
-        });
-        // The prompt this play is about to raise waits behind the same beats through the
-        // decision barrier, which holds it until the presentation has reached the board the
-        // question is about instead of counting a wall clock (Phase 3).
-      } else if (combatLeadInMs > 0 && presenting) {
-        // These read as what the battle caused, so they are raised once the blow has
-        // landed. Their clock starts there too, not at the batch that carried them.
-        noticeSequenceRef.current += 1;
-        const id = `combat-notices-${noticeSequenceRef.current}`;
-        const held = raised;
-        const heldForCombat = opened;
-        enqueue({
-          id,
-          track: "combatNotices",
-          // The wait belongs to the battle, so a skip — or a screen with no animation to
-          // watch — collapses it and the notices read at once.
-          async run(context) {
-            await context.wait(combatLeadInMs);
-            if (context.cancelled) return;
-            narrate(held, heldForCombat, batchId);
-          },
-        });
-      } else {
-        narrate(raised, opened, batchId);
-      }
-      if (announcement) {
-        const shown = announcement;
-        enqueue({
-          id: `attack-announce-${shown.id}`,
-          track: "attackAnnounce",
-          replace: true,
-          skippable: false,
-          async run(context) {
-            setAttackAnnouncement(shown);
-            await context.wait(TIMINGS.attackAnnounce);
-            if (context.cancelled) return;
-            setAttackAnnouncement(null);
-          },
-        });
-      }
+      enqueueOptionDock({
+        usedOption,
+        optionRouted,
+        viewerSeat,
+        optionDockKeyRef,
+        optionDockRef,
+        decisionPendingRef,
+        setOptionBranch,
+        enqueue,
+      });
+      ({ heldNotices, heldPanels, afterArrivalNotices, afterArrivalPanels, deferredZoneChanges, playLeadInMs } =
+        routeBatchNotices({
+          fresh,
+          batchId,
+          raised,
+          opened,
+          noticeAt,
+          panelAt,
+          presenting,
+          arriving,
+          showcased,
+          showcasePlays,
+          afterShowcaseNotices,
+          firstArrivalIndex,
+          zoneChanges,
+          combatLeadInMs,
+          securityReveal,
+          revealOnStageRef,
+          noticeSequenceRef,
+          showcaseKeyRef,
+          heldNoticesRef,
+          heldPanelsRef,
+          narrate,
+          openHeld,
+          enqueue,
+        }));
+      enqueueAttackAnnouncement({ announcement, setAttackAnnouncement, enqueue });
     }
     if (refusal?.kind === "actionRejected") onActionRejected(refusal.reason);
     if (securityAttack?.kind === "attackDeclared") {
