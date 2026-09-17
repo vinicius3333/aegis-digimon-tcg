@@ -47365,7 +47365,7 @@
     "attributes": ["Vaccine"],
     "types": ["Bird", "Iliad", "TS"],
     "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[Start of Your Main Phase] By trashing 1 card with [Chronomon] in its text or the [Shaman] trait from your hand, ＜Draw 1＞ and gain 1 memory.",
-    "inheritedEffectText": "[When Attacking] ＜Draw 1＞ Then, if your hand has 6 or more cards, return 1 card in your hand to the bottom of the deck.",
+    "inheritedEffectText": "[When Attacking] [Once Per Turn] ＜Draw 1＞ Then, if your hand has 6 or more cards, return 1 card in your hand to the bottom of the deck.",
     "nameJp": "ヒョコモン"
   },
   {

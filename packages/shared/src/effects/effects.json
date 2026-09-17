@@ -220200,7 +220200,8 @@
             "condition": { "kind": "zoneCount", "seat": "mine", "zone": "hand", "op": "gte", "value": 6 }
           }
         ],
-        "isInherited": true
+        "isInherited": true,
+        "frequency": "OncePerTurn"
       }
     ],
     "coverage": "full",

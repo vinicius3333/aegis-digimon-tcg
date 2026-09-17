@@ -49,6 +49,7 @@ export const compiled: CompiledCard = {
         },
       ],
       isInherited: true,
+      frequency: "OncePerTurn",
     },
   ],
   coverage: "full",

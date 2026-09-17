@@ -9,7 +9,10 @@ describe("BT26-009 Hyokomon", () => {
   it("compiles both printed clauses with complete coverage", () => {
     expect(compiled).toMatchObject({
       coverage: "full",
-      effects: [{ trigger: "StartOfYourMainPhase" }, { trigger: "WhenAttacking", isInherited: true }],
+      effects: [
+        { trigger: "StartOfYourMainPhase" },
+        { trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" },
+      ],
     });
   });
   it("uses the exact off-color Lv.2 [TS] cost-0 evolution path and rejects a near-match", async () => {
@@ -238,5 +241,31 @@ describe("BT26-009 Hyokomon", () => {
     });
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+  it("[Once Per Turn] gives the inherited attack draw one use per turn across two attacks", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT24-011", as: "host", under: [{ card: "BT26-009" }] },
+          { card: "BT1-009", as: "second" },
+        ],
+        hand: ["BT1-001"],
+        deck: [
+          { card: "BT1-010", as: "first" },
+          { card: "BT1-011", as: "notDrawn" },
+        ],
+      },
+    });
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
+      attackerPermanentId: s.perm("host").permanentId,
+    });
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("first").instanceId);
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
+      attackerPermanentId: s.perm("host").permanentId,
+    });
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("notDrawn").instanceId);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("notDrawn").instanceId]);
   });
 });
