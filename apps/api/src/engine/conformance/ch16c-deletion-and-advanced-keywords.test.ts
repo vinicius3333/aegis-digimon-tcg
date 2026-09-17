@@ -822,7 +822,9 @@ describe("§16-40 <Link +> (comprehensive-0259)", () => {
     plain.linked.push(instance("AD1-005", 0, false), instance("AD1-005", 0, false));
 
     await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
-    const anyExcess = (s.engine as unknown as { anyExcessLinkCards(): boolean }).anyExcessLinkCards();
+    const anyExcess = (
+      s.engine as unknown as { ruleChecks: { anyExcessLinkCards(): boolean } }
+    ).ruleChecks.anyExcessLinkCards();
     expect(anyExcess).toBe(true); // 2 linked cards > base max of 1, with no Link+ grant present
   });
 });

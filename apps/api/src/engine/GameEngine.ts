@@ -55,7 +55,6 @@ import {
   colorsOf,
   cardHasTrait,
   isDigimon,
-  isOption,
   isTamer,
   canDigivolveOntoWithAlternates,
   intrinsicDigivolutionCostReduction,
@@ -219,7 +218,9 @@ import {
   mapLinkReason,
   mapPlayCardReason,
 } from "./gameEngine/rejectionReasons.js";
+import { linkRequirementSatisfied } from "./gameEngine/boardQueries.js";
 import { mergeRuleDeletions, type PooledRuleDeletion } from "./gameEngine/ruleDeletions.js";
+import { RuleChecks } from "./gameEngine/ruleChecks.js";
 import {
   clearAttackProjection,
   replaceAppFusionRoutesIfChanged,
@@ -541,6 +542,8 @@ export class GameEngine {
 
   /** The effect verbs (effect-primitives) bound to this match. */
   private readonly primitives: Primitives;
+  /** The §17-1-3 state-based-action sweeps (the fixpoint that drives them stays here). */
+  private readonly ruleChecks: RuleChecks;
   /** The player-decision API (ctx.ask.*) backed by the DecisionManager. */
   private readonly decisionApi: DecisionApi;
   /** The stack-resolver's controller prompts (chooseOrder / askOptional). */
@@ -709,6 +712,18 @@ export class GameEngine {
       requestDecision: (seat, req) => this.hooks.requestDecision(seat, req),
     });
     this.primitives = this.buildPrimitives();
+    this.ruleChecks = new RuleChecks({
+      state: this.state,
+      access: this.access,
+      continuous: this.continuous,
+      modifiers: this.modifiers,
+      decisions: this.decisions,
+      win: this.win,
+      primitives: () => this.primitives,
+      justLinked: this.justLinked,
+      linkMaxOf: (permanent) => this.linkMaxOf(permanent),
+      isRuleProcessing: () => this.ruleProcessing,
+    });
     this.combat = new CombatController(this.access, {
       emit: this.hooks.emit,
       // Forward the FULL combat trigger so "when this blocks" / "when this deletes in
@@ -990,8 +1005,8 @@ export class GameEngine {
         if (this.ruleProcessing || this.ruleTriggerPool !== undefined) {
           // A trash replacement is entered from the active rule pass. Run only the DP
           // movement processes: the outer pass owns the pooled reactions and its latch.
-          await this.trashNoDpPermanents();
-          await this.deleteZeroDpDigimon();
+          await this.ruleChecks.trashNoDpPermanents();
+          await this.ruleChecks.deleteZeroDpDigimon();
         } else {
           const pool = await this.collectRuleProcessMovements();
           if (!this.state.gameOver) await this.flushRuleTriggerPool(pool);
@@ -5368,7 +5383,7 @@ export class GameEngine {
    */
   private async runRuleProcessFixpoint(): Promise<void> {
     let passes = 0;
-    while (this.doRuleProcess()) {
+    while (this.ruleChecks.doRuleProcess()) {
       if (++passes > GameEngine.MAX_RULE_PROCESS_PASSES) {
         // CR 18-3-2: an infinite loop neither player can stop ends the game in a draw.
         // A non-converging state-based-action fixpoint is exactly that, so resolve the
@@ -5385,29 +5400,29 @@ export class GameEngine {
       this.ruleProcessing = true;
       try {
         // EndGameProcess — any player at a loss condition ⇒ EndGame, then return.
-        if (this.runEndGameProcess()) return;
+        if (this.ruleChecks.runEndGameProcess()) return;
         // BT26-060 Q7082: peeling a Digimon stack down to a no-DP card trashes the invalid
         // remnant at rule-check timing; a normally played Tamer remains a legal permanent.
-        await this.trashInvalidNoDpStackTops();
+        await this.ruleChecks.trashInvalidNoDpStackTops();
         // §17-1-3-2-1 TrashNoDPPermanentProcess — raw DP < 0 ⇒ trash via deletePermanent(byRule).
-        await this.trashNoDpPermanents();
+        await this.ruleChecks.trashNoDpPermanents();
         // §17-1-3-1-1 DigimonLackDPProcess — raw DP == 0 Digimon ⇒ delete via deletePermanent(byRule).
-        await this.deleteZeroDpDigimon();
+        await this.ruleChecks.deleteZeroDpDigimon();
         // §17-1-3-2-3 TrashNonDigimonPermanentProcess — a non-Digimon/non-DigiEgg card in the
         // breeding slot (a Digi-Egg is NOT a violation — CR §4-2-1 treats it as a Digimon).
-        await this.trashBreedingNonDigimon();
+        await this.ruleChecks.trashBreedingNonDigimon();
         // §17-1-3-2-4 CardFaceDownProcess — a permanent whose top card is face-down.
-        await this.trashFaceDownTopCards();
+        await this.ruleChecks.trashFaceDownTopCards();
         // §17-1-3-2-5 DigimonLackLinkMaxCountProcess — linked cards beyond the effective link
         // limit (only the excess is trashed, not the whole permanent).
-        await this.trashExcessLinkCards();
+        await this.ruleChecks.trashExcessLinkCards();
         // §17-1-3-2-6 / §17-1-3-2-7 — a linked card whose own printed <Link> requirement
         // (names/traits) its live host no longer (or never did) satisfy.
-        await this.trashInvalidLinkedCards();
+        await this.ruleChecks.trashInvalidLinkedCards();
         // §17-1-3-2-2 — Option cards in the battle area, except Option cards placed there BY
         // AN EFFECT (`Permanent.placedByEffect`). BT7-102's <Delay> Option (placed via
         // primitives.ts' `placeOptionAsPermanent`, which sets the marker) survives this sweep.
-        await this.trashOptionsInBattleArea();
+        await this.ruleChecks.trashOptionsInBattleArea();
         // "Battle as Tamer" NOT IMPLEMENTED — no such rule was located in Comprehensive Rules
         // Chapter 17 (Rule Checks) or elsewhere. "Tamer cards can't attack" (glossary, CR §4-3)
         // is an attack-DECLARATION legality gate (combat/legality.ts), not a rule-check sweep
@@ -5483,335 +5498,6 @@ export class GameEngine {
     // ordering rules — the already-consumed watchers are skipped by identity.
     for (const { event, payload } of watcherEvents) await this.fireSubTrigger(event, payload);
     if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
-  }
-
-  /**
-   * Whether any state-based action is pending: re-evaluated every
-   * pass so the fixpoint terminates when the board is quiet. Returns false during a pass
-   * (the `ruleProcessing` re-entrancy latch) so an [On Deletion] effect that re-enters
-   * resolution does not recurse into a second concurrent sweep.
-   */
-  private doRuleProcess(): boolean {
-    if (this.ruleProcessing) return false;
-    if (this.state.gameOver) return false;
-    return (
-      this.anyPlayerLost() ||
-      this.anyInvalidNoDpStackTop() ||
-      this.anyNegativeDpToTrash() ||
-      this.anyZeroDpDigimon() ||
-      this.anyBreedingNonDigimon() ||
-      this.anyFaceDownTopCard() ||
-      this.anyExcessLinkCards() ||
-      this.anyInvalidLinkedCards() ||
-      this.anyOptionInBattleArea()
-    );
-  }
-
-  /** #1: resolve pending `lost` flags into a game-over. True iff ended. */
-  private runEndGameProcess(): boolean {
-    return this.win.resolveLossFlags();
-  }
-
-  /** Any player marked lost but not yet resolved into a game-over. */
-  private anyPlayerLost(): boolean {
-    return this.state.players.some((p) => p?.lost === true) && !this.state.gameOver;
-  }
-
-  /** A Digimon stack peeled by an effect until its new top is an invalid no-DP remnant (BT26-060 Q7082). */
-  private anyInvalidNoDpStackTop(): boolean {
-    return this.battleAreaPermanents().some((permanent) => permanent.invalidNoDpStackTop);
-  }
-
-  /** Trash invalid no-DP remnants before the ordinary DP and kind rule checks. */
-  private async trashInvalidNoDpStackTops(): Promise<void> {
-    const ids = this.battleAreaPermanents()
-      .filter((permanent) => permanent.invalidNoDpStackTop)
-      .map((permanent) => permanent.permanentId);
-    if (ids.length > 0) await this.primitives.trashPermanentByRule(ids);
-  }
-
-  /** All battle-area permanents across both players (top-card present). */
-  private battleAreaPermanents(): Permanent[] {
-    const out: Permanent[] = [];
-    for (const player of this.state.players) {
-      if (player === undefined) continue;
-      for (const perm of player.battleArea) {
-        if (perm.topCard !== undefined) out.push(perm);
-      }
-    }
-    return out;
-  }
-
-  /**
-   * #3 predicate — a permanent whose RAW DP is below 0 and is a battle-area Digimon
-   *. `currentDP` floors at 0, so the rule check reads the unclamped
-   * Phase-4 territory and omitted with the rest of the option lifecycle.)
-   */
-  private anyNegativeDpToTrash(): boolean {
-    return this.battleAreaPermanents().some(
-      (p) =>
-        this.access.isBattleAreaDigimon(p) &&
-        this.modifiers.rawDp(this.state, p.permanentId) < 0 &&
-        !this.protectedFromRuleDeletion(p.permanentId),
-    );
-  }
-
-  /**
-   * A "can't be deleted" prohibition takes precedence over the deletion (CR §15-1-3), and
-   * `deletePermanent` drops those permanents from a byRule deletion set. The rule-check
-   * predicates must agree, or a protected Digimon keeps the fixpoint from converging and the
-   * match is wrongly declared a draw (BT18-086 Lucemon: Larva). A rule deletion has no
-   * controlling effect, so opponent-scoped prohibitions do not apply — the same scope
-   * `deletePermanent` uses for byRule.
-   */
-  private protectedFromRuleDeletion(permanentId: string): boolean {
-    return this.continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false });
-  }
-
-  /** #4 predicate — a battle-area Digimon at exactly raw DP 0. */
-  private anyZeroDpDigimon(): boolean {
-    return this.battleAreaPermanents().some(
-      (p) =>
-        this.access.isBattleAreaDigimon(p) &&
-        this.modifiers.rawDp(this.state, p.permanentId) === 0 &&
-        !this.protectedFromRuleDeletion(p.permanentId),
-    );
-  }
-
-  /** #3 process — trash every raw-DP-below-0 Digimon via deletePermanent(byRule). */
-  private async trashNoDpPermanents(): Promise<void> {
-    const ids = this.battleAreaPermanents()
-      .filter((p) => this.access.isBattleAreaDigimon(p) && this.modifiers.rawDp(this.state, p.permanentId) < 0)
-      .map((p) => p.permanentId);
-    if (ids.length > 0) await this.primitives.deletePermanent(ids, "byRule");
-  }
-
-  /** #4 process — delete every raw-DP-0 Digimon via deletePermanent(byRule). */
-  private async deleteZeroDpDigimon(): Promise<void> {
-    const ids = this.battleAreaPermanents()
-      .filter((p) => this.access.isBattleAreaDigimon(p) && this.modifiers.rawDp(this.state, p.permanentId) === 0)
-      .map((p) => p.permanentId);
-    if (ids.length > 0) await this.primitives.deletePermanent(ids, "byRule");
-  }
-
-  /** Each player's breeding-slot permanent with a top card present (at most one per player). */
-  private breedingPermanents(): Permanent[] {
-    const out: Permanent[] = [];
-    for (const player of this.state.players) {
-      if (player?.breeding?.topCard !== undefined) out.push(player.breeding);
-    }
-    return out;
-  }
-
-  /**
-   * All field permanents with a top card — battle area (both players) plus each player's
-   * breeding slot (CR §3-4-4: the field is divided into the breeding area and the battle
-   * area). Used by the face-down-top-card sweep (§17-1-3-2-4), which is a whole-field
-   * condition, not battle-area-only.
-   */
-  private fieldPermanents(): Permanent[] {
-    return [...this.battleAreaPermanents(), ...this.breedingPermanents()];
-  }
-
-  /**
-   * A field permanent's top card counts as a Digimon for rule purposes: CR §4-2-1 "Digi-Egg
-   * cards and Digimon cards placed on the field are treated as Digimon."
-   */
-  private isDigimonOrDigiEgg(permanent: Permanent): boolean {
-    if (permanent.topCard === undefined) return false;
-    const kinds = definitionOf(permanent.topCard).kinds;
-    return kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.DigiEgg);
-  }
-
-  /** §17-1-3-2-3 predicate — a breeding-slot card that is neither a Digimon nor a Digi-Egg. */
-  private anyBreedingNonDigimon(): boolean {
-    return this.breedingPermanents().some((p) => !this.isDigimonOrDigiEgg(p));
-  }
-
-  /** §17-1-3-2-3 process — trash every non-Digimon/non-DigiEgg breeding permanent. */
-  private async trashBreedingNonDigimon(): Promise<void> {
-    const ids = this.breedingPermanents()
-      .filter((p) => !this.isDigimonOrDigiEgg(p))
-      .map((p) => p.permanentId);
-    if (ids.length > 0) await this.primitives.deletePermanent(ids, "byRule");
-  }
-
-  /**
-   * §17-1-3-2-4 predicate — a permanent whose TOP card is face-down. Per CR §4-6-9/§4-6-10 a
-   * face-down card UNDER another (a digivolution or link card) is legitimate hidden
-   * information and is NOT targeted here — only a face-down card sitting directly on the
-   * field (the top card itself, which represents no valid game state) is illegal.
-   */
-  private anyFaceDownTopCard(): boolean {
-    return this.fieldPermanents().some((p) => p.topCard?.faceUp === false);
-  }
-
-  /** §17-1-3-2-4 process — trash every permanent whose top card is face-down. */
-  private async trashFaceDownTopCards(): Promise<void> {
-    const ids = this.fieldPermanents()
-      .filter((p) => p.topCard?.faceUp === false)
-      .map((p) => p.permanentId);
-    if (ids.length > 0) await this.primitives.deletePermanent(ids, "byRule");
-  }
-
-  /**
-   * §17-1-3-2-5 predicate — a battle-area Digimon whose linked-card count exceeds its
-   * effective link limit (`linkMaxOf`: base 1 plus active `<Link +N>` grants).
-   */
-  private anyExcessLinkCards(): boolean {
-    return this.battleAreaPermanents().some((p) => p.linked.length > this.linkMaxOf(p));
-  }
-
-  /**
-   * §17-1-3-2-5 process — trash only the EXCESS linked cards (beyond `linkMaxOf`) per
-   * Digimon, not the whole permanent. The rule fixes the COUNT and the controller picks
-   * WHICH (Q6370, BT25-075: "The link cards to trash are chosen by the player"), so each
-   * over-linked Digimon's controller is prompted once.
-   */
-  private async trashExcessLinkCards(): Promise<void> {
-    const toTrash: string[] = [];
-    for (const permanent of this.battleAreaPermanents()) {
-      const excess = permanent.linked.length - this.linkMaxOf(permanent);
-      if (excess > 0) toTrash.push(...(await this.chooseExcessLinkCards(permanent, excess)));
-    }
-    if (toTrash.length > 0) await this.primitives.trash(toTrash, { byRule: true });
-  }
-
-  /**
-   * Which of `permanent`'s link cards its controller gives up to bring the count back to the
-   * limit (Q6370, BT25-075: "The link cards to trash are chosen by the player"). A choice
-   * that is not a choice — every candidate has to go — resolves without a prompt. An answer
-   * that does not name exactly `excess` of the candidates cannot be honored without leaving
-   * the rule violated, so it falls back to the oldest link cards.
-   *
-   * §4-9-5 removes the just-linked cards from the choice: linking onto a Digimon already at
-   * its limit trashes "the same number of the EXISTING link cards", so the card that caused
-   * the overflow is never the one offered up. The other route to an over-limit permanent —
-   * the limit itself shrinking (Q6370's ＜Link +1＞ wearing off) — links nothing, so every
-   * card stays a candidate there and the player picks freely. The exclusion is dropped if it
-   * would leave too few candidates to satisfy the rule.
-   */
-  private async chooseExcessLinkCards(permanent: Permanent, excess: number): Promise<string[]> {
-    const linkedIds = permanent.linked.map((card) => card.instanceId);
-    const existing = linkedIds.filter((id) => !this.justLinked.has(id));
-    const candidates = existing.length >= excess ? existing : linkedIds;
-    if (excess >= candidates.length) return candidates;
-    const response = await this.decisions.request({
-      seat: permanent.controllerSeat,
-      kind: "selectCards",
-      promptText: `Choose ${excess} link card${excess === 1 ? "" : "s"} to trash.`,
-      options: { candidateInstanceIds: candidates, min: excess, max: excess },
-    });
-    const chosen =
-      response.kind === "selectCards" ? [...new Set(response.instanceIds)].filter((id) => candidates.includes(id)) : [];
-    return chosen.length === excess ? chosen : candidates.slice(candidates.length - excess);
-  }
-
-  /**
-   * §17-1-3-2-6/§17-1-3-2-7's category gate, parsed from the printed
-   * `CardDefinition.linkRequirement` header ("[Link] [Appmon] trait: Cost 1"). The
-   * STRUCTURED `LinkRequirement[]` array on `CompiledCard` (packages/shared/src/effects/ir/requirements.ts)
-   * exists but is populated only on the 2 hand-authored cards that reference it in an
-   * effect body (BT25-045, EX10-029) — every AUTO-GENERATED card (BT21-009 among them,
-   * the fixture this rule check is proven against) carries the requirement ONLY as this
-   * flat string, so that array cannot be the source of truth for a check meant to cover
-   * all ~70 real link cards. Every observed printed form (`node tools/kb/query.mjs rules
-   * "link"` + a full scan of `cards.json.linkRequirement`) is one of four shapes:
-   *   "[Link] [<Trait>] trait: Cost N"   -> trait
-   *   "[Link] [<Name>] in text: Cost N"  -> name/trait/text union ("has X in its text")
-   *   "[Link] [<Name>]: Cost N"          -> name
-   *   "[Link] Lv.N or higher: Cost N"    -> level floor
-   * The printed cost is enforced at declaration time (existing `canLinkToTargetPermanent`
-   * / `linkCostOf` seams), not re-checked here — this gate only re-evaluates the CATEGORY
-   * against the live host, which is what §17-1-3-2-6/§17-1-3-2-7 asks a rule-check sweep
-   * to keep honest as the host's own traits/name/level can never change after linking.
-   */
-  private parseLinkCategory(
-    req: string,
-  ): { tokens: string[]; match: "trait" | "name" | "text" } | { minLevel: number } | undefined {
-    const trait = /^\[Link\]\s*\[(.+?)\]\s*trait\s*:/i.exec(req);
-    if (trait?.[1] !== undefined) return { tokens: [trait[1]], match: "trait" };
-    const inText = /^\[Link\]\s*\[(.+?)\]\s*in text\s*:/i.exec(req);
-    if (inText?.[1] !== undefined) return { tokens: [inText[1]], match: "text" };
-    const name = /^\[Link\]\s*\[(.+?)\]\s*:/i.exec(req);
-    if (name?.[1] !== undefined) return { tokens: [name[1]], match: "name" };
-    const level = /^\[Link\]\s*Lv\.(\d+)\s*or higher\s*:/i.exec(req);
-    if (level?.[1] !== undefined) return { minLevel: Number(level[1]) };
-    return undefined;
-  }
-
-  /**
-   * §17-1-3-2-6/§17-1-3-2-7 — whether a linked card's own printed `<Link>` category
-   * requirement is satisfied by its live host's CURRENT definition. A card with no
-   * `linkRequirement` at all, or one whose printed header this engine can't parse into a
-   * category, carries nothing to violate (conservative: never invents a gate from an
-   * unrecognized shape).
-   */
-  private linkRequirementSatisfied(hostDef: CardDefinition, linkedCard: CardInstance): boolean {
-    const req = definitionOf(linkedCard).linkRequirement;
-    if (typeof req !== "string" || req.length === 0 || req === "-") return true;
-    const parsed = this.parseLinkCategory(req);
-    if (parsed === undefined) return true;
-    if ("minLevel" in parsed) return hostDef.level !== undefined && hostDef.level >= parsed.minLevel;
-    return matchNameOrTrait(hostDef, parsed);
-  }
-
-  /** §17-1-3-2-6/§17-1-3-2-7 predicate — some battle-area Digimon holds a link card its own printed requirement no longer matches. */
-  private anyInvalidLinkedCards(): boolean {
-    return this.battleAreaPermanents().some((p) => {
-      if (p.topCard === undefined) return false;
-      const hostDef = definitionOf(p.topCard);
-      return p.linked.some((card) => !this.linkRequirementSatisfied(hostDef, card));
-    });
-  }
-
-  /** §17-1-3-2-6/§17-1-3-2-7 process — trash every linked card whose own requirement its host no longer satisfies. */
-  private async trashInvalidLinkedCards(): Promise<void> {
-    const toTrash: string[] = [];
-    for (const permanent of this.battleAreaPermanents()) {
-      if (permanent.topCard === undefined) continue;
-      const hostDef = definitionOf(permanent.topCard);
-      for (const card of permanent.linked) {
-        if (!this.linkRequirementSatisfied(hostDef, card)) toTrash.push(card.instanceId);
-      }
-    }
-    if (toTrash.length > 0) await this.primitives.trash(toTrash, { byRule: true });
-  }
-
-  /**
-   * §17-1-3-2-2 predicate — a PURE Option-kind battle-area permanent (no Digimon/DigiEgg
-   * kind of its own) NOT placed there by an effect. `placedByEffect` (packages/shared/
-   * src/schema/Permanent.ts) is the marker; a normal Option play never reaches
-   * `placePermanent` (it resolves as a one-shot use, not a field placement), so a pure
-   * Option permanent existing at all is either effect-placed (exempt) or an illegal state
-   * this sweep exists to clean up. Excludes DUAL Digimon/Option cards (e.g. BT25-104
-   * "ShineGreymon: Burst Mode", `kinds: ["Digimon","Option"]`): those are legitimately on
-   * the battle area as a DIGIMON via a normal digivolution, not "an Option card in the
-   * battle area" — the printed Option side is a second, separately-activated use mode on
-   * the same card, not a distinct permanent placement §17-1-3-2-2 is aimed at.
-   */
-  private anyOptionInBattleArea(): boolean {
-    return this.battleAreaPermanents().some(
-      (p) =>
-        p.topCard !== undefined &&
-        isOption(definitionOf(p.topCard)) &&
-        !this.isDigimonOrDigiEgg(p) &&
-        !p.placedByEffect,
-    );
-  }
-
-  /** §17-1-3-2-2 process — trash every non-effect-placed pure-Option permanent via deletePermanent(byRule). */
-  private async trashOptionsInBattleArea(): Promise<void> {
-    const ids = this.battleAreaPermanents()
-      .filter(
-        (p) =>
-          p.topCard !== undefined &&
-          isOption(definitionOf(p.topCard)) &&
-          !this.isDigimonOrDigiEgg(p) &&
-          !p.placedByEffect,
-      )
-      .map((p) => p.permanentId);
-    if (ids.length > 0) await this.primitives.deletePermanent(ids, "byRule");
   }
 
   /**
@@ -7768,8 +7454,7 @@ export class GameEngine {
     return {
       maxAffordable: mem.maxAffordable,
       payMemory: mem.payMemory,
-      linkRequirementSatisfied: (hostDefinition, linkedCard) =>
-        this.linkRequirementSatisfied(hostDefinition, linkedCard),
+      linkRequirementSatisfied: (hostDefinition, linkedCard) => linkRequirementSatisfied(hostDefinition, linkedCard),
       linkCostReduction: (targetPermanentId, traits) =>
         this.continuous.linkCostReductionGrant(
           targetPermanentId,
