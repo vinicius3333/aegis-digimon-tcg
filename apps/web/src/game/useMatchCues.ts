@@ -19,13 +19,17 @@
    The client owns no rules here: every cue is a reaction to a server event
    (ARCHITECTURE.md §4). */
 
-import { CueTrack, LungeDirection, SecurityBreakPhase } from "./match/enums";
+import { CueTrack, LungeDirection } from "./match/enums";
 import { REDUCED_MOTION_QUERY } from "./match/environment";
-import { DELETE_BURST_SIZE, UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "./match/constants";
+import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "./match/constants";
 import { OPTION_DOCK_TRACKS, holdsTheBoard } from "./match/tracks";
 import { isTouchLayout, liveMode } from "./match/environment";
 import { lastIndexOfKind, withoutId } from "./match/eventLookup";
 import { buildCardSiteIndex } from "./match/cardSiteIndex";
+import { shieldBreakStep } from "./match/steps/shieldBreakStep";
+import { deleteBurstStep } from "./match/steps/deleteBurstStep";
+import { deckRiffleStep } from "./match/steps/deckRiffleStep";
+import { zoneChangeStep } from "./match/steps/zoneChangeStep";
 import type {
   AttackLunge,
   DeleteBurst,
@@ -106,16 +110,13 @@ import {
   securityCheckSegments,
   settleSecurityClashScene,
   SECURITY_BRANCH_TOTAL_MS,
-  SECURITY_BREAK_TIMINGS,
   SECURITY_DESTROY_OUTCOME_AT_MS,
   SECURITY_DESTROY_TOTAL_MS,
   type SecurityBranchScene,
-  type SecurityBreakScene,
   type SecurityClashAttacker,
   type SecurityClashScene,
 } from "./securityClash";
 import {
-  burstColorFor,
   deletionAnchorIdsFromEvent,
   hasTurnStartDraw,
   permanentBurstFromEvent,
@@ -132,7 +133,7 @@ import {
   type EffectActivation,
   type EffectSourceLookup,
 } from "./effectSource";
-import { deckRiffleFromEvent, type DeckRiffle } from "./deckChrome";
+import { deckRiffleFromEvent } from "./deckChrome";
 import { buildFieldClashScene, trackOpenAttack, type FieldClashScene, type OpenAttack } from "./fieldClash";
 import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
@@ -1186,7 +1187,18 @@ export function useMatchCues({
             },
           });
         }
-        const step = zoneChangeStep(key, showcase, burst, leadInMs);
+        const step = zoneChangeStep({
+          queue,
+          presentationBatchRef,
+          enqueuePhaseOrderRef,
+          setPendingPermanentIds,
+          setZoneShowcase,
+          setPermanentBursts,
+          key,
+          showcase,
+          burst,
+          leadInMs,
+        });
         if (securityReveal) zoneChanges.push(step);
         else enqueue(step);
         // The board renders a permanent the moment its patch lands, so a card whose
@@ -1244,7 +1256,7 @@ export function useMatchCues({
         deckRiffleKeyRef.current += 1;
         const riffle = deckRiffleFromEvent(event, deckRiffleKeyRef.current);
         if (!riffle) continue;
-        enqueue(deckRiffleStep(riffle));
+        enqueue(deckRiffleStep({ setDeckRiffles, riffle }));
       }
       // A claim is good for the patch that follows the batch it was made in. One that
       // never met a growth — the stack lost a card in the same patch it gained one — is
@@ -1530,7 +1542,11 @@ export function useMatchCues({
       // figure that still counts it until the reveal has actually put the card on screen.
       holdSecurityCard(key, seat, securityCountOf(seat));
       enqueue(
-        shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: seat, viewerSeat }), {
+        shieldBreakStep({
+          queue,
+          setSecurityBreak,
+          setSecurityHitSeat,
+          scene: buildSecurityBreakScene({ key, defenderSeat: seat, viewerSeat }),
           replace,
           ...(replayingHistory ? {} : { clausesBefore: batchId }),
         }),
@@ -2005,7 +2021,11 @@ export function useMatchCues({
       // EARLIER batch: a chained effect delivers one trash per batch, and replacing would
       // cancel the previous card's scene mid-play.
       enqueue(
-        shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: destruction.seat, viewerSeat }), {
+        shieldBreakStep({
+          queue,
+          setSecurityBreak,
+          setSecurityHitSeat,
+          scene: buildSecurityBreakScene({ key, defenderSeat: destruction.seat, viewerSeat }),
           replace: index === 0 && pendingDestructionsRef.current === 0,
         }),
       );
@@ -2116,15 +2136,19 @@ export function useMatchCues({
             ? COMBAT_IMPACT_TOTAL_MS
             : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
         const deleted = deletionMetadata.get(anchorId);
-        const step = deleteBurstStep(
+        const step = deleteBurstStep({
+          anchors,
+          deleteBurstKeyRef,
+          deletionReadyAtRef,
+          setDeleteBursts,
           anchorId,
           delayMs,
-          deleted?.cardId,
-          deleted?.artId,
-          deleted?.seat,
-          deleted?.instanceId,
-          !clashLoserIds.has(anchorId) && !beaten.has(anchorId),
-        );
+          metadataCardId: deleted?.cardId,
+          metadataArtId: deleted?.artId,
+          metadataSeat: deleted?.seat,
+          metadataInstanceId: deleted?.instanceId,
+          effectDeletion: !clashLoserIds.has(anchorId) && !beaten.has(anchorId),
+        });
         if (step) {
           deletionBurstPresentedRef.current.add(anchorId);
           enqueue(step);
@@ -2831,213 +2855,6 @@ export function useMatchCues({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.securityCount, opp?.securityCount]);
-
-  /**
-   * The beat before the reveal: the defender's shield arms, its glass shatters, and the
-   * board holds while the shards clear. Pure motion — the clash that follows carries the
-   * information — so it is skipped outright unless the queue is live.
-   */
-  function shieldBreakStep(
-    scene: SecurityBreakScene,
-    { replace = true, clausesBefore }: { replace?: boolean; clausesBefore?: string } = {},
-  ): AnimationStep {
-    return {
-      id: `security-break-${scene.key}`,
-      track: CueTrack.CenterStage,
-      // The check owns the centre of the screen from here, so whatever was being
-      // announced there gives way at the break rather than during the reveal. Only the
-      // FIRST break of a run takes the track: a destruction that spends several cards
-      // breaks the same shield once per card, and each of those would otherwise cancel
-      // the card before it.
-      replace,
-      async run(context) {
-        if (context.mode !== "live") return;
-        // Whatever the attack itself raised reads before the shield breaks. The server
-        // resolves a [When Attacking] effect ahead of the reveal, but its toast glows the
-        // source card first, so without this wait the check opened over a clause that had
-        // not arrived yet and looked like it had fired afterwards.
-        if (clausesBefore !== undefined) {
-          const deadline = Date.now() + TIMINGS.securityClauseLead;
-          while (
-            !context.cancelled &&
-            !context.skipping &&
-            Date.now() < deadline &&
-            queue.hasPendingStep(
-              (step) => step.id.startsWith("narration-step-") && step.origin?.batchId !== clausesBefore,
-            )
-          )
-            await context.wait(16);
-          if (context.cancelled) return;
-        }
-        try {
-          setSecurityBreak({ ...scene, phase: SecurityBreakPhase.Arm });
-          await context.wait(SECURITY_BREAK_TIMINGS.armMs);
-          if (context.cancelled) return;
-          setSecurityBreak({ ...scene, phase: SecurityBreakPhase.Break });
-          setSecurityHitSeat(scene.seat);
-          await context.wait(SECURITY_BREAK_TIMINGS.breakMs + SECURITY_BREAK_TIMINGS.holdMs);
-        } finally {
-          // A replacing cue cancels the wait; the shield must not be left mid-break.
-          setSecurityBreak((current) => (current?.key === scene.key ? null : current));
-          setSecurityHitSeat((seat) => (seat === scene.seat ? null : seat));
-        }
-      },
-    };
-  }
-
-  /**
-   * The burst left where a deleted permanent stood. The board has already dropped the
-   * permanent by the time the deletion is narrated, so the position comes from the last
-   * measurement the caller kept, by permanent id or by the id of the card that sat on top;
-   * with no measurement there is nowhere to draw it.
-   */
-  function deleteBurstStep(
-    anchorId: string,
-    delayMs = 0,
-    metadataCardId?: string,
-    metadataArtId?: string,
-    metadataSeat?: Seat,
-    metadataInstanceId?: string,
-    effectDeletion = false,
-  ): AnimationStep | null {
-    const center = anchors.permanentCenter?.(anchorId);
-    if (!center) return null;
-    const key = (deleteBurstKeyRef.current += 1);
-    // The reference client shatters the card's own art rather than swapping it for
-    // a generic puff, so the burst carries whichever card was standing there.
-    const cardId = metadataCardId ?? anchors.permanentCardId?.(anchorId);
-    if (cardId && metadataSeat !== undefined) {
-      const now = Date.now();
-      deletionReadyAtRef.current.set(`${metadataSeat}:${cardId}`, {
-        readyAt: now + delayMs + Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter),
-        instanceId: metadataInstanceId,
-      });
-    }
-    const burst: DeleteBurst = {
-      key,
-      x: center.x - DELETE_BURST_SIZE / 2,
-      y: center.y - DELETE_BURST_SIZE / 2,
-      ...(effectDeletion ? { effectDeletion: true } : {}),
-      ...(cardId ? { cardId, color: burstColorFor(cardId) } : {}),
-      ...(metadataArtId ? { artId: metadataArtId } : {}),
-    };
-    return {
-      id: `delete-burst-${key}`,
-      // Several permanents can be deleted by one resolution, so each burst runs on its
-      // own track instead of queueing behind the others.
-      track: `deleteBurst-${key}`,
-      async run(context) {
-        if (context.mode !== "live") return;
-        // A permanent beaten in battle takes the blow before it breaks.
-        if (delayMs > 0) await context.wait(delayMs);
-        if (context.cancelled) return;
-        try {
-          setDeleteBursts((bursts) => [...bursts, burst]);
-          await context.wait(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
-        } finally {
-          setDeleteBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
-        }
-      },
-    };
-  }
-
-  /**
-   * One riffle of a deck pile. Motion with nothing to read — the panel narrating
-   * the cards going back already says what happened — so it is skipped outright
-   * unless the queue is live.
-   */
-  function deckRiffleStep(riffle: DeckRiffle): AnimationStep {
-    const id = `${riffle.seat}:${riffle.pile}`;
-    return {
-      id: `deck-riffle-${riffle.key}`,
-      track: `deckRiffle-${id}`,
-      replace: true,
-      async run(context) {
-        if (context.mode !== "live") return;
-        try {
-          setDeckRiffles((piles) => new Set(piles).add(id));
-          await context.wait(TIMINGS.deckRiffle);
-        } finally {
-          setDeckRiffles((piles) => withoutId(piles, id));
-        }
-      },
-    };
-  }
-
-  /**
-   * One zone change, in the order the reference client plays it: the card is held
-   * centre-screen while its destination stays hidden, then the permanent reveals
-   * on its colour-keyed burst.
-   *
-   * The whole sequence is pure motion — the side panel and the effect notice
-   * carry the information — so reduced motion, a hidden tab and replayed history
-   * all drop it rather than flashing it past.
-   */
-  function zoneChangeStep(
-    key: number,
-    showcase: ZoneShowcase | null,
-    burst: PermanentBurst | null,
-    leadInMs = 0,
-  ): AnimationStep {
-    const origin = presentationBatchRef.current && {
-      ...presentationBatchRef.current,
-      phaseOrder: enqueuePhaseOrderRef.current,
-    };
-    return {
-      id: `zone-change-${key}`,
-      track: CueTrack.CenterStage,
-      async run(context) {
-        // The caller may already be holding the permanent off the board on this step's
-        // behalf, so every exit — including the ones that draw nothing — hands it back.
-        if (context.mode !== "live") {
-          if (burst) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
-          return;
-        }
-        // A card that changed zones because of a battle waits for the battle to play.
-        if (leadInMs > 0) await context.wait(leadInMs);
-        if (context.cancelled) {
-          if (burst) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
-          return;
-        }
-        if (showcase) {
-          try {
-            if (burst) setPendingPermanentIds((held) => new Set(held).add(burst.permanentId));
-            setZoneShowcase(showcase);
-            await context.wait(SHOWCASE_TOTAL_MS);
-          } finally {
-            // A replacing cue (a security check) cancels the wait, and the board
-            // must not be left holding a card up or hiding a permanent.
-            setZoneShowcase((current) => (current?.key === showcase.key ? null : current));
-            if (burst) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
-          }
-          if (context.cancelled) return;
-        }
-        if (!burst) return;
-        // A Security play belonging to the viewer has no centre-screen showcase, but it
-        // may still have been held until the source card completed its right-hand move.
-        // Hand the field back at this landing beat, together with its burst.
-        if (!showcase) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
-        // The permanent's track also carries its effect prelude. Serialize later
-        // arrivals so an automatic evolution cannot cancel the earlier toast.
-        queue.enqueue({
-          id: `burst-${burst.key}`,
-          origin,
-          track: `burst-${burst.permanentId}`,
-          async run(burstContext) {
-            if (burstContext.mode !== "live") return;
-            setPermanentBursts((bursts) => new Map(bursts).set(burst.permanentId, burst));
-            await burstContext.wait(TIMINGS.cardBurst);
-            setPermanentBursts((bursts) => {
-              if (bursts.get(burst.permanentId)?.key !== burst.key) return bursts;
-              const next = new Map(bursts);
-              next.delete(burst.permanentId);
-              return next;
-            });
-          },
-        });
-      },
-    };
-  }
 
   /**
    * Sends a card back from a deck pile to the hand that just grew. The reference
