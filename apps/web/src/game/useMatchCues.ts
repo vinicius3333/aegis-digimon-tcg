@@ -28,10 +28,13 @@ import { withoutId } from "./match/eventLookup";
 import { buildCardSiteIndex } from "./match/cardSiteIndex";
 import { shieldBreakStep } from "./match/steps/shieldBreakStep";
 import { deleteBurstStep } from "./match/steps/deleteBurstStep";
-import { deckRiffleStep } from "./match/steps/deckRiffleStep";
 import { zoneChangeStep } from "./match/steps/zoneChangeStep";
 import { batchFacts } from "./match/present/batchFacts";
 import { combatScenes } from "./match/present/combat";
+import { enqueueBatchSounds } from "./match/present/sounds";
+import { enqueueDeckRiffles } from "./match/present/deckRiffles";
+import { enqueueEffectSources } from "./match/present/effectSources";
+import { enqueueSecurityGrowth } from "./match/present/securityGrowth";
 import { securityRevealScene } from "./match/present/securityRevealScene";
 import { securityHold } from "./match/securityHold";
 import { cueFlights } from "./match/flights";
@@ -68,7 +71,7 @@ import { type GameState, type Seat, type ServerEvent, type PresentationReport } 
 import { playSound, type SoundKind } from "../design/sound";
 import { buildInstanceIndex, otherSeat } from "./boardModel";
 import { batchesAfter, type ServerBatch } from "../net/serverBatches";
-import { shouldPlayCue, soundForEvent, type CueTimestamps } from "./soundEvents";
+import { shouldPlayCue, type CueTimestamps } from "./soundEvents";
 import {
   attackAnnouncementFromEvent,
   buildInstanceSeatIndex,
@@ -119,13 +122,7 @@ import {
 import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 import { presentationTelemetry } from "./presentationTelemetry";
-import {
-  effectActivationFromEvent,
-  effectActivationTrack,
-  type EffectActivation,
-  type EffectSourceLookup,
-} from "./effectSource";
-import { deckRiffleFromEvent } from "./deckChrome";
+import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
 import { type FieldClashScene, type OpenAttack } from "./fieldClash";
 import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
@@ -761,11 +758,7 @@ export function useMatchCues({
     }
 
     if (!replayingHistory) {
-      for (const event of fresh) {
-        const cue = soundForEvent(event, viewerSeat);
-        if (cue && event.kind !== "turnEnded")
-          enqueue({ id: `sound-${batchId}-${event.kind}`, track: "sound", run: () => playCue(cue) });
-      }
+      enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
       const now = Date.now();
       let announcement: AttackAnnouncement | null = null;
       const opened: SidePanel[] = [];
@@ -954,87 +947,23 @@ export function useMatchCues({
       // every held card back at the latest when nothing is running. Registered after the
       // steps are enqueued: on an idle queue the promise settles at once.
       if (securityReveal === undefined) releaseArrivalHoldsWhenIdle();
-      // The activation moment plays where the effect came from: a permanent glows
-      // in place, a card in the trash flies out of the pile, an Option rises out
-      // of the hand fan.
-      for (const event of fresh) {
-        effectSourceKeyRef.current += 1;
-        // The used Option already has the more legible dock presentation below. Do not
-        // also make its final trash position look like the source of its own [Main].
-        if (
-          usedOption?.kind === "cardPlayed" &&
-          event.kind === "effectActivated" &&
-          event.sourceCardId === usedOption.cardId
-        )
-          continue;
-        const activation = effectActivationFromEvent(event, effectSourceKeyRef.current, cardSiteRef.current.locate);
-        if (!activation) continue;
-        enqueue({
-          id: `effect-source-${activation.key}`,
-          track: effectActivationTrack(activation),
-          replace: true,
-          async run(context) {
-            if (context.mode !== "live") return;
-            await context.wait(combatLeadInMs);
-            if (context.cancelled) return;
-            try {
-              setEffectSources((sources) => [...sources, activation]);
-              await context.wait(TIMINGS.effectSourceHold);
-            } finally {
-              setEffectSources((sources) => sources.filter((candidate) => candidate.key !== activation.key));
-            }
-          },
-        });
-      }
-      // The server names each deck it randomizes, which is the moment the reference
-      // client riffles that pile.
-      for (const event of fresh) {
-        deckRiffleKeyRef.current += 1;
-        const riffle = deckRiffleFromEvent(event, deckRiffleKeyRef.current);
-        if (!riffle) continue;
-        enqueue(deckRiffleStep({ setDeckRiffles, riffle }));
-      }
-      // A claim is good for the patch that follows the batch it was made in. One that
-      // never met a growth — the stack lost a card in the same patch it gained one — is
-      // stale by the next batch, and must not swallow a growth that batch leaves to the
-      // count watcher.
-      securityGrowthClaimedRef.current.clear();
-      // A card an effect stacked lands with the same bounce a recovery plays. The event
-      // names the seat, so the notice is its own (see `securityGainNoticeFromEvent`) and
-      // the growth is claimed ahead of the count watcher.
-      for (const event of fresh) {
-        if (event.kind !== "cardsMoved" || event.to !== "security" || event.seat === undefined) continue;
-        if (event.instanceIds.length === 0) continue;
-        securityGrowthClaimedRef.current.add(event.seat);
-        launchSecurityGainFlight(event.seat);
-      }
-      // A recovered card flies back onto the stack it joined.
-      for (const event of fresh) {
-        if (event.kind !== "securityRecovered") continue;
-        const seat = event.seat;
-        // The count watcher below will see this growth too; the flight and notice
-        // are this event's to play, so the growth is claimed here.
-        securityGrowthClaimedRef.current.add(seat);
-        enqueue({
-          id: `security-flight-${seat}-${event.amount}`,
-          track: `securityFlight-${seat}`,
-          replace: true,
-          async run(context) {
-            if (context.mode !== "live") return;
-            try {
-              setSecurityFlights((seats) => new Set(seats).add(seat));
-              await context.wait(TIMINGS.securityFlight);
-            } finally {
-              setSecurityFlights((seats) => {
-                if (!seats.has(seat)) return seats;
-                const next = new Set(seats);
-                next.delete(seat);
-                return next;
-              });
-            }
-          },
-        });
-      }
+      enqueueEffectSources({
+        fresh,
+        usedOption,
+        combatLeadInMs,
+        cardSiteRef,
+        effectSourceKeyRef,
+        setEffectSources,
+        enqueue,
+      });
+      enqueueDeckRiffles({ fresh, deckRiffleKeyRef, setDeckRiffles, enqueue });
+      enqueueSecurityGrowth({
+        fresh,
+        securityGrowthClaimedRef,
+        setSecurityFlights,
+        launchSecurityGainFlight,
+        enqueue,
+      });
       if (hasTurnStartDraw(fresh, viewerSeat)) turnStartDrawRef.current.you = true;
       if (hasTurnStartDraw(fresh, otherSeat(viewerSeat))) turnStartDrawRef.current.opp = true;
       // An On Play / When Digivolving notice reads as the consequence of the card
