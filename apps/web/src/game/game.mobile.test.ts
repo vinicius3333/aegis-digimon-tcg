@@ -155,6 +155,16 @@ describe("mobile portrait match layout", () => {
     );
   });
 
+  it("gives the target row a gutter so the sheet edge never slices a card", () => {
+    // The sheet clips past its padding box and each tile carries chrome outside its
+    // own edges (the order badge sits 6px past the corner), so the row pads itself
+    // and centres safely — plain centring would strand the first card of a row that
+    // scrolls sideways.
+    expect(portraitRules).toMatch(
+      /\.decision-overlay__grid \{[^}]*justify-content:\s*safe center[^}]*padding:\s*8px/,
+    );
+  });
+
   it("lets the effect text flow whole instead of hiding its tail in a scroll box", () => {
     // The wording the choice hinges on always reads in full at a denser size; the
     // sheet's own scroll is the only scroll.

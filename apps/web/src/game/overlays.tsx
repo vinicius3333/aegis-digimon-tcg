@@ -31,7 +31,7 @@ import { useTranslation, type Translate, type TranslationKey } from "../i18n";
 import { CardLink, CardLinkedText, useCardOpener } from "./cardLinks";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { assemblyMaterialCount, eligibleAssemblyCandidateIds } from "./assemblyMaterialSelection";
-import { TOUCH_LAYOUT_QUERY, useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
+import { NARROW_DIALOG_QUERY, TOUCH_LAYOUT_QUERY, useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
 import { ArenaPermanentInspector, type ArenaInspectionOptions } from "./ArenaPermanentInspector";
 
 const name = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
@@ -1345,6 +1345,7 @@ export function DecisionOverlay({
   const { t } = useTranslation();
   const openCard = useCardOpener();
   const wideDialog = useMediaQuery(WIDE_DIALOG_QUERY);
+  const narrowDialog = useMediaQuery(NARROW_DIALOG_QUERY);
   const min = decisionSelectionMin(request);
   const max = request.options?.max ?? 1;
   const choices = request.options?.choices ?? [];
@@ -1385,7 +1386,10 @@ export function DecisionOverlay({
     cardIdSeen.set(candidate.cardId, index);
     if (total > 1) cardCopyLabels.set(candidate.instanceId, t("overlay.cardCopy", { index, total }));
   }
-  const candidateCardWidth = wideDialog ? 154 : 110;
+  // Three tiles plus their gaps and the row's own badge gutter have to clear the
+  // sheet's padding; on a phone narrower than the grid's breakpoint they only do
+  // at the smaller size, and below that the row wraps rather than being clipped.
+  const candidateCardWidth = wideDialog ? 154 : narrowDialog ? 96 : 110;
   // The fate every picked target meets, or nothing when the engine did not
   // project one for the action that raised this prompt.
   const fateBadge = request.options?.targetFate ? pendingFateBadge(request.options.targetFate) : undefined;

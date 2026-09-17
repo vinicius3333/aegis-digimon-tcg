@@ -5084,6 +5084,16 @@ button.side-panel__name:focus-visible {
   .decision-overlay {
     --decision-overlay-pad-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
   }
+  /* The sheet clips whatever leaves its padding box, and every tile carries chrome
+     that sits outside its own edges — the order badge 6px past the top-left corner,
+     the selected rim's glow all around. The row keeps a gutter of its own for that
+     chrome and centres what fits, so a card is never sliced by the sheet edge. */
+  .decision-overlay__grid {
+    /* `safe` centring: once the row scrolls sideways, plain `center` overflows both
+       ends and the first card can never be scrolled back into view. */
+    justify-content: safe center;
+    padding: 8px;
+  }
   /* A bottom sheet is already at the bottom edge; its actions stack full width there
      rather than sharing one row with the board button. */
   .decision-overlay__footer {
