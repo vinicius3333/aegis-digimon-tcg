@@ -1,8 +1,28 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
-const overlaysSource = readFileSync(new URL("./overlays.tsx", import.meta.url), "utf8");
+
+/**
+ * The overlays live one component per file under ./overlay, so a component's own
+ * file is its whole body — no slicing a shared source string between two
+ * `export function` markers, which is what this had to do when they shared one.
+ */
+const overlaySources = new Map<string, string>();
+for (const group of ["", "combat/", "choice/", "viewer/", "match/"]) {
+  const directory = new URL(`./overlay/${group}`, import.meta.url);
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (entry.isFile()) overlaySources.set(entry.name, readFileSync(new URL(entry.name, directory), "utf8"));
+  }
+}
+const overlaysSource = [...overlaySources.values()].join("\n");
+
+/** One overlay component's source, by component name. */
+function overlaySource(name: string): string {
+  const source = overlaySources.get(`${name}.tsx`);
+  if (source === undefined) throw new Error(`no overlay component file for ${name}`);
+  return source;
+}
 const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
 const boardPiecesSource = readFileSync(new URL("./boardPieces.tsx", import.meta.url), "utf8");
 // The phone block's condition is a list — narrow, or short and on its side — so
@@ -190,10 +210,7 @@ describe("choice rows lead with the affirmative action", () => {
     ["GameOverOverlay", "overlay.findRematch", "overlay.mainMenu"],
     ["MulliganOverlay", "overlay.keep", "overlay.mulligan"],
   ])("%s lists its confirming action before %s", (name, confirming, trailing) => {
-    const start = overlaysSource.indexOf(`export function ${name}(`);
-    expect(start).toBeGreaterThan(-1);
-    const next = overlaysSource.indexOf("\nexport function ", start + 1);
-    const body = overlaysSource.slice(start, next === -1 ? undefined : next);
+    const body = overlaySource(name);
     expect(body).toMatch(/className="(game-actions-row|mulligan-actions)"/);
     expect(body.indexOf(confirming)).toBeGreaterThan(-1);
     expect(body.indexOf(confirming)).toBeLessThan(body.indexOf(trailing));
@@ -206,8 +223,10 @@ describe("match overlays opt into the mobile sheet", () => {
   // GameOverOverlay is deliberately absent: it is no longer a dialog on top of
   // the board but the full-screen result splash, which owns the whole viewport
   // and scrolls itself (asserted below) rather than sitting in a sheet.
+  // The stack viewer renders through two panels: the touch sheet and the desktop
+  // dialog. It is the dialog that has to carry the tag.
   const OVERLAYS = [
-    "StackViewerOverlay",
+    "StackViewerDialog",
     "TrashViewerOverlay",
     "DigiXrosMaterialOverlay",
     "ActionConfirmationOverlay",
@@ -215,11 +234,7 @@ describe("match overlays opt into the mobile sheet", () => {
   ];
 
   it.each(OVERLAYS)("%s tags a panel", (name) => {
-    const start = overlaysSource.indexOf(`export function ${name}(`);
-    expect(start).toBeGreaterThan(-1);
-    const next = overlaysSource.indexOf("\nexport function ", start + 1);
-    const body = overlaysSource.slice(start, next === -1 ? undefined : next);
-    expect(body).toContain("game-modal__panel");
+    expect(overlaySource(name)).toContain("game-modal__panel");
   });
 });
 
