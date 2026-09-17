@@ -29,6 +29,13 @@ import { resolutionDeps } from "./actionDeps.js";
 import { findInstance, findLooseInstance } from "./intents.js";
 import type { GameEngine } from "../GameEngine.js";
 import { pendingWindowCollected, withPendingSubTriggers } from "./subTriggers.js";
+import {
+  candidateSourceLocation,
+  collectPermanentInstances,
+  instancesById,
+  listCandidateInstances,
+  ruleProcess,
+} from "./ruleProcess.js";
 
 /**
  * Fire an effect-timing window through the stack (subsystem: effect-stack-resolution).
@@ -88,9 +95,9 @@ export async function fireTiming(
         // pooled post-fixpoint window (EX11-012 Q6514).
         transientCandidates: [
           ...transientCandidates,
-          ...engine
-            .instancesById(trigger.deletedInstanceIds ?? [])
-            .filter((instance) => definitionOf(instance).isToken === true),
+          ...instancesById(engine, trigger.deletedInstanceIds ?? []).filter(
+            (instance) => definitionOf(instance).isToken === true,
+          ),
         ],
       });
       return;
@@ -105,9 +112,9 @@ export async function fireTiming(
         trigger: { ...trigger },
         transientCandidates: [
           ...transientCandidates,
-          ...engine
-            .instancesById(trigger.deletedInstanceIds ?? [])
-            .filter((instance) => definitionOf(instance).isToken === true),
+          ...instancesById(engine, trigger.deletedInstanceIds ?? []).filter(
+            (instance) => definitionOf(instance).isToken === true,
+          ),
         ],
       });
       return;
@@ -115,7 +122,7 @@ export async function fireTiming(
   }
   if (engine.shouldDeferNestedTiming() && !engine.flushingDeferredTimingWindows) {
     await engine.recomputeContinuousEffects();
-    engine.deferNestedTimingEffects(timing, trigger, [...engine.listCandidateInstances(), ...transientCandidates]);
+    engine.deferNestedTimingEffects(timing, trigger, [...listCandidateInstances(engine), ...transientCandidates]);
     return;
   }
   await runTimingWindow(engine, timing, trigger, transientCandidates);
@@ -167,7 +174,7 @@ export async function runTimingWindow(
     await engine.recomputeContinuousEffects();
     engine.pendingPlayCostDeletionEffects.push(
       ...engine.collectNestedTimingEffects(timing, trigger, [
-        ...engine.listCandidateInstances(),
+        ...listCandidateInstances(engine),
         ...transientCandidates,
       ]),
     );
@@ -195,9 +202,10 @@ export async function runTimingWindow(
       timing === EffectTiming.OnStartMainPhase ||
       timing === EffectTiming.OnEndTurn
         ? new Map(
-            engine
-              .listCandidateInstances()
-              .map((instance) => [instance.instanceId, engine.candidateSourceLocation(instance.instanceId)]),
+            listCandidateInstances(engine).map((instance) => [
+              instance.instanceId,
+              candidateSourceLocation(engine, instance.instanceId),
+            ]),
           )
         : undefined;
     const listWindowCandidates =
@@ -206,14 +214,12 @@ export async function runTimingWindow(
         : (): CardInstance[] => {
             const live =
               phaseBoundarySourceLocations === undefined
-                ? engine.listCandidateInstances()
-                : engine
-                    .instancesById([...phaseBoundarySourceLocations.keys()])
-                    .filter(
-                      (instance) =>
-                        engine.candidateSourceLocation(instance.instanceId) ===
-                        phaseBoundarySourceLocations.get(instance.instanceId),
-                    );
+                ? listCandidateInstances(engine)
+                : instancesById(engine, [...phaseBoundarySourceLocations.keys()]).filter(
+                    (instance) =>
+                      candidateSourceLocation(engine, instance.instanceId) ===
+                      phaseBoundarySourceLocations.get(instance.instanceId),
+                  );
             const candidates = new Map(live.map((instance) => [instance.instanceId, instance] as const));
             for (const instance of transientCandidates) candidates.set(instance.instanceId, instance);
             return [...candidates.values()];
@@ -377,7 +383,7 @@ export async function fireTimingForInstance(
 ): Promise<void> {
   if (engine.shouldDeferNestedTiming()) {
     await engine.recomputeContinuousEffects();
-    engine.deferNestedTimingEffects(timing, trigger, engine.instancesById([sourceInstanceId]));
+    engine.deferNestedTimingEffects(timing, trigger, instancesById(engine, [sourceInstanceId]));
     return;
   }
   const wasOutermostWindow = engine.beginResolvingWindow();
@@ -389,7 +395,7 @@ export async function fireTimingForInstance(
       runTiming(
         timing,
         engine.effectEnvironment(trigger),
-        resolutionDeps(engine, () => engine.instancesById([sourceInstanceId]), {
+        resolutionDeps(engine, () => instancesById(engine, [sourceInstanceId]), {
           outermost: wasOutermostWindow,
           extraPending,
           excludeNestedPending: excludedNestedPending,
@@ -423,7 +429,7 @@ export async function fireTimingForPermanent(
   if (engine.shouldDeferNestedTiming()) {
     await engine.recomputeContinuousEffects();
     const scoped: CardInstance[] = [];
-    engine.collectPermanentInstances(permanent, scoped);
+    collectPermanentInstances(engine, permanent, scoped);
     engine.deferNestedTimingEffects(timing, trigger, scoped);
     return;
   }
@@ -438,7 +444,7 @@ export async function fireTimingForPermanent(
   const subjectInstanceIds = new Set<string>();
   {
     const opening: CardInstance[] = [];
-    engine.collectPermanentInstances(permanent, opening);
+    collectPermanentInstances(engine, permanent, opening);
     for (const instance of opening) subjectInstanceIds.add(instance.instanceId);
   }
   try {
@@ -451,7 +457,7 @@ export async function fireTimingForPermanent(
           engine,
           () => {
             const scoped: CardInstance[] = [];
-            engine.collectPermanentInstances(permanent, scoped);
+            collectPermanentInstances(engine, permanent, scoped);
             return scoped.filter((instance) => subjectInstanceIds.has(instance.instanceId));
           },
           { outermost: wasOutermostWindow, extraPending },
@@ -523,7 +529,7 @@ export async function firePlayEntryWindows(
       // state-based action may run between that effect's clauses, so the 0-DP entrant stays
       // on the field until the whole effect finishes and the outer sweep deletes it. This
       // mirrors the guarded `ruleProcess` seam the interpreter itself is given.
-      if (engine.effectResolutionDepth === 0 && engine.optionResolutionDepth === 0) await engine.ruleProcess();
+      if (engine.effectResolutionDepth === 0 && engine.optionResolutionDepth === 0) await ruleProcess(engine);
       await engine.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, costDeletionEffects);
       await engine.fireTiming(EffectTiming.OnEnterFieldAnyone, {
         ...scopedTrigger,

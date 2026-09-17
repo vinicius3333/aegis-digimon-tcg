@@ -59,9 +59,21 @@
   "export": "buildTurnFlowHooks",
   "module": "actionDeps"
  },
+ "candidateSourceLocation": {
+  "export": "candidateSourceLocation",
+  "module": "ruleProcess"
+ },
  "checkTurnEndAfterVerb": {
   "export": "checkTurnEndAfterVerb",
   "module": "intents"
+ },
+ "collectPermanentInstances": {
+  "export": "collectPermanentInstances",
+  "module": "ruleProcess"
+ },
+ "collectRuleProcessMovements": {
+  "export": "collectRuleProcessMovements",
+  "module": "ruleProcess"
  },
  "combatDecisionDeps": {
   "export": "combatDecisionDeps",
@@ -151,6 +163,10 @@
   "export": "fireTimingForPermanent",
   "module": "timing"
  },
+ "flushRuleTriggerPool": {
+  "export": "flushRuleTriggerPool",
+  "module": "ruleProcess"
+ },
  "handleActivateEffect": {
   "export": "handleActivateEffect",
   "module": "intents"
@@ -211,6 +227,10 @@
   "export": "instanceOnPermanent",
   "module": "intents"
  },
+ "instancesById": {
+  "export": "instancesById",
+  "module": "ruleProcess"
+ },
  "intentRouterDeps": {
   "export": "intentRouterDeps",
   "module": "actionDeps"
@@ -223,6 +243,10 @@
   "export": "linkCardDeps",
   "module": "actionDeps"
  },
+ "listCandidateInstances": {
+  "export": "listCandidateInstances",
+  "module": "ruleProcess"
+ },
  "looseSourceLeftInstallZone": {
   "export": "looseSourceLeftInstallZone",
   "module": "subTriggers"
@@ -234,6 +258,14 @@
  "nestedTriggerSourceStillResident": {
   "export": "nestedTriggerSourceStillResident",
   "module": "subTriggers"
+ },
+ "nextInstanceId": {
+  "export": "nextInstanceId",
+  "module": "ruleProcess"
+ },
+ "nextPermanentId": {
+  "export": "nextPermanentId",
+  "module": "ruleProcess"
  },
  "parkArmedForEnclosingWindow": {
   "export": "parkArmedForEnclosingWindow",
@@ -307,9 +339,17 @@
   "export": "respondCounterDeps",
   "module": "actionDeps"
  },
+ "ruleProcess": {
+  "export": "ruleProcess",
+  "module": "ruleProcess"
+ },
  "runCrossPermanentPlayReducers": {
   "export": "runCrossPermanentPlayReducers",
   "module": "timing"
+ },
+ "runRuleProcessFixpoint": {
+  "export": "runRuleProcessFixpoint",
+  "module": "ruleProcess"
  },
  "runSecurityCheck": {
   "export": "engineRunSecurityCheck",

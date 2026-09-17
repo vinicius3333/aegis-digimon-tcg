@@ -84,6 +84,7 @@ import {
   respondCounterDeps,
 } from "./actionDeps.js";
 import type { GameEngine } from "../GameEngine.js";
+import { listCandidateInstances, ruleProcess } from "./ruleProcess.js";
 
 /**
  * Validate and apply a single client intent (subsystem: intent-protocol-and-room).
@@ -409,7 +410,7 @@ export function handleActivateEffect(engine: GameEngine, seat: Seat, intent: Act
       const outcome = await applyActivateEffect(engine.state, seat, intent, deps);
       // Direct [Main] activations do not pass through a timing-window resolver, so
       // perform the post-effect rule check here (e.g. a stack peel exposing a 0-DP card).
-      await engine.ruleProcess();
+      await ruleProcess(engine);
       return outcome;
     },
     (outcome) => {
@@ -686,7 +687,7 @@ export function findInstance(
 export function findLooseInstance(engine: GameEngine, instanceId: string): CardInstance | undefined {
   return (
     peekCheckedCard(engine.state, instanceId)?.card ??
-    engine.listCandidateInstances().find((c) => c.instanceId === instanceId)
+    listCandidateInstances(engine).find((c) => c.instanceId === instanceId)
   );
 }
 

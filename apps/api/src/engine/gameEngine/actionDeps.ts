@@ -60,6 +60,7 @@ import {
   pendingWindowCollected,
   withPendingSubTriggers,
 } from "./subTriggers.js";
+import { listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -69,7 +70,7 @@ import {
  */
 export function resolutionDeps(
   engine: GameEngine,
-  listCandidate: () => readonly CardInstance[] = () => engine.listCandidateInstances(),
+  listCandidate: () => readonly CardInstance[] = () => listCandidateInstances(engine),
   opts: {
     outermost?: boolean;
     extraPending?: readonly CollectedEffect[];
@@ -100,7 +101,7 @@ export function resolutionDeps(
     turnSeat: engine.state.turnSeat,
     listCandidateInstances: listCandidate,
     ruleProcess: () =>
-      engine.optionResolutionDepth > 0 || engine.effectResolutionDepth > 0 ? Promise.resolve() : engine.ruleProcess(),
+      engine.optionResolutionDepth > 0 || engine.effectResolutionDepth > 0 ? Promise.resolve() : ruleProcess(engine),
     isGameOver: () => engine.state.gameOver,
     chooseOrder: (seat, active, timing) => engine.resolverDecisions.chooseOrder(seat, active, timing),
     askOptional: (seat, collected) => engine.resolverDecisions.askOptional(seat, collected),
@@ -143,7 +144,7 @@ export function resolutionDeps(
 /** Dependencies the breeding verbs need (subsystem: deck-and-setup / breeding). */
 export function breedingDeps(engine: GameEngine): BreedingDeps {
   return {
-    nextPermanentId: () => engine.nextPermanentId(),
+    nextPermanentId: () => nextPermanentId(engine),
     // Seat-level "your opponent can't move <X>" prohibition (RestrictPlay). Moving out of
     // the breeding area is the moving seat's own action (KB EX7-014 Q3835/Q6509).
     moveProhibited: (_state, seat, definition) => engine.continuous.isPlayBlocked(seat, definition, "move"),
@@ -459,7 +460,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
         mode,
         engine.continuous.colorRequirementAlternatives(instance.instanceId),
       ),
-    nextPermanentId: () => engine.nextPermanentId(),
+    nextPermanentId: () => nextPermanentId(engine),
     recomputeDP: (permanentId) => engine.modifiers.recomputeDP(engine.state, permanentId),
     // Pay-time interactive cost reduction (BeforePayCost): fire the played card's BeforePayCost
     // window (where a ReducePlayCost action runs its optional server-side payment) and return the
@@ -510,7 +511,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
     },
     finishOptionResolution: async () => {
       engine.optionResolutionDepth = Math.max(0, engine.optionResolutionDepth - 1);
-      if (engine.optionResolutionDepth === 0) await engine.ruleProcess();
+      if (engine.optionResolutionDepth === 0) await ruleProcess(engine);
     },
     fireOptionUsed: async (usedInstanceId, usedOptionCost) =>
       engine.primitives.fireOptionUsed(usedInstanceId, usedOptionCost),
@@ -658,7 +659,7 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
       engine.primitives.digiXrosExpandedZones?.(seat, playedInstanceId) ?? [],
     digiXrosExpandedZoneCounts: (seat, playedInstanceId) =>
       engine.primitives.digiXrosExpandedZoneCounts?.(seat, playedInstanceId) ?? {},
-    nextPermanentId: () => engine.nextPermanentId(),
+    nextPermanentId: () => nextPermanentId(engine),
     placeUnder: (targetPermanentId, instanceIds) => engine.primitives.placeUnder(targetPermanentId, instanceIds),
     placePendingDigivolution: playCardDeps(engine).placePendingDigivolution,
     relocatePermanent: (destPermanentId, sourcePermanentId, opts) =>
@@ -694,7 +695,7 @@ export function assemblyDeps(engine: GameEngine): AssemblyDeps {
     payMemory: mem.payMemory,
     adjustedPlayCost: (_state, seat, definition, base) =>
       engine.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
-    nextPermanentId: () => engine.nextPermanentId(),
+    nextPermanentId: () => nextPermanentId(engine),
     placeUnder: (targetPermanentId, instanceIds) => engine.primitives.placeUnder(targetPermanentId, instanceIds),
     fireTiming: async (_state, _seat, timing, sourceInstanceId) =>
       firePlayEntryWindows(engine, timing, sourceInstanceId),
@@ -744,7 +745,7 @@ export function linkCardDeps(engine: GameEngine): LinkCardDeps {
     canLeaveBattleArea: (permanentId) =>
       !engine.continuous.hasRestriction(permanentId, "leaveBattleAreaExceptByDeletion"),
     link: (targetPermanentId, instanceIds) => engine.primitives.link(targetPermanentId, instanceIds),
-    ruleProcess: () => engine.ruleProcess(),
+    ruleProcess: () => ruleProcess(engine),
   };
 }
 
