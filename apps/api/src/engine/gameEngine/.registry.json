@@ -3,9 +3,21 @@
   "export": "activateEffectDeps",
   "module": "actionDeps"
  },
+ "announceSubTrigger": {
+  "export": "announceSubTrigger",
+  "module": "subTriggers"
+ },
  "applyIntent": {
   "export": "applyIntent",
   "module": "intents"
+ },
+ "armedAsPendingCollected": {
+  "export": "armedAsPendingCollected",
+  "module": "subTriggers"
+ },
+ "armedSubTriggers": {
+  "export": "armedSubTriggers",
+  "module": "subTriggers"
  },
  "assemblyDeps": {
   "export": "assemblyDeps",
@@ -30,6 +42,18 @@
  "breedingDeps": {
   "export": "breedingDeps",
   "module": "actionDeps"
+ },
+ "breedingHidesSubjectFrom": {
+  "export": "breedingHidesSubjectFrom",
+  "module": "subTriggers"
+ },
+ "buildSubTriggerContext": {
+  "export": "buildSubTriggerContext",
+  "module": "subTriggers"
+ },
+ "buildSubTriggerSourceContext": {
+  "export": "buildSubTriggerSourceContext",
+  "module": "subTriggers"
  },
  "buildTurnFlowHooks": {
   "export": "buildTurnFlowHooks",
@@ -67,6 +91,10 @@
   "export": "digivolveDeps",
   "module": "actionDeps"
  },
+ "discardedStackSourceContextPayload": {
+  "export": "discardedStackSourceContextPayload",
+  "module": "subTriggers"
+ },
  "dnaDigivolveDeps": {
   "export": "dnaDigivolveDeps",
   "module": "actionDeps"
@@ -95,9 +123,21 @@
   "export": "fireEnteredByEffectTiming",
   "module": "timing"
  },
+ "fireOneSubTrigger": {
+  "export": "fireOneSubTrigger",
+  "module": "subTriggers"
+ },
  "firePlayEntryWindows": {
   "export": "firePlayEntryWindows",
   "module": "timing"
+ },
+ "fireSubTrigger": {
+  "export": "fireSubTrigger",
+  "module": "subTriggers"
+ },
+ "fireSubTriggerSnapshot": {
+  "export": "fireSubTriggerSnapshot",
+  "module": "subTriggers"
  },
  "fireTiming": {
   "export": "fireTiming",
@@ -183,13 +223,33 @@
   "export": "linkCardDeps",
   "module": "actionDeps"
  },
+ "looseSourceLeftInstallZone": {
+  "export": "looseSourceLeftInstallZone",
+  "module": "subTriggers"
+ },
  "materializePlayerCustomEffects": {
   "export": "materializePlayerCustomEffects",
   "module": "timing"
  },
+ "nestedTriggerSourceStillResident": {
+  "export": "nestedTriggerSourceStillResident",
+  "module": "subTriggers"
+ },
+ "parkArmedForEnclosingWindow": {
+  "export": "parkArmedForEnclosingWindow",
+  "module": "subTriggers"
+ },
+ "parkedEntryCollected": {
+  "export": "parkedEntryCollected",
+  "module": "subTriggers"
+ },
  "payBarrierSecurityCost": {
   "export": "payBarrierSecurityCost",
   "module": "securityCheck"
+ },
+ "pendingWindowCollected": {
+  "export": "pendingWindowCollected",
+  "module": "subTriggers"
  },
  "playCardDeps": {
   "export": "playCardDeps",
@@ -206,6 +266,14 @@
  "prepareDigiXrosPlays": {
   "export": "prepareDigiXrosPlays",
   "module": "timing"
+ },
+ "prepareFrozenSubTrigger": {
+  "export": "prepareFrozenSubTrigger",
+  "module": "subTriggers"
+ },
+ "prepareSubTrigger": {
+  "export": "prepareSubTrigger",
+  "module": "subTriggers"
  },
  "projectLooseUseCost": {
   "export": "projectLooseUseCost",
@@ -247,6 +315,10 @@
   "export": "engineRunSecurityCheck",
   "module": "securityCheck"
  },
+ "runSubTriggersInChosenOrder": {
+  "export": "runSubTriggersInChosenOrder",
+  "module": "subTriggers"
+ },
  "runTimingWindow": {
   "export": "runTimingWindow",
   "module": "timing"
@@ -255,8 +327,24 @@
   "export": "securityEffectsFor",
   "module": "securityCheck"
  },
+ "subTriggerAsCollected": {
+  "export": "subTriggerAsCollected",
+  "module": "subTriggers"
+ },
+ "subTriggerStillActivatable": {
+  "export": "subTriggerStillActivatable",
+  "module": "subTriggers"
+ },
+ "subTriggerTurnLedger": {
+  "export": "subTriggerTurnLedger",
+  "module": "subTriggers"
+ },
  "validateAppFusion": {
   "export": "validateAppFusion",
   "module": "intents"
+ },
+ "withPendingSubTriggers": {
+  "export": "withPendingSubTriggers",
+  "module": "subTriggers"
  }
 }

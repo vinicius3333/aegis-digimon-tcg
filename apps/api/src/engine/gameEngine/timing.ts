@@ -28,6 +28,7 @@ import { digivolvedFromTamerBase } from "./subTriggerIdentity.js";
 import { resolutionDeps } from "./actionDeps.js";
 import { findInstance, findLooseInstance } from "./intents.js";
 import type { GameEngine } from "../GameEngine.js";
+import { pendingWindowCollected, withPendingSubTriggers } from "./subTriggers.js";
 
 /**
  * Fire an effect-timing window through the stack (subsystem: effect-stack-resolution).
@@ -133,7 +134,7 @@ export async function fireTiming(
  * rather than re-opening a [When Attacking] window of its own.
  */
 export async function drainPendingAttackTriggers(engine: GameEngine): Promise<void> {
-  if (engine.pendingWindowCollected().length === 0) return;
+  if (pendingWindowCollected(engine).length === 0) return;
   const wasOutermostWindow = engine.beginResolvingWindow();
   try {
     await engine.withTriggeredMutations(() =>
@@ -247,9 +248,9 @@ export async function runTimingWindow(
         }
       });
     if (timing === EffectTiming.OnStartMainPhase) {
-      await engine.withPendingSubTriggers(["startOfYourMainPhase"], {}, runWindow);
+      await withPendingSubTriggers(engine, ["startOfYourMainPhase"], {}, runWindow);
     } else if (timing === EffectTiming.OnEndTurn) {
-      await engine.withPendingSubTriggers(["endOfTurn", "endOfOpponentTurn"], {}, runWindow);
+      await withPendingSubTriggers(engine, ["endOfTurn", "endOfOpponentTurn"], {}, runWindow);
     } else {
       await runWindow();
     }
@@ -508,7 +509,8 @@ export async function firePlayEntryWindows(
   const events = opts.deferWhenPlayed
     ? (["onEnterFieldAnyone"] as const)
     : (["whenPlayed", "onEnterFieldAnyone"] as const);
-  await engine.withPendingSubTriggers(
+  await withPendingSubTriggers(
+    engine,
     events,
     playedEventTrigger,
     async () => {

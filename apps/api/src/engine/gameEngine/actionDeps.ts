@@ -54,6 +54,12 @@ import {
   projectLooseUseCost,
   residentPlayCostEffects,
 } from "./timing.js";
+import {
+  nestedTriggerSourceStillResident,
+  parkedEntryCollected,
+  pendingWindowCollected,
+  withPendingSubTriggers,
+} from "./subTriggers.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -79,16 +85,16 @@ export function resolutionDeps(
     ...(opts.outermost === true
       ? {
           betweenEffects: () => engine.settleBetweenEffects(),
-          collectPending: () => [...engine.pendingWindowCollected(), ...(opts.extraPending ?? [])],
+          collectPending: () => [...pendingWindowCollected(engine), ...(opts.extraPending ?? [])],
         }
       : {
           collectPending: () => [
             ...(excludeNestedPending === undefined
               ? []
               : engine.pendingNestedTimingEffects.filter(
-                  (pending) => !excludeNestedPending.has(pending) && engine.nestedTriggerSourceStillResident(pending),
+                  (pending) => !excludeNestedPending.has(pending) && nestedTriggerSourceStillResident(engine, pending),
                 )),
-            ...engine.parkedEntryCollected(),
+            ...parkedEntryCollected(engine),
           ],
         }),
     turnSeat: engine.state.turnSeat,
@@ -388,7 +394,8 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
         ...(fromTamer ? { digivolvedFromTamer: true } : {}),
         ...(tamerDigivolved ? { tamerDigivolved: true } : {}),
       };
-      await engine.withPendingSubTriggers(
+      await withPendingSubTriggers(
+        engine,
         ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
         digivolveTrigger,
         async () => {

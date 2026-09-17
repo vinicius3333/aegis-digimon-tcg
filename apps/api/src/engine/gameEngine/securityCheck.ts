@@ -10,6 +10,7 @@ import type { TriggerInfo, SubTriggerEventName } from "../effects/EffectContext.
 import { log } from "../../logger.js";
 import type { GameEngine } from "../GameEngine.js";
 import { resolutionDeps } from "./actionDeps.js";
+import { armedSubTriggers, nestedTriggerSourceStillResident, pendingWindowCollected } from "./subTriggers.js";
 
 export async function engineRunSecurityCheck(
   engine: GameEngine,
@@ -68,7 +69,7 @@ export async function engineRunSecurityCheck(
         addedToSecurityInstanceIds: [info.securityInstanceId],
       };
       const armed = [event, "whenSecurityRemoved"].flatMap((name) =>
-        engine.armedSubTriggers([...engine.subTriggers.subscriptionsFor(name as SubTriggerEventName)], payload),
+        armedSubTriggers(engine, [...engine.subTriggers.subscriptionsFor(name as SubTriggerEventName)], payload),
       );
       const framework = engine.effectEnvironment(payload);
       const initialEnv = buildResolutionEnv(framework, resolutionDeps(engine));
@@ -92,7 +93,7 @@ export async function engineRunSecurityCheck(
             const derivedFromSecurityEffect = (): CollectedEffect[] =>
               engine.pendingNestedTimingEffects.filter(
                 (pending) =>
-                  !parkedBeforeSecurityEffect.has(pending) && engine.nestedTriggerSourceStillResident(pending),
+                  !parkedBeforeSecurityEffect.has(pending) && nestedTriggerSourceStillResident(engine, pending),
               );
             await engine.withPendingPoolDrain(outermost, async () => {
               // CR §15-4-5-2/3: the [Security] effect's derived triggers activate before the
@@ -105,7 +106,7 @@ export async function engineRunSecurityCheck(
               }
               await resolveTiming(EffectTiming.OnSecurityCheck, {
                 ...env,
-                collect: () => [...initial, ...engine.pendingWindowCollected()],
+                collect: () => [...initial, ...pendingWindowCollected(engine)],
               });
             });
             if (outermost) {
