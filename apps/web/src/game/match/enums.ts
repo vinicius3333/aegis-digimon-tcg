@@ -45,3 +45,9 @@ export enum SecurityBreakPhase {
   Arm = "arm",
   Break = "break",
 }
+
+/** Whether the opening security deal is still to be observed, or already accounted for. */
+export enum OpeningDealState {
+  Pending = "pending",
+  Done = "done",
+}

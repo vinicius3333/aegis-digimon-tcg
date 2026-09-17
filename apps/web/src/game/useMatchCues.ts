@@ -19,7 +19,7 @@
    The client owns no rules here: every cue is a reaction to a server event
    (ARCHITECTURE.md §4). */
 
-import { CueTrack } from "./match/enums";
+import { CueTrack, OpeningDealState } from "./match/enums";
 import { REDUCED_MOTION_QUERY } from "./match/environment";
 import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "./match/constants";
 import { OPTION_DOCK_TRACKS, holdsTheBoard } from "./match/tracks";
@@ -46,6 +46,10 @@ import { presentSecurityClose } from "./match/present/securityClose";
 import { presentSecurityRevealed } from "./match/present/securityReveal";
 import { securityHold } from "./match/securityHold";
 import { cueFlights } from "./match/flights";
+import { useDpPulses } from "./match/watchers/useDpPulses";
+import { useDrawWatcher } from "./match/watchers/useDrawWatcher";
+import { useRestrictionPulses } from "./match/watchers/useRestrictionPulses";
+import { useSecurityCountWatcher } from "./match/watchers/useSecurityCountWatcher";
 import { narrationStream } from "./match/narration/narrationStream";
 import { Side } from "./side";
 import type {
@@ -75,7 +79,7 @@ export type {
 export { CueTrack, LungeDirection, SecurityBreakPhase } from "./match/enums";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
+import { type StateSnapshot } from "../net/presentedState";
 import { type GameState, type Seat, type ServerEvent, type PresentationReport } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
 import { buildInstanceIndex, otherSeat } from "./boardModel";
@@ -88,7 +92,7 @@ import {
   type SidePanel,
   type SidePanelLookup,
 } from "./sidePanels";
-import { isOwnEffectNotice, noticeRemaining, rejectionNotice, securityGainNotice, type MatchNotice } from "./notices";
+import { isOwnEffectNotice, noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
 import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
 import {
   securityCheckSegments,
@@ -103,9 +107,9 @@ import { presentationTelemetry } from "./presentationTelemetry";
 import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
 import { type FieldClashScene, type OpenAttack } from "./fieldClash";
 import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
-import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
-import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
-import { DECISION_STALL_BUDGET_MS, dpPulseTotalMs, PLAY_LEAD_IN_BUDGET_MS, TIMINGS } from "./timings";
+import { type DpPulse } from "./dpPulse";
+import { type FreezeFlags, type FreezePulse } from "./freezePulse";
+import { DECISION_STALL_BUDGET_MS, PLAY_LEAD_IN_BUDGET_MS, TIMINGS } from "./timings";
 
 export function useMatchCues({
   batches,
@@ -458,7 +462,7 @@ export function useMatchCues({
   const securityGainKeyRef = useRef(0);
   // The opening stack is dealt once. Security seen before that — a reconnection into a
   // match already under way — retires the deal rather than playing it late.
-  const openingSecurityDealRef = useRef<"pending" | "done">("pending");
+  const openingSecurityDealRef = useRef(OpeningDealState.Pending);
   // Destruction scenes enqueued and not yet finished. A chained effect (Medusamon's
   // Petrification tokens) trashes one security card per resolution step, so each trash
   // arrives in its own batch — and each batch's first shield break must NOT take the
@@ -1395,151 +1399,12 @@ export function useMatchCues({
 
   // Recent narration expires independently; decision barriers only wait for board beats.
 
-  // A DP figure that moved gets a pulse. The driver is the synchronized
-  // `currentDP` itself: the engine has already applied every modifier by the time
-  // the number changes, so nothing here re-derives a rule. The first read is only
-  // a baseline, which is what keeps a reconnect from pulsing the whole board.
-  const dpSignature = state
-    ? [...state.players]
-        .flatMap((player) => [...player.battleArea, ...(player.breeding ? [player.breeding] : [])])
-        .map((permanent) => `${permanent.permanentId}:${permanent.currentDP}`)
-        .join(",")
-    : "";
-  useEffect(() => {
-    if (!state) return;
-    const current = new Map<string, number>();
-    for (const player of state.players) {
-      for (const permanent of player.battleArea) current.set(permanent.permanentId, permanent.currentDP);
-      if (player.breeding) current.set(player.breeding.permanentId, player.breeding.currentDP);
-    }
-    const previous = dpByPermanentRef.current;
-    dpByPermanentRef.current = current;
-    if (!previous || queue.getMode() !== "live") return;
-    const pulses = diffDpPulses({ previous, next: current, nextKey: dpPulseKeyRef.current });
-    if (pulses.length === 0) return;
-    dpPulseKeyRef.current += pulses.length;
-    for (const pulse of pulses) {
-      queue.enqueue({
-        id: `dp-pulse-${pulse.key}`,
-        // Several figures can move in one resolution, so each card pulses on its
-        // own track rather than queueing behind another card's.
-        track: `dpPulse-${pulse.permanentId}`,
-        replace: true,
-        async run(context) {
-          if (context.mode !== "live") return;
-          try {
-            setDpPulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));
-            await context.wait(dpPulseTotalMs(pulse.kind === "debuffFatal"));
-          } finally {
-            setDpPulses((pulsing) => {
-              if (pulsing.get(pulse.permanentId)?.key !== pulse.key) return pulsing;
-              const next = new Map(pulsing);
-              next.delete(pulse.permanentId);
-              return next;
-            });
-          }
-        },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dpSignature]);
+  useDpPulses({ state, queue, dpByPermanentRef, dpPulseKeyRef, setDpPulses });
 
-  // A permanent that just had "can't attack" / "can't block" imposed on it jolts.
-  // The driver is the server's own projection of those restrictions, so nothing here
-  // reads card text; a permanent that entered already restricted is not a moment, which
-  // is what the baseline read keeps out.
-  const restrictionSignature = state
-    ? [...state.players]
-        .flatMap((player) => [...player.battleArea, ...(player.breeding ? [player.breeding] : [])])
-        .map(
-          (permanent) => `${permanent.permanentId}:${permanent.cannotAttack ? 1 : 0}${permanent.cannotBlock ? 1 : 0}`,
-        )
-        .join(",")
-    : "";
-  useEffect(() => {
-    if (!state) return;
-    const current = new Map<string, FreezeFlags>();
-    for (const player of state.players) {
-      for (const permanent of player.battleArea) {
-        current.set(permanent.permanentId, {
-          cannotAttack: permanent.cannotAttack,
-          cannotBlock: permanent.cannotBlock,
-        });
-      }
-    }
-    const previous = restrictionsByPermanentRef.current;
-    restrictionsByPermanentRef.current = current;
-    if (!previous || queue.getMode() !== "live") return;
-    const pulses = diffFreezePulses({ previous, next: current, nextKey: freezePulseKeyRef.current });
-    if (pulses.length === 0) return;
-    freezePulseKeyRef.current += pulses.length;
-    for (const pulse of pulses) {
-      queue.enqueue({
-        id: `freeze-pulse-${pulse.key}`,
-        // Several permanents can be locked by one resolution, so each jolts on its own
-        // track rather than queueing behind another card's.
-        track: `freezePulse-${pulse.permanentId}`,
-        replace: true,
-        async run(context) {
-          if (context.mode !== "live") return;
-          /* The jolt on the card and the badge under it already say the Digimon lost the
-             action, and the effect's own clause is on screen beside them, so no notice. */
-          try {
-            setFreezePulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));
-            await context.wait(TIMINGS.freezeShake);
-          } finally {
-            setFreezePulses((pulsing) => {
-              if (pulsing.get(pulse.permanentId)?.key !== pulse.key) return pulsing;
-              const next = new Map(pulsing);
-              next.delete(pulse.permanentId);
-              return next;
-            });
-          }
-        },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restrictionSignature]);
+  useRestrictionPulses({ state, queue, restrictionsByPermanentRef, freezePulseKeyRef, setFreezePulses });
 
-  // A hand that grew was drawn into. The opening hand and a mulligan redeal are
-  // not draws, so the first observed pair is only a baseline.
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
-  useEffect(() => {
-    if (drawPhaseWaitingRef.current === null) {
-      previousDrawStateRef.current = state ? snapshotGameState(state) : undefined;
-    }
-  }, [state, state?.stateVersion, you?.handCount, opp?.handCount, phaseBanner]);
-  useEffect(() => {
-    if (you === undefined || opp === undefined) return;
-    const heldSeat = drawPhaseWaitingRef.current;
-    // The held side keeps every figure it had: its count, the flag that says the growth is
-    // a turn-start draw, and the event count that proves the draw was already narrated.
-    // They are read again on the pass the Draw ribbon releases.
-    const heldSide: Side | undefined =
-      heldSeat === null ? undefined : heldSeat === viewerSeat ? Side.Viewer : Side.Opponent;
-    const previous = handCountsRef.current;
-    handCountsRef.current = {
-      you: heldSide === Side.Viewer && previous ? previous.you : you.handCount,
-      opp: heldSide === Side.Opponent && previous ? previous.opp : opp.handCount,
-    };
-    if (!previous || mulliganOpen) {
-      turnStartDrawRef.current = { you: false, opp: false };
-      return;
-    }
-    const turnStart = turnStartDrawRef.current;
-    turnStartDrawRef.current = {
-      you: heldSide === Side.Viewer && turnStart.you,
-      opp: heldSide === Side.Opponent && turnStart.opp,
-    };
-    if (heldSide !== Side.Opponent && opp.handCount > previous.opp && eventDrawCountsRef.current.opp !== opp.handCount)
-      launchDrawFlight(Side.Opponent, turnStart.opp);
-    if (heldSide !== Side.Viewer && you.handCount > previous.you && eventDrawCountsRef.current.you !== you.handCount)
-      launchDrawFlight(Side.Viewer, turnStart.you);
-    eventDrawCountsRef.current = heldSide ? { [heldSide]: eventDrawCountsRef.current[heldSide] } : {};
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [you?.handCount, opp?.handCount, phaseBanner]);
-
   const { launchSecurityGainFlight, launchOpeningSecurityDeal, launchDrawFlight, launchDeckToUnderFlight } = cueFlights(
     {
       queue,
@@ -1554,40 +1419,35 @@ export function useMatchCues({
     },
   );
 
-  useEffect(() => {
-    if (you === undefined || opp === undefined) return;
-    const previous = securityCountsRef.current;
-    securityCountsRef.current = { you: you.securityCount, opp: opp.securityCount };
-    if (!previous || mulliganOpen) return;
-    // The opening deal is not a gain: nothing was recovered or stacked, the match simply
-    // started. It is dealt to both seats out of the same empty board.
-    if (openingSecurityDealRef.current === "pending") {
-      const opening = previous.you === 0 && previous.opp === 0;
-      openingSecurityDealRef.current = "done";
-      if (opening) {
-        if (you.securityCount > 0) launchOpeningSecurityDeal(viewerSeat, you.securityCount);
-        if (opp.securityCount > 0) launchOpeningSecurityDeal(otherSeat(viewerSeat), opp.securityCount);
-        securityGrowthClaimedRef.current.clear();
-        return;
-      }
-    }
-    const gains = [
-      { seat: viewerSeat, side: Side.Viewer, amount: you.securityCount - previous.you },
-      { seat: otherSeat(viewerSeat), side: Side.Opponent, amount: opp.securityCount - previous.opp },
-    ];
-    for (const { seat, side, amount } of gains) {
-      if (amount <= 0) continue;
-      if (securityGrowthClaimedRef.current.delete(seat)) continue;
-      launchSecurityGainFlight(seat);
-      noticeSequenceRef.current += 1;
-      narrate(
-        [securityGainNotice(side, amount, `notice-${noticeSequenceRef.current}`, Date.now())],
-        [],
-        lastBatchIdRef.current,
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [you?.securityCount, opp?.securityCount]);
+  useDrawWatcher({
+    state,
+    viewer: you,
+    opponent: opp,
+    viewerSeat,
+    mulliganOpen,
+    phaseBanner,
+    drawPhaseWaitingRef,
+    previousDrawStateRef,
+    handCountsRef,
+    turnStartDrawRef,
+    eventDrawCountsRef,
+    launchDrawFlight,
+  });
+
+  useSecurityCountWatcher({
+    viewer: you,
+    opponent: opp,
+    viewerSeat,
+    mulliganOpen,
+    securityCountsRef,
+    openingSecurityDealRef,
+    securityGrowthClaimedRef,
+    noticeSequenceRef,
+    lastBatchIdRef,
+    launchOpeningSecurityDeal,
+    launchSecurityGainFlight,
+    narrate,
+  });
 
   /** The items on screen, in slot order, so the read-only views below are stable. */
   const presented = useMemo(() => [...narration.values()], [narration]);
