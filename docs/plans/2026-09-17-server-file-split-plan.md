@@ -282,9 +282,24 @@ typecheck alone is not verified.
 - **The fire-site guard moved with the declarations**, as the conventions require: its
   `withPendingSubTriggers([…])` pattern now allows the leading engine parameter.
 
+### The two biggest modules split again
+
+`timing.ts` and `intents.ts` were the two that came out over 1,200 lines. Both were pure
+import blocks plus exported functions, so each became a folder of subject modules with the
+old name kept as the barrel — no import site moved, and the full suite was green on the
+first typecheck of each.
+
+| Folder     | Modules                                                                            | Largest |
+| ---------- | ---------------------------------------------------------------------------------- | ------- |
+| `timing/`  | fire, deletionReactions, combatTrigger, playEntry, payCost, playReducers, digiXros | 331     |
+| `intents/` | router, turnEnd, combat, play, digivolve, breeding, lookup                         | 288     |
+
+Nothing needed a seam decision here: these are module-level functions taking the engine,
+not methods, so nothing can replace one on an instance.
+
 ### Still over 400
 
-`timing.ts` (1,275), `intents.ts` (1,220), `actionDeps.ts` (887), `subTriggers.ts` (859),
-`projections.ts` (661) and `effectContext.ts` (493). These are grouping decisions that can
-be taken further; inside them the mass is again single functions — `fireBeforePayCost`
-(262), `digivolveDeps` (274), `applyIntent` (146) — which are function-size problems.
+`actionDeps.ts` (887), `subTriggers.ts` (859), `projections.ts` (661) and
+`effectContext.ts` (493). These are grouping decisions that can be taken further; inside
+them the mass is again single functions — `digivolveDeps` (274) and `fireBeforePayCost`
+(262, now in `timing/payCost.ts`) — which are function-size problems.
