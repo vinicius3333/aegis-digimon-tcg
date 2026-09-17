@@ -60,10 +60,6 @@ import {
 } from "./screen/model/screenDragIntents";
 import { decisionAllowsPick as modelDecisionAllowsPick, nextDecisionPicks } from "./screen/model/decisionPicks";
 import {
-  previewDropTarget as modelPreviewDropTarget,
-  previewEntry as modelPreviewEntry,
-} from "./screen/model/memoryPreview";
-import {
   gameOverReason as modelGameOverReason,
   gameOverResult as modelGameOverResult,
   viewerTurnOrder as modelViewerTurnOrder,
@@ -71,7 +67,12 @@ import {
 import { actionGuards } from "./screen/model/actionGuards";
 import { handEntriesOf } from "./screen/model/handEntries";
 import { presentedSeats } from "./screen/model/presentedSeats";
-import { spotlightIds as modelSpotlightIds } from "./screen/model/spotlightIds";
+import { appFusionLive } from "./screen/model/appFusionLive";
+import { memoryPreviewInputs } from "./screen/model/memoryPreviewInputs";
+import { spotlightRequest } from "./screen/model/spotlightRequest";
+import { triggerDetailsFor } from "./screen/model/triggerDetails";
+import { combatAnswers } from "./screen/combatAnswers";
+import { playChoiceAnswers } from "./screen/playChoiceAnswers";
 import type { DropZoneHit, PermanentChrome } from "./screen/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -80,7 +81,6 @@ import {
   CardKind,
   PRESENTATION_CHANNEL,
   getCardDefinition,
-  parseTriggerKey,
   type DecisionResponse,
   type Permanent,
   type Seat,
@@ -118,17 +118,15 @@ import {
   canAttackPlayerWith,
   canAttackWith,
   displayMemory,
-  appFusionRoutesForHost,
   parseActivatable,
   otherSeat,
-  triggerCardId,
   viewerSeatOf,
   type LogLine,
   breedingSlotClickAction,
   canMoveFromBreeding,
   canUseBreedingAction,
 } from "./boardModel";
-import { MulliganOverlay, playerFacingEffectClause } from "./overlay";
+import { MulliganOverlay } from "./overlay";
 import { AttackAnnouncementBanner } from "./SidePanelStack";
 import { NarrationStack } from "./NarrationStack";
 import { CardOpenerProvider } from "./cardLinks";
@@ -137,9 +135,6 @@ import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import { pendingFateBadges } from "./pendingFate";
 import { shieldSecurityCount } from "./securityClash";
-import { predictedMemory } from "./memoryArc";
-import { memoryCostPreview } from "./memoryCostPreview";
-import { fieldSlots, triggerClauseSummary, triggerSource, type TriggerSource } from "./decisionPresentation";
 
 export function GameScreen({
   joinOptions,
@@ -736,6 +731,11 @@ export function GameScreen({
   });
   handleTapRef.current = handleTap;
   handleDropRef.current = handleDrop;
+  const combatWindowAnswers = combatAnswers({
+    room,
+    acknowledgeBlockWindowLocally: demoConnection?.acknowledgeBlockWindow,
+    markAnswered: markCombatWindowAnswered,
+  });
 
   // ----- log + game over -----
   const log: LogLine[] = buildMatchLog(events, viewerSeat, instanceIndex, t);
@@ -808,14 +808,7 @@ export function GameScreen({
   // carries none badges nothing.
   const fateBadges = pendingFateBadges({ decision: viewerDecision, picks, viewerSeat });
 
-  // The cards a target selection currently offers, which is what the mask lights.
-  // Every id here is a server projection read back off the board — the attack
-  // targets the server listed for the chosen attacker, and the bases it listed
-  // for the chosen hand card. Only the tap flows arm the mask: a drag already
-  // carries its own ghost and outlined drop areas, and a second dark pass over
-  // that would be noise. The breeding step keeps its own dim (`breedingWindow`).
-
-  const spotlightIds = modelSpotlightIds({
+  const spotlight = spotlightRequest({
     breedingWindow,
     linkSel,
     selPerm,
@@ -823,107 +816,61 @@ export function GameScreen({
     vortexMode,
     handSel,
     handIsDigi,
-    you,
+    viewer: you,
     handEntries,
+    canAttackSecurity,
   });
-  const spotlightAttacker = !breedingWindow ? (selPerm ?? undefined) : undefined;
-  const spotlightSecurity = !!spotlightAttacker && canAttackSecurity;
-  spotlightRequestRef.current = {
-    ids: spotlightIds,
-    attacker: spotlightAttacker,
-    security: spotlightSecurity,
-  };
-  const spotlightOpen = spotlightIds.length > 0 || !!spotlightAttacker;
+  spotlightRequestRef.current = spotlight;
 
-  // Where memory would land if the action the pointer is offering were taken. Which
-  // action that is changes with the pointer: a hovered or selected hand card prices its
-  // play, a drag over a base prices the digivolution onto that base, and a drag over an
-  // area that would refuse the drop prices nothing. The costs are the server's own
-  // (`projectedPlayCost`, and the paths `getDigivolveCostOptions` reads off the routes
-  // the server offered); the printed figure is only the fallback for a card it did not
-  // project. Still a dashed prediction that gates nothing: a [BeforePayCost] reducer can
-  // lower it again at pay time, which the server cannot resolve without prompting.
-
-  const previewEntry = modelPreviewEntry({
-    dragIsPlay,
-    drag,
-    hoveredHandInstanceId,
-    handSel,
-    handEntries,
-  });
-  const previewPlayCost = (() => {
-    if (!previewEntry) return undefined;
-    if (previewEntry.projectedPlayCost >= 0) return previewEntry.projectedPlayCost;
-    const printed = getCardDefinition(previewEntry.cardId)?.playCost;
-    return printed !== undefined && printed >= 0 ? printed : undefined;
-  })();
-
-  const previewDropTarget = modelPreviewDropTarget({
+  const { memoryPrediction } = memoryPreviewInputs({
+    memory,
     dragIsPlay,
     drag,
     dragHover,
     hoveredDragIntent,
-    you,
-    opp,
+    hoveredHandInstanceId,
+    handSel,
     handEntries,
+    viewer: you,
+    opponent: opp,
   });
-  const memoryCostCandidate = memoryCostPreview({
-    heldCard: previewEntry
-      ? { playable: previewEntry.playableFromHand === true, playCost: previewPlayCost }
-      : undefined,
-    dropTarget: previewDropTarget,
+
+  const triggerDetails = triggerDetailsFor({
+    decision: viewerDecision,
+    viewer: you,
+    opponent: opp,
+    handInstanceIds,
+    t,
   });
-  const memoryPrediction = memoryCostCandidate ? predictedMemory(memory, memoryCostCandidate.cost) : undefined;
 
-  const triggerDetails =
-    viewerDecision?.kind === "orderTriggers"
-      ? (viewerDecision.options?.triggerKeys ?? []).map((key, index) => {
-          // Positions count inside the owner's own battle area: numbering across both
-          // players' fields printed "Field: 3" for the first Digimon a player had out.
-          const instanceId = parseTriggerKey(key).instanceId;
-          const source = ((): TriggerSource => {
-            const mine = triggerSource(instanceId, { fieldSlots: fieldSlots(you.battleArea), handInstanceIds });
-            if (mine.zone !== "unknown") return mine;
-            return triggerSource(instanceId, { fieldSlots: fieldSlots(opp.battleArea), handInstanceIds });
-          })();
-          const cardId = viewerDecision.options?.triggerCardIds?.[index] ?? triggerCardId(key);
-          const clause =
-            playerFacingEffectClause({
-              cardId,
-              // Per-trigger truth: one permanent can queue an [On Play] and a [When
-              // Digivolving] at once, and each row must read its own clause.
-              timing: viewerDecision.options?.triggerTimings?.[index] || viewerDecision.options?.timing,
-              description: viewerDecision.options?.triggerDescriptions?.[index],
-              isInherited: viewerDecision.options?.triggerIsInherited?.[index] === true,
-            }) ?? getCardDefinition(cardId)?.effectText;
-          return {
-            sourceLabel:
-              source.zone === "field"
-                ? t("overlay.triggerSourceField", { position: source.position })
-                : source.zone === "hand"
-                  ? t("overlay.triggerSourceHand")
-                  : undefined,
-            summary: triggerClauseSummary(clause),
-          };
-        })
-      : [];
-
-  // ----- overlays -----
-  // The overlay stays mounted when its routes go stale so the player sees why the
-  // action disappeared; an empty route list disables confirmation.
-  const appFusionLive = appFusionChoice
-    ? (() => {
-        const entry = handEntries.find((candidate) => candidate.instanceId === appFusionChoice.handInstanceId);
-        const host = you.battleArea.find((candidate) => candidate.permanentId === appFusionChoice.hostPermanentId);
-        const usable = entry !== undefined && host !== undefined && appFusionActionAvailable();
-        return {
-          entry,
-          host,
-          routes: usable ? appFusionRoutesForHost(entry.appFusionRoutes ?? [], host) : [],
-          normalEvolutionLegal: usable && entry.digivolveTargetPermanentIds.includes(host.permanentId),
-        };
-      })()
-    : undefined;
+  const appFusion = appFusionLive({
+    choice: appFusionChoice,
+    handEntries,
+    viewer: you,
+    available: appFusionActionAvailable(),
+  });
+  const playAnswers = playChoiceAnswers({
+    room,
+    viewer: you,
+    handEntries,
+    mainActionBlocked,
+    appFusionAvailable: appFusionActionAvailable,
+    dualPlay,
+    actionConfirm,
+    appFusionChoice,
+    appFusionRoutes: appFusion,
+    evoCostChoice,
+    assemblyPick,
+    digiXrosPick,
+    overlays: overlayControls,
+    setAppFusionChoice,
+    clearSel,
+    playGameCue,
+    lastPlayAttemptRef,
+    dispatchPlayCard,
+    digivolveWithChoice,
+    findPermanent,
+  });
   const cardMenuPermanent = cardMenu ? findPermanent(cardMenu.permanentId) : undefined;
   const stackViewPermanent = stackView ? findPermanent(stackView) : undefined;
   const stageEl = typeof document !== "undefined" ? document.getElementById("aegis-stage") : null;
@@ -1052,29 +999,7 @@ export function GameScreen({
         allianceWindow={allianceWindow}
         evadeWindow={evadeWindow}
         barrierWindow={barrierWindow}
-        onBlock={(blockerPermanentId) => {
-          markCombatWindowAnswered();
-          if (room) {
-            if (blockerPermanentId) intents.declareBlock(room, blockerPermanentId);
-            else intents.declineBlock(room);
-          } else demoConnection?.acknowledgeBlockWindow?.(blockerPermanentId);
-        }}
-        onCounter={(instanceId, effectKey) => {
-          markCombatWindowAnswered();
-          if (room) intents.respondCounter(room, instanceId, effectKey);
-        }}
-        onAlliance={(allyPermanentId) => {
-          markCombatWindowAnswered();
-          if (room) intents.respondAlliance(room, allyPermanentId);
-        }}
-        onEvade={(permanentId, accept) => {
-          markCombatWindowAnswered();
-          if (room) intents.respondEvade(room, permanentId, accept);
-        }}
-        onBarrier={(permanentId, accept) => {
-          markCombatWindowAnswered();
-          if (room) intents.respondBarrier(room, permanentId, accept);
-        }}
+        {...combatWindowAnswers}
       />
 
       {!state.gameOver ? (
@@ -1122,152 +1047,19 @@ export function GameScreen({
         dualPlay={dualPlay}
         actionConfirm={actionConfirm}
         appFusion={
-          appFusionChoice && appFusionLive
+          appFusionChoice && appFusion
             ? {
-                resultCardId: appFusionLive.entry?.cardId ?? "",
-                hostCardId: appFusionLive.host?.topCard?.cardId ?? "",
-                routes: appFusionLive.routes,
-                canEvolveNormally: appFusionLive.normalEvolutionLegal,
+                resultCardId: appFusion.entry?.cardId ?? "",
+                hostCardId: appFusion.host?.topCard?.cardId ?? "",
+                routes: appFusion.routes,
+                canEvolveNormally: appFusion.normalEvolutionLegal,
               }
             : null
         }
         evoCostChoice={evoCostChoice}
         assemblyPick={assemblyPick}
         digiXrosPick={digiXrosPick}
-        onDualPlay={(useAs) => {
-          if (!dualPlay || mainActionBlocked || !room) return;
-          if (!handEntries.some((entry) => entry.instanceId === dualPlay.instanceId)) {
-            setDualPlay(null);
-            clearSel();
-            return;
-          }
-          lastPlayAttemptRef.current = dualPlay.instanceId;
-          dispatchPlayCard(room, dualPlay.instanceId, undefined, undefined, undefined, useAs);
-          playGameCue("cardPlay");
-          setDualPlay(null);
-          clearSel();
-        }}
-        onDualPlayCancel={() => {
-          setDualPlay(null);
-          clearSel();
-        }}
-        onConfirmAction={() => {
-          if (!actionConfirm || mainActionBlocked) return;
-          if (room) {
-            if (actionConfirm.kind === DragKind.Play) dispatchPlayCard(room, actionConfirm.instanceId);
-            else if (actionConfirm.kind === "digivolve")
-              intents.digivolve(room, actionConfirm.permanentId, actionConfirm.instanceId);
-            else intents.dnaDigivolve(room, actionConfirm.materialPermanentIds, actionConfirm.instanceId);
-          }
-          playGameCue(actionConfirm.kind === DragKind.Play ? "cardPlay" : "digivolve");
-          setActionConfirm(null);
-          clearSel();
-        }}
-        onDigivolveNormally={
-          actionConfirm?.kind === "dna" && actionConfirm.normalPermanentId
-            ? () => {
-                const pending = actionConfirm;
-                const base = findPermanent(pending.normalPermanentId!);
-                setActionConfirm(null);
-                if (base) digivolveWithChoice(pending.normalPermanentId!, pending.instanceId, pending.cardId, base);
-              }
-            : undefined
-        }
-        onConfirmCancel={() => {
-          setActionConfirm(null);
-          clearSel();
-        }}
-        onAppFusion={(linkedInstanceId) => {
-          if (!appFusionChoice) return;
-          const liveEntry = handEntries.find((entry) => entry.instanceId === appFusionChoice.handInstanceId);
-          const liveHost = you.battleArea.find(
-            (candidate) => candidate.permanentId === appFusionChoice.hostPermanentId,
-          );
-          const liveRoute =
-            liveEntry && liveHost
-              ? appFusionRoutesForHost(liveEntry.appFusionRoutes ?? [], liveHost).find(
-                  (route) => route.linkedInstanceId === linkedInstanceId,
-                )
-              : undefined;
-          if (room && appFusionActionAvailable() && liveEntry && liveHost && liveRoute) {
-            intents.appFusion(room, liveHost.permanentId, liveEntry.instanceId, liveRoute.linkedInstanceId);
-            playGameCue("digivolve");
-          }
-          setAppFusionChoice(null);
-          clearSel();
-        }}
-        onAppFusionNormalEvolution={
-          appFusionLive?.normalEvolutionLegal
-            ? () => {
-                const { entry, host } = appFusionLive;
-                if (!entry || !host || !appFusionActionAvailable()) return;
-                setAppFusionChoice(null);
-                digivolveWithChoice(host.permanentId, entry.instanceId, entry.cardId, host);
-              }
-            : undefined
-        }
-        onAppFusionCancel={() => {
-          setAppFusionChoice(null);
-          clearSel();
-        }}
-        onEvoCost={(option) => {
-          if (!evoCostChoice || mainActionBlocked) return;
-          if (room)
-            intents.digivolve(
-              room,
-              evoCostChoice.permanentId,
-              evoCostChoice.handInstanceId,
-              option.type === "alternate",
-              option.alternateRequirementIndex,
-            );
-          setEvoCostChoice(null);
-          clearSel();
-        }}
-        onEvoCostCancel={() => {
-          setEvoCostChoice(null);
-          clearSel();
-        }}
-        onAssembly={(materialInstanceIds) => {
-          if (!assemblyPick || mainActionBlocked) return;
-          if (room) {
-            lastPlayAttemptRef.current = assemblyPick.instanceId;
-            playGameCue("cardPlay");
-            dispatchPlayCard(room, assemblyPick.instanceId, undefined, undefined, { materialInstanceIds });
-          }
-          setAssemblyPick(null);
-          clearSel();
-        }}
-        onAssemblySkip={() => {
-          if (!assemblyPick || mainActionBlocked) return;
-          if (room) {
-            lastPlayAttemptRef.current = assemblyPick.instanceId;
-            playGameCue("cardPlay");
-            dispatchPlayCard(room, assemblyPick.instanceId);
-          }
-          setAssemblyPick(null);
-          clearSel();
-        }}
-        onAssemblyCancel={() => {
-          setAssemblyPick(null);
-          clearSel();
-        }}
-        onDigiXros={(materialInstanceIds, expanderPermanentIds) => {
-          if (!digiXrosPick || mainActionBlocked) return;
-          if (room)
-            dispatchPlayCard(room, digiXrosPick.instanceId, undefined, { materialInstanceIds, expanderPermanentIds });
-          setDigiXrosPick(null);
-          clearSel();
-        }}
-        onDigiXrosSkip={() => {
-          if (!digiXrosPick || mainActionBlocked) return;
-          if (room) dispatchPlayCard(room, digiXrosPick.instanceId);
-          setDigiXrosPick(null);
-          clearSel();
-        }}
-        onDigiXrosCancel={() => {
-          setDigiXrosPick(null);
-          clearSel();
-        }}
+        {...playAnswers}
       />
 
       {cardMenuPermanent && cardMenu && !decision ? (
@@ -1468,7 +1260,7 @@ export function GameScreen({
             {breedingActionsOpen ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
             {/* Outlines mark the cards the server offered without dimming the field.
                 The cards underneath keep every pointer event. */}
-            {spotlightOpen ? (
+            {spotlight.open ? (
               <TargetingSpotlight subjects={spotlightSubjects} width={boardSize.width} height={boardSize.height} />
             ) : null}
             <LeftPileColumn
