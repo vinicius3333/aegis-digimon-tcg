@@ -9,6 +9,7 @@ import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { dropZoneAt, permanentVisualElement } from "./screen/dropZones";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
+import { decisionViewFor } from "./screen/model/decisionView";
 import { prePlayPromptFor } from "./screen/model/prePlayPrompt";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
 import { useTrackingArrow } from "./screen/hooks/useTrackingArrow";
@@ -107,10 +108,8 @@ import {
   openCombatWindow,
   mirroredCombatWindow,
   buildInstanceIndex,
-  decisionCardColors,
   decisionSourceCounts,
   decisionPermanentDetails,
-  decisionVisibleCards,
   digivolveBasePermanentIds,
   attackTargetIdsOf,
   buildMatchLog,
@@ -123,7 +122,6 @@ import {
   handCardEvolutionRoute,
   appFusionRoutesForHost,
   parseActivatable,
-  decisionEffectSource,
   otherSeat,
   instanceCardId,
   permCardId,
@@ -163,7 +161,6 @@ import {
 import { PlayLogSidebar } from "./OpponentActionFeedView";
 import { AttackAnnouncementBanner } from "./SidePanelStack";
 import { NarrationStack } from "./NarrationStack";
-import { buildInstanceArtIndex } from "./sidePanels";
 import { CardOpenerProvider } from "./cardLinks";
 import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "./SecurityClashView";
 import { ZoneShowcase } from "./ZoneShowcase";
@@ -182,15 +179,7 @@ import { beamBetweenBoxes, type ArrowBox } from "./arrowGeometry";
 import { predictedMemory } from "./memoryArc";
 import { memoryCostPreview } from "./memoryCostPreview";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
-import {
-  decisionPresentation,
-  decisionSelectionMin,
-  fieldSlots,
-  sourcePermanentIdOf,
-  triggerClauseSummary,
-  triggerSource,
-  type TriggerSource,
-} from "./decisionPresentation";
+import { fieldSlots, triggerClauseSummary, triggerSource, type TriggerSource } from "./decisionPresentation";
 
 export function GameScreen({
   joinOptions,
@@ -1442,41 +1431,35 @@ export function GameScreen({
     permanentId: canAttackSecurity ? undefined : attackTargetIdsOf(attackerPerm, vortexMode)[0],
   };
 
-  // ----- the open decision, and where it is answered -----
-  // Everything below reads the server's decision payload; the client adds no
-  // legality of its own, it only decides which surface the payload renders on.
-  // Read the live payload, but reveal its choice only after finite visual beats
-  // complete. The security dock and toast reading do not participate in this gate.
-  const viewerDecision =
-    decision && decision.seat === viewerSeat && !cues.decisionAnimationsPending ? decision : undefined;
   const allPermanents = [...you.battleArea, ...opp.battleArea];
   const handInstanceIds = handEntries.map((entry) => entry.instanceId);
-  const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
-  const decisionSourcePermanentId =
-    viewerDecision?.kind === "optional"
-      ? sourcePermanentIdOf(decisionSourceCardId, allPermanents, viewerDecision)
-      : undefined;
-  const boardPresentation = viewerDecision
-    ? decisionPresentation({
-        decision: viewerDecision,
-        handInstanceIds,
-        sourcePermanentId: decisionSourcePermanentId,
-      })
-    : "dialog";
-  const answerOnBoard = boardPresentation === "board" && !decisionAsDialog;
-  const decisionHighlightPermanentId = answerOnBoard ? decisionSourcePermanentId : undefined;
+  const {
+    viewerDecision,
+    answerOnBoard,
+    decisionSourceCardId,
+    decisionHighlightPermanentId,
+    decisionSelectable,
+    decisionVisible,
+    decisionVisibleCardIds,
+    decisionInstanceColors,
+    decisionDifferentColors,
+    decisionDistinctCardIds,
+    decisionMin,
+    decisionMax,
+  } = decisionViewFor({
+    decision,
+    decisionAnimationsPending: cues.decisionAnimationsPending,
+    decisionAsDialog,
+    viewerSeat,
+    events,
+    state,
+    instanceIndex,
+    permanents: allPermanents,
+    handInstanceIds,
+  });
 
-  const decisionSelectable = new Set(viewerDecision?.options?.candidateInstanceIds ?? []);
-  const decisionVisible = viewerDecision
-    ? decisionVisibleCards(viewerDecision.options, instanceIndex, buildInstanceArtIndex(state))
-    : [];
-  const decisionVisibleCardIds = new Map(decisionVisible.map((card) => [card.instanceId, card.cardId]));
-  const decisionInstanceColors = decisionCardColors(decisionVisible);
-  const decisionDifferentColors = viewerDecision?.options?.differentColors === true;
-  const decisionDistinctCardIds = viewerDecision?.options?.distinctCardIds === true;
   // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
   // picks stay legal as long as a distinct color can still be assigned to each.
-
   const decisionAllowsPick = (instanceId: string) =>
     modelDecisionAllowsPick({
       decisionSelectable,
@@ -1492,8 +1475,6 @@ export function GameScreen({
     if (!decisionAllowsPick(instanceId)) return;
     setPicks((current) => nextDecisionPicks({ picks: current, instanceId, max: decisionMax }));
   };
-  const decisionMin = decisionSelectionMin(viewerDecision);
-  const decisionMax = viewerDecision?.options?.max ?? 1;
   // What the resolving effect will do to each target the viewer has picked. The
   // fate is the server's own projection (`options.targetFate`); a prompt that
   // carries none badges nothing.
