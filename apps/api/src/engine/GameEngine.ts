@@ -1,4 +1,3 @@
-import { peekCheckedCard } from "./security/checkedCard.js";
 import { ContinuousEffectScope } from "./effects/ContinuousEffectScope.js";
 import { isTimingActivationDisabled } from "./effects/timingActivation.js";
 import type { Client } from "colyseus";
@@ -14,14 +13,11 @@ import {
   Permanent,
   type CardColor,
   type CardInstance,
-  type Intent,
-  type IntentResult,
-  type RejectReason,
   type ServerEvent,
   type Seat,
   type ZoneRef,
-  appFusionCostFor,
 } from "@aegis/shared";
+import type { Intent, IntentResult } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import {
   buildStateView,
@@ -46,8 +42,6 @@ import { createDecisionApi } from "./decisions/decisionApi.js";
 import { createResolverDecisions, type ResolverDecisions } from "./decisions/resolverDecisions.js";
 import { MainPhaseController } from "./MainPhaseController.js";
 import { BreedingPhaseController } from "./BreedingPhaseController.js";
-import { handleReady, handleSurrender, handleEndPhase, handleRespondDecision } from "./intentRouter.js";
-import { validateActivateEffect, applyActivateEffect, type ActivateEffectIntent } from "./actions/activateEffect.js";
 import { createPrimitives, ModifierLedger, rootZoneOfLooseInstance } from "./effects/primitives.js";
 import {
   ContinuousEffectLedger,
@@ -56,7 +50,6 @@ import {
   effectiveNames,
   effectiveTraits,
 } from "./effects/continuous.js";
-import { blastDnaChoices } from "./actions/blastDnaDigivolve.js";
 import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription, type SubTriggerTurnLedger } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
@@ -75,7 +68,6 @@ import {
   applyWouldBePlayedSelfReducer,
   potentialWouldBePlayedSelfReduction,
   wouldBePlayedSelfReducersFor,
-  hasBlastDigivolveKeyword,
   grantedTokenEffectsForTiming,
   resolveSelfWhenTrashedFromDeck,
 } from "./effects/interpreter.js";
@@ -99,55 +91,7 @@ import { runSetup, finalizeSecurity, mulliganRedraw, type Rng, type Decklist } f
 import { layDevScenario, type DevScenarioId } from "./devScenario.js";
 import { validateDecklist } from "./deckValidation.js";
 import { MulliganCoordinator } from "./mulligan.js";
-import {
-  applyHatchEgg,
-  applyMoveFromBreeding,
-  canHatch,
-  canMove,
-  type HatchEggIntent,
-  type MoveFromBreedingIntent,
-} from "./actions/breeding.js";
-import {
-  validateDigivolve,
-  applyDigivolve,
-  validatePlayCard,
-  applyPlayCard,
-  validateAttack,
-  applyAttack,
-  applyDeclareBlock,
-  applyDeclineBlock,
-  applyRespondAlliance,
-  applyRespondEvade,
-  applyRespondBarrier,
-  type DigivolveIntent,
-  type PlayCardIntent,
-  validateDigiXros,
-  applyDigiXros,
-  type DigiXrosIntent,
-  validateAssembly,
-  applyAssembly,
-  type AssemblyIntent,
-  type AttackIntent,
-  validateLinkCard,
-  applyLinkCard,
-  type LinkCardIntent,
-  validateDnaDigivolve,
-  applyDnaDigivolve,
-  type DnaDigivolveIntent,
-  validateRespondCounter,
-  applyRespondCounter,
-  type RespondCounterIntent,
-} from "./actions/index.js";
-import { ATTACK_BLOCKED_INTENTS, isBlastDigivolve, playableFromHand } from "./gameEngine/intentGating.js";
-import {
-  mapAssemblyReason,
-  mapBreedingReason,
-  mapDigivolveReason,
-  mapDigiXrosReason,
-  mapDnaDigivolveReason,
-  mapLinkReason,
-  mapPlayCardReason,
-} from "./gameEngine/rejectionReasons.js";
+import { canHatch, canMove } from "./actions/breeding.js";
 import { mergeRuleDeletions, type PooledRuleDeletion } from "./gameEngine/ruleDeletions.js";
 import { DigivolveSupport } from "./gameEngine/digivolveSupport.js";
 import { BoardProjection } from "./gameEngine/projections.js";
@@ -161,25 +105,24 @@ import {
   uniqueOncePerTurnWatcherOccurrences,
   type ArmedSubTrigger,
 } from "./gameEngine/subTriggerIdentity.js";
-import type { AppFusionValidation, GameEngineHooks, SeatJoinOptions } from "./gameEngine/types.js";
+import type { GameEngineHooks, SeatJoinOptions } from "./gameEngine/types.js";
 import { engineRunSecurityCheck, payBarrierSecurityCost } from "./gameEngine/securityCheck.js";
 import {
-  activateEffectDeps,
-  assemblyDeps,
   attackDeps,
-  blockDeps,
-  breedingDeps,
   buildTurnFlowHooks,
-  combatDecisionDeps,
-  digiXrosDeps,
   digivolveDeps,
-  dnaDigivolveDeps,
-  intentRouterDeps,
   linkCardDeps,
   playCardDeps,
   resolutionDeps,
-  respondCounterDeps,
 } from "./gameEngine/actionDeps.js";
+import {
+  applyIntent,
+  counterEligibleSources,
+  findInstance,
+  findLooseInstance,
+  isNewlyPlayedRushAttacker,
+  validateAppFusion,
+} from "./gameEngine/intents.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
@@ -212,7 +155,7 @@ export class GameEngine {
   /** The interactive Main-phase verb loop the turn machine awaits. */
   readonly mainPhase: MainPhaseController;
   /** The interactive Breeding-phase window the turn machine awaits. */
-  private readonly breeding: BreedingPhaseController;
+  readonly breeding: BreedingPhaseController;
   /** Per-turn use ledger for maxPerTurn accounting (shared with the effect stack). */
   readonly tracker: UseTracker;
   /** Duration-scoped modifier store backing the effect primitives. */
@@ -243,10 +186,10 @@ export class GameEngine {
    * triggers) shares the same token, while two genuinely separate top-level
    * resolutions get distinct tokens. Read by {@link fireSubTrigger}.
    */
-  private activeWindowToken: number | undefined = undefined;
+  activeWindowToken: number | undefined = undefined;
   /** Async Main verbs accepted by the server but not yet fully resolved. */
-  private mainVerbContinuationsInFlight = 0;
-  private counterResolutionInFlight = false;
+  mainVerbContinuationsInFlight = 0;
+  counterResolutionInFlight = false;
   /** Nesting guard that defers state-based actions until a used Option finishes routing. */
   optionResolutionDepth = 0;
   /** Nesting guard that keeps rule checks outside an effect body's atomic resolution. */
@@ -264,7 +207,7 @@ export class GameEngine {
    * previous one has fully settled, so two effect resolutions are never in flight at
    * once (see {@link continueMainVerb}).
    */
-  private mainVerbChain: Promise<void> = Promise.resolve();
+  mainVerbChain: Promise<void> = Promise.resolve();
   /**
    * Watchers already resolved by the timing window that shares their event (see
    * {@link withPendingSubTriggers}), keyed by {@link subTriggerIdentity} rather than by
@@ -515,7 +458,7 @@ export class GameEngine {
   /** Guards {@link GameEngineHooks.onBothReady} against firing more than once. */
   bothReadyFired = false;
   /** The opening-hand mulligan window (subsystem: deck-and-setup). */
-  private readonly mulligan: MulliganCoordinator;
+  readonly mulligan: MulliganCoordinator;
   /** Decklists staged at seatPlayer, consumed by startMatch (index === seat). */
   private readonly stagedDecks: (Decklist | undefined)[] = [undefined, undefined];
   /** Per-seat shuffle PRNG produced by setup (so a mulligan reshuffles deterministically). */
@@ -693,9 +636,9 @@ export class GameEngine {
       acceptedBlitzAttackers: this.acceptedBlitzAttackers,
       effectEnvironment: (trigger) => this.effectEnvironment(trigger),
       buildEffectContext: (source, trigger) => this.buildEffectContext(source, trigger),
-      isNewlyPlayedRushAttacker: (permanentId) => this.isNewlyPlayedRushAttacker(permanentId),
+      isNewlyPlayedRushAttacker: (permanentId) => isNewlyPlayedRushAttacker(this, permanentId),
       listCandidateInstances: () => this.listCandidateInstances(),
-      validateAppFusion: (seat, intent) => this.validateAppFusion(seat, intent),
+      validateAppFusion: (seat, intent) => validateAppFusion(this, seat, intent),
       attackDeps: () => attackDeps(this),
       digivolveDeps: () => digivolveDeps(this),
       playCardDeps: () => playCardDeps(this),
@@ -922,7 +865,7 @@ export class GameEngine {
       },
       // §11-3 Counter Timing: whether the defending seat has anything to activate,
       // so `runCounterWindow` can skip the round trip when nothing is eligible.
-      counterEligible: (seat) => this.counterEligibleSources(seat),
+      counterEligible: (seat) => counterEligibleSources(this, seat),
     });
     this.mainPhase = new MainPhaseController(this.state, this.memory);
     this.breeding = new BreedingPhaseController(this.state);
@@ -1009,7 +952,7 @@ export class GameEngine {
             ? Array.from(this.state.players)
                 .flatMap((player) => Array.from(player.security))
                 .find((card) => card.instanceId === instanceId)
-            : this.findLooseInstance(instanceId);
+            : findLooseInstance(this, instanceId);
         return instance === undefined
           ? baseCost
           : this.fireBeforePayCost(instance, baseCost, useAsOption, originZone, projectOnly);
@@ -1040,7 +983,7 @@ export class GameEngine {
         }
       },
       resolveSelfWhenTrashedFromDeck: async (instanceId, byEffectCardId) => {
-        const instance = this.findLooseInstance(instanceId);
+        const instance = findLooseInstance(this, instanceId);
         if (instance === undefined) return;
         await resolveSelfWhenTrashedFromDeck(
           this.buildEffectContext(this.cardSourceOf(instance), {
@@ -1276,7 +1219,7 @@ export class GameEngine {
             deletedPermanentIds: permanentIds,
           }),
         buildInstanceContext: (sourceInstanceId, leavingId) => {
-          const sourceInstance = this.findLooseInstance(sourceInstanceId);
+          const sourceInstance = findLooseInstance(this, sourceInstanceId);
           return sourceInstance === undefined
             ? undefined
             : this.buildEffectContext(this.cardSourceOf(sourceInstance), {
@@ -1309,7 +1252,7 @@ export class GameEngine {
             const sourceInstance =
               replacement.sourceInstanceId === undefined
                 ? undefined
-                : this.findLooseInstance(replacement.sourceInstanceId);
+                : findLooseInstance(this, replacement.sourceInstanceId);
             return {
               replacement,
               key: `replacement/${replacement.id}/${sourceInstance?.cardId ?? replacement.sourceInstanceId ?? replacement.sourcePermanentId ?? "source"}`,
@@ -1376,139 +1319,6 @@ export class GameEngine {
     this.modifiers.dropPermanent(permanentId);
     this.continuous.dropPermanent(permanentId);
     this.subTriggers.dropPermanent(permanentId);
-  }
-
-  /**
-   * Whether `seat` has at least one legal Main-phase action right now: a playable
-   * card, a digivolve option, a DNA digivolution, a link declaration, an available
-   * attack, or an activatable [Main] effect. Returns as soon as any action is found
-   * possible (short-circuit). Used to auto-end the turn when the player has nothing
-   * left to do.
-   *
-   * Effect and link availability is read from the projections `syncActivatableEffects`
-   * and `syncLinkTargets` publish for the client, recomputed here so the gate and the
-   * affordances the player sees can never disagree about what is legal.
-   */
-  private hasAnyMainPhaseAction(seat: Seat): boolean {
-    const player = this.state.players[seat];
-    if (!player) return false;
-
-    // 1. Activatable [Main] effects on every zone the projection covers: battle area,
-    //    breeding, hand ([Hand][Main]) and trash ([Trash][Main]).
-    this.projection.syncActivatableEffects();
-    const effectPermanents = [...player.battleArea];
-    if (player.breeding !== undefined) effectPermanents.push(player.breeding);
-    for (const perm of effectPermanents) {
-      if (perm.activatableEffectsJson) return true;
-    }
-    for (const instance of [...player.hand, ...player.trash]) {
-      if (instance.activatableEffectsJson) return true;
-    }
-
-    // 1b. Declare a link (§6-5-1-4) from hand or from a battle-area top card.
-    this.projection.syncLinkTargets();
-    for (const instance of player.hand) {
-      if (instance.linkTargetPermanentIds.length > 0) return true;
-    }
-    for (const perm of player.battleArea) {
-      if (perm.topCard !== undefined && perm.topCard.linkTargetPermanentIds.length > 0) return true;
-    }
-
-    // 2. Play a card from hand. The plain validation prices the card at its printed cost, so a
-    //    DigiXros / Assembly card whose declaration would lower the cost into range must read as
-    //    an available action through the same material-route escape the hand affordances use
-    //    (§7-2 / §7-3) — otherwise the turn auto-ends on a player who can still play it.
-    const playDeps = playCardDeps(this);
-    for (const card of player.hand) {
-      const def = lookupDefinition(card.cardId);
-      if (!def || def.kinds.includes(CardKind.DigiEgg)) continue;
-      const check = validatePlayCard(this.state, seat, { type: "playCard", instanceId: card.instanceId }, playDeps);
-      if (playableFromHand(check, card.cardId)) return true;
-    }
-
-    // 3. App Fusion from hand using an explicitly linked physical material.
-    for (const card of player.hand) {
-      const def = lookupDefinition(card.cardId);
-      if (!def?.kinds.includes(CardKind.Digimon)) continue;
-      for (const perm of player.battleArea) {
-        for (const linked of perm.linked) {
-          const check = this.validateAppFusion(seat, {
-            type: "appFusion",
-            permanentId: perm.permanentId,
-            instanceId: card.instanceId,
-            linkedInstanceId: linked.instanceId,
-          });
-          if (check.ok) return true;
-        }
-      }
-    }
-
-    // 4. Digivolve a hand Digimon onto a battle-area or breeding permanent
-    const digiDeps = digivolveDeps(this);
-    for (const card of player.hand) {
-      const def = lookupDefinition(card.cardId);
-      if (!def?.kinds.includes(CardKind.Digimon)) continue;
-      const targets = [...player.battleArea];
-      if (player.breeding) targets.push(player.breeding);
-      for (const perm of targets) {
-        const check = validateDigivolve(
-          this.state,
-          seat,
-          {
-            type: "digivolve",
-            permanentId: perm.permanentId,
-            instanceId: card.instanceId,
-          },
-          digiDeps,
-        );
-        if (check.ok) return true;
-      }
-    }
-
-    // 5. DNA digivolve (§8-2): a printed DNA requirement names two materials, so the
-    //    single-base `validateDigivolve` probe above always rejects it.
-    if (player.battleArea.length >= 2) {
-      const dnaDeps = dnaDigivolveDeps(this);
-      for (const card of player.hand) {
-        const def = lookupDefinition(card.cardId);
-        if (!def?.kinds.includes(CardKind.Digimon)) continue;
-        for (let first = 0; first < player.battleArea.length; first++) {
-          for (let second = first + 1; second < player.battleArea.length; second++) {
-            const materialPermanentIds = [
-              player.battleArea[first]!.permanentId,
-              player.battleArea[second]!.permanentId,
-            ];
-            const check = validateDnaDigivolve(
-              this.state,
-              seat,
-              { type: "dnaDigivolve", materialPermanentIds, instanceId: card.instanceId },
-              dnaDeps,
-            );
-            if (check.ok) return true;
-          }
-        }
-      }
-    }
-
-    // 6. Attack with an unsuspended Digimon
-    const deps = attackDeps(this);
-    const oppPlayer = this.state.players[1 - seat];
-    for (const perm of player.battleArea) {
-      const intent: AttackIntent = { attackerPermanentId: perm.permanentId, target: { kind: "player" } };
-      if (validateAttack(deps, seat, intent) === null) return true;
-      if (oppPlayer) {
-        for (const oppPerm of oppPlayer.battleArea) {
-          if (!oppPerm.isSuspended) continue;
-          const permIntent: AttackIntent = {
-            attackerPermanentId: perm.permanentId,
-            target: { kind: "permanent", permanentId: oppPerm.permanentId },
-          };
-          if (validateAttack(deps, seat, permIntent) === null) return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   /**
@@ -2019,7 +1829,7 @@ export class GameEngine {
       return;
     }
     const ascend = async ({ instanceId, seat }: { instanceId: string; seat: Seat }): Promise<void> => {
-      if (this.findLooseInstance(instanceId) === undefined) return;
+      if (findLooseInstance(this, instanceId) === undefined) return;
       const response = await this.decisions.request({
         seat,
         kind: "selectCards",
@@ -2038,7 +1848,7 @@ export class GameEngine {
     // own [On Deletion] (inside the single shared `fire`) before it could ever be asked to
     // ascend first.
     const selfEffectCandidates = ascensionCandidates.filter(({ instanceId }) => {
-      const card = this.findLooseInstance(instanceId);
+      const card = findLooseInstance(this, instanceId);
       return card !== undefined && definitionOf(card).effectText?.includes("[On Deletion]") === true;
     });
     if (selfEffectCandidates.length === 0) {
@@ -2797,7 +2607,7 @@ export class GameEngine {
         // event; a generic loose-zone lookup here would resurrect unrelated/returned cards.
         const discarded = this.discardedStackSourceContextPayload(sub, payload);
         if (discarded === undefined) return undefined;
-        const discardedSource = this.findLooseInstance(sub.sourceInstanceId);
+        const discardedSource = findLooseInstance(this, sub.sourceInstanceId);
         if (discardedSource === undefined) return undefined;
         const context = this.buildEffectContext(this.cardSourceOf(discardedSource), discarded.payload);
         context.discardedStackSourceProof = discarded.proof;
@@ -2817,7 +2627,7 @@ export class GameEngine {
       const activatesFromItsOwnHandTrash =
         sub.event === "whenTrashedFromHand" && payload.trashedFromHandInstanceId === sub.sourceInstanceId;
       if (!activatesFromItsOwnHandTrash && this.looseSourceLeftInstallZone(sub, sub.sourceInstanceId)) return undefined;
-      const loose = this.findLooseInstance(sub.sourceInstanceId);
+      const loose = findLooseInstance(this, sub.sourceInstanceId);
       if (loose === undefined) return undefined;
       const discarded = this.discardedStackSourceContextPayload(sub, payload);
       const context = this.buildEffectContext(this.cardSourceOf(loose), discarded?.payload ?? payload);
@@ -3239,7 +3049,7 @@ export class GameEngine {
       await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, costDeletionEffects);
       return;
     }
-    const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
+    const entryPermanentId = findInstance(this, sourceInstanceId)?.permanent?.permanentId;
     const playedEventTrigger = {
       ...this.playedTrigger(entryPermanentId),
       ...scopedTrigger,
@@ -3339,7 +3149,7 @@ export class GameEngine {
     },
   ): Promise<void> {
     const attackerPermanentId = this.combat?.currentAttackerId;
-    const subjectPermanent = this.findInstance(instanceId)?.permanent;
+    const subjectPermanent = findInstance(this, instanceId)?.permanent;
     if (subjectPermanent !== undefined) subjectPermanent.enteredByEffect = true;
     if (timing === EffectTiming.OnPlay) this.materializePlayerCustomEffects(subjectPermanent);
     // Effect-driven digivolutions are genuine digivolutions for "digivolved this turn"
@@ -3510,7 +3320,7 @@ export class GameEngine {
    * unknown until the actual payment window and must not be assumed or consumed by targeting.
    */
   projectLooseUseCost(instanceId: string, controllerSeat: Seat): number | undefined {
-    const instance = this.findLooseInstance(instanceId);
+    const instance = findLooseInstance(this, instanceId);
     if (instance === undefined) return undefined;
     const source = this.cardSourceOf(instance);
     const baseCost = this.modifiers.playCostFor(
@@ -3734,7 +3544,7 @@ export class GameEngine {
               return resident?.topCard === undefined
                 ? undefined
                 : this.buildEffectContext(
-                    this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? resident.topCard),
+                    this.cardSourceOf(findInstance(this, sourceInstanceId ?? "")?.instance ?? resident.topCard),
                     {
                       wouldBePlayedInstanceId: instance.instanceId,
                       wouldBePlayedCardId: instance.cardId,
@@ -3801,7 +3611,7 @@ export class GameEngine {
   private async prepareDigiXrosPlays(instanceIds: readonly string[]): Promise<Record<string, string[]>> {
     const targets: Permanent[] = [];
     for (const instanceId of instanceIds) {
-      const instance = this.findLooseInstance(instanceId);
+      const instance = findLooseInstance(this, instanceId);
       if (instance === undefined) continue;
       const source = this.cardSourceOf(instance);
       const playTarget = new Permanent();
@@ -3821,20 +3631,20 @@ export class GameEngine {
       "wouldBePlayed",
       targets,
       (sourcePermanentId, sourceInstanceId, targetInstanceId) => {
-        const pendingInstance = this.findLooseInstance(targetInstanceId ?? targets[0]!.topCard!.instanceId);
+        const pendingInstance = findLooseInstance(this, targetInstanceId ?? targets[0]!.topCard!.instanceId);
         const pendingOwnerSeat = pendingInstance?.ownerSeat ?? targets[0]!.controllerSeat;
         const resident =
           this.access.permanentById(sourcePermanentId) ??
           (this.state.players[pendingOwnerSeat]?.breeding?.permanentId === sourcePermanentId
             ? this.state.players[pendingOwnerSeat]?.breeding
             : undefined);
-        const sourceCard = this.findInstance(sourceInstanceId ?? "")?.instance ?? resident?.topCard;
+        const sourceCard = findInstance(this, sourceInstanceId ?? "")?.instance ?? resident?.topCard;
         if (sourceCard === undefined) return undefined;
         return {
           ...this.buildEffectContext(this.cardSourceOf(sourceCard), {
             wouldBePlayedInstanceId: targetInstanceId ?? targets[0]!.topCard!.instanceId,
             wouldBePlayedCardId:
-              this.findLooseInstance(targetInstanceId ?? targets[0]!.topCard!.instanceId)?.cardId ??
+              findLooseInstance(this, targetInstanceId ?? targets[0]!.topCard!.instanceId)?.cardId ??
               targets[0]!.topCard!.cardId,
             wouldBePlayedAsOption: false,
           }),
@@ -4362,7 +4172,7 @@ export class GameEngine {
     do {
       this.instanceSeq += 1;
       candidate = `inst-${this.instanceSeq}`;
-    } while (this.findInstance(candidate) !== undefined);
+    } while (findInstance(this, candidate) !== undefined);
     return candidate;
   }
 
@@ -4696,986 +4506,16 @@ export class GameEngine {
   }
 
   /**
-   * Validate and apply a single client intent (subsystem: intent-protocol-and-room).
-   * Mutates state only on success; every path returns a stable IntentResult the room
-   * surfaces (the rejection codes are the API-CONTRACT section 4 vocabulary).
-   *
-   * Replaces all network transport RPC entry points (RoomManager / TurnStateMachine / OptionalSkill
-   * / MultipleSkills RPCs): the only client->server channel is this dispatch table.
-   * Each verb's own action module enforces the validation contract (seat/turn ->
-   * open-decision -> legality) and is server-authoritative.
-   *
-   * The decision gate is enforced per verb (and, for the always-available verbs,
-   * deliberately bypassed): while a decision is open only respondDecision and
-   * surrender are accepted. Every gated verb keys off the synchronized
-   * state.pendingDecision (the contract's source of truth, which the DecisionManager
-   * mirrors), so the action modules and the router agree.
+   * Validate and apply one player intent. The engine's main entry point from the room;
+   * {@link applyIntent} holds the router and the per-verb handlers.
    */
   applyIntent(seat: Seat, intent: Intent): IntentResult {
-    const mainActionWhileResolving =
-      this.activeWindowToken !== undefined || this.effectResolutionDepth > 0 || this.optionResolutionDepth > 0;
-    // Readiness guard. Main opens before its start-of-main timing finishes, so a fast client
-    // can submit a verb while the turn has not actually been handed over; those are refused.
-    // Once entry is finalized the engine SERIALIZES main verbs through `continueMainVerb`
-    // instead, so a verb issued while some other effect window happens to be open is queued,
-    // not rejected — refusing those would break the ordinary "act again immediately" path.
-    // An open decision is the more specific refusal: each verb's own gate reports
-    // `decision-pending` for it, so both readiness checks here yield to that gate.
-    const noDecisionOpen = this.state.pendingDecision === undefined;
-    if (
-      this.mainEntryPending &&
-      mainActionWhileResolving &&
-      noDecisionOpen &&
-      ["playCard", "appFusion", "digivolve", "attack", "activateEffect", "linkCard", "dnaDigivolve"].includes(
-        intent.type,
-      )
-    ) {
-      return { ok: false, reason: "wrong-phase" };
-    }
-    // Q5335 (BT23-065): activating an effect is refused outright while ANOTHER effect is still
-    // resolving, at any point in the turn. This one verb keeps the broad condition — it is a
-    // rules restriction on activation timing, not the start-of-main readiness case above.
-    if (mainActionWhileResolving && noDecisionOpen && intent.type === "activateEffect") {
-      return { ok: false, reason: "wrong-phase" };
-    }
-    // A voluntary pass is DEFERRED, not refused, while the start-of-main entry is in flight.
-    // The readiness invariant is that no main action takes effect before the turn is actually
-    // handed to the player; ending the phase early satisfies that by being replayed at
-    // finalize. Refusing it outright strands any client that passes as soon as Main appears
-    // to open, which is exactly what the production turn drivers do.
-    if (intent.type === "endPhase" && this.mainEntryPending && mainActionWhileResolving) {
-      this.deferredEndPhaseSeat = seat;
-      return { ok: true };
-    }
-    // CR section 11: an attack runs from declaration to the end of the battle as one
-    // uninterrupted process. While it is in flight — including while it is parked on a
-    // combat prompt the defending seat still owes an answer to (block, Counter Timing,
-    // Alliance, Evade, Barrier) — no board verb is accepted from either seat. Those
-    // prompts are mirrored in `state.combatWindow`, not in `state.pendingDecision`, so
-    // the per-verb `decision-pending` gates do not see them; without this the turn
-    // player could play Digimon between a redirected attack and its battle, and end the
-    // turn with the attack never resolved. The room's answer-timeout backstop
-    // (`expireCombatWindow`) guarantees the window always closes, so this cannot wedge
-    // the turn. The combat response verbs, `respondDecision`, `ready` and `surrender`
-    // stay open: they are how the attack makes progress or the match ends.
-    if (
-      this.combat.currentAttackerId !== undefined &&
-      ATTACK_BLOCKED_INTENTS.has(intent.type) &&
-      !isBlastDigivolve(intent)
-    ) {
-      return { ok: false, reason: "wrong-phase" };
-    }
-    switch (intent.type) {
-      case "playCard":
-        return this.handlePlayCard(seat, intent);
-
-      case "appFusion":
-        return this.handleAppFusion(seat, intent);
-
-      case "digivolve":
-        return this.handleDigivolve(seat, intent);
-
-      case "attack":
-        return this.handleAttack(seat, intent);
-
-      case "declareBlock":
-        return applyDeclareBlock(blockDeps(this), seat, intent);
-
-      case "declineBlock":
-        return applyDeclineBlock(blockDeps(this), seat);
-
-      case "respondCounter":
-        return this.handleRespondCounter(seat, intent);
-
-      case "respondAlliance":
-        return applyRespondAlliance(combatDecisionDeps(this), seat, intent);
-
-      case "respondEvade":
-        return applyRespondEvade(combatDecisionDeps(this), seat, intent);
-
-      case "respondBarrier":
-        return applyRespondBarrier(combatDecisionDeps(this), seat, intent);
-
-      case "activateEffect":
-        return this.handleActivateEffect(seat, intent);
-
-      case "linkCard":
-        return this.handleLinkCard(seat, intent);
-
-      case "dnaDigivolve":
-        return this.handleDnaDigivolve(seat, intent);
-
-      case "endPhase":
-        // During the Breeding phase, endPhase is "do nothing" — it skips the breeding
-        // action window (API-CONTRACT "advance Main -> End (or skip Breeding action)").
-        // During the Main phase it ends the turn (intentRouter / MainPhaseController).
-        if (this.state.phase === Phase.Breeding) {
-          return this.handleBreedingSkip(seat);
-        }
-        return handleEndPhase(intentRouterDeps(this), seat);
-
-      case "respondDecision":
-        return handleRespondDecision(intentRouterDeps(this), seat, intent);
-
-      case "ready":
-        return handleReady(intentRouterDeps(this), seat);
-
-      case "surrender":
-        return handleSurrender(intentRouterDeps(this), seat);
-
-      case "mulligan":
-        return this.mulligan.answer(seat, intent.keep) ? { ok: true } : { ok: false, reason: "decision-pending" };
-
-      case "hatchEgg":
-        return this.handleHatchEgg(seat, intent);
-
-      case "moveFromBreeding":
-        return this.handleMoveFromBreeding(seat, intent);
-
-      default: {
-        // Exhaustiveness guard: a new Intent variant must be handled above.
-        const exhaustive: never = intent;
-        void exhaustive;
-        return { ok: false, reason: "unknown-intent" };
-      }
-    }
-  }
-
-  /**
-   * Re-evaluate the turn-end condition after a turn-player verb has resolved: end the
-   * Main phase if the gauge has crossed to the opponent, then auto-end it if the turn
-   * player has no remaining legal action. Must run AFTER a continuation-based verb's
-   * awaited effect resolves — running it synchronously after dispatch would end the
-   * turn on the play cost's cross before the On Play effect ever ran.
-   */
-  checkTurnEndAfterVerb(): void {
-    // Main becomes observable before its asynchronous entry timing has completely
-    // unwound. If a client submits a verb in that interval, the entry finalizer and
-    // any nested state sync must not end the phase from the already-paid memory cost;
-    // the continuation's own final check will run after every effect and decision.
-    if (this.mainVerbContinuationsInFlight > 0) return;
-    // Nested plays/digivolutions can invoke this hook while the outer card effect is
-    // still resolving. Blitz belongs after that whole effect window, never between its
-    // clauses or ahead of their target selections.
-    if (this.activeWindowToken !== undefined) return;
-
-    // Effects resolved inside an attack (for example ST12-10 playing Sistermon Ciel)
-    // may restore memory and call this hook before CombatController has released its
-    // in-progress guard. At that instant every normal Main verb is intentionally
-    // illegal, so `hasAnyMainPhaseAction` would mistake the transient combat window
-    // for a dead Main phase and close the turn. The attack continuation calls this
-    // method again after `isAttacking` becomes false; only that final check may decide
-    // whether the restored-memory turn remains open.
-    if (this.combat.isAttacking) return;
-
-    // ＜Blitz＞ (§16-22): when memory has crossed to the opponent but the turn
-    // player has an unsuspended Blitz Digimon that hasn't attacked this turn, keep
-    // the Main phase open for one more attack. Skip the turn-end check so the
-    // player can declare the Blitz attack; after it resolves this method is called
-    // again and the turn ends normally.
-    if (this.memory.hasCrossedToOpponent()) {
-      const accepted = this.combat
-        .blitzEligiblePermanentIds(this.state.turnSeat)
-        .find((permanentId) => this.acceptedBlitzAttackers.has(permanentId));
-      if (accepted !== undefined || this.blitzDecisionInFlight) return;
-
-      const candidate = this.combat
-        .blitzEligiblePermanentIds(this.state.turnSeat)
-        .find((permanentId) => !this.resolvedBlitzOpportunities.has(permanentId));
-      if (candidate !== undefined && this.state.pendingDecision === undefined) {
-        const permanent = this.access.permanentById(candidate);
-        this.blitzDecisionInFlight = true;
-        void this.decisions
-          .request({
-            seat: this.state.turnSeat,
-            kind: "optional",
-            promptText: "Activate Blitz?",
-            ...(permanent?.topCard?.cardId !== undefined ? { sourceCardId: permanent.topCard.cardId } : {}),
-            options: { promptKey: "activateBlitz" },
-          })
-          .then((response) => {
-            this.resolvedBlitzOpportunities.add(candidate);
-            if (response.kind === "optional" && response.accept) {
-              this.acceptedBlitzAttackers.add(candidate);
-              this.projection.syncAttackTargets();
-            }
-          })
-          .finally(() => {
-            this.blitzDecisionInFlight = false;
-            this.checkTurnEndAfterVerb();
-          });
-        return;
-      }
-    }
-    this.mainPhase.checkTurnEnd();
-    if (this.mainPhase.isOpen && !this.hasAnyMainPhaseAction(this.state.turnSeat)) {
-      this.mainPhase.endPhaseRequested(this.state.turnSeat);
-    }
-  }
-
-  private isNewlyPlayedRushAttacker(permanentId: string): boolean {
-    const permanent = this.access.permanentById(permanentId);
-    return (
-      permanent !== undefined &&
-      this.crossedMemoryRushAttackers.has(permanentId) &&
-      permanent.controllerSeat === this.state.turnSeat &&
-      permanent.enterFieldTurnCount === this.state.turnCount &&
-      !permanent.isSuspended &&
-      !this.combat.attackedThisTurn.has(permanentId) &&
-      this.continuous.hasKeyword(permanentId, "Rush")
-    );
-  }
-
-  /**
-   * Track one accepted async Main verb and make its final turn-end check authoritative.
-   *
-   * `start` is a THUNK, not a promise: the verb must not begin until every previously
-   * accepted verb has fully settled. Intents are gated on an open decision, but nothing
-   * gated them on a verb whose triggers were merely still settling, so two resolutions
-   * ran concurrently and both could reach a prompt — the second threw out of
-   * `DecisionManager.request`, aborting a card's clause halfway (memory never gained, a
-   * card never drawn) in whichever card lost the race.
-   *
-   * Only these turn-player verbs queue. The replies that DRIVE a running resolution —
-   * respondDecision, respondCounter, and the combat decisions — deliberately bypass this
-   * seam, so serializing here cannot deadlock the chain they are answering.
-   *
-   * A verb arriving while nothing is in flight still begins SYNCHRONOUSLY, exactly as
-   * before: a verb's synchronous prefix (paying cost, moving the card out of hand) has
-   * always run by the time `applyIntent` returns, and callers read state expecting that.
-   * Only a verb that arrives while another is still settling waits.
-   *
-   * The trade-off for that waiting verb is deliberate: it was validated when it arrived
-   * but applies after the previous chain finishes, so it may find a board that moved.
-   * That beats the alternative it replaces — applying against state another chain is
-   * mutating underneath it.
-   */
-  private continueMainVerb<T>(
-    start: () => Promise<T>,
-    onResolved: (value: T) => void,
-    onRejected: (error: unknown) => void,
-  ): void {
-    const idle = this.mainVerbContinuationsInFlight === 0;
-    this.mainVerbContinuationsInFlight += 1;
-    const begun = idle ? start() : this.mainVerbChain.then(start);
-    const settled = begun.then(onResolved).catch(onRejected);
-    // The queue tail must never carry a rejection forward, or one failed verb would
-    // reject every verb queued behind it.
-    this.mainVerbChain = settled.then(
-      () => {},
-      () => {},
-    );
-    void settled.finally(() => {
-      this.mainVerbContinuationsInFlight -= 1;
-      this.checkTurnEndAfterVerb();
-    });
-  }
-
-  /** Enforce that a crossed-memory attack is the single Blitz window the player accepted. */
-  private handleAttack(seat: Seat, intent: AttackIntent): IntentResult {
-    if (
-      this.memory.hasCrossedToOpponent() &&
-      !this.acceptedBlitzAttackers.has(intent.attackerPermanentId) &&
-      !this.isNewlyPlayedRushAttacker(intent.attackerPermanentId)
-    ) {
-      return { ok: false, reason: this.state.pendingDecision ? "decision-pending" : "wrong-phase" };
-    }
-    const deps = attackDeps(this);
-    const result = applyAttack(
-      {
-        ...deps,
-        onCombatComplete: () => {
-          this.acceptedBlitzAttackers.delete(intent.attackerPermanentId);
-          this.crossedMemoryRushAttackers.delete(intent.attackerPermanentId);
-          this.resolvedBlitzOpportunities.add(intent.attackerPermanentId);
-          this.projection.syncAttackTargets();
-          // Combat moves memory, so what the hand can afford moved with it.
-          this.projection.syncHandAffordances();
-          this.checkTurnEndAfterVerb();
-          this.hooks.onActionSettled?.(seat, "attack");
-        },
-      },
-      seat,
-      intent,
-    );
-    return result;
+    return applyIntent(this, seat, intent);
   }
 
   /** Public legality signal used by clients/tests to know the confirmed Blitz window is ready. */
   hasAcceptedBlitzAttack(permanentId: string): boolean {
     return this.acceptedBlitzAttackers.has(permanentId);
-  }
-
-  /**
-   * Route the activateEffect verb (subsystem: intent-protocol-and-room). Validates
-   * synchronously for the immediate IntentResult; on success runs the named [Main]
-   * ability as a continuation (it may await player decisions, whose prompts arrive on
-   * the decision channel and whose state mutations sync as Colyseus deltas), then
-   * re-checks the turn-end condition. Mirrors the play/digivolve handler shape.
-   */
-  private handleActivateEffect(seat: Seat, intent: ActivateEffectIntent): IntentResult {
-    const deps = activateEffectDeps(this);
-    const check = validateActivateEffect(this.state, seat, intent, deps);
-    if (!check.ok) {
-      return { ok: false, reason: check.reason };
-    }
-    this.continueMainVerb(
-      async () => {
-        const outcome = await applyActivateEffect(this.state, seat, intent, deps);
-        // Direct [Main] activations do not pass through a timing-window resolver, so
-        // perform the post-effect rule check here (e.g. a stack peel exposing a 0-DP card).
-        await this.ruleProcess();
-        return outcome;
-      },
-      (outcome) => {
-        if (outcome.ok) {
-          this.hooks.emit({
-            kind: "effectActivated",
-            seat,
-            sourceCardId: outcome.outcome.sourceCardId,
-            effectKey: outcome.outcome.effectKey,
-            description: outcome.outcome.description,
-          });
-          // Tracker was updated by applyActivateEffect; re-derive the activatable set
-          // so the UI reflects the consumed use immediately (maxPerTurn exhausted).
-          this.projection.syncActivatableEffects();
-          // An ability that paid or gained memory changes what the hand can afford.
-          this.projection.syncHandAffordances();
-        }
-      },
-      (err) => {
-        logError("[engine] activateEffect apply failed:", err);
-        this.hooks.emit({
-          kind: "actionRejected",
-          intent: "activateEffect",
-          reason: err instanceof Error ? err.message : "activate-effect-apply-error",
-        });
-      },
-    );
-    return { ok: true };
-  }
-
-  /**
-   * Route the respondCounter verb (subsystem: attack-and-block; §11-3 Counter
-   * Timing). Validates synchronously for the immediate IntentResult; on success
-   * runs the chosen [Counter] effect (if any) as a continuation, mirroring
-   * handleActivateEffect — but unlike a turn-player verb, does NOT run
-   * `checkTurnEndAfterVerb` (this fires mid-attack, for the defending seat; the
-   * sibling combat-decision verbs in combatDecisions.ts don't run it either).
-   */
-  private handleRespondCounter(seat: Seat, intent: RespondCounterIntent): IntentResult {
-    // Counter processing must finish before another response can pass or activate in this window.
-    if (this.counterResolutionInFlight) return { ok: false, reason: "decision-pending" };
-    if (intent.sourceInstanceId !== undefined && intent.effectKey?.startsWith("blast-dna-digivolve:") === true) {
-      if (!this.combat.hasOpenCounterWindow) return { ok: false, reason: "wrong-phase" };
-      if (this.combat.counterWindowSeat !== seat) return { ok: false, reason: "not-your-turn" };
-      if (this.combat.counterActivationsRemaining <= 0) return { ok: false, reason: "illegal-target" };
-      if (this.state.pendingDecision !== undefined) return { ok: false, reason: "decision-pending" };
-      // Recompute against live zones, names and restrictions before consuming either material.
-      const choice = this.blastDnaCounterChoices(seat).find(
-        (entry) => entry.instanceId === intent.sourceInstanceId && entry.effectKey === intent.effectKey,
-      );
-      if (choice === undefined) return { ok: false, reason: "illegal-target" };
-      this.counterResolutionInFlight = true;
-      void this.primitives
-        .dnaDigivolveInto([choice.materialPermanentId], choice.instanceId, {
-          payCost: false,
-          extraMaterialInstanceIds: [choice.handMaterialInstanceId],
-          extraMaterialsOnBottom: choice.extraMaterialsOnBottom,
-        })
-        .then((result) => {
-          if (result === undefined) throw new Error("invalid-evolution");
-          this.combat.resolveCounterActivated(seat);
-          this.hooks.emit({
-            kind: "effectActivated",
-            seat,
-            sourceCardId: result.topCard!.cardId,
-            effectKey: choice.effectKey,
-            description: choice.description,
-          });
-        })
-        .catch((err) => {
-          logError("[engine] Blast DNA Digivolve apply failed:", err);
-          this.hooks.emit({
-            kind: "actionRejected",
-            intent: "respondCounter",
-            reason: err instanceof Error ? err.message : "blast-dna-digivolve-apply-error",
-          });
-        })
-        .finally(() => {
-          this.counterResolutionInFlight = false;
-        });
-      return { ok: true };
-    }
-    if (intent.sourceInstanceId !== undefined && intent.effectKey?.startsWith("blast-digivolve:") === true) {
-      if (!this.combat.hasOpenCounterWindow) return { ok: false, reason: "wrong-phase" };
-      if (this.combat.counterWindowSeat !== seat) return { ok: false, reason: "not-your-turn" };
-      if (this.combat.counterActivationsRemaining <= 0) return { ok: false, reason: "illegal-target" };
-      const eligible = this.counterEligibleSources(seat).find(
-        (entry) => entry.instanceId === intent.sourceInstanceId && entry.effectKey === intent.effectKey,
-      );
-      if (eligible === undefined) return { ok: false, reason: "illegal-target" };
-      const permanentId = intent.effectKey.slice("blast-digivolve:".length);
-      const blastIntent: DigivolveIntent = {
-        type: "digivolve",
-        permanentId,
-        instanceId: intent.sourceInstanceId,
-        useBlastDigivolve: true,
-      };
-      const deps = digivolveDeps(this);
-      this.counterResolutionInFlight = true;
-      void applyDigivolve(this.state, seat, blastIntent, deps)
-        .then((outcome) => {
-          if (!outcome.ok) throw new Error(outcome.reason);
-          this.combat.resolveCounterActivated(seat);
-          this.hooks.emit({
-            kind: "effectActivated",
-            seat,
-            sourceCardId: outcome.outcome.newTopCardId,
-            effectKey: intent.effectKey!,
-            description: eligible.description,
-          });
-        })
-        .catch((err) => {
-          logError("[engine] Blast Digivolve apply failed:", err);
-          this.hooks.emit({
-            kind: "actionRejected",
-            intent: "respondCounter",
-            reason: err instanceof Error ? err.message : "blast-digivolve-apply-error",
-          });
-        })
-        .finally(() => {
-          this.counterResolutionInFlight = false;
-        });
-      return { ok: true };
-    }
-    const deps = respondCounterDeps(this);
-    const check = validateRespondCounter(seat, intent, deps);
-    if (!check.ok) {
-      return { ok: false, reason: check.reason };
-    }
-    this.counterResolutionInFlight = true;
-    void applyRespondCounter(seat, intent, deps)
-      .then((outcome) => {
-        if (outcome.ok && !outcome.outcome.pass) {
-          this.hooks.emit({
-            kind: "effectActivated",
-            seat,
-            sourceCardId: outcome.outcome.sourceCardId,
-            effectKey: outcome.outcome.effectKey,
-            description: outcome.outcome.description,
-          });
-        }
-      })
-      .catch((err) => {
-        logError("[engine] respondCounter apply failed:", err);
-        this.hooks.emit({
-          kind: "actionRejected",
-          intent: "respondCounter",
-          reason: err instanceof Error ? err.message : "respond-counter-apply-error",
-        });
-      })
-      .finally(() => {
-        this.counterResolutionInFlight = false;
-      });
-    return { ok: true };
-  }
-
-  /**
-   * List `seat`'s currently-activatable [Counter] effects (§11-3-1), one entry per
-   * (source instance, effect) pair. Mirrors `syncActivatableEffects` but scoped to
-   * one (defending) seat and `EffectTiming.OnCounterTiming` rather than the turn
-   * player and `ACTIVATE_TIMING`. Both battle-area Counter effects and explicit
-   * `[Hand][Counter]` effects are eligible. Bound into `CombatController`'s
-   * `counterEligible` hook so `runCounterWindow` can skip the round trip when nothing is eligible.
-   */
-  private counterEligibleSources(seat: Seat): { instanceId: string; effectKey: string; description: string }[] {
-    const player = this.state.players[seat];
-    if (player === undefined) return [];
-    const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-    for (const perm of player.battleArea) {
-      const candidates = [perm.topCard, ...perm.stack, ...perm.linked].filter(
-        (c): c is CardInstance => c !== undefined,
-      );
-      for (const instance of candidates) {
-        const source = this.cardSourceOf(instance);
-        for (const effect of effectsOf(EffectTiming.OnCounterTiming, source)) {
-          const ctx = this.buildEffectContext(source, {});
-          if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
-            entries.push({
-              instanceId: instance.instanceId,
-              effectKey: effect.effectKey,
-              description: effect.description,
-            });
-          }
-        }
-      }
-    }
-    for (const instance of player.hand) {
-      const source = this.cardSourceOf(instance);
-      for (const effect of effectsOf(EffectTiming.OnCounterTiming, source)) {
-        const ctx = this.buildEffectContext(source, {});
-        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
-          entries.push({
-            instanceId: instance.instanceId,
-            effectKey: effect.effectKey,
-            description: effect.description,
-          });
-        }
-      }
-    }
-    entries.push(...this.blastDnaCounterChoices(seat));
-    const blastDeps = { ...digivolveDeps(this), blastWindowAllowed: () => true };
-    for (const instance of player.hand) {
-      if (!hasBlastDigivolveKeyword(instance.cardId)) continue;
-      for (const permanent of player.battleArea) {
-        const intent: DigivolveIntent = {
-          type: "digivolve",
-          permanentId: permanent.permanentId,
-          instanceId: instance.instanceId,
-          useBlastDigivolve: true,
-        };
-        if (!validateDigivolve(this.state, seat, intent, blastDeps).ok) continue;
-        entries.push({
-          instanceId: instance.instanceId,
-          effectKey: `blast-digivolve:${permanent.permanentId}`,
-          description: "＜Blast Digivolve＞",
-        });
-      }
-    }
-    return entries;
-  }
-
-  private blastDnaCounterChoices(seat: Seat) {
-    const deps = dnaDigivolveDeps(this);
-    return blastDnaChoices(this.state, seat, {
-      names: (permanent, definition) => effectiveNames(this.continuous, permanent, definition.nameEn),
-      restricted: (permanent, definition) => deps.materialsRestricted?.(this.state, [permanent], definition) === true,
-    });
-  }
-
-  /**
-   * Locate a CardInstance anywhere on the board (a permanent's top card, its
-   * digivolution stack, or a linked card), returning the instance and the permanent
-   * carrying it (undefined for a loose card not on a permanent). Used by
-   * activateEffect to resolve the source of a `[Main]` ability.
-   */
-  findInstance(instanceId: string): { instance: CardInstance; permanent: Permanent | undefined } | undefined {
-    for (const player of this.state.players) {
-      for (const permanent of player.battleArea) {
-        const onPerm = this.instanceOnPermanent(permanent, instanceId);
-        if (onPerm !== undefined) return { instance: onPerm, permanent };
-      }
-      if (player.breeding !== undefined) {
-        const onBreeding = this.instanceOnPermanent(player.breeding, instanceId);
-        if (onBreeding !== undefined) return { instance: onBreeding, permanent: player.breeding };
-      }
-      // A loose card in hand (no carrying permanent): reachable so a [Hand] activated ability
-      // resolves. The activate verb's controller check falls back to the loose card's ownerSeat, so
-      // a player can only activate their own hand card. permanent stays undefined (no field anchor).
-      const inHand = player.hand.find((c) => c.instanceId === instanceId);
-      if (inHand !== undefined) return { instance: inHand, permanent: undefined };
-      // A loose card in trash: reachable so a `[Trash][Main]` activated ability resolves
-      // (the eighth engine gap's activation-path half — the corresponding regression coverage).
-      // permanent stays undefined; the `activated` builder's residency guard (isFromTrash vs.
-      // not) is what keeps this from also making an ordinary on-field-only [Main] ability
-      // activatable once its card has been trashed.
-      const inTrash = player.trash.find((c) => c.instanceId === instanceId);
-      if (inTrash !== undefined) return { instance: inTrash, permanent: undefined };
-    }
-    return undefined;
-  }
-
-  /**
-   * Locate a CardInstance anywhere the continuous-recompute pass reaches (battle area,
-   * breeding, hand, trash, face-up security, a mid-resolution Option) — the superset
-   * `findInstance` does NOT cover (findInstance is scoped to what `activateEffect` needs:
-   * a permanent's own stack/linked cards, or a loose hand/trash card). Used by
-   * `fireSubTrigger`'s context builder to bind `ctx.source` for an anchor-less watcher
-   * (`SubTriggerInstall.sourceInstanceId`) installed by a hand/trash-resident card.
-   */
-  findLooseInstance(instanceId: string): CardInstance | undefined {
-    return (
-      peekCheckedCard(this.state, instanceId)?.card ??
-      this.listCandidateInstances().find((c) => c.instanceId === instanceId)
-    );
-  }
-
-  private instanceOnPermanent(permanent: Permanent, instanceId: string): CardInstance | undefined {
-    if (permanent.topCard !== undefined && permanent.topCard.instanceId === instanceId) {
-      return permanent.topCard;
-    }
-    for (const card of permanent.stack) {
-      if (card.instanceId === instanceId) return card;
-    }
-    for (const card of permanent.linked) {
-      if (card.instanceId === instanceId) return card;
-    }
-    return undefined;
-  }
-
-  /**
-   * Route the play-card verb (subsystem: play-card). Validates synchronously to
-   * produce the immediate IntentResult the room returns to the client; on success,
-   * applies the action. Because applyPlayCard can await player decisions while
-   * resolving On Play (or the option activation), it runs as a continuation — its
-   * state mutations sync to clients as Colyseus deltas and any prompt arrives on the
-   * decision channel, matching the API-CONTRACT "Play a card" flow.
-   */
-  private handlePlayCard(seat: Seat, intent: PlayCardIntent): IntentResult {
-    // A DigiXros declaration (place named materials under the card for a per-material cost
-    // reduction) routes to the dedicated DigiXros play subsystem.
-    if (intent.digiXros !== undefined) {
-      return this.handleDigiXros(seat, intent as DigiXrosIntent);
-    }
-    // An Assembly declaration (place the exact named/traited trash-card count under the card for
-    // a flat cost reduction, §7-3) routes to the dedicated Assembly play subsystem.
-    if (intent.assembly !== undefined) {
-      return this.handleAssembly(seat, intent as AssemblyIntent);
-    }
-    const deps = playCardDeps(this);
-    const check = validatePlayCard(this.state, seat, intent, deps);
-    if (!check.ok) {
-      return { ok: false, reason: mapPlayCardReason(check.reason) };
-    }
-    this.continueMainVerb(
-      () => applyPlayCard(this.state, seat, intent, deps),
-      () => {
-        if (!this.memory.hasCrossedToOpponent()) return;
-        const played = this.state.players[seat]?.battleArea.find(
-          (permanent) => permanent.topCard?.instanceId === intent.instanceId,
-        );
-        if (played !== undefined && this.continuous.hasKeyword(played.permanentId, "Rush")) {
-          this.crossedMemoryRushAttackers.add(played.permanentId);
-        }
-      },
-      (err) => {
-        logError("[engine] playCard apply failed:", err);
-        this.hooks.emit({
-          kind: "actionRejected",
-          intent: "playCard",
-          reason: err instanceof Error ? err.message : "play-card-apply-error",
-        });
-      },
-    );
-    return { ok: true };
-  }
-
-  /**
-   * Route a DigiXros play (subsystem: digiXros). Validates the material/expander declaration
-   * synchronously for the immediate IntentResult; on success applies it as a continuation (the
-   * placement + On Play can await player decisions), matching the playCard router.
-   */
-  private handleDigiXros(seat: Seat, intent: DigiXrosIntent): IntentResult {
-    const deps = digiXrosDeps(this);
-    const check = validateDigiXros(this.state, seat, intent, deps);
-    if (!check.ok) {
-      return { ok: false, reason: mapDigiXrosReason(check.reason) };
-    }
-    this.continueMainVerb(
-      () => applyDigiXros(this.state, seat, intent, deps),
-      () => {},
-      (err) => {
-        logError("[engine] digiXros apply failed:", err);
-        this.hooks.emit({
-          kind: "actionRejected",
-          intent: "playCard",
-          reason: err instanceof Error ? err.message : "digixros-apply-error",
-        });
-      },
-    );
-    return { ok: true };
-  }
-
-  /**
-   * Route an Assembly play (subsystem: assembly; §7-3). Validates the trash-material declaration
-   * synchronously for the immediate IntentResult; on success applies it as a continuation (the
-   * placement + On Play can await player decisions), matching the digiXros/playCard routers.
-   */
-  private handleAssembly(seat: Seat, intent: AssemblyIntent): IntentResult {
-    const deps = assemblyDeps(this);
-    const check = validateAssembly(this.state, seat, intent, deps);
-    if (!check.ok) {
-      return { ok: false, reason: mapAssemblyReason(check.reason) };
-    }
-    this.continueMainVerb(
-      () => applyAssembly(this.state, seat, intent, deps),
-      () => {},
-      (err) => {
-        logError("[engine] assembly apply failed:", err);
-        this.hooks.emit({
-          kind: "actionRejected",
-          intent: "playCard",
-          reason: err instanceof Error ? err.message : "assembly-apply-error",
-        });
-      },
-    );
-    return { ok: true };
-  }
-
-  /**
-   * Route the digivolve verb (subsystem: digivolve). Validates synchronously to
-   * produce the immediate IntentResult the room returns to the client; on success,
-   * applies the action. Because applyDigivolve can await player decisions while
-   * resolving When Digivolving, it runs as a continuation — its state mutations sync
-   * to clients as Colyseus deltas and any prompt arrives on the decision channel,
-   * matching the API-CONTRACT "Digivolve" flow.
-   */
-  private validateAppFusion(seat: Seat, intent: Extract<Intent, { type: "appFusion" }>): AppFusionValidation {
-    if (this.state.turnSeat !== seat) return { ok: false, reason: "not-your-turn" };
-    if (this.state.phase !== Phase.Main) return { ok: false, reason: "wrong-phase" };
-    const player = this.state.players[seat];
-    const source = player?.battleArea.find(({ permanentId }) => permanentId === intent.permanentId);
-    const result = player?.hand.find(({ instanceId }) => instanceId === intent.instanceId);
-    if (source === undefined || source.topCard === undefined || result === undefined) {
-      return { ok: false, reason: "illegal-target" };
-    }
-    const linked = source.linked.find(({ instanceId }) => instanceId === intent.linkedInstanceId);
-    if (linked === undefined) return { ok: false, reason: "illegal-target" };
-    const topName = lookupDefinition(source.topCard.cardId)?.nameEn;
-    const linkedName = lookupDefinition(linked.cardId)?.nameEn;
-    const resultDefinition = lookupDefinition(result.cardId);
-    const deps = digivolveDeps(this);
-    // App Fusion uses the same resulting stack transition as ordinary digivolution;
-    // active base restrictions therefore apply before any cost or zone mutation.
-    if (deps.digivolveBaseRestricted?.(this.state, source, result) === true) {
-      return { ok: false, reason: "illegal-target" };
-    }
-    if (deps.digivolveIntoAllowed?.(this.state, source, result) === false) {
-      return { ok: false, reason: "illegal-target" };
-    }
-    const printedCost =
-      topName === undefined || linkedName === undefined || resultDefinition === undefined
-        ? undefined
-        : appFusionCostFor(result.cardId, { topName, linkedNames: [linkedName] });
-    if (printedCost === undefined || resultDefinition === undefined) return { ok: false, reason: "illegal-target" };
-    const passiveCost =
-      deps.adjustedDigivolveCost?.(this.state, source, printedCost, resultDefinition, { consumeOnce: false }) ??
-      printedCost;
-    const potentialReduction =
-      deps.potentialInteractiveDigivolveReduction?.(this.state, seat, source, resultDefinition) ?? 0;
-    const projectedCost = Math.max(0, passiveCost - potentialReduction);
-    if (deps.maxAffordable(this.state, seat) < projectedCost) return { ok: false, reason: "insufficient-memory" };
-    return { ok: true, source, result, resultDefinition, linked, printedCost, projectedCost };
-  }
-
-  private handleAppFusion(seat: Seat, intent: Extract<Intent, { type: "appFusion" }>): IntentResult {
-    const check = this.validateAppFusion(seat, intent);
-    if (!check.ok) return check;
-    const { source, result, resultDefinition, printedCost } = check;
-    const originalTopInstanceId = source.topCard!.instanceId;
-    const originalLinkedInstanceId = intent.linkedInstanceId;
-    const samePublicAppFusionSnapshot = (): boolean => {
-      const currentSource = this.state.players[seat]?.battleArea.find(
-        ({ permanentId }) => permanentId === intent.permanentId,
-      );
-      const currentResult = this.state.players[seat]?.hand.find(({ instanceId }) => instanceId === intent.instanceId);
-      return (
-        currentSource === source &&
-        currentSource?.controllerSeat === seat &&
-        currentSource.topCard?.instanceId === originalTopInstanceId &&
-        currentSource.linked.some(({ instanceId }) => instanceId === originalLinkedInstanceId) &&
-        currentResult === result
-      );
-    };
-    const deps = digivolveDeps(this);
-
-    this.continueMainVerb(
-      async () => {
-        await deps.prepareDigivolveCost?.(this.state, seat, source, result, resultDefinition);
-        if (!samePublicAppFusionSnapshot()) return undefined;
-        const adjusted =
-          deps.adjustedDigivolveCost?.(this.state, source, printedCost, resultDefinition, { consumeOnce: true }) ??
-          printedCost;
-        const interactiveReduction =
-          (await deps.activateInteractiveDigivolveReduction?.(
-            this.state,
-            seat,
-            source,
-            resultDefinition,
-            result.instanceId,
-          )) ?? 0;
-        if (!samePublicAppFusionSnapshot()) return undefined;
-        const finalCost = Math.max(0, adjusted - interactiveReduction);
-        if (deps.maxAffordable(this.state, seat) < finalCost) return undefined;
-        await deps.fireWouldDigivolve?.(this.state, seat, source, resultDefinition);
-        if (!samePublicAppFusionSnapshot()) return undefined;
-        return this.primitives.appFuseInto(intent.permanentId, intent.instanceId, intent.linkedInstanceId, finalCost, {
-          publicEntry: true,
-        });
-      },
-      () => {},
-      (err) =>
-        this.hooks.emit({
-          kind: "actionRejected",
-          intent: "appFusion",
-          reason: err instanceof Error ? err.message : "app-fusion-apply-error",
-        }),
-    );
-    return { ok: true };
-  }
-
-  private handleDigivolve(seat: Seat, intent: DigivolveIntent): IntentResult {
-    const deps = digivolveDeps(this);
-    const check = validateDigivolve(this.state, seat, intent, deps, { deferAffordability: true });
-    if (!check.ok) {
-      return { ok: false, reason: mapDigivolveReason(check.reason) };
-    }
-    this.continueMainVerb(
-      () => applyDigivolve(this.state, seat, intent, deps),
-      () => {},
-      (err) => {
-        logError("[engine] digivolve apply failed:", err);
-        this.hooks.emit({
-          kind: "actionRejected",
-          intent: "digivolve",
-          reason: err instanceof Error ? err.message : "digivolve-apply-error",
-        });
-      },
-    );
-    return { ok: true };
-  }
-
-  /**
-   * Route the linkCard verb (subsystem: link; §6-5-1-4/§10-1 — the hand half only,
-   * see actions/link.ts). Validates synchronously to produce the immediate
-   * IntentResult the room returns to the client; on success, applies the action as a
-   * continuation (the Link primitive can await the `whenLinked` SubTrigger bus),
-   * matching the pattern of the other Main-phase verbs above.
-   */
-  private handleLinkCard(seat: Seat, intent: LinkCardIntent): IntentResult {
-    const deps = linkCardDeps(this);
-    const check = validateLinkCard(this.state, seat, intent, deps);
-    if (!check.ok) {
-      return { ok: false, reason: mapLinkReason(check.reason) };
-    }
-    this.continueMainVerb(
-      () => applyLinkCard(this.state, seat, intent, deps),
-      () => {},
-      (err) => {
-        logError("[engine] linkCard apply failed:", err);
-        this.hooks.emit({
-          kind: "actionRejected",
-          intent: "linkCard",
-          reason: err instanceof Error ? err.message : "linkCard-apply-error",
-        });
-      },
-    );
-    return { ok: true };
-  }
-
-  /**
-   * Route the dnaDigivolve verb (subsystem: dna-digivolve; §8-2 DNA digivolution as a
-   * player-declared action — see actions/dnaDigivolve.ts). Validates synchronously to
-   * produce the immediate IntentResult the room returns to the client; on success, applies
-   * the action as a continuation (the merge primitive draws and fires WhenDigivolving),
-   * matching the pattern of the other Main-phase verbs above.
-   */
-  private handleDnaDigivolve(seat: Seat, intent: DnaDigivolveIntent): IntentResult {
-    const deps = dnaDigivolveDeps(this);
-    const check = validateDnaDigivolve(this.state, seat, intent, deps);
-    if (!check.ok) {
-      return { ok: false, reason: mapDnaDigivolveReason(check.reason) };
-    }
-    this.continueMainVerb(
-      () => applyDnaDigivolve(this.state, seat, intent, deps),
-      () => {},
-      (err) => {
-        logError("[engine] dnaDigivolve apply failed:", err);
-        this.hooks.emit({
-          kind: "actionRejected",
-          intent: "dnaDigivolve",
-          reason: err instanceof Error ? err.message : "dnaDigivolve-apply-error",
-        });
-      },
-    );
-    return { ok: true };
-  }
-
-  /**
-   * Route the hatchEgg verb (subsystem: breeding). Applies the action synchronously
-   * (breeding has no cost / draw / awaited effect), and on success closes the open
-   * breeding window — the turn player's single breeding action is spent (§6-4-1).
-   */
-  private handleHatchEgg(seat: Seat, intent: HatchEggIntent): IntentResult {
-    void intent;
-    if (this.breeding.isActionSpent) return { ok: false, reason: this.breedingActionSpentReason() };
-    const result = applyHatchEgg(this.state, seat, breedingDeps(this));
-    if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
-    // "[All Turns] when YOU hatch [a Digi-Egg] in the breeding area" (BT17-093). Fired from
-    // this sync intent handler without awaiting; the breeding window stays open until the
-    // fire settles (see handleMoveFromBreeding).
-    const fired = this.fireSubTrigger("whenHatch", { subjectPermanentId: result.outcome.permanentId }).catch((err) => {
-      logError("[engine] hatchEgg fire failed:", err);
-    });
-    this.breeding.actionTaken(seat, fired);
-    return { ok: true };
-  }
-
-  /**
-   * Route the moveFromBreeding verb (subsystem: breeding). Applies the action and, on
-   * success, closes the open breeding window (the single breeding action is spent).
-   */
-  private handleMoveFromBreeding(seat: Seat, intent: MoveFromBreedingIntent): IntentResult {
-    if (this.breeding.isActionSpent) return { ok: false, reason: this.breedingActionSpentReason() };
-    const result = applyMoveFromBreeding(this.state, seat, intent, breedingDeps(this));
-    if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
-    const movedPermanentId = result.outcome.permanentId;
-    // The breeding -> battle move fires the OnMove timing, the broad entry timing/bus, then
-    // the two movement SubTrigger events below so reactive watchers execute (both fired unconditionally:
-    // a watcher's sourceFilter (isSelfRef / controller matching) gates which side reacts):
-    //   whenMovedFromBreeding         — "when one of YOUR Digimon moves from breeding" (BT16-082)
-    //   whenOpponentMovedFromBreeding — "when your OPPONENT moves a Digimon from breeding" (BT5-044, BT11-087)
-    // This handler must return its IntentResult synchronously, so the fires are chained into one
-    // promise: sequential internal ordering (each begins only after the previous settles) with a
-    // single .catch(logError) so a thrown error surfaces as a log instead of an unhandled rejection.
-    // Un-awaited/uncaught fires here previously risked exactly the race P-130's fix eliminated for
-    // movePermanentZone: a nested fire clobbering the then-shared engine trigger field out of order
-    // (each window now carries its own trigger payload in its environment).
-    // The chain is handed to the breeding window, which closes only once it settles: closing it
-    // synchronously let the turn machine open Main and fire [Start of Your Main Phase] while
-    // BT16-082's move watcher was still resolving.
-    const fired = this.fireTiming(EffectTiming.OnMove, { movedPermanentId })
-      .then(() =>
-        this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
-          subjectPermanentId: movedPermanentId,
-          entryCause: "move",
-        }),
-      )
-      .then(() =>
-        this.fireSubTrigger("onEnterFieldAnyone", {
-          subjectPermanentId: movedPermanentId,
-          entryCause: "move",
-        }),
-      )
-      .then(() => this.fireSubTrigger("whenMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
-      .then(() => this.fireSubTrigger("whenOpponentMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
-      .catch((err) => {
-        logError("[engine] moveFromBreeding fire failed:", err);
-      });
-    this.breeding.actionTaken(seat, fired);
-    return { ok: true };
-  }
-
-  /**
-   * The turn's one breeding action is already taken and its triggers are still settling
-   * (BT16-082's reveal, BT17-093's hatch watcher). A decision those triggers opened is the
-   * more specific refusal, matching the breeding verbs' own validation order.
-   */
-  private breedingActionSpentReason(): RejectReason {
-    return this.state.pendingDecision !== undefined ? "decision-pending" : "wrong-phase";
-  }
-
-  /**
-   * Handle an endPhase during the Breeding phase: the turn player chooses to do
-   * nothing, closing the breeding window (§6-4-1-3). Rejected when it is not this
-   * seat's open breeding window.
-   */
-  private handleBreedingSkip(seat: Seat): IntentResult {
-    if (this.state.gameOver) return { ok: false, reason: "illegal-target" };
-    if (this.state.pendingDecision !== undefined) return { ok: false, reason: "decision-pending" };
-    if (this.state.turnSeat !== seat) return { ok: false, reason: "not-your-turn" };
-    return this.breeding.skip(seat) ? { ok: true } : { ok: false, reason: "wrong-phase" };
   }
 
   /**

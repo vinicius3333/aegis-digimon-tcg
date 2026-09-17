@@ -3,6 +3,10 @@
   "export": "activateEffectDeps",
   "module": "actionDeps"
  },
+ "applyIntent": {
+  "export": "applyIntent",
+  "module": "intents"
+ },
  "assemblyDeps": {
   "export": "assemblyDeps",
   "module": "actionDeps"
@@ -11,9 +15,17 @@
   "export": "attackDeps",
   "module": "actionDeps"
  },
+ "blastDnaCounterChoices": {
+  "export": "blastDnaCounterChoices",
+  "module": "intents"
+ },
  "blockDeps": {
   "export": "blockDeps",
   "module": "actionDeps"
+ },
+ "breedingActionSpentReason": {
+  "export": "breedingActionSpentReason",
+  "module": "intents"
  },
  "breedingDeps": {
   "export": "breedingDeps",
@@ -23,9 +35,21 @@
   "export": "buildTurnFlowHooks",
   "module": "actionDeps"
  },
+ "checkTurnEndAfterVerb": {
+  "export": "checkTurnEndAfterVerb",
+  "module": "intents"
+ },
  "combatDecisionDeps": {
   "export": "combatDecisionDeps",
   "module": "actionDeps"
+ },
+ "continueMainVerb": {
+  "export": "continueMainVerb",
+  "module": "intents"
+ },
+ "counterEligibleSources": {
+  "export": "counterEligibleSources",
+  "module": "intents"
  },
  "digiXrosDeps": {
   "export": "digiXrosDeps",
@@ -39,9 +63,81 @@
   "export": "dnaDigivolveDeps",
   "module": "actionDeps"
  },
+ "findInstance": {
+  "export": "findInstance",
+  "module": "intents"
+ },
+ "findLooseInstance": {
+  "export": "findLooseInstance",
+  "module": "intents"
+ },
+ "handleActivateEffect": {
+  "export": "handleActivateEffect",
+  "module": "intents"
+ },
+ "handleAppFusion": {
+  "export": "handleAppFusion",
+  "module": "intents"
+ },
+ "handleAssembly": {
+  "export": "handleAssembly",
+  "module": "intents"
+ },
+ "handleAttack": {
+  "export": "handleAttack",
+  "module": "intents"
+ },
+ "handleBreedingSkip": {
+  "export": "handleBreedingSkip",
+  "module": "intents"
+ },
+ "handleDigiXros": {
+  "export": "handleDigiXros",
+  "module": "intents"
+ },
+ "handleDigivolve": {
+  "export": "handleDigivolve",
+  "module": "intents"
+ },
+ "handleDnaDigivolve": {
+  "export": "handleDnaDigivolve",
+  "module": "intents"
+ },
+ "handleHatchEgg": {
+  "export": "handleHatchEgg",
+  "module": "intents"
+ },
+ "handleLinkCard": {
+  "export": "handleLinkCard",
+  "module": "intents"
+ },
+ "handleMoveFromBreeding": {
+  "export": "handleMoveFromBreeding",
+  "module": "intents"
+ },
+ "handlePlayCard": {
+  "export": "handlePlayCard",
+  "module": "intents"
+ },
+ "handleRespondCounter": {
+  "export": "handleRespondCounter",
+  "module": "intents"
+ },
+ "hasAnyMainPhaseAction": {
+  "export": "hasAnyMainPhaseAction",
+  "module": "intents"
+ },
+ "instanceOnPermanent": {
+  "export": "instanceOnPermanent",
+  "module": "intents"
+ },
  "intentRouterDeps": {
   "export": "intentRouterDeps",
   "module": "actionDeps"
+ },
+ "isNewlyPlayedRushAttacker": {
+  "export": "isNewlyPlayedRushAttacker",
+  "module": "intents"
  },
  "linkCardDeps": {
   "export": "linkCardDeps",
@@ -74,5 +170,9 @@
  "securityEffectsFor": {
   "export": "securityEffectsFor",
   "module": "securityCheck"
+ },
+ "validateAppFusion": {
+  "export": "validateAppFusion",
+  "module": "intents"
  }
 }

@@ -44,6 +44,7 @@ import {
 import { linkRequirementSatisfied } from "./boardQueries.js";
 import { digivolvedFromTamerBase } from "./subTriggerIdentity.js";
 import type { GameEngine } from "../GameEngine.js";
+import { applyIntent, checkTurnEndAfterVerb, findInstance, findLooseInstance } from "./intents.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -212,7 +213,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
           return source?.topCard === undefined
             ? undefined
             : engine.buildEffectContext(
-                engine.cardSourceOf(engine.findInstance(sourceInstanceId ?? "")?.instance ?? source.topCard),
+                engine.cardSourceOf(findInstance(engine, sourceInstanceId ?? "")?.instance ?? source.topCard),
                 {},
               );
         },
@@ -221,7 +222,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
           markFired: (key) => engine.tracker.register(key, "replacement"),
         },
       );
-      const evolving = engine.findLooseInstance(evolvingInstanceId);
+      const evolving = findLooseInstance(engine, evolvingInstanceId);
       if (evolving === undefined) return liveReduction;
       const ctx = engine.buildEffectContext(engine.cardSourceOf(evolving), {});
       ctx.activeTiming = "Static";
@@ -518,7 +519,7 @@ export function attackDeps(engine: GameEngine): AttackDeps {
     combat: engine.combat,
     continuous: engine.continuous,
     attackedThisTurn: engine.combat.attackedThisTurn,
-    onCombatComplete: () => engine.checkTurnEndAfterVerb(),
+    onCombatComplete: () => checkTurnEndAfterVerb(engine),
     onCombatError: (err) => {
       logError("[engine] combat resolve failed:", err);
       engine.hooks.emit({
@@ -533,7 +534,7 @@ export function attackDeps(engine: GameEngine): AttackDeps {
       // until a manual endPhase (field bug: api.log 2026-08-20, BT21-021).
       engine.projection.syncAttackTargets();
       engine.projection.syncHandAffordances();
-      engine.checkTurnEndAfterVerb();
+      checkTurnEndAfterVerb(engine);
     },
   };
 }
@@ -570,7 +571,7 @@ export function intentRouterDeps(engine: GameEngine): IntentRouterDeps {
 export function respondCounterDeps(engine: GameEngine): RespondCounterDeps {
   return {
     combat: engine.combat,
-    findInstance: (instanceId) => engine.findInstance(instanceId),
+    findInstance: (instanceId) => findInstance(engine, instanceId),
     cardSourceOf: (instance) => engine.cardSourceOf(instance),
     // A player-activated [Counter] ability has no incoming trigger payload (it is
     // not reacting to another event), so the TriggerInfo is empty — same as
@@ -583,7 +584,7 @@ export function respondCounterDeps(engine: GameEngine): RespondCounterDeps {
 /** Dependencies the activateEffect verb needs (subsystem: intent-protocol-and-room). */
 export function activateEffectDeps(engine: GameEngine): ActivateEffectDeps {
   return {
-    findInstance: (instanceId) => engine.findInstance(instanceId),
+    findInstance: (instanceId) => findInstance(engine, instanceId),
     cardSourceOf: (instance) => engine.cardSourceOf(instance),
     activationEffectsFor: (instance) => engine.projection.activatableEffectsFor([instance]),
     // A directly-activated [Main] ability has no incoming trigger payload (it is
@@ -621,7 +622,7 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
     finalizePlayCost: async (_state, _seat, instance, _definition, baseCost) =>
       engine.fireBeforePayCost(instance, baseCost, false, "hand"),
     digiXrosNamesOf: (instanceId) => {
-      const located = engine.findInstance(instanceId);
+      const located = findInstance(engine, instanceId);
       if (located === undefined) return [];
       const aliases = [
         ...universalNameAliasesFor(located.instance.cardId),
@@ -781,7 +782,7 @@ export function dnaDigivolveDeps(engine: GameEngine): DnaDigivolveDeps {
           return source?.topCard === undefined
             ? undefined
             : engine.buildEffectContext(
-                engine.cardSourceOf(engine.findInstance(sourceInstanceId ?? "")?.instance ?? source.topCard),
+                engine.cardSourceOf(findInstance(engine, sourceInstanceId ?? "")?.instance ?? source.topCard),
                 {},
               );
         },
@@ -828,13 +829,13 @@ export function buildTurnFlowHooks(engine: GameEngine): TurnFlowHooks {
       engine.mainEntryPending = false;
       const passed = engine.deferredEndPhaseSeat;
       engine.deferredEndPhaseSeat = undefined;
-      if (passed !== undefined) engine.applyIntent(passed, { type: "endPhase" });
+      if (passed !== undefined) applyIntent(engine, passed, { type: "endPhase" });
       // The input controller deliberately opens before asynchronous start-of-main
       // work finishes. A very fast client can therefore submit a legal verb while
       // engine finalizer is still pending. Route through the guarded post-verb check:
       // if that verb has an active effect window, it owns the eventual turn-end
       // check (including Blitz) and engine stale entry finalizer must do nothing.
-      engine.checkTurnEndAfterVerb();
+      checkTurnEndAfterVerb(engine);
     },
     isGameOver: () => engine.state.gameOver,
     declareDeckOutLoss: (loserSeat) => {
