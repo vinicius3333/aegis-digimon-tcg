@@ -1,5 +1,5 @@
 import { isTimingActivationDisabled } from "../effects/timingActivation.js";
-import { Zone, getCardDefinition, type CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
+import { EffectTiming, Zone, getCardDefinition, type CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
 import { canAttackerDeclare } from "../combat/legality.js";
 import { resolveKeywords } from "../combat/keywords.js";
 import { effectiveKinds, effectiveNames, effectiveTraits } from "../effects/continuous.js";
@@ -15,7 +15,6 @@ import type {
   RemovalCause,
   TriggerInfo,
 } from "../effects/EffectContext.js";
-import type { GameEngine } from "../GameEngine.js";
 import { detachLeaveReplacements, detachTraitTokens } from "../effects/detach.js";
 import { guardLeaveReplacements } from "../effects/guard.js";
 import { definitionOf } from "../cards/cardData.js";
@@ -23,6 +22,25 @@ import { consultLeavePrevention } from "../effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "../effects/digivolutionTrashRedirect.js";
 import { findLooseInstance } from "./intents.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
+import { createPrimitives } from "../effects/primitives.js";
+import { resolveSelfWhenTrashedFromDeck } from "../effects/interpreter.js";
+import { payBarrierSecurityCost } from "./securityCheck.js";
+import { digivolveDeps } from "./actionDeps.js";
+import {
+  drainPendingAttackTriggers,
+  fireBeforePayCost,
+  fireEnteredByEffectTiming,
+  fireTiming,
+  fireTimingForInstance,
+  prepareDigiXrosPlay,
+  prepareDigiXrosPlays,
+  projectLooseUseCost,
+  reactivateOnPlay,
+  resolveDeletionReactions,
+} from "./timing.js";
+import { collectRuleProcessMovements, flushRuleTriggerPool, nextInstanceId, nextPermanentId } from "./ruleProcess.js";
+import { inContinuousPass, settleBetweenEffects } from "./windows.js";
+import type { GameEngine } from "../GameEngine.js";
 
 export function effectAccess(engine: GameEngine): GameAccess {
   engine.gameAccess ??= createGameAccess(
@@ -291,4 +309,185 @@ export function engineConsultDigivolutionTrashRedirect(
     },
     hostPermanentIds,
   );
+}
+
+/**
+ * Build the concrete effect Primitives bound to engine match (subsystem boundary:
+ * effect-primitives owns the verbs, intent-protocol-and-room owns the decision
+ * channel they call). The SelectionPort adapts the DecisionManager into the
+ * seat-keyed form selection verbs use.
+ */
+export function buildPrimitives(engine: GameEngine): Primitives {
+  // `combat` is assigned after the primitives are built (the controller is itself
+  // wired with engine engine's fireTiming seam), so expose it lazily via a getter; the
+  // attack verbs only dereference it at call time, by which point it is set.
+  const getCombat = () => engine.combat;
+  return createPrimitives({
+    state: engine.state,
+    artsDigivolve: (seat, instance, definition, duringAttack) =>
+      engine.digivolveSupport.resolveArtsDigivolve(seat, instance, definition, duringAttack),
+    beginEffectBody: () => {
+      engine.effectResolutionDepth += 1;
+    },
+    finishEffectBody: () => {
+      engine.effectResolutionDepth = Math.max(0, engine.effectResolutionDepth - 1);
+    },
+    drainPendingAttackTriggers: () => drainPendingAttackTriggers(engine),
+    resolveAttackTimingWindow: async (drain) => {
+      // An effect-directed attack pauses its enclosing effect bodies while the
+      // attack's pending effects resolve. State-based rules run between those
+      // effects, even though the enclosing card will resume after combat.
+      const pausedDepth = engine.effectResolutionDepth;
+      engine.effectResolutionDepth = 0;
+      try {
+        await settleBetweenEffects(engine);
+        await drain();
+      } finally {
+        engine.effectResolutionDepth = pausedDepth;
+      }
+    },
+    baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
+      engine.digivolveSupport.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
+    emit: (event) => engine.hooks.emit(event),
+    inSecurityCheck: () => engine.securityCheckDepth > 0,
+    nextPermanentId: () => nextPermanentId(engine),
+    nextInstanceId: () => nextInstanceId(engine),
+    memory: engine.memory,
+    modifiers: engine.modifiers,
+    continuous: engine.continuous,
+    subTriggers: engine.subTriggers,
+    securityDp: engine.securityDp,
+    deletionMaxDp: engine.deletionMaxDp,
+    dpDeleteBudget: engine.dpDeleteBudget,
+    win: engine.win,
+    fireTiming: (timing, trigger) => fireTiming(engine, timing, trigger),
+    resolveDeletionReactions: (trigger, candidates, transientCandidates = []) =>
+      resolveDeletionReactions(
+        engine,
+        trigger,
+        candidates,
+        (deletionTrigger) => fireTiming(engine, EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
+        transientCandidates,
+      ),
+    fireSubTrigger: (event, payload, sourceScope) => engine.fireSubTrigger(event, payload, sourceScope),
+    trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(engine, seat),
+    recomputeContinuousEffects: () => engine.recomputeContinuousEffects(),
+    processRulesBeforeWhenDigivolving: async () => {
+      await engine.recomputeContinuousEffects();
+      if (engine.ruleProcessing || engine.ruleTriggerPool !== undefined) {
+        // A trash replacement is entered from the active rule pass. Run only the DP
+        // movement processes: the outer pass owns the pooled reactions and its latch.
+        await engine.ruleChecks.trashNoDpPermanents();
+        await engine.ruleChecks.deleteZeroDpDigimon();
+      } else {
+        const pool = await collectRuleProcessMovements(engine);
+        if (!engine.state.gameOver) await flushRuleTriggerPool(engine, pool);
+      }
+    },
+    finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
+      // A selected security card can still be face down in its origin zone.
+      // Locate only engine instance; do not expose hidden security to timing scans.
+      const instance =
+        originZone === "security"
+          ? Array.from(engine.state.players)
+              .flatMap((player) => Array.from(player.security))
+              .find((card) => card.instanceId === instanceId)
+          : findLooseInstance(engine, instanceId);
+      return instance === undefined
+        ? baseCost
+        : fireBeforePayCost(engine, instance, baseCost, useAsOption, originZone, projectOnly);
+    },
+    prepareDigiXrosPlay: (instanceId) => prepareDigiXrosPlay(engine, instanceId),
+    prepareDigiXrosPlays: (instanceIds) => prepareDigiXrosPlays(engine, instanceIds),
+    finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
+      const deps = digivolveDeps(engine);
+      const adjusted = deps.adjustedDigivolveCost?.(engine.state, target, baseCost, into, { consumeOnce: true });
+      const passiveCost = adjusted ?? baseCost;
+      const interactiveReduction =
+        (await deps.activateInteractiveDigivolveReduction?.(
+          engine.state,
+          target.controllerSeat,
+          target,
+          into,
+          evolvingInstanceId,
+        )) ?? 0;
+      return Math.max(0, passiveCost - interactiveReduction);
+    },
+    effectiveLooseUseCost: (instanceId, controllerSeat) => projectLooseUseCost(engine, instanceId, controllerSeat),
+    fireWhenLinking: async (instanceIds, targetPermanentId) => {
+      for (const instanceId of instanceIds) {
+        await fireTimingForInstance(engine, EffectTiming.OnLinking, instanceId, {
+          subjectPermanentId: targetPermanentId,
+          linkedInstanceIds: instanceIds,
+        });
+      }
+    },
+    resolveSelfWhenTrashedFromDeck: async (instanceId, byEffectCardId) => {
+      const instance = findLooseInstance(engine, instanceId);
+      if (instance === undefined) return;
+      await resolveSelfWhenTrashedFromDeck(
+        buildEffectContext(engine, cardSourceOf(engine, instance), {
+          trashedFromDeckCardId: instance.cardId,
+          ...(byEffectCardId === undefined ? {} : { trashedFromDeckByEffectCardId: byEffectCardId }),
+        }),
+      );
+    },
+    dnaDigivolveMemoryGains: (materialPermanentIds, into) =>
+      engine.subTriggers.dnaMemoryGainsFor(materialPermanentIds, into),
+    fireDiscardedFromSecurity: async (instanceIds) => {
+      for (const instanceId of instanceIds) {
+        await fireTimingForInstance(engine, EffectTiming.OnDiscardSecurity, instanceId);
+      }
+    },
+    reactivateOnPlay: (permanentId, opts) => reactivateOnPlay(engine, permanentId, opts),
+    fireEnteredByEffect: (timing, instanceId, ownerSeat, opts) =>
+      fireEnteredByEffectTiming(engine, timing, instanceId, ownerSeat, opts),
+    fireWhenDigivolving: (seat, permanent, previousLevel) =>
+      digivolveDeps(engine).fireWhenDigivolving!(engine.state, seat, permanent, previousLevel),
+    prepareAppFusion: async (seat, target, result, into) => {
+      const deps = digivolveDeps(engine);
+      await deps.prepareDigivolveCost?.(engine.state, seat, target, result, into);
+    },
+    appFusionTargetAllowed: (seat, target, result) => {
+      const deps = digivolveDeps(engine);
+      return (
+        deps.digivolveBaseRestricted?.(engine.state, target, result) !== true &&
+        deps.digivolveIntoAllowed?.(engine.state, target, result) !== false
+      );
+    },
+    fireWouldDigivolve: (seat, target, into) =>
+      digivolveDeps(engine).fireWouldDigivolve!(engine.state, seat, target, into),
+    consultLeavePrevention: (ids, cause, resolvingSeat, opts) =>
+      engine.consultLeavePrevention(ids, cause, resolvingSeat, opts),
+    consultDigivolutionTrashRedirect: (ids) => engineConsultDigivolutionTrashRedirect(engine, ids),
+    get combat() {
+      return getCombat();
+    },
+    ask: {
+      selectInstances: async (seat, candidateInstanceIds, min, max, promptText, provenance) => {
+        const response = await engine.decisions.request({
+          seat,
+          kind: "selectCards",
+          promptText,
+          sourceCardId: provenance?.sourceCardId,
+          options: {
+            candidateInstanceIds,
+            min,
+            max,
+            timing: provenance?.timing,
+            effectText: provenance?.effectText,
+          },
+        });
+        return response.kind === "selectCards" ? response.instanceIds : [];
+      },
+    },
+    controllerSeat: () => engine.state.turnSeat,
+    inContinuousPass: () => inContinuousPass(engine),
+    inResolvingWindow: () => engine.activeWindowToken !== undefined,
+    barrierFired: (key) => engine.tracker.count(key, "replacement") > 0,
+    markBarrierFired: (key) => engine.tracker.register(key, "replacement"),
+    noteLinked: (instanceIds) => {
+      for (const instanceId of instanceIds) engine.justLinked.add(instanceId);
+    },
+  });
 }

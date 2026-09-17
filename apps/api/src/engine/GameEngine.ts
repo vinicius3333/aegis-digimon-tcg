@@ -44,14 +44,13 @@ import { createDecisionApi } from "./decisions/decisionApi.js";
 import { createResolverDecisions, type ResolverDecisions } from "./decisions/resolverDecisions.js";
 import { MainPhaseController } from "./MainPhaseController.js";
 import { BreedingPhaseController } from "./BreedingPhaseController.js";
-import { createPrimitives, ModifierLedger } from "./effects/primitives.js";
+import { ModifierLedger } from "./effects/primitives.js";
 import { ContinuousEffectLedger } from "./effects/continuous.js";
 import { SubTriggerRegistry, type SubTriggerSubscription } from "./effects/subtriggers.js";
 import { type CardStateLookup } from "./cards/CardSource.js";
 import { UseTracker } from "./effects/kernel.js";
 import { buildResolutionEnv } from "./effects/index.js";
 import { effectsOf } from "./effects/collect.js";
-import { resolveSelfWhenTrashedFromDeck } from "./effects/interpreter.js";
 import type { CardSource } from "./effects/CardSource.js";
 import type { CollectedEffect } from "./effects/collect.js";
 import type {
@@ -85,21 +84,14 @@ import {
 import {
   applyIntent,
   counterEligibleSources,
-  findLooseInstance,
   isNewlyPlayedRushAttacker,
   validateAppFusion,
 } from "./gameEngine/intents.js";
 import {
   combatTriggerInfo,
-  drainPendingAttackTriggers,
-  fireBeforePayCost,
-  fireEnteredByEffectTiming,
   fireTiming,
   fireTimingForInstance,
   fireTimingForPermanent,
-  prepareDigiXrosPlay,
-  prepareDigiXrosPlays,
-  projectLooseUseCost,
   reactivateOnPlay,
   resolveDeletionReactions,
 } from "./gameEngine/timing.js";
@@ -109,14 +101,7 @@ import {
   prepareSubTrigger,
   withPendingSubTriggers,
 } from "./gameEngine/subTriggers.js";
-import {
-  collectRuleProcessMovements,
-  flushRuleTriggerPool,
-  listCandidateInstances,
-  nextInstanceId,
-  nextPermanentId,
-} from "./gameEngine/ruleProcess.js";
-import { inContinuousPass, settleBetweenEffects } from "./gameEngine/windows.js";
+import { collectRuleProcessMovements, flushRuleTriggerPool, listCandidateInstances } from "./gameEngine/ruleProcess.js";
 import {
   buildEffectContext,
   cardSourceOf,
@@ -124,7 +109,7 @@ import {
   effectEnvironment,
   forgetUsesOfCardsLeavingField,
 } from "./gameEngine/effectContext.js";
-import { engineConsultDigivolutionTrashRedirect, engineConsultLeavePrevention } from "./gameEngine/effectContext.js";
+import { engineConsultLeavePrevention } from "./gameEngine/effectContext.js";
 import {
   beginBattleScope,
   endBattleScope,
@@ -133,6 +118,7 @@ import {
   unsuspendAllForSeat,
   unsuspendForActivePhase,
 } from "./gameEngine/turnFlow.js";
+import { buildPrimitives } from "./gameEngine/effectContext.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
@@ -462,7 +448,7 @@ export class GameEngine {
     this.mulligan = new MulliganCoordinator(this.state, {
       requestDecision: (seat, req) => this.hooks.requestDecision(seat, req),
     });
-    this.primitives = this.buildPrimitives();
+    this.primitives = buildPrimitives(this);
     this.digivolveSupport = new DigivolveSupport({
       state: this.state,
       access: this.access,
@@ -731,187 +717,6 @@ export class GameEngine {
     this.mainPhase = new MainPhaseController(this.state, this.memory);
     this.breeding = new BreedingPhaseController(this.state);
     this.turnMachine = new TurnStateMachine(this.state, buildTurnFlowHooks(this), this.memory, this.hooks.emit);
-  }
-
-  /**
-   * Build the concrete effect Primitives bound to this match (subsystem boundary:
-   * effect-primitives owns the verbs, intent-protocol-and-room owns the decision
-   * channel they call). The SelectionPort adapts the DecisionManager into the
-   * seat-keyed form selection verbs use.
-   */
-  private buildPrimitives(): Primitives {
-    // `combat` is assigned after the primitives are built (the controller is itself
-    // wired with this engine's fireTiming seam), so expose it lazily via a getter; the
-    // attack verbs only dereference it at call time, by which point it is set.
-    const getCombat = () => this.combat;
-    return createPrimitives({
-      state: this.state,
-      artsDigivolve: (seat, instance, definition, duringAttack) =>
-        this.digivolveSupport.resolveArtsDigivolve(seat, instance, definition, duringAttack),
-      beginEffectBody: () => {
-        this.effectResolutionDepth += 1;
-      },
-      finishEffectBody: () => {
-        this.effectResolutionDepth = Math.max(0, this.effectResolutionDepth - 1);
-      },
-      drainPendingAttackTriggers: () => drainPendingAttackTriggers(this),
-      resolveAttackTimingWindow: async (drain) => {
-        // An effect-directed attack pauses its enclosing effect bodies while the
-        // attack's pending effects resolve. State-based rules run between those
-        // effects, even though the enclosing card will resume after combat.
-        const pausedDepth = this.effectResolutionDepth;
-        this.effectResolutionDepth = 0;
-        try {
-          await settleBetweenEffects(this);
-          await drain();
-        } finally {
-          this.effectResolutionDepth = pausedDepth;
-        }
-      },
-      baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
-        this.digivolveSupport.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
-      emit: (event) => this.hooks.emit(event),
-      inSecurityCheck: () => this.securityCheckDepth > 0,
-      nextPermanentId: () => nextPermanentId(this),
-      nextInstanceId: () => nextInstanceId(this),
-      memory: this.memory,
-      modifiers: this.modifiers,
-      continuous: this.continuous,
-      subTriggers: this.subTriggers,
-      securityDp: this.securityDp,
-      deletionMaxDp: this.deletionMaxDp,
-      dpDeleteBudget: this.dpDeleteBudget,
-      win: this.win,
-      fireTiming: (timing, trigger) => fireTiming(this, timing, trigger),
-      resolveDeletionReactions: (trigger, candidates, transientCandidates = []) =>
-        resolveDeletionReactions(
-          this,
-          trigger,
-          candidates,
-          (deletionTrigger) => fireTiming(this, EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
-          transientCandidates,
-        ),
-      fireSubTrigger: (event, payload, sourceScope) => this.fireSubTrigger(event, payload, sourceScope),
-      trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(this, seat),
-      recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
-      processRulesBeforeWhenDigivolving: async () => {
-        await this.recomputeContinuousEffects();
-        if (this.ruleProcessing || this.ruleTriggerPool !== undefined) {
-          // A trash replacement is entered from the active rule pass. Run only the DP
-          // movement processes: the outer pass owns the pooled reactions and its latch.
-          await this.ruleChecks.trashNoDpPermanents();
-          await this.ruleChecks.deleteZeroDpDigimon();
-        } else {
-          const pool = await collectRuleProcessMovements(this);
-          if (!this.state.gameOver) await flushRuleTriggerPool(this, pool);
-        }
-      },
-      finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
-        // A selected security card can still be face down in its origin zone.
-        // Locate only this instance; do not expose hidden security to timing scans.
-        const instance =
-          originZone === "security"
-            ? Array.from(this.state.players)
-                .flatMap((player) => Array.from(player.security))
-                .find((card) => card.instanceId === instanceId)
-            : findLooseInstance(this, instanceId);
-        return instance === undefined
-          ? baseCost
-          : fireBeforePayCost(this, instance, baseCost, useAsOption, originZone, projectOnly);
-      },
-      prepareDigiXrosPlay: (instanceId) => prepareDigiXrosPlay(this, instanceId),
-      prepareDigiXrosPlays: (instanceIds) => prepareDigiXrosPlays(this, instanceIds),
-      finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
-        const deps = digivolveDeps(this);
-        const adjusted = deps.adjustedDigivolveCost?.(this.state, target, baseCost, into, { consumeOnce: true });
-        const passiveCost = adjusted ?? baseCost;
-        const interactiveReduction =
-          (await deps.activateInteractiveDigivolveReduction?.(
-            this.state,
-            target.controllerSeat,
-            target,
-            into,
-            evolvingInstanceId,
-          )) ?? 0;
-        return Math.max(0, passiveCost - interactiveReduction);
-      },
-      effectiveLooseUseCost: (instanceId, controllerSeat) => projectLooseUseCost(this, instanceId, controllerSeat),
-      fireWhenLinking: async (instanceIds, targetPermanentId) => {
-        for (const instanceId of instanceIds) {
-          await fireTimingForInstance(this, EffectTiming.OnLinking, instanceId, {
-            subjectPermanentId: targetPermanentId,
-            linkedInstanceIds: instanceIds,
-          });
-        }
-      },
-      resolveSelfWhenTrashedFromDeck: async (instanceId, byEffectCardId) => {
-        const instance = findLooseInstance(this, instanceId);
-        if (instance === undefined) return;
-        await resolveSelfWhenTrashedFromDeck(
-          buildEffectContext(this, cardSourceOf(this, instance), {
-            trashedFromDeckCardId: instance.cardId,
-            ...(byEffectCardId === undefined ? {} : { trashedFromDeckByEffectCardId: byEffectCardId }),
-          }),
-        );
-      },
-      dnaDigivolveMemoryGains: (materialPermanentIds, into) =>
-        this.subTriggers.dnaMemoryGainsFor(materialPermanentIds, into),
-      fireDiscardedFromSecurity: async (instanceIds) => {
-        for (const instanceId of instanceIds) {
-          await fireTimingForInstance(this, EffectTiming.OnDiscardSecurity, instanceId);
-        }
-      },
-      reactivateOnPlay: (permanentId, opts) => reactivateOnPlay(this, permanentId, opts),
-      fireEnteredByEffect: (timing, instanceId, ownerSeat, opts) =>
-        fireEnteredByEffectTiming(this, timing, instanceId, ownerSeat, opts),
-      fireWhenDigivolving: (seat, permanent, previousLevel) =>
-        digivolveDeps(this).fireWhenDigivolving!(this.state, seat, permanent, previousLevel),
-      prepareAppFusion: async (seat, target, result, into) => {
-        const deps = digivolveDeps(this);
-        await deps.prepareDigivolveCost?.(this.state, seat, target, result, into);
-      },
-      appFusionTargetAllowed: (seat, target, result) => {
-        const deps = digivolveDeps(this);
-        return (
-          deps.digivolveBaseRestricted?.(this.state, target, result) !== true &&
-          deps.digivolveIntoAllowed?.(this.state, target, result) !== false
-        );
-      },
-      fireWouldDigivolve: (seat, target, into) =>
-        digivolveDeps(this).fireWouldDigivolve!(this.state, seat, target, into),
-      consultLeavePrevention: (ids, cause, resolvingSeat, opts) =>
-        this.consultLeavePrevention(ids, cause, resolvingSeat, opts),
-      consultDigivolutionTrashRedirect: (ids) => engineConsultDigivolutionTrashRedirect(this, ids),
-      get combat() {
-        return getCombat();
-      },
-      ask: {
-        selectInstances: async (seat, candidateInstanceIds, min, max, promptText, provenance) => {
-          const response = await this.decisions.request({
-            seat,
-            kind: "selectCards",
-            promptText,
-            sourceCardId: provenance?.sourceCardId,
-            options: {
-              candidateInstanceIds,
-              min,
-              max,
-              timing: provenance?.timing,
-              effectText: provenance?.effectText,
-            },
-          });
-          return response.kind === "selectCards" ? response.instanceIds : [];
-        },
-      },
-      controllerSeat: () => this.state.turnSeat,
-      inContinuousPass: () => inContinuousPass(this),
-      inResolvingWindow: () => this.activeWindowToken !== undefined,
-      barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
-      markBarrierFired: (key) => this.tracker.register(key, "replacement"),
-      noteLinked: (instanceIds) => {
-        for (const instanceId of instanceIds) this.justLinked.add(instanceId);
-      },
-    });
   }
 
   /**

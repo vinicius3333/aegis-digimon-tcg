@@ -59,6 +59,10 @@
   "export": "buildEffectContext",
   "module": "effectContext"
  },
+ "buildPrimitives": {
+  "export": "buildPrimitives",
+  "module": "effectContext"
+ },
  "buildSubTriggerContext": {
   "export": "buildSubTriggerContext",
   "module": "subTriggers"
