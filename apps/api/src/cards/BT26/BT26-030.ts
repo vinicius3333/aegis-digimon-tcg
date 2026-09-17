@@ -30,13 +30,6 @@ const grantKeywords = {
       duration: "untilEachTurnEnd" as EffectDurationRef,
     },
     {
-      kind: "GrantStatic",
-      target: { filter: {}, count: 1, fromSelectionRef: "pumpkinmonIliad" },
-      grant: "effects",
-      tokens: ["Execute"],
-      duration: "untilEachTurnEnd" as EffectDurationRef,
-    },
-    {
       kind: "GainKeyword",
       target: { filter: {}, count: 1, fromSelectionRef: "pumpkinmonIliad" },
       keyword: { keyword: "Ascension" },

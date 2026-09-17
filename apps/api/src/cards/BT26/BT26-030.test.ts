@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-030.js";
 import "../index.js";
 
@@ -33,7 +34,6 @@ describe("BT26-030 Pumpkinmon", () => {
               actions: [
                 expect.objectContaining({ kind: "SelectBind" }),
                 expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Execute" } }),
-                expect.objectContaining({ kind: "GrantStatic", grant: "effects", tokens: ["Execute"] }),
                 expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Ascension" } }),
               ],
             }),
@@ -65,6 +65,11 @@ describe("BT26-030 Pumpkinmon", () => {
     await settle(() => s.state.players[0]!.hand.length === 0);
 
     expect(Array.from(s.perm("iliad").keywords)).toEqual(expect.arrayContaining(["Execute", "Ascension"]));
+    expect(
+      observe(s.engine)
+        .customEffectGrants(s.perm("iliad"))
+        .filter(({ token }) => token === "Execute"),
+    ).toHaveLength(1);
     expect(Array.from(s.perm("pumpkinmon").keywords)).not.toEqual(expect.arrayContaining(["Execute", "Ascension"]));
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
