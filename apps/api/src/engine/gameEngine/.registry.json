@@ -1,11 +1,71 @@
 {
+ "activateEffectDeps": {
+  "export": "activateEffectDeps",
+  "module": "actionDeps"
+ },
+ "assemblyDeps": {
+  "export": "assemblyDeps",
+  "module": "actionDeps"
+ },
+ "attackDeps": {
+  "export": "attackDeps",
+  "module": "actionDeps"
+ },
+ "blockDeps": {
+  "export": "blockDeps",
+  "module": "actionDeps"
+ },
+ "breedingDeps": {
+  "export": "breedingDeps",
+  "module": "actionDeps"
+ },
+ "buildTurnFlowHooks": {
+  "export": "buildTurnFlowHooks",
+  "module": "actionDeps"
+ },
+ "combatDecisionDeps": {
+  "export": "combatDecisionDeps",
+  "module": "actionDeps"
+ },
+ "digiXrosDeps": {
+  "export": "digiXrosDeps",
+  "module": "actionDeps"
+ },
+ "digivolveDeps": {
+  "export": "digivolveDeps",
+  "module": "actionDeps"
+ },
+ "dnaDigivolveDeps": {
+  "export": "dnaDigivolveDeps",
+  "module": "actionDeps"
+ },
+ "intentRouterDeps": {
+  "export": "intentRouterDeps",
+  "module": "actionDeps"
+ },
+ "linkCardDeps": {
+  "export": "linkCardDeps",
+  "module": "actionDeps"
+ },
  "payBarrierSecurityCost": {
   "export": "payBarrierSecurityCost",
   "module": "securityCheck"
  },
+ "playCardDeps": {
+  "export": "playCardDeps",
+  "module": "actionDeps"
+ },
+ "resolutionDeps": {
+  "export": "resolutionDeps",
+  "module": "actionDeps"
+ },
  "resolveSecurityEffect": {
   "export": "resolveSecurityEffect",
   "module": "securityCheck"
+ },
+ "respondCounterDeps": {
+  "export": "respondCounterDeps",
+  "module": "actionDeps"
  },
  "runSecurityCheck": {
   "export": "engineRunSecurityCheck",

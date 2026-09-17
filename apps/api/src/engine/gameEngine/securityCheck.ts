@@ -9,6 +9,7 @@ import type { CollectedEffect } from "../effects/collect.js";
 import type { TriggerInfo, SubTriggerEventName } from "../effects/EffectContext.js";
 import { log } from "../../logger.js";
 import type { GameEngine } from "../GameEngine.js";
+import { resolutionDeps } from "./actionDeps.js";
 
 export async function engineRunSecurityCheck(
   engine: GameEngine,
@@ -70,7 +71,7 @@ export async function engineRunSecurityCheck(
         engine.armedSubTriggers([...engine.subTriggers.subscriptionsFor(name as SubTriggerEventName)], payload),
       );
       const framework = engine.effectEnvironment(payload);
-      const initialEnv = buildResolutionEnv(framework, engine.resolutionDeps());
+      const initialEnv = buildResolutionEnv(framework, resolutionDeps(engine));
       const initial = [
         ...initialEnv.collect(EffectTiming.OnSecurityCheck),
         ...initialEnv.collect(EffectTiming.OnLoseSecurity),
@@ -86,7 +87,7 @@ export async function engineRunSecurityCheck(
           await engine.withTriggeredMutations(async () => {
             const env = buildResolutionEnv(
               framework,
-              engine.resolutionDeps(() => [], { outermost }),
+              resolutionDeps(engine, () => [], { outermost }),
             );
             const derivedFromSecurityEffect = (): CollectedEffect[] =>
               engine.pendingNestedTimingEffects.filter(
