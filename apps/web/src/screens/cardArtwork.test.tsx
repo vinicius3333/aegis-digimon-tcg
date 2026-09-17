@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
+import {} from "./deckCounts";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getCardArts } from "@aegis/shared";
 import { I18nProvider } from "../i18n";
 import { loadDecks, saveDecks } from "../identity";
 import { type DeckListing } from "../game/decks";
-import { CardDetailDrawer } from "./cardLibrary";
+import { CardDetailDrawer } from "./CardDetailDrawer";
 import { DeckBuilder } from "./DeckBuilder";
 
 afterEach(() => {

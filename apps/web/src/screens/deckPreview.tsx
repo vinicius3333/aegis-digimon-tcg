@@ -10,7 +10,7 @@ import { ColorDot } from "../design/primitives";
 import { colorKey, kindOf } from "../design/theme";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
-import { sortCardIds } from "./cardLibrary";
+import { sortCardIds } from "./cardSorting";
 
 type CountMap = Record<string, number>;
 
