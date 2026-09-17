@@ -11,7 +11,7 @@
 
 import type { RefObject } from "react";
 import { canMoveFromBreeding, canUseBreedingAction, parseActivatable } from "../../boardModel";
-import type { GameState, DecisionRequest, DecisionResponse, Permanent, PlayerState, Seat } from "@aegis/shared";
+import type { GameState, DecisionRequest, Permanent, PlayerState, Seat } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { MulliganOverlay } from "../../overlay";
 import { HandCardPreview } from "./HandCardPreview";

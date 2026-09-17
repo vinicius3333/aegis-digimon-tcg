@@ -30,8 +30,8 @@ describe("opponent hidden-card backs", () => {
       /count=\{opponentBreeding\.eggDeckCount\}(?:(?!\/>)[\s\S])*?egg(?:(?!\/>)[\s\S])*?useSelectedSleeve=\{false\}/,
     );
     // Those `opponent` props are the presented board, and the raising area its own clock.
-    expect(gameScreenSource).toMatch(/opponent=\{shownOpp\}/);
-    expect(gameScreenSource).toMatch(/opponentBreeding=\{breedingOpp\}/);
+    expect(gameScreenSource).toMatch(/opponent=\{shownOpponent\}/);
+    expect(gameScreenSource).toMatch(/opponentBreeding=\{breedingOpponent\}/);
     // The security shield's count goes through `shieldSecurityCount`, which holds the
     // figure while a scene is still showing a card leaving, so it is matched by its own
     // `shield={Side.Opponent}` marker instead.

@@ -18,23 +18,9 @@ import { boardActions } from "./screen/boardActions";
 import { matchIntents } from "./screen/matchIntents";
 import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
 import { pendingMatchNotice } from "./screen/model/pendingMatchNotice";
-import { AttackArrowLayer } from "./screen/layout/AttackArrowLayer";
-import { BattleZones } from "./screen/layout/BattleZones";
-import { BoardBurstLayer } from "./screen/layout/BoardBurstLayer";
+import { BoardStage, type BoardAnchors } from "./screen/layout/BoardStage";
 import { BreedingDock } from "./screen/layout/BreedingDock";
-import { DragGhost } from "./screen/layout/DragGhost";
-import { FieldClashGhosts } from "./screen/layout/FieldClashGhosts";
-import { LeftPileColumn } from "./screen/layout/LeftPileColumn";
-import { LogTicker } from "./screen/layout/LogTicker";
 import { MatchOverlays } from "./screen/layout/MatchOverlays";
-import { MemoryBand } from "./screen/layout/MemoryBand";
-import { OpponentBar } from "./screen/layout/OpponentBar";
-import { OpponentBattleRow } from "./screen/layout/OpponentBattleRow";
-import { PlayerDock } from "./screen/layout/PlayerDock";
-import { RightPileColumn } from "./screen/layout/RightPileColumn";
-import { TurnBanner } from "./screen/layout/TurnBanner";
-import { ViewerBattleRow } from "./screen/layout/ViewerBattleRow";
-import { Sidebar } from "./screen/layout/Sidebar";
 
 export { HandCardPreview } from "./screen/layout/HandCardPreview";
 export { Sidebar } from "./screen/layout/Sidebar";
@@ -68,7 +54,6 @@ import { playChoiceAnswers } from "./screen/playChoiceAnswers";
 import type { DropZoneHit, PermanentChrome } from "./screen/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import {
   CardKind,
   PRESENTATION_CHANNEL,
@@ -82,9 +67,7 @@ import { useTranslation } from "../i18n";
 import { useRoom, type MatchMode, type UseRoomResult } from "../net/useRoom";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { selectPresentedState, type StateSnapshot } from "../net/presentedState";
-import { intents } from "../net/intents";
 import { joinWithBot } from "../net/client";
-import type { CSSProperties } from "react";
 import type { StartMode } from "../screens/Lobby";
 import type { AegisJoinOptions } from "../net/types";
 import { type Screen } from "../design/primitives";
@@ -95,10 +78,8 @@ import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { useBattlefieldStyle } from "../design/battlefield";
 import "./game.css";
 import "./arena.css";
-import { Side } from "./side";
 import "./arenaMobile.css";
 import { type DropTarget } from "./dragIntents";
-import { turnControlState } from "./turnControl";
 import {
   bothSeated,
   openCombatWindow,
@@ -108,21 +89,15 @@ import {
   attackTargetIdsOf,
   buildMatchLog,
   canAttackPlayerWith,
-  canAttackWith,
   displayMemory,
   otherSeat,
   viewerSeatOf,
   type LogLine,
   breedingSlotClickAction,
 } from "./boardModel";
-import { AttackAnnouncementBanner } from "./SidePanelStack";
-import { NarrationStack } from "./NarrationStack";
-import { CardOpenerProvider } from "./cardLinks";
 import { useMatchCues } from "./useMatchCues";
-import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
-import { TargetingSpotlight } from "./TargetingSpotlight";
+import { TIMINGS } from "./timings";
 import { pendingFateBadges } from "./pendingFate";
-import { shieldSecurityCount } from "./securityClash";
 
 export function GameScreen({
   joinOptions,
@@ -162,19 +137,16 @@ export function GameScreen({
 }) {
   const { t } = useTranslation();
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
+  const layout = useArenaLayout();
   const {
     narrowGameLayout,
     compactPiles,
     shortBoard,
-    portraitArena,
     landscapePhone,
-    coarsePointer,
     collapseNotices,
     arenaPileWidth,
     arenaPermanentWidth,
-    handCardWidth,
-    handMinExposure,
-  } = useArenaLayout();
+  } = layout;
   const matchConfig = useMemo(() => {
     if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
@@ -243,15 +215,11 @@ export function GameScreen({
     setCardMenu,
     stackView,
     setStackView,
-    setTrashView,
-    setSecurityView,
     picks,
     setPicks,
     decisionAsDialog,
-    setHistoryOpen,
     setZoomCardId,
     setZoomArtId,
-    setBugReportOpen,
     dualPlay,
     setDualPlay,
     assemblyPick,
@@ -297,6 +265,19 @@ export function GameScreen({
   const yourHandDockRef = useRef<HTMLDivElement | null>(null);
   const oppHandStripRef = useRef<HTMLDivElement | null>(null);
   const attackPreviewTargetRef = useRef<{ security: boolean; permanentId?: string }>({ security: false });
+  const anchors: BoardAnchors = {
+    board: boardRef,
+    field: fieldRef,
+    permanents: permRefs,
+    permanentCenters: permCentersRef,
+    permanentCardIds: permCardIdsRef,
+    viewerSecurity: yourSecRef,
+    opponentSecurity: oppSecRef,
+    viewerDeck: yourDeckRef,
+    opponentDeck: oppDeckRef,
+    viewerHandDock: yourHandDockRef,
+    opponentHandStrip: oppHandStripRef,
+  };
   const arrow = useAttackPreviewArrow({
     attackerPermanentId: selPerm,
     state,
@@ -392,28 +373,20 @@ export function GameScreen({
     dismissOwnEffectNoticeRef.current(promptedOwnEffectCardId);
   }, [promptedOwnEffectCardId]);
   const {
-    attackAnnouncement,
     attackLunge,
     combatImpactIds,
     fieldClash,
     deckRiffles,
     effectSources,
-    securityFlights,
-    securityDealCounts,
     dpPulses,
     freezePulses,
     phaseBanner,
-    deleteBursts,
-    drawBursts,
-    drawFlights,
     pendingPermanentIds,
     permanentBursts,
     optionBranch,
     securityBranch,
     securityBreak,
     securityClash,
-    securityHitSeat,
-    heldSecurityCounts,
     turnTransition,
     unsuspendSweep,
     zoneShowcase,
@@ -543,15 +516,7 @@ export function GameScreen({
   // guard below reads, and what `isMyTurn` must keep meaning.
   const displayedTurnSeat = cues.displayedTurn?.seat ?? shownState.turnSeat;
   const displayedTurnCount = cues.displayedTurn?.count ?? shownState.turnCount;
-  const {
-    isMyTurn,
-    mainActionBlocked,
-    endPhaseBlocked,
-    breedingWindow,
-    canHatchEgg,
-    canMoveOutOfBreeding,
-    breedingActionsOpen,
-  } = actionGuards({
+  const guards = actionGuards({
     state,
     viewer: you,
     viewerSeat,
@@ -559,6 +524,8 @@ export function GameScreen({
     presenting: cues.presenting,
     phasePresentationPending: cues.phaseTransitionPending || turnTransition !== null || phaseBanner !== null,
   });
+  const { isMyTurn, mainActionBlocked, breedingWindow, canHatchEgg, canMoveOutOfBreeding, breedingActionsOpen } =
+    guards;
   // The gauge is part of the scene, so it moves when the moment that moved it is narrated.
   const memory = displayMemory(shownState, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
@@ -691,8 +658,7 @@ export function GameScreen({
     eligibleBase,
     linkTargetsOfPermanent,
   });
-  const { findPermanent, showCardMenu, selectHandCard, handleTap, handleDrop, onYourPerm, onOppPerm, onBreeding } =
-    actions;
+  const { findPermanent, handleTap, handleDrop, onYourPerm, onBreeding } = actions;
   handleTapRef.current = handleTap;
   handleDropRef.current = handleDrop;
   const combatWindowAnswers = combatAnswers({
@@ -738,7 +704,6 @@ export function GameScreen({
   });
   const {
     viewerDecision,
-    answerOnBoard,
     decisionHighlightPermanentId,
     decisionSelectable,
     decisionVisibleCardIds,
@@ -943,294 +908,82 @@ export function GameScreen({
   };
 
   return (
-    // Every surface that names a card — notices, side panels, combat prompts,
-    // decision dialogs — opens it through this one blow-up.
-    <CardOpenerProvider
+    <BoardStage
+      state={state}
+      shownState={shownState}
+      viewer={you}
+      opponent={opp}
+      viewerSeat={viewerSeat}
+      room={room}
+      battlefield={battlefield}
+      layout={layout}
+      anchors={anchors}
+      cues={cues}
+      seats={{
+        shownViewer: shownYou,
+        shownOpponent: shownOpp,
+        breedingViewer: breedingYou,
+        breedingOpponent: breedingOpp,
+        shownHandEntries,
+        shownHandCount,
+        shownOpponentHandCount,
+      }}
+      guards={guards}
+      readouts={{ memory, memoryPrediction, displayedTurnSeat, displayedTurnCount, log }}
+      targeting={{
+        spotlight,
+        spotlightSubjects,
+        boardSize,
+        previewArrow: arrow,
+        trackingArrow,
+        attackerPermanent: attackerPerm,
+        draggedAttackerPermanent: draggedAttackerPerm,
+        canAttackSecurity,
+        isBasePermanent: (perm) =>
+          (handIsDigi && eligibleBase(perm)) ||
+          dragBasePermanentIds.has(perm.permanentId) ||
+          (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
+      }}
+      chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
+      handDock={{
+        effectSourceInstanceId:
+          handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined,
+        shakeInstanceId: shakeHandInstanceId,
+        selection:
+          decisionView.answerOnBoard && decisionView.viewerDecision?.kind === "selectCards"
+            ? {
+                selectableInstanceIds: decisionView.viewerDecision.options?.candidateInstanceIds ?? [],
+                pickedInstanceIds: picks,
+                onToggle: toggleDecisionPick,
+                onInspect: setHandPreview,
+              }
+            : undefined,
+        actionBar: !selPerm
+          ? {
+              selCardId: handPreview ? undefined : selCardId,
+              hasBase:
+                (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
+                appFusionHostIdsOf(selEntry?.instanceId).length > 0,
+              linkingCardId: linkSel?.cardId,
+              onCancel: clearSel,
+            }
+          : undefined,
+        onHoverChange: setHoveredHandInstanceId,
+      }}
+      selection={selectionState}
+      overlays={overlayState}
+      actions={actions}
+      senders={matchSenders}
+      drag={{ state: drag, isPlay: dragIsPlay, cardId: dragCardId, hoveredIntent: hoveredDragIntent ?? undefined }}
+      breedingDock={yourBreedingDock}
+      overlayStack={overlays}
+      stageEl={stageEl}
+      onStartHandDrag={(index, event) => startHandDrag(index, shownHandEntries[index], event)}
+      onStartPermanentDrag={startPermDrag}
       onOpenCard={(cardId, artId) => {
         setZoomCardId(cardId);
         setZoomArtId(artId);
       }}
-    >
-      <main
-        className="game-layout"
-        style={{
-          height: "100%",
-          display: "flex",
-          background: "var(--ds-background)",
-          overflow: "hidden",
-          ...BATTLE_TIMING_STYLE,
-        }}
-      >
-        <div
-          className="game-board"
-          ref={boardRef}
-          style={{
-            flex: 1,
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            ...battlefield,
-            ...({ "--arena-background": battlefield.backgroundImage } as CSSProperties),
-          }}
-        >
-          <OpponentBar
-            handStripRef={oppHandStripRef}
-            viewerSeat={viewerSeat}
-            displayedTurnSeat={displayedTurnSeat}
-            displayedTurnCount={displayedTurnCount}
-            phase={shownState.phase}
-            memory={memory}
-            eggDeckCount={breedingOpp.eggDeckCount}
-            handCount={shownOpponentHandCount}
-            deckCount={shownOpp.deckCount}
-            trashCount={shownOpp.trash.length}
-            portraitArena={portraitArena}
-            narrowGameLayout={narrowGameLayout}
-            skippable={cues.presenting || cues.decisionAnimationsPending}
-            onOpenLog={() => setHistoryOpen(true)}
-            onReportBug={() => setBugReportOpen(true)}
-            onSurrender={() => room && intents.surrender(room)}
-            onSkipPresentation={() => cues.skipAnimations()}
-          />
-
-          {/* One moment at a time. The portrait phone folds both sides into a single
-              centred slot; everywhere else the viewer reads the left corner and the
-              opponent's moments arrive in the right one. */}
-          {!state.gameOver ? (
-            <NarrationStack
-              narration={cues.narration}
-              rejection={cues.rejection}
-              compact={collapseNotices}
-              securityDockActive={securityBranch !== null || optionBranch !== null}
-              onAdvance={cues.advanceNarration}
-              onDismissRejection={cues.dismissRejection}
-            />
-          ) : null}
-
-          {attackAnnouncement && !state.gameOver ? (
-            <AttackAnnouncementBanner announcement={attackAnnouncement} />
-          ) : null}
-
-          {/* Desktop replaced the sidebar with this slim ticker, kept unobtrusive at the
-              board's right edge. The header's log button opens the full history sheet. */}
-          {!narrowGameLayout ? (
-            <LogTicker
-              log={log}
-              viewerSeat={viewerSeat}
-              displayedTurnSeat={displayedTurnSeat}
-              displayedTurnCount={displayedTurnCount}
-              memory={memory}
-            />
-          ) : null}
-
-          {turnTransition ? <TurnBanner transition={turnTransition} viewerSeat={viewerSeat} /> : null}
-
-          {/* field: left column / center / right column */}
-          <div
-            className="game-field"
-            ref={fieldRef}
-            style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
-          >
-            {/* The breeding step is about one slot: the field dims behind the dock,
-                which keeps the raising area, the hand that digivolves into it and
-                the turn control lit. Notices, panels and dialogs all sit above. */}
-            {breedingActionsOpen ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
-            {/* Outlines mark the cards the server offered without dimming the field.
-                The cards underneath keep every pointer event. */}
-            {spotlight.open ? (
-              <TargetingSpotlight subjects={spotlightSubjects} width={boardSize.width} height={boardSize.height} />
-            ) : null}
-            <LeftPileColumn
-              opponent={shownOpp}
-              viewer={shownYou}
-              pileWidth={arenaPileWidth}
-              compactPiles={compactPiles}
-              opponentDeckRef={oppDeckRef}
-              viewerSecurityRef={yourSecRef}
-              opponentDeckRiffling={deckRiffles.has(`${otherSeat(viewerSeat)}:deck`)}
-              opponentTrashClassName={trashEffectSource(otherSeat(viewerSeat)) ?? ""}
-              securityCount={
-                securityDealCounts.get(viewerSeat) ??
-                shieldSecurityCount(shownYou.securityCount, heldSecurityCounts.get(viewerSeat))
-              }
-              securityBreak={securityBreak}
-              securityBreakMine={securityBreak?.seat === viewerSeat}
-              securityHit={securityHitSeat === viewerSeat}
-              securityLanding={securityFlights.has(viewerSeat)}
-              onOpenOpponentTrash={shownOpp.trash.length ? () => setTrashView(Side.Opponent) : undefined}
-              onOpenViewerSecurity={shownYou.securityCount ? () => setSecurityView(Side.Viewer) : undefined}
-            />
-
-            <BattleZones>
-              <OpponentBattleRow
-                permanents={shownOpp.battleArea}
-                chrome={{
-                  ...permanentChrome,
-                  suspendDelayMs: (index) => unsuspendStagger(otherSeat(viewerSeat), index),
-                }}
-                attackerPermanent={attackerPerm}
-                draggedAttackerPermanent={draggedAttackerPerm}
-                vortexMode={vortexMode}
-                dropIntentAttrs={dropIntentAttrs}
-                onPermanentClick={onOppPerm}
-              />
-              <MemoryBand
-                phaseBanner={phaseBanner}
-                memory={memory}
-                compact={compactPiles}
-                displayedPhase={cues.displayedPhase ?? shownState.phase}
-                phaseSweeping={unsuspendSweep !== null}
-                memoryPrediction={memoryPrediction}
-                turnControlState={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
-                endPhaseBlocked={endPhaseBlocked}
-                onEndPhase={() => room && intents.endPhase(room)}
-              />
-              <ViewerBattleRow
-                permanents={shownYou.battleArea}
-                chrome={{ ...permanentChrome, suspendDelayMs: (index) => unsuspendStagger(viewerSeat, index) }}
-                dragIsPlay={dragIsPlay}
-                selectedAttackerPermanentId={selPerm}
-                isBasePermanent={(perm) =>
-                  (handIsDigi && eligibleBase(perm)) ||
-                  dragBasePermanentIds.has(perm.permanentId) ||
-                  (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false)
-                }
-                draggable={(perm) => !handSel && !linkSel && canAttackWith(perm)}
-                dropIntentAttrs={dropIntentAttrs}
-                baseDropIntentAttrs={baseDropIntentAttrs}
-                onPermanentClick={onYourPerm}
-                onPermanentPointerDown={startPermDrag}
-              />
-            </BattleZones>
-
-            {portraitArena ? yourBreedingDock : null}
-
-            <RightPileColumn
-              opponent={shownOpp}
-              opponentBreeding={breedingOpp}
-              viewer={shownYou}
-              pileWidth={arenaPileWidth}
-              compactPiles={compactPiles}
-              viewerDeckRef={yourDeckRef}
-              opponentSecurityRef={oppSecRef}
-              opponentEggDeckRiffling={deckRiffles.has(`${otherSeat(viewerSeat)}:eggDeck`)}
-              viewerDeckRiffling={deckRiffles.has(`${viewerSeat}:deck`)}
-              viewerTrashClassName={trashEffectSource(viewerSeat) ?? ""}
-              breedingBurst={breedingOpp.breeding ? permanentBursts.get(breedingOpp.breeding.permanentId) : undefined}
-              securityCount={
-                securityDealCounts.get(otherSeat(viewerSeat)) ??
-                shieldSecurityCount(shownOpp.securityCount, heldSecurityCounts.get(otherSeat(viewerSeat)))
-              }
-              securityBreak={securityBreak}
-              securityBreakMine={securityBreak?.seat === otherSeat(viewerSeat)}
-              securityHit={securityHitSeat === otherSeat(viewerSeat)}
-              securityLanding={securityFlights.has(otherSeat(viewerSeat))}
-              securityDrop={{ "data-drop": "opp-security", ...dropIntentAttrs("opp-security") }}
-              attackable={canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)}
-              onOpenOpponentBreeding={
-                opp.breeding ? () => showCardMenu(opp.breeding!.permanentId, Side.Opponent) : undefined
-              }
-              onAttackSecurity={
-                selPerm && canAttackSecurity ? () => attack(selPerm, { kind: "player" }, vortexMode) : undefined
-              }
-              onOpenOpponentSecurity={shownOpp.securityCount ? () => setSecurityView(Side.Opponent) : undefined}
-              onOpenViewerTrash={shownYou.trash.length ? () => setTrashView(Side.Viewer) : undefined}
-            />
-          </div>
-
-          <PlayerDock
-            breedingDock={!portraitArena ? yourBreedingDock : null}
-            handDockRef={yourHandDockRef}
-            cardWidth={handCardWidth}
-            minExposure={handMinExposure}
-            cards={shownHandEntries}
-            selectedInstanceId={handSel ?? undefined}
-            effectSourceInstanceId={
-              handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined
-            }
-            selection={
-              answerOnBoard && viewerDecision?.kind === "selectCards"
-                ? {
-                    selectableInstanceIds: viewerDecision.options?.candidateInstanceIds ?? [],
-                    pickedInstanceIds: picks,
-                    onToggle: toggleDecisionPick,
-                    onInspect: setHandPreview,
-                  }
-                : undefined
-            }
-            draggingInstanceId={dragIsPlay && drag?.kind === DragKind.Play ? drag.instanceId : undefined}
-            shakeInstanceId={shakeHandInstanceId}
-            actionBar={
-              !selPerm
-                ? {
-                    selCardId: handPreview ? undefined : selCardId,
-                    hasBase:
-                      (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
-                      appFusionHostIdsOf(selEntry?.instanceId).length > 0,
-                    linkingCardId: linkSel?.cardId,
-                    onCancel: clearSel,
-                  }
-                : undefined
-            }
-            eggDeckCount={breedingYou.eggDeckCount}
-            handCount={shownHandCount}
-            deckCount={shownYou.deckCount}
-            trashCount={shownYou.trash.length}
-            startDrag={(index, event) => startHandDrag(index, shownHandEntries[index], event)}
-            selectCard={(index) => {
-              const entry = shownHandEntries[index];
-              if (entry) selectHandCard(entry);
-            }}
-            onHoverChange={setHoveredHandInstanceId}
-          />
-
-          <AttackArrowLayer preview={arrow} tracking={trackingArrow} />
-
-          <FieldClashGhosts
-            scene={fieldClash}
-            permanentRefs={permRefs}
-            permanentCenters={permCentersRef}
-            permanentCardIds={permCardIdsRef}
-            combatImpactIds={combatImpactIds}
-            attackLunge={attackLunge}
-          />
-
-          <BoardBurstLayer deleteBursts={deleteBursts} drawBursts={drawBursts} drawFlights={drawFlights} />
-        </div>
-
-        {/* Desktop plays without the sidebar — its controls moved to the header
-            cluster and the end-turn orb; the log opens from the header.
-            The narrow layout keeps it: there it collapses into the touch strip. */}
-        {narrowGameLayout ? (
-          <Sidebar
-            phase={state.phase}
-            turnCount={state.turnCount}
-            memory={memory}
-            isMyTurn={isMyTurn}
-            canMove={breedingActionsOpen && canMoveOutOfBreeding}
-            hasBreeding={!!you.breeding}
-            canHatch={breedingActionsOpen && canHatchEgg}
-            narrow
-            log={log}
-            onHatchOrMove={onBreeding}
-            onSurrender={() => room && intents.surrender(room)}
-            onReportBug={() => setBugReportOpen(true)}
-          />
-        ) : null}
-
-        {stageEl ? createPortal(overlays, stageEl) : overlays}
-
-        {dragCardId ? (
-          <DragGhost
-            cardId={dragCardId}
-            artId={drag?.artId}
-            x={drag!.x}
-            y={drag!.y}
-            intent={hoveredDragIntent ?? undefined}
-            coarsePointer={coarsePointer}
-          />
-        ) : null}
-      </main>
-    </CardOpenerProvider>
+    />
   );
 }
