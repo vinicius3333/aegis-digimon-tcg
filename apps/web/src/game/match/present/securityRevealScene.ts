@@ -68,6 +68,9 @@ export interface SecurityRevealSceneDeps {
  * actually gets to the reveal, so it can and does run ahead of it. The break carries
  * the `replace`, so a check still cancels whatever showcase was mid-flight.
  */
+/** The centre-stage beats a batch can ask of the check currently holding the screen. */
+export type SecurityRevealStage = ReturnType<typeof securityRevealScene>;
+
 export function securityRevealScene(deps: SecurityRevealSceneDeps) {
   const {
     queue,

@@ -42,6 +42,8 @@ import { enqueueDeckRiffles } from "./match/present/deckRiffles";
 import { enqueueEffectSources } from "./match/present/effectSources";
 import { enqueueSecurityGrowth } from "./match/present/securityGrowth";
 import { securityRevealScene } from "./match/present/securityRevealScene";
+import { presentSecurityClose } from "./match/present/securityClose";
+import { presentSecurityRevealed } from "./match/present/securityReveal";
 import { securityHold } from "./match/securityHold";
 import { cueFlights } from "./match/flights";
 import { narrationStream } from "./match/narration/narrationStream";
@@ -89,12 +91,7 @@ import {
 import { isOwnEffectNotice, noticeRemaining, rejectionNotice, securityGainNotice, type MatchNotice } from "./notices";
 import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
 import {
-  buildSecurityBranchScene,
-  buildSecurityDockScene,
-  buildSecurityRevealScene,
   securityCheckSegments,
-  settleSecurityClashScene,
-  SECURITY_BRANCH_TOTAL_MS,
   type SecurityBranchScene,
   type SecurityClashAttacker,
   type SecurityClashScene,
@@ -108,15 +105,7 @@ import { type FieldClashScene, type OpenAttack } from "./fieldClash";
 import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
 import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
-import {
-  CLASH_OUTCOME_AT_MS,
-  CLASH_TOTAL_MS,
-  DECISION_STALL_BUDGET_MS,
-  dpPulseTotalMs,
-  PLAY_LEAD_IN_BUDGET_MS,
-  SECURITY_BRANCH_IN_MS,
-  TIMINGS,
-} from "./timings";
+import { DECISION_STALL_BUDGET_MS, dpPulseTotalMs, PLAY_LEAD_IN_BUDGET_MS, TIMINGS } from "./timings";
 
 export function useMatchCues({
   batches,
@@ -858,16 +847,7 @@ export function useMatchCues({
     // guarantees that: a parallel track with a fixed lead-in cannot know when this one
     // actually gets to the reveal, so it can and does run ahead of it. The break carries
     // the `replace`, so a check still cancels whatever showcase was mid-flight.
-    const {
-      stageSecurityReveal,
-      dockSecurityReveal,
-      undockSecurityReveal,
-      clearSecurityReveal,
-      holdSecurityReveal,
-      readOutSecurityNotices,
-      releaseSecurityPresentation,
-      presentSecurityReveal,
-    } = securityRevealScene({
+    const stage = securityRevealScene({
       queue,
       enqueue,
       viewerSeat,
@@ -892,201 +872,41 @@ export function useMatchCues({
       securityCountOf,
     });
 
-    if (securityReveal?.kind === "securityRevealed") {
-      securityClashKeyRef.current += 1;
-      const key = securityClashKeyRef.current;
-      const revealed = buildSecurityRevealScene({
-        key,
-        revealedCardId: securityReveal.revealedCardId,
-        revealedArtId: securityReveal.artId,
-        securityCardDP: securityReveal.securityCardDP,
-        attackerDP: securityReveal.attackerDP,
-        defenderSeat: securityReveal.seat,
+    if (securityReveal?.kind === "securityRevealed")
+      presentSecurityRevealed({
+        securityReveal,
+        closingCheck,
         viewerSeat,
-        attacker: securityAttackerRef.current
-          ? { ...securityAttackerRef.current, artId: securityReveal.attackerArtId ?? securityAttackerRef.current.artId }
-          : undefined,
+        heldNotices,
+        heldPanels,
+        securityClashKeyRef,
+        securityAttackerRef,
+        revealOnStageRef,
+        heldNoticesRef,
+        heldPanelsRef,
+        stage,
+        enqueueDeferredSecurityArrivals,
       });
-      // A check that closes inside this same batch never shows the pending state: its
-      // outcome is already known, so the scene is staged settled and reads the way it
-      // always has. Only a check the server is still resolving holds the card unsettled.
-      const settled = closingCheck ? settleSecurityClashScene(revealed, closingCheck) : revealed;
-      // The server names what the card is about to do, so the client can commit to the
-      // dock at the reveal rather than guessing from the close that has not arrived. An
-      // older server (or a replayed history) sends no hint, and falls back to the
-      // centre-stage scene that plays itself out.
-      const docking = securityReveal.hasSecurityEffect === true && !closingCheck;
-      stageSecurityReveal(key, settled, securityReveal.seat, { docking });
-      revealOnStageRef.current = { key, scene: settled, ...(docking ? { docked: true } : {}) };
-      heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices];
-      heldPanelsRef.current = [...heldPanelsRef.current, ...heldPanels];
-      // With the close still outstanding, the card plays its scene out and leaves, and
-      // everything it causes queues behind that: the notices it earns, and the decisions its
-      // effect asks for. The board is NOT given back here — the check is still running, and a
-      // reaction that the removal armed ("when your opponent's security stack is removed
-      // from") would open its prompt while the card is still on screen. It is handed back at
-      // the close, or, for a check the server stops to ask the viewer something, by the
-      // question itself (see the effect below), which is the one release a close cannot wait
-      // for; either way the card has already gone.
-      if (docking) {
-        dockSecurityReveal(
-          key,
-          buildSecurityDockScene({
-            key,
-            revealedCardId: securityReveal.revealedCardId,
-            revealedArtId: securityReveal.artId,
-            defenderSeat: securityReveal.seat,
-            viewerSeat,
-          }),
-          { notices: heldNotices, panels: heldPanels },
-        );
-      } else if (!closingCheck) {
-        // A revealed Digimon with an attacker still standing is in a battle whose verdict
-        // only the close carries. That card stays up until it has one, so the blow and the
-        // deletion it causes read in the order they happened. Anything else — an Option, a
-        // Tamer with no clause, a check whose attacker is already gone — has nothing left to
-        // show, so it plays out and leaves, and its consequences read on a clear board.
-        const battlePending = securityReveal.isDigimon === true && securityAttackerRef.current !== undefined;
-        if (battlePending) {
-          holdSecurityReveal(key);
-          revealOnStageRef.current = { key, scene: settled };
-        } else {
-          clearSecurityReveal(key);
-          revealOnStageRef.current = { key, scene: settled, exited: true };
-        }
-        readOutSecurityNotices(key, { notices: heldNotices, panels: heldPanels });
-      }
-      // An unfinished check parks at the right before its eventual close, so its free
-      // play can arrive now. A closing check queues this after its branch-in below.
-      if (!closingCheck) enqueueDeferredSecurityArrivals(key);
-    }
-    if (securityCheck?.kind === "securityChecked") {
-      const staged = revealOnStageRef.current;
-      // A close with no reveal on stage is a client that joined mid-check (reconnect
-      // replay) or an older server: stage the finished scene now so the card is still
-      // shown before its outcome.
-      const key = staged?.key ?? (securityClashKeyRef.current += 1);
-      // The verdict is here, so the hold that was waiting for it releases the card. Marked
-      // rather than cleared: the poll owns the ref and drops it as it returns.
-      const heldForBattle = securityHoldRef.current;
-      if (heldForBattle?.key === key) heldForBattle.closed = true;
-      // A scene that has been holding the card on stage since an earlier batch starts its
-      // outcome beat now; one staged in this batch keeps the reference client's lead-in.
-      const heldOnStage = staged !== null && !closesFreshReveal;
-      // A card the hold let go of is not on stage any more, however long it held before it
-      // gave up. Its battle is staged again from nothing, so it needs the whole lead-in --
-      // the attacker taking its place, the reveal, the hold -- rather than the outcome beat
-      // a card still standing there would take. Without this the blow lands in the 510 ms
-      // tail on a card the viewer never saw arrive.
-      const restagedBattle = staged?.exited === true && securityCheck.resolution === "battle";
-      const scene = settleSecurityClashScene(
-        staged?.scene ??
-          buildSecurityRevealScene({
-            key,
-            revealedCardId: securityCheck.revealedCardId,
-            revealedArtId: securityCheck.artId,
-            defenderSeat: securityCheck.seat,
-            viewerSeat,
-            attacker: securityAttackerRef.current
-              ? {
-                  ...securityAttackerRef.current,
-                  artId: securityCheck.attackerArtId ?? securityAttackerRef.current.artId,
-                }
-              : undefined,
-          }),
-        { ...securityCheck, ...(heldOnStage && !restagedBattle ? { outcomeAtMs: 0 } : {}) },
-      );
-      const docked = staged?.docked === true;
-      const staging = staged === null;
-      if (staging) {
-        stageSecurityReveal(key, scene, securityCheck.seat);
-        heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices];
-        heldPanelsRef.current = [...heldPanelsRef.current, ...heldPanels];
-      }
-      revealOnStageRef.current = null;
-      // The detour to the side of the screen belongs to a card whose effect has not been
-      // seen yet. A card that already held the centre of the screen through its own
-      // resolution has been seen, so it takes the outcome beat and leaves.
-      const branch = heldOnStage
-        ? null
-        : buildSecurityBranchScene({
-            key,
-            revealedCardId: securityCheck.revealedCardId,
-            revealedArtId: securityCheck.artId,
-            resolution: securityCheck.resolution,
-            defenderSeat: securityCheck.seat,
-            viewerSeat,
-          });
-      // The docked card leaves first, so the outcome — when there is one to show — plays
-      // on a board it has already handed back.
-      if (docked) undockSecurityReveal(key);
-      // A card that already played out and left the screen is not brought back for the
-      // close; the check's remaining beats belong to a board it has handed over. A docked
-      // card comes back to the centre only for a battle, which is the one outcome the dock
-      // has no way to draw: it needs the attacker beside it.
-      // A live server can finish the battle after removal reactions have already
-      // let the reveal leave. Its battle still needs both cards on centre stage.
-      const restoreBattle = scene.resolution === "battle" && (docked || staged?.exited === true);
-      if (restoreBattle || (staged?.exited !== true && !docked)) {
-        enqueue({
-          id: `security-clash-outcome-${key}`,
-          track: CueTrack.CenterStage,
-          async run(context) {
-            try {
-              // The verdict reaches the scene here, so a card held through a long resolution
-              // takes the claw at the close rather than wearing the outcome the whole time.
-              // A docked card is not on stage at all, so its battle puts it back there.
-              if (restoreBattle) setSecurityClash(scene);
-              else setSecurityClash((current) => (current?.key === key ? scene : current));
-              await context.wait(restagedBattle ? CLASH_TOTAL_MS : CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
-            } finally {
-              setSecurityClash((current) => (current?.key === key ? null : current));
-            }
-          },
-        });
-      }
-      // Step 10b: the revealed card takes its place at the side of the screen BEFORE its
-      // clause is read out, so the notice lands beside the card it explains rather than
-      // ahead of it (the reference client flies the card to the execute zone, then opens
-      // the panel). A check that resolves no effect has no detour, so its notices follow
-      // the outcome directly.
-      if (branch) {
-        // The slide itself is decoration, so a click through the scene collapses it and
-        // the card simply appears at the side.
-        enqueue({
-          id: `security-branch-in-${key}`,
-          track: CueTrack.CenterStage,
-          async run(context) {
-            setSecurityBranch(branch);
-            await context.wait(SECURITY_BRANCH_IN_MS);
-          },
-        });
-      }
-      // When the reveal and close arrive in one batch, the security card must visibly
-      // reach the right-hand execution slot before a Tamer it played enters the field.
-      if (closingCheck) enqueueDeferredSecurityArrivals(key);
-      // A reveal already on stage has read out its notices; only a scene staged straight
-      // from the close still owes them. The board comes back either way: a check that ran
-      // long has been holding it since the reveal.
-      if (closesFreshReveal || staging) presentSecurityReveal(key);
-      else releaseSecurityPresentation(key);
-      if (branch) {
-        // The card holds next to its notice, then the centre of the board is given back.
-        enqueue({
-          id: `security-branch-${key}`,
-          track: CueTrack.CenterStage,
-          // It holds the revealed card next to the notice that explains it.
-          skippable: false,
-          async run(context) {
-            try {
-              await context.wait(SECURITY_BRANCH_TOTAL_MS - SECURITY_BRANCH_IN_MS);
-            } finally {
-              setSecurityBranch((current) => (current?.key === branch.key ? null : current));
-            }
-          },
-        });
-      }
-    }
+    if (securityCheck?.kind === "securityChecked")
+      presentSecurityClose({
+        securityCheck,
+        closingCheck,
+        closesFreshReveal,
+        viewerSeat,
+        heldNotices,
+        heldPanels,
+        securityClashKeyRef,
+        securityAttackerRef,
+        securityHoldRef,
+        revealOnStageRef,
+        heldNoticesRef,
+        heldPanelsRef,
+        setSecurityClash,
+        setSecurityBranch,
+        stage,
+        enqueueDeferredSecurityArrivals,
+        enqueue,
+      });
     enqueueSecurityDestructions({
       fresh,
       viewerSeat,
@@ -1103,7 +923,7 @@ export function useMatchCues({
       holdSecurityCard,
       releaseSecurityCard,
       releaseSecurityCardWhenIdle,
-      releaseSecurityPresentation,
+      releaseSecurityPresentation: stage.releaseSecurityPresentation,
       enqueue,
     });
     enqueueCombatImpact({
@@ -1140,7 +960,7 @@ export function useMatchCues({
       securityDockRef.current?.key === dockedReveal.key &&
       fresh.some((event) => event.kind === "cardPlayed" && event.cardId === dockedReveal.scene.revealed.cardId)
     ) {
-      undockSecurityReveal(dockedReveal.key);
+      stage.undockSecurityReveal(dockedReveal.key);
       // Seen and gone, not forgotten: the eventual close must not stage the card again.
       revealOnStageRef.current = { ...dockedReveal, docked: false, exited: true };
     }
