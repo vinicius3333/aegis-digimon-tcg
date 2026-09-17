@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GameState, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
+import { recordSnapshot, type StateSnapshot } from "../net/presentedState";
 import { TIMINGS } from "./timings";
 
 vi.mock("../design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
@@ -61,41 +62,61 @@ function batchFeed(): (fresh: readonly ServerEvent[]) => readonly ServerBatch[] 
   };
 }
 
-function renderOrderingCues(initialState: GameState | undefined = BOARD) {
+interface OrderingProps {
+  batches: readonly ServerBatch[];
+  decisionPending: boolean;
+  state: GameState;
+  snapshots: readonly StateSnapshot[];
+}
+
+function renderOrderingCues(initialState: GameState = BOARD) {
   const feed = batchFeed();
+  let snapshots = recordSnapshot([], initialState);
   const view = renderHook(
-    ({
-      batches,
-      decisionPending,
-      state,
-    }: {
-      batches: readonly ServerBatch[];
-      decisionPending: boolean;
-      state: GameState | undefined;
-    }) =>
+    ({ batches, decisionPending, state, snapshots: taken }: OrderingProps) =>
       useMatchCues({
         narrationLimit: 3,
         batches,
         state,
+        snapshots: taken,
         viewerSeat: VIEWER,
         mulliganOpen: false,
         decisionPending,
         anchors,
         onActionRejected: vi.fn<(reason: string) => void>(),
       }),
-    { initialProps: { batches: [] as readonly ServerBatch[], decisionPending: false, state: initialState } },
+    {
+      initialProps: {
+        batches: [],
+        decisionPending: false,
+        state: initialState,
+        snapshots,
+      } as OrderingProps,
+    },
   );
   let pending = false;
   let board = initialState;
+  const render = (batches: readonly ServerBatch[]) =>
+    view.rerender({ batches, decisionPending: pending, state: board, snapshots });
+  const takeBoard = (nextState: GameState) => {
+    board = nextState;
+    snapshots = recordSnapshot(snapshots, board);
+  };
   return {
     ...view,
-    feedBatch: (fresh: readonly ServerEvent[], nextState: GameState | undefined = board) => {
-      board = nextState;
-      view.rerender({ batches: feed(fresh), decisionPending: pending, state: board });
+    feedBatch: (fresh: readonly ServerEvent[], nextState: GameState = board) => {
+      takeBoard(nextState);
+      render(feed(fresh));
+    },
+    feedBatches: (freshBatches: readonly (readonly ServerEvent[])[], nextState: GameState = board) => {
+      takeBoard(nextState);
+      let batches: readonly ServerBatch[] = [];
+      for (const fresh of freshBatches) batches = feed(fresh);
+      render(batches);
     },
     setDecisionPending: (value: boolean) => {
       pending = value;
-      view.rerender({ batches: feed([]), decisionPending: value, state: board });
+      render(feed([]));
     },
   };
 }
@@ -329,6 +350,16 @@ describe("a security battle's outcome comes before the attacker's death", () => 
     duringSecurityCheck: true,
   };
 
+  function boardAt(stateVersion: number, { attacker = true }: { attacker?: boolean } = {}): GameState {
+    const board = structuredClone(BOARD);
+    board.stateVersion = stateVersion;
+    if (!attacker) {
+      const [dying] = board.players[0]!.battleArea.splice(0);
+      if (dying) board.players[0]!.trash.push(dying.topCard);
+    }
+    return board;
+  }
+
   const settled = (view: ReturnType<typeof renderOrderingCues>) => () =>
     view.result.current.securityClash?.resolution === "battle";
 
@@ -369,6 +400,17 @@ describe("a security battle's outcome comes before the attacker's death", () => 
     expect(view.result.current.heldBlowState).toBeUndefined();
     expect(view.result.current.securityClash).toBeNull();
     expect(view.result.current.deleteBursts).toHaveLength(0);
+  });
+
+  it("keeps the attacker on the field when its whole check lands in one patch", async () => {
+    const view = renderOrderingCues(boardAt(1));
+    await advance(0);
+    view.feedBatches([[ATTACK], [REVEAL], [ATTACKER_TRASHED], [CHECKED]], boardAt(2, { attacker: false }));
+    await advance(16);
+    const held = view.result.current.heldBlowState?.players[VIEWER];
+    expect(held?.battleArea.map((permanent) => permanent.permanentId)).toContain("perm-3");
+    expect(held?.battleArea.find((permanent) => permanent.permanentId === "perm-3")?.isSuspended).toBe(true);
+    expect(held?.trash.map((card) => card.instanceId)).not.toContain("s0-27");
   });
 
   it("lets the clash go when the old server stops to ask the viewer something", async () => {

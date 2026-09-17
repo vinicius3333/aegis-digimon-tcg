@@ -1994,6 +1994,26 @@ export function useMatchCues({
     ) {
       securityAttackerRef.current = undefined;
     }
+    function getBlowHoldState(): GameState | undefined {
+      if (!state) return undefined;
+      const live = snapshotGameState(state);
+      const attackerId = securityAttackerRef.current?.permanentId;
+      const standing = (board: GameState) =>
+        board.players.some((player) => player.battleArea.some((permanent) => permanent.permanentId === attackerId));
+      if (attackerId === undefined || standing(live)) return live;
+      const source = [...(phaseStateRef.current.snapshots ?? [])]
+        .reverse()
+        .map((snapshot) => snapshot.state)
+        .find(standing);
+      if (!source) return live;
+      const held = snapshotGameState(source);
+      for (const player of held.players) {
+        const attacker = player.battleArea.find((permanent) => permanent.permanentId === attackerId);
+        if (attacker) attacker.isSuspended = true;
+      }
+      return held;
+    }
+
     // A check now reaches the client as two events: `securityRevealed` the moment the card
     // is turned face up, and `securityChecked` once the server has resolved everything that
     // card caused. The scene follows the same split — the card goes on stage at the reveal
@@ -2027,7 +2047,7 @@ export function useMatchCues({
       // here rather than taken from `previousDrawStateRef`, which lags a render: that copy
       // predates the declaration, so the attacker it carries stands unsuspended and the
       // board would answer the blow by rotating the dying card upright.
-      setHeldBlowState(state ? snapshotGameState(state) : undefined);
+      setHeldBlowState(getBlowHoldState());
       // A dock belongs to the check that opened it. Its hold no longer shares a track with
       // the reveal, so a newer check has to retire it by hand rather than by replacement.
       const stale = securityDockRef.current;
