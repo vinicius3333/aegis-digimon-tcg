@@ -109,6 +109,20 @@ ends each batch with a `batchClosed` event, sent after the state patch carrying
 that batch's mutations, and `GameState.stateVersion` names that revision. The
 client groups its presentation by batch instead of by arrival time.
 
+A security check opens with exactly one `securityRevealed` and closes with
+exactly one `securityChecked` for the card it checked. `securityChecked` carries
+the outcome and is emitted as soon as that outcome is settled. When the security
+battle deletes the attacker, the order is: `cardsMoved` with the attacker in
+`deletedPermanents`, then `securityChecked` with `battle.attackerDeleted`
+reflecting the field after that movement, then the deleted attacker's
+[On Deletion] reactions (`effectTriggered`, any decision it requests, and
+`effectResolved`). When a keyword such as Jamming spares the attacker, or when
+neither side loses, `securityChecked` follows the DP compare directly.
+
+The check can therefore still request decisions after `securityChecked` closes
+it. `effectTriggered` keeps its `duringSecurityCheck` flag for effects that fire
+inside the check, including those reactions.
+
 Rejected intents return a stable failure result and leave authoritative state
 unchanged. Unsupported card behavior fails loudly on the server and is covered
 by engine tests.

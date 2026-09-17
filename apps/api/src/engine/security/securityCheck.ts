@@ -174,7 +174,10 @@ export interface SecurityCheckDeps {
    * Delete the given field permanents (fires WhenPermanentWouldBeDeleted /
    * OnDestroyedAnyone inside). GameEngine binds this to the real deletePermanent.
    */
-  deletePermanents(permanentIds: string[]): Promise<void>;
+  deletePermanents(
+    permanentIds: string[],
+    afterMovement?: (deletedPermanentIds: readonly string[]) => void,
+  ): Promise<void>;
 
   /**
    * Whether a permanent has a continuous keyword (e.g. ＜Jamming＞). Optional so
@@ -340,18 +343,24 @@ export async function runSecurityCheck(
         : hadSecurityEffect
           ? "effect"
           : "trashed";
-      const battle = battlesAttacker ? await battleSecurityDigimon(deps, attacker, revealed) : undefined;
-      emit({
-        kind: "securityChecked",
-        ...(revealed.artId ? { artId: revealed.artId } : {}),
-        ...(deps.permanentById(attacker.permanentId)?.topCard.artId
-          ? { attackerArtId: deps.permanentById(attacker.permanentId)!.topCard.artId }
-          : {}),
-        seat: defenderSeat,
-        revealedCardId: revealed.cardId,
-        resolution,
-        ...(battle === undefined ? {} : { battle }),
-      });
+      let checkedEmitted = false;
+      const emitChecked = (battle: SecurityBattleResult | undefined) => {
+        if (checkedEmitted) return;
+        checkedEmitted = true;
+        emit({
+          kind: "securityChecked",
+          ...(revealed.artId ? { artId: revealed.artId } : {}),
+          ...(deps.permanentById(attacker.permanentId)?.topCard.artId
+            ? { attackerArtId: deps.permanentById(attacker.permanentId)!.topCard.artId }
+            : {}),
+          seat: defenderSeat,
+          revealedCardId: revealed.cardId,
+          resolution,
+          ...(battle === undefined ? {} : { battle }),
+        });
+      };
+      const battle = battlesAttacker ? await battleSecurityDigimon(deps, attacker, revealed, emitChecked) : undefined;
+      emitChecked(battle);
       const trashedFromSecurity =
         peekCheckedCard(state, revealed.instanceId) !== undefined && trashIfStillLoose(state, defenderSeat, revealed);
       takeCheckedCard(state, revealed.instanceId);
@@ -399,16 +408,33 @@ async function battleSecurityDigimon(
   deps: SecurityCheckDeps,
   attacker: SecurityCheckAttacker,
   revealed: CardInstance,
+  emitChecked: (battle: SecurityBattleResult | undefined) => void,
 ): Promise<SecurityBattleResult | undefined> {
   // The removal watchers that ran between the check and this battle may have
   // removed the attacker from play; there is nothing left to battle then.
   const attackerPermanent = deps.permanentById(attacker.permanentId);
-  if (attackerPermanent === undefined) return undefined;
+  if (attackerPermanent === undefined) {
+    emitChecked(undefined);
+    return undefined;
+  }
 
   const attackerDP = deps.dpOf(attacker.permanentId);
   const securityCardDP = deps.securityCardDp(revealed);
   const outcome = resolveSecurityBattle({
     attackerPermanentId: attacker.permanentId,
+    attackerDP,
+    securityCardDP,
+  });
+  // The Security Digimon is a loose card, not a field permanent: CR 14-2-3 keeps it
+  // alive whatever the DP compare says, and CR 13-1-8-4 sends it to the trash unless
+  // an effect gave it an area — which is exactly what trashIfStillLoose applies.
+  // The compare marks the attacker as a loser, but a would-leave replacement can
+  // prevent the requested deletion (for example EX11-012 Medusamon pays a Token).
+  // Publish the observable result so the security-clash presentation does not show
+  // a deletion animation for a Digimon that remains on the field.
+  const buildResult = (): SecurityBattleResult => ({
+    ...outcome,
+    attackerDeleted: deps.permanentById(attacker.permanentId) === undefined,
     attackerDP,
     securityCardDP,
   });
@@ -420,9 +446,14 @@ async function battleSecurityDigimon(
       deps.hasKeyword?.(attackerPermanent.permanentId, "Jamming") === true ||
       deps.hasRestriction?.(attackerPermanent.permanentId, "beDeletedInBattle") === true;
     if (!spared) {
-      await deps.deletePermanents([attacker.permanentId]);
+      await deps.deletePermanents([attacker.permanentId], () => emitChecked(buildResult()));
+      emitChecked(buildResult());
+      return buildResult();
     }
+    emitChecked(buildResult());
+    return buildResult();
   } else if (outcome.securityDigimonDeleted) {
+    emitChecked(buildResult());
     // A Security Digimon battle is still a battle for "when this Digimon wins a battle"
     // (BT26-038 Q7020). Publish after the losing-side deletion/prevention boundary, matching
     // Q7022/Q7023, even though the Security Digimon itself is a loose card and never deleted.
@@ -431,16 +462,10 @@ async function battleSecurityDigimon(
       securityInstanceId: revealed.instanceId,
       subjectPermanentId: attacker.permanentId,
     });
+    return buildResult();
   }
-  // The Security Digimon is a loose card, not a field permanent: CR 14-2-3 keeps it
-  // alive whatever the DP compare says, and CR 13-1-8-4 sends it to the trash unless
-  // an effect gave it an area — which is exactly what trashIfStillLoose applies.
-  // The compare marks the attacker as a loser, but a would-leave replacement can
-  // prevent the requested deletion (for example EX11-012 Medusamon pays a Token).
-  // Publish the observable result so the security-clash presentation does not show
-  // a deletion animation for a Digimon that remains on the field.
-  const attackerDeleted = deps.permanentById(attacker.permanentId) === undefined;
-  return { ...outcome, attackerDeleted, attackerDP, securityCardDP };
+  emitChecked(buildResult());
+  return buildResult();
 }
 
 /** Move `card` to the seat's trash if it is not already in another zone. */

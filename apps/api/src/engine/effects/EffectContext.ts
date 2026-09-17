@@ -1098,7 +1098,11 @@ export interface Primitives {
   deletePermanent(
     permanentIds: string[],
     cause?: RemovalCause,
-    opts?: { mechanic?: "Overclock"; turnEndDeletion?: { sourceCardId: string; deletedCardId: string } },
+    opts?: {
+      mechanic?: "Overclock";
+      turnEndDeletion?: { sourceCardId: string; deletedCardId: string };
+      afterMovement?: (deletedPermanentIds: readonly string[]) => void;
+    },
   ): Promise<number>;
   /** Trash an invalid battle-area position during a rule check, without deletion semantics. */
   trashPermanentByRule(permanentIds: string[]): Promise<CardInstance[]>;

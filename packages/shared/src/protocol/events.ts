@@ -234,9 +234,10 @@ export type ServerEvent =
        */
       isInherited?: boolean;
       /**
-       * The effect fired while a security check was resolving. `securityChecked` closes
-       * the check and so is emitted AFTER these effects; the flag lets the client hold
-       * what they announce until the checked card's reveal has actually been shown.
+       * The effect fired while a security check was resolving. Most such effects precede
+       * `securityChecked`; a losing attacker's [On Deletion] reactions follow it. The flag
+       * lets the client hold what they announce until the checked card's reveal has
+       * actually been shown.
        */
       duringSecurityCheck?: boolean;
     }

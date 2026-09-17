@@ -3680,7 +3680,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const deletePermanent = async (
     permanentIds: string[],
     cause: import("./EffectContext.js").RemovalCause = "byEffect",
-    opts?: { mechanic?: "Overclock"; turnEndDeletion?: { sourceCardId: string; deletedCardId: string } },
+    opts?: {
+      mechanic?: "Overclock";
+      turnEndDeletion?: { sourceCardId: string; deletedCardId: string };
+      afterMovement?: (deletedPermanentIds: readonly string[]) => void;
+    },
   ): Promise<number> => {
     // Snapshot the producer before prevention/replacement bodies can open nested effect frames.
     // A rule or battle deletion is not attributed to the currently resolving card effect here;
@@ -4182,10 +4186,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     };
     const movedByPermanent = access.deletePermanentsBatched(toDelete, opts?.turnEndDeletion);
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
+    const movedPermanentIds: string[] = [];
     for (let i = 0; i < toDelete.length; i++) {
       const permanentId = toDelete[i]!;
       const moved = movedByPermanent[i]!;
       if (moved.length === 0) continue;
+      movedPermanentIds.push(permanentId);
       deletedCount += 1;
       allStackInstanceIds.push(...stackIdsByPermanent[i]!);
       allLinkedInstanceIds.push(...linkedIdsByPermanent[i]!);
@@ -4208,6 +4214,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         deletedEffectiveColorsByInstanceId[instanceId] = effectiveColorsByPermanent[i]!;
       }
     }
+    opts?.afterMovement?.(movedPermanentIds);
     // `deletePermanentsBatched` narrates the movement itself — it is the single layer every
     // deletion path shares, so this one must not narrate it a second time.
     // WhenPermanentWouldBeDeleted fired BEFORE movement (would-be-deleted); now that the

@@ -6341,11 +6341,11 @@ export class GameEngine {
         log("[securityCheck]", card.cardId, `isDigimon=${result} kinds=`, lookupDefinition(card.cardId)?.kinds);
         return result;
       },
-      deletePermanents: async (permanentIds) => {
+      deletePermanents: async (permanentIds, afterMovement) => {
         // Security battles use the authoritative deletion primitive too. It owns the complete
         // replacement pipeline (Armor Purge, Decoy, Material Save, On Deletion and teardown),
         // preventing this seam from drifting from field-battle and effect deletion behavior.
-        await this.primitives.deletePermanent(permanentIds, "byBattle");
+        await this.primitives.deletePermanent(permanentIds, "byBattle", { afterMovement });
       },
     };
     const emitWithLog = (event: ServerEvent) => {
