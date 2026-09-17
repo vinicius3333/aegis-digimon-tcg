@@ -19,6 +19,7 @@ import {
 } from "./subTriggerIdentity.js";
 import { findLooseInstance } from "./intents.js";
 import type { GameEngine } from "../GameEngine.js";
+import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
 
 /**
  * @param sourceScope Restricts the fire to watchers anchored ON the event subject
@@ -97,7 +98,7 @@ export async function fireSubTrigger(
   }
   // A would-be-returned reaction interrupts the causing effect before its target moves
   // (CR 15-8-5; BT20-074 Q4400). Deferring it loses the original Digimon first.
-  if (event !== "wouldBeReturned" && engine.shouldDeferNestedTiming() && !engine.resolvingBarrierSecurityCost) {
+  if (event !== "wouldBeReturned" && shouldDeferNestedTiming(engine) && !engine.resolvingBarrierSecurityCost) {
     // The event subject can leave the board before the causing effect finishes. Bind each
     // context now, at trigger time, so the pending activation keeps the subject snapshot
     // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
@@ -113,7 +114,7 @@ export async function fireSubTrigger(
   // A SubTrigger body is a triggered, duration-scoped effect even when its watcher was
   // discovered while the engine was re-deriving continuous effects (see
   // {@link withTriggeredMutations}).
-  await engine.withTriggeredMutations(async () => {
+  await withTriggeredMutations(engine, async () => {
     // One event can arm SEVERAL watchers at once: two copies of Xeno EX11-066 both watch
     // "when your Digimon digivolves", and a link operation arms both the recipient's watchers
     // and the newly linked card's [When Linking] face. Simultaneous triggers of one player are
@@ -178,7 +179,7 @@ export function prepareSubTrigger(
     if (ctx !== undefined) contexts.set(sub.id, ctx);
   }
   return async () => {
-    await engine.withTriggeredMutations(async () => {
+    await withTriggeredMutations(engine, async () => {
       await fireSubTriggerSnapshot(engine, subscriptions, boundPayload, contexts);
     });
   };
@@ -239,7 +240,7 @@ export function prepareFrozenSubTrigger(
 
   return async () => {
     if (frozen.length === 0) return;
-    await engine.withTriggeredMutations(async () => {
+    await withTriggeredMutations(engine, async () => {
       const remaining = frozen.filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
       if (remaining.length > 0) await runSubTriggersInChosenOrder(engine, remaining);
     });
@@ -480,7 +481,7 @@ export async function withPendingSubTriggers(
   const busFire = async (): Promise<void> => {
     if (opts.onlyInitiallyArmed === true) {
       const remaining = armed.filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
-      await engine.withTriggeredMutations(() => runSubTriggersInChosenOrder(engine, remaining));
+      await withTriggeredMutations(engine, () => runSubTriggersInChosenOrder(engine, remaining));
       return;
     }
     const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();

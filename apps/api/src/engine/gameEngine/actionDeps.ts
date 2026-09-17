@@ -61,6 +61,7 @@ import {
   withPendingSubTriggers,
 } from "./subTriggers.js";
 import { listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
+import { settleBetweenEffects } from "./windows.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -85,7 +86,7 @@ export function resolutionDeps(
     // snapshot, leaving the parent's older pending group to the outermost resolver.
     ...(opts.outermost === true
       ? {
-          betweenEffects: () => engine.settleBetweenEffects(),
+          betweenEffects: () => settleBetweenEffects(engine),
           collectPending: () => [...pendingWindowCollected(engine), ...(opts.extraPending ?? [])],
         }
       : {

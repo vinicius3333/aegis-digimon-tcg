@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "./testkit/harness.js";
-import { internalsOf } from "./testkit/internals.js";
+import { beginResolvingWindow, endResolvingWindow } from "./gameEngine/windows.js";
 import { advance } from "./testkit/advance.js";
 
 describe("Main action readiness boundary", () => {
@@ -14,12 +14,11 @@ describe("Main action readiness boundary", () => {
       1: { deck: ["BT1-009"], security: 3 },
     });
     await s.ready();
-    const internals = internalsOf(s.engine);
-    const outermost = internals.beginResolvingWindow();
+    const outermost = beginResolvingWindow(s.engine);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    internals.endResolvingWindow(outermost);
+    endResolvingWindow(s.engine, outermost);
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("option").instanceId),
     );

@@ -36,6 +36,17 @@ import {
   listCandidateInstances,
   ruleProcess,
 } from "./ruleProcess.js";
+import {
+  beginResolvingWindow,
+  collectNestedTimingEffects,
+  deferNestedTimingEffects,
+  endResolvingWindow,
+  flushDeferredSecurityRemovalTriggers,
+  flushDeferredTimingWindows,
+  shouldDeferNestedTiming,
+  withPendingPoolDrain,
+  withTriggeredMutations,
+} from "./windows.js";
 
 /**
  * Fire an effect-timing window through the stack (subsystem: effect-stack-resolution).
@@ -120,9 +131,9 @@ export async function fireTiming(
       return;
     }
   }
-  if (engine.shouldDeferNestedTiming() && !engine.flushingDeferredTimingWindows) {
+  if (shouldDeferNestedTiming(engine) && !engine.flushingDeferredTimingWindows) {
     await engine.recomputeContinuousEffects();
-    engine.deferNestedTimingEffects(timing, trigger, [...listCandidateInstances(engine), ...transientCandidates]);
+    deferNestedTimingEffects(engine, timing, trigger, [...listCandidateInstances(engine), ...transientCandidates]);
     return;
   }
   await runTimingWindow(engine, timing, trigger, transientCandidates);
@@ -142,10 +153,10 @@ export async function fireTiming(
  */
 export async function drainPendingAttackTriggers(engine: GameEngine): Promise<void> {
   if (pendingWindowCollected(engine).length === 0) return;
-  const wasOutermostWindow = engine.beginResolvingWindow();
+  const wasOutermostWindow = beginResolvingWindow(engine);
   try {
-    await engine.withTriggeredMutations(() =>
-      engine.withPendingPoolDrain(wasOutermostWindow, () =>
+    await withTriggeredMutations(engine, () =>
+      withPendingPoolDrain(engine, wasOutermostWindow, () =>
         runTiming(
           EffectTiming.OnUseAttack,
           engine.effectEnvironment({}),
@@ -155,7 +166,7 @@ export async function drainPendingAttackTriggers(engine: GameEngine): Promise<vo
     );
     await engine.recomputeContinuousEffects();
   } finally {
-    engine.endResolvingWindow(wasOutermostWindow);
+    endResolvingWindow(engine, wasOutermostWindow);
   }
 }
 
@@ -173,14 +184,14 @@ export async function runTimingWindow(
   if (timing === EffectTiming.OnDestroyedAnyone && engine.payingPlayCost) {
     await engine.recomputeContinuousEffects();
     engine.pendingPlayCostDeletionEffects.push(
-      ...engine.collectNestedTimingEffects(timing, trigger, [
+      ...collectNestedTimingEffects(engine, timing, trigger, [
         ...listCandidateInstances(engine),
         ...transientCandidates,
       ]),
     );
     return;
   }
-  const wasOutermostWindow = engine.beginResolvingWindow();
+  const wasOutermostWindow = beginResolvingWindow(engine);
   const excludedNestedPending =
     engine.effectResolutionDepth === 0 ? new Set(engine.pendingNestedTimingEffects) : undefined;
   try {
@@ -237,8 +248,8 @@ export async function runTimingWindow(
     // tagged continuous even when a recompute is still in flight around it (see
     // {@link withTriggeredMutations}).
     const runWindow = async (): Promise<void> =>
-      engine.withTriggeredMutations(async () => {
-        await engine.withPendingPoolDrain(wasOutermostWindow, () =>
+      withTriggeredMutations(engine, async () => {
+        await withPendingPoolDrain(engine, wasOutermostWindow, () =>
           runTiming(
             timing,
             engine.effectEnvironment(trigger),
@@ -249,8 +260,8 @@ export async function runTimingWindow(
           ),
         );
         if (wasOutermostWindow) {
-          await engine.flushDeferredTimingWindows();
-          await engine.flushDeferredSecurityRemovalTriggers();
+          await flushDeferredTimingWindows(engine);
+          await flushDeferredSecurityRemovalTriggers(engine);
         }
       });
     if (timing === EffectTiming.OnStartMainPhase) {
@@ -265,7 +276,7 @@ export async function runTimingWindow(
     }
     await engine.recomputeContinuousEffects();
   } finally {
-    engine.endResolvingWindow(wasOutermostWindow);
+    endResolvingWindow(engine, wasOutermostWindow);
   }
 }
 
@@ -301,7 +312,7 @@ export async function resolveDeletionReactions(
   // A deletion inside an effect creates one reaction group. Park Ascension together
   // with On Deletion until that body ends; otherwise Ascension can remove the card
   // from trash before the controller's chosen On Deletion-first order runs.
-  if (deferNested && engine.shouldDeferNestedTiming() && !engine.flushingDeferredTimingWindows) {
+  if (deferNested && shouldDeferNestedTiming(engine) && !engine.flushingDeferredTimingWindows) {
     engine.deferredTimingWindows.push({
       timing: EffectTiming.OnDestroyedAnyone,
       trigger: { ...trigger },
@@ -381,17 +392,17 @@ export async function fireTimingForInstance(
   trigger: TriggerInfo = {},
   extraPending: readonly CollectedEffect[] = [],
 ): Promise<void> {
-  if (engine.shouldDeferNestedTiming()) {
+  if (shouldDeferNestedTiming(engine)) {
     await engine.recomputeContinuousEffects();
-    engine.deferNestedTimingEffects(timing, trigger, instancesById(engine, [sourceInstanceId]));
+    deferNestedTimingEffects(engine, timing, trigger, instancesById(engine, [sourceInstanceId]));
     return;
   }
-  const wasOutermostWindow = engine.beginResolvingWindow();
+  const wasOutermostWindow = beginResolvingWindow(engine);
   const excludedNestedPending =
     engine.effectResolutionDepth === 0 ? new Set(engine.pendingNestedTimingEffects) : undefined;
   try {
     await engine.recomputeContinuousEffects();
-    await engine.withPendingPoolDrain(wasOutermostWindow, () =>
+    await withPendingPoolDrain(engine, wasOutermostWindow, () =>
       runTiming(
         timing,
         engine.effectEnvironment(trigger),
@@ -403,12 +414,12 @@ export async function fireTimingForInstance(
       ),
     );
     if (wasOutermostWindow) {
-      await engine.flushDeferredTimingWindows();
-      await engine.flushDeferredSecurityRemovalTriggers();
+      await flushDeferredTimingWindows(engine);
+      await flushDeferredSecurityRemovalTriggers(engine);
     }
     await engine.recomputeContinuousEffects();
   } finally {
-    engine.endResolvingWindow(wasOutermostWindow);
+    endResolvingWindow(engine, wasOutermostWindow);
   }
 }
 
@@ -426,14 +437,14 @@ export async function fireTimingForPermanent(
   trigger: TriggerInfo = {},
   extraPending: readonly CollectedEffect[] = [],
 ): Promise<void> {
-  if (engine.shouldDeferNestedTiming()) {
+  if (shouldDeferNestedTiming(engine)) {
     await engine.recomputeContinuousEffects();
     const scoped: CardInstance[] = [];
     collectPermanentInstances(engine, permanent, scoped);
-    engine.deferNestedTimingEffects(timing, trigger, scoped);
+    deferNestedTimingEffects(engine, timing, trigger, scoped);
     return;
   }
-  const wasOutermostWindow = engine.beginResolvingWindow();
+  const wasOutermostWindow = beginResolvingWindow(engine);
   // Freeze the subject instance set at window open. The resolver re-collects every pass
   // (to fold in effects that BECOME active during resolution), but a card that digivolves
   // onto engine permanent MID-WINDOW would otherwise be re-collected here and have its
@@ -449,7 +460,7 @@ export async function fireTimingForPermanent(
   }
   try {
     await engine.recomputeContinuousEffects();
-    await engine.withPendingPoolDrain(wasOutermostWindow, () =>
+    await withPendingPoolDrain(engine, wasOutermostWindow, () =>
       runTiming(
         timing,
         engine.effectEnvironment(trigger),
@@ -465,12 +476,12 @@ export async function fireTimingForPermanent(
       ),
     );
     if (wasOutermostWindow) {
-      await engine.flushDeferredTimingWindows();
-      await engine.flushDeferredSecurityRemovalTriggers();
+      await flushDeferredTimingWindows(engine);
+      await flushDeferredSecurityRemovalTriggers(engine);
     }
     await engine.recomputeContinuousEffects();
   } finally {
-    engine.endResolvingWindow(wasOutermostWindow);
+    endResolvingWindow(engine, wasOutermostWindow);
   }
 }
 
@@ -544,7 +555,7 @@ export async function firePlayEntryWindows(
       // for the enclosing window. Its `whenPlayed` watchers triggered on that same entry and
       // are simultaneous with it (CR §15-4), so they follow it there instead of resolving
       // first on the trailing bus (BT20-028 Q4321).
-      parkArmedToEnclosingWindow: () => engine.shouldDeferNestedTiming(),
+      parkArmedToEnclosingWindow: () => shouldDeferNestedTiming(engine),
     },
   );
 }

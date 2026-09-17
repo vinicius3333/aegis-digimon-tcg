@@ -11,6 +11,14 @@ import { log } from "../../logger.js";
 import type { GameEngine } from "../GameEngine.js";
 import { resolutionDeps } from "./actionDeps.js";
 import { armedSubTriggers, nestedTriggerSourceStillResident, pendingWindowCollected } from "./subTriggers.js";
+import {
+  beginResolvingWindow,
+  endResolvingWindow,
+  flushDeferredSecurityRemovalTriggers,
+  flushDeferredTimingWindows,
+  withPendingPoolDrain,
+  withTriggeredMutations,
+} from "./windows.js";
 
 export async function engineRunSecurityCheck(
   engine: GameEngine,
@@ -80,12 +88,12 @@ export async function engineRunSecurityCheck(
       // Effects parked while the [Security] effect resolves are derived from it.
       const parkedBeforeSecurityEffect = new Set(engine.pendingNestedTimingEffects);
       return async () => {
-        const outermost = engine.beginResolvingWindow();
+        const outermost = beginResolvingWindow(engine);
         const enclosing = engine.pendingWindowSubTriggers;
         engine.pendingWindowSubTriggers = [...enclosing, ...armed];
         engine.subTriggerWindowDepth += 1;
         try {
-          await engine.withTriggeredMutations(async () => {
+          await withTriggeredMutations(engine, async () => {
             const env = buildResolutionEnv(
               framework,
               resolutionDeps(engine, () => [], { outermost }),
@@ -95,7 +103,7 @@ export async function engineRunSecurityCheck(
                 (pending) =>
                   !parkedBeforeSecurityEffect.has(pending) && nestedTriggerSourceStillResident(engine, pending),
               );
-            await engine.withPendingPoolDrain(outermost, async () => {
+            await withPendingPoolDrain(engine, outermost, async () => {
               // CR §15-4-5-2/3: the [Security] effect's derived triggers activate before the
               // watchers already pending when the check began, whichever seat owns them.
               if (derivedFromSecurityEffect().length > 0) {
@@ -110,8 +118,8 @@ export async function engineRunSecurityCheck(
               });
             });
             if (outermost) {
-              await engine.flushDeferredTimingWindows();
-              await engine.flushDeferredSecurityRemovalTriggers();
+              await flushDeferredTimingWindows(engine);
+              await flushDeferredSecurityRemovalTriggers(engine);
             }
           });
           await engine.recomputeContinuousEffects();
@@ -123,7 +131,7 @@ export async function engineRunSecurityCheck(
           // enclosing window, so their consumed identities must outlive engine inner window or the
           // enclosing collect fires them a second time (BT26-086: link seven, then attack).
           if (outermost && engine.subTriggerWindowDepth === 0) engine.consumedSubTriggerKeys.clear();
-          engine.endResolvingWindow(outermost);
+          endResolvingWindow(engine, outermost);
         }
       };
     },

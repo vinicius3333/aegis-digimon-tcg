@@ -27,6 +27,10 @@
   "export": "attackDeps",
   "module": "actionDeps"
  },
+ "beginResolvingWindow": {
+  "export": "beginResolvingWindow",
+  "module": "windows"
+ },
  "blastDnaCounterChoices": {
   "export": "blastDnaCounterChoices",
   "module": "intents"
@@ -67,6 +71,10 @@
   "export": "checkTurnEndAfterVerb",
   "module": "intents"
  },
+ "collectNestedTimingEffects": {
+  "export": "collectNestedTimingEffects",
+  "module": "windows"
+ },
  "collectPermanentInstances": {
   "export": "collectPermanentInstances",
   "module": "ruleProcess"
@@ -95,6 +103,10 @@
   "export": "crossPermanentPlayReducerWatchers",
   "module": "timing"
  },
+ "deferNestedTimingEffects": {
+  "export": "deferNestedTimingEffects",
+  "module": "windows"
+ },
  "digiXrosDeps": {
   "export": "digiXrosDeps",
   "module": "actionDeps"
@@ -114,6 +126,10 @@
  "drainPendingAttackTriggers": {
   "export": "drainPendingAttackTriggers",
   "module": "timing"
+ },
+ "endResolvingWindow": {
+  "export": "endResolvingWindow",
+  "module": "windows"
  },
  "findInstance": {
   "export": "findInstance",
@@ -162,6 +178,14 @@
  "fireTimingForPermanent": {
   "export": "fireTimingForPermanent",
   "module": "timing"
+ },
+ "flushDeferredSecurityRemovalTriggers": {
+  "export": "flushDeferredSecurityRemovalTriggers",
+  "module": "windows"
+ },
+ "flushDeferredTimingWindows": {
+  "export": "flushDeferredTimingWindows",
+  "module": "windows"
  },
  "flushRuleTriggerPool": {
   "export": "flushRuleTriggerPool",
@@ -222,6 +246,10 @@
  "hasAnyMainPhaseAction": {
   "export": "hasAnyMainPhaseAction",
   "module": "intents"
+ },
+ "inContinuousPass": {
+  "export": "inContinuousPass",
+  "module": "windows"
  },
  "instanceOnPermanent": {
   "export": "instanceOnPermanent",
@@ -367,6 +395,14 @@
   "export": "securityEffectsFor",
   "module": "securityCheck"
  },
+ "settleBetweenEffects": {
+  "export": "settleBetweenEffects",
+  "module": "windows"
+ },
+ "shouldDeferNestedTiming": {
+  "export": "shouldDeferNestedTiming",
+  "module": "windows"
+ },
  "subTriggerAsCollected": {
   "export": "subTriggerAsCollected",
   "module": "subTriggers"
@@ -383,8 +419,16 @@
   "export": "validateAppFusion",
   "module": "intents"
  },
+ "withPendingPoolDrain": {
+  "export": "withPendingPoolDrain",
+  "module": "windows"
+ },
  "withPendingSubTriggers": {
   "export": "withPendingSubTriggers",
   "module": "subTriggers"
+ },
+ "withTriggeredMutations": {
+  "export": "withTriggeredMutations",
+  "module": "windows"
  }
 }

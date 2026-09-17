@@ -53,15 +53,10 @@ import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "./effects/digivolutionTrashRedirect.js";
-import {
-  createGameAccess,
-  createCardStateLookup,
-  createEffectContext,
-  gatherTriggeredEffects,
-} from "./effects/context.js";
+import { createGameAccess, createCardStateLookup, createEffectContext } from "./effects/context.js";
 import { createCardSource, type CardStateLookup } from "./cards/CardSource.js";
 import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
-import { buildResolutionEnv, permanentIdentityOf, type EffectEnvironment } from "./effects/index.js";
+import { buildResolutionEnv, type EffectEnvironment } from "./effects/index.js";
 import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from "./effects/collect.js";
 import { grantedTokenEffectsForTiming, resolveSelfWhenTrashedFromDeck } from "./effects/interpreter.js";
 import type { CardSource } from "./effects/CardSource.js";
@@ -121,11 +116,9 @@ import {
   projectLooseUseCost,
   reactivateOnPlay,
   resolveDeletionReactions,
-  runTimingWindow,
 } from "./gameEngine/timing.js";
 import {
   fireSubTrigger,
-  fireSubTriggerSnapshot,
   prepareFrozenSubTrigger,
   prepareSubTrigger,
   withPendingSubTriggers,
@@ -137,6 +130,7 @@ import {
   nextInstanceId,
   nextPermanentId,
 } from "./gameEngine/ruleProcess.js";
+import { inContinuousPass, settleBetweenEffects } from "./gameEngine/windows.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
@@ -189,7 +183,7 @@ export class GameEngine {
    * OUTERMOST resolving-effect window opened by {@link fireTiming} / {@link
    * fireTimingForInstance} (see `beginResolvingWindow`/`endResolvingWindow`).
    */
-  private windowTokenSeq = 0;
+  windowTokenSeq = 0;
   /**
    * The `windowToken` for the resolving-effect window currently in progress, or
    * `undefined` when no `fireTiming`/`fireTimingForInstance` call is on the stack.
@@ -298,140 +292,6 @@ export class GameEngine {
   flushingDeferredTimingWindows = false;
 
   /**
-   * Open (or transparently join) a "resolving-effect window" identifying ONE top-level
-   * effect resolution for `activeWindowToken` (subsystem: delayed-and-rule-effects, KB
-   * Q2814 / BT2-053). Only the OUTERMOST caller mints a fresh token — a call nested
-   * inside an already-open window (e.g. `fireTimingForInstance` firing a played
-   * permanent's own On Play from within another effect's still-resolving body)
-   * transparently reuses the ambient token instead of opening a new one. This is what
-   * lets a single effect that plays two same-named Digimon in one go (e.g. Keramon
-   * playing 2 Diaboromon Tokens) dedupe an `oncePerTiming` watcher's fire across both
-   * plays, while two SEPARATE top-level plays/effects still get distinct tokens and each
-   * fires the watcher. Deliberately plain synchronous bookkeeping (not an async wrapper
-   * around the caller's body) so it adds no extra microtask tick to the existing
-   * `fireTiming`/`fireTimingForInstance` await chains — callers must pair this with
-   * {@link endResolvingWindow} in a `finally`.
-   *
-   * @returns Whether THIS call minted the token (pass to `endResolvingWindow`).
-   */
-  beginResolvingWindow(): boolean {
-    const isOutermost = this.activeWindowToken === undefined;
-    if (isOutermost) this.activeWindowToken = ++this.windowTokenSeq;
-    return isOutermost;
-  }
-
-  /**
-   * Run one resolution loop, marking that a pool-draining loop is on the stack while it does
-   * (see {@link pendingPoolDrainDepth}).
-   */
-  async withPendingPoolDrain(draining: boolean, body: () => Promise<void>): Promise<void> {
-    if (!draining) return body();
-    this.pendingPoolDrainDepth += 1;
-    try {
-      await body();
-    } finally {
-      this.pendingPoolDrainDepth -= 1;
-    }
-  }
-
-  /** Close a window opened by `beginResolvingWindow`; a no-op for a non-outermost (nested) call. */
-  endResolvingWindow(wasOutermost: boolean): void {
-    if (!wasOutermost) return;
-    this.pendingNestedTimingEffects = [];
-    this.pendingWindowSubTriggers = [];
-    this.parkedEntrySubTriggers = [];
-    // Claims outlive an inner window when parked watchers are still queued (see
-    // `parkArmedForEnclosingWindow`); the queue itself ends here, so the claims do too — but only
-    // once no timing window is still folding watchers, since such a window's trailing bus fire
-    // relies on the claims its own resolver just recorded.
-    if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
-    this.activeWindowToken = undefined;
-  }
-
-  async flushDeferredSecurityRemovalTriggers(): Promise<void> {
-    if (this.flushingDeferredSecurityRemovalTriggers) return;
-    this.flushingDeferredSecurityRemovalTriggers = true;
-    try {
-      while (this.deferredSecurityRemovalTriggers.length > 0) {
-        const deferred = this.deferredSecurityRemovalTriggers.shift();
-        if (deferred !== undefined) {
-          await fireSubTriggerSnapshot(this, deferred.subscriptions, deferred.payload, deferred.contexts);
-        }
-      }
-    } finally {
-      this.flushingDeferredSecurityRemovalTriggers = false;
-    }
-  }
-
-  /**
-   * Everything that must happen between two effects of one resolution loop, after the rule
-   * sweep: drain the windows a resolving effect deferred (an [On Deletion] caused mid-body) and
-   * the deferred security-removal reactions. Both were parked precisely because an effect was
-   * running; between effects none is, and their triggers must activate BEFORE the effects that
-   * were already pending (CR §15-4-5-2/3, KB Q3430).
-   */
-  async settleBetweenEffects(): Promise<void> {
-    await this.flushDeferredTimingWindows();
-    await this.flushDeferredSecurityRemovalTriggers();
-  }
-
-  async flushDeferredTimingWindows(): Promise<void> {
-    if (this.flushingDeferredTimingWindows) return;
-    // Deferred windows belong between effect bodies. A nested entry seam can reach this
-    // helper while its enclosing card body is still resolving; keep that queue parked until
-    // the genuine between-effects boundary.
-    if (this.effectResolutionDepth > 0) return;
-    this.flushingDeferredTimingWindows = true;
-    try {
-      while (this.deferredTimingWindows.length > 0) {
-        const deferred = this.deferredTimingWindows.shift();
-        if (deferred !== undefined) {
-          if (deferred.ascensionCandidates !== undefined) {
-            await resolveDeletionReactions(
-              this,
-              deferred.trigger,
-              deferred.ascensionCandidates,
-              (trigger) => runTimingWindow(this, deferred.timing, trigger, deferred.transientCandidates),
-              deferred.transientCandidates,
-            );
-          } else {
-            await fireTiming(this, deferred.timing, deferred.trigger, deferred.transientCandidates);
-          }
-        }
-      }
-    } finally {
-      this.flushingDeferredTimingWindows = false;
-    }
-  }
-
-  shouldDeferNestedTiming(): boolean {
-    return this.effectResolutionDepth > 0 && this.activeWindowToken !== undefined;
-  }
-
-  collectNestedTimingEffects(
-    timing: EffectTiming,
-    trigger: TriggerInfo,
-    candidateInstances: readonly CardInstance[],
-  ): CollectedEffect[] {
-    const capturedTrigger = { ...trigger };
-    return gatherTriggeredEffects(this.effectEnvironment(capturedTrigger), timing, candidateInstances).map(
-      (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
-    );
-  }
-
-  deferNestedTimingEffects(
-    timing: EffectTiming,
-    trigger: TriggerInfo,
-    candidateInstances: readonly CardInstance[],
-  ): void {
-    const collected = this.collectNestedTimingEffects(timing, trigger, candidateInstances);
-    for (const entry of collected) {
-      this.nestedTriggerSourceIdentity.set(entry, permanentIdentityOf(entry.source) ?? null);
-    }
-    this.pendingNestedTimingEffects.push(...collected);
-  }
-
-  /**
    * Cards a cross-permanent play-cost reducer committed at BeforePayCost (BT10-093: purple Digimon
    * pulled from under the player's Tamers), keyed by the played card's instanceId. Applied — placed
    * under the new permanent — by the play action once that permanent exists, before On Play fires.
@@ -512,31 +372,8 @@ export class GameEngine {
    * `undefined` (no enclosing scope) means the code is NOT on a continuous chain, and is
    * read as such — see {@link inContinuousPass}.
    */
-  private readonly continuousScope = new ContinuousEffectScope();
+  readonly continuousScope = new ContinuousEffectScope();
 
-  /**
-   * Run a TRIGGERED effect body outside the continuous tier.
-   *
-   * A triggered, duration-scoped effect is never a continuous one (Comprehensive Rules
-   * §15-8-2: persistent effects are the ones "constantly activated without being
-   * triggered"), so nothing it records may carry the `continuous` tag. This holds even
-   * when the body was reached FROM a recompute — a watcher discovered while the engine was
-   * re-deriving statics (BT8-081's inherited Digi-Burst reaction) — and when a recompute
-   * starts elsewhere while the body is mid-await.
-   */
-  withTriggeredMutations<T>(body: () => Promise<T>): Promise<T> {
-    return this.continuousScope.run(false, body);
-  }
-
-  /** Whether what is being recorded right here belongs to the continuous tier. */
-  private inContinuousPass(): boolean {
-    // No store means this code is not on a continuous-recompute chain, and it must NOT fall
-    // back to a shared "a recompute is running somewhere" flag: a triggered body interleaving
-    // with an in-flight recompute would tag its one-shot modifiers `continuous`, and the next
-    // recompute would erase them (EX13-060's re-run [When Digivolving] -8000 vanished whenever
-    // a Tamer play woke its watcher while the play's own recompute was still in flight).
-    return this.continuousScope.getStore() ?? false;
-  }
   /** Trigger payload for the timing window currently resolving. */
   /** Transient security-DP modifiers during an active security check. */
   readonly securityDp = new SecurityDpLedger((seat, delta) => {
@@ -923,7 +760,7 @@ export class GameEngine {
         const pausedDepth = this.effectResolutionDepth;
         this.effectResolutionDepth = 0;
         try {
-          await this.settleBetweenEffects();
+          await settleBetweenEffects(this);
           await drain();
         } finally {
           this.effectResolutionDepth = pausedDepth;
@@ -1065,7 +902,7 @@ export class GameEngine {
         },
       },
       controllerSeat: () => this.state.turnSeat,
-      inContinuousPass: () => this.inContinuousPass(),
+      inContinuousPass: () => inContinuousPass(this),
       inResolvingWindow: () => this.activeWindowToken !== undefined,
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
@@ -1882,7 +1719,6 @@ export class GameEngine {
    * they reach one prompt — hence one pool, whatever order the sweeps ran in.
    */
   ruleTriggerPool: PooledRuleDeletion[] | undefined = undefined;
-
 
   /**
    * Bind the security-and-win-check subsystem's `runSecurityCheck` to this match's

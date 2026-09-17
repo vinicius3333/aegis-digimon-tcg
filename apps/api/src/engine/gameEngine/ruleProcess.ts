@@ -5,6 +5,7 @@ import { findInstance } from "./intents.js";
 import { resolveDeletionReactions, runTimingWindow } from "./timing.js";
 import { runSubTriggersInChosenOrder } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
+import { withTriggeredMutations } from "./windows.js";
 
 /**
  * Defensive pass cap for the rule fixpoint, mirroring the resolver's
@@ -197,7 +198,7 @@ export async function flushRuleTriggerPool(engine: GameEngine, pool: readonly Po
     if (pool.length === 0) {
       // No deletion window to fold them into, but they are still one simultaneous group and
       // must be ordered turn-player-first rather than drained in arrival order (§15-4-3-5).
-      await engine.withTriggeredMutations(() => runSubTriggersInChosenOrder(engine, armed));
+      await withTriggeredMutations(engine, () => runSubTriggersInChosenOrder(engine, armed));
     } else {
       const merged = mergeRuleDeletions(pool);
       await resolveDeletionReactions(
@@ -212,7 +213,7 @@ export async function flushRuleTriggerPool(engine: GameEngine, pool: readonly Po
       // A deletion can have no printed [On Deletion] candidates, in which case the empty
       // timing window never requests its pending watcher collection. The watcher was already
       // armed while its target was live; resolve any it did not consume in that window now.
-      await engine.withTriggeredMutations(() =>
+      await withTriggeredMutations(engine, () =>
         runSubTriggersInChosenOrder(
           engine,
           armed.filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub))),

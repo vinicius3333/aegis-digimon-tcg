@@ -3,6 +3,7 @@ import type { GameEngine } from "../GameEngine.js";
 import type { Primitives, RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { drainMicrotasks } from "./harness.js";
 import { internalsOf } from "./internals.js";
+import { beginResolvingWindow, endResolvingWindow } from "../gameEngine/windows.js";
 import { fireTimingForPermanent } from "../gameEngine/timing.js";
 
 /**
@@ -384,12 +385,12 @@ export function advance(engine: GameEngine) {
        */
       async playTwoTokensInOneWindow(seat: Seat, tokenName: string): Promise<void> {
         await internals.recomputeContinuousEffects();
-        const wasOutermost = internals.beginResolvingWindow();
+        const wasOutermost = beginResolvingWindow(engine);
         try {
           await internals.primitives.playToken(seat, tokenName, { payCost: false });
           await internals.primitives.playToken(seat, tokenName, { payCost: false });
         } finally {
-          internals.endResolvingWindow(wasOutermost);
+          endResolvingWindow(engine, wasOutermost);
         }
         await internals.recomputeContinuousEffects();
       },
