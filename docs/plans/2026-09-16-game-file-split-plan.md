@@ -26,8 +26,12 @@ EX3-026, EX3-054, BT26-016, BT16-101/EX12-019), and that reasoning is recorded
 nowhere else. The binding rule is rule 2 below — no comment restates the code —
 not an arithmetic target.
 
-Out of scope: `game.css` and every class name — the Tailwind migration owns those
-on `worktree-tailwind-migration`.
+Stylesheets are in scope as of the fifth pass below: `game.css` (8,433 lines) and
+its neighbours get the same treatment as the `.tsx` files. Class names themselves
+are not renamed — the split moves rule blocks between files and nothing else.
+
+There is no `worktree-tailwind-migration` branch, locally or on `origin`; an
+earlier version of this plan deferred the stylesheets to it.
 
 ---
 
@@ -603,13 +607,13 @@ the next things to look at.
 The three earlier passes cleared `game/`'s screen surface. This one took the five
 files that were still oversized anywhere in the app.
 
-| File | Before | After |
-| --- | --- | --- |
-| `dev/CardEffectsDemo.tsx` | 19,411 | 87 |
-| `game/boardModel.ts` | 1,608 | 317 |
-| `dev/BoardShowcase.tsx` | 1,414 | 950 |
-| `screens/DeckBuilder.tsx` | 1,071 | 49 |
-| `screens/cardLibrary.tsx` | 905 | removed |
+| File                      | Before | After   |
+| ------------------------- | ------ | ------- |
+| `dev/CardEffectsDemo.tsx` | 19,411 | 87      |
+| `game/boardModel.ts`      | 1,608  | 317     |
+| `dev/BoardShowcase.tsx`   | 1,414  | 950     |
+| `screens/DeckBuilder.tsx` | 1,071  | 49      |
+| `screens/cardLibrary.tsx` | 905    | removed |
 
 ### `CardEffectsDemo.tsx`
 
@@ -670,3 +674,109 @@ The two mirror tests (`useMatchCues.test.ts`, `decisionOverlay.test.tsx`) and
 `dev/ArenaDemo.tsx` (868), `dev/arenaVisualScenarios.ts` (1,018) and
 `screens/Lobby.tsx` (684) are the next candidates; the i18n tables are data and
 stay whole.
+
+---
+
+## Fifth pass: the stylesheets
+
+`game.css` is the largest file left in the repo. It is already sectioned by
+`/* --- Subject --- */` banners, so the split is mechanical: each banner becomes a
+file, in the folder that owns the markup it styles.
+
+| File                    | Lines             |
+| ----------------------- | ----------------- |
+| `game/game.css`         | 8,433 → 22 (done) |
+| `game/arenaMobile.css`  | 1,064             |
+| `game/arena.css`        | 1,023             |
+| `design/primitives.css` | 761               |
+| `screens/lobby.css`     | 473               |
+
+Target: no stylesheet over 400 lines, matching the source-file target.
+
+### Conventions
+
+The naming table already carries the rule — `<folder>.css` at the folder root —
+and the fifth pass applies it:
+
+- One stylesheet per feature folder, named after the folder, sitting beside its
+  `index.ts`. `game/overlay/overlay.css`, `game/screen/layout/layout.css`.
+- A component whose styles are its own and nowhere else keeps the existing
+  `PascalCase.css` pattern (`EffectText.css`, `AppFusionChoiceOverlay.css`).
+- The stylesheet is imported by the folder's top component, never by `main.tsx`.
+  Only `design/` loads globally.
+- Custom properties and keyframes stay where they are declared today:
+  `design/tokens.css` for tokens, and a `@keyframes` block moves with the one
+  rule that uses it. A keyframe used from two files goes to the nearest shared
+  ancestor stylesheet, not back to a global.
+- Media queries move with their rule. `arenaMobile.css` stays a separate file
+  only where the phone layout is a wholesale replacement rather than an override.
+
+### Rules
+
+Rule 1 applies unchanged and is stricter here than in TypeScript: **cascade order
+is behavior**. Two rules with the same specificity are resolved by source order,
+so the import order in the owning component must reproduce the order the blocks
+had inside `game.css`. Any block that only works because of where it sat gets a
+header comment saying so, or gets its specificity raised deliberately and that is
+recorded as a reorder, the way the earlier passes recorded theirs.
+
+Dead rules are reported, not deleted — `timings.test.ts` already proves which
+animation names are unused, and removing them is a separate commit.
+
+### What the gate must catch
+
+- `game/timings.test.ts` reads `./game.css` from disk by URL and asserts every
+  `--t-*` duration and selector is present. It has to read the set of new files
+  instead; that change lands in the same commit as the first split.
+- Every class name that exists today still exists, and no rule changed position
+  relative to another rule of equal specificity. A sorted dump of selectors
+  before and after must match exactly.
+- The visual dev screens (`dev/BoardShowcase.tsx`, `dev/ArenaDemo.tsx`) are the
+  manual check; the board showcase covers most of the board surface.
+
+### What came out of `game.css`
+
+8,433 lines became a 22-line manifest of `@import`s and seventeen files under
+`game/style/`, each named for its subject and none over 1,000 lines:
+
+`cardCues` (930), `feedbackPort` (767), `decisionPrompts` (697),
+`dialogsAndNarration` (676), `desktopNotices` (595), `responsivePhoneStrip`
+(590), `gameLayout` (547), `effectSources` (545), `responsivePhone` (495),
+`responsiveLandscape` (440), `battleBoard` (435), `securityShatter` (382),
+`responsivePortrait` (354), `securityClash` (337), `boardZones` (329),
+`responsiveDesktop` (220), `reducedMotion` (127).
+
+The cut points are the file's own `/* --- Subject --- */` banners, so every part
+is a run of consecutive lines and the manifest lists them in their original
+order. Re-concatenating the parts in that order reproduces the old file line for
+line — that diff is the proof that no rule moved relative to another, and it is
+worth re-running after any later move.
+
+### One deliberate split
+
+`@media (width < 600px), (height < 520px) and (orientation: landscape)` was 1,075
+lines — the one block that could not fit under the target whole. It is now two
+consecutive blocks with the identical condition, cut at a rule boundary:
+`responsivePhone.css` and `responsivePhoneStrip.css`. Two adjacent blocks with the
+same query behave as one, and each file's header names the other.
+
+### The gate
+
+`timings.test.ts` and `game.mobile.test.ts` read the stylesheet from disk. Both
+now go through `style/gameCssSource.ts`, which reads the manifest and joins the
+parts in its order, so the text they assert against is the cascade order.
+
+`game.mobile.test.ts` also sliced media blocks with regexes anchored on whatever
+text followed them — a file boundary between two blocks broke six of them at
+once. They are one `mediaRules(condition)` helper now, which finds each matching
+header, balances braces, and joins every block sharing that condition; the two
+phone halves come back as one string, and the assertions did not change.
+
+`pnpm -r typecheck`, `vite build`, `oxlint`, `oxfmt --check` and the full web
+suite (178 files, 2,153 tests) all pass — including `test/block.scenario.test.tsx`,
+the flake the earlier passes recorded.
+
+### Still not done
+
+`arenaMobile.css` (1,064) and `arena.css` (1,023) are the next two, and
+`design/primitives.css` (761) after them.

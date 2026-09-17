@@ -1,0 +1,590 @@
+/* The phone block, part two — the action strip, the docks and the piles.
+   Continues responsivePhone.css; the query and the source order are the same. */
+
+@media (width < 600px), (height < 520px) and (orientation: landscape) {
+  /* height: auto overrides the tablet strip's 16dvh clamp — only the action row
+     survives on a phone, and the clamp left a dead ink band under it. */
+  .game-sidebar {
+    width: 100% !important;
+    height: auto;
+    max-height: none;
+    flex: none !important;
+    overflow: hidden !important;
+    border-top: 1px solid var(--ds-border);
+    background: var(--ds-brand-ink) !important;
+  }
+  .game-sidebar > div:first-child,
+  .game-sidebar > div:nth-child(3),
+  .game-sidebar > div:last-child {
+    display: none;
+  }
+  /* With no action to offer, the strip was a dead ink band across the bottom of
+     the phone; the board takes the room back until an action shows up. */
+  .game-sidebar > div:nth-child(2):not(:has(button)) {
+    display: none !important;
+  }
+  .game-sidebar > div:nth-child(2) {
+    width: 100%;
+    min-width: 0;
+    height: var(--game-sidebar-h);
+    padding: var(--ds-space-2) !important;
+    flex-direction: row !important;
+    align-items: stretch;
+    gap: var(--ds-space-2) !important;
+    border: 0 !important;
+  }
+  .game-sidebar > div:nth-child(2) > div {
+    display: none;
+  }
+  .game-sidebar > div:nth-child(2) > button {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .game-breeding-dock::-webkit-scrollbar,
+  .game-battle-zones > div::-webkit-scrollbar,
+  .game-player-dock [data-testid="hand"]::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .game-breeding-dock::-webkit-scrollbar-thumb,
+  .game-battle-zones > div::-webkit-scrollbar-thumb,
+  .game-player-dock [data-testid="hand"]::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--ds-accent);
+  }
+  .game-breeding-dock::-webkit-scrollbar-track,
+  .game-battle-zones > div::-webkit-scrollbar-track,
+  .game-player-dock [data-testid="hand"]::-webkit-scrollbar-track {
+    background: var(--ds-surface-muted);
+  }
+
+  /* Field-card actions as a bottom sheet: the card stays visible next to the
+     actions, so a tap target on the board is never hidden behind the menu. */
+  .card-action-sheet {
+    position: fixed;
+    z-index: var(--ds-z-dialog);
+    inset: 0;
+    display: grid;
+    align-items: end;
+    background: rgb(4 14 31 / 62%);
+    backdrop-filter: blur(4px);
+    animation: aegis-fadeIn 140ms ease-out;
+  }
+  .card-action-sheet__panel {
+    width: 100%;
+    max-height: 82dvh;
+    padding: var(--ds-space-2) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom));
+    overflow-y: auto;
+    border-top: 1px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
+    background: var(--ds-surface);
+    box-shadow: 0 -12px 40px rgb(4 14 31 / 45%);
+  }
+  .card-action-sheet__grip {
+    width: 2.25rem;
+    height: 4px;
+    margin: 0 auto var(--ds-space-3);
+    border-radius: 999px;
+    background: var(--ds-border-strong);
+  }
+  .card-action-sheet__body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--ds-space-4);
+    align-items: start;
+  }
+  /* The card is the sheet's tallest element, and it is a button — the old rule
+     still aimed at a `div` and had stopped matching, so nothing capped the card
+     and the sheet ran off the bottom of the screen. Height, not width, is what
+     has to fit. */
+  .card-action-sheet__body > .card-action-sheet__zoom {
+    width: auto;
+    height: min(30dvh, 12rem);
+    aspect-ratio: 5 / 7;
+    filter: drop-shadow(0 10px 22px rgb(0 0 0 / 32%));
+  }
+  /* The card art carries its own width and would paint past the box above. */
+  .card-action-sheet__body > .card-action-sheet__zoom > * {
+    width: auto !important;
+    height: 100% !important;
+    aspect-ratio: 5 / 7;
+  }
+  .card-action-sheet__info {
+    display: grid;
+    min-width: 0;
+    gap: var(--ds-space-2);
+    align-content: start;
+  }
+  .card-action-sheet__info > strong {
+    color: var(--ds-fg);
+    font-family: var(--ds-font-display);
+    font-size: var(--ds-text-base);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+  .card-action-sheet__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-1) var(--ds-space-2);
+  }
+  .card-action-sheet__stats > span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    padding: 2px var(--ds-space-2);
+    color: var(--ds-fg-secondary);
+    font: 700 var(--ds-text-xs) var(--ds-font-mono);
+    border-radius: var(--ds-radius-sm);
+    background: var(--ds-surface-muted);
+  }
+  .card-action-sheet__stats > span[data-state="suspended"] {
+    color: var(--ds-warning);
+    background: var(--ds-warning-surface, var(--ds-surface-muted));
+  }
+  .card-action-sheet__stats em {
+    font-style: normal;
+    font-weight: 800;
+  }
+  .card-action-sheet__stats em[data-sign="up"] {
+    color: var(--ds-success);
+  }
+  .card-action-sheet__stats em[data-sign="down"] {
+    color: var(--ds-danger);
+  }
+  .card-action-sheet__keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-1);
+  }
+  .card-action-sheet__keywords > span {
+    padding: 2px var(--ds-space-2);
+    color: var(--ds-accent);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border: 1px solid color-mix(in srgb, var(--ds-accent) 38%, transparent);
+    border-radius: 999px;
+  }
+  .card-action-sheet__stack {
+    display: grid;
+    gap: var(--ds-space-2);
+    margin-top: var(--ds-space-3);
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-border);
+  }
+  .card-action-sheet__stack > div > span {
+    color: var(--ds-fg-muted);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .card-action-sheet__stack > div > div {
+    display: flex;
+    gap: var(--ds-space-2);
+    margin-top: var(--ds-space-1);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+  .card-action-sheet__zoom {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .card-action-sheet__stack > div > button {
+    width: 54px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .card-action-sheet__stack figcaption {
+    margin-top: 2px;
+    overflow: hidden;
+    color: var(--ds-fg-muted);
+    font-size: 0.5625rem;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Stack viewer as one sheet: header, computed state, then a wrapping grid per
+     role. Nothing scrolls sideways — the panel scrolls vertically instead, so a
+     digivolution source is never cut off past the right edge. */
+  .stack-sheet .card-action-sheet__panel {
+    max-height: 85dvh;
+    display: grid;
+    gap: var(--ds-space-3);
+    align-content: start;
+  }
+  .stack-sheet .card-action-sheet__body {
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+  }
+  .stack-sheet .card-action-sheet__body > .card-action-sheet__zoom {
+    width: 100%;
+    height: auto;
+  }
+  .stack-sheet .card-action-sheet__body > .card-action-sheet__zoom > * {
+    width: 100% !important;
+    height: auto !important;
+  }
+  .stack-sheet .stack-viewer-state__restrictions,
+  .stack-sheet .stack-viewer-state__keywords {
+    flex-wrap: wrap;
+  }
+  .stack-sheet__groups {
+    display: grid;
+    gap: var(--ds-space-3);
+  }
+  .stack-sheet__groups > section > span {
+    color: var(--ds-fg-muted);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .stack-sheet__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+    gap: var(--ds-space-2);
+    margin-top: var(--ds-space-1);
+  }
+  .stack-sheet__grid > button {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .stack-sheet__grid > button > * {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  .stack-sheet__grid figcaption {
+    margin-top: 2px;
+    color: var(--ds-fg-muted);
+    font-size: 0.5625rem;
+    line-height: 1.2;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .stack-sheet__grid figcaption > b {
+    margin-right: 3px;
+    color: var(--ds-accent);
+  }
+
+  /* Trash: one scrollable row of every card, each tappable to enlarge. */
+  .trash-sheet__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--ds-space-2);
+    margin-bottom: var(--ds-space-3);
+  }
+  .trash-sheet__header > strong {
+    color: var(--ds-fg);
+    font-family: var(--ds-font-display);
+    font-size: var(--ds-text-base);
+  }
+  .trash-sheet__header > span {
+    color: var(--ds-fg-muted);
+    font: 600 var(--ds-text-xs) var(--ds-font-mono);
+  }
+  .trash-sheet__empty {
+    margin: var(--ds-space-6) 0;
+    color: var(--ds-fg-disabled);
+    font: var(--ds-text-xs) var(--ds-font-mono);
+    text-align: center;
+  }
+  .trash-sheet__row {
+    display: flex;
+    gap: var(--ds-space-3);
+    margin: 0 calc(var(--ds-space-4) * -1) var(--ds-space-3);
+    padding: 0 var(--ds-space-4) var(--ds-space-2);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+  }
+  .trash-sheet__row > button {
+    width: 96px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+    scroll-snap-align: center;
+  }
+  .trash-sheet__row figcaption {
+    margin-top: var(--ds-space-1);
+    overflow: hidden;
+    color: var(--ds-fg-muted);
+    font-size: 0.625rem;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Every centred dialog on the match screen becomes a bottom sheet: anchored to
+     the bottom edge, full width, and scrolling inside itself. The panels size
+     themselves with inline widths for desktop, so these have to outrank them. */
+  .game-modal,
+  /* `Dialog` portals into its own centring layer, so the scrim class never reaches
+     it; match on the panel inside instead. */
+  .aegis-dialog-layer:has(.game-modal__panel) {
+    position: fixed !important;
+    z-index: var(--ds-z-dialog);
+    inset: 0 !important;
+    display: flex !important;
+    padding: 0 !important;
+    align-items: flex-end !important;
+    justify-content: stretch !important;
+    place-items: end stretch !important;
+  }
+  .game-modal__panel {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    max-height: 86dvh !important;
+    margin: 0 !important;
+    padding: var(--ds-space-4) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    border-width: 1px 0 0 !important;
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0 !important;
+    box-shadow: 0 -12px 40px rgb(4 14 31 / 45%) !important;
+  }
+  /* A bare panel carries no scrim of its own, so it pins itself to the viewport. */
+  .decision-overlay {
+    animation: battle-decision-sheet-up var(--t-dialog-in, 180ms) ease-out both !important;
+  }
+  .game-modal__panel--bare {
+    position: fixed !important;
+    z-index: var(--ds-z-dialog);
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    translate: none;
+  }
+  /* Inline flex rows inside these panels default to min-width:auto, so long text
+     refused to wrap and pushed the panel past the viewport. */
+  .game-modal__panel > div {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+  .game-modal__panel > div > div {
+    min-width: 0;
+  }
+  /* Buttons default to min-width:auto too, so a long label kept a two-button row
+     wider than the sheet instead of shrinking or wrapping onto a second line. */
+  .game-modal__panel button {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .game-modal__panel button > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  /* The card grid and the confirm button are what the player answers with, so the
+     header gives up its gradient panel and becomes a single line: the source card
+     over the prompt, with the board pill beside it. */
+  .decision-overlay__header {
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: var(--ds-space-2) !important;
+    margin-bottom: var(--ds-space-2) !important;
+  }
+  .decision-overlay__heading {
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    border-bottom: 0;
+    background: none;
+  }
+  .decision-overlay__title {
+    margin-top: 0 !important;
+    font-size: 1.0625rem !important;
+    line-height: 1.25 !important;
+  }
+  .decision-overlay__view-board {
+    width: auto;
+    min-width: 44px;
+    min-height: 44px;
+    flex: none;
+    padding-inline: var(--ds-space-2);
+    border-radius: 999px;
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  /* The effect text is the wording the choice hinges on: it flows at a denser
+     size and always in full; the sheet's own scroll is the only scroll. */
+  .decision-overlay__effect-text {
+    padding: var(--ds-space-2) !important;
+    margin-bottom: var(--ds-space-2) !important;
+    font-size: 0.6875rem !important;
+    line-height: 1.4 !important;
+  }
+  .decision-overlay {
+    --decision-overlay-pad-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
+  }
+  /* The sheet clips whatever leaves its padding box, and every tile carries chrome
+     that sits outside its own edges — the order badge 6px past the top-left corner,
+     the selected rim's glow all around. The row keeps a gutter of its own for that
+     chrome and centres what fits, so a card is never sliced by the sheet edge. */
+  .decision-overlay__grid {
+    /* `safe` centring: once the row scrolls sideways, plain `center` overflows both
+       ends and the first card can never be scrolled back into view. */
+    justify-content: safe center;
+    padding: 8px;
+  }
+  /* A bottom sheet is already at the bottom edge; its actions stack full width there
+     rather than sharing one row with the board button. */
+  .decision-overlay__footer {
+    flex-wrap: wrap;
+    margin-top: var(--ds-space-3);
+  }
+  .decision-overlay__footer > .aegis-button {
+    min-height: 2.75rem;
+    font-size: var(--ds-text-sm);
+  }
+  .decision-overlay__order-row > .aegis-button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
+  /* DecisionOverlay is portalled into document.body. Anchor it below the fixed
+     opponent row; bottom-anchored controls can sit underneath iOS browser chrome. */
+  .decision-board-return {
+    top: calc(env(safe-area-inset-top, 0px) + 4rem);
+    right: var(--ds-space-2);
+    bottom: auto;
+    left: var(--ds-space-2);
+  }
+  .decision-board-return > button {
+    min-height: 44px;
+    flex: 1;
+  }
+  .action-confirmation > div:first-child {
+    flex-wrap: nowrap !important;
+    align-items: flex-start !important;
+  }
+  .action-confirmation > div:first-child > div:first-child {
+    width: 78px !important;
+    height: auto !important;
+    flex: 0 0 auto;
+    aspect-ratio: 5 / 7;
+  }
+  .action-confirmation > div:last-child {
+    flex-wrap: wrap;
+  }
+  .action-confirmation > div:last-child > button {
+    min-height: 44px;
+    flex: 1 1 8rem;
+  }
+
+  /* Card blow-up, above the sheet that opened it. */
+  .card-zoom {
+    position: fixed;
+    z-index: calc(var(--ds-z-dialog) + 1);
+    inset: 0;
+    display: grid;
+    padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-4)
+      max(var(--ds-space-4), env(safe-area-inset-bottom));
+    gap: var(--ds-space-3);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    place-items: center;
+    background: rgb(4 14 31 / 88%);
+    backdrop-filter: blur(8px);
+    animation: aegis-fadeIn 140ms ease-out;
+  }
+  .card-zoom > div:first-child {
+    width: min(84vw, 22rem) !important;
+    height: auto !important;
+    max-height: 100%;
+    aspect-ratio: 5 / 7;
+    filter: drop-shadow(0 20px 40px rgb(0 0 0 / 55%));
+  }
+  .card-zoom > button {
+    min-height: 44px;
+    padding: var(--ds-space-2) var(--ds-space-6);
+    color: var(--ds-brand-on-ink);
+    font-size: var(--ds-text-sm);
+    font-weight: 700;
+    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 40%, transparent);
+    border-radius: var(--ds-radius-md);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent);
+  }
+  .card-action-sheet__actions {
+    display: grid;
+    min-width: 0;
+    gap: var(--ds-space-2);
+  }
+  /* Full-width actions (hand card, trash) sit under the body rather than beside it. */
+  .card-action-sheet__body + .card-action-sheet__actions {
+    margin-top: var(--ds-space-3);
+  }
+  .card-action-sheet__actions > button {
+    width: 100%;
+    min-height: 44px;
+    max-height: none;
+    height: auto;
+    padding-block: var(--ds-space-3);
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .card-action-sheet__actions > button > * {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* --- Draw cue on a phone ----------------------------------------------- */
+
+  /* A 30px card back crossing a 393px screen in 340ms read as a flicker, and
+     players missed their own draws. On touch it flies at hand-card size behind an
+     accent glow; `useMatchCues` sets the matching (longer) duration inline, so the
+     queue unmounts it on the frame the trip ends. */
+  .game-draw-flight {
+    --draw-flight-w: var(--hand-card-width);
+    --draw-flight-h: calc(var(--hand-card-width) * 1.4);
+
+    border-width: 2px;
+    border-color: color-mix(in srgb, var(--battle-cyan) 70%, var(--ds-border-strong));
+    box-shadow:
+      0 6px 18px rgb(0 0 0 / 55%),
+      0 0 20px 6px color-mix(in srgb, var(--battle-cyan) 55%, transparent);
+  }
+
+  /* The burst opens where the card landed, so it grows with it. */
+  .game-draw-burst {
+    --draw-flight-w: var(--hand-card-width);
+    --draw-flight-h: calc(var(--hand-card-width) * 1.4);
+  }
+
+  /* The hand is a scrolling strip of near-identical backs here: the drop alone
+     does not say which card is new, so an accent ring stays on it and fades. */
+  .game-hand-card--drawn::after {
+    content: "";
+    position: absolute;
+    z-index: 3;
+    inset: -3px;
+    pointer-events: none;
+    border-radius: calc(0.7rem + 3px);
+    box-shadow:
+      0 0 0 3px var(--battle-cyan),
+      0 0 18px 6px color-mix(in srgb, var(--battle-cyan) 60%, transparent);
+    animation: battle-hand-draw-ring var(--t-hand-draw-ring, 900ms) ease-out both;
+  }
+}

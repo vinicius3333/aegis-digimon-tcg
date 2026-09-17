@@ -1,0 +1,547 @@
+/* The match screen's own layout, the opponent action feed and the decision
+   sheet the board opens over it. */
+
+.game-layout {
+  background:
+    linear-gradient(135deg, transparent 0 67%, rgb(7 95 247 / 4%) 67% 67.2%, transparent 67.2%), var(--ds-game-bg);
+}
+
+.game-board {
+  min-width: 0;
+  color: var(--ds-fg);
+  background: var(--ds-game-surface);
+}
+
+.game-sidebar {
+  background: var(--ds-game-surface) !important;
+  box-shadow: -8px 0 28px rgb(28 67 127 / 8%);
+}
+
+.game-field,
+.game-player-dock {
+  border-color: var(--ds-border) !important;
+}
+
+.game-battle-zones > div:first-child,
+.game-battle-zones > div:last-child {
+  margin: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-game-border);
+  border-radius: var(--ds-radius-md);
+  background:
+    linear-gradient(135deg, transparent 0 72%, rgb(7 95 247 / 4%) 72% 72.4%, transparent 72.4%),
+    var(--ds-game-surface-soft);
+}
+
+.game-mobile-turn,
+.game-mobile-surrender,
+.game-mobile-log,
+.game-mobile-bug {
+  display: none;
+}
+
+/* The board's left edge, not its right: the opponent digivolves and plays into
+   the right half of the field, and a feed anchored over it hid the very move it
+   was narrating. */
+.opponent-action-feed {
+  position: absolute;
+  z-index: calc(var(--ds-z-toast) - 3);
+  top: calc(7.5rem + env(safe-area-inset-top, 0px));
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+  width: min(22rem, calc(100% - var(--ds-space-8)));
+  pointer-events: none;
+}
+.opponent-action-feed__current,
+.opponent-action-feed__trail-item {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--ds-space-3);
+  align-items: center;
+  color: var(--ds-fg);
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 36%, var(--ds-border));
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--ds-surface) 96%, var(--ds-danger));
+  box-shadow: var(--ds-shadow-lg);
+}
+.opponent-action-feed__current {
+  position: relative;
+  min-height: 3.5rem;
+  padding: var(--ds-space-3);
+  font: inherit;
+  pointer-events: none;
+  animation: aegis-rise 180ms ease-out;
+}
+/* The feed itself is see-through so it never blocks the board; only what a
+   player can actually press takes the pointer back. */
+.opponent-action-feed button {
+  pointer-events: auto;
+}
+.opponent-action-feed__aside {
+  display: grid;
+  gap: var(--ds-space-1);
+  align-self: start;
+  justify-items: end;
+}
+.opponent-action-feed__history {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  color: var(--ds-fg-muted);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface);
+  cursor: pointer;
+  place-items: center;
+}
+.opponent-action-feed__history:hover {
+  color: var(--ds-fg);
+  border-color: color-mix(in srgb, var(--ds-danger) 62%, var(--ds-border));
+}
+.opponent-action-feed__history:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+.opponent-action-feed__icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  color: var(--ds-danger);
+  border-radius: var(--ds-radius-sm);
+  background: color-mix(in srgb, var(--ds-danger) 12%, var(--ds-surface));
+}
+.opponent-action-feed__copy {
+  min-width: 0;
+}
+.opponent-action-feed__copy strong,
+.opponent-action-feed__copy small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.opponent-action-feed__copy strong {
+  font-size: var(--ds-text-sm);
+  line-height: 1.25;
+}
+.opponent-action-feed__copy small {
+  display: -webkit-box;
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.opponent-action-feed__pending {
+  align-self: start;
+  padding: 2px var(--ds-space-2);
+  color: var(--ds-danger);
+  font: 700 0.625rem var(--ds-font-mono);
+  white-space: nowrap;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ds-danger) 10%, var(--ds-surface));
+}
+.opponent-action-feed__trail {
+  position: absolute;
+  inset: 0;
+}
+.opponent-action-feed__trail-item {
+  position: absolute;
+  right: var(--ds-space-2);
+  bottom: calc(100% + var(--ds-space-2));
+  left: var(--ds-space-2);
+  min-height: 2.5rem;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  grid-template-columns: minmax(0, 1fr);
+  opacity: 0.72;
+  transform: scale(0.97);
+}
+.opponent-action-feed__trail-item[data-depth="2"] {
+  bottom: calc(100% + 3.25rem);
+  opacity: 0.48;
+  transform: scale(0.94);
+}
+.opponent-action-feed__trail-item .opponent-action-feed__copy small {
+  display: none;
+}
+
+/* The play log drawer (`PlayLog.cs` inside `SideBar.cs`): it slides out of the
+   board's right edge and back into it, rather than opening as a centred sheet. */
+.play-log {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  display: flex;
+  flex-direction: column;
+  width: min(24rem, calc(100% - var(--ds-space-6)));
+  max-height: 100dvh;
+  padding: var(--ds-space-5);
+  overflow: hidden;
+  border-radius: 18px 0 0 18px;
+  transform: none;
+  animation: battle-log-slide-in var(--t-log-sidebar, 160ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-log-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.play-log__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+}
+.play-log__header span {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.play-log__header h2 {
+  margin: 2px 0 0;
+  color: var(--ds-fg);
+  font: 800 var(--ds-text-xl) var(--ds-font-display);
+}
+.play-log__list {
+  display: grid;
+  gap: var(--ds-space-2);
+  align-content: start;
+  margin-top: var(--ds-space-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.play-log__empty {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+}
+.play-log__line {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr);
+  gap: var(--ds-space-2);
+  align-items: start;
+}
+.play-log__line > span {
+  width: 6px;
+  height: 6px;
+  margin-top: 0.45rem;
+  border-radius: 50%;
+  background: var(--ds-fg-disabled);
+}
+.play-log__line[data-kind="you"] > span {
+  background: var(--ds-accent);
+}
+.play-log__line[data-kind="opp"] > span {
+  background: var(--ds-danger);
+}
+.play-log__line p {
+  margin: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+  line-height: 1.4;
+}
+
+/* A named card is a link into its own art, so a player can check what just hit
+   them without leaving the board. Every surface that names a card uses this one
+   affordance: the play log, the notices, the side panels and the prompts. */
+.card-link {
+  padding: 0;
+  color: var(--ds-accent);
+  font: inherit;
+  text-align: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.card-link:hover,
+.card-link:focus-visible {
+  color: var(--ds-fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-log {
+    animation: none;
+  }
+}
+
+.card-action-sheet {
+  display: none;
+}
+
+/* The card blow-up is reachable from the play log on every layout, so its base
+   styling lives here rather than only inside the touch layer below. It grows into
+   place on the reference client's own 0.12s magnify. */
+.card-zoom {
+  position: fixed;
+  z-index: calc(var(--ds-z-dialog) + 1);
+  inset: 0;
+  display: grid;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-6);
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  place-items: center;
+  background: rgb(4 14 31 / 88%);
+  backdrop-filter: blur(8px);
+  animation: battle-card-magnify var(--t-card-magnify, 120ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* The card's stats sit under the blow-up on the dark backdrop, so the sheet's
+   info markup is reused with on-ink colors. */
+.card-zoom__details {
+  display: grid;
+  width: min(84vw, 22rem);
+  gap: var(--ds-space-2);
+  justify-items: center;
+  text-align: center;
+}
+.card-zoom__details > strong {
+  color: var(--ds-brand-on-ink);
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-lg);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.card-zoom__details > .card-action-sheet__stats,
+.card-zoom__details > .card-action-sheet__keywords {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ds-space-1) var(--ds-space-2);
+}
+.card-zoom__details > .card-action-sheet__stats > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 2px var(--ds-space-2);
+  color: var(--ds-brand-on-ink);
+  font: 700 var(--ds-text-xs) var(--ds-font-mono);
+  border-radius: var(--ds-radius-sm);
+  background: color-mix(in srgb, var(--ds-brand-on-ink) 14%, transparent);
+}
+.card-zoom__details > .card-action-sheet__stats > span[data-state="suspended"] {
+  color: var(--ds-warning);
+}
+.card-zoom__details > .card-action-sheet__stats em {
+  font-style: normal;
+  font-weight: 800;
+}
+.card-zoom__details > .card-action-sheet__stats em[data-sign="up"] {
+  color: var(--ds-success);
+}
+.card-zoom__details > .card-action-sheet__stats em[data-sign="down"] {
+  color: var(--ds-danger);
+}
+.card-zoom__details > .card-action-sheet__keywords > span {
+  padding: 2px var(--ds-space-2);
+  color: var(--ds-accent);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--ds-accent) 38%, transparent);
+  border-radius: 999px;
+}
+
+@keyframes battle-card-magnify {
+  from {
+    opacity: 0;
+    scale: 0.88;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.mulligan-sheet {
+  width: min(100%, 1080px);
+  padding: var(--ds-space-6);
+  color: var(--ds-brand-on-ink);
+  text-align: center;
+}
+
+.mulligan-badge {
+  margin-bottom: var(--ds-space-3);
+}
+.mulligan-title {
+  margin: 0 0 var(--ds-space-1);
+  font-family: var(--ds-font-display);
+  font-size: 1.875rem;
+  font-weight: 800;
+}
+.mulligan-detail {
+  margin: 0 0 var(--ds-space-6);
+  color: var(--ds-brand-on-ink-muted);
+  font-size: var(--ds-text-sm);
+}
+.mulligan-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ds-space-4);
+  /* The spacing scale has no step 7 — an invalid var() collapsed this to zero
+     and glued the action buttons to the cards. */
+  margin-bottom: var(--ds-space-8);
+}
+.mulligan-card {
+  flex: none;
+  animation: aegis-pop 360ms ease-out both;
+}
+/* Every choice row lists the affirmative action first, and the reading order the
+   player scans follows the axis: right to left in a row, top to bottom stacked.
+   `row-reverse` puts the leading action on the right without reordering the DOM,
+   so the tab order and the visual order both start at the affirmative. */
+.game-actions-row {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: var(--ds-space-3);
+}
+/* The confirmation dialog can carry three actions with long labels; they share
+   the row's width equally and wrap their text instead of squeezing each other.
+   With an alternate action in the row, cancel drops to its own line below. */
+.action-confirmation .game-actions-row {
+  flex-wrap: wrap;
+}
+.action-confirmation .game-actions-row > button {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.2;
+}
+.action-confirmation .game-actions-row > .aegis-button--secondary ~ .aegis-button--ghost {
+  flex-basis: 100%;
+}
+.mulligan-actions {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  gap: var(--ds-space-3);
+}
+.combat-prompt {
+  max-width: calc(100% - var(--ds-space-6));
+}
+.evade-prompt .game-actions-row {
+  flex-wrap: wrap;
+}
+.evade-prompt .game-actions-row > button {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (width < 520px) {
+  .evade-prompt .game-actions-row {
+    flex-direction: column;
+  }
+  .evade-prompt .game-actions-row > button {
+    width: 100%;
+  }
+}
+/* The sheet sits centred over the board on its own dimmed field. Geometry lives here
+   rather than inline so the phone bottom-sheet rules further down can still win. */
+.decision-overlay {
+  --decision-overlay-pad-bottom: 22px;
+
+  position: absolute;
+  top: 96px;
+  left: 50%;
+  z-index: 80;
+  translate: -50% 0;
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 112px);
+  padding: 0 22px var(--decision-overlay-pad-bottom);
+  overflow-y: auto;
+}
+/* The dimmed field is the sheet's own backdrop: a separate scrim element could not sit
+   between a panel that is positioned by these rules and the board under it. It fades on
+   its own — a keyframe that also moved it would slide the dimming off one edge. */
+/* `battle-dialog-in` animates `translate`, which on this sheet also carries the -50%
+   that centres it — a shared keyframe would drop the sheet to the left edge and, with
+   `both`, leave it there. This one rises without giving up the centring. */
+.decision-overlay {
+  animation: battle-decision-sheet-in var(--t-dialog-in, 180ms) ease-out both !important;
+}
+@keyframes battle-decision-sheet-in {
+  from {
+    translate: -50% 0.75rem;
+    opacity: 0;
+  }
+  to {
+    translate: -50% 0;
+    opacity: 1;
+  }
+}
+
+.decision-overlay::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background: var(--ds-scrim);
+  animation: game-modal-scrim-in var(--t-dialog-in, 180ms) ease-out both;
+}
+.decision-overlay__view-board {
+  flex: none;
+}
+/* The confirm stays reachable while a long list scrolls under it. It reaches into the
+   panel's bottom padding so nothing shows through beneath it. */
+.decision-overlay__footer {
+  position: sticky;
+  bottom: calc(-1 * var(--decision-overlay-pad-bottom));
+  margin-top: var(--ds-space-4);
+  margin-bottom: calc(-1 * var(--decision-overlay-pad-bottom));
+  padding: var(--ds-space-3) 0 var(--decision-overlay-pad-bottom);
+  border-top: 1px solid rgb(255 255 255 / 12%);
+  background: linear-gradient(180deg, rgb(12 21 38 / 0%) 0%, #0c1526 28%);
+}
+.decision-overlay__footer > .aegis-button {
+  min-height: 3rem;
+  font-size: var(--ds-text-base);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.decision-overlay__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+}
+.decision-board-return {
+  position: fixed;
+  /* Keep the pending decision's only exit away from mobile browser chrome and
+     below the opponent bar so it remains reachable while inspecting the board. */
+  z-index: calc(var(--ds-z-toast) - 1);
+  top: calc(env(safe-area-inset-top, 0px) + 4rem);
+  right: var(--ds-space-4);
+  bottom: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-2);
+  color: var(--ds-fg);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  animation: aegis-rise 180ms ease-out;
+}
+.decision-board-return__status {
+  padding-left: var(--ds-space-2);
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+}

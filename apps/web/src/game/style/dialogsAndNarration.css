@@ -1,0 +1,676 @@
+/* Dialogs, narration slots, timed side panels and framed notices. */
+
+/* --- Dialogs: navy panel with a gradient header bar ----------------------- */
+
+/* Every navy surface in the match carries the same ink. These panels are navy
+   whichever theme the app is in, so the tokens their contents read cannot follow
+   the theme — light-theme surfaces inside them would be white cards on navy, and
+   the light theme's accent (#075ff7, tuned for white) reads 3.0:1 against this
+   panel, which is where the outlined secondary buttons, the primary badges and
+   the play-log card links were failing. The dark theme's values are the ones
+   that belong here, so the whole ramp comes from there. */
+.game-modal__panel,
+.mulligan-sheet,
+.combat-prompt {
+  --ds-fg: #eaf1ff;
+  --ds-fg-secondary: #c6d4ef;
+  --ds-fg-muted: #9fb0d0;
+  --ds-fg-disabled: #5c6f92;
+  --ds-surface: #16233c;
+  --ds-surface-raised: #1b2a47;
+  --ds-surface-muted: #1e2d4a;
+  --ds-border: #334770;
+  --ds-border-strong: #46608f;
+  --ds-accent: #60a5fa;
+  --ds-accent-hover: #93c5fd;
+  --ds-accent-active: #bfdbfe;
+  --ds-accent-surface: rgb(59 130 246 / 15%);
+  --ds-on-accent: #07101f;
+  --ds-focus-color: #60a5fa;
+  /* The semantic ramp for the same reason: the light theme's success, warning and
+     danger are near-black inks meant for white cards (2.4–2.6:1 here), and their
+     surfaces are pale chips that would punch holes in the panel. */
+  --ds-success: #4ade80;
+  --ds-success-hover: #86efac;
+  --ds-success-active: #bbf7d0;
+  --ds-success-surface: rgb(34 197 94 / 15%);
+  --ds-success-border: rgb(74 222 128 / 52%);
+  --ds-on-success: #04160a;
+  --ds-warning: #fbbf24;
+  --ds-warning-hover: #fcd34d;
+  --ds-warning-active: #fde68a;
+  --ds-warning-surface: rgb(245 158 11 / 15%);
+  --ds-warning-border: rgb(251 191 36 / 52%);
+  --ds-on-warning: #211502;
+  --ds-danger: #f87171;
+  --ds-danger-hover: #fca5a5;
+  --ds-danger-active: #fecaca;
+  --ds-danger-surface: rgb(239 68 68 / 15%);
+  --ds-danger-border: rgb(248 113 113 / 52%);
+  --ds-on-danger: #190707;
+  --ds-info: #60a5fa;
+  --ds-info-surface: rgb(59 130 246 / 15%);
+  --ds-info-border: rgb(96 165 250 / 52%);
+}
+
+.game-modal__panel {
+  /* Above every board fixture (memory band, orb, log ticker, flights): the
+     panels portal into #aegis-stage and carry only a small inline z-index.
+     (--ds-z-modal does not exist in tokens.css — the dialog tier is the one.) */
+  z-index: var(--ds-z-dialog) !important;
+  color: var(--ds-fg);
+  border: 1px solid var(--battle-panel-border) !important;
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 60%),
+    0 18px 60px rgb(0 0 0 / 65%) !important;
+  animation: battle-dialog-in var(--t-dialog-in, 180ms) ease-out both;
+}
+
+/* Inline flow sheets (mulligan) and floating combat prompts render inside the
+   board, where the memory band and orb carry their own z-indexes — lift them
+   into the overlay layer so board chrome can never paint across them.
+
+   The mulligan sheet also needed the panel itself: only its title carried a dark
+   bar, so the badge, the turn-order line and the detail paragraph sat on nothing
+   but the scrim, and over a light --ds-bg that scrim resolves to mid grey and the
+   text fell under 4.5:1. */
+.mulligan-sheet {
+  position: relative;
+  z-index: 90;
+  color: var(--ds-fg);
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 60%),
+    0 18px 60px rgb(0 0 0 / 65%);
+}
+
+.combat-prompt {
+  z-index: 90 !important;
+  color: var(--ds-fg);
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 60%),
+    0 18px 60px rgb(0 0 0 / 65%) !important;
+}
+
+@keyframes battle-dialog-in {
+  from {
+    translate: 0 0.75rem;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+.mulligan-title {
+  padding: 0.7rem 1.2rem;
+  margin: -0.2rem -0.2rem 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  border-bottom: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--battle-header-grad);
+}
+
+/* The sheet's title band runs edge to edge: it is the first thing in the panel, so it
+   reaches back over the panel's own side padding. */
+.decision-overlay__heading {
+  padding: 1rem 1.2rem;
+  margin: 0 -22px var(--ds-space-4);
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  border-bottom: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--battle-header-grad);
+}
+
+/* --- Narration slots ------------------------------------------------ */
+
+/* One moment at a time, in two columns
+   split by what the moment is rather than by whose it is: the clause to read on the
+   left, clear of the hand, and the cards a moment moved on the right, clear of the
+   opponent action feed. Both players use both columns, so the eye always looks in the
+   same place for the same kind of thing. The portrait phone has one centred slot
+   instead, because two columns on a 390px screen put a moment on the hand, the actions
+   or the field being read.
+
+   Slots sit above the board chrome but under --ds-z-dialog, so a decision overlay
+   always wins. */
+.narration-slot {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 4);
+  display: flex;
+  width: min(20rem, calc(100% - var(--ds-space-8)));
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  pointer-events: none;
+}
+
+/* Above the hand dock, so a moment never covers the hand. */
+.narration-slot[data-slot="narration-text"] {
+  bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+}
+
+/* The card column is a stack of art, not a column of prose: it takes the narrower width
+   so the cards read as a tall list, and it stands clear of the right edge rather than
+   hugging the piles there. */
+.narration-slot[data-slot="narration-cards"] {
+  top: calc(9.5rem + env(safe-area-inset-top, 0px));
+  right: calc(max(var(--ds-space-4), env(safe-area-inset-right, 0px)) + 4rem);
+  width: min(17rem, calc(100% - var(--ds-space-8)));
+}
+
+/* The phone's single band starts below the header and grows to show every item. */
+.narration-slot[data-slot="narration"] {
+  top: calc(3.5rem + env(safe-area-inset-top, 0px));
+  right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+  left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+/* --- Timed side panels ---------------------------------------------- */
+
+/* The panel's own wrapper, laid out by the slot that holds it. */
+.side-panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  pointer-events: none;
+}
+
+.side-panel {
+  position: relative;
+  overflow: hidden;
+  /* `overflow: hidden` zeroes the flex min-height, so a crowded column squeezed
+     the panel and cut its cards off. The column scrolls instead. */
+  flex-shrink: 0;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.65rem;
+  background: var(--battle-panel);
+  box-shadow: 0 10px 28px rgb(4 14 31 / 55%);
+  pointer-events: auto;
+  /* The reference client's SelectCommandPanel open clip runs 0.233 s. */
+  animation: side-panel-in var(--t-side-panel-in, 230ms) ease-out;
+}
+
+/* The clock the player can see: a ring that erodes clockwise over the fixed
+   reading time the panel was opened with. */
+/* A decision is waiting and the clocks are stopped (useMatchCues holds them), so
+   the rings stop where they are rather than running out on a paused clock. */
+[data-held] .side-panel__erode,
+[data-held] .match-notice__erode {
+  animation-play-state: paused;
+}
+
+.side-panel__erode,
+.match-notice__erode {
+  position: absolute;
+  z-index: 2;
+  padding: 2px;
+  border-radius: inherit;
+  inset: 0;
+  background: conic-gradient(from 0deg, var(--battle-cyan) var(--erode-angle), transparent 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: panel-erode linear forwards;
+}
+
+/* The title is centred over the cards it names, with the close button laid over it rather
+   than taking a column of its own — a three-column header cannot centre its middle. */
+.side-panel__header {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  padding: 0.5rem 2rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ds-space-2);
+  align-items: center;
+  justify-items: center;
+  background: var(--battle-header-grad);
+}
+
+.side-panel__title {
+  overflow: hidden;
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Whose cards these are is carried by the panel's side marker and by its label; spelled
+   out beside the title it only crowded the one line the panel has. */
+.side-panel__owner {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  padding: 0;
+  margin: -1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.side-panel__close,
+.match-notice__close {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  font-size: 0.95rem;
+  line-height: 1;
+  color: #fff;
+  border: 0;
+  border-radius: 0.25rem;
+  background: rgb(255 255 255 / 12%);
+  cursor: pointer;
+  place-items: center;
+}
+
+.side-panel__close:hover,
+.match-notice__close:hover {
+  background: rgb(255 255 255 / 24%);
+}
+
+/* After the shared rule so the panel's larger chrome wins, while the notices
+   this file also draws keep the compact button. */
+.side-panel__close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 1.2rem;
+}
+
+/* Art in one row, never wrapped: the panel answers "which cards?", and a card is
+   recognised by its picture faster than it is read by its name. Past two cards the row
+   fans like a hand — each card partly over the one before it — so a six-card reveal
+   still reads as one line at the panel's width instead of growing a second row. */
+.side-panel__cards {
+  --panel-card-w: 104px;
+  /* The row is the panel's width: the same panel whether it lists two cards or six. */
+  --panel-row-w: 15.75rem;
+  /* Pitch between cards. Capped below the card's own width so the row always fans, and
+     otherwise whatever divides the fixed row evenly. */
+  --panel-card-step: min(
+    calc(var(--panel-card-w) * 0.62),
+    calc((var(--panel-row-w) - var(--panel-card-w)) / max(1, var(--panel-card-count, 1) - 1))
+  );
+
+  display: flex;
+  box-sizing: content-box;
+  width: var(--panel-row-w);
+  padding: 1rem 0.9rem 1.1rem;
+  /* The row is a fixed width so the panel is the same whether it lists two cards or six,
+     which leaves it narrower than the panel wherever the panel is wide — the phone's
+     full-width slot most of all. `justify-content` centres the fan inside the row; this
+     centres the row inside the panel, without which the cards sat against its left edge. */
+  margin: 0 auto;
+  flex-wrap: nowrap;
+  gap: 0;
+  align-items: flex-start;
+  justify-content: center;
+  list-style: none;
+}
+
+.side-panel__card {
+  position: relative;
+  display: grid;
+  flex: none;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.2rem;
+  justify-items: center;
+}
+
+/* Each card slides onto the left edge of the one before it, so every badge stays clear. */
+.side-panel__card + .side-panel__card {
+  margin-inline-start: calc(var(--panel-card-step) - var(--panel-card-w));
+}
+
+/* Reading one card out of the fan lifts it clear of its neighbours. */
+.side-panel__card:hover,
+.side-panel__card:focus-within {
+  z-index: 2;
+}
+
+.side-panel__art {
+  position: relative;
+  line-height: 0;
+}
+
+/* The name stays in the DOM as the card's link — it is how a keyboard and a screen reader
+   reach the card — but the row reads as art alone, so it is taken out of the picture
+   rather than out of the page. */
+.side-panel__name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  padding: 0;
+  margin: -1px;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.side-panel__name:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.1rem 0.3rem;
+  margin: 0;
+  overflow: visible;
+  clip-path: none;
+  color: #fff;
+  font-size: 0.7rem;
+  border-radius: 0.25rem;
+  background: rgb(0 0 0 / 70%);
+}
+
+/* The panel is navy, so the link tints towards white rather than down into it. */
+button.side-panel__name {
+  color: color-mix(in srgb, #fff 45%, var(--ds-accent));
+}
+
+button.side-panel__name:hover,
+button.side-panel__name:focus-visible {
+  color: #fff;
+}
+
+/* The reference client numbers each card in the panel with a blue circle at its top-left. */
+.side-panel__badge {
+  position: absolute;
+  top: -0.3rem;
+  left: -0.3rem;
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 50%;
+  background: #2b57a8;
+  place-items: center;
+}
+
+/* --- Framed notices -------------------------------------------------- */
+
+/* The notice's own wrapper, laid out by the narration slot that holds it. */
+.match-notice-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  pointer-events: none;
+}
+
+/* The reference client frames a notice with bracketed corners rather than a full
+   box, which is what keeps a large panel from reading as a dialog. */
+.match-notice {
+  position: relative;
+  display: grid;
+  /* The floor is the icon-bodied notices' height: with it, a recovery chip and
+     an effect chip in the same stack read as one family rather than two sizes. */
+  min-height: 3.75rem;
+  /* The right inset clears the corner close button. */
+  padding: 0.55rem 2.6rem 0.55rem 0.55rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+  /* The clause is what the player reads, so it leads; the art sits at the end of the row,
+     against the top, as the badge that says which card is talking. */
+  border-radius: 0.45rem;
+  background: linear-gradient(180deg, rgb(20 40 76 / 96%) 0%, rgb(10 20 40 / 96%) 100%);
+  box-shadow: 0 12px 30px rgb(4 14 31 / 55%);
+  pointer-events: auto;
+  animation: match-notice-in var(--t-notice-in, 200ms) ease-out;
+}
+
+.match-notice::before,
+.match-notice::after {
+  position: absolute;
+  width: 0.85rem;
+  height: 0.85rem;
+  content: "";
+  border: 2px solid var(--battle-marker);
+  pointer-events: none;
+}
+
+.match-notice::before {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0.45rem 0 0;
+}
+
+.match-notice::after {
+  right: 0;
+  bottom: 0;
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 0.45rem;
+}
+
+.match-notice[data-variant="rejection"]::before,
+.match-notice[data-variant="rejection"]::after {
+  border-color: var(--battle-attack);
+}
+
+.match-notice__icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+  place-items: center;
+}
+
+.match-notice[data-variant="rejection"] .match-notice__icon {
+  color: #ffd7d2;
+  background: rgb(255 45 31 / 22%);
+}
+
+.match-notice__copy {
+  display: flex;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* An effect notice reads text-first, with the card's picture at the end of the row. */
+.match-notice[data-variant="effect"] {
+  padding: 0.7rem 2.6rem 0.7rem 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.match-notice[data-variant="effect"] .match-notice__thumb {
+  align-self: start;
+}
+
+/* Kept in the page for the screen reader and the keyboard, out of the picture for the eye
+   wherever the clause beside it already says the same thing. */
+.match-notice__label[data-quiet],
+.match-notice__title[data-quiet] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  padding: 0;
+  margin: -1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.match-notice__title[data-quiet] .card-link:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+}
+
+.match-notice__label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--battle-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.match-notice[data-variant="rejection"] .match-notice__label {
+  color: #ff9a90;
+}
+
+.match-notice__title {
+  font-family: var(--ds-font-display);
+  font-size: 0.85rem;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+
+/* Never clamped: the clause is the card's printed text, and a cut clause hides
+   the part a player has to read to know what just resolved. */
+.match-notice__text {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: rgb(226 236 255 / 92%);
+}
+
+/* A named mechanic announces itself in the reference client's pink pill, next to
+   the card that did it. */
+.match-notice[data-variant="keyword"]::before,
+.match-notice[data-variant="keyword"]::after {
+  border-color: var(--battle-keyword);
+}
+
+.match-notice__keyword {
+  align-self: flex-start;
+  padding: 0.2rem 0.75rem;
+  font-family: var(--ds-font-display);
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff6fae 0%, var(--battle-keyword) 100%);
+  box-shadow: 0 4px 14px rgb(233 30 120 / 45%);
+}
+
+.match-notice[data-variant="keyword"] .match-notice__label {
+  color: #ffb4d5;
+}
+
+.match-notice__erode {
+  padding: 1px;
+  opacity: 0.8;
+}
+
+/* The same corner control the panels use, so the two toasts read as one family. */
+.match-notice__close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 1.2rem;
+}
+
+/* The attack call-out: a glance at the attacker while the arc and lunge play. */
+.attack-announcement {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  top: calc(9.5rem + env(safe-area-inset-top, 0px));
+  left: 50%;
+  display: flex;
+  padding: 0.3rem 0.7rem 0.3rem 0.35rem;
+  gap: var(--ds-space-2);
+  align-items: center;
+  border: 1px solid var(--battle-attack);
+  border-radius: 0.5rem;
+  background: var(--battle-panel);
+  box-shadow: 0 0 18px var(--battle-attack-glow);
+  pointer-events: none;
+  translate: -50% 0;
+  /* Centred by a translate, so its entrance can only fade — a keyframe that also
+     owned `translate` would fight the centring. */
+  animation: attack-announcement-in var(--t-attack-announce-in, 140ms) ease-out;
+}
+
+.attack-announcement__copy {
+  font-size: 0.8rem;
+  color: #fff;
+}
+
+/* Registered so the erosion angle interpolates; an unregistered custom property
+   would jump from full ring to empty with nothing in between. */
+@property --erode-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 360deg;
+}
+
+@keyframes panel-erode {
+  from {
+    --erode-angle: 360deg;
+  }
+  to {
+    --erode-angle: 0deg;
+  }
+}
+
+@keyframes side-panel-in {
+  from {
+    translate: 0.5rem 0;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@keyframes match-notice-in {
+  from {
+    translate: -0.5rem 0;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@keyframes attack-announcement-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

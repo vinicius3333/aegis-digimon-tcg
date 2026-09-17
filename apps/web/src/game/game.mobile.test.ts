@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { readGameCss } from "./style/gameCssSource";
 
-const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
+const gameCss = readGameCss();
 
 /**
  * The overlays live one component per file under ./overlay, so a component's own
@@ -45,27 +46,42 @@ const boardPiecesSource = readdirSync(new URL("./piece/", import.meta.url), { wi
   .filter((entry) => entry.isFile() && entry.name !== "index.ts")
   .map((entry) => readFileSync(new URL(`./piece/${entry.name}`, import.meta.url), "utf8"))
   .join("\n");
-// The phone block's condition is a list — narrow, or short and on its side — so
-// the header is matched loosely up to its brace.
-const portraitRules = gameCss.match(
-  /@media \(width < 600px\)[^{]*\{(?<rules>[\s\S]*?)\n\}\n\n@media \(width < 600px\) and \(height < 650px\)/,
-)?.groups?.rules;
+/**
+ * Every rule inside the media blocks whose condition matches, in source order.
+ * The stylesheet is split across files, so one condition can open more than one
+ * block; matching the header and then balancing braces keeps those halves
+ * together and does not depend on what sits between two blocks.
+ */
+function mediaRules(condition: string): string {
+  const header = `@media ${condition} {`;
+  const bodies: string[] = [];
+  for (let start = gameCss.indexOf(header); start > -1; start = gameCss.indexOf(header, start + 1)) {
+    let depth = 0;
+    let index = start + header.length - 1;
+    for (; index < gameCss.length; index += 1) {
+      if (gameCss[index] === "{") depth += 1;
+      if (gameCss[index] === "}") {
+        depth -= 1;
+        if (depth === 0) break;
+      }
+    }
+    bodies.push(gameCss.slice(start + header.length, index));
+  }
+  return bodies.join("\n");
+}
+
+/** The phone block: narrow, or short and on its side. */
+const portraitRules = mediaRules("(width < 600px), (height < 520px) and (orientation: landscape)");
 /** The landscape-phone block, which re-lays the board for a short viewport. */
-const landscapeRules = gameCss.match(
-  /@media \(height < 520px\) and \(orientation: landscape\) \{(?<rules>[\s\S]*?)\n\}\n/,
-)?.groups?.rules;
-
-// Where the sidebar stops being a column and becomes a strip along the bottom.
-const stripRules = gameCss.match(/@media \(width < 960px\) \{(?<rules>[\s\S]*?)\n\}\n\n@media/)?.groups?.rules;
-
+const landscapeRules = mediaRules("(height < 520px) and (orientation: landscape)");
+/** Where the sidebar stops being a column and becomes a strip along the bottom. */
+const stripRules = mediaRules("(width < 960px)");
 /** Phone portrait only: the floating stacks and the board-mode sheet. */
-const phonePortraitRules = gameCss.match(
-  /@media \(width < 600px\) and \(orientation: portrait\) \{(?<rules>[\s\S]*?)\n\}\n/,
-)?.groups?.rules;
+const phonePortraitRules = mediaRules("(width < 600px) and (orientation: portrait)");
 /** Narrow width at any orientation — a landscape phone is ~844px wide, so it is not this. */
-const narrowWidthRules = gameCss.match(/@media \(width < 600px\) \{(?<rules>[\s\S]*?)\n\}\n/)?.groups?.rules;
+const narrowWidthRules = mediaRules("(width < 600px)");
 /** Pointer widths, which keep the full-size fanned hand. */
-const pointerWidthRules = gameCss.match(/@media \(width >= 960px\) \{(?<rules>[\s\S]*?)\n\}\n/)?.groups?.rules;
+const pointerWidthRules = mediaRules("(width >= 960px)");
 
 describe("mobile portrait match layout", () => {
   it("keeps the match inside the viewport and limits scrolling to cards", () => {
@@ -200,9 +216,7 @@ describe("mobile portrait match layout", () => {
     // own edges (the order badge sits 6px past the corner), so the row pads itself
     // and centres safely — plain centring would strand the first card of a row that
     // scrolls sideways.
-    expect(portraitRules).toMatch(
-      /\.decision-overlay__grid \{[^}]*justify-content:\s*safe center[^}]*padding:\s*8px/,
-    );
+    expect(portraitRules).toMatch(/\.decision-overlay__grid \{[^}]*justify-content:\s*safe center[^}]*padding:\s*8px/);
   });
 
   it("lets the effect text flow whole instead of hiding its tail in a scroll box", () => {

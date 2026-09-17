@@ -1,0 +1,930 @@
+/* The cues a card plays: draw flight, entering the battle area, bursts,
+   hatching, the zone showcase, security attacks, shield breaks and the turn
+   banner. */
+
+/* --- Draw: card back flying from a deck pile to its hand ------------------ */
+
+/* The board sets the launch point and the trip vector; the element is mounted
+   for one animation and unmounted by GameScreen when the beat ends. */
+.game-draw-flight {
+  --draw-flight-w: 30px;
+  --draw-flight-h: 42px;
+
+  position: absolute;
+  z-index: 62;
+  /* The board hands over the centre of the deck pile, so the card back pulls
+     itself back over that point; a layout may then resize it without the launch
+     point or the landing point drifting off the pile it belongs to. */
+  width: var(--draw-flight-w);
+  height: var(--draw-flight-h);
+  margin-top: calc(var(--draw-flight-h) / -2);
+  margin-left: calc(var(--draw-flight-w) / -2);
+  pointer-events: none;
+  border: 1px solid var(--ds-border-strong);
+  border-radius: 5px;
+  background: linear-gradient(150deg, var(--ds-surface-muted), var(--ds-surface));
+  box-shadow: 0 4px 12px rgb(0 0 0 / 45%);
+  animation: battle-draw-flight var(--t-draw-flight, 340ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-draw-flight {
+  0% {
+    transform: translate(0, 0) scale(0.85);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--battle-flight-dx), var(--battle-flight-dy)) scale(1.05);
+    opacity: 0;
+  }
+}
+
+/* --- Card entering the battle area --------------------------------------- */
+
+.game-card-enter {
+  animation: battle-card-enter var(--t-card-enter, 320ms) ease-out both;
+}
+
+@keyframes battle-card-enter {
+  from {
+    scale: 0.86;
+    opacity: 0.35;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+.game-card-sparkles {
+  position: absolute;
+  inset: -22% -8% 45%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.game-card-sparkle {
+  position: absolute;
+  width: 0.55rem;
+  aspect-ratio: 1;
+  opacity: 0;
+  background: var(--battle-marker, #ffd23e);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  filter: drop-shadow(0 0 5px rgb(255 210 62 / 85%));
+  animation: battle-card-sparkle var(--t-card-sparkle, 900ms) ease-out both;
+}
+
+/* The five stars sit on an arc over the card, popping outward from the centre. */
+.game-card-sparkle:nth-child(1) {
+  top: 30%;
+  left: 4%;
+  animation-delay: 180ms;
+}
+
+.game-card-sparkle:nth-child(2) {
+  top: 8%;
+  left: 26%;
+  animation-delay: 90ms;
+}
+
+.game-card-sparkle:nth-child(3) {
+  top: 0%;
+  left: 50%;
+}
+
+.game-card-sparkle:nth-child(4) {
+  top: 8%;
+  left: 74%;
+  animation-delay: 90ms;
+}
+
+.game-card-sparkle:nth-child(5) {
+  top: 30%;
+  left: 96%;
+  animation-delay: 180ms;
+}
+
+@keyframes battle-card-sparkle {
+  0% {
+    scale: 0.2;
+    opacity: 0;
+  }
+  30% {
+    scale: 1.2;
+    opacity: 1;
+  }
+  60% {
+    scale: 1;
+    opacity: 0.9;
+  }
+  100% {
+    scale: 0.45;
+    translate: 0 -35%;
+    opacity: 0;
+  }
+}
+
+/* --- Colour-keyed burst ---------------------------------------------------
+   One component for every landing, coloured by the moment rather than by the
+   element it sits behind (battle-animation-spec.md, "Effect colour vocabulary"):
+   an arrival takes the card's own colour, an evolution burns red into orange, a
+   hatch opens white into blue. The two tones arrive as custom properties from
+   `burstPalette`, so the vocabulary has one home in TypeScript. */
+
+.battle-burst {
+  position: absolute;
+  z-index: 0;
+  inset: -28%;
+  display: block;
+  pointer-events: none;
+}
+
+.battle-burst__core {
+  position: absolute;
+  inset: 24%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--battle-burst-base) 0%, transparent 68%);
+  animation: battle-burst-core var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-burst__rays {
+  position: absolute;
+  inset: 0;
+}
+
+/* Eight rays on a 45° wheel, each grown lengthwise from the centre and then
+   rotated into its spoke — the scale runs before the transform, so the ray
+   stretches along its own axis rather than along the board's. */
+.battle-burst__rays i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5%;
+  height: 46%;
+  margin-left: -2.5%;
+  background: linear-gradient(180deg, var(--battle-burst-base) 0%, transparent 100%);
+  transform: rotate(var(--battle-burst-ray, 0deg));
+  transform-origin: 50% 0;
+  animation: battle-burst-ray var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-burst__ring {
+  position: absolute;
+  inset: 20%;
+  border: 2px solid var(--battle-burst-edge);
+  border-radius: 50%;
+  animation: battle-burst-ring var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-burst__ring--late {
+  border-color: var(--battle-burst-base);
+  animation-delay: 140ms;
+}
+
+/* An evolution reads as arcs rather than closed rings: two sides of each ring
+   are dropped and the pair counter-rotates. */
+.battle-burst--evolve .battle-burst__ring {
+  border-width: 3px;
+  border-inline-color: transparent;
+  animation-name: battle-burst-arc;
+}
+
+.battle-burst--evolve .battle-burst__ring--late {
+  animation-name: battle-burst-arc-reverse;
+}
+
+.battle-burst--hatch .battle-burst__core {
+  background: radial-gradient(circle, var(--battle-burst-base) 0%, var(--battle-burst-edge) 38%, transparent 72%);
+}
+
+/* The flying card back is a thumbnail, so the starburst reaches well past it to
+   read as an arrival rather than a speck. */
+.battle-burst--draw {
+  inset: -90%;
+}
+
+.battle-burst--draw .battle-burst__core,
+.battle-burst--draw .battle-burst__rays i,
+.battle-burst--draw .battle-burst__ring {
+  animation-duration: var(--t-draw-burst, 600ms);
+}
+
+@keyframes battle-burst-core {
+  0% {
+    scale: 0.3;
+    opacity: 0;
+  }
+  25% {
+    scale: 1.1;
+    opacity: 0.85;
+  }
+  100% {
+    scale: 1.35;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-ray {
+  0% {
+    scale: 1 0;
+    opacity: 0;
+  }
+  25% {
+    scale: 1 1;
+    opacity: 0.95;
+  }
+  100% {
+    scale: 1 0.3;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-ring {
+  0% {
+    scale: 0.25;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    scale: 1.5;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-arc {
+  0% {
+    rotate: -60deg;
+    scale: 0.3;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    rotate: 40deg;
+    scale: 1.55;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-arc-reverse {
+  0% {
+    rotate: 70deg;
+    scale: 0.3;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    rotate: -30deg;
+    scale: 1.4;
+    opacity: 0;
+  }
+}
+
+/* --- Hatching and breeding-slot spotlight --------------------------------- */
+
+.game-breeding-slot {
+  position: relative;
+}
+
+.game-breeding-slot__burst {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The reference client darkens everything around the egg and opens a white
+   starburst behind it, so the hatch reads even on a busy board. */
+.game-breeding-slot--lit[data-burst="hatch"]::before {
+  position: absolute;
+  z-index: 0;
+  inset: -26%;
+  background: radial-gradient(circle, rgb(4 8 18 / 80%) 28%, transparent 70%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  animation: battle-hatch-vignette var(--t-card-burst, 800ms) ease-out both;
+}
+
+.game-breeding-slot--lit[data-burst="evolve"]::before {
+  position: absolute;
+  z-index: 0;
+  inset: -20%;
+  background: radial-gradient(circle, rgb(240 138 36 / 35%) 22%, transparent 68%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  animation: battle-hatch-vignette var(--t-card-burst, 800ms) ease-out both;
+}
+
+@keyframes battle-hatch-vignette {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* --- Turn-start draw starburst -------------------------------------------- */
+
+/* Sized to the flying card back so the burst opens exactly where it landed. */
+.game-draw-burst {
+  --draw-flight-w: 30px;
+  --draw-flight-h: 42px;
+
+  position: absolute;
+  z-index: 62;
+  width: var(--draw-flight-w);
+  height: var(--draw-flight-h);
+  margin-top: calc(var(--draw-flight-h) / -2);
+  margin-left: calc(var(--draw-flight-w) / -2);
+  pointer-events: none;
+}
+
+/* Left where a permanent was deleted: the board has already dropped the card, so the
+   burst is placed from the position it last held. */
+.game-delete-burst {
+  position: absolute;
+  z-index: 62;
+  width: 96px;
+  height: 96px;
+  pointer-events: none;
+}
+
+/* Effect deletion lands with a short energy pulse around the card's last position.
+   Battle deletions already have the claw/shake impact, so they keep the plain shatter. */
+.game-delete-burst--effect::before,
+.game-delete-burst--effect::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  content: "";
+  border: 2px solid var(--battle-arrow-effect);
+  border-radius: 50%;
+  pointer-events: none;
+  translate: -50% -50%;
+  animation: battle-effect-deletion-pulse var(--t-card-burst, 800ms) ease-out both;
+}
+
+.game-delete-burst--effect::before {
+  width: 58px;
+  height: 58px;
+}
+
+.game-delete-burst--effect::after {
+  width: 28px;
+  height: 28px;
+  animation-delay: 90ms;
+}
+
+@keyframes battle-effect-deletion-pulse {
+  0% {
+    opacity: 0;
+    scale: 0.25;
+    box-shadow: 0 0 0 0 rgb(255 159 67 / 0%);
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 2.2;
+    box-shadow: 0 0 20px 5px rgb(255 159 67 / 0%);
+  }
+}
+
+/* --- Centre-screen zone showcase ------------------------------------------
+   Sits above the board-mode decision rail and below the dialogs: it is the
+   opponent's moment, and no decision of the viewer's is ever waiting under it. */
+
+.battle-showcase {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 1);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  animation: battle-showcase-fade var(--t-showcase-out, 160ms) cubic-bezier(0.32, 0, 0.67, 0)
+    var(--t-showcase-out-at, 1660ms) both;
+}
+
+.battle-showcase__frame {
+  position: relative;
+  display: flex;
+  margin: 0;
+  gap: var(--ds-space-2);
+  flex-direction: column;
+  align-items: center;
+  animation: battle-showcase-in var(--t-showcase-in, 160ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.battle-showcase__halo {
+  position: absolute;
+  z-index: 0;
+  inset: 8% 0 22%;
+  pointer-events: none;
+}
+
+.battle-showcase__art {
+  position: relative;
+  z-index: 1;
+  border-radius: var(--ds-radius-sm);
+  filter: drop-shadow(0 22px 44px rgb(4 8 18 / 70%));
+}
+
+.battle-showcase__caption {
+  position: relative;
+  z-index: 1;
+  padding: 0.25rem 0.85rem;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 999px;
+  background: var(--battle-panel);
+  box-shadow: 0 2px 12px rgb(6 12 28 / 45%);
+}
+
+@keyframes battle-showcase-in {
+  from {
+    scale: 0.78;
+    opacity: 0;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+@keyframes battle-showcase-fade {
+  from {
+    scale: 1;
+    opacity: 1;
+  }
+  to {
+    scale: 1.06;
+    opacity: 0;
+  }
+}
+
+/* --- Security attack: lunge, shield hit, arrow double shot ---------------- */
+
+/* The attacker leans at the shield it declared on. `translate` is used rather
+   than `transform` so the permanent's inline highlight offset still applies. */
+.game-permanent-lunge--up {
+  animation: battle-lunge-up var(--t-attack-lunge, 240ms) ease-out both;
+}
+
+.game-permanent-lunge--down {
+  animation: battle-lunge-down var(--t-attack-lunge, 240ms) ease-out both;
+}
+
+@keyframes battle-lunge-up {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -14px;
+  }
+}
+
+@keyframes battle-lunge-down {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 14px;
+  }
+}
+
+/* The reference client shatters the security glass pane on every check; the web port reads that
+   as a white flash plus a short shake on the shield badge. */
+.game-security-shield--hit {
+  animation: battle-security-hit var(--t-security-hit, 350ms) ease-out both;
+}
+
+@keyframes battle-security-hit {
+  0% {
+    filter: brightness(3.2);
+    translate: 0 0;
+  }
+  20% {
+    translate: -4px 0;
+  }
+  40% {
+    filter: brightness(1.9);
+    translate: 4px 0;
+  }
+  60% {
+    translate: -3px 0;
+  }
+  80% {
+    translate: 2px 0;
+  }
+  100% {
+    filter: brightness(1);
+    translate: 0 0;
+  }
+}
+
+/* --- Shield break --------------------------------------------------------
+   The reference client arms the defender's security glass at declaration (the blue
+   material, AttackProcess.cs:134) and shatters the pane on the check itself
+   (SecurityBreakGlass, ≈250 ms). The web port reads that as: the shield pulses blue,
+   its face breaks into shards that fly apart, and the light washes in from the
+   defender's edge of the screen. */
+
+.game-security-shield--armed {
+  animation: battle-security-arm var(--t-security-arm, 120ms) ease-in-out both;
+}
+
+@keyframes battle-security-arm {
+  0%,
+  100% {
+    filter: drop-shadow(0 3px 8px rgb(0 0 0 / 55%));
+  }
+  55% {
+    filter: drop-shadow(0 0 14px var(--battle-cyan)) brightness(1.5);
+  }
+}
+
+/* The blue pane burst, drawn behind the shards it throws. */
+.game-security-shield__burst {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  inset: 0;
+  pointer-events: none;
+}
+
+.game-security-shield__shards {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  inset: 0;
+  pointer-events: none;
+}
+
+.game-security-shield__shards i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 34%;
+  height: 34%;
+  background: linear-gradient(140deg, rgb(255 255 255 / 92%) 0%, var(--battle-cyan) 55%, rgb(18 63 143 / 90%) 100%);
+  clip-path: polygon(50% 0%, 100% 64%, 16% 100%);
+  animation: battle-shield-shard var(--t-shield-break, 250ms) cubic-bezier(0.32, 0, 0.67, 0) both;
+}
+
+/* The shield's burst is unmounted with the break phase, which is far shorter
+   than the generic card-landing burst: on that clock it was cut off a third of
+   the way through and popped away at its brightest. It runs on the shatter's. */
+.game-security-shield__burst .battle-burst__core,
+.game-security-shield__burst .battle-burst__rays i,
+.game-security-shield__burst .battle-burst__ring {
+  animation-duration: var(--t-shield-break, 250ms);
+}
+
+@keyframes battle-shield-shard {
+  0% {
+    translate: -50% -50%;
+    rotate: 0deg;
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    translate: calc(-50% + var(--shard-x, 0px)) calc(-50% + var(--shard-y, 0px));
+    rotate: var(--shard-spin, 90deg);
+    opacity: 0;
+    scale: 0.35;
+  }
+}
+
+/* The count is re-keyed on every change, so the pop restarts whenever security moves —
+   a check spending one, a recovery giving one back. */
+.game-security-shield__count {
+  animation: battle-security-count-pop var(--t-security-count-pop, 300ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes battle-security-count-pop {
+  0% {
+    scale: 1.6;
+    filter: brightness(2.4);
+  }
+  62% {
+    scale: 0.93;
+  }
+  100% {
+    scale: 1;
+    filter: brightness(1);
+  }
+}
+
+/* The defender's edge of the board lights up as their shield breaks, which is what makes
+   an attack on the opponent's security read differently from one on the viewer's. */
+.battle-edge-flash {
+  position: absolute;
+  z-index: 63;
+  inset: 0;
+  pointer-events: none;
+  animation: battle-edge-flash var(--t-shield-flash, 320ms) ease-out both;
+}
+
+.battle-edge-flash--you {
+  background: linear-gradient(0deg, rgb(232 84 44 / 55%) 0%, rgb(232 84 44 / 12%) 18%, transparent 34%);
+}
+
+.battle-edge-flash--opp {
+  background: linear-gradient(180deg, rgb(44 125 232 / 55%) 0%, rgb(44 125 232 / 12%) 18%, transparent 34%);
+}
+
+@keyframes battle-edge-flash {
+  0% {
+    opacity: 0;
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* --- Security-effect branch ----------------------------------------------
+   A revealed card that resolves an effect leaves the centre and docks against the RIGHT
+   edge. The opponent's side panels and the notices a security card raises both live on the
+   left, so the card holds opposite them: the dock, the clause that explains it and the
+   cards its effect turned up are three things to read at once, and stacking them on one
+   edge buried the dock under the panels. */
+
+.battle-security-branch {
+  /* How far above the board's middle the card holds. A short viewport cannot spend
+     8rem above centre without pushing the card off the top edge, so the lift is a
+     property the narrow blocks retune rather than a number baked into the keyframe. */
+  --security-branch-lift: 8rem;
+
+  position: absolute;
+  top: 50%;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
+  pointer-events: none;
+}
+
+/* A used Option holds on the right edge at the board's middle, the same half of the
+   screen a revealed Security card uses, but centred rather than lifted: its [Main]
+   clause plays out beside the board instead of over the hand it came from. */
+.battle-security-branch[data-source="option"] {
+  --security-branch-lift: 0rem;
+}
+
+/* A check whose reveal and close arrived together plays the whole detour as one clip. */
+.battle-security-branch[data-state="settled"] {
+  animation: battle-security-branch var(--t-security-branch, 1340ms) ease-out both;
+}
+
+/* A check the server is still resolving docks the card and leaves it there for as long
+   as that takes, so the slide in and the exit are two animations with no clock between
+   them (CardController.cs:4062, the brainstorm slot). */
+.battle-security-branch[data-state="docked"] {
+  animation: battle-security-branch-in var(--t-security-branch-in, 220ms) ease-out both;
+}
+
+.battle-security-branch[data-state="closing"] {
+  animation: battle-security-branch-out var(--t-security-branch-out, 220ms) ease-in var(--t-security-dock-hold, 300ms)
+    both;
+}
+
+.battle-security-branch__frame {
+  display: grid;
+  margin: 0;
+  padding: 0.45rem;
+  gap: 0.3rem;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.7rem;
+  background: var(--battle-panel);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 55%);
+  justify-items: center;
+}
+
+.battle-security-branch__caption {
+  max-width: 9rem;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+@keyframes battle-security-branch-in {
+  0% {
+    translate: 2.5rem calc(-50% - var(--security-branch-lift));
+    opacity: 0;
+    scale: 0.72;
+  }
+  100% {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes battle-security-branch-out {
+  0% {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    translate: 0 calc(-50% - var(--security-branch-lift) - 2.5rem);
+    opacity: 0;
+    scale: 0.82;
+  }
+}
+
+@keyframes battle-security-branch {
+  0% {
+    translate: 2.5rem calc(-50% - var(--security-branch-lift));
+    opacity: 0;
+    scale: 0.72;
+  }
+  11.3% {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    opacity: 1;
+    scale: 1;
+  }
+  88.7% {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    translate: 0 calc(-50% - var(--security-branch-lift) - 2.5rem);
+    opacity: 0;
+    scale: 0.82;
+  }
+}
+
+/* --- Summoning sickness ring ---------------------------------------------
+   Gold stars orbiting an ellipse over a permanent that entered this turn and cannot
+   attack yet. The truth is `Permanent.summoningSick`, projected by the server; the ring
+   only draws it. Each star's resting position along the ellipse is set inline, so with
+   the orbit stopped the ring still reads as a ring. */
+
+.game-summoning-ring {
+  position: absolute;
+  top: -26%;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 34%;
+  pointer-events: none;
+}
+
+.game-summoning-ring i {
+  position: absolute;
+  inset: 0;
+  width: 9px;
+  height: 9px;
+  margin: auto;
+  background: radial-gradient(circle, #fff5cc 0%, #f4c53a 60%, rgb(244 197 58 / 0%) 78%);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  filter: drop-shadow(0 0 4px rgb(244 197 58 / 70%));
+  offset-path: ellipse(46% 40% at 50% 50%);
+  offset-rotate: 0deg;
+  animation: battle-summoning-orbit var(--t-summoning-orbit, 4200ms) linear infinite;
+  animation-delay: calc(-1 * var(--star-index, 0) * var(--t-summoning-orbit, 4200ms) / 6);
+}
+
+@keyframes battle-summoning-orbit {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+
+/* Filled, separated chevrons keep the target direction clear over the playmat. */
+.game-attack-arrow__chevron,
+.game-attack-arrow__head {
+  stroke: rgb(195 252 255 / 75%);
+  stroke-width: 0.65;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgb(0 24 36 / 35%));
+  animation: battle-arrow-chevron-in var(--t-attack-arrow-chevron, 160ms) ease-out both;
+  animation-delay: calc(var(--arrow-step, 0) * 18ms);
+}
+
+@keyframes battle-arrow-chevron-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.game-permanent--candidate {
+  --ds-card-rim-threat: #80efff;
+  --ds-card-glow-threat: rgb(100 235 255 / 22%);
+}
+
+/* --- Turn banner --------------------------------------------------------- */
+
+.game-turn-banner {
+  position: absolute;
+  top: 24%;
+  right: 0;
+  left: 0;
+  z-index: 71;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.1rem 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* A translucent band the board still reads through, opening from the middle,
+     with the words sliding through it. */
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--battle-banner-tint) 16%,
+    var(--battle-banner-tint) 84%,
+    transparent 100%
+  );
+  border-top: 1px solid rgb(255 255 255 / 30%);
+  border-bottom: 1px solid rgb(255 255 255 / 30%);
+  /* The reference client's banner is ~620ms end to end (ShowTurnPlayerObject.cs: 300ms hold plus
+     the in/out clips). 1s keeps it readable in a browser without stalling. */
+  animation: battle-banner var(--t-turn-banner, 1000ms) ease-in-out both;
+}
+
+.game-turn-banner span {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgb(11 13 16 / 55%),
+    0 0 18px rgb(11 13 16 / 45%);
+  animation: battle-banner-text var(--t-turn-banner, 1000ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The reference client's two exact band colours (ShowTurnPlayerObject.cs:24, :31),
+   taken down to the translucency the band is read through. */
+.game-turn-banner--opp {
+  --battle-banner-tint: rgb(255 131 121 / 62%);
+}
+
+.game-turn-banner--you {
+  --battle-banner-tint: rgb(121 153 255 / 62%);
+}
+
+@keyframes battle-banner {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 46% 0 46%);
+  }
+  18%,
+  82% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 46% 0 46%);
+  }
+}
+
+/* The words travel through the band rather than sitting in it. */
+@keyframes battle-banner-text {
+  0% {
+    opacity: 0;
+    transform: translateX(-16vw);
+  }
+  26%,
+  70% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(16vw);
+  }
+}

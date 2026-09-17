@@ -1,0 +1,435 @@
+/* The battle-board theme: palette, header controls, log ticker, name plates
+   and the memory band. */
+
+/* ============================================================================
+   Battle-board look & feel — a theme layer that restyles the match screen after the
+   reference client: split teal/red battlefield, hexagonal memory gauge with a
+   lit marker, circular end-turn orb, security shields, oversized fanned hand
+   with cyan "playable" glow, navy dialogs, and full-width turn banners.
+   Class hooks live in GameScreen/boardPieces; everything visual lives here.
+   ========================================================================= */
+
+/* The battle-board palette lives on :root because match overlays portal into
+   #aegis-stage, outside .game-layout — a scoped custom property would be
+   undefined there and silently invalidate any declaration using it. The
+   names are namespaced, so nothing outside the match screen reads them. */
+:root {
+  --battle-field-opp-a: #05303f;
+  --battle-field-opp-b: #0d6274;
+  --battle-field-you-a: #d3560f;
+  --battle-field-you-b: #8a1e02;
+  /* Memory chips follow the design system: the viewer's half carries the
+     accent, the opponent's half a quiet slate; both sit on the fixed dark
+     band, so the values only need contrast against it and white digits. */
+  --battle-memory-you: var(--ds-accent, #075ff7);
+  --battle-memory-opp: #47536b;
+  --battle-memory-zero: #f4f6fa;
+  --battle-memory-zero-ink: #23324d;
+  --battle-marker: #8fc1ff;
+  /* The yellow the reference client keeps under the chip memory currently sits on. */
+  --battle-memory-glow: #ffd45e;
+  --battle-cyan: #27d6e8;
+  --battle-attack: #ff2d1f;
+  --battle-attack-glow: rgb(255 64 32 / 35%);
+  /* The declared attack is a bright cyan beam, as in the reference client — the
+     one hue neither player's half of the board uses, which is why it survives the
+     red field a red arrow used to disappear into. An effect keeps its own amber
+     vocabulary. Both are cased in near-black: the beam crosses card art of every
+     possible brightness. */
+  --battle-arrow-attack: #79e7ff;
+  --battle-arrow-attack-glow: rgb(39 214 232 / 60%);
+  --battle-arrow-effect: #ffa63d;
+  --battle-arrow-effect-glow: rgb(240 138 36 / 55%);
+  --battle-arrow-casing: rgb(3 8 20 / 88%);
+  --battle-panel: #101b30;
+  --battle-panel-border: #3b5c9e;
+  /* The amber the reference client numbers ordered picks and offers "Use" in. */
+  --battle-amber: #f08a24;
+  /* The pink the reference client calls named mechanics out in ("DigiXros!"). */
+  --battle-keyword: #e91e78;
+  --battle-header-grad: linear-gradient(180deg, #2b57a8 0%, #16336e 55%, #102450 100%);
+}
+
+/* --- Desktop header controls (the sidebar's former match-level actions) --- */
+
+.game-topbar-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.game-topbar-button {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  color: var(--ds-foreground-muted);
+  cursor: pointer;
+  border: 1.5px solid var(--ds-border-strong);
+  border-radius: 50%;
+  background: var(--ds-surface);
+  transition:
+    color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.game-topbar-button:hover {
+  color: var(--ds-primary);
+  border-color: var(--ds-primary);
+  box-shadow: 0 0 10px var(--ds-primary-light);
+}
+
+/* The skip button is only in the header while the queue has something to skip, so it
+   is tinted: a control that comes and goes has to be recognisable at a glance. */
+.game-topbar-button--skip {
+  color: var(--ds-primary);
+  border-color: var(--ds-primary);
+}
+
+.game-topbar-button--danger:hover {
+  color: var(--ds-danger);
+  border-color: var(--ds-danger);
+  box-shadow: 0 0 10px var(--ds-danger-light);
+}
+
+/* --- Match log ticker (desktop's slim replacement for the sidebar log) ---- */
+
+/* The running log stays in the DOM as an invisible text region — assistive
+   tech and tests read the turn/memory status and every log line from it — but
+   sighted players open the history sheet from the header's log button instead
+   of a floating overlay. */
+.game-log-ticker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Name plates -------------------------------------------------------- */
+
+.game-name-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 9rem;
+  padding: 0.3rem 1.4rem;
+  color: #fff !important;
+  letter-spacing: 0.04em;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 999px;
+  background: rgb(3 6 10 / 88%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
+}
+
+/* --- Memory band, gauge and end-turn orb -------------------------------- */
+
+/* The band is a flex row — gauge stretching, orb in flow at the right — so the
+   chips shrink instead of ever sliding under the orb, whatever the width. */
+.game-memory-band {
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0;
+  background: linear-gradient(180deg, #0d1a30 0%, #071224 100%);
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
+  box-shadow: 0 4px 18px rgb(7 21 43 / 35%);
+}
+
+.game-memory-band .game-memory-gauge {
+  flex: 1;
+}
+
+.game-memory-gauge {
+  position: relative;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0 0.6rem;
+}
+
+.game-memory-gauge__phase {
+  flex-shrink: 0;
+  min-width: 5.2rem;
+  padding: 0.22rem 0.9rem;
+  font-family: var(--ds-font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--battle-marker);
+  text-align: center;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--battle-marker) 55%, transparent);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 6%);
+}
+
+.game-memory-gauge__track {
+  position: relative;
+  gap: 0.14rem;
+  --memory-track-pad-x: 0.5rem;
+  --memory-track-pad-y: 0.2rem;
+  padding: var(--memory-track-pad-y) var(--memory-track-pad-x);
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* The arc and the glow are laid over the chips rather than inside them: a chip is
+   clipped to its hexagon, which would cut both off at its own edges. Their
+   geometry is percentages of the track's content box (memoryArc.ts), so the
+   inset here must match the track's own padding. */
+/* Sized explicitly rather than by `inset`: an SVG is a replaced element, so with
+   `height: auto` it would take its intrinsic square ratio and paint far outside
+   the band. The box is the track's content box, which is the row of chips the
+   percentages in memoryArc.ts are measured against. */
+.game-memory-arc {
+  position: absolute;
+  top: var(--memory-track-pad-y);
+  left: var(--memory-track-pad-x);
+  z-index: 2;
+  width: calc(100% - var(--memory-track-pad-x) * 2);
+  height: calc(100% - var(--memory-track-pad-y) * 2);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.game-memory-arc path {
+  fill: none;
+  stroke: var(--battle-attack);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 5px var(--battle-attack-glow));
+  animation: battle-memory-arc var(--t-memory-arc, 520ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* Drawn on, then gone: the arc says where memory came from, not where it is. */
+@keyframes battle-memory-arc {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 1;
+  }
+  62% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* Hexagonal chips, numbered outward from zero on both sides. They share the
+   track evenly (the base rule higher up caps their width), so the row shrinks
+   with the board instead of sliding under the end-turn orb. */
+.game-memory-coin {
+  position: relative;
+  display: grid;
+  flex: 1 1 0;
+  aspect-ratio: 0.92;
+  min-width: 0;
+  place-items: center;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+}
+
+.game-memory-coin__n {
+  font-family: var(--ds-font-mono);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
+}
+
+/* The current value is told three ways, none of them blurred: the chip is bigger
+   than its neighbours, it wears a crisp ring in the marker colour, and it carries
+   one tight shadow to lift it off the band. The pop plays once, when the class
+   lands on the chip memory just moved to. */
+.game-memory-coin--marker {
+  --memory-marker-ring: 2px;
+  z-index: 1;
+  transform: scale(1.22);
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 65%)) brightness(1.06);
+  animation: battle-marker-pop var(--t-memory-marker-pop, 300ms) ease-out both;
+}
+
+/* The ring is the chip's own hexagon painted one step larger, with the chip's fill
+   laid back over it: a band that follows the hexagon exactly instead of a glow
+   bleeding past its edges. Both halves are clipped by the chip, so nothing leaks. */
+.game-memory-coin--marker::before,
+.game-memory-coin--marker::after {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  content: "";
+}
+
+.game-memory-coin--marker::before {
+  background: var(--battle-memory-glow);
+  animation: battle-marker-ring var(--t-memory-glow, 1600ms) ease-in-out infinite;
+}
+
+.game-memory-coin--marker::after {
+  /* The chip's own side colour, whichever half of the gauge it sits on. */
+  inset: var(--memory-marker-ring);
+  background: inherit;
+}
+
+/* The digits are painted after both ring layers rather than under them. */
+.game-memory-coin--marker .game-memory-coin__n {
+  position: relative;
+  z-index: 1;
+}
+
+.game-memory-gauge--compact .game-memory-coin--marker {
+  --memory-marker-ring: 1.5px;
+}
+
+@keyframes battle-marker-ring {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.66;
+  }
+}
+
+@keyframes battle-marker-pop {
+  0% {
+    transform: scale(1);
+  }
+  55% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1.22);
+  }
+}
+
+/* The reference client lights every tab the memory value travelled across for the length of the
+   marker move (MemoryObject.cs:96-102). The per-chip delay is set inline so the
+   sweep runs outward in the direction memory actually moved. */
+.game-memory-coin--swept {
+  animation: battle-memory-sweep var(--t-memory-sweep, 120ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-memory-sweep {
+  0% {
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+  }
+  45% {
+    filter: drop-shadow(0 0 8px var(--battle-marker)) brightness(1.45);
+  }
+  100% {
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+  }
+}
+
+.game-memory-gauge--compact .game-memory-coin {
+  flex-basis: 1.4rem;
+}
+
+.game-memory-gauge--compact .game-memory-coin__n {
+  font-size: 0.62rem;
+}
+
+/* The unsuspend step sweeps the board; the phase pill breathes with it rather
+   than inventing a second source for the same moment (the cue drives both). */
+.game-memory-gauge__phase--sweeping {
+  animation: battle-phase-sweep var(--t-memory-glow, 1600ms) ease-in-out infinite;
+}
+
+@keyframes battle-phase-sweep {
+  0%,
+  100% {
+    color: var(--battle-marker);
+    box-shadow: none;
+  }
+  50% {
+    color: #fff;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--battle-marker) 65%, transparent);
+  }
+}
+
+.game-memory-gauge--compact .game-memory-gauge__phase {
+  min-width: 3.6rem;
+  font-size: 0.6rem;
+}
+
+/* The circular turn button rides the band's right edge, like the reference
+   client's End Turn orb. */
+.game-end-turn-orb {
+  /* The turning ring is positioned against the orb itself, so the orb has to be
+     the containing block — otherwise the ring escapes to the nearest positioned
+     ancestor and paints a circle the size of the page. */
+  position: relative;
+  z-index: 6;
+  flex-shrink: 0;
+  width: 5.4rem;
+  height: 5.4rem;
+  /* Taller than the band on purpose: the negative margins let the orb overhang
+     both edges (the reference client's orb rides the divider the same way). */
+  margin: -0.9rem 0.9rem;
+  padding: 0.4rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid color-mix(in srgb, var(--battle-marker) 85%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 32%, #17263e 0%, #0a1322 68%, #060b14 100%);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 16px color-mix(in srgb, var(--battle-marker) 45%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+  transition:
+    box-shadow 180ms,
+    filter 180ms;
+}
+
+.game-end-turn-orb:hover:not(:disabled) {
+  filter: brightness(1.2);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 24px color-mix(in srgb, var(--battle-marker) 75%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+.game-end-turn-orb--waiting,
+.game-end-turn-orb:disabled {
+  font-size: 0.68rem;
+  cursor: default;
+  border-color: rgb(120 135 165 / 55%);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 10px rgb(120 135 165 / 30%),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+/* The breeding face of the same control: amber, because ending the breeding step
+   is a different decision from ending the turn. */
+.game-end-turn-orb--breeding {
+  border-color: color-mix(in srgb, var(--battle-amber) 90%, transparent);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 20px color-mix(in srgb, var(--battle-amber) 55%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+.game-end-turn-orb--breeding:hover:not(:disabled) {
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 28px color-mix(in srgb, var(--battle-amber) 80%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+}

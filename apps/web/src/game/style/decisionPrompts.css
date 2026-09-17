@@ -1,0 +1,697 @@
+/* Mulligan, the decision overlay's grid, the trigger chooser and the
+   board-mode prompt rail. */
+
+/* --- Mulligan parity ------------------------------------------------------ */
+
+.mulligan-turn-order {
+  margin: 0 0 var(--ds-space-2);
+  color: var(--battle-cyan);
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-sm);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* --- Decision dialog: desktop sizing -------------------------------------- */
+
+.decision-overlay__subtitle {
+  margin: 0 0 var(--ds-space-3);
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+.decision-overlay__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Past six options the grid would grow taller than the sheet. One row that
+   scrolls sideways keeps every card the same size, and the track stays visible
+   so it is obvious there is more to the right. */
+.decision-overlay__grid--scroll {
+  flex-wrap: nowrap;
+  padding-bottom: var(--ds-space-3);
+  overflow-x: auto;
+  scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+  scrollbar-width: thin;
+}
+.decision-overlay__grid--scroll > * {
+  flex: none;
+}
+.decision-overlay__grid--scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.decision-overlay__grid--scroll::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+}
+.decision-overlay__grid--scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--ds-accent);
+}
+
+.decision-overlay__order-card {
+  position: relative;
+  flex: none;
+}
+.decision-overlay__order-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  color: var(--ds-brand-on-ink);
+  border: 2px solid var(--ds-surface);
+  border-radius: 999px;
+  background: var(--battle-amber);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  box-shadow: var(--ds-shadow-sm);
+}
+.decision-overlay__order-row {
+  outline: 2px solid var(--battle-amber);
+  outline-offset: -2px;
+}
+
+/* --- Trigger chooser ------------------------------------------------------ */
+
+.trigger-chooser {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
+}
+.trigger-chooser__option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3);
+  color: var(--ds-fg);
+  border: 1.5px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 120ms,
+    border-color 120ms;
+}
+.trigger-chooser__option--chosen {
+  border-color: var(--ds-accent);
+  background: var(--ds-accent-surface);
+}
+.trigger-chooser__card {
+  position: relative;
+  display: block;
+}
+.trigger-chooser__effect-text {
+  display: block;
+  color: var(--ds-fg);
+  font-size: var(--ds-text-sm);
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.trigger-chooser__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.trigger-chooser__source {
+  color: var(--battle-cyan);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.trigger-chooser__name {
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+.trigger-chooser__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-3);
+  position: relative;
+}
+.trigger-chooser__meta {
+  flex: 1;
+  padding-right: 20px;
+  gap: 6px;
+}
+.trigger-chooser__id {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+}
+.trigger-chooser__context {
+  margin-bottom: var(--ds-space-3);
+  color: var(--battle-cyan);
+  font-size: var(--ds-text-sm);
+  font-weight: 700;
+}
+.trigger-chooser__check {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--battle-cyan);
+  color: #071426;
+}
+.trigger-chooser__option--chosen {
+  box-shadow: 0 0 0 1px var(--ds-accent);
+}
+.trigger-chooser__option:focus-visible {
+  outline: 2px solid var(--battle-cyan);
+  outline-offset: 3px;
+}
+.trigger-chooser__section {
+  display: block;
+  width: 100%;
+  padding-top: 10px;
+  border-top: 1px solid var(--ds-border);
+}
+.trigger-chooser__section-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.trigger-chooser__paragraph {
+  display: block;
+  padding: 6px;
+}
+.trigger-chooser__paragraph--active {
+  background: var(--ds-accent-surface);
+  border-radius: var(--ds-radius-sm);
+}
+.trigger-chooser__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ds-border);
+}
+.trigger-chooser__selection {
+  color: var(--battle-cyan);
+  font-weight: 600;
+}
+@media (max-width: 600px) {
+  .trigger-chooser__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* --- Board-mode decision prompts ------------------------------------------ */
+
+/* The rail sits on the left half, clear of the notice column that anchors to the
+   bottom-left corner, and of the side panels on the right. */
+.board-prompt {
+  position: absolute;
+  top: 50%;
+  left: var(--ds-space-4);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  width: min(19rem, 42vw);
+  /* Bounded by the stage alone so the whole clause shows; if a decision's text
+     still outgrows the screen, the rail scrolls rather than losing its
+     actions — they are the decision's only exit. */
+  max-height: 92%;
+  padding: var(--ds-space-4);
+  overflow-y: auto;
+  color: var(--ds-fg);
+  border: 2px solid var(--ds-accent);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  translate: 0 -50%;
+  animation: battle-board-prompt-in var(--t-board-prompt-in, 200ms) ease-out both;
+}
+@keyframes battle-board-prompt-in {
+  from {
+    opacity: 0;
+    translate: -16px -50%;
+  }
+  to {
+    opacity: 1;
+    translate: 0 -50%;
+  }
+}
+/* The same prompt as a bottom sheet, which is what a phone in portrait gets: the
+   rail's slide is sideways and its resting offset is a vertical centring, neither
+   of which survives being anchored above the hand. */
+@keyframes battle-board-sheet-in {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+.board-prompt__back {
+  align-self: flex-start;
+}
+.board-prompt__grip,
+.board-prompt-scrim {
+  display: none;
+}
+.board-prompt__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+}
+.board-prompt__eyebrow {
+  margin: 0;
+  color: var(--ds-accent);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.board-prompt__text {
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-base);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.board-prompt__clause {
+  margin: 0;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  color: var(--ds-fg-secondary);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.5;
+}
+.board-prompt__detail {
+  margin: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+}
+.board-prompt__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-2);
+}
+/* The affirmative is amber and the refusal blue, matching the reference client's
+   Use / Not use pair, which players read by color before they read the words. */
+.board-prompt__use.aegis-button {
+  color: var(--ds-brand-ink);
+  border-color: var(--battle-amber);
+  background: var(--battle-amber);
+}
+.board-prompt__decline.aegis-button {
+  color: var(--battle-cyan);
+  border-color: var(--battle-cyan);
+}
+
+.board-opponent-pill {
+  position: absolute;
+  top: 5.5rem;
+  left: 50%;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  color: var(--ds-brand-on-ink);
+  border-radius: 999px;
+  background: rgb(15 23 42 / 88%);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  box-shadow: var(--ds-shadow-lg);
+  translate: -50% 0;
+  /* Its own keyframes, not battle-board-prompt-in: that one fills to `translate:
+     0 -50%`, which would cancel the horizontal centring above for good. */
+  animation: aegis-opponent-pill-in var(--t-board-prompt-in, 200ms) ease-out both;
+}
+@keyframes aegis-opponent-pill-in {
+  from {
+    opacity: 0;
+    translate: -50% -8px;
+  }
+  to {
+    opacity: 1;
+    translate: -50% 0;
+  }
+}
+.board-opponent-pill__dots {
+  display: flex;
+  gap: 3px;
+}
+.board-opponent-pill__dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--battle-cyan);
+  animation: aegis-pill-dot 1s ease-in-out infinite;
+}
+.board-opponent-pill__dots i:nth-child(2) {
+  animation-delay: 160ms;
+}
+.board-opponent-pill__dots i:nth-child(3) {
+  animation-delay: 320ms;
+}
+@keyframes aegis-pill-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.waiting-dialog {
+  width: min(100%, 460px);
+  padding: 36px;
+  text-align: center;
+}
+.waiting-dialog__spinner {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 18px;
+  border: 3px solid var(--ds-border);
+  border-top-color: var(--ds-accent);
+  border-radius: 50%;
+  animation: aegis-spin 900ms linear infinite;
+}
+.waiting-dialog__error {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  place-items: center;
+  color: var(--ds-danger);
+  border-radius: 50%;
+  background: var(--ds-danger-surface);
+}
+.waiting-dialog h2 {
+  margin: 0 0 var(--ds-space-2);
+  color: var(--ds-fg);
+  font: 800 var(--ds-text-2xl)/1.2 var(--ds-font-display);
+}
+.waiting-dialog p {
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+  line-height: 1.55;
+}
+.game-over-dialog {
+  width: min(100%, 440px);
+  max-width: calc(100% - var(--ds-space-6));
+  padding: 40px var(--ds-space-8);
+  text-align: center;
+}
+
+.recovery-toast {
+  position: fixed;
+  z-index: var(--ds-z-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  color: var(--ds-fg);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 45%, var(--ds-border));
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  pointer-events: none;
+  animation: aegis-pop 180ms ease-out;
+}
+.recovery-toast--you {
+  transform: translateY(-50%);
+}
+.recovery-toast--opp {
+  transform: translate(-100%, -50%);
+}
+.recovery-toast > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: var(--ds-success);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ds-success) 12%, var(--ds-surface));
+}
+.recovery-toast strong,
+.recovery-toast small {
+  display: block;
+}
+.recovery-toast strong {
+  font-size: var(--ds-text-sm);
+}
+.recovery-toast small {
+  margin-top: 1px;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+}
+
+.opponent-permanent-inspector {
+  position: fixed;
+  z-index: calc(var(--ds-z-toast) - 1);
+  width: 420px;
+  max-height: calc(100dvh - 24px);
+  padding: var(--ds-space-4);
+  overflow: hidden auto;
+  color: var(--ds-fg);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-summary);
+  pointer-events: auto;
+  animation: aegis-pop 140ms ease-out;
+}
+.opponent-permanent-inspector header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding-bottom: var(--ds-space-3);
+  border-bottom: 1px solid var(--ds-border);
+}
+.opponent-permanent-inspector header strong,
+.opponent-permanent-inspector header span {
+  display: block;
+}
+.opponent-permanent-inspector header strong {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-lg);
+}
+.opponent-permanent-inspector header span {
+  margin-top: 2px;
+  color: var(--ds-fg-muted);
+  font: 600 var(--ds-text-xs) var(--ds-font-mono);
+}
+.opponent-permanent-inspector__effect {
+  padding: var(--ds-space-3) 0;
+}
+.opponent-permanent-inspector__effect > span {
+  color: var(--ds-fg-muted);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.opponent-permanent-inspector p {
+  margin: var(--ds-space-1) 0 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-xs);
+  line-height: 1.45;
+  white-space: pre-line;
+}
+.opponent-permanent-inspector__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding-top: var(--ds-space-3);
+  border-top: 1px solid var(--ds-border);
+}
+.opponent-permanent-inspector__stack > div {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-muted);
+}
+.opponent-permanent-inspector__stack > div > div:last-child {
+  min-width: 0;
+}
+.opponent-permanent-inspector__stack strong,
+.opponent-permanent-inspector__stack span {
+  display: block;
+}
+.opponent-permanent-inspector__stack strong {
+  font-size: var(--ds-text-xs);
+}
+.opponent-permanent-inspector__stack span {
+  color: var(--ds-fg-muted);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+}
+.opponent-permanent-inspector__stack p {
+  overflow-wrap: anywhere;
+}
+
+/* A wide board (many Digimon in play) scrolls sideways inside its own row. The
+   field clips its overflow, so without this the outer cards were unreachable. */
+.game-battle-row {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.game-battle-scroll-arrow {
+  position: fixed;
+  z-index: 8;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #79dfef;
+  border-radius: 10px;
+  color: #e9fbff;
+  background: #17313e;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+  cursor: pointer;
+}
+.game-battle-scroll-arrow:hover,
+.game-battle-scroll-arrow:focus-visible {
+  color: #79dfef;
+  outline: 2px solid #79dfef;
+  outline-offset: 2px;
+}
+
+.game-memory-gauge__side {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* The memory gauge is a row of numbered coins. The track is a size container, so
+   the coins drop their digits by how much room the gauge itself has rather than by
+   viewport width — the same rules then hold on a phone and in a squeezed column. */
+.game-memory-gauge__track {
+  position: relative;
+  display: flex;
+  /* Grow into the space the labels leave, up to the width 21 full-size coins want.
+     The track must be sized by the layout, not by its contents: `container-type`
+     contains its inline size, so a content-derived basis would collapse to zero. */
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 940px;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 0.55vw, 6px);
+  /* Named, because the arc and the marker glow are placed over the row of chips
+     the padding leaves — the content box, not this padding box. */
+  --memory-track-pad-x: clamp(10px, 1.6vw, 22px);
+  --memory-track-pad-y: clamp(6px, 0.9vw, 12px);
+  padding: var(--memory-track-pad-y) var(--memory-track-pad-x);
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  box-shadow: var(--ds-shadow-sm);
+  container-type: inline-size;
+}
+
+.game-memory-coin {
+  /* The coins share the track evenly and stop growing at full size, so the row
+     stays centred instead of stretching into ovals on a wide board. */
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 38px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: var(--ds-font-mono);
+  font-size: clamp(9px, 1.15vw, 15px);
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    background 220ms,
+    color 220ms,
+    box-shadow 220ms,
+    transform 220ms;
+}
+
+/* The marker is the readout: it never shrinks below a legible three characters
+   ("+10"), and it sits above its neighbours so its ring is not clipped. */
+.game-memory-coin--marker {
+  flex: 1.25 1 0;
+  min-width: 26px;
+  max-width: 46px;
+  z-index: 1;
+  font-size: clamp(11px, 1.3vw, 17px);
+}
+
+.game-memory-gauge--compact .game-memory-gauge__track {
+  flex: 1;
+  gap: 2px;
+  --memory-track-pad-x: 7px;
+  --memory-track-pad-y: 4px;
+}
+
+.game-memory-gauge--compact .game-memory-coin {
+  max-width: 24px;
+  font-size: clamp(7px, 1.7vw, 11px);
+}
+.game-memory-gauge--compact .game-memory-coin--marker {
+  min-width: 22px;
+  max-width: 28px;
+  font-size: clamp(9px, 2vw, 13px);
+}
+
+/* Below these widths a coin is narrower than its own digits, so the numbering
+   thins out to the multiples of five and finally to the marker alone. The coins
+   themselves stay: the filled run is what reads the gauge at a glance. */
+@container (width < 460px) {
+  .game-memory-coin:not(.game-memory-coin--marker, .game-memory-coin--five) .game-memory-coin__n {
+    display: none;
+  }
+}
+
+@container (width < 300px) {
+  .game-memory-coin:not(.game-memory-coin--marker) .game-memory-coin__n {
+    display: none;
+  }
+}
+
+/* A short board leaves the rails taller than the field they sit in, so they
+   scroll rather than hiding whichever pile falls off the bottom. */
+.game-pile-column {
+  overflow: hidden auto;
+  scrollbar-width: thin;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opponent-action-feed__current,
+  .opponent-action-feed__trail-item {
+    animation: none;
+    transition: none;
+  }
+}

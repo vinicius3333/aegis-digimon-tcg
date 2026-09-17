@@ -1,0 +1,127 @@
+/* What the board does when the viewer asked for less motion. */
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+/* Last in the file so it outranks the battle-board rules above, which share its
+   specificity. The entrances are decoration only: without them every element
+   still renders in its resting state and the sparkles stay invisible. */
+@media (prefers-reduced-motion: reduce) {
+  .game-card-enter,
+  .game-card-sparkle,
+  .game-hand-card--drawn,
+  .game-memory-coin--marker,
+  .game-memory-coin--marker::before,
+  .game-memory-coin--swept,
+  .game-draw-flight,
+  .game-permanent-lunge--up,
+  .game-permanent-lunge--down,
+  .game-security-shield--hit,
+  .game-attack-arrow__chevron,
+  .game-attack-arrow__head,
+  .battle-clash,
+  .battle-clash__art,
+  .game-turn-banner,
+  .game-turn-banner span,
+  .game-memory-gauge__phase--sweeping,
+  .game-breeding-mode,
+  .side-panel,
+  .match-notice,
+  .attack-announcement,
+  .board-prompt,
+  .board-opponent-pill,
+  .game-modal__panel {
+    animation: none;
+  }
+
+  /* The prompt is the only route to answering the decision, so it appears at
+     once and stays for its whole life; only the pulsing dots are decoration. */
+  .board-opponent-pill__dots i {
+    animation: none;
+    opacity: 1;
+  }
+
+  /* The eroding ring is the visible half of a clock the queue still runs in full:
+     the border simply shows spent rather than draining, and the panel stays for
+     its whole reading time. */
+  .side-panel__erode,
+  .match-notice__erode {
+    animation: none;
+    opacity: 0.45;
+  }
+
+  /* The flying card back exists only for its trip: with no motion it would just
+     park over the board until its timer removes it. */
+  .game-draw-flight {
+    display: none;
+  }
+
+  /* Same for the touch layouts' accent ring: with no animation to fade it, it
+     would park on the card for as long as that card stayed in hand. */
+  .game-hand-card--drawn::after {
+    display: none;
+  }
+
+  /* The clash burst and the cracks are pure motion flourishes; the scene still reads without them. */
+  .battle-clash__flash,
+  .game-card-cracks {
+    display: none;
+  }
+
+  /* The shield break is pure motion: the count and the clash carry the information. */
+  .game-security-shield--armed,
+  .game-security-shield__count {
+    animation: none;
+  }
+
+  .game-security-shield__shards,
+  .battle-edge-flash {
+    display: none;
+  }
+
+  /* The branch card carries the revealed card, so it keeps its full reading time and
+     only loses the slide — which is also why its resting offset is restated here. The
+     docked state is open-ended, so with no animation left it simply sits at rest until
+     its check closes and the card is unmounted. */
+  .battle-security-branch,
+  .battle-security-branch[data-state="settled"],
+  .battle-security-branch[data-state="docked"],
+  .battle-security-branch[data-state="closing"] {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    animation: none;
+  }
+
+  /* Stopping the orbit leaves each star at the resting point set inline, so the ring
+     still says "this Digimon cannot attack yet". */
+  .game-summoning-ring i {
+    animation: none;
+  }
+
+  /* The arc traces a move that has already happened; the marker says where memory
+     landed, so with no motion there is nothing for the trace to add. */
+  .game-memory-arc {
+    display: none;
+  }
+
+  /* Every burst is pure motion with nothing to read, so it is dropped rather
+     than frozen — the side panel and the effect notice carry the information.
+     The queue skips the same cues in drain mode, so nothing is left mid-state. */
+  .battle-burst,
+  .game-draw-burst,
+  .game-delete-burst,
+  .game-breeding-slot--lit::before {
+    display: none;
+  }
+
+  /* The showcase is text-free motion; the queue never enqueues it under reduced
+     motion, and this covers the showcase page rendering one statically. */
+  .battle-showcase,
+  .battle-showcase__frame {
+    animation: none;
+  }
+
+  /* CardMini sets its suspend rotation inline, so only !important can reach it. */
+  [data-state="suspended"],
+  [data-state="active"] {
+    transition: none !important;
+  }
+}
