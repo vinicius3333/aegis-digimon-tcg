@@ -4,7 +4,6 @@ import {
   type CardColor,
   type CardDefinition,
   type GameState,
-  type Permanent,
   type Seat,
   type Keyword,
   type ZoneRef,
@@ -12,7 +11,56 @@ import {
 } from "@aegis/shared";
 import type { Restriction } from "./EffectContext.js";
 import type { DurationBoundary } from "./modifiers.js";
-import { findPermanentInState } from "../state/access.js";
+import { clearsAt } from "./continuous/durations.js";
+import type {
+  AttackTargetRestriction,
+  CanAttackUnsuspendedGrant,
+  CannotIgnoreDigivolutionFlag,
+  ColorGrant,
+  ColorWaiver,
+  DigivolveIntoConstraint,
+  KeywordGrant,
+  KindGrant,
+  LinkCostReductionGrant,
+  LinkMaxGrant,
+  NameTraitGrant,
+  OriginalCardInfoOverride,
+  PlayerCustomEffectGrant,
+  PlayerKeywordGrant,
+  PlayerRestrictionEntry,
+  RestrictionEntry,
+  SecurityAddRestriction,
+  SecurityAttackInversion,
+  StackCardTrashLock,
+  StackEffectConferral,
+  StackTrashLock,
+  SuspendRestrictionSource,
+  UnsuspendedDigivolveProhibition,
+  VortexCanAttackPlayersGrant,
+} from "./continuous/entries.js";
+import type {
+  CostReductionBlock,
+  CustomEffectGrant,
+  DisableTimingMask,
+  DnaLevelOverride,
+  EffectTimingDisable,
+  MemoryGainPolicy,
+  OnDeletionAtEndOfAttackProjection,
+  PlayerEffectTimingDisable,
+  PlayMatch,
+  PlayProhibition,
+  SecurityEffectDisable,
+} from "./continuous/policies.js";
+import { modeMatches, ownerSeatOfPermanent, playMatchesCard } from "./continuous/effective.js";
+
+export type { LinkCostReductionGrant, StackEffectConferral } from "./continuous/entries.js";
+export type {
+  CustomEffectGrant,
+  DisableTimingMask,
+  OnDeletionAtEndOfAttackProjection,
+  PlayMatch,
+} from "./continuous/policies.js";
+export { effectiveColors, effectiveKinds, effectiveNames, effectiveTraits } from "./continuous/effective.js";
 
 /**
  * Continuous-effect application layer (subsystem: static-continuous-effects).
@@ -46,478 +94,6 @@ import { findPermanentInState } from "../state/access.js";
  * of turn") is kept and expires only at its own duration boundary. See
  * ModifierLedger.DpModifier.continuous for the numeric sibling.
  */
-interface RestrictionEntry {
-  permanentId: string;
-  restriction: Restriction;
-  duration: EffectDuration;
-  continuous?: boolean;
-  /**
-   * When set, this `beAffected` entry blocks ONLY effects whose source card is
-   * one of these kinds. An entry without `fromSourceKind` blocks regardless of
-   * source (existing behavior).
-   */
-  fromSourceKind?: string[];
-  /**
-   * When set, this entry blocks ONLY effects controlled by the restricted permanent's
-   * opponent — the "…by your opponent's effects" wording most printed protection uses
-   * (BT14-062, BT11-060, BT18-064, …). An entry without it blocks regardless of who
-   * controls the effect ("effects can't delete or trash it", EX9-005).
-   */
-  byOpponentEffectsOnly?: boolean;
-}
-
-interface PlayerRestrictionEntry {
-  seat: Seat;
-  ownerSeat: Seat;
-  restriction: Restriction;
-  duration: EffectDuration;
-  matches: (permanentId: string) => boolean;
-  continuous?: boolean;
-}
-
-interface AttackTargetRestriction {
-  attackerPermanentId: string;
-  targetPermanentId: string;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-interface NameTraitGrant {
-  permanentId: string;
-  kind: "name" | "trait";
-  tokens: string[];
-  duration: EffectDuration;
-  continuous?: boolean;
-  /** When true, this name alias is ONLY valid for DigiXros material matching. */
-  digiXrosOnly?: boolean;
-  dynamicTokens?: () => string[];
-}
-
-interface OriginalCardInfoOverride {
-  permanentId: string;
-  name?: string;
-  colors?: string[];
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-interface PlayerKeywordGrant {
-  seat: Seat;
-  keyword: string;
-  amount?: number;
-  duration: EffectDuration;
-}
-
-interface PlayerCustomEffectGrant {
-  seat: Seat;
-  ownerSeat: Seat;
-  token: string;
-  duration: EffectDuration;
-  activationIdentity: object;
-  matches: (permanentId: string) => boolean;
-}
-
-/**
- * A positive attack-legality grant: the attacker MAY also attack an opponent's
- * unsuspended Digimon (rule implementation, e.g. ST12-08). The base
- * rule lets a Digimon attack only a SUSPENDED defender; this grant relaxes that for the
- * granted attacker while active. Read by combat/legality.canAttackTarget.
- */
-interface CanAttackUnsuspendedGrant {
-  permanentId: string;
-  duration: EffectDuration;
-  continuous?: boolean;
-  /** Grant only applies to defenders with no digivolution cards (EX1-016/BT7-095). */
-  noDigivolutionCards?: boolean;
-  /** Grant only applies to defenders at or below this printed level (EX1-061). */
-  defenderLevelMax?: number;
-}
-
-interface VortexCanAttackPlayersGrant {
-  permanentId: string;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/**
- * An ARMED "suspend-restriction-with-superlative-exception" source (BT23-024). The source
- * permanent's [All Turns] link trigger arms this for a duration ("until their turn ends" =>
- * UntilOpponentTurnEnd). While armed, the continuous-recompute pass re-derives the affected
- * opponent set (all opponent Digimon MINUS the recomputed highest-play-cost one) and records a
- * fresh `suspend` restriction per affected permanent — so the exempt set tracks board changes
- * each pass (KB BT23-024 Q5250/Q5252 recompute). The armed marker itself is a one-shot,
- * duration-scoped entry (NOT continuous): it survives recomputes and clears at its boundary.
- */
-interface SuspendRestrictionSource {
-  permanentId: string;
-  duration: EffectDuration;
-}
-
-interface UnsuspendedDigivolveProhibition {
-  seat: Seat;
-  sourceSeat: Seat;
-  duration: EffectDuration;
-}
-
-/**
- * A positive digivolve-target constraint (EX10-035 "this Digimon can only digivolve into
- * [Apocalymon]"). The permanent may digivolve ONLY into a card whose definition satisfies
- * `matchesInto`; the digivolve-legality check rejects any other evolving card. The matcher is
- * supplied by the IR interpreter (built from the action's `into` filter) so the ledger stays
- * decoupled from the filter shape.
- */
-interface DigivolveIntoConstraint {
-  permanentId: string;
-  matchesInto: (def: CardDefinition) => boolean;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-interface ColorWaiver {
-  /** The instance whose color requirement is waived (a card in hand/security). */
-  instanceId: string;
-  /**
-   * When set, the requirement is NOT waived outright: this colour ALSO satisfies it
-   * ("Black also meets this card's colour requirements" — the LM Memory Boost family).
-   * Absent means the blanket "you can ignore this card's colour requirements" waiver.
-   */
-  alsoColor?: CardColor;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-interface KeywordGrant {
-  permanentId: string;
-  /** The granted keyword name (e.g. "Blocker", "Rush", "Jamming"). */
-  keyword: string;
-  /** Optional numeric param (e.g. Security Attack +N). */
-  amount?: number;
-  duration: EffectDuration;
-  continuous?: boolean;
-  /** Live recipient condition for duration-scoped conditional grants. */
-  active?: () => boolean;
-  /** Parameterized keyword alternatives, e.g. Decoy (Black/White). */
-  specifiers?: string[];
-  /** Exact card/clause that granted the keyword, including inherited sources. */
-  sourceCardId?: string;
-  sourceEffectText?: string;
-  /** Provenance used to suppress (but retain) opponent-granted effects under immunity. */
-  sourceSeat?: Seat;
-  sourceKinds?: string[];
-}
-
-interface LinkMaxGrant {
-  permanentId: string;
-  /** Signed change to the link limit (`<Link +1>` => 1, `<Link +2>` => 2). */
-  delta: number;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/**
- * A recipient-scoped LINK-cost-reduction grant (documented behavior `rule implementation` +
- * `UntilCalculateFixedCostEffect`, documented behavior). Keyed by the RECIPIENT permanent (the
- * Digimon a card would link TO): while active, a would-link card whose definition carries one of
- * `traits` has its link cost reduced by `amount`. `runLink`/`linkCostOf` read the recipient's
- * grant in addition to the declaring action's `costDelta`. Per KB BT25-089 Q6423 the reductions
- * do NOT stack on one declaration, so the read (`linkCostReduction`) returns the LARGEST single
- * matching grant rather than their sum. Real authoritative state, never client-supplied; cleared
- * and re-derived each continuous-recompute pass (CR-01) like every other continuous grant.
- */
-export interface LinkCostReductionGrant {
-  /** The link recipient the reduction is installed on. */
-  permanentId: string;
-  /** Magnitude of the reduction (positive). */
-  amount: number;
-  /** Lowercased trait tokens a would-link card must carry for the reduction to apply. */
-  traits: string[];
-  duration: EffectDuration;
-  continuous?: boolean;
-  sourceInstanceId?: string;
-  controllerSeat?: Seat;
-  optional?: boolean;
-  oncePerTurnKey?: string;
-}
-
-interface KindGrant {
-  permanentId: string;
-  /** Granted kind(s) — e.g., a Tamer becoming [Digimon]. */
-  kinds: CardKind[];
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/**
- * A seat-level "players can't ignore digivolution requirements" rule (documented behavior
- * `rule implementation`, documented behavior; KB Q1738-Q1743). When active for a seat,
- * that seat may not use effects that IGNORE digivolution requirements (Q1741/Q1742); DNA/Burst,
- * no-cost digivolves, and adding-info effects are unaffected. The digivolve-legality path's
- * ignore-requirements hook consults `cannotIgnoreDigivolution(seat)`. (BT8-059 installs it for
- * BOTH seats — Q1738.) The substrate that this WOULD suppress — an in-engine ignore-requirements
- * path — does not yet exist, so the read currently has no caller; the flag is faithful authored
- */
-interface CannotIgnoreDigivolutionFlag {
-  seat: Seat;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-interface SecurityAddRestriction {
-  blockedEffectSeat: Seat;
-  granterSeat: Seat;
-  duration: EffectDuration;
-}
-
-/**
- * A continuously-derived COLOR conferred onto a permanent ("[Your Turn] This Digimon is
- * also treated as blue"). The permanent's EFFECTIVE color set is its printed colors UNIONED
- * (BaseCardColors then each active IChangeCardColorEffect.GetCardColors appends, then
- * Distinct; documented behavior). Recorded as real authoritative server state, never supplied
- * by a client; the color-legality consumers (digivolve EvoCost color check, play-time color
- * requirement) read the effective set, not just the printed colors.
- */
-interface ColorGrant {
-  permanentId: string;
-  /** The granted color name (CardColor value, e.g. "Blue"). */
-  color: string;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/**
- * A "this Digimon's stacked cards can't be trashed by the opponent's effects" lock (EX11-070's
- * `permanentId`, an OPPONENT effect may not trash its digivolution-stack cards (TrashDigivolution
- * and `<De-Digivolve>`); the controller's OWN effects are unaffected (documented behavior EffectCondition =
- * IsOpponentEffect). The opponent-vs-own scope is resolved at the trash site (the host's
- * controller vs the trashing effect's seat), so the entry itself carries only the protected
- * permanent and its duration. Re-derived each continuous-recompute pass (CR-01).
- */
-interface StackTrashLock {
-  permanentId: string;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/** One specific digivolution card that effects cannot trash (BT9-109 X Antibody). */
-interface StackCardTrashLock {
-  instanceId: string;
-  ownerSeat: Seat;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-interface SecurityAttackInversion {
-  permanentId: string;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/** Stack-card effects conferred onto a permanent (GrantStatic grant:"effects"). */
-export interface StackEffectConferral {
-  targetPermanentId: string;
-  stackInstanceId: string;
-  continuous?: boolean;
-  /** Limit the copied effects to the printed trigger (for example, only [Main]). */
-  trigger?: string;
-  /** When true, do not confer inherited effects from the matched stack card. */
-  excludeInherited?: boolean;
-  /** Keyword effects omitted by this particular copy. */
-  excludeKeywords?: Keyword[];
-  inheritedOnly?: boolean;
-  /** Physical source of the grant; distinct grant sources confer distinct effect copies (Q1943). */
-  granterInstanceId?: string;
-}
-
-/**
- * A permanent whose `[On Deletion]` effects are ALSO offered at the end of its own attack
- * (BT16-015 Phoenixmon (X Antibody): "attach [End of Attack] to all of this Digimon's
- * [On Deletion] effects"). The projection names the permanent only — the collector re-derives
- * which effects it reaches from live board state each pass, so an [On Deletion] gained or lost
- * meanwhile is picked up without a second ledger.
- *
- * Always a CONTINUOUS entry, even when the granting clause is the discrete `[When Digivolving]`
- * twin of the same printed sentence: the projection lasts exactly as long as its `[Your Turn]`
- * source clause applies, and clear-then-recompute is what makes it lapse the instant that clause
- * stops (KB BT16-015 Q2615 — a mid-attack ＜De-Digivolve＞ that removes the source clause stops
- * the projected copies from activating).
- */
-export interface OnDeletionAtEndOfAttackProjection {
-  permanentId: string;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/**
- * A named custom effect granted onto a permanent for a duration (GrantStatic grant:"effects"
- * timing)` path — RB1-030 grants "[On Deletion] Delete 1 of your opponent's Digimon with the
- * lowest level" until the end of the opponent's turn). Unlike a stack-effect conferral this is a
- * one-shot DURATION-scoped grant (NOT recomputed each continuous pass): it is installed once when
- * the granting effect resolves and lapses at its boundary or when the host permanent leaves the
- * field. The collector compiles `token` to the granted permanent's [On Deletion] effect so it
- * fires through the SAME OnDestroyedAnyone window as a printed [On Deletion].
- */
-export interface CustomEffectGrant {
-  /** Stable identity for this materialized grant, used to distinguish stacked effect copies. */
-  grantId: number;
-  /**
-   * The granted card's TOP-CARD instance id (NOT a permanent id). Anchoring on the instance is
-   * what lets a granted [On Deletion] still fire on its OWN deletion: when the granted Digimon is
-   * deleted its permanent ledgers are dropped, but the instance persists into trash, where the
-   * deletion-window collector re-finds it (exactly as a printed [On Deletion] is collected from
-   * trash). The instanceId is unique per match, so the grant cannot mis-fire on a reused id.
-   */
-  instanceId: string;
-  /** Seat the duration sweep is framed from (the granter, which may differ from the recipient). */
-  ownerSeat: Seat;
-  token: string;
-  duration: EffectDuration;
-  /** One already-resolved granting effect. Equal identities are repeat materializations, not stacks. */
-  activationIdentity?: object;
-  /** Live affected-state gate for a duration-scoped aura grant. */
-  isActive?: () => boolean;
-  /** Persistent clauses are cleared and re-derived on every continuous recompute. */
-  continuous?: boolean;
-}
-
-interface MemoryGainPolicy {
-  /** Seat whose memory gain is restricted. */
-  seat: Seat;
-  exceptTamerEffects: true;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-interface CostReductionBlock {
-  seat: Seat;
-  costType: "play" | "digivolve" | "all";
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/**
- * Seat-level play/move prohibition (rule implementation / rule implementation / rule implementation).
- * `seat` is the RESTRICTED player whose own actions/effects may not play/move a card matching
- * `CardCondition` (kind/DP predicate) plus the implicit `cardSource.Owner == card.Owner.Enemy`
- * seat scope. A continuously-re-evaluated GATE (`when`) makes the lock lapse the instant the
- * gate fails (BT8-057's "[Opponent's Turn] while all your Digimon are suspended"); when absent
- * the prohibition is live for its whole duration.
- */
-interface PlayProhibition {
-  /** The restricted seat (the player whose plays/moves are forbidden) — used for matching. */
-  seat: Seat;
-  /**
-   * The SOURCE effect's owner seat — used for the duration sweep, because the IR durations
-   * (untilOpponentTurnEnd / forTheTurn) are framed from the source's perspective (e.g.
-   * UntilOpponentTurnEnd = the end of the SOURCE's opponent's turn). The restricted seat is
-   * the source's opponent, so this is normally opponentOf(seat).
-   */
-  sourceSeat: Seat;
-  /** Predicate over a card definition (Option, or Digimon with DP <= a cap). */
-  match: PlayMatch;
-  mode: "play" | "move" | "playOrMove";
-  /**
-   * When true, this prohibition applies only to effect-driven plays (not the player's own
-   * normal hand-play action). The normal play-card gate skips these; the effect-play gate
-   * in the interpreter honors them. KB Q4665–Q4668, Q6245 (BT20-020).
-   */
-  byEffectOnly?: boolean;
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/** A serializable card-definition predicate for a PlayProhibition (mirrors the IR Filter subset). */
-export interface PlayMatch {
-  /** Card kinds the prohibition matches; empty/undefined => any kind. */
-  kinds?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
-  /** Upper DP bound for the "Digimon with N DP or less" form (printed DP). */
-  dpAtMost?: number;
-  /**
-   * Treat synthetic Digimon tokens as matching the Digimon kind. Most play prohibitions
-   * exempt tokens, but cards whose ruling explicitly includes them (BT14-017/Q2381) opt in.
-   */
-  allowTokens?: boolean;
-  /** Loose-card origin zones matched by the prohibition; undefined means every origin. */
-  fromZones?: ZoneRef[];
-}
-
-/** A timing window a `DisableTimingEffect` masks (mirrors the IR `DisableTiming`). */
-export type DisableTimingMask = "whenDigivolving" | "whenAttacking" | "onPlay";
-
-/**
- * Security-effect disable (the security half of the source `rule implementation` split):
- * while `attackerPermanentId` is the attacker, a flipped security card's [Security] effect
- * does not activate. `sourceKind` "option" suppresses only Option security effects (the
- * card's `EffectSourceCard.IsOption` gate); "any" suppresses any security effect.
- */
-interface SecurityEffectDisable {
-  /** The attacking permanent the disable is attached to (documented behavior `card.PermanentOfThisCard()`). */
-  attackerPermanentId?: string;
-  /** Player-wide form: every attacking permanent controlled by this seat matches. */
-  attackerSeat?: Seat;
-  sourceKind: "option" | "any";
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-/**
- * Timing-effect disable (the timing half of the source `rule implementation` split): the
- * masked [When Digivolving] / [When Attacking] / [On Play] effects of `permanentId` do not
- * activate. Consulted by the per-effect activation gate, with the `beAffected`
- */
-interface EffectTimingDisable {
-  /** The permanent whose timing effects are suppressed. */
-  permanentId: string;
-  /** Which timing windows are masked. */
-  timings: DisableTimingMask[];
-  duration: EffectDuration;
-  continuous?: boolean;
-}
-
-interface PlayerEffectTimingDisable {
-  seat: Seat;
-  ownerSeat: Seat;
-  timings: DisableTimingMask[];
-  duration: EffectDuration;
-  matches: (permanentId: string) => boolean;
-  continuous?: boolean;
-}
-
-interface DnaLevelOverride {
-  permanentId: string;
-  level: number;
-  intoNames?: string[];
-  continuous?: boolean;
-}
-
-/** Which boundary clears a continuous duration (mirrors modifiers.clearsAt). */
-function clearsAt(duration: EffectDuration, boundary: DurationBoundary, ownerSeat: Seat, sweepSeat: Seat): boolean {
-  switch (duration) {
-    case EffectDuration.UntilOwnerTurnEnd:
-      return (boundary === "ownerTurnEnd" || boundary === "eachTurnEnd") && ownerSeat === sweepSeat;
-    case EffectDuration.UntilOpponentTurnEnd:
-      return (
-        (boundary === "ownerTurnEnd" || boundary === "opponentTurnEnd" || boundary === "eachTurnEnd") &&
-        ownerSeat !== sweepSeat
-      );
-    case EffectDuration.UntilEachTurnEnd:
-      return boundary === "eachTurnEnd" || boundary === "ownerTurnEnd" || boundary === "opponentTurnEnd";
-    case EffectDuration.UntilEndAttack:
-      return boundary === "endAttack";
-    case EffectDuration.UntilEndBattle:
-      return boundary === "endBattle";
-    case EffectDuration.UntilOwnerActivePhase:
-      return boundary === "ownerActivePhase" && ownerSeat === sweepSeat;
-    case EffectDuration.UntilNextUntap:
-      return boundary === "nextUntap" && ownerSeat === sweepSeat;
-    case EffectDuration.UntilCalculateFixedCost:
-      return boundary === "ownerTurnEnd" || boundary === "opponentTurnEnd" || boundary === "eachTurnEnd";
-    case EffectDuration.Permanent:
-      // A genuinely-permanent grant is never cleared by any boundary sweep (WR-03 / ENG-02).
-      return false;
-    default:
-      return false;
-  }
-}
 
 export class ContinuousEffectLedger {
   private restrictions: RestrictionEntry[] = [];
@@ -1815,80 +1391,4 @@ export class ContinuousEffectLedger {
     this.playerEffectTimingDisables = [];
     this.dnaLevelOverrides = [];
   }
-}
-
-/** Whether a prohibition `mode` covers the requested play/move action. */
-function modeMatches(mode: "play" | "move" | "playOrMove", requested: "play" | "move"): boolean {
-  return mode === "playOrMove" || mode === requested;
-}
-
-/** Does a card definition satisfy a PlayMatch predicate (kind AND optional DP cap)? */
-function playMatchesCard(match: PlayMatch, def: CardDefinition): boolean {
-  if (def.isToken === true && match.allowTokens !== true) return false;
-  if (match.kinds !== undefined && match.kinds.length > 0) {
-    // Mother Eater is catalogued as a Digi-Egg because it begins in that deck, but its
-    // own effect can play it into the battle area as a Digimon. Play prohibitions that
-    // name Digimon therefore apply to that effect play (BT22-007 Q4861).
-    const motherEaterAsDigimon = def.cardId === "BT22-007" && match.kinds.includes(CardKind.Digimon);
-    if (!motherEaterAsDigimon && !match.kinds.some((k) => def.kinds.includes(k as CardKind))) return false;
-  }
-  if (match.dpAtMost !== undefined && def.dp > match.dpAtMost) return false;
-  return true;
-}
-
-function ownerSeatOfPermanent(state: GameState, permanentId: string): Seat {
-  return findPermanentInState(state, permanentId)?.controllerSeat ?? 0;
-}
-
-/** Re-export the matcher so consumers can resolve a permanent's effective name set. */
-export function effectiveNames(ledger: ContinuousEffectLedger, permanent: Permanent, printedName: string): string[] {
-  const original = ledger.originalCardInfoOverride(permanent.permanentId)?.name ?? printedName;
-  return [original.toLowerCase(), ...ledger.grantedNames(permanent.permanentId)];
-}
-
-/**
- * A permanent's EFFECTIVE color set: its printed colors UNIONED with every continuously
- * (BaseCardColors then each active color-grant appends, then Distinct; documented behavior).
- * The color-legality consumers read this instead of the printed colors so an "also treated
- * as <color>" grant is observed. `printedColors` are CardColor values (strings).
- */
-export function effectiveColors(
-  ledger: ContinuousEffectLedger,
-  permanentId: string,
-  printedColors: readonly string[],
-): string[] {
-  const original = ledger.originalCardInfoOverride(permanentId)?.colors ?? printedColors;
-  const seen = new Set<string>(original);
-  for (const color of ledger.grantedColors(permanentId)) seen.add(color);
-  return [...seen];
-}
-
-/**
- * A permanent's EFFECTIVE card kinds: its printed `CardDefinition.kinds` UNIONED
- * layering (static kinds then each active KindGrant appends). The type-check
- * gates (combat legality, effect filter matching) read this instead of the
- * printed kinds so a "treated as a Digimon" grant (HARD-01) is observed.
- */
-export function effectiveKinds(
-  ledger: ContinuousEffectLedger,
-  permanentId: string,
-  printedKinds: readonly CardKind[],
-): CardKind[] {
-  const seen = new Set<CardKind>(printedKinds);
-  for (const k of ledger.grantedKinds(permanentId)) seen.add(k);
-  return [...seen];
-}
-
-/** A permanent's printed traits unioned with active runtime trait grants. */
-export function effectiveTraits(
-  ledger: ContinuousEffectLedger,
-  permanentId: string,
-  printedTraits: readonly string[],
-): string[] {
-  const byLowercase = new Map<string, string>();
-  for (const trait of printedTraits) byLowercase.set(trait.toLowerCase(), trait);
-  for (const trait of ledger.grantedTraits(permanentId)) {
-    if (!byLowercase.has(trait.toLowerCase())) byLowercase.set(trait.toLowerCase(), trait);
-  }
-  return [...byLowercase.values()];
 }
