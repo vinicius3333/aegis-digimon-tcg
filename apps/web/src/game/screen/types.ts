@@ -98,3 +98,9 @@ export interface PermanentChrome {
   /** The sweep's stagger for the permanent at this position in its owner's row. */
   suspendDelayMs: (index: number) => number;
 }
+
+/** A play the viewer asked to confirm before it is sent, and what it would send. */
+export type PendingActionConfirmation =
+  | { kind: DragKind.Play; instanceId: string; cardId: string }
+  | { kind: "digivolve"; instanceId: string; cardId: string; permanentId: string; baseCardId: string }
+  | { kind: "dna"; instanceId: string; cardId: string; materialPermanentIds: string[]; normalPermanentId?: string };
