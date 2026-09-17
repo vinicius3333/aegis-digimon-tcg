@@ -436,3 +436,76 @@ The two mirror tests were not split. `useMatchCues.test.ts` (4035 lines) and
 `decisionOverlay.test.tsx` (3431) still exercise the whole surface through the
 old entry points, which is exactly why they were a usable safety net for every
 wave. Splitting them is its own piece of work and wants its own plan.
+
+---
+
+## Second pass: the two hooks that were left
+
+The first pass emptied `overlays.tsx` and `boardPieces.tsx` but left the two
+behaviour files well over the 400-line target. This pass took them apart the same
+way, twelve commits, the suite green at 177 files / 2138 tests after every one.
+
+| File              | First pass | Second pass |
+| ----------------- | ---------- | ----------- |
+| `useMatchCues.ts` | 2407       | 1308        |
+| `GameScreen.tsx`  | 3580       | 3183        |
+
+### What came out of `useMatchCues.ts`
+
+`presentBatch` was ~1030 lines of one function. It is now the ordered list of
+what a batch plays, each beat in its own module under `match/present/`:
+
+`sounds`, `announcements` (the one pass that raises the batch's panels and
+notices), `arrivals`, `effectSources`, `deckRiffles`, `securityGrowth`,
+`optionDock`, `noticeRouting` (which beat the batch's notices wait for),
+`attackAnnouncement`, `attackLunge`, `securityReveal`, `securityClose`,
+`securityDestructions`, `combatImpact`, `deletionBursts`.
+
+The four state watchers became hooks under `match/watchers/`: `useDpPulses`,
+`useRestrictionPulses`, `useDrawWatcher`, `useSecurityCountWatcher`. The phase and
+turn ribbons — the ordering-sensitive part — moved whole into
+`match/queue/usePhaseBanners.ts`.
+
+New shared shapes: `RevealOnStage` in `match/types.ts`, `OpeningDealState` in
+`match/enums.ts`, `SecurityRevealStage` exported from `securityRevealScene.ts`.
+
+### What came out of `GameScreen.tsx`
+
+`screen/hooks/useArenaLayout.ts` (every measurement the viewport decides),
+`screen/hooks/useTrackingArrow.ts` (the per-frame endpoint solver),
+`screen/hooks/useBoardMeasurements.ts` (permanent centres and the targeting mask),
+`screen/model/combatWindows.ts` (the five combat prompts),
+`screen/model/prePlayPrompt.ts` (what a play must settle before it is sent),
+`screen/model/decisionView.ts` (the open decision as the board shows it).
+
+### One deliberate reorder
+
+`cueFlights(...)` moved above the watchers in `useMatchCues`. `useDrawWatcher`
+takes `launchDrawFlight` as an argument at render time, where the old inline
+effect closed over it lazily, so the factory has to run first. It calls no hooks
+and reads only values declared far above it, so the hook order is unchanged.
+
+### The gate, again
+
+`pnpm lint:files` over the touched files caught a dead import after every single
+extraction — 40-odd across the run — and typecheck caught none of them.
+
+`game.mobile.test.ts` broke twice. Once because its source loader read only the
+top-level files of `./screen/`, which the new `hooks/` and `model/` subfolders sit
+below; the loader now recurses, and its assertions passed unchanged. Once because
+an assertion matched `const collapseNotices = ...` and the extraction had turned
+it into an object property — the hook keeps the `const`, so that assertion is
+unchanged too.
+
+### Still not done
+
+`GameScreen.tsx` is 3183 lines, of which ~1600 are the two JSX blocks (`overlays`
+and the board itself). Splitting those means naming the props each layer actually
+needs, which is design work, not extraction — it wants its own plan. The drag
+plumbing (`startHandDrag`, `handleTap`, `handleDrop` and their siblings, ~150
+lines) is a clean next extraction. `useMatchCues.ts` is 1308 lines: `presentBatch`
+composition, the decision barrier and stall watchdog, and ~200 lines of `useState`
+and `useRef` declarations that the plan's `state/` slot was meant to take.
+
+The two mirror tests are still unsplit, for the same reason as before: they were
+the safety net for every commit here.
