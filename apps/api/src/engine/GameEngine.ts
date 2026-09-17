@@ -37,7 +37,7 @@ import { guardLeaveReplacements } from "./effects/guard.js";
 import { canAttackerDeclare } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
-import { WinCheck, runSecurityCheck, type SecurityCheckDeps, type SecurityCheckReason } from "./security/index.js";
+import { WinCheck } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
 import { DpDeleteBudgetLedger } from "./dpDeleteBudget.js";
@@ -99,7 +99,6 @@ import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
 import {
   buildResolutionEnv,
   permanentIdentityOf,
-  resolveTiming,
   runTiming,
   type EffectEnvironment,
   type ResolutionDeps,
@@ -133,7 +132,7 @@ import type {
   SubTriggerSourceScope,
 } from "./effects/EffectContext.js";
 import { TurnStateMachine, type TurnFlowHooks, type DurationBoundary as TurnBoundary } from "./TurnStateMachine.js";
-import { log, logError } from "../logger.js";
+import { logError } from "../logger.js";
 import { runSetup, finalizeSecurity, mulliganRedraw, type Rng, type Decklist } from "./setup.js";
 import { layDevScenario, type DevScenarioId } from "./devScenario.js";
 import { validateDecklist } from "./deckValidation.js";
@@ -214,6 +213,7 @@ import {
   type ArmedSubTrigger,
 } from "./gameEngine/subTriggerIdentity.js";
 import type { AppFusionValidation, GameEngineHooks, SeatJoinOptions } from "./gameEngine/types.js";
+import { engineRunSecurityCheck, payBarrierSecurityCost } from "./gameEngine/securityCheck.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
@@ -226,13 +226,20 @@ export type { GameEngineHooks, SeatJoinOptions };
  * This is a scaffold: the public surface the room depends on is defined and the
  * boot path compiles/runs, but the rules engine itself is intentionally stubbed.
  * Each subsystem below maps to an entry in historical migration ledger
+ *
+ * Members without a `private` marker are the engine's INTERNAL seam, not its public API:
+ * the `gameEngine/` modules hold method bodies that were cut out of this class and take
+ * the engine as their first parameter, so the members those bodies read cannot stay
+ * `private`. The room and the tests use only the documented public surface
+ * (`seatPlayer`, `startMatch`, `applyIntent`, the view and connection methods); reach for
+ * anything else from outside `engine/` and you are reaching into the engine's own wiring.
  */
 
 export class GameEngine {
   private readonly memory: MemoryGauge;
   private readonly turnMachine: TurnStateMachine;
-  private readonly access: GameStateAccess;
-  private readonly win: WinCheck;
+  readonly access: GameStateAccess;
+  readonly win: WinCheck;
   private readonly combat: CombatController;
   /** Decision request/response correlation (subsystem: intent-protocol-and-room). */
   private readonly decisions: DecisionManager;
@@ -241,7 +248,7 @@ export class GameEngine {
   /** The interactive Breeding-phase window the turn machine awaits. */
   private readonly breeding: BreedingPhaseController;
   /** Per-turn use ledger for maxPerTurn accounting (shared with the effect stack). */
-  private readonly tracker: UseTracker;
+  readonly tracker: UseTracker;
   /** Duration-scoped modifier store backing the effect primitives. */
   private readonly modifiers: ModifierLedger;
   /**
@@ -250,9 +257,9 @@ export class GameEngine {
    * (not the per-primitives private fallback) so what a static effect records is what
    * the rest of the engine consults.
    */
-  private readonly continuous: ContinuousEffectLedger;
+  readonly continuous: ContinuousEffectLedger;
   /** Delayed / triggered sub-effect + replacement registry, shared with the primitives. */
-  private readonly subTriggers: SubTriggerRegistry;
+  readonly subTriggers: SubTriggerRegistry;
 
   /**
    * Monotonic source for `windowToken` identities (KB Q2814 / BT2-053), bumped once per
@@ -300,7 +307,7 @@ export class GameEngine {
    * and the trailing bus fire would run it a second time. Populated only inside such a window and
    * cleared when the outermost one closes.
    */
-  private readonly consumedSubTriggerKeys = new Set<string>();
+  readonly consumedSubTriggerKeys = new Set<string>();
   /**
    * How many resolution loops that DRAIN the pending pool ({@link pendingWindowCollected}) are on
    * the stack. Parking a watcher only makes sense while one of them is running: with no draining
@@ -308,9 +315,9 @@ export class GameEngine {
    */
   private pendingPoolDrainDepth = 0;
   /** Nesting depth of {@link withPendingSubTriggers} windows. */
-  private subTriggerWindowDepth = 0;
+  subTriggerWindowDepth = 0;
   /** Watchers armed for the event of the enclosing window, offered to that window's resolver. */
-  private pendingWindowSubTriggers: ArmedSubTrigger[] = [];
+  pendingWindowSubTriggers: ArmedSubTrigger[] = [];
   /**
    * Watchers parked next to {@link pendingNestedTimingEffects} by
    * {@link parkArmedForEnclosingWindow}. Kept in a field of its own rather than in
@@ -320,7 +327,7 @@ export class GameEngine {
    */
   private parkedEntrySubTriggers: ArmedSubTrigger[] = [];
   /** Printed timing effects triggered inside the currently resolving effect body. */
-  private pendingNestedTimingEffects: CollectedEffect[] = [];
+  pendingNestedTimingEffects: CollectedEffect[] = [];
   /**
    * What each parked nested trigger's source card WAS when the trigger was collected (see
    * `permanentIdentityOf`), or `null` when it was not on a permanent at all. CR §15-4-4-3/-5
@@ -384,7 +391,7 @@ export class GameEngine {
    *
    * @returns Whether THIS call minted the token (pass to `endResolvingWindow`).
    */
-  private beginResolvingWindow(): boolean {
+  beginResolvingWindow(): boolean {
     const isOutermost = this.activeWindowToken === undefined;
     if (isOutermost) this.activeWindowToken = ++this.windowTokenSeq;
     return isOutermost;
@@ -394,7 +401,7 @@ export class GameEngine {
    * Run one resolution loop, marking that a pool-draining loop is on the stack while it does
    * (see {@link pendingPoolDrainDepth}).
    */
-  private async withPendingPoolDrain(draining: boolean, body: () => Promise<void>): Promise<void> {
+  async withPendingPoolDrain(draining: boolean, body: () => Promise<void>): Promise<void> {
     if (!draining) return body();
     this.pendingPoolDrainDepth += 1;
     try {
@@ -405,7 +412,7 @@ export class GameEngine {
   }
 
   /** Close a window opened by `beginResolvingWindow`; a no-op for a non-outermost (nested) call. */
-  private endResolvingWindow(wasOutermost: boolean): void {
+  endResolvingWindow(wasOutermost: boolean): void {
     if (!wasOutermost) return;
     this.pendingNestedTimingEffects = [];
     this.pendingWindowSubTriggers = [];
@@ -418,7 +425,7 @@ export class GameEngine {
     this.activeWindowToken = undefined;
   }
 
-  private async flushDeferredSecurityRemovalTriggers(): Promise<void> {
+  async flushDeferredSecurityRemovalTriggers(): Promise<void> {
     if (this.flushingDeferredSecurityRemovalTriggers) return;
     this.flushingDeferredSecurityRemovalTriggers = true;
     try {
@@ -445,7 +452,7 @@ export class GameEngine {
     await this.flushDeferredSecurityRemovalTriggers();
   }
 
-  private async flushDeferredTimingWindows(): Promise<void> {
+  async flushDeferredTimingWindows(): Promise<void> {
     if (this.flushingDeferredTimingWindows) return;
     // Deferred windows belong between effect bodies. A nested entry seam can reach this
     // helper while its enclosing card body is still resolving; keep that queue parked until
@@ -518,17 +525,17 @@ export class GameEngine {
   private readonly pendingSelfReducerRelocations = new Map<string, { permanentId: string; shedOwnCards?: boolean }[]>();
 
   /** The effect verbs (effect-primitives) bound to this match. */
-  private readonly primitives: Primitives;
+  readonly primitives: Primitives;
   /** The §17-1-3 state-based-action sweeps (the fixpoint that drives them stays here). */
   private readonly ruleChecks: RuleChecks;
   /** The client-visible derivations of the board (keywords, affordances, targets). */
-  private readonly projection: BoardProjection;
+  readonly projection: BoardProjection;
   /** The digivolution paths that are not the digivolve verb itself. */
   private readonly digivolveSupport: DigivolveSupport;
   /** The player-decision API (ctx.ask.*) backed by the DecisionManager. */
   private readonly decisionApi: DecisionApi;
   /** The stack-resolver's controller prompts (chooseOrder / askOptional). */
-  private readonly resolverDecisions: ResolverDecisions;
+  readonly resolverDecisions: ResolverDecisions;
   /** Lobby readiness per seat (analogue of RoomManager AllPlayerIsReady). */
   private readonly readySeats = new Set<Seat>();
   /** Blitz opportunities answered during this turn, separate from attack eligibility. */
@@ -593,7 +600,7 @@ export class GameEngine {
    * re-deriving statics (BT8-081's inherited Digi-Burst reaction) — and when a recompute
    * starts elsewhere while the body is mid-await.
    */
-  private withTriggeredMutations<T>(body: () => Promise<T>): Promise<T> {
+  withTriggeredMutations<T>(body: () => Promise<T>): Promise<T> {
     return this.continuousScope.run(false, body);
   }
 
@@ -608,7 +615,7 @@ export class GameEngine {
   }
   /** Trigger payload for the timing window currently resolving. */
   /** Transient security-DP modifiers during an active security check. */
-  private readonly securityDp = new SecurityDpLedger((seat, delta) => {
+  readonly securityDp = new SecurityDpLedger((seat, delta) => {
     const player = this.state.players[seat];
     if (player) player.securityDpDelta = delta;
   });
@@ -621,8 +628,8 @@ export class GameEngine {
   private instanceSeq = 0;
 
   constructor(
-    private readonly state: GameState,
-    private readonly hooks: GameEngineHooks,
+    readonly state: GameState,
+    readonly hooks: GameEngineHooks,
   ) {
     // Every zone move is narrated through `hooks.emit`: the one place that sees a card leave
     // the field. Wrapped before the collaborators below capture `this.hooks.emit` by value.
@@ -854,7 +861,7 @@ export class GameEngine {
           return { ...grant, isActive: () => activeAtDeletion };
         }),
       checkSecurity: async (defenderSeat, attackerPermanentId, reason) =>
-        this.runSecurityCheck(defenderSeat, attackerPermanentId, reason),
+        engineRunSecurityCheck(this, defenderSeat, attackerPermanentId, reason),
       // The pierce read seam: combat consults both the temporary modifier ledger and
       // the resolved printed/continuous keyword state. Printed ＜Piercing＞ lives in the
       // latter; only effect-granted, battle-scoped Piercing lives in the former.
@@ -870,7 +877,7 @@ export class GameEngine {
         this.continuous.addKeywordGrant(permanentId, "SecurityAttack", EffectDuration.UntilEndAttack, 1),
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
-      trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
+      trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(this, seat),
       sweepEndOfAttack: () => this.sweepCombatDurations(),
       beginBattleScope: () => this.beginBattleScope(),
       sweepEndOfBattle: (scopeId) => this.sweepBattleDurations(scopeId),
@@ -1014,7 +1021,7 @@ export class GameEngine {
           transientCandidates,
         ),
       fireSubTrigger: (event, payload, sourceScope) => this.fireSubTrigger(event, payload, sourceScope),
-      trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
+      trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(this, seat),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       processRulesBeforeWhenDigivolving: async () => {
         await this.recomputeContinuousEffects();
@@ -1207,7 +1214,7 @@ export class GameEngine {
     return this.primitivesBySeat[ownerSeat];
   }
 
-  private buildEffectContext(source: CardSource, trigger: TriggerInfo, askOverride?: DecisionApi): EffectContext {
+  buildEffectContext(source: CardSource, trigger: TriggerInfo, askOverride?: DecisionApi): EffectContext {
     return createEffectContext({
       source,
       trigger,
@@ -1237,7 +1244,7 @@ export class GameEngine {
   private readonly cardSourceByInstance = new WeakMap<CardInstance, CardSource>();
 
   /** Resolve the CardSource for a CardInstance against live state (placement/turn lookup). */
-  private cardSourceOf(instance: CardInstance): CardSource {
+  cardSourceOf(instance: CardInstance): CardSource {
     const cached = this.cardSourceByInstance.get(instance);
     if (cached !== undefined) return cached;
     this.cardStateLookup ??= createCardStateLookup(this.state);
@@ -1659,20 +1666,20 @@ export class GameEngine {
   }
 
   /** Open an identity token for one battle, so nested battles do not sweep parent grants. */
-  private beginBattleScope(): number {
+  beginBattleScope(): number {
     const scopeId = ++this.battleScopeSequence;
     this.modifiers.beginBattleScope(scopeId);
     this.continuous.beginBattleScope(scopeId);
     return scopeId;
   }
 
-  private endBattleScope(scopeId: number): void {
+  endBattleScope(scopeId: number): void {
     this.modifiers.endBattleScope(scopeId);
     this.continuous.endBattleScope(scopeId);
   }
 
   /** Expire battle grants after its reactions, independently of the enclosing attack. */
-  private async sweepBattleDurations(scopeId?: number): Promise<void> {
+  async sweepBattleDurations(scopeId?: number): Promise<void> {
     this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
     this.continuous.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
     this.projection.recomputeExpiredAffectationRecipients();
@@ -2159,7 +2166,7 @@ export class GameEngine {
     };
   }
 
-  private async fireTiming(
+  async fireTiming(
     timing: EffectTiming,
     trigger: TriggerInfo = {},
     transientCandidates: readonly CardInstance[] = [],
@@ -2491,7 +2498,7 @@ export class GameEngine {
    *   (`selfSourceOnly`) or anchored anywhere else (`excludeSelfSource`). Omitted => every
    *   armed watcher runs, which is what all callers but the deletion seam want.
    */
-  private async fireSubTrigger(
+  async fireSubTrigger(
     event: SubTriggerEventName,
     payload: TriggerInfo = {},
     sourceScope?: SubTriggerSourceScope,
@@ -2711,7 +2718,7 @@ export class GameEngine {
    * ledger entry is spent, one whose anchor is gone, one whose `matches` gate rejects the
    * event, and one that could not act anyway (`canFire`, e.g. an unpayable self-suspend cost).
    */
-  private armedSubTriggers(
+  armedSubTriggers(
     subs: readonly SubTriggerSubscription[],
     payload: TriggerInfo,
     boundContexts?: ReadonlyMap<number, EffectContext>,
@@ -2815,7 +2822,7 @@ export class GameEngine {
    * the play-cost deletion list (`pendingPlayCostDeletionEffects`) is deliberately not filtered
    * here at all, since its source was deleted to pay the cost by design (Q5131).
    */
-  private nestedTriggerSourceStillResident(pending: CollectedEffect): boolean {
+  nestedTriggerSourceStillResident(pending: CollectedEffect): boolean {
     // §15-8-3-5: an inherited [On Deletion] effect is pending for the former top card of the
     // deleted stack. Its permanent identity necessarily changes/disappears, but this exception
     // is valid only when the event snapshot still proves that exact source/host relationship.
@@ -2870,7 +2877,7 @@ export class GameEngine {
     );
   }
 
-  private pendingWindowCollected(): CollectedEffect[] {
+  pendingWindowCollected(): CollectedEffect[] {
     return [
       ...this.pendingNestedTimingEffects.filter((pending) => this.nestedTriggerSourceStillResident(pending)),
       ...this.parkedEntryCollected(),
@@ -4365,7 +4372,7 @@ export class GameEngine {
    * the effect verbs (fx), the player-decision API (ask), and the per-turn use ledger
    * (shared with activateEffect so maxPerTurn accounting is unified).
    */
-  private effectEnvironment(trigger: TriggerInfo): EffectEnvironment {
+  effectEnvironment(trigger: TriggerInfo): EffectEnvironment {
     return {
       state: this.state,
       fx: this.primitives,
@@ -4393,7 +4400,7 @@ export class GameEngine {
    * narrow it (e.g. fireTimingForInstance scopes to the one played card). `ruleProcess`
    * is the state-based-action fixpoint ({@link ruleProcess}); the resolver calls it
    */
-  private resolutionDeps(
+  resolutionDeps(
     listCandidate: () => readonly CardInstance[] = () => this.listCandidateInstances(),
     opts: {
       outermost?: boolean;
@@ -4471,16 +4478,7 @@ export class GameEngine {
    */
   private ruleProcessing = false;
   /** Barrier costs trigger security-removal effects before the current security battle continues. */
-  private resolvingBarrierSecurityCost = false;
-
-  private async payBarrierSecurityCost(seat: Seat): Promise<void> {
-    this.resolvingBarrierSecurityCost = true;
-    try {
-      await this.primitives.trashFromSecurity(seat, 1, { fromTop: true, cause: "barrierCost" });
-    } finally {
-      this.resolvingBarrierSecurityCost = false;
-    }
-  }
+  resolvingBarrierSecurityCost = false;
 
   /**
    * Triggered watcher events produced while a rule check is still reaching its fixpoint.
@@ -4841,305 +4839,7 @@ export class GameEngine {
    * announce themselves before the closing `securityChecked` event, so their
    * `effectTriggered` is stamped `duringSecurityCheck` for the client to hold.
    */
-  private securityCheckDepth = 0;
-
-  private async runSecurityCheck(
-    defenderSeat: Seat,
-    attackerPermanentId: string,
-    reason: SecurityCheckReason = "attack",
-  ): Promise<void> {
-    // Re-derive the continuous tier at the start of the live security battle so the
-    // continuous ModifySecurityDP (ST3-12's [Opponent's Turn] +2000) is re-applied under its
-    // guard before any securityCardDp read — the deferred IR-01 fix. recomputeContinuousEffects
-    // clears the securityDp ledger itself, so this is a single, fresh re-application rather than
-    // a one-shot stale value left from an earlier window.
-    await this.recomputeContinuousEffects();
-    const deps: SecurityCheckDeps = {
-      beginBattleScope: () => this.beginBattleScope(),
-      sweepEndOfBattle: (scopeId) => this.sweepBattleDurations(scopeId),
-      endBattleScope: (scopeId) => this.endBattleScope(scopeId),
-      recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
-      // Strike = the number of security cards checked: base 1 plus every ＜Security
-      // Attack +N＞ granted to the attacker. The securityAttack IR producer writes these
-      // grants into continuous.keywordGrants; this is the consuming read (Permanent.Strike,
-      // source documented behavior). The floor stays at 1 (no grant ⇒ check 1 card).
-      strikeFor: (attacker) => {
-        // inversion is active on the attacker, each existing ＜Security Attack ±N＞ grant has its
-        // amount NEGATED per-instance before summing (two ＜SA -1＞ → two ＜SA +1＞ = +2 to the
-        // strike, NOT ＜SA +2＞ recomputed). The sign is applied per grant inside the reduce, so the
-        // composition is faithful to the per-instance flip with no per-permanent value math.
-        return this.projection.securityStrikeFor(attacker.permanentId);
-      },
-      permanentById: (permanentId) => this.access.permanentById(permanentId),
-      fireTiming: async (timing, info) =>
-        this.fireTiming(timing, {
-          attackerPermanentId: info.attackerPermanentId,
-          securityInstanceId: info.securityInstanceId,
-          removedFromSecuritySeat: info.removedFromSecuritySeat,
-        }),
-      fireSubTrigger: async (event, info) =>
-        this.fireSubTrigger(event, {
-          attackerPermanentId: info.attackerPermanentId,
-          securityInstanceId: info.securityInstanceId,
-          removedFromSecuritySeat: info.removedFromSecuritySeat,
-          subjectPermanentId: info.subjectPermanentId,
-        }),
-      fireFaceUpSecurityAdded: async (info) =>
-        this.fireSubTrigger("whenFaceUpCardsAddedToOpponentSecurity", {
-          addedToSecuritySeat: info.seat,
-          addedToSecurityInstanceIds: [info.instanceId],
-        }),
-      prepareCheckTriggers: (info) => {
-        const event = info.wasAlreadyFaceUp ? "whenCheckedFaceUpSecurity" : "whenFaceUpCardsAddedToOpponentSecurity";
-        const payload: TriggerInfo = {
-          attackerPermanentId: info.attackerPermanentId,
-          securityInstanceId: info.securityInstanceId,
-          removedFromSecuritySeat: info.defenderSeat,
-          addedToSecuritySeat: info.defenderSeat,
-          addedToSecurityInstanceIds: [info.securityInstanceId],
-        };
-        const armed = [event, "whenSecurityRemoved"].flatMap((name) =>
-          this.armedSubTriggers([...this.subTriggers.subscriptionsFor(name as SubTriggerEventName)], payload),
-        );
-        const framework = this.effectEnvironment(payload);
-        const initialEnv = buildResolutionEnv(framework, this.resolutionDeps());
-        const initial = [
-          ...initialEnv.collect(EffectTiming.OnSecurityCheck),
-          ...initialEnv.collect(EffectTiming.OnLoseSecurity),
-        ];
-        // Effects parked while the [Security] effect resolves are derived from it.
-        const parkedBeforeSecurityEffect = new Set(this.pendingNestedTimingEffects);
-        return async () => {
-          const outermost = this.beginResolvingWindow();
-          const enclosing = this.pendingWindowSubTriggers;
-          this.pendingWindowSubTriggers = [...enclosing, ...armed];
-          this.subTriggerWindowDepth += 1;
-          try {
-            await this.withTriggeredMutations(async () => {
-              const env = buildResolutionEnv(
-                framework,
-                this.resolutionDeps(() => [], { outermost }),
-              );
-              const derivedFromSecurityEffect = (): CollectedEffect[] =>
-                this.pendingNestedTimingEffects.filter(
-                  (pending) =>
-                    !parkedBeforeSecurityEffect.has(pending) && this.nestedTriggerSourceStillResident(pending),
-                );
-              await this.withPendingPoolDrain(outermost, async () => {
-                // CR §15-4-5-2/3: the [Security] effect's derived triggers activate before the
-                // watchers already pending when the check began, whichever seat owns them.
-                if (derivedFromSecurityEffect().length > 0) {
-                  await resolveTiming(EffectTiming.OnSecurityCheck, {
-                    ...env,
-                    collect: derivedFromSecurityEffect,
-                  });
-                }
-                await resolveTiming(EffectTiming.OnSecurityCheck, {
-                  ...env,
-                  collect: () => [...initial, ...this.pendingWindowCollected()],
-                });
-              });
-              if (outermost) {
-                await this.flushDeferredTimingWindows();
-                await this.flushDeferredSecurityRemovalTriggers();
-              }
-            });
-            await this.recomputeContinuousEffects();
-          } finally {
-            this.pendingWindowSubTriggers = enclosing;
-            this.subTriggerWindowDepth -= 1;
-            // A nested check (an attack declared inside a resolving effect) folds the ENCLOSING
-            // window's pending watchers into its own ordering. Those watchers stay queued in the
-            // enclosing window, so their consumed identities must outlive this inner window or the
-            // enclosing collect fires them a second time (BT26-086: link seven, then attack).
-            if (outermost && this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
-            this.endResolvingWindow(outermost);
-          }
-        };
-      },
-      resolveSecurityEffect: async (card, resolvingAttackerId, wasFaceUp) =>
-        this.resolveSecurityEffect(card, resolvingAttackerId, wasFaceUp),
-      // Reveal hint only: true whenever the card HAS a [Security] effect that would
-      // activate, even if that effect later declines to do anything. The client uses it to
-      // dock the card while the effect resolves, matching the reference client.
-      hasSecurityEffect: (card, hintAttackerId, wasFaceUp) =>
-        this.securityEffectsFor(card, hintAttackerId, wasFaceUp).length > 0,
-      dpOf: (permanentId) => this.access.permanentById(permanentId)?.currentDP ?? 0,
-      hasKeyword: (permanentId, keyword) => {
-        const permanent = this.access.permanentById(permanentId);
-        return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword);
-      },
-      hasRestriction: (permanentId, restriction) => this.continuous.hasRestriction(permanentId, restriction),
-      securityCardDp: (card) => {
-        const owner = card.ownerSeat;
-        return (lookupDefinition(card.cardId)?.dp ?? 0) + this.securityDp.deltaFor(owner);
-      },
-      isDigimon: (card) => {
-        const result = this.access.isDigimonCard(card);
-        log("[securityCheck]", card.cardId, `isDigimon=${result} kinds=`, lookupDefinition(card.cardId)?.kinds);
-        return result;
-      },
-      deletePermanents: async (permanentIds, afterMovement) => {
-        // Security battles use the authoritative deletion primitive too. It owns the complete
-        // replacement pipeline (Armor Purge, Decoy, Material Save, On Deletion and teardown),
-        // preventing this seam from drifting from field-battle and effect deletion behavior.
-        await this.primitives.deletePermanent(permanentIds, "byBattle", { afterMovement });
-      },
-    };
-    const emitWithLog = (event: ServerEvent) => {
-      this.hooks.emit(event);
-      if (event.kind === "securityChecked") {
-        log("[securityCheck]", "securityChecked event:", JSON.stringify(event));
-      }
-    };
-    this.securityCheckDepth += 1;
-    try {
-      await runSecurityCheck(
-        this.state,
-        emitWithLog,
-        this.win,
-        deps,
-        defenderSeat,
-        { permanentId: attackerPermanentId },
-        reason,
-      );
-    } finally {
-      this.securityCheckDepth -= 1;
-    }
-  }
-
-  /**
-   * Resolve a revealed security card's [Security] effect, if it has one (subsystem:
-   * effect-stack-resolution + effect-framework). Looks up the card's registered
-   * module for effects filed under {@link EffectTiming.SecuritySkill}; if any
-   * trigger, it runs them through the same ordered stack resolver every other timing
-   * uses (scoped to this one card so only its security effect fires). Returns true
-   * when at least one security effect ACTUALLY activated: an effect that could not
-   * activate, or an optional the owner declined, leaves the card to be trashed as if it
-   * had no security effect (KB Q886).
-   *
-   * The checked card has already left security (CR 13-1-6). Exact source lookup and
-   * [Security] self-relocation use its temporary checked-card context.
-   *
-   * Resolved as a single ordered pass over the card's own security effects rather
-   * than through the re-collecting `runTiming` fixpoint: a [Security] effect
-   * activates once when the card is flipped (the source activates the single
-   * security skill), and the card leaves the security zone as part of resolving, so
-   * a re-collection of the same instance must not re-offer it.
-   */
-  private async resolveSecurityEffect(
-    card: CardInstance,
-    attackerPermanentId: string,
-    securityWasFaceUp?: boolean,
-  ): Promise<boolean> {
-    const securityEffects = this.securityEffectsFor(card, attackerPermanentId, securityWasFaceUp);
-    log(
-      "[resolveSecurityEffect]",
-      card.cardId,
-      `found ${securityEffects.length} effect(s)`,
-      securityEffects.map((e) => ({ key: e.effectKey, optional: e.optional, desc: e.description })),
-    );
-    if (securityEffects.length === 0) return false;
-
-    const source = this.cardSourceOf(card);
-    const def = lookupDefinition(card.cardId);
-
-    // A DUAL card's [Security] clause printed on its Digimon face resolves as a
-    // Digimon effect (BT26-075 Q7102), even though the physical card is also an
-    // Option for security-effect suppression (Q7103). Keep those two rule queries
-    // separate: the disable above reads the full definition, while effect provenance
-    // below uses only the face that owns the resolving clause.
-    const securityEffectSourceKinds =
-      def?.isDualCard === true && def.effectText?.includes("[Security]") === true
-        ? [CardKind.Digimon]
-        : [...(def?.kinds ?? source.definition.kinds)];
-    // KB Q886: an Option whose [Security] effect could not activate (condition unmet) or
-    // whose optional was declined is simply trashed — nothing activated, so the check must
-    // not report an "effect" resolution.
-    let activated = false;
-    for (const effect of securityEffects) {
-      const ctx = {
-        // Preserve Security provenance for both the real no-area check and direct timing
-        // probes, which may still stage their source in a security fixture.
-        ...this.buildEffectContext(source, { securityWasFaceUp }),
-        activeTiming: "SecuritySkill",
-        effectSourceKinds: securityEffectSourceKinds,
-      };
-      if (!canActivate(effect, ctx, this.tracker)) {
-        log("[resolveSecurityEffect]", card.cardId, `canActivate=false for ${effect.effectKey}, skipping`);
-        continue;
-      }
-      if (effect.optional && !(await this.resolverDecisions.askOptional(source.ownerSeat, { source, effect }))) {
-        log("[resolveSecurityEffect]", card.cardId, `optional declined for ${effect.effectKey}`);
-        continue;
-      }
-      log("[resolveSecurityEffect]", card.cardId, `resolving ${effect.effectKey}`);
-      // The [Security] clause is a triggered effect like any other, so it announces itself
-      // the same way: the client reads the clause out of the left notice column beside the
-      // revealed card. `resolveSecurityEffect` runs inside `securityCheckDepth`, so the
-      // stamp below marks the announcement for the client's hold-until-reveal queue.
-      this.hooks.emit({
-        kind: "effectTriggered",
-        seat: source.ownerSeat,
-        sourceCardId: source.cardId,
-        sourceInstanceId: source.instanceId,
-        sourcePermanentId: source.permanent()?.permanentId,
-        effectKey: effect.effectKey,
-        description: effect.description,
-        timing: "Security",
-        ...(effect.isInherited ? { isInherited: true } : {}),
-        ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
-      });
-      ctx.fx.enterEffectResolution?.(source.ownerSeat, securityEffectSourceKinds);
-      try {
-        await effect.resolve(ctx);
-      } finally {
-        ctx.fx.leaveEffectResolution?.();
-      }
-      this.hooks.emit({
-        kind: "effectResolved",
-        seat: source.ownerSeat,
-        sourceCardId: source.cardId,
-        sourceInstanceId: source.instanceId,
-        sourcePermanentId: source.permanent()?.permanentId,
-        effectKey: effect.effectKey,
-        description: effect.description,
-        timing: "Security",
-        ...(effect.isInherited ? { isInherited: true } : {}),
-      });
-      this.tracker.register(source.instanceId, effect.effectKey);
-      activated = true;
-    }
-    log("[resolveSecurityEffect]", card.cardId, `returning ${activated}`);
-    return activated;
-  }
-
-  /**
-   * The [Security] effects of `card` that would activate under this attacker right now —
-   * the shared lookup behind both {@link resolveSecurityEffect} and the
-   * `hasSecurityEffect` reveal hint, so the hint can never disagree with what resolves.
-   *
-   * Security-effect disable (DisableSecurityEffect, the security half of the source rule
-   * implementation split): while the attacker carries the disable, this flipped card's
-   * {Security} effect does not activate at all. Reporting none lets the security loop trash
-   * an Option (KB Q886) and battle a Digimon normally.
-   */
-  private securityEffectsFor(
-    card: CardInstance,
-    attackerPermanentId: string,
-    securityWasFaceUp?: boolean,
-  ): ReturnType<typeof effectsOf> {
-    const source = this.cardSourceOf(card);
-    const def = lookupDefinition(card.cardId);
-    if (def !== undefined && this.continuous.isSecurityEffectDisabled(attackerPermanentId, def)) {
-      log("[securityEffectsFor]", card.cardId, "SECURITY EFFECT DISABLED by attacker", attackerPermanentId);
-      return [];
-    }
-    return effectsOf(EffectTiming.SecuritySkill, source).filter((effect) => {
-      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
-      return canTrigger(effect, ctx, this.tracker);
-    });
-  }
+  securityCheckDepth = 0;
 
   /**
    * Assemble the side-effect dependencies the play-card action needs (subsystem:
