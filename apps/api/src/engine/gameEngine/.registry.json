@@ -43,6 +43,10 @@
   "export": "combatDecisionDeps",
   "module": "actionDeps"
  },
+ "combatTriggerInfo": {
+  "export": "combatTriggerInfo",
+  "module": "timing"
+ },
  "continueMainVerb": {
   "export": "continueMainVerb",
   "module": "intents"
@@ -50,6 +54,10 @@
  "counterEligibleSources": {
   "export": "counterEligibleSources",
   "module": "intents"
+ },
+ "crossPermanentPlayReducerWatchers": {
+  "export": "crossPermanentPlayReducerWatchers",
+  "module": "timing"
  },
  "digiXrosDeps": {
   "export": "digiXrosDeps",
@@ -63,6 +71,10 @@
   "export": "dnaDigivolveDeps",
   "module": "actionDeps"
  },
+ "drainPendingAttackTriggers": {
+  "export": "drainPendingAttackTriggers",
+  "module": "timing"
+ },
  "findInstance": {
   "export": "findInstance",
   "module": "intents"
@@ -70,6 +82,34 @@
  "findLooseInstance": {
   "export": "findLooseInstance",
   "module": "intents"
+ },
+ "fireBeforeDigivolveCost": {
+  "export": "fireBeforeDigivolveCost",
+  "module": "timing"
+ },
+ "fireBeforePayCost": {
+  "export": "fireBeforePayCost",
+  "module": "timing"
+ },
+ "fireEnteredByEffectTiming": {
+  "export": "fireEnteredByEffectTiming",
+  "module": "timing"
+ },
+ "firePlayEntryWindows": {
+  "export": "firePlayEntryWindows",
+  "module": "timing"
+ },
+ "fireTiming": {
+  "export": "fireTiming",
+  "module": "timing"
+ },
+ "fireTimingForInstance": {
+  "export": "fireTimingForInstance",
+  "module": "timing"
+ },
+ "fireTimingForPermanent": {
+  "export": "fireTimingForPermanent",
+  "module": "timing"
  },
  "handleActivateEffect": {
   "export": "handleActivateEffect",
@@ -143,6 +183,10 @@
   "export": "linkCardDeps",
   "module": "actionDeps"
  },
+ "materializePlayerCustomEffects": {
+  "export": "materializePlayerCustomEffects",
+  "module": "timing"
+ },
  "payBarrierSecurityCost": {
   "export": "payBarrierSecurityCost",
   "module": "securityCheck"
@@ -151,9 +195,41 @@
   "export": "playCardDeps",
   "module": "actionDeps"
  },
+ "playedTrigger": {
+  "export": "playedTrigger",
+  "module": "timing"
+ },
+ "prepareDigiXrosPlay": {
+  "export": "prepareDigiXrosPlay",
+  "module": "timing"
+ },
+ "prepareDigiXrosPlays": {
+  "export": "prepareDigiXrosPlays",
+  "module": "timing"
+ },
+ "projectLooseUseCost": {
+  "export": "projectLooseUseCost",
+  "module": "timing"
+ },
+ "purpleDigimonUnderTamers": {
+  "export": "purpleDigimonUnderTamers",
+  "module": "timing"
+ },
+ "reactivateOnPlay": {
+  "export": "reactivateOnPlay",
+  "module": "timing"
+ },
+ "residentPlayCostEffects": {
+  "export": "residentPlayCostEffects",
+  "module": "timing"
+ },
  "resolutionDeps": {
   "export": "resolutionDeps",
   "module": "actionDeps"
+ },
+ "resolveDeletionReactions": {
+  "export": "resolveDeletionReactions",
+  "module": "timing"
  },
  "resolveSecurityEffect": {
   "export": "resolveSecurityEffect",
@@ -163,9 +239,17 @@
   "export": "respondCounterDeps",
   "module": "actionDeps"
  },
+ "runCrossPermanentPlayReducers": {
+  "export": "runCrossPermanentPlayReducers",
+  "module": "timing"
+ },
  "runSecurityCheck": {
   "export": "engineRunSecurityCheck",
   "module": "securityCheck"
+ },
+ "runTimingWindow": {
+  "export": "runTimingWindow",
+  "module": "timing"
  },
  "securityEffectsFor": {
   "export": "securityEffectsFor",

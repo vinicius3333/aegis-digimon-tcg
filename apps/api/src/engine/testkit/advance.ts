@@ -3,6 +3,7 @@ import type { GameEngine } from "../GameEngine.js";
 import type { Primitives, RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { drainMicrotasks } from "./harness.js";
 import { internalsOf } from "./internals.js";
+import { fireTimingForPermanent } from "../gameEngine/timing.js";
 
 /**
  * The Advance Surface: the Test Seam's small, named set of sub-intent engine drivers.
@@ -168,19 +169,19 @@ export function advance(engine: GameEngine) {
     /** Fire a timing window on a battle-area permanent through the production fire seam. */
     async fire(timing: EffectTiming, permanent: Permanent): Promise<void> {
       await internals.recomputeContinuousEffects();
-      await internals.fireTimingForPermanent(timing, permanent);
+      await fireTimingForPermanent(engine, timing, permanent);
       await internals.recomputeContinuousEffects();
     },
 
     /** Fire a production-wide timing window, including its rule-processing follow-ups. */
     async fireGlobal(timing: EffectTiming, trigger: TriggerInfo = {}): Promise<void> {
-      await internals.fireTiming(timing, trigger);
+      await engine.fireTiming(timing, trigger);
     },
 
     /** Fire one permanent's timing with an explicit production trigger payload. */
     async fireForPermanent(timing: EffectTiming, permanent: Permanent, trigger: TriggerInfo = {}): Promise<void> {
       await internals.recomputeContinuousEffects();
-      await internals.fireTimingForPermanent(timing, permanent, trigger);
+      await fireTimingForPermanent(engine, timing, permanent, trigger);
       await internals.recomputeContinuousEffects();
     },
 
@@ -191,7 +192,7 @@ export function advance(engine: GameEngine) {
       // reveal before the engine collects the requested instance.
       if (timing === EffectTiming.SecuritySkill) instance.faceUp = true;
       await internals.recomputeContinuousEffects();
-      await internals.fireTimingForInstance(timing, instance.instanceId, trigger);
+      await engine.fireTimingForInstance(timing, instance.instanceId, trigger);
       await internals.recomputeContinuousEffects();
     },
 

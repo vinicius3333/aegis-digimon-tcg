@@ -45,6 +45,15 @@ import { linkRequirementSatisfied } from "./boardQueries.js";
 import { digivolvedFromTamerBase } from "./subTriggerIdentity.js";
 import type { GameEngine } from "../GameEngine.js";
 import { applyIntent, checkTurnEndAfterVerb, findInstance, findLooseInstance } from "./intents.js";
+import {
+  crossPermanentPlayReducerWatchers,
+  fireBeforeDigivolveCost,
+  fireBeforePayCost,
+  firePlayEntryWindows,
+  fireTimingForPermanent,
+  projectLooseUseCost,
+  residentPlayCostEffects,
+} from "./timing.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -184,7 +193,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       }
       return false;
     },
-    prepareDigivolveCost: (_state, _seat, target, evolving) => engine.fireBeforeDigivolveCost(evolving, target),
+    prepareDigivolveCost: (_state, _seat, target, evolving) => fireBeforeDigivolveCost(engine, evolving, target),
     potentialInteractiveDigivolveReduction: (state, seat, target, into) => {
       if (engine.continuous.blocksCostReduction(seat, "digivolve")) return 0;
       const liveReduction = engine.subTriggers.potentialInteractiveReductionFor("wouldDigivolve", seat, target, into, {
@@ -388,7 +397,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
           // every OTHER permanent's [When Digivolving] effect — including the opponent's
           // — because those effects rely on the engine (not a per-card owner's-turn guard)
           // to be scoped to the digivolving card.
-          await engine.fireTimingForPermanent(EffectTiming.WhenDigivolving, permanent, digivolveTrigger);
+          await fireTimingForPermanent(engine, EffectTiming.WhenDigivolving, permanent, digivolveTrigger);
           // Thread the digivolving permanent as the trigger subject (documented behavior: the
           // enter-field hashtable carries the entered permanent). An OnEnterFieldAnyone effect
           // that targets "the Digimon that digivolved" (BT19-080) reads
@@ -427,7 +436,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
     adjustedPlayCost: (_state, seat, definition, base) =>
       engine.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
     optionUseCost: (_state, seat, instance, passiveCost) =>
-      engine.projectLooseUseCost(instance.instanceId, seat) ?? passiveCost,
+      projectLooseUseCost(engine, instance.instanceId, seat) ?? passiveCost,
     // Seat-level "your opponent can't play <X>" prohibition (RestrictPlay). A manual play
     // is the playing seat's own action, so the prohibition on that seat applies.
     playProhibited: (_state, seat, definition) => engine.continuous.isPlayBlocked(seat, definition, "play"),
@@ -449,7 +458,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
     // window (where a ReducePlayCost action runs its optional server-side payment) and return the
     // finalized cost. Runs in the async apply path BEFORE memory is paid (EX9-043 / BT25-076).
     finalizePlayCost: async (_state, _seat, instance, _definition, baseCost, mode) =>
-      engine.fireBeforePayCost(instance, baseCost, mode === "option", "hand"),
+      fireBeforePayCost(engine, instance, baseCost, mode === "option", "hand"),
     // Synchronous fast-path gate: only cards with a BeforePayCost effect take the async
     // finalization path. Every other card keeps same-microtask placement (no timing change).
     hasBeforePayCost: (instance) =>
@@ -458,8 +467,8 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
       ) ||
       wouldBePlayedSelfReducersFor(instance.cardId).length > 0 ||
       (engine.state.players[engine.cardSourceOf(instance).ownerSeat]?.breeding?.stack.length ?? 0) > 0 ||
-      engine.crossPermanentPlayReducerWatchers(instance, engine.cardSourceOf(instance).ownerSeat).length > 0 ||
-      engine.residentPlayCostEffects(engine.cardSourceOf(instance).ownerSeat).length > 0 ||
+      crossPermanentPlayReducerWatchers(engine, instance, engine.cardSourceOf(instance).ownerSeat).length > 0 ||
+      residentPlayCostEffects(engine, engine.cardSourceOf(instance).ownerSeat).length > 0 ||
       engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", engine.cardSourceOf(instance).ownerSeat),
     // After the played permanent is created (before On Play), place any cards a cross-permanent
     // reducer (BT10-093) committed under it, and relocate any whole permanent a SELF reducer's cost
@@ -488,7 +497,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
       }
     },
     fireTiming: async (_state, _seat, timing, sourceInstanceId) =>
-      engine.firePlayEntryWindows(timing, sourceInstanceId),
+      firePlayEntryWindows(engine, timing, sourceInstanceId),
     beginOptionResolution: () => {
       engine.optionResolutionDepth += 1;
     },
@@ -620,7 +629,7 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
       engine.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
     canReducePlayCost: (_state, seat) => !engine.continuous.blocksCostReduction(seat, "play"),
     finalizePlayCost: async (_state, _seat, instance, _definition, baseCost) =>
-      engine.fireBeforePayCost(instance, baseCost, false, "hand"),
+      fireBeforePayCost(engine, instance, baseCost, false, "hand"),
     digiXrosNamesOf: (instanceId) => {
       const located = findInstance(engine, instanceId);
       if (located === undefined) return [];
@@ -660,7 +669,7 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
       await engine.primitives.suspend([permanentId]);
     },
     fireTiming: async (_state, _seat, timing, sourceInstanceId, materialCount) =>
-      engine.firePlayEntryWindows(timing, sourceInstanceId, { digiXrosMaterialCount: materialCount }),
+      firePlayEntryWindows(engine, timing, sourceInstanceId, { digiXrosMaterialCount: materialCount }),
     emit: (event) => engine.hooks.emit(event as ServerEvent),
   };
 }
@@ -681,7 +690,7 @@ export function assemblyDeps(engine: GameEngine): AssemblyDeps {
     nextPermanentId: () => engine.nextPermanentId(),
     placeUnder: (targetPermanentId, instanceIds) => engine.primitives.placeUnder(targetPermanentId, instanceIds),
     fireTiming: async (_state, _seat, timing, sourceInstanceId) =>
-      engine.firePlayEntryWindows(timing, sourceInstanceId),
+      firePlayEntryWindows(engine, timing, sourceInstanceId),
     emit: (event) => engine.hooks.emit(event as ServerEvent),
   };
 }
