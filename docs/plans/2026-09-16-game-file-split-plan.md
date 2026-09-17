@@ -607,7 +607,7 @@ files that were still oversized anywhere in the app.
 | --- | --- | --- |
 | `dev/CardEffectsDemo.tsx` | 19,411 | 87 |
 | `game/boardModel.ts` | 1,608 | 317 |
-| `dev/BoardShowcase.tsx` | 1,414 | 930 |
+| `dev/BoardShowcase.tsx` | 1,414 | 950 |
 | `screens/DeckBuilder.tsx` | 1,071 | 49 |
 | `screens/cardLibrary.tsx` | 905 | removed |
 
@@ -651,7 +651,7 @@ replace it, and its five importers name the piece they want.
 ### `BoardShowcase.tsx`
 
 Only the mechanical half: the fixed board it renders (`boardShowcaseFixtures.tsx`)
-and its own section frame (`boardShowcaseLayout.tsx`). The remaining 930 lines are
+and its own section frame (`boardShowcaseLayout.tsx`). The remaining 950 lines are
 one component whose body is the list of cases — splitting that is a judgement
 call about how the showcase is organised, not a move.
 
