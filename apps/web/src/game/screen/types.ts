@@ -1,6 +1,9 @@
-import type { RefObject } from "react";
-import type { Permanent, PlayerState } from "@aegis/shared";
+import type { Dispatch, RefObject, SetStateAction } from "react";
+import type { AssemblyRequirement, DigiXrosRequirement, Permanent, PlayerState } from "@aegis/shared";
 import type { DropTarget } from "../dragIntents";
+import type { EvoCostOption } from "../boardModel";
+import type { AssemblyCandidate, DigiXrosCandidate, DigiXrosEligibleExpander } from "../overlay";
+import type { Side } from "../side";
 import type { DpPulse } from "../dpPulse";
 import type { FreezePulse } from "../freezePulse";
 import type { PendingFateBadge } from "../pendingFate";
@@ -104,3 +107,80 @@ export type PendingActionConfirmation =
   | { kind: DragKind.Play; instanceId: string; cardId: string }
   | { kind: "digivolve"; instanceId: string; cardId: string; permanentId: string; baseCardId: string }
   | { kind: "dna"; instanceId: string; cardId: string; materialPermanentIds: string[]; normalPermanentId?: string };
+
+/** An armed link declaration: the card to link, and the Digimon it may be plugged into. */
+export interface LinkDeclaration {
+  instanceId: string;
+  cardId: string;
+  targetPermanentIds: readonly string[];
+}
+
+/** Where a field card's action menu is anchored, and whose card opened it. */
+export interface CardMenuAnchor {
+  permanentId: string;
+  side: Side;
+  x: number;
+  y: number;
+}
+
+/** A dual card whose half the viewer has still to choose. */
+export interface DualPlayChoice {
+  instanceId: string;
+  cardId: string;
+}
+
+/** A digivolution with more than one cost to pay, and the paths it may pay it by. */
+export interface EvoCostChoice {
+  handInstanceId: string;
+  permanentId: string;
+  handCardId: string;
+  baseName: string;
+  options: EvoCostOption[];
+}
+
+/** An Assembly play whose materials the viewer has still to pick. */
+export interface AssemblyPick {
+  instanceId: string;
+  cardId: string;
+  requirement: AssemblyRequirement;
+  candidates: AssemblyCandidate[];
+}
+
+/** A DigiXros play whose materials and expanders the viewer has still to pick. */
+export interface DigiXrosPick {
+  instanceId: string;
+  cardId: string;
+  requirements: DigiXrosRequirement[];
+  candidates: DigiXrosCandidate[];
+  lockedCandidates: DigiXrosCandidate[];
+  eligibleExpanders: DigiXrosEligibleExpander[];
+  intrinsicTrashMax: number;
+}
+
+/** An App Fusion whose consumed link the viewer has still to choose. */
+export interface AppFusionChoice {
+  handInstanceId: string;
+  hostPermanentId: string;
+}
+
+/** The writers an intent sender needs to put a selection down again. */
+export interface SelectionControls {
+  clearSel: () => void;
+  setHandSel: Dispatch<SetStateAction<string | null>>;
+  setHandPreview: Dispatch<SetStateAction<string | null>>;
+  setSelPerm: Dispatch<SetStateAction<string | null>>;
+  setVortexMode: Dispatch<SetStateAction<boolean>>;
+  setLinkSel: Dispatch<SetStateAction<LinkDeclaration | null>>;
+}
+
+/** The writers an intent sender needs to open or close a surface over the board. */
+export interface OverlayControls {
+  setCardMenu: Dispatch<SetStateAction<CardMenuAnchor | null>>;
+  setStackView: Dispatch<SetStateAction<string | null>>;
+  setPicks: Dispatch<SetStateAction<string[]>>;
+  setDualPlay: Dispatch<SetStateAction<DualPlayChoice | null>>;
+  setActionConfirm: Dispatch<SetStateAction<PendingActionConfirmation | null>>;
+  setAssemblyPick: Dispatch<SetStateAction<AssemblyPick | null>>;
+  setDigiXrosPick: Dispatch<SetStateAction<DigiXrosPick | null>>;
+  setEvoCostChoice: Dispatch<SetStateAction<EvoCostChoice | null>>;
+}

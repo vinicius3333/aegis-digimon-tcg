@@ -9,11 +9,13 @@ import { dropZoneAt } from "./screen/dropZones";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
 import { decisionViewFor } from "./screen/model/decisionView";
-import { prePlayPromptFor } from "./screen/model/prePlayPrompt";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
 import { useAttackPreviewArrow } from "./screen/hooks/useAttackPreviewArrow";
+import { useBoardSelection } from "./screen/hooks/useBoardSelection";
+import { useOverlayState } from "./screen/hooks/useOverlayState";
 import { useDragPlumbing } from "./screen/hooks/useDragPlumbing";
 import { useTrackingArrow } from "./screen/hooks/useTrackingArrow";
+import { matchIntents } from "./screen/matchIntents";
 import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
 import { pendingMatchNotice } from "./screen/model/pendingMatchNotice";
 import { AttackArrowLayer } from "./screen/layout/AttackArrowLayer";
@@ -79,12 +81,7 @@ import {
   PRESENTATION_CHANNEL,
   getCardDefinition,
   parseTriggerKey,
-  type AssemblyRequirement,
-  type AssemblyPlan,
-  type AttackTarget,
   type DecisionResponse,
-  type DigiXrosRequirement,
-  type DigiXrosPlan,
   type Permanent,
   type Seat,
 } from "@aegis/shared";
@@ -123,26 +120,18 @@ import {
   canAttackWith,
   canVortexAttackWith,
   displayMemory,
-  getDigivolveCostOptions,
   handCardEvolutionRoute,
   appFusionRoutesForHost,
   parseActivatable,
   otherSeat,
   triggerCardId,
   viewerSeatOf,
-  type EvoCostOption,
   type LogLine,
   breedingSlotClickAction,
   canMoveFromBreeding,
   canUseBreedingAction,
 } from "./boardModel";
-import {
-  MulliganOverlay,
-  playerFacingEffectClause,
-  type AssemblyCandidate,
-  type DigiXrosCandidate,
-  type DigiXrosEligibleExpander,
-} from "./overlay";
+import { MulliganOverlay, playerFacingEffectClause } from "./overlay";
 import { AttackAnnouncementBanner } from "./SidePanelStack";
 import { NarrationStack } from "./NarrationStack";
 import { CardOpenerProvider } from "./cardLinks";
@@ -255,41 +244,57 @@ export function GameScreen({
     });
   }, [vsBot, room, status, botDeckId, t]);
 
-  const [handSel, setHandSel] = useState<string | null>(null); // selected hand instanceId
-  const [handPreview, setHandPreview] = useState<string | null>(null); // pinned hand-card inspection
+  const {
+    handSel,
+    setHandSel,
+    handPreview,
+    setHandPreview,
+    selPerm,
+    setSelPerm,
+    linkSel,
+    setLinkSel,
+    vortexMode,
+    setVortexMode,
+    clearSel,
+  } = useBoardSelection({ state, viewerSeat });
+  const {
+    cardMenu,
+    setCardMenu,
+    stackView,
+    setStackView,
+    trashView,
+    setTrashView,
+    securityView,
+    setSecurityView,
+    picks,
+    setPicks,
+    decisionAsDialog,
+    setDecisionAsDialog,
+    historyOpen,
+    setHistoryOpen,
+    zoomCardId,
+    setZoomCardId,
+    zoomArtId,
+    setZoomArtId,
+    bugReportOpen,
+    setBugReportOpen,
+    dualPlay,
+    setDualPlay,
+    assemblyPick,
+    setAssemblyPick,
+    evoCostChoice,
+    setEvoCostChoice,
+    digiXrosPick,
+    setDigiXrosPick,
+    appFusionChoice,
+    setAppFusionChoice,
+    actionConfirm,
+    setActionConfirm,
+  } = useOverlayState({ decision, state, clearSel });
   // A play leaves the hand visually at the same instant the intent is dispatched. The
   // synchronized state will confirm that departure; a rejection rolls it back.
   const [optimisticPlayedInstanceId, setOptimisticPlayedInstanceId] = useState<string>();
   const playAttemptEventSeqRef = useRef(-1);
-  const [selPerm, setSelPerm] = useState<string | null>(null); // selected attacker permanentId
-  // A link declaration in progress: the card to link (hand or a battle-area top) and the
-  // server-projected Digimon it may be plugged into. The next tap on one of them sends it.
-  const [linkSel, setLinkSel] = useState<{
-    instanceId: string;
-    cardId: string;
-    targetPermanentIds: readonly string[];
-  } | null>(null);
-  const [assemblyPick, setAssemblyPick] = useState<{
-    instanceId: string;
-    cardId: string;
-    requirement: AssemblyRequirement;
-    candidates: AssemblyCandidate[];
-  } | null>(null);
-  const [dualPlay, setDualPlay] = useState<{ instanceId: string; cardId: string } | null>(null);
-  const [vortexMode, setVortexMode] = useState(false); // the selected attack is a ＜Vortex＞ declaration
-  const [cardMenu, setCardMenu] = useState<{ permanentId: string; side: Side; x: number; y: number } | null>(null);
-  const [stackView, setStackView] = useState<string | null>(null); // permanentId whose stack modal is open
-  const [trashView, setTrashView] = useState<Side | null>(null); // which player's trash modal is open
-  const [securityView, setSecurityView] = useState<Side | null>(null); // which player's security modal is open
-  const [picks, setPicks] = useState<string[]>([]);
-  // A board-mode decision the viewer asked to see in the dialog instead (Escape
-  // or the rail's back arrow). Reset with every new decision.
-  const [decisionAsDialog, setDecisionAsDialog] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(false);
-  // A card name clicked in the play log opens the card itself, without closing the log.
-  const [zoomCardId, setZoomCardId] = useState<string | null>(null);
-  const [zoomArtId, setZoomArtId] = useState<string | undefined>();
-  const [bugReportOpen, setBugReportOpen] = useState(false);
   /** The combat-prompt window this seat already answered, so a slow round trip or a window the
    * server closed without its own resolved event cannot leave a stale prompt clickable a second
    * time. Cleared when the window is genuinely gone. */
@@ -297,32 +302,6 @@ export function GameScreen({
   /** The last combat-answer rejection already rolled back, so one refusal clears the optimistic
    * hide exactly once. */
   const rolledBackRejectionSeqRef = useRef<number | undefined>(undefined);
-  const [evoCostChoice, setEvoCostChoice] = useState<{
-    handInstanceId: string;
-    permanentId: string;
-    handCardId: string;
-    baseName: string;
-    options: EvoCostOption[];
-  } | null>(null);
-  const [digiXrosPick, setDigiXrosPick] = useState<{
-    instanceId: string;
-    cardId: string;
-    requirements: DigiXrosRequirement[];
-    candidates: DigiXrosCandidate[];
-    lockedCandidates: DigiXrosCandidate[];
-    eligibleExpanders: DigiXrosEligibleExpander[];
-    intrinsicTrashMax: number;
-  } | null>(null);
-  const [appFusionChoice, setAppFusionChoice] = useState<{
-    handInstanceId: string;
-    hostPermanentId: string;
-  } | null>(null);
-  const [actionConfirm, setActionConfirm] = useState<
-    | { kind: DragKind.Play; instanceId: string; cardId: string }
-    | { kind: "digivolve"; instanceId: string; cardId: string; permanentId: string; baseCardId: string }
-    | { kind: "dna"; instanceId: string; cardId: string; materialPermanentIds: string[]; normalPermanentId?: string }
-    | null
-  >(null);
 
   const { drag, dragHover, handleTapRef, handleDropRef, startHandDrag, startPermDrag } = useDragPlumbing();
 
@@ -474,59 +453,6 @@ export function GameScreen({
    */
   const unsuspendStagger = (seat: Seat, index: number) =>
     unsuspendSweep?.seat === seat ? index * TIMINGS.suspendStagger : 0;
-
-  const clearSel = () => {
-    setHandPreview(null);
-    setHandSel(null);
-    setSelPerm(null);
-    setVortexMode(false);
-    setLinkSel(null);
-  };
-
-  useEffect(() => {
-    if ((!handSel || handPreview) && !selPerm) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") clearSel();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handSel, handPreview, selPerm]);
-
-  const selectedAttacker = state?.players[viewerSeat]?.battleArea.find(
-    (permanent) => permanent.permanentId === selPerm,
-  );
-  const selectedAttackAvailable =
-    !!selectedAttacker && (vortexMode ? canVortexAttackWith(selectedAttacker) : canAttackWith(selectedAttacker));
-  useEffect(() => {
-    if (selPerm && !selectedAttackAvailable) {
-      setSelPerm(null);
-      setVortexMode(false);
-    }
-  }, [selPerm, selectedAttackAvailable]);
-
-  // Discard unfinished declarations when server authority changes their action window.
-  useEffect(() => {
-    clearSel();
-    setHandPreview(null);
-    setCardMenu(null);
-    setStackView(null);
-    setTrashView(null);
-    setSecurityView(null);
-    setDigiXrosPick(null);
-    setAssemblyPick(null);
-    setActionConfirm(null);
-    setEvoCostChoice(null);
-    setAppFusionChoice(null);
-    setDecisionAsDialog(false);
-  }, [
-    decision?.decisionId,
-    state?.pendingDecision?.decisionId,
-    state?.combatWindow?.kind,
-    state?.phase,
-    state?.turnSeat,
-    state?.gameOver,
-  ]);
 
   const trackingArrow = useTrackingArrow({
     state,
@@ -734,159 +660,46 @@ export function GameScreen({
   const handPreviewActions =
     handPreview && !decision ? handEntries.find((entry) => entry.instanceId === handPreview) : undefined;
 
-  // ----- intent senders (no-op safely if the room dropped) -----
-  const dispatchPlayCard = (
-    activeRoom: Parameters<typeof intents.playCard>[0],
-    instanceId: string,
-    targetSlot?: number,
-    digiXros?: DigiXrosPlan,
-    assembly?: AssemblyPlan,
-    useAs?: "digimon" | "option",
-  ) => {
-    lastPlayAttemptRef.current = instanceId;
-    playAttemptEventSeqRef.current = events.reduce((latest, event, index) => Math.max(latest, event.seq ?? index), -1);
-    setOptimisticPlayedInstanceId(instanceId);
-    intents.playCard(activeRoom, instanceId, targetSlot, digiXros, assembly, useAs);
+  const selection = { clearSel, setHandSel, setHandPreview, setSelPerm, setVortexMode, setLinkSel };
+  const overlayControls = {
+    setCardMenu,
+    setStackView,
+    setPicks,
+    setDualPlay,
+    setActionConfirm,
+    setAssemblyPick,
+    setDigiXrosPick,
+    setEvoCostChoice,
   };
-  const playCard = (instanceId: string, confirmDrop = false) => {
-    if (mainActionBlocked) return;
-    const prompt = prePlayPromptFor({
-      entry: handEntries.find((h) => h.instanceId === instanceId),
-      viewer: you,
-      confirmDrop,
-      actionConfirmationsEnabled,
-    });
-    if (prompt?.kind === "dual") {
-      setDualPlay({ instanceId, cardId: prompt.cardId });
-      return;
-    }
-    if (prompt?.kind === "dna") {
-      if (actionConfirmationsEnabled) {
-        setActionConfirm({
-          kind: "dna",
-          instanceId,
-          cardId: prompt.cardId,
-          materialPermanentIds: prompt.materialPermanentIds,
-        });
-      } else if (room) {
-        playGameCue("digivolve");
-        intents.dnaDigivolve(room, prompt.materialPermanentIds, instanceId);
-        clearSel();
-      }
-      return;
-    }
-    if (prompt?.kind === "digiXros") {
-      setDigiXrosPick(prompt);
-      return;
-    }
-    if (prompt?.kind === "assembly") {
-      setAssemblyPick(prompt);
-      return;
-    }
-    if (prompt?.kind === DragKind.Play) {
-      setActionConfirm({ kind: DragKind.Play, instanceId, cardId: prompt.cardId });
-      return;
-    }
-    if (room) {
-      playGameCue("cardPlay");
-      dispatchPlayCard(room, instanceId);
-    }
-    clearSel();
-  };
-  /** Arm a link declaration for `instanceId`; the next tap on a projected target sends it. */
-  const beginLink = (instanceId: string, cardId: string, targetPermanentIds: readonly string[]) => {
-    if (mainActionBlocked || targetPermanentIds.length === 0) return;
-    playSound("select");
-    setHandSel(null);
-    setSelPerm(null);
-    setVortexMode(false);
-    setCardMenu(null);
-    setHandPreview(null);
-    setStackView(null);
-    setLinkSel({ instanceId, cardId, targetPermanentIds });
-  };
-  const linkCard = (instanceId: string, targetPermanentId: string) => {
-    if (mainActionBlocked) return;
-    if (room) {
-      playSound("confirm");
-      intents.linkCard(room, instanceId, targetPermanentId);
-    }
-    clearSel();
-  };
-  const digivolve = (
-    permanentId: string,
-    instanceId: string,
-    useAlternateCost?: boolean,
-    alternateRequirementIndex?: number,
-  ) => {
-    if (mainActionBlocked) return;
-    if (room) {
-      lastPlayAttemptRef.current = instanceId;
-      playGameCue("digivolve");
-      intents.digivolve(room, permanentId, instanceId, useAlternateCost, alternateRequirementIndex);
-    }
-    clearSel();
-  };
-  const attack = (attackerPermanentId: string, target: AttackTarget, vortex?: boolean) => {
-    if (mainActionBlocked) return;
-    if (room) {
-      playGameCue("attackDeclare");
-      intents.attack(room, attackerPermanentId, target, vortex);
-    }
-    setSelPerm(null);
-    setVortexMode(false);
-  };
-  const respondDecision = (response: DecisionResponse) => {
-    if (decision && (room || demoConnection)) {
-      playSound("confirm");
-      if (room) intents.respondDecision(room, decision.decisionId, response);
-      else demoConnection?.respondDecision?.(response);
-      acknowledgeDecision?.(decision.decisionId);
-    }
-    setPicks([]);
-  };
-  const respondMulligan = (keep: boolean) => {
-    if (room && decision?.kind === "mulligan") {
-      playSound("confirm");
-      intents.mulligan(room, keep);
-      acknowledgeDecision(decision.decisionId);
-    }
-  };
-  const activateEffect = (instanceId: string, effectKey: string) => {
-    if (mainActionBlocked) return;
-    if (room) {
-      playSound("confirm");
-      intents.activateEffect(room, instanceId, effectKey);
-    }
-  };
-
-  /** Check for multiple evo cost paths with different costs; show choice overlay only when costs differ. */
-  const digivolveWithChoice = (
-    permanentId: string,
-    instanceId: string,
-    cardId: string,
-    base: Permanent,
-    confirmDrop = false,
-  ) => {
-    if (mainActionBlocked) return;
-    const options = getDigivolveCostOptions(cardId, base, you, opp, digivolveRoutesOf(instanceId));
-    const distinctCosts = new Set(options.map((o) => o.cost));
-    if (options.length > 1 && distinctCosts.size > 1) {
-      setEvoCostChoice({
-        handInstanceId: instanceId,
-        permanentId,
-        handCardId: cardId,
-        baseName: getCardDefinition(base.topCard?.cardId ?? "")?.nameEn ?? "?",
-        options,
-      });
-      return;
-    }
-    if (confirmDrop && actionConfirmationsEnabled) {
-      setActionConfirm({ kind: "digivolve", instanceId, cardId, permanentId, baseCardId: base.topCard?.cardId ?? "" });
-      return;
-    }
-    digivolve(permanentId, instanceId);
-  };
+  const {
+    dispatchPlayCard,
+    playCard,
+    beginLink,
+    linkCard,
+    attack,
+    respondDecision,
+    respondMulligan,
+    activateEffect,
+    digivolveWithChoice,
+  } = matchIntents({
+    room,
+    localConnection: demoConnection,
+    decision,
+    acknowledgeDecision,
+    events,
+    viewer: you,
+    opponent: opp,
+    handEntries,
+    digivolveRoutesOf,
+    mainActionBlocked,
+    actionConfirmationsEnabled,
+    playGameCue,
+    lastPlayAttemptRef,
+    playAttemptEventSeqRef,
+    setOptimisticPlayedInstanceId,
+    selection,
+    overlays: overlayControls,
+  });
 
   const { blockWindow, counterWindow, allianceWindow, evadeWindow, barrierWindow, markCombatWindowAnswered } =
     combatWindowsFor({
