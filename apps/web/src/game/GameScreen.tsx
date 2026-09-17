@@ -8,6 +8,7 @@ import { FIELD_CLASH_GHOST_HEIGHT, FIELD_CLASH_GHOST_WIDTH } from "./screen/cons
 import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { dropZoneAt, permanentVisualElement } from "./screen/dropZones";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
+import { combatWindowsFor } from "./screen/model/combatWindows";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
 import { useTrackingArrow } from "./screen/hooks/useTrackingArrow";
 import { BoardShell } from "./screen/layout/BoardShell";
@@ -106,11 +107,8 @@ import { dragIntentLabelOffsetPx, dragIntentLabelKey, type DropTarget } from "./
 import { isBreedingWindow, turnControlState } from "./turnControl";
 import {
   bothSeated,
-  activeBlockWindow,
-  activeCounterWindow,
   openCombatWindow,
   mirroredCombatWindow,
-  lastRejectedCombatAnswer,
   buildInstanceIndex,
   decisionCardColors,
   decisionSourceCounts,
@@ -1163,99 +1161,17 @@ export function GameScreen({
     digivolve(permanentId, instanceId);
   };
 
-  // ----- derived block window (event-driven; shown only to the defender) -----
-  const blockWindowRaw = activeBlockWindow(events, isMyTurn, mirroredWindow);
-
-  // §11-3 Counter Timing window: shown only to the defending (non-turn) seat.
-  const counterWindowRaw = activeCounterWindow(events, viewerSeat, isMyTurn, mirroredWindow);
-
-  // Alliance/Evade/Barrier prompts: shown only to the seat that controls permanentId.
-  // Scanning backwards from the log tail; dismissed by combatResolved or phaseChanged.
-  const allianceWindowRaw = (() => {
-    for (let i = events.length - 1; i >= 0; i -= 1) {
-      const e = events[i]!;
-      if (e.kind === "alliancePrompt") {
-        const perm = findPermanentInState(state, e.permanentId);
-        if (perm?.controllerSeat !== viewerSeat) return null;
-        return { permanentId: e.permanentId, eligibleAllyIds: e.eligibleAllyIds, stateVersion: e.stateVersion };
-      }
-      if (
-        e.kind === "allianceResolved" ||
-        e.kind === "combatResolved" ||
-        e.kind === "gameOver" ||
-        e.kind === "phaseChanged"
-      )
-        return null;
-    }
-    return mirroredWindow?.kind === "alliance"
-      ? { permanentId: mirroredWindow.permanentId, eligibleAllyIds: mirroredWindow.eligiblePermanentIds }
-      : null;
-  })();
-
-  const evadeWindowRaw = (() => {
-    for (let i = events.length - 1; i >= 0; i -= 1) {
-      const e = events[i]!;
-      if (e.kind === "evadePrompt") {
-        const perm = findPermanentInState(state, e.permanentId);
-        if (perm?.controllerSeat !== viewerSeat) return null;
-        return { permanentId: e.permanentId, stateVersion: e.stateVersion };
-      }
-      if (
-        e.kind === "evadeResolved" ||
-        e.kind === "combatResolved" ||
-        e.kind === "gameOver" ||
-        e.kind === "phaseChanged"
-      )
-        return null;
-    }
-    return mirroredWindow?.kind === "evade" ? { permanentId: mirroredWindow.permanentId } : null;
-  })();
-
-  const barrierWindowRaw = (() => {
-    for (let i = events.length - 1; i >= 0; i -= 1) {
-      const e = events[i]!;
-      if (e.kind === "barrierPrompt") {
-        const perm = findPermanentInState(state, e.permanentId);
-        if (perm?.controllerSeat !== viewerSeat) return null;
-        return { permanentId: e.permanentId, stateVersion: e.stateVersion };
-      }
-      if (
-        e.kind === "barrierResolved" ||
-        e.kind === "combatResolved" ||
-        e.kind === "gameOver" ||
-        e.kind === "phaseChanged"
-      )
-        return null;
-    }
-    return mirroredWindow?.kind === "barrier" ? { permanentId: mirroredWindow.permanentId } : null;
-  })();
-
-  if (openCombatWindowForBarrier === null) answeredCombatWindowKeyRef.current = undefined;
-  const lastCombatRejection = lastRejectedCombatAnswer(events);
-  if (lastCombatRejection !== undefined && lastCombatRejection !== rolledBackRejectionSeqRef.current) {
-    rolledBackRejectionSeqRef.current = lastCombatRejection;
-    answeredCombatWindowKeyRef.current = undefined;
-  }
-  const answeredCombatWindow = (key: string) => answeredCombatWindowKeyRef.current === key;
-
-  const blockWindow =
-    blockWindowRaw && !answeredCombatWindow(`block:${blockWindowRaw.attackerPermanentId}`) ? blockWindowRaw : null;
-  const counterWindow =
-    counterWindowRaw && !answeredCombatWindow(`counter:${counterWindowRaw.attackerPermanentId}`)
-      ? counterWindowRaw
-      : null;
-  const allianceWindow =
-    allianceWindowRaw && !answeredCombatWindow(`alliance:${allianceWindowRaw.permanentId}`) ? allianceWindowRaw : null;
-  const evadeWindow =
-    evadeWindowRaw && !answeredCombatWindow(`evade:${evadeWindowRaw.permanentId}`) ? evadeWindowRaw : null;
-  const barrierWindow =
-    barrierWindowRaw && !answeredCombatWindow(`barrier:${barrierWindowRaw.permanentId}`) ? barrierWindowRaw : null;
-  /** Mark the currently open combat window as answered, so it cannot render (or be clicked)
-   * again until a new one opens — call from every onBlock/onDecline/onActivate/onPass/onChoose/
-   * onAccept handler below, alongside dispatching the intent. */
-  const markCombatWindowAnswered = () => {
-    if (openCombatWindowForBarrier !== null) answeredCombatWindowKeyRef.current = openCombatWindowForBarrier.key;
-  };
+  const { blockWindow, counterWindow, allianceWindow, evadeWindow, barrierWindow, markCombatWindowAnswered } =
+    combatWindowsFor({
+      events,
+      state,
+      viewerSeat,
+      isMyTurn,
+      mirroredWindow,
+      openCombatWindow: openCombatWindowForBarrier,
+      answeredCombatWindowKeyRef,
+      rolledBackRejectionSeqRef,
+    });
 
   // ----- eligibility helpers -----
   // Every "can I do this?" answer below is the server's, read off the state it already
