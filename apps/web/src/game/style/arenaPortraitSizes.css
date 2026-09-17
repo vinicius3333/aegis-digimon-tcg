@@ -1,0 +1,248 @@
+/* What each portrait size changes: the tall and short phones, the tablet, and
+   the desktop and reduced-motion corrections that follow them. */
+
+@media (max-width: 599px) and (orientation: portrait) and (min-height: 650px) and (max-height: 759px) {
+  .game-board {
+    --arena-header-height: 44px;
+    --arena-memory-height: 52px;
+    --arena-hand-width: 60px;
+    --arena-hand-height: 132px;
+    --arena-hand-reserved: 36px;
+    --arena-source-step: 2px;
+    --arena-source-top: 2px;
+  }
+
+  .game-board .game-opponent-bar {
+    padding-block: 0 !important;
+  }
+  .game-board .game-battle-zones > .game-battle-row {
+    padding: 7px 10px 9px !important;
+  }
+  .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
+    top: 0;
+  }
+}
+
+@media (max-width: 599px) and (orientation: portrait) and (height < 650px) {
+  .game-board {
+    --arena-pile-width: 40px;
+    --arena-utility-height: 72px;
+    --arena-memory-height: 48px;
+    --arena-hand-width: 44px;
+    --arena-hand-height: 104px;
+    --arena-hand-reserved: 36px;
+    --arena-header-height: 44px;
+    --arena-source-step: 1.25px;
+    --arena-source-top: 2px;
+  }
+
+  .game-board .game-opponent-bar {
+    gap: 8px;
+    padding-block: 0 !important;
+  }
+  .game-board .game-arena-counters {
+    gap: 6px;
+  }
+  .game-board .game-field {
+    row-gap: 2px;
+    padding-block: 2px;
+  }
+  .game-board .game-battle-zones > .game-battle-row {
+    gap: 10px !important;
+    padding: 6px 8px 6px !important;
+  }
+  .game-board .game-player-dock {
+    margin-top: 2px;
+  }
+  .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
+    top: 0;
+  }
+  .game-board .game-memory-gauge {
+    padding-top: 14px !important;
+    padding-bottom: 4px !important;
+  }
+  .game-board .game-memory-gauge__phase {
+    top: -5px;
+    font-size: 8px;
+    line-height: 10px;
+  }
+  .game-board .game-security-shield__label {
+    font-size: 7px;
+  }
+  .game-board .game-memory-coin--five .game-memory-coin__n {
+    top: 10px;
+    font-size: 8px;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1023px) and (orientation: portrait) {
+  .game-board {
+    --arena-pile-width: 62px;
+    --arena-utility-height: 108px;
+    --arena-memory-height: 64px;
+    --arena-hand-width: 104px;
+    --arena-hand-height: 200px;
+    --arena-header-height: 56px;
+  }
+
+  .game-board .game-field {
+    padding-inline: 24px;
+    column-gap: 16px;
+  }
+  .game-board .game-opponent-bar {
+    padding-inline: 24px !important;
+    gap: 24px;
+  }
+  .game-board .game-arena-counter {
+    width: 30px;
+    height: 30px;
+  }
+  .game-board .game-arena-counter svg {
+    width: 20px;
+    height: 20px;
+  }
+  .game-board .game-opponent-hand {
+    --arena-opponent-card-width: 30px;
+    height: 42px;
+    max-width: 280px;
+    justify-self: center;
+  }
+  .game-opponent-hand > div > div {
+    height: 42px !important;
+  }
+  .game-board .game-pile + span,
+  .game-board .game-breeding-slot > span {
+    font-size: 11px !important;
+    line-height: 14px !important;
+  }
+  .game-board .game-security-shield,
+  .game-board .game-security-shield-wrap {
+    width: 180px;
+    height: 80px;
+    justify-self: center;
+  }
+  .game-security-cards i {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 40px;
+    margin-left: -4px;
+  }
+  .game-board .game-security-shield__count {
+    top: 44px;
+  }
+  .game-board .game-memory-band {
+    padding-right: 66px !important;
+  }
+  .game-board .game-end-turn-orb {
+    width: 48px;
+    height: 48px;
+    right: 8px;
+    font-size: 10px;
+  }
+  .game-board .game-memory-gauge__phase {
+    font-size: 11px;
+  }
+  .game-board .game-memory-coin--five .game-memory-coin__n {
+    font-size: 11px;
+  }
+  .game-board .game-player-dock {
+    margin-inline: 16px;
+  }
+}
+
+/* Public security identities occupy the same slots as the hidden shields. */
+.game-security-cards i.game-security-card--revealed {
+  height: auto;
+  aspect-ratio: 5 / 7;
+  overflow: visible;
+  align-self: center;
+  background: var(--ds-surface);
+}
+.game-security-cards i.game-security-card--revealed::before,
+.game-security-cards i.game-security-card--revealed::after {
+  content: none;
+}
+.game-security-card--revealed img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.game-security-card--revealed img {
+  border-radius: inherit;
+}
+.game-security-cards {
+  align-items: center;
+}
+.game-security-card__buff {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  z-index: 1;
+  padding: 2px 4px;
+  border: 1px solid var(--ds-border);
+  border-radius: 4px;
+  background: var(--ds-surface);
+  color: var(--ds-fg);
+  font: 700 11px var(--ds-font-mono);
+  font-style: normal;
+  white-space: nowrap;
+}
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-security-cards {
+    height: 100%;
+  }
+}
+@media (max-width: 1023px) {
+  .game-security-card__buff {
+    padding: 1px 2px;
+    font-size: 8px;
+  }
+}
+
+.game-security-shield:has(.game-security-card--revealed) .game-security-shield__count {
+  top: 50%;
+  left: calc(100% + 12px);
+  transform: translateY(-50%);
+}
+
+.game-security-card__faces {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  transform-style: preserve-3d;
+}
+.game-security-card__faces > img {
+  backface-visibility: hidden;
+  border-radius: inherit;
+}
+.game-security-card__back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+}
+.game-security-card__back > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+.game-security-card--turning-down .game-security-card__faces {
+  animation: security-card-turn-down var(--security-flip-duration, 420ms) ease-in-out both;
+}
+@keyframes security-card-turn-down {
+  from {
+    transform: rotateY(0);
+  }
+  to {
+    transform: rotateY(180deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-security-card--turning-down .game-security-card__faces {
+    animation: none;
+  }
+}

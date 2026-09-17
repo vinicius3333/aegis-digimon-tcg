@@ -1,0 +1,86 @@
+import { CardKind, getCardDefinition, type PlayerState } from "@aegis/shared";
+import { appFusionRoutesForHost, handCardEvolutionRoute } from "../../digivolveModel";
+import type { HandEntry } from "../../piece";
+import { dragIntentFor, type DragIntent, type DropTarget } from "../../dragIntents";
+import { DragKind } from "../enums";
+import type { DragState, DropZoneHit } from "../types";
+import { digivolveTargetsOf } from "./eligibility";
+
+/**
+ * What releasing here would do, or null where the drop would be refused. Every
+ * answer is the server's projection read back through `dragIntents.ts`; the
+ * board only paints it.
+ */
+export function dragIntentAt(input: {
+  hit: DropZoneHit | null;
+  drag: DragState | null;
+  you: PlayerState;
+  handEntries: readonly HandEntry[];
+}): DragIntent | null {
+  const { hit, drag, you, handEntries } = input;
+  if (!hit || !drag?.started) return null;
+  if (drag.kind === DragKind.Attack) {
+    const attacker = you.battleArea.find((p) => p.permanentId === drag.permanentId);
+    return dragIntentFor({
+      drag: { kind: DragKind.Attack },
+      target: hit.target,
+      canAttackPlayer: attacker?.canAttackPlayer === true,
+      attackable: hit.id !== undefined && attacker?.attackablePermanentIds.includes(hit.id) === true,
+    });
+  }
+  const definition = getCardDefinition(drag.cardId);
+  const held = {
+    kind: DragKind.Play as const,
+    isOption: definition?.kinds.includes(CardKind.Option) ?? false,
+    isDigiEgg: definition?.kinds.includes(CardKind.DigiEgg) ?? false,
+  };
+  const base = hit.target === "perm-you" ? you.battleArea.find((p) => p.permanentId === hit.id) : undefined;
+  const route = base
+    ? handCardEvolutionRoute(
+        drag.cardId,
+        you.battleArea,
+        digivolveTargetsOf({ handEntries, instanceId: drag.instanceId }).includes(hit.id ?? ""),
+      )
+    : undefined;
+  const appFusion = base
+    ? appFusionRoutesForHost(
+        handEntries.find((entry) => entry.instanceId === drag.instanceId)?.appFusionRoutes ?? [],
+        base,
+      ).length > 0
+    : false;
+  return dragIntentFor({
+    drag: held,
+    target: hit.target,
+    evolutionRoute: appFusion ? "normal" : route?.kind,
+    digivolvable:
+      !!you.breeding &&
+      digivolveTargetsOf({ handEntries, instanceId: drag.instanceId }).includes(you.breeding.permanentId),
+  });
+}
+
+/** The `data-drag-intent` an area wears while it would accept the card in the air. */
+export function dropIntentAttrs(input: {
+  target: DropTarget;
+  id?: string;
+  drag: DragState | null;
+  you: PlayerState;
+  handEntries: readonly HandEntry[];
+}): Record<string, string> {
+  const { target, id, drag, you, handEntries } = input;
+  const intent = dragIntentAt({ hit: { target, id }, drag, you, handEntries });
+  return intent ? { "data-drag-intent": intent } : {};
+}
+
+/** The `data-drag-intent` an own permanent wears: only while it is a base for the drag. */
+export function baseDropIntentAttrs(input: {
+  permanentId: string;
+  dragBasePermanentIds: ReadonlySet<string>;
+  drag: DragState | null;
+  you: PlayerState;
+  handEntries: readonly HandEntry[];
+}): Record<string, string> {
+  const { permanentId, dragBasePermanentIds, drag, you, handEntries } = input;
+  return dragBasePermanentIds.has(permanentId)
+    ? dropIntentAttrs({ target: "perm-you", id: permanentId, drag, you, handEntries })
+    : {};
+}

@@ -10,6 +10,7 @@ import {
   type SidePanel,
   type SidePanelLookup,
 } from "./sidePanels";
+import { Side } from "./side";
 
 const VIEWER: Seat = 0;
 
@@ -21,7 +22,7 @@ function panel(overrides: Partial<SidePanel> = {}): SidePanel {
   return {
     id: "p1",
     titleKey: "panel.discardedCards",
-    side: "you",
+    side: Side.Viewer,
     cards: [{ cardId: "BT1-001", badge: 1 }],
     ordered: false,
     createdAt: 0,
@@ -63,7 +64,7 @@ describe("sidePanelFromEvent", () => {
     expect(result).toEqual({
       id: "id",
       titleKey: "panel.discardedCards",
-      side: "you",
+      side: Side.Viewer,
       cards: [
         { cardId: "BT1-001", badge: 1 },
         { cardId: "BT1-002", badge: 2 },
@@ -212,7 +213,7 @@ describe("attackAnnouncementFromEvent", () => {
     expect(attackAnnouncementFromEvent(attack(0), VIEWER, "a", 5)).toEqual({
       id: "a",
       cardId: "BT1-040",
-      side: "you",
+      side: Side.Viewer,
       createdAt: 5,
     });
     expect(attackAnnouncementFromEvent(attack(1), VIEWER, "b", 5)?.side).toBe("opp");
@@ -257,8 +258,8 @@ describe("pushSidePanel", () => {
   });
 
   it("keeps panels of the same title but different sides apart", () => {
-    const mine = panel({ id: "a", side: "you" });
-    const theirs = panel({ id: "b", side: "opp" });
+    const mine = panel({ id: "a", side: Side.Viewer });
+    const theirs = panel({ id: "b", side: Side.Opponent });
     expect(pushSidePanel([mine], theirs)).toHaveLength(2);
   });
 
@@ -266,7 +267,7 @@ describe("pushSidePanel", () => {
     const a = panel({ id: "a", titleKey: "panel.discardedCards", createdAt: 0 });
     const b = panel({ id: "b", titleKey: "panel.deletedCards", createdAt: 1 });
     const c = panel({ id: "c", titleKey: "panel.revealedCards", createdAt: 2 });
-    const theirs = panel({ id: "d", side: "opp", titleKey: "panel.playedCard", createdAt: 3 });
+    const theirs = panel({ id: "d", side: Side.Opponent, titleKey: "panel.playedCard", createdAt: 3 });
     const result = pushSidePanel(pushSidePanel(pushSidePanel([a], b), c), theirs);
     expect(result.map((p) => p.id)).toEqual(["a", "b", "c", "d"]);
   });

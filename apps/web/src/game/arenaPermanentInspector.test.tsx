@@ -4,10 +4,11 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { GameScreen } from "./GameScreen";
-import { CardActionMenu } from "./overlays";
+import { CardActionMenu } from "./overlay";
 import { buildPermanentDetail } from "./permanentDetail";
 import { groupedInspectorEvolutionCosts, inlineInspectorKeywordLines } from "./arenaInspectorModel";
-import { PermanentView } from "./boardPieces";
+import { PermanentView } from "./piece";
+import { Side } from "./side";
 
 it("shows opposing Digimon effect protection on the board and removes the badge when it expires", () => {
   const source = permanent(0);
@@ -32,7 +33,7 @@ it("shows active opposing Digimon effect protection in the card inspector", () =
       <CardActionMenu
         x={0}
         y={0}
-        arenaInspection={{ side: "you", container: null }}
+        arenaInspection={{ side: Side.Viewer, container: null }}
         detail={buildPermanentDetail(source)}
         canAttack={false}
         onAttack={() => undefined}
@@ -59,7 +60,7 @@ it("shows a face-down Tamer source as a back without its identity, effect, or zo
       <CardActionMenu
         x={0}
         y={0}
-        arenaInspection={{ side: "you", container: null }}
+        arenaInspection={{ side: Side.Viewer, container: null }}
         detail={detail}
         canAttack={false}
         onAttack={() => undefined}
@@ -83,7 +84,7 @@ it("shows Plutomon's equal-cost Black and Purple digivolution routes as explicit
       <CardActionMenu
         x={0}
         y={0}
-        arenaInspection={{ side: "you", container: null }}
+        arenaInspection={{ side: Side.Viewer, container: null }}
         detail={buildPermanentDetail(source)}
         canAttack={false}
         onAttack={() => undefined}
@@ -114,7 +115,7 @@ it("localizes Plutomon's color alternatives while preserving the canonical color
       <CardActionMenu
         x={0}
         y={0}
-        arenaInspection={{ side: "you", container: null }}
+        arenaInspection={{ side: Side.Viewer, container: null }}
         detail={buildPermanentDetail(source)}
         canAttack={false}
         onAttack={() => undefined}
@@ -147,7 +148,7 @@ it("places Chronomon's Piercing and Engage on one wrapping keyword line in the i
       <CardActionMenu
         x={0}
         y={0}
-        arenaInspection={{ side: "you", container: null }}
+        arenaInspection={{ side: Side.Viewer, container: null }}
         detail={buildPermanentDetail(source)}
         canAttack={false}
         onAttack={() => undefined}
@@ -287,7 +288,7 @@ it("preserves every supplied legal action and zoom while leaving schema source o
       <CardActionMenu
         x={0}
         y={0}
-        arenaInspection={{ side: "you", container: null }}
+        arenaInspection={{ side: Side.Viewer, container: null }}
         detail={detail}
         canAttack
         canVortex

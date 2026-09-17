@@ -12,8 +12,8 @@ import {
   DecisionOverlay,
   EvoCostChoiceOverlay,
   WaitingOverlay,
-} from "./overlays";
-import type { EvoCostOption } from "./boardModel";
+} from "./overlay";
+import type { EvoCostOption } from "./digivolveModel";
 import { CardOpenerProvider } from "./cardLinks";
 
 afterEach(() => cleanup());

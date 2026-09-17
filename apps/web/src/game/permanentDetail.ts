@@ -11,7 +11,7 @@
 
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { restrictionBadges, type RestrictionBadge } from "./fieldBadges";
-import type { StackCard } from "./overlays";
+import type { StackCard } from "./overlay";
 
 /** How many security cards an attack checks with no modifier at all. */
 const BASE_SECURITY_ATTACK = 1;

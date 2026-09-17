@@ -459,7 +459,9 @@ it("BT26-015 keeps its inherited deck-add reaction armed when the host is not su
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({
     ok: true,
   });
-  await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("firstTarget").instanceId));
+  await settle(() =>
+    s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("firstTarget").instanceId),
+  );
   expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT26-015")).toHaveLength(0);
 
   // Same turn, host now suspended: the [Once Per Turn] must still be available.
@@ -467,8 +469,8 @@ it("BT26-015 keeps its inherited deck-add reaction armed when the host is not su
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({
     ok: true,
   });
-  await settle(
-    () => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("secondTarget").instanceId),
+  await settle(() =>
+    s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("secondTarget").instanceId),
   );
   expect(s.perm("host").isSuspended).toBe(false);
 });

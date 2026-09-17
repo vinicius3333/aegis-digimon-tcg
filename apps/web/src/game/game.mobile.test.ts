@@ -1,31 +1,63 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { mediaRules, readStylesheet } from "./style/stylesheetSource";
 
-const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
-const overlaysSource = readFileSync(new URL("./overlays.tsx", import.meta.url), "utf8");
-const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
-const boardPiecesSource = readFileSync(new URL("./boardPieces.tsx", import.meta.url), "utf8");
-// The phone block's condition is a list — narrow, or short and on its side — so
-// the header is matched loosely up to its brace.
-const portraitRules = gameCss.match(
-  /@media \(width < 600px\)[^{]*\{(?<rules>[\s\S]*?)\n\}\n\n@media \(width < 600px\) and \(height < 650px\)/,
-)?.groups?.rules;
+const gameCss = readStylesheet("game.css");
+
+/**
+ * The overlays live one component per file under ./overlay, so a component's own
+ * file is its whole body — no slicing a shared source string between two
+ * `export function` markers, which is what this had to do when they shared one.
+ */
+const overlaySources = new Map<string, string>();
+for (const group of ["", "combat/", "choice/", "viewer/", "match/"]) {
+  const directory = new URL(`./overlay/${group}`, import.meta.url);
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name !== "index.ts")
+      overlaySources.set(entry.name, readFileSync(new URL(entry.name, directory), "utf8"));
+  }
+}
+const overlaysSource = [...overlaySources.values()].join("\n");
+
+/** One overlay component's source, by component name. */
+function overlaySource(name: string): string {
+  const source = overlaySources.get(`${name}.tsx`);
+  if (source === undefined) throw new Error(`no overlay component file for ${name}`);
+  return source;
+}
+/** Every source file of a folder and its subfolders, barrels excluded. */
+function folderSources(folder: string): string[] {
+  return readdirSync(new URL(folder, import.meta.url), { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory()
+      ? folderSources(`${folder}${entry.name}/`)
+      : entry.name === "index.ts"
+        ? []
+        : [readFileSync(new URL(`${folder}${entry.name}`, import.meta.url), "utf8")],
+  );
+}
+/** The screen's hooks, model, layout, queries and shared types all sit under ./screen. */
+const gameScreenSource = [
+  readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8"),
+  ...folderSources("./screen/"),
+].join("\n");
+/** The board pieces live one per file under ./piece, so the hand's gesture and
+ *  overflow chrome is spread across the component, its hook and its layout maths. */
+const boardPiecesSource = readdirSync(new URL("./piece/", import.meta.url), { withFileTypes: true })
+  .filter((entry) => entry.isFile() && entry.name !== "index.ts")
+  .map((entry) => readFileSync(new URL(`./piece/${entry.name}`, import.meta.url), "utf8"))
+  .join("\n");
+/** The phone block: narrow, or short and on its side. */
+const portraitRules = mediaRules(gameCss, "(width < 600px), (height < 520px) and (orientation: landscape)");
 /** The landscape-phone block, which re-lays the board for a short viewport. */
-const landscapeRules = gameCss.match(
-  /@media \(height < 520px\) and \(orientation: landscape\) \{(?<rules>[\s\S]*?)\n\}\n/,
-)?.groups?.rules;
-
-// Where the sidebar stops being a column and becomes a strip along the bottom.
-const stripRules = gameCss.match(/@media \(width < 960px\) \{(?<rules>[\s\S]*?)\n\}\n\n@media/)?.groups?.rules;
-
+const landscapeRules = mediaRules(gameCss, "(height < 520px) and (orientation: landscape)");
+/** Where the sidebar stops being a column and becomes a strip along the bottom. */
+const stripRules = mediaRules(gameCss, "(width < 960px)");
 /** Phone portrait only: the floating stacks and the board-mode sheet. */
-const phonePortraitRules = gameCss.match(
-  /@media \(width < 600px\) and \(orientation: portrait\) \{(?<rules>[\s\S]*?)\n\}\n/,
-)?.groups?.rules;
+const phonePortraitRules = mediaRules(gameCss, "(width < 600px) and (orientation: portrait)");
 /** Narrow width at any orientation — a landscape phone is ~844px wide, so it is not this. */
-const narrowWidthRules = gameCss.match(/@media \(width < 600px\) \{(?<rules>[\s\S]*?)\n\}\n/)?.groups?.rules;
+const narrowWidthRules = mediaRules(gameCss, "(width < 600px)");
 /** Pointer widths, which keep the full-size fanned hand. */
-const pointerWidthRules = gameCss.match(/@media \(width >= 960px\) \{(?<rules>[\s\S]*?)\n\}\n/)?.groups?.rules;
+const pointerWidthRules = mediaRules(gameCss, "(width >= 960px)");
 
 describe("mobile portrait match layout", () => {
   it("keeps the match inside the viewport and limits scrolling to cards", () => {
@@ -160,9 +192,7 @@ describe("mobile portrait match layout", () => {
     // own edges (the order badge sits 6px past the corner), so the row pads itself
     // and centres safely — plain centring would strand the first card of a row that
     // scrolls sideways.
-    expect(portraitRules).toMatch(
-      /\.decision-overlay__grid \{[^}]*justify-content:\s*safe center[^}]*padding:\s*8px/,
-    );
+    expect(portraitRules).toMatch(/\.decision-overlay__grid \{[^}]*justify-content:\s*safe center[^}]*padding:\s*8px/);
   });
 
   it("lets the effect text flow whole instead of hiding its tail in a scroll box", () => {
@@ -200,10 +230,7 @@ describe("choice rows lead with the affirmative action", () => {
     ["GameOverOverlay", "overlay.findRematch", "overlay.mainMenu"],
     ["MulliganOverlay", "overlay.keep", "overlay.mulligan"],
   ])("%s lists its confirming action before %s", (name, confirming, trailing) => {
-    const start = overlaysSource.indexOf(`export function ${name}(`);
-    expect(start).toBeGreaterThan(-1);
-    const next = overlaysSource.indexOf("\nexport function ", start + 1);
-    const body = overlaysSource.slice(start, next === -1 ? undefined : next);
+    const body = overlaySource(name);
     expect(body).toMatch(/className="(game-actions-row|mulligan-actions)"/);
     expect(body.indexOf(confirming)).toBeGreaterThan(-1);
     expect(body.indexOf(confirming)).toBeLessThan(body.indexOf(trailing));
@@ -216,8 +243,10 @@ describe("match overlays opt into the mobile sheet", () => {
   // GameOverOverlay is deliberately absent: it is no longer a dialog on top of
   // the board but the full-screen result splash, which owns the whole viewport
   // and scrolls itself (asserted below) rather than sitting in a sheet.
+  // The stack viewer renders through two panels: the touch sheet and the desktop
+  // dialog. It is the dialog that has to carry the tag.
   const OVERLAYS = [
-    "StackViewerOverlay",
+    "StackViewerDialog",
     "TrashViewerOverlay",
     "DigiXrosMaterialOverlay",
     "ActionConfirmationOverlay",
@@ -225,11 +254,7 @@ describe("match overlays opt into the mobile sheet", () => {
   ];
 
   it.each(OVERLAYS)("%s tags a panel", (name) => {
-    const start = overlaysSource.indexOf(`export function ${name}(`);
-    expect(start).toBeGreaterThan(-1);
-    const next = overlaysSource.indexOf("\nexport function ", start + 1);
-    const body = overlaysSource.slice(start, next === -1 ? undefined : next);
-    expect(body).toContain("game-modal__panel");
+    expect(overlaySource(name)).toContain("game-modal__panel");
   });
 });
 
@@ -442,7 +467,7 @@ describe("the drag intent label reads the pointer, not the viewport", () => {
     // A touchscreen laptop is wide, so a width breakpoint would leave the label
     // under the finger on exactly the devices that need it lifted.
     expect(gameScreenSource).toMatch(/COARSE_POINTER_QUERY/);
-    expect(gameScreenSource).toMatch(/top:\s*drag!\.y - dragIntentLabelOffsetPx\(coarsePointer\)/);
+    expect(gameScreenSource).toMatch(/top:\s*y - dragIntentLabelOffsetPx\(coarsePointer\)/);
   });
 });
 
@@ -534,7 +559,8 @@ describe("the viewer's own moves on a phone", () => {
       /\.game-opponent-bar \{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto auto auto auto/,
     );
     expect(portraitRules).toMatch(/\.game-mobile-surrender,\s*\.game-mobile-log,\s*\.game-mobile-bug \{/);
-    expect(gameScreenSource).toMatch(/className="game-mobile-log"[\s\S]*?onClick=\{\(\) => setHistoryOpen\(true\)\}/);
+    expect(gameScreenSource).toMatch(/className="game-mobile-log"[\s\S]*?onClick=\{onOpenLog\}/);
+    expect(gameScreenSource).toMatch(/onOpenLog=\{\(\) => overlays\.setHistoryOpen\(true\)\}/);
     expect(gameScreenSource).not.toMatch(/game-mobile-fullscreen|game-log-strip/);
     expect(portraitRules).not.toMatch(/game-log-strip/);
   });
@@ -739,7 +765,7 @@ describe("landscape phone match layout", () => {
     // Even the compact Digimon (106px) is taller than a row here.
     expect(gameScreenSource).toMatch(/const LANDSCAPE_PHONE_PERMANENT_WIDTH = \d+;/);
     expect(gameScreenSource).toMatch(
-      /width=\{landscapePhone \? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth\}/,
+      /width:\s*landscapePhone \? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth/,
     );
   });
 });
@@ -805,7 +831,15 @@ describe("the phone hand strip during a board-mode selection", () => {
 });
 
 describe("the draw cue on a phone", () => {
-  const useMatchCuesSource = readFileSync(new URL("./useMatchCues.ts", import.meta.url), "utf8");
+  // The cue hook's flights, steps and scenes live one concern per file under ./match.
+  const useMatchCuesSource = [
+    readFileSync(new URL("./useMatchCues.ts", import.meta.url), "utf8"),
+    ...["", "steps/", "present/", "narration/"].flatMap((group) =>
+      readdirSync(new URL(`./match/${group}`, import.meta.url), { withFileTypes: true })
+        .filter((entry) => entry.isFile() && entry.name !== "index.ts")
+        .map((entry) => readFileSync(new URL(`./match/${group}${entry.name}`, import.meta.url), "utf8")),
+    ),
+  ].join("\n");
   const reducedMotionRules = gameCss.match(/@media \(prefers-reduced-motion: reduce\) \{(?<rules>[\s\S]*)$/)?.groups
     ?.rules;
 

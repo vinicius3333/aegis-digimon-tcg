@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { digiXrosRequirementFor } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider, translator } from "../i18n";
-import { DigiXrosMaterialOverlay } from "./overlays";
+import { DigiXrosMaterialOverlay } from "./overlay";
 
 afterEach(() => cleanup());
 

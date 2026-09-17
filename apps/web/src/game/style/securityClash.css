@@ -1,0 +1,337 @@
+/* The security clash: the two cards, the impact and its fall. */
+
+/* --- Security clash ------------------------------------------------------ */
+
+/* The reference client resolves a security check centre-stage: the attacking Digimon
+   faces the revealed card, their DP is compared, then the outcome plays between
+   them. The beats below are the ones ./securityClash.ts publishes, so the two
+   must be retimed together:
+     0ms      attacker slides in from its own half        (150ms)
+     150ms    revealed card plays the 233ms EnterSecurity clip
+     383ms    both hold, readable                         (900ms)
+     1283ms   outcome beat, per resolution                (350ms)
+     1633ms   scene fades out                             (160ms)
+   Everything from 1283ms on is a separate, skippable queue step: a click through
+   the scene takes the board back at the outcome rather than at the fade.
+
+   A check the server has not closed yet holds at `data-resolution="pending"`: the
+   entrance plays, the cards stay up, and nothing that belongs to the outcome is
+   applied. When the close finally lands, the scene sets `--t-clash-outcome-at` to
+   zero, so the outcome beat and the fade after it run from that moment rather than
+   from a clock that started at the reveal. */
+.battle-clash {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  /* The board underneath is bright card art on a coloured field, and the scene has
+     to win against it. The dim travels with the scene's own fade, and the layer
+     stays pointer-transparent, so nothing under it stops being clickable. */
+  background: radial-gradient(ellipse at center, rgb(4 8 20 / 74%) 0%, rgb(4 8 20 / 58%) 55%, rgb(4 8 20 / 28%) 100%);
+  animation: battle-clash-in var(--t-clash-enter, 150ms) linear both;
+}
+
+/* The exit is its own animation rather than the tail of one long scene keyframe, so a
+   scene that held through a still-resolving check leaves on the outcome it was given
+   instead of on the clock it was mounted at. */
+.battle-clash:not([data-resolution="pending"]) {
+  animation:
+    battle-clash-in var(--t-clash-enter, 150ms) linear both,
+    battle-clash-out var(--t-clash-exit, 160ms) linear
+      calc(var(--t-clash-outcome-at, 1283ms) + var(--t-clash-outcome, 350ms)) both;
+}
+
+/* A card leaving for its dock has no outcome to play here, so the fade runs at once. */
+.battle-clash[data-departing="true"] {
+  animation: battle-clash-out var(--t-clash-exit, 160ms) linear both;
+}
+
+.battle-clash__badge {
+  display: flex;
+  margin: 0;
+  padding: 0.2rem 0.7rem;
+  gap: var(--ds-space-2);
+  align-items: center;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 999px;
+  background: var(--battle-panel);
+  box-shadow: 0 2px 12px rgb(6 12 28 / 45%);
+}
+
+.battle-clash__stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  align-items: center;
+}
+
+.battle-clash__card {
+  display: flex;
+  margin: 0;
+  gap: var(--ds-space-3);
+  align-items: center;
+}
+
+.battle-clash__art {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--ds-radius-sm);
+  box-shadow:
+    0 0 0 2px rgb(255 255 255 / 22%),
+    0 12px 34px rgb(4 8 20 / 75%);
+}
+
+.battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
+  animation: battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
+  animation: battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* The reference client's YourEnterSecurityCard.anim (233ms): the card grows from
+   almost nothing, arcs left, and burns off a white-out — it never flips. */
+.battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation: battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both;
+}
+
+.battle-clash[data-resolution="effect"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-glow var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash[data-resolution="trashed"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-fall var(--t-clash-outcome, 350ms) cubic-bezier(0.32, 0, 0.67, 0) var(--t-clash-outcome-at, 1283ms)
+      both;
+}
+
+/* A battle resolution shakes both cards, so each entrance keeps its own first
+   animation and appends the impact rather than being replaced by it. */
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
+  animation:
+    battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
+  animation:
+    battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash__caption {
+  display: flex;
+  width: 13rem;
+  flex-direction: column;
+  gap: 0.1rem;
+  color: #fff;
+  text-shadow: 0 1px 5px rgb(4 8 20 / 95%);
+}
+
+.battle-clash__role {
+  font-size: 0.76rem;
+  color: var(--battle-marker);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.battle-clash__name {
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.battle-clash__dp {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--battle-cyan);
+  font-variant-numeric: tabular-nums;
+}
+
+.battle-clash__mark {
+  position: relative;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  place-items: center;
+  border: 2px solid var(--battle-attack);
+  border-radius: 50%;
+  background: var(--battle-panel);
+  box-shadow: 0 0 16px var(--battle-attack-glow);
+}
+
+/* The clash burst: only a battle resolution has two Digimon actually trading blows. */
+.battle-clash__flash {
+  position: absolute;
+  inset: -0.6rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 90%) 0%, var(--battle-attack) 45%, transparent 70%);
+  animation: battle-clash-burst var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash__outcome {
+  margin: 0;
+  padding: 0.3rem 1rem;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.5rem;
+  background: var(--battle-panel);
+  box-shadow: 0 4px 18px rgb(4 8 20 / 70%);
+}
+
+@keyframes battle-clash-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-clash-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes battle-clash-enter-you {
+  from {
+    transform: translateY(70px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes battle-clash-enter-opp {
+  from {
+    transform: translateY(-70px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes battle-security-reveal {
+  0% {
+    transform: translate(0, 42px) scale(0.08);
+    filter: brightness(6);
+  }
+  50% {
+    transform: translate(-18px, 33px) scale(0.55);
+    filter: brightness(3);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* The reference client's BattleEffect: a 250ms claw slash plus a short shake,
+   then a 100ms settle before the objects are destroyed. */
+@keyframes battle-clash-impact {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  20% {
+    transform: translate(-6px, 2px) scale(1.05);
+  }
+  45% {
+    transform: translate(5px, -3px) scale(1.05);
+  }
+  70% {
+    transform: translate(-3px, 1px) scale(1.02);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes battle-clash-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes battle-clash-glow {
+  0% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: translate(0, 0) scale(1.06);
+    filter: brightness(1.5) drop-shadow(0 0 14px var(--battle-cyan));
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes battle-clash-fall {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    filter: brightness(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 24px) scale(0.94) rotate(5deg);
+    filter: brightness(0.6) grayscale(1);
+    opacity: 0.35;
+  }
+}
+
+@media (width <= 780px) {
+  .narration-slot {
+    width: min(14rem, calc(100% - var(--ds-space-4)));
+  }
+  .narration-slot[data-slot="narration-cards"] {
+    top: calc(11.5rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+  }
+  .narration-slot[data-slot="narration-text"] {
+    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+  }
+}

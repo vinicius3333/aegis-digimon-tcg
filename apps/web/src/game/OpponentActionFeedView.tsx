@@ -2,7 +2,7 @@ import { Button, Dialog } from "../design/primitives";
 import { Sigil } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
-import type { LogLine } from "./boardModel";
+import type { LogLine } from "./matchLog";
 import { CardLinkedText } from "./cardLinks";
 import type { OpponentActionItem } from "./opponentActionFeed";
 

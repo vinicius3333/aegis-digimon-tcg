@@ -64,7 +64,7 @@ describe("BT5-046 Terriermon Assistant", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT5-046", as: "terrier" }], deck: ["BT5-047"] },
     });
-    internalsOf(s.engine).syncActivatableEffects();
+    internalsOf(s.engine).projection.syncActivatableEffects();
     expect(s.perm("terrier").activatableEffectsJson).toBe("");
   });
 });

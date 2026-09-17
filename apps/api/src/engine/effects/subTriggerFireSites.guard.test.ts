@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
  * A "real fire site" is a literal `fireSubTrigger(` / `fireSubTrigger?.(` / `fireSubTrigger!(`
  * call whose first argument is the event's own string literal, found anywhere under `engine/`
  * OUTSIDE this file and the two files that only DECLARE/CATALOG the name
- * (`EffectContext.ts`'s `SubTriggerEventName` union, `interpreter.ts`'s `SUBTRIGGER_EVENT_MAP`
+ * (`context/subTriggers.ts`'s `SubTriggerEventName` union, `interpreter.ts`'s `SUBTRIGGER_EVENT_MAP`
  * key list) — i.e. it must be a genuine call, not a declaration.
  *
  * `ReplacementEventName` is a SEPARATE dispatch path (`subscribeReplacement` / `consultReplacement`
@@ -31,10 +31,15 @@ import { describe, expect, it } from "vitest";
  */
 
 const ENGINE_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
-const CONTEXT_FILE = join(ENGINE_DIR, "effects", "EffectContext.ts");
+const SUB_TRIGGER_FILE = join(ENGINE_DIR, "effects", "context", "subTriggers.ts");
+const REPLACEMENT_FILE = join(ENGINE_DIR, "effects", "context", "replacements.ts");
 
 /** Files that only declare/catalog event names rather than fire them. */
-const NOT_FIRE_SITES = new Set(["effects/EffectContext.ts", "effects/subTriggerFireSites.guard.test.ts"]);
+const NOT_FIRE_SITES = new Set([
+  "effects/context/subTriggers.ts",
+  "effects/context/replacements.ts",
+  "effects/subTriggerFireSites.guard.test.ts",
+]);
 
 /**
  * Names with zero real fire sites that are genuinely delivered another way, or genuinely not
@@ -49,14 +54,14 @@ function subTriggerEventNames(): string[] {
   // union: the regex below only strips `//` comments, so a block comment containing a quoted
   // word (e.g. a JSDoc example like `"mine"`) gets misparsed as a fake union member — this
   // bit a prior pass on this exact file (see git history / the BT26 engine-gaps plan).
-  const source = readFileSync(CONTEXT_FILE, "utf8").replace(/\/\/[^\n]*/g, "");
+  const source = readFileSync(SUB_TRIGGER_FILE, "utf8").replace(/\/\/[^\n]*/g, "");
   const block = source.match(/export type SubTriggerEventName =([^;]*);/);
   expect(block, "SubTriggerEventName union not found").not.toBeNull();
   return [...block![1]!.matchAll(/"([a-zA-Z0-9]+)"/g)].map((m) => m[1]!);
 }
 
 function replacementEventNames(): string[] {
-  const source = readFileSync(CONTEXT_FILE, "utf8").replace(/\/\/[^\n]*/g, "");
+  const source = readFileSync(REPLACEMENT_FILE, "utf8").replace(/\/\/[^\n]*/g, "");
   const block = source.match(/export type ReplacementEventName =([^;]*);/);
   expect(block, "ReplacementEventName union not found").not.toBeNull();
   return [...block![1]!.matchAll(/"([a-zA-Z0-9]+)"/g)].map((m) => m[1]!);
@@ -87,12 +92,13 @@ function engineSources(): { path: string; text: string }[] {
  *   - `fireSubTrigger("event", ...)` (plus its `?.`/`!` variants) — the bus, fired on its own.
  *   - `withPendingSubTriggers(["event", ...], ...)` — the same bus, fired as part of the timing
  *     window that shares the event, so the printed effects and the watchers are ordered as one
- *     pool (GameEngine.withPendingSubTriggers). It ends in `fireSubTrigger(event, …)` with the
+ *     pool (gameEngine/subTriggers.ts). It ends in `fireSubTrigger(event, …)` with the
  *     name in a variable, which the literal pattern above cannot see.
  */
 function hasRealFireSite(event: string, sources: { path: string; text: string }[]): boolean {
   const fireSite = new RegExp(`fireSubTrigger[!?]?\\.?\\(\\s*"${event}"`);
-  const pendingSite = new RegExp(`withPendingSubTriggers\\(\\s*\\[[^\\]]*"${event}"`, "s");
+  // The leading `engine`/`this` is the engine-self parameter the call now takes first.
+  const pendingSite = new RegExp(`withPendingSubTriggers\\(\\s*(?:(?:engine|this),\\s*)?\\[[^\\]]*"${event}"`, "s");
   return sources.some(({ text }) => fireSite.test(text) || pendingSite.test(text));
 }
 

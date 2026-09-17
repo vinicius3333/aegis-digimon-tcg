@@ -1,0 +1,382 @@
+/* A destroyed security card: the pane cracks, then breaks, and the battle
+   outcome that follows. */
+
+/* --- Destroyed security card: the pane cracks, then breaks -----------------
+   The reference client's `DestroySecurityEffect` (`Effects.cs:1948-2027`) runs a
+   `BreakGlass` over the card itself. The web port draws the fractures over the art
+   during the last of the hold — they spread from the centre along the seams the
+   shards then part on — so the break that follows is the glass giving way rather
+   than a card popping. */
+.game-card-cracks {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke: rgb(255 255 255 / 92%);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 1.5px rgb(255 255 255 / 85%)) drop-shadow(0 0 4px rgb(140 200 255 / 55%));
+  /* `pathLength="1"` on every path, so one dash covers each crack whatever its length. */
+  stroke-dasharray: 1;
+  opacity: 0;
+  animation: battle-clash-cracks-in var(--t-clash-crack, 180ms) steps(1, end)
+    calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)) forwards;
+}
+
+.game-card-cracks path {
+  stroke-dashoffset: 1;
+  animation: battle-clash-crack-draw var(--t-clash-crack, 180ms) cubic-bezier(0.22, 1, 0.36, 1)
+    calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)) forwards;
+}
+
+/* The forks open a touch after the seam they hang off. */
+.game-card-cracks path:nth-child(3n + 2),
+.game-card-cracks path:nth-child(3n) {
+  animation-delay: calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms) * 0.55);
+}
+
+@keyframes battle-clash-cracks-in {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-clash-crack-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The impact flash under the cracks: the pane catches the light as it gives. */
+.battle-clash[data-cause="destruction"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-crack-flash var(--t-clash-crack, 180ms) ease-out
+      calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+@keyframes battle-clash-crack-flash {
+  0% {
+    filter: brightness(1);
+    translate: 0 0;
+  }
+  18% {
+    filter: brightness(1.9);
+    translate: -2px 0;
+  }
+  40% {
+    filter: brightness(1.25);
+    translate: 2px 0;
+  }
+  62% {
+    translate: -1px 0;
+  }
+  100% {
+    filter: brightness(1.1);
+    translate: 0 0;
+  }
+}
+
+/* The card underneath goes as its shards leave. The whole chain is restated because
+   the revealed card already carries its entrance and its impact on this element, and
+   an `animation` shorthand replaces rather than adds to them. */
+.battle-clash[data-resolution="battle"]
+  .battle-clash__card[data-role="revealed"][data-spent="true"]
+  .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+/* An attacker the compare deleted goes the same way, keeping its own entrance. */
+.battle-clash[data-resolution="battle"]
+  .battle-clash__card[data-role="attacker"][data-side="you"][data-spent="true"]
+  .battle-clash__art {
+  animation:
+    battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash[data-resolution="battle"]
+  .battle-clash__card[data-role="attacker"][data-side="opp"][data-spent="true"]
+  .battle-clash__art {
+  animation:
+    battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+/* A card the check simply trashes breaks apart the same way, so a security card
+   leaving play always reads as a deletion. It takes no impact, and it breaks instead
+   of falling: the shatter replaces the `battle-clash-fall` the resolution otherwise
+   carries, which is why the chain is restated here. */
+.battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+@keyframes battle-clash-spent {
+  0% {
+    opacity: 1;
+  }
+  18% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The beaten side dims behind its claw; the side that stands is lit for a beat. */
+.battle-clash__card[data-fate="beaten"] {
+  animation: battle-clash-beaten var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+@keyframes battle-clash-beaten {
+  0% {
+    filter: none;
+  }
+  40% {
+    filter: brightness(0.6) saturate(0.5);
+  }
+  100% {
+    filter: brightness(0.45) saturate(0.35);
+  }
+}
+
+.battle-clash__card[data-fate="stands"] {
+  animation: battle-clash-stands var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+@keyframes battle-clash-stands {
+  0%,
+  100% {
+    filter: none;
+    scale: 1;
+  }
+  45% {
+    filter: brightness(1.25) drop-shadow(0 0 16px var(--battle-cyan));
+    scale: 1.08;
+  }
+}
+
+/* The claw waits for the outcome beat. Its own per-tine stagger is kept, so the
+   three gashes still land one behind the other. */
+.battle-clash__card[data-fate="beaten"] .game-claw__tine {
+  animation-delay: calc(var(--t-clash-outcome-at, 1283ms) + var(--claw-index) * 24ms);
+}
+
+/* The loser is knocked about under its claw (`Effects.cs:2143` shakes every loser
+   for the same 0.25 s the claw takes to land). */
+.battle-clash__card[data-fate="beaten"] .battle-clash__frame {
+  animation: battle-clash-hit var(--t-clash-outcome, 350ms) linear var(--t-clash-outcome-at, 1283ms) both;
+}
+
+/* Percentages of the 350ms outcome beat: the shake is the reference client's 0.25s
+   (`--t-card-shake`, so 71%) and the rest is its 0.1s settle. They have to be restated
+   whenever `clashOutcome` moves — `timings.test.ts` pins the 71% to the two numbers. */
+@keyframes battle-clash-hit {
+  0%,
+  71%,
+  100% {
+    translate: 0 0;
+  }
+  14% {
+    translate: -6px 3px;
+  }
+  29% {
+    translate: 5px -3px;
+  }
+  43% {
+    translate: -4px -2px;
+  }
+  57% {
+    translate: 2px 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The outcome label already says how the check resolved, so the beat is dropped
+     rather than flashed past. */
+  .battle-clash__shatter,
+  .battle-clash__card[data-fate="beaten"] .game-claw {
+    display: none;
+  }
+
+  .battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art,
+  .battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art,
+  .battle-clash__card[data-fate="beaten"],
+  .battle-clash__card[data-fate="beaten"] .battle-clash__frame,
+  .battle-clash__card[data-fate="stands"] {
+    animation: none;
+  }
+}
+
+.game-security-shield__dp-label {
+  display: block;
+  color: var(--ds-fg);
+  background: var(--ds-surface-muted);
+  border: 1px solid var(--ds-border);
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.security-viewer__name {
+  display: block;
+  max-width: 96px;
+  margin-top: 4px;
+  color: var(--ds-fg);
+  font-size: 11px;
+}
+.security-viewer__badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: var(--ds-accent-surface);
+  color: var(--ds-fg);
+  font: 700 11px var(--ds-font-mono);
+}
+.security-viewer__effect {
+  display: block;
+  max-width: 260px;
+  margin: 0;
+  color: var(--ds-fg);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+.trash-sheet__row .security-viewer__effect {
+  max-width: 160px;
+  white-space: normal;
+}
+
+@keyframes game-modal-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Recent effects coexist without extending the action's presentation barrier.
+   Bound each record so long clauses and large reveals cannot cover the hand. */
+.narration-item {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  min-width: 0;
+  max-height: none;
+  overflow-y: visible;
+  pointer-events: auto;
+  scrollbar-width: thin;
+}
+
+.narration-slot {
+  max-height: none;
+  overflow-y: visible;
+}
+
+.narration-item > .side-panel-stack,
+.narration-item > .match-notice-stack {
+  flex-shrink: 0;
+}
+
+/* Keep revealed cards beside the security effect's dock, never beneath it. */
+/* The docked security card holds the right edge for as long as its check takes. The card
+   column steps left of it rather than under it: dropped below the dock, two panels of
+   revealed cards ran off the bottom of the board. The step is the dock's own width — a
+   150px card plus 0.45rem of padding and its border, ~10.4rem — and a 0.85rem gap. */
+.narration-slot[data-slot="narration-cards"][data-security-dock] {
+  right: calc(max(var(--ds-space-4), env(safe-area-inset-right, 0px)) + 11.25rem);
+}
+.narration-slot[data-slot="narration"][data-security-dock] {
+  right: calc(8rem + env(safe-area-inset-right, 0px));
+}
+.battle-security-branch[data-compact] {
+  --security-branch-lift: 2.5rem;
+}
+.battle-security-branch[data-compact] .battle-security-branch__caption {
+  max-width: 92px;
+}
+
+/* The landscape dock draws a 92px card, so the column steps ~7.5rem instead of 11.25rem.
+   After the rule above on purpose: the two selectors weigh the same. */
+@media (height < 520px) and (orientation: landscape) {
+  .narration-slot[data-slot="narration-cards"][data-security-dock] {
+    right: calc(max(var(--ds-space-2), env(safe-area-inset-right, 0px)) + 7.5rem);
+  }
+}
+
+@media (width <= 767px), (height < 520px) and (orientation: landscape) {
+  /* Same one-row fan on a narrow board, on the smaller card the phone panel draws. */
+  .narration-item .side-panel__cards {
+    --panel-card-w: min(4.875rem, calc((100vw - 5rem) / 4));
+    --panel-row-w: min(13rem, calc(100vw - 6rem));
+
+    flex-wrap: nowrap;
+    overflow: visible;
+  }
+
+  .narration-item .side-panel__card {
+    flex-shrink: 0;
+    width: var(--panel-card-w);
+  }
+
+  .narration-item .side-panel__art {
+    width: 100%;
+  }
+
+  .narration-item .side-panel__art > div {
+    max-width: 100%;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+}
+
+/* Multiple active records grow downward instead of crossing the top edge. */
+@media (width >= 768px) and (height >= 520px) {
+  .narration-slot[data-slot="narration-text"] {
+    top: calc(9.5rem + env(safe-area-inset-top, 0px));
+    bottom: auto;
+  }
+}
+
+.narration-item {
+  scrollbar-color: var(--battle-cyan) var(--battle-panel);
+}
+
+.narration-item .card-link {
+  color: var(--battle-cyan);
+}
+
+.narration-item .card-link:hover,
+.narration-item .card-link:focus-visible {
+  color: white;
+}
+
+/* Toasts grow to fit their contents on every layout. */
+.narration-slot {
+  max-height: none;
+  overflow-y: visible;
+}

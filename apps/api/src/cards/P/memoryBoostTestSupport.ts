@@ -125,7 +125,7 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       expect(delay).toBeDefined();
       if (!delay) return;
       delay.enterFieldTurnCount = s.state.turnCount - 1;
-      (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+      (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
       const entries = JSON.parse(delay.activatableEffectsJson ?? "[]") as Array<{
         instanceId: string;
         effectKey: string;
@@ -207,12 +207,12 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       expect(delay).toBeDefined();
       if (!delay) return;
 
-      (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+      (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
       expect(JSON.parse(delay.activatableEffectsJson || "[]")).toHaveLength(0);
 
       advance(s.engine).endMainPhaseIfOpen(1);
       await advance(s.engine).waitForMainPhase(0);
-      (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+      (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
       const entries = JSON.parse(delay.activatableEffectsJson || "[]") as Array<{
         instanceId: string;
         effectKey: string;

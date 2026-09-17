@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { handOverlap } from "./boardPieces";
+import { handOverlap } from "./piece";
 
 const CARD_WIDTH = 132;
 const MIN_OVERLAP = 34;

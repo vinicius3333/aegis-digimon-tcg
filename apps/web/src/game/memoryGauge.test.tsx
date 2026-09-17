@@ -3,7 +3,7 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { I18nProvider } from "../i18n";
-import { MemoryGauge } from "./boardPieces";
+import { MemoryGauge } from "./piece";
 
 afterEach(() => cleanup());
 

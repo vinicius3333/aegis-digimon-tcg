@@ -6,6 +6,7 @@ import { CardOpenerProvider } from "./cardLinks";
 import { NarrationStack } from "./NarrationStack";
 import type { NarrationItem } from "./narration";
 import type { MatchNotice } from "./notices";
+import { Side } from "./side";
 import { TIMINGS } from "./timings";
 
 afterEach(cleanup);
@@ -13,7 +14,7 @@ afterEach(cleanup);
 // The dock holds the upper right, which is the card column's corner — so that is the
 // column that steps out of its way.
 it("reserves space for the security dock and releases it when the dock closes", () => {
-  const opponent = { ...cardItem("security-reveal"), side: "opp" as const };
+  const opponent = { ...cardItem("security-reveal"), side: Side.Opponent as const };
   const view = (active: boolean, compact: boolean) => (
     <I18nProvider>
       <NarrationStack
@@ -38,13 +39,13 @@ it("reserves space for the security dock and releases it when the dock closes", 
 function cardItem(id: string): NarrationItem {
   return {
     id,
-    side: "opp",
+    side: Side.Opponent,
     batchId: "batch",
     createdAt: 0,
     panel: {
       id,
       titleKey: "panel.revealedCards",
-      side: "opp",
+      side: Side.Opponent,
       cards: [{ cardId: "BT1-010", badge: 1 }],
       ordered: false,
       createdAt: 0,
@@ -55,10 +56,10 @@ function cardItem(id: string): NarrationItem {
 function item(id: string): NarrationItem {
   return {
     id,
-    side: "you",
+    side: Side.Viewer,
     batchId: "batch",
     createdAt: 0,
-    notice: { id, side: "you", fromSecurity: false, createdAt: 0, body: { variant: "recovery", amount: 1 } },
+    notice: { id, side: Side.Viewer, fromSecurity: false, createdAt: 0, body: { variant: "recovery", amount: 1 } },
   };
 }
 
@@ -229,10 +230,10 @@ it("draws the folded band in the tone its newest moment earns", () => {
   };
   const noticeItem = (id: string, body: MatchNotice["body"]): NarrationItem => ({
     id,
-    side: "you",
+    side: Side.Viewer,
     batchId: "batch",
     createdAt: 0,
-    notice: { id, side: "you", fromSecurity: false, createdAt: 0, body },
+    notice: { id, side: Side.Viewer, fromSecurity: false, createdAt: 0, body },
   });
   expect(tone(noticeItem("a", { variant: "effect", cardId: "BT1-010", timing: "OnPlay" }))).toBe("effect");
   expect(tone(noticeItem("b", { variant: "deletion", cards: [{ cardId: "BT1-010" }] }))).toBe("deletion");
@@ -247,12 +248,12 @@ it("draws a deletion as a titled panel, keeping the art the card was deleted in"
   const opened: Array<[string, string | undefined]> = [];
   const deleted: NarrationItem = {
     id: "deleted",
-    side: "you",
+    side: Side.Viewer,
     batchId: "batch",
     createdAt: 0,
     notice: {
       id: "deleted",
-      side: "you",
+      side: Side.Viewer,
       fromSecurity: false,
       createdAt: 0,
       body: { variant: "deletion", cards: [{ cardId: "BT1-010", artId: "BT1-010_P2" }] },

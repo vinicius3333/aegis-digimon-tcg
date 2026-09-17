@@ -1,7 +1,21 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
+/** Every source file of a folder and its subfolders, barrels excluded. */
+function folderSources(folder: string): string[] {
+  return readdirSync(new URL(folder, import.meta.url), { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory()
+      ? folderSources(`${folder}${entry.name}/`)
+      : entry.name === "index.ts"
+        ? []
+        : [readFileSync(new URL(`${folder}${entry.name}`, import.meta.url), "utf8")],
+  );
+}
+/** The screen's hooks, model, layout, queries and shared types all sit under ./screen. */
+const gameScreenSource = [
+  readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8"),
+  ...folderSources("./screen/"),
+].join("\n");
 
 describe("presentation cues and board actions", () => {
   it("does not install a presentation-owned input shield", () => {
@@ -11,8 +25,8 @@ describe("presentation cues and board actions", () => {
   });
 
   it("keeps main actions behind live server state", () => {
-    expect(gameScreenSource).toContain("const pendingServerDecision = Boolean(decision || state.pendingDecision);");
-    expect(gameScreenSource).toContain("const mainActionBlocked = turnActionBlocked || state.phase !== Phase.Main;");
+    expect(gameScreenSource).toContain("decisionOpen: Boolean(decision || state.pendingDecision),");
+    expect(gameScreenSource).toContain("mainActionBlocked: turnActionBlocked || state.phase !== Phase.Main,");
     for (const sender of ["playCard", "digivolve", "attack", "activateEffect"]) {
       const start = gameScreenSource.indexOf(`  const ${sender} = `);
       const end = gameScreenSource.indexOf("\n  };", start);
@@ -21,10 +35,11 @@ describe("presentation cues and board actions", () => {
   });
 
   it("keeps breeding and turn controls behind live phase, turn, and decision state", () => {
-    expect(gameScreenSource).toContain("const breedingActionsOpen = breedingWindow && !turnActionBlocked;");
+    expect(gameScreenSource).toContain("breedingActionsOpen: breedingWindow && !turnActionBlocked,");
     expect(gameScreenSource).toContain("if (!breedingActionsOpen) return;");
     expect(gameScreenSource).toContain("covered={endPhaseBlocked ? true : undefined}");
-    expect(gameScreenSource).toContain("onEndPhase={() => !endPhaseBlocked && room && intents.endPhase(room)}");
+    expect(gameScreenSource).toContain("onEndPhase={() => !endPhaseBlocked && onEndPhase()}");
+    expect(gameScreenSource).toContain("onEndPhase={() => room && intents.endPhase(room)}");
     expect(gameScreenSource).toContain("decision && decision.seat === viewerSeat");
   });
 });

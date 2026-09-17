@@ -43,19 +43,22 @@ describe("§17-1-2-1 rule checks aren't performed during rule processing (compre
     const violator = digimon(0, 0);
     p0.battleArea.push(violator);
 
-    const engineAny = s.engine as unknown as { doRuleProcess(): boolean; ruleProcessing: boolean };
+    const engineAny = s.engine as unknown as {
+      ruleChecks: { doRuleProcess(): boolean };
+      ruleProcessing: boolean;
+    };
 
     // Baseline: outside of a pass, the violation IS detected — proves the predicate itself
     // is live and would fire if not suppressed (a meaningful negative control for what follows).
-    expect(engineAny.doRuleProcess()).toBe(true);
+    expect(engineAny.ruleChecks.doRuleProcess()).toBe(true);
 
     // Simulate being mid rule-check pass — GameEngine.ts's own `ruleProcess()` sets this
     // exact flag for the duration of one pass, specifically to satisfy §17-1-2-1.
     engineAny.ruleProcessing = true;
-    expect(engineAny.doRuleProcess()).toBe(false); // suppressed: "rule checks aren't performed during rule processing"
+    expect(engineAny.ruleChecks.doRuleProcess()).toBe(false); // suppressed: "rule checks aren't performed during rule processing"
 
     engineAny.ruleProcessing = false;
-    expect(engineAny.doRuleProcess()).toBe(true); // resumes the instant the pass finishes
+    expect(engineAny.ruleChecks.doRuleProcess()).toBe(true); // resumes the instant the pass finishes
   });
 });
 

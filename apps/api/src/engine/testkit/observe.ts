@@ -3,6 +3,7 @@ import type { CardSource } from "../effects/CardSource.js";
 import type { GameEngine } from "../GameEngine.js";
 import type { Restriction, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { internalsOf } from "./internals.js";
+import { hasAnyMainPhaseAction } from "../gameEngine/intents.js";
 import { attackedWithDigimonInCurrentOrPreviousTurn } from "../turnActivity.js";
 import { effectiveColors, effectiveNames } from "../effects/continuous.js";
 import { cardHasTrait } from "../cards/cardData.js";
@@ -191,7 +192,7 @@ export function observe(engine: GameEngine) {
 
     /** The activatable-effect payload the client would see for a permanent. */
     activatableEffects(permanent: Permanent): ActivatableEffectObservation[] {
-      internals.syncActivatableEffects();
+      internals.projection.syncActivatableEffects();
       if (permanent.activatableEffectsJson === "") return [];
       const parsed: unknown = JSON.parse(permanent.activatableEffectsJson);
       if (!Array.isArray(parsed) || !parsed.every(isActivatableEffectObservation)) {
@@ -237,7 +238,7 @@ export function observe(engine: GameEngine) {
      * engine force-end the turn, so a scenario with a legal action left must read true.
      */
     hasAnyMainPhaseAction(seat: Seat): boolean {
-      return internals.hasAnyMainPhaseAction(seat);
+      return hasAnyMainPhaseAction(engine, seat);
     },
 
     /** Whether a permanent currently carries a named continuous restriction. */

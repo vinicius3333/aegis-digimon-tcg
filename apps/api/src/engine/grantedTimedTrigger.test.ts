@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { sweepDurations } from "./gameEngine/turnFlow.js";
 import { EffectTiming } from "@aegis/shared";
 // Self-register every compiled-IR card module (so real definitions resolve).
 import "../cards/index.js";
@@ -16,10 +17,9 @@ async function fireStartMainPhase(s: EngineSetup, turnSeat: 0 | 1): Promise<void
 /** Drive a turn-end boundary sweep (the engine's sweepDurations, as TurnStateMachine.endPhase does). */
 function sweepTurnEnd(s: EngineSetup, turnEndSeat: 0 | 1): void {
   s.state.turnSeat = turnEndSeat;
-  const engine = s.engine as unknown as { sweepDurations(b: string): void };
-  engine.sweepDurations("eachTurnEnd");
-  engine.sweepDurations("ownerTurnEnd");
-  engine.sweepDurations("opponentTurnEnd");
+  void sweepDurations(s.engine, "eachTurnEnd");
+  void sweepDurations(s.engine, "ownerTurnEnd");
+  void sweepDurations(s.engine, "opponentTurnEnd");
 }
 
 describe("granted timed-trigger surface — startOfYourMainPhase on a chosen non-source permanent", () => {

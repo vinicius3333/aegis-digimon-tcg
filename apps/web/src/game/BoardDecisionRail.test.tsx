@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
 import { CardOpenerProvider } from "./cardLinks";
-import { Hand } from "./boardPieces";
+import { Hand } from "./piece";
 
 afterEach(() => cleanup());
 

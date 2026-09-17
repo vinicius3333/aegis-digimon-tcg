@@ -25,6 +25,7 @@
 
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import type { TranslationKey } from "../i18n";
+import { Side } from "./side";
 import { TIMINGS } from "./timings";
 
 /**
@@ -45,8 +46,6 @@ export const ATTACK_ANNOUNCE_MS = TIMINGS.attackAnnounce;
 /** Cards moved in quick succession belong to one panel, numbered 1..n. */
 export const SIDE_PANEL_MERGE_WINDOW_MS = TIMINGS.sidePanelMergeWindow;
 
-export type SidePanelSide = "you" | "opp";
-
 export interface SidePanelCard {
   cardId: string;
   artId?: string;
@@ -56,7 +55,7 @@ export interface SidePanelCard {
 export interface SidePanel {
   id: string;
   titleKey: TranslationKey;
-  side: SidePanelSide;
+  side: Side;
   cards: SidePanelCard[];
   /** The event put its cards in a meaningful order, so every card wears its number. */
   ordered: boolean;
@@ -67,7 +66,7 @@ export interface AttackAnnouncement {
   id: string;
   cardId: string;
   artId?: string;
-  side: SidePanelSide;
+  side: Side;
   createdAt: number;
 }
 
@@ -167,8 +166,8 @@ export function titleForMovement(from: string, to: string): TranslationKey | nul
   }
 }
 
-function sideOf(seat: Seat, viewerSeat: Seat): SidePanelSide {
-  return seat === viewerSeat ? "you" : "opp";
+function sideOf(seat: Seat, viewerSeat: Seat): Side {
+  return seat === viewerSeat ? Side.Viewer : Side.Opponent;
 }
 
 function numbered(cards: readonly (string | Omit<SidePanelCard, "badge">)[]): SidePanelCard[] {
@@ -234,7 +233,7 @@ export function sidePanelFromEvent(
       return {
         id,
         titleKey: "panel.revealedCards",
-        side: "opp",
+        side: Side.Opponent,
         cards: numbered([{ cardId: event.cardId, ...(event.artId ? { artId: event.artId } : {}) }]),
         // A reveal is shown in the order it came off the deck, so it is numbered
         // from the first card even before a second one joins it.
@@ -249,7 +248,7 @@ export function sidePanelFromEvent(
       return {
         id,
         titleKey: "panel.playedCard",
-        side: "opp",
+        side: Side.Opponent,
         cards: numbered([{ cardId: event.cardId, ...(event.artId ? { artId: event.artId } : {}) }]),
         ordered: false,
         createdAt: nowMs,

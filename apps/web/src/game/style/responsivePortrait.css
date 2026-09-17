@@ -1,0 +1,354 @@
+/* Portrait phones: the short-portrait trims and the portrait board. */
+
+@media (width < 600px) and (height < 650px) and (orientation: portrait) {
+  .game-opponent-bar {
+    min-height: 0;
+  }
+  .game-sidebar > div:nth-child(2) > button {
+    min-height: 44px;
+  }
+  .opponent-action-feed {
+    top: calc(3.75rem + env(safe-area-inset-top, 0px));
+  }
+  .opponent-action-feed__trail {
+    display: none;
+  }
+  .opponent-action-feed__copy strong,
+  .opponent-action-feed__copy small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-line-clamp: 1;
+  }
+}
+
+/* Phone portrait. Both floating stacks span the width here (a capped column cut
+   the panel headings), so they can no longer be told apart by which side they sit
+   on: each gets a band of its own down the screen instead, notices hugging the
+   edge and the card panels inboard of them, and neither may grow into the other. */
+@media (width < 600px) and (orientation: portrait) {
+  /* Portrait board metrics, retuned against a 393x852 screen.
+
+     The rail is half a rem wider than the 42px pile it holds: a full deck is
+     drawn as six depth layers, each offset further down-right than the last, and
+     at 3.5rem those layers — and the opponent's raising slot beside them — ran
+     into the screen edge with nowhere to be clipped but off it.
+
+     The hand card grows from 21vw to 25vw — readable at arm's length, and still
+     more than three cards across the row before it has to be scrolled. The
+     dock is an `auto` track, so the field above it gives up the height. */
+  :root {
+    --game-rail: 4rem;
+    --hand-card-width: clamp(5.5rem, 25vw, 7rem);
+  }
+
+  /* One row for the hand and nothing else, so nothing the dock holds can push
+     the cards past its bottom edge, where the board's overflow cut them off.
+     The track may grow past the card: the row scrolls sideways, and a classic
+     scrollbar takes its height out of the content box — pinned to the card's
+     own height, the bar pushed the card tops out of the row instead. */
+  .game-hand-dock {
+    display: grid;
+    grid-template-rows: minmax(var(--game-hand-h), auto);
+    align-content: center;
+  }
+  .game-player-dock [data-testid="hand"] {
+    height: auto !important;
+    min-height: var(--game-hand-h) !important;
+  }
+  /* The desktop fan hangs below the dock on a negative margin so its arc reaches
+     the screen edge. There is no arc here, so the row was only hanging its
+     bottom edge into the action strip. */
+  .game-player-dock [data-testid="hand"] {
+    margin: 0 !important;
+  }
+
+  /* The rotated caption spends a whole column of a 393px screen to name what the
+     egg pile and the raising slot under it already show. Without it the band is
+     one row, and the height it gives back goes to the hand. */
+  .game-breeding-dock {
+    padding: var(--ds-space-1) var(--ds-space-3) !important;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .game-breeding-dock > div:first-child {
+    display: none;
+  }
+
+  /* Only three of the six depth layers: each sits 2.6px further down-right than
+     the last, and six of them reach past the rail and off the screen. Three
+     still read as a stack. */
+  .game-pile__layer:nth-child(n + 4) {
+    display: none;
+  }
+  /* The pile a finger opens is the 42px card wide and nothing more, which is
+     under the touch minimum on the horizontal axis. The rail has the room. */
+  .game-pile-column :has(> .game-pile),
+  .game-breeding-dock :has(> .game-pile) {
+    min-width: 44px;
+  }
+  /* The three depth layers still hang 7.8px below the pile's own box, and being
+     positioned they paint over anything in flow after them — at the compact 2px
+     gap that was the top of the caption's letters. */
+  .game-pile + span {
+    margin-top: 6px;
+  }
+  /* Both are painted outside the card they belong to, which is fine mid-board and
+     off the screen at the right edge of it: the arc is pulled inside the card's
+     own box and each star is centred on its point instead of starting there. */
+  .game-card-sparkles {
+    inset: -18% 0 45%;
+  }
+  .game-card-sparkle {
+    translate: -50% 0;
+  }
+
+  /* The opening hand centred its rows inside the `fr` track it sits in, which
+     opened ~130px between the copy explaining the mulligan and the cards it is
+     about. */
+  .mulligan-cards {
+    align-content: start;
+  }
+
+  /* A slot and its text are not capped on a phone: every cap tried here — 7rem,
+     then a dvh split — ended up decapitating a notice's clause or a revealed
+     card's art while screen space sat empty next to it. The whole notice and the
+     whole card matter more than the board they briefly cover, and each slot grows
+     from its own screen edge toward the middle. The viewer's slot clears the egg
+     deck and the raising slot, which the breeding step is about. */
+  .narration-slot[data-slot="narration-text"] {
+    bottom: calc(17rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* Below the opponent's feed, which starts at 6.75rem and is 3.25rem tall here:
+     at the base 9.5rem the feed painted over the call-out naming the attacker. */
+  .narration-slot[data-slot="narration-cards"] {
+    top: calc(10.5rem + env(safe-area-inset-top, 0px));
+  }
+  .attack-announcement {
+    top: calc(10.5rem + env(safe-area-inset-top, 0px));
+  }
+
+  /* The board-mode rail becomes a bottom sheet above the hand: as a left rail it
+     covered the half of the field the prompt is asking the player to read, and the
+     cards a hand selection picks are in the dock right under it either way.
+     It outranks the notice and panel stacks because it is the pending decision's
+     only exit — nothing transient may land on top of its buttons. */
+  .board-prompt {
+    top: auto;
+    right: 0;
+    bottom: calc(var(--game-hand-h) + env(safe-area-inset-bottom, 0px));
+    left: 0;
+    z-index: calc(var(--ds-z-dialog) - 3);
+    width: auto;
+    /* All the height between the sheet's resting place and the top of the
+       screen: only a clause that literally outgrows the viewport scrolls. */
+    max-height: calc(100dvh - var(--game-hand-h) - 4rem - env(safe-area-inset-bottom, 0px));
+    padding: var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-right, 0px)) var(--ds-space-6)
+      max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+    overflow-y: auto;
+    border-width: 1px 0 0;
+    border-color: var(--ds-border-strong);
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
+    box-shadow: 0 -12px 40px rgb(4 14 31 / 45%);
+    translate: none;
+    animation-name: battle-board-sheet-in;
+  }
+  /* A yes/no prompt is answered with the sheet's own buttons, so the hand under
+     it is dead weight: the sheet drops to the screen edge and the board above
+     it gets the height. A selection keeps the hand-anchored rules above, since
+     the hand is what it picks from. */
+  .board-prompt[data-variant="prompt"] {
+    bottom: 0;
+    max-height: calc(100dvh - 4rem);
+    padding-bottom: max(var(--ds-space-6), env(safe-area-inset-bottom, 0px));
+  }
+  .board-prompt-scrim[data-variant="prompt"] {
+    inset: 0;
+  }
+  /* The source card and the question share a line: the clause below is what
+     the player reads, and it always shows in full. */
+  .board-prompt__heading {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--ds-space-2);
+    row-gap: var(--ds-space-2);
+  }
+  .board-prompt__text {
+    font-size: var(--ds-text-base);
+  }
+  .board-prompt__clause {
+    padding-block: var(--ds-space-3);
+    font-size: var(--ds-text-sm);
+    line-height: 1.6;
+  }
+  /* Dressed like the card action sheets: a grip line, no back control (Escape
+     still hands the decision to its dialog, but a phone has no Escape and the
+     dialog would only cover the hand the selection is picking from). */
+  .board-prompt__grip {
+    display: block;
+    width: 2.25rem;
+    height: 4px;
+    margin: 0 auto var(--ds-space-2);
+    border-radius: 999px;
+    background: var(--ds-border-strong);
+  }
+  .board-prompt__back {
+    display: none;
+  }
+  /* The decision is the one thing to answer: the board dims under the sheet. The
+     hand stays lit for the cards a selection picks, and the feed column above the
+     scrim stays lit for the notices that explain what raised the decision. */
+  .board-prompt-scrim {
+    position: absolute;
+    z-index: calc(var(--ds-z-dialog) - 6);
+    display: block;
+    inset: 0 0 calc(var(--game-hand-h) + env(safe-area-inset-bottom, 0px)) 0;
+    pointer-events: none;
+    background: rgb(4 14 31 / 42%);
+    animation: aegis-fadeIn 140ms ease-out;
+  }
+  /* Keep complete toast contents visible beside the decision sheet. */
+  .narration-slot[data-slot="narration"] {
+    max-height: none;
+    overflow: visible;
+    pointer-events: auto;
+  }
+  /* Side by side: the sheet spends width it has and height it does not. */
+  .board-prompt__actions {
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
+  }
+  .board-prompt__actions > button {
+    flex: 1 1 8rem;
+    min-width: 0;
+    min-height: 52px;
+  }
+
+  /* Sized by the button it holds. At 3.25rem the row left a 36px content box for
+     a control the touch rules floor at 44px, and the sidebar's own clip took the
+     missing 8px off the bottom of the breeding step's only action. */
+  .game-sidebar > div:nth-child(2) {
+    height: auto;
+    min-height: calc(44px + var(--ds-space-2) * 2);
+  }
+
+  /* Both dismiss buttons float over the board and are the only early way out of
+     a notice or a reveal panel, so each keeps its compact chip — the chrome has
+     no room for a 44px one — and carries a 44px target behind it.
+
+     The notice's target grows down and left from the corner the chip sits in
+     rather than around it: the stack clips to its own band, and a target centred
+     on a chip that close to the top edge would have lost a quarter of itself. */
+  .match-notice__close::after {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    width: 44px;
+    height: 44px;
+    content: "";
+  }
+  /* The panel's chip stays in its corner: made a grid item it dropped onto a row
+     of its own and doubled the header's height over a single card. Its target
+     grows down and left from that corner for the same reason the notice's does. */
+  .side-panel__close::after {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    width: 44px;
+    height: 44px;
+    content: "";
+  }
+
+  /* Room for the chip on the right, matched on the left so the title stays
+     centred over the cards it names. */
+  .side-panel__header {
+    padding: 0.5rem 2.6rem;
+  }
+
+  .side-panel__cards {
+    padding: 0.8rem 0.9rem 0.9rem;
+  }
+
+  /* The memory band is one row, across the whole screen.
+
+     Between the two rails the band had 262px of a 393px screen, and the phase
+     pill took a third of that before the 21 chips were laid out — each came out
+     3px wide, a dotted line with no gauge left in it. The band bleeds over the
+     rails instead, which is what the clip margin on the zones allows: the rails
+     hold piles, not field, so nothing is covered.
+
+     `display: block` (from the phone block above) also dropped the end-turn orb
+     onto a second line, which cost the two battle rows another 32px of height. */
+  .game-battle-zones {
+    overflow: clip;
+    overflow-clip-margin: var(--game-rail);
+  }
+  .game-battle-zones > div:nth-child(2) {
+    display: flex;
+    align-items: center;
+    margin-inline: calc(var(--game-rail) * -1);
+  }
+  /* The phase is already printed in the status bar over the board, and its pill
+     is wider than a fifth of the chips it was crowding out. */
+  .game-memory-gauge__phase {
+    display: none;
+  }
+  /* Overrides the split-screen block's own `!important` padding. */
+  .game-memory-gauge {
+    gap: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* The orb's overhang rides the band's divider on a desktop board. Here the
+     band is barely taller than the orb, so the half-rem hanging below it was
+     the slice of the circle the player saw cut off: it sits inside instead. */
+  .game-end-turn-orb {
+    margin: 0 0.25rem;
+  }
+
+  /* Full printed effects stay readable on narrow sheets. */
+  .trigger-chooser {
+    grid-template-columns: 1fr;
+    gap: var(--ds-space-2);
+  }
+  .trigger-chooser__option {
+    min-width: 0;
+  }
+  .trigger-chooser__card > div {
+    width: 64px !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  .trigger-chooser__meta {
+    max-width: 100%;
+  }
+  .trigger-chooser__name {
+    font-size: var(--ds-text-xs);
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Keyed on width alone: a landscape phone is ~844px wide and fits all three
+   mulligan actions in one row, where 390px does not — the two labels that answer
+   the mulligan kept their width and the peek button was painted underneath them.
+   It takes a line of its own instead (it is last in the DOM, so it wraps). */
+@media (width < 600px) {
+  .mulligan-actions {
+    flex-wrap: wrap;
+  }
+  .mulligan-actions > button:last-child {
+    flex-basis: 100%;
+  }
+
+  /* Both players share a top band; full clauses and all active records stay visible. */
+  .narration-slot[data-slot="narration"] {
+    top: calc(3.5rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    bottom: auto;
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    width: auto;
+    max-height: none;
+    overflow: visible;
+    pointer-events: auto;
+  }
+}

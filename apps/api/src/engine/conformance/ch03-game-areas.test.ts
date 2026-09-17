@@ -256,14 +256,14 @@ describe("§3-4-7 Breeding Area (comprehensive-0281, 0282)", () => {
     // a [Marcus Damon] on the field, so one is laid alongside it in both scenarios below.
     const onBattle = digimon(0, 11000, "BT13-008");
     p0.battleArea.push(onBattle, digimon(0, 0, MARCUS));
-    (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+    (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
     expect(onBattle.activatableEffectsJson).not.toBe("");
 
     const inBreeding = digimon(0, 11000, "BT13-008");
     inBreeding.inBreeding = true;
     p0.battleArea.splice(0, p0.battleArea.length, digimon(0, 0, MARCUS)); // isolate: only the Tamer remains on the battle area
     p0.breeding = inBreeding;
-    (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+    (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
     // GameEngine.syncActivatableEffects only iterates turnPlayer.battleArea and explicitly
     // clears player.breeding's JSON — the breeding-area copy surfaces NO activatable ability.
     expect(inBreeding.activatableEffectsJson).toBe("");

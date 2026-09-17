@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
-import { cardEffectClauseForTiming, effectClauseForTiming, playerFacingEffectClause } from "./overlays";
+import { cardEffectClauseForTiming, effectClauseForTiming, playerFacingEffectClause } from "./overlay";
 
 it("names Execute when an inherited grant gives it to a card without the printed keyword", () => {
   const description =

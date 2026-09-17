@@ -1,15 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { CardColor, CardKind } from "@aegis/shared";
+import { readableEffectText } from "./CardDetailDrawer";
 import {
   matchesColorFilter,
   matchesCostFilter,
   matchesLevelFilter,
   matchesRarityFilter,
   matchesTraitOrAttributeFilter,
-  readableEffectText,
-  sortCards,
-  sortByCollection,
-} from "./cardLibrary";
+} from "./cardFilters";
+import { sortCards, sortByCollection } from "./cardSorting";
 
 describe("deck-builder color filtering", () => {
   it("requires every selected color for a multicolor deck search", () => {

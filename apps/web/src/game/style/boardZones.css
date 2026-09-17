@@ -1,0 +1,329 @@
+/* Breeding step, drag intents, security shields and the fanned hand. */
+
+/* --- Breeding step ------------------------------------------------------- */
+
+/* The field dims behind the dock, so the only lit things are the raising slot,
+   the hand that digivolves into it and the turn control on the memory band.
+   It sits under the band (z 5) and far under every notice, panel and dialog. */
+/* Pointer input off, for the play surfaces only: the header, the log and surrender are
+   outside it. `cursor: progress` is the whole of its appearance — the security scene
+   itself is what says why the board stopped answering. */
+.game-input-lock {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  cursor: progress;
+}
+
+.game-breeding-mode {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: rgb(4 9 18 / 62%);
+  animation: battle-breeding-dim var(--t-dialog-in, 180ms) ease-out both;
+}
+
+@keyframes battle-breeding-dim {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The egg deck is the hatch button during the breeding step, so it wears the same
+   amber ring the board uses for "this is the thing to press". */
+.game-egg-deck--hatchable .game-pile__top {
+  outline: 2px solid var(--battle-amber);
+  outline-offset: 4px;
+  animation: aegis-pulse 1.2s ease-in-out infinite;
+}
+
+/* The guidance the breeding dialog used to carry, now a line under the dock. It
+   never takes a pointer event — every breeding action is on the board itself. */
+.game-breeding-hint {
+  margin: 0;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: var(--ds-foreground-muted);
+  pointer-events: none;
+}
+
+/* Showing breeding guidance must not grow the footer and resize the battlefield.
+   Portrait places the dock in the field and positions its own guidance panel. */
+.game-player-dock > .game-breeding-dock {
+  position: relative;
+}
+
+.game-player-dock > .game-breeding-dock > .game-breeding-hint {
+  position: absolute;
+  z-index: 6;
+  bottom: calc(100% + 8px);
+  left: 12px;
+  right: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  background: var(--ds-surface);
+}
+
+.game-breeding-slot--focus .game-breeding-slot__box {
+  outline: 2px solid var(--battle-amber);
+  outline-offset: 5px;
+  box-shadow:
+    0 0 0 4px rgb(240 138 36 / 16%),
+    0 0 22px color-mix(in srgb, var(--battle-amber) 55%, transparent);
+}
+
+/* --- Drag intents -------------------------------------------------------- */
+
+/* Every area that would accept the card in the air wears the same accent ring.
+   The ring is an outline rather than a border because these boxes set their
+   borders inline, and inline styles outrank a stylesheet. */
+[data-drop][data-drag-intent] {
+  border-radius: 12px;
+  outline: 2px solid var(--battle-amber);
+  outline-offset: 4px;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--battle-amber) 45%, transparent);
+}
+
+/* The name of what releasing would do, floated above the ghost and clear of the
+   finger holding it. */
+.game-drag-intent {
+  position: fixed;
+  z-index: 10000;
+  padding: 0.26rem 0.9rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.84rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--drag-intent-ink, #12a150);
+  white-space: nowrap;
+  pointer-events: none;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 45%);
+  translate: -50% -50%;
+}
+
+.game-drag-intent[data-intent="play"] {
+  --drag-intent-ink: #12a150;
+}
+
+.game-drag-intent[data-intent="evolve"] {
+  --drag-intent-ink: #e0562c;
+}
+
+.game-drag-intent[data-intent="breeding"] {
+  --drag-intent-ink: #2f6fe0;
+}
+
+.game-drag-intent[data-intent="use"] {
+  --drag-intent-ink: #b56410;
+}
+
+.game-drag-intent[data-intent="attack"] {
+  --drag-intent-ink: var(--battle-attack);
+}
+
+/* --- Security shields ---------------------------------------------------- */
+
+.game-security-shield {
+  position: relative;
+  display: grid;
+  width: 4.1rem;
+  aspect-ratio: 0.86;
+  place-items: center;
+  clip-path: polygon(6% 0%, 94% 0%, 100% 14%, 100% 58%, 50% 100%, 0% 58%, 0% 14%);
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 55%));
+  transition: filter 200ms;
+}
+
+.game-security-shield--opp {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 40%),
+    linear-gradient(180deg, #2c7de8 0%, #123f8f 100%);
+}
+
+.game-security-shield--you {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 40%),
+    linear-gradient(180deg, #e8542c 0%, #8f1c12 100%);
+}
+
+.game-security-shield--glow {
+  filter: drop-shadow(0 0 10px var(--battle-marker)) drop-shadow(0 3px 8px rgb(0 0 0 / 55%));
+  animation: aegis-pulse 1.2s ease-in-out infinite;
+}
+
+.game-security-shield__count {
+  position: relative;
+  z-index: 3;
+  font-family: var(--ds-font-mono);
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgb(0 0 0 / 45%),
+    0 0 10px rgb(0 0 0 / 35%);
+}
+
+.game-security-shield__label {
+  display: none;
+}
+
+/* --- Hand: oversized fan clipped at the screen's bottom edge ------------- */
+
+.game-hand-dock {
+  overflow: visible;
+}
+
+/* The hand's positioning context, so the touch layout can hang scroll cues over
+   the ends of the strip. `contents` everywhere else: the pointer fan is laid out
+   by the dock itself and must not gain a box between them. */
+.game-hand-scroller {
+  display: contents;
+}
+
+.game-hand {
+  margin-bottom: -1.7rem;
+}
+
+/* Every highlighted hand card wears the same thin rim plus soft glow and differs
+   only in intensity, lift and motion. The lift rides `top` rather than a
+   transform because the fan, the draw animation and the touch layout each already
+   own one of the transform properties. */
+.game-hand-card {
+  position: relative;
+  top: 0;
+  border-radius: 0.7rem;
+  transition:
+    top 150ms var(--ds-ease-standard),
+    scale 150ms var(--ds-ease-standard),
+    box-shadow 150ms var(--ds-ease-standard);
+}
+
+.game-hand-card--playable {
+  box-shadow:
+    0 0 0 1.5px var(--ds-card-rim-ready),
+    0 0 14px var(--ds-card-glow-ready);
+}
+
+/* --- Board-mode hand selection -------------------------------------------- */
+
+/* A card that cannot be picked steps back into the dark instead of fading to a
+   grey ghost: the art stays legible, it simply stops emitting. The filter sits on
+   the inner card because the fan writes its own `filter` on this wrapper inline. */
+.game-hand-card--unpickable {
+  opacity: 0.85;
+  scale: 0.97;
+}
+
+.game-hand-card--unpickable > * {
+  filter: brightness(0.55) saturate(0.75);
+}
+
+/* An eligible card is offered rather than announced: it keeps the cyan "you may
+   act on this" rim the board already speaks, plus a small lift and a slow
+   breathing glow that invites the tap. Only the chosen card turns gold. */
+.game-hand-card--pickable {
+  top: -4px;
+  box-shadow:
+    0 0 0 2px var(--ds-card-rim-ready),
+    0 0 16px var(--ds-card-glow-ready);
+}
+
+/* The breathing rides a pseudo-element: `--drawn` already owns the card's own
+   `animation`, and a card can be freshly drawn and eligible at the same time. */
+.game-hand-card--pickable::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -2px;
+  pointer-events: none;
+  border-radius: calc(0.7rem + 2px);
+  box-shadow: 0 0 18px 3px var(--ds-card-glow-ready);
+  animation: battle-card-breathe var(--t-card-breathe, 2600ms) ease-in-out infinite;
+}
+
+@keyframes battle-card-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Only the chosen card turns gold, and it is the same language turned up: a wider
+   rim, a wider glow, twice the lift and a small step towards the player. The hue
+   change is what tells "you may pick this" from "you picked this" at a glance. */
+.game-hand-card--picked {
+  /* The wrapper owns the highlight, so the card inside drops its own rim. */
+  --card-highlight-rim: transparent;
+  --card-highlight-glow: transparent;
+
+  top: -8px;
+  scale: 1.035;
+  box-shadow:
+    0 0 0 2px var(--ds-card-rim-attention),
+    0 0 26px 4px var(--ds-card-glow-attention);
+}
+.game-hand-card__pick-badge {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.4rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  /* The badge belongs to the pick, so it wears the pick's own colour. */
+  color: var(--ds-brand-ink);
+  border: 2px solid var(--ds-surface);
+  border-radius: 999px;
+  background: var(--ds-card-rim-attention);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.game-hand-card--drawn {
+  /* The dock's inline transform carries the fan, so the slide-in animates the
+     independent `translate` property instead of fighting it.
+     the reference client drops the new hand card into its slot from 70px over 80ms Ease.OutBack
+     (CardObjectController.cs:696); 120ms is the readable web compromise. */
+  animation: battle-hand-draw var(--t-hand-draw, 120ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes battle-hand-draw {
+  from {
+    translate: 0 70px;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+/* The accent ring the touch layouts leave on the card that just arrived: the drop
+   is over in 120ms, and on a phone the hand is a scrolling strip of near-identical
+   backs, so the ring holds and then fades rather than blinking. It rides its own
+   pseudo-element because `--playable`, `--pickable` and `--picked` each own the
+   card's `box-shadow`, and a filled animation on the card would outrank them for
+   as long as the card stays in hand. */
+@keyframes battle-hand-draw-ring {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

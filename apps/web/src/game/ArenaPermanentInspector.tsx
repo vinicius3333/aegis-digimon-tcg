@@ -10,10 +10,11 @@ import { groupedInspectorEvolutionCosts, inspectorCardsTopToBottom, inspectedAre
 import { formatResolvedKeyword } from "./keywordDisplay";
 import type { CardInspectionDetail } from "./permanentDetail";
 import type { PendingFateBadge } from "./pendingFate";
+import { Side } from "./side";
 import "./arenaPermanentInspector.css";
 
 export interface ArenaInspectionOptions {
-  side: "you" | "opp";
+  side: Side;
   container: HTMLElement | null;
   returnFocusTo?: HTMLElement | null;
 }

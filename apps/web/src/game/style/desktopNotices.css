@@ -1,0 +1,595 @@
+/* What a pointer-sized board changes: notices, the decision header, the
+   board rail and the phone's folded narration column. */
+
+/* --- Desktop notices -------------------------------------------------- */
+
+/* On a pointer-sized board the notice is read, not glanced at: the frame widens,
+   the clause takes a body size instead of a caption size, and the art beside it
+   grows to the width NoticeStack picks on the same breakpoint. */
+@media (width >= 768px) and (height >= 520px) {
+  .narration-slot[data-slot="narration-text"],
+  .narration-slot[data-slot="narration"] {
+    width: min(32rem, calc(100% - var(--ds-space-8)));
+  }
+
+  /* Bounded at the hand dock, the same floor the clause column keeps, so several panels
+     of revealed cards scroll inside the column instead of running off the board. */
+  .narration-slot[data-slot="narration-cards"] {
+    width: min(20rem, calc(100% - var(--ds-space-8)));
+    bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .match-notice {
+    min-height: 6.5rem;
+    padding: 1.05rem 2.9rem 1.05rem 1.05rem;
+    gap: 1rem;
+  }
+
+  /* The variant rule outweighs the one above, so it repeats the desktop padding. */
+  .match-notice[data-variant="effect"] {
+    padding: 1.05rem 2.9rem 1.05rem 1.05rem;
+  }
+
+  .match-notice__icon {
+    width: 3.4rem;
+    height: 3.4rem;
+  }
+
+  .match-notice__label {
+    font-size: 0.78rem;
+  }
+
+  .match-notice__title {
+    font-size: 1.22rem;
+  }
+
+  .match-notice__text {
+    font-size: 1.02rem;
+    line-height: 1.5;
+  }
+
+  .match-notice__keyword {
+    font-size: 1.2rem;
+    padding: 0.28rem 0.95rem;
+  }
+
+  .match-notice__close {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+}
+
+/* The scrim only fades, so the sheet it holds does the rising. It is laid out by the
+   scrim's flexbox rather than centred by a transform, so a plain rise is safe here —
+   unlike the board's centred prompts, which take `battle-dialog-in` instead. */
+.mulligan-sheet {
+  animation: aegis-rise 180ms ease-out;
+}
+
+/* --- Decision overlay header ----------------------------------------- */
+
+/* The card that raised the question, then the question in that card's own printed words.
+   The board button stays on the end of the row so it never moves when the clause grows. */
+.decision-overlay__header {
+  display: flex;
+  gap: var(--ds-space-3);
+  align-items: flex-start;
+  margin-bottom: var(--ds-space-4);
+}
+
+.decision-overlay__source-art {
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0.4rem;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+}
+.decision-overlay__source-art:disabled {
+  cursor: default;
+}
+
+/* The clause is the question in the card's own printed words, read under the headline
+   that asks it. */
+.decision-overlay__effect-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ds-fg);
+  border-radius: 0.6rem;
+  background: rgb(255 255 255 / 6%);
+}
+
+/* The question is the headline: one line across the top of the sheet, at the size the
+   reference client gives it. */
+.decision-overlay__title {
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+  text-wrap: balance;
+}
+
+/* --- Board decision rail ---------------------------------------------- */
+
+/* The card asking the question, centred over its own printed clause. The picture says
+   which card this is, so the rail no longer spells the name out above it. */
+.board-prompt__body {
+  display: flex;
+  gap: var(--ds-space-3);
+  align-items: flex-start;
+}
+
+.board-prompt__body .board-prompt__clause {
+  flex: 1;
+  min-width: 0;
+}
+
+.board-prompt__art {
+  align-self: flex-start;
+  padding: 0;
+  line-height: 0;
+  border: 0;
+  border-radius: 0.6rem;
+  background: none;
+  cursor: pointer;
+}
+
+.board-prompt__art:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+
+/* The prompt restates what the clause already says, so where a clause is shown the
+   prompt stays only for the screen reader the live region announces it to. */
+.board-prompt__text[data-quiet] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  padding: 0;
+  margin: -1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- Left column, shared ---------------------------------------------- */
+
+/* The effect clauses and the decision rail both read out of the left edge, so on a board
+   with the room they stack rather than overlap: the clauses hold the top (see the
+   narration-text rule above, which anchors them there), and the rail sits above the hand
+   dock at the bottom. Its height is capped so a long clause cannot grow it back up into
+   them. */
+@media (width >= 768px) and (height >= 520px) {
+  .board-prompt {
+    top: auto;
+    bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+    max-height: min(92%, calc(100% - 24rem));
+    translate: 0 0;
+    animation-name: battle-board-sheet-in;
+  }
+}
+
+/* The phone bottom sheet enters from the edge it is anchored to. */
+@keyframes battle-decision-sheet-up {
+  from {
+    translate: 0 100%;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+/* --- The phone's folded narration column ------------------------------- */
+
+/* Three moments is as tall as this slot may get: past that it would reach the board
+   it is narrating. Older moments are not dropped for it — the column scrolls, the
+   newest stays at the bottom where the eye already is, and the chevron at the top
+   says there is more above. Last in the file on purpose: the rules above clear the
+   cap for every other slot. */
+.narration-slot[data-slot="narration"] {
+  max-height: calc(58svh - env(safe-area-inset-top, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.narration-slot[data-slot="narration"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* The cue that there is more above: the shared chevron in a round chip. Sticky rather
+   than absolute, so it rides the scroll instead of the content, and its own height is
+   given back as a negative margin so it sits over the first notice's frame instead of
+   in a band above it. */
+.narration-slot__more {
+  position: sticky;
+  z-index: calc(var(--ds-z-dialog) - 3);
+  top: 0;
+  display: flex;
+  width: 2.6rem;
+  height: 2.6rem;
+  flex: 0 0 auto;
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+  margin-bottom: calc(-2.6rem - var(--ds-space-2));
+  border: 1px solid rgb(120 220 255 / 55%);
+  border-radius: 999px;
+  background: rgb(4 14 31 / 88%);
+  box-shadow: 0 2px 10px rgb(4 14 31 / 55%);
+  color: var(--battle-cyan);
+  pointer-events: none;
+  animation: narration-more-nudge 1.8s ease-in-out infinite;
+}
+
+/* A slow rise, so the chip reads as "there is something up here" rather than as a badge. */
+@keyframes narration-more-nudge {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .narration-slot__more {
+    animation: none;
+  }
+}
+
+/* --- The phone's folded narration band -------------------------------- */
+
+/* The phone's slot lies over the opponent's field. Folded, it is one row saying what the
+   newest moment is and how many more are still running — a purpose-built line, not a
+   shrunken notice: folding the full panel with CSS left its close button and its card name
+   hanging below a band a third of their height. The row IS the control, so a tap anywhere
+   on it opens the column, and it stands in a full touch target. */
+/* The band is drawn in one accent, and every tone below only swaps that accent. It is the
+   board's own effect amber by default, matching the light the source card holds and the
+   arrow leaving it, so the three read as one moment — and deliberately not the cyan, which
+   on this board already means an attack. The channels are kept separate from the solid
+   colour because the border, the ring and the tint all need it at different alphas. */
+.narration-peek {
+  --narration-peek-rgb: 255 166 61;
+  --narration-peek-ink: rgb(255 199 130);
+  --narration-peek-tint: 60 38 14;
+
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
+  min-height: 4rem;
+  margin-inline: auto;
+  padding: 0.4rem 0.55rem 0.4rem 0.45rem;
+  border: 1px solid rgb(var(--narration-peek-rgb) / 52%);
+  /* The rail on the leading edge is what the eye catches first. */
+  border-left: 3px solid rgb(var(--narration-peek-rgb));
+  border-radius: 0.5rem;
+  background: linear-gradient(180deg, rgb(var(--narration-peek-tint) / 88%) 0%, rgb(20 15 10 / 90%) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--narration-peek-rgb) / 12%),
+    0 6px 18px rgb(2 8 20 / 45%);
+  color: rgb(255 244 232);
+  cursor: pointer;
+  gap: 0.45rem;
+  align-items: center;
+  pointer-events: auto;
+  backdrop-filter: blur(2px);
+  /* Opening out of a pill, then announcing itself once. Both replay per moment because the
+     row is remounted for each one rather than rewritten in place. */
+  animation:
+    narration-peek-morph 420ms cubic-bezier(0.22, 1.2, 0.36, 1),
+    narration-peek-flash 900ms ease-out;
+}
+
+/* A refusal answers the viewer's own tap and is the one line here that is bad news. */
+.narration-peek[data-tone="rejection"] {
+  --narration-peek-rgb: 255 45 31;
+  --narration-peek-ink: rgb(255 186 178);
+  --narration-peek-tint: 58 16 12;
+}
+
+/* Cards leaving the board: the attack red, because that is what deletion is drawn in. */
+.narration-peek[data-tone="deletion"] {
+  --narration-peek-rgb: 255 82 64;
+  --narration-peek-ink: rgb(255 190 180);
+  --narration-peek-tint: 54 20 16;
+}
+
+/* A named mechanic keeps the pink pill the notices call it out in. */
+.narration-peek[data-tone="keyword"] {
+  --narration-peek-rgb: 233 30 120;
+  --narration-peek-ink: rgb(255 180 213);
+  --narration-peek-tint: 56 14 36;
+}
+
+/* The two lines that are good news for whoever they name. */
+.narration-peek[data-tone="gain"] {
+  --narration-peek-rgb: 74 222 128;
+  --narration-peek-ink: rgb(187 247 208);
+  --narration-peek-tint: 12 46 26;
+}
+
+/**
+ * Out of a pill and into the row, the way a phone's own status island does. Movement of
+ * shape is what peripheral vision actually catches — the band already arrived in colour and
+ * was still being missed — and it also says which direction the thing came from.
+ *
+ * `max-width` rather than `width`: the row still lays out at its full size, so nothing
+ * around it reflows while it opens, and the content is simply clipped until there is room
+ * for it. A percentage cannot be interpolated against a rem, hence the viewport unit.
+ */
+@keyframes narration-peek-morph {
+  0% {
+    max-width: 3.5rem;
+    border-radius: 999px;
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    max-width: 100vw;
+    border-radius: 0.5rem;
+    opacity: 1;
+  }
+}
+
+/* One ring of accent, wide enough to catch peripheral vision over a busy board and gone
+   before it becomes something to look at. */
+@keyframes narration-peek-flash {
+  0%,
+  100% {
+    border-color: rgb(var(--narration-peek-rgb) / 52%);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--narration-peek-rgb) / 12%),
+      0 6px 18px rgb(2 8 20 / 45%);
+  }
+
+  22% {
+    border-color: rgb(var(--narration-peek-rgb) / 95%);
+    box-shadow:
+      0 0 0 3px rgb(var(--narration-peek-rgb) / 45%),
+      0 6px 24px rgb(var(--narration-peek-rgb) / 34%);
+  }
+}
+
+/* The running clock, on the band's bottom edge: the same reading time the opened notice
+   erodes around its frame, in the one line the folded layout has room for. */
+.narration-peek__life {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgb(var(--narration-peek-rgb)) 0%, var(--narration-peek-ink) 100%);
+  pointer-events: none;
+  transform-origin: left center;
+  animation: narration-peek-life linear forwards;
+}
+
+@keyframes narration-peek-life {
+  from {
+    scale: 1 1;
+  }
+
+  to {
+    scale: 0 1;
+  }
+}
+
+/* Cropped rather than scaled: a scaled thumbnail still reserves the full card's height,
+   which is what made the band four times taller than the text on it. */
+.narration-peek__art {
+  display: block;
+  overflow: hidden;
+  width: 1.6rem;
+  height: 2.25rem;
+  flex: none;
+  border-radius: 0.2rem;
+}
+
+.narration-peek__art > * {
+  transform: scale(0.65);
+  transform-origin: top left;
+}
+
+/* Two lines: what the moment is, then one line of what it says. */
+.narration-peek__copy {
+  display: flex;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.1rem;
+  text-align: left;
+}
+
+.narration-peek__head {
+  display: flex;
+  min-width: 0;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+/* The timing is what the player is looking for — "[When Attacking]" — so it leads and is
+   never the part that gets cut. */
+.narration-peek__label {
+  flex: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--narration-peek-ink);
+}
+
+.narration-peek__name {
+  overflow: hidden;
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Clamped to one line: the band says whether the moment is worth opening, not what it did. */
+.narration-peek__clause {
+  overflow: hidden;
+  font-size: 0.74rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgb(232 219 202);
+}
+
+/* How much is queued behind this one, so a folded band never hides that more is running.
+   It pops when the count changes, because a digit rewritten in place is not a change
+   anyone watching the board notices. */
+.narration-peek__more {
+  flex: none;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgb(var(--narration-peek-rgb) / 28%);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--narration-peek-ink);
+  animation: narration-peek-count-pop 420ms ease-out;
+}
+
+@keyframes narration-peek-count-pop {
+  0% {
+    scale: 1;
+  }
+
+  40% {
+    scale: 1.35;
+  }
+
+  100% {
+    scale: 1;
+  }
+}
+
+.narration-peek__chevron {
+  display: grid;
+  flex: none;
+  color: var(--narration-peek-ink);
+  place-items: center;
+}
+
+/* With motion off the band still has to be found, so what it loses in movement it is
+   given back as a standing accent ring rather than simply going quiet. */
+@media (prefers-reduced-motion: reduce) {
+  .narration-peek {
+    box-shadow:
+      0 0 0 2px rgb(var(--narration-peek-rgb) / 40%),
+      0 6px 18px rgb(2 8 20 / 45%);
+    animation: none;
+  }
+
+  .narration-peek__life,
+  .narration-peek__more {
+    animation: none;
+  }
+
+  .narration-peek__life {
+    opacity: 0.45;
+  }
+}
+
+/* Rides the open column's corner, clear of each notice's close button. The explicit
+   `min-height` keeps it off the board's 44px touch-target floor, which is taller than the
+   row it sits on. */
+/* Named in words and sized for a thumb: the column is opened by a tap, so the way out of
+   it has to be findable by eye over a board full of cards, not a bare chevron. */
+.narration-slot__peek {
+  display: inline-flex;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  align-items: center;
+  align-self: flex-end;
+  min-height: 2.75rem;
+  padding: 0 0.85rem 0 0.7rem;
+  border: 1px solid rgb(148 191 255 / 45%);
+  border-radius: 999px;
+  background: rgb(6 16 34 / 92%);
+  box-shadow: 0 2px 10px rgb(2 8 20 / 55%);
+  color: rgb(226 240 255);
+  cursor: pointer;
+  gap: 0.3rem;
+  pointer-events: auto;
+}
+
+.narration-slot__peek-label {
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+/* The opened column's control points back the way it came. */
+.narration-slot__peek svg {
+  transform: rotate(180deg);
+}
+
+@media (width < 600px) {
+  /* The band rides at the very top of the board, over the opponent's counters, hand and
+     raising strip — none of which is read while a moment is being narrated.
+     The opened column runs down to just above the viewer's own egg, security, deck and
+     trash row, and scrolls past that with the chevron the slot already draws saying there
+     is more above. Opening it is the viewer asking to read, so it is allowed to cover both
+     battle rows; what it stays clear of is the viewer's own counters and hand, which are
+     what they act with. Measured on this board: the column starts at 60px and that row at
+     569px, so 31rem leaves it 13px of clearance. An earlier cap cut the clause off
+     silently, which is what made it feel broken; with the chevron the column reads as
+     scrollable rather than as truncated. */
+  .narration-slot[data-slot="narration"] {
+    top: max(var(--ds-space-1), env(safe-area-inset-top, 0px));
+    max-height: 31rem;
+    overflow-y: auto;
+    pointer-events: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* The folded band is one row: it has nothing to scroll and no chevron to draw. */
+  .narration-slot[data-slot="narration"]:has(.narration-peek) {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Pointing at what is below instead of above: it rides the bottom edge, not the top. */
+  .narration-slot__more[data-below] {
+    top: auto;
+    bottom: 0;
+    margin-top: calc(-2.6rem - var(--ds-space-2));
+    margin-bottom: 0;
+  }
+
+  /* Both controls stay put while the column scrolls under them. The pill leads the column
+     and keeps its own row rather than floating over the first moment: pulled up over it
+     with a negative margin, it landed on that moment's own dismiss button. */
+  .narration-slot[data-slot="narration"] .narration-slot__peek {
+    position: sticky;
+    z-index: calc(var(--ds-z-dialog) - 2);
+    top: 0.15rem;
+    align-self: flex-end;
+  }
+}

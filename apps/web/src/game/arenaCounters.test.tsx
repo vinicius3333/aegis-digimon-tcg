@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it } from "vitest";
 import { I18nProvider } from "../i18n";
 import { ArenaCounters } from "./ArenaCounters";
 import { GameScreen } from "./GameScreen";
+import { Side } from "./side";
 
 beforeEach(() => localStorage.clear());
 afterEach(() => cleanup());
@@ -81,7 +82,7 @@ it("describes live counters on hover, keyboard focus and tap, and dismisses with
   localStorage.setItem("aegis:locale", "pt-BR");
   const view = render(
     <I18nProvider>
-      <ArenaCounters side="opp" eggs={3} hand={20} deck={16} trash={2} />
+      <ArenaCounters side={Side.Opponent} eggs={3} hand={20} deck={16} trash={2} />
     </I18nProvider>,
   );
   expect(screen.queryByRole("tooltip")).toBeNull();
@@ -98,7 +99,7 @@ it("describes live counters on hover, keyboard focus and tap, and dismisses with
   expect(screen.getByRole("tooltip").textContent).toBe("Mão: 20 cartas na mão");
   view.rerender(
     <I18nProvider>
-      <ArenaCounters side="opp" eggs={3} hand={21} deck={15} trash={2} />
+      <ArenaCounters side={Side.Opponent} eggs={3} hand={21} deck={15} trash={2} />
     </I18nProvider>,
   );
   expect(screen.getByRole("tooltip").textContent).toBe("Mão: 21 cartas na mão");

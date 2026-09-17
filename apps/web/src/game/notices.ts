@@ -12,6 +12,7 @@
    Card text and translation belong to NoticeStack.tsx. */
 
 import { digiXrosRequirementFor, type PreventionKeyword, type Seat, type ServerEvent } from "@aegis/shared";
+import { Side } from "./side";
 import { TIMINGS } from "./timings";
 
 /** How long a notice gets to be read. Nothing on the board shortens it any more. */
@@ -25,8 +26,6 @@ export const NOTICE_LIFETIME_MS = TIMINGS.noticeLifetime;
  * text, not the queued notice's.
  */
 export const REJECTION_LIFETIME_MS = TIMINGS.feedEffect;
-
-export type NoticeSide = "you" | "opp";
 
 export type NoticeBody =
   | {
@@ -74,15 +73,15 @@ export type NoticeVariant = NoticeBody["variant"];
 
 export interface MatchNotice {
   id: string;
-  side: NoticeSide;
+  side: Side;
   /** Raised while a security card was resolving. Provenance only: it no longer moves the notice. */
   fromSecurity: boolean;
   body: NoticeBody;
   createdAt: number;
 }
 
-function sideOf(seat: Seat, viewerSeat: Seat): NoticeSide {
-  return seat === viewerSeat ? "you" : "opp";
+function sideOf(seat: Seat, viewerSeat: Seat): Side {
+  return seat === viewerSeat ? Side.Viewer : Side.Opponent;
 }
 
 /**
@@ -134,7 +133,7 @@ export function deletionNoticesFromEvent(
   nowMs: number,
 ): MatchNotice[] {
   if (event.kind !== "cardsMoved" || event.to !== "trash" || !event.deletedPermanents?.length) return [];
-  const bySide = new Map<NoticeSide, DeletedCard[]>();
+  const bySide = new Map<Side, DeletedCard[]>();
   for (const deleted of event.deletedPermanents) {
     const side = sideOf(deleted.seat, viewerSeat);
     const cards = bySide.get(side) ?? [];
@@ -172,7 +171,7 @@ export function recoveryNoticeFromEvent(
  * a card placed there from the hand, the deck or the trash. The stack is face-down,
  * so the notice carries only the count; on the stacking player's side.
  */
-export function securityGainNotice(side: NoticeSide, amount: number, id: string, nowMs: number): MatchNotice {
+export function securityGainNotice(side: Side, amount: number, id: string, nowMs: number): MatchNotice {
   return { id, side, fromSecurity: false, body: { variant: "securityGain", amount }, createdAt: nowMs };
 }
 
@@ -246,7 +245,7 @@ export function keywordNoticeFromEvent(
 
 /** A refused action is always the viewer's own, so it lands on the viewer's side. */
 export function rejectionNotice(reason: string, id: string, nowMs: number): MatchNotice {
-  return { id, side: "you", fromSecurity: false, body: { variant: "rejection", reason }, createdAt: nowMs };
+  return { id, side: Side.Viewer, fromSecurity: false, body: { variant: "rejection", reason }, createdAt: nowMs };
 }
 
 /** Milliseconds left on a notice's clock, never negative. */
@@ -263,5 +262,5 @@ export function noticeRemaining(notice: MatchNotice, nowMs: number): number {
  * The opponent's notices stay: their dialog is not on this screen.
  */
 export function isOwnEffectNotice(notice: MatchNotice, cardId: string): boolean {
-  return notice.side === "you" && notice.body.variant === "effect" && notice.body.cardId === cardId;
+  return notice.side === Side.Viewer && notice.body.variant === "effect" && notice.body.cardId === cardId;
 }

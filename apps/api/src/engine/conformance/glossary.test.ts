@@ -683,7 +683,7 @@ describe("glossary-0018 (Keyword Effects — <Delay>)", () => {
     p0.battleArea.push(delayer);
     s.state.memory = -10; // deeply memory-starved — could not afford ANY normal cost right now
 
-    (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+    (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
     const entries: { instanceId: string; effectKey: string }[] = delayer.activatableEffectsJson
       ? JSON.parse(delayer.activatableEffectsJson)
       : [];

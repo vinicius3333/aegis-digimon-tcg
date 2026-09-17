@@ -18,10 +18,10 @@ import { describe, expect, it } from "vitest";
  */
 
 const ENGINE_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
-const CONTEXT_FILE = join(ENGINE_DIR, "effects", "EffectContext.ts");
+const CONTEXT_FILE = join(ENGINE_DIR, "effects", "context", "restrictions.ts");
 
 /** Files that declare or store restrictions rather than act on them. */
-const NOT_CONSUMERS = ["effects/EffectContext.ts", "effects/continuous.ts"];
+const NOT_CONSUMERS = ["effects/context/restrictions.ts", "effects/continuous.ts"];
 
 function enforcedKinds(): string[] {
   // Strip line comments first: several union members carry trailing prose containing both

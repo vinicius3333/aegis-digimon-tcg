@@ -6,13 +6,14 @@ import { I18nProvider } from "../i18n";
 import { CardOpenerProvider } from "./cardLinks";
 import { NoticeStack } from "./NoticeStack";
 import { NOTICE_LIFETIME_MS, type MatchNotice } from "./notices";
+import { Side } from "./side";
 
 afterEach(cleanup);
 
 function notice(overrides: Partial<MatchNotice> = {}): MatchNotice {
   return {
     id: "n1",
-    side: "you",
+    side: Side.Viewer,
     fromSecurity: false,
     body: { variant: "effect", cardId: "BT1-010", timing: "OnPlay", description: "Draw 1 card." },
     createdAt: 0,
@@ -86,7 +87,7 @@ describe("NoticeStack", () => {
   });
 
   it("marks whose moment it is, so the slot it sits in can be read at a glance", () => {
-    renderNotice(notice({ side: "opp" }));
+    renderNotice(notice({ side: Side.Opponent }));
     expect(screen.getByTestId("match-notice").getAttribute("data-side")).toBe("opp");
   });
 
@@ -184,7 +185,7 @@ describe("NoticeStack", () => {
 it("highlights the printed timing markers in Plutomon's effect notice", () => {
   renderNotice(
     notice({
-      side: "opp",
+      side: Side.Opponent,
       body: { variant: "effect", cardId: "BT26-059", timing: "AllTurns", description: "whenHandTrashed" },
     }),
   );

@@ -8,7 +8,10 @@ import { getCardArts } from "@aegis/shared";
 import { Eyebrow } from "../design/primitives";
 import { CardFull } from "../design/cards";
 import { activeCollectionCards } from "../game/decks";
-import { CardDetailDrawer, FilterRail, sortCards, useCardFilter } from "./cardLibrary";
+import { CardDetailDrawer } from "./CardDetailDrawer";
+import { FilterRail } from "./FilterRail";
+import { useCardFilter } from "./cardFilters";
+import { sortCards } from "./cardSorting";
 import { useTranslation } from "../i18n";
 import "./collection.css";
 

@@ -5,36 +5,40 @@ import { buildTriggerKey } from "@aegis/shared";
 import type { ServerEvent } from "@aegis/shared";
 import { translator } from "../i18n";
 import {
-  activeBlockWindow,
-  activeCounterWindow,
-  openCombatWindow,
-  mirroredCombatWindow,
-  lastRejectedCombatAnswer,
-  buildMatchLog,
   breedingSlotClickAction,
   canMoveFromBreeding,
   canUseBreedingAction,
-  decisionEffectSource,
-  decisionCardColors,
-  differentColorsAllowCandidate,
-  decisionSourceCounts,
-  decisionPermanentDetails,
-  decisionVisibleCards,
-  digivolveBasePermanentIds,
-  distinctCardIdsAllow,
   eventsAfter,
-  describeEvent,
-  buildInstanceIndex,
-  getDigivolveCostOptions,
-  handCardEvolutionRoute,
-  appFusionRoutesForHost,
-  findDnaMaterialCombination,
   linkCardSlots,
   playButtonLabel,
   triggerCardId,
   triggerLabel,
   triggerLabels,
 } from "./boardModel";
+import {
+  activeBlockWindow,
+  activeCounterWindow,
+  openCombatWindow,
+  mirroredCombatWindow,
+  lastRejectedCombatAnswer,
+} from "./combatWindowModel";
+import {
+  decisionCardColors,
+  differentColorsAllowCandidate,
+  decisionSourceCounts,
+  decisionPermanentDetails,
+  decisionVisibleCards,
+  distinctCardIdsAllow,
+  buildInstanceIndex,
+} from "./decisionModel";
+import {
+  digivolveBasePermanentIds,
+  getDigivolveCostOptions,
+  handCardEvolutionRoute,
+  appFusionRoutesForHost,
+  findDnaMaterialCombination,
+} from "./digivolveModel";
+import { buildMatchLog, decisionEffectSource, describeEvent } from "./matchLog";
 
 describe("appFusionRoutesForHost", () => {
   const host = (permanentId: string, linked: { instanceId: string; cardId: string }[]) =>

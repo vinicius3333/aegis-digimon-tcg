@@ -149,7 +149,7 @@ interface ActivatableEntry {
  * consumed [Once Per Turn] use drops out of the affordance set.
  */
 function activatableEffects(s: Setup, perm: Permanent): ActivatableEntry[] {
-  (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+  (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
   return perm.activatableEffectsJson ? (JSON.parse(perm.activatableEffectsJson) as ActivatableEntry[]) : [];
 }
 

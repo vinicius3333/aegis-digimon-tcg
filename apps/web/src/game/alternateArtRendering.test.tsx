@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { CardInstance, Permanent, getCardArts } from "@aegis/shared";
 import { CardFull, CardMini } from "../design/cards";
 import { I18nProvider } from "../i18n";
-import { CardActionMenu, StackViewerOverlay, TrashViewerOverlay } from "./overlays";
+import { CardActionMenu, StackViewerOverlay, TrashViewerOverlay } from "./overlay";
 import { buildPermanentDetail } from "./permanentDetail";
 
 const cardId = "BT1-010";

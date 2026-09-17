@@ -6,11 +6,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { NoticeStack } from "./NoticeStack";
 import { NOTICE_LIFETIME_MS } from "./notices";
 import { I18nProvider } from "../i18n";
-import { BoardInputLock, PermanentView } from "./boardPieces";
-import { PermanentDetailInspector, StackViewerOverlay } from "./overlays";
+import { BoardInputLock, PermanentView } from "./piece";
+import { PermanentDetailInspector, StackViewerOverlay } from "./overlay";
 import { buildPermanentDetail } from "./permanentDetail";
 import { SecurityClash } from "./SecurityClashView";
 import { buildSecurityClashScene, buildSecurityDestructionScene } from "./securityClash";
+import { Side } from "./side";
 
 afterEach(() => cleanup());
 
@@ -104,7 +105,7 @@ describe("security feedback", () => {
         <NoticeStack
           notice={{
             id: "n1",
-            side: "you",
+            side: Side.Viewer,
             fromSecurity: false,
             createdAt: 0,
             body: { variant: "recovery", amount: 2 },

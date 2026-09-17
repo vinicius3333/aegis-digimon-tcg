@@ -3,6 +3,9 @@ import type { GameEngine } from "../GameEngine.js";
 import type { Primitives, RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { drainMicrotasks } from "./harness.js";
 import { internalsOf } from "./internals.js";
+import { drawCards } from "../gameEngine/turnFlow.js";
+import { beginResolvingWindow, endResolvingWindow } from "../gameEngine/windows.js";
+import { fireTimingForPermanent } from "../gameEngine/timing.js";
 
 /**
  * The Advance Surface: the Test Seam's small, named set of sub-intent engine drivers.
@@ -168,19 +171,19 @@ export function advance(engine: GameEngine) {
     /** Fire a timing window on a battle-area permanent through the production fire seam. */
     async fire(timing: EffectTiming, permanent: Permanent): Promise<void> {
       await internals.recomputeContinuousEffects();
-      await internals.fireTimingForPermanent(timing, permanent);
+      await fireTimingForPermanent(engine, timing, permanent);
       await internals.recomputeContinuousEffects();
     },
 
     /** Fire a production-wide timing window, including its rule-processing follow-ups. */
     async fireGlobal(timing: EffectTiming, trigger: TriggerInfo = {}): Promise<void> {
-      await internals.fireTiming(timing, trigger);
+      await engine.fireTiming(timing, trigger);
     },
 
     /** Fire one permanent's timing with an explicit production trigger payload. */
     async fireForPermanent(timing: EffectTiming, permanent: Permanent, trigger: TriggerInfo = {}): Promise<void> {
       await internals.recomputeContinuousEffects();
-      await internals.fireTimingForPermanent(timing, permanent, trigger);
+      await fireTimingForPermanent(engine, timing, permanent, trigger);
       await internals.recomputeContinuousEffects();
     },
 
@@ -191,7 +194,7 @@ export function advance(engine: GameEngine) {
       // reveal before the engine collects the requested instance.
       if (timing === EffectTiming.SecuritySkill) instance.faceUp = true;
       await internals.recomputeContinuousEffects();
-      await internals.fireTimingForInstance(timing, instance.instanceId, trigger);
+      await engine.fireTimingForInstance(timing, instance.instanceId, trigger);
       await internals.recomputeContinuousEffects();
     },
 
@@ -310,7 +313,7 @@ export function advance(engine: GameEngine) {
       },
       async draw(seat: Seat, count: number): Promise<CardInstance[]> {
         await internals.recomputeContinuousEffects();
-        return internals.drawCards(seat, count);
+        return drawCards(engine, seat, count);
       },
       /** Draw through the effect primitive, including effect-driven hand-add watchers. */
       async drawByEffect(seat: Seat, count: number): Promise<CardInstance[]> {
@@ -383,12 +386,12 @@ export function advance(engine: GameEngine) {
        */
       async playTwoTokensInOneWindow(seat: Seat, tokenName: string): Promise<void> {
         await internals.recomputeContinuousEffects();
-        const wasOutermost = internals.beginResolvingWindow();
+        const wasOutermost = beginResolvingWindow(engine);
         try {
           await internals.primitives.playToken(seat, tokenName, { payCost: false });
           await internals.primitives.playToken(seat, tokenName, { payCost: false });
         } finally {
-          internals.endResolvingWindow(wasOutermost);
+          endResolvingWindow(engine, wasOutermost);
         }
         await internals.recomputeContinuousEffects();
       },

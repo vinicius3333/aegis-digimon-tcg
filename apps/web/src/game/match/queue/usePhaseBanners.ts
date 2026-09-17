@@ -1,0 +1,394 @@
+import { useLayoutEffect, useMemo, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
+import type { GameState, Seat, ServerEvent } from "@aegis/shared";
+import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../animationQueue";
+import type { SoundKind } from "../../../design/sound";
+import type { StateSnapshot } from "../../../net/presentedState";
+import type { NarrationItem } from "../../narration";
+import type { ServerBatch } from "../../../net/serverBatches";
+import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "../../phaseBanner";
+import { PRESENTED_BOARD_BUDGET_MS } from "../../presentationProgress";
+import { TIMINGS } from "../../timings";
+import { Side } from "../../side";
+import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "../constants";
+import { CueTrack } from "../enums";
+import { OPTION_DOCK_TRACKS } from "../tracks";
+import type { MatchCues, TurnTransitionCue, UnsuspendSweep } from "../types";
+
+/**
+ * The phase and turn ribbons, and everything the board holds back while one is on screen.
+ *
+ * Raw events, rather than batch closes, own the phase clock: the server closes each batch
+ * only after sending its resulting state patch, so a ribbon keyed on the close would arrive
+ * after the board it is meant to introduce.
+ *
+ * A ribbon waits for three things before it takes the screen — the batches its arrivals
+ * belong to, the cues those batches queued ahead of it, and one readable beat for a clause it
+ * is about to cover. All three are bounded by the same budget: a batch that keeps arriving
+ * must never hold the ribbon for good.
+ *
+ * The hold is the other half. From the Unsuspend ribbon the presented board freezes at the
+ * previous revision, so the draw the turn opens with stays hidden until its own Draw banner,
+ * and the suspended cards stay suspended until the sweep runs. Draw, Breeding and Main each
+ * release part of it, and a cancelled or non-live ribbon releases all of it at once.
+ */
+export function usePhaseBanners({
+  batches,
+  phaseEvents,
+  eventTimeline,
+  viewerSeat,
+  queue,
+  phaseOrdersRef,
+  nextPhaseOrderRef,
+  completedPhaseOrderRef,
+  stepPhaseOrdersRef,
+  lastPhaseEventRef,
+  phaseBaselineRef,
+  visiblePhaseBannerRef,
+  drawPhaseWaitingRef,
+  previousDrawStateRef,
+  phaseStateRef,
+  setPendingPhaseBanners,
+  setTurnTransition,
+  setAnnouncedTurn,
+  setAnnouncedPhase,
+  setPhaseBanner,
+  setHeldDrawState,
+  setHeldPhaseState,
+  setHeldBreedingState,
+  setHeldSuspendedIds,
+  setUnsuspendSweep,
+  playCue,
+  narrationBefore,
+}: {
+  batches: readonly ServerBatch[];
+  /** A fabricated preview may deliver its phase events apart from its batches. */
+  phaseEvents: readonly ServerEvent[] | undefined;
+  eventTimeline: readonly ServerEvent[];
+  viewerSeat: Seat;
+  queue: AnimationQueue;
+  /** Mutated: which ribbon each phase event belongs to, pruned as the log is rewritten. */
+  phaseOrdersRef: MutableRefObject<Map<ServerEvent, number>>;
+  /** Mutated: the last ribbon number handed out. */
+  nextPhaseOrderRef: MutableRefObject<number>;
+  /** Mutated: the last ribbon that finished, which is what a cue is ordered against. */
+  completedPhaseOrderRef: MutableRefObject<number>;
+  stepPhaseOrdersRef: MutableRefObject<WeakMap<AnimationStep, number>>;
+  /** Mutated: the phase event the previous pass ended at. */
+  lastPhaseEventRef: MutableRefObject<Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }> | undefined>;
+  /** Mutated: false until the first pass has recorded the history it joined mid-match. */
+  phaseBaselineRef: MutableRefObject<boolean>;
+  /** Mutated: true while a ribbon is on screen. */
+  visiblePhaseBannerRef: MutableRefObject<boolean>;
+  /** Mutated: the seat whose hand is frozen until its Draw banner. */
+  drawPhaseWaitingRef: MutableRefObject<Seat | null>;
+  previousDrawStateRef: MutableRefObject<GameState | undefined>;
+  phaseStateRef: MutableRefObject<{ events: readonly ServerEvent[]; snapshots: readonly StateSnapshot[] | undefined }>;
+  setPendingPhaseBanners: Dispatch<SetStateAction<number>>;
+  setTurnTransition: Dispatch<SetStateAction<TurnTransitionCue | null>>;
+  setAnnouncedTurn: Dispatch<SetStateAction<{ seat: Seat; count: number } | undefined>>;
+  setAnnouncedPhase: Dispatch<SetStateAction<GameState["phase"] | undefined>>;
+  setPhaseBanner: Dispatch<SetStateAction<PhaseBanner | null>>;
+  setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
+  setHeldPhaseState: Dispatch<SetStateAction<GameState | undefined>>;
+  setHeldBreedingState: Dispatch<SetStateAction<MatchCues["heldBreedingState"]>>;
+  setHeldSuspendedIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
+  setUnsuspendSweep: Dispatch<SetStateAction<UnsuspendSweep | null>>;
+  playCue: (kind: SoundKind) => void;
+  narrationBefore: (phaseOrder: number) => NarrationItem[];
+}) {
+  const phaseBannerKeyRef = useRef(0);
+  const unsuspendSweepKeyRef = useRef(0);
+  const phaseBatchesRef = useRef(batches);
+  phaseBatchesRef.current = batches;
+
+  async function waitForPhasePrerequisites(
+    context: AnimationStepContext,
+    arrivals: readonly ServerEvent[],
+    phaseOrder: number,
+  ) {
+    // Batch presentation registers its cues in the following layout effect.
+    await Promise.resolve();
+    const batchDeadline = Date.now() + PRESENTED_BOARD_BUDGET_MS;
+    while (!context.cancelled && !context.skipping && context.mode === "live") {
+      // A batch that has slid out of the tracked window is never coming back, so waiting
+      // for it is waiting for nothing.
+      const oldestTrackedSeq = phaseBatchesRef.current[0]?.events[0]?.seq;
+      const evictedFromWindow = (event: ServerEvent) =>
+        oldestTrackedSeq !== undefined &&
+        "seq" in event &&
+        typeof event.seq === "number" &&
+        event.seq < oldestTrackedSeq;
+      const awaitingBatch =
+        Date.now() < batchDeadline &&
+        arrivals.some(
+          (event) =>
+            !evictedFromWindow(event) &&
+            !phaseBatchesRef.current.some((batch) =>
+              batch.events.some(
+                (candidate) =>
+                  candidate === event ||
+                  ("seq" in event &&
+                    "batch" in event &&
+                    candidate.seq === event.seq &&
+                    candidate.batch === event.batch) ||
+                  (!("seq" in event) &&
+                    (event.kind === "cardPlayed" ||
+                      event.kind === "digivolved" ||
+                      event.kind === "hatched" ||
+                      event.kind === "movedFromBreeding" ||
+                      event.kind === "cardsMoved") &&
+                    candidate.kind === event.kind &&
+                    (event.kind === "cardsMoved" && candidate.kind === "cardsMoved"
+                      ? candidate.instanceIds.join(",") === event.instanceIds.join(",")
+                      : candidate.kind !== "cardsMoved" &&
+                        event.kind !== "cardsMoved" &&
+                        candidate.permanentId === event.permanentId)),
+              ),
+            ),
+        );
+      const awaitingCue = queue.hasPendingStep(
+        (step) =>
+          step.track !== "phaseBanner" &&
+          step.track !== CueTrack.SecurityDock &&
+          !OPTION_DOCK_TRACKS.includes(step.track ?? "") &&
+          (stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder,
+      );
+      // A clause the ribbon is about to cover gets one readable beat first. The same budget
+      // bounds it: a batch that keeps arriving must never hold the ribbon for good.
+      const awaitingRead =
+        Date.now() < batchDeadline &&
+        narrationBefore(phaseOrder).some((item) => Date.now() - item.createdAt < TIMINGS.phaseBannerNoticeRead);
+      if (!awaitingBatch && !awaitingCue && !awaitingRead) return;
+      await context.wait(16);
+    }
+  }
+
+  const phaseHistory = useMemo(
+    () =>
+      (phaseEvents ?? batches.flatMap((batch) => batch.events)).filter(
+        (event) => event.kind === "phaseChanged" || event.kind === "turnEnded",
+      ),
+    [phaseEvents, batches],
+  );
+  // Establish the old hand/rotation before paint when a patch and its phases arrive together.
+  useLayoutEffect(() => {
+    for (const [event, order] of phaseOrdersRef.current) {
+      if (order <= completedPhaseOrderRef.current && !phaseHistory.includes(event as (typeof phaseHistory)[number])) {
+        phaseOrdersRef.current.delete(event);
+      }
+    }
+    const last = lastPhaseEventRef.current;
+    lastPhaseEventRef.current = phaseHistory.at(-1);
+    if (!phaseBaselineRef.current) {
+      phaseBaselineRef.current = true;
+      return;
+    }
+    const fresh = phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0);
+    for (const openedPhase of fresh) {
+      if (openedPhase.kind === "phaseChanged" && !isAnnouncedPhase(openedPhase.phase)) continue;
+      const phaseOrder = ++nextPhaseOrderRef.current;
+      phaseOrdersRef.current.set(openedPhase, phaseOrder);
+      const arrivals = eventTimeline
+        .slice(last ? eventTimeline.lastIndexOf(last) + 1 : 0, eventTimeline.indexOf(openedPhase))
+        .filter(
+          (event) =>
+            event.kind === "cardPlayed" ||
+            event.kind === "digivolved" ||
+            event.kind === "hatched" ||
+            event.kind === "movedFromBreeding" ||
+            event.kind === "cardsMoved",
+        );
+      if (openedPhase.kind === "turnEnded") {
+        const transition: TurnTransitionCue = {
+          endingSeat: openedPhase.endingSeat,
+          nextSeat: openedPhase.nextSeat,
+          turnCount: openedPhase.turnCount,
+        };
+        setPendingPhaseBanners((count) => count + 1);
+        queue.enqueue({
+          id: `turn-banner-${transition.turnCount}`,
+          side: openedPhase.nextSeat === viewerSeat ? Side.Viewer : Side.Opponent,
+          track: "phaseBanner",
+          async run(context) {
+            try {
+              await waitForPhasePrerequisites(context, arrivals, phaseOrder);
+              if (context.cancelled || context.mode !== "live") return;
+              visiblePhaseBannerRef.current = true;
+              // The count belongs to the turn that just ended; the new one arrives with the
+              // phase ribbons that follow, which carry it.
+              setAnnouncedTurn((current) => ({
+                seat: openedPhase.nextSeat,
+                count: current?.count ?? openedPhase.turnCount,
+              }));
+              playCue("turnChange");
+              setTurnTransition(transition);
+              await context.wait(TIMINGS.turnBanner);
+              setTurnTransition((current) => (current === transition ? null : current));
+              await context.wait(TIMINGS.phaseBannerGap);
+            } finally {
+              visiblePhaseBannerRef.current = false;
+              completedPhaseOrderRef.current = phaseOrder;
+              setTurnTransition((current) => (current === transition ? null : current));
+              setPendingPhaseBanners((count) => count - 1);
+            }
+          },
+        });
+        continue;
+      }
+      if (openedPhase.kind !== "phaseChanged") continue;
+      phaseBannerKeyRef.current += 1;
+      const banner = phaseBannerFrom({
+        phase: openedPhase.phase,
+        turnSeat: openedPhase.turnSeat,
+        viewerSeat,
+        key: phaseBannerKeyRef.current,
+      });
+      if (banner) {
+        setPendingPhaseBanners((count) => count + 1);
+        if (banner.phase === UNSUSPEND_PHASE) {
+          drawPhaseWaitingRef.current = openedPhase.turnSeat;
+          const drawState = previousDrawStateRef.current;
+          setHeldDrawState(drawState && { seat: openedPhase.turnSeat, state: drawState });
+          setHeldPhaseState(previousDrawStateRef.current);
+          const player = previousDrawStateRef.current?.players[openedPhase.turnSeat];
+          if (player) setHeldBreedingState({ seat: openedPhase.turnSeat, player });
+          setHeldSuspendedIds(
+            new Set(
+              previousDrawStateRef.current?.players[openedPhase.turnSeat]?.battleArea
+                .filter((permanent) => permanent.isSuspended)
+                .map((permanent) => permanent.permanentId) ?? [],
+            ),
+          );
+        }
+        queue.enqueue({
+          id: `phase-banner-${banner.key}`,
+          side: banner.side,
+          track: "phaseBanner",
+          async run(context) {
+            try {
+              if (context.mode !== "live") {
+                setHeldSuspendedIds(new Set());
+                setHeldPhaseState(undefined);
+                setHeldBreedingState(undefined);
+                drawPhaseWaitingRef.current = null;
+                setHeldDrawState(undefined);
+                return;
+              }
+              await waitForPhasePrerequisites(context, arrivals, phaseOrder);
+              if (context.cancelled || context.mode !== "live") return;
+              visiblePhaseBannerRef.current = true;
+              if (isAnnouncedPhase(openedPhase.phase)) setAnnouncedPhase(openedPhase.phase);
+              setAnnouncedTurn({ seat: openedPhase.turnSeat, count: openedPhase.turnCount });
+              setPhaseBanner(banner);
+              if (banner.phase === UNSUSPEND_PHASE) {
+                setHeldSuspendedIds(new Set());
+                const timeline = phaseStateRef.current.events;
+                const activeIndex = timeline.indexOf(openedPhase);
+                const afterActive = timeline.slice(activeIndex + 1);
+                const nextPhaseIndex = afterActive.findIndex((event) => event.kind === "phaseChanged");
+                const unsuspendedIds = new Set(
+                  afterActive
+                    .slice(0, nextPhaseIndex < 0 ? undefined : nextPhaseIndex)
+                    .flatMap((event) =>
+                      event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended"
+                        ? event.instanceIds
+                        : [],
+                    ),
+                );
+                // Both boards release here, not just the turn player's: ＜Reboot＞
+                // unsuspends the opposing Digimon in this same phase (§16-11), and the
+                // server reports it among this phase's moves. Releasing only the turn
+                // seat left a Reboot holder rotated until the hold lifted a phase later.
+                setHeldPhaseState((held) =>
+                  held
+                    ? ({
+                        ...held,
+                        players: held.players.map((player) => ({
+                          ...player,
+                          battleArea: player.battleArea.map((permanent) => ({
+                            ...permanent,
+                            isSuspended: unsuspendedIds.has(permanent.permanentId) ? false : permanent.isSuspended,
+                          })),
+                        })),
+                      } as GameState)
+                    : held,
+                );
+                const sweep: UnsuspendSweep = { seat: openedPhase.turnSeat, key: ++unsuspendSweepKeyRef.current };
+                queue.enqueue({
+                  id: `unsuspend-sweep-${sweep.key}`,
+                  track: "unsuspendSweep",
+                  replace: true,
+                  async run(sweepContext) {
+                    if (sweepContext.mode !== "live") return;
+                    try {
+                      setUnsuspendSweep(sweep);
+                      await sweepContext.wait(UNSUSPEND_SWEEP_MS);
+                    } finally {
+                      setUnsuspendSweep((current) => (current?.key === sweep.key ? null : current));
+                    }
+                  },
+                });
+              }
+              // The first turn can skip drawing; breeding also releases the hold.
+              if (banner.phase === "Draw" || banner.phase === "Breeding" || banner.phase === "Main") {
+                drawPhaseWaitingRef.current = null;
+                setHeldDrawState(undefined);
+              }
+              await context.wait(TIMINGS.phaseBanner);
+              if (banner.phase === "Breeding") {
+                // A fast bot may already have evolved in Main. Present the raising
+                // area at the Main boundary first, so its hatch remains visible.
+                const main = phaseStateRef.current.events.find(
+                  (event) =>
+                    event.kind === "phaseChanged" &&
+                    event.phase === "Main" &&
+                    event.turnSeat === openedPhase.turnSeat &&
+                    event.turnCount === openedPhase.turnCount,
+                );
+                // Event revisions precede the patch. The closed batch names the
+                // resulting revision, including a hatch coalesced with Main's patch.
+                const mainBatch =
+                  main &&
+                  phaseBatchesRef.current.find((batch) =>
+                    batch.events.some(
+                      (event) =>
+                        event.kind === "phaseChanged" &&
+                        event.phase === "Main" &&
+                        event.turnSeat === openedPhase.turnSeat &&
+                        event.turnCount === openedPhase.turnCount,
+                    ),
+                  );
+                const version =
+                  mainBatch?.stateVersion ?? (main && "stateVersion" in main ? main.stateVersion : undefined);
+                const snapshot =
+                  version === undefined
+                    ? undefined
+                    : phaseStateRef.current.snapshots?.filter((candidate) => candidate.stateVersion <= version).at(-1);
+                const player = snapshot?.state.players[openedPhase.turnSeat];
+                setHeldBreedingState(player ? { seat: openedPhase.turnSeat, player } : undefined);
+              } else if (banner.phase === "Main") {
+                setHeldBreedingState(undefined);
+                setHeldPhaseState(undefined);
+              }
+              setPhaseBanner((current) => (current?.key === banner.key ? null : current));
+              await context.wait(TIMINGS.phaseBannerGap);
+            } finally {
+              visiblePhaseBannerRef.current = false;
+              completedPhaseOrderRef.current = phaseOrder;
+              setPhaseBanner((current) => (current?.key === banner.key ? null : current));
+              setPendingPhaseBanners((count) => count - 1);
+              if (context.cancelled || context.mode !== "live") {
+                setHeldSuspendedIds(new Set());
+                setHeldPhaseState(undefined);
+                setHeldBreedingState(undefined);
+                drawPhaseWaitingRef.current = null;
+                setHeldDrawState(undefined);
+              }
+            }
+          },
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phaseHistory]);
+}

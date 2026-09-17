@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { I18nProvider } from "../i18n";
-import { CardActionMenu, StackViewerOverlay, TrashViewerOverlay } from "./overlays";
+import { CardActionMenu, StackViewerOverlay, TrashViewerOverlay } from "./overlay";
 import { parseActivatable } from "./boardModel";
 import type { PermanentDetail } from "./permanentDetail";
 

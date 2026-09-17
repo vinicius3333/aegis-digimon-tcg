@@ -2997,7 +2997,7 @@ describe("CAP-A3: deletedByThisEffect scaling filter (BT19-011)", () => {
     } as never;
 
     const fx4 = {
-      // Contract per EffectContext.ts:614-617: returns the COUNT actually removed.
+      // Contract per RemovalPrimitives.deletePermanent: returns the COUNT actually removed.
       // DP_SURVIVOR is attempted but prevented (Barrier); only DP_GONE really leaves.
       deletePermanent: async (ids: string[]) => {
         const actuallyRemoved = ids.filter((id) => id !== "DP_SURVIVOR");

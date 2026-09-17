@@ -1,4 +1,5 @@
 import type { Seat } from "@aegis/shared";
+import { sweepDurations } from "../../engine/gameEngine/turnFlow.js";
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -31,9 +32,7 @@ describe("BT3-057 MegaGargomon", () => {
     await unsuspendForActivePhase(1);
     expect(s.perm("target").isSuspended).toBe(true);
     s.state.turnSeat = 1;
-    await (s.engine as unknown as { sweepDurations(boundary: "ownerActivePhaseEnd"): Promise<void> }).sweepDurations(
-      "ownerActivePhaseEnd",
-    );
+    await sweepDurations(s.engine, "ownerActivePhaseEnd");
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
   });
 });

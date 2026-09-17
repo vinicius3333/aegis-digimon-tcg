@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { intents } from "../net/intents";
 import type { AegisRoom } from "../net/client";
-import { DualPlayChoiceOverlay } from "./overlays";
+import { DualPlayChoiceOverlay } from "./overlay";
 
 afterEach(cleanup);
 
