@@ -1,8 +1,49 @@
-import { EffectText } from "./EffectText";
 /* In-game overlays, driven by real server state — mulligan window, block window,
    effect decision, game over, and the pre-match waiting panel. Each maps user
    choices to the typed intent callbacks GameScreen passes. The security check has
-   its own centre-stage scene in ./SecurityClashView. */
+   its own centre-stage scene in ./SecurityClashView.
+
+   The pure halves of this module now live under ./overlay: the printed-clause
+   text layer, the shared types, and the prompt/decision coverage guards. They are
+   re-exported here so existing importers keep one entry point. */
+
+import { EffectText } from "./EffectText";
+import {
+  TIMING_LABELS,
+  cardEffectClauseForTiming,
+  effectClauseForTiming,
+  playerFacingEffectClause,
+  playerFacingPromptText,
+  printedTimingLabel,
+  resolvedEffectClause,
+} from "./overlay/effectText";
+import type {
+  AssemblyCandidate,
+  DigiXrosCandidate,
+  DigiXrosEligibleExpander,
+  StackCard,
+  TriggerDetail,
+  TurnOrder,
+} from "./overlay/types";
+
+export {
+  TIMING_LABELS,
+  cardEffectClauseForTiming,
+  effectClauseForTiming,
+  playerFacingEffectClause,
+  playerFacingPromptText,
+  printedTimingLabel,
+  resolvedEffectClause,
+};
+export { SUPPORTED_COMBAT_PROMPTS, SUPPORTED_DECISION_KINDS } from "./overlay/constants";
+export type {
+  AssemblyCandidate,
+  DigiXrosCandidate,
+  DigiXrosEligibleExpander,
+  StackCard,
+  TriggerDetail,
+  TurnOrder,
+} from "./overlay/types";
 
 import { securityCardEffects } from "./securityCardEffects";
 import { decisionSelectionMin } from "./decisionPresentation";
@@ -11,8 +52,6 @@ import { createPortal } from "react-dom";
 import {
   cardImageUrls,
   getCardDefinition,
-  type CombatPromptEvent,
-  type DecisionKind,
   type DecisionRequest,
   type AssemblyRequirement,
   type DecisionResponse,
@@ -108,13 +147,6 @@ export function WaitingOverlay({
 }
 
 /* ---------------- MULLIGAN ---------------- */
-
-/**
- * Turn order is server truth, not a guess: `matchStarted.firstSeat` names the
- * player who takes turn 1, and the mulligan window opens before any turn has
- * passed. `undefined` simply omits the accent line rather than picking a side.
- */
-export type TurnOrder = "first" | "second";
 
 export function MulliganOverlay({
   handCardIds,
@@ -738,26 +770,6 @@ export function BarrierOverlay({
   );
 }
 
-/**
- * Combat prompts BlockOverlay/CounterOverlay/AllianceOverlay/EvadeOverlay/
- * BarrierOverlay above dispatch on GameScreen.tsx's `blockWindow`/
- * `counterWindow`/`allianceWindow`/`evadeWindow`/`barrierWindow` state; this pins
- * that coverage against COMBAT_PROMPT_EVENTS so a new prompt event fails
- * typecheck instead of shipping unhandled.
- */
-export const SUPPORTED_COMBAT_PROMPTS = [
-  "blockWindowOpened",
-  "counterWindowOpened",
-  "alliancePrompt",
-  "evadePrompt",
-  "barrierPrompt",
-] as const satisfies readonly CombatPromptEvent[];
-
-type _SupportedCombatPromptsComplete =
-  Exclude<CombatPromptEvent, (typeof SUPPORTED_COMBAT_PROMPTS)[number]> extends never ? true : never;
-const _supportedCombatPromptsComplete: _SupportedCombatPromptsComplete = true;
-void _supportedCombatPromptsComplete;
-
 /** How wide and tall the inspector is allowed to get, so it can be placed before it renders. */
 const INSPECTOR_WIDTH = 420;
 const INSPECTOR_HEIGHT = 480;
@@ -896,405 +908,11 @@ export function PermanentDetailInspector({
 
 /* ---------------- EFFECT DECISION ---------------- */
 
-/**
- * Effect timing -> the printed bracket label it appears under on the card.
- *
- * The server names a timing two ways: `effectTriggered` carries the engine's
- * EffectTiming enum key ("OnUseAttack"), while a decision's provenance carries the
- * IR trigger ("WhenAttacking"). Both spellings map here, so the notice and the
- * decision dialog slice the same clause whichever one arrives.
- */
-export const TIMING_LABELS: Record<string, string> = {
-  whenHandTrashed: "When Cards Are Trashed from Your Hand",
-  whenTrashedFromHand: "When Trashed from Hand",
-  whenPlayed: "When Played",
-  whenSecurityRemoved: "When Security Is Removed",
-  OnPlay: "On Play",
-  WhenDigivolving: "When Digivolving",
-  WhenAttacking: "When Attacking",
-  OnUseAttack: "When Attacking",
-  OnAllyAttack: "When Attacking",
-  OnDeletion: "On Deletion",
-  OnDestroyedAnyone: "On Deletion",
-  EndOfAttack: "End of Attack",
-  OnEndAttack: "End of Attack",
-  AllTurns: "All Turns",
-  YourTurn: "Your Turn",
-  OpponentsTurn: "Opponent's Turn",
-  StartOfYourTurn: "Start of Your Turn",
-  EndOfYourTurn: "End of Your Turn",
-  StartOfOpponentsTurn: "Start of Opponent's Turn",
-  EndOfOpponentsTurn: "End of Opponent's Turn",
-  OnStartMainPhase: "Start of Main Phase",
-  StartOfYourMainPhase: "Start of Your Main Phase",
-  StartOfOpponentsMainPhase: "Start of Opponent's Main Phase",
-  EndOfAllTurns: "End of All Turns",
-  Main: "Main",
-  OnUseOption: "Main",
-  // A declared activation is the turn player's [Main] ability, whether printed under
-  // [Main] alone or as a [Hand]/[Trash]/[Breeding] clause that shares its header.
-  OnDeclaration: "Main",
-  Security: "Security",
-  SecuritySkill: "Security",
-  Counter: "Counter",
-  OnCounterTiming: "Counter",
-  Hand: "Hand",
-  Trash: "Trash",
-  Breeding: "Breeding",
-  Rule: "Rule",
-  WhenMoving: "When Moving",
-  OnMove: "When Moving",
-};
-
-const GENERIC_TIMING_VARIANTS: Record<string, string[]> = {
-  OnStartTurn: ["StartOfYourTurn", "StartOfOpponentsTurn"],
-  OnStartMainPhase: ["StartOfYourMainPhase", "StartOfOpponentsMainPhase"],
-  OnEndTurn: ["EndOfYourTurn", "EndOfOpponentsTurn", "EndOfAllTurns"],
-};
-
-const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-/**
- * Slice the single printed clause for the resolving `timing` out of the card's full
- * effect text (dropping the [Digivolve]/cost preamble and any sibling clauses). The
- * printed timing brackets act as clause boundaries. Falls back to the full text when
- * the timing is unknown or its bracket is not present.
- *
- * Adjacent timing brackets share one clause body: cards like AD1-001 print
- * "[On Play] [When Digivolving] You may return ..." — a single clause that fires under
- * either timing. Such a run of brackets separated only by whitespace is treated as one
- * clause header, so BOTH timings return the full "[On Play] [When Digivolving] ..." body
- * instead of the On Play slice collapsing to an empty "[On Play]".
- */
-export function effectClauseForTiming(effectText: string | undefined, timing: string | undefined): string | undefined {
-  const label = timing ? TIMING_LABELS[timing] : undefined;
-  if (!effectText) return effectText;
-  const boundary = new RegExp(`\\[(${Object.values(TIMING_LABELS).map(escapeRegExp).join("|")})\\]`, "g");
-  const marks: { label: string; index: number; end: number }[] = [];
-  for (let m = boundary.exec(effectText); m !== null; m = boundary.exec(effectText)) {
-    // A timing label can be mentioned inside a sentence rather than opening a new clause
-    // (EX3-026: "activate 1 of this Digimon's [When Digivolving] effects"). Do not split
-    // before the noun "effect(s)"; only bracket labels that introduce effect text are bounds.
-    if (/^\s+effects?\b/i.test(effectText.slice(m.index + m[0].length))) continue;
-    marks.push({ label: m[1] ?? "", index: m.index, end: m.index + m[0].length });
-  }
-  // Intrinsic pay-time reducers are represented as Static IR but their printed sentence has
-  // no [Static] label. When it precedes a bracketed sibling clause (EX3-054), the prefix is
-  // the exact player-facing clause; do not show the unrelated watcher beside the payment UI.
-  if (timing === "Static") {
-    const prefix = effectText.slice(0, marks[0]?.index ?? effectText.length).trim();
-    if (prefix.length > 0) return prefix;
-  }
-  if (!label) return effectText;
-  // Group brackets whose gap is whitespace-only into one shared clause header.
-  const groups: { labels: Set<string>; start: number }[] = [];
-  for (let i = 0; i < marks.length; i++) {
-    const mark = marks[i]!;
-    const prev = groups[groups.length - 1];
-    const gap = i > 0 ? effectText.slice(marks[i - 1]!.end, mark.index) : "|";
-    if (prev !== undefined && gap.trim() === "") prev.labels.add(mark.label);
-    else groups.push({ labels: new Set([mark.label]), start: mark.index });
-  }
-  const groupIdx = groups.findIndex((g) => g.labels.has(label));
-  const group = groups[groupIdx];
-  if (group === undefined) {
-    // A card printing exactly one clause has nothing else to offer, so showing it beats
-    // showing nothing. A card printing several unrelated clauses (BT26-016's On Play/When
-    // Digivolving/When Attacking block AND its All Turns block) has no clause for this
-    // timing at all — e.g. a synthesized ＜Engage＞/＜Vortex＞ end-of-turn attack, which is
-    // never printed as its own bracket — and the whole raw block would name every other
-    // effect on the card instead of the one actually resolving.
-    return groups.length <= 1 ? effectText : undefined;
-  }
-  const end = groups[groupIdx + 1]?.start ?? effectText.length;
-  return effectText.slice(group.start, end).trim();
-}
-
-/**
- * Select the matching printed clause across a card's main, inherited, and Security text
- * boxes. A timing bracket can appear in more than one box, so when the caller knows the
- * resolving effect is inherited, the inherited box is searched first.
- */
-export function cardEffectClauseForTiming(
-  cardId: string,
-  timing: string | undefined,
-  isInherited = false,
-): string | undefined {
-  const definition = getCardDefinition(cardId);
-  // Checked-card skills and resident [Security][Your Turn] clauses can share
-  // the Security bracket while belonging to different printed text boxes.
-  const isSecuritySkill = timing === "Security" || timing === "SecuritySkill";
-  const boxes = isSecuritySkill
-    ? [definition?.securityEffectText, definition?.effectText, definition?.inheritedEffectText]
-    : isInherited
-      ? [definition?.inheritedEffectText, definition?.effectText, definition?.securityEffectText]
-      : (timing === "Main" || timing === "OnUseOption") && definition?.isDualCard
-        ? [
-            definition.optionEffect,
-            definition.effectText,
-            definition.inheritedEffectText,
-            definition.securityEffectText,
-          ]
-        : [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText];
-  const texts = boxes.filter((text): text is string => Boolean(text));
-  const label = timing ? TIMING_LABELS[timing] : undefined;
-  const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
-  if (matching === undefined && timing !== undefined) {
-    // Watcher event names describe a condition inside a turn-scoped clause,
-    // rather than the bracket printed on the card.
-    const watcherCondition =
-      timing === "whenHandTrashed"
-        ? /\bwhen\b[^.\n]*(?:hands?[^.\n]*trash|trash[^.\n]*hands?)/i
-        : timing === "whenSecurityRemoved"
-          ? /\bwhen\b[^.\n]*security[^.\n]*remov/i
-          : undefined;
-    if (watcherCondition) {
-      const clauses = new Set(
-        texts.flatMap((text) =>
-          ["AllTurns", "YourTurn", "OpponentsTurn"].flatMap((variant) => {
-            const variantLabel = TIMING_LABELS[variant]!;
-            if (!text.includes(`[${variantLabel}]`)) return [];
-            const clause = effectClauseForTiming(text, variant);
-            return clause && watcherCondition.test(clause) ? [clause] : [];
-          }),
-        ),
-      );
-      if (clauses.size === 1) return [...clauses][0];
-    }
-    const variants = GENERIC_TIMING_VARIANTS[timing] ?? [];
-    const present = variants.flatMap((variant) => {
-      const variantLabel = TIMING_LABELS[variant];
-      if (variantLabel === undefined) return [];
-      const text = texts.find((candidate) => new RegExp(`\\[${escapeRegExp(variantLabel)}\\]`).test(candidate));
-      return text === undefined ? [] : [{ text, variant }];
-    });
-    if (present.length === 1) return effectClauseForTiming(present[0]!.text, present[0]!.variant);
-  }
-  return effectClauseForTiming(matching ?? texts[0], timing);
-}
-
-/**
- * The printed timing bracket for an engine timing name ("OnPlay" -> "[On Play]"),
- * or undefined when the timing is unknown. This is how the trigger chooser tells
- * apart two effects of one permanent, which share every other visible detail.
- */
-export function printedTimingLabel(timing: string | undefined): string | undefined {
-  const label = timing ? TIMING_LABELS[timing] : undefined;
-  return label === undefined ? undefined : `[${label}]`;
-}
-
-/** The printed clause to surface for a resolved effect, or undefined when there is nothing worth showing. */
-export function resolvedEffectClause(
-  cardId: string,
-  timing: string | undefined,
-  isInherited = false,
-): string | undefined {
-  const clause = cardEffectClauseForTiming(cardId, timing, isInherited);
-  const trimmed = clause?.trim();
-  if (!trimmed) return undefined;
-  // A bare "[On Play] [When Digivolving]" header with no body carries nothing to read.
-  return trimmed.replace(/\[[^\]]*\]/g, "").trim() ? trimmed : undefined;
-}
-
-// Engine summaries remain useful only for filtering generic decision prompts.
-const DESCRIBED_ACTION_PHRASES: readonly RegExp[] = [
-  /^Draw -?\d+$/,
-  // A target count is a number or the literal "all" (`String(action.target.count)`
-  // in describeAction stringifies both), so "Delete all target(s)" is generated too.
-  /^Delete (?:\d+|all) target\(s\)$/,
-  /^(?:Suspend|Unsuspend) (?:\d+|all) target\(s\)$/,
-  /^Trash (?:\d+|all) card\(s\)$/,
-  /^Trash (?:up to )?-?\d+ card\(s\) from the top of the deck$/,
-  /^Return (?:\d+|all) to [A-Za-z]+$/,
-  /^Modify DP by -?\d+$/,
-  /^Set base DP to -?\d+$/,
-  /^Set memory to -?\d+$/,
-  /^(?:Gain|Lose) \d+ memory$/,
-  /^(?:Play|Use an Option) (?:without paying the cost|with the cost reduced by \d+|by paying its cost)$/,
-  /^Place (?:up to )?(?:\d+|all) card\(s\) under$/,
-  /^Reveal top \d+ and add$/,
-  /^Gain (?:＜[^＞]+＞|<[^>]+>|keyword)$/,
-  // Security summaries can share a description with bare IR kinds. Recognize
-  // every phrase emitted by describeSecurityManipulation so the whole summary
-  // falls back to the matching printed clause.
-  /^Add -?\d+ card\(s\) to the opponent's security$/,
-  /^＜Recovery \+-?\d+＞$/,
-  /^Trash (?:up to )?-?\d+ of (?:your|opponent's) top security card\(s\)$/,
-  /^Reveal (?:your|opponent's) (?:top|bottom) security card$/,
-  /^Flip (?:your|opponent's) security card face up$/,
-  /^Move (?:your|opponent's) top security card to the bottom$/,
-  /^Place -?\d+ card\(s\) as (?:your|opponent's) security card\(s\)$/,
-  /^Play \d+ (?:\[[^\]]+\] )?token\(s\)$/,
-  /^Move to the (?:breeding|battle) area$/,
-  /^(?:Target (?:can't|doesn't|can only|is unaffected)[^$]*|Apply a restriction)$/,
-  /^Hatch a Digi-Egg$/,
-  /^Search your deck$/,
-  /^(?:Digivolve|DNA digivolve|De-Digivolve)$/,
-];
-// An "activate this?" prompt built from an unmapped IR action kind arrives as a bare
-// identifier ("GainMemory", "gainMemory"): readable in a log, meaningless in a modal. Drop
-// it so the overlay falls back to its generic prompt and the printed clause carries the
-// meaning. Other decision kinds prompt with a card name, which is single-token by nature.
-const INTERNAL_IDENTIFIER_PROMPT = /^[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)+$/;
-const INTERNAL_ACTION_PROMPT = /^(?:attack|delete|digivolve|draw|play|return|suspend|trash|unsuspend)$/i;
-
-/** The prompt to show above a decision, or undefined when the engine sent an internal identifier. */
-export function playerFacingPromptText(promptText: string | undefined, kind: DecisionKind): string | undefined {
-  const trimmed = promptText?.trim();
-  if (!trimmed) return undefined;
-  if (/^select bind$/i.test(trimmed)) return undefined;
-  // Generic engine verbs add no guidance beyond the decision kind and leak English into
-  // localized matches. Let the modal use its translated fallback while the printed effect
-  // clause explains what is being selected.
-  if (/^(?:choose targets?|select cards?|choose one effect to activate)$/i.test(trimmed)) return undefined;
-  if (kind !== "optional") return trimmed;
-  // A reducer or keyword effect asks with the engine's own summary of what it does
-  // ("Draw 2", "Gain 2 memory"), which the printed clause under the prompt already says.
-  return INTERNAL_IDENTIFIER_PROMPT.test(trimmed) ||
-    INTERNAL_ACTION_PROMPT.test(trimmed) ||
-    DESCRIBED_ACTION_PHRASES.some((shape) => shape.test(trimmed))
-    ? undefined
-    : trimmed;
-}
-
-/** Resolve display text only from the printed catalog; supplied descriptions identify exact clauses. */
-export function playerFacingEffectClause({
-  cardId,
-  timing,
-  description,
-  isInherited,
-  effectTextPart,
-}: {
-  cardId: string;
-  timing: string | undefined;
-  description: string | undefined;
-  isInherited?: boolean;
-  effectTextPart?: string;
-}): string | undefined {
-  const definition = getCardDefinition(cardId);
-  const inherited = isInherited ?? description?.includes("[Inherited]") ?? false;
-  const describedTiming = Object.entries(TIMING_LABELS).find(([, label]) =>
-    description?.match(/^(?:\[[^\]]*\]\s*)+/)?.[0].includes(`[${label}]`),
-  )?.[0];
-  const effectiveTiming = timing && TIMING_LABELS[timing] ? timing : (describedTiming ?? timing);
-  const boxes = inherited
-    ? [definition?.inheritedEffectText]
-    : [definition?.effectText, definition?.optionEffect, definition?.securityEffectText];
-  // A granted effect is not printed on this card, so its description is the only source.
-  const grantedPrefix = description?.trim().match(/^\[Granted\]\s*/)?.[0];
-  const supplied = grantedPrefix ? description!.trim().slice(grantedPrefix.length).trim() : description?.trim();
-  const normalize = (text: string) => text.replace(/\s+/g, " ").trim();
-  const exactPrintedClause = supplied
-    ? boxes.flatMap((text) => text?.split("\n") ?? []).find((line) => normalize(line) === normalize(supplied))
-    : undefined;
-  // Some catalog entries place consecutive printed clauses on one line. A watcher still sends
-  // its complete bracketed clause, so recognize that exact fragment instead of falling back to
-  // the first clause with the same timing.
-  const containedPrintedClause =
-    supplied &&
-    /^\[[^\]]+\]/.test(supplied) &&
-    boxes.some((text) => normalize(text ?? "").includes(normalize(supplied)))
-      ? supplied
-      : undefined;
-  // A full card text can start with a keyword preamble (e.g. Use Req.).
-  // Keyword activations are standalone or followed by explanatory prose.
-  const keywordPrefix = supplied?.match(/^＜[^＞]+＞/)?.[0];
-  const printedKeyword =
-    keywordPrefix && !/^(?:\[|＜)/.test(supplied!.slice(keywordPrefix.length).trim()) ? keywordPrefix : undefined;
-  // Synthesized keyword effects describe their activation after a colon. The
-  // keyword may have been granted by another card and be absent from this card.
-  const keywordActivation = supplied?.match(/^＜[^＞]+＞:\s*\S/) ? supplied : undefined;
-  const matchingKeyword =
-    printedKeyword &&
-    boxes
-      .flatMap((text) => text?.match(/＜[^＞]+＞/g) ?? [])
-      .find((keyword) => normalize(keyword) === normalize(printedKeyword));
-  const delayClause = supplied?.match(/^\[Main\]\s*＜Delay＞/)
-    ? boxes
-        .map((text) => {
-          const offset = text?.search(/\[Main\]\s*＜Delay＞/) ?? -1;
-          return offset >= 0 ? effectClauseForTiming(text?.slice(offset), "Main") : undefined;
-        })
-        .find(Boolean)
-    : undefined;
-  const clause =
-    (keywordActivation ||
-      matchingKeyword ||
-      delayClause ||
-      ((exactPrintedClause || containedPrintedClause) &&
-        effectClauseForTiming(exactPrintedClause || containedPrintedClause, effectiveTiming))) ??
-    (effectiveTiming === undefined || grantedPrefix
-      ? undefined
-      : resolvedEffectClause(cardId, effectiveTiming, inherited));
-  const part = effectTextPart?.trim();
-  const timingClause =
-    part && matchingKeyword && effectiveTiming !== undefined
-      ? resolvedEffectClause(cardId, effectiveTiming, inherited)
-      : undefined;
-  // A card can print two clauses under the same timing (BT16-101's and EX12-019's two
-  // [All Turns] lines). `clause` resolves to the FIRST of them, so an authored passage from
-  // the second would be replaced by the wrong printed text; accept any authored part that is
-  // a verbatim fragment of this card's own printed boxes.
-  // A supplied passage that stitches SEVERAL of this card's printed clauses together is the
-  // fuller reading of one moment — a [Security] clause that activates this card's [Main] effect
-  // carries both — so it is shown whole. A whole printed BOX is not that: it is the card's text
-  // with every clause in it, and the timing still has to be sliced out of it.
-  const wholePrintedBox = supplied && boxes.some((text) => text && normalize(text) === normalize(supplied));
-  if (
-    supplied &&
-    clause &&
-    !wholePrintedBox &&
-    // A keyword activation already IS the passage to show; only a sliced printed clause can
-    // be the narrower half of a longer supplied one.
-    !keywordActivation &&
-    !matchingKeyword &&
-    !delayClause &&
-    normalize(supplied) !== normalize(clause) &&
-    normalize(supplied).includes(normalize(clause))
-  )
-    return supplied;
-  const printedPart = part && boxes.some((text) => text && normalize(text).includes(normalize(part)));
-  if (
-    part &&
-    (printedPart ||
-      [clause, timingClause].some((candidate) => candidate && normalize(candidate).includes(normalize(part))))
-  )
-    return part;
-  return clause ?? (grantedPrefix ? supplied : undefined);
-}
-
 /** One hint per destination: each already says where card 1 ends up. */
 function orderHintKey(destination: string | undefined) {
   if (destination === "stackBottom") return "overlay.orderStackBottomHint";
   if (destination === "deckBottom") return "overlay.orderDeckBottomHint";
   return "overlay.orderCardsHint";
-}
-
-/**
- * DecisionOverlay below branches on request.kind via isOptional/isChoose/
- * isSelect/isOrderTriggers (mulligan is handled separately by
- * MulliganOverlay). This pins that coverage against DECISION_KINDS so a new
- * DecisionRequest.kind fails typecheck instead of rendering nothing.
- */
-export const SUPPORTED_DECISION_KINDS = [
-  "optional",
-  "chooseTargets",
-  "selectCards",
-  "orderCards",
-  "orderTriggers",
-  "chooseOption",
-  "mulligan",
-] as const satisfies readonly DecisionKind[];
-
-type _SupportedDecisionKindsComplete =
-  Exclude<DecisionKind, (typeof SUPPORTED_DECISION_KINDS)[number]> extends never ? true : never;
-const _supportedDecisionKindsComplete: _SupportedDecisionKindsComplete = true;
-void _supportedDecisionKindsComplete;
-
-/** Per-trigger chrome the board supplies for the chooser: where it fires from, and its clause in one line. */
-export interface TriggerDetail {
-  sourceLabel?: string;
-  summary?: string;
 }
 
 /*
@@ -2585,13 +2203,6 @@ export function CardActionMenu({
 
 /* ---------------- STACK VIEWER ---------------- */
 
-export interface StackCard {
-  cardId: string;
-  artId?: string;
-  faceDown?: boolean;
-  role: "top" | "stack" | "linked";
-}
-
 /** Full-screen blow-up of a single card; tap anywhere (or Escape) to dismiss. */
 export function CardZoomOverlay({
   cardId,
@@ -3401,23 +3012,6 @@ export function TrashViewerOverlay({
 
 /* ---------------- DIGIXROS MATERIAL PICKER ---------------- */
 
-/** A selectable DigiXros material entry. */
-export interface DigiXrosCandidate {
-  artId?: string;
-  instanceId: string;
-  cardId: string;
-  zone: "hand" | "battle" | "trash" | "underTamer";
-  digiXrosNames?: readonly string[];
-  canSubstitute?: boolean;
-}
-
-export interface DigiXrosEligibleExpander {
-  permanentId: string;
-  cardId: string;
-  underTamerMax: number;
-  trashMax: number;
-}
-
 /** Human-readable label for one DigiXros material slot. */
 function materialSlotLabel(mat: DigiXrosRequirement["materials"][number], t: Translate): string {
   if (mat.desc) return mat.desc;
@@ -3803,13 +3397,6 @@ export function DigiXrosMaterialOverlay({
 }
 
 /* ---------------- ASSEMBLY MATERIAL PICKER ---------------- */
-
-/** A selectable Assembly material entry: always a card in the player's own trash (§7-3-1). */
-export interface AssemblyCandidate {
-  artId?: string;
-  instanceId: string;
-  cardId: string;
-}
 
 /** Human-readable label for one Assembly material slot. */
 function assemblySlotLabel(slot: AssemblyRequirement["materials"][number], t: Translate): string {
