@@ -23,26 +23,8 @@ import { CueTrack, OpeningDealState } from "./match/enums";
 import { REDUCED_MOTION_QUERY } from "./match/environment";
 import { holdsTheBoard } from "./match/tracks";
 import { liveMode } from "./match/environment";
-import { withoutId } from "./match/eventLookup";
 import { buildCardSiteIndex } from "./match/cardSiteIndex";
-import { batchFacts } from "./match/present/batchFacts";
-import { combatScenes } from "./match/present/combat";
-import { collectBatchAnnouncements } from "./match/present/announcements";
-import { enqueueArrivals } from "./match/present/arrivals";
-import { enqueueAttackAnnouncement } from "./match/present/attackAnnouncement";
-import { presentSecurityAttack } from "./match/present/attackLunge";
-import { enqueueCombatImpact } from "./match/present/combatImpact";
-import { enqueueDeletionBursts } from "./match/present/deletionBursts";
-import { enqueueSecurityDestructions } from "./match/present/securityDestructions";
-import { enqueueOptionDock } from "./match/present/optionDock";
-import { routeBatchNotices } from "./match/present/noticeRouting";
-import { enqueueBatchSounds } from "./match/present/sounds";
-import { enqueueDeckRiffles } from "./match/present/deckRiffles";
-import { enqueueEffectSources } from "./match/present/effectSources";
-import { enqueueSecurityGrowth } from "./match/present/securityGrowth";
-import { securityRevealScene } from "./match/present/securityRevealScene";
-import { presentSecurityClose } from "./match/present/securityClose";
-import { presentSecurityRevealed } from "./match/present/securityReveal";
+import { presentServerBatch } from "./match/present/presentBatch";
 import { securityHold } from "./match/securityHold";
 import { cueFlights } from "./match/flights";
 import { usePhaseBanners } from "./match/queue/usePhaseBanners";
@@ -93,13 +75,8 @@ import {
 } from "./sidePanels";
 import { isOwnEffectNotice, noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
 import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
-import {
-  securityCheckSegments,
-  type SecurityBranchScene,
-  type SecurityClashAttacker,
-  type SecurityClashScene,
-} from "./securityClash";
-import { hasTurnStartDraw, type PermanentBurst, type ZoneShowcase } from "./showcases";
+import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
+import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 import { presentationTelemetry } from "./presentationTelemetry";
@@ -587,12 +564,10 @@ export function useMatchCues({
   }, [narrationLimit]);
 
   /**
-   * Present one server batch: everything the rules resolved in one entry into the engine.
-   *
-   * The batch is the unit every heuristic below reasons about — the combat lead-in, the
-   * pairing of a security reveal with its close, what a check played and what that card then
-   * did. It used to be "the events that arrived since the last render", which made the
-   * boundary the patch tick; it is now the boundary the server drew.
+   * Present one server batch. The pass itself lives in `match/present/presentBatch.ts`;
+   * this wrapper is where the refs, setters and collaborators it reads are named. They are
+   * gathered at call time rather than at render time, because the flight launchers below
+   * are declared after the effect that starts the pass.
    */
   function presentBatch(
     batchId: string,
@@ -601,384 +576,87 @@ export function useMatchCues({
     replayingHistory: boolean,
     continuingBatch = false,
   ) {
-    const phaseSegments: ServerEvent[][] = [];
-    for (const event of fresh) {
-      if (phaseSegments.length === 0 || event.kind === "phaseChanged" || event.kind === "turnEnded")
-        phaseSegments.push([]);
-      phaseSegments.at(-1)!.push(event);
-    }
-    const segments = phaseSegments.flatMap(securityCheckSegments);
-    if (segments.length > 1) {
-      for (const [index, segment] of segments.entries()) {
-        presentBatch(batchId, stateVersion, segment, replayingHistory, continuingBatch || index > 0);
-      }
-      return;
-    }
-    enqueuePhaseOrderRef.current = phaseOrderFor(fresh);
-    lastBatchIdRef.current = batchId;
-    // Everything enqueued from here belongs to this batch, and the board it is narrated
-    // over is the board this batch produced.
-    presentationBatchRef.current = { batchId, stateVersion };
-    batchVersionsRef.current.set(batchId, stateVersion);
-    if (batchVersionsRef.current.size > 120)
-      batchVersionsRef.current.delete(batchVersionsRef.current.keys().next().value!);
-    if (!replayingHistory && !continuingBatch) progress.present(batchId, stateVersion);
-    const {
-      refusal,
-      securityReveal,
-      closesFreshReveal,
-      securityCheck,
-      closingCheck,
-      turnEnd,
-      securityAttack,
-      redirectedOffPlayer,
-      usedOption,
-      optionRouted,
-    } = batchFacts({ fresh });
-    // Replayed steps still run, so their state lands in the right place — they
-    // just run with every wait collapsed, which is no animation at all.
-    const batchPhaseOrder = enqueuePhaseOrderRef.current;
-    const enqueue = (step: AnimationStep) =>
-      queue.enqueue({
-        ...step,
-        origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
-        ...(replayingHistory ? { mode: "replay" as const } : {}),
-      });
-    if (optionRouted && optionDockRef.current) optionDockRef.current.closed = true;
-    // A permanent that lost a battle takes the claw and the shake first, and its
-    // burst waits behind them — the reference client hits the card, then breaks
-    // it. Only combat deletions get the impact; an effect deletion has no blow
-    // to land. A battle whose defender is known plays the whole scene — arrow,
-    // lunge, then the blow — so its losers wait on the longer clock.
-    const { beaten, clashScenes, clashLoserIds, combatLeadInMs } = combatScenes({
+    presentServerBatch({
+      batchId,
+      stateVersion,
       fresh,
+      replayingHistory,
+      continuingBatch,
+      present: presentBatch,
       viewerSeat,
+      state,
+      anchors,
+      queue,
+      progress,
+      phaseOrderFor,
+      onActionRejected,
+      playCue,
+      narrate,
+      openHeld,
+      flushHeldNotices,
+      launchDrawFlight,
+      launchDeckToUnderFlight,
+      launchSecurityGainFlight,
+      securityCountOf,
+      holdSecurityCard,
+      releaseSecurityCard,
+      releaseSecurityCardWhenIdle,
+      enqueuePhaseOrderRef,
+      completedPhaseOrderRef,
+      lastBatchIdRef,
+      presentationBatchRef,
+      batchVersionsRef,
+      heldOriginsRef,
       fieldClashKeyRef,
       openAttackRef,
-      anchors,
       lastVisibleArtRef,
-    });
-    // Notices a security check owns. They read as what the revealed card did, so they
-    // are handed to the centre-stage sequence below instead of being raised here, where
-    // they would talk over — or ahead of — the reveal they describe.
-    let heldNotices: readonly MatchNotice[] = [];
-    /** The side panels those notices belong with; they wait on the same cue. */
-    let heldPanels: readonly SidePanel[] = [];
-    /* What a card the check PLAYED went on to do. Nothing here may reach the screen
-       before that card has been seen arriving on the field, so it waits one cue longer
-       than the check's own clause does. */
-    let afterArrivalNotices: readonly MatchNotice[] = [];
-    let afterArrivalPanels: readonly SidePanel[] = [];
-    /** The arrival cues themselves, held back so the check can take the screen first. */
-    let deferredZoneChanges: readonly AnimationStep[] = [];
-    /** A closing check first moves its revealed card to the execution slot at the right. */
-    let deferredSecurityArrivalsQueued = false;
-    /**
-     * How long the beats that explain an announced play own the screen before anything
-     * that play caused may be narrated: the card held centre-stage under its
-     * call-out, then the clause it triggered. The battle's `combatLeadInMs` above is the
-     * same idea one step earlier in the chain, and the two stack.
-     */
-    let playLeadInMs = 0;
-    /** Permanents kept off the board until their arrival cue has actually run. */
-    const arrivalHoldIds: string[] = [];
-    function releaseArrivalHoldsWhenIdle() {
-      if (arrivalHoldIds.length === 0) return;
-      const ids = [...arrivalHoldIds];
-      void queue.idle().then(() => {
-        setPendingPermanentIds((held) => ids.reduce((next, id) => withoutId(next, id), held));
-      });
-    }
-    function enqueueDeferredSecurityArrivals(key: number) {
-      if (deferredSecurityArrivalsQueued) return;
-      deferredSecurityArrivalsQueued = true;
-      // A free play is a consequence of the security card. In a batch that also closes
-      // the check, the branch-in cue is still ahead of us on the serial track; enqueueing
-      // the arrival before it made the permanent appear before its source reached the
-      // execution slot at the right of the board.
-      for (const step of deferredZoneChanges) enqueue(step);
-      releaseArrivalHoldsWhenIdle();
-      if (afterArrivalNotices.length === 0 && afterArrivalPanels.length === 0) return;
-      const arrivalNotices = afterArrivalNotices;
-      const arrivalPanels = afterArrivalPanels;
-      enqueue({
-        id: `security-arrival-notices-${key}`,
-        track: CueTrack.CenterStage,
-        skippable: false,
-        run() {
-          narrate(arrivalNotices, arrivalPanels, batchId);
-        },
-      });
-    }
-
-    if (!replayingHistory) {
-      enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
-      const now = Date.now();
-      const showcasePlays = queue.getMode() === "live";
-      const { announcement, opened, raised, panelAt, noticeAt } = collectBatchAnnouncements({
-        fresh,
-        viewerSeat,
-        state,
-        now,
-        showcasePlays,
-        securityReveal,
-        revealOnStageRef,
-        pendingDigivolutionDrawRef,
-        eventDrawCountsRef,
-        drawPhaseWaitingRef,
-        sidePanelLookupRef,
-        sidePanelSequenceRef,
-        noticeSequenceRef,
-        securityEffectPendingRef,
-        launchDrawFlight,
-        launchDeckToUnderFlight,
-        setHeldDrawState,
-      });
-      const { arriving, showcased, zoneChanges, firstArrivalIndex, afterShowcaseNotices } = enqueueArrivals({
-        fresh,
-        viewerSeat,
-        batchId,
-        raised,
-        combatLeadInMs,
-        securityReveal,
-        queue,
-        showcaseKeyRef,
-        presentationBatchRef,
-        enqueuePhaseOrderRef,
-        revealOnStageRef,
-        setPendingPermanentIds,
-        setZoneShowcase,
-        setPermanentBursts,
-        arrivalHoldIds,
-        releaseArrivalHoldsWhenIdle,
-        narrate,
-        enqueue,
-      });
-      enqueueEffectSources({
-        fresh,
-        usedOption,
-        combatLeadInMs,
-        cardSiteRef,
-        effectSourceKeyRef,
-        setEffectSources,
-        enqueue,
-      });
-      enqueueDeckRiffles({ fresh, deckRiffleKeyRef, setDeckRiffles, enqueue });
-      enqueueSecurityGrowth({
-        fresh,
-        securityGrowthClaimedRef,
-        setSecurityFlights,
-        launchSecurityGainFlight,
-        enqueue,
-      });
-      if (hasTurnStartDraw(fresh, viewerSeat)) turnStartDrawRef.current.you = true;
-      if (hasTurnStartDraw(fresh, otherSeat(viewerSeat))) turnStartDrawRef.current.opp = true;
-      // An On Play / When Digivolving notice reads as the consequence of the card
-      // that was just announced, so it waits for the reveal instead of talking
-      // over the showcase. Its clock starts when it is finally raised. The side panels
-      // the same events opened carry the other half of that consequence — the cards an
-      // [On Play] reveal turned up — so they travel with the notices rather than
-      // printing the result before the card that caused it has been seen.
-      for (const item of [...raised, ...opened])
-        heldOriginsRef.current.set(item, {
-          batchId,
-          stateVersion,
-          phaseOrder: enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current,
-        });
-      const presenting = raised.length > 0 || opened.length > 0;
-      enqueueOptionDock({
-        usedOption,
-        optionRouted,
-        viewerSeat,
-        optionDockKeyRef,
-        optionDockRef,
-        decisionPendingRef,
-        setOptionBranch,
-        enqueue,
-      });
-      ({ heldNotices, heldPanels, afterArrivalNotices, afterArrivalPanels, deferredZoneChanges, playLeadInMs } =
-        routeBatchNotices({
-          fresh,
-          batchId,
-          raised,
-          opened,
-          noticeAt,
-          panelAt,
-          presenting,
-          arriving,
-          showcased,
-          showcasePlays,
-          afterShowcaseNotices,
-          firstArrivalIndex,
-          zoneChanges,
-          combatLeadInMs,
-          securityReveal,
-          revealOnStageRef,
-          noticeSequenceRef,
-          showcaseKeyRef,
-          heldNoticesRef,
-          heldPanelsRef,
-          narrate,
-          openHeld,
-          enqueue,
-        }));
-      enqueueAttackAnnouncement({ announcement, setAttackAnnouncement, enqueue });
-    }
-    if (refusal?.kind === "actionRejected") onActionRejected(refusal.reason);
-    presentSecurityAttack({
-      securityAttack,
-      redirectedOffPlayer,
-      viewerSeat,
-      cardSiteRef,
-      securityAttackerRef,
-      setAttackLunge,
-      enqueue,
-    });
-    // A check now reaches the client as two events: `securityRevealed` the moment the card
-    // is turned face up, and `securityChecked` once the server has resolved everything that
-    // card caused. The scene follows the same split — the card goes on stage at the reveal
-    // and plays its scene out there. A check that closes in the same batch takes its outcome
-    // beat and its detour to the side; one the server is still resolving lets the card leave
-    // at the end of the scene, so its effects read out on a board with nothing on it.
-    //
-    // The whole check runs on the one centre-screen track, in the reference client's
-    // order (battle-animation-spec.md §4b): the shield arms, its glass breaks, the card
-    // is revealed and held, and only then does what the card *did* reach the screen —
-    // its notice, its detour to the side, the decision it asks for. Serial order is what
-    // guarantees that: a parallel track with a fixed lead-in cannot know when this one
-    // actually gets to the reveal, so it can and does run ahead of it. The break carries
-    // the `replace`, so a check still cancels whatever showcase was mid-flight.
-    const stage = securityRevealScene({
-      queue,
-      enqueue,
-      viewerSeat,
-      replayingHistory,
-      batchId,
       revealOnStageRef,
+      pendingDigivolutionDrawRef,
+      eventDrawCountsRef,
+      drawPhaseWaitingRef,
+      sidePanelLookupRef,
+      sidePanelSequenceRef,
+      noticeSequenceRef,
+      securityEffectPendingRef,
+      showcaseKeyRef,
+      cardSiteRef,
+      effectSourceKeyRef,
+      deckRiffleKeyRef,
+      securityGrowthClaimedRef,
+      turnStartDrawRef,
+      optionDockKeyRef,
+      optionDockRef,
+      decisionPendingRef,
+      heldNoticesRef,
+      heldPanelsRef,
       queuedSecurityKeyRef,
       securityDockRef,
       securityHoldRef,
-      heldNoticesRef,
-      heldPanelsRef,
+      securityClashKeyRef,
+      securityAttackerRef,
+      pendingDestructionsRef,
+      deleteBurstKeyRef,
+      deletionReadyAtRef,
+      deletionBurstPresentedRef,
+      setPendingPermanentIds,
+      setHeldDrawState,
+      setZoneShowcase,
+      setPermanentBursts,
+      setEffectSources,
+      setDeckRiffles,
+      setSecurityFlights,
+      setAttackAnnouncement,
+      setAttackLunge,
       setSecurityBreak,
       setSecurityHitSeat,
       setSecurityClash,
       setSecurityBranch,
       setPendingRevealKey,
-      flushHeldNotices,
-      openHeld,
-      holdSecurityCard,
-      releaseSecurityCard,
-      releaseSecurityCardWhenIdle,
-      securityCountOf,
-    });
-
-    if (securityReveal?.kind === "securityRevealed")
-      presentSecurityRevealed({
-        securityReveal,
-        closingCheck,
-        viewerSeat,
-        heldNotices,
-        heldPanels,
-        securityClashKeyRef,
-        securityAttackerRef,
-        revealOnStageRef,
-        heldNoticesRef,
-        heldPanelsRef,
-        stage,
-        enqueueDeferredSecurityArrivals,
-      });
-    if (securityCheck?.kind === "securityChecked")
-      presentSecurityClose({
-        securityCheck,
-        closingCheck,
-        closesFreshReveal,
-        viewerSeat,
-        heldNotices,
-        heldPanels,
-        securityClashKeyRef,
-        securityAttackerRef,
-        securityHoldRef,
-        revealOnStageRef,
-        heldNoticesRef,
-        heldPanelsRef,
-        setSecurityClash,
-        setSecurityBranch,
-        stage,
-        enqueueDeferredSecurityArrivals,
-        enqueue,
-      });
-    enqueueSecurityDestructions({
-      fresh,
-      viewerSeat,
-      replayingHistory,
-      queue,
-      sidePanelLookupRef,
-      securityClashKeyRef,
-      pendingDestructionsRef,
-      setSecurityBreak,
-      setSecurityHitSeat,
-      setSecurityClash,
-      setPendingRevealKey,
-      securityCountOf,
-      holdSecurityCard,
-      releaseSecurityCard,
-      releaseSecurityCardWhenIdle,
-      releaseSecurityPresentation: stage.releaseSecurityPresentation,
-      enqueue,
-    });
-    enqueueCombatImpact({
-      clashScenes,
-      beaten,
+      setOptionBranch,
       setFieldClash,
-      setAttackLunge,
       setCombatImpactIds,
-      enqueue,
-    });
-    enqueueDeletionBursts({
-      fresh,
-      beaten,
-      clashLoserIds,
-      playLeadInMs,
-      anchors,
-      deleteBurstKeyRef,
-      deletionReadyAtRef,
-      deletionBurstPresentedRef,
       setDeleteBursts,
-      enqueue,
     });
-    /**
-     * A [Security] effect that PLAYS its own card leaves the dock nothing to show: the card
-     * is on the field now, so the dock goes at that play rather than waiting for the eventual
-     * `securityChecked` — otherwise the [On Play] clause and the cards it reveals read from
-     * behind a card that has already moved. A security card whose effect does NOT play it
-     * keeps its dock until the check closes. Last in the pass, so the played card's own
-     * arrival cue is already queued ahead of the dock's exit.
-     */
-    const dockedReveal = revealOnStageRef.current;
-    if (
-      dockedReveal?.docked === true &&
-      securityDockRef.current?.key === dockedReveal.key &&
-      fresh.some((event) => event.kind === "cardPlayed" && event.cardId === dockedReveal.scene.revealed.cardId)
-    ) {
-      stage.undockSecurityReveal(dockedReveal.key);
-      // Seen and gone, not forgotten: the eventual close must not stage the card again.
-      revealOnStageRef.current = { ...dockedReveal, docked: false, exited: true };
-    }
-    if (turnEnd?.kind === "turnEnded") {
-      securityAttackerRef.current = undefined;
-      securityEffectPendingRef.current = false;
-      // No check survives its turn, so a dock still waiting for a close it will never get
-      // is let go here rather than holding the centre-stage track into the next turn.
-      if (securityDockRef.current) securityDockRef.current.closed = true;
-      // No check survives its turn: anything still held has no reveal left to wait
-      // for, and no close left to hand the board back. A check observed this pass still
-      // owns its queued flush and its own release, so it keeps both.
-      if (!securityCheck) {
-        flushHeldNotices();
-        setPendingRevealKey(null);
-      }
-    }
   }
 
   usePhaseBanners({
