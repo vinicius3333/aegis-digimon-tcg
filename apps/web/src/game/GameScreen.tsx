@@ -783,16 +783,30 @@ export function GameScreen({
      the field: the trash pile throws its top card up, the hand raises the Option.
      Which zone the source is in comes from the board (`effectSource.ts`), not from
      the event, which names only the card. */
-  const effectSourceSeats = new Map(effectSources.map((activation) => [activation.key, activation]));
+  /* An activation outlives its own punch: it stays on for as long as the clause it raised is
+     being read (`effectSource.ts`). Only a permanent on the field has somewhere to hold that
+     light — it glows in place. The trash throwing its top card up and the hand raising an
+     Option are finite moves, so they answer to the announcing beat alone; left on the
+     sustained flag they stayed thrown up for the whole clause, which reads as the board
+     having frozen rather than as the card being pointed at. */
+  const announcing = effectSources.filter((activation) => activation.linked !== true);
   const trashEffectSource = (seat: Seat): string | undefined =>
-    [...effectSourceSeats.values()].some((activation) => activation.seat === seat && activation.site.zone === "trash")
+    announcing.some((activation) => activation.seat === seat && activation.site.zone === "trash")
       ? "game-pile--effect-source"
       : undefined;
-  const handEffectSourceInstanceId = effectSources.find(
+  const handEffectSourceInstanceId = announcing.find(
     (activation) => activation.seat === viewerSeat && activation.site.zone === "hand",
   )?.site;
+  /* Two states, never both on one card: the half-second punch as the effect activates, and
+     the steady light it holds for as long as its clause is on screen. Overlapping them
+     would leave two animations fighting over the same filter. */
   const effectSourcePermanentIds = new Set(
-    effectSources.flatMap((activation) => (activation.site.zone === "field" ? [activation.site.permanentId] : [])),
+    announcing.flatMap((activation) => (activation.site.zone === "field" ? [activation.site.permanentId] : [])),
+  );
+  const effectLinkedPermanentIds = new Set(
+    effectSources.flatMap((activation) =>
+      activation.linked === true && activation.site.zone === "field" ? [activation.site.permanentId] : [],
+    ),
   );
 
   // Attack arrow: from the selected attacker to the opponent's security pile.
@@ -1102,8 +1116,26 @@ export function GameScreen({
       }),
     };
   }
-  const presentedYou = phaseField(presentedYouBase, phaseYou);
-  const presentedOpp = phaseField(presentedOppBase, phaseOpp);
+  const blowYou = cues.heldBlowState?.players[viewerSeat];
+  const blowOpp = cues.heldBlowState?.players[otherSeat(viewerSeat)];
+  /**
+   * Keep the board a security check's battle still needs. The loser is trashed before the
+   * check closes, so between the reveal and the clash the live state has already dropped it
+   * — the permanent off the field, the cards into the trash — while the scene that kills it
+   * is still on screen. Membership and the trash are held at the snapshot the reveal took;
+   * everything else (rotation, DP, counters) keeps following the live board, so nothing but
+   * the departure itself is delayed.
+   */
+  function blowField(player: ReturnType<typeof phaseField>, held: typeof blowYou) {
+    if (!held) return player;
+    const leaving = held.battleArea.filter(
+      (previous) => !player.battleArea.some((permanent) => permanent.permanentId === previous.permanentId),
+    );
+    if (leaving.length === 0 && player.trash.length === held.trash.length) return player;
+    return { ...player, battleArea: [...player.battleArea, ...leaving], trash: held.trash };
+  }
+  const presentedYou = blowField(phaseField(presentedYouBase, phaseYou), blowYou);
+  const presentedOpp = blowField(phaseField(presentedOppBase, phaseOpp), blowOpp);
   // Only the seat whose Draw ribbon is still queued is held back: the other seat's cards
   // belong to a turn the ribbons have already announced, so they land as they arrive.
   const heldDraw = cues.heldDrawState;
@@ -3292,6 +3324,7 @@ export function GameScreen({
                       }}
                       candidate={isCand}
                       effectSource={effectSourcePermanentIds.has(p.permanentId)}
+                      effectLinked={effectLinkedPermanentIds.has(p.permanentId)}
                       highlight={decisionHighlightPermanentId === p.permanentId}
                       burst={permanentBursts.get(p.permanentId)}
                       pending={pendingPermanentIds.has(p.permanentId)}
@@ -3380,6 +3413,7 @@ export function GameScreen({
                       }}
                       candidate={isBase}
                       effectSource={effectSourcePermanentIds.has(p.permanentId)}
+                      effectLinked={effectLinkedPermanentIds.has(p.permanentId)}
                       // A board-mode optional prompt points at the permanent whose
                       // effect is asking, so the rail and the field read as one.
                       highlight={selPerm === p.permanentId || decisionHighlightPermanentId === p.permanentId}

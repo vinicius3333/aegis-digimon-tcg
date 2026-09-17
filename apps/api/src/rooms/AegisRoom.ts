@@ -200,6 +200,14 @@ export class AegisRoom extends Room<GameState> {
   private batchDepth = 0;
   /** Full channel request retained while its mirrored decision can be resumed. */
   private pendingDecisionRequest: DecisionRequest | undefined;
+  /**
+   * The `securityRevealed` of a check that has not closed yet, kept so a client that reconnects
+   * mid-check is handed the reveal it missed. Unlike the pending decision and the combat window,
+   * an open check has no mirror in synchronized state, so there is nothing a resumed client could
+   * read it back from: it would resync to the current board and play the clash it never saw
+   * opened, on a board that stood still for the seconds the check was asking its questions.
+   */
+  private openSecurityReveal: ServerEvent | undefined;
 
   /** Seam: the tournament series module this room reports to. Tests substitute their own. */
   protected series(): SeriesStore {
@@ -437,6 +445,10 @@ export class AegisRoom extends Room<GameState> {
           this.broadcastPatch();
           this.debug("[AegisRoom] broadcastPatch() returned");
         }
+        // A check opens on its reveal and closes on `securityChecked`; everything it asks in
+        // between happens while both clients hold on the revealed card.
+        if (event.kind === "securityRevealed") this.openSecurityReveal = event;
+        else if (event.kind === "securityChecked") this.openSecurityReveal = undefined;
         for (const bot of this.bots) bot?.onEvent(event);
         this.syncCombatWindowTimeout();
       },
@@ -1027,9 +1039,9 @@ export class AegisRoom extends Room<GameState> {
   }
 
   /**
-   * Hand a resumed client every question still waiting on it: the pending decision and the open
-   * combat prompt. Both live in synchronized state, but their richer channel messages were sent
-   * while this socket was down and are never redelivered.
+   * Hand a resumed client everything still open on it: the pending decision, the open combat
+   * prompt, and the security check it may have reconnected into. Their richer channel messages
+   * were sent while this socket was down and are never redelivered.
    */
   private resendOpenPrompts(client: Client, seat: Seat): void {
     const pending = this.state.pendingDecision;
@@ -1037,6 +1049,10 @@ export class AegisRoom extends Room<GameState> {
     if (pending && pending.seat === seat && request?.decisionId === pending.decisionId) {
       client.send(DECISION_CHANNEL, { ...request, stateVersion: this.state.stateVersion });
     }
+    // Not gated on the seat: a check is a scene both sides watch, and the attacker's client
+    // holds its own view of it open just as the defender's does.
+    const reveal = this.openSecurityReveal;
+    if (reveal) this.withBatch(() => client.send(EVENT_CHANNEL, this.stamp(reveal)), client);
     const window = this.state.combatWindow;
     if (!window || window.seat !== seat) return;
     const event = combatWindowEvent(window);

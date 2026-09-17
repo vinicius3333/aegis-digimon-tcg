@@ -349,6 +349,14 @@ export interface MatchCues {
   heldDrawState: { seat: Seat; state: GameState } | undefined;
   /** Keep card rotation from exposing a Main attack before its phase announcement. */
   heldPhaseState: GameState | undefined;
+  /**
+   * The board as it stood when a security check revealed its card, held until that check's
+   * battle has been drawn. The server trashes the loser before it closes the check, and the
+   * board draws whatever state says the moment the patch lands, so without this the attacker
+   * leaves the field and the cards reach the trash while the clash that kills them is still
+   * playing centre stage — the viewer watches a battle between two cards already in the bin.
+   */
+  heldBlowState: GameState | undefined;
   /** Keep the raising area unchanged until its Breeding announcement finishes. */
   heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
   /** The last announced phase persists through the gaps between ribbons. */
@@ -725,6 +733,7 @@ export function useMatchCues({
   const [pendingPhaseBanners, setPendingPhaseBanners] = useState(0);
   const [heldDrawState, setHeldDrawState] = useState<{ seat: Seat; state: GameState } | undefined>();
   const [heldPhaseState, setHeldPhaseState] = useState<GameState | undefined>();
+  const [heldBlowState, setHeldBlowState] = useState<GameState | undefined>();
   const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
   const [announcedTurn, setAnnouncedTurn] = useState<{ seat: Seat; count: number } | undefined>(
@@ -803,6 +812,12 @@ export function useMatchCues({
   // The battle hold the centre of the screen is currently keeping open, if any. Polled the
   // same way the dock is: the check closing is what releases the card into its outcome beat.
   const securityHoldRef = useRef<{ key: number; closed: boolean } | null>(null);
+  // The blow a security battle has yet to land. A field battle makes its losers wait on
+  // FIELD_CLASH_TOTAL_MS, a constant, because its scene is a constant; a check's scene is
+  // not — its hold runs as long as the server takes to answer what the check asked. So the
+  // wait is a gate rather than a duration: it opens when the outcome beat has played, and
+  // whatever the check deleted shatters then, not seconds ahead of the battle that did it.
+  const securityBlowRef = useRef<{ key: number; landed: boolean } | null>(null);
   // A used Option has the same open-ended lifetime as a docked Security card: it starts
   // at cardPlayed and closes only when the server confirms its post-resolution routing.
   const optionDockRef = useRef<{ key: number; closed: boolean } | null>(null);
@@ -1036,77 +1051,111 @@ export function useMatchCues({
       holdsBoard: false,
       blocksDecision: false,
       async run(context) {
-        if (context.mode === "replay" || narrationSkipRef.current) return;
-        if (onPlay && initialSite?.zone === "field") {
-          while (
-            queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
-            context.mode === "live" &&
-            !context.cancelled &&
-            !context.skipping
-          )
-            await context.wait(16);
-        }
-        if (context.mode === "live" && body?.variant === "effect") {
-          // Let this batch register its deletion beats before locating the source.
-          await Promise.resolve();
-          if (/on.?deletion/i.test(body.timing ?? "")) {
-            const deletion = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
-            await context.wait(Math.max(0, (deletion?.readyAt ?? 0) - Date.now()));
+        /* The source card is lit before its clause and stays lit until the clause leaves
+           (`pruneEffectSources`). A run that ends before the clause is ever published —
+           cancelled, skipped, or nothing presentable left — owns the light it turned on,
+           because no clause will arrive for the prune to follow. */
+        let activation: EffectActivation | undefined;
+        let linked = false;
+        try {
+          await runNarrationStep();
+        } finally {
+          if (activation && !linked) {
+            const key = activation.key;
+            setEffectSources((sources) => sources.filter((source) => source.key !== key));
           }
-          if (context.cancelled || narrationSkipRef.current) return;
-          const deletion = /on.?deletion/i.test(body.timing ?? "")
-            ? deletionReadyAtRef.current.get(`${seat}:${body.cardId}`)
-            : undefined;
-          const site = deletion?.instanceId
-            ? { zone: "trash" as const, instanceId: deletion.instanceId }
-            : cardSiteRef.current.locate(body.cardId, seat, body);
-          if (site && context.mode === "live") {
-            const activation: EffectActivation = {
-              key: ++effectSourceKeyRef.current,
-              cardId: body.cardId,
-              seat,
-              site,
-            };
-            try {
-              setEffectSources((sources) => [...sources, activation]);
+        }
+
+        async function runNarrationStep() {
+          if (context.mode === "replay" || narrationSkipRef.current) return;
+          if (onPlay && initialSite?.zone === "field") {
+            while (
+              queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
+              context.mode === "live" &&
+              !context.cancelled &&
+              !context.skipping
+            )
+              await context.wait(16);
+          }
+          if (context.mode === "live" && body?.variant === "effect") {
+            // Let this batch register its deletion beats before locating the source.
+            await Promise.resolve();
+            if (/on.?deletion/i.test(body.timing ?? "")) {
+              const deletion = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+              await context.wait(Math.max(0, (deletion?.readyAt ?? 0) - Date.now()));
+            }
+            if (context.cancelled || narrationSkipRef.current) return;
+            const deletion = /on.?deletion/i.test(body.timing ?? "")
+              ? deletionReadyAtRef.current.get(`${seat}:${body.cardId}`)
+              : undefined;
+            const site = deletion?.instanceId
+              ? { zone: "trash" as const, instanceId: deletion.instanceId }
+              : cardSiteRef.current.locate(body.cardId, seat, body);
+            if (site && context.mode === "live") {
+              activation = {
+                key: ++effectSourceKeyRef.current,
+                cardId: body.cardId,
+                seat,
+                site,
+                itemId: item.id,
+              };
+              setEffectSources((sources) => [...sources, activation as EffectActivation]);
               reportShown(`effect-source-${activation.key}`, context);
+              // The punch this card earns on its own, ahead of the clause it raised.
               await context.wait(effectSourceHoldMs);
-            } finally {
-              setEffectSources((sources) => sources.filter((source) => source.key !== activation.key));
             }
           }
-        }
-        if (context.cancelled || narrationSkipRef.current) return;
-        const shown = presentableNarration(item);
-        if (!shown) return;
-        const push = (published: NarrationItem) =>
-          setNarration((items) =>
-            pushNarrationItem(
-              items,
-              published,
-              collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
-              collapseNarrationRef.current,
-            ),
-          );
-        // Left, then right. A moment carrying both halves is a sentence and its result, so
-        // the clause takes the screen first and the cards it moved follow a beat later.
-        // The folded phone slot draws both halves in one item, so it is published whole.
-        const staggered = !collapseNarrationRef.current && shown.notice !== undefined && shown.panel !== undefined;
-        if (staggered) {
-          const { panel: _panel, ...clauseOnly } = shown;
-          push(clauseOnly);
-          await context.wait(TIMINGS.narrationCardsLag);
           if (context.cancelled || narrationSkipRef.current) return;
+          const shown = presentableNarration(item);
+          if (!shown) return;
+          const push = (published: NarrationItem) =>
+            setNarration((items) =>
+              pushNarrationItem(
+                items,
+                published,
+                collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
+                collapseNarrationRef.current,
+              ),
+            );
+          // Left, then right. A moment carrying both halves is a sentence and its result, so
+          // the clause takes the screen first and the cards it moved follow a beat later.
+          // The folded phone slot draws both halves in one item, so it is published whole.
+          const staggered = !collapseNarrationRef.current && shown.notice !== undefined && shown.panel !== undefined;
+          if (staggered) {
+            const { panel: _panel, ...clauseOnly } = shown;
+            push(clauseOnly);
+            await context.wait(TIMINGS.narrationCardsLag);
+            if (context.cancelled || narrationSkipRef.current) return;
+          }
+          push(shown);
+          if (activation) {
+            const key = activation.key;
+            linked = true;
+            setEffectSources((sources) =>
+              sources.map((source) => (source.key === key ? { ...source, linked: true } : source)),
+            );
+          }
+          reportShown(`narration-step-${item.id}`, context);
+          // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
+          // single moment, give every clause one readable beat before the next server event
+          // can replace it; a column with room shows a batch together instead.
+          if (shown.notice && narrationLimitRef.current === 1) await context.wait(TIMINGS.effectAnnounce);
         }
-        push(shown);
-        reportShown(`narration-step-${item.id}`, context);
-        // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
-        // single moment, give every clause one readable beat before the next server event
-        // can replace it; a column with room shows a batch together instead.
-        if (shown.notice && narrationLimitRef.current === 1) await context.wait(TIMINGS.effectAnnounce);
       },
     });
   }
+
+  /* A lit source belongs to the clause it raised: it goes out when that clause does, not
+     on a clock of its own. Only a clause that actually reached the screen is followed —
+     an activation still waiting for its own is not missing, it is early. */
+  useEffect(() => {
+    setEffectSources((sources) => {
+      const kept = sources.filter(
+        (source) => source.linked !== true || source.itemId === undefined || narration.has(source.itemId),
+      );
+      return kept.length === sources.length ? sources : kept;
+    });
+  }, [narration]);
 
   // Each record expires on its own clock, including while a decision is open.
   // Schedule only the next expiry, and cancel on unmount or replacement.
@@ -1242,6 +1291,15 @@ export function useMatchCues({
     const securityAttack = [...fresh]
       .reverse()
       .find((event) => event.kind === "attackDeclared" && event.target.kind === "player");
+    /**
+     * An attack owns the screen for its call-out, the way a played card owns it for its
+     * showcase. A [When Attacking] clause resolves in the same batch as the declaration that
+     * fired it, so with no lead-in its draw and its toast land on the very frame of the lunge
+     * — the clause going off before the attack that triggered it has been read. It waits the
+     * same beat `attackAnnounce` gives the call-out, for the same reason `effectAnnounce`
+     * gives one to an [On Play].
+     */
+    const attackLeadInMs = fresh.some((event) => event.kind === "attackDeclared") ? TIMINGS.attackAnnounce : 0;
     /**
      * A redirect that moves the attack off the player (＜Raid＞, a Counter effect) leaves the
      * lunge the declaration already played as the whole of what security gets: the battle is
@@ -1401,7 +1459,7 @@ export function useMatchCues({
             eventDrawCountsRef.current[side] = state?.players[seat]?.handCount;
             const followsDigivolution =
               event.drawReason === "digivolution" && pendingDigivolutionDrawRef.current.has(seat);
-            const waitBeforeMs = followsDigivolution ? CARD_BURST_PEAK_MS : 0;
+            const waitBeforeMs = followsDigivolution ? CARD_BURST_PEAK_MS : attackLeadInMs;
             // One flight per card. The server names a whole Draw 2 in a single event, so a
             // flight per event sent one card back for two cards and read as a single draw.
             for (const [drawIndex] of event.instanceIds.entries())
@@ -1525,7 +1583,21 @@ export function useMatchCues({
             },
           });
         }
-        const step = zoneChangeStep(key, showcase, burst, leadInMs);
+        /**
+         * The centre of the screen belongs to the check until its battle has been drawn.
+         * A card a removal reaction plays mid-check wants the same spot for its showcase,
+         * and being serial the centre-stage track simply hands it over: the 1.8s showcase
+         * ran between the clash and its outcome, so the battle broke in half and the verdict
+         * arrived a scene later. The card still lands, on its burst — it just does not take
+         * the stage the check is still using.
+         */
+        // The revealed card playing ITSELF is the check's own scene, not an interruption of
+        // it: that showcase is the whole point of a [Security] play and stays.
+        const playsItself =
+          event.kind === "cardPlayed" && event.cardId === revealOnStageRef.current?.scene.revealed.cardId;
+        const blocked =
+          securityBlowRef.current !== null && !securityBlowRef.current.landed && !securityReveal && !playsItself;
+        const step = zoneChangeStep(key, blocked ? null : showcase, burst, leadInMs);
         if (securityReveal) zoneChanges.push(step);
         else enqueue(step);
         // The board renders a permanent the moment its patch lands, so a card whose
@@ -1851,6 +1923,15 @@ export function useMatchCues({
       const replace = revealOnStageRef.current !== null || queuedSecurityKeyRef.current === null;
       if (revealOnStageRef.current !== null) flushHeldNotices();
       queuedSecurityKeyRef.current = key;
+      // Armed with the reveal and released by the outcome, so anything this check deletes
+      // in between waits for the blow instead of shattering over a battle not yet drawn.
+      securityBlowRef.current = { key, landed: false };
+      // The board as it is at the reveal — attacker suspended on the field, cards still in
+      // security — is what stays on screen until that battle has been drawn. Snapshotted
+      // here rather than taken from `previousDrawStateRef`, which lags a render: that copy
+      // predates the declaration, so the attacker it carries stands unsuspended and the
+      // board would answer the blow by rotating the dying card upright.
+      setHeldBlowState(state ? snapshotGameState(state) : undefined);
       // A dock belongs to the check that opened it. Its hold no longer shares a track with
       // the reveal, so a newer check has to retire it by hand rather than by replacement.
       const stale = securityDockRef.current;
@@ -1977,6 +2058,17 @@ export function useMatchCues({
           }
         },
       });
+    }
+
+    /**
+     * Let go of whatever this check's battle was holding back. Called from every path that
+     * ends a check — the outcome beat, a close with no battle to draw, a cancelled scene —
+     * because a gate this one-sided wedges the shatter forever if a path forgets it.
+     */
+    function releaseSecurityBlow(key: number) {
+      if (securityBlowRef.current?.key !== key) return;
+      securityBlowRef.current = { key, landed: true };
+      setHeldBlowState(undefined);
     }
 
     /** The check has closed, so the docked card holds a beat and then leaves. */
@@ -2267,9 +2359,14 @@ export function useMatchCues({
               await context.wait(restagedBattle ? CLASH_TOTAL_MS : CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
             } finally {
               setSecurityClash((current) => (current?.key === key ? null : current));
+              releaseSecurityBlow(key);
             }
           },
         });
+      } else {
+        // No outcome beat to wait for — the check closed on something with no battle to
+        // draw — so nothing it deleted should keep waiting on one.
+        releaseSecurityBlow(key);
       }
       // Step 10b: the revealed card takes its place at the side of the screen BEFORE its
       // clause is read out, so the notice lands beside the card it explains rather than
@@ -2449,11 +2546,19 @@ export function useMatchCues({
         // for the beats that explain it — the card centre-stage under its call-out, then
         // the clause that did the deleting — capped so the shatter never drifts far from
         // the board dropping the permanent.
-        const delayMs = clashLoserIds.has(anchorId)
-          ? FIELD_CLASH_TOTAL_MS
-          : beaten.has(anchorId)
-            ? COMBAT_IMPACT_TOTAL_MS
-            : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
+        // A check whose battle has not been drawn yet owns every deletion in this batch:
+        // the server moves the loser to the trash before it closes the check, so without
+        // this the shatter plays over a battle the viewer is still waiting to see.
+        const openBlow = securityBlowRef.current;
+        const blowKey = openBlow !== null && !openBlow.landed ? openBlow.key : undefined;
+        const delayMs =
+          blowKey !== undefined
+            ? 0
+            : clashLoserIds.has(anchorId)
+              ? FIELD_CLASH_TOTAL_MS
+              : beaten.has(anchorId)
+                ? COMBAT_IMPACT_TOTAL_MS
+                : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
         const deleted = deletionMetadata.get(anchorId);
         const step = deleteBurstStep(
           anchorId,
@@ -2462,7 +2567,8 @@ export function useMatchCues({
           deleted?.artId,
           deleted?.seat,
           deleted?.instanceId,
-          !clashLoserIds.has(anchorId) && !beaten.has(anchorId),
+          blowKey === undefined && !clashLoserIds.has(anchorId) && !beaten.has(anchorId),
+          blowKey,
         );
         if (step) {
           deletionBurstPresentedRef.current.add(anchorId);
@@ -3238,6 +3344,8 @@ export function useMatchCues({
     metadataSeat?: Seat,
     metadataInstanceId?: string,
     effectDeletion = false,
+    /** The security battle this deletion belongs to, if any; its blow gates the shatter. */
+    blowKey?: number,
   ): AnimationStep | null {
     const center = anchors.permanentCenter?.(anchorId);
     if (!center) return null;
@@ -3269,6 +3377,19 @@ export function useMatchCues({
         if (context.mode !== "live") return;
         // A permanent beaten in battle takes the blow before it breaks.
         if (delayMs > 0) await context.wait(delayMs);
+        // A security battle's blow has no duration to wait out: its scene runs as long as
+        // the check takes. Poll for it instead, on the dock's clock and under the dock's
+        // ceiling, so a close that never comes cannot hold the shatter for good. This runs
+        // on the burst's own track, so nothing on centre stage is waiting behind it.
+        if (blowKey !== undefined) {
+          let waitedMs = 0;
+          while (!context.cancelled && waitedMs < TIMINGS.securityDockMax) {
+            const blow = securityBlowRef.current;
+            if (blow === null || blow.key !== blowKey || blow.landed) break;
+            await context.wait(TIMINGS.securityDockPoll);
+            waitedMs += TIMINGS.securityDockPoll;
+          }
+        }
         if (context.cancelled) return;
         try {
           setDeleteBursts((bursts) => [...bursts, burst]);
@@ -3594,6 +3715,7 @@ export function useMatchCues({
     phaseTransitionPending: pendingPhaseBanners > 0,
     heldDrawState,
     heldPhaseState,
+    heldBlowState,
     heldBreedingState,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
     displayedTurn: pendingPhaseBanners > 0 ? announcedTurn : state && { seat: state.turnSeat, count: state.turnCount },

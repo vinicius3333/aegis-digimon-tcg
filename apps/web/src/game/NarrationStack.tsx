@@ -12,7 +12,13 @@ import { cardDisplayName } from "./cardLinks";
 import { TIMING_LABELS, playerFacingEffectClause } from "./overlays";
 import { NoticeStack } from "./NoticeStack";
 import { SidePanelStack } from "./SidePanelStack";
-import { isCardListNotice, narrationRemaining, type NarrationItem, type NarrationSlot } from "./narration";
+import {
+  deletionPanel,
+  isCardListNotice,
+  narrationRemaining,
+  type NarrationItem,
+  type NarrationSlot,
+} from "./narration";
 import { noticeRemaining, type MatchNotice } from "./notices";
 
 /** The art on the folded band: enough to recognise the card, not enough to read it. */
@@ -45,12 +51,16 @@ function NarrationItemView({
   const [mountedAt] = useState(nowMs);
   const remainingMs = narrationRemaining(item, mountedAt);
   const notice = item.notice && (half === "cards") === isCardListNotice(item.notice) ? item.notice : undefined;
+  // A deletion is a titled list of cards, so it is one (`deletionPanel`) rather than a
+  // second component drawing the same thing in a frame of its own.
+  const deletion = notice ? deletionPanel(notice) : undefined;
   return (
     <>
       {half === "cards" && item.panel ? (
         <SidePanelStack panel={item.panel} remainingMs={remainingMs} onDismiss={onAdvance} />
       ) : null}
-      {notice ? <NoticeStack notice={notice} remainingMs={remainingMs} onDismiss={onAdvance} /> : null}
+      {deletion ? <SidePanelStack panel={deletion} remainingMs={remainingMs} onDismiss={onAdvance} /> : null}
+      {notice && !deletion ? <NoticeStack notice={notice} remainingMs={remainingMs} onDismiss={onAdvance} /> : null}
     </>
   );
 }
@@ -174,10 +184,17 @@ function Slot({
  * card it is about. Built here rather than read off the drawn notice, because the folded
  * line is a summary of a moment, not a shrunken copy of the panel that presents it.
  */
+/**
+ * The accent the band is drawn in, which is what it says before it is read. The variants
+ * fold into four because the band is a glance, not a legend: what an effect did, a card
+ * leaving the board, a named mechanic, and something gained.
+ */
+type PeekTone = "effect" | "deletion" | "keyword" | "gain" | "rejection";
+
 function peekSummary(
   item: NarrationItem,
   t: Translate,
-): { label: string; name: string; cardId?: string; clause?: string } {
+): { label: string; name: string; tone: PeekTone; cardId?: string; clause?: string } {
   const body = item.notice?.body;
   if (body?.variant === "effect") {
     const clause = playerFacingEffectClause({
@@ -189,6 +206,7 @@ function peekSummary(
     return {
       label: (body.timing ? TIMING_LABELS[body.timing] : undefined) ?? t("overlay.effect"),
       name: cardDisplayName(body.cardId, t),
+      tone: "effect",
       cardId: body.cardId,
       ...(clause ? { clause } : {}),
     };
@@ -197,28 +215,32 @@ function peekSummary(
     return {
       label: t(`notice.keyword.${body.keyword}` as const),
       name: cardDisplayName(body.cardId, t),
+      tone: "keyword",
       cardId: body.cardId,
     };
   if (body?.variant === "deletion")
     return {
       label: t("notice.deletion"),
       name: cardDisplayName(body.cards[0]?.cardId, t),
+      tone: "deletion",
       ...(body.cards[0]?.cardId ? { cardId: body.cards[0].cardId } : {}),
     };
   if (body?.variant === "recovery" || body?.variant === "securityGain")
     return {
       label: t(body.variant === "recovery" ? "overlay.recovery" : "overlay.securityGain", { count: body.amount }),
       name: "",
+      tone: "gain",
     };
-  if (body?.variant === "rejection") return { label: t("notice.rejected"), name: body.reason };
+  if (body?.variant === "rejection") return { label: t("notice.rejected"), name: body.reason, tone: "rejection" };
   const panel = item.panel;
   if (panel)
     return {
       label: t(panel.titleKey as "panel.revealedCards"),
       name: cardDisplayName(panel.cards[0]?.cardId, t),
+      tone: "effect",
       ...(panel.cards[0]?.cardId ? { cardId: panel.cards[0].cardId } : {}),
     };
-  return { label: t("overlay.effect"), name: "" };
+  return { label: t("overlay.effect"), name: "", tone: "effect" };
 }
 
 /**
@@ -236,15 +258,34 @@ function toastCount(items: readonly NarrationItem[]): number {
   return items.reduce((total, item) => total + (item.notice ? 1 : 0) + (item.panel ? 1 : 0), 0);
 }
 
-function PeekLine({ items, label, onOpen }: { items: readonly NarrationItem[]; label: string; onOpen: () => void }) {
+function PeekLine({
+  items,
+  label,
+  nowMs,
+  onOpen,
+}: {
+  items: readonly NarrationItem[];
+  label: string;
+  nowMs: number;
+  onOpen: () => void;
+}) {
   const { t } = useTranslation();
+  // Frozen at arrival so the running bar keeps its duration when a neighbour expires.
+  const [mountedAt] = useState(nowMs);
   const newest = items.at(-1);
   if (!newest) return null;
   const summary = peekSummary(newest, t);
   // The band already names one of them, so the badge counts the rest.
   const queued = toastCount(items) - 1;
   return (
-    <button className="narration-peek" type="button" onClick={onOpen} aria-label={label} aria-expanded={false}>
+    <button
+      className="narration-peek"
+      type="button"
+      data-tone={summary.tone}
+      onClick={onOpen}
+      aria-label={label}
+      aria-expanded={false}
+    >
       {summary.cardId ? (
         <span className="narration-peek__art" aria-hidden="true">
           <CardMini cardId={summary.cardId} width={PEEK_ART_WIDTH} zoomOnHover={false} />
@@ -258,10 +299,24 @@ function PeekLine({ items, label, onOpen }: { items: readonly NarrationItem[]; l
         {/* One line of the clause: enough to know whether this is worth opening. */}
         {summary.clause ? <span className="narration-peek__clause">{summary.clause}</span> : null}
       </span>
-      {queued > 0 ? <span className="narration-peek__more">+{queued}</span> : null}
+      {/* Keyed on the count so the badge replays its pop when a moment queues behind this
+          one without replacing it: the band would otherwise change a digit in silence. */}
+      {queued > 0 ? (
+        <span className="narration-peek__more" key={queued}>
+          +{queued}
+        </span>
+      ) : null}
       <span className="narration-peek__chevron" aria-hidden="true">
         <Icons.ChevronDown size={18} />
       </span>
+      {/* The folded band is the only thing a moment gets on this layout, so it carries the
+          same running clock the opened notices draw — a band with nothing running on it
+          reads as a fixture of the board rather than as something that just happened. */}
+      <span
+        className="narration-peek__life"
+        style={{ animationDuration: `${narrationRemaining(newest, mountedAt)}ms` }}
+        aria-hidden="true"
+      />
     </button>
   );
 }
@@ -316,11 +371,17 @@ export function NarrationStack({
       <NarrationItemView item={shown} half={half} nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>
   );
-  // The folded column draws both halves of a moment, one after the other.
+  /**
+   * The folded column draws both halves of a moment, one after the other — in the order the
+   * two columns read on a wide screen, left then right: the clause that did something, then
+   * the cards it moved. Folded the other way round an [On Play] that reveals three cards
+   * showed the three cards first and named the clause underneath, so the result arrived
+   * before the cause and the reader had to work backwards.
+   */
   const compactBody = (shown: NarrationItem) => (
     <div className="narration-item" key={shown.id} data-narration-id={shown.id}>
-      <NarrationItemView item={shown} half="cards" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
       <NarrationItemView item={shown} half="text" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
+      <NarrationItemView item={shown} half="cards" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>
   );
   return (
@@ -334,7 +395,15 @@ export function NarrationStack({
           the phone's column opens whatever the band was doing. */}
       {compact && !expanded && !rejection && textItems.length > 0 ? (
         <Slot slot="narration" count={1} securityDockActive={securityDockActive}>
-          <PeekLine items={textItems} label={t("notice.expand")} onOpen={() => setExpanded(true)} />
+          {/* Keyed on the moment it names: the band is one row reused for every moment, and
+              without a remount a new moment would slide into it with no entrance to see. */}
+          <PeekLine
+            key={textItems.at(-1)?.id}
+            items={textItems}
+            label={t("notice.expand")}
+            nowMs={now}
+            onOpen={() => setExpanded(true)}
+          />
         </Slot>
       ) : textItems.length > 0 || rejection ? (
         <Slot

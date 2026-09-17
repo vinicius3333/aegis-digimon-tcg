@@ -540,6 +540,65 @@ describe("AegisRoom combat windows", () => {
     expect(sent.some(([, event]) => (event as ServerEvent).kind === "blockWindowOpened")).toBe(false);
   });
 
+  /** Drive the room's emit hook the way the engine does, so the room tracks the check itself. */
+  function emitToRoom(room: AegisRoom, event: ServerEvent): void {
+    (room as unknown as { engine: { hooks: { emit: (e: ServerEvent) => void } } }).engine.hooks.emit(event);
+  }
+
+  const REVEAL: ServerEvent = {
+    kind: "securityRevealed",
+    seat: 0,
+    revealedCardId: "EX12-076",
+    attackerPermanentId: "attacker",
+    securityCardDP: 16000,
+    attackerDP: 11000,
+    hasSecurityEffect: false,
+    isDigimon: true,
+  };
+
+  function revealsSentTo(client: Client): ServerEvent[] {
+    return (client.send as unknown as { mock: { calls: [string, ServerEvent][] } }).mock.calls
+      .filter(([channel, event]) => channel === EVENT_CHANNEL && event.kind === "securityRevealed")
+      .map(([, event]) => event);
+  }
+
+  it("re-sends the reveal of a check still open, to both seats", () => {
+    const room = makeRoom();
+    const [a, b] = joinBothSeats(room);
+    emitToRoom(room, REVEAL);
+    vi.mocked(a.send).mockClear();
+    vi.mocked(b.send).mockClear();
+
+    const resend = (
+      room as unknown as { resendOpenPrompts: (client: Client, seat: number) => void }
+    ).resendOpenPrompts.bind(room);
+    resend(a, 0);
+    resend(b, 1);
+
+    // The check is a scene both clients hold open, so neither is gated out of it.
+    expect(revealsSentTo(a).at(0)).toMatchObject({ revealedCardId: "EX12-076", attackerDP: 11000 });
+    expect(revealsSentTo(b).at(0)).toMatchObject({ revealedCardId: "EX12-076", attackerDP: 11000 });
+  });
+
+  it("stops re-sending once the check has closed", () => {
+    const room = makeRoom();
+    const [a] = joinBothSeats(room);
+    emitToRoom(room, REVEAL);
+    emitToRoom(room, {
+      kind: "securityChecked",
+      seat: 0,
+      revealedCardId: "EX12-076",
+      resolution: "battle",
+      battle: { securityDigimonDeleted: false, attackerDeleted: true, attackerDP: 11000, securityCardDP: 16000 },
+    });
+    vi.mocked(a.send).mockClear();
+
+    (room as unknown as { resendOpenPrompts: (c: Client, s: number) => void }).resendOpenPrompts.call(room, a, 0);
+
+    // Resending here would replay a scene the client has already been shown in full.
+    expect(revealsSentTo(a)).toHaveLength(0);
+  });
+
   it("closes a combat window nobody ever answers, so the match cannot wedge", () => {
     vi.useFakeTimers();
     const room = makeRoom();

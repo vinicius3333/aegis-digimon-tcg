@@ -241,6 +241,14 @@ export async function runReplacement(
     if (decodeText !== undefined) {
       subCtx.activeTiming = "AllTurns";
       subCtx.activeEffectText = decodeText;
+    } else {
+      // A replacement resolves from the removal seam, long after the effect that armed it, so
+      // the sub-context carries no timing of its own and every question it asks reaches the
+      // deciding seat with empty provenance. The install-time timing is the clause's real one,
+      // and a seat that reads it to tell a reflex from a deliberation needs it: the bot paced
+      // two chained questions of AD1-013's [All Turns] leave clause at a main-phase think time
+      // each, holding a security check — and the defending client's screen — for 5.3 s.
+      subCtx.activeTiming ??= ctx.activeTiming;
     }
     subCtx.fx.enterEffectResolution?.(
       subCtx.source.ownerSeat,
