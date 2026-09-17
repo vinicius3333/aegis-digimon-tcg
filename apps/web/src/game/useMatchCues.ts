@@ -2813,23 +2813,21 @@ export function useMatchCues({
                         : [],
                     ),
                 );
+                // Both boards release here, not just the turn player's: ＜Reboot＞
+                // unsuspends the opposing Digimon in this same phase (§16-11), and the
+                // server reports it among this phase's moves. Releasing only the turn
+                // seat left a Reboot holder rotated until the hold lifted a phase later.
                 setHeldPhaseState((held) =>
                   held
                     ? ({
                         ...held,
-                        players: held.players.map((player, seat) =>
-                          seat === openedPhase.turnSeat
-                            ? {
-                                ...player,
-                                battleArea: player.battleArea.map((permanent) => ({
-                                  ...permanent,
-                                  isSuspended: unsuspendedIds.has(permanent.permanentId)
-                                    ? false
-                                    : permanent.isSuspended,
-                                })),
-                              }
-                            : player,
-                        ),
+                        players: held.players.map((player) => ({
+                          ...player,
+                          battleArea: player.battleArea.map((permanent) => ({
+                            ...permanent,
+                            isSuspended: unsuspendedIds.has(permanent.permanentId) ? false : permanent.isSuspended,
+                          })),
+                        })),
                       } as GameState)
                     : held,
                 );

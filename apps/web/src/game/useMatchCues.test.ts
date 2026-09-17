@@ -956,6 +956,46 @@ describe("match cues", () => {
     expect(result.current.heldPhaseState).toBeUndefined();
   });
 
+  it("unsuspends a ＜Reboot＞ holder on the other board during the same unsuspend phase", async () => {
+    const state = {
+      phase: Phase.Main,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    // Seat 1 takes the turn; seat 0 holds a ＜Reboot＞ Digimon beside a plain suspended one.
+    const turnPlayer = new Permanent();
+    turnPlayer.permanentId = "turnPlayer";
+    turnPlayer.isSuspended = true;
+    state.players[1]!.battleArea.push(turnPlayer);
+    const reboot = new Permanent();
+    reboot.permanentId = "reboot";
+    reboot.isSuspended = true;
+    state.players[0]!.battleArea.push(reboot);
+    const plain = new Permanent();
+    plain.permanentId = "plain";
+    plain.isSuspended = true;
+    state.players[0]!.battleArea.push(plain);
+    const { result, rerender } = renderCuesOverBoard(state);
+    await advance(0);
+    rerender([
+      { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
+      { kind: "cardsMoved", instanceIds: ["turnPlayer"], from: "suspended", to: "unsuspended" },
+      { kind: "cardsMoved", instanceIds: ["reboot"], from: "suspended", to: "unsuspended" },
+      { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 2 },
+    ]);
+    await advance(0);
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended).toBe(false);
+    expect(result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended).toBe(false);
+    expect(result.current.heldPhaseState?.players[0]?.battleArea[1]?.isSuspended).toBe(true);
+  });
+
   it.each(["hatched", "movedFromBreeding"] as const)(
     "waits for separately patched %s before announcing Main",
     async (kind) => {
