@@ -5,14 +5,9 @@
 
 import { DragKind } from "./screen/enums";
 import { FIELD_CLASH_GHOST_HEIGHT, FIELD_CLASH_GHOST_WIDTH } from "./screen/constants";
-import {
-  COMPACT_PILES_QUERY,
-  LANDSCAPE_PHONE_PERMANENT_WIDTH,
-  LANDSCAPE_PHONE_QUERY,
-  NARROW_LAYOUT_QUERY,
-  SHORT_BOARD_QUERY,
-} from "./screen/queries";
+import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { dropZoneAt, permanentVisualElement } from "./screen/dropZones";
+import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { BoardShell } from "./screen/layout/BoardShell";
 import { ActionBar } from "./screen/layout/ActionBar";
 import { HandCardPreview } from "./screen/layout/HandCardPreview";
@@ -99,8 +94,6 @@ import {
   BreedingSlot,
   ClawSlash,
   Hand,
-  HAND_CARD_WIDTH_COMPACT,
-  HAND_MIN_EXPOSURE_TOUCH,
   MemoryGauge,
   PermanentView,
   Pile,
@@ -185,7 +178,6 @@ import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { assemblyPossible } from "./assemblyMaterialSelection";
 import { pressGesture, swallowNextClick } from "./pressGesture";
-import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import type { SpotlightSubject } from "./spotlight";
 import { pendingFateBadges } from "./pendingFate";
@@ -245,44 +237,19 @@ export function GameScreen({
 }) {
   const { t } = useTranslation();
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
-  const narrowGameLayout = useMediaQuery(NARROW_LAYOUT_QUERY);
-  const compactPiles = useMediaQuery(COMPACT_PILES_QUERY);
-  const shortBoard = useMediaQuery(SHORT_BOARD_QUERY);
-  const portraitArena = useMediaQuery("(max-width: 1023px) and (orientation: portrait)");
-  const shortPortraitArena = useMediaQuery("(max-width: 1023px) and (orientation: portrait) and (height < 650px)");
-  const mediumPortraitArena = useMediaQuery(
-    "(max-width: 1023px) and (orientation: portrait) and (min-height: 650px) and (max-height: 759px)",
-  );
-  const tabletPortraitArena = useMediaQuery("(min-width: 600px) and (max-width: 1023px) and (orientation: portrait)");
-  const compactArena = useMediaQuery("(height < 950px)");
-  const tightArena = useMediaQuery("(height < 875px)");
-  const arenaPileWidth = portraitArena
-    ? tabletPortraitArena
-      ? 62
-      : shortPortraitArena
-        ? 40
-        : 44
-    : compactPiles
-      ? 56
-      : 72;
-  const arenaPermanentWidth = portraitArena
-    ? tabletPortraitArena
-      ? 88
-      : shortPortraitArena
-        ? 48
-        : mediumPortraitArena
-          ? 60
-          : 76
-    : shortBoard
-      ? 76
-      : tightArena
-        ? 84
-        : compactArena
-          ? 100
-          : 116;
-  const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
-  const collapseNotices = narrowGameLayout && !landscapePhone;
-  const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
+  const {
+    narrowGameLayout,
+    compactPiles,
+    shortBoard,
+    portraitArena,
+    landscapePhone,
+    coarsePointer,
+    collapseNotices,
+    arenaPileWidth,
+    arenaPermanentWidth,
+    handCardWidth,
+    handMinExposure,
+  } = useArenaLayout();
   const matchConfig = useMemo(() => {
     if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
@@ -3367,20 +3334,8 @@ export function GameScreen({
                 />
               ) : null}
               <Hand
-                cardWidth={
-                  portraitArena
-                    ? tabletPortraitArena
-                      ? 104
-                      : shortPortraitArena
-                        ? 44
-                        : mediumPortraitArena
-                          ? 60
-                          : 76
-                    : compactPiles
-                      ? HAND_CARD_WIDTH_COMPACT
-                      : 112
-                }
-                minExposure={portraitArena || compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
+                cardWidth={handCardWidth}
+                minExposure={handMinExposure}
                 cards={shownHandEntries}
                 selectedInstanceId={handSel ?? undefined}
                 effectSourceInstanceId={

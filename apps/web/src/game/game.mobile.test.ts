@@ -24,12 +24,20 @@ function overlaySource(name: string): string {
   if (source === undefined) throw new Error(`no overlay component file for ${name}`);
   return source;
 }
-/** The screen's layout queries and shared types sit beside it under ./screen. */
+/** Every source file of a folder and its subfolders, barrels excluded. */
+function folderSources(folder: string): string[] {
+  return readdirSync(new URL(folder, import.meta.url), { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory()
+      ? folderSources(`${folder}${entry.name}/`)
+      : entry.name === "index.ts"
+        ? []
+        : [readFileSync(new URL(`${folder}${entry.name}`, import.meta.url), "utf8")],
+  );
+}
+/** The screen's hooks, model, layout, queries and shared types all sit under ./screen. */
 const gameScreenSource = [
   readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8"),
-  ...readdirSync(new URL("./screen/", import.meta.url), { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name !== "index.ts")
-    .map((entry) => readFileSync(new URL(`./screen/${entry.name}`, import.meta.url), "utf8")),
+  ...folderSources("./screen/"),
 ].join("\n");
 /** The board pieces live one per file under ./piece, so the hand's gesture and
  *  overflow chrome is spread across the component, its hook and its layout maths. */
