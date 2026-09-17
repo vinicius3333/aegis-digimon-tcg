@@ -595,3 +595,78 @@ same reason: they were the safety net for every commit here.
 `screen/layout/MatchOverlays.tsx` (369) all clear the plan's 400-line target or sit
 just under it. They are composition and routing rather than logic, but they are
 the next things to look at.
+
+---
+
+## Fourth pass: the rest of `apps/web/src`
+
+The three earlier passes cleared `game/`'s screen surface. This one took the five
+files that were still oversized anywhere in the app.
+
+| File | Before | After |
+| --- | --- | --- |
+| `dev/CardEffectsDemo.tsx` | 19,411 | 87 |
+| `game/boardModel.ts` | 1,608 | 317 |
+| `dev/BoardShowcase.tsx` | 1,414 | 930 |
+| `screens/DeckBuilder.tsx` | 1,071 | 49 |
+| `screens/cardLibrary.tsx` | 905 | removed |
+
+### `CardEffectsDemo.tsx`
+
+275 fixture builders and a 2,300-line `if (cardId === …)` chain in one file. The
+fixtures moved to `dev/cardEffects/<SET>/<CARD-ID>.ts`, which is the layout
+`apps/api/src/cards` already uses, and each set exports a
+`Record<string, CardEffectsFixtureBuilder>` that `dev/cardEffects/index.ts`
+merges. Three builders serve cards across several sets (`vanillaBt3Demo`,
+`effectBt3Demo`, `vanillaPlayDemo`) and live in `dev/cardEffects/vanilla.ts`;
+`fixture.ts` holds the fixture type and the `card`/`permanent`/`player`
+primitives. The screen is a registry lookup and the same demo connection it
+always was.
+
+### `boardModel.ts`
+
+Four subjects, one file. Each left with the helpers only it used:
+
+- `decisionModel.ts` — what a decision prompt shows and how to find what it
+  points at.
+- `digivolveModel.ts` — routes from hand or stack, and what each one costs.
+- `matchLog.ts` — `describeEvent` and the log it builds.
+- `combatWindowModel.ts` — the block, counter and mirrored windows.
+
+`boardModel.ts` keeps the board's own projections: attacks, breeding, seats,
+memory and the link slots. Twenty-eight files had their imports re-pointed;
+`uiCompleteness.test.ts` reads `describeEvent` out of the source by path, so it
+now reads `game/matchLog.ts`.
+
+### The two screens
+
+`DeckBuilder.tsx` became one component per file (`DeckList`, `DeckEditor`,
+`PoolCard`, `CountChip`, `DeckTextModals`, `ColorBalance`) over a shared
+`deckCounts.ts` that holds the count map and the 50/5 targets — the targets live
+there rather than in `DeckBuilder.tsx` so the editor does not import its own
+parent. `cardLibrary.tsx` was a grab bag with no screen of its own, so it is gone:
+`cardFilters.ts`, `cardSorting.ts`, `FilterRail.tsx` and `CardDetailDrawer.tsx`
+replace it, and its five importers name the piece they want.
+
+### `BoardShowcase.tsx`
+
+Only the mechanical half: the fixed board it renders (`boardShowcaseFixtures.tsx`)
+and its own section frame (`boardShowcaseLayout.tsx`). The remaining 930 lines are
+one component whose body is the list of cases — splitting that is a judgement
+call about how the showcase is organised, not a move.
+
+### The gate
+
+`pnpm lint:files` again caught every dead import that typecheck accepted, and the
+arrow parameters the new registries introduced. The full suite ends with
+`test/block.scenario.test.tsx` failing — the same known flake recorded above,
+confirmed by a run at `HEAD` without any of this work, which failed that test and
+`digivolveNormal.scenario.test.tsx` as well.
+
+### Still not done
+
+The two mirror tests (`useMatchCues.test.ts`, `decisionOverlay.test.tsx`) and
+`CardEffectsDemo.test.tsx` (4,660 lines) are unsplit, again as the safety net.
+`dev/ArenaDemo.tsx` (868), `dev/arenaVisualScenarios.ts` (1,018) and
+`screens/Lobby.tsx` (684) are the next candidates; the i18n tables are data and
+stay whole.
