@@ -83,6 +83,14 @@
   "export": "checkTurnEndAfterVerb",
   "module": "intents"
  },
+ "chooseFirstPlayer": {
+  "export": "chooseFirstPlayer",
+  "module": "matchLifecycle"
+ },
+ "clearReady": {
+  "export": "clearReady",
+  "module": "matchLifecycle"
+ },
  "collectNestedTimingEffects": {
   "export": "collectNestedTimingEffects",
   "module": "windows"
@@ -94,6 +102,10 @@
  "collectRuleProcessMovements": {
   "export": "collectRuleProcessMovements",
   "module": "ruleProcess"
+ },
+ "collectStagedDecks": {
+  "export": "collectStagedDecks",
+  "module": "matchLifecycle"
  },
  "combatDecisionDeps": {
   "export": "combatDecisionDeps",
@@ -167,6 +179,10 @@
   "export": "effectPrimitives",
   "module": "effectContext"
  },
+ "effectiveColorsOf": {
+  "export": "effectiveColorsOf",
+  "module": "matchLifecycle"
+ },
  "endBattleScope": {
   "export": "endBattleScope",
   "module": "turnFlow"
@@ -174,6 +190,14 @@
  "endResolvingWindow": {
   "export": "endResolvingWindow",
   "module": "windows"
+ },
+ "expireCombatWindow": {
+  "export": "expireCombatWindow",
+  "module": "matchLifecycle"
+ },
+ "exposeCardToView": {
+  "export": "exposeCardToView",
+  "module": "matchLifecycle"
  },
  "findInstance": {
   "export": "findInstance",
@@ -267,6 +291,10 @@
   "export": "handleDigivolve",
   "module": "intents"
  },
+ "handleDisconnect": {
+  "export": "handleDisconnect",
+  "module": "matchLifecycle"
+ },
  "handleDnaDigivolve": {
   "export": "handleDnaDigivolve",
   "module": "intents"
@@ -287,6 +315,10 @@
   "export": "handlePlayCard",
   "module": "intents"
  },
+ "handleReconnect": {
+  "export": "handleReconnect",
+  "module": "matchLifecycle"
+ },
  "handleRespondCounter": {
   "export": "handleRespondCounter",
   "module": "intents"
@@ -298,6 +330,10 @@
  "inContinuousPass": {
   "export": "inContinuousPass",
   "module": "windows"
+ },
+ "installVisibility": {
+  "export": "installVisibility",
+  "module": "matchLifecycle"
  },
  "instanceOnPermanent": {
   "export": "instanceOnPermanent",
@@ -319,6 +355,10 @@
   "export": "linkCardDeps",
   "module": "actionDeps"
  },
+ "linkMaxOf": {
+  "export": "linkMaxOf",
+  "module": "matchLifecycle"
+ },
  "listCandidateInstances": {
   "export": "listCandidateInstances",
   "module": "ruleProcess"
@@ -326,6 +366,10 @@
  "looseSourceLeftInstallZone": {
   "export": "looseSourceLeftInstallZone",
   "module": "subTriggers"
+ },
+ "makeStateView": {
+  "export": "makeStateView",
+  "module": "matchLifecycle"
  },
  "materializePlayerCustomEffects": {
   "export": "materializePlayerCustomEffects",
@@ -399,6 +443,10 @@
   "export": "recomputeContinuousEffects",
   "module": "continuousPass"
  },
+ "refreshStateView": {
+  "export": "refreshStateView",
+  "module": "matchLifecycle"
+ },
  "residentPlayCostEffects": {
   "export": "residentPlayCostEffects",
   "module": "timing"
@@ -435,6 +483,18 @@
   "export": "runCrossPermanentPlayReducers",
   "module": "timing"
  },
+ "runMatch": {
+  "export": "runMatch",
+  "module": "matchLifecycle"
+ },
+ "runMulliganWindow": {
+  "export": "runMulliganWindow",
+  "module": "matchLifecycle"
+ },
+ "runOneTurn": {
+  "export": "runOneTurn",
+  "module": "matchLifecycle"
+ },
  "runRuleProcessFixpoint": {
   "export": "runRuleProcessFixpoint",
   "module": "ruleProcess"
@@ -451,6 +511,10 @@
   "export": "runTimingWindow",
   "module": "timing"
  },
+ "seatPlayer": {
+  "export": "seatPlayer",
+  "module": "matchLifecycle"
+ },
  "securityEffectsFor": {
   "export": "securityEffectsFor",
   "module": "securityCheck"
@@ -462,6 +526,18 @@
  "shouldDeferNestedTiming": {
   "export": "shouldDeferNestedTiming",
   "module": "windows"
+ },
+ "startDevScenario": {
+  "export": "startDevScenario",
+  "module": "matchLifecycle"
+ },
+ "startMatch": {
+  "export": "startMatch",
+  "module": "matchLifecycle"
+ },
+ "startTurnLoop": {
+  "export": "startTurnLoop",
+  "module": "matchLifecycle"
  },
  "subTriggerAsCollected": {
   "export": "subTriggerAsCollected",
@@ -486,6 +562,10 @@
  "sweepDurations": {
   "export": "sweepDurations",
   "module": "turnFlow"
+ },
+ "syncCounts": {
+  "export": "syncCounts",
+  "module": "matchLifecycle"
  },
  "unsuspendAllForSeat": {
   "export": "unsuspendAllForSeat",

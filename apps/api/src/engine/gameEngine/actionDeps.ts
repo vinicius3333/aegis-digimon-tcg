@@ -64,6 +64,7 @@ import { listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProc
 import { settleBetweenEffects } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
+import { effectiveColorsOf } from "./matchLifecycle.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -267,7 +268,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
     // The base permanent's effective colors (printed ∪ continuously-derived) gate the
     // EvoCost color test (static-continuous-effects, LOCKED Q4 — KB BT3-040 Q1075). The
     // continuous tier is recomputed before each fired timing, so the store is current.
-    derivedBaseColors: (_state, permanent) => engine.effectiveColorsOf(permanent),
+    derivedBaseColors: (_state, permanent) => effectiveColorsOf(engine, permanent),
     effectiveBaseKinds: (_state, permanent) =>
       effectiveKinds(engine.continuous, permanent.permanentId, definitionOf(permanent.topCard)?.kinds ?? []),
     // Positive "can only digivolve into [X]" constraint (EX10-035 digivolveExceptInto): consult

@@ -22,6 +22,7 @@ import { definitionOf } from "../cards/cardData.js";
 import { consultLeavePrevention } from "../effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "../effects/digivolutionTrashRedirect.js";
 import { findLooseInstance } from "./intents.js";
+import { effectiveColorsOf } from "./matchLifecycle.js";
 
 export function effectAccess(engine: GameEngine): GameAccess {
   engine.gameAccess ??= createGameAccess(
@@ -37,7 +38,7 @@ export function effectAccess(engine: GameEngine): GameAccess {
     },
     (seat) => engine.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
     (permanentId, timing) => isTimingActivationDisabled(engine.continuous, permanentId, timing),
-    (permanent) => engine.effectiveColorsOf(permanent),
+    (permanent) => effectiveColorsOf(engine, permanent),
     (instanceId) => engine.continuous.hasColorWaiver(instanceId),
     (instanceId) => engine.continuous.colorRequirementAlternatives(instanceId),
     (permanent) => canAttackerDeclare(engine.access, permanent.controllerSeat, permanent, engine.continuous) === null,
@@ -113,7 +114,7 @@ export function effectEnvironment(engine: GameEngine, trigger: TriggerInfo): Eff
       engine.continuous.hasKeyword(id, keyword) ||
       (keyword.toLowerCase() === "piercing" && engine.modifiers.hasPierce(id)),
     digivolvedThisTurn: (seat) => engine.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
-    effectiveColors: (permanent) => engine.effectiveColorsOf(permanent),
+    effectiveColors: (permanent) => effectiveColorsOf(engine, permanent),
     colorRequirementWaived: (instanceId) => engine.continuous.hasColorWaiver(instanceId),
     colorRequirementAlternatives: (instanceId) => engine.continuous.colorRequirementAlternatives(instanceId),
     canDeclareAttack: (permanent) =>

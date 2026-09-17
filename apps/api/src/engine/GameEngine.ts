@@ -1,28 +1,36 @@
 import { ContinuousEffectScope } from "./effects/ContinuousEffectScope.js";
+import { CardKind, EffectTiming, GameState, EffectDuration, type CardInstance, type Seat } from "@aegis/shared";
+import type { CardColor, Permanent } from "@aegis/shared";
 import type { Client } from "colyseus";
+import type { DevScenarioId } from "./devScenario.js";
+import type { VisibilityZone } from "./state/access.js";
 import {
-  CardKind,
-  EffectTiming,
-  GameState,
-  PlayerState,
-  EffectDuration,
-  Phase,
-  Permanent,
-  type CardColor,
-  type CardInstance,
-  type Seat,
-} from "@aegis/shared";
+  chooseFirstPlayer,
+  clearReady,
+  collectStagedDecks,
+  effectiveColorsOf,
+  expireCombatWindow,
+  exposeCardToView,
+  handleDisconnect,
+  handleReconnect,
+  installVisibility,
+  linkMaxOf,
+  makeStateView,
+  refreshStateView,
+  runMatch,
+  runMulliganWindow,
+  runOneTurn,
+  seatPlayer,
+  startDevScenario,
+  startMatch,
+  startTurnLoop,
+  syncCounts,
+} from "./gameEngine/matchLifecycle.js";
 import { recomputeContinuousEffects, runContinuousPass } from "./gameEngine/continuousPass.js";
 import type { RemovalCause } from "./effects/EffectContext.js";
 import type { Intent, IntentResult } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
-import {
-  buildStateView,
-  exposeCardInZone,
-  refreshStateView as refreshStateViewInto,
-  syncPublicCounts,
-} from "./state/visibility.js";
-import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
+import type { VisibilityPort } from "./state/access.js";
 import { GameStateAccess, markRoutedUsedOption } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
@@ -30,15 +38,14 @@ import { WinCheck } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
 import { DpDeleteBudgetLedger } from "./dpDeleteBudget.js";
-import { lookupDefinition, colorsOf, isDigimon } from "./cards/cardData.js";
+import { lookupDefinition, isDigimon } from "./cards/cardData.js";
 import { DecisionManager } from "./decisions/index.js";
 import { createDecisionApi } from "./decisions/decisionApi.js";
 import { createResolverDecisions, type ResolverDecisions } from "./decisions/resolverDecisions.js";
 import { MainPhaseController } from "./MainPhaseController.js";
 import { BreedingPhaseController } from "./BreedingPhaseController.js";
 import { createPrimitives, ModifierLedger } from "./effects/primitives.js";
-import { ContinuousEffectLedger, effectiveColors } from "./effects/continuous.js";
-import { linkMax } from "./effects/mindLink.js";
+import { ContinuousEffectLedger } from "./effects/continuous.js";
 import { SubTriggerRegistry, type SubTriggerSubscription } from "./effects/subtriggers.js";
 import { type CardStateLookup } from "./cards/CardSource.js";
 import { UseTracker } from "./effects/kernel.js";
@@ -56,11 +63,8 @@ import type {
   SubTriggerEventName,
   SubTriggerSourceScope,
 } from "./effects/EffectContext.js";
-import { TurnStateMachine, type DurationBoundary as TurnBoundary } from "./TurnStateMachine.js";
-import { logError } from "../logger.js";
-import { runSetup, finalizeSecurity, mulliganRedraw, type Rng, type Decklist } from "./setup.js";
-import { layDevScenario, type DevScenarioId } from "./devScenario.js";
-import { validateDecklist } from "./deckValidation.js";
+import { TurnStateMachine } from "./TurnStateMachine.js";
+import { type Rng, type Decklist } from "./setup.js";
 import { MulliganCoordinator } from "./mulligan.js";
 import { mergeRuleDeletions, type PooledRuleDeletion } from "./gameEngine/ruleDeletions.js";
 import { DigivolveSupport } from "./gameEngine/digivolveSupport.js";
@@ -152,7 +156,7 @@ export type { GameEngineHooks, SeatJoinOptions };
 
 export class GameEngine {
   readonly memory: MemoryGauge;
-  private readonly turnMachine: TurnStateMachine;
+  readonly turnMachine: TurnStateMachine;
   readonly access: GameStateAccess;
   readonly win: WinCheck;
   readonly combat: CombatController;
@@ -327,15 +331,15 @@ export class GameEngine {
   /** Publicly played Rush attackers whose play crossed memory and still have their one action window. */
   readonly crossedMemoryRushAttackers = new Set<string>();
   blitzDecisionInFlight = false;
-  private matchSetupStarted = false;
+  matchSetupStarted = false;
   /** Guards {@link GameEngineHooks.onBothReady} against firing more than once. */
   bothReadyFired = false;
   /** The opening-hand mulligan window (subsystem: deck-and-setup). */
   readonly mulligan: MulliganCoordinator;
   /** Decklists staged at seatPlayer, consumed by startMatch (index === seat). */
-  private readonly stagedDecks: (Decklist | undefined)[] = [undefined, undefined];
+  readonly stagedDecks: (Decklist | undefined)[] = [undefined, undefined];
   /** Per-seat shuffle PRNG produced by setup (so a mulligan reshuffles deterministically). */
-  private rngForSeat: ((seat: Seat) => Rng) | undefined;
+  rngForSeat: ((seat: Seat) => Rng) | undefined;
   /** Monotonic source of permanentIds unique within the match. */
   permanentSeq = 0;
   /** Shared completion barrier for the current continuous recompute batch. */
@@ -470,7 +474,7 @@ export class GameEngine {
       declinedAttackArts: this.declinedAttackArts,
       cardSourceOf: (instance) => cardSourceOf(this, instance),
       buildEffectContext: (source, trigger) => buildEffectContext(this, source, trigger),
-      effectiveColorsOf: (permanent) => this.effectiveColorsOf(permanent),
+      effectiveColorsOf: (permanent) => effectiveColorsOf(this, permanent),
       collectRuleProcessMovements: () => collectRuleProcessMovements(this),
       flushRuleTriggerPool: (pool) => flushRuleTriggerPool(this, pool),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
@@ -503,7 +507,7 @@ export class GameEngine {
       win: this.win,
       primitives: () => this.primitives,
       justLinked: this.justLinked,
-      linkMaxOf: (permanent) => this.linkMaxOf(permanent),
+      linkMaxOf: (permanent) => linkMaxOf(this, permanent),
       isRuleProcessing: () => this.ruleProcessing,
     });
     this.combat = new CombatController(this.access, {
@@ -615,7 +619,7 @@ export class GameEngine {
         ),
       effectiveColorsOf: (permanentId) => {
         const permanent = this.access.permanentById(permanentId);
-        return permanent === undefined ? [] : this.effectiveColorsOf(permanent);
+        return permanent === undefined ? [] : effectiveColorsOf(this, permanent);
       },
       consultLeavePrevention: async (permanentIds, opts) =>
         this.consultLeavePrevention(permanentIds, "byBattle", undefined, opts),
@@ -1040,298 +1044,8 @@ export class GameEngine {
    */
   private readonly declinedAttackArts = new Set<string>();
 
-  /**
-   * A permanent's EFFECTIVE color set (static-continuous-effects subsystem, LOCKED Q4): its
-   * top card's printed colors UNIONED with every continuously-derived color grant
-   * layering (BaseCardColors then each active color-grant appends, then Distinct;
-   * documented behavior). Server-authoritative: the set is recomputed by the engine layering
-   * pass, never supplied by a client. The color-legality consumers (this play-time gate and
-   * the digivolve EvoCost color check) read this instead of the printed colors. An empty
-   * top card yields no colors.
-   */
-  effectiveColorsOf(permanent: Permanent): CardColor[] {
-    const top = permanent.topCard;
-    if (top === undefined) return [];
-    return effectiveColors(this.continuous, permanent.permanentId, colorsOf(top.cardId)) as CardColor[];
-  }
-
-  /**
-   * A permanent's EFFECTIVE link limit:
-   * the base 1 plus the sum of every active `<Link +N>` grant keyed to this permanent in
-   * the continuous-effect ledger. Server-authoritative — `runLink` and the rule sweep read
-   * this to cap how many link cards a Digimon may hold; a client never supplies the cap.
-   */
-  linkMaxOf(permanent: Permanent): number {
-    return linkMax(permanent, { linkMaxDelta: (id) => this.continuous.linkMaxDelta(id) });
-  }
-
-  /**
-   * Attach a connected client to a seat and stage their decklist. A placeholder
-   * PlayerState (name + session, empty zones) is seated immediately so the room can
-   * build this seat's StateView on join; the real zones (deck/egg/hand/security) are
-   * materialized from the staged decklist by {@link startMatch} when both seats are
-   * present and setup runs.
-   *
-   * The client deck is attacker-controlled, so it is validated against the
-   * deck-construction rules (50 main + ≤5 eggs, per-card copy limits, banlist
-   * single-card restrictions) BEFORE anything is staged. An illegal deck throws,
-   * which propagates out of {@link AegisRoom.onJoin} as a Colyseus seat rejection;
-   * neither {@link PlayerState} nor the staged decklist is created for the seat.
-   *
-   * A fully-empty deck (`mainDeck` and `eggDeck` both empty) is the headless
-   * board-setup sentinel used by engine unit tests that hand-build the board and
-   * never run {@link startMatch}; it bypasses validation. A real client join always
-   * sends a populated deck, and the 50-card size rule rejects an empty deck for
-   * actual play, so this sentinel cannot seat a playable illegal deck.
-   */
-  seatPlayer(seat: Seat, sessionId: string, options: SeatJoinOptions): void {
-    const deckIsEmpty = options.deck.mainDeck.length === 0 && options.deck.eggDeck.length === 0;
-    if (!deckIsEmpty) {
-      const verdict = validateDecklist(options.deck, { betaBattleMode: options.betaBattleMode === true });
-      if (!verdict.ok) throw new Error(`illegal deck: ${verdict.reason}`);
-    }
-    const player = new PlayerState();
-    player.seat = seat;
-    player.sessionId = sessionId;
-    player.displayName = options.displayName;
-    this.state.players[seat] = player;
-    this.stagedDecks[seat] = options.deck;
-    // Seating replaces the PlayerState object, so the port has to be re-installed on the new
-    // one; installing it here (rather than at match start) also covers the cards `runSetup`
-    // deals, which arrive before any turn is played.
-    if (this.visibilityNotify !== undefined) installVisibilityPort(player, this.visibilityNotify);
-  }
-
-  /** Readiness belongs to the current occupant, not permanently to a seat. */
-  clearReady(seat: Seat): void {
-    if (!this.bothReadyFired) this.readySeats.delete(seat);
-  }
-
-  /**
-   * Begin the match once both seats are filled (subsystem: deck-and-setup). Runs the
-   * official pre-game procedure (Comprehensive Rules §5-2) and then starts the turn
-   * loop:
-   *
-   *   1. choose the first player deterministically from the match seed (stands in for
-   *      §5-2-1-3 rock-paper-scissors until a coin-toss intent flow is added),
-   *   2. {@link runSetup}: build both players' zones from their decklists, shuffle
-   *      deck + egg deck (seeded), deal 5-card opening hands, memory := 0, record the
-   *      first player (§5-2-1-1/2/4/7),
-   *   3. emit `matchStarted`,
-   *   4. open the mulligan window for each seat, first player first (§5-2-1-4/5):
-   *      a redraw reshuffles the hand back and draws 5 again, on the SAME seeded
-   *      stream,
-   *   5. {@link finalizeSecurity}: set each seat's 5-card face-down security stack
-   *      from the post-mulligan deck top (§5-2-1-6),
-   *   6. start the turn loop at turn 1 with the first player (§5-2-1-8); the
-   *      first player's first Draw is skipped by the turn machine.
-   *
-   * Async (the mulligan window awaits client input); fire-and-forget from the room.
-   */
-  startMatch(): void {
-    this.matchSetupStarted = true;
-    void this.runMatch();
-  }
-
-  private async runMatch(): Promise<void> {
-    const decks = this.collectStagedDecks();
-    if (decks === undefined) return; // a seat joined without a deck; cannot start
-
-    const firstSeat = this.chooseFirstPlayer();
-    const setup = runSetup(this.state, {
-      seats: [
-        {
-          sessionId: this.state.players[0]!.sessionId,
-          displayName: this.state.players[0]!.displayName,
-          deck: decks[0],
-        },
-        {
-          sessionId: this.state.players[1]!.sessionId,
-          displayName: this.state.players[1]!.displayName,
-          deck: decks[1],
-        },
-      ],
-      firstSeat,
-      seed: this.hooks.seed,
-      onShuffled: (seat, deck) => this.hooks.emit({ kind: "deckShuffled", seat, deck }),
-    });
-    this.rngForSeat = setup.rngForSeat;
-
-    this.hooks.emit({ kind: "matchStarted", firstSeat });
-
-    await this.runMulliganWindow(firstSeat);
-    if (this.state.gameOver) return; // a seat left during setup
-
-    finalizeSecurity(this.state);
-
-    void this.startTurnLoop();
-  }
-
-  /**
-   * Development-only alternative to {@link startMatch}: skip the pre-game procedure, lay a
-   * hand-built board for the named scenario, and start the real turn loop on it. The room only
-   * exposes this outside production.
-   */
-  startDevScenario(scenario: DevScenarioId): void {
-    const decks = this.collectStagedDecks();
-    if (decks === undefined) return;
-    this.matchSetupStarted = true;
-    layDevScenario(scenario, this.state, decks);
-    this.hooks.emit({ kind: "matchStarted", firstSeat: this.state.turnSeat });
-    void this.startTurnLoop();
-  }
-
-  /** Gather both staged decklists; undefined if either seat has not staged one. */
-  private collectStagedDecks(): [Decklist, Decklist] | undefined {
-    const a = this.stagedDecks[0];
-    const b = this.stagedDecks[1];
-    if (a === undefined || b === undefined) return undefined;
-    return [a, b];
-  }
-
-  /**
-   * Decide the first player. The rulebook uses rock-paper-scissors (§5-2-1-3); since
-   * Aegis has no such intent yet, the choice is derived deterministically from the
-   * server-only match seed so a given seed always yields the same first player (and
-   * tests are reproducible). Replace with the coin-toss intent flow when added.
-   */
-  private chooseFirstPlayer(): Seat {
-    return ((this.hooks.seed & 1) === 0 ? 0 : 1) as Seat;
-  }
-
-  /**
-   * Run the mulligan window for both seats in turn order (first player first,
-   * §5-2-1-4). Each seat is prompted via the MulliganCoordinator and answers with a
-   * `mulligan` intent; a redraw is applied on the seat's own seeded PRNG stream.
-   */
-  private async runMulliganWindow(firstSeat: Seat): Promise<void> {
-    const order: Seat[] = [firstSeat, (1 - firstSeat) as Seat];
-    for (const seat of order) {
-      if (this.state.gameOver) return;
-      const keep = await this.mulligan.request(seat);
-      if (!keep && this.rngForSeat !== undefined) {
-        const player = this.state.players[seat];
-        if (player !== undefined) {
-          mulliganRedraw(player, this.rngForSeat(seat), (deck) =>
-            this.hooks.emit({ kind: "deckShuffled", seat, deck }),
-          );
-        }
-      }
-    }
-  }
-
-  /**
-   * Drive the full turn loop to completion (subsystem: turn-phase-state-machine).
-   * Async and fire-and-forget from the caller's perspective; surfaces a fatal engine
-   * error to the room rather than letting the promise reject silently.
-   */
-  async startTurnLoop(): Promise<void> {
-    try {
-      await this.turnMachine.run();
-    } catch (err) {
-      logError("[engine] turn loop fatal error:", err);
-      this.hooks.emit({
-        kind: "actionRejected",
-        intent: "turnLoop",
-        reason: err instanceof Error ? err.message : "turn-loop-error",
-      });
-    }
-  }
-
-  /**
-   * Drive exactly ONE turn (Active -> Draw -> Breeding -> Main -> End) through the real
-   * turn machine and its real timing wiring. Test-only seam: it is a thin pass-through
-   * to `turnMachine.runTurn()` (no new game logic) so a harness can open the OnStartTurn
-   * / OnEndTurn windows — which fire effects through the real `fireTiming` — without
-   * spinning up the full `run()` loop (whose interactive Main phase blocks on client
-   * verbs). The Main phase still blocks until the turn player sends an `endPhase` intent
-   * (MainPhaseController), so the caller awaits this promise while feeding that intent.
-   *
-   * This exists because two turn-window effects (Start-of-Your-Turn SetMemory, the
-   * end-of-turn timings) are only reachable through the loop; the hand-laid intent
-   * harness has no beginTurn intent. Mirrors the `startTurnLoop` pattern (it likewise
-   * delegates straight to the turn machine). NOT part of the production intent surface.
-   */
-  async runOneTurn(): Promise<void> {
-    await this.turnMachine.runTurn();
-  }
-
-  /**
-   * Build the per-seat filtered view of state (hidden zones redacted).
-   *
-   * The secret PlayerState zones carry @view(PRIVATE_VIEW_TAG); buildStateView
-   * unlocks only THIS seat's own private zones, so the opponent never receives the
-   * card identities in your deck, egg deck, hand, or face-down security. The public
-   * board (battle areas, breeding, trash, memory, phase) and the per-zone count
-   * mirrors stay visible to both. See engine/state/visibility.ts.
-   *
-   * syncPublicCounts is called first so the public counts reflect the current zone
-   * sizes at the moment a client joins / its view is (re)built. The per-state-patch
-   * refresh of those counts is the room/turn-loop's responsibility (it must call
-   * syncPublicCounts before each broadcast); that hook is owned by the
-   * intent-protocol-and-room subsystem.
-   */
-  makeStateView(seat: Seat): Client["view"] {
-    syncPublicCounts(this.state);
-    return buildStateView(this.state, seat);
-  }
-
-  /**
-   * Bring an EXISTING per-seat StateView up to date in place, instead of replacing
-   * it. The room MUST use this (not `makeStateView`) for every mid-match refresh —
-   * see `engine/state/visibility.ts`'s `refreshStateView` for why replacing a
-   * connected client's view wholesale silently strands the removal of any card
-   * that just left a `@view`-tagged zone (e.g. a card played from hand), and
-   * `AegisRoom.rebuildClientViews` for the call site this backs.
-   */
-  refreshStateView(view: Client["view"], seat: Seat): void {
-    if (view === undefined) return;
-    syncPublicCounts(this.state);
-    refreshStateViewInto(view, this.state, seat);
-  }
-
   /** Set once by the room; re-applied to each PlayerState as seats are filled. */
-  private visibilityNotify?: VisibilityPort;
-
-  /**
-   * Install the mutation seam's visibility port for both seats. `notify` is called once per
-   * card arrival in a loose zone; the room turns that into an `exposeCardInZone` per connected
-   * client. Idempotent — installing again simply replaces the callback.
-   *
-   * Without this the private zones are never exposed mid-match (the per-patch full walk that
-   * used to do it was removed: it re-queued a forced ADD for every field of every card on
-   * every patch, so each patch carried the whole state).
-   */
-  installVisibility(notify: VisibilityPort): void {
-    this.visibilityNotify = notify;
-    for (const player of this.state.players) installVisibilityPort(player, notify);
-  }
-
-  /**
-   * Apply one card arrival to one client's view. Thin pass-through to the visibility policy
-   * so the room stays free of StateView details, mirroring `refreshStateView` above.
-   */
-  exposeCardToView(
-    view: Client["view"],
-    viewerSeat: Seat,
-    ownerSeat: Seat,
-    zone: VisibilityZone,
-    card: CardInstance,
-  ): void {
-    if (view === undefined) return;
-    exposeCardInZone(view, viewerSeat, ownerSeat, zone, card);
-  }
-
-  /**
-   * Refresh the public per-zone count mirrors from the (hidden) zone arrays so the
-   * opponent's view shows correct deck/hand/security sizes (subsystem:
-   * intent-protocol-and-room). The room calls this from `onBeforePatch`, i.e. before
-   * every state broadcast, which is the documented owner of this refresh (the private
-   * arrays are redacted per-seat, so only these counts convey their sizes).
-   */
-  syncCounts(): void {
-    syncPublicCounts(this.state);
-  }
+  visibilityNotify?: VisibilityPort;
 
   /**
    * Validate and apply one player intent. The engine's main entry point from the room;
@@ -1397,6 +1111,97 @@ export class GameEngine {
     return runContinuousPass(this, noPromptAsk, seed);
   }
 
+  /**
+   * The match-lifecycle and view surface the room drives. Bodies in
+   * {@link ./gameEngine/matchLifecycle.ts}; these are the public API the room and the
+   * tests call, so the class keeps their names and shapes.
+   */
+  seatPlayer(seat: Seat, sessionId: string, options: SeatJoinOptions): void {
+    return seatPlayer(this, seat, sessionId, options);
+  }
+
+  clearReady(seat: Seat): void {
+    return clearReady(this, seat);
+  }
+
+  startMatch(): void {
+    return startMatch(this);
+  }
+
+  runMatch(): Promise<void> {
+    return runMatch(this);
+  }
+
+  startDevScenario(scenario: DevScenarioId): void {
+    return startDevScenario(this, scenario);
+  }
+
+  collectStagedDecks(): [Decklist, Decklist] | undefined {
+    return collectStagedDecks(this);
+  }
+
+  chooseFirstPlayer(): Seat {
+    return chooseFirstPlayer(this);
+  }
+
+  runMulliganWindow(firstSeat: Seat): Promise<void> {
+    return runMulliganWindow(this, firstSeat);
+  }
+
+  startTurnLoop(): Promise<void> {
+    return startTurnLoop(this);
+  }
+
+  runOneTurn(): Promise<void> {
+    return runOneTurn(this);
+  }
+
+  makeStateView(seat: Seat): Client["view"] {
+    return makeStateView(this, seat);
+  }
+
+  refreshStateView(view: Client["view"], seat: Seat): void {
+    return refreshStateView(this, view, seat);
+  }
+
+  installVisibility(notify: VisibilityPort): void {
+    return installVisibility(this, notify);
+  }
+
+  exposeCardToView(
+    view: Client["view"],
+    viewerSeat: Seat,
+    ownerSeat: Seat,
+    zone: VisibilityZone,
+    card: CardInstance,
+  ): void {
+    return exposeCardToView(this, view, viewerSeat, ownerSeat, zone, card);
+  }
+
+  syncCounts(): void {
+    return syncCounts(this);
+  }
+
+  handleReconnect(seat: Seat): void {
+    return handleReconnect(this, seat);
+  }
+
+  handleDisconnect(seat: Seat, consented: boolean): void {
+    return handleDisconnect(this, seat, consented);
+  }
+
+  expireCombatWindow(): boolean {
+    return expireCombatWindow(this);
+  }
+
+  effectiveColorsOf(permanent: Permanent): CardColor[] {
+    return effectiveColorsOf(this, permanent);
+  }
+
+  linkMaxOf(permanent: Permanent): number {
+    return linkMaxOf(this, permanent);
+  }
+
   fireSubTrigger(
     event: SubTriggerEventName,
     payload: TriggerInfo = {},
@@ -1432,49 +1237,5 @@ export class GameEngine {
   /** Public legality signal used by clients/tests to know the confirmed Blitz window is ready. */
   hasAcceptedBlitzAttack(permanentId: string): boolean {
     return this.acceptedBlitzAttackers.has(permanentId);
-  }
-
-  /**
-   * Handle a seat disconnecting. `handleDisconnect` marks PlayerState.connected =
-   * false; on a consented drop (or once the grace period elapses) the caller
-   * resolves the match as a surrender. The grace-period clock lives in
-   * `AegisRoom.onLeave` via Colyseus's `allowReconnection`.
-   */
-  /**
-   * Close an unanswered combat prompt at its safe default (the room's answer-timeout
-   * backstop). Returns whether a window was open to close.
-   */
-  expireCombatWindow(): boolean {
-    return this.combat.expireOpenWindow();
-  }
-
-  handleReconnect(seat: Seat): void {
-    const player = this.state.players[seat];
-    if (player !== undefined) player.connected = true;
-  }
-
-  handleDisconnect(seat: Seat, consented: boolean): void {
-    const player = this.state.players[seat];
-    if (player !== undefined) player.connected = false;
-
-    // A consented leave during an active match is a concession: the opponent wins
-    // immediately. Phase.None means the match hasn't started yet (still in
-    // setup/mulligan), so a pre-game disconnect is not a surrender — just clean up.
-    if (consented && !this.state.gameOver && (this.state.phase !== Phase.None || this.matchSetupStarted)) {
-      this.win.surrender(seat);
-      this.decisions.cancel();
-      this.mulligan.cancel();
-      this.mainPhase.abort();
-      this.breeding.abort();
-      return;
-    }
-    if (consented && !this.state.gameOver && this.state.phase === Phase.None) {
-      this.mulligan.cancel();
-      return;
-    }
-    // A non-consented drop just marks the seat disconnected here; the reconnection
-    // grace period and its clock are owned by AegisRoom.onLeave (Colyseus
-    // allowReconnection), which calls handleDisconnect(seat, true) if the grace
-    // period elapses without a reconnect.
   }
 }
