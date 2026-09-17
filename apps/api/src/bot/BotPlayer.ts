@@ -78,6 +78,12 @@ export class BotPlayer {
   private readonly policy: BotPolicy;
   /** Narration the opposing client still owes the last attack, in milliseconds. */
   private narrationUntil = 0;
+  /**
+   * A security check is open: the card is face up and the engine is holding the attack on
+   * whatever it raises next. Opened by `securityRevealed`, closed by `securityChecked` —
+   * the protocol promises exactly one of each, in that order.
+   */
+  private resolvingSecurityCheck = false;
   private readonly usesRealTimePacing: boolean;
   private readonly pause: (minMs: number, maxMs: number) => Promise<void>;
 
@@ -119,7 +125,12 @@ export class BotPlayer {
     // A reactive [All Turns] clause has already interrupted an action. Holding its optional
     // choice for the ordinary main-phase think time leaves the effect visibly hanging after
     // its source has lit up; answer it on the same short reflex clock as combat windows.
-    if (request.options?.timing === "AllTurns") {
+    // Same clock for a decision raised INSIDE a security check. The reveal is on screen,
+    // the engine is holding the attack on this answer, and the narration the think time
+    // would wait for is the very scene this answer is blocking — so the main-phase pace
+    // reads as the match freezing mid-check (match fd8ad770 stalled 5.2s on exactly this,
+    // an [On Play] target choice from a card the bot's own security replacement played).
+    if (request.options?.timing === "AllTurns" || this.resolvingSecurityCheck) {
       void this.reflex().then(answer);
       return;
     }
@@ -171,7 +182,11 @@ export class BotPlayer {
           this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + EFFECT_CHOICE_NARRATION_MS;
         }
         break;
+      case "securityRevealed":
+        this.resolvingSecurityCheck = true;
+        break;
       case "securityChecked":
+        this.resolvingSecurityCheck = false;
         // Each check is its own centre-stage scene, and the client plays them one
         // after another, so a multi-check attack owes the sum of them.
         this.narrationUntil =
