@@ -273,6 +273,36 @@ const NO_LINK_TARGETS: readonly string[] = [];
 /** `CardInstance.projectedPlayCost` sentinel: this card has no projectable play cost right now. */
 const NO_PROJECTED_COST = -1;
 
+/**
+ * The verbs refused while an attack is resolving. Everything a seat does to its own board
+ * belongs to a Main-phase action window, and CR section 11 gives the attack the board until
+ * the battle ends. The combat responses (`declareBlock`, `declineBlock`, `respondCounter`,
+ * `respondAlliance`, `respondEvade`, `respondBarrier`), `respondDecision`, `ready` and
+ * `surrender` are deliberately absent: they drive the attack forward or end the match.
+ */
+const ATTACK_BLOCKED_INTENTS: ReadonlySet<Intent["type"]> = new Set([
+  "playCard",
+  "appFusion",
+  "digivolve",
+  "dnaDigivolve",
+  "linkCard",
+  "attack",
+  "activateEffect",
+  "endPhase",
+  "hatchEgg",
+  "moveFromBreeding",
+]);
+
+/**
+ * A ＜Blast Digivolve＞ / ＜Blast DNA Digivolve＞ declaration, the one digivolve that belongs to
+ * the defending seat's §11-3 Counter Timing window rather than to a Main-phase action window.
+ * Its own validator enforces the open window, so {@link ATTACK_BLOCKED_INTENTS} exempts it
+ * instead of refusing the keyword outright.
+ */
+function isBlastDigivolve(intent: Intent): boolean {
+  return (intent.type === "digivolve" || intent.type === "dnaDigivolve") && intent.useBlastDigivolve === true;
+}
+
 /** A hand card reads as playable when it validates, or when only memory is short of a material-cost route. */
 function playableFromHand(check: PlayCardCheck, cardId: string): boolean {
   return check.ok || (check.reason === "insufficient-memory" && hasMaterialCostRoute(cardId));
@@ -7046,6 +7076,24 @@ export class GameEngine {
     if (intent.type === "endPhase" && this.mainEntryPending && mainActionWhileResolving) {
       this.deferredEndPhaseSeat = seat;
       return { ok: true };
+    }
+    // CR section 11: an attack runs from declaration to the end of the battle as one
+    // uninterrupted process. While it is in flight — including while it is parked on a
+    // combat prompt the defending seat still owes an answer to (block, Counter Timing,
+    // Alliance, Evade, Barrier) — no board verb is accepted from either seat. Those
+    // prompts are mirrored in `state.combatWindow`, not in `state.pendingDecision`, so
+    // the per-verb `decision-pending` gates do not see them; without this the turn
+    // player could play Digimon between a redirected attack and its battle, and end the
+    // turn with the attack never resolved. The room's answer-timeout backstop
+    // (`expireCombatWindow`) guarantees the window always closes, so this cannot wedge
+    // the turn. The combat response verbs, `respondDecision`, `ready` and `surrender`
+    // stay open: they are how the attack makes progress or the match ends.
+    if (
+      this.combat.currentAttackerId !== undefined &&
+      ATTACK_BLOCKED_INTENTS.has(intent.type) &&
+      !isBlastDigivolve(intent)
+    ) {
+      return { ok: false, reason: "wrong-phase" };
     }
     switch (intent.type) {
       case "playCard":

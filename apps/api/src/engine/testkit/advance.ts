@@ -1,6 +1,7 @@
 import { EffectTiming, Phase, type CardInstance, type EffectDuration, type Permanent, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../GameEngine.js";
 import type { Primitives, RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
+import { drainMicrotasks } from "./harness.js";
 import { internalsOf } from "./internals.js";
 
 /**
@@ -104,6 +105,27 @@ export function advance(engine: GameEngine) {
       const ended = engine.applyIntent(seat, { type: "endPhase" });
       if (!ended.ok) {
         throw new Error(`Could not end seat ${seat}'s Main phase: ${ended.reason}`);
+      }
+    },
+
+    /**
+     * Run an in-flight attack to completion for a test that does not care how its combat
+     * prompts are answered. Each open window is closed at the production backstop's safe
+     * default (`GameEngine.expireCombatWindow`, which the room drives from its answer
+     * timeout), until the attack releases the board.
+     *
+     * Needed because an attack holds the board from declaration to the end of the battle,
+     * so the turn cannot be passed while one is parked on an unanswered prompt. A test that
+     * cares about a specific answer sends the response verb itself instead.
+     */
+    async finishAttack(): Promise<void> {
+      for (let window = 0; window < 16 && internals.combat.isAttacking; window += 1) {
+        engine.expireCombatWindow();
+        await drainMicrotasks(20);
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      }
+      if (internals.combat.isAttacking) {
+        throw new Error("Attack still in flight after closing 16 combat windows at their defaults");
       }
     },
 

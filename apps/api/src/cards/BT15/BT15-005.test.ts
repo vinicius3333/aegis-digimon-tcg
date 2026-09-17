@@ -115,6 +115,8 @@ describe("BT15-005", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("first").isSuspended && s.state.pendingDecision === undefined);
+    // The attack owns the board until it ends; the turn cannot be passed out from under it.
+    await advance(s.engine).finishAttack();
     advance(s.engine).endMainPhaseIfOpen(1);
     await firstOpponentTurn;
 
