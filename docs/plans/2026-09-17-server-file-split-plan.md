@@ -25,8 +25,8 @@ shape, no default exports, no `utils.ts`. Two rules earn their keep here:
 | 1 | `engine/effects/EffectContext.ts` | 2,244 | none — types only | done |
 | 2 | `engine/effects/interpreter/costs.ts` | 2,491 | low — a switch per cost kind | done |
 | 3 | `engine/combat/controller.ts` | 1,964 | types out; class blocked | partial |
-| 4 | `engine/effects/primitives.ts` | 7,033 | medium — one object literal, split by port | next |
-| 5 | `engine/effects/continuous.ts` | 1,895 | medium |
+| 4 | `engine/effects/primitives.ts` | 7,033 | medium — 146 mutually recursive verbs | done |
+| 5 | `engine/effects/continuous.ts` | 1,895 | shapes out; ledger blocked | partial |
 | 6 | `engine/GameEngine.ts` | 8,634 | high — its own plan, one slice per commit |
 
 `shared/effects/data.ts` (2,141), `SeriesStore.ts` (1,454) and `AegisRoom.ts`
@@ -87,3 +87,52 @@ ten-member context object through 527 lines of the engine's combat core. Either
 is a design decision about how `CombatController` is composed, not a file move,
 and it needs to be taken deliberately rather than as a side effect of a
 line-count target.
+
+## 4. `primitives.ts` → `effects/verbs/`
+
+Two passes. The first moved what closed over nothing: the ports
+(`verbs/types.ts`) and the state-only helpers (`looseInstances`,
+`digivolveCost`, `cardPlacement`). The second took `createPrimitives` itself —
+6,130 lines holding 146 verbs — into 28 modules grouped by subject, leaving
+primitives.ts at 116 lines to assemble them.
+
+### The seam
+
+The verbs were one closure, so every name was in scope for every other, and they
+use it: 139 cross-section references, including cycles (digivolve ↔ trash,
+trash ↔ continuous, reveal ↔ return). Independent factories cannot express that.
+
+`verbs/context.ts` carries the shared state plus two late-bound slots — `fx`,
+the assembled verb set, and `helpers`, the non-verb logic more than one module
+needs. Both are filled before any verb can run, and each module opens with
+forwarding aliases that read them at call time:
+
+```ts
+const trash: Primitives["trash"] = (...args) => pc.fx.trash(...args);
+```
+
+That keeps every verb body byte-identical, which is the point: a
+whitespace-insensitive comparison of the old closure against the 28 modules
+removes zero characters.
+
+### What the split surfaced
+
+`draw` takes a `drawReason` and `relocatePermanent` an `emitMovementEvents` that
+the published `Primitives` contract does not mention. Inside one closure nobody
+noticed; routing through `fx` fails to compile. `InternalVerbs` in context.ts
+records the gap rather than papering over it — deciding whether the contract or
+the implementation is wrong is a separate question.
+
+### Still over 400
+
+`deletion.ts` (685) is one 640-line `deletePermanent`. `dnaDigivolve.ts` (421)
+and `play.ts` (413) are two and four functions. Each is a function-size problem,
+not a grouping problem.
+
+## 5. `continuous.ts` → the shapes only
+
+`continuous/` takes the 440 lines of entry interfaces and the 75 lines of
+readers. `ContinuousEffectLedger` (1,300 lines) stays whole, for the same reason
+`CombatController` did: 42 private arrays, one per grant kind, with `allEntries`,
+the boundary sweep and the battle-scope machinery walking all of them. One
+sub-ledger per grant kind is a plausible design — and a design decision.
