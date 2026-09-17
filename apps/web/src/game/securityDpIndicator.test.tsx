@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
-import { Pile } from "./boardPieces";
+import { Pile } from "./piece";
 import { Side } from "./side";
 
 afterEach(cleanup);

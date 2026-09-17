@@ -1,6 +1,6 @@
 import type { Permanent, PlayerState } from "@aegis/shared";
 import { attackTargetIdsOf } from "../../boardModel";
-import type { HandEntry } from "../../boardPieces";
+import type { HandEntry } from "../../piece";
 import { eligibleBase } from "./eligibility";
 
 // The cards a target selection currently offers, which is what the mask lights.

@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { COMBAT_PROMPT_EVENTS, DECISION_KINDS, SERVER_EVENT_KINDS, type ServerEventKind } from "@aegis/shared";
-import { SUPPORTED_COMBAT_PROMPTS, SUPPORTED_DECISION_KINDS } from "./game/overlays";
+import { SUPPORTED_COMBAT_PROMPTS, SUPPORTED_DECISION_KINDS } from "./game/overlay";
 
 const srcDir = dirname(fileURLToPath(import.meta.url));
 

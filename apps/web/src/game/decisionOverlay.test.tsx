@@ -12,7 +12,7 @@ import {
   DecisionOverlay,
   EvoCostChoiceOverlay,
   WaitingOverlay,
-} from "./overlays";
+} from "./overlay";
 import type { EvoCostOption } from "./boardModel";
 import { CardOpenerProvider } from "./cardLinks";
 

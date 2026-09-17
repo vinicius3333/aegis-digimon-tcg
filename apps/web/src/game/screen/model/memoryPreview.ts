@@ -1,6 +1,6 @@
 import type { Permanent, PlayerState } from "@aegis/shared";
 import { getDigivolveCostOptions } from "../../boardModel";
-import type { HandEntry } from "../../boardPieces";
+import type { HandEntry } from "../../piece";
 import type { DragIntent } from "../../dragIntents";
 import type { MemoryDropTarget } from "../../memoryCostPreview";
 import { DragKind } from "../enums";

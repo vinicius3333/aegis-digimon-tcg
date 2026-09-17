@@ -1,4 +1,4 @@
-import type { StackCard } from "./overlays";
+import type { StackCard } from "./overlay";
 import type { EvoCost } from "@aegis/shared";
 import { Side } from "./side";
 

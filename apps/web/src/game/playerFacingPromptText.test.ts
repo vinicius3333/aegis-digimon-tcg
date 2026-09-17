@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { playerFacingPromptText } from "./overlays";
+import { playerFacingPromptText } from "./overlay";
 
 describe("playerFacingPromptText", () => {
   it("keeps the engine's own question for an optional effect", () => {

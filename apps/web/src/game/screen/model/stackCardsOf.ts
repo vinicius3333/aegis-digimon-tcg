@@ -1,5 +1,5 @@
 import type { Permanent } from "@aegis/shared";
-import type { StackCard } from "../../overlays";
+import type { StackCard } from "../../overlay";
 
 /** Flatten a permanent into its [active, digivolution…, linked…] cards for the modal. */
 export function stackCardsOf(input: { perm: Permanent }): StackCard[] {

@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { CardInstance, Permanent } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
-import { PermanentView } from "./boardPieces";
+import { PermanentView } from "./piece";
 
 afterEach(() => cleanup());
 

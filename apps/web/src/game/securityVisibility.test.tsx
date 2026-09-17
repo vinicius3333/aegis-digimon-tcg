@@ -3,8 +3,8 @@ import { CardInstance } from "@aegis/shared";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { I18nProvider } from "../i18n";
-import { Pile } from "./boardPieces";
-import { TrashViewerOverlay } from "./overlays";
+import { Pile } from "./piece";
+import { TrashViewerOverlay } from "./overlay";
 import { Side } from "./side";
 
 afterEach(cleanup);

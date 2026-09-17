@@ -17,7 +17,7 @@ import { DESKTOP_NOTICE_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { CardLink, useCardOpener } from "./cardLinks";
-import { TIMING_LABELS, playerFacingEffectClause } from "./overlays";
+import { TIMING_LABELS, playerFacingEffectClause } from "./overlay";
 import { type DeletedCard, type MatchNotice, type NoticeKeyword } from "./notices";
 
 /** The art beside the clause: a thumbnail on a phone, a readable card on a desktop board. */

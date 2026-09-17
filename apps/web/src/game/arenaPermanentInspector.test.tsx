@@ -4,10 +4,10 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { GameScreen } from "./GameScreen";
-import { CardActionMenu } from "./overlays";
+import { CardActionMenu } from "./overlay";
 import { buildPermanentDetail } from "./permanentDetail";
 import { groupedInspectorEvolutionCosts, inlineInspectorKeywordLines } from "./arenaInspectorModel";
-import { PermanentView } from "./boardPieces";
+import { PermanentView } from "./piece";
 import { Side } from "./side";
 
 it("shows opposing Digimon effect protection on the board and removes the badge when it expires", () => {

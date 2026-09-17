@@ -4,7 +4,7 @@
 
 import type { Permanent, PlayerState } from "@aegis/shared";
 import { appFusionRoutesForHost, type ProjectedDigivolveRoute } from "../../boardModel";
-import type { HandEntry } from "../../boardPieces";
+import type { HandEntry } from "../../piece";
 
 export function digivolveTargetsOf(input: {
   handEntries: readonly HandEntry[];

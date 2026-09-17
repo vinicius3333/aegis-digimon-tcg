@@ -2,7 +2,7 @@
 import { CardInstance } from "@aegis/shared";
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { Pile } from "./boardPieces";
+import { Pile } from "./piece";
 import { SECURITY_FLIP_DURATION } from "./SecurityCardSlot";
 import { Side } from "./side";
 

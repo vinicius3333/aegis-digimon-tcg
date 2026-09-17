@@ -10,7 +10,7 @@
 
 import { getCardDefinition, type Seat, type ServerEvent } from "@aegis/shared";
 import type { TranslationKey, TranslationParams } from "../i18n";
-import { playerFacingEffectClause } from "./overlays";
+import { playerFacingEffectClause } from "./overlay";
 import { TIMINGS } from "./timings";
 
 export type OpponentActionKind = "movedFromBreeding" | "attack" | "combatResult" | "revealed" | "effect";

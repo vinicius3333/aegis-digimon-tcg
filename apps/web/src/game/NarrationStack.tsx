@@ -9,7 +9,7 @@ import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation, type Translate } from "../i18n";
 import { cardDisplayName } from "./cardLinks";
-import { TIMING_LABELS, playerFacingEffectClause } from "./overlays";
+import { TIMING_LABELS, playerFacingEffectClause } from "./overlay";
 import { NoticeStack } from "./NoticeStack";
 import { SidePanelStack } from "./SidePanelStack";
 import { isCardListNotice, narrationRemaining, type NarrationItem, type NarrationSlot } from "./narration";

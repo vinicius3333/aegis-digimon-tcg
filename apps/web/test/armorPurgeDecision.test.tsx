@@ -5,7 +5,7 @@ import type { DecisionRequest } from "@aegis/shared";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../src/i18n";
-import { DecisionOverlay } from "../src/game/overlays";
+import { DecisionOverlay } from "../src/game/overlay";
 
 const request: DecisionRequest = {
   decisionId: "armor-purge",

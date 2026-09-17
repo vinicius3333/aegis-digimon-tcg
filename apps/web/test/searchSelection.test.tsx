@@ -2,7 +2,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import type { DecisionRequest } from "@aegis/shared";
 import { cleanup, fireEvent, render, screen } from "./scenarioHarness/testingLibrary";
-import { DecisionOverlay } from "../src/game/overlays";
+import { DecisionOverlay } from "../src/game/overlay";
 
 afterEach(() => cleanup());
 

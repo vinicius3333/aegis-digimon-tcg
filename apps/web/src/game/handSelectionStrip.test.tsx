@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
-import { Hand, type HandEntry } from "./boardPieces";
+import { Hand, type HandEntry } from "./piece";
 
 afterEach(() => cleanup());
 

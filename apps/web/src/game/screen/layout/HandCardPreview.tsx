@@ -7,7 +7,7 @@ import { Icons } from "../../../design/icons";
 import { CardFull } from "../../../design/cards";
 import { ArenaPermanentInspector, type ArenaInspectionOptions } from "../../ArenaPermanentInspector";
 import { playButtonLabel, type ActivatableEntry } from "../../boardModel";
-import { CardZoomOverlay } from "../../overlays";
+import { CardZoomOverlay } from "../../overlay";
 import { buildPrintedCardDetail } from "../../permanentDetail";
 
 export function HandCardPreview({

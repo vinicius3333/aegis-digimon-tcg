@@ -106,7 +106,7 @@ import {
   Pile,
   TurnControl,
   type HandEntry,
-} from "./boardPieces";
+} from "./piece";
 import { dragIntentLabelOffsetPx, dragIntentLabelKey, type DropTarget } from "./dragIntents";
 import { isBreedingWindow, turnControlState } from "./turnControl";
 import {
@@ -170,7 +170,7 @@ import {
   type AssemblyCandidate,
   type DigiXrosCandidate,
   type DigiXrosEligibleExpander,
-} from "./overlays";
+} from "./overlay";
 import { PlayLogSidebar } from "./OpponentActionFeedView";
 import { AttackAnnouncementBanner } from "./SidePanelStack";
 import { NarrationStack } from "./NarrationStack";

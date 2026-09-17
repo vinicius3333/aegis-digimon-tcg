@@ -12,7 +12,8 @@ const overlaySources = new Map<string, string>();
 for (const group of ["", "combat/", "choice/", "viewer/", "match/"]) {
   const directory = new URL(`./overlay/${group}`, import.meta.url);
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.isFile()) overlaySources.set(entry.name, readFileSync(new URL(entry.name, directory), "utf8"));
+    if (entry.isFile() && entry.name !== "index.ts")
+      overlaySources.set(entry.name, readFileSync(new URL(entry.name, directory), "utf8"));
   }
 }
 const overlaysSource = [...overlaySources.values()].join("\n");
@@ -27,13 +28,13 @@ function overlaySource(name: string): string {
 const gameScreenSource = [
   readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8"),
   ...readdirSync(new URL("./screen/", import.meta.url), { withFileTypes: true })
-    .filter((entry) => entry.isFile())
+    .filter((entry) => entry.isFile() && entry.name !== "index.ts")
     .map((entry) => readFileSync(new URL(`./screen/${entry.name}`, import.meta.url), "utf8")),
 ].join("\n");
 /** The board pieces live one per file under ./piece, so the hand's gesture and
  *  overflow chrome is spread across the component, its hook and its layout maths. */
 const boardPiecesSource = readdirSync(new URL("./piece/", import.meta.url), { withFileTypes: true })
-  .filter((entry) => entry.isFile())
+  .filter((entry) => entry.isFile() && entry.name !== "index.ts")
   .map((entry) => readFileSync(new URL(`./piece/${entry.name}`, import.meta.url), "utf8"))
   .join("\n");
 // The phone block's condition is a list — narrow, or short and on its side — so
@@ -826,7 +827,7 @@ describe("the draw cue on a phone", () => {
     readFileSync(new URL("./useMatchCues.ts", import.meta.url), "utf8"),
     ...["", "steps/", "present/", "narration/"].flatMap((group) =>
       readdirSync(new URL(`./match/${group}`, import.meta.url), { withFileTypes: true })
-        .filter((entry) => entry.isFile())
+        .filter((entry) => entry.isFile() && entry.name !== "index.ts")
         .map((entry) => readFileSync(new URL(`./match/${group}${entry.name}`, import.meta.url), "utf8")),
     ),
   ].join("\n");

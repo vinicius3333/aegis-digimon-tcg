@@ -13,7 +13,7 @@ import {
   Pile,
   TurnControl,
   type HandEntry,
-} from "../game/boardPieces";
+} from "../game/piece";
 import { TargetingSpotlight } from "../game/TargetingSpotlight";
 import type { SpotlightSubject } from "../game/spotlight";
 import { pendingFateBadge } from "../game/pendingFate";
@@ -30,7 +30,7 @@ import {
   MulliganOverlay,
   CardZoomOverlay,
   PermanentDetailInspector,
-} from "../game/overlays";
+} from "../game/overlay";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../game/BoardDecisionRail";
 import { CardBurst } from "../game/CardBurst";
 import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "../game/SecurityClashView";

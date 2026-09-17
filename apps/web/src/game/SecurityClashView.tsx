@@ -8,7 +8,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { colorKey, type ColorName } from "../design/theme";
 import { Icons } from "../design/icons";
-import { ClawSlash } from "./boardPieces";
+import { ClawSlash } from "./piece";
 import { CardCracks, CardShatter } from "./CardShatterView";
 import { useTranslation } from "../i18n";
 import {
