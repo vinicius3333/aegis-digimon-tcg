@@ -47,6 +47,7 @@ import {
   withPendingPoolDrain,
   withTriggeredMutations,
 } from "./windows.js";
+import { buildEffectContext, cardSourceOf, effectEnvironment } from "./effectContext.js";
 
 /**
  * Fire an effect-timing window through the stack (subsystem: effect-stack-resolution).
@@ -159,7 +160,7 @@ export async function drainPendingAttackTriggers(engine: GameEngine): Promise<vo
       withPendingPoolDrain(engine, wasOutermostWindow, () =>
         runTiming(
           EffectTiming.OnUseAttack,
-          engine.effectEnvironment({}),
+          effectEnvironment(engine, {}),
           resolutionDeps(engine, () => [], { outermost: true }),
         ),
       ),
@@ -252,7 +253,7 @@ export async function runTimingWindow(
         await withPendingPoolDrain(engine, wasOutermostWindow, () =>
           runTiming(
             timing,
-            engine.effectEnvironment(trigger),
+            effectEnvironment(engine, trigger),
             resolutionDeps(engine, listWindowCandidates, {
               outermost: wasOutermostWindow,
               excludeNestedPending: excludedNestedPending,
@@ -405,7 +406,7 @@ export async function fireTimingForInstance(
     await withPendingPoolDrain(engine, wasOutermostWindow, () =>
       runTiming(
         timing,
-        engine.effectEnvironment(trigger),
+        effectEnvironment(engine, trigger),
         resolutionDeps(engine, () => instancesById(engine, [sourceInstanceId]), {
           outermost: wasOutermostWindow,
           extraPending,
@@ -463,7 +464,7 @@ export async function fireTimingForPermanent(
     await withPendingPoolDrain(engine, wasOutermostWindow, () =>
       runTiming(
         timing,
-        engine.effectEnvironment(trigger),
+        effectEnvironment(engine, trigger),
         resolutionDeps(
           engine,
           () => {
@@ -717,8 +718,8 @@ export async function reactivateOnPlay(
   // be offered/resolved even if its (often unconditional) canActivate would pass.
   const candidates = [permanent.topCard, ...permanent.stack]
     .flatMap((instance) => {
-      const source = engine.cardSourceOf(instance);
-      const ctx: EffectContext = { ...engine.buildEffectContext(source, {}), selections: new Map() };
+      const source = cardSourceOf(engine, instance);
+      const ctx: EffectContext = { ...buildEffectContext(engine, source, {}), selections: new Map() };
       return timings.flatMap((timing) => {
         const timingKey: "whenDigivolving" | "onPlay" | "whenAttacking" | undefined =
           timing === EffectTiming.WhenDigivolving
@@ -785,13 +786,13 @@ export async function reactivateOnPlay(
 export function projectLooseUseCost(engine: GameEngine, instanceId: string, controllerSeat: Seat): number | undefined {
   const instance = findLooseInstance(engine, instanceId);
   if (instance === undefined) return undefined;
-  const source = engine.cardSourceOf(instance);
+  const source = cardSourceOf(engine, instance);
   const baseCost = engine.modifiers.playCostFor(
     { def: source.definition, controllerSeat },
     Math.max(0, source.definition.playCost),
   );
   if (engine.continuous.blocksCostReduction(controllerSeat, "play")) return baseCost;
-  const ctx: EffectContext = { ...engine.buildEffectContext(source, {}), selections: new Map() };
+  const ctx: EffectContext = { ...buildEffectContext(engine, source, {}), selections: new Map() };
   const reduction = wouldBePlayedSelfReducersFor(instance.cardId).reduce(
     (total, reducer) => total + potentialWouldBePlayedSelfReduction(ctx, reducer),
     0,
@@ -821,7 +822,7 @@ export async function fireBeforePayCost(
   originZone?: ZoneRef,
   projectOnly = false,
 ): Promise<number> {
-  const source = engine.cardSourceOf(instance);
+  const source = cardSourceOf(engine, instance);
   const reductionBlocked = engine.continuous.blocksCostReduction(source.ownerSeat, "play");
   // A prohibition prevents the reducer from activating, including its optional
   // processing cost (ST12-03 Q755). Projection stays read-only; an unaffordable
@@ -843,7 +844,7 @@ export async function fireBeforePayCost(
   const breeding = engine.state.players[source.ownerSeat]?.breeding;
   const breedingResidentEffects = [breeding?.topCard, ...Array.from(breeding?.stack ?? [])].flatMap((card, index) => {
     if (card === undefined) return [];
-    const residentSource = engine.cardSourceOf(card);
+    const residentSource = cardSourceOf(engine, card);
     return effectsOf(EffectTiming.BeforePayCost, residentSource)
       .filter((effect) => index === 0 || effect.isInherited)
       .map((effect) => ({ effect, source: residentSource }));
@@ -861,7 +862,7 @@ export async function fireBeforePayCost(
   // when `selections` is unset). The ReducePlayCost action writes the earned delta onto THIS
   // context's `playCostDelta`; a clone would strand the write and the reduction would be lost.
   const ctx: EffectContext = {
-    ...engine.buildEffectContext(source, {
+    ...buildEffectContext(engine, source, {
       wouldBePlayedInstanceId: instance.instanceId,
       wouldBePlayedCardId: instance.cardId,
       wouldBePlayedAsOption: useAsOption,
@@ -913,7 +914,7 @@ export async function fireBeforePayCost(
       )
         return total;
       const residentCtx: EffectContext = {
-        ...engine.buildEffectContext(residentSource, {
+        ...buildEffectContext(engine, residentSource, {
           wouldBePlayedInstanceId: instance.instanceId,
           wouldBePlayedCardId: instance.cardId,
           wouldBePlayedAsOption: useAsOption,
@@ -944,7 +945,7 @@ export async function fireBeforePayCost(
     for (const { effect, source: residentSource } of residentEffects) {
       if (reductionBlocked && effect.isPlayCostReduction === true) continue;
       const residentCtx: EffectContext = {
-        ...engine.buildEffectContext(residentSource, {
+        ...buildEffectContext(engine, residentSource, {
           wouldBePlayedInstanceId: instance.instanceId,
           wouldBePlayedCardId: instance.cardId,
           wouldBePlayedAsOption: useAsOption,
@@ -968,7 +969,7 @@ export async function fireBeforePayCost(
     for (const { effect, source: residentSource } of breedingResidentEffects) {
       if (reductionBlocked && effect.isPlayCostReduction === true) continue;
       const residentCtx: EffectContext = {
-        ...engine.buildEffectContext(residentSource, {
+        ...buildEffectContext(engine, residentSource, {
           wouldBePlayedInstanceId: instance.instanceId,
           wouldBePlayedCardId: instance.cardId,
           wouldBePlayedAsOption: useAsOption,
@@ -1004,8 +1005,9 @@ export async function fireBeforePayCost(
                 : undefined);
             return resident?.topCard === undefined
               ? undefined
-              : engine.buildEffectContext(
-                  engine.cardSourceOf(findInstance(engine, sourceInstanceId ?? "")?.instance ?? resident.topCard),
+              : buildEffectContext(
+                  engine,
+                  cardSourceOf(engine, findInstance(engine, sourceInstanceId ?? "")?.instance ?? resident.topCard),
                   {
                     wouldBePlayedInstanceId: instance.instanceId,
                     wouldBePlayedCardId: instance.cardId,
@@ -1065,11 +1067,11 @@ export async function fireBeforeDigivolveCost(
   instance: CardInstance,
   target: Permanent,
 ): Promise<void> {
-  const source = engine.cardSourceOf(instance);
+  const source = cardSourceOf(engine, instance);
   const effects = effectsOf(EffectTiming.BeforePayCost, source).filter((effect) => effect.costWindow === "digivolve");
   if (effects.length === 0) return;
   const ctx: EffectContext = {
-    ...engine.buildEffectContext(source, { subjectPermanentId: target.permanentId }),
+    ...buildEffectContext(engine, source, { subjectPermanentId: target.permanentId }),
     selections: new Map(),
   };
   for (const effect of effects) {
@@ -1097,7 +1099,7 @@ export async function prepareDigiXrosPlays(
   for (const instanceId of instanceIds) {
     const instance = findLooseInstance(engine, instanceId);
     if (instance === undefined) continue;
-    const source = engine.cardSourceOf(instance);
+    const source = cardSourceOf(engine, instance);
     const playTarget = new Permanent();
     playTarget.permanentId = `pending-play-${instance.instanceId}`;
     playTarget.controllerSeat = source.ownerSeat;
@@ -1125,7 +1127,7 @@ export async function prepareDigiXrosPlays(
       const sourceCard = findInstance(engine, sourceInstanceId ?? "")?.instance ?? resident?.topCard;
       if (sourceCard === undefined) return undefined;
       return {
-        ...engine.buildEffectContext(engine.cardSourceOf(sourceCard), {
+        ...buildEffectContext(engine, cardSourceOf(engine, sourceCard), {
           wouldBePlayedInstanceId: targetInstanceId ?? targets[0]!.topCard!.instanceId,
           wouldBePlayedCardId:
             findLooseInstance(engine, targetInstanceId ?? targets[0]!.topCard!.instanceId)?.cardId ??
@@ -1159,7 +1161,7 @@ export function residentPlayCostEffects(engine: GameEngine, seat: Seat): Array<{
   return Array.from(player.battleArea).flatMap((permanent) => {
     if (permanent.inBreeding || permanent.topCard === undefined) return [];
     return [permanent.topCard, ...permanent.stack].flatMap((card, index) => {
-      const residentSource = engine.cardSourceOf(card);
+      const residentSource = cardSourceOf(engine, card);
       return effectsOf(EffectTiming.BeforePayCost, residentSource)
         .filter((effect) => effect.costWindow !== "digivolve")
         .filter((effect) => index === 0 || effect.isInherited)
@@ -1219,9 +1221,9 @@ export async function runCrossPermanentPlayReducers(
   if (player === undefined) return;
   for (const watcher of watchers) {
     if (watcher.topCard?.cardId === "BT26-088") {
-      const watcherSource = engine.cardSourceOf(watcher.topCard);
+      const watcherSource = cardSourceOf(engine, watcher.topCard);
       const watcherCtx: EffectContext = {
-        ...engine.buildEffectContext(watcherSource, {}),
+        ...buildEffectContext(engine, watcherSource, {}),
         selections: new Map(),
         activeTiming: "YourTurn",
         activeEffectText:

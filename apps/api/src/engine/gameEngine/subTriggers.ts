@@ -20,6 +20,7 @@ import {
 import { findLooseInstance } from "./intents.js";
 import type { GameEngine } from "../GameEngine.js";
 import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
+import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 
 /**
  * @param sourceScope Restricts the fire to watchers anchored ON the event subject
@@ -744,11 +745,11 @@ export function buildSubTriggerSourceContext(
       if (discarded === undefined) return undefined;
       const discardedSource = findLooseInstance(engine, sub.sourceInstanceId);
       if (discardedSource === undefined) return undefined;
-      const context = engine.buildEffectContext(engine.cardSourceOf(discardedSource), discarded.payload);
+      const context = buildEffectContext(engine, cardSourceOf(engine, discardedSource), discarded.payload);
       context.discardedStackSourceProof = discarded.proof;
       return context;
     }
-    return engine.buildEffectContext(engine.cardSourceOf(sourceInstance ?? srcPerm.topCard), payload);
+    return buildEffectContext(engine, cardSourceOf(engine, sourceInstance ?? srcPerm.topCard), payload);
   }
   if (sub.sourceInstanceId !== undefined) {
     // `findLooseInstance` searches EVERY zone, so the zone recorded at install time is the
@@ -766,7 +767,7 @@ export function buildSubTriggerSourceContext(
     const loose = findLooseInstance(engine, sub.sourceInstanceId);
     if (loose === undefined) return undefined;
     const discarded = discardedStackSourceContextPayload(engine, sub, payload);
-    const context = engine.buildEffectContext(engine.cardSourceOf(loose), discarded?.payload ?? payload);
+    const context = buildEffectContext(engine, cardSourceOf(engine, loose), discarded?.payload ?? payload);
     if (discarded !== undefined) context.discardedStackSourceProof = discarded.proof;
     return context;
   }

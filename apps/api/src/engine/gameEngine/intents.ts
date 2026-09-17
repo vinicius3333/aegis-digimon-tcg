@@ -85,6 +85,7 @@ import {
 } from "./actionDeps.js";
 import type { GameEngine } from "../GameEngine.js";
 import { listCandidateInstances, ruleProcess } from "./ruleProcess.js";
+import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 
 /**
  * Validate and apply a single client intent (subsystem: intent-protocol-and-room).
@@ -585,9 +586,9 @@ export function counterEligibleSources(
   for (const perm of player.battleArea) {
     const candidates = [perm.topCard, ...perm.stack, ...perm.linked].filter((c): c is CardInstance => c !== undefined);
     for (const instance of candidates) {
-      const source = engine.cardSourceOf(instance);
+      const source = cardSourceOf(engine, instance);
       for (const effect of effectsOf(EffectTiming.OnCounterTiming, source)) {
-        const ctx = engine.buildEffectContext(source, {});
+        const ctx = buildEffectContext(engine, source, {});
         if (canTrigger(effect, ctx, engine.tracker) && canActivate(effect, ctx, engine.tracker)) {
           entries.push({
             instanceId: instance.instanceId,
@@ -599,9 +600,9 @@ export function counterEligibleSources(
     }
   }
   for (const instance of player.hand) {
-    const source = engine.cardSourceOf(instance);
+    const source = cardSourceOf(engine, instance);
     for (const effect of effectsOf(EffectTiming.OnCounterTiming, source)) {
-      const ctx = engine.buildEffectContext(source, {});
+      const ctx = buildEffectContext(engine, source, {});
       if (canTrigger(effect, ctx, engine.tracker) && canActivate(effect, ctx, engine.tracker)) {
         entries.push({
           instanceId: instance.instanceId,

@@ -19,6 +19,7 @@ import {
   withPendingPoolDrain,
   withTriggeredMutations,
 } from "./windows.js";
+import { buildEffectContext, cardSourceOf, effectEnvironment } from "./effectContext.js";
 
 export async function engineRunSecurityCheck(
   engine: GameEngine,
@@ -79,7 +80,7 @@ export async function engineRunSecurityCheck(
       const armed = [event, "whenSecurityRemoved"].flatMap((name) =>
         armedSubTriggers(engine, [...engine.subTriggers.subscriptionsFor(name as SubTriggerEventName)], payload),
       );
-      const framework = engine.effectEnvironment(payload);
+      const framework = effectEnvironment(engine, payload);
       const initialEnv = buildResolutionEnv(framework, resolutionDeps(engine));
       const initial = [
         ...initialEnv.collect(EffectTiming.OnSecurityCheck),
@@ -220,7 +221,7 @@ export async function resolveSecurityEffect(
   );
   if (securityEffects.length === 0) return false;
 
-  const source = engine.cardSourceOf(card);
+  const source = cardSourceOf(engine, card);
   const def = lookupDefinition(card.cardId);
 
   // A DUAL card's [Security] clause printed on its Digimon face resolves as a
@@ -240,7 +241,7 @@ export async function resolveSecurityEffect(
     const ctx = {
       // Preserve Security provenance for both the real no-area check and direct timing
       // probes, which may still stage their source in a security fixture.
-      ...engine.buildEffectContext(source, { securityWasFaceUp }),
+      ...buildEffectContext(engine, source, { securityWasFaceUp }),
       activeTiming: "SecuritySkill",
       effectSourceKinds: securityEffectSourceKinds,
     };
@@ -309,14 +310,14 @@ export function securityEffectsFor(
   attackerPermanentId: string,
   securityWasFaceUp?: boolean,
 ): ReturnType<typeof effectsOf> {
-  const source = engine.cardSourceOf(card);
+  const source = cardSourceOf(engine, card);
   const def = lookupDefinition(card.cardId);
   if (def !== undefined && engine.continuous.isSecurityEffectDisabled(attackerPermanentId, def)) {
     log("[securityEffectsFor]", card.cardId, "SECURITY EFFECT DISABLED by attacker", attackerPermanentId);
     return [];
   }
   return effectsOf(EffectTiming.SecuritySkill, source).filter((effect) => {
-    const ctx = engine.buildEffectContext(source, { securityWasFaceUp });
+    const ctx = buildEffectContext(engine, source, { securityWasFaceUp });
     return canTrigger(effect, ctx, engine.tracker);
   });
 }

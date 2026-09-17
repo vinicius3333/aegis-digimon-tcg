@@ -1,5 +1,4 @@
 import { ContinuousEffectScope } from "./effects/ContinuousEffectScope.js";
-import { isTimingActivationDisabled } from "./effects/timingActivation.js";
 import type { Client } from "colyseus";
 import {
   CardKind,
@@ -13,7 +12,6 @@ import {
   Permanent,
   type CardColor,
   type CardInstance,
-  type ServerEvent,
   type Seat,
 } from "@aegis/shared";
 import type { Intent, IntentResult } from "@aegis/shared";
@@ -29,7 +27,6 @@ import { GameStateAccess, insertCard, markRoutedUsedOption, takeTop } from "./st
 import { CombatController } from "./combat/controller.js";
 import { detachLeaveReplacements, detachTraitTokens } from "./effects/detach.js";
 import { guardLeaveReplacements } from "./effects/guard.js";
-import { canAttackerDeclare } from "./combat/legality.js";
 import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
 import { WinCheck } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
@@ -42,21 +39,14 @@ import { createResolverDecisions, type ResolverDecisions } from "./decisions/res
 import { MainPhaseController } from "./MainPhaseController.js";
 import { BreedingPhaseController } from "./BreedingPhaseController.js";
 import { createPrimitives, ModifierLedger } from "./effects/primitives.js";
-import {
-  ContinuousEffectLedger,
-  effectiveColors,
-  effectiveKinds,
-  effectiveNames,
-  effectiveTraits,
-} from "./effects/continuous.js";
+import { ContinuousEffectLedger, effectiveColors } from "./effects/continuous.js";
 import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "./effects/digivolutionTrashRedirect.js";
-import { createGameAccess, createCardStateLookup, createEffectContext } from "./effects/context.js";
-import { createCardSource, type CardStateLookup } from "./cards/CardSource.js";
+import { type CardStateLookup } from "./cards/CardSource.js";
 import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
-import { buildResolutionEnv, type EffectEnvironment } from "./effects/index.js";
+import { buildResolutionEnv } from "./effects/index.js";
 import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from "./effects/collect.js";
 import { grantedTokenEffectsForTiming, resolveSelfWhenTrashedFromDeck } from "./effects/interpreter.js";
 import type { CardSource } from "./effects/CardSource.js";
@@ -131,6 +121,13 @@ import {
   nextPermanentId,
 } from "./gameEngine/ruleProcess.js";
 import { inContinuousPass, settleBetweenEffects } from "./gameEngine/windows.js";
+import {
+  buildEffectContext,
+  cardSourceOf,
+  dropPermanentSubscriptions,
+  effectEnvironment,
+  forgetUsesOfCardsLeavingField,
+} from "./gameEngine/effectContext.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
@@ -397,7 +394,7 @@ export class GameEngine {
     this.hooks = {
       ...hooks,
       emit: (event) => {
-        this.forgetUsesOfCardsLeavingField(event);
+        forgetUsesOfCardsLeavingField(this, event);
         // The same seam marks the movement that routes a used Option out of its no-area slot,
         // whichever area the Option's own effect sent it to.
         hooks.emit(markRoutedUsedOption(this.state, event));
@@ -470,8 +467,8 @@ export class GameEngine {
       decisionApi: this.decisionApi,
       primitives: this.primitives,
       declinedAttackArts: this.declinedAttackArts,
-      cardSourceOf: (instance) => this.cardSourceOf(instance),
-      buildEffectContext: (source, trigger) => this.buildEffectContext(source, trigger),
+      cardSourceOf: (instance) => cardSourceOf(this, instance),
+      buildEffectContext: (source, trigger) => buildEffectContext(this, source, trigger),
       effectiveColorsOf: (permanent) => this.effectiveColorsOf(permanent),
       collectRuleProcessMovements: () => collectRuleProcessMovements(this),
       flushRuleTriggerPool: (pool) => flushRuleTriggerPool(this, pool),
@@ -486,8 +483,8 @@ export class GameEngine {
       tracker: this.tracker,
       continuousDpSeedState: this.continuousDpSeedState,
       acceptedBlitzAttackers: this.acceptedBlitzAttackers,
-      effectEnvironment: (trigger) => this.effectEnvironment(trigger),
-      buildEffectContext: (source, trigger) => this.buildEffectContext(source, trigger),
+      effectEnvironment: (trigger) => effectEnvironment(this, trigger),
+      buildEffectContext: (source, trigger) => buildEffectContext(this, source, trigger),
       isNewlyPlayedRushAttacker: (permanentId) => isNewlyPlayedRushAttacker(this, permanentId),
       listCandidateInstances: () => listCandidateInstances(this),
       validateAppFusion: (seat, intent) => validateAppFusion(this, seat, intent),
@@ -554,7 +551,7 @@ export class GameEngine {
         // on its own. `resolveAllianceEffect` re-reads the board when it runs, so an instance
         // ordered after a derived On Play / DNA evolution sees the post-evolution allies.
         const allianceEffects: CollectedEffect[] = Array.from({ length: allianceCount }, (_, index) => ({
-          source: this.cardSourceOf(top),
+          source: cardSourceOf(this, top),
           timing: EffectTiming.OnUseAttack,
           effect: {
             effectKey: `${top.instanceId}/alliance/${index}`,
@@ -577,7 +574,7 @@ export class GameEngine {
           },
         }));
         const attackPayload = opts.subTriggerPayload ?? combatTriggerInfo(this, trigger);
-        const attackEnvironment = buildResolutionEnv(this.effectEnvironment(attackPayload), resolutionDeps(this));
+        const attackEnvironment = buildResolutionEnv(effectEnvironment(this, attackPayload), resolutionDeps(this));
         const allyAttackEffects = attackEnvironment.collect(EffectTiming.OnAllyAttack);
         const pendingAttackEffects = [...allyAttackEffects, ...allianceEffects];
         const timingWindow = async () =>
@@ -621,7 +618,7 @@ export class GameEngine {
       },
       consultLeavePrevention: async (permanentIds, opts) =>
         this.consultLeavePrevention(permanentIds, "byBattle", undefined, opts),
-      dropPermanentSubscriptions: (permanentId) => this.dropPermanentSubscriptions(permanentId),
+      dropPermanentSubscriptions: (permanentId) => dropPermanentSubscriptions(this, permanentId),
       snapshotCustomEffectGrants: (departingInstanceIds) =>
         this.continuous.listCustomEffectGrants().map((grant) => {
           if (!departingInstanceIds.includes(grant.instanceId)) return grant;
@@ -679,7 +676,7 @@ export class GameEngine {
         // card left an attacker whose sole When Attacking effect is inherited on the legacy
         // path, where Alliance always resolved last and could never be ordered against it.
         return [permanent.topCard, ...permanent.stack, ...permanent.linked].some(
-          (card) => effectsOf(EffectTiming.OnUseAttack, this.cardSourceOf(card)).length > 0,
+          (card) => effectsOf(EffectTiming.OnUseAttack, cardSourceOf(this, card)).length > 0,
         );
       },
       // Shared "pick one of these, or pass" decision channel for ＜Raid＞'s redirect choice and
@@ -846,7 +843,7 @@ export class GameEngine {
         const instance = findLooseInstance(this, instanceId);
         if (instance === undefined) return;
         await resolveSelfWhenTrashedFromDeck(
-          this.buildEffectContext(this.cardSourceOf(instance), {
+          buildEffectContext(this, cardSourceOf(this, instance), {
             trashedFromDeckCardId: instance.cardId,
             ...(byEffectCardId === undefined ? {} : { trashedFromDeckByEffectCardId: byEffectCardId }),
           }),
@@ -926,7 +923,7 @@ export class GameEngine {
    * recompute — eight closures and an object per effect, several times per player action, all of
    * it immediately garbage.
    */
-  private gameAccess: GameAccess | undefined;
+  gameAccess: GameAccess | undefined;
 
   /**
    * The primitive verbs handed to an effect, one cached object per owning seat.
@@ -934,65 +931,7 @@ export class GameEngine {
    * Only `gainMemory` varies with the source's owner, and a seat is 0 or 1, so the spread of the
    * whole primitives object — previously redone on every context build — collapses to two.
    */
-  private readonly primitivesBySeat: (Primitives | undefined)[] = [];
-
-  private effectAccess(): GameAccess {
-    this.gameAccess ??= createGameAccess(
-      this.state,
-      (id) => this.continuous.linkMaxDelta(id),
-      (id, traits) => this.continuous.linkCostReduction(id, traits),
-      (id, keyword) => {
-        const permanent = this.access.permanentById(id);
-        return (
-          (permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword)) ||
-          (keyword.toLowerCase() === "piercing" && this.modifiers.hasPierce(id))
-        );
-      },
-      (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
-      (permanentId, timing) => isTimingActivationDisabled(this.continuous, permanentId, timing),
-      (permanent) => this.effectiveColorsOf(permanent),
-      (instanceId) => this.continuous.hasColorWaiver(instanceId),
-      (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
-      (permanent) => canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
-      (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
-      (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
-      (seat, base, evolving, sourceZone) =>
-        this.digivolveSupport.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
-      undefined,
-      (id, traits) =>
-        this.continuous.linkCostReductionGrant(
-          id,
-          traits,
-          (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
-        ),
-      (permanent, printedName) => effectiveNames(this.continuous, permanent, printedName),
-      (id) => this.combat.battleOpponentOf(id),
-    );
-    return this.gameAccess;
-  }
-
-  private effectPrimitives(ownerSeat: Seat): Primitives {
-    // `gainMemory` is written from the resolving card's perspective ("gain N memory").
-    // Most windows belong to the turn player, but Security and opponent-turn effects may
-    // resolve for the non-turn player. Bind the convenience verb to the source owner here;
-    // explicit cross-seat effects continue to use `gainMemoryForSeat` directly.
-    this.primitivesBySeat[ownerSeat] ??= {
-      ...this.primitives,
-      gainMemory: (amount: number) => this.primitives.gainMemoryForSeat(ownerSeat, amount),
-    };
-    return this.primitivesBySeat[ownerSeat];
-  }
-
-  buildEffectContext(source: CardSource, trigger: TriggerInfo, askOverride?: DecisionApi): EffectContext {
-    return createEffectContext({
-      source,
-      trigger,
-      game: this.effectAccess(),
-      fx: this.effectPrimitives(source.ownerSeat),
-      ask: askOverride ?? this.decisionApi,
-      usage: this.tracker,
-    });
-  }
+  readonly primitivesBySeat: (Primitives | undefined)[] = [];
 
   /**
    * The state lookup a CardSource delegates its placement/turn questions to.
@@ -1001,7 +940,7 @@ export class GameEngine {
    * and `cardSourceOf` runs for every candidate instance on every continuous recompute — several
    * times per player action — so rebuilding its closure set was pure allocation churn.
    */
-  private cardStateLookup: CardStateLookup | undefined;
+  cardStateLookup: CardStateLookup | undefined;
 
   /**
    * CardSource is a value object over an instance's immutable identity (instanceId, cardId,
@@ -1010,17 +949,7 @@ export class GameEngine {
    * match takes its entry with it. `cardId`/`ownerSeat` are only ever assigned while building a
    * fresh instance (setup.ts, primitives' token creation), never re-assigned on a live one.
    */
-  private readonly cardSourceByInstance = new WeakMap<CardInstance, CardSource>();
-
-  /** Resolve the CardSource for a CardInstance against live state (placement/turn lookup). */
-  cardSourceOf(instance: CardInstance): CardSource {
-    const cached = this.cardSourceByInstance.get(instance);
-    if (cached !== undefined) return cached;
-    this.cardStateLookup ??= createCardStateLookup(this.state);
-    const source = createCardSource(instance, this.cardStateLookup);
-    this.cardSourceByInstance.set(instance, source);
-    return source;
-  }
+  readonly cardSourceByInstance = new WeakMap<CardInstance, CardSource>();
 
   /** Guards each immediate prevention from reactivating during its own resolution. */
   private preventReentryGuard = { activeReplacementKeys: new Set<string>() };
@@ -1074,7 +1003,7 @@ export class GameEngine {
         ],
         permanentById: (id) => this.access.permanentById(id),
         buildContext: (srcPerm, leavingId) =>
-          this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), {
+          buildEffectContext(this, cardSourceOf(this, srcPerm.topCard!), {
             deletedPermanentId: leavingId,
             deletedPermanentIds: permanentIds,
           }),
@@ -1082,7 +1011,7 @@ export class GameEngine {
           const sourceInstance = findLooseInstance(this, sourceInstanceId);
           return sourceInstance === undefined
             ? undefined
-            : this.buildEffectContext(this.cardSourceOf(sourceInstance), {
+            : buildEffectContext(this, cardSourceOf(this, sourceInstance), {
                 deletedPermanentId: leavingId,
                 deletedPermanentIds: permanentIds,
               });
@@ -1159,39 +1088,10 @@ export class GameEngine {
       {
         subTriggers: this.subTriggers,
         permanentById: (id) => this.access.permanentById(id),
-        buildContext: (srcPerm) => this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), {}),
+        buildContext: (srcPerm) => buildEffectContext(this, cardSourceOf(this, srcPerm.topCard!), {}),
       },
       hostPermanentIds,
     );
-  }
-
-  /**
-   * Single-sourced per-permanent teardown for every deletion seam. When a permanent
-   * leaves the field its three per-permanent ledgers must be dropped together: the
-   * modifier ledger (DP/keyword/cost modifiers), the continuous-rule store, and the
-   * SubTrigger registry (delayed watchers + reduceCost/prevent REPLACEMENTS). The
-   * effect-driven `deletePermanent` primitive does this inline; combat and the security
-   * check delete through raw state access and so route their cleanup here, so a stale
-   * watcher or replacement from a source that died in battle/security cannot fire or
-   * discount after the source is gone. Mirrors the DNA-digivolve material teardown.
-   */
-  private dropPermanentSubscriptions(permanentId: string): void {
-    this.modifiers.dropPermanent(permanentId);
-    this.continuous.dropPermanent(permanentId);
-    this.subTriggers.dropPermanent(permanentId);
-  }
-
-  /**
-   * CR §3-1-3-1-2: a card that leaves the field returns as a new card, so its [Once Per Turn]
-   * effects are available again (EX12-065 replayed by ＜Fortitude＞, KB Q6866). A card still on
-   * the field is the same Digimon (§3-4-5, KB Q4253) and keeps its counts. Forgetting at the
-   * departure, not after the deletion reactions, keeps the use ＜Fortitude＞'s replay then spends.
-   */
-  private forgetUsesOfCardsLeavingField(event: ServerEvent): void {
-    if (event.kind !== "cardsMoved") return;
-    const onField = (zone: string): boolean => zone === Zone.BattleArea || zone === Zone.Breeding;
-    if (!onField(event.from) || onField(event.to)) return;
-    for (const instanceId of event.instanceIds) this.tracker.forgetInstance(instanceId);
   }
 
   /**
@@ -1567,7 +1467,7 @@ export class GameEngine {
 
     const continuousEffects: { source: CardSource; effect: Effect }[] = [];
     for (const instance of listCandidateInstances(this)) {
-      const source = this.cardSourceOf(instance);
+      const source = cardSourceOf(this, instance);
       for (const effect of effectsOf(EffectTiming.None, source)) {
         continuousEffects.push({ source, effect });
       }
@@ -1576,7 +1476,7 @@ export class GameEngine {
       (left, right) => (left.effect.continuousPriority ?? 0) - (right.effect.continuousPriority ?? 0),
     );
     for (const { source, effect } of continuousEffects) {
-      const ctx = this.buildEffectContext(source, {}, noPromptAsk);
+      const ctx = buildEffectContext(this, source, {}, noPromptAsk);
       ctx.continuousPass = true;
       // Persistent effects re-apply whenever their guard holds; canTrigger here is
       // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).
@@ -1592,14 +1492,14 @@ export class GameEngine {
     // replacements silently failed to install.
     const candidates = listCandidateInstances(this);
     const sourceByInstanceId = new Map(
-      candidates.map((instance) => [instance.instanceId, this.cardSourceOf(instance)] as const),
+      candidates.map((instance) => [instance.instanceId, cardSourceOf(this, instance)] as const),
     );
     const conferredContinuous = collectConferredEffects(
       EffectTiming.None,
       this.continuous.listStackEffectConferrals(),
       (instanceId) => sourceByInstanceId.get(instanceId),
       (source, effect, conferredToPermanentId, conferralGranterInstanceId) => ({
-        ...this.buildEffectContext(source, {}, noPromptAsk),
+        ...buildEffectContext(this, source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
         continuousPass: true,
@@ -1610,7 +1510,7 @@ export class GameEngine {
     );
     for (const { source, effect, conferredToPermanentId, conferralGranterInstanceId } of conferredContinuous) {
       const ctx: EffectContext = {
-        ...this.buildEffectContext(source, {}, noPromptAsk),
+        ...buildEffectContext(this, source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
         continuousPass: true,
@@ -1631,7 +1531,7 @@ export class GameEngine {
       (instanceId) => sourceByInstanceId.get(instanceId),
       (token, source) => grantedTokenEffectsForTiming(token, EffectTiming.None, source),
       (source, effect) => ({
-        ...this.buildEffectContext(source, {}, noPromptAsk),
+        ...buildEffectContext(this, source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
         continuousPass: true,
@@ -1640,7 +1540,7 @@ export class GameEngine {
     );
     for (const { source, effect } of grantedContinuous) {
       const ctx: EffectContext = {
-        ...this.buildEffectContext(source, {}, noPromptAsk),
+        ...buildEffectContext(this, source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
         continuousPass: true,
@@ -1659,33 +1559,6 @@ export class GameEngine {
     // A seed is only an input to this pass. Recompute every seeded permanent from the rebuilt
     // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.
     for (const permanentId of seed.keys()) this.modifiers.recomputeDP(this.state, permanentId);
-  }
-
-  /**
-   * The framework environment a timing resolution runs against: authoritative state,
-   * the effect verbs (fx), the player-decision API (ask), and the per-turn use ledger
-   * (shared with activateEffect so maxPerTurn accounting is unified).
-   */
-  effectEnvironment(trigger: TriggerInfo): EffectEnvironment {
-    return {
-      state: this.state,
-      fx: this.primitives,
-      fxForSource: (source) => this.effectPrimitives(source.ownerSeat),
-      ask: this.decisionApi,
-      tracker: this.tracker,
-      continuous: this.continuous,
-      hasKeyword: (id, keyword) =>
-        this.continuous.hasKeyword(id, keyword) ||
-        (keyword.toLowerCase() === "piercing" && this.modifiers.hasPierce(id)),
-      digivolvedThisTurn: (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
-      effectiveColors: (permanent) => this.effectiveColorsOf(permanent),
-      colorRequirementWaived: (instanceId) => this.continuous.hasColorWaiver(instanceId),
-      colorRequirementAlternatives: (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
-      canDeclareAttack: (permanent) =>
-        canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
-      battleOpponentOf: (id) => this.combat.battleOpponentOf(id),
-      triggerInfo: trigger,
-    };
   }
 
   /**
@@ -2062,6 +1935,18 @@ export class GameEngine {
    * {@link ./gameEngine/timing.ts}; these keep the shape those casts name so the harness has
    * one route to the production window instead of 86 hand-written ones.
    */
+  /**
+   * The two context seams ~90 card tests and the testkit reach by name. Their bodies live
+   * in {@link ./gameEngine/effectContext.ts}; these keep the shape those call sites name.
+   */
+  cardSourceOf(instance: CardInstance): CardSource {
+    return cardSourceOf(this, instance);
+  }
+
+  buildEffectContext(source: CardSource, trigger: TriggerInfo, askOverride?: DecisionApi): EffectContext {
+    return buildEffectContext(this, source, trigger, askOverride);
+  }
+
   fireSubTrigger(
     event: SubTriggerEventName,
     payload: TriggerInfo = {},

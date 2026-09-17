@@ -51,6 +51,10 @@
   "export": "breedingHidesSubjectFrom",
   "module": "subTriggers"
  },
+ "buildEffectContext": {
+  "export": "buildEffectContext",
+  "module": "effectContext"
+ },
  "buildSubTriggerContext": {
   "export": "buildSubTriggerContext",
   "module": "subTriggers"
@@ -66,6 +70,10 @@
  "candidateSourceLocation": {
   "export": "candidateSourceLocation",
   "module": "ruleProcess"
+ },
+ "cardSourceOf": {
+  "export": "cardSourceOf",
+  "module": "effectContext"
  },
  "checkTurnEndAfterVerb": {
   "export": "checkTurnEndAfterVerb",
@@ -126,6 +134,22 @@
  "drainPendingAttackTriggers": {
   "export": "drainPendingAttackTriggers",
   "module": "timing"
+ },
+ "dropPermanentSubscriptions": {
+  "export": "dropPermanentSubscriptions",
+  "module": "effectContext"
+ },
+ "effectAccess": {
+  "export": "effectAccess",
+  "module": "effectContext"
+ },
+ "effectEnvironment": {
+  "export": "effectEnvironment",
+  "module": "effectContext"
+ },
+ "effectPrimitives": {
+  "export": "effectPrimitives",
+  "module": "effectContext"
  },
  "endResolvingWindow": {
   "export": "endResolvingWindow",
@@ -190,6 +214,10 @@
  "flushRuleTriggerPool": {
   "export": "flushRuleTriggerPool",
   "module": "ruleProcess"
+ },
+ "forgetUsesOfCardsLeavingField": {
+  "export": "forgetUsesOfCardsLeavingField",
+  "module": "effectContext"
  },
  "handleActivateEffect": {
   "export": "handleActivateEffect",

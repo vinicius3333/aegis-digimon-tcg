@@ -62,6 +62,7 @@ import {
 } from "./subTriggers.js";
 import { listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
 import { settleBetweenEffects } from "./windows.js";
+import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -192,7 +193,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
         if (replacement.mode !== "instead" || replacement.sourcePermanentId === undefined) continue;
         const sourcePermanent = engine.access.permanentById(replacement.sourcePermanentId);
         if (sourcePermanent?.topCard === undefined) continue;
-        const ctx = engine.buildEffectContext(engine.cardSourceOf(sourcePermanent.topCard), {
+        const ctx = buildEffectContext(engine, cardSourceOf(engine, sourcePermanent.topCard), {
           subjectPermanentId: target.permanentId,
           digivolvingIntoCardId: into.cardId,
         });
@@ -210,7 +211,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       });
       const evolving = state.players[seat]?.hand.find(({ cardId }) => cardId === into.cardId);
       if (evolving === undefined) return liveReduction;
-      const ctx = engine.buildEffectContext(engine.cardSourceOf(evolving), {});
+      const ctx = buildEffectContext(engine, cardSourceOf(engine, evolving), {});
       const intrinsicReduction = wouldDigivolveSelfReducersFor(into.cardId).reduce(
         (total, reducer) => total + potentialWouldDigivolveSelfReduction(ctx, reducer, target),
         0,
@@ -229,8 +230,9 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
           const source = engine.access.permanentById(sourcePermanentId);
           return source?.topCard === undefined
             ? undefined
-            : engine.buildEffectContext(
-                engine.cardSourceOf(findInstance(engine, sourceInstanceId ?? "")?.instance ?? source.topCard),
+            : buildEffectContext(
+                engine,
+                cardSourceOf(engine, findInstance(engine, sourceInstanceId ?? "")?.instance ?? source.topCard),
                 {},
               );
         },
@@ -241,7 +243,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       );
       const evolving = findLooseInstance(engine, evolvingInstanceId);
       if (evolving === undefined) return liveReduction;
-      const ctx = engine.buildEffectContext(engine.cardSourceOf(evolving), {});
+      const ctx = buildEffectContext(engine, cardSourceOf(engine, evolving), {});
       ctx.activeTiming = "Static";
       ctx.activeEffectText = ctx.source.definition.effectText;
       let intrinsicReduction = 0;
@@ -272,12 +274,12 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
     digivolveIntoAllowed: (_state, permanent, evolving) =>
       engine.continuous.digivolveIntoAllowed(
         permanent.permanentId,
-        lookupDefinition(evolving.cardId) ?? engine.cardSourceOf(evolving).definition,
+        lookupDefinition(evolving.cardId) ?? cardSourceOf(engine, evolving).definition,
       ),
     // consuming read of the digivolve-restriction store at the digivolve site.
     digivolveBaseRestricted: (_state, permanent, evolving) => {
       if (engine.continuous.hasRestriction(permanent.permanentId, "digivolve")) return true;
-      const evolvingDefinition = lookupDefinition(evolving.cardId) ?? engine.cardSourceOf(evolving).definition;
+      const evolvingDefinition = lookupDefinition(evolving.cardId) ?? cardSourceOf(engine, evolving).definition;
       if (
         evolvingDefinition.level === 7 &&
         engine.continuous.hasRestriction(permanent.permanentId, "digivolveToLevel7")
@@ -302,7 +304,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       if (candidates.length < need) return false;
       // KB BT7-112 Q1691: the player chooses WHICH matching cards to place; the selection
       // order is the bottom-of-deck order ("in any order").
-      const ctx = engine.buildEffectContext(engine.cardSourceOf(evolving), {});
+      const ctx = buildEffectContext(engine, cardSourceOf(engine, evolving), {});
       const chosen = await engine.decisionApi.selectCards(ctx, {
         candidates: candidates.map((c) => c.instanceId),
         min: need,
@@ -343,7 +345,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
         if (replacement.mode !== "instead" || replacement.sourcePermanentId === undefined) continue;
         const sourcePermanent = engine.access.permanentById(replacement.sourcePermanentId);
         if (sourcePermanent?.topCard === undefined) continue;
-        const ctx = engine.buildEffectContext(engine.cardSourceOf(sourcePermanent.topCard), {
+        const ctx = buildEffectContext(engine, cardSourceOf(engine, sourcePermanent.topCard), {
           subjectPermanentId: target.permanentId,
           digivolvingIntoCardId: into.cardId,
         });
@@ -471,14 +473,14 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
     // Synchronous fast-path gate: only cards with a BeforePayCost effect take the async
     // finalization path. Every other card keeps same-microtask placement (no timing change).
     hasBeforePayCost: (instance) =>
-      effectsOf(EffectTiming.BeforePayCost, engine.cardSourceOf(instance)).some(
+      effectsOf(EffectTiming.BeforePayCost, cardSourceOf(engine, instance)).some(
         (effect) => effect.costWindow !== "digivolve",
       ) ||
       wouldBePlayedSelfReducersFor(instance.cardId).length > 0 ||
-      (engine.state.players[engine.cardSourceOf(instance).ownerSeat]?.breeding?.stack.length ?? 0) > 0 ||
-      crossPermanentPlayReducerWatchers(engine, instance, engine.cardSourceOf(instance).ownerSeat).length > 0 ||
-      residentPlayCostEffects(engine, engine.cardSourceOf(instance).ownerSeat).length > 0 ||
-      engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", engine.cardSourceOf(instance).ownerSeat),
+      (engine.state.players[cardSourceOf(engine, instance).ownerSeat]?.breeding?.stack.length ?? 0) > 0 ||
+      crossPermanentPlayReducerWatchers(engine, instance, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
+      residentPlayCostEffects(engine, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
+      engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", cardSourceOf(engine, instance).ownerSeat),
     // After the played permanent is created (before On Play), place any cards a cross-permanent
     // reducer (BT10-093) committed under it, and relocate any whole permanent a SELF reducer's cost
     // body (BT12-112) selected to become one of its digivolution cards. No-op when nothing was
@@ -590,11 +592,11 @@ export function respondCounterDeps(engine: GameEngine): RespondCounterDeps {
   return {
     combat: engine.combat,
     findInstance: (instanceId) => findInstance(engine, instanceId),
-    cardSourceOf: (instance) => engine.cardSourceOf(instance),
+    cardSourceOf: (instance) => cardSourceOf(engine, instance),
     // A player-activated [Counter] ability has no incoming trigger payload (it is
     // not reacting to another event), so the TriggerInfo is empty — same as
     // activateEffectDeps.makeContext.
-    makeContext: (source, _effect) => engine.buildEffectContext(source, {}),
+    makeContext: (source, _effect) => buildEffectContext(engine, source, {}),
     tracker: engine.tracker,
   };
 }
@@ -603,7 +605,7 @@ export function respondCounterDeps(engine: GameEngine): RespondCounterDeps {
 export function activateEffectDeps(engine: GameEngine): ActivateEffectDeps {
   return {
     findInstance: (instanceId) => findInstance(engine, instanceId),
-    cardSourceOf: (instance) => engine.cardSourceOf(instance),
+    cardSourceOf: (instance) => cardSourceOf(engine, instance),
     activationEffectsFor: (instance) => engine.projection.activatableEffectsFor([instance]),
     // A directly-activated [Main] ability has no incoming trigger payload (it is
     // not reacting to another event), so the TriggerInfo is empty. It still carries
@@ -799,8 +801,9 @@ export function dnaDigivolveDeps(engine: GameEngine): DnaDigivolveDeps {
           const source = engine.access.permanentById(sourcePermanentId);
           return source?.topCard === undefined
             ? undefined
-            : engine.buildEffectContext(
-                engine.cardSourceOf(findInstance(engine, sourceInstanceId ?? "")?.instance ?? source.topCard),
+            : buildEffectContext(
+                engine,
+                cardSourceOf(engine, findInstance(engine, sourceInstanceId ?? "")?.instance ?? source.topCard),
                 {},
               );
         },

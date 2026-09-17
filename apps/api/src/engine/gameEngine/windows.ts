@@ -6,6 +6,7 @@ import type { TriggerInfo } from "../effects/EffectContext.js";
 import { fireTiming, resolveDeletionReactions, runTimingWindow } from "./timing.js";
 import { fireSubTriggerSnapshot } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
+import { effectEnvironment } from "./effectContext.js";
 
 /**
  * Open (or transparently join) a "resolving-effect window" identifying ONE top-level
@@ -129,7 +130,7 @@ export function collectNestedTimingEffects(
   candidateInstances: readonly CardInstance[],
 ): CollectedEffect[] {
   const capturedTrigger = { ...trigger };
-  return gatherTriggeredEffects(engine.effectEnvironment(capturedTrigger), timing, candidateInstances).map(
+  return gatherTriggeredEffects(effectEnvironment(engine, capturedTrigger), timing, candidateInstances).map(
     (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
   );
 }
