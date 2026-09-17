@@ -19,20 +19,22 @@
    The client owns no rules here: every cue is a reaction to a server event
    (ARCHITECTURE.md §4). */
 
-import { CueTrack, LungeDirection } from "./match/enums";
+import { CueTrack } from "./match/enums";
 import { REDUCED_MOTION_QUERY } from "./match/environment";
 import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "./match/constants";
 import { OPTION_DOCK_TRACKS, holdsTheBoard } from "./match/tracks";
 import { liveMode } from "./match/environment";
 import { withoutId } from "./match/eventLookup";
 import { buildCardSiteIndex } from "./match/cardSiteIndex";
-import { shieldBreakStep } from "./match/steps/shieldBreakStep";
-import { deleteBurstStep } from "./match/steps/deleteBurstStep";
 import { batchFacts } from "./match/present/batchFacts";
 import { combatScenes } from "./match/present/combat";
 import { collectBatchAnnouncements } from "./match/present/announcements";
 import { enqueueArrivals } from "./match/present/arrivals";
 import { enqueueAttackAnnouncement } from "./match/present/attackAnnouncement";
+import { presentSecurityAttack } from "./match/present/attackLunge";
+import { enqueueCombatImpact } from "./match/present/combatImpact";
+import { enqueueDeletionBursts } from "./match/present/deletionBursts";
+import { enqueueSecurityDestructions } from "./match/present/securityDestructions";
 import { enqueueOptionDock } from "./match/present/optionDock";
 import { routeBatchNotices } from "./match/present/noticeRouting";
 import { enqueueBatchSounds } from "./match/present/sounds";
@@ -88,21 +90,16 @@ import { isOwnEffectNotice, noticeRemaining, rejectionNotice, securityGainNotice
 import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
 import {
   buildSecurityBranchScene,
-  buildSecurityBreakScene,
-  buildSecurityDestructionScene,
   buildSecurityDockScene,
   buildSecurityRevealScene,
-  securityDestructionsFromEvents,
   securityCheckSegments,
   settleSecurityClashScene,
   SECURITY_BRANCH_TOTAL_MS,
-  SECURITY_DESTROY_OUTCOME_AT_MS,
-  SECURITY_DESTROY_TOTAL_MS,
   type SecurityBranchScene,
   type SecurityClashAttacker,
   type SecurityClashScene,
 } from "./securityClash";
-import { deletionAnchorIdsFromEvent, hasTurnStartDraw, type PermanentBurst, type ZoneShowcase } from "./showcases";
+import { hasTurnStartDraw, type PermanentBurst, type ZoneShowcase } from "./showcases";
 import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 import { presentationTelemetry } from "./presentationTelemetry";
@@ -114,12 +111,8 @@ import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } 
 import {
   CLASH_OUTCOME_AT_MS,
   CLASH_TOTAL_MS,
-  COMBAT_IMPACT_TOTAL_MS,
   DECISION_STALL_BUDGET_MS,
   dpPulseTotalMs,
-  FIELD_CLASH_IMPACT_AT_MS,
-  FIELD_CLASH_LUNGE_AT_MS,
-  FIELD_CLASH_TOTAL_MS,
   PLAY_LEAD_IN_BUDGET_MS,
   SECURITY_BRANCH_IN_MS,
   TIMINGS,
@@ -842,38 +835,15 @@ export function useMatchCues({
       enqueueAttackAnnouncement({ announcement, setAttackAnnouncement, enqueue });
     }
     if (refusal?.kind === "actionRejected") onActionRejected(refusal.reason);
-    if (securityAttack?.kind === "attackDeclared") {
-      const lunge: AttackLunge = {
-        permanentId: securityAttack.attackerPermanentId,
-        direction: securityAttack.seat === viewerSeat ? LungeDirection.Up : LungeDirection.Down,
-      };
-      enqueue({
-        id: `lunge-${lunge.permanentId}`,
-        track: "attackLunge",
-        replace: true,
-        async run(context) {
-          setAttackLunge(lunge);
-          await context.wait(TIMINGS.attackLunge);
-          if (context.cancelled) return;
-          setAttackLunge(null);
-        },
-      });
-      securityAttackerRef.current = {
-        seat: securityAttack.seat,
-        cardId: securityAttack.attackerCardId,
-        artId: securityAttack.attackerArtId,
-        permanentId: securityAttack.attackerPermanentId,
-        // Captured while the attacker is still on the field: an effect deletion names
-        // the card instance rather than the permanent, so both ways in are kept.
-        topInstanceId: cardSiteRef.current.topInstanceOf(securityAttack.attackerPermanentId),
-      };
-    }
-    if (
-      redirectedOffPlayer?.kind === "attackDeclared" &&
-      securityAttackerRef.current?.permanentId === redirectedOffPlayer.attackerPermanentId
-    ) {
-      securityAttackerRef.current = undefined;
-    }
+    presentSecurityAttack({
+      securityAttack,
+      redirectedOffPlayer,
+      viewerSeat,
+      cardSiteRef,
+      securityAttackerRef,
+      setAttackLunge,
+      enqueue,
+    });
     // A check now reaches the client as two events: `securityRevealed` the moment the card
     // is turned face up, and `securityChecked` once the server has resolved everything that
     // card caused. The scene follows the same split — the card goes on stage at the reveal
@@ -1117,171 +1087,45 @@ export function useMatchCues({
         });
       }
     }
-    // A card an effect took out of a security stack is not checked, so nothing above
-    // narrates it — the stack simply got shorter. The reference client plays the whole
-    // per-card sequence instead (shield break, the card revealed centre-stage, then the
-    // card broken where it stands), once for EVERY card, so a Ragnarok Cannon emptying a
-    // stack is seen card by card rather than as a counter dropping by four.
-    const destructions = securityDestructionsFromEvents(fresh, sidePanelLookupRef.current);
-    // Read once, before any of the scenes: it is the figure that still counts every card
-    // the run is about to spend, and each card puts one back as its own scene breaks it.
-    const securityBeforeDestruction = new Map<Seat, number | undefined>(
-      destructions.map((destruction) => [destruction.seat, securityCountOf(destruction.seat)]),
-    );
-    const spentPerSeat = new Map<Seat, number>();
-    destructions.forEach((destruction, index) => {
-      securityClashKeyRef.current += 1;
-      const key = securityClashKeyRef.current;
-      const spent = spentPerSeat.get(destruction.seat) ?? 0;
-      spentPerSeat.set(destruction.seat, spent + 1);
-      const before = securityBeforeDestruction.get(destruction.seat);
-      holdSecurityCard(key, destruction.seat, before === undefined ? undefined : before - spent);
-      const scene = buildSecurityDestructionScene({
-        key,
-        cardId: destruction.cardId,
-        artId: destruction.artId,
-        trashedSeat: destruction.seat,
-        viewerSeat,
-      });
-      // Only the first card takes the centre of the screen off whatever held it; the rest
-      // queue behind their predecessor on the same track — including a predecessor from an
-      // EARLIER batch: a chained effect delivers one trash per batch, and replacing would
-      // cancel the previous card's scene mid-play.
-      enqueue(
-        shieldBreakStep({
-          queue,
-          setSecurityBreak,
-          setSecurityHitSeat,
-          scene: buildSecurityBreakScene({ key, defenderSeat: destruction.seat, viewerSeat }),
-          replace: index === 0 && pendingDestructionsRef.current === 0,
-        }),
-      );
-      pendingDestructionsRef.current += 1;
-      enqueue({
-        id: `security-destroyed-${key}`,
-        track: CueTrack.CenterStage,
-        // Which card the stack just lost is information, not decoration: it keeps its
-        // time even under reduced motion or on a hidden tab.
-        skippable: false,
-        async run(context) {
-          try {
-            setSecurityClash(scene);
-            // The stack loses this card as it breaks, so the shield drops one at that beat
-            // rather than all of them at once when the effect resolved.
-            await context.wait(SECURITY_DESTROY_OUTCOME_AT_MS);
-            releaseSecurityCard(key);
-            await context.wait(SECURITY_DESTROY_TOTAL_MS - SECURITY_DESTROY_OUTCOME_AT_MS);
-          } finally {
-            pendingDestructionsRef.current = Math.max(0, pendingDestructionsRef.current - 1);
-            releaseSecurityCard(key);
-            setSecurityClash((current) => (current?.key === key ? null : current));
-          }
-        },
-      });
-      releaseSecurityCardWhenIdle(key);
+    enqueueSecurityDestructions({
+      fresh,
+      viewerSeat,
+      replayingHistory,
+      queue,
+      sidePanelLookupRef,
+      securityClashKeyRef,
+      pendingDestructionsRef,
+      setSecurityBreak,
+      setSecurityHitSeat,
+      setSecurityClash,
+      setPendingRevealKey,
+      securityCountOf,
+      holdSecurityCard,
+      releaseSecurityCard,
+      releaseSecurityCardWhenIdle,
+      releaseSecurityPresentation,
+      enqueue,
     });
-    if (destructions.length > 0) {
-      // A destruction step dropped from the queue before it ever ran (a newer check
-      // replacing the track) never reaches its `finally`, so the count is squared with
-      // reality at the latest when nothing is running — same discipline as the held
-      // shield figures above.
-      void queue.idle().then(() => {
-        pendingDestructionsRef.current = 0;
-      });
-      // The trashed cards own the centre of the screen exactly as a reveal does, so a
-      // question the same batch carries — the order of the triggers the effect fired,
-      // say — waits behind the last card's scene. Opened at once, its dialog covered the
-      // very cards the effect just spent.
-      const lastKey = securityClashKeyRef.current;
-      if (!replayingHistory) setPendingRevealKey(lastKey);
-      releaseSecurityPresentation(lastKey);
-    }
-    for (const scene of clashScenes) {
-      const impacted: ReadonlySet<string> = new Set(scene.loserPermanentIds);
-      enqueue({
-        id: `field-clash-${scene.key}`,
-        track: "combatImpact",
-        replace: true,
-        async run(context) {
-          if (context.mode !== "live") return;
-          try {
-            setFieldClash(scene);
-            await context.wait(FIELD_CLASH_LUNGE_AT_MS);
-            if (context.cancelled) return;
-            setAttackLunge({ permanentId: scene.attacker.permanentId, direction: scene.direction });
-            await context.wait(FIELD_CLASH_IMPACT_AT_MS - FIELD_CLASH_LUNGE_AT_MS);
-            if (context.cancelled) return;
-            setCombatImpactIds(impacted);
-            await context.wait(COMBAT_IMPACT_TOTAL_MS);
-          } finally {
-            setFieldClash((current) => (current?.key === scene.key ? null : current));
-            setAttackLunge((current) => (current?.permanentId === scene.attacker.permanentId ? null : current));
-            setCombatImpactIds((current) => (current === impacted ? new Set() : current));
-          }
-        },
-      });
-    }
-    if (beaten.size > 0) {
-      const impacted: ReadonlySet<string> = new Set(beaten);
-      enqueue({
-        id: `combat-impact-${[...beaten].join(",")}`,
-        track: "combatImpact",
-        replace: true,
-        async run(context) {
-          if (context.mode !== "live") return;
-          try {
-            setCombatImpactIds(impacted);
-            await context.wait(COMBAT_IMPACT_TOTAL_MS);
-          } finally {
-            setCombatImpactIds((current) => (current === impacted ? new Set() : current));
-          }
-        },
-      });
-    }
-    const deletionBurstAnchors = new Set<string>();
-    const deletionMetadata = new Map(
-      fresh.flatMap((event) =>
-        event.kind === "cardsMoved" && event.deletedPermanents
-          ? event.deletedPermanents.map((deleted) => [deleted.permanentId, deleted] as const)
-          : [],
-      ),
-    );
-    for (const event of fresh) {
-      for (const anchorId of deletionAnchorIdsFromEvent(event)) {
-        // A combat resolution and the deletion movement can share a batch. The former
-        // describes why the permanent left; the latter carries its public identity. One
-        // permanent gets one shatter even when both events are present.
-        if (deletionBurstAnchors.has(anchorId) || deletionBurstPresentedRef.current.has(anchorId)) continue;
-        deletionBurstAnchors.add(anchorId);
-        // A deletion a battle dealt waits for the blow; one an announced play dealt waits
-        // for the beats that explain it — the card centre-stage under its call-out, then
-        // the clause that did the deleting — capped so the shatter never drifts far from
-        // the board dropping the permanent.
-        const delayMs = clashLoserIds.has(anchorId)
-          ? FIELD_CLASH_TOTAL_MS
-          : beaten.has(anchorId)
-            ? COMBAT_IMPACT_TOTAL_MS
-            : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
-        const deleted = deletionMetadata.get(anchorId);
-        const step = deleteBurstStep({
-          anchors,
-          deleteBurstKeyRef,
-          deletionReadyAtRef,
-          setDeleteBursts,
-          anchorId,
-          delayMs,
-          metadataCardId: deleted?.cardId,
-          metadataArtId: deleted?.artId,
-          metadataSeat: deleted?.seat,
-          metadataInstanceId: deleted?.instanceId,
-          effectDeletion: !clashLoserIds.has(anchorId) && !beaten.has(anchorId),
-        });
-        if (step) {
-          deletionBurstPresentedRef.current.add(anchorId);
-          enqueue(step);
-        }
-      }
-    }
+    enqueueCombatImpact({
+      clashScenes,
+      beaten,
+      setFieldClash,
+      setAttackLunge,
+      setCombatImpactIds,
+      enqueue,
+    });
+    enqueueDeletionBursts({
+      fresh,
+      beaten,
+      clashLoserIds,
+      playLeadInMs,
+      anchors,
+      deleteBurstKeyRef,
+      deletionReadyAtRef,
+      deletionBurstPresentedRef,
+      setDeleteBursts,
+      enqueue,
+    });
     /**
      * A [Security] effect that PLAYS its own card leaves the dock nothing to show: the card
      * is on the field now, so the dock goes at that play rather than waiting for the eventual
