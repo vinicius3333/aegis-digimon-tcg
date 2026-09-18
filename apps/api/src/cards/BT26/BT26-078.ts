@@ -44,17 +44,13 @@ export const compiled: CompiledCard = {
               keyword: { keyword: "Rush" },
               duration: "forTheTurn",
             },
+            // GainKeyword Execute already installs the end-of-turn attack and deletion effects
+            // on the recipient. A separate GrantStatic "Execute" token would install a second,
+            // independently keyed copy and make the Digimon resolve Execute twice.
             {
               kind: "GainKeyword",
               target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
               keyword: { keyword: "Execute" },
-              duration: "forTheTurn",
-            },
-            {
-              kind: "GrantStatic",
-              target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
-              grant: "effects",
-              tokens: ["Execute"],
               duration: "forTheTurn",
             },
           ],

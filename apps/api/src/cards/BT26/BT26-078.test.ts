@@ -89,13 +89,6 @@ describe("BT26-078 compiled behavior", () => {
         keyword: { keyword: "Execute" },
         duration: "forTheTurn",
       }),
-      expect.objectContaining({
-        kind: "GrantStatic",
-        target: expect.objectContaining({ sourceRef: "triggerSubject" }),
-        grant: "effects",
-        tokens: ["Execute"],
-        duration: "forTheTurn",
-      }),
     ]);
   });
 
@@ -246,9 +239,11 @@ describe("BT26-078 compiled behavior", () => {
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT26-078");
     expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Execute")).toBe(true);
-    expect(observe(s.engine).customEffectGrants(s.perm("playedTitan"))).toEqual(
-      expect.arrayContaining([expect.objectContaining({ token: "Execute" })]),
-    );
+    expect(
+      observe(s.engine)
+        .customEffectGrants(s.perm("playedTitan"))
+        .filter(({ token }) => token === "Execute"),
+    ).toHaveLength(1);
 
     const loop = s.engine.startTurnLoop();
     advance(s.engine).endMainPhaseIfOpen(0);
