@@ -449,21 +449,37 @@ function useArenaHalfAnchor({
   useEffect(() => {
     const measure = () => {
       const rect = container?.getBoundingClientRect();
-      const top = rect?.top ?? 0;
-      const height = rect?.height ?? window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const boardTop = rect?.top ?? 0;
+      const boardHeight = rect?.height ?? viewportHeight;
+      const halfTop = half === "upper" ? boardTop : boardTop + boardHeight / 2;
+      // The board can lay out wider or taller than the screen — it clips its own
+      // overflow — while this panel is fixed to the viewport, so the measured half
+      // is intersected with the viewport. Without it a phone paints the reading
+      // column and the action row past the right edge.
+      const left = Math.min(Math.max(rect?.left ?? 0, 0), viewportWidth);
+      const top = Math.min(Math.max(halfTop, 0), viewportHeight);
       setAnchor({
         position: "fixed",
-        left: rect?.left ?? 0,
-        width: rect?.width ?? window.innerWidth,
-        top: half === "upper" ? top : top + height / 2,
-        height: height / 2,
+        left,
+        width: Math.min(rect?.width ?? viewportWidth, viewportWidth - left),
+        top,
+        height: Math.min(boardHeight / 2 - (top - halfTop), viewportHeight - top),
         bottom: "auto",
       });
     };
     measure();
+    // The board resizes without the window doing so — the hand dock grows, an
+    // overlay opens, the mobile URL bar collapses — and a stale anchor leaves the
+    // panel sized for the layout it was opened in.
+    const observer =
+      typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(measure);
+    if (container) observer?.observe(container);
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
     return () => {
+      observer?.disconnect();
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
     };

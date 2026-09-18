@@ -81,6 +81,32 @@ describe("BT21-012 Flamemon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("places only the Flamemon card under the Tamer and trashes its own digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-012", as: "flamemon", under: [{ card: "BT21-001", as: "egg" }] }],
+          hand: [{ card: "BT21-082", as: "takuya" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("flamemon").topCard.instanceId,
+        effectKey: `BT21-012/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082"));
+    const tamer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-082")!;
+    // KB EX2-028: only the placed card itself moves; its digivolution cards go to the trash.
+    expect(tamer.stack.map((card) => card.instanceId)).toEqual([s.inst("flamemon").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("egg").instanceId);
+  });
+
   it("places Flamemon under the Tamer played by this effect, not an existing Tamer", async () => {
     const s = setupEngine(
       {

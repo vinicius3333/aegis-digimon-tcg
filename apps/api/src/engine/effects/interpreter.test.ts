@@ -4012,7 +4012,8 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(moved).toHaveLength(1);
     expect(moved[0]!.args[0]).toBe("HOST#1");
     expect(moved[0]!.args[1]).toBe("GUEST#1");
-    expect(moved[0]!.args[2]).toEqual({ belowTop: false });
+    // Effect placements shed the moved permanent's own cards by default (KB EX2-028).
+    expect(moved[0]!.args[2]).toEqual({ belowTop: false, shedOwnCards: true });
   });
 
   it("PlaceUnder trackCount records only permanent relocations that succeed", async () => {

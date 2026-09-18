@@ -391,3 +391,29 @@ it("shows no transformation token or reading while nothing overrode the card inf
   );
   expect(screen.queryByText("Sukamon")).toBeNull();
 });
+
+it("keeps the inspector inside the viewport when the board lays out wider than the screen", () => {
+  const board = document.createElement("div");
+  board.getBoundingClientRect = () =>
+    ({ left: -20, top: -40, width: window.innerWidth + 300, height: window.innerHeight * 3 }) as DOMRect;
+  document.body.append(board);
+  render(
+    <I18nProvider>
+      <CardActionMenu
+        x={0}
+        y={0}
+        arenaInspection={{ side: Side.Viewer, container: board }}
+        detail={buildPermanentDetail(permanent(0))}
+        canAttack={false}
+        onAttack={() => undefined}
+        onViewStack={() => undefined}
+        onClose={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  const panel = document.querySelector<HTMLElement>(".arena-permanent-inspector")!;
+  expect(panel.style.left).toBe("0px");
+  expect(panel.style.width).toBe(`${window.innerWidth}px`);
+  expect(panel.style.top).toBe("0px");
+  expect(panel.style.height).toBe(`${window.innerHeight}px`);
+});

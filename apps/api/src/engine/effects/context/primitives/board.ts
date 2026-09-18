@@ -156,9 +156,11 @@ export interface BoardPrimitives {
   placeOwnTopAtStackBottom(permanentId: string): Promise<boolean>;
   /**
    * Relocate a battle-area permanent (top + stack + linked) under another permanent
-   * as digivolution cards. The source permanent ceases to exist. `shedOwnCards` is the
-   * DigiXros form of §7-2-2-7 (only the top card moves; the rest is trashed) — card effects
-   * that place a permanent under another keep the stack and must leave it unset.
+   * as digivolution cards. The source permanent ceases to exist. `shedOwnCards` is §7-2-2-7
+   * (only the top card moves; the rest is trashed), which holds both for DigiXros material
+   * placement and for card effects that place a permanent under another card (KB EX2-028,
+   * EX2-007, BT11-088). Effect and cost placements get it by default through
+   * `relocateByEffect`; this raw primitive applies it only when the caller sets it.
    */
   relocatePermanent(
     destPermanentId: string,

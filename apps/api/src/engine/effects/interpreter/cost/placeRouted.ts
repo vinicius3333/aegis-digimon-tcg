@@ -174,7 +174,7 @@ export async function payRoutedPlaceCost(
         if (ctx.fx.relocatePermanentsByEffect === undefined) return false;
         const moved = await ctx.fx.relocatePermanentsByEffect(hostPermId, sourceIds, {
           belowTop: cost.position !== "bottom",
-          shedOwnCards: cost.shedOwnCards === true,
+          shedOwnCards: cost.shedOwnCards !== false,
           ...(cost.faceDown !== undefined ? { faceUp: !cost.faceDown } : {}),
         });
         if (
@@ -186,7 +186,7 @@ export async function payRoutedPlaceCost(
       } else {
         const moved = await relocateByEffect(ctx, hostPermId, sourceIds[0]!, {
           belowTop: cost.position !== "bottom",
-          shedOwnCards: cost.shedOwnCards === true,
+          shedOwnCards: cost.shedOwnCards !== false,
           ...(cost.faceDown !== undefined ? { faceUp: !cost.faceDown } : {}),
         });
         if (moved) placedSourceIds.push(sourceIds[0]!);

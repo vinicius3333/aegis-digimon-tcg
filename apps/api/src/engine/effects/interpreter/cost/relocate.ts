@@ -6,12 +6,16 @@ export async function relocateByEffect(
   sourcePermanentId: string,
   opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
 ): Promise<boolean> {
+  // §7-2-2-7 / KB EX2-028, EX2-007, BT11-088: an effect that places a battle-area permanent
+  // under another card places ONLY its top card; the permanent's own cards are trashed.
+  // Callers opt out with an explicit `shedOwnCards: false`.
+  const shedding = { ...opts, shedOwnCards: opts?.shedOwnCards ?? true };
   if (ctx.fx.relocatePermanentByEffect !== undefined) {
-    return ctx.fx.relocatePermanentByEffect(destPermanentId, sourcePermanentId, opts);
+    return ctx.fx.relocatePermanentByEffect(destPermanentId, sourcePermanentId, shedding);
   }
   // Minimal unit contexts predate the awaited wrapper. Preserve their recorder behavior;
   // production primitives always expose `relocatePermanentByEffect`.
-  return ctx.fx.relocatePermanent(destPermanentId, sourcePermanentId, opts);
+  return ctx.fx.relocatePermanent(destPermanentId, sourcePermanentId, shedding);
 }
 
 /**
