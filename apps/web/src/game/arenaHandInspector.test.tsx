@@ -82,7 +82,8 @@ it("opens hand details on the first click over the opponent half without the sel
   fireEvent.click(hand);
   const panel = screen.getByRole("dialog", { name: "Greymon" });
   expect(panel.getAttribute("data-half")).toBe("upper");
-  expect(panel.closest(".game-board")).toBeTruthy();
+  expect(panel.closest(".game-board")).toBeNull();
+  expect(panel.parentElement).toBe(document.body);
   expect(panel.querySelector('[data-role="stack"]')).toBeNull();
   expect(panel.querySelector('[data-role="printed-inherited"]')?.textContent).toContain(
     getCardDefinition("ST1-07")!.inheritedEffectText,

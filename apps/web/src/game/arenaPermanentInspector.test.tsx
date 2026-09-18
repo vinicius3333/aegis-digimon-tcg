@@ -252,7 +252,10 @@ it.each([
   const inspector = screen.getByRole("dialog", { name: "MetalGreymon" });
   expect(inspector.getAttribute("data-half")).toBe(half);
   expect(inspector.getAttribute("aria-modal")).toBe("false");
-  expect(inspector.closest(".game-board")).not.toBeNull();
+  // Portalled out of the board (which clips and isolates it) and pinned back over the
+  // arena half through its own fixed rect.
+  expect(inspector.closest(".game-board")).toBeNull();
+  expect(inspector.parentElement).toBe(document.body);
   expect(screen.queryByRole("button", { name: "View stack" })).toBeNull();
   fireEvent.mouseLeave(selected);
   expect(screen.getByRole("dialog", { name: "MetalGreymon" })).toBe(inspector);
