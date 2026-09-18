@@ -88,6 +88,8 @@ type DemoPermanent = {
   id: string;
   sources?: readonly string[];
   suspended?: boolean;
+  /** Rules text of the effects the demo offers in the card's action row. */
+  activatable?: readonly string[];
 };
 
 /** How many notices the burst preview raises, one per server batch. */
@@ -133,9 +135,17 @@ const ARENA_DECKS: readonly {
         cardId: "BT26-016",
         id: "you-chronomon",
         sources: ["BT26-001", "BT26-009", "BT26-011", "BT26-015"],
+        activatable: [
+          "[Main] Activate this Digimon's effect",
+          "[Main] By suspending this Digimon, you may play 1 red Tamer card from your hand without paying the cost",
+        ],
       },
       { cardId: "BT26-009", id: "you-hyokomon" },
-      { cardId: "BT26-092", id: "you-shota" },
+      {
+        cardId: "BT26-092",
+        id: "you-shota",
+        activatable: ["[Main] Draw 1"],
+      },
     ],
     hand: ["BT26-009", "BT26-011", "BT26-016", "BT26-087", "BT8-095"],
     trash: ["BT26-015", "BT8-095"],
@@ -208,6 +218,15 @@ export function createArenaDemoState(
         piece.sources?.map((cardId) => take(cardId)) ?? [],
       );
       result.isSuspended = piece.suspended ?? false;
+      result.activatableEffectsJson = piece.activatable
+        ? JSON.stringify(
+            piece.activatable.map((description, index) => ({
+              instanceId: result.topCard.instanceId,
+              effectKey: `${piece.cardId}/${index}`,
+              description,
+            })),
+          )
+        : "";
       return result;
     }
     const player = new PlayerState();
