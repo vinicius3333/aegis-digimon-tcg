@@ -80,7 +80,8 @@ export function ArenaCardActions({
                   aria-label={`${t("game.activateEffect")}: ${effect.label}`}
                   title={effect.label}
                 >
-                  {effect.label}
+                  {t("game.activateMainEffect")}
+                  {(effects?.length ?? 0) > 1 ? ` ${index + 1}` : ""}
                 </Button>
               ))}
               {promote ? (

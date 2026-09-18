@@ -2,7 +2,7 @@
   --inspector-ink: #f7f8f4;
   --inspector-muted: #c8d2d8;
   position: absolute;
-  z-index: 80;
+  z-index: var(--ds-z-inspector);
   inset-inline: 0;
   height: 50%;
   padding: clamp(1rem, 2vw, 2rem) clamp(1rem, 7vw, 8rem);
@@ -220,24 +220,35 @@
   border-radius: 0.125rem !important;
 }
 
+/* Every action gets the same cell so no label can stretch the row off screen;
+   the grid reflows into fewer columns instead of scrolling sideways. */
 .arena-permanent-inspector__actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   flex-shrink: 0;
-  flex-wrap: wrap;
   gap: 0.5rem;
   padding-top: 0.5rem;
   border-top: 1px solid rgb(237 247 249 / 20%);
-  max-height: 5.75rem;
+  max-height: 8rem;
   overflow-y: auto;
 }
-.arena-permanent-inspector__actions .arena-permanent-inspector__activate {
-  max-width: 24rem;
-  white-space: normal;
-  text-align: left;
-}
 .arena-permanent-inspector__actions button {
+  width: 100%;
+  min-width: 0;
   min-height: 2.75rem;
+  justify-content: center;
   font-size: 0.75rem;
+}
+/* A long label wraps inside its own cell rather than widening the row. */
+.arena-permanent-inspector__actions button {
+  overflow: hidden;
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
+}
+/* The attack is the reason the panel is open: it leads the row on its own line. */
+.arena-permanent-inspector__actions .aegis-button--danger {
+  grid-column: 1 / -1;
 }
 .arena-permanent-inspector :is(button, [tabindex]):focus-visible {
   outline: 2px solid #c7f4ff;
@@ -288,12 +299,14 @@
     font-size: 0.625rem;
   }
   .arena-permanent-inspector__actions {
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.375rem;
+    max-height: 7rem;
     padding-bottom: 0.25rem;
   }
   .arena-permanent-inspector__actions button {
-    flex-shrink: 0;
+    min-height: 2.5rem;
+    padding-inline: 0.5rem;
   }
   .arena-permanent-inspector__effect-label {
     font-size: 0.625rem;
@@ -323,6 +336,7 @@
   .arena-permanent-inspector__actions {
     gap: 0.25rem;
     padding-top: 0.25rem;
+    max-height: 5.75rem;
   }
 }
 

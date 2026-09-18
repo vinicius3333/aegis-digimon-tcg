@@ -413,6 +413,33 @@ describe("a security battle's outcome comes before the attacker's death", () => 
     expect(held?.trash.map((card) => card.instanceId)).not.toContain("s0-27");
   });
 
+  it("shatters the first attacker when the next check is staged before its outcome", async () => {
+    const SECOND_ATTACK: ServerEvent = { ...ATTACK, attackerPermanentId: "perm-4", attackerCardId: "BT18-015" };
+    const SECOND_REVEAL: ServerEvent = {
+      ...REVEAL,
+      revealedCardId: "BT21-013",
+      artId: "BT21-013",
+      attackerPermanentId: "perm-4",
+      attackerArtId: "BT18-015",
+    };
+    const view = renderOrderingCues();
+    await advance(0);
+    for (const batch of [[ATTACK], [REVEAL], [ATTACKER_TRASHED]]) {
+      view.feedBatch(batch as ServerEvent[]);
+      await advance(16);
+    }
+    // The next attack's reveal reaches the client before the first check's outcome does,
+    // which is what retires the first check's blow.
+    view.feedBatch([SECOND_ATTACK, SECOND_REVEAL]);
+    await advance(16);
+    view.feedBatch([CHECKED]);
+    const order = await firstSeenOrder(
+      { shatter: () => view.result.current.deleteBursts.length > 0 },
+      TIMINGS.securityDockMax / 4,
+    );
+    expect(order).toEqual(["shatter"]);
+  });
+
   it("lets the clash go when the old server stops to ask the viewer something", async () => {
     const view = renderOrderingCues();
     await advance(0);

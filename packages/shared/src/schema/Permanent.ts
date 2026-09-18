@@ -59,6 +59,18 @@ export class Permanent extends Schema {
   // top card. Rendered as transient board badges so gained abilities stay visible
   // without duplicating every keyword already legible on the card art.
   @type(["string"]) grantedKeywords = new ArraySchema<string>();
+  // Server-resolved "original card information" overrides (Comprehensive Rules card
+  // information change; KB Q2080-Q2084). An effect such as BT11-043 KingSukamon rewrites a
+  // Digimon's ORIGINAL name, color and DP — it does not add a card to the field, so the
+  // client still renders the physical card underneath and needs these two fields to say
+  // what the position now counts as. Empty/absent while nothing overrode them.
+  //
+  // Projected for both seats: a transformation is public information, and the opponent
+  // must be able to read that their Digimon is currently a white 3000 DP [Sukamon].
+  // The overridden DP arrives through `baseDP`/`currentDP` like any other DP figure;
+  // only name and colors need their own channel.
+  @type("string") originalNameOverride = "";
+  @type(["string"]) originalColorsOverride = new ArraySchema<string>();
   // Server-resolved aliases that apply only while this permanent is chosen as a
   // DigiXros material. Kept separate from normal names because the grant must not
   // affect any other name-based rule or UI affordance.

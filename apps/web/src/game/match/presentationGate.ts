@@ -34,12 +34,37 @@ export function createPresentationGate(): PresentationGate {
   return gate;
 }
 
+/**
+ * How a wait ended. Every value but `expired` is a beat that was handed over on purpose;
+ * `expired` means the ceiling fired instead, which is always a bug in whoever owned the
+ * gate — the wait was supposed to be released, and the viewer sat through the ceiling.
+ */
+export type GateWaitOutcome = "open" | "released" | "expired" | "cancelled" | "skipped";
+
+export interface GateExpiry {
+  /** Names the wait, so a report says which beat stalled rather than just that one did. */
+  label: string;
+  ceilingMs: number;
+}
+
+const expiryObservers = new Set<(expiry: GateExpiry) => void>();
+
+/** Watch for gates that ran out their ceiling. Returns the unsubscribe. */
+export function observeGateExpiry(observer: (expiry: GateExpiry) => void): () => void {
+  expiryObservers.add(observer);
+  return () => {
+    expiryObservers.delete(observer);
+  };
+}
+
 export async function waitForGate(
   gate: PresentationGate | null | undefined,
   context: AnimationStepContext,
   ceilingMs: number,
-): Promise<void> {
-  if (!gate || gate.open || context.mode === "replay" || context.skipping) return;
+  label: string,
+): Promise<GateWaitOutcome> {
+  if (!gate || gate.open) return "open";
+  if (context.mode === "replay" || context.skipping) return "skipped";
   const deadline = Date.now() + ceilingMs;
   // A fast-forward is the viewer asking for the rest of it now. A gate is the one wait
   // that has no clock of its own, so it is also the one a skip has to break out of —
@@ -56,6 +81,11 @@ export async function waitForGate(
     await Promise.race([gate.opened, poll]);
     stopPolling();
   }
+  if (gate.open) return "released";
+  if (context.cancelled) return "cancelled";
+  if (context.skipping) return "skipped";
+  for (const observer of [...expiryObservers]) observer({ label, ceilingMs });
+  return "expired";
 }
 
 /** The deletion beat a card is waiting on, and the gate that says its shards have played. */

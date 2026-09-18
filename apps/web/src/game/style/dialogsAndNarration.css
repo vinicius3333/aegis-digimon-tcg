@@ -146,7 +146,7 @@
    always wins. */
 .narration-slot {
   position: absolute;
-  z-index: calc(var(--ds-z-dialog) - 4);
+  z-index: var(--ds-z-notice);
   display: flex;
   width: min(20rem, calc(100% - var(--ds-space-8)));
   flex-direction: column;

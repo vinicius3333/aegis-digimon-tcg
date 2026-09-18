@@ -66,7 +66,7 @@ export function useRestrictionPulses({
         replace: true,
         async run(context) {
           if (context.mode !== "live") return;
-          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "restrictionPulse/causingEffect");
           if (context.cancelled) return;
           try {
             setFreezePulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));

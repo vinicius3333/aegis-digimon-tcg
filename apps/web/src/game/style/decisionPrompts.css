@@ -429,7 +429,7 @@
 
 .recovery-toast {
   position: fixed;
-  z-index: var(--ds-z-toast);
+  z-index: var(--ds-z-notice);
   display: flex;
   align-items: center;
   gap: var(--ds-space-2);

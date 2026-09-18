@@ -329,9 +329,11 @@ it("preserves every supplied legal action and zoom while leaving schema source o
   }
   expect(detail.cards).toEqual(originalCards);
   expect([...source.stack].map((instance) => instance.cardId)).toEqual(["ST1-01", "ST1-03", "ST1-07"]);
-  expect(screen.getByRole("button", { name: "Activate effect: Server Main effect" }).textContent).toBe(
-    "Server Main effect",
-  );
+  // The button keeps the whole clause for assistive tech and the tooltip, but wears a short
+  // label so one long effect cannot stretch the action row off screen.
+  const activate = screen.getByRole("button", { name: "Activate effect: Server Main effect" });
+  expect(activate.textContent).toBe("Activate [Main] effect");
+  expect(activate.title).toBe("Server Main effect");
   fireEvent.click(screen.getByRole("button", { name: "Enlarge card" }));
   expect(screen.getAllByRole("dialog", { name: "MetalGreymon" })).toHaveLength(2);
   fireEvent.keyDown(window, { key: "Escape" });
@@ -339,4 +341,50 @@ it("preserves every supplied legal action and zoom while leaving schema source o
   expect(screen.getAllByRole("dialog", { name: "MetalGreymon" })).toHaveLength(1);
   fireEvent.keyDown(document, { key: "Escape" });
   expect(onClose).toHaveBeenCalledOnce();
+});
+
+it("lays a token over a transformed Digimon and reads the change out in the inspector", () => {
+  const source = permanent(1);
+  source.originalNameOverride = "Sukamon";
+  source.originalColorsOverride.push("White");
+  source.baseDP = 3000;
+  source.currentDP = 3000;
+  render(
+    <I18nProvider>
+      <PermanentView perm={source} />
+    </I18nProvider>,
+  );
+  expect(screen.getByRole("img", { name: "Transformed into Sukamon, 3,000 DP" })).toBeTruthy();
+
+  cleanup();
+  render(
+    <I18nProvider>
+      <CardActionMenu
+        x={0}
+        y={0}
+        arenaInspection={{ side: Side.Viewer, container: null }}
+        detail={buildPermanentDetail(source)}
+        canAttack={false}
+        onAttack={() => undefined}
+        onViewStack={() => undefined}
+        onClose={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.getByText("Counts as Sukamon")).toBeTruthy();
+  expect(
+    screen.getByText(/its original name is now \[Sukamon\], its original color is White, and its original DP is 3,000/),
+  ).toBeTruthy();
+  expect(screen.getByText(/Only the original information changes/)).toBeTruthy();
+});
+
+it("shows no transformation token or reading while nothing overrode the card information", () => {
+  const source = permanent(1);
+  expect(buildPermanentDetail(source).transformation).toBeUndefined();
+  render(
+    <I18nProvider>
+      <PermanentView perm={source} />
+    </I18nProvider>,
+  );
+  expect(screen.queryByText("Sukamon")).toBeNull();
 });

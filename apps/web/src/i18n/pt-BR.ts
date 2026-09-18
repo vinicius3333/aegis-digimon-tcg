@@ -513,6 +513,15 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.granted": "concedida",
   "overlay.noKeywords": "Nenhuma palavra-chave ativa",
   "overlay.securityAttackValue": "Ataque à segurança {value}",
+  "overlay.transformedLabel": "Transformado",
+  "overlay.transformedBadge": "Conta como {name}",
+  "overlay.transformedSummary":
+    "Um efeito reescreveu as informações originais deste Digimon: o nome original agora é [{name}], a cor original é {color} e o DP original é {dp}.",
+  "overlay.transformedSummaryNoColor":
+    "Um efeito reescreveu as informações originais deste Digimon: o nome original agora é [{name}] e o DP original é {dp}.",
+  "overlay.transformedRules":
+    "Só as informações originais mudam. Nível, traços, efeitos impressos e cartas de digivolução continuam como estão, e informações concedidas por outro efeito continuam valendo por cima — o Digimon pode até ficar com duas cores. A mudança permanece se ele digivolver ou perder cartas do topo, e acaba assim que a carta deixa a área de batalha.",
+  "game.transformedInto": "Transformado em {name}, {dp} DP",
   "overlay.printedEffect": "Efeito impresso",
   "library.optionEffect": "Efeito Option",
   "overlay.noPrintedEffect": "Sem efeito impresso",

@@ -59,7 +59,7 @@ export function useDpPulses({
         replace: true,
         async run(context) {
           if (context.mode !== "live") return;
-          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "dpPulse/causingEffect");
           if (context.cancelled) return;
           try {
             setDpPulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));

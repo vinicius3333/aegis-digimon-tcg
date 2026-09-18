@@ -184,7 +184,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
 
         async function runNarrationStep() {
           if (context.mode === "replay" || narrationSkipRef.current) return;
-          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "narration/causingEffect");
           if (context.cancelled || narrationSkipRef.current) return;
           if (onPlay && initialSite?.zone === "field") {
             while (
@@ -200,7 +200,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
             await Promise.resolve();
             const shatter = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
             if (shatter) {
-              await waitForGate(shatter.shattered, context, TIMINGS.securityDockMax);
+              await waitForGate(shatter.shattered, context, TIMINGS.securityDockMax, "narration/shattered");
               await context.wait(Math.max(0, shatter.readyAt - Date.now()));
             }
             if (context.cancelled || narrationSkipRef.current) return;

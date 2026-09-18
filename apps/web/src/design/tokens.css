@@ -150,6 +150,12 @@
   --ds-z-dialog: 90;
   --ds-z-toast: 110;
   --ds-z-skip: 130;
+  /* The field-card inspector sits above selection prompts, since it is what the
+     player just opened; pile viewers and the card blow-up stay above it. */
+  --ds-z-inspector: 10500;
+  /* Notices and toasts report what just happened, so they top every prompt,
+     sheet and inspector — they are read and dismissed, never interacted with. */
+  --ds-z-notice: 10800;
   /* Pile viewers sit above every match layer (drag ghosts, popup menus, dev tools);
      the card blow-up opened from one sits above the viewer itself. */
   --ds-z-pile-viewer: 11000;

@@ -90,6 +90,7 @@ import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClas
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress } from "./presentationProgress";
+import { observeGateExpiry } from "./match/presentationGate";
 import type { DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
 import { presentationTelemetry } from "./presentationTelemetry";
 import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
@@ -277,6 +278,33 @@ export function useMatchCues({
       },
     };
   }, [progress]);
+  // A gate that ran out its ceiling is a cue nobody handed over: the viewer sat through
+  // the whole ceiling with the board held at an older revision. It is reported on the
+  // diagnostic channel so the stall shows up in the match log on its own, rather than
+  // waiting for a player to describe a frozen screen.
+  useEffect(
+    () =>
+      observeGateExpiry(({ label, ceilingMs }) => {
+        console.error("[MATCH_CUE] gate expired", { label, ceilingMs });
+        try {
+          presentationReporterRef.current?.({
+            phase: "expired",
+            stepId: label,
+            track: "gate",
+            clientTimestamp: Date.now(),
+            durationMs: ceilingMs,
+            mode: queue.getMode(),
+            cancelled: false,
+            skipping: false,
+            failed: true,
+            pendingCount: queue.pendingCount(),
+          });
+        } catch {
+          // Diagnostic transport must never interrupt the presentation.
+        }
+      }),
+    [queue],
+  );
   // Every finite cue is a prerequisite for a new choice. The security dock and the
   // battle hold are deliberately excluded: both wait for the answer itself and would
   // deadlock. Toast reading happens outside the queue, so it never delays a decision.

@@ -192,6 +192,9 @@ export function ArenaPermanentInspector({
                 {t("overlay.baseDp")}: {detail.baseDP.toLocaleString()}
               </span>
             ) : null}
+            {detail.transformation ? (
+              <span data-warning="true">{t("overlay.transformedBadge", { name: detail.transformation.name })}</span>
+            ) : null}
             {fate ? <span data-warning="true">{t(fate.labelKey)}</span> : null}
           </div>
           <div
@@ -200,6 +203,24 @@ export function ArenaPermanentInspector({
             aria-label={t("overlay.printedEffect")}
             tabIndex={0}
           >
+            {detail.transformation ? (
+              <div className="arena-permanent-inspector__effect" data-role="transformed">
+                <span className="arena-permanent-inspector__effect-label">{t("overlay.transformedLabel")}</span>
+                <p>
+                  {t(
+                    detail.transformation.colors.length
+                      ? "overlay.transformedSummary"
+                      : "overlay.transformedSummaryNoColor",
+                    {
+                      name: detail.transformation.name,
+                      color: detail.transformation.colors.map((color) => t(`game.color.${color}`)).join(" / "),
+                      dp: detail.transformation.dp.toLocaleString(),
+                    },
+                  )}
+                </p>
+                <p>{t("overlay.transformedRules")}</p>
+              </div>
+            ) : null}
             {top?.effectText || supporting.length === 0 ? (
               <div className="arena-permanent-inspector__effect" data-role="top">
                 <span className="arena-permanent-inspector__effect-label">{t("overlay.printedEffect")}</span>

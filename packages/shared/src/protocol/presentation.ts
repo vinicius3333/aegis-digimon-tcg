@@ -2,7 +2,14 @@
 export const PRESENTATION_CHANNEL = "presentation" as const;
 
 export interface PresentationReport {
-  phase: "queued" | "started" | "shown" | "finished" | "dropped";
+  /**
+   * `expired` is not a step phase: it is a presentation gate that hit its ceiling instead
+   * of being released. Every such ceiling is a safety net over a beat that should have
+   * been handed over explicitly, so one firing means a cue sat there for its whole ceiling
+   * with the board held at an older revision. Reported so the stall is visible in the
+   * match log without waiting for a player to describe a frozen screen.
+   */
+  phase: "queued" | "started" | "shown" | "finished" | "dropped" | "expired";
   stepId: string;
   track: string;
   batchId?: string;

@@ -46,7 +46,7 @@ export function cueFlights(deps: CueFlightsDeps) {
       replace: true,
       async run(context) {
         if (context.mode !== "live") return;
-        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "securityGainFlight/causingEffect");
         if (context.cancelled) return;
         try {
           setSecurityFlights((seats) => new Set(seats).add(seat));
@@ -136,7 +136,7 @@ export function cueFlights(deps: CueFlightsDeps) {
       track: `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {
         await Promise.all([
-          waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS),
+          waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "drawFlight/causingEffect"),
           waitBeforeMs > 0 ? context.wait(waitBeforeMs) : Promise.resolve(),
         ]);
         if (context.cancelled) return;
@@ -207,7 +207,7 @@ export function cueFlights(deps: CueFlightsDeps) {
       id: `deck-under-flight-${key}`,
       track: `deckUnder-${permanentId}`,
       async run(context) {
-        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS);
+        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "deckUnderFlight/causingEffect");
         if (context.cancelled) return;
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);

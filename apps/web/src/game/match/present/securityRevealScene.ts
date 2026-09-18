@@ -134,6 +134,18 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     // 45s ceiling) and each of those beats blocks the prompt: the check would be waiting
     // for the answer the client is refusing to ask for. Nothing would draw it either,
     // because there is no blow.
+    //
+    // Only one check holds the blow at a time, and `releaseSecurityBlow` recognises the
+    // current one by key. A check whose outcome lands after the next check has already
+    // been staged would therefore find its own gate replaced and never release it, so
+    // every deletion it caused would sit under the 45s ceiling with the deleted Digimon
+    // still on the board. The superseded check can no longer draw its battle, so its
+    // gate is released here as it is retired.
+    const superseded = securityBlowRef.current;
+    if (superseded !== null && superseded.key !== key) {
+      superseded.landed = true;
+      superseded.gate.release();
+    }
     const blow = { key, landed: !battlePending, gate: createPresentationGate() };
     if (!battlePending) blow.gate.release();
     securityBlowRef.current = blow;

@@ -11,6 +11,7 @@
 
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { restrictionBadges, type RestrictionBadge } from "./fieldBadges";
+import { permanentTransformation, type PermanentTransformation } from "./transformation";
 import type { StackCard } from "./overlay";
 
 /** How many security cards an attack checks with no modifier at all. */
@@ -48,6 +49,13 @@ export interface PermanentDetail {
    * re-derives each flag from the ledger the rule itself reads.
    */
   restrictions: readonly RestrictionBadge[];
+  /**
+   * What this position counts as after an effect rewrote its ORIGINAL card information
+   * (BT11-043 KingSukamon and friends), or undefined while nothing did. Server truth like
+   * every other figure here; the inspector reads out the change rather than the board
+   * having to infer it from a name that no longer matches the art.
+   */
+  transformation?: PermanentTransformation;
   suspended: boolean;
   summoningSick: boolean;
   inBreeding: boolean;
@@ -94,6 +102,7 @@ export function buildPermanentDetail(
     })),
   ];
   const keywords = [...permanent.keywords];
+  const transformation = permanentTransformation(permanent);
   return {
     permanentId: permanent.permanentId,
     cardId: topCardId,
@@ -109,6 +118,7 @@ export function buildPermanentDetail(
     securityAttack: shownSecurityAttack(permanent),
     securityAttackModifier: permanent.securityAttackModifier ?? permanent.securityAttack - BASE_SECURITY_ATTACK,
     restrictions: restrictionBadges(permanent),
+    ...(transformation ? { transformation } : {}),
     suspended: permanent.isSuspended,
     summoningSick: permanent.summoningSick,
     inBreeding: permanent.inBreeding,
@@ -131,6 +141,7 @@ export type CardInspectionDetail = Pick<
   | "securityAttack"
   | "securityAttackModifier"
   | "restrictions"
+  | "transformation"
   | "suspended"
 > & { printedOnly?: boolean };
 

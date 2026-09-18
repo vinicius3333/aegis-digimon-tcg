@@ -100,7 +100,7 @@ export function deleteBurstStep({
       let clauseShownAt = Date.now();
       // A permanent beaten in battle takes the blow before it breaks.
       await Promise.all([
-        waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS).then(() => {
+        waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "deleteBurst/causingEffect").then(() => {
           clauseShownAt = Date.now();
         }),
         delayMs > 0 ? context.wait(delayMs) : Promise.resolve(),
@@ -114,7 +114,8 @@ export function deleteBurstStep({
       // track, so nothing on centre stage is waiting behind it.
       if (blowKey !== undefined) {
         const blow = securityBlowRef.current;
-        if (blow !== null && blow.key === blowKey) await waitForGate(blow.gate, context, TIMINGS.securityDockMax);
+        if (blow !== null && blow.key === blowKey)
+          await waitForGate(blow.gate, context, TIMINGS.securityDockMax, "deleteBurst/securityBlow");
       }
       if (context.cancelled) return leaveUnshown();
       try {

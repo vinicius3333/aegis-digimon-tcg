@@ -54,7 +54,8 @@ export function enqueueMemoryHold({
     blocksDecision: false,
     async run(context) {
       try {
-        if (context.mode === "live") await waitForGate(announceGate, context, CONSEQUENCE_GATE_MAX_MS);
+        if (context.mode === "live")
+          await waitForGate(announceGate, context, CONSEQUENCE_GATE_MAX_MS, "memoryHold/announce");
       } finally {
         setHeldMemory((current) => (current?.key === hold.key ? undefined : current));
       }

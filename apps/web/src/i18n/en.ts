@@ -507,6 +507,15 @@ export const en = {
   "overlay.granted": "granted",
   "overlay.noKeywords": "No active keywords",
   "overlay.securityAttackValue": "Security Attack {value}",
+  "overlay.transformedLabel": "Transformed",
+  "overlay.transformedBadge": "Counts as {name}",
+  "overlay.transformedSummary":
+    "An effect rewrote this Digimon's original card information: its original name is now [{name}], its original color is {color}, and its original DP is {dp}.",
+  "overlay.transformedSummaryNoColor":
+    "An effect rewrote this Digimon's original card information: its original name is now [{name}], and its original DP is {dp}.",
+  "overlay.transformedRules":
+    "Only the original information changes. Its level, traits, printed effects and digivolution cards stay as they are, and information another effect grants it still applies on top — so it can end up as a two-color Digimon. The change carries over if it digivolves or loses top cards, and it is lost the moment the card leaves the battle area.",
+  "game.transformedInto": "Transformed into {name}, {dp} DP",
   "overlay.printedEffect": "Printed effect",
   "library.optionEffect": "Option effect",
   "overlay.noPrintedEffect": "No printed effect",

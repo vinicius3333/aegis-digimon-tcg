@@ -23,6 +23,8 @@ import { PermanentRestrictionBadges } from "./PermanentRestrictionBadges";
 import { PermanentSourceBadge } from "./PermanentSourceBadge";
 import { PermanentSparkles } from "./PermanentSparkles";
 import { PermanentSummoningRing } from "./PermanentSummoningRing";
+import { PermanentTransformToken } from "./PermanentTransformToken";
+import { permanentTransformation } from "../transformation";
 import type { DropAttrs } from "./types";
 
 export function PermanentView({
@@ -111,6 +113,9 @@ export function PermanentView({
   // an effect has imposed, worn for as long as they hold rather than only jolting the
   // card once when they land.
   const restrictions = restrictionBadges(perm);
+  // Server truth as well (`Permanent.originalNameOverride` / `originalColorsOverride`): what
+  // this position currently COUNTS AS after an effect rewrote its original card information.
+  const transformation = permanentTransformation(perm);
 
   const cardName = def?.nameEn ?? topId;
   const activate = onKeyboardActivate ?? onClick;
@@ -196,6 +201,13 @@ export function PermanentView({
       {hasDpDelta ? <PermanentDpDeltaBadge delta={delta} /> : null}
       {activeKeywords.length > 0 ? <PermanentKeywordBadges keywords={activeKeywords} width={permanentWidth} /> : null}
       {restrictions.length > 0 ? <PermanentRestrictionBadges restrictions={restrictions} /> : null}
+      {transformation ? (
+        <PermanentTransformToken
+          transformation={transformation}
+          width={permanentWidth}
+          suspended={heldSuspended || perm.isSuspended}
+        />
+      ) : null}
     </div>
   );
 }

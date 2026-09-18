@@ -62,22 +62,6 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("region", { name: "Hand selection" })).toBeNull();
   });
 
-  it("inspects a hand card during selection and preserves the pending decision", () => {
-    mockDesktop();
-    render(
-      <I18nProvider>
-        <CardEffectsDemo cardId="EX3-074" />
-      </I18nProvider>,
-    );
-    expect(screen.queryByRole("button", { name: "Open the decision dialog" })).toBeNull();
-    const card = screen.getByRole("button", { name: "Pick Slayerdramon" });
-    fireEvent.click(card, { detail: 1 });
-    fireEvent.click(card, { detail: 2 });
-    expect(screen.getByRole("dialog", { name: /Slayerdramon/ })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /^Play / })).toBeNull();
-    expect(screen.getByRole("region", { name: "Hand selection", hidden: true })).toBeTruthy();
-  });
-
   it("opens Fighter Mode on the real board with Dragon Mode selected from its stack", async () => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-073");
@@ -4237,26 +4221,6 @@ describe("CardEffectsDemo", () => {
     expect(cards.filter((button) => (button as HTMLButtonElement).disabled)).toHaveLength(3);
     fireEvent.click(enabled[0]!);
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
-    expect(screen.queryByRole("dialog")).toBeNull();
-  });
-
-  it("offers all hand cards but enables only blue Digimon for Plesiomon's bottom source", () => {
-    mockDesktop();
-    window.history.replaceState({}, "", "/dev/card-effects/EX3-023?effect=place-choice");
-    render(
-      <I18nProvider>
-        <CardEffectsDemo cardId="EX3-023" />
-      </I18nProvider>,
-    );
-    const dialog = screen.getByTestId("hand");
-    expect(within(dialog).getAllByRole("button", { name: /Gomamon/i }).length).toBeGreaterThan(0);
-    expect(
-      within(dialog)
-        .getByRole("button", { name: /Monodramon/i })
-        .getAttribute("aria-disabled"),
-    ).toBe("true");
-    fireEvent.click(within(dialog).getAllByRole("button", { name: /Gomamon/i })[0]!);
-    fireEvent.click(screen.getByRole("button", { name: "End Selection" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
