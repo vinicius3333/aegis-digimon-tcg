@@ -364,11 +364,12 @@ export function GameScreen({
   // The dialog that asks the viewer whether to activate their own effect already names the
   // card and prints its clause, so the matching corner notice would only repeat it.
   const promptedOwnEffectCardId = decision?.seat === viewerSeat ? decision.sourceCardId : undefined;
-  const dismissOwnEffectNoticeRef = useRef(cues.dismissOwnEffectNotice);
-  dismissOwnEffectNoticeRef.current = cues.dismissOwnEffectNotice;
+  const ownEffectNoticeRef = useRef({ dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice });
+  ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
   useEffect(() => {
     if (promptedOwnEffectCardId === undefined) return;
-    dismissOwnEffectNoticeRef.current(promptedOwnEffectCardId);
+    ownEffectNoticeRef.current.dismiss(promptedOwnEffectCardId);
+    return () => ownEffectNoticeRef.current.release(promptedOwnEffectCardId);
   }, [promptedOwnEffectCardId]);
   const {
     attackLunge,

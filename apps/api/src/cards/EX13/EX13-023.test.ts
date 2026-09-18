@@ -7,7 +7,11 @@ import {
 } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
+import {
+  assertNoLoudGap,
+  settle,
+  setupEngine,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./EX13-023.js";
@@ -36,7 +40,9 @@ describe("EX13-023 UlforceVeedramon", () => {
 
     const effectText = getCardDefinition(cardId)?.effectText ?? "";
     expect(effectText).toContain("[Digivolve] Lv.5 w/[CS] trait: Cost 3");
-    expect(effectText).toContain("[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Veemon]/[Veedramon] in name");
+    expect(effectText).toContain(
+      "[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Veemon]/[Veedramon] in name",
+    );
     expect(effectText).toContain("＜Blocker＞");
     expect(effectText).toContain("＜Evade＞");
     expect(effectText).toContain(
@@ -51,8 +57,12 @@ describe("EX13-023 UlforceVeedramon", () => {
   });
 
   it("compiles both play-legality headers, both keywords, the shared once-per-turn body and the protection", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["CS"], cost: 3, isAlternate: true }]);
-    expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
+    ]);
+    expect(digivolutionRequirementsFor(cardId)).toEqual(
+      compiled.digivolutionRequirement,
+    );
     expect(compiled.assemblyRequirement).toEqual([
       {
         reduceCost: 5,
@@ -63,9 +73,13 @@ describe("EX13-023 UlforceVeedramon", () => {
         ],
       },
     ]);
-    expect(assemblyRequirementFor(cardId)).toEqual(compiled.assemblyRequirement);
+    expect(assemblyRequirementFor(cardId)).toEqual(
+      compiled.assemblyRequirement,
+    );
 
-    expect(compiled.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
+    expect(
+      compiled.effects.find((effect) => effect.trigger === "Static"),
+    ).toMatchObject({
       actions: [],
       keywords: [
         { keyword: "Blocker", raw: "＜Blocker＞" },
@@ -73,9 +87,15 @@ describe("EX13-023 UlforceVeedramon", () => {
       ],
     });
 
-    for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"] as const) {
+    for (const trigger of [
+      "OnPlay",
+      "WhenDigivolving",
+      "WhenAttacking",
+    ] as const) {
       const effect = compiled.effects.find(
-        (candidate) => candidate.trigger === trigger && candidate.frequency === "OncePerTurn",
+        (candidate) =>
+          candidate.trigger === trigger &&
+          candidate.frequency === "OncePerTurn",
       )!;
       expect(effect).toMatchObject({ sharedUseKey: "ir-shared-orientation" });
       expect(effect.actions).toHaveLength(1);
@@ -84,12 +104,42 @@ describe("EX13-023 UlforceVeedramon", () => {
         choose: 1,
         optional: true,
         optionConditions: [
-          { kind: "youHave", filter: { controllerDefault: "mine", zone: "battleArea", unsuspended: true } },
-          { kind: "youHave", filter: { controllerDefault: "mine", zone: "battleArea", suspended: true } },
+          {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              zone: "battleArea",
+              unsuspended: true,
+            },
+          },
+          {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              zone: "battleArea",
+              suspended: true,
+            },
+          },
         ],
         options: [
-          [{ kind: "Suspend", target: { count: 1, filter: { controller: "mine", unsuspended: true } } }],
-          [{ kind: "Unsuspend", target: { count: 1, filter: { controller: "mine", suspended: true } } }],
+          [
+            {
+              kind: "Suspend",
+              target: {
+                count: 1,
+                filter: { controller: "mine", unsuspended: true },
+              },
+            },
+          ],
+          [
+            {
+              kind: "Unsuspend",
+              target: {
+                count: 1,
+                filter: { controller: "mine", suspended: true },
+              },
+            },
+          ],
         ],
       });
     }
@@ -97,7 +147,10 @@ describe("EX13-023 UlforceVeedramon", () => {
     const returnWindows = compiled.effects.filter((effect) =>
       effect.actions.some((action) => action.kind === "Return"),
     );
-    expect(returnWindows.map((effect) => effect.trigger)).toEqual(["OnPlay", "WhenDigivolving"]);
+    expect(returnWindows.map((effect) => effect.trigger)).toEqual([
+      "OnPlay",
+      "WhenDigivolving",
+    ]);
     for (const effect of returnWindows) {
       expect(effect.frequency).toBeUndefined();
       expect(effect.actions[0]).toMatchObject({
@@ -106,12 +159,18 @@ describe("EX13-023 UlforceVeedramon", () => {
         optional: true,
         target: {
           count: "all",
-          filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDigivolutionCards" },
+          filter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            superlative: "lowestDigivolutionCards",
+          },
         },
       });
     }
 
-    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")!.actions).toMatchObject([
+    expect(
+      compiled.effects.find((effect) => effect.trigger === "AllTurns")!.actions,
+    ).toMatchObject([
       {
         kind: "Restrict",
         restriction: "dpImmune",
@@ -128,7 +187,7 @@ describe("EX13-023 UlforceVeedramon", () => {
       },
       {
         kind: "Restrict",
-        restriction: "returnToHandOrDeck",
+        restriction: "stackReturn",
         byOpponentEffectsOnly: true,
         while: { kind: "selfUnsuspended" },
         duration: "permanent",
@@ -136,7 +195,9 @@ describe("EX13-023 UlforceVeedramon", () => {
       },
     ]);
 
-    expect(compiled.effects.some((effect) => effect.isInherited === true)).toBe(false);
+    expect(compiled.effects.some((effect) => effect.isInherited === true)).toBe(
+      false,
+    );
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
   });
@@ -150,7 +211,11 @@ describe("EX13-023 UlforceVeedramon", () => {
             { card: cardId, as: "ulforce" },
             { card: "BT1-010", as: "spare" },
           ],
-          deck: [{ card: "BT1-011", as: "evolutionDraw" }, "BT1-012", "BT1-013"],
+          deck: [
+            { card: "BT1-011", as: "evolutionDraw" },
+            "BT1-012",
+            "BT1-013",
+          ],
         },
         1: { security: SECURITY, deck: DECK },
       },
@@ -169,10 +234,16 @@ describe("EX13-023 UlforceVeedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("angewomon").topCard?.cardId === cardId);
 
-    expect(s.perm("angewomon").topCard?.instanceId).toBe(s.inst("ulforce").instanceId);
-    expect(s.perm("angewomon").stack.map((card) => card.cardId)).toEqual(["BT23-031"]);
+    expect(s.perm("angewomon").topCard?.instanceId).toBe(
+      s.inst("ulforce").instanceId,
+    );
+    expect(s.perm("angewomon").stack.map((card) => card.cardId)).toEqual([
+      "BT23-031",
+    ]);
     expect(s.state.memory).toBe(2);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      s.inst("evolutionDraw").instanceId,
+    );
     expect(s.perm("angewomon").currentDP).toBe(12_000);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
@@ -208,7 +279,9 @@ describe("EX13-023 UlforceVeedramon", () => {
       await settle(() => s.perm("aero").topCard?.cardId === cardId);
 
       expect(s.state.memory).toBe(2);
-      expect(s.perm("aero").stack.map((card) => card.cardId)).toEqual(["EX13-022"]);
+      expect(s.perm("aero").stack.map((card) => card.cardId)).toEqual([
+        "EX13-022",
+      ]);
       assertNoLoudGap(s);
     }
   });
@@ -302,14 +375,26 @@ describe("EX13-023 UlforceVeedramon", () => {
         type: "playCard",
         instanceId: s.inst("ulforce").instanceId,
         assembly: {
-          materialInstanceIds: [s.inst("lv5").instanceId, s.inst("lv4").instanceId, s.inst("lv3").instanceId],
+          materialInstanceIds: [
+            s.inst("lv5").instanceId,
+            s.inst("lv4").instanceId,
+            s.inst("lv3").instanceId,
+          ],
         },
       } as never),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === cardId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === cardId),
+    );
 
-    const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === cardId)!;
-    expect(played.stack.map((card) => card.cardId)).toEqual(["BT2-021", "ST8-05", "EX13-022"]);
+    const played = s.state.players[0]!.battleArea.find(
+      (p) => p.topCard?.cardId === cardId,
+    )!;
+    expect(played.stack.map((card) => card.cardId)).toEqual([
+      "BT2-021",
+      "ST8-05",
+      "EX13-022",
+    ]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.memory).toBe(1);
     assertNoLoudGap(s);
@@ -339,7 +424,11 @@ describe("EX13-023 UlforceVeedramon", () => {
         type: "playCard",
         instanceId: s.inst("ulforce").instanceId,
         assembly: {
-          materialInstanceIds: [s.inst("lv4a").instanceId, s.inst("lv4b").instanceId, s.inst("lv3").instanceId],
+          materialInstanceIds: [
+            s.inst("lv4a").instanceId,
+            s.inst("lv4b").instanceId,
+            s.inst("lv3").instanceId,
+          ],
         },
       } as never).ok,
     ).toBe(false);
@@ -372,7 +461,11 @@ describe("EX13-023 UlforceVeedramon", () => {
         type: "playCard",
         instanceId: s.inst("ulforce").instanceId,
         assembly: {
-          materialInstanceIds: [s.inst("lv5").instanceId, s.inst("lv4").instanceId, s.inst("wrongName").instanceId],
+          materialInstanceIds: [
+            s.inst("lv5").instanceId,
+            s.inst("lv4").instanceId,
+            s.inst("wrongName").instanceId,
+          ],
         },
       } as never).ok,
     ).toBe(false);
@@ -414,7 +507,11 @@ describe("EX13-023 UlforceVeedramon", () => {
         },
         1: { security: SECURITY, deck: DECK },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
     );
     await s.ready();
     preferred.push(s.perm("ally").permanentId);
@@ -443,7 +540,10 @@ describe("EX13-023 UlforceVeedramon", () => {
     );
     await unsuspendRun.ready();
 
-    await advance(unsuspendRun.engine).fire(EffectTiming.OnPlay, unsuspendRun.perm("ulforce"));
+    await advance(unsuspendRun.engine).fire(
+      EffectTiming.OnPlay,
+      unsuspendRun.perm("ulforce"),
+    );
     expect(unsuspendRun.perm("ally").isSuspended).toBe(false);
     expect(unsuspendRun.perm("ulforce").isSuspended).toBe(false);
 
@@ -462,7 +562,10 @@ describe("EX13-023 UlforceVeedramon", () => {
     );
     await suspendRun.ready();
 
-    await advance(suspendRun.engine).fire(EffectTiming.OnPlay, suspendRun.perm("ulforce"));
+    await advance(suspendRun.engine).fire(
+      EffectTiming.OnPlay,
+      suspendRun.perm("ulforce"),
+    );
     expect(suspendRun.perm("ulforce").isSuspended).toBe(true);
     expect(suspendRun.perm("ally").isSuspended).toBe(true);
   });
@@ -470,7 +573,10 @@ describe("EX13-023 UlforceVeedramon", () => {
   it("never reaches the opponent's Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "ulforce" }], hand: [{ card: "BT1-010", as: "spare" }] },
+        0: {
+          battleArea: [{ card: cardId, as: "ulforce" }],
+          hand: [{ card: "BT1-010", as: "spare" }],
+        },
         1: {
           battleArea: [{ card: "BT1-009", as: "theirs", suspended: true }],
           security: SECURITY,
@@ -491,7 +597,10 @@ describe("EX13-023 UlforceVeedramon", () => {
   it("leaves the board alone when the printed 'may' is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "ulforce" }], hand: [{ card: "BT1-010", as: "spare" }] },
+        0: {
+          battleArea: [{ card: cardId, as: "ulforce" }],
+          hand: [{ card: "BT1-010", as: "spare" }],
+        },
         1: { security: SECURITY, deck: DECK },
       },
       { autoDeclineOptional: true },
@@ -511,7 +620,11 @@ describe("EX13-023 UlforceVeedramon", () => {
           hand: [{ card: "BT1-010", as: "spare" }],
           deck: DECK,
         },
-        1: { hand: [{ card: "BT1-011", as: "spareOpponent" }], security: SECURITY, deck: DECK },
+        1: {
+          hand: [{ card: "BT1-011", as: "spareOpponent" }],
+          security: SECURITY,
+          deck: DECK,
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -522,7 +635,10 @@ describe("EX13-023 UlforceVeedramon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("ulforce"));
     expect(s.perm("ulforce").isSuspended).toBe(true);
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ulforce"));
+    await advance(s.engine).fire(
+      EffectTiming.WhenDigivolving,
+      s.perm("ulforce"),
+    );
     expect(s.perm("ulforce").isSuspended).toBe(true);
 
     s.state.turnSeat = 1;
@@ -562,7 +678,11 @@ describe("EX13-023 UlforceVeedramon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("ulforce"));
 
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-014"]);
+    expect(
+      s.state.players[1]!.battleArea.map(
+        (permanent) => permanent.topCard?.cardId,
+      ),
+    ).toEqual(["BT1-014"]);
     const deck = s.state.players[1]!.deck.map((card) => card.instanceId);
     expect(deck.slice(-2)).toEqual([bareAId, bareBId]);
     expect(deck[0]).toBe(s.inst("deckFloor").instanceId);
@@ -595,9 +715,17 @@ describe("EX13-023 UlforceVeedramon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("ulforce"));
 
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-010"]);
-    expect(s.state.players[1]!.deck.map((card) => card.instanceId).slice(-1)).toEqual([returnedId]);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-011"]);
+    expect(
+      s.state.players[1]!.battleArea.map(
+        (permanent) => permanent.topCard?.cardId,
+      ),
+    ).toEqual(["BT1-010"]);
+    expect(
+      s.state.players[1]!.deck.map((card) => card.instanceId).slice(-1),
+    ).toEqual([returnedId]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual([
+      "BT1-011",
+    ]);
     assertNoLoudGap(s);
   });
 
@@ -609,7 +737,11 @@ describe("EX13-023 UlforceVeedramon", () => {
           hand: [{ card: "BT1-010", as: "spare" }],
           deck: DECK,
         },
-        1: { battleArea: [{ card: "BT1-009", as: "bare" }], security: SECURITY, deck: DECK },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "bare" }],
+          security: SECURITY,
+          deck: DECK,
+        },
       },
       { autoDeclineOptional: true },
     );
@@ -617,7 +749,11 @@ describe("EX13-023 UlforceVeedramon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("ulforce"));
 
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
+    expect(
+      s.state.players[1]!.battleArea.map(
+        (permanent) => permanent.topCard?.cardId,
+      ),
+    ).toEqual(["BT1-009"]);
   });
 
   it("fires the return clause from the digivolve window too, and only from those two timings", async () => {
@@ -628,7 +764,11 @@ describe("EX13-023 UlforceVeedramon", () => {
           hand: [{ card: "BT1-010", as: "spare" }],
           deck: DECK,
         },
-        1: { battleArea: [{ card: "BT1-009", as: "bare" }], security: SECURITY, deck: DECK },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "bare" }],
+          security: SECURITY,
+          deck: DECK,
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -637,7 +777,10 @@ describe("EX13-023 UlforceVeedramon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("ulforce"));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ulforce"));
+    await advance(s.engine).fire(
+      EffectTiming.WhenDigivolving,
+      s.perm("ulforce"),
+    );
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     assertNoLoudGap(s);
   });
@@ -645,28 +788,45 @@ describe("EX13-023 UlforceVeedramon", () => {
   it("refuses the opponent's DP reduction while unsuspended and accepts it once suspended", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "ulforce" }], hand: [{ card: "BT1-010", as: "spare" }] },
+        0: {
+          battleArea: [{ card: cardId, as: "ulforce" }],
+          hand: [{ card: "BT1-010", as: "spare" }],
+        },
         1: { security: SECURITY, deck: DECK },
       },
       { autoSelectCards: true },
     );
     await s.ready();
 
-    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(
+      true,
+    );
     advance(s.engine).verb.enterEffectResolution(1);
-    await advance(s.engine).verb.modifyDP(s.perm("ulforce").permanentId, -3000, EffectDuration.UntilEachTurnEnd);
+    await advance(s.engine).verb.modifyDP(
+      s.perm("ulforce").permanentId,
+      -3000,
+      EffectDuration.UntilEachTurnEnd,
+    );
     advance(s.engine).verb.leaveEffectResolution();
     expect(s.perm("ulforce").currentDP).toBe(12_000);
 
     await advance(s.engine).verb.suspend([s.perm("ulforce").permanentId], 0);
-    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(
+      false,
+    );
     advance(s.engine).verb.enterEffectResolution(1);
-    await advance(s.engine).verb.modifyDP(s.perm("ulforce").permanentId, -3000, EffectDuration.UntilEachTurnEnd);
+    await advance(s.engine).verb.modifyDP(
+      s.perm("ulforce").permanentId,
+      -3000,
+      EffectDuration.UntilEachTurnEnd,
+    );
     advance(s.engine).verb.leaveEffectResolution();
     expect(s.perm("ulforce").currentDP).toBe(9000);
 
     await advance(s.engine).verb.unsuspend([s.perm("ulforce").permanentId]);
-    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(
+      true,
+    );
   });
 
   it("refuses a real opponent card's -3000 DP effect", async () => {
@@ -693,13 +853,24 @@ describe("EX13-023 UlforceVeedramon", () => {
     s.state.memory = 6;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("reducer").instanceId })).toEqual({
+    expect(
+      s.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: s.inst("reducer").instanceId,
+      }),
+    ).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-028"));
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard?.cardId === "BT23-028",
+      ),
+    );
 
     expect(s.perm("ulforce").currentDP).toBe(12_000);
-    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(
+      true,
+    );
     assertNoLoudGap(s);
   });
 
@@ -707,7 +878,13 @@ describe("EX13-023 UlforceVeedramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "ulforce", under: [{ card: "EX13-022", as: "beneath" }] }],
+          battleArea: [
+            {
+              card: cardId,
+              as: "ulforce",
+              under: [{ card: "EX13-022", as: "beneath" }],
+            },
+          ],
           hand: [{ card: "BT1-010", as: "spare" }],
         },
         1: { security: SECURITY, deck: DECK },
@@ -718,26 +895,48 @@ describe("EX13-023 UlforceVeedramon", () => {
     const hostId = s.perm("ulforce").permanentId;
     const beneathId = s.inst("beneath").instanceId;
 
-    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "beReturned")).toBe(true);
+    // The printed protection covers the stacked cards only: the Digimon itself can still be bounced.
+    expect(
+      observe(s.engine).isRestricted(s.perm("ulforce"), "stackReturn"),
+    ).toBe(true);
+    expect(
+      observe(s.engine).isRestricted(s.perm("ulforce"), "beReturned"),
+    ).toBe(false);
 
     await advance(s.engine).verb.trashDigivolutionCards(hostId, [beneathId], 1);
-    expect(s.perm("ulforce").stack.map((card) => card.instanceId)).toEqual([beneathId]);
+    expect(s.perm("ulforce").stack.map((card) => card.instanceId)).toEqual([
+      beneathId,
+    ]);
 
     advance(s.engine).verb.enterEffectResolution(1);
-    await advance(s.engine).verb.returnToHand([s.perm("ulforce").topCard!.instanceId]);
+    await advance(s.engine).verb.returnToHand([beneathId]);
     advance(s.engine).verb.leaveEffectResolution();
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(hostId);
+    expect(s.perm("ulforce").stack.map((card) => card.instanceId)).toEqual([
+      beneathId,
+    ]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain(
+      "EX13-022",
+    );
 
     await advance(s.engine).verb.trashDigivolutionCards(hostId, [beneathId], 0);
     expect(s.perm("ulforce").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX13-022"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([
+      "EX13-022",
+    ]);
   });
 
   it("lifts the stacked-card trash lock once the Digimon suspends", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "ulforce", suspended: true, under: [{ card: "EX13-022", as: "beneath" }] }],
+          battleArea: [
+            {
+              card: cardId,
+              as: "ulforce",
+              suspended: true,
+              under: [{ card: "EX13-022", as: "beneath" }],
+            },
+          ],
           hand: [{ card: "BT1-010", as: "spare" }],
         },
         1: { security: SECURITY, deck: DECK },
@@ -752,16 +951,23 @@ describe("EX13-023 UlforceVeedramon", () => {
       1,
     );
     expect(s.perm("ulforce").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX13-022"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([
+      "EX13-022",
+    ]);
   });
 
   it("opens a real block window and intercepts an attack with ＜Blocker＞", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
-      1: { battleArea: [{ card: cardId, as: "ulforce" }], security: ["BT1-011"] },
+      1: {
+        battleArea: [{ card: cardId, as: "ulforce" }],
+        security: ["BT1-011"],
+      },
     });
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("ulforce"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("ulforce"), "Blocker")).toBe(
+      true,
+    );
 
     expect(
       s.engine.applyIntent(0, {
@@ -770,49 +976,84 @@ describe("EX13-023 UlforceVeedramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+    await settle(() =>
+      s.events.some((event) => event.kind === "blockWindowOpened"),
+    );
+    expect(
+      s.events.find((event) => event.kind === "blockWindowOpened"),
+    ).toMatchObject({
       eligibleBlockerIds: [s.perm("ulforce").permanentId],
     });
 
     expect(
-      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("ulforce").permanentId }),
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("ulforce").permanentId,
+      }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() =>
+      s.events.some((event) => event.kind === "combatResolved"),
+    );
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([cardId]);
+    expect(
+      s.state.players[1]!.battleArea.map(
+        (permanent) => permanent.topCard?.cardId,
+      ),
+    ).toEqual([cardId]);
   });
 
-  it.each([true, false])("survives a public opponent deletion with ＜Evade＞ when accept=%s", async (accept) => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: cardId, as: "ulforce" }], security: SECURITY, deck: DECK },
-        1: {
-          battleArea: [{ card: "BT1-020", as: "redSource" }],
-          hand: [{ card: "BT6-095", as: "happyBullet" }],
-          security: SECURITY,
-          deck: DECK,
+  it.each([true, false])(
+    "survives a public opponent deletion with ＜Evade＞ when accept=%s",
+    async (accept) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: cardId, as: "ulforce" }],
+            security: SECURITY,
+            deck: DECK,
+          },
+          1: {
+            battleArea: [{ card: "BT1-020", as: "redSource" }],
+            hand: [{ card: "BT6-095", as: "happyBullet" }],
+            security: SECURITY,
+            deck: DECK,
+          },
         },
-      },
-      { autoSelectCards: true },
-    );
-    const permanentId = s.perm("ulforce").permanentId;
-    const optionId = s.inst("happyBullet").instanceId;
-    s.state.turnSeat = 1;
-    s.state.memory = 7;
-    await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("ulforce"), "Evade")).toBe(true);
+        { autoSelectCards: true },
+      );
+      const permanentId = s.perm("ulforce").permanentId;
+      const optionId = s.inst("happyBullet").instanceId;
+      s.state.turnSeat = 1;
+      s.state.memory = 7;
+      await s.ready();
+      expect(observe(s.engine).hasKeyword(s.perm("ulforce"), "Evade")).toBe(
+        true,
+      );
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
-    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId, accept })).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "cardsMoved" && event.instanceIds.includes(optionId)));
+      expect(
+        s.engine.applyIntent(1, { type: "playCard", instanceId: optionId }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+      expect(
+        s.engine.applyIntent(0, { type: "respondEvade", permanentId, accept }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.events.some(
+          (event) =>
+            event.kind === "cardsMoved" && event.instanceIds.includes(optionId),
+        ),
+      );
 
-    const remaining = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === permanentId);
-    expect(remaining !== undefined).toBe(accept);
-    expect(remaining?.isSuspended ?? false).toBe(accept);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId).includes(cardId)).toBe(!accept);
-  });
+      const remaining = s.state.players[0]!.battleArea.find(
+        (permanent) => permanent.permanentId === permanentId,
+      );
+      expect(remaining !== undefined).toBe(accept);
+      expect(remaining?.isSuspended ?? false).toBe(accept);
+      expect(
+        s.state.players[0]!.trash.map((card) => card.cardId).includes(cardId),
+      ).toBe(!accept);
+    },
+  );
 });

@@ -32,6 +32,36 @@ describe("BT10-087 Taiki Kudo", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("names the card it added to hand on the movement event", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-087", as: "taiki" }],
+          deck: [{ card: "BT10-007", as: "xrosA" }, { card: "BT10-008", as: "xrosB" }, "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("taiki").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (p) => p.topCard.instanceId === s.inst("taiki").instanceId && p.stack.length === 1,
+      ),
+    );
+
+    // The reveal is public, so the opponent has to be able to read which card the
+    // controller took from it — their hand itself is redacted per seat.
+    const added = s.state.players[0]!.hand.find(
+      (card) => card.instanceId === s.inst("xrosA").instanceId || card.instanceId === s.inst("xrosB").instanceId,
+    )!;
+    const toHand = s.events.find(
+      (event) => event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(added.instanceId),
+    );
+    expect(toHand).toMatchObject({ cardIds: [added.cardId] });
+  });
+
   it("suspends itself to use DigiXros materials placed under a different Tamer", async () => {
     const s = setupEngine({
       0: {

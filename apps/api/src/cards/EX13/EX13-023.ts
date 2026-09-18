@@ -1,30 +1,63 @@
-import type { Action, CardEffect, CompiledCard, Filter, Target } from "@aegis/shared";
+import type {
+  Action,
+  CardEffect,
+  CompiledCard,
+  Filter,
+  Target,
+} from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 
-const ownDigimon: Filter = { controller: "mine", kind: ["Digimon"], zone: "battleArea" };
+const ownDigimon: Filter = {
+  controller: "mine",
+  kind: ["Digimon"],
+  zone: "battleArea",
+};
 
 const changeOrientation: Action = {
   kind: "Modal",
   choose: 1,
   optional: true,
-  labels: ["Suspend 1 of your unsuspended Digimon", "Unsuspend 1 of your suspended Digimon"],
+  labels: [
+    "Suspend 1 of your unsuspended Digimon",
+    "Unsuspend 1 of your suspended Digimon",
+  ],
   optionConditions: [
     {
       kind: "youHave",
-      filter: { controllerDefault: "mine", kind: ["Digimon"], zone: "battleArea", unsuspended: true },
+      filter: {
+        controllerDefault: "mine",
+        kind: ["Digimon"],
+        zone: "battleArea",
+        unsuspended: true,
+      },
       raw: "you have an unsuspended Digimon",
     },
     {
       kind: "youHave",
-      filter: { controllerDefault: "mine", kind: ["Digimon"], zone: "battleArea", suspended: true },
+      filter: {
+        controllerDefault: "mine",
+        kind: ["Digimon"],
+        zone: "battleArea",
+        suspended: true,
+      },
       raw: "you have a suspended Digimon",
     },
   ],
   options: [
-    [{ kind: "Suspend", target: { filter: { ...ownDigimon, unsuspended: true }, count: 1 } }],
-    [{ kind: "Unsuspend", target: { filter: { ...ownDigimon, suspended: true }, count: 1 } }],
+    [
+      {
+        kind: "Suspend",
+        target: { filter: { ...ownDigimon, unsuspended: true }, count: 1 },
+      },
+    ],
+    [
+      {
+        kind: "Unsuspend",
+        target: { filter: { ...ownDigimon, suspended: true }, count: 1 },
+      },
+    ],
   ],
   raw: "1 of your Digimon may change orientation",
 };
@@ -32,7 +65,11 @@ const changeOrientation: Action = {
 const returnFewestStacked: Action = {
   kind: "Return",
   target: {
-    filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDigivolutionCards" },
+    filter: {
+      controller: "opponent",
+      kind: ["Digimon"],
+      superlative: "lowestDigivolutionCards",
+    },
     count: "all",
   },
   to: "deckBottom",
@@ -40,7 +77,9 @@ const returnFewestStacked: Action = {
   raw: "return all of your opponent's Digimon with the fewest digivolution cards to the bottom of the deck",
 };
 
-const orientationEffect = (trigger: "OnPlay" | "WhenDigivolving" | "WhenAttacking"): CardEffect => ({
+const orientationEffect = (
+  trigger: "OnPlay" | "WhenDigivolving" | "WhenAttacking",
+): CardEffect => ({
   trigger,
   frequency: "OncePerTurn",
   sharedUseKey: "ir-shared-orientation",
@@ -52,7 +91,10 @@ const returnEffect = (trigger: "OnPlay" | "WhenDigivolving"): CardEffect => ({
   actions: [returnFewestStacked],
 });
 
-const unsuspendedGate = { kind: "selfUnsuspended" as const, raw: "this Digimon is unsuspended" };
+const unsuspendedGate = {
+  kind: "selfUnsuspended" as const,
+  raw: "this Digimon is unsuspended",
+};
 
 const protection: Action[] = [
   {
@@ -74,7 +116,7 @@ const protection: Action[] = [
   {
     kind: "Restrict",
     target: self,
-    restriction: "returnToHandOrDeck",
+    restriction: "stackReturn",
     byOpponentEffectsOnly: true,
     while: unsuspendedGate,
     duration: "permanent",
@@ -101,7 +143,9 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 5, traits: ["CS"], cost: 3, isAlternate: true }],
+  digivolutionRequirement: [
+    { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
+  ],
   assemblyRequirement: [
     {
       reduceCost: 5,

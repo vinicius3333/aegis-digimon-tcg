@@ -44,6 +44,7 @@ import {
   isIntrinsicWouldDigivolveSelfReducerMarker,
 } from "./reducers.js";
 import { normalizeCompiledCard } from "./normalize.js";
+import { withPrintedClauses } from "./printedClauses.js";
 import { CardKind, compiledEffects, EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
 import type { Action, CardEffect, CompiledCard } from "@aegis/shared";
 import { permanentMatchesFilter } from "../matching/permanent.js";
@@ -456,7 +457,9 @@ export function registerIrCard(cardId: string, compiled: CompiledCard): EffectMo
   // preserve it in both cases.
   if (existing !== undefined && existing !== previousIrModule) return existing;
   if (existing !== undefined) unregisterCard(cardId);
-  const module = irCardModule(cardId, normalized);
+  // The catalog keeps the authored record; only the runtime module carries the printed
+  // clauses matched to each effect and watcher.
+  const module = irCardModule(cardId, withPrintedClauses(cardId, normalized));
   registerCard(module);
   registeredIrModules.set(cardId, module);
   return module;

@@ -34,6 +34,7 @@ import { useDrawWatcher } from "./match/watchers/useDrawWatcher";
 import { useRestrictionPulses } from "./match/watchers/useRestrictionPulses";
 import { useSecurityCountWatcher } from "./match/watchers/useSecurityCountWatcher";
 import { narrationStream } from "./match/narration/narrationStream";
+import type { OwnEffectDialog } from "./match/narration/presentableNarration";
 import type {
   AttackLunge,
   DeleteBurst,
@@ -371,7 +372,8 @@ export function useMatchCues({
   const decisionPendingRef = useRef(decisionPending);
   decisionPendingRef.current = decisionPending;
   /** Cards whose own decision dialog is open, so their clause is not read out twice. */
-  const suppressedOwnEffectsRef = useRef(new Set<string>());
+  const suppressedOwnEffectsRef = useRef(new Map<string, OwnEffectDialog>());
+  const queuedNarrationRef = useRef(new Map<string, NarrationItem>());
   // A security card that resolves an effect moves its notice out of the panels'
   // half of the screen; the flag is set by the check and spent by the effect.
   const securityEffectPendingRef = useRef(false);
@@ -543,6 +545,7 @@ export function useMatchCues({
     collapseNarrationRef,
     narrationLimitRef,
     suppressedOwnEffectsRef,
+    queuedNarrationRef,
     heldNoticesRef,
     heldPanelsRef,
     lastBatchIdRef,
@@ -910,7 +913,12 @@ export function useMatchCues({
     sidePanels,
     notices,
     dismissOwnEffectNotice: (cardId: string) => {
-      suppressedOwnEffectsRef.current.add(cardId);
+      const queuedItemIds = new Set(
+        [...queuedNarrationRef.current.values()]
+          .filter((item) => item.notice !== undefined && isOwnEffectNotice(item.notice, cardId))
+          .map((item) => item.id),
+      );
+      suppressedOwnEffectsRef.current.set(cardId, { queuedItemIds, dialogOpen: true });
       heldNoticesRef.current = heldNoticesRef.current.filter((notice) => !isOwnEffectNotice(notice, cardId));
       // Already on screen: the dialog is about to print the same clause, so the item
       // either loses its notice or leaves with it.
@@ -925,6 +933,13 @@ export function useMatchCues({
         }
         return changed ? next : slots;
       });
+    },
+    releaseOwnEffectNotice: (cardId: string) => {
+      const dialog = suppressedOwnEffectsRef.current.get(cardId);
+      if (dialog === undefined) return;
+      const stillQueued = [...dialog.queuedItemIds].filter((itemId) => queuedNarrationRef.current.has(itemId));
+      if (stillQueued.length === 0) suppressedOwnEffectsRef.current.delete(cardId);
+      else suppressedOwnEffectsRef.current.set(cardId, { queuedItemIds: new Set(stillQueued), dialogOpen: false });
     },
     raiseRejection: (reason: string) => {
       noticeSequenceRef.current += 1;

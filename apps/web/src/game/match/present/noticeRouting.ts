@@ -5,6 +5,7 @@ import type { MatchNotice } from "../../notices";
 import type { SidePanel } from "../../sidePanels";
 import { SHOWCASE_TOTAL_MS, TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
+import type { NarrationPlacement } from "../narration/narrationStream";
 import type { RevealOnStage } from "../types";
 
 /** Where one batch's notices and panels go, and what the cues ahead of them cost. */
@@ -86,8 +87,9 @@ export function routeBatchNotices({
     panels: readonly SidePanel[],
     batchId: string,
     effectSourceHoldMs?: number,
+    placement?: NarrationPlacement,
   ) => void;
-  openHeld: (notices: readonly MatchNotice[], panels: readonly SidePanel[]) => void;
+  openHeld: (notices: readonly MatchNotice[], panels: readonly SidePanel[], placement?: NarrationPlacement) => void;
   enqueue: (step: AnimationStep) => void;
 }): NoticeRouting {
   const routed: NoticeRouting = {
@@ -127,7 +129,7 @@ export function routeBatchNotices({
       track: CueTrack.CenterStage,
       skippable: false,
       run() {
-        openHeld(lateNotices, latePanels);
+        openHeld(lateNotices, latePanels, { next: true });
       },
     });
     return routed;
@@ -150,7 +152,7 @@ export function routeBatchNotices({
       track: CueTrack.CenterStage,
       skippable: false,
       run() {
-        narrate(heldForShowcase, panelsForShowcase, batchId, effectSourceHoldMs);
+        narrate(heldForShowcase, panelsForShowcase, batchId, effectSourceHoldMs, { next: true });
       },
     });
     // The prompt this play is about to raise waits behind the same beats through the decision
@@ -179,7 +181,7 @@ export function routeBatchNotices({
       async run(context) {
         await context.wait(combatLeadInMs);
         if (context.cancelled) return;
-        narrate(held, heldForCombat, batchId);
+        narrate(held, heldForCombat, batchId, undefined, { next: true });
       },
     });
     return routed;

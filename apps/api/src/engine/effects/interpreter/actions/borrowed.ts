@@ -256,7 +256,13 @@ export async function runActivateForeignEffect(
     toRun = chosen.borrowable;
   } else {
     const labels = chosen.borrowable.map((entry) => describeEffect(entry.effect));
-    const idx = await ctx.ask.chooseOption(ctx, labels);
+    const idx = await ctx.ask.chooseOption(ctx, labels, {
+      choiceEffects: chosen.borrowable.map((entry) => ({
+        cardId: chosen.cardId,
+        timing: entry.effect.trigger,
+        ...(entry.effect.isInherited === true ? { isInherited: true } : {}),
+      })),
+    });
     const picked = chosen.borrowable[idx];
     toRun = picked ? [picked] : [];
   }

@@ -243,7 +243,8 @@
   background: var(--ds-surface);
   box-shadow: var(--ds-shadow-lg);
   translate: 0 -50%;
-  animation: battle-board-prompt-in var(--t-board-prompt-in, 200ms) ease-out both;
+  animation: battle-board-prompt-in var(--t-board-prompt-in, 200ms) ease-out
+    both;
 }
 @keyframes battle-board-prompt-in {
   from {
@@ -345,7 +346,8 @@
   translate: -50% 0;
   /* Its own keyframes, not battle-board-prompt-in: that one fills to `translate:
      0 -50%`, which would cancel the horizontal centring above for good. */
-  animation: aegis-opponent-pill-in var(--t-board-prompt-in, 200ms) ease-out both;
+  animation: aegis-opponent-pill-in var(--t-board-prompt-in, 200ms) ease-out
+    both;
 }
 @keyframes aegis-opponent-pill-in {
   from {
@@ -670,7 +672,8 @@
    thins out to the multiples of five and finally to the marker alone. The coins
    themselves stay: the filled run is what reads the gauge at a glance. */
 @container (width < 460px) {
-  .game-memory-coin:not(.game-memory-coin--marker, .game-memory-coin--five) .game-memory-coin__n {
+  .game-memory-coin:not(.game-memory-coin--marker, .game-memory-coin--five)
+    .game-memory-coin__n {
     display: none;
   }
 }
@@ -693,5 +696,119 @@
   .opponent-action-feed__trail-item {
     animation: none;
     transition: none;
+  }
+}
+
+/* Effect choice: one row per borrowable printed effect. */
+.effect-choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin: 0 0 var(--ds-space-4);
+  padding: 0;
+  list-style: none;
+}
+.effect-choice__option {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ds-space-3);
+  width: 100%;
+  padding: var(--ds-space-3);
+  color: var(--ds-fg);
+  border: 1.5px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 120ms,
+    border-color 120ms,
+    transform 120ms;
+}
+.effect-choice__option:hover,
+.effect-choice__option:focus-visible {
+  border-color: var(--battle-cyan);
+  background: var(--ds-accent-surface);
+}
+.effect-choice__option:focus-visible {
+  outline: 2px solid var(--battle-cyan);
+  outline-offset: 3px;
+}
+.effect-choice__option:active {
+  transform: scale(0.995);
+}
+.effect-choice__index {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--ds-border);
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+}
+.effect-choice__option:hover .effect-choice__index,
+.effect-choice__option:focus-visible .effect-choice__index {
+  border-color: var(--battle-cyan);
+  color: var(--battle-cyan);
+}
+.effect-choice__art {
+  display: block;
+  line-height: 0;
+}
+.effect-choice__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.effect-choice__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.effect-choice__name {
+  font-size: var(--ds-text-sm);
+  font-weight: 700;
+}
+.effect-choice__id {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+}
+.effect-choice__timing {
+  padding: 1px 6px;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-accent-surface);
+  color: var(--battle-cyan);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.effect-choice__clause {
+  display: block;
+  color: var(--ds-fg);
+  font-size: var(--ds-text-sm);
+  line-height: 1.45;
+  white-space: pre-line;
+}
+.effect-choice__go {
+  display: grid;
+  place-items: center;
+  color: var(--ds-fg-muted);
+}
+.effect-choice__option:hover .effect-choice__go,
+.effect-choice__option:focus-visible .effect-choice__go {
+  color: var(--battle-cyan);
+}
+@media (max-width: 600px) {
+  .effect-choice__option {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .effect-choice__index {
+    display: none;
   }
 }

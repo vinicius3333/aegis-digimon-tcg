@@ -159,6 +159,8 @@ export async function runSubTrigger(
   // resolves to that permanent and the watcher is installed on IT — so the sub-effect's
   // "this Digimon" / controller scope resolve to the GRANTED permanent, not the granter.
   const playerScoped = action.playerScoped === true;
+  const printedWatcherClause =
+    action.printedClause ?? (action.raw?.startsWith("[") === true ? action.raw : undefined);
   if (playerScoped && action.on !== undefined) {
     unsupported(ctx, action, "player-scoped SubTrigger cannot also target a permanent anchor");
     return;
@@ -1128,6 +1130,7 @@ export async function runSubTrigger(
         }
       : {}),
     ...(ctx.activeTiming !== undefined ? { printedTiming: ctx.activeTiming } : {}),
+    ...(action.printedClause !== undefined ? { printedClause: action.printedClause } : {}),
     description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : (action.raw ?? event),
     run: async (subCtx) => {
       // Preserve the printed clause timing on every decision opened by the future watcher.
@@ -1135,7 +1138,9 @@ export async function runSubTrigger(
       // activeTiming; without this, UI provenance degrades to a card-only guess (EX3-038's
       // opponent-target prompt lost its [Your Turn] label entirely).
       subCtx.activeTiming ??= ctx.activeTiming;
-      subCtx.activeEffectText ??= ctx.activeEffectText;
+      // A watcher's own printed clause names the moment better than the whole box of the
+      // continuous effect that installed it (BT11-112 prints three clauses in one box).
+      subCtx.activeEffectText ??= printedWatcherClause ?? ctx.activeEffectText;
       subCtx.activeEffectTextPart = action.effectTextPart;
       subCtx.activeEffectIsInherited = isInheritedSource;
       // The body is resolving a triggered event even when its watcher was installed by a

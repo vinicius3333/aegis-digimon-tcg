@@ -1,5 +1,6 @@
 import type { Seat } from "@aegis/shared";
 import type { DecisionApi, EffectContext, SeatScopedDecisionApi } from "../effects/EffectContext.js";
+import type { ChooseOptionExtras } from "../effects/context/decisions.js";
 import type { DecisionManager } from "./index.js";
 
 /**
@@ -237,7 +238,7 @@ function buildSeatScopedApi(
       return unique.length === opts.candidates.length ? unique : opts.candidates;
     },
 
-    async chooseOption(ctx: EffectContext, choices: string[]): Promise<number> {
+    async chooseOption(ctx: EffectContext, choices: string[], extras?: ChooseOptionExtras): Promise<number> {
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "chooseOption",
@@ -245,7 +246,7 @@ function buildSeatScopedApi(
         sourceCardId: ctx.source.cardId,
         sourceInstanceId: ctx.source.instanceId,
         sourcePermanentId: ctx.source.permanent()?.permanentId,
-        options: { choices, ...provenance(ctx) },
+        options: { choices, ...(extras ?? {}), ...provenance(ctx) },
       });
       if (response.kind !== "chooseOption") return 0;
       // Guard the index into range; an out-of-range pick falls back to the first

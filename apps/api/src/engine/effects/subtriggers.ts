@@ -34,6 +34,8 @@ export interface SubTriggerSubscription {
   event: SubTriggerEventName;
   /** Printed timing of the clause that installed this watcher. */
   printedTiming?: string;
+  /** The printed clause this watcher implements, for players; identity and prompts keep `description`. */
+  printedClause?: string;
   /** Stable action identity used to collapse duplicate installs without collapsing
    * distinct clauses that intentionally share one once-per-turn budget. */
   dedupeKey?: string;

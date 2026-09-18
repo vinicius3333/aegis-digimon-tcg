@@ -1,5 +1,8 @@
 import type { EffectContext } from "./effectContext.js";
 
+/** Per-choice card provenance, when every choice is one printed effect of a card. */
+export type ChooseOptionExtras = { choiceEffects: { cardId: string; timing?: string; isInherited?: boolean }[] };
+
 /**
  * Player-decision API (card-module contract). Each call raises a
  * DecisionRequest to the controlling seat and resolves when the matching
@@ -61,5 +64,5 @@ export interface SeatScopedDecisionApi {
     ctx: EffectContext,
     opts: { candidates: string[]; min: number; max: number; maxTotalPlayCost?: number },
   ): Promise<string[]>;
-  chooseOption(ctx: EffectContext, choices: string[]): Promise<number>;
+  chooseOption(ctx: EffectContext, choices: string[], extras?: ChooseOptionExtras): Promise<number>;
 }

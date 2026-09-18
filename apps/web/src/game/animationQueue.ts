@@ -45,6 +45,17 @@ export interface AnimationStep {
   track?: string;
   /** Cancel whatever the track is running or holding before this step starts. */
   replace?: boolean;
+  /**
+   * Queue at the FRONT of the track instead of the back, behind any front-queued steps
+   * already waiting there.
+   *
+   * A cue that spawns its own follow-up while it runs — a security dock reading out the
+   * clause of the card it is holding — would otherwise land behind everything that arrived
+   * from the server in the meantime. Whole later checks were enqueued during the beat the
+   * dock was on screen, so its clause read out after all of them instead of beside the card
+   * it belongs to. Ordering among front-queued steps is the order they were enqueued in.
+   */
+  next?: boolean;
   /** Defaults to true. A step that carries something to read sets false and keeps its time. */
   skippable?: boolean;
   /** Informational steps can remain visible without holding the presented board snapshot. */
@@ -109,6 +120,8 @@ interface StepRun {
 
 interface QueueEntry {
   steps: readonly AnimationStep[];
+  /** Entered at the front of the track; kept so later front-queued steps land behind it. */
+  next: boolean;
 }
 
 interface Track {
@@ -271,7 +284,11 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
       const name = first.track ?? DEFAULT_TRACK;
       const track = trackNamed(name);
       if (steps.some((candidate) => candidate.replace === true)) cancelTrack(track);
-      track.queued.push({ steps });
+      const next = steps.some((candidate) => candidate.next === true);
+      if (next) {
+        const behindFrontQueued = track.queued.findIndex((entry) => !entry.next);
+        track.queued.splice(behindFrontQueued < 0 ? track.queued.length : behindFrontQueued, 0, { steps, next });
+      } else track.queued.push({ steps, next });
       for (const candidate of steps)
         options.onStep?.({
           step: candidate,

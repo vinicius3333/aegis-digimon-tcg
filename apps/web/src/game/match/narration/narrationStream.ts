@@ -8,7 +8,7 @@ import type { EffectActivation, EffectSourceLookup } from "../../effectSource";
 import { otherSeat } from "../../boardModel";
 import { TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
-import { presentableNarration } from "./presentableNarration";
+import { presentableNarration, type OwnEffectDialog } from "./presentableNarration";
 import {
   CONSEQUENCE_GATE_MAX_MS,
   createPresentationGate,
@@ -17,6 +17,17 @@ import {
   type PendingAnnounceGate,
   type PresentationGate,
 } from "../presentationGate";
+
+/**
+ * Where a spawned narration step goes in its track.
+ *
+ * A cue that reads out notices from INSIDE its own run — a security dock reading the clause
+ * of the card it holds — sets `next`, so the clause lands right behind the cue that raised it
+ * rather than behind every later check the server has shipped in the meantime.
+ */
+export interface NarrationPlacement {
+  next?: boolean;
+}
 
 export interface NarrationStreamDeps {
   viewerSeat: Seat;
@@ -44,7 +55,9 @@ export interface NarrationStreamDeps {
   setNarration: Dispatch<SetStateAction<ReadonlyMap<string, NarrationItem>>>;
   collapseNarrationRef: MutableRefObject<boolean>;
   narrationLimitRef: MutableRefObject<number>;
-  suppressedOwnEffectsRef: MutableRefObject<Set<string>>;
+  suppressedOwnEffectsRef: MutableRefObject<Map<string, OwnEffectDialog>>;
+  /** Items enqueued and not yet published, so a dialog opening can name the ones it silences. */
+  queuedNarrationRef: MutableRefObject<Map<string, NarrationItem>>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   lastBatchIdRef: MutableRefObject<string>;
@@ -74,6 +87,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     collapseNarrationRef,
     narrationLimitRef,
     suppressedOwnEffectsRef,
+    queuedNarrationRef,
     heldNoticesRef,
     heldPanelsRef,
     lastBatchIdRef,
@@ -82,7 +96,11 @@ export function narrationStream(deps: NarrationStreamDeps) {
   } = deps;
 
   /** Publish the clause before the results queued behind its arrival. */
-  function enqueueNarrationItem(item: NarrationItem, effectSourceHoldMs: number = TIMINGS.effectSourceHold) {
+  function enqueueNarrationItem(
+    item: NarrationItem,
+    effectSourceHoldMs: number = TIMINGS.effectSourceHold,
+    opts?: NarrationPlacement,
+  ) {
     const body = item.notice?.body;
     const seat = item.side === "you" ? viewerSeat : otherSeat(viewerSeat);
     const initialSite = body?.variant === "effect" ? cardSiteRef.current.locate(body.cardId, seat, body) : undefined;
@@ -120,6 +138,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     // Which phase raised the clause is what lets the ribbon that follows it wait for its
     // beat and then clear it (`waitForPhasePrerequisites`).
     narrationPhaseOrdersRef.current.set(item.id, origin.phaseOrder ?? completedPhaseOrderRef.current);
+    queuedNarrationRef.current.set(item.id, item);
     function reportShown(stepId: string, context: AnimationStepContext) {
       try {
         presentationReporterRef.current?.({
@@ -142,6 +161,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
       id: `narration-step-${item.id}`,
       origin,
       track,
+      ...(opts?.next === true ? { next: true } : {}),
       holdsBoard: false,
       blocksDecision: false,
       async run(context) {
@@ -154,6 +174,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
         try {
           await runNarrationStep();
         } finally {
+          queuedNarrationRef.current.delete(item.id);
           announceGate?.release();
           if (activation && !linked) {
             const key = activation.key;
@@ -257,6 +278,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     panels: readonly SidePanel[],
     batchId: string,
     effectSourceHoldMs: number = TIMINGS.effectSourceHold,
+    opts?: NarrationPlacement,
   ) {
     if (notices.length === 0 && panels.length === 0) return;
     const items = buildNarrationItems({
@@ -266,7 +288,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
       nowMs: Date.now(),
       nextId: () => `narration-${(narrationSequenceRef.current += 1)}`,
     });
-    for (const item of items) enqueueNarrationItem(item, effectSourceHoldMs);
+    for (const item of items) enqueueNarrationItem(item, effectSourceHoldMs, opts);
   }
 
   /** Raises whatever a security check has still not said, on the clock it is raised at. */
@@ -281,7 +303,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
    * part only. Draining let the dock read out an [On Play] result that had not happened on
    * screen yet, because a later batch had parked it in the same bucket.
    */
-  function openHeld(ownNotices: readonly MatchNotice[], ownPanels: readonly SidePanel[]) {
+  function openHeld(ownNotices: readonly MatchNotice[], ownPanels: readonly SidePanel[], opts?: NarrationPlacement) {
     if (ownNotices.length === 0 && ownPanels.length === 0) return;
     heldNoticesRef.current = heldNoticesRef.current.filter((held) => !ownNotices.includes(held));
     heldPanelsRef.current = heldPanelsRef.current.filter((held) => !ownPanels.includes(held));
@@ -293,6 +315,8 @@ export function narrationStream(deps: NarrationStreamDeps) {
         ownNotices.filter((item) => (heldOriginsRef.current.get(item)?.batchId ?? lastBatchIdRef.current) === batchId),
         ownPanels.filter((item) => (heldOriginsRef.current.get(item)?.batchId ?? lastBatchIdRef.current) === batchId),
         batchId,
+        TIMINGS.effectSourceHold,
+        opts,
       );
     }
   }

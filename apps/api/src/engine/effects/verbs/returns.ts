@@ -29,7 +29,7 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
 
   const returnToHand = async (
     instanceIds: string[],
-    opts?: { silent?: boolean; byEffectSeat?: Seat; detachPermanentTop?: boolean },
+    opts?: { silent?: boolean; byEffectSeat?: Seat; detachPermanentTop?: boolean; publicIdentities?: boolean },
   ): Promise<CardInstance[]> => {
     if (opts?.detachPermanentTop === true) return detachPermanentTopsToHand(instanceIds, opts);
     instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
@@ -125,11 +125,21 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       });
     }
     if (movedToHand.length > 0) {
+      // A hand is redacted per seat, so the identities have to ride on the event for the
+      // opponent to read them — but only when the rules already made these cards public
+      // (a card taken from a reveal), never for an ordinary private hand addition.
+      const artIds = movedToHand.map((c) => c.artId ?? "");
       engine.emit({
         kind: "cardsMoved",
         instanceIds: movedToHand.map((c) => c.instanceId),
         from: "various",
         to: Zone.Hand,
+        ...(opts?.publicIdentities === true
+          ? {
+              cardIds: movedToHand.map((c) => c.cardId),
+              ...(artIds.some((artId) => artId !== "") ? { artIds } : {}),
+            }
+          : {}),
       });
       // A card can carry a hand-resident static effect whose eligibility changes at the
       // instant it reaches hand (for example, BT6-105 waives its own color requirement

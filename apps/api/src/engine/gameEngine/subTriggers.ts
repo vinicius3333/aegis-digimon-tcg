@@ -589,7 +589,7 @@ export function subTriggerAsCollected(engine: GameEngine, { sub, ctx }: ArmedSub
     printedTiming: sub.printedTiming,
     effect: {
       effectKey: `subtrigger/${sub.id}/${sub.description}`,
-      description: sub.description,
+      description: sub.printedClause ?? sub.description,
       optional: false,
       isInherited: sub.isInheritedSource === true,
       isSecurity: false,
@@ -618,7 +618,7 @@ export function announceSubTrigger(
 ): void | (() => void) {
   if (ctx === undefined) return;
   const effectKey = `subtrigger/${sub.id}/${sub.description}`;
-  const description = subTriggerDescriptionFor(sub, ctx);
+  const description = sub.printedClause ?? subTriggerDescriptionFor(sub, ctx);
   engine.hooks.emit({
     kind: "effectTriggered",
     seat: ctx.source.ownerSeat,

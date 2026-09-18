@@ -12,6 +12,7 @@ import type { TriggerDetail } from "../types";
 import { DecisionBoardReturn } from "./DecisionBoardReturn";
 import { DecisionCandidateGrid } from "./DecisionCandidateGrid";
 import { DecisionChooseFooter } from "./DecisionChooseFooter";
+import { DecisionEffectChoice } from "./DecisionEffectChoice";
 import { trapDialogFocus } from "./decisionFocusTrap";
 import { DecisionOptionalFooter } from "./DecisionOptionalFooter";
 import { DecisionOrderCardsFooter } from "./DecisionOrderCardsFooter";
@@ -48,6 +49,7 @@ export function DecisionOverlay({
   const min = decisionSelectionMin(request);
   const max = request.options?.max ?? 1;
   const choices = request.options?.choices ?? [];
+  const choiceEffects = request.options?.choiceEffects;
   const isOptional = request.kind === "optional";
   const isChoose = request.kind === "chooseOption";
   const isSelect = request.kind === "chooseTargets" || request.kind === "selectCards";
@@ -200,7 +202,15 @@ export function DecisionOverlay({
         />
       ) : null}
 
-      {isChoose ? (
+      {isChoose && choiceEffects !== undefined ? (
+        <DecisionEffectChoice
+          choices={choices}
+          choiceEffects={choiceEffects}
+          wideDialog={wideDialog}
+          onRespond={onRespond}
+          onOpenBoard={() => setIsViewingBoard(true)}
+        />
+      ) : isChoose ? (
         <DecisionChooseFooter choices={choices} onRespond={onRespond} onOpenBoard={() => setIsViewingBoard(true)} />
       ) : null}
 

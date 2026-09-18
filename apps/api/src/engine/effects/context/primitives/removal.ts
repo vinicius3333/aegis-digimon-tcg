@@ -168,10 +168,15 @@ export interface RemovalPrimitives {
    * bounce too, not just deletion); a prevented permanent is left in play. When
    * `detachPermanentTop` is set, each id names a permanent's visible top card and only that
    * card returns while its underlying stack card is promoted in place.
+   *
+   * `publicIdentities` names the moved cards on the emitted event. A hand is redacted per
+   * seat, so a card whose identity the rules already made public before the move (one taken
+   * from a reveal) would otherwise disappear from the opponent's view at the moment it is
+   * chosen. Only pass it for cards that are already public; it discloses them to both seats.
    */
   returnToHand(
     instanceIds: string[],
-    opts?: { silent?: boolean; byEffectSeat?: Seat; detachPermanentTop?: boolean },
+    opts?: { silent?: boolean; byEffectSeat?: Seat; detachPermanentTop?: boolean; publicIdentities?: boolean },
   ): Promise<CardInstance[]>;
   returnToDeck(
     instanceIds: string[],

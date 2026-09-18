@@ -156,6 +156,25 @@ const OPP_ON_PLAY: ServerEvent = {
   description: "Reveal the top 4 cards of your deck.",
   timing: "On Play",
 };
+const OPP_TAIKI_CHECK: ServerEvent = {
+  kind: "securityChecked",
+  seat: 1,
+  revealedCardId: "BT10-087",
+  resolution: "effect",
+};
+const OPP_NEXT_REVEAL: ServerEvent = {
+  kind: "securityRevealed",
+  seat: 1,
+  revealedCardId: "BT1-011",
+  attackerPermanentId: "perm-1",
+  isDigimon: true,
+};
+const OPP_NEXT_CHECK: ServerEvent = {
+  kind: "securityChecked",
+  seat: 1,
+  revealedCardId: "BT1-011",
+  resolution: "battle",
+};
 const TAIKI_REVEALS: readonly ServerEvent[] = ["BT1-001", "BT1-002", "BT1-003", "BT1-004"].map((cardId) => ({
   kind: "cardRevealed",
   seat: 1,
@@ -1776,6 +1795,28 @@ describe("match cues", () => {
     const panel = result.current.sidePanels.at(-1);
     expect(panel?.titleKey).toBe("panel.revealedCards");
     expect(panel?.cards).toHaveLength(4);
+  });
+
+  /* An attack checking several cards: the server ships the whole rest of the attack while
+     the first card is still animating into its dock, so the later checks' scenes are queued
+     on the same centre-stage track before the dock gets to read anything out. The docked
+     card's own clause still belongs beside it, not after every check that followed. */
+  it("reads a docked card's clause before the checks that arrived while it was animating", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    const opened = [ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE] as const;
+    rerender([...opened]);
+    await advance(DOCK_AT_MS);
+
+    // The close of this check and the whole of the next one land in one burst, mid-dock.
+    rerender([...opened, OPP_TAIKI_CHECK]);
+    rerender([...opened, OPP_TAIKI_CHECK, OPP_NEXT_REVEAL]);
+    rerender([...opened, OPP_TAIKI_CHECK, OPP_NEXT_REVEAL, OPP_NEXT_CHECK]);
+
+    await advance(SECURITY_BRANCH_IN_MS);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.notices[0]?.body).toMatchObject({ cardId: "BT10-087", timing: "Security" });
   });
 
   /* The live order: the server resolves the whole [Security] play in one tick, so the
@@ -3967,6 +4008,80 @@ it("keeps the activation glow when a decision suppresses its duplicate toast", a
   await advance(0);
   expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "second" } }]);
   await advance(TIMINGS.effectSourceHold);
+  expect(result.current.notices).toHaveLength(0);
+});
+
+it("narrates a card's later clauses again once the dialog that silenced it has closed", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [{ permanentId: "rina", topCard: { cardId: "EX13-069", instanceId: "rina-card" } }],
+        hand: [],
+        trash: [],
+      },
+      { battleArea: [], hand: [], trash: [] },
+    ],
+  } as unknown as GameState;
+  const { result, rerender } = renderCuesOverBoard(board);
+  const startOfMain: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "EX13-069",
+    sourcePermanentId: "rina",
+    sourceInstanceId: "rina-card",
+    effectKey: "EX13-069/ir-1-0",
+    description: "[StartOfYourMainPhase] Gain 1 memory",
+    timing: "OnStartMainPhase",
+  };
+  const yourTurnPrompt: ServerEvent = {
+    ...startOfMain,
+    effectKey: "EX13-069/ir-2-0",
+    description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
+    timing: "YourTurn",
+  };
+  // The [Your Turn] clause asks whether to suspend the Tamer: its dialog prints the clause,
+  // so the toast that would repeat it is dropped while the dialog is open.
+  rerender([yourTurnPrompt]);
+  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
+  expect(result.current.notices).toHaveLength(0);
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(NOTICE_ITEM_MS);
+
+  // Next turn, the same Tamer's [Start of Your Main Phase] clause asks nothing and reads out.
+  rerender([yourTurnPrompt, startOfMain]);
+  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
+  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
+});
+
+it("keeps silencing the clauses a dialog found queued after it closes", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [{ permanentId: "rina", topCard: { cardId: "EX13-069", instanceId: "rina-card" } }],
+        hand: [],
+        trash: [],
+      },
+      { battleArea: [], hand: [], trash: [] },
+    ],
+  } as unknown as GameState;
+  const { result, rerender } = renderCuesOverBoard(board);
+  rerender([
+    {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "EX13-069",
+      sourcePermanentId: "rina",
+      sourceInstanceId: "rina-card",
+      effectKey: "EX13-069/ir-2-0",
+      description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
+      timing: "YourTurn",
+    },
+  ]);
+  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  // Answered before the queued clause reached the screen: it still must not read out.
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
   expect(result.current.notices).toHaveLength(0);
 });
 

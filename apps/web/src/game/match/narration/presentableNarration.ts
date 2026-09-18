@@ -1,9 +1,33 @@
 import { narrationReadingTime, TOUCH_NARRATION_LIFETIME_SCALE, type NarrationItem } from "../../narration";
 import { isOwnEffectNotice } from "../../notices";
 
+/**
+ * What one open (or just closed) decision dialog for the viewer's own card silences.
+ *
+ * The dialog prints the clause of the effect that asked, so the notice carrying that same
+ * clause is dropped: everything queued for the card when the dialog opened, and anything
+ * the card raises while it stays open. Once it closes, the card's later clauses read out
+ * again — a Tamer that asks a question every turn still narrates its other effects.
+ */
+export interface OwnEffectDialog {
+  /** Narration items for the card that were queued, not yet shown, when the dialog opened. */
+  queuedItemIds: ReadonlySet<string>;
+  dialogOpen: boolean;
+}
+
 export interface PresentableNarrationDeps {
   collapseNarration: boolean;
-  suppressedOwnEffects: ReadonlySet<string>;
+  suppressedOwnEffects: ReadonlyMap<string, OwnEffectDialog>;
+}
+
+function suppressedByDialog(item: NarrationItem, suppressedOwnEffects: ReadonlyMap<string, OwnEffectDialog>): boolean {
+  const { notice } = item;
+  if (notice === undefined) return false;
+  for (const [cardId, dialog] of suppressedOwnEffects) {
+    if (!isOwnEffectNotice(notice, cardId)) continue;
+    if (dialog.dialogOpen || dialog.queuedItemIds.has(item.id)) return true;
+  }
+  return false;
 }
 
 /**
@@ -15,7 +39,6 @@ export interface PresentableNarrationDeps {
  */
 export function presentableNarration(item: NarrationItem, deps: PresentableNarrationDeps): NarrationItem | null {
   const { collapseNarration, suppressedOwnEffects } = deps;
-  const { notice } = item;
   // The folded slot reads slower than the board does, so its items get a longer clock.
   const shown = (presented: NarrationItem): NarrationItem => ({
     ...presented,
@@ -24,9 +47,7 @@ export function presentableNarration(item: NarrationItem, deps: PresentableNarra
       : {}),
     createdAt: Date.now(),
   });
-  const suppressed =
-    notice !== undefined && [...suppressedOwnEffects].some((cardId) => isOwnEffectNotice(notice, cardId));
-  if (!suppressed) return shown(item);
+  if (!suppressedByDialog(item, suppressedOwnEffects)) return shown(item);
   if (!item.panel) return null;
   return shown({ ...item, notice: undefined });
 }

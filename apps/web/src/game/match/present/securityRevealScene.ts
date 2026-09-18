@@ -14,6 +14,7 @@ import {
   TIMINGS,
 } from "../../timings";
 import { CueTrack } from "../enums";
+import type { NarrationPlacement } from "../narration/narrationStream";
 import type { SecurityBreakCue } from "../types";
 import { shieldBreakStep } from "../steps/shieldBreakStep";
 import { createPresentationGate, type PresentationGate } from "../presentationGate";
@@ -51,7 +52,11 @@ export interface SecurityRevealSceneDeps {
   setSecurityBranch: Dispatch<SetStateAction<SecurityBranchScene | null>>;
   setPendingRevealKey: Dispatch<SetStateAction<number | null>>;
   flushHeldNotices: () => void;
-  openHeld: (ownNotices: readonly MatchNotice[], ownPanels: readonly SidePanel[]) => void;
+  openHeld: (
+    ownNotices: readonly MatchNotice[],
+    ownPanels: readonly SidePanel[],
+    placement?: NarrationPlacement,
+  ) => void;
   holdSecurityCard: (key: number, seat: Seat, count: number | undefined) => void;
   releaseSecurityCard: (key: number) => void;
   releaseSecurityCardWhenIdle: (key: number) => void;
@@ -220,7 +225,7 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
         // Docked and legible: the card's OWN clause may be read out now, and the decision
         // it asks for may open beside it — the reference client opens its panel here.
         // Only its own: anything a card it went on to play caused belongs to a later cue.
-        openHeld(own.notices, own.panels);
+        openHeld(own.notices, own.panels, { next: true });
         setPendingRevealKey((current) => (current === key ? null : current));
       },
     });
@@ -366,7 +371,7 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
       track: CueTrack.CenterStage,
       skippable: false,
       run() {
-        openHeld(notices, panels);
+        openHeld(notices, panels, { next: true });
       },
     });
   }

@@ -12,6 +12,7 @@ import {
 } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "./GameEngine.js";
 import { getEffectModule } from "./effects/registry.js";
+import { registeredCompiledCards } from "./effects/interpreter/compiledCards.js";
 import { GameStateAccess } from "./state/access.js";
 import { canAttackerDeclare, type ContinuousLegalityReader } from "./combat/legality.js";
 import {
@@ -2610,12 +2611,15 @@ describe("A3 Search — search deck, pick matching card, add to hand", () => {
     // [Main] routes to OnUseOption (timingsForTrigger: a non-security Main -> OnUseOption).
     const mains = module!.effectsForTiming(EffectTiming.OnUseOption, source);
     expect(mains.length, "BT15-092 has a registered [Main] effect").toBeGreaterThan(0);
-    // The description is the humanized rendering of the compiled actions, so the faithful
-    // security-play reads as "Play without paying the cost" — never as a deck search.
-    expect(mains[0]!.description, "BT15-092 [Main] is a PlayWithoutCost, not a Search").toContain(
-      "Play without paying the cost",
-    );
-    expect(mains[0]!.description).not.toContain("Search");
+    // The registered IR is the faithful security-play — never a deck search.
+    const mainActions = (registeredCompiledCards.get("BT15-092")?.effects ?? [])
+      .filter((effect) => effect.trigger === "Main")
+      .flatMap((effect) => effect.actions ?? []);
+    expect(
+      mainActions.map((action) => action.kind),
+      "BT15-092 [Main] is a PlayWithoutCost, not a Search",
+    ).toContain("PlayWithoutCost");
+    expect(mainActions.map((action) => action.kind)).not.toContain("Search");
 
     // documented behavior finding: BT15-092 (cs documented behavior verdict faithful). See
     // ./searchKindDispatch.test.ts for the Search-kind dispatch guard.

@@ -164,6 +164,8 @@ export interface SubTriggerAction extends ActionBase {
   duration?: EffectDurationRef;
   /** Original prose, for diagnostics and unsupported routing. Absent on hand-authored IR. */
   raw?: string;
+  /** The printed clause this watcher implements, matched at registration; shown to players, never used for prompts or identity. */
+  printedClause?: string;
   /** Internal text before recursive compilation. */
   _innerText?: string;
   triggerFilter?: Filter;

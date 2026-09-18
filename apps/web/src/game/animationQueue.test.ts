@@ -266,3 +266,46 @@ it("drops cancelled and reduced-motion prerequisites without waiting for their o
   expect(queue.hasPendingStep(() => true)).toBe(false);
   await queue.idle();
 });
+
+describe("front-of-track queueing", () => {
+  it("runs a follow-up a cue spawns before the steps that arrived while it was on screen", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.enqueue({
+      id: "dock",
+      track: "centerStage",
+      async run(context) {
+        log.push("dock:start");
+        await context.wait(100);
+        // Whole later checks reached the client while the dock was holding the screen.
+        queue.enqueue(step("clause", 10, { track: "centerStage", next: true }));
+        log.push("dock:end");
+      },
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    queue.enqueue(step("next-check", 10, { track: "centerStage" }));
+    await vi.advanceTimersByTimeAsync(200);
+    await queue.idle();
+
+    expect(log).toEqual(["dock:start", "dock:end", "clause:start", "clause:end", "next-check:start", "next-check:end"]);
+  });
+
+  it("keeps front-queued steps in the order they were enqueued", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.enqueue(step("holding", 100, { track: "centerStage" }));
+    await vi.advanceTimersByTimeAsync(0);
+    queue.enqueue(step("later", 10, { track: "centerStage" }));
+    queue.enqueue(step("first-clause", 10, { track: "centerStage", next: true }));
+    queue.enqueue(step("second-clause", 10, { track: "centerStage", next: true }));
+    await vi.advanceTimersByTimeAsync(200);
+    await queue.idle();
+
+    expect(log.filter((entry) => entry.endsWith(":start"))).toEqual([
+      "holding:start",
+      "first-clause:start",
+      "second-clause:start",
+      "later:start",
+    ]);
+  });
+});

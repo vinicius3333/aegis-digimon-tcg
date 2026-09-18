@@ -476,6 +476,8 @@ export interface DecisionRequest {
     distinctCardIds?: boolean; // prevent selecting multiple instances with the same card number
     orderDestination?: "deckTop" | "deckBottom" | "stackBottom"; // explains how ordered positions map to the destination
     choices?: string[]; // modal labels for chooseOption
+    /** Aligned to `choices` when each choice is a printed effect of a card: the client shows the card and its clause. */
+    choiceEffects?: { cardId: string; timing?: string; isInherited?: boolean }[];
     triggerKeys?: string[]; // pending choices for orderTriggers; the client selects exactly one
     triggerCardIds?: string[]; // authoritative source card for each triggerKeys entry
     /**

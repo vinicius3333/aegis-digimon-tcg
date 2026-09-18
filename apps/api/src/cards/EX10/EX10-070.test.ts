@@ -565,7 +565,7 @@ describe("EX10-070 God Grade Unleashed", () => {
 
     const entry = observe(s.engine)
       .activatableEffects(s.perm("host"))
-      .find(({ description }) => description?.includes("Link") === true);
+      .find(({ description }) => /link/i.test(description ?? ""));
     expect(entry, "BT25-070 offers its [Main] link ability").toBeDefined();
     expect(
       s.engine.applyIntent(0, {

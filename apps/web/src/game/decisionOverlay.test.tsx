@@ -38,6 +38,37 @@ it("renders each Monarchlizamon trigger's authoritative clause instead of repeat
   expect(screen.getByText(/This Digimon may battle 1 of your opponent's Digimon/)).toBeTruthy();
 });
 
+it("shows each borrowable effect as its card and full printed clause", () => {
+  const { onRespond } = renderDecision({
+    decisionId: "rina-activates-ulforce",
+    seat: 0,
+    kind: "chooseOption",
+    promptText: "Rina Shinomiya",
+    sourceCardId: "BT11-112",
+    options: {
+      choices: [
+        "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 1 of your Digimon may change orientation.",
+        "[On Play] [When Digivolving] You may return all of your opponent's Digimon with the fewest digivolution cards to the bottom of the deck.",
+      ],
+      choiceEffects: [
+        { cardId: "EX13-023", timing: "WhenDigivolving" },
+        { cardId: "EX13-023", timing: "WhenDigivolving" },
+      ],
+      timing: "Static",
+      effectText:
+        "[All Turns] When one of your Digimon with [Veedramon] in its name becomes suspended, by suspending this Tamer, activate 1 of that Digimon's [When Digivolving] effects.",
+    },
+  });
+  expect(screen.getByText(/1 of your Digimon may change orientation/)).toBeTruthy();
+  expect(
+    screen.getByText(/You may return all of your opponent's Digimon with the fewest digivolution cards/),
+  ).toBeTruthy();
+  expect(screen.queryByText(/Until the end of your opponent's turn/)).toBeNull();
+  expect(screen.getByText(/activate 1 of that Digimon's \[When Digivolving\] effects/)).toBeTruthy();
+  fireEvent.click(screen.getAllByRole("button", { name: /\[When Digivolving\], UlforceVeedramon/ })[1]!);
+  expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 1 });
+});
+
 const optionalDecision: DecisionRequest = {
   decisionId: "decision-1",
   seat: 0,

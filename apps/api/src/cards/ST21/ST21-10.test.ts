@@ -73,7 +73,7 @@ describe("ST21-10", () => {
     const source = s.perm("gabumon");
     const [effect] = observe(s.engine).activatableEffects(source) as { effectKey: string; description: string }[];
     expect(effect).toBeDefined();
-    expect(effect!.description).toContain("[YourTurn] Digivolve");
+    expect(effect!.description).toMatch(/^\[Your Turn\] While your opponent has a Digimon with 10000 DP or more/);
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",

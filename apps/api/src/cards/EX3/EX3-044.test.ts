@@ -8,9 +8,6 @@ import "./EX3-024.js";
 import { compiled } from "./EX3-044.js";
 import "../index.js";
 
-const mainEffect =
-  "Digivolve: 3 from [Groundramon] or [Wingdramon][All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.";
-
 describe("EX3-044 Breakdramon", () => {
   it("has the official metadata, normal evolution requirements, and alternate names", () => {
     expect(getCardDefinition("EX3-044")).toMatchObject({
@@ -185,7 +182,12 @@ describe("EX3-044 Breakdramon", () => {
     expect(targetRequest).toMatchObject({
       kind: "chooseTargets",
       sourceCardId: "EX3-044",
-      options: { timing: "AllTurns", effectText: mainEffect, min: 1, max: 1 },
+      options: {
+        timing: "AllTurns",
+        effectText: "[All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.",
+        min: 1,
+        max: 1,
+      },
     });
     expect(targetRequest.options!.candidateInstanceIds).not.toContain(s.perm("alreadySuspended").permanentId);
   });

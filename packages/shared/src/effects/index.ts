@@ -58,3 +58,12 @@ export type * from "./ir/requirements/digivolve.js";
 export type * from "./ir/requirements/fusion.js";
 export type * from "./ir/requirements/xrosLink.js";
 export type * from "./ir/triggers.js";
+export {
+  CONTINUOUS_TRIGGERS,
+  PRINTED_TIMING_LABELS,
+  printedClauseForEffect,
+  printedClauseForWatcher,
+  rawHints,
+  splitPrintedClauses,
+} from "./printedClauses.js";
+export type { PrintedClause } from "./printedClauses.js";

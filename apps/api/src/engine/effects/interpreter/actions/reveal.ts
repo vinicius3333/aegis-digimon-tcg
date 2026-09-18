@@ -429,7 +429,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     });
   }
   if (toHand.length > 0) {
-    await ctx.fx.returnToHand(toHand);
+    // The reveal is public, so the card the controller takes from it is public too.
+    // The hand it lands in is redacted per seat, so name it on the movement event.
+    await ctx.fx.returnToHand(toHand, { publicIdentities: true });
     // Follow-up clauses such as BT15-011's "If you added cards, trash 1 card in
     // your hand" read this receipt through ifThisEffectActed. RevealAdd used to
     // move the selected cards successfully while leaving the receipt false.

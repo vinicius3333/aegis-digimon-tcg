@@ -101,6 +101,11 @@ export interface MatchCues {
    * the dialog already names the card and prints the clause the notice would repeat.
    */
   dismissOwnEffectNotice: (cardId: string) => void;
+  /**
+   * The dialog for that card has closed. Clauses it raises from here on read out again;
+   * the ones already silenced stay silent.
+   */
+  releaseOwnEffectNotice: (cardId: string) => void;
   /** Raises a notice for a refused action, which no server event narrates for the viewer. */
   raiseRejection: (reason: string) => void;
   attackAnnouncement: AttackAnnouncement | null;
