@@ -1,9 +1,10 @@
 /* Every surface the board can have open over it: the card menu, the stack and pile
    viewers, the play-choice prompts, the match log, the card blow-up and the bug report.
 
-   All of them are unfinished business, so server authority closing the window they
+   Most of them are unfinished business, so server authority closing the window they
    belong to closes them too: a new decision, a combat window, a phase, a turn, or the
-   end of the match. */
+   end of the match. The stack viewer is exempt: it only reads a permanent, so the
+   viewer keeps it open until they close it or the permanent leaves the board. */
 
 import { useEffect, useState } from "react";
 import type { DecisionRequest, GameState } from "@aegis/shared";
@@ -55,7 +56,6 @@ export function useOverlayState({
   useEffect(() => {
     clearSel();
     setCardMenu(null);
-    setStackView(null);
     setTrashView(null);
     setSecurityView(null);
     setDigiXrosPick(null);

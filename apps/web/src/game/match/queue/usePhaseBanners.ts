@@ -31,6 +31,21 @@ import type { MatchCues, TurnTransitionCue, UnsuspendSweep } from "../types";
  * and the suspended cards stay suspended until the sweep runs. Draw, Breeding and Main each
  * release part of it, and a cancelled or non-live ribbon releases all of it at once.
  */
+/** The held board with every listed permanent — battle area or breeding — turned upright. */
+function releaseUnsuspended(player: GameState["players"][number], unsuspended: ReadonlySet<string>) {
+  return {
+    ...player,
+    battleArea: player.battleArea.map((permanent) =>
+      unsuspended.has(permanent.permanentId) && permanent.isSuspended
+        ? { ...permanent, isSuspended: false }
+        : permanent,
+    ),
+    ...(player.breeding && unsuspended.has(player.breeding.permanentId) && player.breeding.isSuspended
+      ? { breeding: { ...player.breeding, isSuspended: false } }
+      : {}),
+  } as GameState["players"][number];
+}
+
 export function usePhaseBanners({
   batches,
   phaseEvents,
@@ -98,6 +113,43 @@ export function usePhaseBanners({
 }) {
   const phaseBannerKeyRef = useRef(0);
   const unsuspendSweepKeyRef = useRef(0);
+  const appliedUnsuspendSeqRef = useRef(-1);
+  const appliedUnsuspendsRef = useRef(new WeakSet<ServerEvent>());
+
+  /**
+   * Release permanents whose unsuspend move reaches the client after the Unsuspend ribbon
+   * already read the timeline. The engine unsuspends only once the triggers pending from the
+   * previous turn have resolved, which can be many seconds into the Active phase, so the
+   * ribbon's one-shot read finds nothing and the held board keeps them rotated until Main
+   * lifts the hold. A move is applied once: by identity, and by seq so that a log rewrite
+   * cannot replay an old move against a later hold.
+   */
+  useLayoutEffect(() => {
+    const arrived: string[] = [];
+    let highestSeq = appliedUnsuspendSeqRef.current;
+    for (const event of eventTimeline) {
+      if (event.kind !== "cardsMoved" || event.from !== "suspended" || event.to !== "unsuspended") continue;
+      if (appliedUnsuspendsRef.current.has(event)) continue;
+      const seq = "seq" in event && typeof event.seq === "number" ? event.seq : undefined;
+      if (seq !== undefined && seq <= appliedUnsuspendSeqRef.current) continue;
+      if (seq !== undefined && seq > highestSeq) highestSeq = seq;
+      appliedUnsuspendsRef.current.add(event);
+      arrived.push(...event.instanceIds);
+    }
+    appliedUnsuspendSeqRef.current = highestSeq;
+    if (arrived.length === 0) return;
+    const unsuspended = new Set(arrived);
+    setHeldSuspendedIds((held) => {
+      if (!Array.from(unsuspended).some((permanentId) => held.has(permanentId))) return held;
+      return new Set(Array.from(held).filter((permanentId) => !unsuspended.has(permanentId)));
+    });
+    setHeldPhaseState((held) =>
+      held ? ({ ...held, players: held.players.map((player) => releaseUnsuspended(player, unsuspended)) } as GameState) : held,
+    );
+    setHeldBreedingState((held) =>
+      held ? { ...held, player: releaseUnsuspended(held.player, unsuspended) } : held,
+    );
+  }, [eventTimeline]);
   const phaseBatchesRef = useRef(batches);
   phaseBatchesRef.current = batches;
 
@@ -303,15 +355,12 @@ export function usePhaseBanners({
                   held
                     ? ({
                         ...held,
-                        players: held.players.map((player) => ({
-                          ...player,
-                          battleArea: player.battleArea.map((permanent) => ({
-                            ...permanent,
-                            isSuspended: unsuspendedIds.has(permanent.permanentId) ? false : permanent.isSuspended,
-                          })),
-                        })),
+                        players: held.players.map((player) => releaseUnsuspended(player, unsuspendedIds)),
                       } as GameState)
                     : held,
+                );
+                setHeldBreedingState((held) =>
+                  held ? { ...held, player: releaseUnsuspended(held.player, unsuspendedIds) } : held,
                 );
                 const sweep: UnsuspendSweep = { seat: openedPhase.turnSeat, key: ++unsuspendSweepKeyRef.current };
                 queue.enqueue({

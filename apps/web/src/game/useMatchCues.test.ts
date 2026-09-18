@@ -1306,6 +1306,86 @@ describe("match cues", () => {
     ).toBe(true);
   });
 
+  it("releases a permanent whose unsuspend move arrives after the ribbon read the timeline", async () => {
+    const state = {
+      phase: Phase.Main,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    // The engine unsuspends only once the previous turn's pending triggers resolve, so the
+    // move can land seconds after the Unsuspend ribbon has already read the timeline.
+    const late = new Permanent();
+    late.permanentId = "late";
+    late.isSuspended = true;
+    state.players[1]!.battleArea.push(late);
+    const { result, rerender } = renderCuesOverBoard(state);
+    await advance(0);
+    rerender([{ kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 }]);
+    await advance(0);
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(
+      result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended,
+    ).toBe(true);
+
+    rerender([
+      { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
+      {
+        kind: "cardsMoved",
+        instanceIds: ["late"],
+        from: "suspended",
+        to: "unsuspended",
+      },
+    ]);
+    await advance(0);
+    expect(
+      result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended,
+    ).toBe(false);
+    expect(result.current.heldSuspendedIds.has("late")).toBe(false);
+  });
+
+  it("releases a suspended breeding permanent along with the battle area", async () => {
+    const state = {
+      phase: Phase.Main,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    // The server unsuspends the raising area in the same sweep, and reports it as a move
+    // like any other; holding only the battle area left the egg rotated a phase longer.
+    const egg = new Permanent();
+    egg.permanentId = "egg";
+    egg.isSuspended = true;
+    state.players[1]!.breeding = egg;
+    const { result, rerender } = renderCuesOverBoard(state);
+    await advance(0);
+    rerender([
+      { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
+      {
+        kind: "cardsMoved",
+        instanceIds: ["egg"],
+        from: "suspended",
+        to: "unsuspended",
+      },
+      { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 2 },
+    ]);
+    await advance(0);
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(result.current.heldPhaseState?.players[1]?.breeding?.isSuspended).toBe(
+      false,
+    );
+  });
+
   it.each(["hatched", "movedFromBreeding"] as const)(
     "waits for separately patched %s before announcing Main",
     async (kind) => {

@@ -14,6 +14,18 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
   const isRestricted: PrimitivesContext["helpers"]["isRestricted"] = (...args) => pc.helpers.isRestricted(...args);
   const trash: Primitives["trash"] = (...args) => pc.fx.trash(...args);
 
+  /**
+   * Report the orientation change the way the Active phase reports its own sweep. The state
+   * patch alone leaves the client guessing WHEN a permanent turned: its board is frozen while
+   * a phase ribbon is up, and without a move to release the hold a permanent suspended (or
+   * unsuspended) by an effect stays rotated on screen until the hold lifts a phase later.
+   */
+  function emitSuspensionMoves(permanentIds: readonly string[]): void {
+    for (const permanentId of permanentIds) {
+      engine.emit?.({ kind: "cardsMoved", instanceIds: [permanentId], from: "unsuspended", to: "suspended" });
+    }
+  }
+
   async function fireSuspensionTriggers(
     permanentIds: string[],
     opts?: { byEffectSeat?: Seat; byEffectCardId?: string; suppressWhenEffectSuspends?: boolean },
@@ -74,6 +86,7 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
         suspendedPermanentIds.push(permanentId);
       }
     }
+    emitSuspensionMoves(suspendedPermanentIds);
     if (opts?.deferTriggers !== true) await fireSuspensionTriggers(suspendedPermanentIds, opts);
     return suspendedPermanentIds;
   }
@@ -104,6 +117,7 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
   const payActivationCost: NonNullable<Primitives["payActivationCost"]> = (permanentId, costKind): boolean => {
     if (!canPayActivationCost(permanentId, costKind)) return false;
     access.suspend(access.permanentById(permanentId)!);
+    emitSuspensionMoves([permanentId]);
     return true;
   };
 
@@ -141,6 +155,7 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
         await trash(chosen, { byEffectSeat: permanent.controllerSeat });
       }
       access.unsuspend(permanent);
+      engine.emit?.({ kind: "cardsMoved", instanceIds: [permanentId], from: "suspended", to: "unsuspended" });
       engine.combat?.resetAttackEligibility?.(permanentId);
       await engine.fireTiming?.(EffectTiming.OnUnTappedAnyone, {
         unsuspendedPermanentId: permanentId,
