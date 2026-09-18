@@ -41,19 +41,57 @@ export function buildInstanceIndex(state: GameState, viewerSeat: Seat): Map<stri
   return index;
 }
 
+/** The zone a decision candidate sits in, viewer-relative, as the prompt groups them. */
+export type CandidateZone =
+  | "hand"
+  | "trash"
+  | "opponentTrash"
+  | "battle"
+  | "opponentBattle"
+  | "breeding"
+  | "security"
+  | "delay";
+
+/** Map every visible card instance to the zone it sits in, so a prompt can group its candidates. */
+export function buildInstanceZoneIndex(state: GameState, viewerSeat: Seat): Map<string, CandidateZone> {
+  const zones = new Map<string, CandidateZone>();
+  const add = (ci: CardInstance | undefined, zone: CandidateZone) => {
+    if (ci?.instanceId) zones.set(ci.instanceId, zone);
+  };
+  const addPermanent = (perm: Permanent | undefined, zone: CandidateZone) => {
+    if (!perm) return;
+    add(perm.topCard, zone);
+    perm.stack?.forEach((ci) => add(ci, zone));
+    perm.linked?.forEach((ci) => add(ci, zone));
+    if (perm.permanentId) zones.set(perm.permanentId, zone);
+  };
+  state.players.forEach((player, seat) => {
+    const mine = seat === viewerSeat;
+    player.battleArea.forEach((perm) => addPermanent(perm, mine ? "battle" : "opponentBattle"));
+    addPermanent(player.breeding, "breeding");
+    player.trash.forEach((ci) => add(ci, mine ? "trash" : "opponentTrash"));
+    player.delayZone?.forEach((ci) => add(ci, "delay"));
+    player.security?.forEach((ci) => add(ci, "security"));
+    if (mine) player.hand.forEach((ci) => add(ci, "hand"));
+  });
+  return zones;
+}
+
 /** Resolve decision cards from the request first; zone state can lag a reveal decision by one patch. */
 export function decisionVisibleCards(
   options: DecisionRequest["options"],
   instanceIndex: ReadonlyMap<string, string>,
   artIndex?: ReadonlyMap<string, string>,
-): { instanceId: string; cardId?: string; artId?: string }[] {
+  zoneIndex?: ReadonlyMap<string, CandidateZone>,
+): { instanceId: string; cardId?: string; artId?: string; zone?: CandidateZone }[] {
   const authoritative = new Map((options?.visibleCards ?? []).map((card) => [card.instanceId, card]));
   const visible = options?.visibleInstanceIds ?? options?.candidateInstanceIds ?? [];
   return visible.map((instanceId) => {
     const revealed = authoritative.get(instanceId);
     const cardId = revealed?.cardId ?? instanceIndex.get(instanceId);
     const artId = revealed?.artId ?? artIndex?.get(instanceId);
-    return { instanceId, cardId, ...(cardId && artId ? { artId } : {}) };
+    const zone = zoneIndex?.get(instanceId);
+    return { instanceId, cardId, ...(cardId && artId ? { artId } : {}), ...(zone ? { zone } : {}) };
   });
 }
 

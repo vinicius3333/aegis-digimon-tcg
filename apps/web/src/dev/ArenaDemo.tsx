@@ -386,6 +386,10 @@ export function ArenaDemo() {
   const [noticeOrderRun, setNoticeOrderRun] = useState(0);
   /** The run number of the open hand-selection fixture, so repeating it asks again. */
   const [handSelectionRun, setHandSelectionRun] = useState<number | null>(null);
+  /** The run number of the open hand-and-trash fixture, so repeating it asks again. */
+  const [mixedSelectionRun, setMixedSelectionRun] = useState<number | null>(
+    null,
+  );
   const keywordLabels = useMemo(
     () => demoKeywordLabels(keywordGrants),
     [keywordGrants],
@@ -510,10 +514,46 @@ export function ArenaDemo() {
               : "Visual preview: pick cards from your hand. Nothing is trashed.",
           },
         };
+  /**
+   * The hand-and-trash fixture: a prompt whose candidates straddle two zones, which
+   * is the case the dialog groups under a heading per zone.
+   */
+  const mixedSelectionDecision: DecisionRequest | undefined =
+    mixedSelectionRun === null
+      ? undefined
+      : {
+          decisionId: `demo-mixed-selection-${mixedSelectionRun}`,
+          seat: 0,
+          kind: "chooseTargets",
+          promptText: portuguese
+            ? "Selecione até 2 cartas da sua mão ou do seu lixo"
+            : "Select up to 2 cards from your hand or trash",
+          ...(handSource ? { sourceCardId: handSource } : {}),
+          options: {
+            candidateInstanceIds: [
+              ...state.players[0]!.hand.slice(0, 3),
+              ...state.players[0]!.trash,
+            ].map((instance) => instance.instanceId),
+            min: 1,
+            max: 2,
+            timing: "Main",
+            effectText: portuguese
+              ? "Prévia visual: escolha cartas da mão e do lixo. Nada acontece."
+              : "Visual preview: pick cards from your hand and trash. Nothing happens.",
+          },
+        };
   // One prompt at a time, and the fixture the tools just opened wins over a scenario
   // left running from before it.
-  const decision = handSelectionDecision ?? rinaDecision ?? imperialDecision;
+  const decision =
+    mixedSelectionDecision ??
+    handSelectionDecision ??
+    rinaDecision ??
+    imperialDecision;
   function respondDecision(response: DecisionResponse) {
+    if (mixedSelectionDecision) {
+      setMixedSelectionRun(null);
+      return;
+    }
     if (handSelectionDecision) {
       setHandSelectionRun(null);
       return;
@@ -570,6 +610,10 @@ export function ArenaDemo() {
   function previewHandSelection() {
     setBatches([]);
     setHandSelectionRun((run) => (run ?? 0) + 1);
+  }
+  function previewMixedSelection() {
+    setBatches([]);
+    setMixedSelectionRun((run) => (run ?? 0) + 1);
   }
   function previewEffectActivation(
     timing:
@@ -1117,6 +1161,7 @@ export function ArenaDemo() {
           onEffects={previewEffects}
           onNoticeBurst={previewNoticeBurst}
           onHandSelection={previewHandSelection}
+          onMixedSelection={previewMixedSelection}
           onEffectActivation={previewEffectActivation}
           onSecurityEffect={previewSecurityEffect}
           onNoticeOrdering={previewNoticeOrdering}

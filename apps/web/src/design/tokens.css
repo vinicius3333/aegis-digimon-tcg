@@ -153,6 +153,9 @@
   /* The field-card inspector sits above selection prompts, since it is what the
      player just opened; pile viewers and the card blow-up stay above it. */
   --ds-z-inspector: 10500;
+  /* The card detail sheet is what the player just tapped open, so it covers the
+     board and the inspector; notices and pile viewers still sit above it. */
+  --ds-z-card-sheet: 10700;
   /* Notices and toasts report what just happened, so they top every prompt,
      sheet and inspector — they are read and dismissed, never interacted with. */
   --ds-z-notice: 10800;

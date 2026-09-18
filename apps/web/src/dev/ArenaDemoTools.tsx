@@ -14,6 +14,7 @@ export function ArenaDemoTools({
   onEffects,
   onNoticeBurst,
   onHandSelection,
+  onMixedSelection,
   onImperial,
   onEffectActivation,
   onSecurityEffect,
@@ -37,9 +38,15 @@ export function ArenaDemoTools({
   onNoticeBurst?: () => void;
   /** Opens a selection over the viewer's own hand, as an effect asking which cards to trash. */
   onHandSelection?: () => void;
+  onMixedSelection?: () => void;
   onImperial?: () => void;
   onEffectActivation?: (
-    timing: "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion",
+    timing:
+      | "On Play"
+      | "When Digivolving"
+      | "When Attacking"
+      | "Start of Main Phase"
+      | "On Deletion",
   ) => void;
   /** The docked security card and a full narration column at once. */
   onSecurityEffect?: () => void;
@@ -60,9 +67,12 @@ export function ArenaDemoTools({
   const id = useId();
   useEffect(() => {
     if (!open) return;
-    menu.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
+    menu.current
+      ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
+      ?.focus();
     function outside(event: PointerEvent) {
-      if (event.target instanceof Node && !root.current?.contains(event.target)) setOpen(false);
+      if (event.target instanceof Node && !root.current?.contains(event.target))
+        setOpen(false);
     }
     document.addEventListener("pointerdown", outside);
     return () => document.removeEventListener("pointerdown", outside);
@@ -106,18 +116,26 @@ export function ArenaDemoTools({
               setOpen(false);
               return;
             }
-            if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+            if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key))
+              return;
             event.preventDefault();
             const buttons = Array.from(
-              menu.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") ?? [],
+              menu.current?.querySelectorAll<HTMLButtonElement>(
+                "button:not(:disabled)",
+              ) ?? [],
             );
-            const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+            const current = buttons.indexOf(
+              document.activeElement as HTMLButtonElement,
+            );
             const next =
               event.key === "Home"
                 ? 0
                 : event.key === "End"
                   ? buttons.length - 1
-                  : (current + (event.key === "ArrowUp" ? -1 : 1) + buttons.length) % buttons.length;
+                  : (current +
+                      (event.key === "ArrowUp" ? -1 : 1) +
+                      buttons.length) %
+                    buttons.length;
             buttons[next]?.focus();
           }}
         >
@@ -162,25 +180,34 @@ export function ArenaDemoTools({
                 onOpeningSecurityDeal();
               }}
             >
-              {portuguese ? "Reproduzir segurança inicial (5 cartas)" : "Preview opening security deal (5 cards)"}
+              {portuguese
+                ? "Reproduzir segurança inicial (5 cartas)"
+                : "Preview opening security deal (5 cards)"}
             </button>
           ) : null}
           {onEffectActivation
-            ? (["On Play", "When Digivolving", "When Attacking", "Start of Main Phase", "On Deletion"] as const).map(
-                (timing) => (
-                  <button
-                    key={timing}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      close();
-                      onEffectActivation(timing);
-                    }}
-                  >
-                    {portuguese ? "Reproduzir ativação" : "Preview activation"}: {timing}
-                  </button>
-                ),
-              )
+            ? (
+                [
+                  "On Play",
+                  "When Digivolving",
+                  "When Attacking",
+                  "Start of Main Phase",
+                  "On Deletion",
+                ] as const
+              ).map((timing) => (
+                <button
+                  key={timing}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    close();
+                    onEffectActivation(timing);
+                  }}
+                >
+                  {portuguese ? "Reproduzir ativação" : "Preview activation"}:{" "}
+                  {timing}
+                </button>
+              ))
             : null}
           {onSecurityEffect ? (
             <button
@@ -191,7 +218,9 @@ export function ArenaDemoTools({
                 onSecurityEffect();
               }}
             >
-              {portuguese ? "Reproduzir efeito de segurança" : "Play security-effect scenario"}
+              {portuguese
+                ? "Reproduzir efeito de segurança"
+                : "Play security-effect scenario"}
             </button>
           ) : null}
           {onNoticeOrdering ? (
@@ -217,7 +246,9 @@ export function ArenaDemoTools({
                 onSplitToasts();
               }}
             >
-              {portuguese ? "Reproduzir avisos da esquerda e da direita" : "Play the left and right toasts"}
+              {portuguese
+                ? "Reproduzir avisos da esquerda e da direita"
+                : "Play the left and right toasts"}
             </button>
           ) : null}
           {onPlutomon ? (
@@ -243,7 +274,9 @@ export function ArenaDemoTools({
                 onImperial();
               }}
             >
-              {portuguese ? "Reproduzir Imperial: All Turns (2 partes)" : "Preview Imperial: All Turns (2 parts)"}
+              {portuguese
+                ? "Reproduzir Imperial: All Turns (2 partes)"
+                : "Preview Imperial: All Turns (2 parts)"}
             </button>
           ) : null}
           {onEffects ? (
@@ -255,7 +288,9 @@ export function ArenaDemoTools({
                 onEffects();
               }}
             >
-              {portuguese ? "Reproduzir efeitos simultâneos" : "Preview simultaneous effects"}
+              {portuguese
+                ? "Reproduzir efeitos simultâneos"
+                : "Preview simultaneous effects"}
             </button>
           ) : null}
           {onHandSelection ? (
@@ -267,7 +302,23 @@ export function ArenaDemoTools({
                 onHandSelection();
               }}
             >
-              {portuguese ? "Selecionar cartas da mão" : "Select cards from hand"}
+              {portuguese
+                ? "Selecionar cartas da mão"
+                : "Select cards from hand"}
+            </button>
+          ) : null}
+          {onMixedSelection ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onMixedSelection();
+              }}
+            >
+              {portuguese
+                ? "Selecionar cartas da mão e do lixo"
+                : "Select cards from hand and trash"}
             </button>
           ) : null}
           {onNoticeBurst ? (
@@ -279,7 +330,9 @@ export function ArenaDemoTools({
                 onNoticeBurst();
               }}
             >
-              {portuguese ? "Reproduzir 4 avisos seguidos" : "Preview 4 notices in a row"}
+              {portuguese
+                ? "Reproduzir 4 avisos seguidos"
+                : "Preview 4 notices in a row"}
             </button>
           ) : null}
           <button
@@ -290,7 +343,9 @@ export function ArenaDemoTools({
               onVisualPlayback();
             }}
           >
-            {portuguese ? "Reproduzir keywords automaticamente" : "Automatically preview keywords"}
+            {portuguese
+              ? "Reproduzir keywords automaticamente"
+              : "Automatically preview keywords"}
           </button>
           <button
             type="button"

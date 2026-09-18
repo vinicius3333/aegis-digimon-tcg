@@ -1,6 +1,6 @@
 import type { DecisionRequest, GameState, Permanent, Seat, SequencedServerEvent } from "@aegis/shared";
 import { buildInstanceArtIndex } from "../../sidePanels";
-import { decisionCardColors, decisionVisibleCards } from "../../decisionModel";
+import { buildInstanceZoneIndex, decisionCardColors, decisionVisibleCards } from "../../decisionModel";
 import { decisionEffectSource } from "../../matchLog";
 import { decisionPresentation, decisionSelectionMin, sourcePermanentIdOf } from "../../decisionPresentation";
 
@@ -65,7 +65,12 @@ export function decisionViewFor({
     : "dialog";
   const answerOnBoard = boardPresentation === "board" && !decisionAsDialog;
   const decisionVisible = viewerDecision
-    ? decisionVisibleCards(viewerDecision.options, instanceIndex, buildInstanceArtIndex(state))
+    ? decisionVisibleCards(
+        viewerDecision.options,
+        instanceIndex,
+        buildInstanceArtIndex(state),
+        buildInstanceZoneIndex(state, viewerSeat),
+      )
     : [];
   return {
     viewerDecision,

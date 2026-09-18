@@ -7,7 +7,7 @@
 import type { DecisionRequest, DecisionResponse, Permanent } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../../BoardDecisionRail";
-import { decisionPermanentDetails, decisionSourceCounts } from "../../decisionModel";
+import { decisionPermanentDetails, decisionSourceCounts, type CandidateZone } from "../../decisionModel";
 import { DecisionOverlay, playerFacingEffectClause, playerFacingPromptText } from "../../overlay";
 import type { TriggerDetail } from "../../overlay";
 
@@ -34,7 +34,7 @@ export function DecisionPrompts({
   /** Both battle areas, which is where the dialog reads its stack and DP badges. */
   permanents: readonly Permanent[];
   sourceCardId: string | undefined;
-  candidates: readonly { instanceId: string; cardId?: string; artId?: string }[];
+  candidates: readonly { instanceId: string; cardId?: string; artId?: string; zone?: CandidateZone }[];
   allowsPick: (instanceId: string) => boolean;
   picks: string[];
   min: number;
@@ -77,6 +77,7 @@ export function DecisionPrompts({
                     sourceCount: sourceCounts.get(card.instanceId),
                     currentDP: details?.currentDP,
                     isSuspended: details?.isSuspended,
+                    zone: card.zone,
                   };
                 })}
                 picks={picks}

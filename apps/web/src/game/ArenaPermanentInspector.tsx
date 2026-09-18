@@ -1,12 +1,23 @@
 import { EffectText } from "./EffectText";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { getCardDefinition } from "@aegis/shared";
 import { CardBack, CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
 import { COLORS, colorKey } from "../design/theme";
 import { useTranslation } from "../i18n";
-import { groupedInspectorEvolutionCosts, inspectorCardsTopToBottom, inspectedArenaHalf } from "./arenaInspectorModel";
+import {
+  groupedInspectorEvolutionCosts,
+  inspectorCardsTopToBottom,
+  inspectedArenaHalf,
+} from "./arenaInspectorModel";
 import { formatResolvedKeyword } from "./keywordDisplay";
 import type { CardInspectionDetail } from "./permanentDetail";
 import type { PendingFateBadge } from "./pendingFate";
@@ -44,17 +55,31 @@ export function ArenaPermanentInspector({
   const closeCallback = useRef(onClose);
   closeCallback.current = onClose;
   const top = getCardDefinition(detail.cardId);
-  const supporting = inspectorCardsTopToBottom(detail.cards).filter((card) => card.role !== "top");
-  const traits = [top?.forms?.[0], top?.attributes?.[0], top?.types?.[0]].filter((trait) => trait && trait !== "-");
+  const supporting = inspectorCardsTopToBottom(detail.cards).filter(
+    (card) => card.role !== "top",
+  );
+  const traits = [
+    top?.forms?.[0],
+    top?.attributes?.[0],
+    top?.types?.[0],
+  ].filter((trait) => trait && trait !== "-");
+  const anchor = useArenaHalfAnchor({
+    container: inspection.container,
+    half: inspectedArenaHalf(inspection.side),
+  });
 
   useEffect(() => {
     const origin =
-      inspection.returnFocusTo ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+      inspection.returnFocusTo ??
+      (document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null);
     closeRef.current?.focus();
     return () => {
       if (
         origin?.isConnected &&
-        (panelRef.current?.contains(document.activeElement) || document.activeElement === document.body)
+        (panelRef.current?.contains(document.activeElement) ||
+          document.activeElement === document.body)
       )
         origin.focus();
     };
@@ -70,7 +95,11 @@ export function ArenaPermanentInspector({
       closeCallback.current();
     };
     const onOutside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !panelRef.current?.contains(event.target)) closeCallback.current();
+      if (
+        event.target instanceof Node &&
+        !panelRef.current?.contains(event.target)
+      )
+        closeCallback.current();
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onOutside, true);
@@ -84,6 +113,7 @@ export function ArenaPermanentInspector({
     <section
       ref={panelRef}
       className="arena-permanent-inspector"
+      style={anchor}
       data-half={inspectedArenaHalf(inspection.side)}
       data-card-side={inspection.side}
       role="dialog"
@@ -97,7 +127,12 @@ export function ArenaPermanentInspector({
           onClick={() => onZoom(detail.cardId, detail.artId)}
           aria-label={t("overlay.zoomCard")}
         >
-          <CardFull cardId={detail.cardId} artId={detail.artId} width={190} zoomOnHover={false} />
+          <CardFull
+            cardId={detail.cardId}
+            artId={detail.artId}
+            width={190}
+            zoomOnHover={false}
+          />
         </button>
         <div className="arena-permanent-inspector__reading">
           <header className="arena-permanent-inspector__header">
@@ -130,13 +165,21 @@ export function ArenaPermanentInspector({
           </header>
           <div className="arena-permanent-inspector__stats">
             <span>{detail.cardId}</span>
-            {top && top.playCost >= 0 ? <span>{t("game.costsMemory", { count: top.playCost })}</span> : null}
+            {top && top.playCost >= 0 ? (
+              <span>{t("game.costsMemory", { count: top.playCost })}</span>
+            ) : null}
             {groupedInspectorEvolutionCosts(top?.evoCosts ?? []).map((cost) => {
-              const colorsByLabel = new Map(cost.colors.map((color) => [t(`game.color.${color}`), color]));
+              const colorsByLabel = new Map(
+                cost.colors.map((color) => [t(`game.color.${color}`), color]),
+              );
               return (
-                <span key={`${cost.level}-${cost.memoryCost}`} className="arena-permanent-inspector__evolution">
+                <span
+                  key={`${cost.level}-${cost.memoryCost}`}
+                  className="arena-permanent-inspector__evolution"
+                >
                   <span>
-                    {t("overlay.digivolveCost")} {cost.memoryCost} · Lv.{cost.level}
+                    {t("overlay.digivolveCost")} {cost.memoryCost} · Lv.
+                    {cost.level}
                     {" · "}
                   </span>
                   <span className="arena-permanent-inspector__colors">
@@ -151,7 +194,12 @@ export function ArenaPermanentInspector({
                           >
                             <i
                               aria-hidden="true"
-                              style={{ background: COLORS[colorKey(colorsByLabel.get(part.value)!)].base }}
+                              style={{
+                                background:
+                                  COLORS[
+                                    colorKey(colorsByLabel.get(part.value)!)
+                                  ].base,
+                              }}
                             />
                             <span>{part.value}</span>
                           </span>
@@ -163,17 +211,32 @@ export function ArenaPermanentInspector({
                 </span>
               );
             })}
-            {traits.length ? <span className="arena-permanent-inspector__traits">{traits.join(" / ")}</span> : null}
+            {traits.length ? (
+              <span className="arena-permanent-inspector__traits">
+                {traits.join(" / ")}
+              </span>
+            ) : null}
           </div>
           <div
             className="arena-permanent-inspector__state"
             role={detail.keywords.length ? "region" : undefined}
-            aria-label={detail.keywords.length ? t("game.activeKeywords") : undefined}
+            aria-label={
+              detail.keywords.length ? t("game.activeKeywords") : undefined
+            }
             tabIndex={0}
           >
             {detail.keywords.map((keyword) => (
-              <span key={keyword} data-granted={detail.grantedKeywords.includes(keyword) || undefined}>
-                {formatResolvedKeyword(keyword, detail.securityAttackModifier, detail.keywordLabels?.[keyword])}
+              <span
+                key={keyword}
+                data-granted={
+                  detail.grantedKeywords.includes(keyword) || undefined
+                }
+              >
+                {formatResolvedKeyword(
+                  keyword,
+                  detail.securityAttackModifier,
+                  detail.keywordLabels?.[keyword],
+                )}
               </span>
             ))}
             {detail.suspended ? <span>{t("overlay.suspended")}</span> : null}
@@ -183,7 +246,9 @@ export function ArenaPermanentInspector({
                 data-warning={restriction.protection ? undefined : "true"}
                 data-protection={restriction.protection || undefined}
               >
-                {restriction.protection ? <Icons.ShieldCheck size={12} /> : null}
+                {restriction.protection ? (
+                  <Icons.ShieldCheck size={12} />
+                ) : null}
                 {t(restriction.labelKey)}
               </span>
             ))}
@@ -193,7 +258,11 @@ export function ArenaPermanentInspector({
               </span>
             ) : null}
             {detail.transformation ? (
-              <span data-warning="true">{t("overlay.transformedBadge", { name: detail.transformation.name })}</span>
+              <span data-warning="true">
+                {t("overlay.transformedBadge", {
+                  name: detail.transformation.name,
+                })}
+              </span>
             ) : null}
             {fate ? <span data-warning="true">{t(fate.labelKey)}</span> : null}
           </div>
@@ -204,8 +273,13 @@ export function ArenaPermanentInspector({
             tabIndex={0}
           >
             {detail.transformation ? (
-              <div className="arena-permanent-inspector__effect" data-role="transformed">
-                <span className="arena-permanent-inspector__effect-label">{t("overlay.transformedLabel")}</span>
+              <div
+                className="arena-permanent-inspector__effect"
+                data-role="transformed"
+              >
+                <span className="arena-permanent-inspector__effect-label">
+                  {t("overlay.transformedLabel")}
+                </span>
                 <p>
                   {t(
                     detail.transformation.colors.length
@@ -213,7 +287,9 @@ export function ArenaPermanentInspector({
                       : "overlay.transformedSummaryNoColor",
                     {
                       name: detail.transformation.name,
-                      color: detail.transformation.colors.map((color) => t(`game.color.${color}`)).join(" / "),
+                      color: detail.transformation.colors
+                        .map((color) => t(`game.color.${color}`))
+                        .join(" / "),
                       dp: detail.transformation.dp.toLocaleString(),
                     },
                   )}
@@ -222,15 +298,25 @@ export function ArenaPermanentInspector({
               </div>
             ) : null}
             {top?.effectText || supporting.length === 0 ? (
-              <div className="arena-permanent-inspector__effect" data-role="top">
-                <span className="arena-permanent-inspector__effect-label">{t("overlay.printedEffect")}</span>
+              <div
+                className="arena-permanent-inspector__effect"
+                data-role="top"
+              >
+                <span className="arena-permanent-inspector__effect-label">
+                  {t("overlay.printedEffect")}
+                </span>
                 <p>
-                  <EffectText text={top?.effectText || t("overlay.noPrintedEffect")} />
+                  <EffectText
+                    text={top?.effectText || t("overlay.noPrintedEffect")}
+                  />
                 </p>
               </div>
             ) : null}
             {top?.optionEffect ? (
-              <div className="arena-permanent-inspector__effect" data-role="printed-option">
+              <div
+                className="arena-permanent-inspector__effect"
+                data-role="printed-option"
+              >
                 <span className="arena-permanent-inspector__effect-label">
                   {t("library.optionEffect")}
                   {top.dualEffect ? ` · ${top.dualEffect}` : ""}
@@ -242,14 +328,32 @@ export function ArenaPermanentInspector({
             ) : null}
             {detail.printedOnly
               ? [
-                  { role: "printed-inherited", label: t("library.inheritedEffect"), text: top?.inheritedEffectText },
-                  { role: "printed-linked", label: t("overlay.role.linked"), text: top?.linkEffect },
-                  { role: "printed-security", label: t("library.securityEffect"), text: top?.securityEffectText },
+                  {
+                    role: "printed-inherited",
+                    label: t("library.inheritedEffect"),
+                    text: top?.inheritedEffectText,
+                  },
+                  {
+                    role: "printed-linked",
+                    label: t("overlay.role.linked"),
+                    text: top?.linkEffect,
+                  },
+                  {
+                    role: "printed-security",
+                    label: t("library.securityEffect"),
+                    text: top?.securityEffectText,
+                  },
                 ]
                   .filter((effect) => effect.text)
                   .map((effect) => (
-                    <div key={effect.role} className="arena-permanent-inspector__effect" data-role={effect.role}>
-                      <span className="arena-permanent-inspector__effect-label">{effect.label}</span>
+                    <div
+                      key={effect.role}
+                      className="arena-permanent-inspector__effect"
+                      data-role={effect.role}
+                    >
+                      <span className="arena-permanent-inspector__effect-label">
+                        {effect.label}
+                      </span>
                       <p>
                         <EffectText text={effect.text!} />
                       </p>
@@ -269,7 +373,10 @@ export function ArenaPermanentInspector({
                   </div>
                 );
               const definition = getCardDefinition(card.cardId);
-              const effect = card.role === "linked" ? definition?.linkEffect : definition?.inheritedEffectText;
+              const effect =
+                card.role === "linked"
+                  ? definition?.linkEffect
+                  : definition?.inheritedEffectText;
               return (
                 <div
                   key={`${card.cardId}-${index}`}
@@ -281,27 +388,85 @@ export function ArenaPermanentInspector({
                     type="button"
                     className="arena-permanent-inspector__source"
                     onClick={() => onZoom(card.cardId, card.artId)}
-                    aria-label={t("feed.openCard", { card: definition?.nameEn ?? card.cardId })}
+                    aria-label={t("feed.openCard", {
+                      card: definition?.nameEn ?? card.cardId,
+                    })}
                   >
-                    <CardFull cardId={card.cardId} artId={card.artId} width={34} zoomOnHover={false} />
+                    <CardFull
+                      cardId={card.cardId}
+                      artId={card.artId}
+                      width={34}
+                      zoomOnHover={false}
+                    />
                   </button>
                   <div>
                     <span className="arena-permanent-inspector__effect-label">
                       {definition?.nameEn ?? card.cardId} ·{" "}
-                      {t(card.role === "linked" ? "overlay.role.linked" : "overlay.role.inherited")}
+                      {t(
+                        card.role === "linked"
+                          ? "overlay.role.linked"
+                          : "overlay.role.inherited",
+                      )}
                     </span>
                     <p>
-                      <EffectText text={effect || t("overlay.noPrintedEffect")} />
+                      <EffectText
+                        text={effect || t("overlay.noPrintedEffect")}
+                      />
                     </p>
                   </div>
                 </div>
               );
             })}
           </div>
-          {actions ? <div className="arena-permanent-inspector__actions">{actions}</div> : null}
+          {actions ? (
+            <div className="arena-permanent-inspector__actions">{actions}</div>
+          ) : null}
         </div>
       </div>
     </section>
   );
-  return createPortal(panel, inspection.container ?? document.body);
+  // Portalled to the body rather than into the board: the board clips its overflow
+  // and isolates its stacking context, which would bury the detail a player just
+  // opened under any dialog above the board. It is pinned back over the board's own
+  // half through `anchor` instead, so it still reads as part of the arena.
+  return createPortal(panel, document.body);
+}
+
+/**
+ * The fixed rect covering the half of the arena opposite the inspected card.
+ *
+ * Without a container (tests, fixtures) it falls back to the viewport half, which is
+ * what the phone layout resolves to anyway.
+ */
+function useArenaHalfAnchor({
+  container,
+  half,
+}: {
+  container: HTMLElement | null;
+  half: "upper" | "lower";
+}): CSSProperties {
+  const [anchor, setAnchor] = useState<CSSProperties>({});
+  useEffect(() => {
+    const measure = () => {
+      const rect = container?.getBoundingClientRect();
+      const top = rect?.top ?? 0;
+      const height = rect?.height ?? window.innerHeight;
+      setAnchor({
+        position: "fixed",
+        left: rect?.left ?? 0,
+        width: rect?.width ?? window.innerWidth,
+        top: half === "upper" ? top : top + height / 2,
+        height: height / 2,
+        bottom: "auto",
+      });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
+  }, [container, half]);
+  return anchor;
 }

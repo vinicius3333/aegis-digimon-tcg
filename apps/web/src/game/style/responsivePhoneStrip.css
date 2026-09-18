@@ -63,7 +63,7 @@
      actions, so a tap target on the board is never hidden behind the menu. */
   .card-action-sheet {
     position: fixed;
-    z-index: var(--ds-z-dialog);
+    z-index: var(--ds-z-card-sheet);
     inset: 0;
     display: grid;
     align-items: end;
