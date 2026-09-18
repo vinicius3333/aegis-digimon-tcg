@@ -35,6 +35,10 @@ describe("BT11-043 KingSukamon", () => {
     expect(observe(s.engine).effectiveNames(target)).toEqual(["sukamon"]);
     expect(observe(s.engine).effectiveColors(target)).toEqual(["White"]);
     expect(target.currentDP).toBe(3000);
+    // Published to the client too: the board draws the token from these fields rather than
+    // inferring a transformation from a name that no longer matches the art.
+    expect(target.originalNameOverride).toBe("Sukamon");
+    expect([...target.originalColorsOverride]).toEqual(["White"]);
   });
 
   it("does nothing when neither trash condition is met", async () => {
@@ -54,6 +58,8 @@ describe("BT11-043 KingSukamon", () => {
     expect(observe(s.engine).effectiveNames(target)).toEqual(["metalgreymon"]);
     expect(observe(s.engine).effectiveColors(target)).toEqual(["Black"]);
     expect(target.currentDP).toBe(8000);
+    expect(target.originalNameOverride).toBe("");
+    expect([...target.originalColorsOverride]).toEqual([]);
   });
 
   it("counts every other Sukamon for Security Attack", async () => {

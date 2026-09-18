@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type GameState, type PlayerState, type Seat } from "@aegis/shared";
-import { makeInstance as instance, makeDigimon as digimon, setupEngine as setup, settle } from "../testkit/harness.js";
+import {
+  makeInstance as instance,
+  makeDigimon as digimon,
+  setupEngine,
+  setupEngine as setup,
+  settle,
+} from "../testkit/harness.js";
 import { MemoryGauge } from "../MemoryGauge.js";
 import "../../cards/index.js";
 
@@ -114,6 +120,47 @@ describe("§16-38 <Execute> — may attack (including unsuspended Digimon) at en
 
     expect(p0.battleArea.some((p) => p.permanentId === holder.permanentId)).toBe(true);
     expect(p1.battleArea.some((p) => p.permanentId === defender.permanentId)).toBe(true);
+  });
+});
+
+/**
+ * §16-38-1 scopes ＜Execute＞'s self-deletion to the attack the keyword itself grants at the end
+ * of the turn (`triggerAttackBy: "Execute"`), so an ORDINARY attack by a Digimon that merely HAS
+ * the keyword neither deletes it nor may say that it does. A granted keyword takes the same
+ * route as a printed one: EX12-004 Onibimon's inherited "[Your Turn] This Digimon with the [TB]
+ * trait gains ＜Execute＞" grants it to EX12-065 Kaguyamon ([TB] trait) sitting on top of it.
+ */
+describe("§16-38 <Execute> — an ordinary attack neither self-deletes nor announces the deletion", () => {
+  it("stays silent at the end of a normal security attack by a GRANTED-<Execute> Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-065", as: "kaguya", under: ["EX12-004"] }] },
+        1: { security: 3 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kaguya").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 300);
+
+    // The attacker survives...
+    expect(s.state.players[0]?.battleArea.some((p) => p.permanentId === s.perm("kaguya").permanentId)).toBe(true);
+    // ...and nothing told the players otherwise: an effect whose condition is false must not be
+    // collected, so it is never announced either.
+    expect(
+      s.events.filter(
+        (event) =>
+          (event.kind === "effectTriggered" || event.kind === "effectResolved") &&
+          String((event as { description?: string }).description ?? "").includes("Execute"),
+      ),
+    ).toEqual([]);
   });
 });
 

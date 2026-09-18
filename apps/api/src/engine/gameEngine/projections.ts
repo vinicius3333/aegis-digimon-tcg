@@ -377,6 +377,20 @@ export class BoardProjection {
     replaceIfChanged(perm.keywords, resolved);
     replaceIfChanged(perm.grantedKeywords, [...granted]);
     replaceIfChanged(perm.digiXrosNames, this.deps.continuous.grantedDigiXrosNames(perm.permanentId));
+    this.projectOriginalCardInfo(perm);
+  }
+
+  /**
+   * Publish the active original-card-information override (KB Q2080-Q2084), so the client can
+   * show a transformed position for what it now counts as instead of only the printed card.
+   * Read straight off the same ledger entry `effectiveNames`/`effectiveColors` consult, so the
+   * board can never disagree with the rules; the overridden DP already reaches the client
+   * through `baseDP`.
+   */
+  projectOriginalCardInfo(perm: Permanent): void {
+    const override = this.deps.continuous.originalCardInfoOverride(perm.permanentId);
+    perm.originalNameOverride = override?.name ?? "";
+    replaceIfChanged(perm.originalColorsOverride, override?.colors ?? []);
   }
 
   /**

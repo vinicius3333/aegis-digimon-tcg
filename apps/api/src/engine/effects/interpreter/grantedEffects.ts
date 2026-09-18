@@ -4,7 +4,7 @@ import type { CardSource } from "../CardSource.js";
 import type { Effect } from "../Effect.js";
 import { describeEffect } from "./describe.js";
 import { runEffect } from "./dispatch.js";
-import { builderForTrigger, timingsForTrigger, turnOwnerGuard } from "./effect.js";
+import { builderForTrigger, canActivateEffect, timingsForTrigger, turnOwnerGuard } from "./effect.js";
 import { executeActivatedEffect, executeDeleteEffect } from "./registration/keywords.js";
 import { EffectTiming } from "@aegis/shared";
 import type { Action, CardEffect } from "@aegis/shared";
@@ -527,6 +527,12 @@ export function grantedTokenEffectsForTiming(token: string, timing: EffectTiming
         description: `[Granted] ${describeEffect(effect)}`,
         optional: effect.optional ?? false,
         when: turnOwnerGuard(effect.trigger),
+        // The granted effect's own IR condition gates COLLECTION, exactly as it does for a
+        // printed effect (`irCardModule`'s `canActivate`). Without this the window collects and
+        // ANNOUNCES an effect whose condition is false — ＜Execute＞'s "at the end of the attack,
+        // this Digimon is deleted" read out at the end of an ordinary attack, with `runEffect`
+        // then silently skipping the deletion.
+        canActivate: (ctx) => canActivateEffect(ctx, effect, { collectsTriggeredEffect: true }),
         resolve: async (ctx) => {
           await runEffect(ctx, effect);
         },
