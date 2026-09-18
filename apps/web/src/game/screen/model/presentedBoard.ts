@@ -8,9 +8,18 @@ export function phaseField(input: { player: PlayerState; held: PlayerState | und
     ...player,
     // Hold rotation, not membership: a start-turn effect may introduce a
     // permanent that the viewer must select before Main can open.
+    //
+    // Only the unsuspend direction is held. The hold exists so the unsuspend phase's own
+    // rotation waits for the ribbon and the sweep that announce it (CR 6-2), and that phase
+    // never suspends anything. A permanent the live board shows as suspended was suspended
+    // by something else — an attack in the outgoing player's end-of-turn window (<Engage>,
+    // <Vortex>), milliseconds before the turn flipped — and its snapshot predates that
+    // suspension, so holding it left the attacker standing upright until the hold lifted a
+    // ribbon later.
     battleArea: player.battleArea.map((permanent) => {
       const previous = held.battleArea.find((candidate) => candidate.permanentId === permanent.permanentId);
-      return previous ? ({ ...permanent, isSuspended: previous.isSuspended } as Permanent) : permanent;
+      if (previous === undefined || !previous.isSuspended || permanent.isSuspended) return permanent;
+      return { ...permanent, isSuspended: true } as Permanent;
     }),
   } as PlayerState;
 }

@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { CardInstance, Permanent, PlayerState } from "@aegis/shared";
-import { deletionField } from "./presentedBoard";
+import { deletionField, phaseField } from "./presentedBoard";
 import type { HeldDeletion } from "../../match/types";
 
-function permanent(permanentId: string): Permanent {
-  return { permanentId, topCard: { cardId: "BT1-010", instanceId: `${permanentId}-top` } } as unknown as Permanent;
+function permanent(permanentId: string, isSuspended = false): Permanent {
+  return {
+    permanentId,
+    isSuspended,
+    topCard: { cardId: "BT1-010", instanceId: `${permanentId}-top` },
+  } as unknown as Permanent;
 }
 
 function player(battleArea: readonly Permanent[], trash: readonly CardInstance[] = []): PlayerState {
@@ -36,5 +40,33 @@ describe("deletionField", () => {
   it("does nothing with no hold", () => {
     const shown = player([permanent("a")]);
     expect(deletionField({ player: shown, held: [] })).toBe(shown);
+  });
+});
+
+describe("phaseField", () => {
+  it("holds the rotation of a permanent the unsuspend phase has just unsuspended", () => {
+    const presented = phaseField({
+      player: player([permanent("a")]),
+      held: player([permanent("a", true)]),
+    });
+    expect(presented.battleArea[0]!.isSuspended).toBe(true);
+  });
+
+  it("shows a suspension the snapshot predates, so an end-of-turn attacker rotates at once", () => {
+    const shown = player([permanent("a", true)]);
+    const presented = phaseField({ player: shown, held: player([permanent("a")]) });
+    expect(presented.battleArea[0]!.isSuspended).toBe(true);
+    expect(presented.battleArea[0]).toBe(shown.battleArea[0]);
+  });
+
+  it("leaves a permanent the snapshot does not know alone", () => {
+    const shown = player([permanent("b", true)]);
+    const presented = phaseField({ player: shown, held: player([permanent("a", true)]) });
+    expect(presented.battleArea[0]).toBe(shown.battleArea[0]);
+  });
+
+  it("does nothing with no hold", () => {
+    const shown = player([permanent("a", true)]);
+    expect(phaseField({ player: shown, held: undefined })).toBe(shown);
   });
 });
