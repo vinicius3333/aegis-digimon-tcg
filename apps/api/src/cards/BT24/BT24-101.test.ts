@@ -75,6 +75,22 @@ describe("BT24-101 Jupitermon", () => {
     expect(routes.map((route) => route.projectedCost)).toEqual([3, 3, 3]);
   });
 
+  it("prices every projected route at 0 with an empty security stack (Q5714)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-014", as: "base" }],
+        hand: [{ card: "BT24-101", as: "jupitermon" }],
+        security: [],
+      },
+    });
+    s.state.memory = 10;
+    await s.engine.recomputeContinuousEffects();
+
+    const routes = [...s.inst("jupitermon").digivolveRoutes];
+    expect(routes.map((route) => route.alternateRequirementIndex).sort()).toEqual([-1, 0, 1]);
+    expect(routes.map((route) => route.projectedCost)).toEqual([0, 0, 0]);
+  });
+
   it("naturally plays and resolves the full On Play security/DP/recovery sequence", async () => {
     const s = setupEngine(
       {

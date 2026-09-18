@@ -1362,3 +1362,42 @@ describe("lastRejectedCombatAnswer", () => {
     ).toBe(9);
   });
 });
+
+describe("hand-resident SET digivolution cost", () => {
+  const viewerWithSecurity = (count: number) =>
+    ({
+      hand: [],
+      trash: [],
+      battleArea: [],
+      security: Array.from(
+        { length: count },
+        (_unused, index) => ({ cardId: "AD1-001", instanceId: `sec-${index}` }) as CardInstance,
+      ),
+    }) as unknown as PlayerState;
+
+  it("prices BT24-101 at 0 on every path with an empty security stack (Q5714)", () => {
+    const options = getDigivolveCostOptions("BT24-101", permOf("BT24-014"), viewerWithSecurity(0));
+    expect(options.map((option) => option.cost)).toEqual([0, 0, 0]);
+  });
+
+  it("prices BT24-101 at the security count, the rate the printed figure only states", () => {
+    const options = getDigivolveCostOptions("BT24-101", permOf("BT24-014"), viewerWithSecurity(3));
+    expect(options.map((option) => option.cost)).toEqual([3, 3, 3]);
+  });
+
+  it("keeps the printed figures onto a base the SET static does not gate in", () => {
+    const options = getDigivolveCostOptions("BT24-101", permOf("BT24-039"), viewerWithSecurity(0));
+    expect(options.map((option) => option.cost)).toEqual([5, 5]);
+  });
+
+  it("honors the floor that keeps BT7-040 at 1 on an empty security stack", () => {
+    const options = getDigivolveCostOptions("BT7-040", permOf("BT7-039"), viewerWithSecurity(0));
+    expect(options.map((option) => option.cost)).toEqual([1]);
+    expect(getDigivolveCostOptions("BT7-040", permOf("BT7-039"), viewerWithSecurity(4))[0]!.cost).toBe(4);
+  });
+
+  it("leaves the printed figure alone without a viewer to count security for", () => {
+    const options = getDigivolveCostOptions("BT24-101", permOf("BT24-014"));
+    expect(options.map((option) => option.cost)).toEqual([5, 5, 1]);
+  });
+});

@@ -3,6 +3,7 @@
 
 import {
   getCardDefinition,
+  getCompiledCard,
   digivolutionRequirementsFor,
   effectiveExactNames,
   effectiveStaticNames,
@@ -395,6 +396,98 @@ function baseGrantedMatch(
   });
 }
 
+/** A hand-resident "set the digivolution cost to <count>" static, as the compiled IR records it:
+ *  a CostModifier with `costType: "digivolve"`, `mode: "set"` and `handResident: true`. */
+interface HandResidentSetDigivolveCost {
+  amount: number;
+  scaling?: { per?: number; unit?: string; floor?: number };
+  sourceFilter?: {
+    level?: number;
+    traits?: string[];
+    nameOrTrait?: { tokens?: string[]; match?: string }[];
+  };
+}
+
+function handResidentSetDigivolveCostOf(handCardId: string): HandResidentSetDigivolveCost | undefined {
+  for (const effect of getCompiledCard(handCardId)?.effects ?? []) {
+    for (const action of effect.actions ?? []) {
+      const candidate = action as unknown as HandResidentSetDigivolveCost & {
+        kind?: string;
+        costType?: string;
+        mode?: string;
+        handResident?: boolean;
+      };
+      if (
+        candidate.kind === "CostModifier" &&
+        candidate.costType === "digivolve" &&
+        candidate.mode === "set" &&
+        candidate.handResident === true
+      ) {
+        return candidate;
+      }
+    }
+  }
+  return undefined;
+}
+
+/** Whether the SET static's base gate (BT24-101's "[Aegiochusmon] in name") admits this base.
+ *  A gateless static (BT7-040) rewrites every path. Mirrors the server's `sourceFilter` check
+ *  against the base permanent in the hand-resident branch of the digivolve CostModifier. */
+function setCostBaseGateHolds(
+  gate: HandResidentSetDigivolveCost["sourceFilter"],
+  baseDef: NonNullable<ReturnType<typeof getCardDefinition>>,
+): boolean {
+  if (gate === undefined) return true;
+  if (gate.level !== undefined && baseDef.level !== gate.level) return false;
+  if (gate.traits?.length && !gate.traits.some((trait) => cardHasTrait(baseDef, trait))) return false;
+  for (const ref of gate.nameOrTrait ?? []) {
+    const tokens = ref.tokens ?? [];
+    if (tokens.length === 0) continue;
+    const names = effectiveStaticNames(baseDef);
+    const matched =
+      ref.match === "trait"
+        ? tokens.some((token) => cardHasTrait(baseDef, token))
+        : ref.match === "nameExact"
+          ? tokens.some((token) => effectiveExactNames(baseDef).includes(token))
+          : tokens.some((token) => names.some((name) => nameIncludesToken(name, token)));
+    if (!matched) return false;
+  }
+  return true;
+}
+
+/**
+ * The absolute cost a hand-resident SET static charges for digivolving `handCardId` onto
+ * `baseDef`, or undefined when the card prints no such static or its base gate fails.
+ *
+ * These cards print a per-unit RATE where every other card prints a price: BT24-101 reads
+ * "Cost 1 for each of your security cards" and BT7-040 "Cost equal to your security count",
+ * and the compiled requirement carries only the rate (1). Rendering that rate as the price
+ * showed "Cost 1" at 0 security, where the real cost is 0 (KB BT24-101 Q5714) — visible
+ * whenever the server has published no route to read instead, which is every moment outside
+ * the viewer's own Main phase (`syncHandAffordances` fills routes only there).
+ *
+ * `scaling.floor` clamps the multiplier UP, which is what keeps BT7-040 at 1 on an empty
+ * security stack while BT24-101, which prints no floor, reaches 0.
+ */
+function handResidentSetDigivolveCost(
+  handCardId: string,
+  baseDef: NonNullable<ReturnType<typeof getCardDefinition>>,
+  viewer: PlayerState | undefined,
+): number | undefined {
+  const modifier = handResidentSetDigivolveCostOf(handCardId);
+  if (modifier === undefined) return undefined;
+  if (!setCostBaseGateHolds(modifier.sourceFilter, baseDef)) return undefined;
+  const scaling = modifier.scaling;
+  if (scaling === undefined) return Math.max(0, modifier.amount);
+  // Only the security unit is priced here, the sole unit these statics count. Any other unit
+  // keeps the printed figure rather than inventing a number the server would disagree with.
+  if (scaling.unit !== "security") return undefined;
+  if (viewer === undefined) return undefined;
+  const per = scaling.per !== undefined && scaling.per > 0 ? scaling.per : 1;
+  const scaled = Math.floor(viewer.security.length / per);
+  return Math.max(0, scaling.floor !== undefined && scaled < scaling.floor ? scaling.floor : scaled);
+}
+
 /** A cost path for digivolving a hand card onto a base permanent. */
 export interface EvoCostOption {
   type: "normal" | "alternate";
@@ -436,6 +529,9 @@ export function getDigivolveCostOptions(
 
   const baseLevel = baseDef.level;
   const options: EvoCostOption[] = [];
+  // A SET static replaces the printed base cost on EVERY path (KB BT7-040 Q1568), so it is
+  // resolved once, before the paths are priced.
+  const setCost = handResidentSetDigivolveCost(handCardId, baseDef, viewer);
   const intrinsicReduction = intrinsicDigivolutionCostReductionFor(
     handCardId,
     base.stack.map((card) => card.cardId),
@@ -446,7 +542,7 @@ export function getDigivolveCostOptions(
   // Normal printed EvoCosts
   for (const ev of hand.evoCosts) {
     if (ev.level === baseLevel && baseDef.colors.includes(ev.color)) {
-      const cost = Math.max(0, ev.memoryCost - intrinsicReduction);
+      const cost = Math.max(0, (setCost ?? ev.memoryCost) - intrinsicReduction);
       // A multicolor base may satisfy multiple printed color rows with the same cost. They
       // are the same server intent, so presenting duplicate buttons adds no player choice.
       if (options.some((option) => option.type === "normal" && option.cost === cost)) continue;
@@ -460,7 +556,7 @@ export function getDigivolveCostOptions(
 
   // Alternate digivolution requirements (named paths + any derived Tamer-onto path).
   for (const { req, requirementIndex } of alternateDigivolveMatches(handCardId, hand, base, baseDef, viewer)) {
-    const cost = Math.max(0, req.cost - intrinsicReduction);
+    const cost = Math.max(0, (setCost ?? req.cost) - intrinsicReduction);
     options.push({
       type: "alternate",
       label: alternateCostLabel(req, baseLevel),
