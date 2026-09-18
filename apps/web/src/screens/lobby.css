@@ -123,6 +123,8 @@
 .lobby-summary {
   align-self: start;
   min-height: 560px;
+  max-height: calc(100% - 64px);
+  overflow-y: auto;
   margin: 32px 32px 32px 0;
   border: 1px solid var(--ds-border) !important;
   border-radius: var(--ds-radius-md);
@@ -130,6 +132,13 @@
   border-color: var(--ds-brand-ink) !important;
   background: var(--ds-brand-ink) !important;
   box-shadow: none;
+}
+
+/* Compact selected-deck bar. Hidden on wide layouts, where the summary column
+   already stays in view; on narrow layouts it sticks to the top of the scroller
+   so the chosen deck stays visible while browsing the deck lists. */
+.lobby-active-strip {
+  display: none;
 }
 
 .lobby-summary .aegis-eyebrow {
@@ -349,6 +358,75 @@
     border: 1px solid var(--ds-border) !important;
   }
 
+  .lobby-active-strip {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-3);
+    padding: var(--ds-space-2) var(--ds-gutter-tablet);
+    color: var(--ds-brand-on-ink);
+    background: var(--ds-brand-ink);
+    border-bottom: 1px solid var(--ds-brand-ink-soft);
+    box-shadow: 0 6px 18px rgb(0 0 0 / 12%);
+  }
+  .lobby-active-strip__jump {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    gap: var(--ds-space-3);
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .lobby-active-strip__jump:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
+  }
+  .lobby-active-strip__thumb {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid rgb(255 255 255 / 18%);
+  }
+  .lobby-active-strip__text {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+  .lobby-active-strip__name {
+    display: block;
+  }
+  .lobby-active-strip__eyebrow {
+    color: var(--ds-brand-accent-soft);
+    font: 700 10px/1.2 var(--ds-font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .lobby-active-strip__name {
+    overflow: hidden;
+    font: 700 var(--ds-text-base)/1.25 var(--ds-font-display);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lobby-active-strip__status {
+    flex-shrink: 0;
+    font: 11.5px/1 var(--ds-font-mono);
+    white-space: nowrap;
+  }
+
   /* The primary action leaves the sidebar flow and docks above the bottom nav. */
   .lobby-launch {
     position: fixed;
@@ -370,6 +448,12 @@
   }
   .lobby-summary {
     padding: var(--ds-space-5) var(--ds-gutter-phone) !important;
+  }
+  .lobby-active-strip {
+    padding-inline: var(--ds-gutter-phone);
+  }
+  .lobby-active-strip__status {
+    display: none;
   }
   .lobby-launch {
     padding-inline: max(var(--ds-gutter-phone), env(safe-area-inset-left))

@@ -1,0 +1,7 @@
+#!/bin/sh
+# Typecheck before pushing. The production Docker build runs `tsc` over every
+# workspace, test files included, so a type error that never surfaces in `vite
+# dev` still breaks the deploy.
+set -e
+echo "[pre-push] pnpm typecheck"
+pnpm typecheck

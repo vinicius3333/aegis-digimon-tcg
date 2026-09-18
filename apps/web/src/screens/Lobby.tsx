@@ -40,6 +40,14 @@ interface Mode {
   available: boolean;
 }
 
+function scrollToActiveDeckCard() {
+  const card = document.querySelector<HTMLElement>(".lobby-content .deck-list-card.is-active");
+  if (!card) return;
+  const collapsedGroup = card.closest("details");
+  if (collapsedGroup && !collapsedGroup.open) collapsedGroup.open = true;
+  card.scrollIntoView({ block: "center" });
+}
+
 const modesFor = (t: Translate): Mode[] => [
   {
     key: "casual",
@@ -156,6 +164,43 @@ export function Lobby({
         overflow: "hidden",
       }}
     >
+      {active ? (
+        <div className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
+          <button type="button" className="lobby-active-strip__jump" onClick={scrollToActiveDeckCard}>
+            <span
+              className="lobby-active-strip__thumb"
+              style={{ background: `linear-gradient(150deg, ${ac.soft}, var(--ds-surface-muted))` }}
+            >
+              <CoverThumb
+                key={displayCoverCard(active)}
+                coverCardId={displayCoverCard(active)}
+                sigilColor={active.color}
+                sigilSize={22}
+              />
+            </span>
+            <span className="lobby-active-strip__text">
+              <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
+              <span className="lobby-active-strip__name">{active.name}</span>
+            </span>
+          </button>
+          <span
+            className="lobby-active-strip__status"
+            style={{ color: deckLegal ? "var(--ds-success)" : "var(--ds-brand-on-ink-muted)" }}
+          >
+            {active.mainDeck.length} + {active.eggDeck.length}
+            {deckLegal ? t("lobby.legal") : t("lobby.draft")}
+          </span>
+          <IconButton
+            className="lobby-deck-action"
+            variant="ghost"
+            size="sm"
+            label={t("nav.decks")}
+            onClick={() => onNav("deck")}
+          >
+            <Icons.FileText size={16} />
+          </IconButton>
+        </div>
+      ) : null}
       <div className="lobby-content" style={{ padding: "28px 32px", overflowY: "auto" }}>
         <Eyebrow>{t("lobby.eyebrow")}</Eyebrow>
         <h1

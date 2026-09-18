@@ -109,4 +109,4 @@ for (const viewer of [0, 1] as const) {
   });
 }
 const STEPS = [0, 50, 500, 1000, 1800, 1900, 2800, 3500];
-function prev(t: number) { return STEPS[STEPS.indexOf(t) - 1]; }
+function prev(t: number) { return STEPS[STEPS.indexOf(t) - 1] ?? 0; }

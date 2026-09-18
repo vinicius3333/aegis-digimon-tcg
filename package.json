@@ -5,6 +5,7 @@
   "description": "Aegis - a server-authoritative Digimon-style trading card game (React + PixiJS client, Colyseus API).",
   "license": "MIT",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "test:deploy": "node --test tools/deploy/*.test.mjs",
     "logs:match": "node tools/match-logs.mjs",
     "fuzz:battles": "pnpm --filter @aegis/api fuzz:battles",

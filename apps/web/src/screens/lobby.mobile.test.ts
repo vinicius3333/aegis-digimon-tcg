@@ -22,6 +22,11 @@ describe("lobby single-column layout", () => {
     expect(narrowRules).toMatch(/\.lobby-content,\s*\.lobby-summary \{\s*min-width:\s*0/);
   });
 
+  it("keeps the selected deck pinned at the top of the scroller", () => {
+    expect(narrowRules).toMatch(/\.lobby-active-strip \{[^}]*position:\s*sticky/);
+    expect(narrowRules).toMatch(/\.lobby-active-strip \{[^}]*top:\s*0/);
+  });
+
   it("wraps the deck card actions instead of clipping the second one", () => {
     // `.deck-list-card` hides its overflow, so a row that cannot fit both actions
     // cuts "Make active" off at the card edge rather than scrolling it into view.

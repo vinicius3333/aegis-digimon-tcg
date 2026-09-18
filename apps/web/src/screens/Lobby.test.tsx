@@ -29,7 +29,7 @@ describe("famous deck selection", () => {
         />
       </I18nProvider>,
     );
-    expect(screen.getByText("Deck de batalha")).toBeTruthy();
+    expect(screen.getAllByText("Deck de batalha").length).toBeGreaterThan(0);
     expect(screen.queryByText(/A partida começa assim/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Entrar na fila beta" }));
     expect(onStart).not.toHaveBeenCalled();

@@ -3796,8 +3796,8 @@ describe("security gains", () => {
         }),
       {
         initialProps: {
-          batches: [],
-          phaseEvents: [],
+          batches: [] as readonly ServerBatch[],
+          phaseEvents: [] as readonly ServerEvent[],
           state: boardWithSecurity(5, 5),
         },
       },
