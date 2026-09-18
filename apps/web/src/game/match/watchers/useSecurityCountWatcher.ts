@@ -13,6 +13,11 @@ import { OpeningDealState } from "../enums";
  * what is left — and the opening deal, which is not a gain at all: nothing was recovered or
  * stacked, the match simply started, and it is dealt to both seats out of the same empty
  * board.
+ *
+ * The patch can also land BEFORE the batch that explains it is presented: events travel the
+ * moment they are emitted, the patch follows, and the batch closes only after the patch.
+ * A growth an event still waiting to be presented already names is that batch's to narrate,
+ * or a recovery would read twice — once here as a plain gain, once there as itself.
  */
 export function useSecurityCountWatcher({
   viewer,
@@ -24,6 +29,7 @@ export function useSecurityCountWatcher({
   securityGrowthClaimedRef,
   noticeSequenceRef,
   lastBatchIdRef,
+  growthNamedAhead,
   launchOpeningSecurityDeal,
   launchSecurityGainFlight,
   narrate,
@@ -40,6 +46,8 @@ export function useSecurityCountWatcher({
   securityGrowthClaimedRef: MutableRefObject<Set<Seat>>;
   noticeSequenceRef: MutableRefObject<number>;
   lastBatchIdRef: MutableRefObject<string>;
+  /** Whether an event not yet presented names this seat's stack growing. */
+  growthNamedAhead: (seat: Seat) => boolean;
   launchOpeningSecurityDeal: (seat: Seat, count: number) => void;
   launchSecurityGainFlight: (seat: Seat) => void;
   narrate: (notices: readonly MatchNotice[], panels: readonly SidePanel[], batchId: string) => void;
@@ -66,6 +74,7 @@ export function useSecurityCountWatcher({
     for (const { seat, side, amount } of gains) {
       if (amount <= 0) continue;
       if (securityGrowthClaimedRef.current.delete(seat)) continue;
+      if (growthNamedAhead(seat)) continue;
       launchSecurityGainFlight(seat);
       noticeSequenceRef.current += 1;
       narrate(

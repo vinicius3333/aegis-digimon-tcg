@@ -136,7 +136,9 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
           `Trash ${handTrashCost} card${handTrashCost === 1 ? "" : "s"} from your hand to unsuspend this Digimon?`,
         );
         if (chosen.length !== handTrashCost) continue;
-        await trash(chosen);
+        // Same provenance as the Active-phase payment in turnFlow: the granted cost belongs to
+        // this Digimon's controller, so the payment is that player's own effect trashing.
+        await trash(chosen, { byEffectSeat: permanent.controllerSeat });
       }
       access.unsuspend(permanent);
       engine.combat?.resetAttackEligibility?.(permanentId);

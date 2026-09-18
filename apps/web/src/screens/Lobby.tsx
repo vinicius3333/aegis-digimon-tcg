@@ -25,6 +25,7 @@ import { Icons, type IconComponent } from "../design/icons";
 import { FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, type DeckListing } from "../game/decks";
 import { useTranslation, type Translate } from "../i18n";
 import { RankedStart } from "../account/RankedStart";
+import { RANKED_ENABLED } from "../features";
 import { DeckListCard, deckLegality } from "./DeckListCard";
 import "./lobby.css";
 
@@ -561,7 +562,7 @@ export function Lobby({
                     {t("lobby.enterBetaQueue")}
                   </Button>
                 </div>
-              ) : (
+              ) : RANKED_ENABLED ? (
                 <RankedStart
                   disabled={!deckLegal}
                   actionClassName="lobby-launch"
@@ -569,6 +570,12 @@ export function Lobby({
                   onOpenSettings={() => onNav("settings")}
                   onStart={(isRanked) => onStart(isRanked ? "ranked" : "casual")}
                 />
+              ) : (
+                <div className="lobby-launch">
+                  <Button size="lg" full icon={Icons.Swords} disabled={!deckLegal} onClick={() => onStart("casual")}>
+                    {t("lobby.enterQueue")}
+                  </Button>
+                </div>
               )}
             </>
           )}

@@ -283,12 +283,19 @@
   display: none;
 }
 
+/* The pile viewers portal to the body and outrank everything on the match screen,
+   so a card can be looked up while any other layer is open. */
+.pile-viewer {
+  position: fixed !important;
+  z-index: var(--ds-z-pile-viewer) !important;
+}
+
 /* The card blow-up is reachable from the play log on every layout, so its base
    styling lives here rather than only inside the touch layer below. It grows into
    place on the reference client's own 0.12s magnify. */
 .card-zoom {
   position: fixed;
-  z-index: calc(var(--ds-z-dialog) + 1);
+  z-index: var(--ds-z-card-zoom);
   inset: 0;
   display: grid;
   gap: var(--ds-space-4);
@@ -435,21 +442,56 @@
 .combat-prompt {
   max-width: calc(100% - var(--ds-space-6));
 }
-.evade-prompt .game-actions-row {
+/* The buttons carry the question, so they set the box width: the card and rules
+   text wrap to whatever the two labels need side by side. */
+.keyword-prompt {
+  position: absolute;
+  bottom: 232px;
+  left: 50%;
+  z-index: 80;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 20rem;
+  max-width: min(34rem, calc(100% - var(--ds-space-6)));
+  padding: var(--ds-space-5);
+  border: 2px solid var(--ds-warning);
+  border-radius: 18px;
+  transform: translateX(-50%);
+}
+.keyword-prompt__title {
+  margin-bottom: var(--ds-space-3);
+  font-family: var(--ds-font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ds-fg);
+}
+.keyword-prompt__body {
+  display: flex;
+  gap: var(--ds-space-4);
+  align-items: center;
+  margin-bottom: var(--ds-space-4);
+}
+.keyword-prompt__rules {
+  min-width: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ds-fg-secondary);
+}
+.keyword-prompt .game-actions-row {
   flex-wrap: wrap;
 }
-.evade-prompt .game-actions-row > button {
-  flex: 1 1 0;
+.keyword-prompt .game-actions-row > button {
+  flex: 1 1 auto;
   min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
 }
 @media (width < 520px) {
-  .evade-prompt .game-actions-row {
+  .keyword-prompt .game-actions-row {
     flex-direction: column;
   }
-  .evade-prompt .game-actions-row > button {
+  .keyword-prompt .game-actions-row > button {
     width: 100%;
+    white-space: normal;
   }
 }
 /* The sheet sits centred over the board on its own dimmed field. Geometry lives here

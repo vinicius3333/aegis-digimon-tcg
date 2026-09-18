@@ -196,7 +196,7 @@ export function BoardStage({
           height: "100%",
           display: "flex",
           background: "var(--ds-background)",
-          overflow: "hidden",
+          overflow: "clip",
           ...BATTLE_TIMING_STYLE,
         }}
       >

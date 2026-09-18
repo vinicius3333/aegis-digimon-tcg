@@ -1,4 +1,4 @@
-import { CardKind, DECK_BOTTOM, Zone, requireCardDefinition, CardInstance, type Seat } from "@aegis/shared";
+import { CardKind, DECK_BOTTOM, Zone, requireCardDefinition, CardInstance, type GameState, type Seat } from "@aegis/shared";
 import { applyOverflow, insertCard } from "../../state/access.js";
 import {
   collectForReturn,
@@ -6,6 +6,7 @@ import {
   looseZoneOfInstance,
   overflowOriginInstanceIds,
   ownerSeatOfLoose,
+  peekLooseInstance,
 } from "../verbs/looseInstances.js";
 
 import type { PrimitivesContext } from "./context.js";
@@ -260,6 +261,8 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       }
     }
     await fireWhenReturnedPermanentsLeave(instanceIds, opts);
+    // Read before the move: once a card is in the deck nothing on either client can name it.
+    const publicBeforeMove = new Set(instanceIds.filter((instanceId) => identityIsPublic(state, instanceId)));
     // Collect the entire batch before reinserting any card. Some callers order cards that are
     // already in the destination deck (RevealAdd keeps revealed cards face-up in place); a
     // collect-and-insert loop mutates that deck between removals and can invert the requested
@@ -303,17 +306,28 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       });
     }
     if (moved.length > 0) {
-      engine.emit({
-        kind: "cardsMoved",
-        instanceIds: moved.map((c) => c.instanceId),
-        from: "various",
-        // `toTop` is a per-call option, so one batch never splits across both ends. The
-        // bottom gets its own destination name because "under the whole deck" is the part
-        // the player must be able to read back; `cardsMoved.to` is already a free-form label
-        // (`"various"`, `"suspended"`) that no rules code branches on, so naming the position
-        // here is a smaller change than adding a placement field to every mover.
-        to: toTop ? Zone.Deck : DECK_BOTTOM,
-      });
+      // One movement per deck joined: "3 cards in trashes" (BT26-016) lands in both decks,
+      // and each side's client narrates only the return into its own seat's deck.
+      for (const seat of new Set(moved.map((card) => card.ownerSeat))) {
+        const joined = moved.filter((card) => card.ownerSeat === seat);
+        // The deck hides the cards from here on, so the event is the only place a client
+        // can read their names. A hand card stays unnamed: its owner's opponent never saw it.
+        const named = joined.every((card) => publicBeforeMove.has(card.instanceId));
+        engine.emit({
+          kind: "cardsMoved",
+          instanceIds: joined.map((card) => card.instanceId),
+          from: "various",
+          // `toTop` is a per-call option, so one batch never splits across both ends. The
+          // bottom gets its own destination name because "under the whole deck" is the part
+          // the player must be able to read back; `cardsMoved.to` is already a free-form label
+          // (`"various"`, `"suspended"`) that no rules code branches on, so naming the position
+          // here is a smaller change than adding a placement field to every mover.
+          to: toTop ? Zone.Deck : DECK_BOTTOM,
+          seat,
+          ...(named ? { cardIds: joined.map((card) => card.cardId) } : {}),
+          ...(named && joined.every((card) => card.artId !== "") ? { artIds: joined.map((card) => card.artId) } : {}),
+        });
+      }
       // The whenEffectAddsToHand sibling for deck-bound returns (BT26-015). Fire once per
       // distinct recipient seat, mirroring returnToHand's own-hand fire above. Revealed cards
       // being restored use the explicit suppression flag because Q6949 says that restoration
@@ -358,4 +372,16 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
    */
 
   return { returnToHand, returnToDeck };
+}
+
+/**
+ * Whether both players can already see which card `instanceId` is: everything on the field
+ * and in the trashes, plus a face-up security card. A hand or deck card is known only to its
+ * owner, and a permanent's top card is not a loose instance at all, so it is public.
+ */
+function identityIsPublic(state: GameState, instanceId: string): boolean {
+  const zone = looseZoneOfInstance(state, instanceId);
+  if (zone === "hand" || zone === "deck") return false;
+  if (zone === "security") return peekLooseInstance(state, instanceId)?.faceUp === true;
+  return true;
 }

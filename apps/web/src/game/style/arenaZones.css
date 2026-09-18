@@ -416,10 +416,6 @@
     display: none;
   }
 
-  .game-hand {
-    margin-bottom: -3rem;
-  }
-
   .game-player-dock [data-testid="hand"][data-hand-overflow="true"] {
     justify-content: flex-start !important;
     padding-inline: 1.25rem !important;

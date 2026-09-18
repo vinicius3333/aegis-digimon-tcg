@@ -5,6 +5,7 @@ import { useTranslation } from "../i18n";
 import { AccountApiError, accountApi, type AccountProfile, type RemoteAccount } from "./client";
 import { DigimonAvatarPicker } from "./DigimonAvatarPicker";
 import type { DigimonWorldAvatarId } from "./avatars";
+import { RANKED_ENABLED } from "../features";
 import "./AccountPanel.css";
 
 export function AccountPanel({
@@ -16,6 +17,7 @@ export function AccountPanel({
 }) {
   const { t } = useTranslation();
   const [profile, setProfile] = useState<AccountProfile>();
+  const visibleMatches = (profile?.matches ?? []).filter((match) => RANKED_ENABLED || match.mode !== "ranked");
   const [email, setEmail] = useState("");
   const [linkSent, setLinkSent] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -174,17 +176,19 @@ export function AccountPanel({
       </section>
       {stats ? (
         <div className="account-panel__stats">
-          {(
-            [
-              [t("account.stats.wins"), stats.rankedWins],
-              [t("account.stats.losses"), stats.rankedLosses],
-              [t("account.stats.draws"), stats.rankedDraws],
-              [t("account.stats.dodges"), stats.rankedDodges],
-              [t("account.stats.matches"), stats.rankedWins + stats.rankedLosses + stats.rankedDraws],
-              [t("account.stats.tournaments"), stats.tournamentsPlayed],
-              [t("account.stats.titles"), stats.tournamentsWon],
-            ] as const
-          ).map(([label, value]) => (
+          {[
+            ...(RANKED_ENABLED
+              ? ([
+                  [t("account.stats.wins"), stats.rankedWins],
+                  [t("account.stats.losses"), stats.rankedLosses],
+                  [t("account.stats.draws"), stats.rankedDraws],
+                  [t("account.stats.dodges"), stats.rankedDodges],
+                  [t("account.stats.matches"), stats.rankedWins + stats.rankedLosses + stats.rankedDraws],
+                ] as const)
+              : []),
+            [t("account.stats.tournaments"), stats.tournamentsPlayed],
+            [t("account.stats.titles"), stats.tournamentsWon],
+          ].map(([label, value]) => (
             <div key={label} className="account-panel__stat">
               <strong>{value}</strong>
               <span>{label}</span>
@@ -193,7 +197,7 @@ export function AccountPanel({
         </div>
       ) : null}
       <DigimonAvatarPicker selectedAvatarId={account.avatarId} onSelect={selectAvatar} />
-      {profile?.decks.length ? (
+      {RANKED_ENABLED && profile?.decks.length ? (
         <section className="account-panel__section">
           <h3>{t("account.deckPerformance")}</h3>
           {profile.decks.map((deck) => (
@@ -212,10 +216,10 @@ export function AccountPanel({
           ))}
         </section>
       ) : null}
-      {profile?.matches.length ? (
+      {visibleMatches.length ? (
         <section className="account-panel__section">
           <h3>{t("account.recentMatches")}</h3>
-          {profile.matches.slice(0, 5).map((match) => (
+          {visibleMatches.slice(0, 5).map((match) => (
             <div key={match.id} className="account-panel__match" data-result={match.result}>
               <span>
                 {match.opponentName} ·{" "}

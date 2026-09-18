@@ -115,7 +115,7 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     key: number,
     scene: SecurityClashScene,
     seat: Seat,
-    { docking = false }: { docking?: boolean } = {},
+    { docking = false, countBefore }: { docking?: boolean; countBefore?: number } = {},
   ) {
     // Only an unfinished check may be replaced. Completed checks still owed to the
     // viewer stay on the serial track, even when their events arrived in one render.
@@ -144,7 +144,9 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     }
     // The board drops the checked card as soon as its patch lands; the shield keeps the
     // figure that still counts it until the reveal has actually put the card on screen.
-    holdSecurityCard(key, seat, securityCountOf(seat));
+    // The server names that figure: one patch can carry a whole run of checks, so the
+    // board is already several cards down by the time the first of them is staged.
+    holdSecurityCard(key, seat, countBefore ?? securityCountOf(seat));
     enqueue(
       shieldBreakStep({
         queue,

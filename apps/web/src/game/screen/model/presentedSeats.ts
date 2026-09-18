@@ -5,15 +5,17 @@
    announced yet. A turn-start draw hold keeps the hand, hand count and deck count of the
    seat whose Draw ribbon is still queued — only that seat, because the other's cards
    belong to a turn the ribbons have already announced. A breeding hold keeps the raising
-   area on its own clock.
+   area on its own clock. A deletion hold keeps a deleted permanent in its slot until the
+   shatter that takes it has begun.
 
    The viewer's hand count also drops the card an optimistic play has already taken out
    of the hand, so the readout matches the cards on screen. */
 
 import type { GameState, PlayerState, Seat } from "@aegis/shared";
 import { otherSeat } from "../../boardModel";
-import { blowField, phaseField } from "./presentedBoard";
+import { blowField, deletionField, phaseField } from "./presentedBoard";
 import type { PresentedPlayer } from "../types";
+import type { HeldDeletion } from "../../match/types";
 
 export function presentedSeats({
   shownState,
@@ -24,6 +26,7 @@ export function presentedSeats({
   heldBlowState,
   heldDrawState,
   heldBreedingState,
+  heldDeletions,
   optimisticPlayedInstanceId,
 }: {
   shownState: GameState;
@@ -34,22 +37,30 @@ export function presentedSeats({
   heldBlowState: GameState | undefined;
   heldDrawState: { seat: Seat; state: GameState } | undefined;
   heldBreedingState: { seat: Seat; player: PlayerState } | undefined;
+  heldDeletions: ReadonlyMap<number, HeldDeletion>;
   /** A card a play has already taken out of the hand, pending the server's word. */
   optimisticPlayedInstanceId: string | undefined;
 }) {
-  const presentedViewer = blowField({
-    player: phaseField({
-      player: shownState.players[viewerSeat] ?? viewer,
-      held: heldPhaseState?.players[viewerSeat],
+  const heldDeletionsOf = (seat: Seat) => [...heldDeletions.values()].filter((deletion) => deletion.seat === seat);
+  const presentedViewer = deletionField({
+    player: blowField({
+      player: phaseField({
+        player: shownState.players[viewerSeat] ?? viewer,
+        held: heldPhaseState?.players[viewerSeat],
+      }),
+      held: heldBlowState?.players[viewerSeat],
     }),
-    held: heldBlowState?.players[viewerSeat],
+    held: heldDeletionsOf(viewerSeat),
   });
-  const presentedOpponent = blowField({
-    player: phaseField({
-      player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
-      held: heldPhaseState?.players[otherSeat(viewerSeat)],
+  const presentedOpponent = deletionField({
+    player: blowField({
+      player: phaseField({
+        player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
+        held: heldPhaseState?.players[otherSeat(viewerSeat)],
+      }),
+      held: heldBlowState?.players[otherSeat(viewerSeat)],
     }),
-    held: heldBlowState?.players[otherSeat(viewerSeat)],
+    held: heldDeletionsOf(otherSeat(viewerSeat)),
   });
   const heldViewer = heldDrawState?.seat === viewerSeat ? heldDrawState.state.players[viewerSeat] : undefined;
   const heldOpponent =

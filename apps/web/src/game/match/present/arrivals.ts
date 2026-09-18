@@ -147,19 +147,31 @@ export function enqueueArrivals({
       burst,
       leadInMs,
     });
-    if (securityReveal) zoneChanges.push(step);
-    else enqueue(step);
     // The board renders a permanent the moment its patch lands, so a card whose arrival is
     // still queued has to be held back from the field until the cue that shows it arriving
     // actually runs — otherwise it is simply there.
-    // A player normally watches their own card leave their hand, so only an opponent's play
-    // earns the centre-screen hold. A Tamer played from the viewer's Security is different:
-    // the player has not seen it arrive yet, and it must stay hidden until the security card
-    // has reached its right-hand execution slot.
-    if (burst && (showcase || securityReveal !== undefined || revealOnStageRef.current !== null)) {
+    // A player normally watches their own card leave their hand, so only an opponent's
+    // arrival earns the hold, with or without a showcase: a fast opponent moves out of
+    // breeding while the turn's ribbons are still queued, and its burst waits behind them,
+    // so without the hold the card stood on the field and in the raising area at once. A
+    // Tamer played from the viewer's Security is different: the player has not seen it
+    // arrive yet, and it must stay hidden until the security card has reached its
+    // right-hand execution slot.
+    const opponentsFieldArrival =
+      burst !== null && burst.variant === "play" && !burst.inBreeding && "seat" in event && event.seat !== viewerSeat;
+    if (
+      burst &&
+      (showcase || opponentsFieldArrival || securityReveal !== undefined || revealOnStageRef.current !== null)
+    ) {
       arrivalHoldIds.push(burst.permanentId);
       setPendingPermanentIds((held) => new Set(held).add(burst.permanentId));
     }
+    // The hold goes on before the step is queued: an idle track starts a step the moment
+    // it is enqueued, and a step with no showcase to wait for hands the permanent back
+    // synchronously. Queued first, that release ran before the hold above was applied, and
+    // the card stayed hidden until the whole queue ran dry.
+    if (securityReveal) zoneChanges.push(step);
+    else enqueue(step);
   }
   // A step a later `replace` drops never runs its own release, and a permanent hidden for
   // good is far worse than one that arrives without its cue, so the board takes every held

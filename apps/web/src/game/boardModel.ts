@@ -201,7 +201,7 @@ export function viewerSeatOf(state: GameState | undefined, sessionId: string | u
 export const otherSeat = (seat: Seat): Seat => (1 - seat) as Seat;
 
 /** Memory from the viewer's perspective: positive favors the viewer. */
-export function displayMemory(state: GameState, viewerSeat: Seat): number {
+export function displayMemory(state: Pick<GameState, "turnSeat" | "memory">, viewerSeat: Seat): number {
   return state.turnSeat === viewerSeat ? state.memory : -state.memory;
 }
 

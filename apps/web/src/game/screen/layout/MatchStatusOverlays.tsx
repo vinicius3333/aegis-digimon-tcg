@@ -2,10 +2,9 @@
    report — and the two the match opens over them: an opponent who dropped, and the
    result once the game is over. */
 
-import { useTranslation } from "../../../i18n";
 import { BugReportDialog } from "../../../bugs/BugReportDialog";
 import { PlayLogSidebar } from "../../OpponentActionFeedView";
-import { CardZoomOverlay, GameOverOverlay, WaitingOverlay } from "../../overlay";
+import { CardZoomOverlay, GameOverOverlay, OpponentDroppedOverlay } from "../../overlay";
 import type { LogLine } from "../../matchLog";
 import type { GameOverOutcome } from "../../gameOverSplash";
 
@@ -45,7 +44,6 @@ export function MatchStatusOverlays({
   onMenu: () => void;
   onRematch: () => void;
 }) {
-  const { t } = useTranslation();
   return (
     <>
       {historyOpen ? <PlayLogSidebar log={log} onClose={onCloseHistory} onOpenCard={onOpenCard} /> : null}
@@ -56,9 +54,7 @@ export function MatchStatusOverlays({
         <BugReportDialog signedIn={signedIn} matchLogId={matchLogId} onClose={onCloseBugReport} />
       ) : null}
 
-      {opponentDropped ? (
-        <WaitingOverlay title={t("game.opponentDisconnected")} detail={t("game.opponentDisconnectedDetail")} />
-      ) : null}
+      {opponentDropped ? <OpponentDroppedOverlay /> : null}
 
       {gameOver ? (
         <GameOverOverlay

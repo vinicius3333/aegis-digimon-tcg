@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { CardInstance } from "@aegis/shared";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Pile } from "./piece";
 import { TrashViewerOverlay } from "./overlay";
@@ -27,13 +27,30 @@ it("renders public security art in its slot without exposing hidden identities",
 });
 
 it("shows hidden security positions and selects revealed cards in stack order", () => {
-  const { container } = render(
+  render(
     <I18nProvider>
       <TrashViewerOverlay title="Security" cardIds={["", "BT1-009", ""]} preserveOrder onClose={() => {}} />
     </I18nProvider>,
   );
-  expect(container.querySelectorAll("button[title]")).toHaveLength(3);
-  fireEvent.focus(container.querySelectorAll("button[title]")[1]!);
-  expect(container.querySelector('img[src*="BT1-009"]')).toBeTruthy();
-  expect(screen.getByRole("dialog")).toBeTruthy();
+  const dialog = screen.getByRole("dialog");
+  expect(dialog.querySelectorAll("button[title]")).toHaveLength(3);
+  fireEvent.focus(dialog.querySelectorAll("button[title]")[1]!);
+  expect(dialog.querySelector('img[src*="BT1-009"]')).toBeTruthy();
+});
+
+it("opens the card blow-up above the pile viewer when a revealed card is clicked", () => {
+  const onClose = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <TrashViewerOverlay title="Trash" cardIds={["BT1-009", "BT1-010"]} onClose={onClose} />
+    </I18nProvider>,
+  );
+  const viewer = screen.getByRole("dialog");
+  fireEvent.click(viewer.querySelectorAll("button[title]")[0]!);
+  const zoom = document.body.querySelector(".card-zoom")!;
+  expect(zoom).toBeTruthy();
+  expect(viewer.contains(zoom)).toBe(false);
+  fireEvent.click(zoom);
+  expect(document.body.querySelector(".card-zoom")).toBeNull();
+  expect(onClose).not.toHaveBeenCalled();
 });

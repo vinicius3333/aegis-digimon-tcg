@@ -40,6 +40,7 @@ export { EvadeOverlay } from "./combat/EvadeOverlay";
 
 export { GameOverOverlay } from "./match/GameOverOverlay";
 export { MulliganOverlay } from "./match/MulliganOverlay";
+export { OpponentDroppedOverlay } from "./match/OpponentDroppedOverlay";
 export { WaitingOverlay } from "./match/WaitingOverlay";
 
 export { ActionConfirmationOverlay } from "./choice/ActionConfirmationOverlay";

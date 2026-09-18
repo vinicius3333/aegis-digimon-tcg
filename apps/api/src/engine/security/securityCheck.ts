@@ -284,6 +284,7 @@ export async function runSecurityCheck(
         : {}),
       ...(deps.isDigimon(revealed) ? { securityCardDP: deps.securityCardDp(revealed) } : {}),
       attackerDP: deps.dpOf(attacker.permanentId),
+      securityCountBefore: defender.security.length,
       seat: defenderSeat,
       revealedCardId: revealed.cardId,
       attackerPermanentId: attacker.permanentId,

@@ -1,4 +1,5 @@
 import type { Permanent, PlayerState } from "@aegis/shared";
+import type { HeldDeletion } from "../../match/types";
 
 export function phaseField(input: { player: PlayerState; held: PlayerState | undefined }): PlayerState {
   const { player, held } = input;
@@ -30,4 +31,23 @@ export function blowField(input: { player: PlayerState; held: PlayerState | unde
   );
   if (leaving.length === 0 && player.trash.length === held.trash.length) return player;
   return { ...player, battleArea: [...player.battleArea, ...leaving], trash: held.trash } as PlayerState;
+}
+
+/**
+ * Keep each deleted permanent where it stood until its shatter has begun. Only membership
+ * is held: a card the board has already dropped is put back in its slot, and the trash stays
+ * as it was before the oldest of them reached it. Everything else keeps following the board.
+ */
+export function deletionField(input: { player: PlayerState; held: readonly HeldDeletion[] }): PlayerState {
+  const { player, held } = input;
+  if (held.length === 0) return player;
+  const battleArea = [...player.battleArea];
+  let restored = false;
+  for (const deletion of held) {
+    if (battleArea.some((permanent) => permanent.permanentId === deletion.permanent.permanentId)) continue;
+    battleArea.splice(Math.min(deletion.index, battleArea.length), 0, deletion.permanent);
+    restored = true;
+  }
+  if (!restored) return player;
+  return { ...player, battleArea, trash: held[0]!.trash } as PlayerState;
 }

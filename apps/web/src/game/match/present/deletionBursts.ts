@@ -2,10 +2,12 @@ import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
 import type { DeletionReadyAt, PresentationGate } from "../presentationGate";
+import type { StateSnapshot } from "../../../net/presentedState";
 import { deletionAnchorIdsFromEvent } from "../../showcases";
+import { heldDeletionFrom } from "../heldDeletion";
 import { COMBAT_IMPACT_TOTAL_MS, FIELD_CLASH_TOTAL_MS, PLAY_LEAD_IN_BUDGET_MS } from "../../timings";
 import { deleteBurstStep } from "../steps/deleteBurstStep";
-import type { DeleteBurst, MatchCueAnchors } from "../types";
+import type { DeleteBurst, HeldDeletion, MatchCueAnchors } from "../types";
 
 /**
  * The shatter left where each permanent this batch deleted stood.
@@ -18,10 +20,15 @@ import type { DeleteBurst, MatchCueAnchors } from "../types";
  * blow; one an announced play dealt waits for the beats that explain it — the card
  * centre-stage under its call-out, then the clause that did the deleting — capped so the
  * shatter never drifts far from the board dropping the permanent.
+ *
+ * Until the shatter begins the permanent stays on the board: the batch is presented, and its
+ * board rendered, as soon as it is reached, which is before the clause explaining the
+ * deletion has been read out.
  */
 export function enqueueDeletionBursts({
   queue,
   fresh,
+  snapshots,
   beaten,
   clashLoserIds,
   playLeadInMs,
@@ -32,10 +39,12 @@ export function enqueueDeletionBursts({
   securityBlowRef,
   causingEffectGate,
   setDeleteBursts,
+  setHeldDeletions,
   enqueue,
 }: {
   queue: AnimationQueue;
   fresh: readonly ServerEvent[];
+  snapshots: readonly StateSnapshot[];
   beaten: ReadonlySet<string>;
   clashLoserIds: ReadonlySet<string>;
   playLeadInMs: number;
@@ -48,8 +57,17 @@ export function enqueueDeletionBursts({
   securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
   causingEffectGate: PresentationGate | null;
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
+  setHeldDeletions: Dispatch<SetStateAction<ReadonlyMap<number, HeldDeletion>>>;
   enqueue: (step: AnimationStep) => void;
 }) {
+  function releaseHeldDeletion(key: number) {
+    setHeldDeletions((held) => {
+      if (!held.has(key)) return held;
+      const next = new Map(held);
+      next.delete(key);
+      return next;
+    });
+  }
   const deletionBurstAnchors = new Set<string>();
   const deletionMetadata = new Map(
     fresh.flatMap((event) =>
@@ -76,12 +94,14 @@ export function enqueueDeletionBursts({
               ? COMBAT_IMPACT_TOTAL_MS
               : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
       const deleted = deletionMetadata.get(anchorId);
+      const key = (deleteBurstKeyRef.current += 1);
       const step = deleteBurstStep({
         queue,
         anchors,
-        deleteBurstKeyRef,
+        key,
         deletionReadyAtRef,
         setDeleteBursts,
+        releaseHeldDeletion: () => releaseHeldDeletion(key),
         anchorId,
         delayMs,
         metadataCardId: deleted?.cardId,
@@ -93,10 +113,15 @@ export function enqueueDeletionBursts({
         securityBlowRef,
         causingEffectGate,
       });
-      if (step) {
-        deletionBurstPresentedRef.current.add(anchorId);
-        enqueue(step);
-      }
+      if (!step) continue;
+      deletionBurstPresentedRef.current.add(anchorId);
+      const held = heldDeletionFrom({ snapshots, seat: deleted?.seat, permanentId: anchorId });
+      if (held) setHeldDeletions((current) => new Map(current).set(key, held));
+      enqueue(step);
+      // A step a later `replace` drops never runs, so the card would stand there for the
+      // rest of the match. Registered after the enqueue: on an idle queue the promise
+      // settles at once and the hold would be given back before it began.
+      if (held) void queue.idle().then(() => releaseHeldDeletion(key));
     }
   }
 }

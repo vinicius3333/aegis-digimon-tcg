@@ -28,9 +28,17 @@
     --arena-hand-height: 160px;
     /* The counter strip band the hand cards must never grow into. */
     --arena-hand-reserved: 40px;
+    /* Headroom above the cards for a picked card's lift and its corner badges:
+       the row clips its own overflow, so whatever rises past it disappears. */
+    --arena-hand-lift: 10px;
+    /* The row's own bottom padding plus the dock's top margin and borders. */
+    --arena-hand-row-chrome: 9px;
     --arena-hand-card-height: min(
       calc(var(--arena-hand-width) * 1.4),
-      calc(var(--arena-hand-height) - var(--arena-hand-reserved))
+      calc(
+        var(--arena-hand-height) - var(--arena-hand-reserved) - var(--arena-hand-lift) -
+          var(--arena-hand-row-chrome)
+      )
     );
     --arena-header-height: 52px;
     --arena-source-step: 3px;

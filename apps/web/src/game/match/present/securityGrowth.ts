@@ -3,6 +3,13 @@ import type { Seat, ServerEvent } from "@aegis/shared";
 import type { AnimationStep } from "../../animationQueue";
 import { TIMINGS } from "../../timings";
 
+/** The seat whose stack `event` says grew, when the event names one. */
+export function securityGrowthSeatOf(event: ServerEvent): Seat | undefined {
+  if (event.kind === "securityRecovered") return event.seat;
+  if (event.kind === "cardsMoved" && event.to === "security" && event.instanceIds.length > 0) return event.seat;
+  return undefined;
+}
+
 /**
  * Every card this batch put back on a security stack, flown onto the stack it joined.
  *

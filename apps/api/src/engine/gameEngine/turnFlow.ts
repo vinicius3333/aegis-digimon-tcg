@@ -152,7 +152,11 @@ export async function unsuspendAllForSeat(engine: GameEngine, seat: Seat): Promi
           },
         });
         if (response.kind !== "selectCards" || response.instanceIds.length !== handTrashCost) continue;
-        await engine.primitives.trash(response.instanceIds);
+        // BT7-055 GRANTS this cost to the opponent's Digimon ("You must trash 1 card in your
+        // hand to unsuspend this Digimon"), so the granted effect is controlled by that
+        // Digimon's controller — the same player paying. Carry that seat so "when one of your
+        // effects trashes a card in your hand" watchers (BT7-077, ST16-13, …) see the payment.
+        await engine.primitives.trash(response.instanceIds, { byEffectSeat: seat });
       }
       permanent.isSuspended = false;
       flipped.push(permanent.permanentId);

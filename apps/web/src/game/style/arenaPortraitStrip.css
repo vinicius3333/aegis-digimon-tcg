@@ -140,7 +140,7 @@
     height: auto !important;
     min-height: 0 !important;
     min-width: 0;
-    padding: 0 20px 3px !important;
+    padding: var(--arena-hand-lift) 20px 3px !important;
     margin: 0 !important;
     align-items: flex-end;
     justify-content: safe center !important;
@@ -169,6 +169,38 @@
   .game-board .game-hand-card img {
     object-fit: contain !important;
     object-position: center !important;
+  }
+
+  /* Lift and scale stay inside the `--arena-hand-lift` reserve, and the corner
+     badges sit inside the card, because the row clips whatever leaves it. */
+  .game-board .game-hand-card--pickable {
+    top: -2px;
+  }
+  .game-board .game-hand-card--picked {
+    top: -5px;
+    scale: 1.02;
+  }
+  .game-board .game-hand-card__pick-badge {
+    top: 0.15rem;
+    right: 0.15rem;
+  }
+  /* The magnifier sits inside the card's top-left corner, small and translucent
+     so it reads as a control over the art rather than a sticker. */
+  .game-board .game-hand-card__inspect {
+    top: 0.2rem;
+    left: 0.2rem;
+    width: 1.35rem;
+    height: 1.35rem;
+    /* The global 44px touch floor stretched the circle into a pill down the art. */
+    min-height: 0;
+    color: #fff;
+    border: 1px solid rgb(255 255 255 / 55%);
+    background: rgb(20 45 56 / 72%);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 40%);
+  }
+  .game-board .game-hand-card__inspect svg {
+    width: 12px;
+    height: 12px;
   }
 
   .game-hand-scroll-cue {

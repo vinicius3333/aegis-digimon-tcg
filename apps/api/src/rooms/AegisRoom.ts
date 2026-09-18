@@ -4,6 +4,7 @@ import { canCreateRoom } from "../deployment/admission.js";
 import { randomBytes, randomUUID } from "node:crypto";
 import {
   GameState,
+  RECONNECT_GRACE_SECONDS,
   combatWindowKey,
   type CombatWindow,
   type Intent,
@@ -226,7 +227,7 @@ export class AegisRoom extends Room<GameState> {
   // departure. Sized so switching apps to answer a message does not forfeit the
   // match. This cannot survive a server restart (deploy) — the room state lives
   // only in memory.
-  private readonly RECONNECT_GRACE_SECONDS = 180;
+  private readonly RECONNECT_GRACE_SECONDS = RECONNECT_GRACE_SECONDS;
 
   // How long both seats can sit joined-but-not-ready (e.g. a client stuck loading
   // assets, or one that crashed before it could send `ready`) before the room gives

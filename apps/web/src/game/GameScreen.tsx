@@ -524,6 +524,7 @@ export function GameScreen({
     heldBlowState: cues.heldBlowState,
     heldDrawState: cues.heldDrawState,
     heldBreedingState: cues.heldBreedingState,
+    heldDeletions: cues.heldDeletions,
     optimisticPlayedInstanceId,
   });
   // What the ribbons have announced, for the readouts only: the live turn is what every
@@ -541,7 +542,10 @@ export function GameScreen({
   const { isMyTurn, mainActionBlocked, breedingWindow, canHatchEgg, canMoveOutOfBreeding, breedingActionsOpen } =
     guards;
   // The gauge is part of the scene, so it moves when the moment that moved it is narrated.
-  const memory = displayMemory(shownState, viewerSeat);
+  const memory = displayMemory(
+    { turnSeat: shownState.turnSeat, memory: cues.heldMemory?.memory ?? shownState.memory },
+    viewerSeat,
+  );
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
 
   const { handEntries, shownHandEntries } = handEntriesOf({

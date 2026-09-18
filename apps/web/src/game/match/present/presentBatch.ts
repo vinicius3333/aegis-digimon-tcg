@@ -26,7 +26,8 @@ import type { SoundKind } from "../../../design/sound";
 import type { PermanentBurst, ZoneShowcase } from "../../showcases";
 import type { SecurityBranchScene, SecurityClashAttacker, SecurityClashScene } from "../../securityClash";
 import type { Side } from "../../side";
-import type { AttackLunge, DeleteBurst, MatchCueAnchors, RevealOnStage, SecurityBreakCue } from "../types";
+import type { StateSnapshot } from "../../../net/presentedState";
+import type { AttackLunge, DeleteBurst, HeldDeletion, MatchCueAnchors, RevealOnStage, SecurityBreakCue } from "../types";
 import { securityCheckSegments } from "../../securityClash";
 import { hasTurnStartDraw } from "../../showcases";
 import { TIMINGS } from "../../timings";
@@ -48,6 +49,7 @@ import { enqueueBatchSounds } from "./sounds";
 import { enqueueDeckRiffles } from "./deckRiffles";
 import { enqueueEffectSources } from "./effectSources";
 import { enqueueSecurityGrowth } from "./securityGrowth";
+import { enqueueMemoryHold, type MemoryHold } from "./memoryHold";
 import { securityRevealScene } from "./securityRevealScene";
 import { presentSecurityClose } from "./securityClose";
 import { presentSecurityRevealed } from "./securityReveal";
@@ -76,6 +78,7 @@ export function presentServerBatch({
   present,
   viewerSeat,
   state,
+  snapshots,
   anchors,
   queue,
   progress,
@@ -114,6 +117,7 @@ export function presentServerBatch({
   effectSourceKeyRef,
   deckRiffleKeyRef,
   securityGrowthClaimedRef,
+  memoryHoldKeyRef,
   turnStartDrawRef,
   optionDockKeyRef,
   optionDockRef,
@@ -142,6 +146,7 @@ export function presentServerBatch({
   setEffectSources,
   setDeckRiffles,
   setSecurityFlights,
+  setHeldMemory,
   setAttackAnnouncement,
   setAttackLunge,
   setSecurityBreak,
@@ -153,6 +158,7 @@ export function presentServerBatch({
   setFieldClash,
   setCombatImpactIds,
   setDeleteBursts,
+  setHeldDeletions,
 }: {
   batchId: string;
   stateVersion: number;
@@ -163,6 +169,8 @@ export function presentServerBatch({
   present: PresentSegment;
   viewerSeat: Seat;
   state: GameState | undefined;
+  /** The boards the presentation has passed through, newest last. */
+  snapshots: readonly StateSnapshot[];
   anchors: MatchCueAnchors;
   queue: AnimationQueue;
   progress: PresentationProgress;
@@ -205,6 +213,7 @@ export function presentServerBatch({
   effectSourceKeyRef: MutableRefObject<number>;
   deckRiffleKeyRef: MutableRefObject<number>;
   securityGrowthClaimedRef: MutableRefObject<Set<Seat>>;
+  memoryHoldKeyRef: MutableRefObject<number>;
   turnStartDrawRef: MutableRefObject<{ you: boolean; opp: boolean }>;
   optionDockKeyRef: MutableRefObject<number>;
   optionDockRef: MutableRefObject<{ key: number; closed: boolean } | null>;
@@ -233,6 +242,7 @@ export function presentServerBatch({
   setEffectSources: Dispatch<SetStateAction<readonly EffectActivation[]>>;
   setDeckRiffles: Dispatch<SetStateAction<ReadonlySet<string>>>;
   setSecurityFlights: Dispatch<SetStateAction<ReadonlySet<number>>>;
+  setHeldMemory: Dispatch<SetStateAction<MemoryHold | undefined>>;
   setAttackAnnouncement: Dispatch<SetStateAction<AttackAnnouncement | null>>;
   setAttackLunge: Dispatch<SetStateAction<AttackLunge | null>>;
   setSecurityBreak: Dispatch<SetStateAction<SecurityBreakCue | null>>;
@@ -244,6 +254,7 @@ export function presentServerBatch({
   setFieldClash: Dispatch<SetStateAction<FieldClashScene | null>>;
   setCombatImpactIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
+  setHeldDeletions: Dispatch<SetStateAction<ReadonlyMap<number, HeldDeletion>>>;
 }) {
   const phaseSegments: ServerEvent[][] = [];
   for (const event of fresh) {
@@ -444,6 +455,7 @@ export function presentServerBatch({
       launchSecurityGainFlight,
       enqueue,
     });
+    enqueueMemoryHold({ fresh, announceGate: batchAnnounceGate, memoryHoldKeyRef, setHeldMemory, enqueue });
     if (hasTurnStartDraw(fresh, viewerSeat)) turnStartDrawRef.current.you = true;
     if (hasTurnStartDraw(fresh, otherSeat(viewerSeat))) turnStartDrawRef.current.opp = true;
     // An On Play / When Digivolving notice reads as the consequence of the card
@@ -625,6 +637,7 @@ export function presentServerBatch({
   enqueueDeletionBursts({
     queue,
     fresh,
+    snapshots,
     beaten,
     clashLoserIds,
     playLeadInMs,
@@ -635,6 +648,7 @@ export function presentServerBatch({
     securityBlowRef,
     causingEffectGate: causingEffectGateRef.current,
     setDeleteBursts,
+    setHeldDeletions,
     enqueue,
   });
   /**

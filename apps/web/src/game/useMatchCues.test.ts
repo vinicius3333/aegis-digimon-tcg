@@ -45,12 +45,16 @@ import { PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
  */
 const NOTICE_ITEM_MS = TIMINGS.noticeLifetime + NARRATION_TICK_MS;
 
+/** A consequence never waits on its clause for longer than this, so neither does a test. */
+const CONSEQUENCE_WAIT_LIMIT_MS = 5000;
+
 /**
  * When a check that resolves an effect is finally allowed to speak: the shield break, the
  * whole centre-stage clash, and the slide that parks the revealed card at the side it reads
  * out from. Its notice and the decisions it asks for both land here.
  */
-const EFFECT_CHECK_NOTICE_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_IN_MS;
+const EFFECT_CHECK_NOTICE_AT_MS =
+  SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_IN_MS;
 
 /** When a reveal the server has not closed yet has finished putting its card on screen. */
 const REVEAL_SHOWN_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS;
@@ -84,7 +88,12 @@ const REVEAL: ServerEvent = {
   revealedCardId: "BT1-010",
   attackerPermanentId: "perm-1",
 };
-const CHECK: ServerEvent = { kind: "securityChecked", seat: 0, revealedCardId: "BT1-010", resolution: "battle" };
+const CHECK: ServerEvent = {
+  kind: "securityChecked",
+  seat: 0,
+  revealedCardId: "BT1-010",
+  resolution: "battle",
+};
 const SECOND_CHECK: ServerEvent = { ...CHECK, revealedCardId: "BT1-011" };
 const SECOND_REVEAL: ServerEvent = { ...REVEAL, revealedCardId: "BT1-011" };
 const EFFECT_CHECK: ServerEvent = { ...CHECK, resolution: "effect" };
@@ -98,15 +107,30 @@ const EFFECT_NOTICE: ServerEvent = {
   description: "Draw 1.",
   timing: "Security",
 };
-const TURN_END: ServerEvent = { kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 4 };
+const TURN_END: ServerEvent = {
+  kind: "turnEnded",
+  endingSeat: 1,
+  nextSeat: 0,
+  turnCount: 4,
+};
 const COMBAT: ServerEvent = {
   kind: "combatResolved",
   seat: 1,
   attackerPermanentId: "perm-1",
   deletedPermanentIds: ["perm-dead"],
 };
-const UNSUSPEND_PHASE: ServerEvent = { kind: "phaseChanged", phase: "Active", turnSeat: 0, turnCount: 5 };
-const OPP_PLAY: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT1-010", permanentId: "perm-9" };
+const UNSUSPEND_PHASE: ServerEvent = {
+  kind: "phaseChanged",
+  phase: "Active",
+  turnSeat: 0,
+  turnCount: 5,
+};
+const OPP_PLAY: ServerEvent = {
+  kind: "cardPlayed",
+  seat: 1,
+  cardId: "BT1-010",
+  permanentId: "perm-9",
+};
 const SHUFFLE: ServerEvent = { kind: "deckShuffled", seat: 1, deck: "eggDeck" };
 const RETURN_TO_DECK: ServerEvent = {
   kind: "cardsMoved",
@@ -114,8 +138,17 @@ const RETURN_TO_DECK: ServerEvent = {
   from: "hand",
   to: "deckBottom",
 };
-const YOUR_PLAY: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-011", permanentId: "perm-8" };
-const OPTION_USE: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-090" };
+const YOUR_PLAY: ServerEvent = {
+  kind: "cardPlayed",
+  seat: 0,
+  cardId: "BT1-011",
+  permanentId: "perm-8",
+};
+const OPTION_USE: ServerEvent = {
+  kind: "cardPlayed",
+  seat: 0,
+  cardId: "BT1-090",
+};
 const OPTION_ROUTED: ServerEvent = {
   kind: "cardsMoved",
   instanceIds: ["option-1"],
@@ -141,7 +174,12 @@ const OPP_SECURITY_NOTICE: ServerEvent = {
   description: "Play this card without paying its cost.",
   timing: "Security",
 };
-const OPP_TAIKI_PLAY: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT10-087", permanentId: "perm-taiki" };
+const OPP_TAIKI_PLAY: ServerEvent = {
+  kind: "cardPlayed",
+  seat: 1,
+  cardId: "BT10-087",
+  permanentId: "perm-taiki",
+};
 const YOUR_TAIKI_PLAY: ServerEvent = {
   kind: "cardPlayed",
   seat: 0,
@@ -175,7 +213,12 @@ const OPP_NEXT_CHECK: ServerEvent = {
   revealedCardId: "BT1-011",
   resolution: "battle",
 };
-const TAIKI_REVEALS: readonly ServerEvent[] = ["BT1-001", "BT1-002", "BT1-003", "BT1-004"].map((cardId) => ({
+const TAIKI_REVEALS: readonly ServerEvent[] = [
+  "BT1-001",
+  "BT1-002",
+  "BT1-003",
+  "BT1-004",
+].map((cardId) => ({
   kind: "cardRevealed",
   seat: 1,
   cardId,
@@ -185,7 +228,8 @@ const TAIKI_REVEALS: readonly ServerEvent[] = ["BT1-001", "BT1-002", "BT1-003", 
 /** Nothing is laid out in jsdom, so a draw flight measures zero and never launches. */
 const anchors: MatchCueAnchors = {
   board: { current: null },
-  permanentCenter: (permanentId) => (permanentId === "perm-dead" ? { x: 120, y: 80 } : undefined),
+  permanentCenter: (permanentId) =>
+    permanentId === "perm-dead" ? { x: 120, y: 80 } : undefined,
   yourDeck: { current: null },
   oppDeck: { current: null },
   yourHandDock: { current: null },
@@ -197,8 +241,12 @@ const anchors: MatchCueAnchors = {
 it("flies a face-down card from the deck to its Tamer and clears it after landing", async () => {
   const board = document.createElement("div");
   const deck = document.createElement("div");
-  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(10, 20, 800, 600));
-  vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(610, 420, 100, 140));
+  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
+    new DOMRect(10, 20, 800, 600),
+  );
+  vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(
+    new DOMRect(610, 420, 100, 140),
+  );
   const feed = batchFeed();
   const { result, rerender } = renderHook(
     ({ events }: { events: readonly ServerEvent[] }) =>
@@ -212,7 +260,8 @@ it("flies a face-down card from the deck to its Tamer and clears it after landin
           ...anchors,
           board: { current: board },
           yourDeck: { current: deck },
-          permanentCenter: (id) => (id === "tamer" ? { x: 200, y: 300 } : undefined),
+          permanentCenter: (id) =>
+            id === "tamer" ? { x: 200, y: 300 } : undefined,
         },
         onActionRejected: vi.fn<(reason: string) => void>(),
       }),
@@ -231,7 +280,12 @@ it("flies a face-down card from the deck to its Tamer and clears it after landin
   });
   await advance(0);
   expect(result.current.drawFlights).toHaveLength(1);
-  expect(result.current.drawFlights[0]).toMatchObject({ x: 650, y: 470, dx: -450, dy: -170 });
+  expect(result.current.drawFlights[0]).toMatchObject({
+    x: 650,
+    y: 470,
+    dx: -450,
+    dy: -170,
+  });
   await advance(result.current.drawFlights[0]!.duration);
   expect(result.current.drawFlights).toHaveLength(0);
 });
@@ -242,11 +296,22 @@ it.each([0, 1] as const)(
     const board = document.createElement("div");
     const deck = document.createElement("div");
     const hand = document.createElement("div");
-    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
-    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
-    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(0, 0, 800, 600),
+    );
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(600, 400, 80, 100),
+    );
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(200, 500, 300, 80),
+    );
     const state = {
-      players: [0, 1].map(() => ({ hand: [], handCount: 5, battleArea: [], trash: [] })),
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        battleArea: [],
+        trash: [],
+      })),
     } as unknown as GameState;
     const feed = batchFeed();
     const { result, rerender } = renderHook(
@@ -273,7 +338,13 @@ it.each([0, 1] as const)(
     // The opponent's hand is concealed and may return to the same count after using an Option.
     state.players[seat]!.handCount = seat === 0 ? 6 : 5;
     rerender([
-      { kind: "cardsMoved", from: "deck", to: "hand", instanceIds: ["drawn-a", "drawn-b"], seat },
+      {
+        kind: "cardsMoved",
+        from: "deck",
+        to: "hand",
+        instanceIds: ["drawn-a", "drawn-b"],
+        seat,
+      },
       { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 },
       { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 },
       { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
@@ -307,9 +378,15 @@ it("finishes an effect-driven digivolution burst before flying its bonus draw", 
   const board = document.createElement("div");
   const deck = document.createElement("div");
   const hand = document.createElement("div");
-  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
-  vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
-  vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
+    new DOMRect(0, 0, 800, 600),
+  );
+  vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(
+    new DOMRect(600, 400, 80, 100),
+  );
+  vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(
+    new DOMRect(200, 500, 300, 80),
+  );
   const feed = batchFeed();
   const { result, rerender } = renderHook(
     (events: readonly ServerEvent[]) =>
@@ -329,11 +406,26 @@ it("finishes an effect-driven digivolution burst before flying its bonus draw", 
     { initialProps: [] as readonly ServerEvent[] },
   );
   rerender([
-    { kind: "digivolved", seat: 0, permanentId: "effect-evo", cardId: "EX12-036", mechanic: "normal" },
-    { kind: "cardsMoved", from: "deck", to: "hand", instanceIds: ["bonus"], seat: 0, drawReason: "digivolution" },
+    {
+      kind: "digivolved",
+      seat: 0,
+      permanentId: "effect-evo",
+      cardId: "EX12-036",
+      mechanic: "normal",
+    },
+    {
+      kind: "cardsMoved",
+      from: "deck",
+      to: "hand",
+      instanceIds: ["bonus"],
+      seat: 0,
+      drawReason: "digivolution",
+    },
   ]);
   await advance(0);
-  expect(result.current.permanentBursts.get("effect-evo")?.variant).toBe("evolve");
+  expect(result.current.permanentBursts.get("effect-evo")?.variant).toBe(
+    "evolve",
+  );
   expect(result.current.drawFlights).toHaveLength(0);
   await advance(CARD_BURST_PEAK_MS);
   expect(result.current.drawFlights).toHaveLength(1);
@@ -345,7 +437,9 @@ it("finishes an effect-driven digivolution burst before flying its bonus draw", 
  * draws around one entry into the engine. A shorter log than before is a replaced log (a
  * new scenario), so the feed starts over.
  */
-function batchFeed(): (cumulative: readonly ServerEvent[]) => readonly ServerBatch[] {
+function batchFeed(): (
+  cumulative: readonly ServerEvent[],
+) => readonly ServerBatch[] {
   let consumed = 0;
   let version = 0;
   let batches: readonly ServerBatch[] = [];
@@ -359,7 +453,8 @@ function batchFeed(): (cumulative: readonly ServerEvent[]) => readonly ServerBat
     consumed = cumulative.length;
     // Each batch closes at its own revision, exactly as the server bumps `stateVersion`
     // once per closed batch — the presentation reports which one it is reading out.
-    if (fresh.length > 0) batches = [...batches, singleServerBatch(fresh, (version += 1))];
+    if (fresh.length > 0)
+      batches = [...batches, singleServerBatch(fresh, (version += 1))];
     return batches;
   };
 }
@@ -441,7 +536,9 @@ const SECURITY_TRASHED: ServerEvent = {
 function renderCuesOverBoard(
   state: GameState,
   snapshots?: readonly StateSnapshot[],
-  onPresentationReport?: (report: import("@aegis/shared").PresentationReport) => void,
+  onPresentationReport?: (
+    report: import("@aegis/shared").PresentationReport,
+  ) => void,
 ) {
   const feed = batchFeed();
   const view = renderHook(
@@ -459,7 +556,10 @@ function renderCuesOverBoard(
       }),
     { initialProps: [] as readonly ServerBatch[] },
   );
-  return { ...view, rerender: (events: readonly ServerEvent[]) => view.rerender(feed(events)) };
+  return {
+    ...view,
+    rerender: (events: readonly ServerEvent[]) => view.rerender(feed(events)),
+  };
 }
 
 /** The same hook, with the question the server is waiting on as a second input. */
@@ -504,7 +604,12 @@ function renderCuesAwaitingAnswer() {
       events: readonly ServerEvent[];
       decisionPending: boolean;
       decisionStateVersion?: number;
-    }) => view.rerender({ batches: feed(events), decisionPending, decisionStateVersion }),
+    }) =>
+      view.rerender({
+        batches: feed(events),
+        decisionPending,
+        decisionStateVersion,
+      }),
   };
 }
 
@@ -563,7 +668,9 @@ describe("match cues grouped by server batch", () => {
     expect(result.current.securityClash?.resolution).toBe("pending");
     expect(result.current.securityRevealPending).toBe(true);
 
-    await advance(REVEAL_EXIT_AT_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
+    await advance(
+      REVEAL_EXIT_AT_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS,
+    );
     // The second batch's close is what hands the board back.
     expect(result.current.securityRevealPending).toBe(false);
   });
@@ -606,7 +713,12 @@ describe("match cues", () => {
 
   it("finishes a visible phase ribbon before presenting a fast bot's next play", async () => {
     const { result, rerender } = renderCues();
-    const main: ServerEvent = { kind: "phaseChanged", phase: "Main", turnSeat: 1, turnCount: 4 };
+    const main: ServerEvent = {
+      kind: "phaseChanged",
+      phase: "Main",
+      turnSeat: 1,
+      turnCount: 4,
+    };
     rerender([main]);
     await advance(0);
     expect(result.current.phaseBanner?.phase).toBe("Main");
@@ -623,8 +735,17 @@ describe("match cues", () => {
   it.each(["separate", "combined", "raw"])(
     "plays every queued turn ribbon a bot raised before presenting its attack (%s batch)",
     async (delivery) => {
-      const { result, rerender } = renderCues([], undefined, delivery === "raw");
-      const turnEnd: ServerEvent = { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 3 };
+      const { result, rerender } = renderCues(
+        [],
+        undefined,
+        delivery === "raw",
+      );
+      const turnEnd: ServerEvent = {
+        kind: "turnEnded",
+        endingSeat: 0,
+        nextSeat: 1,
+        turnCount: 3,
+      };
       const phases: ServerEvent[] = [
         turnEnd,
         ...["Active", "Draw", "Breeding", "Main"].map((phase) => ({
@@ -634,7 +755,9 @@ describe("match cues", () => {
           turnCount: 4,
         })),
       ];
-      rerender(delivery !== "separate" ? [...phases, ATTACK, REVEAL, CHECK] : phases);
+      rerender(
+        delivery !== "separate" ? [...phases, ATTACK, REVEAL, CHECK] : phases,
+      );
       await advance(100);
       if (delivery === "separate") rerender([...phases, ATTACK, REVEAL, CHECK]);
       // The seat change opens, then every phase the burst carried, in order.
@@ -673,7 +796,11 @@ describe("match cues", () => {
   it("waits for the opponent's card arrival and field burst before ending the turn", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
-    rerender([OPP_PLAY, { ...UNSUSPEND_PHASE, phase: "End", turnSeat: 1 }, TURN_END]);
+    rerender([
+      OPP_PLAY,
+      { ...UNSUSPEND_PHASE, phase: "End", turnSeat: 1 },
+      TURN_END,
+    ]);
     await advance(0);
     expect(result.current.zoneShowcase).not.toBeNull();
     expect(result.current.phaseBanner).toBeNull();
@@ -693,7 +820,13 @@ describe("match cues", () => {
   it("waits for a raw play event's batch before showing the end banner", async () => {
     const raw: ServerEvent[] = [OPP_PLAY, TURN_END];
     const { result, rerender } = renderHook(
-      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+      ({
+        phaseEvents,
+        batches,
+      }: {
+        phaseEvents: readonly ServerEvent[];
+        batches: readonly ServerBatch[];
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           phaseEvents,
@@ -704,7 +837,12 @@ describe("match cues", () => {
           anchors,
           onActionRejected: vi.fn<(reason: string) => void>(),
         }),
-      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+      {
+        initialProps: {
+          phaseEvents: [] as readonly ServerEvent[],
+          batches: [] as readonly ServerBatch[],
+        },
+      },
     );
     rerender({ phaseEvents: raw, batches: [] });
     await advance(100);
@@ -720,7 +858,13 @@ describe("match cues", () => {
   it("can skip an end banner while the play batch is still open", async () => {
     const raw: ServerEvent[] = [OPP_PLAY, TURN_END];
     const { result, rerender } = renderHook(
-      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+      ({
+        phaseEvents,
+        batches,
+      }: {
+        phaseEvents: readonly ServerEvent[];
+        batches: readonly ServerBatch[];
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           phaseEvents,
@@ -731,7 +875,12 @@ describe("match cues", () => {
           anchors,
           onActionRejected: vi.fn<(reason: string) => void>(),
         }),
-      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+      {
+        initialProps: {
+          phaseEvents: [] as readonly ServerEvent[],
+          batches: [] as readonly ServerBatch[],
+        },
+      },
     );
     rerender({ phaseEvents: raw, batches: [] });
     await advance(100);
@@ -745,7 +894,13 @@ describe("match cues", () => {
   it("releases the end banner when a play batch close is lost", async () => {
     const raw: ServerEvent[] = [OPP_PLAY, TURN_END];
     const { result, rerender } = renderHook(
-      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+      ({
+        phaseEvents,
+        batches,
+      }: {
+        phaseEvents: readonly ServerEvent[];
+        batches: readonly ServerBatch[];
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           phaseEvents,
@@ -756,7 +911,12 @@ describe("match cues", () => {
           anchors,
           onActionRejected: vi.fn<(reason: string) => void>(),
         }),
-      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+      {
+        initialProps: {
+          phaseEvents: [] as readonly ServerEvent[],
+          batches: [] as readonly ServerBatch[],
+        },
+      },
     );
     rerender({ phaseEvents: raw, batches: [] });
     await advance(100);
@@ -766,11 +926,27 @@ describe("match cues", () => {
   });
 
   it("does not wait for an arrival whose batch already left the tracked window", async () => {
-    const evictedPlay: SequencedServerEvent = { ...OPP_PLAY, seq: 1, batch: "batch-old", stateVersion: 1 };
-    const turnEnd: SequencedServerEvent = { ...TURN_END, seq: 60, batch: "batch-new", stateVersion: 2 };
+    const evictedPlay: SequencedServerEvent = {
+      ...OPP_PLAY,
+      seq: 1,
+      batch: "batch-old",
+      stateVersion: 1,
+    };
+    const turnEnd: SequencedServerEvent = {
+      ...TURN_END,
+      seq: 60,
+      batch: "batch-new",
+      stateVersion: 2,
+    };
     const raw: ServerEvent[] = [evictedPlay, turnEnd];
     const { result, rerender } = renderHook(
-      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+      ({
+        phaseEvents,
+        batches,
+      }: {
+        phaseEvents: readonly ServerEvent[];
+        batches: readonly ServerBatch[];
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           phaseEvents,
@@ -781,7 +957,12 @@ describe("match cues", () => {
           anchors,
           onActionRejected: vi.fn<(reason: string) => void>(),
         }),
-      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+      {
+        initialProps: {
+          phaseEvents: [] as readonly ServerEvent[],
+          batches: [] as readonly ServerBatch[],
+        },
+      },
     );
     rerender({
       phaseEvents: raw,
@@ -795,7 +976,14 @@ describe("match cues", () => {
     const { result, rerender } = renderCues();
     await advance(0);
     const phases = ["Active", "Draw", "Breeding", "Main", "End"];
-    rerender(phases.map((phase) => ({ kind: "phaseChanged", phase, turnSeat: 0, turnCount: 5 })) as ServerEvent[]);
+    rerender(
+      phases.map((phase) => ({
+        kind: "phaseChanged",
+        phase,
+        turnSeat: 0,
+        turnCount: 5,
+      })) as ServerEvent[],
+    );
     await advance(0);
     for (const phase of phases) {
       expect(result.current.phaseBanner?.phase).toBe(phase);
@@ -806,7 +994,9 @@ describe("match cues", () => {
 
   it("holds the pre-draw hand through unsuspend and locks actions through breeding's announcement", async () => {
     const anchor = document.createElement("div");
-    vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 100, 100));
+    vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(0, 0, 100, 100),
+    );
     const drawAnchors = {
       ...anchors,
       board: { current: anchor },
@@ -814,15 +1004,29 @@ describe("match cues", () => {
       yourHandDock: { current: anchor },
     };
     const before = {
-      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        battleArea: [],
+        trash: [],
+      })),
     } as unknown as GameState;
     const after = {
       ...before,
-      players: before.players.map((player, seat) => (seat === 0 ? { ...player, handCount: 6, deckCount: 39 } : player)),
+      players: before.players.map((player, seat) =>
+        seat === 0 ? { ...player, handCount: 6, deckCount: 39 } : player,
+      ),
     } as unknown as GameState;
     const feed = batchFeed();
     const { result, rerender } = renderHook(
-      ({ state, events }: { state: GameState; events: readonly ServerEvent[] }) =>
+      ({
+        state,
+        events,
+      }: {
+        state: GameState;
+        events: readonly ServerEvent[];
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           batches: feed(events),
@@ -837,7 +1041,11 @@ describe("match cues", () => {
     await advance(0);
     rerender({
       state: after,
-      events: [UNSUSPEND_PHASE, { ...UNSUSPEND_PHASE, phase: "Draw" }, { ...UNSUSPEND_PHASE, phase: "Breeding" }],
+      events: [
+        UNSUSPEND_PHASE,
+        { ...UNSUSPEND_PHASE, phase: "Draw" },
+        { ...UNSUSPEND_PHASE, phase: "Breeding" },
+      ],
     });
     await advance(0);
     expect(result.current.phaseBanner?.phase).toBe("Active");
@@ -861,7 +1069,9 @@ describe("match cues", () => {
     // server resolves the handover and the opponent's opening phases into the same patch as
     // the effect draw that preceded them, so the live turn flips while the flight is still up.
     const anchor = document.createElement("div");
-    vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 100, 100));
+    vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(0, 0, 100, 100),
+    );
     const drawAnchors = {
       ...anchors,
       board: { current: anchor },
@@ -871,16 +1081,34 @@ describe("match cues", () => {
     const before = {
       turnSeat: 0,
       turnCount: 2,
-      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        battleArea: [],
+        trash: [],
+      })),
     } as unknown as GameState;
     const drawn = {
       ...before,
-      players: before.players.map((player, seat) => (seat === 0 ? { ...player, handCount: 6, deckCount: 39 } : player)),
+      players: before.players.map((player, seat) =>
+        seat === 0 ? { ...player, handCount: 6, deckCount: 39 } : player,
+      ),
     } as unknown as GameState;
-    const handedOver = { ...drawn, turnSeat: 1, turnCount: 3 } as unknown as GameState;
+    const handedOver = {
+      ...drawn,
+      turnSeat: 1,
+      turnCount: 3,
+    } as unknown as GameState;
     const feed = batchFeed();
     const { result, rerender } = renderHook(
-      ({ state, events }: { state: GameState; events: readonly ServerEvent[] }) =>
+      ({
+        state,
+        events,
+      }: {
+        state: GameState;
+        events: readonly ServerEvent[];
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           batches: feed(events),
@@ -983,26 +1211,40 @@ describe("match cues", () => {
     // Main has already evolved that same stack in the live state.
     egg.topCard.cardId = "ST2-03";
     garurumon.isSuspended = true;
-    rerender([...opening, { kind: "hatched", seat: 1, cardId: "BT24-007", permanentId: "egg" }, phases[3]!]);
+    rerender([
+      ...opening,
+      { kind: "hatched", seat: 1, cardId: "BT24-007", permanentId: "egg" },
+      phases[3]!,
+    ]);
     for (const phase of ["Active", "Draw", "Breeding"]) {
       expect(result.current.phaseBanner?.phase).toBe(phase);
-      expect(result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended).toBe(false);
-      expect(result.current.heldPhaseState?.players[1]?.battleArea[1]?.isSuspended).toBe(true);
+      expect(
+        result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended,
+      ).toBe(false);
+      expect(
+        result.current.heldPhaseState?.players[1]?.battleArea[1]?.isSuspended,
+      ).toBe(true);
       expect(result.current.heldBreedingState?.seat).toBe(1);
       expect(result.current.heldBreedingState?.player.eggDeckCount).toBe(4);
       await advance(TIMINGS.phaseBanner);
       expect(result.current.phaseBanner).toBeNull();
       expect(result.current.displayedPhase).toBe(phase);
-      expect(result.current.heldBreedingState?.player.eggDeckCount).toBe(phase === "Breeding" ? 3 : 4);
+      expect(result.current.heldBreedingState?.player.eggDeckCount).toBe(
+        phase === "Breeding" ? 3 : 4,
+      );
       await advance(TIMINGS.phaseBannerGap);
     }
-    expect(result.current.heldBreedingState?.player.breeding?.topCard.cardId).toBe("BT24-007");
+    expect(
+      result.current.heldBreedingState?.player.breeding?.topCard.cardId,
+    ).toBe("BT24-007");
     await advance(16);
     expect(result.current.permanentBursts.has("egg")).toBe(true);
     await advance(TIMINGS.cardBurst + 32);
     expect(result.current.phaseBanner?.phase).toBe("Main");
     expect(result.current.displayedPhase).toBe("Main");
-    expect(result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended).toBe(false);
+    expect(
+      result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended,
+    ).toBe(false);
     await advance(TIMINGS.phaseBanner);
     expect(result.current.heldBreedingState).toBeUndefined();
     expect(result.current.heldPhaseState).toBeUndefined();
@@ -1037,15 +1279,31 @@ describe("match cues", () => {
     await advance(0);
     rerender([
       { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
-      { kind: "cardsMoved", instanceIds: ["turnPlayer"], from: "suspended", to: "unsuspended" },
-      { kind: "cardsMoved", instanceIds: ["reboot"], from: "suspended", to: "unsuspended" },
+      {
+        kind: "cardsMoved",
+        instanceIds: ["turnPlayer"],
+        from: "suspended",
+        to: "unsuspended",
+      },
+      {
+        kind: "cardsMoved",
+        instanceIds: ["reboot"],
+        from: "suspended",
+        to: "unsuspended",
+      },
       { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 2 },
     ]);
     await advance(0);
     expect(result.current.phaseBanner?.phase).toBe("Active");
-    expect(result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended).toBe(false);
-    expect(result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended).toBe(false);
-    expect(result.current.heldPhaseState?.players[0]?.battleArea[1]?.isSuspended).toBe(true);
+    expect(
+      result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended,
+    ).toBe(false);
+    expect(
+      result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended,
+    ).toBe(false);
+    expect(
+      result.current.heldPhaseState?.players[0]?.battleArea[1]?.isSuspended,
+    ).toBe(true);
   });
 
   it.each(["hatched", "movedFromBreeding"] as const)(
@@ -1094,7 +1352,13 @@ describe("match cues", () => {
         events: [main as import("@aegis/shared").SequencedServerEvent],
       };
       const { result, rerender } = renderHook(
-        ({ batches, events }: { batches: readonly ServerBatch[]; events: readonly ServerEvent[] }) =>
+        ({
+          batches,
+          events,
+        }: {
+          batches: readonly ServerBatch[];
+          events: readonly ServerEvent[];
+        }) =>
           useMatchCues({
             batches,
             phaseEvents: events,
@@ -1104,7 +1368,12 @@ describe("match cues", () => {
             anchors,
             onActionRejected: vi.fn<(reason: string) => void>(),
           }),
-        { initialProps: { batches: [] as readonly ServerBatch[], events: [] as readonly ServerEvent[] } },
+        {
+          initialProps: {
+            batches: [] as readonly ServerBatch[],
+            events: [] as readonly ServerEvent[],
+          },
+        },
       );
       await advance(0);
       rerender({ batches: [breedingBatch], events: [breeding] });
@@ -1113,7 +1382,10 @@ describe("match cues", () => {
       rerender({ batches: [breedingBatch], events: [breeding, hatch, main] });
       await advance(32);
       expect(result.current.phaseBanner).toBeNull();
-      rerender({ batches: [breedingBatch, hatchBatch, mainBatch], events: [breeding, hatch, main] });
+      rerender({
+        batches: [breedingBatch, hatchBatch, mainBatch],
+        events: [breeding, hatch, main],
+      });
       await advance(32);
       expect(result.current.permanentBursts.has("egg")).toBe(true);
       expect(result.current.phaseBanner).toBeNull();
@@ -1126,11 +1398,23 @@ describe("match cues", () => {
     const board = document.createElement("div");
     const deck = document.createElement("div");
     const hand = document.createElement("div");
-    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
-    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
-    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(0, 0, 800, 600),
+    );
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(600, 400, 80, 100),
+    );
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(200, 500, 300, 80),
+    );
     const state = {
-      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        battleArea: [],
+        trash: [],
+      })),
     } as unknown as GameState;
     const reports: import("@aegis/shared").PresentationReport[] = [];
     const feed = batchFeed();
@@ -1162,7 +1446,13 @@ describe("match cues", () => {
     state.players[VIEWER]!.handCount = 6;
     state.players[1]!.handCount = 6;
     rerender([
-      { kind: "cardsMoved", from: "deck", to: "hand", instanceIds: ["effect-draw"], seat: VIEWER },
+      {
+        kind: "cardsMoved",
+        from: "deck",
+        to: "hand",
+        instanceIds: ["effect-draw"],
+        seat: VIEWER,
+      },
       { kind: "phaseChanged", phase: "End", turnSeat: VIEWER, turnCount: 4 },
       { kind: "turnEnded", endingSeat: VIEWER, nextSeat: 1, turnCount: 4 },
       { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 5 },
@@ -1173,8 +1463,11 @@ describe("match cues", () => {
 
     // The viewer's own draw belongs to the turn that just ran, so it is on screen at once.
     // The opponent is the held seat: its count stays at the figure the turn opened with.
-    const turnDrawStarted = () => reports.some((report) => report.track.startsWith("turnDrawFlight-"));
-    expect(reports.some((report) => report.track.startsWith("drawFlight-"))).toBe(true);
+    const turnDrawStarted = () =>
+      reports.some((report) => report.track.startsWith("turnDrawFlight-"));
+    expect(
+      reports.some((report) => report.track.startsWith("drawFlight-")),
+    ).toBe(true);
     expect(result.current.heldDrawState?.seat).toBe(1);
     expect(result.current.heldDrawState?.state.players[1]?.handCount).toBe(5);
     expect(turnDrawStarted()).toBe(false);
@@ -1196,7 +1489,13 @@ describe("match cues", () => {
 
   it("holds a mutable server hand before its patched batch closes, without replaying phase events", async () => {
     const state = {
-      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        battleArea: [],
+        trash: [],
+      })),
     } as unknown as GameState;
     const phases: ServerEvent[] = [
       UNSUSPEND_PHASE,
@@ -1204,7 +1503,13 @@ describe("match cues", () => {
       { ...UNSUSPEND_PHASE, phase: "Breeding" },
     ];
     const { result, rerender } = renderHook(
-      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+      ({
+        phaseEvents,
+        batches,
+      }: {
+        phaseEvents: readonly ServerEvent[];
+        batches: readonly ServerBatch[];
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           state,
@@ -1215,7 +1520,12 @@ describe("match cues", () => {
           anchors,
           onActionRejected: vi.fn<(reason: string) => void>(),
         }),
-      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+      {
+        initialProps: {
+          phaseEvents: [] as readonly ServerEvent[],
+          batches: [] as readonly ServerBatch[],
+        },
+      },
     );
     await advance(0);
     // Events arrive before Colyseus mutates the existing state object. The close
@@ -1240,17 +1550,35 @@ describe("match cues", () => {
 
   it("releases the draw hold for an effect draw that flips the turn in the same patch", async () => {
     const state = {
-      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        battleArea: [],
+        trash: [],
+      })),
     } as unknown as GameState;
     // What an Option that draws sends when the turn ends on its resolution: the draw and
     // the whole next-turn pipeline coalesce into one patch.
     const events: ServerEvent[] = [
-      { kind: "cardsMoved", from: "deck", to: "hand", instanceIds: ["drawn-a", "drawn-b"], seat: 0 },
+      {
+        kind: "cardsMoved",
+        from: "deck",
+        to: "hand",
+        instanceIds: ["drawn-a", "drawn-b"],
+        seat: 0,
+      },
       UNSUSPEND_PHASE,
       { ...UNSUSPEND_PHASE, phase: "Draw" },
     ];
     const { result, rerender } = renderHook(
-      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+      ({
+        phaseEvents,
+        batches,
+      }: {
+        phaseEvents: readonly ServerEvent[];
+        batches: readonly ServerBatch[];
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           state,
@@ -1261,7 +1589,12 @@ describe("match cues", () => {
           anchors,
           onActionRejected: vi.fn<(reason: string) => void>(),
         }),
-      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+      {
+        initialProps: {
+          phaseEvents: [] as readonly ServerEvent[],
+          batches: [] as readonly ServerBatch[],
+        },
+      },
     );
     await advance(0);
     rerender({ phaseEvents: events, batches: [] });
@@ -1296,11 +1629,22 @@ describe("match cues", () => {
     const board = document.createElement("div");
     const deck = document.createElement("div");
     const hand = document.createElement("div");
-    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
-    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
-    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(0, 0, 800, 600),
+    );
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(600, 400, 80, 100),
+    );
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(200, 500, 300, 80),
+    );
     const state = {
-      players: [0, 1].map(() => ({ hand: [], handCount: 5, battleArea: [], trash: [] })),
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        battleArea: [],
+        trash: [],
+      })),
     } as unknown as GameState;
     const reports: import("@aegis/shared").PresentationReport[] = [];
     const feed = batchFeed();
@@ -1334,7 +1678,12 @@ describe("match cues", () => {
       { kind: "turnEnded", endingSeat: 1, nextSeat: VIEWER, turnCount: 4 },
       { kind: "phaseChanged", phase: "Active", turnSeat: VIEWER, turnCount: 5 },
       { kind: "phaseChanged", phase: "Draw", turnSeat: VIEWER, turnCount: 5 },
-      { kind: "phaseChanged", phase: "Breeding", turnSeat: VIEWER, turnCount: 5 },
+      {
+        kind: "phaseChanged",
+        phase: "Breeding",
+        turnSeat: VIEWER,
+        turnCount: 5,
+      },
     ]);
     await advance(0);
 
@@ -1347,7 +1696,11 @@ describe("match cues", () => {
     // The ribbon then names the seats of the turn that ended, and holds its own time.
     // Both prerequisite waits poll, so every checkpoint below allows a poll of slack.
     await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + POLL_MS);
-    expect(result.current.turnTransition).toEqual({ endingSeat: 1, nextSeat: VIEWER, turnCount: 4 });
+    expect(result.current.turnTransition).toEqual({
+      endingSeat: 1,
+      nextSeat: VIEWER,
+      turnCount: 4,
+    });
     expect(result.current.phaseBanner).toBeNull();
     await advance(TIMINGS.turnBanner - POLL_MS * 4);
     expect(result.current.turnTransition).not.toBeNull();
@@ -1372,7 +1725,9 @@ describe("match cues", () => {
     expect(result.current.phaseBanner).toBeNull();
     expect(result.current.presenting).toBe(false);
 
-    const banners = reports.filter((report) => report.track === "phaseBanner" && report.phase === "started");
+    const banners = reports.filter(
+      (report) => report.track === "phaseBanner" && report.phase === "started",
+    );
     expect(banners.map((report) => report.stepId)).toEqual([
       "phase-banner-1",
       "turn-banner-4",
@@ -1382,10 +1737,20 @@ describe("match cues", () => {
     ]);
     // The report says which side each once-per-side cue was drawn on, so a log can tell
     // the viewer's turn-start draw from the opponent's.
-    expect(banners.map((report) => report.side)).toEqual(["opp", "you", "you", "you", "you"]);
-    const draws = reports.filter((report) => report.track.startsWith("turnDrawFlight-"));
+    expect(banners.map((report) => report.side)).toEqual([
+      "opp",
+      "you",
+      "you",
+      "you",
+      "you",
+    ]);
+    const draws = reports.filter((report) =>
+      report.track.startsWith("turnDrawFlight-"),
+    );
     expect(draws).not.toHaveLength(0);
-    expect(new Set(draws.map((report) => report.side))).toEqual(new Set(["you"]));
+    expect(new Set(draws.map((report) => report.side))).toEqual(
+      new Set(["you"]),
+    );
   });
 
   it("serializes real batched turn, unsuspend and draw announcements", async () => {
@@ -1451,7 +1816,11 @@ describe("match cues", () => {
 
     rerender([TURN_END]);
     await advance(0);
-    expect(result.current.turnTransition).toEqual({ endingSeat: 1, nextSeat: 0, turnCount: 4 });
+    expect(result.current.turnTransition).toEqual({
+      endingSeat: 1,
+      nextSeat: 0,
+      turnCount: 4,
+    });
 
     await advance(TIMINGS.turnBanner - 1);
     expect(result.current.turnTransition).not.toBeNull();
@@ -1465,9 +1834,16 @@ describe("match cues", () => {
 
     rerender([ATTACK, CHECK]);
     await advance(0);
-    expect(result.current.attackLunge).toEqual({ permanentId: "perm-1", direction: "down" });
+    expect(result.current.attackLunge).toEqual({
+      permanentId: "perm-1",
+      direction: "down",
+    });
     // The shield arms first, and the reveal waits for its glass to break.
-    expect(result.current.securityBreak).toMatchObject({ seat: 0, side: "you", phase: "arm" });
+    expect(result.current.securityBreak).toMatchObject({
+      seat: 0,
+      side: "you",
+      phase: "arm",
+    });
     expect(result.current.securityClash).toBeNull();
 
     await advance(TIMINGS.securityArm);
@@ -1520,7 +1896,9 @@ describe("match cues", () => {
     await advance(0);
     expect(result.current.securityRevealPending).toBe(true);
 
-    await advance(REVEAL_EXIT_AT_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
+    await advance(
+      REVEAL_EXIT_AT_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS,
+    );
     expect(result.current.securityRevealPending).toBe(true);
     // The card has left, but the check still owns the board until it closes.
     expect(result.current.securityClash).toBeNull();
@@ -1570,7 +1948,10 @@ describe("match cues", () => {
 
     rerender([{ ...CHECK, seat: 1 }]);
     await advance(0);
-    expect(result.current.securityBreak).toMatchObject({ seat: 1, side: "opp" });
+    expect(result.current.securityBreak).toMatchObject({
+      seat: 1,
+      side: "opp",
+    });
   });
 
   it("holds a security card that resolves an effect to the side, after the reveal", async () => {
@@ -1589,7 +1970,10 @@ describe("match cues", () => {
 
     await advance(1);
     expect(result.current.securityClash).toBeNull();
-    expect(result.current.securityBranch).toMatchObject({ cardId: "BT1-010", side: "you" });
+    expect(result.current.securityBranch).toMatchObject({
+      cardId: "BT1-010",
+      side: "you",
+    });
 
     await advance(SECURITY_BRANCH_TOTAL_MS);
     expect(result.current.securityBranch).toBeNull();
@@ -1627,7 +2011,11 @@ describe("match cues", () => {
     expect(result.current.optionBranch?.state).toBe("docked");
 
     // Past the point the marker alone would have closed it.
-    await advance(TIMINGS.optionDockHold + SECURITY_DOCK_CLOSE_MS + TIMINGS.securityDockPoll * 4);
+    await advance(
+      TIMINGS.optionDockHold +
+        SECURITY_DOCK_CLOSE_MS +
+        TIMINGS.securityDockPoll * 4,
+    );
     expect(result.current.optionBranch?.state).toBe("docked");
 
     rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: false });
@@ -1650,7 +2038,10 @@ describe("match cues", () => {
     await advance(0);
     expect(result.current.optionBranch?.state).toBe("docked");
 
-    rerender([OPTION_USE, { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 }]);
+    rerender([
+      OPTION_USE,
+      { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 },
+    ]);
     await advance(32);
     expect(result.current.phaseBanner?.phase).toBe("End");
     expect(result.current.optionBranch?.state).toBe("docked");
@@ -1711,7 +2102,11 @@ describe("match cues", () => {
     expect(result.current.securityBranch).toBeNull();
     await advance(TIMINGS.clashExit);
     expect(result.current.securityClash).toBeNull();
-    expect(result.current.securityBranch).toMatchObject({ cardId: "BT1-010", side: "you", state: "docked" });
+    expect(result.current.securityBranch).toMatchObject({
+      cardId: "BT1-010",
+      side: "you",
+      state: "docked",
+    });
 
     // Open-ended: nothing but the close takes it away.
     await advance(CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
@@ -1816,7 +2211,10 @@ describe("match cues", () => {
 
     await advance(SECURITY_BRANCH_IN_MS);
     expect(result.current.notices).toHaveLength(1);
-    expect(result.current.notices[0]?.body).toMatchObject({ cardId: "BT10-087", timing: "Security" });
+    expect(result.current.notices[0]?.body).toMatchObject({
+      cardId: "BT10-087",
+      timing: "Security",
+    });
   });
 
   /* The live order: the server resolves the whole [Security] play in one tick, so the
@@ -1827,7 +2225,14 @@ describe("match cues", () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
-    rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY, OPP_ON_PLAY, ...TAIKI_REVEALS]);
+    rerender([
+      ATTACK,
+      OPP_EFFECT_REVEAL,
+      OPP_SECURITY_NOTICE,
+      OPP_TAIKI_PLAY,
+      OPP_ON_PLAY,
+      ...TAIKI_REVEALS,
+    ]);
 
     // Step 2: docked, with only the [Security] clause beside it.
     await advance(DOCKED_AT_MS);
@@ -1850,7 +2255,9 @@ describe("match cues", () => {
     await advance(SECURITY_DOCK_CLOSE_MS);
     expect(result.current.securityBranch).toBeNull();
     expect(result.current.notices).toHaveLength(2);
-    expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
+    expect(result.current.sidePanels.at(-1)?.titleKey).toBe(
+      "panel.revealedCards",
+    );
     expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
   });
 
@@ -1879,14 +2286,20 @@ describe("match cues", () => {
     await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
     // The player's regular hand plays skip the showcase, but a Security play cannot:
     // its source is still animating from the shield to the execution slot.
-    expect(result.current.pendingPermanentIds.has("perm-your-taiki")).toBe(true);
+    expect(result.current.pendingPermanentIds.has("perm-your-taiki")).toBe(
+      true,
+    );
 
     await advance(1);
     expect(result.current.securityBranch).not.toBeNull();
     // The queued field-burst is scheduled after the branch step yields back to the queue.
     await advance(0);
-    expect(result.current.pendingPermanentIds.has("perm-your-taiki")).toBe(false);
-    expect(result.current.permanentBursts.get("perm-your-taiki")).toMatchObject({ variant: "play" });
+    expect(result.current.pendingPermanentIds.has("perm-your-taiki")).toBe(
+      false,
+    );
+    expect(result.current.permanentBursts.get("perm-your-taiki")).toMatchObject(
+      { variant: "play" },
+    );
   });
 
   /* The exact payloads a live dev-scenario check delivers, captured off the wire. The
@@ -1907,7 +2320,12 @@ describe("match cues", () => {
     hasSecurityEffect: true,
     isDigimon: false,
   };
-  const LIVE_PLAY: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT10-087", permanentId: "perm-1" };
+  const LIVE_PLAY: ServerEvent = {
+    kind: "cardPlayed",
+    seat: 1,
+    cardId: "BT10-087",
+    permanentId: "perm-1",
+  };
   const LIVE_MOVE: ServerEvent = {
     kind: "cardsMoved",
     instanceIds: ["dev-security-1"],
@@ -1923,7 +2341,12 @@ describe("match cues", () => {
     timing: "OnPlay",
     duringSecurityCheck: true,
   };
-  const LIVE_REVEALS: readonly ServerEvent[] = ["BT19-051", "BT10-087", "BT19-038", "BT19-051"].map((cardId) => ({
+  const LIVE_REVEALS: readonly ServerEvent[] = [
+    "BT19-051",
+    "BT10-087",
+    "BT19-038",
+    "BT19-051",
+  ].map((cardId) => ({
     kind: "cardRevealed",
     seat: 1,
     cardId,
@@ -1934,7 +2357,12 @@ describe("match cues", () => {
     players: [
       { battleArea: [], trash: [], hand: [], securityCount: 5 },
       {
-        battleArea: [{ permanentId: "perm-1", topCard: { instanceId: "dev-security-1", cardId: "BT10-087" } }],
+        battleArea: [
+          {
+            permanentId: "perm-1",
+            topCard: { instanceId: "dev-security-1", cardId: "BT10-087" },
+          },
+        ],
         trash: [],
         hand: [],
         securityCount: 5,
@@ -1964,14 +2392,22 @@ describe("match cues", () => {
     expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
     expect(result.current.pendingPermanentIds.has("perm-1")).toBe(true);
     // The showcase holds the card up, so the "played card" panel must not repeat it.
-    expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
+    expect(
+      result.current.sidePanels.some(
+        (panel) => panel.titleKey === "panel.playedCard",
+      ),
+    ).toBe(false);
 
     // Step 4: it has landed, so the [On Play] result reads out — the panel of cards it
     // turned up first, then the clause that turned them up.
     await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-1")).toBe(false);
-    expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
+    expect(
+      result.current.sidePanels.some(
+        (panel) => panel.titleKey === "panel.playedCard",
+      ),
+    ).toBe(false);
     await advance(TIMINGS.cardBurst);
     expect(result.current.effectSources).toHaveLength(1);
     expect(result.current.notices).toHaveLength(0);
@@ -1984,7 +2420,10 @@ describe("match cues", () => {
     const panel = result.current.sidePanels.at(-1);
     expect(panel?.titleKey).toBe("panel.revealedCards");
     expect(panel?.cards).toHaveLength(4);
-    await advance(Math.max(TIMINGS.noticeLifetime, SIDE_PANEL_LIFETIME_MS) + NARRATION_TICK_MS);
+    await advance(
+      Math.max(TIMINGS.noticeLifetime, SIDE_PANEL_LIFETIME_MS) +
+        NARRATION_TICK_MS,
+    );
     expect(result.current.sidePanels).toHaveLength(0);
   }
 
@@ -1995,7 +2434,14 @@ describe("match cues", () => {
     await expectLiveCheckOrder(result, async () => {
       rerender([LIVE_ATTACK]);
       await advance(20);
-      rerender([LIVE_ATTACK, LIVE_REVEAL, LIVE_PLAY, LIVE_MOVE, LIVE_ON_PLAY, ...LIVE_REVEALS]);
+      rerender([
+        LIVE_ATTACK,
+        LIVE_REVEAL,
+        LIVE_PLAY,
+        LIVE_MOVE,
+        LIVE_ON_PLAY,
+        ...LIVE_REVEALS,
+      ]);
       await advance(20);
     });
 
@@ -2035,14 +2481,29 @@ describe("match cues", () => {
       const { result, rerender } = renderCuesOverBoard(LIVE_BOARD);
       await advance(0);
 
-      rerender([LIVE_ATTACK, LIVE_REVEAL, LIVE_PLAY, LIVE_MOVE, LIVE_ON_PLAY, ...LIVE_REVEALS]);
+      rerender([
+        LIVE_ATTACK,
+        LIVE_REVEAL,
+        LIVE_PLAY,
+        LIVE_MOVE,
+        LIVE_ON_PLAY,
+        ...LIVE_REVEALS,
+      ]);
       await advance(DOCKED_AT_MS + SHOWCASE_TOTAL_MS);
 
       expect(result.current.zoneShowcase).toBeNull();
-      expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
+      expect(
+        result.current.sidePanels.some(
+          (panel) => panel.titleKey === "panel.playedCard",
+        ),
+      ).toBe(false);
       // The reveal stays beside its clause, even when the decorative cues are drained.
-      expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect"]);
-      expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
+      expect(
+        result.current.notices.map((notice) => notice.body.variant),
+      ).toEqual(["effect"]);
+      expect(result.current.sidePanels.at(-1)?.titleKey).toBe(
+        "panel.revealedCards",
+      );
       await advance(1000);
       expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
     } finally {
@@ -2092,7 +2553,9 @@ describe("match cues", () => {
     expect(result.current.sidePanels).toEqual([]);
     // Step 3: the card is seen arriving, and the [On Play] result is still not on screen.
     expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
-    expect(result.current.notices.some((notice) => notice.body.variant === "effect")).toBe(false);
+    expect(
+      result.current.notices.some((notice) => notice.body.variant === "effect"),
+    ).toBe(false);
 
     // Step 4: it has landed, so what it did reads out — the panel of revealed cards
     // first, and the clause that revealed them behind it.
@@ -2103,10 +2566,14 @@ describe("match cues", () => {
     expect(result.current.securityBranch?.state).toBe("closing");
     await advance(SECURITY_DOCK_CLOSE_MS);
     expect(result.current.securityBranch).toBeNull();
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect"]);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
+      ["effect"],
+    );
 
     await advance(NOTICE_ITEM_MS);
-    expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
+    expect(result.current.sidePanels.at(-1)?.titleKey).toBe(
+      "panel.revealedCards",
+    );
     expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
   });
 
@@ -2141,10 +2608,19 @@ describe("match cues", () => {
     await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.securityBranch?.state).toBe("closing");
 
-    rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY, OPP_ON_PLAY, ...TAIKI_REVEALS]);
+    rerender([
+      ATTACK,
+      OPP_EFFECT_REVEAL,
+      OPP_SECURITY_NOTICE,
+      OPP_TAIKI_PLAY,
+      OPP_ON_PLAY,
+      ...TAIKI_REVEALS,
+    ]);
     await advance(SECURITY_DOCK_CLOSE_MS + SHOWCASE_TOTAL_MS + NOTICE_ITEM_MS);
     expect(result.current.securityBranch).toBeNull();
-    expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
+    expect(result.current.sidePanels.at(-1)?.titleKey).toBe(
+      "panel.revealedCards",
+    );
   });
 
   // A security card whose effect does NOT play it keeps its dock until the check closes.
@@ -2255,7 +2731,10 @@ describe("match cues", () => {
     await advance(COMBAT_IMPACT_TOTAL_MS);
     expect(result.current.combatImpactIds.size).toBe(0);
     expect(result.current.deleteBursts).toHaveLength(1);
-    expect(result.current.deleteBursts[0]).toMatchObject({ x: 120 - 48, y: 80 - 48 });
+    expect(result.current.deleteBursts[0]).toMatchObject({
+      x: 120 - 48,
+      y: 80 - 48,
+    });
 
     await advance(TIMINGS.cardBurst);
     expect(result.current.deleteBursts).toEqual([]);
@@ -2290,7 +2769,10 @@ describe("match cues", () => {
     expect(result.current.combatImpactIds.size).toBe(0);
 
     await advance(FIELD_CLASH_LUNGE_AT_MS);
-    expect(result.current.attackLunge).toEqual({ permanentId: "perm-1", direction: "down" });
+    expect(result.current.attackLunge).toEqual({
+      permanentId: "perm-1",
+      direction: "down",
+    });
 
     await advance(FIELD_CLASH_IMPACT_AT_MS - FIELD_CLASH_LUNGE_AT_MS);
     expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
@@ -2334,7 +2816,9 @@ describe("match cues", () => {
 
     await advance(COMBAT_IMPACT_TOTAL_MS);
     expect(result.current.notices).toHaveLength(1);
-    expect(result.current.notices[0]).toMatchObject({ body: { variant: "effect", cardId: "BT1-010" } });
+    expect(result.current.notices[0]).toMatchObject({
+      body: { variant: "effect", cardId: "BT1-010" },
+    });
   });
 
   it("bursts for an effect that trashes a permanent off the field", async () => {
@@ -2347,7 +2831,14 @@ describe("match cues", () => {
         instanceIds: ["perm-dead"],
         from: "battleArea",
         to: "trash",
-        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "perm-dead", cardId: "BT1-010", seat: 1 }],
+        deletedPermanents: [
+          {
+            permanentId: "perm-dead",
+            instanceId: "perm-dead",
+            cardId: "BT1-010",
+            seat: 1,
+          },
+        ],
       },
     ]);
     await advance(0);
@@ -2364,18 +2855,33 @@ describe("match cues", () => {
         instanceIds: ["perm-dead"],
         from: "battleArea",
         to: "trash",
-        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "perm-dead", cardId: "BT1-020", seat: 1 }],
+        deletedPermanents: [
+          {
+            permanentId: "perm-dead",
+            instanceId: "perm-dead",
+            cardId: "BT1-020",
+            seat: 1,
+          },
+        ],
       },
     ]);
     await advance(COMBAT_IMPACT_TOTAL_MS);
     expect(result.current.deleteBursts).toHaveLength(1);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "deletion")).toHaveLength(1);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "deletion",
+      ),
+    ).toHaveLength(1);
 
     await advance(NOTICE_ITEM_MS);
     rerender([{ ...COMBAT, deletedPermanentIds: [] }]);
     await advance(0);
     expect(result.current.deleteBursts).toEqual([]);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "deletion")).toHaveLength(0);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "deletion",
+      ),
+    ).toHaveLength(0);
   });
 
   it.each(["combat-first", "movement-first"] as const)(
@@ -2388,7 +2894,14 @@ describe("match cues", () => {
         instanceIds: ["perm-dead"],
         from: "battleArea",
         to: "trash",
-        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "perm-dead", cardId: "BT1-020", seat: 1 }],
+        deletedPermanents: [
+          {
+            permanentId: "perm-dead",
+            instanceId: "perm-dead",
+            cardId: "BT1-020",
+            seat: 1,
+          },
+        ],
       };
       if (order === "combat-first") {
         rerender([COMBAT]);
@@ -2418,7 +2931,12 @@ describe("match cues", () => {
   });
 
   it("plays no combat animation for the history a reconnect replays", async () => {
-    const { result } = renderCues([ATTACK, EFFECT_CHECK, COMBAT, UNSUSPEND_PHASE]);
+    const { result } = renderCues([
+      ATTACK,
+      EFFECT_CHECK,
+      COMBAT,
+      UNSUSPEND_PHASE,
+    ]);
     await advance(0);
 
     expect(result.current.securityBreak).toBeNull();
@@ -2452,7 +2970,10 @@ describe("match cues", () => {
     const { rerender } = renderCues([], onActionRejected);
     await advance(0);
 
-    rerender([TURN_END, { kind: "actionRejected", intent: "playCard", reason: "notYourTurn" }]);
+    rerender([
+      TURN_END,
+      { kind: "actionRejected", intent: "playCard", reason: "notYourTurn" },
+    ]);
     await advance(0);
 
     expect(playSound).toHaveBeenCalledWith("turnChange");
@@ -2475,7 +2996,9 @@ describe("zone-change showcases", () => {
     await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-9")).toBe(false);
-    expect(result.current.permanentBursts.get("perm-9")).toMatchObject({ variant: "play" });
+    expect(result.current.permanentBursts.get("perm-9")).toMatchObject({
+      variant: "play",
+    });
 
     await advance(TIMINGS.cardBurst);
     expect(result.current.permanentBursts.has("perm-9")).toBe(false);
@@ -2489,16 +3012,29 @@ describe("zone-change showcases", () => {
     await advance(0);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.size).toBe(0);
-    expect(result.current.permanentBursts.get("perm-8")).toMatchObject({ variant: "play" });
+    expect(result.current.permanentBursts.get("perm-8")).toMatchObject({
+      variant: "play",
+    });
   });
 
   it("holds the opponent's digivolution centre-screen like a play, then bursts the stack", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
-    rerender([{ kind: "digivolved", seat: 1, permanentId: "perm-9", cardId: "BT1-011", mechanic: "normal" }]);
+    rerender([
+      {
+        kind: "digivolved",
+        seat: 1,
+        permanentId: "perm-9",
+        cardId: "BT1-011",
+        mechanic: "normal",
+      },
+    ]);
     await advance(0);
-    expect(result.current.zoneShowcase).toMatchObject({ cardId: "BT1-011", kind: "digivolve" });
+    expect(result.current.zoneShowcase).toMatchObject({
+      cardId: "BT1-011",
+      kind: "digivolve",
+    });
     // The destination stays hidden while the card is being announced.
     expect(result.current.pendingPermanentIds.has("perm-9")).toBe(true);
     expect(result.current.permanentBursts.has("perm-9")).toBe(false);
@@ -2506,7 +3042,9 @@ describe("zone-change showcases", () => {
     await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-9")).toBe(false);
-    expect(result.current.permanentBursts.get("perm-9")).toMatchObject({ variant: "evolve" });
+    expect(result.current.permanentBursts.get("perm-9")).toMatchObject({
+      variant: "evolve",
+    });
 
     await advance(TIMINGS.cardBurst);
     expect(result.current.permanentBursts.has("perm-9")).toBe(false);
@@ -2516,25 +3054,46 @@ describe("zone-change showcases", () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
-    rerender([{ kind: "hatched", seat: 0, permanentId: "perm-egg", cardId: "ST1-01" }]);
+    rerender([
+      { kind: "hatched", seat: 0, permanentId: "perm-egg", cardId: "ST1-01" },
+    ]);
     await advance(0);
-    expect(result.current.permanentBursts.get("perm-egg")).toMatchObject({ variant: "hatch", inBreeding: true });
+    expect(result.current.permanentBursts.get("perm-egg")).toMatchObject({
+      variant: "hatch",
+      inBreeding: true,
+    });
 
     rerender([
       { kind: "hatched", seat: 0, permanentId: "perm-egg", cardId: "ST1-01" },
-      { kind: "digivolved", seat: 0, permanentId: "perm-egg", cardId: "ST1-03", mechanic: "normal" },
+      {
+        kind: "digivolved",
+        seat: 0,
+        permanentId: "perm-egg",
+        cardId: "ST1-03",
+        mechanic: "normal",
+      },
     ]);
     await advance(0);
     // Later arrivals preserve the prior beat (and any prelude queued after it).
-    expect(result.current.permanentBursts.get("perm-egg")).toMatchObject({ variant: "hatch" });
+    expect(result.current.permanentBursts.get("perm-egg")).toMatchObject({
+      variant: "hatch",
+    });
     await advance(TIMINGS.cardBurst);
-    expect(result.current.permanentBursts.get("perm-egg")).toMatchObject({ variant: "evolve" });
+    expect(result.current.permanentBursts.get("perm-egg")).toMatchObject({
+      variant: "evolve",
+    });
   });
 
   it("plays nothing for the history a reconnect replays", async () => {
     const { result } = renderCues([
       OPP_PLAY,
-      { kind: "digivolved", seat: 1, permanentId: "p", cardId: "BT1-011", mechanic: "normal" },
+      {
+        kind: "digivolved",
+        seat: 1,
+        permanentId: "p",
+        cardId: "BT1-011",
+        mechanic: "normal",
+      },
     ]);
     await advance(0);
 
@@ -2621,7 +3180,10 @@ describe("notices", () => {
   };
 
   it("opens nothing for the history a reconnect replays", async () => {
-    const { result } = renderCues([EFFECT, { kind: "securityRecovered", seat: 0, amount: 1 }]);
+    const { result } = renderCues([
+      EFFECT,
+      { kind: "securityRecovered", seat: 0, amount: 1 },
+    ]);
     await advance(0);
     expect(result.current.notices).toEqual([]);
   });
@@ -2652,16 +3214,55 @@ describe("notices", () => {
     // clock — the barrier has already caught the presentation up, so an item on screen
     // beside a prompt is one the viewer has been given the time to read.
     await advance(TIMINGS.noticeLifetime / 2);
-    rerender({ events: [EFFECT], decisionPending: true, decisionStateVersion: 1 });
+    rerender({
+      events: [EFFECT],
+      decisionPending: true,
+      decisionStateVersion: 1,
+    });
     await advance(TIMINGS.noticeLifetime / 2 + NARRATION_TICK_MS);
     expect(result.current.notices).toEqual([]);
+  });
+
+  it("holds the memory gauge until the clause that moved it is read out", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([
+      EFFECT,
+      { kind: "memoryChanged", from: 3, to: 4, reason: "gainMemory" },
+    ]);
+    expect(result.current.heldMemory?.memory).toBe(3);
+
+    await advance(NARRATION_TICK_MS);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.heldMemory).toBeUndefined();
+  });
+
+  it("pays a play cost at once rather than holding it behind the card's clause", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([
+      { kind: "memoryChanged", from: 5, to: 2, reason: "playCard" },
+      YOUR_PLAY,
+      EFFECT,
+    ]);
+    expect(result.current.heldMemory).toBeUndefined();
   });
 
   it("mirrors an effect the security check raised", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
-    rerender([{ kind: "securityChecked", seat: 0, revealedCardId: "BT1-010", resolution: "effect" }, EFFECT]);
+    rerender([
+      {
+        kind: "securityChecked",
+        seat: 0,
+        revealedCardId: "BT1-010",
+        resolution: "effect",
+      },
+      EFFECT,
+    ]);
     await advance(EFFECT_CHECK_NOTICE_AT_MS);
     expect(result.current.notices[0]?.fromSecurity).toBe(true);
   });
@@ -2686,7 +3287,10 @@ describe("notices", () => {
     expect(result.current.securityBranch).not.toBeNull();
   });
 
-  const CHECK_OWNED_EFFECT: ServerEvent = { ...EFFECT, duringSecurityCheck: true };
+  const CHECK_OWNED_EFFECT: ServerEvent = {
+    ...EFFECT,
+    duringSecurityCheck: true,
+  };
 
   // The reported bug's other half: the effect a check fires is announced before the
   // `securityChecked` that closes the check, and a decision inside the effect delivers
@@ -2763,7 +3367,12 @@ describe("notices", () => {
     expect(result.current.notices).toHaveLength(1);
   });
 
-  const XROS_PLAY: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT10-066", permanentId: "perm-7" };
+  const XROS_PLAY: ServerEvent = {
+    kind: "cardPlayed",
+    seat: 0,
+    cardId: "BT10-066",
+    permanentId: "perm-7",
+  };
 
   it("calls out a DigiXros the moment the played card lands", async () => {
     const { result, rerender } = renderCues();
@@ -2771,7 +3380,11 @@ describe("notices", () => {
 
     rerender([XROS_PLAY]);
     await advance(0);
-    expect(result.current.notices[0]?.body).toEqual({ variant: "keyword", keyword: "digiXros", cardId: "BT10-066" });
+    expect(result.current.notices[0]?.body).toEqual({
+      variant: "keyword",
+      keyword: "digiXros",
+      cardId: "BT10-066",
+    });
   });
 
   it("stays quiet for an ordinary play", async () => {
@@ -2795,7 +3408,10 @@ describe("notices", () => {
     await advance(0);
 
     act(() => result.current.raiseRejection("Not enough memory."));
-    expect(result.current.notices[0]?.body).toEqual({ variant: "rejection", reason: "Not enough memory." });
+    expect(result.current.notices[0]?.body).toEqual({
+      variant: "rejection",
+      reason: "Not enough memory.",
+    });
   });
 });
 
@@ -2821,9 +3437,18 @@ describe("server-named signals", () => {
   it("carries the server's DP compare onto the clash scene, in either direction", async () => {
     const { result, rerender } = renderCues([ATTACK]);
     await advance(0);
-    rerender([ATTACK, { ...CHECK, battle: { attackerDeleted: false, securityDigimonDeleted: true } } as ServerEvent]);
+    rerender([
+      ATTACK,
+      {
+        ...CHECK,
+        battle: { attackerDeleted: false, securityDigimonDeleted: true },
+      } as ServerEvent,
+    ]);
     await advance(SECURITY_BREAK_TOTAL_MS + 1);
-    expect(result.current.securityClash?.loser).toEqual({ attacker: false, revealed: true });
+    expect(result.current.securityClash?.loser).toEqual({
+      attacker: false,
+      revealed: true,
+    });
   });
 
   it("leaves the clash outcome unmarked when the server published no compare", async () => {
@@ -2858,7 +3483,13 @@ describe("security a card effect trashes", () => {
   it("keeps a question the same batch carries behind the last card's scene", async () => {
     const feed = batchFeed();
     const { result, rerender: rerenderBatches } = renderHook(
-      ({ batches, decisionPending }: { batches: readonly ServerBatch[]; decisionPending: boolean }) =>
+      ({
+        batches,
+        decisionPending,
+      }: {
+        batches: readonly ServerBatch[];
+        decisionPending: boolean;
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           batches,
@@ -2869,10 +3500,20 @@ describe("security a card effect trashes", () => {
           anchors,
           onActionRejected: vi.fn<(reason: string) => void>(),
         }),
-      { initialProps: { batches: [] as readonly ServerBatch[], decisionPending: false } },
+      {
+        initialProps: {
+          batches: [] as readonly ServerBatch[],
+          decisionPending: false,
+        },
+      },
     );
-    const rerender = ({ events, decisionPending }: { events: readonly ServerEvent[]; decisionPending: boolean }) =>
-      rerenderBatches({ batches: feed(events), decisionPending });
+    const rerender = ({
+      events,
+      decisionPending,
+    }: {
+      events: readonly ServerEvent[];
+      decisionPending: boolean;
+    }) => rerenderBatches({ batches: feed(events), decisionPending });
     await advance(0);
     expect(result.current.securityRevealPending).toBe(false);
 
@@ -2880,7 +3521,8 @@ describe("security a card effect trashes", () => {
     await advance(0);
     expect(result.current.securityRevealPending).toBe(true);
 
-    const bothCardsMs = 2 * (SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS);
+    const bothCardsMs =
+      2 * (SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS);
     await advance(bothCardsMs - 1);
     expect(result.current.securityRevealPending).toBe(true);
     expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
@@ -2896,17 +3538,28 @@ describe("security a card effect trashes", () => {
     rerender([SECURITY_TRASHED]);
 
     await advance(TIMINGS.securityArm);
-    expect(result.current.securityBreak).toMatchObject({ seat: 1, phase: "break" });
+    expect(result.current.securityBreak).toMatchObject({
+      seat: 1,
+      phase: "break",
+    });
 
     // The same shield arms and breaks again for the second card rather than staying broken
     // through both, so a stack losing several cards is seen losing each one.
     const first = result.current.securityBreak?.key;
-    await advance(SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS - TIMINGS.securityArm);
-    expect(result.current.securityBreak).toMatchObject({ seat: 1, phase: "arm" });
+    await advance(
+      SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS - TIMINGS.securityArm,
+    );
+    expect(result.current.securityBreak).toMatchObject({
+      seat: 1,
+      phase: "arm",
+    });
     expect(result.current.securityBreak?.key).not.toBe(first);
 
     await advance(TIMINGS.securityArm);
-    expect(result.current.securityBreak).toMatchObject({ seat: 1, phase: "break" });
+    expect(result.current.securityBreak).toMatchObject({
+      seat: 1,
+      phase: "break",
+    });
   });
 
   // The reported bug: a chained effect (Medusamon's Petrification tokens) delivers one
@@ -2990,7 +3643,11 @@ describe("the figure a shield shows", () => {
     await advance(SECURITY_DESTROY_OUTCOME_AT_MS);
     expect(result.current.heldSecurityCounts.get(1)).toBe(4);
 
-    await advance(SECURITY_DESTROY_TOTAL_MS - SECURITY_DESTROY_OUTCOME_AT_MS + SECURITY_BREAK_TOTAL_MS);
+    await advance(
+      SECURITY_DESTROY_TOTAL_MS -
+        SECURITY_DESTROY_OUTCOME_AT_MS +
+        SECURITY_BREAK_TOTAL_MS,
+    );
     expect(result.current.heldSecurityCounts.get(1)).toBe(4);
 
     await advance(SECURITY_DESTROY_OUTCOME_AT_MS);
@@ -3024,7 +3681,13 @@ describe("security gains", () => {
   function renderCuesOverGrowingBoard(initialState: GameState) {
     const feed = batchFeed();
     const view = renderHook(
-      ({ batches, state }: { batches: readonly ServerBatch[]; state: GameState }) =>
+      ({
+        batches,
+        state,
+      }: {
+        batches: readonly ServerBatch[];
+        state: GameState;
+      }) =>
         useMatchCues({
           narrationLimit: 3,
           batches,
@@ -3034,41 +3697,63 @@ describe("security gains", () => {
           anchors,
           onActionRejected: vi.fn<(reason: string) => void>(),
         }),
-      { initialProps: { batches: [] as readonly ServerBatch[], state: initialState } },
+      {
+        initialProps: {
+          batches: [] as readonly ServerBatch[],
+          state: initialState,
+        },
+      },
     );
     return {
       ...view,
-      rerender: ({ events, state }: { events: readonly ServerEvent[]; state: GameState }) =>
-        view.rerender({ batches: feed(events), state }),
+      rerender: ({
+        events,
+        state,
+      }: {
+        events: readonly ServerEvent[];
+        state: GameState;
+      }) => view.rerender({ batches: feed(events), state }),
     };
   }
 
   it("flies the card onto the stack and announces a growth an effect caused", async () => {
-    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(5, 5),
+    );
     await advance(0);
 
     rerender({ events: [], state: boardWithSecurity(6, 5) });
     await advance(0);
     expect(result.current.securityFlights.has(VIEWER)).toBe(true);
     expect(result.current.notices).toHaveLength(1);
-    expect(result.current.notices[0]).toMatchObject({ side: "you", body: { variant: "securityGain", amount: 1 } });
+    expect(result.current.notices[0]).toMatchObject({
+      side: "you",
+      body: { variant: "securityGain", amount: 1 },
+    });
 
     await advance(TIMINGS.securityFlight);
     expect(result.current.securityFlights.has(VIEWER)).toBe(false);
   });
 
   it("announces the opponent's growth on the opponent's side", async () => {
-    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(5, 5),
+    );
     await advance(0);
 
     rerender({ events: [], state: boardWithSecurity(5, 7) });
     await advance(0);
     expect(result.current.securityFlights.has(1)).toBe(true);
-    expect(result.current.notices[0]).toMatchObject({ side: "opp", body: { variant: "securityGain", amount: 2 } });
+    expect(result.current.notices[0]).toMatchObject({
+      side: "opp",
+      body: { variant: "securityGain", amount: 2 },
+    });
   });
 
   it("leaves a growth a recovery announced to the recovery", async () => {
-    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(5, 5),
+    );
     await advance(0);
 
     rerender({
@@ -3076,64 +3761,180 @@ describe("security gains", () => {
       state: boardWithSecurity(6, 5),
     });
     await advance(0);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["recovery"]);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
+      ["recovery"],
+    );
+  });
+
+  it("leaves a growth to the recovery still waiting to be presented when the patch lands first", async () => {
+    // Over the wire the recovery event travels first, the state patch next, and the batch
+    // close last. The patch therefore renders while the batch is still open: the stack has
+    // grown, and the event that explains it is in the raw stream but not yet in a batch.
+    const recovery = singleServerBatch(
+      [{ kind: "securityRecovered", seat: VIEWER, amount: 1 }],
+      1,
+    );
+    const { result, rerender } = renderHook(
+      ({
+        batches,
+        phaseEvents,
+        state,
+      }: {
+        batches: readonly ServerBatch[];
+        phaseEvents: readonly ServerEvent[];
+        state: GameState;
+      }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          batches,
+          phaseEvents,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      {
+        initialProps: {
+          batches: [],
+          phaseEvents: [],
+          state: boardWithSecurity(5, 5),
+        },
+      },
+    );
+    await advance(0);
+
+    rerender({
+      batches: [],
+      phaseEvents: recovery.events,
+      state: boardWithSecurity(6, 5),
+    });
+    await advance(0);
+    expect(result.current.notices).toEqual([]);
+    expect(result.current.securityFlights.size).toBe(0);
+
+    rerender({
+      batches: [recovery],
+      phaseEvents: recovery.events,
+      state: boardWithSecurity(6, 5),
+    });
+    await advance(0);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
+      ["recovery"],
+    );
+    expect(result.current.securityFlights.has(VIEWER)).toBe(true);
   });
 
   it("announces an add the movement names a seat for, even when the count never moves", async () => {
-    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(5, 5),
+    );
     await advance(0);
 
     // "Place 1 card from your hand as the bottom security card. Then, trash your top
     // security card" (BT24-016): the opponent's stack is the same size after the patch.
     rerender({
       events: [
-        { kind: "cardsMoved", instanceIds: ["placed"], from: "various", to: "security", seat: 1 },
-        { kind: "cardsMoved", instanceIds: ["lost"], from: "security", to: "trash", cardIds: ["BT1-010"], seat: 1 },
+        {
+          kind: "cardsMoved",
+          instanceIds: ["placed"],
+          from: "various",
+          to: "security",
+          seat: 1,
+        },
+        {
+          kind: "cardsMoved",
+          instanceIds: ["lost"],
+          from: "security",
+          to: "trash",
+          cardIds: ["BT1-010"],
+          seat: 1,
+        },
       ],
       state: boardWithSecurity(5, 5),
     });
     await advance(0);
     expect(result.current.securityFlights.has(1)).toBe(true);
-    expect(result.current.notices.map((notice) => [notice.side, notice.body])).toEqual([
-      ["opp", { variant: "securityGain", amount: 1 }],
-    ]);
+    expect(
+      result.current.notices.map((notice) => [notice.side, notice.body]),
+    ).toEqual([["opp", { variant: "securityGain", amount: 1 }]]);
 
     // The panel of what the same effect trashed follows it.
     await advance(NOTICE_ITEM_MS);
-    expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.trashedCards");
+    expect(result.current.sidePanels.at(-1)?.titleKey).toBe(
+      "panel.trashedCards",
+    );
   });
 
   it("narrates a named add once, not again when its growth lands", async () => {
-    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(5, 5),
+    );
     await advance(0);
 
     rerender({
-      events: [{ kind: "cardsMoved", instanceIds: ["placed"], from: "various", to: "security", seat: VIEWER }],
+      events: [
+        {
+          kind: "cardsMoved",
+          instanceIds: ["placed"],
+          from: "various",
+          to: "security",
+          seat: VIEWER,
+        },
+      ],
       state: boardWithSecurity(6, 5),
     });
     await advance(0);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["securityGain"]);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
+      ["securityGain"],
+    );
   });
 
   it("does not let a claim that met no growth swallow the next growth the count shows", async () => {
-    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(5, 5),
+    );
     await advance(0);
 
     rerender({
-      events: [{ kind: "cardsMoved", instanceIds: ["placed"], from: "various", to: "security", seat: 1 }],
+      events: [
+        {
+          kind: "cardsMoved",
+          instanceIds: ["placed"],
+          from: "various",
+          to: "security",
+          seat: 1,
+        },
+      ],
       state: boardWithSecurity(5, 5),
     });
     await advance(0);
     rerender({
       events: [
-        { kind: "cardsMoved", instanceIds: ["placed"], from: "various", to: "security", seat: 1 },
-        { kind: "cardsMoved", instanceIds: ["unnamed"], from: "deck", to: "security" },
+        {
+          kind: "cardsMoved",
+          instanceIds: ["placed"],
+          from: "various",
+          to: "security",
+          seat: 1,
+        },
+        {
+          kind: "cardsMoved",
+          instanceIds: ["unnamed"],
+          from: "deck",
+          to: "security",
+        },
       ],
       state: boardWithSecurity(5, 6),
     });
     await advance(0);
     // Both independent security additions remain visible.
-    expect(result.current.notices.map((notice) => [notice.side, notice.body.variant])).toEqual([
+    expect(
+      result.current.notices.map((notice) => [
+        notice.side,
+        notice.body.variant,
+      ]),
+    ).toEqual([
       ["opp", "securityGain"],
       ["opp", "securityGain"],
     ]);
@@ -3142,7 +3943,9 @@ describe("security gains", () => {
   });
 
   it("says nothing when the stack shrinks", async () => {
-    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(5, 5),
+    );
     await advance(0);
 
     rerender({ events: [], state: boardWithSecurity(4, 5) });
@@ -3159,7 +3962,9 @@ describe("security gains", () => {
   });
 
   it("deals the opening stack card by card instead of gaining five at once", async () => {
-    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(0, 0));
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(0, 0),
+    );
     await advance(0);
 
     rerender({ events: [], state: boardWithSecurity(5, 5) });
@@ -3180,13 +3985,17 @@ describe("security gains", () => {
   });
 
   it("gains rather than deals when a stack grows after the opening", async () => {
-    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(5, 5),
+    );
     await advance(0);
 
     rerender({ events: [], state: boardWithSecurity(6, 5) });
     await advance(0);
     expect(result.current.securityDealCounts.size).toBe(0);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["securityGain"]);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
+      ["securityGain"],
+    );
   });
 });
 
@@ -3222,16 +4031,31 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     instanceIds: ["perm-dead"],
     from: "battleArea",
     to: "trash",
-    deletedPermanents: [{ permanentId: "perm-dead", instanceId: "perm-dead", cardId: "BT1-010", seat: 0 }],
+    deletedPermanents: [
+      {
+        permanentId: "perm-dead",
+        instanceId: "perm-dead",
+        cardId: "BT1-010",
+        seat: 0,
+      },
+    ],
   };
-  const XROS_BATCH: readonly ServerEvent[] = [XROS_PLAY, XROS_MATERIALS, KIMERA_ON_PLAY, VIEWER_DELETED];
+  const XROS_BATCH: readonly ServerEvent[] = [
+    XROS_PLAY,
+    XROS_MATERIALS,
+    KIMERA_ON_PLAY,
+    VIEWER_DELETED,
+  ];
 
   /** When the [On Play] clause is read out: once the card has had the screen to itself. */
   const CLAUSE_AT_MS = SHOWCASE_TOTAL_MS;
-  /** When what the clause did reaches the board. */
+  /** When what the clause did reaches the board, at the earliest: behind the play's lead-in. */
   const DELETION_AT_MS = CLAUSE_AT_MS + TIMINGS.effectSourceHold;
-  /** When the viewer's own prompt may finally open. */
-  const PROMPT_AT_MS = DELETION_AT_MS + TIMINGS.cardShatter;
+  /** When the viewer's own prompt may finally open, at the latest. */
+  const PROMPT_AT_MS =
+    CLAUSE_AT_MS +
+    Math.max(TIMINGS.effectSourceHold, TIMINGS.effectAnnounce) +
+    TIMINGS.cardShatter;
 
   it("plays the call-out, the clause and the deletion as three beats before the prompt opens", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
@@ -3239,12 +4063,18 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
 
     // The server asks the moment it has resolved: the question arrives with the batch it
     // was raised in, and its barrier holds the prompt until that batch is read out.
-    rerender({ events: XROS_BATCH, decisionPending: true, decisionStateVersion: 1 });
+    rerender({
+      events: XROS_BATCH,
+      decisionPending: true,
+      decisionStateVersion: 1,
+    });
     await advance(0);
 
     // Beat one: the card centre-stage, and "DigiXros!" beside it — and nothing else.
     expect(result.current.zoneShowcase?.cardId).toBe(KIMERAMON);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["keyword"]);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
+      ["keyword"],
+    );
     expect(result.current.deleteBursts).toEqual([]);
     expect(result.current.decisionBarrierPending).toBe(true);
     // The board the prompt will open over is the board this batch produced.
@@ -3256,7 +4086,23 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     expect(result.current.decisionBarrierPending).toBe(true);
 
     // Beat three: the consequence, with the shatter drawn from the card that stood there.
-    await advance(DELETION_AT_MS - CLAUSE_AT_MS);
+    // It waits out the play's lead-in, and never breaks the card before the clause has
+    // been readable for a beat.
+    let elapsedMs = CLAUSE_AT_MS;
+    while (
+      !result.current.notices.some((notice) => notice.body.variant === "effect")
+    ) {
+      await advance(10);
+      elapsedMs += 10;
+      expect(elapsedMs).toBeLessThan(CONSEQUENCE_WAIT_LIMIT_MS);
+    }
+    const shatterAtMs = Math.max(
+      DELETION_AT_MS,
+      elapsedMs + TIMINGS.effectAnnounce,
+    );
+    await advance(shatterAtMs - elapsedMs - 20);
+    expect(result.current.deleteBursts).toEqual([]);
+    await advance(20);
     expect(result.current.deleteBursts).toHaveLength(1);
 
     // Only then is the viewer asked about it.
@@ -3272,7 +4118,11 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
 
-    rerender({ events: XROS_BATCH, decisionPending: true, decisionStateVersion: 1 });
+    rerender({
+      events: XROS_BATCH,
+      decisionPending: true,
+      decisionStateVersion: 1,
+    });
     await advance(0);
     expect(result.current.decisionBarrierPending).toBe(true);
     expect(PROMPT_AT_MS).toBeLessThanOrEqual(PLAY_LEAD_IN_BUDGET_MS);
@@ -3287,15 +4137,26 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
 
-    rerender({ events: XROS_BATCH, decisionPending: true, decisionStateVersion: 1 });
+    rerender({
+      events: XROS_BATCH,
+      decisionPending: true,
+      decisionStateVersion: 1,
+    });
     await advance(0);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["keyword"]);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
+      ["keyword"],
+    );
 
     // A pending decision no longer stops the reading clock: the call-out is read, it
     // leaves, and the clause behind it takes the corner — all while the question is open.
     await advance(NOTICE_ITEM_MS + 1);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect", "deletion"]);
-    expect(result.current.notices[0]?.body).toMatchObject({ cardId: KIMERAMON, timing: "On Play" });
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
+      ["effect", "deletion"],
+    );
+    expect(result.current.notices[0]?.body).toMatchObject({
+      cardId: KIMERAMON,
+      timing: "On Play",
+    });
   });
 
   it("raises no barrier for a question about a board already read out", async () => {
@@ -3307,7 +4168,11 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     expect(result.current.presentedStateVersion).toBeUndefined();
 
     // The question is about the batch the screen has already finished: nothing to wait for.
-    rerender({ events: XROS_BATCH, decisionPending: true, decisionStateVersion: 1 });
+    rerender({
+      events: XROS_BATCH,
+      decisionPending: true,
+      decisionStateVersion: 1,
+    });
     await advance(0);
     expect(result.current.decisionBarrierPending).toBe(false);
   });
@@ -3325,16 +4190,28 @@ describe("the narration feed", () => {
   });
   const yourEffect = (id: string) => effectOf(0, id);
   const theirEffect = (id: string) => effectOf(1, id);
-  function cards(narration: ReadonlyMap<string, { notice?: { body: unknown } }>) {
-    return [...narration.values()].map((item) => (item.notice?.body as { cardId?: string })?.cardId);
+  function cards(
+    narration: ReadonlyMap<string, { notice?: { body: unknown } }>,
+  ) {
+    return [...narration.values()].map(
+      (item) => (item.notice?.body as { cardId?: string })?.cardId,
+    );
   }
 
   it("shows three same-side clauses together without holding the board or input", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
-    rerender([yourEffect("BT1-001"), yourEffect("BT1-002"), yourEffect("BT1-003")]);
+    rerender([
+      yourEffect("BT1-001"),
+      yourEffect("BT1-002"),
+      yourEffect("BT1-003"),
+    ]);
     await advance(0);
-    expect(cards(result.current.narration)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+    expect(cards(result.current.narration)).toEqual([
+      "BT1-001",
+      "BT1-002",
+      "BT1-003",
+    ]);
     expect(result.current.presenting).toBe(false);
     expect(result.current.presentedStateVersion).toBeUndefined();
     await advance(TIMINGS.noticeLifetime);
@@ -3415,11 +4292,19 @@ describe("the narration feed", () => {
         { initialProps: feed([]) },
       );
       await advance(0);
-      view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
+      view.rerender(
+        feed([
+          yourEffect("BT1-001"),
+          yourEffect("BT1-002"),
+          theirEffect("BT1-009"),
+        ]),
+      );
       await advance(0);
       // All three are clauses, so they all read out of the one text column. It holds two, so
       // the oldest falls off; the phone's folded slot queues them instead of dropping any.
-      const expected = portrait ? ["BT1-001", "BT1-002", "BT1-009"] : ["BT1-002", "BT1-009"];
+      const expected = portrait
+        ? ["BT1-001", "BT1-002", "BT1-009"]
+        : ["BT1-002", "BT1-009"];
       expect(cards(view.result.current.narration)).toEqual(expected);
       await advance(TIMINGS.effectAnnounce);
       expect(cards(view.result.current.narration)).toEqual(expected);
@@ -3432,7 +4317,11 @@ describe("the narration feed", () => {
     const { result, rerender } = renderCues();
     await advance(0);
     expect(result.current.advanceNarration()).toBe(false);
-    rerender([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]);
+    rerender([
+      yourEffect("BT1-001"),
+      yourEffect("BT1-002"),
+      theirEffect("BT1-009"),
+    ]);
     await advance(1000);
     const middle = [...result.current.narration.keys()][1]!;
     act(() => {
@@ -3464,7 +4353,11 @@ describe("the narration feed", () => {
     act(() => result.current.skipAnimations());
     await advance(0);
     expect(result.current.narration.size).toBe(0);
-    rerender([yourEffect("BT1-001"), theirEffect("BT1-009"), yourEffect("BT1-002")]);
+    rerender([
+      yourEffect("BT1-001"),
+      theirEffect("BT1-009"),
+      yourEffect("BT1-002"),
+    ]);
     await advance(0);
     expect(cards(result.current.narration)).toEqual(["BT1-002"]);
   });
@@ -3472,7 +4365,10 @@ describe("the narration feed", () => {
   it("does not wait for reading timers to open a decision, and keeps expiring records", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
-    rerender({ events: [yourEffect("BT1-001"), yourEffect("BT1-002")], decisionPending: false });
+    rerender({
+      events: [yourEffect("BT1-001"), yourEffect("BT1-002")],
+      decisionPending: false,
+    });
     await advance(0);
     expect(cards(result.current.narration)).toEqual(["BT1-001", "BT1-002"]);
     rerender({
@@ -3492,7 +4388,10 @@ describe("the narration feed", () => {
     rerender([theirEffect("BT1-009")]);
     await advance(0);
     act(() => result.current.raiseRejection("Not enough memory."));
-    expect(result.current.rejection?.body).toEqual({ variant: "rejection", reason: "Not enough memory." });
+    expect(result.current.rejection?.body).toEqual({
+      variant: "rejection",
+      reason: "Not enough memory.",
+    });
     expect(cards(result.current.narration)).toEqual(["BT1-009"]);
     await advance(TIMINGS.noticeLifetime);
     expect(result.current.rejection).not.toBeNull();
@@ -3501,7 +4400,10 @@ describe("the narration feed", () => {
   });
 
   it("does not replay reconnect history or leave reading timers behind", async () => {
-    const { result } = renderCues([yourEffect("BT1-001"), theirEffect("BT1-009")]);
+    const { result } = renderCues([
+      yourEffect("BT1-001"),
+      theirEffect("BT1-009"),
+    ]);
     await advance(0);
     expect(result.current.narration.size).toBe(0);
     expect(vi.getTimerCount()).toBe(0);
@@ -3622,7 +4524,12 @@ describe("triggered effect source prelude", () => {
         TRASHED_SECURITY_BOARD.players[0],
         {
           ...TRASHED_SECURITY_BOARD.players[1],
-          battleArea: [{ permanentId: "surviving-copy", topCard: { cardId: "BT1-010", instanceId: "survivor" } }],
+          battleArea: [
+            {
+              permanentId: "surviving-copy",
+              topCard: { cardId: "BT1-010", instanceId: "survivor" },
+            },
+          ],
         },
       ],
     } as unknown as GameState);
@@ -3633,31 +4540,66 @@ describe("triggered effect source prelude", () => {
         instanceIds: ["sec-1"],
         from: "battleArea",
         to: "trash",
-        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "sec-1", cardId: "BT1-010", seat: 1 }],
+        deletedPermanents: [
+          {
+            permanentId: "perm-dead",
+            instanceId: "sec-1",
+            cardId: "BT1-010",
+            seat: 1,
+          },
+        ],
       },
       trigger,
     ]);
     await advance(0);
     expect(result.current.deleteBursts).toHaveLength(1);
     expect(result.current.effectSources).toHaveLength(0);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "effect",
+      ),
+    ).toHaveLength(0);
     await advance(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
     expect(result.current.deleteBursts).toHaveLength(0);
-    expect(result.current.effectSources).toMatchObject([{ site: { zone: "trash", instanceId: "sec-1" } }]);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    expect(result.current.effectSources).toMatchObject([
+      { site: { zone: "trash", instanceId: "sec-1" } },
+    ]);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "effect",
+      ),
+    ).toHaveLength(0);
     await advance(TIMINGS.effectSourceHold - 1);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "effect",
+      ),
+    ).toHaveLength(0);
     await advance(1);
     /* The punch is over, but the source does not go dark: it is handed to the clause it
        raised and stays lit for as long as that clause is on screen, so the toast and the
        card it is about are one moment rather than two signals a beat apart. */
-    expect(result.current.effectSources).toMatchObject([{ site: { zone: "trash" }, linked: true }]);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+    expect(result.current.effectSources).toMatchObject([
+      { site: { zone: "trash" }, linked: true },
+    ]);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "effect",
+      ),
+    ).toHaveLength(1);
     await advance(TIMINGS.noticeLifetime - 1);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "effect",
+      ),
+    ).toHaveLength(1);
     expect(result.current.effectSources).toHaveLength(1);
     await advance(1);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "effect",
+      ),
+    ).toHaveLength(0);
     // The clause leaving is what takes the light with it.
     expect(result.current.effectSources).toHaveLength(0);
   });
@@ -3669,7 +4611,12 @@ describe("triggered effect source prelude", () => {
         TRASHED_SECURITY_BOARD.players[0],
         {
           ...TRASHED_SECURITY_BOARD.players[1],
-          battleArea: [{ permanentId: "perm-9", topCard: { cardId: "BT1-010", instanceId: "arrived" } }],
+          battleArea: [
+            {
+              permanentId: "perm-9",
+              topCard: { cardId: "BT1-010", instanceId: "arrived" },
+            },
+          ],
         },
       ],
     } as unknown as GameState;
@@ -3681,17 +4628,30 @@ describe("triggered effect source prelude", () => {
       cardId: "BT1-010",
       mechanic: "normal",
     };
-    const first = { ...trigger, timing: "When Digivolving", effectKey: "first", description: "First effect." };
-    const second = { ...first, effectKey: "second", description: "Second effect." };
+    const first = {
+      ...trigger,
+      timing: "When Digivolving",
+      effectKey: "first",
+      description: "First effect.",
+    };
+    const second = {
+      ...first,
+      effectKey: "second",
+      description: "Second effect.",
+    };
     await advance(0);
     rerender([arrival, first]);
     await advance(100);
     rerender([arrival, first, { ...arrival }, second]);
-    await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst - 100 + TIMINGS.effectSourceHold);
+    await advance(
+      SHOWCASE_TOTAL_MS + TIMINGS.cardBurst - 100 + TIMINGS.effectSourceHold,
+    );
     expect(result.current.notices.map((notice) => notice.body)).toContainEqual(
       expect.objectContaining({ description: "First effect." }),
     );
-    await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold);
+    await advance(
+      SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold,
+    );
     expect(result.current.notices.map((notice) => notice.body)).toEqual([
       expect.objectContaining({ description: "First effect." }),
       expect.objectContaining({ description: "Second effect." }),
@@ -3723,12 +4683,24 @@ describe("triggered effect source prelude", () => {
     await advance(0);
     expect(result.current.phaseBanner).not.toBeNull();
     expect(result.current.effectSources).toHaveLength(0);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "effect",
+      ),
+    ).toHaveLength(0);
     await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 16);
     expect(result.current.effectSources).toHaveLength(1);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "effect",
+      ),
+    ).toHaveLength(0);
     await advance(TIMINGS.effectSourceHold);
-    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+    expect(
+      result.current.notices.filter(
+        (notice) => notice.body.variant === "effect",
+      ),
+    ).toHaveLength(1);
   });
 
   it.each(["On Play", "When Digivolving"])(
@@ -3740,7 +4712,12 @@ describe("triggered effect source prelude", () => {
           TRASHED_SECURITY_BOARD.players[0],
           {
             ...TRASHED_SECURITY_BOARD.players[1],
-            battleArea: [{ permanentId: "perm-9", topCard: { cardId: "BT1-010", instanceId: "arrived" } }],
+            battleArea: [
+              {
+                permanentId: "perm-9",
+                topCard: { cardId: "BT1-010", instanceId: "arrived" },
+              },
+            ],
           },
         ],
       } as unknown as GameState);
@@ -3758,12 +4735,24 @@ describe("triggered effect source prelude", () => {
       rerender([arrival, { ...trigger, timing }]);
       await advance(0);
       expect(result.current.effectSources).toHaveLength(0);
-      expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+      expect(
+        result.current.notices.filter(
+          (notice) => notice.body.variant === "effect",
+        ),
+      ).toHaveLength(0);
       await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst);
       expect(result.current.effectSources).toHaveLength(1);
-      expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+      expect(
+        result.current.notices.filter(
+          (notice) => notice.body.variant === "effect",
+        ),
+      ).toHaveLength(0);
       await advance(TIMINGS.effectSourceHold);
-      expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+      expect(
+        result.current.notices.filter(
+          (notice) => notice.body.variant === "effect",
+        ),
+      ).toHaveLength(1);
     },
   );
 });
@@ -3773,7 +4762,12 @@ it("shows Analog Youth's On Play before its trash result across server batches",
     players: [
       { battleArea: [], hand: [], trash: [] },
       {
-        battleArea: [{ permanentId: "perm-4", topCard: { cardId: "EX1-066", instanceId: "s1-42" } }],
+        battleArea: [
+          {
+            permanentId: "perm-4",
+            topCard: { cardId: "EX1-066", instanceId: "s1-42" },
+          },
+        ],
         hand: [],
         trash: [
           { instanceId: "s1-47", cardId: "P-205" },
@@ -3783,8 +4777,15 @@ it("shows Analog Youth's On Play before its trash result across server batches",
     ],
   } as unknown as GameState;
   const reports: import("@aegis/shared").PresentationReport[] = [];
-  const { result, rerender } = renderCuesOverBoard(board, undefined, (report) => reports.push(report));
-  const play: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "EX1-066", permanentId: "perm-4" };
+  const { result, rerender } = renderCuesOverBoard(board, undefined, (report) =>
+    reports.push(report),
+  );
+  const play: ServerEvent = {
+    kind: "cardPlayed",
+    seat: 1,
+    cardId: "EX1-066",
+    permanentId: "perm-4",
+  };
   const effect: ServerEvent = {
     kind: "effectTriggered",
     seat: 1,
@@ -3802,17 +4803,47 @@ it("shows Analog Youth's On Play before its trash result across server batches",
   expect(result.current.effectSources).toHaveLength(0);
   expect(result.current.notices).toHaveLength(0);
   await advance(2348);
-  rerender([play, effect, { kind: "cardsMoved", instanceIds: ["s1-47", "s1-31"], from: "various", to: "trash" }]);
+  rerender([
+    play,
+    effect,
+    {
+      kind: "cardsMoved",
+      instanceIds: ["s1-47", "s1-31"],
+      from: "various",
+      to: "trash",
+    },
+  ]);
   await advance(0);
-  expect(result.current.sidePanels.filter((panel) => panel.titleKey === "panel.trashedCards")).toHaveLength(0);
-  await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold - 2360);
   expect(
-    result.current.notices.some((notice) => notice.body.variant === "effect" && notice.body.cardId === "EX1-066"),
+    result.current.sidePanels.filter(
+      (panel) => panel.titleKey === "panel.trashedCards",
+    ),
+  ).toHaveLength(0);
+  await advance(
+    SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold - 2360,
+  );
+  expect(
+    result.current.notices.some(
+      (notice) =>
+        notice.body.variant === "effect" && notice.body.cardId === "EX1-066",
+    ),
   ).toBe(true);
   await advance(TIMINGS.effectAnnounce);
-  expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.trashedCards")).toBe(true);
-  const arrivalReport = reports.find((report) => report.stepId.startsWith("zone-change-") && report.phase === "queued");
-  expect(reports.find((report) => report.stepId.startsWith("burst-") && report.phase === "started")).toMatchObject({
+  expect(
+    result.current.sidePanels.some(
+      (panel) => panel.titleKey === "panel.trashedCards",
+    ),
+  ).toBe(true);
+  const arrivalReport = reports.find(
+    (report) =>
+      report.stepId.startsWith("zone-change-") && report.phase === "queued",
+  );
+  expect(
+    reports.find(
+      (report) =>
+        report.stepId.startsWith("burst-") && report.phase === "started",
+    ),
+  ).toMatchObject({
     batchId: arrivalReport?.batchId,
     stateVersion: 1,
   });
@@ -3844,7 +4875,12 @@ it("holds a revealed Digimon on stage until the server closes its battle", async
     REVEALED_DIGIMON,
     {
       ...CHECK,
-      battle: { attackerDP: 2000, securityCardDP: 4000, attackerDeleted: true, securityDigimonDeleted: true },
+      battle: {
+        attackerDP: 2000,
+        securityCardDP: 4000,
+        attackerDeleted: true,
+        securityDigimonDeleted: true,
+      },
     },
   ]);
   await advance(0);
@@ -3861,7 +4897,16 @@ it("gives up the battle hold when the check never closes", async () => {
   const { result, rerender } = renderCues();
   rerender([ATTACK]);
   await advance(10000);
-  rerender([ATTACK, { ...REVEAL, isDigimon: true, hasSecurityEffect: false, attackerDP: 2000, securityCardDP: 4000 }]);
+  rerender([
+    ATTACK,
+    {
+      ...REVEAL,
+      isDigimon: true,
+      hasSecurityEffect: false,
+      attackerDP: 2000,
+      securityCardDP: 4000,
+    },
+  ]);
   await advance(TIMINGS.securityDockMax + TIMINGS.securityDockPoll);
   expect(result.current.securityClash).toBeNull();
 });
@@ -3880,7 +4925,12 @@ it("plays the whole battle when the close arrives after the hold gave up", async
   };
   const CLOSE: ServerEvent = {
     ...CHECK,
-    battle: { attackerDP: 2000, securityCardDP: 4000, attackerDeleted: true, securityDigimonDeleted: true },
+    battle: {
+      attackerDP: 2000,
+      securityCardDP: 4000,
+      attackerDeleted: true,
+      securityDigimonDeleted: true,
+    },
   };
   const { result, rerender } = renderCues();
   rerender([ATTACK]);
@@ -3946,8 +4996,14 @@ it("highlights each physical Digimon when identical cards resolve their start-of
     players: [
       {
         battleArea: [
-          { permanentId: "first-hyokomon", topCard: { cardId: "BT26-009", instanceId: "first-copy" } },
-          { permanentId: "second-hyokomon", topCard: { cardId: "BT26-009", instanceId: "second-copy" } },
+          {
+            permanentId: "first-hyokomon",
+            topCard: { cardId: "BT26-009", instanceId: "first-copy" },
+          },
+          {
+            permanentId: "second-hyokomon",
+            topCard: { cardId: "BT26-009", instanceId: "second-copy" },
+          },
         ],
         hand: [],
         trash: [],
@@ -3973,18 +5029,27 @@ it("highlights each physical Digimon when identical cards resolve their start-of
   } as unknown as ServerEvent;
   rerender([first]);
   await advance(0);
-  expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "first-hyokomon" } }]);
+  expect(result.current.effectSources).toMatchObject([
+    { site: { zone: "field", permanentId: "first-hyokomon" } },
+  ]);
   await advance(10000);
   rerender([first, second]);
   await advance(0);
-  expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "second-hyokomon" } }]);
+  expect(result.current.effectSources).toMatchObject([
+    { site: { zone: "field", permanentId: "second-hyokomon" } },
+  ]);
 });
 
 it("keeps the activation glow when a decision suppresses its duplicate toast", async () => {
   const board = {
     players: [
       {
-        battleArea: [{ permanentId: "second", topCard: { cardId: "BT26-009", instanceId: "copy-2" } }],
+        battleArea: [
+          {
+            permanentId: "second",
+            topCard: { cardId: "BT26-009", instanceId: "copy-2" },
+          },
+        ],
         hand: [],
         trash: [],
       },
@@ -4006,7 +5071,9 @@ it("keeps the activation glow when a decision suppresses its duplicate toast", a
     },
   ]);
   await advance(0);
-  expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "second" } }]);
+  expect(result.current.effectSources).toMatchObject([
+    { site: { zone: "field", permanentId: "second" } },
+  ]);
   await advance(TIMINGS.effectSourceHold);
   expect(result.current.notices).toHaveLength(0);
 });
@@ -4015,7 +5082,12 @@ it("narrates a card's later clauses again once the dialog that silenced it has c
   const board = {
     players: [
       {
-        battleArea: [{ permanentId: "rina", topCard: { cardId: "EX13-069", instanceId: "rina-card" } }],
+        battleArea: [
+          {
+            permanentId: "rina",
+            topCard: { cardId: "EX13-069", instanceId: "rina-card" },
+          },
+        ],
         hand: [],
         trash: [],
       },
@@ -4036,7 +5108,8 @@ it("narrates a card's later clauses again once the dialog that silenced it has c
   const yourTurnPrompt: ServerEvent = {
     ...startOfMain,
     effectKey: "EX13-069/ir-2-0",
-    description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
+    description:
+      "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
     timing: "YourTurn",
   };
   // The [Your Turn] clause asks whether to suspend the Tamer: its dialog prints the clause,
@@ -4051,14 +5124,21 @@ it("narrates a card's later clauses again once the dialog that silenced it has c
   // Next turn, the same Tamer's [Start of Your Main Phase] clause asks nothing and reads out.
   rerender([yourTurnPrompt, startOfMain]);
   await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
-  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
+  expect(result.current.notices).toMatchObject([
+    { body: { variant: "effect", cardId: "EX13-069" } },
+  ]);
 });
 
 it("keeps silencing the clauses a dialog found queued after it closes", async () => {
   const board = {
     players: [
       {
-        battleArea: [{ permanentId: "rina", topCard: { cardId: "EX13-069", instanceId: "rina-card" } }],
+        battleArea: [
+          {
+            permanentId: "rina",
+            topCard: { cardId: "EX13-069", instanceId: "rina-card" },
+          },
+        ],
         hand: [],
         trash: [],
       },
@@ -4074,7 +5154,8 @@ it("keeps silencing the clauses a dialog found queued after it closes", async ()
       sourcePermanentId: "rina",
       sourceInstanceId: "rina-card",
       effectKey: "EX13-069/ir-2-0",
-      description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
+      description:
+        "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
       timing: "YourTurn",
     },
   ]);
@@ -4090,7 +5171,12 @@ it("highlights the opponent's Plutomon when its All Turns hand-trash effect acti
     players: [
       { battleArea: [], hand: [], trash: [] },
       {
-        battleArea: [{ permanentId: "plutomon", topCard: { cardId: "BT26-059", instanceId: "plutomon-card" } }],
+        battleArea: [
+          {
+            permanentId: "plutomon",
+            topCard: { cardId: "BT26-059", instanceId: "plutomon-card" },
+          },
+        ],
         hand: [],
         trash: [],
       },
@@ -4112,7 +5198,11 @@ it("highlights the opponent's Plutomon when its All Turns hand-trash effect acti
   ]);
   await advance(0);
   expect(result.current.effectSources).toMatchObject([
-    { seat: 1, cardId: "BT26-059", site: { zone: "field", permanentId: "plutomon" } },
+    {
+      seat: 1,
+      cardId: "BT26-059",
+      site: { zone: "field", permanentId: "plutomon" },
+    },
   ]);
 });
 
@@ -4123,7 +5213,12 @@ describe("Taiki hand-play reveal on a single narration slot", () => {
       players: [
         { battleArea: [], trash: [], hand: [] },
         {
-          battleArea: [{ permanentId: "perm-4", topCard: { instanceId: "s1-40", cardId: "BT10-087" } }],
+          battleArea: [
+            {
+              permanentId: "perm-4",
+              topCard: { instanceId: "s1-40", cardId: "BT10-087" },
+            },
+          ],
           trash: [],
           hand: [],
         },
@@ -4163,13 +5258,30 @@ describe("Taiki hand-play reveal on a single narration slot", () => {
       timing: "OnPlay",
     };
     const cardIds = ["BT19-014", "BT8-095", "AD1-006", "BT19-051"];
-    const reveals: ServerEvent[] = cardIds.map((cardId) => ({ kind: "cardRevealed", seat: 1, cardId, artId: cardId }));
+    const reveals: ServerEvent[] = cardIds.map((cardId) => ({
+      kind: "cardRevealed",
+      seat: 1,
+      cardId,
+      artId: cardId,
+    }));
     rerender(feed([play, effect, ...reveals]));
-    await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold + TIMINGS.narrationCardsLag);
-    expect(result.current.sidePanels.at(-1)?.cards.map((card) => card.cardId)).toEqual(cardIds);
-    expect(result.current.notices.at(-1)?.body).toMatchObject({ variant: "effect", cardId: "BT10-087" });
+    await advance(
+      SHOWCASE_TOTAL_MS +
+        TIMINGS.cardBurst +
+        TIMINGS.effectSourceHold +
+        TIMINGS.narrationCardsLag,
+    );
+    expect(
+      result.current.sidePanels.at(-1)?.cards.map((card) => card.cardId),
+    ).toEqual(cardIds);
+    expect(result.current.notices.at(-1)?.body).toMatchObject({
+      variant: "effect",
+      cardId: "BT10-087",
+    });
     await advance(1000);
-    expect(result.current.sidePanels.at(-1)?.cards.map((card) => card.cardId)).toEqual(cardIds);
+    expect(
+      result.current.sidePanels.at(-1)?.cards.map((card) => card.cardId),
+    ).toEqual(cardIds);
   });
 });
 
@@ -4177,7 +5289,12 @@ it("presents Imperial's late security consequence before the next turn phases", 
   const board = {
     players: [
       {
-        battleArea: [{ permanentId: "imperial", topCard: { cardId: "AD1-024", instanceId: "imperial-card" } }],
+        battleArea: [
+          {
+            permanentId: "imperial",
+            topCard: { cardId: "AD1-024", instanceId: "imperial-card" },
+          },
+        ],
         hand: [],
         trash: [],
       },
@@ -4185,7 +5302,9 @@ it("presents Imperial's late security consequence before the next turn phases", 
     ],
   } as unknown as GameState;
   const reports: import("@aegis/shared").PresentationReport[] = [];
-  const { result, rerender } = renderCuesOverBoard(board, undefined, (report) => reports.push(report));
+  const { result, rerender } = renderCuesOverBoard(board, undefined, (report) =>
+    reports.push(report),
+  );
   const imperial: ServerEvent = {
     kind: "effectTriggered",
     seat: 0,
@@ -4212,7 +5331,12 @@ it("presents Imperial's late security consequence before the next turn phases", 
   let observedPhase = false;
   for (let tick = 0; tick < 200; tick++) {
     await advance(100);
-    if (reports.some((report) => report.phase === "shown" && report.sourceCardId === "AD1-024"))
+    if (
+      reports.some(
+        (report) =>
+          report.phase === "shown" && report.sourceCardId === "AD1-024",
+      )
+    )
       sourceBeforePhase = true;
     if (result.current.phaseBanner !== null) {
       observedPhase = true;
@@ -4221,9 +5345,192 @@ it("presents Imperial's late security consequence before the next turn phases", 
   }
   expect(observedPhase).toBe(true);
   expect(sourceBeforePhase).toBe(true);
-  const source = reports.findIndex((report) => report.phase === "shown" && report.sourceCardId === "AD1-024");
+  const source = reports.findIndex(
+    (report) => report.phase === "shown" && report.sourceCardId === "AD1-024",
+  );
 
   expect(source).toBeGreaterThanOrEqual(0);
 
   expect(reports[source]).toMatchObject({ stateVersion: 2 });
+});
+
+describe("a run of security checks the patch delivered at once", () => {
+  /** The board once both checks have resolved, which is the only board the client has. */
+  const TWO_CHECKS_DOWN = {
+    players: [
+      { battleArea: [], trash: [], hand: [], securityCount: 3 },
+      { battleArea: [], trash: [], hand: [], securityCount: 5 },
+    ],
+  } as unknown as GameState;
+
+  it("shows the shield losing one card per check, in the order they were revealed", async () => {
+    const { result, rerender } = renderCuesOverBoard(TWO_CHECKS_DOWN);
+    await advance(0);
+    rerender([ATTACK, { ...REVEAL, securityCountBefore: 5 }, CHECK]);
+    rerender([
+      ATTACK,
+      { ...REVEAL, securityCountBefore: 5 },
+      CHECK,
+      { ...SECOND_REVEAL, securityCountBefore: 4 },
+      SECOND_CHECK,
+    ]);
+
+    // The figures the shield shows, in order, with repeats folded: five while the first
+    // card is being revealed, four while the second is, then the board's own three.
+    const shown: (number | undefined)[] = [];
+    for (
+      let elapsed = 0;
+      elapsed < SECURITY_BREAK_TOTAL_MS * 2 + CLASH_TOTAL_MS * 3;
+      elapsed += 50
+    ) {
+      await advance(50);
+      const figure = result.current.heldSecurityCounts.get(0);
+      if (shown.length === 0 || shown.at(-1) !== figure) shown.push(figure);
+    }
+    expect(shown).toEqual([5, 4, undefined]);
+  });
+});
+
+describe("an opponent's arrival behind the turn's ribbons", () => {
+  const BREEDING_PHASE: ServerEvent = {
+    kind: "phaseChanged",
+    phase: "Breeding",
+    turnSeat: 1,
+    turnCount: 2,
+  };
+  const OUT_OF_BREEDING: ServerEvent = {
+    kind: "movedFromBreeding",
+    seat: 1,
+    permanentId: "perm-9",
+    cardId: "BT1-010",
+  };
+
+  it("keeps the card off the field until its burst has waited the ribbon out", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([BREEDING_PHASE]);
+    await advance(32);
+    expect(result.current.phaseBanner?.phase).toBe("Breeding");
+
+    // A fast opponent leaves breeding while the ribbon is still up. The burst waits behind
+    // the ribbon, so the field must not show the card before the burst does.
+    rerender([BREEDING_PHASE, OUT_OF_BREEDING]);
+    await advance(32);
+    expect(result.current.pendingPermanentIds.has("perm-9")).toBe(true);
+    expect(result.current.permanentBursts.has("perm-9")).toBe(false);
+
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 32);
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.pendingPermanentIds.has("perm-9")).toBe(false);
+    expect(result.current.permanentBursts.get("perm-9")).toMatchObject({
+      variant: "play",
+    });
+  });
+
+  it("shows the card at once when nothing is ahead of its burst", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    // An idle track starts the arrival step the moment it is queued, and a step with no
+    // showcase hands the permanent straight back. The hold must not outlive that release,
+    // or the card vanishes from the field until the whole queue has run dry.
+    rerender([OUT_OF_BREEDING]);
+    await advance(0);
+    expect(result.current.pendingPermanentIds.has("perm-9")).toBe(false);
+    expect(result.current.permanentBursts.get("perm-9")).toMatchObject({ variant: "play" });
+  });
+});
+
+describe("a permanent an opponent's clause deletes", () => {
+  const STANDING = {
+    permanentId: "perm-dead",
+    topCard: { cardId: "BT1-010", instanceId: "dead-top" },
+  } as unknown as Permanent;
+  /** The board before the deletion, which only a snapshot still remembers. */
+  const BEFORE = {
+    stateVersion: 1,
+    players: [
+      { battleArea: [STANDING], trash: [], hand: [] },
+      { battleArea: [], trash: [], hand: [] },
+    ],
+  } as unknown as GameState;
+  const AFTER = {
+    stateVersion: 2,
+    players: [
+      {
+        battleArea: [],
+        trash: [{ cardId: "BT1-010", instanceId: "dead-top" }],
+        hand: [],
+      },
+      { battleArea: [], trash: [], hand: [] },
+    ],
+  } as unknown as GameState;
+  const OPP_CLAUSE: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 1,
+    sourceCardId: "BT1-011",
+    effectKey: "onPlay",
+    description: "Delete 1 of your opponent's Digimon.",
+    timing: "On Play",
+  };
+  const VIEWER_DELETED: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["dead-top"],
+    from: "battleArea",
+    to: "trash",
+    deletedPermanents: [
+      {
+        permanentId: "perm-dead",
+        instanceId: "dead-top",
+        cardId: "BT1-010",
+        seat: 0,
+      },
+    ],
+  };
+
+  it("stays on the board until the clause has been read for a beat, then shatters", async () => {
+    const { result, rerender } = renderCuesOverBoard(AFTER, [
+      { stateVersion: 1, state: BEFORE },
+    ]);
+    await advance(0);
+    rerender([OPP_CLAUSE, VIEWER_DELETED]);
+    await advance(0);
+
+    // Held in its slot from the moment the batch is presented, with nothing drawn over it.
+    expect([...result.current.heldDeletions.values()]).toMatchObject([
+      { seat: 0, index: 0, permanent: { permanentId: "perm-dead" }, trash: [] },
+    ]);
+    expect(result.current.deleteBursts).toEqual([]);
+
+    let clauseShownAfterMs = 0;
+    while (
+      !result.current.notices.some((notice) => notice.body.variant === "effect")
+    ) {
+      await advance(10);
+      clauseShownAfterMs += 10;
+      expect(clauseShownAfterMs).toBeLessThan(CONSEQUENCE_WAIT_LIMIT_MS);
+    }
+    expect(result.current.heldDeletions.size).toBe(1);
+    expect(result.current.deleteBursts).toEqual([]);
+
+    // The clause gets its beat; only then do the shards take over from the card.
+    await advance(TIMINGS.effectAnnounce - 20);
+    expect(result.current.heldDeletions.size).toBe(1);
+    expect(result.current.deleteBursts).toEqual([]);
+    await advance(20);
+    expect(result.current.heldDeletions.size).toBe(0);
+    expect(result.current.deleteBursts).toHaveLength(1);
+  });
+
+  it("shatters at once when the clause was read out long before", async () => {
+    const { result, rerender } = renderCuesOverBoard(AFTER, [
+      { stateVersion: 1, state: BEFORE },
+    ]);
+    await advance(0);
+    rerender([OPP_CLAUSE]);
+    await advance(NOTICE_ITEM_MS);
+    rerender([OPP_CLAUSE, VIEWER_DELETED]);
+    await advance(0);
+    expect(result.current.deleteBursts).toHaveLength(1);
+    expect(result.current.heldDeletions.size).toBe(0);
+  });
 });

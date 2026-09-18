@@ -11,11 +11,13 @@ describe("portrait player dock", () => {
     expect(portraitRules).toBeDefined();
     expect(portraitRules).toMatch(/\.game-board \{[^}]*--arena-hand-reserved:\s*\d+px/);
     expect(portraitRules).toMatch(/\.game-board \.game-player-dock \{[^}]*padding:\s*var\(--arena-hand-reserved\)/);
-    // The hand card is capped by the height the reserve leaves, so a short
-    // viewport shrinks the card instead of pushing it over the counters.
+    // The hand card is capped by the height the reserve and the lift headroom
+    // leave, so a short viewport shrinks the card instead of pushing it over the
+    // counters or past the row's clipped top edge.
     expect(portraitRules).toMatch(
-      /--arena-hand-card-height:\s*min\(\s*calc\(var\(--arena-hand-width\) \* 1\.4\),\s*calc\(var\(--arena-hand-height\) - var\(--arena-hand-reserved\)\)\s*\)/,
+      /--arena-hand-card-height:\s*min\(\s*calc\(var\(--arena-hand-width\) \* 1\.4\),\s*calc\(\s*var\(--arena-hand-height\) - var\(--arena-hand-reserved\) - var\(--arena-hand-lift\) -\s*var\(--arena-hand-row-chrome\)\s*\)\s*\)/,
     );
+    expect(portraitRules).toMatch(/\[data-testid="hand"\] \{[^}]*padding:\s*var\(--arena-hand-lift\)/);
     expect(portraitRules).toMatch(
       /\[data-testid="hand"\] > \.game-hand-card > div \{[^}]*height:\s*var\(--arena-hand-card-height\)/,
     );

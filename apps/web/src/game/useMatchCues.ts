@@ -25,6 +25,8 @@ import { holdsTheBoard } from "./match/tracks";
 import { liveMode } from "./match/environment";
 import { buildCardSiteIndex } from "./match/cardSiteIndex";
 import { presentServerBatch } from "./match/present/presentBatch";
+import type { MemoryHold } from "./match/present/memoryHold";
+import { securityGrowthSeatOf } from "./match/present/securityGrowth";
 import { securityHold } from "./match/securityHold";
 import { cueFlights } from "./match/flights";
 import { useDecisionBarrier } from "./match/queue/useDecisionBarrier";
@@ -63,7 +65,13 @@ export { CueTrack, LungeDirection, SecurityBreakPhase } from "./match/enums";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
-import { type GameState, type Seat, type ServerEvent, type PresentationReport } from "@aegis/shared";
+import {
+  type GameState,
+  type Seat,
+  type SequencedServerEvent,
+  type ServerEvent,
+  type PresentationReport,
+} from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
 import { otherSeat } from "./boardModel";
 import { buildInstanceIndex } from "./decisionModel";
@@ -322,8 +330,11 @@ export function useMatchCues({
   const [pendingPhaseBanners, setPendingPhaseBanners] = useState(0);
   const [heldDrawState, setHeldDrawState] = useState<{ seat: Seat; state: GameState } | undefined>();
   const [heldPhaseState, setHeldPhaseState] = useState<GameState | undefined>();
+  const [heldMemory, setHeldMemory] = useState<MemoryHold | undefined>();
+  const memoryHoldKeyRef = useRef(0);
   const [heldBlowState, setHeldBlowState] = useState<GameState | undefined>();
   const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
+  const [heldDeletions, setHeldDeletions] = useState<MatchCues["heldDeletions"]>(new Map());
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
   const [announcedTurn, setAnnouncedTurn] = useState<{ seat: Seat; count: number } | undefined>(
     state && { seat: state.turnSeat, count: state.turnCount },
@@ -349,6 +360,9 @@ export function useMatchCues({
   const cueBaselineRef = useRef(false);
   /** The last batch already presented, so a re-render presents nothing twice. */
   const lastCueBatchRef = useRef<string | undefined>(undefined);
+  // The newest event a presented batch carried. Everything in the raw stream past it belongs
+  // to a batch still open or still queued, whose growths are its own to narrate.
+  const lastPresentedSeqRef = useRef(0);
   /** Deletions already queued, spanning adjacent server batches. */
   const deletionBurstPresentedRef = useRef(new Set<string>());
   const noticeSequenceRef = useRef(0);
@@ -646,6 +660,7 @@ export function useMatchCues({
       present: presentBatch,
       viewerSeat,
       state,
+      snapshots: snapshots ?? [],
       anchors,
       queue,
       progress,
@@ -684,6 +699,7 @@ export function useMatchCues({
       effectSourceKeyRef,
       deckRiffleKeyRef,
       securityGrowthClaimedRef,
+      memoryHoldKeyRef,
       turnStartDrawRef,
       optionDockKeyRef,
       optionDockRef,
@@ -712,6 +728,7 @@ export function useMatchCues({
       setEffectSources,
       setDeckRiffles,
       setSecurityFlights,
+      setHeldMemory,
       setAttackAnnouncement,
       setAttackLunge,
       setSecurityBreak,
@@ -723,6 +740,7 @@ export function useMatchCues({
       setFieldClash,
       setCombatImpactIds,
       setDeleteBursts,
+      setHeldDeletions,
     });
   }
 
@@ -769,6 +787,7 @@ export function useMatchCues({
       deletionBurstPresentedRef.current.clear();
     if (pending.length === 0) return;
     lastCueBatchRef.current = pending.at(-1)!.id;
+    lastPresentedSeqRef.current = pending.at(-1)!.events.at(-1)?.seq ?? lastPresentedSeqRef.current;
     // Each batch is its own moment, in order, even when several arrive in one render.
     for (const batch of pending) {
       enqueuePhaseOrderRef.current = phaseOrderFor(batch.events);
@@ -850,6 +869,13 @@ export function useMatchCues({
     securityGrowthClaimedRef,
     noticeSequenceRef,
     lastBatchIdRef,
+    growthNamedAhead: (seat) =>
+      (phaseEvents ?? []).some(
+        (event) =>
+          "seq" in event &&
+          (event as SequencedServerEvent).seq > lastPresentedSeqRef.current &&
+          securityGrowthSeatOf(event) === seat,
+      ),
     launchOpeningSecurityDeal,
     launchSecurityGainFlight,
     narrate,
@@ -970,8 +996,10 @@ export function useMatchCues({
     phaseTransitionPending: pendingPhaseBanners > 0,
     heldDrawState,
     heldPhaseState,
+    heldMemory,
     heldBlowState,
     heldBreedingState,
+    heldDeletions,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
     displayedTurn: pendingPhaseBanners > 0 ? announcedTurn : state && { seat: state.turnSeat, count: state.turnCount },
     heldSuspendedIds,

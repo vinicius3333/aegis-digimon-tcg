@@ -883,6 +883,38 @@ describe("primitives: return to hand / deck", () => {
     ]);
   });
 
+  it("returnToDeck names each deck joined and the public cards that joined it", async () => {
+    const h = harness({
+      board: {
+        0: { trash: [{ card: DIGIMON, as: "mineOne" }, { card: TAMER, as: "mineTwo" }] },
+        1: { trash: [{ card: OPTION, as: "theirs" }] },
+      },
+    });
+    const returned = ["mineOne", "theirs", "mineTwo"].map((name) => h.s.inst(name).instanceId);
+
+    await h.fx.returnToDeck(returned, { toTop: false });
+
+    expect(h.events.filter((event) => event.kind === "cardsMoved")).toEqual([
+      expect.objectContaining({
+        instanceIds: [h.s.inst("mineOne").instanceId, h.s.inst("mineTwo").instanceId],
+        to: DECK_BOTTOM,
+        seat: 0,
+        cardIds: [DIGIMON, TAMER],
+      }),
+      expect.objectContaining({ instanceIds: [h.s.inst("theirs").instanceId], to: DECK_BOTTOM, seat: 1, cardIds: [OPTION] }),
+    ]);
+  });
+
+  it("returnToDeck keeps a hand card unnamed on its way to the deck", async () => {
+    const h = harness({ board: { 0: { hand: [{ card: DIGIMON, as: "hidden" }] } } });
+
+    await h.fx.returnToDeck([h.s.inst("hidden").instanceId], { toTop: false });
+
+    const [moved] = h.events.filter((event) => event.kind === "cardsMoved");
+    expect(moved).toMatchObject({ to: DECK_BOTTOM, seat: 0 });
+    expect(moved).not.toHaveProperty("cardIds");
+  });
+
   it("returnToDeck routes a Digi-Egg card back to the Digi-Egg deck", async () => {
     const h = harness({
       board: {

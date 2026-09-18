@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
-import type { GameState, Seat } from "@aegis/shared";
+import type { CardInstance, GameState, Permanent, Seat } from "@aegis/shared";
+import type { MemoryHold } from "./present/memoryHold";
 import type { AttackAnnouncement, SidePanel } from "../sidePanels";
 import type { MatchNotice } from "../notices";
 import type { NarrationItem } from "../narration";
@@ -26,6 +27,21 @@ export type DrawFlight = { key: number; x: number; y: number; dx: number; dy: nu
 export type DrawBurst = { key: number; x: number; y: number };
 
 export type AttackLunge = { permanentId: string; direction: LungeDirection };
+
+/**
+ * A deleted permanent the board keeps in place until the shatter that shows it leaving has
+ * begun. The batch that deletes it is presented before the clause that caused the deletion
+ * has been read out, so without this the card vanished from the field the moment the batch
+ * was reached and broke apart over an empty slot a beat later.
+ */
+export interface HeldDeletion {
+  seat: Seat;
+  permanent: Permanent;
+  /** Where in the battle area it stood, so the row does not reflow ahead of the shatter. */
+  index: number;
+  /** The trash as it was before the card reached it. */
+  trash: readonly CardInstance[];
+}
 
 /** The shield break, and which of its two beats the defender's shield is playing. */
 export type SecurityBreakCue = SecurityBreakScene & { phase: SecurityBreakPhase };
@@ -170,6 +186,8 @@ export interface MatchCues {
   heldDrawState: { seat: Seat; state: GameState } | undefined;
   /** Keep card rotation from exposing a Main attack before its phase announcement. */
   heldPhaseState: GameState | undefined;
+  /** The gauge value kept until the effect clause that moved it has been read out. */
+  heldMemory: MemoryHold | undefined;
   /**
    * The board as it stood when a security check revealed its card, held until that check's
    * battle has been drawn. The server trashes the loser before it closes the check, and the
@@ -180,6 +198,8 @@ export interface MatchCues {
   heldBlowState: GameState | undefined;
   /** Keep the raising area unchanged until its Breeding announcement finishes. */
   heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
+  /** Deleted permanents still on the board, by the key of the shatter that will take them. */
+  heldDeletions: ReadonlyMap<number, HeldDeletion>;
   /** The last announced phase persists through the gaps between ribbons. */
   displayedPhase: GameState["phase"] | undefined;
   /**

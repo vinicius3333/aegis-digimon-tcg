@@ -8,6 +8,7 @@
     --arena-hand-width: 60px;
     --arena-hand-height: 132px;
     --arena-hand-reserved: 36px;
+    --arena-hand-lift: 6px;
     --arena-source-step: 2px;
     --arena-source-top: 2px;
   }
@@ -31,6 +32,7 @@
     --arena-hand-width: 44px;
     --arena-hand-height: 104px;
     --arena-hand-reserved: 36px;
+    --arena-hand-lift: 6px;
     --arena-header-height: 44px;
     --arena-source-step: 1.25px;
     --arena-source-top: 2px;

@@ -48,183 +48,227 @@ export function TrashViewerOverlay({
   const effectiveIndex = activeIndex < ordered.length ? activeIndex : 0;
   const preview = ordered[effectiveIndex];
 
+  const zoomOverlay = zoomed ? (
+    <CardZoomOverlay
+      cardId={zoomed}
+      artId={zoomedIndex === null ? undefined : orderedArts[zoomedIndex]}
+      onClose={() => setZoomedIndex(null)}
+    />
+  ) : null;
+
   if (sheet) {
     return createPortal(
-      <div className="card-action-sheet" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
-        <div className="card-action-sheet__panel" onClick={(e) => e.stopPropagation()}>
-          <div className="card-action-sheet__grip" aria-hidden />
-          <div className="trash-sheet__header">
-            <strong>{title}</strong>
-            <span>{countText}</span>
-          </div>
-          {ordered.length === 0 ? (
-            <p className="trash-sheet__empty">{emptyText}</p>
-          ) : (
-            <div className="trash-sheet__row">
-              {ordered.map((cardId, i) => (
-                <button type="button" key={`${cardId}-${i}`} onClick={() => setZoomedIndex(i)}>
-                  {cardId ? (
-                    <CardArt cardId={cardId} artId={orderedArts[i]} width={96} />
-                  ) : (
-                    <CardBack width={96} useSelectedSleeve={false} />
-                  )}
-                  <figcaption>
-                    {cardId ? (getCardDefinition(cardId)?.nameEn ?? cardId) : t("game.hiddenCard")}
-                  </figcaption>
-                  {preserveOrder && cardId
-                    ? securityCardEffects(cardId).map((effect) => (
-                        <span className="security-viewer__effect" key={effect.text}>
-                          {effect.text}
-                        </span>
-                      ))
-                    : null}
-                </button>
-              ))}
+      <>
+        <div
+          className="card-action-sheet pile-viewer"
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          onClick={onClose}
+        >
+          <div className="card-action-sheet__panel" onClick={(e) => e.stopPropagation()}>
+            <div className="card-action-sheet__grip" aria-hidden />
+            <div className="trash-sheet__header">
+              <strong>{title}</strong>
+              <span>{countText}</span>
             </div>
-          )}
-          <div className="card-action-sheet__actions">
-            <Button size="sm" full variant="ghost" onClick={onClose} autoFocus>
-              {t("common.close")}
-            </Button>
-          </div>
-        </div>
-        {zoomed ? (
-          <CardZoomOverlay
-            cardId={zoomed}
-            artId={zoomedIndex === null ? undefined : orderedArts[zoomedIndex]}
-            onClose={() => setZoomedIndex(null)}
-          />
-        ) : null}
-      </div>,
-      document.body,
-    );
-  }
-
-  return (
-    <Scrim onClick={onClose} className="game-modal">
-      <div
-        className="game-modal__panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          display: "flex",
-          gap: 22,
-          width: 820,
-          maxWidth: "92%",
-          maxHeight: "86%",
-          padding: 24,
-          background: "var(--ds-surface)",
-          borderRadius: 20,
-          border: "1px solid var(--ds-border)",
-          boxShadow: "var(--ds-shadow-summary)",
-        }}
-      >
-        {/* left: header + wrapped thumbnail grid */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ds-fg)", fontFamily: "var(--ds-font-display)" }}>
-              {title}
-            </div>
-            <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 11, color: "var(--ds-fg-muted)" }}>
-              {countText}
-            </div>
-          </div>
-          {ordered.length === 0 ? (
-            <div
-              style={{
-                flex: 1,
-                display: "grid",
-                placeItems: "center",
-                color: "var(--ds-fg-disabled)",
-                fontFamily: "var(--ds-font-mono)",
-                fontSize: 12,
-              }}
-            >
-              {emptyText}
-            </div>
-          ) : (
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 8,
-                overflowY: "auto",
-                alignContent: "flex-start",
-                paddingRight: 4,
-              }}
-            >
-              {ordered.map((cardId, i) => {
-                const def = getCardDefinition(cardId);
-                const sel = activeIndex === i;
-                return (
-                  <button
-                    key={`${cardId}-${i}`}
-                    onMouseEnter={() => setActiveIndex(i)}
-                    onClick={() => setActiveIndex(i)}
-                    title={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
-                    aria-label={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
-                    onFocus={() => setActiveIndex(i)}
-                    style={{
-                      padding: 3,
-                      borderRadius: 9,
-                      cursor: "pointer",
-                      background: sel ? "var(--ds-accent-surface)" : "transparent",
-                      border: `1.5px solid ${sel ? "var(--ds-accent)" : "transparent"}`,
-                      transition: "background 120ms, border-color 120ms",
-                    }}
-                  >
+            {ordered.length === 0 ? (
+              <p className="trash-sheet__empty">{emptyText}</p>
+            ) : (
+              <div className="trash-sheet__row">
+                {ordered.map((cardId, i) => (
+                  <button type="button" key={`${cardId}-${i}`} onClick={() => setZoomedIndex(i)}>
                     {cardId ? (
-                      <CardArt cardId={cardId} artId={orderedArts[i]} width={preserveOrder ? 96 : 64} />
+                      <CardArt cardId={cardId} artId={orderedArts[i]} width={96} />
                     ) : (
                       <CardBack width={96} useSelectedSleeve={false} />
                     )}
-                    {preserveOrder ? (
-                      <span className="security-viewer__name">{def?.nameEn ?? t("game.hiddenCard")}</span>
-                    ) : null}
+                    <figcaption>
+                      {cardId ? (getCardDefinition(cardId)?.nameEn ?? cardId) : t("game.hiddenCard")}
+                    </figcaption>
                     {preserveOrder && cardId
                       ? securityCardEffects(cardId).map((effect) => (
-                          <span className="security-viewer__badge" title={effect.text} key={effect.text}>
-                            {effect.badge}
+                          <span className="security-viewer__effect" key={effect.text}>
+                            {effect.text}
                           </span>
                         ))
                       : null}
                   </button>
-                );
-              })}
+                ))}
+              </div>
+            )}
+            <div className="card-action-sheet__actions">
+              <Button size="sm" full variant="ghost" onClick={onClose} autoFocus>
+                {t("common.close")}
+              </Button>
             </div>
-          )}
+          </div>
         </div>
+        {zoomOverlay}
+      </>,
+      document.body,
+    );
+  }
 
-        {/* right: large preview of the hovered card */}
+  return createPortal(
+    <>
+      <Scrim onClick={onClose} className="game-modal pile-viewer">
         <div
+          className="game-modal__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          onClick={(e) => e.stopPropagation()}
           style={{
             display: "flex",
-            flexDirection: "column",
-            gap: 12,
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexShrink: 0,
+            gap: 22,
+            width: 820,
+            maxWidth: "92%",
+            maxHeight: "86%",
+            padding: 24,
+            background: "var(--ds-surface)",
+            borderRadius: 20,
+            border: "1px solid var(--ds-border)",
+            boxShadow: "var(--ds-shadow-summary)",
           }}
         >
-          {preview ? (
-            <CardArt cardId={preview} artId={orderedArts[effectiveIndex]} width={260} />
-          ) : ordered.length ? (
-            <CardBack width={260} useSelectedSleeve={false} />
-          ) : null}
-          {preserveOrder && preview
-            ? securityCardEffects(preview).map((effect) => (
-                <p className="security-viewer__effect" key={effect.text}>
-                  {effect.text}
-                </p>
-              ))
-            : null}
-          <Button size="md" variant="ghost" full onClick={onClose}>
-            {t("common.close")}
-          </Button>
+          {/* left: header + wrapped thumbnail grid */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "space-between",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 800,
+                  color: "var(--ds-fg)",
+                  fontFamily: "var(--ds-font-display)",
+                }}
+              >
+                {title}
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--ds-font-mono)",
+                  fontSize: 11,
+                  color: "var(--ds-fg-muted)",
+                }}
+              >
+                {countText}
+              </div>
+            </div>
+            {ordered.length === 0 ? (
+              <div
+                style={{
+                  flex: 1,
+                  display: "grid",
+                  placeItems: "center",
+                  color: "var(--ds-fg-disabled)",
+                  fontFamily: "var(--ds-font-mono)",
+                  fontSize: 12,
+                }}
+              >
+                {emptyText}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  overflowY: "auto",
+                  alignContent: "flex-start",
+                  paddingRight: 4,
+                }}
+              >
+                {ordered.map((cardId, i) => {
+                  const def = getCardDefinition(cardId);
+                  const sel = activeIndex === i;
+                  return (
+                    <button
+                      key={`${cardId}-${i}`}
+                      onMouseEnter={() => setActiveIndex(i)}
+                      onClick={() => {
+                        setActiveIndex(i);
+                        if (cardId) setZoomedIndex(i);
+                      }}
+                      title={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
+                      aria-label={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
+                      onFocus={() => setActiveIndex(i)}
+                      style={{
+                        padding: 3,
+                        borderRadius: 9,
+                        cursor: "pointer",
+                        background: sel ? "var(--ds-accent-surface)" : "transparent",
+                        border: `1.5px solid ${sel ? "var(--ds-accent)" : "transparent"}`,
+                        transition: "background 120ms, border-color 120ms",
+                      }}
+                    >
+                      {cardId ? (
+                        <CardArt cardId={cardId} artId={orderedArts[i]} width={preserveOrder ? 96 : 64} />
+                      ) : (
+                        <CardBack width={96} useSelectedSleeve={false} />
+                      )}
+                      {preserveOrder ? (
+                        <span className="security-viewer__name">{def?.nameEn ?? t("game.hiddenCard")}</span>
+                      ) : null}
+                      {preserveOrder && cardId
+                        ? securityCardEffects(cardId).map((effect) => (
+                            <span className="security-viewer__badge" title={effect.text} key={effect.text}>
+                              {effect.badge}
+                            </span>
+                          ))
+                        : null}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* right: large preview of the hovered card */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexShrink: 0,
+            }}
+          >
+            {preview ? (
+              <CardArt cardId={preview} artId={orderedArts[effectiveIndex]} width={260} />
+            ) : ordered.length ? (
+              <CardBack width={260} useSelectedSleeve={false} />
+            ) : null}
+            {preserveOrder && preview
+              ? securityCardEffects(preview).map((effect) => (
+                  <p className="security-viewer__effect" key={effect.text}>
+                    {effect.text}
+                  </p>
+                ))
+              : null}
+            <Button size="md" variant="ghost" full onClick={onClose}>
+              {t("common.close")}
+            </Button>
+          </div>
         </div>
-      </div>
-    </Scrim>
+      </Scrim>
+      {zoomOverlay}
+    </>,
+    document.body,
   );
 }

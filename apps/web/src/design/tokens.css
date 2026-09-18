@@ -150,6 +150,10 @@
   --ds-z-dialog: 90;
   --ds-z-toast: 110;
   --ds-z-skip: 130;
+  /* Pile viewers sit above every match layer (drag ghosts, popup menus, dev tools);
+     the card blow-up opened from one sits above the viewer itself. */
+  --ds-z-pile-viewer: 11000;
+  --ds-z-card-zoom: 12000;
 
   /* Brand and ambient extensions. */
   --ds-brand-wordmark-top: #2f6fe0;

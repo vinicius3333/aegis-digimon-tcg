@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-055.js";
+import "./BT7-077.js";
 
 describe("BT7-055 Ebonwumon", () => {
   it("publishes the unsuspend cost only during the opponent's turn", () => {
@@ -59,5 +60,29 @@ describe("BT7-055 Ebonwumon", () => {
 
     expect(s.perm("target").isSuspended).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
+  });
+
+  it("pays the granted unsuspend cost as the paying player's own effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT7-055", as: "ebon" }] },
+        1: {
+          battleArea: [{ card: "BT1-010", suspended: true, as: "target" }],
+          hand: [{ card: "BT7-077", as: "payment" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
+
+    // BT7-055 GRANTS the cost to its opponent's Digimon, so the payment is that player's own
+    // effect trashing from their hand — BT7-077's "when you trash this card in your hand using
+    // one of your effects" reads it as such and gains 1 memory.
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(1);
   });
 });

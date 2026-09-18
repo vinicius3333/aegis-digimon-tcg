@@ -193,6 +193,13 @@ export type ServerEvent =
        */
       hasSecurityEffect?: boolean;
       isDigimon?: boolean;
+      /**
+       * How many cards the defender's stack held as this one was turned over, this one
+       * included. A state patch can carry several checks at once, so the figure the shield
+       * shows while each card is revealed comes from the event, not the board. Absent on
+       * events from older servers or replays.
+       */
+      securityCountBefore?: number;
     }
   | {
       kind: "securityChecked";

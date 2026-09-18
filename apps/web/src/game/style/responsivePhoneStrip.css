@@ -496,7 +496,7 @@
   /* Card blow-up, above the sheet that opened it. */
   .card-zoom {
     position: fixed;
-    z-index: calc(var(--ds-z-dialog) + 1);
+    z-index: var(--ds-z-card-zoom);
     inset: 0;
     display: grid;
     padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-4)

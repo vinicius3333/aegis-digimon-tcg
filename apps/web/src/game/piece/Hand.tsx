@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../../design/cards";
+import { Icons } from "../../design/icons";
 import { TOUCH_LAYOUT_QUERY, useMediaQuery } from "../../design/useMediaQuery";
 import { useTranslation } from "../../i18n";
 import { useEnterAnimation } from "../animations";
@@ -71,7 +72,8 @@ export function Hand({
   // simply grew past the board and painted over the sidebar.
   const overlap = handOverlap(n, rowWidth, cardWidth, minExposure);
   const handOverflows = rowWidth > 0 && n * cardWidth - overlap * Math.max(0, n - 1) > rowWidth - HAND_TILT_BLEED * 2;
-  const { pointerPicked, tapSelection, beginPick, finishPick, cancelPick } = useHandPickGesture(selection);
+  const { pointerPicked, tapSelection, inspect, beginPick, movePick, finishPick, cancelPick } =
+    useHandPickGesture(selection);
   return (
     <div className="game-hand-scroller">
       <div
@@ -113,8 +115,17 @@ export function Hand({
             <div
               key={entry.instanceId}
               onPointerDown={selection ? (e) => beginPick(entry.instanceId, e) : (e) => startDrag(i, e)}
+              onPointerMove={selection ? movePick : undefined}
               onPointerUp={selection ? (e) => finishPick(entry.instanceId, e) : undefined}
               onPointerCancel={selection ? cancelPick : undefined}
+              onContextMenu={
+                selection?.onInspect
+                  ? (event) => {
+                      event.preventDefault();
+                      inspect(entry.instanceId);
+                    }
+                  : undefined
+              }
               onKeyDown={(event) => {
                 if (selection?.onInspect && event.key === "Enter" && event.altKey) {
                   event.preventDefault();
@@ -138,9 +149,7 @@ export function Hand({
                     pointerPicked.current = null;
                     return;
                   }
-                  if (event.detail === 0) {
-                    if (pickable) selection.onToggle(entry.instanceId);
-                  } else tapSelection(entry.instanceId);
+                  tapSelection(entry.instanceId);
                   return;
                 }
                 // Pointer taps are resolved by GameScreen's drag/tap recognizer.
@@ -195,6 +204,24 @@ export function Hand({
                 selected={sel}
                 zoomOnHover={false}
               />
+              {selection?.onInspect ? (
+                <button
+                  type="button"
+                  className="game-hand-card__inspect"
+                  aria-label={t("game.inspectCard", {
+                    card: getCardDefinition(entry.cardId)?.nameEn ?? entry.cardId,
+                  })}
+                  tabIndex={-1}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onPointerUp={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    inspect(entry.instanceId);
+                  }}
+                >
+                  <Icons.Search size={14} />
+                </button>
+              ) : null}
               {picked ? (
                 <span
                   className="game-hand-card__pick-badge"

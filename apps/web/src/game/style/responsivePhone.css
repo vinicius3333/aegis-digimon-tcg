@@ -432,6 +432,10 @@
     top: 0.15rem;
     right: 0.15rem;
   }
+  .game-hand-card__inspect {
+    top: 0.15rem;
+    left: 0.15rem;
+  }
   /* Selection at arm's length. The extra weight goes into lift, scale and glow
      spread, never into a thicker ring: a thick ring is exactly what collided with
      the neighbouring card in a scrolling strip. Lift and scale stay inside the

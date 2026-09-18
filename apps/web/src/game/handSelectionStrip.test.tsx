@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Hand, type HandEntry } from "./piece";
+import { HAND_INSPECT_HOLD_MS } from "./piece/useHandPickGesture";
 
 afterEach(() => cleanup());
 
@@ -129,38 +130,63 @@ describe("hand strip scroll cues", () => {
 });
 
 describe("selection inspection gestures", () => {
-  it("opens details on two quick clicks without toggling the first pick back", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("opens details on a held press without picking the card", () => {
     const onToggle = vi.fn<(instanceId: string) => void>();
     const onInspect = vi.fn<(instanceId: string) => void>();
     const { container } = renderHand({ selectableInstanceIds: ["a"], pickedInstanceIds: [], onToggle, onInspect });
     const card = container.querySelector(".game-hand-card")!;
+    fireEvent.pointerDown(card, { pointerId: 1, pointerType: "touch", clientX: 50, clientY: 50 });
+    vi.advanceTimersByTime(HAND_INSPECT_HOLD_MS);
+    fireEvent.pointerUp(card, { pointerId: 1, pointerType: "touch", clientX: 50, clientY: 50 });
     fireEvent.click(card, { detail: 1 });
-    fireEvent.click(card, { detail: 2 });
-    expect(onToggle).toHaveBeenCalledExactlyOnceWith("a");
+    expect(onToggle).not.toHaveBeenCalled();
     expect(onInspect).toHaveBeenCalledExactlyOnceWith("a");
   });
 
-  it("recognizes two touch taps while ignoring each trailing click", () => {
+  it("picks on a short tap and never inspects it", () => {
     const onToggle = vi.fn<(instanceId: string) => void>();
     const onInspect = vi.fn<(instanceId: string) => void>();
     const { container } = renderHand({ selectableInstanceIds: ["a"], pickedInstanceIds: [], onToggle, onInspect });
     const card = container.querySelector(".game-hand-card")!;
-    for (const pointerId of [1, 2]) {
-      fireEvent.pointerDown(card, { pointerId, pointerType: "touch", clientX: 50, clientY: 50 });
-      fireEvent.pointerUp(card, { pointerId, pointerType: "touch", clientX: 50, clientY: 50 });
-      fireEvent.click(card, { detail: 1 });
-    }
+    fireEvent.pointerDown(card, { pointerId: 1, pointerType: "touch", clientX: 50, clientY: 50 });
+    vi.advanceTimersByTime(HAND_INSPECT_HOLD_MS / 2);
+    fireEvent.pointerUp(card, { pointerId: 1, pointerType: "touch", clientX: 50, clientY: 50 });
+    fireEvent.click(card, { detail: 1 });
+    vi.advanceTimersByTime(HAND_INSPECT_HOLD_MS);
     expect(onToggle).toHaveBeenCalledExactlyOnceWith("a");
+    expect(onInspect).not.toHaveBeenCalled();
+  });
+
+  it("drops the hold once the finger starts panning the strip", () => {
+    const onToggle = vi.fn<(instanceId: string) => void>();
+    const onInspect = vi.fn<(instanceId: string) => void>();
+    const { container } = renderHand({ selectableInstanceIds: ["a"], pickedInstanceIds: [], onToggle, onInspect });
+    const card = container.querySelector(".game-hand-card")!;
+    fireEvent.pointerDown(card, { pointerId: 1, pointerType: "touch", clientX: 50, clientY: 50 });
+    fireEvent.pointerMove(card, { pointerId: 1, pointerType: "touch", clientX: 90, clientY: 52 });
+    vi.advanceTimersByTime(HAND_INSPECT_HOLD_MS);
+    fireEvent.pointerUp(card, { pointerId: 1, pointerType: "touch", clientX: 90, clientY: 52 });
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(onInspect).not.toHaveBeenCalled();
+  });
+
+  it("inspects on right click without picking", () => {
+    const onToggle = vi.fn<(instanceId: string) => void>();
+    const onInspect = vi.fn<(instanceId: string) => void>();
+    const { container } = renderHand({ selectableInstanceIds: ["a"], pickedInstanceIds: [], onToggle, onInspect });
+    fireEvent.contextMenu(container.querySelector(".game-hand-card")!);
+    expect(onToggle).not.toHaveBeenCalled();
     expect(onInspect).toHaveBeenCalledExactlyOnceWith("a");
   });
 
-  it("also inspects an ineligible card without selecting it", () => {
+  it("inspects an ineligible card from its magnifier without selecting it", () => {
     const onToggle = vi.fn<(instanceId: string) => void>();
     const onInspect = vi.fn<(instanceId: string) => void>();
     const { container } = renderHand({ selectableInstanceIds: [], pickedInstanceIds: [], onToggle, onInspect });
-    const card = container.querySelector(".game-hand-card")!;
-    fireEvent.click(card, { detail: 1 });
-    fireEvent.click(card, { detail: 2 });
+    fireEvent.click(container.querySelector(".game-hand-card__inspect")!, { detail: 1 });
     expect(onToggle).not.toHaveBeenCalled();
     expect(onInspect).toHaveBeenCalledExactlyOnceWith("a");
   });

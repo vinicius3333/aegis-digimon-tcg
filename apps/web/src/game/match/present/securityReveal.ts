@@ -75,7 +75,10 @@ export function presentSecurityRevealed({
   // a replayed history) sends no hint, and falls back to the centre-stage scene that plays
   // itself out.
   const docking = securityReveal.hasSecurityEffect === true && !closingCheck;
-  stage.stageSecurityReveal(key, settled, securityReveal.seat, { docking });
+  stage.stageSecurityReveal(key, settled, securityReveal.seat, {
+    docking,
+    countBefore: securityReveal.securityCountBefore,
+  });
   revealOnStageRef.current = { key, scene: settled, ...(docking ? { docked: true } : {}) };
   heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices];
   heldPanelsRef.current = [...heldPanelsRef.current, ...heldPanels];

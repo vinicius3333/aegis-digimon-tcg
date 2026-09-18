@@ -427,6 +427,7 @@ describe("runSecurityCheck: ordering and reveal hints", () => {
       isDigimon: true,
       attackerDP: 9000,
       securityCardDP: 3000,
+      securityCountBefore: 1,
     });
   });
 
@@ -462,6 +463,7 @@ describe("runSecurityCheck: ordering and reveal hints", () => {
       revealedCardId: "OPTION-X",
       attackerPermanentId: ATTACKER_ID,
       attackerDP: 5000,
+      securityCountBefore: 1,
     });
   });
 
