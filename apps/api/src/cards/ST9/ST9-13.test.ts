@@ -3,6 +3,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST9-13.js";
+// The first case reads the +1000 this base grants through its inherited "during your turn"
+// aura, so its module has to be registered too.
+import "./ST9-11.js";
 
 describe("ST9-13 GranKuwagamon", () => {
   it("gets +4000 DP when digivolving and has its printed Security Attack +1", async () => {

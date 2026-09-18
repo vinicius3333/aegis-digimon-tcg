@@ -390,7 +390,8 @@ describe("BT26-063 Tellermon", () => {
     expect(watcher.matches?.(ctx)).toBe(true);
     await watcher.run(ctx);
 
-    expect(returnToHand).toHaveBeenCalledWith(["attribute-match"]);
+    // The reveal is public, so the card taken from it is named on its movement event.
+    expect(returnToHand).toHaveBeenCalledWith(["attribute-match"], { publicIdentities: true });
     expect(returnToDeck).toHaveBeenCalledWith(toTop ? ["nonmatch", "form-match"] : ["form-match", "nonmatch"], {
       toTop,
       suppressWhenEffectAddsToDeck: true,
