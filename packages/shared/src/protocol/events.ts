@@ -283,6 +283,15 @@ export type ServerEvent =
       }[];
       /** A scheduled turn-end deletion, attributed to the card that installed it. */
       turnEndDeletion?: { sourceCardId: string; deletedCardId: string };
+      /**
+       * The battle itself deleted these permanents — the blow the attack landed, not an
+       * effect that fired around it. `combatResolved` names the same losers, but it is held
+       * until the attack reaches its end-of-attack seam, and a decision inside an [On
+       * Deletion] trigger can strand it several batches (and a prompt) behind the deletion.
+       * The client stages the clash from this flag so the blow plays while its loser is
+       * still on the board.
+       */
+      battleDeletion?: true;
       /** Automatic bonus draw from digivolution, rather than a card effect. */
       drawReason?: "digivolution";
       /** The card finished resolving after it was used as an Option, not discarded by an effect. */

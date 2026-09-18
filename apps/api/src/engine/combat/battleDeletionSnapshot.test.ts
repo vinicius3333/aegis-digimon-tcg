@@ -43,6 +43,36 @@ describe("battle deletion reaction snapshots", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("marks the battle's own deletion so the client can stage the clash before the seam", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-024", as: "attacker" }],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+        security: ["BT1-001", "BT1-002"],
+      },
+    });
+    await s.ready();
+
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    const deletion = s.events.find(
+      (event) => event.kind === "cardsMoved" && event.deletedPermanents?.some((p) => p.permanentId === targetId),
+    );
+    expect(deletion).toMatchObject({ battleDeletion: true });
+    // The flag names the blow, not every card the battle sent to the trash.
+    expect(s.events.filter((event) => event.kind === "cardsMoved" && event.battleDeletion === true)).toHaveLength(1);
+  });
+
   it("fires a deleted Petrification Token's On Deletion once from its transient snapshot", async () => {
     const s = setupEngine({
       0: {

@@ -638,6 +638,7 @@ export class GameStateAccess {
   private narrateDeletion(
     moves: readonly DeletionMove[],
     turnEndDeletion?: { sourceCardId: string; deletedCardId: string },
+    byBattle?: boolean,
   ): void {
     if (this.emit === undefined) return;
     for (const from of [Zone.BattleArea, Zone.Breeding] as const) {
@@ -655,6 +656,7 @@ export class GameStateAccess {
           to: Zone.Trash,
           ...(deletedPermanents.length > 0 ? { deletedPermanents } : {}),
           ...(turnEndDeletion ? { turnEndDeletion } : {}),
+          ...(byBattle && deletedPermanents.length > 0 ? { battleDeletion: true as const } : {}),
         });
     }
   }
@@ -669,7 +671,7 @@ export class GameStateAccess {
    *
    * Returns the instance ids that left the permanent so callers can process the deletion result.
    */
-  deletePermanent(permanentId: string): string[] {
+  deletePermanent(permanentId: string, options?: { byBattle?: boolean }): string[] {
     const move = this.moveDeletedPermanentCards(permanentId);
     const cards = move.cards;
     // <Overflow> (CR §4-18): every card here just left the field (topCard), or left from
@@ -681,7 +683,7 @@ export class GameStateAccess {
     // sorted turn-player-first ONCE across the whole batch (CR §4-18-5) rather than once per
     // permanent in call order.
     applyOverflow(this.memory, cards, this.state.turnSeat);
-    this.narrateDeletion([move]);
+    this.narrateDeletion([move], undefined, options?.byBattle);
     return cards.map((c) => c.instanceId);
   }
 

@@ -1469,7 +1469,7 @@ export class CombatController {
       const linkedIds = this.access.permanentById(permanentId)?.linked.map((c) => c.instanceId) ?? [];
       const hostInstanceId = this.access.permanentById(permanentId)?.topCard?.instanceId;
       const effectiveColors = this.hooks.effectiveColorsOf?.(permanentId) ?? [];
-      const moved = this.access.deletePermanent(permanentId);
+      const moved = this.access.deletePermanent(permanentId, { byBattle: true });
       const battleOpponentId = permanentId === attacker.permanentId ? defender.permanentId : attacker.permanentId;
       for (const instanceId of moved) battleOpponentPermanentIdByInstanceId[instanceId] = battleOpponentId;
       for (const instanceId of moved) deletedEffectiveColorsByInstanceId[instanceId] = effectiveColors;

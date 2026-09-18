@@ -23,6 +23,8 @@ export interface OpenAttack {
   /** The target's public identity at declaration; a blocker arrives without one. */
   targetCardId?: string;
   targetArtId?: string;
+  /** This battle's clash has already been staged from its deletion; `combatResolved` adds nothing. */
+  staged?: true;
 }
 
 export interface FieldClashCombatant {
@@ -82,6 +84,48 @@ export function trackOpenAttack(open: OpenAttack | null, event: ServerEvent): Op
 }
 
 /**
+ * The scene a battle deletion earns, or null when it earns none.
+ *
+ * `combatResolved` is the honest end-of-attack seam, but the server holds it there: an
+ * [On Deletion] trigger that asks its controller a question strands the seam several
+ * batches — and a player prompt — behind the blow. Staging from the deletion the battle
+ * itself caused puts the clash back where it happened, while the loser is still on the
+ * board to take it.
+ */
+export function buildBattleDeletionScene({
+  key,
+  open,
+  event,
+  viewerSeat,
+  cardIdOf,
+  artIdOf,
+}: {
+  key: number;
+  open: OpenAttack | null;
+  event: Extract<ServerEvent, { kind: "cardsMoved" }>;
+  viewerSeat: Seat;
+  cardIdOf: (permanentId: string) => string | undefined;
+  artIdOf?: (permanentId: string) => string | undefined;
+}): FieldClashScene | null {
+  if (event.battleDeletion !== true) return null;
+  if (!open || open.staged || open.targetPermanentId === null) return null;
+  const combatants = new Set([open.attackerPermanentId, open.targetPermanentId]);
+  const losers = (event.deletedPermanents ?? [])
+    .map(({ permanentId }) => permanentId)
+    .filter((permanentId) => combatants.has(permanentId));
+  if (losers.length === 0) return null;
+  return sceneOf({
+    key,
+    open,
+    defenderPermanentId: open.targetPermanentId,
+    loserPermanentIds: losers,
+    viewerSeat,
+    cardIdOf,
+    artIdOf,
+  });
+}
+
+/**
  * The scene a `combatResolved` earns, or null when it earns none: only a battle
  * whose defender is known can be staged, and a player attack that was never
  * blocked resolves through security checks rather than here.
@@ -102,11 +146,41 @@ export function buildFieldClashScene({
   cardIdOf: (permanentId: string) => string | undefined;
   artIdOf?: (permanentId: string) => string | undefined;
 }): FieldClashScene | null {
-  if (!open || open.targetPermanentId === null) return null;
+  if (!open || open.staged || open.targetPermanentId === null) return null;
   if (open.attackerPermanentId !== event.attackerPermanentId) return null;
+  return sceneOf({
+    key,
+    open,
+    defenderPermanentId: open.targetPermanentId,
+    loserPermanentIds: event.deletedPermanentIds,
+    viewerSeat,
+    cardIdOf,
+    artIdOf,
+  });
+}
+
+/** The scene both seams cut, once they agree there is a battle to stage. */
+function sceneOf({
+  key,
+  open,
+  defenderPermanentId,
+  loserPermanentIds,
+  viewerSeat,
+  cardIdOf,
+  artIdOf,
+}: {
+  key: number;
+  open: OpenAttack;
+  /** The open attack's target, already checked to be a permanent by the caller. */
+  defenderPermanentId: string;
+  loserPermanentIds: readonly string[];
+  viewerSeat: Seat;
+  cardIdOf: (permanentId: string) => string | undefined;
+  artIdOf?: (permanentId: string) => string | undefined;
+}): FieldClashScene {
   const attackerArtId = open.attackerArtId ?? artIdOf?.(open.attackerPermanentId);
-  const defenderArtId = open.targetArtId ?? artIdOf?.(open.targetPermanentId);
-  const defenderCardId = open.targetCardId ?? cardIdOf(open.targetPermanentId);
+  const defenderArtId = open.targetArtId ?? artIdOf?.(defenderPermanentId);
+  const defenderCardId = open.targetCardId ?? cardIdOf(defenderPermanentId);
   return {
     key,
     attacker: {
@@ -115,11 +189,11 @@ export function buildFieldClashScene({
       ...(attackerArtId ? { artId: attackerArtId } : {}),
     },
     defender: {
-      permanentId: open.targetPermanentId,
+      permanentId: defenderPermanentId,
       ...(defenderCardId ? { cardId: defenderCardId } : {}),
       ...(defenderArtId ? { artId: defenderArtId } : {}),
     },
-    loserPermanentIds: event.deletedPermanentIds,
+    loserPermanentIds,
     direction: open.seat === viewerSeat ? LungeDirection.Up : LungeDirection.Down,
   };
 }

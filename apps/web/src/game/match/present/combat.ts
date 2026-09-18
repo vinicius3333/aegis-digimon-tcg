@@ -1,6 +1,12 @@
 import type { MutableRefObject } from "react";
 import type { Seat, ServerEvent } from "@aegis/shared";
-import { buildFieldClashScene, trackOpenAttack, type FieldClashScene, type OpenAttack } from "../../fieldClash";
+import {
+  buildBattleDeletionScene,
+  buildFieldClashScene,
+  trackOpenAttack,
+  type FieldClashScene,
+  type OpenAttack,
+} from "../../fieldClash";
 import { FIELD_CLASH_TOTAL_MS } from "../../timings";
 import type { MatchCueAnchors } from "../types";
 
@@ -38,20 +44,47 @@ export function combatScenes({
   const beaten = new Set<string>();
   const clashScenes: FieldClashScene[] = [];
   const clashLoserIds = new Set<string>();
+  const cardIdOf = (permanentId: string) => anchors.permanentCardId?.(permanentId);
+  const artIdOf = (permanentId: string) => lastVisibleArtRef.current.get(permanentId);
+  const stage = (scene: FieldClashScene) => {
+    clashScenes.push(scene);
+    for (const permanentId of scene.loserPermanentIds) clashLoserIds.add(permanentId);
+    const open = openAttackRef.current;
+    if (open) openAttackRef.current = { ...open, staged: true };
+  };
   for (const event of fresh) {
-    if (event.kind === "combatResolved") {
-      const scene = buildFieldClashScene({
-        key: (fieldClashKeyRef.current += 1),
+    if (event.kind === "cardsMoved") {
+      const scene = buildBattleDeletionScene({
+        key: fieldClashKeyRef.current + 1,
         open: openAttackRef.current,
         event,
         viewerSeat,
-        cardIdOf: (permanentId) => anchors.permanentCardId?.(permanentId),
-        artIdOf: (permanentId) => lastVisibleArtRef.current.get(permanentId),
+        cardIdOf,
+        artIdOf,
       });
       if (scene) {
-        clashScenes.push(scene);
-        for (const permanentId of event.deletedPermanentIds) clashLoserIds.add(permanentId);
-      } else {
+        fieldClashKeyRef.current += 1;
+        stage(scene);
+      }
+    }
+    if (event.kind === "combatResolved") {
+      // A battle already staged from its deletion has had its blow; the seam that follows is
+      // bookkeeping, and replaying it would swing at a card that left the board batches ago.
+      const staged = openAttackRef.current?.staged === true;
+      const scene = staged
+        ? null
+        : buildFieldClashScene({
+            key: fieldClashKeyRef.current + 1,
+            open: openAttackRef.current,
+            event,
+            viewerSeat,
+            cardIdOf,
+            artIdOf,
+          });
+      if (scene) {
+        fieldClashKeyRef.current += 1;
+        stage(scene);
+      } else if (!staged) {
         for (const permanentId of event.deletedPermanentIds) beaten.add(permanentId);
       }
     }
