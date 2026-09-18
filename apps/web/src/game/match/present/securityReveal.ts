@@ -75,9 +75,16 @@ export function presentSecurityRevealed({
   // a replayed history) sends no hint, and falls back to the centre-stage scene that plays
   // itself out.
   const docking = securityReveal.hasSecurityEffect === true && !closingCheck;
+  // Whether a battle will actually be drawn for this check. Only then is there a blow for
+  // the deletions it causes to wait on, and only then is the reveal-time board worth
+  // holding. A revealed Option or Tamer never battles, so its check — which for a
+  // [Security] effect runs until the viewer has answered every question it asks — must
+  // arm neither.
+  const battlePending = securityReveal.isDigimon === true && securityAttackerRef.current !== undefined;
   stage.stageSecurityReveal(key, settled, securityReveal.seat, {
     docking,
     countBefore: securityReveal.securityCountBefore,
+    battlePending,
   });
   revealOnStageRef.current = { key, scene: settled, ...(docking ? { docked: true } : {}) };
   heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices];
@@ -100,7 +107,6 @@ export function presentSecurityRevealed({
     // causes read in the order they happened. Anything else — an Option, a Tamer with no
     // clause, a check whose attacker is already gone — has nothing left to show, so it plays
     // out and leaves, and its consequences read on a clear board.
-    const battlePending = securityReveal.isDigimon === true && securityAttackerRef.current !== undefined;
     if (battlePending) {
       stage.holdSecurityReveal(key);
       revealOnStageRef.current = { key, scene: settled };

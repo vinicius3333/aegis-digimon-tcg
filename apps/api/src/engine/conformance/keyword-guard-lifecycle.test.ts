@@ -385,7 +385,7 @@ describe("Guard departure lifecycle", () => {
     expect(order.kind).toBe("orderTriggers");
     expect(orderRequest.options?.triggerKeys).toHaveLength(2);
     const firstTrigger = orderRequest.options?.triggerKeys?.[0];
-    expect(firstTrigger).toMatch(/^replacement\/-3\//);
+    expect(firstTrigger).toMatch(/::replacement\/-3\//);
     expect(
       s.engine.applyIntent(1, {
         type: "respondDecision",
@@ -912,7 +912,7 @@ describe("Guard departure lifecycle", () => {
     const choices = s.decisions
       .filter(({ req }) => req.kind === "orderTriggers")
       .flatMap(({ req }) => req.options?.triggerKeys ?? [])
-      .filter((key) => key.startsWith("replacement/"));
+      .filter((key) => key.includes("::replacement/"));
     expect(choices).toHaveLength(2);
     expect(new Set(choices.map((key) => key.split("/")[1])).size).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();

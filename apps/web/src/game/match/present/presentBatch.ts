@@ -27,7 +27,14 @@ import type { PermanentBurst, ZoneShowcase } from "../../showcases";
 import type { SecurityBranchScene, SecurityClashAttacker, SecurityClashScene } from "../../securityClash";
 import type { Side } from "../../side";
 import type { StateSnapshot } from "../../../net/presentedState";
-import type { AttackLunge, DeleteBurst, HeldDeletion, MatchCueAnchors, RevealOnStage, SecurityBreakCue } from "../types";
+import type {
+  AttackLunge,
+  DeleteBurst,
+  HeldDeletion,
+  MatchCueAnchors,
+  RevealOnStage,
+  SecurityBreakCue,
+} from "../types";
 import { securityCheckSegments } from "../../securityClash";
 import { hasTurnStartDraw } from "../../showcases";
 import { TIMINGS } from "../../timings";
@@ -53,6 +60,7 @@ import { enqueueMemoryHold, type MemoryHold } from "./memoryHold";
 import { securityRevealScene } from "./securityRevealScene";
 import { presentSecurityClose } from "./securityClose";
 import { presentSecurityRevealed } from "./securityReveal";
+import { refreshSecurityAttacker } from "./securityAttackerRefresh";
 import {
   createPresentationGate,
   type DeletionReadyAt,
@@ -587,6 +595,7 @@ export function presentServerBatch({
       stage,
       enqueueDeferredSecurityArrivals,
     });
+  refreshSecurityAttacker({ fresh, securityAttackerRef, setSecurityClash });
   if (securityCheck?.kind === "securityChecked")
     presentSecurityClose({
       securityCheck,

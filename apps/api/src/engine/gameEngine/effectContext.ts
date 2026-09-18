@@ -1,5 +1,13 @@
 import { isTimingActivationDisabled } from "../effects/timingActivation.js";
-import { EffectTiming, Zone, getCardDefinition, type CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
+import {
+  EffectTiming,
+  Zone,
+  buildTriggerKey,
+  getCardDefinition,
+  type CardInstance,
+  type Seat,
+  type ServerEvent,
+} from "@aegis/shared";
 import { canAttackerDeclare } from "../combat/legality.js";
 import { resolveKeywords } from "../combat/keywords.js";
 import { effectiveKinds, effectiveNames, effectiveTraits } from "../effects/continuous.js";
@@ -254,21 +262,46 @@ export async function engineConsultLeavePrevention(
         });
       },
       orderReplacements: async (replacements, seat) => {
+        // Each row has to name the card whose printed clause it is. A would-leave
+        // replacement usually lives in the INHERITED box of a digivolution card, so the
+        // permanent's top card is the wrong answer: it names a Digimon the clause is not
+        // printed on. The source instance is carried alongside the key (`triggerCardIds`)
+        // rather than parsed out of it, and the key is prefixed with that instance so two
+        // copies of the same card under the same permanent stay separately addressable.
         const keyed = replacements.map((replacement) => {
           const sourceInstance =
             replacement.sourceInstanceId === undefined
               ? undefined
               : findLooseInstance(engine, replacement.sourceInstanceId);
+          const sourcePermanent =
+            replacement.sourcePermanentId === undefined
+              ? undefined
+              : engine.access.permanentById(replacement.sourcePermanentId);
+          const cardId = sourceInstance?.cardId ?? sourcePermanent?.topCard?.cardId;
+          const anchorInstanceId = sourceInstance?.instanceId ?? sourcePermanent?.topCard?.instanceId ?? "";
+          // A clause printed on a card that is NOT the permanent's top card is being read
+          // from the digivolution (or linked) cards, which is the inherited text box.
+          const isInherited =
+            sourceInstance !== undefined &&
+            sourcePermanent !== undefined &&
+            sourcePermanent.topCard?.instanceId !== sourceInstance.instanceId;
           return {
             replacement,
-            key: `replacement/${replacement.id}/${sourceInstance?.cardId ?? replacement.sourceInstanceId ?? replacement.sourcePermanentId ?? "source"}`,
+            cardId: cardId ?? replacement.sourceInstanceId ?? replacement.sourcePermanentId ?? "source",
+            isInherited,
+            key: buildTriggerKey(anchorInstanceId, `replacement/${replacement.id}/${cardId ?? "source"}`),
           };
         });
         const response = await engine.decisions.request({
           seat,
           kind: "orderTriggers",
           promptText: "Choose the order for simultaneous would-leave effects.",
-          options: { triggerKeys: keyed.map(({ key }) => key) },
+          options: {
+            triggerKeys: keyed.map(({ key }) => key),
+            triggerCardIds: keyed.map(({ cardId }) => cardId),
+            triggerDescriptions: keyed.map(({ replacement }) => replacement.description),
+            triggerIsInherited: keyed.map(({ isInherited }) => isInherited),
+          },
         });
         if (response.kind !== "orderTriggers" || response.order.length === 0) return replacements;
         const selected = keyed.find(({ key }) => key === response.order[0]);

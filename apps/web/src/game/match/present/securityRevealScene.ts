@@ -115,16 +115,33 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     key: number,
     scene: SecurityClashScene,
     seat: Seat,
-    { docking = false, countBefore }: { docking?: boolean; countBefore?: number } = {},
+    {
+      docking = false,
+      countBefore,
+      battlePending = true,
+    }: { docking?: boolean; countBefore?: number; battlePending?: boolean } = {},
   ) {
     // Only an unfinished check may be replaced. Completed checks still owed to the
     // viewer stay on the serial track, even when their events arrived in one render.
     // Armed with the reveal and released by the outcome, so anything this check deletes
     // in between waits for the blow instead of shattering over a battle not yet drawn.
-    securityBlowRef.current = { key, landed: false, gate: createPresentationGate() };
+    //
+    // A check with NO battle to draw — a revealed Option, a Tamer, a Digimon whose
+    // attacker has already left — arms nothing. Its card docks at the side and the check
+    // then runs for as long as the server needs, which for a [Security] effect that asks
+    // the viewer a question is until that question is ANSWERED. A gate armed here would
+    // be waited on by every deletion in between (deleteBurstStep, under the dock's
+    // 45s ceiling) and each of those beats blocks the prompt: the check would be waiting
+    // for the answer the client is refusing to ask for. Nothing would draw it either,
+    // because there is no blow.
+    const blow = { key, landed: !battlePending, gate: createPresentationGate() };
+    if (!battlePending) blow.gate.release();
+    securityBlowRef.current = blow;
     // The board as it is at the reveal — attacker suspended on the field, cards still in
-    // security — is what stays on screen until that battle has been drawn.
-    setHeldBlowState(blowHoldState());
+    // security — is what stays on screen until that battle has been drawn. With no battle
+    // coming, holding it would pin the board for the whole check and a Digimon deleted
+    // while it runs would stand there as though it had never left.
+    setHeldBlowState(battlePending ? blowHoldState() : undefined);
     const replace = revealOnStageRef.current !== null || queuedSecurityKeyRef.current === null;
     if (revealOnStageRef.current !== null) flushHeldNotices();
     queuedSecurityKeyRef.current = key;

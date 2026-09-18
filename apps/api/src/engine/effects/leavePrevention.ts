@@ -118,10 +118,19 @@ export async function consultLeavePrevention(
       if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
       if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
       if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
+      // A replacement anchored to a permanent BUT printed on one of its digivolution (or
+      // linked) cards has to resolve as that card: `ctx.source` is what every prompt this
+      // clause raises names, and the permanent's top card is a different Digimon whose own
+      // printed text has nothing to do with the clause being applied.
+      const printedOnStackCard =
+        srcPerm !== undefined &&
+        repl.sourceInstanceId !== undefined &&
+        srcPerm.topCard?.instanceId !== repl.sourceInstanceId;
       const ctx =
-        srcPerm !== undefined
+        srcPerm !== undefined && !printedOnStackCard
           ? host.buildContext(srcPerm, leavingId)
-          : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
+          : (host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId) ??
+            (srcPerm === undefined ? undefined : host.buildContext(srcPerm, leavingId)));
       if (ctx === undefined) continue;
       if (repl.mode === "instead") {
         if (repl.appliesTo && !repl.appliesTo(ctx, leavingId)) continue;

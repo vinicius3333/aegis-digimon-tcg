@@ -31,6 +31,7 @@ export function useDecisionBarrier({
   progress,
   flushHeldNotices,
   securityHoldRef,
+  handOverSecurityBlow,
   setDecisionBarrier,
   setDecisionStalled,
   setPendingRevealKey,
@@ -51,6 +52,8 @@ export function useDecisionBarrier({
   flushHeldNotices: () => void;
   /** Mutated: the battle hold is handed over, the question having taken the board back. */
   securityHoldRef: MutableRefObject<{ key: number; closed: boolean; handedOver?: boolean } | null>;
+  /** Lets go of the check's battle beat: the question it paused for outranks it. */
+  handOverSecurityBlow: (key: number) => void;
   setDecisionBarrier: Dispatch<SetStateAction<number | null>>;
   setDecisionStalled: Dispatch<SetStateAction<boolean>>;
   setPendingRevealKey: Dispatch<SetStateAction<number | null>>;
@@ -144,6 +147,11 @@ export function useDecisionBarrier({
       skippable: false,
       run() {
         flushHeldNotices();
+        // The blow this check armed is waited on by every deletion it caused, and each of
+        // those beats holds the prompt back. The server is blocked on the answer, so the
+        // outcome that would land the blow cannot arrive until the viewer has given it:
+        // the question takes the board, and the blow goes with it.
+        handOverSecurityBlow(key);
         const held = securityHoldRef.current;
         if (held?.key === key && !held.closed) held.handedOver = true;
         setPendingRevealKey((current) => (current === key ? null : current));

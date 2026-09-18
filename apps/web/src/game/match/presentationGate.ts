@@ -39,9 +39,12 @@ export async function waitForGate(
   context: AnimationStepContext,
   ceilingMs: number,
 ): Promise<void> {
-  if (!gate || gate.open || context.mode === "replay") return;
+  if (!gate || gate.open || context.mode === "replay" || context.skipping) return;
   const deadline = Date.now() + ceilingMs;
-  while (!gate.open && !context.cancelled && Date.now() < deadline) {
+  // A fast-forward is the viewer asking for the rest of it now. A gate is the one wait
+  // that has no clock of its own, so it is also the one a skip has to break out of —
+  // otherwise skipping releases every timed beat and leaves the queue sitting on this one.
+  while (!gate.open && !context.cancelled && !context.skipping && Date.now() < deadline) {
     let stopPolling = () => {};
     const poll = new Promise<void>((resolve) => {
       const timer = setTimeout(resolve, GATE_POLL_MS);

@@ -798,6 +798,20 @@ export function useMatchCues({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [batches]);
 
+  /**
+   * A check that stopped to ask the viewer something gives up its battle beat. The blow
+   * is landed by the check's close, which the server cannot send until the answer comes
+   * back, so anything still waiting on that gate — every deletion the check caused —
+   * would hold the prompt for the dock's whole ceiling and the match would sit there.
+   */
+  function handOverSecurityBlow(key: number) {
+    const blow = securityBlowRef.current;
+    if (blow === null || blow.key !== key || blow.landed) return;
+    blow.landed = true;
+    blow.gate.release();
+    setHeldBlowState(undefined);
+  }
+
   useDecisionBarrier({
     decisionPending,
     decisionStateVersion,
@@ -811,6 +825,7 @@ export function useMatchCues({
     progress,
     flushHeldNotices,
     securityHoldRef,
+    handOverSecurityBlow,
     setDecisionBarrier,
     setDecisionStalled,
     setPendingRevealKey,
