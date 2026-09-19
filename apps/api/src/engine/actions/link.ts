@@ -1,4 +1,5 @@
 import {
+  CardKind,
   Phase,
   type CardDefinition,
   type CardInstance,
@@ -184,6 +185,7 @@ export function validateLinkCard(
 
   // 4. §10-1-3-1: the chosen Digimon must meet the link card's requirement.
   const hostDefinition = definitionOf(permanent.topCard.cardId);
+  if (!hostDefinition.kinds.includes(CardKind.Digimon)) return { ok: false, reason: "illegal-target" };
   if (!deps.linkRequirementSatisfied(hostDefinition, instance)) {
     return { ok: false, reason: "link-requirement-unmet" };
   }

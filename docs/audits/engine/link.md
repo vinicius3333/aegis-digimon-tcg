@@ -29,3 +29,30 @@ claimed here.
 
 Focused result: 1 file, 5 tests passing. Other Link costs and providers remain
 open.
+
+## Digimon recipient enforcement (#4864)
+
+The September 19, 2026 report paired BT25-036 Craftmon with P-217 Haru
+Shinkai. Both carry the `[Appmon]` trait, but Haru is a Tamer. Comprehensive
+Rules §6-5-1-4 and §10-1-3-1 require a Link recipient to be one of the
+controller's Digimon in the battle area; satisfying the linked card's trait
+requirement does not change that card-kind requirement.
+
+`validateLinkCard` previously checked ownership, top-card presence and the
+printed Link requirement without checking that the recipient's top card was a
+Digimon. Because `syncLinkTargets` delegates to that validator, the same gap
+both published Haru as a legal target and accepted a forged `linkCard` intent.
+The validator now rejects non-Digimon recipients before evaluating the printed
+requirement, keeping projections and authoritative intent handling aligned.
+
+`BT25-036.test.ts` proves the reported pair through public intents: Craftmon's
+target projection contains a real Appmon Digimon but excludes Haru, a direct
+intent against Haru returns `illegal-target` without paying memory, and the same
+physical Craftmon still links to the valid Digimon for its printed cost. The
+shared parameter tests now use an actual Digimon host instead of the Tamer
+fixture that had accidentally encoded the invalid behavior.
+
+The relevant Oracle VPS containers had already been replaced when the incident
+was investigated, so no match log from the reported 2026-09-19 04:17:47 UTC
+window remained available. Inspection was read-only and no production state was
+changed.
