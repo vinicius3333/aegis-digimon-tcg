@@ -72,7 +72,7 @@ export function FilterRail({
       <aside
         ref={sheetRef}
         id={sheetId}
-        className={`card-filter-rail${mobileFiltersOpen ? " is-mobile-open" : ""}`}
+        className={`card-filter-rail${mobileFiltersOpen ? " is-mobile-open has-footer" : ""}`}
         role={mobileFiltersOpen ? "dialog" : undefined}
         aria-modal={mobileFiltersOpen || undefined}
         aria-labelledby={mobileFiltersOpen ? `${sheetId}-title` : undefined}
@@ -377,6 +377,13 @@ export function FilterRail({
           <Icons.Filter size={14} />
           {t("library.clearFilters")}
         </button>
+        {mobileFiltersOpen ? (
+          <div className="card-filter-sheet-footer">
+            <Button full onClick={() => setMobileFiltersOpen(false)}>
+              {t("mobile.applyFilters", { count: filter.filtered.length })}
+            </Button>
+          </div>
+        ) : null}
       </aside>
     </>
   );

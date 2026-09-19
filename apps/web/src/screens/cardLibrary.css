@@ -20,7 +20,8 @@
 }
 
 .card-filter-trigger,
-.card-filter-sheet-header {
+.card-filter-sheet-header,
+.card-filter-sheet-footer {
   display: none;
 }
 
@@ -191,6 +192,22 @@
     margin: 0;
     color: var(--ds-fg);
     font: 800 var(--ds-text-xl)/1 var(--ds-font-display);
+  }
+
+  .card-filter-rail.is-mobile-open.has-footer {
+    padding-bottom: 0 !important;
+  }
+
+  .card-filter-rail.is-mobile-open > .card-filter-sheet-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    display: block;
+    width: auto;
+    margin: 0 calc(-1 * var(--ds-gutter-phone));
+    padding: var(--ds-space-3) var(--ds-gutter-phone) calc(var(--ds-space-3) + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--ds-border);
+    background: var(--ds-surface);
   }
 
   .card-filter-sheet-header button {

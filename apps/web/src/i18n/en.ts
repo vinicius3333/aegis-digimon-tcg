@@ -829,6 +829,7 @@ export const en = {
 
   "mobile.back": "Back",
   "mobile.filters": "Filters",
+  "mobile.applyFilters": "Show {count} cards",
   "mobile.clear": "Clear",
   "mobile.settings.title": "Preferences",
   "mobile.settings.display": "Display",

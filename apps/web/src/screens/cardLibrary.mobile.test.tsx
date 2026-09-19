@@ -46,6 +46,18 @@ it("opens and closes the mobile filter bottom sheet", () => {
   expect(screen.queryByRole("dialog", { name: "Filters" })).toBeNull();
 });
 
+it("applies the mobile filters with a confirm button that shows the result count", () => {
+  render(
+    <I18nProvider>
+      <FilterRail filter={emptyFilter} />
+    </I18nProvider>,
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: "Filters" }));
+  fireEvent.click(screen.getByRole("button", { name: "Show 0 cards" }));
+  expect(screen.queryByRole("dialog", { name: "Filters" })).toBeNull();
+});
+
 it("shows the effective banlist limit in the mobile card drawer", () => {
   render(
     <I18nProvider>

@@ -836,6 +836,7 @@ export const ptBR: Record<keyof typeof en, string> = {
 
   "mobile.back": "Voltar",
   "mobile.filters": "Filtros",
+  "mobile.applyFilters": "Mostrar {count} cartas",
   "mobile.clear": "Limpar",
   "mobile.settings.title": "Preferências",
   "mobile.settings.display": "Exibição",

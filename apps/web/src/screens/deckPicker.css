@@ -130,6 +130,31 @@
   line-height: 1.6;
 }
 
+.deck-picker__group-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-3);
+  cursor: pointer;
+  list-style: none;
+}
+
+.deck-picker__group-summary::-webkit-details-marker {
+  display: none;
+}
+
+.deck-picker__group-summary .deck-picker__group-title {
+  margin: 0;
+}
+
+.deck-picker__group-summary:hover .deck-picker__group-title {
+  color: var(--ds-fg);
+}
+
+.deck-picker__own details[open] .deck-picker__chevron {
+  transform: rotate(180deg);
+}
+
 .deck-picker__collection {
   border-bottom: 1px solid var(--ds-border);
 }

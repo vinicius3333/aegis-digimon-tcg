@@ -91,6 +91,10 @@
     width: 100% !important;
     padding-inline: var(--ds-gutter-tablet) !important;
   }
+  .collection-page > .card-filter-rail > .card-filter-sheet-footer {
+    flex: 1 1 100%;
+    margin-inline: calc(-1 * var(--ds-gutter-tablet));
+  }
   .collection-results {
     padding: var(--ds-space-5) var(--ds-gutter-tablet) !important;
   }
