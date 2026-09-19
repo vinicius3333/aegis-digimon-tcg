@@ -490,12 +490,13 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
           const cardId = visibleCardIds.get(instanceId);
           if (req.options?.distinctCardIds === true && (cardId === undefined || selectedCardIds.has(cardId))) continue;
           const nameCardId = nameCardIds.get(instanceId);
+          const nameDefinition = nameCardId === undefined ? undefined : getCardDefinition(nameCardId);
           const names =
-            req.options?.distinctNames === true && nameCardId !== undefined
-              ? effectiveExactNames(getCardDefinition(nameCardId)).map((name) => name.toLowerCase())
+            req.options?.distinctNames === true && nameDefinition !== undefined
+              ? effectiveExactNames(nameDefinition).map((name) => name.toLowerCase())
               : [];
           if (req.options?.distinctNames === true) {
-            if (nameCardId === undefined || names.some((name) => selectedNames.has(name))) continue;
+            if (nameDefinition === undefined || names.some((name) => selectedNames.has(name))) continue;
           }
           if (req.kind === "chooseTargets" && req.options?.maxTotalDP !== undefined) {
             const permanent = findPermanentForDecisionId(state, instanceId);
