@@ -125,6 +125,29 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
   });
 
+  it("does not use Wide Plasment when its live security-scaled use cost exceeds opposing memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-085", as: "source" }],
+          hand: [{ card: "BT26-033", as: "widePlasment" }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -2;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("source"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("widePlasment").instanceId);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
   it("uses the capped Option but declines the optional subsequent attack (Q5673)", async () => {
     const s = setupEngine(
       {

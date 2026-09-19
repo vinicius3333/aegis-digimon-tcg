@@ -121,6 +121,38 @@ describe("BT26-033 compiled fidelity", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
+  it("digivolves over BT25-039 Sirenmon through the level-5 TS requirement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-039", as: "sirenmon" }],
+          hand: [{ card: CARD_ID, as: "jupitermon" }],
+          security: [{ card: "BT1-009", as: "securityTop" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sirenmon").permanentId,
+        instanceId: s.inst("jupitermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sirenmon").topCard.cardId === CARD_ID);
+
+    expect(s.state.memory).toBe(0);
+    expect([...s.perm("sirenmon").stack, s.perm("sirenmon").topCard].map(({ cardId }) => cardId)).toEqual([
+      "BT25-039",
+      CARD_ID,
+    ]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
+  });
+
   it("does not offer the Iliad play/use continuation on the opponent's turn", async () => {
     const s = setupEngine(
       {

@@ -441,14 +441,22 @@ function optionUseCandidates(
     const effectiveFilter =
       filter === undefined
         ? undefined
-        : {
-            ...filter,
-            ...(costCap === undefined ? {} : { playCostLte: costCap }),
-            playCostLteScaling: undefined,
-          };
+        : (() => {
+            const {
+              playCostLte: _playCostLte,
+              playCostGte: _playCostGte,
+              playCostOneOf: _playCostOneOf,
+              playCostLteScaling: _playCostLteScaling,
+              ...nonCostFilter
+            } = filter;
+            return nonCostFilter;
+          })();
     if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, def)) return;
     if (!def.kinds.includes(CardKind.Option)) return;
-    if (costCap !== undefined && def.playCost > costCap) return;
+    const useCost = ctx.fx.effectiveLooseUseCost?.(candidate.instanceId, seat) ?? def.playCost;
+    if (costCap !== undefined && useCost > costCap) return;
+    if (filter?.playCostGte !== undefined && useCost < filter.playCostGte) return;
+    if (exactCosts.length > 0 && !exactCosts.includes(useCost)) return;
     if (
       action.waiveColorRequirement !== true &&
       ctx.game.optionColorRequirementMet?.(seat, candidate.instanceId, def) === false
