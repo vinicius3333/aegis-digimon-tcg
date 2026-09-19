@@ -143,6 +143,7 @@ export function createGrantsVerbs(pc: PrimitivesContext) {
     traits: string[],
     duration: EffectDuration,
     opts?: {
+      sourceCardId?: string;
       sourceInstanceId?: string;
       controllerSeat?: Seat;
       optional?: boolean;

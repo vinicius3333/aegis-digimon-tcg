@@ -409,6 +409,11 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const declined = s.state.pendingDecision!;
     expect(declined.kind).toBe("optional");
+    expect(s.decisions.find(({ req }) => req.decisionId === declined.decisionId)?.req).toMatchObject({
+      sourceCardId: "BT25-045",
+      sourceInstanceId: s.inst("onmon").instanceId,
+      sourcePermanentId: s.perm("onmon").permanentId,
+    });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

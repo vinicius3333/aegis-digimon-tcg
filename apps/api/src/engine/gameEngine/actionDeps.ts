@@ -739,6 +739,9 @@ export function linkCardDeps(engine: GameEngine): LinkCardDeps {
           seat: grant.controllerSeat ?? engine.state.turnSeat,
           kind: "optional",
           promptText: `Reduce engine Link cost by ${grant.amount}?`,
+          sourceCardId: grant.sourceCardId,
+          sourceInstanceId: grant.sourceInstanceId,
+          sourcePermanentId: grant.permanentId,
         });
         if (response.kind !== "optional" || !response.accept) return 0;
       }

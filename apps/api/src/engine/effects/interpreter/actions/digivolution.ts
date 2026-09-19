@@ -131,6 +131,7 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
       const duration = toDuration(action.duration);
       for (const id of ids) {
         ctx.fx.grantLinkCostReduction(id, action.amount, action.whenLinkingTrait, duration, {
+          sourceCardId: ctx.source.cardId,
           sourceInstanceId: ctx.source.instanceId,
           controllerSeat: ctx.source.ownerSeat,
           optional: action.optionalAtDeclaration === true,
