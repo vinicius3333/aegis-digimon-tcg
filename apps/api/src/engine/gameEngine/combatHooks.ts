@@ -56,9 +56,22 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
       // wholesale). The synthetic Alliance effects would silently vanish with it, so decline
       // the combined window here and let the caller run the legacy inline Alliance loop.
       if (attacker === undefined || top === undefined || engine.activeWindowToken !== undefined) {
+        if (opts.suspendedPermanentId !== undefined) {
+          const suspensionTrigger = {
+            ...combatTriggerInfo(engine, trigger),
+            subjectPermanentId: opts.suspendedPermanentId,
+            suspendedPermanentId: opts.suspendedPermanentId,
+          };
+          await fireTiming(engine, EffectTiming.OnTappedAnyone, suspensionTrigger);
+          await engine.fireSubTrigger("whenSuspended", suspensionTrigger);
+        }
         await fireTiming(engine, EffectTiming.OnUseAttack, combatTriggerInfo(engine, trigger));
         return { allianceResolvedInWindow: false, subTriggersResolvedInWindow: false };
       }
+      // Attack declaration opens several trigger channels as one event. Bring continuous
+      // watchers up to date before capturing any channel so every resident source is judged
+      // from the same event-time board snapshot.
+      await engine.recomputeContinuousEffects();
       // Each ＜Alliance＞ instance enters the attacker's [When Attacking] window as one more
       // simultaneous trigger, so the controller orders it against the printed effects instead
       // of always resolving it last (Q5257). Distinct effectKeys keep the two instances
@@ -89,21 +102,44 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
         },
       }));
       const attackPayload = opts.subTriggerPayload ?? combatTriggerInfo(engine, trigger);
-      const attackEnvironment = buildResolutionEnv(effectEnvironment(engine, attackPayload), resolutionDeps(engine));
+      const suspensionPayload =
+        opts.suspendedPermanentId === undefined
+          ? undefined
+          : {
+              ...attackPayload,
+              subjectPermanentId: opts.suspendedPermanentId,
+              suspendedPermanentId: opts.suspendedPermanentId,
+            };
+      const attackEnvironment = buildResolutionEnv(
+        effectEnvironment(engine, { ...attackPayload, ...(suspensionPayload ?? {}) }),
+        resolutionDeps(engine),
+      );
       const allyAttackEffects = attackEnvironment.collect(EffectTiming.OnAllyAttack);
-      const pendingAttackEffects = [...allyAttackEffects, ...allianceEffects];
+      // Suspending the attacker and declaring the attack are the same game event. Effects
+      // triggered by either part share one activation order (§11-2-8, §15-4-3), including
+      // [On Tapped] timing effects and the `whenSuspended` watcher bus.
+      const suspensionEffects =
+        suspensionPayload === undefined
+          ? []
+          : attackEnvironment
+              .collect(EffectTiming.OnTappedAnyone)
+              .map((effect) => ({ ...effect, triggerInfo: suspensionPayload }));
+      const pendingAttackEffects = [...allyAttackEffects, ...suspensionEffects, ...allianceEffects];
       const timingWindow = async () =>
         fireTimingForPermanent(engine, EffectTiming.OnUseAttack, attacker, attackPayload, pendingAttackEffects);
       const subTriggerPayload = opts.subTriggerPayload ?? combatTriggerInfo(engine, trigger);
       if (includeSubTriggers) {
         await withPendingSubTriggers(
           engine,
-          ["whenAttacking", "whenOpponentAttacks"],
-          subTriggerPayload,
+          suspensionPayload === undefined
+            ? ["whenAttacking", "whenOpponentAttacks"]
+            : ["whenSuspended", "whenAttacking", "whenOpponentAttacks"],
+          suspensionPayload === undefined ? subTriggerPayload : { ...subTriggerPayload, ...suspensionPayload },
           timingWindow,
           {
             onlyInitiallyArmed: true,
-            busTrigger: () => subTriggerPayload,
+            busTrigger: () =>
+              suspensionPayload === undefined ? subTriggerPayload : { ...subTriggerPayload, ...suspensionPayload },
           },
         );
       } else {

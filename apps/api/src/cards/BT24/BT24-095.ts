@@ -72,7 +72,7 @@ export const compiled: CompiledCard = {
             count: 1,
             sameTarget: true,
           },
-          restriction: "unsuspend",
+          restriction: "unsuspendDuringOwnUnsuspendPhase",
           duration: "untilOpponentNextUnsuspendPhase",
         },
         {

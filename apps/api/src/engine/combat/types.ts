@@ -130,7 +130,11 @@ export interface CombatHooks {
   fireAttackTiming?: (
     trigger: CombatTrigger,
     allianceCount: number,
-    opts?: { includeSubTriggers?: boolean; subTriggerPayload?: TriggerInfo },
+    opts?: {
+      includeSubTriggers?: boolean;
+      subTriggerPayload?: TriggerInfo;
+      suspendedPermanentId?: string;
+    },
   ) => Promise<{ allianceResolvedInWindow: boolean; subTriggersResolvedInWindow: boolean }>;
   /** Whether the engine has attack-timing effects to combine with Alliance. */
   combineAllianceTiming?: (permanentId: string) => boolean;

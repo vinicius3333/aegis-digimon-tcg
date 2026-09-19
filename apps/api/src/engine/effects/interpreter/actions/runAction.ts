@@ -281,6 +281,15 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   }
 }
 
+function markActivationChosen(ctx: EffectContext): void {
+  ctx.oncePerTurnActivationChosen = true;
+  ctx.oncePerTurnActivationDeclined = false;
+}
+
+function markActivationDeclined(ctx: EffectContext): void {
+  if (ctx.oncePerTurnActivationChosen !== true) ctx.oncePerTurnActivationDeclined = true;
+}
+
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
   // A placement tally is scoped to this action's current resolution.  In particular, a
   // declined/blocked optional placement must overwrite a prior activation's count rather
@@ -514,7 +523,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // never chose to use it. Treat the skip like a decline for the [Once Per Turn] budget
     // (BT26-015: the inherited deck-add reaction must stay armed until the host actually
     // suspends later in the same turn).
-    if (action.preserveOncePerTurnOnDecline === true) ctx.oncePerTurnActivationDeclined = true;
+    if (action.optional === true || action.preserveOncePerTurnOnDecline === true) markActivationDeclined(ctx);
     return action.cost !== undefined ? action.abortOnDecline === true : false;
   }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
@@ -627,12 +636,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.cost.target === undefined;
   let costModifierPaidCount: number | undefined;
   if (action.kind === "CostModifier" && action.cost !== undefined && !interactiveDigivolveReduction) {
-    if (
-      action.optional &&
-      !forceOptionalCostProcessing &&
-      !(await ctx.ask.optional(ctx, `Pay cost: ${describeCost(action.cost)}?`))
-    ) {
-      return action.abortOnDecline === true;
+    if (action.optional && !forceOptionalCostProcessing) {
+      if (!(await ctx.ask.optional(ctx, `Pay cost: ${describeCost(action.cost)}?`))) {
+        markActivationDeclined(ctx);
+        return action.abortOnDecline === true;
+      }
+      markActivationChosen(ctx);
     }
     const payment = { paidCount: 0 };
     const paid = await payCost(ctx, payableActionCost as Cost, payment);
@@ -880,15 +889,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         action.kind === "Delete" && action.target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
       const yes = await chooser.optional(ctx, describeAction(action));
       if (!yes) {
-        // `ifThisEffectDidNotAct` belongs to the immediately preceding action. A declined
-        // optional action acted zero times, so clear any success receipt left by an earlier
-        // action in the same effect before its "if they didn't" continuation is evaluated.
+        // `ifThisEffectDidNotAct` belongs to the immediately preceding action. The activation
+        // receipt is separate and remains chosen if an earlier action was already accepted.
         ctx.lastEffectActed = false;
-        if (action.preserveOncePerTurnOnDecline === true) {
-          ctx.oncePerTurnActivationDeclined = true;
-        }
+        markActivationDeclined(ctx);
         return action.abortOnDecline === true;
       }
+      markActivationChosen(ctx);
     }
   }
   // Pay a per-action cost first; abort the action if it cannot be paid. An OPTIONAL
@@ -941,15 +948,23 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         costAsksItself ||
         (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payableActionCost)}?`));
       if (willPay) {
+        if (!costAsksItself) markActivationChosen(ctx);
         const outerCostIsTheQuestion = ctx.costIsTheQuestion;
         ctx.costIsTheQuestion = costAsksItself;
         const paid = await payCost(ctx, payableActionCost, costPayment);
         ctx.costIsTheQuestion = outerCostIsTheQuestion;
-        if (!paid) return action.abortOnDecline === true;
-      } else if (action.abortOnDecline === true) {
+        if (paid) markActivationChosen(ctx);
+        if (!paid) {
+          if (costAsksItself) {
+            markActivationDeclined(ctx);
+          }
+          return action.abortOnDecline === true;
+        }
+      } else {
+        markActivationDeclined(ctx);
         // A clause may make only its processing condition optional; refusal skips
         // the remaining effect even when the payload itself is not optional.
-        return true;
+        if (action.abortOnDecline === true) return true;
       }
     } else {
       const deferSuspendTriggers = action.kind === "Attack" && payableActionCost.kind === "suspend";
@@ -957,13 +972,14 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       ctx.costIsTheQuestion = costAsksThisAction;
       const paid = await payCost(ctx, payableActionCost, costPayment, { deferSuspendTriggers });
       ctx.costIsTheQuestion = outerCostIsTheQuestion;
+      if (paid) markActivationChosen(ctx);
       if (paid && deferSuspendTriggers) deferredCostSuspensions = [...(ctx.lastSuspendedPermanentIds ?? [])];
       if (!paid) {
         // Where the cost selection replaced the "you may…" prompt, answering it with nothing IS
         // that prompt's decline, so it preserves the once-per-turn opportunity the same way.
-        if (costAsksThisAction && action.preserveOncePerTurnOnDecline === true) {
+        if (costAsksThisAction) {
           ctx.lastEffectActed = false;
-          ctx.oncePerTurnActivationDeclined = true;
+          markActivationDeclined(ctx);
         }
         // An unpayable ACTIVATION cost ("By [paying X], [effect]. Then …") means the entire
         // ability does nothing, so abort the REMAINING actions of this effect too — otherwise
@@ -990,8 +1006,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     const yes = await ctx.ask.optional(ctx, describeAction(action));
     if (!yes) {
       ctx.lastEffectActed = false;
+      markActivationDeclined(ctx);
       return action.abortOnDecline === true;
     }
+    markActivationChosen(ctx);
   }
   if (
     action.kind !== "RawUnparsed" &&
@@ -1008,6 +1026,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     for (const extraCost of extraCosts) {
       const paid = await payCost(ctx, extraCost, costPayment);
       if (!paid) return action.abortOnDecline === true;
+      markActivationChosen(ctx);
     }
   }
   // "By [cost], you may [effect]" (`payCostBeforeOptional`): the WHOLE activation cost — the main
@@ -1018,8 +1037,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     const yes = await ctx.ask.optional(ctx, describeAction(action));
     if (!yes) {
       ctx.lastEffectActed = false;
+      markActivationDeclined(ctx);
       return action.abortOnDecline === true;
     }
+    markActivationChosen(ctx);
   }
   // An "up to N" <Digi-Burst> cost scales its action by the number of cards actually paid
   //. The runtime record omits the `scaling` hint for
@@ -1084,6 +1105,20 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !isBudgetScaling
   ) {
     return false;
+  }
+
+  // Record mandatory processing only after every optional processing-cost gate and
+  // target preflight has passed. Structural wrappers do not make a nested optional
+  // refusal count as a chosen activation on their own.
+  if (
+    action.kind !== "RawUnparsed" &&
+    action.kind !== "ConditionalBranch" &&
+    action.kind !== "Modal" &&
+    action.kind !== "SubTrigger" &&
+    action.kind !== "CostGatedBlock" &&
+    action.optional !== true
+  ) {
+    markActivationChosen(ctx);
   }
 
   // Everything the prologue worked out that a case body still needs.

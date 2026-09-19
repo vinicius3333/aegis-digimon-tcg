@@ -159,8 +159,7 @@ export async function runSubTrigger(
   // resolves to that permanent and the watcher is installed on IT — so the sub-effect's
   // "this Digimon" / controller scope resolve to the GRANTED permanent, not the granter.
   const playerScoped = action.playerScoped === true;
-  const printedWatcherClause =
-    action.printedClause ?? (action.raw?.startsWith("[") === true ? action.raw : undefined);
+  const printedWatcherClause = action.printedClause ?? (action.raw?.startsWith("[") === true ? action.raw : undefined);
   if (playerScoped && action.on !== undefined) {
     unsupported(ctx, action, "player-scoped SubTrigger cannot also target a permanent anchor");
     return;
@@ -1204,7 +1203,12 @@ export async function runSubTrigger(
           subCtx,
           action.raw ?? "Trash this card to activate its ＜Delay＞ effect?",
         );
-        if (!activate) return;
+        if (!activate) {
+          if (subCtx.oncePerTurnActivationChosen !== true) subCtx.oncePerTurnActivationDeclined = true;
+          return;
+        }
+        subCtx.oncePerTurnActivationChosen = true;
+        subCtx.oncePerTurnActivationDeclined = false;
         const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
         if (trashed <= 0 && subCtx.source.permanent() !== undefined) return;
         activationCostPaid = true;
@@ -1227,28 +1231,31 @@ export async function runSubTrigger(
             action.raw ?? activationCost?.raw ?? "Activate this triggered effect?",
           );
           if (!yes) {
-            subCtx.oncePerTurnActivationDeclined = true;
+            if (subCtx.oncePerTurnActivationChosen !== true) subCtx.oncePerTurnActivationDeclined = true;
             return;
           }
+          subCtx.oncePerTurnActivationChosen = true;
+          subCtx.oncePerTurnActivationDeclined = false;
         }
         if (activationCostOptions.length > 0) {
           if (!(await payOneCostOption(subCtx, activationCostOptions))) {
-            subCtx.oncePerTurnActivationDeclined = true;
+            if (subCtx.oncePerTurnActivationChosen !== true) subCtx.oncePerTurnActivationDeclined = true;
             return;
           }
         } else if (activationCost !== undefined) {
           if (!(await payCost(subCtx, activationCost))) {
-            subCtx.oncePerTurnActivationDeclined = true;
+            if (subCtx.oncePerTurnActivationChosen !== true) subCtx.oncePerTurnActivationDeclined = true;
             return;
           }
         }
         for (const cost of additionalCosts) {
           if (!(await payCost(subCtx, cost))) {
-            subCtx.oncePerTurnActivationDeclined = true;
+            if (subCtx.oncePerTurnActivationChosen !== true) subCtx.oncePerTurnActivationDeclined = true;
             return;
           }
         }
         activationCostPaid = hasActivationCost;
+        if (activationCostPaid) subCtx.oncePerTurnActivationChosen = true;
       }
       let anyActionGateMatched = false;
       for (const a of action.actions) {
@@ -1258,13 +1265,6 @@ export async function runSubTrigger(
             : (a.condition ?? ("while" in a ? a.while : undefined));
         if (gate === undefined || evaluateCondition(subCtx, gate)) anyActionGateMatched = true;
         const abort = await runAction(subCtx, a);
-        // An optional head action may decline while a mandatory conditional tail still
-        // resolves (BT25-077: optional suspend, then mandatory deletion when the event
-        // entered by effect). In that case the once-per-turn activation was consumed;
-        // preserve the decline only when the tail's condition also fails.
-        if (subCtx.oncePerTurnActivationDeclined && !a.optional && subCtx.lastActionConditionMatched) {
-          subCtx.oncePerTurnActivationDeclined = false;
-        }
         if (abort) break;
       }
       // A clause whose every action gate rejects the event never triggered, so it cannot spend
@@ -1272,7 +1272,7 @@ export async function runSubTrigger(
       // target is switched" and must stay armed while another Digimon's target is switched.
       // An activation cost already paid keeps the use consumed.
       if (!activationCostPaid && action.actions.length > 0 && !anyActionGateMatched) {
-        subCtx.oncePerTurnActivationDeclined = true;
+        if (subCtx.oncePerTurnActivationChosen !== true) subCtx.oncePerTurnActivationDeclined = true;
       }
     },
   });

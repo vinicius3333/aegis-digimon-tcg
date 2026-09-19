@@ -1,7 +1,9 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT16-102.js";
 import "../index.js";
 
@@ -246,5 +248,225 @@ describe("BT16-102", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.perm("magna").isSuspended).toBe(true);
+  });
+
+  it("allows its When Digivolving unsuspend while Sonic Shot forbids only the next unsuspend phase", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT24-095", as: "sonicShot" }],
+        },
+        1: {
+          security: ["BT1-001"],
+          battleArea: [
+            { card: "BT21-036", as: "base" },
+            { card: "BT1-009", as: "shotAttacker" },
+          ],
+          hand: [{ card: "BT16-102", as: "magna" }],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(1);
+      preferred.push(s.perm("base").topCard!.instanceId);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("shotAttacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT24-095")).toBe(true);
+      expect(observe(s.engine).isRestricted(s.perm("base"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+      expect(s.perm("base").topCard?.cardId).toBe("BT21-036");
+      expect(s.perm("base").isSuspended).toBe(true);
+      s.state.memory = 5;
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("magna").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "BT16-102");
+      await settle();
+      expect(s.perm("base").currentDP).toBe(15000);
+      expect(s.perm("base").isSuspended).toBe(false);
+      expect(observe(s.engine).isRestricted(s.perm("base"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+      expect(observe(s.engine).isRestricted(s.perm("base"), "beAffected")).toBe(true);
+    } finally {
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await firstTurn;
+    }
+  });
+
+  it("unsuspends from its All Turns effect on the opponent's turn under Sonic Shot's pending phase lock", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT24-095", as: "sonicShot" }],
+          battleArea: [{ card: "BT1-009", as: "securityAttacker" }],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+        1: {
+          security: ["BT1-001"],
+          battleArea: [
+            { card: "BT21-036", as: "base" },
+            { card: "BT1-009", as: "shotAttacker" },
+          ],
+          hand: [{ card: "BT16-102", as: "magna" }],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(1);
+      preferred.push(s.perm("base").topCard!.instanceId);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("shotAttacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      expect(observe(s.engine).isRestricted(s.perm("base"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+      expect(s.perm("base").isSuspended).toBe(true);
+
+      s.state.memory = 5;
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("magna").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "BT16-102");
+      await settle();
+      s.perm("base").isSuspended = true;
+    } finally {
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await firstTurn;
+    }
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("securityAttacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 0);
+      await settle(() => !observe(s.engine).isAttacking());
+      await settle();
+
+      expect(s.perm("base").isSuspended).toBe(false);
+    } finally {
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await opponentTurn;
+    }
+  });
+
+  it("keeps the Sonic Shot lock through immunity until Magnamon X's next unsuspend phase", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT24-095", as: "sonicShot" }],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+        1: {
+          security: ["BT1-001"],
+          battleArea: [
+            { card: "BT21-036", as: "base" },
+            { card: "BT1-009", as: "shotAttacker" },
+          ],
+          hand: [{ card: "BT16-102", as: "magna" }],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(1);
+      preferred.push(s.perm("base").topCard!.instanceId);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("shotAttacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      expect(observe(s.engine).isRestricted(s.perm("base"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+      expect(s.perm("base").isSuspended).toBe(true);
+
+      s.state.memory = 5;
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("magna").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "BT16-102");
+      await settle();
+      expect(s.perm("base").isSuspended).toBe(false);
+      s.perm("base").isSuspended = true;
+    } finally {
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await firstTurn;
+    }
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+    } finally {
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await opponentTurn;
+    }
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.perm("base").isSuspended).toBe(true);
+      expect(observe(s.engine).isRestricted(s.perm("base"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+    } finally {
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await nextOwnerTurn;
+    }
   });
 });

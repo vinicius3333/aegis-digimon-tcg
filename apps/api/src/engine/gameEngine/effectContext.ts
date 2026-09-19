@@ -379,6 +379,28 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         engine.effectResolutionDepth = pausedDepth;
       }
     },
+    // Called only from inside `runAttackSteps`, where the depth is already 0, so
+    // `flushDeferredTimingWindows`'s own depth guard passes. `activeWindowToken` is
+    // deliberately left set: ending the ordering effect's window here would discard the
+    // pending pools it still needs after combat (Q3944).
+    settleBetweenAttackSteps: () => settleBetweenEffects(engine),
+    runAttackSteps: async (body) => {
+      // CR §11-1: an attack ordered by an effect interrupts that effect. Triggers arising in
+      // Counter Timing, the block window, the battle and End of Attack each resolve as their
+      // own windows before the attack advances; the ordering effect resumes only afterwards.
+      // Without this pause `shouldDeferNestedTiming` parks every one of those triggers in the
+      // nested pending pool, where nothing drains them until the attack is already over
+      // (a defender's Blast Digivolve [When Digivolving] resolving after combat).
+      const pausedDepth = engine.effectResolutionDepth;
+      engine.effectResolutionDepth = 0;
+      try {
+        await settleBetweenEffects(engine);
+        await body();
+        await settleBetweenEffects(engine);
+      } finally {
+        engine.effectResolutionDepth = pausedDepth;
+      }
+    },
     baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
       engine.digivolveSupport.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
     emit: (event) => engine.hooks.emit(event),

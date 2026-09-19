@@ -486,6 +486,7 @@ async function resolveOne(
       onDeclined();
       return false;
     }
+    ctx.oncePerTurnActivationChosen = true;
   }
 
   // A linked card's clause is treated as an effect of the host Digimon, even when
@@ -500,6 +501,8 @@ async function resolveOne(
   }
 
   // source RegisterUseEffectThisTurn(cardEffect): identity is (instanceId, effectKey).
-  if (timing !== EffectTiming.None) env.tracker.register(source.instanceId, effect.effectKey);
+  if (timing !== EffectTiming.None && ctx.oncePerTurnActivationDeclined !== true) {
+    env.tracker.register(source.instanceId, effect.effectKey);
+  }
   return true;
 }
