@@ -1,6 +1,6 @@
 ---
 title: "<Use Req.> and the breeding area"
-updated: 2026-09-11
+updated: 2026-09-19
 ---
 
 # `<Use Req.>` and the breeding area
@@ -13,6 +13,13 @@ from the older, free-text color-requirement waivers printed before the keyword
 existed (e.g. EX7-074's LIBERATOR clause, and the BT23 CS Option cards that
 `<Use Req.>` was introduced to condense), which are **not** satisfied by a card in
 breeding.
+
+CR 4-3-1 additionally treats a Digi-Egg card on the field as a Digimon. Therefore,
+a matching Digi-Egg in the breeding area satisfies a Digimon-based `<Use Req.>`.
+Issue #4870 exposed that the live-kind matcher recognized only printed Digimon
+cards (and DP-bearing battle-area Digi-Eggs), excluding ordinary Digi-Eggs in
+breeding. The matcher now recognizes that rules-defined Digimon state without
+making no-DP Digi-Eggs legal battle-area targets.
 
 ## Why the two templates differ
 

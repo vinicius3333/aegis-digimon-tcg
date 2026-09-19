@@ -859,10 +859,11 @@ export function permanentMatchesFilter(
         permanent.topCard.faceUp !== false &&
         wanted.includes(CardKind.Digimon) &&
         (def.kinds.includes(CardKind.Digimon) ||
-          // A Digi-Egg card only forms a legal battle-area Digimon when its own definition
-          // supplies DP (EX2-007 Mother D-Reaper). Do not let synthetic/invalid battle-area
-          // fixtures turn an ordinary no-DP level-2 egg such as BT1-001 into an effect target.
-          (def.kinds.includes(CardKind.DigiEgg) && typeof def.dp === "number" && def.dp > 0));
+          // CR 4-3-1 treats a Digi-Egg card on the field as a Digimon. Ordinary Digi-Eggs
+          // are legal Digimon in breeding; in the battle area, require printed DP so an
+          // invalid fixture can't turn a no-DP level-2 egg into an effect target.
+          (def.kinds.includes(CardKind.DigiEgg) &&
+            (permanent.inBreeding || (typeof def.dp === "number" && def.dp > 0))));
       const pendingEgg =
         opts?.allowPendingRotationHost === true &&
         def.kinds.includes(CardKind.DigiEgg) &&
