@@ -3316,7 +3316,6 @@
     "effects": [
       {
         "trigger": "OnPlay",
-        "optional": true,
         "actions": [
           {
             "kind": "PlayWithoutCost",
@@ -4882,7 +4881,6 @@
       { "trigger": "OnPlay", "actions": [{ "kind": "Draw", "controller": "mine", "amount": 2 }] },
       {
         "trigger": "EndOfAttack",
-        "optional": true,
         "condition": {
           "kind": "selfDigivolutionCountAtLeast",
           "value": 1,
@@ -21756,7 +21754,6 @@
     "effects": [
       {
         "trigger": "WhenDigivolving",
-        "optional": true,
         "actions": [
           {
             "kind": "SubTrigger",
@@ -74315,8 +74312,7 @@
             "from": ["hand"],
             "optional": true
           }
-        ],
-        "optional": true
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -74332,8 +74328,7 @@
             "from": ["hand"],
             "optional": true
           }
-        ],
-        "optional": true
+        ]
       },
       {
         "trigger": "EndOfYourTurn",

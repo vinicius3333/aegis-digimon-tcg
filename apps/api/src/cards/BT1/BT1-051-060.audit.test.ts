@@ -62,7 +62,6 @@ describe("BT1-051 through BT1-060 IR coverage", () => {
     });
     expect(petermon.effects[0]).toMatchObject({
       trigger: "OnPlay",
-      optional: true,
       actions: [
         {
           kind: "PlayWithoutCost",

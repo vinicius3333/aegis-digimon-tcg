@@ -75903,6 +75903,7 @@
     "nameEn": "Gigimon",
     "colors": ["Red"],
     "kinds": ["DigiEgg"],
+    "level": 2,
     "playCost": -1,
     "dp": 0,
     "evoCosts": [],

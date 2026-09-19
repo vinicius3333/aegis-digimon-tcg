@@ -9,6 +9,26 @@ const DECK = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", 
 const SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 
 describe("EX13-001 Gigimon", () => {
+  it.each(["EX2-008", "EX13-007"])("allows %s Guilmon to digivolve over it in the breeding area", async (cardId) => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX13-001", as: "gigimon" },
+        hand: [{ card: cardId, as: "guilmon" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gigimon").permanentId,
+        instanceId: s.inst("guilmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gigimon").topCard.cardId === cardId);
+    expect(s.perm("gigimon").stack.map((card) => card.cardId)).toEqual(["EX13-001"]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("matches every catalog field and the complete compiled clause", () => {
     expect(getCardDefinition("EX13-001")).toMatchObject({
       cardId: "EX13-001",
@@ -16,6 +36,7 @@ describe("EX13-001 Gigimon", () => {
       nameEn: "Gigimon",
       colors: ["Red"],
       kinds: ["DigiEgg"],
+      level: 2,
       playCost: -1,
       dp: 0,
       evoCosts: [],
