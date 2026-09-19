@@ -21,7 +21,7 @@ import type { PrimitivesContext } from "./context.js";
  */
 
 export function createGrantsVerbs(pc: PrimitivesContext) {
-  const { access, continuous, continuousOpt, durationForTarget, state } = pc;
+  const { access, continuous, continuousOpt, durationForTarget, effectSeatStack, effectSourceKindsStack, state } = pc;
 
   const grantDynamicNames = (permanentId: string, names: () => string[], duration: EffectDuration): void => {
     continuous.addNameTraitGrant(permanentId, "name", [], durationForTarget(permanentId, duration), {
@@ -31,12 +31,11 @@ export function createGrantsVerbs(pc: PrimitivesContext) {
   };
 
   const setOriginalCardInfo: Primitives["setOriginalCardInfo"] = (permanentId, info, duration): void => {
-    continuous.addOriginalCardInfoOverride(
-      permanentId,
-      info,
-      durationForTarget(permanentId, duration),
-      continuousOpt(),
-    );
+    continuous.addOriginalCardInfoOverride(permanentId, info, durationForTarget(permanentId, duration), {
+      ...continuousOpt(),
+      ...(effectSeatStack.at(-1) === undefined ? {} : { sourceSeat: effectSeatStack.at(-1) }),
+      ...(effectSourceKindsStack.at(-1) === undefined ? {} : { sourceKinds: effectSourceKindsStack.at(-1) }),
+    });
   };
 
   const grantKeyword: Primitives["grantKeyword"] = (permanentId, keyword, duration, amount, opts): void => {

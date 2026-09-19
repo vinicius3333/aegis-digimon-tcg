@@ -11,8 +11,17 @@ import type { PrimitivesContext } from "./context.js";
  */
 
 export function createStatsVerbs(pc: PrimitivesContext) {
-  const { engine, access, continuousOpt, durationForTarget, effectSeatStack, effectSourceKindsStack, ledger, state } =
-    pc;
+  const {
+    engine,
+    access,
+    continuous,
+    continuousOpt,
+    durationForTarget,
+    effectSeatStack,
+    effectSourceKindsStack,
+    ledger,
+    state,
+  } = pc;
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
   const effectDrivenPlayCost: PrimitivesContext["helpers"]["effectDrivenPlayCost"] = (...args) =>
@@ -62,8 +71,15 @@ export function createStatsVerbs(pc: PrimitivesContext) {
     if (before === undefined) return; // no such battle-area permanent; nothing to override
     // A "this Digimon's DP becomes N" override that LOWERS the DP is a DP reduction, so the same
     // `dpImmune` protection applies. An override that raises it is not, and lands normally.
-    if (value < before.currentDP && isRestricted(permanentId, "dpImmune")) return;
-    ledger.addBaseDpOverride(state, permanentId, value, durationForTarget(permanentId, duration), continuousOpt());
+    const resolvingSeat = effectSeatStack.at(-1);
+    const byOpponentEffect = resolvingSeat !== undefined && resolvingSeat !== before.controllerSeat;
+    if (value < before.currentDP && continuous.hasRestriction(permanentId, "dpImmune", undefined, { byOpponentEffect }))
+      return;
+    ledger.addBaseDpOverride(state, permanentId, value, durationForTarget(permanentId, duration), {
+      ...continuousOpt(),
+      ...(effectSeatStack.at(-1) === undefined ? {} : { sourceSeat: effectSeatStack.at(-1) }),
+      ...(effectSourceKindsStack.at(-1) === undefined ? {} : { sourceKinds: effectSourceKindsStack.at(-1) }),
+    });
     // currentDP was recomputed by the ledger (override replaces base, deltas sum on top).
   };
 

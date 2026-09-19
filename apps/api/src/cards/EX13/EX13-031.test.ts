@@ -1,4 +1,4 @@
-import { assemblyRequirementFor, getCardDefinition } from "@aegis/shared";
+import { assemblyRequirementFor, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -377,6 +377,60 @@ describe("EX13-031 KingSukamon", () => {
     expect(observe(s.engine).effectiveNames(victim)).toEqual([expectedName]);
     expect(observe(s.engine).effectiveColors(victim)).toEqual([expectedColor]);
     expect(victim.currentDP).toBe(expectedDP);
+  });
+
+  it("keeps its rewrite latent while Vortexdramon is immune, applies it when immunity ends, then expires it", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-074", as: "vortexdramon" }],
+          deck: Array(10).fill(SENTINEL),
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: cardId, as: "king" }],
+          hand: [{ card: CHUUMON_COST_3, as: "fee" }],
+          deck: Array(10).fill(SENTINEL),
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const victim = s.perm("vortexdramon");
+    preferred.push(victim.permanentId);
+
+    await advance(s.engine).verb.restrict(victim.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
+      fromSourceKind: ["Digimon"],
+      byOpponentEffectsOnly: true,
+    });
+    expect(observe(s.engine).hasRestriction(victim, "beAffected", "Digimon")).toBe(true);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("king"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["vortexdramon"]);
+    expect(observe(s.engine).effectiveColors(victim)).toEqual(["Green"]);
+    expect(victim.baseDP).toBe(14000);
+    expect(victim.currentDP).toBe(14000);
+
+    await advance(s.engine).runTurn(1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).hasRestriction(victim, "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["sukamon"]);
+    expect(observe(s.engine).effectiveColors(victim)).toEqual(["White"]);
+    expect(victim.currentDP).toBe(3000);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["vortexdramon"]);
+    expect(observe(s.engine).effectiveColors(victim)).toEqual(["Green"]);
+    assertNoLoudGap(s);
   });
 
   it("may decline the whole optional processing condition, spending nothing", async () => {
