@@ -11,6 +11,10 @@ export interface RestrictionEntry {
   permanentId: string;
   restriction: Restriction;
   duration: EffectDuration;
+  /** Seat whose effect installed this restriction; used to suppress it under effect immunity. */
+  originSeat?: Seat;
+  /** Printed source kinds of the effect that installed this restriction. */
+  sourceKinds?: string[];
   continuous?: boolean;
   /**
    * When set, this `beAffected` entry blocks ONLY effects whose source card is

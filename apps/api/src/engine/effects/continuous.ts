@@ -214,7 +214,13 @@ export class ContinuousEffectLedger {
     permanentId: string,
     restriction: Restriction,
     duration: EffectDuration,
-    opts?: { continuous?: boolean; fromSourceKind?: string[]; byOpponentEffectsOnly?: boolean },
+    opts?: {
+      continuous?: boolean;
+      fromSourceKind?: string[];
+      byOpponentEffectsOnly?: boolean;
+      originSeat?: Seat;
+      sourceKinds?: string[];
+    },
   ): void {
     this.restrictions.push(
       this.anchorDuration({
@@ -222,6 +228,8 @@ export class ContinuousEffectLedger {
         restriction,
         duration,
         continuous: opts?.continuous,
+        originSeat: opts?.originSeat,
+        sourceKinds: opts?.sourceKinds,
         fromSourceKind: opts?.fromSourceKind,
         byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
       }),
@@ -283,9 +291,11 @@ export class ContinuousEffectLedger {
     const individuallyRestricted = this.restrictions.some((r) => {
       if (r.permanentId !== permanentId || !equivalentRestrictions.has(r.restriction)) return false;
       if (r.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
+      if (this.suppressedByEffectImmunity(r)) return false;
       if (r.fromSourceKind === undefined) return true;
       // Qualified entry: block only when sourceKind is known and matches.
-      return sourceKind !== undefined && r.fromSourceKind.includes(sourceKind);
+      if (sourceKind === undefined || !r.fromSourceKind.includes(sourceKind)) return false;
+      return true;
     });
     if (individuallyRestricted) return true;
     // A player-scoped restriction can name ANY permanent kind ("none of your opponent's Tamers
@@ -299,10 +309,35 @@ export class ContinuousEffectLedger {
     );
   }
 
+  /** Effects this permanent cannot be affected by cannot keep their restrictions active. */
+  private suppressedByEffectImmunity(restriction: RestrictionEntry): boolean {
+    const restrictionKinds = restriction.sourceKinds;
+    if (
+      restriction.restriction === "beAffected" ||
+      restriction.originSeat === undefined ||
+      restrictionKinds === undefined
+    )
+      return false;
+    const targetSeat =
+      this.anyControllerSeatOf?.(restriction.permanentId) ?? this.controllerSeatOf?.(restriction.permanentId);
+    if (targetSeat === undefined) return false;
+    return this.restrictions.some((immunity) => {
+      if (immunity.permanentId !== restriction.permanentId || immunity.restriction !== "beAffected") return false;
+      if (immunity.byOpponentEffectsOnly === true && restriction.originSeat === targetSeat) return false;
+      const immuneKinds = immunity.fromSourceKind;
+      if (immuneKinds === undefined) return true;
+      return restrictionKinds.some((kind) => immuneKinds.includes(kind));
+    });
+  }
+
   /** Number of independently-stacking copies of a restriction on one permanent. */
   restrictionCount(permanentId: string, restriction: Restriction): number {
-    return this.restrictions.filter((entry) => entry.permanentId === permanentId && entry.restriction === restriction)
-      .length;
+    return this.restrictions.filter(
+      (entry) =>
+        entry.permanentId === permanentId &&
+        entry.restriction === restriction &&
+        !this.suppressedByEffectImmunity(entry),
+    ).length;
   }
 
   /** Record a target-scoped "can't attack this Digimon" rule. */

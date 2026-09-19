@@ -591,7 +591,11 @@ export class SubTriggerRegistry {
         ctx.fx?.leaveEffectResolution?.();
       }
       resolved?.();
-      if (sub.oncePerTurnKey !== undefined && ctx.oncePerTurnActivationDeclined === true) {
+      if (
+        sub.oncePerTurnKey !== undefined &&
+        ctx.oncePerTurnActivationDeclined === true &&
+        ctx.oncePerTurnActivationChosen !== true
+      ) {
         // A shared same-event snapshot may contain several action-path clauses. A declined
         // sibling rolls back only its provisional mark; once any sibling has succeeded, the
         // shared [Once Per Turn] budget must remain consumed even with a Set-backed ledger that

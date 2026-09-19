@@ -438,9 +438,6 @@ export class CombatController {
       // and When Attacking effects while the in-flight attack remains open. Keeping this callback
       // inside the outer try/finally guarantees combat cleanup if it rejects.
       await opts.afterAttackDeclaration?.();
-      // The declaration is complete, so armed "when any Digimon suspend" watchers may run.
-      await this.fireSuspended(attacker, attackerSuspended);
-
       // When Attacking. source fires OnAllyAttack here (documented behavior);
       // also fire OnUseAttack so "when this attacks" triggered/inherited effects
       // (e.g. the BT7-089 pierce builder) get their window once the stack lands.
@@ -489,7 +486,8 @@ export class CombatController {
       const fireAttackTiming = this.hooks.fireAttackTiming;
       const combineAttackTiming =
         fireAttackTiming !== undefined &&
-        (preparedWhenAttacking !== undefined ||
+        (attackerSuspended ||
+          preparedWhenAttacking !== undefined ||
           preparedWhenOpponentAttacks !== undefined ||
           (allianceCount > 0 &&
             (allianceCount > 1 || (this.hooks.combineAllianceTiming?.(attacker.permanentId) ?? false))));
@@ -499,10 +497,14 @@ export class CombatController {
         const result = await fireAttackTiming(attackTrigger, allianceCount, {
           includeSubTriggers: true,
           subTriggerPayload: attackSubTriggerPayload,
+          ...(attackerSuspended ? { suspendedPermanentId: attacker.permanentId } : {}),
         });
         allianceResolvedInWindow = result.allianceResolvedInWindow;
         subTriggersResolvedInWindow = result.subTriggersResolvedInWindow;
-      } else await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
+      } else {
+        await this.fireSuspended(attacker, attackerSuspended);
+        await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
+      }
       if (!subTriggersResolvedInWindow) await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
 
       // SubTrigger bus (System B): armed "when this attacks" / "when an opponent's Digimon
@@ -634,6 +636,13 @@ export class CombatController {
         // keywordBattle.test.ts all went from green to red on exactly that regression).
         const counterWait = this.runCounterWindow(attackerSeat, attacker);
         if (counterWait !== undefined) await counterWait;
+
+        // A Counter can create new nested timing effects while an effect-directed attack is
+        // paused inside its enclosing effect body. Blast Digivolve is the canonical case: its
+        // When Digivolving effect must finish before the attack advances to Block Timing.
+        // The pre-Counter drain above cannot see effects that have not triggered yet, so drain
+        // the same attack window again after the Counter response resolves.
+        if (opts.drainTimingWindow !== undefined) await opts.drainTimingWindow();
 
         // source fires OnEndAttack (AttackProcess.EndAttack) whenever the attack reaches its
         // end, including an early end (Comprehensive Rules §11-5-1-4 / §11-6: an unsuccessful

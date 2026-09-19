@@ -101,7 +101,14 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
       ctx.costIsTheQuestion = action.optional === true && costIsAskedAsSelection(action.cost);
       const paid = await payCost(ctx, action.cost);
       ctx.costIsTheQuestion = outerCostIsTheQuestion;
-      if (!paid) return action.abortOnDecline === true;
+      if (!paid) {
+        if ((action.optional === true || action.cost.optional === true) && ctx.oncePerTurnActivationChosen !== true) {
+          ctx.oncePerTurnActivationDeclined = true;
+        }
+        return action.abortOnDecline === true;
+      }
+      ctx.oncePerTurnActivationChosen = true;
+      ctx.oncePerTurnActivationDeclined = false;
       for (const nested of action.actions) {
         const abort = await runAction(ctx, nested);
         if (abort) break;

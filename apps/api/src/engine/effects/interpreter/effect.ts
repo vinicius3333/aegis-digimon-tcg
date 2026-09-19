@@ -598,6 +598,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       ctx.borrowedEffectOverrides?.forceCostProcessing !== true &&
       !(await ctxWithSelections.ask.optional(ctxWithSelections, effect.cost.raw ?? "Pay processing condition?"))
     ) {
+      if (ctx.oncePerTurnActivationChosen !== true) ctx.oncePerTurnActivationDeclined = true;
       ctxWithSelections.effectRestrictions = outerRestrictions;
       return;
     }
@@ -607,6 +608,8 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       ctxWithSelections.effectRestrictions = outerRestrictions;
       return;
     }
+    ctxWithSelections.oncePerTurnActivationChosen = true;
+    ctxWithSelections.oncePerTurnActivationDeclined = false;
   }
   const actions = effect.actions ?? [];
   if (actions.length === 0 && (effect.keywords?.length ?? 0) > 0) {
@@ -702,6 +705,8 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     ctxWithSelections.placedUnderInstanceIdsThisEffect = outerPlacedUnderInstanceIds;
     ctxWithSelections.effectRestrictions = outerRestrictions;
     mirrorResultBindings(ctxWithSelections, ctx);
+    ctx.oncePerTurnActivationChosen = ctxWithSelections.oncePerTurnActivationChosen;
+    ctx.oncePerTurnActivationDeclined = ctxWithSelections.oncePerTurnActivationDeclined;
   }
 }
 

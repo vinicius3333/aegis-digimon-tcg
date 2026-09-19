@@ -9,8 +9,18 @@ import type { PrimitivesContext } from "./context.js";
  */
 
 export function createRestrictionsVerbs(pc: PrimitivesContext) {
-  const { engine, access, continuous, continuousOpt, durationForTarget, effectSeatStack, ledger, state, subTriggers } =
-    pc;
+  const {
+    engine,
+    access,
+    continuous,
+    continuousOpt,
+    durationForTarget,
+    effectSeatStack,
+    effectSourceKindsStack,
+    ledger,
+    state,
+    subTriggers,
+  } = pc;
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
   const deletePermanent: Primitives["deletePermanent"] = (...args) => pc.fx.deletePermanent(...args);
@@ -25,6 +35,8 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       ...(opts?.continuous === true ? { continuous: true } : continuousOpt()),
       fromSourceKind: opts?.fromSourceKind,
       byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
+      originSeat: effectSeatStack.at(-1) ?? engine.controllerSeat(),
+      sourceKinds: effectSourceKindsStack.at(-1) ?? [],
     });
     // "Isn't affected by effects" ENDS an effect that is already applying (KB Q5327; the mirror
     // of Q5328, where losing the immunity re-applies it). The DP ledger already suppresses a
