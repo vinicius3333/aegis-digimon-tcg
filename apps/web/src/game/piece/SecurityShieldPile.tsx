@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { CardInstance } from "@aegis/shared";
+import type { SecurityCardView } from "@aegis/shared";
 import { CardBurst } from "../CardBurst";
 import { SecurityCardSlot } from "../SecurityCardSlot";
 import type { Side } from "../side";
@@ -41,7 +41,7 @@ export function SecurityShieldPile({
   /** The stack holds a card the opponent has already seen. */
   securityDpDelta?: number;
   faceUp?: boolean;
-  securityCards?: readonly CardInstance[];
+  securityCards?: ArrayLike<SecurityCardView>;
   /** What attacking this stack would be, while it is a legal target being aimed at. */
   attackLabel?: string;
   /** A card is flying back onto the stack. */

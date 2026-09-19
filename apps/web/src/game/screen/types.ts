@@ -73,6 +73,7 @@ export type PresentedPlayer = {
   | "eggDeckCount"
   | "trash"
   | "security"
+  | "securityView"
   | "securityCount"
   | "securityDpDelta"
 >;

@@ -5,6 +5,7 @@ import {
   PRIVATE_DECISION_VIEW_TAG,
   CARD_ID_VIEW_TAG,
   CardInstance,
+  SecurityCardView,
   type GameState,
   type Permanent,
   type PlayerState,
@@ -171,6 +172,32 @@ export function syncPublicCounts(state: GameState): GameState {
     player.eggDeckCount = player.eggDeck.length;
     player.handCount = player.hand.length;
     player.securityCount = player.security.length;
+    const projectionChanged =
+      player.securityView.length !== player.security.length ||
+      player.security.some((card, index) => {
+        const projected = player.securityView[index];
+        const faceUp = card.faceUp === true;
+        return (
+          projected === undefined ||
+          projected.faceUp !== faceUp ||
+          projected.instanceId !== (faceUp ? card.instanceId : "") ||
+          projected.cardId !== (faceUp ? card.cardId : "") ||
+          projected.artId !== (faceUp ? card.artId : "")
+        );
+      });
+    if (projectionChanged) {
+      player.securityView.splice(0, player.securityView.length);
+      for (const card of player.security) {
+        const projected = new SecurityCardView();
+        projected.faceUp = card.faceUp === true;
+        if (projected.faceUp) {
+          projected.instanceId = card.instanceId;
+          projected.cardId = card.cardId;
+          projected.artId = card.artId;
+        }
+        player.securityView.push(projected);
+      }
+    }
   }
   return state;
 }
@@ -240,15 +267,16 @@ function unlockInto(view: StateView, state: GameState, seat: Seat, fullSnapshot:
   }
 
   // Reveal any security card already face-up to BOTH players (e.g. set face-up by a prior
-  // effect). Newly flipped cards are handled incrementally as they flip
+  // effect). The owner already has the security array and anonymous card object, but still
+  // needs the identity tag when that card flips; the opponent needs both the private array
+  // element and its identity. Newly flipped cards are handled incrementally as they flip
   // (revealSecurityCardToOpponent), so this only has to catch up a view that is being built or
   // has not seen a given card yet — hence the `hasTag` guard rather than an unconditional re-add.
   for (const player of state.players) {
-    if (player === owner) continue;
     for (const card of player.security) {
       if (!card.faceUp || view.hasTag(card, CARD_ID_VIEW_TAG)) continue;
       repairDetachedCardSchema(card);
-      view.add(card, PRIVATE_VIEW_TAG);
+      if (player !== owner) view.add(card, PRIVATE_VIEW_TAG);
       view.add(card, CARD_ID_VIEW_TAG);
     }
   }
@@ -361,6 +389,7 @@ export function exposeCardInZone(
  */
 export function revealSecurityCardToOpponent(view: StateView, card: CardInstance): void {
   view.add(card, PRIVATE_VIEW_TAG);
+  view.add(card, CARD_ID_VIEW_TAG);
 }
 
 /**

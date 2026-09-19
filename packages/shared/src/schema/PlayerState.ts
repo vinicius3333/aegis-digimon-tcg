@@ -37,6 +37,17 @@ export { PRIVATE_VIEW_TAG } from "./viewTags.js";
 export const HIDDEN_ZONE_VIEW_TAG = 3;
 
 /**
+ * Public, position-preserving projection of one security slot. Hidden cards deliberately
+ * carry no instance or card identity; face-up cards publish only the data the board renders.
+ */
+export class SecurityCardView extends Schema {
+  @type("string") instanceId = "";
+  @type("string") cardId = "";
+  @type("string") artId = "";
+  @type("boolean") faceUp = false;
+}
+
+/**
  * Every zone the analysis enumerated (deck, hand, battle area, security, trash,
  * breeding, egg deck) plus per-player flags. Mirrors documented behavior. Memory is global
  * on GameState, not per-player.
@@ -60,8 +71,8 @@ export class PlayerState extends Schema {
   @view(HIDDEN_ZONE_VIEW_TAG) @type([CardInstance]) deck = new ArraySchema<CardInstance>();
   @view(HIDDEN_ZONE_VIEW_TAG) @type([CardInstance]) eggDeck = new ArraySchema<CardInstance>();
   @view(PRIVATE_VIEW_TAG) @type([CardInstance]) hand = new ArraySchema<CardInstance>();
-  // security is private by default; the engine re-exposes an individual card to the
-  // opponent's view when it is turned face-up (engine/state/visibility.ts).
+  // security is private by default; securityView publishes a position-preserving projection
+  // with identities populated only for face-up cards (engine/state/visibility.ts).
   @view(PRIVATE_VIEW_TAG) @type([CardInstance]) security = new ArraySchema<CardInstance>(); // [0] = top of stack
 
   // Public counts mirroring the sizes of the private zones above. These ARE synced
@@ -72,6 +83,7 @@ export class PlayerState extends Schema {
   @type("uint16") eggDeckCount = 0;
   @type("uint16") handCount = 0;
   @type("uint16") securityCount = 0;
+  @type([SecurityCardView]) securityView = new ArraySchema<SecurityCardView>();
   /** Net effect modifier for this player's Security Digimon, public to all viewers. */
   @type("int32") securityDpDelta = 0;
 

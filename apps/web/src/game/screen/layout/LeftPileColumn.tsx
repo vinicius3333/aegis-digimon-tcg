@@ -102,8 +102,8 @@ export function LeftPileColumn({
         breaking={securityBreakMine && securityBreak?.phase === "break"}
         shardSeed={securityBreak?.key}
         securityDpDelta={viewer.securityDpDelta}
-        faceUp={hasFaceUpSecurity(viewer.security)}
-        securityCards={viewer.security}
+        faceUp={hasFaceUpSecurity(viewer.securityView)}
+        securityCards={viewer.securityView}
         landing={securityLanding}
         label={t("game.yourSecurityPile")}
         refEl={(el) => {

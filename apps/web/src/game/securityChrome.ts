@@ -7,7 +7,7 @@
    Pure: the caller decides when a stack is a candidate target, this decides what
    the stack then says. */
 
-import type { CardInstance } from "@aegis/shared";
+import type { SecurityCardView } from "@aegis/shared";
 
 export type SecurityAttackLabelKey = "game.securityAttack" | "game.directAttack";
 
@@ -21,11 +21,10 @@ export function securityAttackLabelKey(securityCount: number): SecurityAttackLab
 }
 
 /**
- * Whether a stack is holding a card the opponent can see. The engine re-exposes an
- * individual security card to the other seat's view when it is turned face-up, so
- * a stack the viewer can read identities out of is a stack with face-up cards in
- * it — no rule is being reconstructed, only the visibility the server granted.
+ * Whether a stack is holding a card the opponent can see. The engine's public
+ * Security projection populates identity only when a card is face-up, so no rule
+ * is being reconstructed here — only the visibility the server granted.
  */
-export function hasFaceUpSecurity(cards: readonly CardInstance[] | undefined): boolean {
-  return (cards ?? []).some((card) => card?.faceUp === true && Boolean(card.cardId));
+export function hasFaceUpSecurity(cards: Iterable<SecurityCardView> | undefined): boolean {
+  return Array.from(cards ?? []).some((card) => card?.faceUp === true && Boolean(card.cardId));
 }
