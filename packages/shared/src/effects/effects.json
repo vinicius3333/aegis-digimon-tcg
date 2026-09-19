@@ -237239,5 +237239,797 @@
     ],
     "coverage": "full",
     "residual": []
+  },
+  "LM-063": {
+    "effects": [
+      {
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "WaiveColorRequirement",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "condition": {
+              "kind": "youHaveNone",
+              "filter": {
+                "zone": "battleArea",
+                "controllerDefault": "mine",
+                "nameOrTrait": [{ "tokens": ["Endurance Training"], "match": "name" }]
+              },
+              "raw": "you don't have [Endurance Training] in the battle area"
+            }
+          }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "kind": "RevealAdd",
+            "revealCount": 2,
+            "add": [
+              { "filter": { "controllerDefault": "mine", "colors": ["Red", "Purple"] }, "count": 1, "to": "hand" }
+            ],
+            "rest": "deckBottom"
+          },
+          { "kind": "PlaceInBattleAreaSelf" }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "kind": "Digivolve",
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Red", "Purple"] },
+            "from": ["hand"],
+            "reduceCost": 2,
+            "payCost": true,
+            "optional": true
+          }
+        ],
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
+      },
+      {
+        "trigger": "Security",
+        "actions": [
+          {
+            "kind": "RevealAdd",
+            "revealCount": 2,
+            "add": [
+              { "filter": { "controllerDefault": "mine", "colors": ["Red", "Purple"] }, "count": 1, "to": "hand" }
+            ],
+            "rest": "deckBottom"
+          },
+          { "kind": "PlaceInBattleAreaSelf" }
+        ],
+        "isSecurity": true
+      }
+    ],
+    "coverage": "full",
+    "residual": []
+  },
+  "LM-064": {
+    "effects": [
+      {
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "WaiveColorRequirement",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "condition": {
+              "kind": "youHaveNone",
+              "filter": {
+                "zone": "battleArea",
+                "controllerDefault": "mine",
+                "nameOrTrait": [{ "tokens": ["Bobbing Training"], "match": "name" }]
+              },
+              "raw": "you don't have [Bobbing Training] in the battle area"
+            }
+          }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "kind": "RevealAdd",
+            "revealCount": 2,
+            "add": [
+              { "filter": { "controllerDefault": "mine", "colors": ["Yellow", "Blue"] }, "count": 1, "to": "hand" }
+            ],
+            "rest": "deckBottom"
+          },
+          { "kind": "PlaceInBattleAreaSelf" }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "kind": "Digivolve",
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Yellow", "Blue"] },
+            "from": ["hand"],
+            "reduceCost": 2,
+            "payCost": true,
+            "optional": true
+          }
+        ],
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
+      },
+      {
+        "trigger": "Security",
+        "actions": [
+          {
+            "kind": "RevealAdd",
+            "revealCount": 2,
+            "add": [
+              { "filter": { "controllerDefault": "mine", "colors": ["Yellow", "Blue"] }, "count": 1, "to": "hand" }
+            ],
+            "rest": "deckBottom"
+          },
+          { "kind": "PlaceInBattleAreaSelf" }
+        ],
+        "isSecurity": true
+      }
+    ],
+    "coverage": "full",
+    "residual": []
+  },
+  "LM-065": {
+    "effects": [
+      {
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "WaiveColorRequirement",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "condition": {
+              "kind": "youHaveNone",
+              "filter": {
+                "zone": "battleArea",
+                "controllerDefault": "mine",
+                "nameOrTrait": [{ "tokens": ["Weight Training"], "match": "name" }]
+              },
+              "raw": "you don't have [Weight Training] in the battle area"
+            }
+          }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "kind": "RevealAdd",
+            "revealCount": 2,
+            "add": [
+              { "filter": { "controllerDefault": "mine", "colors": ["Black", "Green"] }, "count": 1, "to": "hand" }
+            ],
+            "rest": "deckBottom"
+          },
+          { "kind": "PlaceInBattleAreaSelf" }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "kind": "Digivolve",
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Black", "Green"] },
+            "from": ["hand"],
+            "reduceCost": 2,
+            "payCost": true,
+            "optional": true
+          }
+        ],
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
+      },
+      {
+        "trigger": "Security",
+        "actions": [
+          {
+            "kind": "RevealAdd",
+            "revealCount": 2,
+            "add": [
+              { "filter": { "controllerDefault": "mine", "colors": ["Black", "Green"] }, "count": 1, "to": "hand" }
+            ],
+            "rest": "deckBottom"
+          },
+          { "kind": "PlaceInBattleAreaSelf" }
+        ],
+        "isSecurity": true
+      }
+    ],
+    "coverage": "full",
+    "residual": []
+  },
+  "LM-066": {
+    "cardId": "LM-066",
+    "keywords": [
+      { "keyword": "Piercing", "raw": "＜Piercing＞" },
+      { "keyword": "Vortex", "raw": "＜Vortex＞" },
+      { "keyword": "Blocker", "raw": "＜Blocker＞" }
+    ],
+    "effects": [
+      {
+        "trigger": "WhenDigivolving",
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "LM-066/unsuspend-then-battle",
+        "description": "[When Digivolving] [When Attacking] [Once Per Turn] You may unsuspend 1 Digimon. Then, this Digimon may battle 1 of your opponent's Digimon.",
+        "actions": [
+          {
+            "kind": "Unsuspend",
+            "target": { "filter": { "kind": ["Digimon"] }, "count": 1 },
+            "optional": true,
+            "effectTextPart": "You may unsuspend 1 Digimon."
+          },
+          {
+            "kind": "Battle",
+            "attacker": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "optional": true,
+            "effectTextPart": "Then, this Digimon may battle 1 of your opponent's Digimon."
+          }
+        ]
+      },
+      {
+        "trigger": "WhenAttacking",
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "LM-066/unsuspend-then-battle",
+        "description": "[When Digivolving] [When Attacking] [Once Per Turn] You may unsuspend 1 Digimon. Then, this Digimon may battle 1 of your opponent's Digimon.",
+        "actions": [
+          {
+            "kind": "Unsuspend",
+            "target": { "filter": { "kind": ["Digimon"] }, "count": 1 },
+            "optional": true,
+            "effectTextPart": "You may unsuspend 1 Digimon."
+          },
+          {
+            "kind": "Battle",
+            "attacker": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "optional": true,
+            "effectTextPart": "Then, this Digimon may battle 1 of your opponent's Digimon."
+          }
+        ]
+      },
+      {
+        "trigger": "AllTurns",
+        "frequency": "OncePerTurn",
+        "description": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, by suspending 1 Digimon, it doesn't leave.",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "prevent",
+            "leaveCause": "otherThanYourEffect",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [],
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+              "raw": "by suspending 1 Digimon, it doesn't leave"
+            }
+          }
+        ]
+      },
+      {
+        "trigger": "BeforePayCost",
+        "condition": { "kind": "wouldBeUsedAsOption" },
+        "description": "When this card would be used, by suspending 2 Digimon, reduce the cost by 2.",
+        "actions": [
+          {
+            "kind": "ReducePlayCost",
+            "payment": {
+              "kind": "payCost",
+              "cost": {
+                "kind": "suspend",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 }
+              }
+            },
+            "amount": { "kind": "fixed", "value": 2 }
+          }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "description": "[Main] 1 of your opponent's Digimon or Tamers can't unsuspend until their turn ends. Then, for every 2 suspended Digimon, return 1 of their Digimon to the bottom of the deck.",
+        "actions": [
+          {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": 1,
+              "bindAs": "unsuspendLocked"
+            }
+          },
+          {
+            "kind": "Restrict",
+            "target": { "fromSelectionRef": "unsuspendLocked", "filter": {}, "count": 1 },
+            "restriction": "unsuspend",
+            "duration": "untilOpponentTurnEnd"
+          },
+          {
+            "kind": "Return",
+            "to": "deckBottom",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 0,
+              "countModifier": {
+                "amount": 1,
+                "scaling": {
+                  "per": 2,
+                  "unit": "cards",
+                  "filter": { "controller": "any", "kind": ["Digimon"], "suspended": true }
+                }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "coverage": "full",
+    "residual": [],
+    "digivolutionRequirement": [
+      { "traits": ["Vortex Warriors"], "basePlayCostMin": 11, "cost": 2, "isAlternate": true }
+    ]
+  },
+  "LM-067": {
+    "cardId": "LM-067",
+    "effects": [
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          { "keyword": "Reboot", "raw": "＜Reboot＞" },
+          { "keyword": "Blocker", "raw": "＜Blocker＞" },
+          { "keyword": "Fragment", "amount": 3, "raw": "＜Fragment (3)＞" }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "WaiveColorRequirement",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "condition": {
+              "kind": "youHave",
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "kind": ["Digimon", "Tamer"],
+                "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+              },
+              "raw": "you have a card w/[Three Musketeers] in text"
+            }
+          }
+        ]
+      },
+      {
+        "trigger": "WhenDigivolving",
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "LM-067/reveal-six",
+        "actions": [
+          {
+            "kind": "RevealAdd",
+            "revealCount": 6,
+            "add": [
+              {
+                "filter": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon", "Tamer", "Option"],
+                  "playCostLte": 6,
+                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                },
+                "count": 1,
+                "to": "play",
+                "optional": true,
+                "orDispositions": [{ "filter": { "kind": ["Option"] }, "to": "useOption" }]
+              }
+            ],
+            "rest": "deckBottom",
+            "raw": "Reveal the top 6 cards of your deck. You may play or use 1 play or use cost 6 or lower [Three Musketeers] text card among them without paying the cost. Return the rest to the bottom of the deck."
+          }
+        ]
+      },
+      {
+        "trigger": "Counter",
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "LM-067/reveal-six",
+        "actions": [
+          {
+            "kind": "RevealAdd",
+            "revealCount": 6,
+            "add": [
+              {
+                "filter": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon", "Tamer", "Option"],
+                  "playCostLte": 6,
+                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                },
+                "count": 1,
+                "to": "play",
+                "optional": true,
+                "orDispositions": [{ "filter": { "kind": ["Option"] }, "to": "useOption" }]
+              }
+            ],
+            "rest": "deckBottom",
+            "raw": "Reveal the top 6 cards of your deck. You may play or use 1 play or use cost 6 or lower [Three Musketeers] text card among them without paying the cost. Return the rest to the bottom of the deck."
+          }
+        ]
+      },
+      {
+        "trigger": "WhenDigivolving",
+        "actions": [
+          {
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "digivolutionCards",
+                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                },
+                "count": 1
+              },
+              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
+          },
+          {
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "digivolutionCards",
+                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                },
+                "count": 1
+              },
+              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
+          },
+          {
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "digivolutionCards",
+                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                },
+                "count": 1
+              },
+              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
+          }
+        ]
+      },
+      {
+        "trigger": "WhenAttacking",
+        "actions": [
+          {
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "digivolutionCards",
+                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                },
+                "count": 1
+              },
+              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
+          },
+          {
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "digivolutionCards",
+                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                },
+                "count": 1
+              },
+              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
+          },
+          {
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "digivolutionCards",
+                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                },
+                "count": 1
+              },
+              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
+          }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "kind": "DeDigivolve",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 3 },
+            "amount": 3,
+            "raw": "＜De-Digivolve 3＞ 3 of your opponent's Digimon"
+          },
+          {
+            "kind": "PlaceUnder",
+            "target": {
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }] },
+              "count": 1,
+              "from": ["hand", "trash"]
+            },
+            "underFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "position": "bottom",
+            "optional": true,
+            "raw": "Then, you may place 1 [Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution card."
+          }
+        ]
+      }
+    ],
+    "coverage": "full",
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 5, "texts": ["Three Musketeers"], "cost": 4, "isAlternate": true },
+      { "level": 5, "traits": ["TS"], "cost": 4, "isAlternate": true }
+    ]
+  },
+  "LM-068": {
+    "cardId": "LM-068",
+    "keywords": [{ "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security A. +1＞" }],
+    "effects": [
+      {
+        "trigger": "WhenDigivolving",
+        "condition": {
+          "kind": "zoneCount",
+          "seat": "mine",
+          "zone": "hand",
+          "op": "lte",
+          "value": 4,
+          "raw": "your hand has 4 or fewer cards"
+        },
+        "actions": [
+          {
+            "kind": "PlayWithoutCost",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "zone": "trash",
+                "levelComparison": { "op": "lte", "value": 4 },
+                "nameOrTrait": [{ "tokens": ["Evil", "Dark Dragon", "Evil Dragon"], "match": "trait" }]
+              },
+              "count": 1
+            },
+            "from": ["trash"],
+            "payCost": false,
+            "optional": true
+          }
+        ],
+        "description": "[When Digivolving] [End of Attack] If your hand has 4 or fewer cards, you may play 1 level 4 or lower Digimon card with the [Evil], [Dark Dragon] or [Evil Dragon] trait from your trash to the field without paying the cost."
+      },
+      {
+        "trigger": "EndOfAttack",
+        "condition": {
+          "kind": "zoneCount",
+          "seat": "mine",
+          "zone": "hand",
+          "op": "lte",
+          "value": 4,
+          "raw": "your hand has 4 or fewer cards"
+        },
+        "actions": [
+          {
+            "kind": "PlayWithoutCost",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "zone": "trash",
+                "levelComparison": { "op": "lte", "value": 4 },
+                "nameOrTrait": [{ "tokens": ["Evil", "Dark Dragon", "Evil Dragon"], "match": "trait" }]
+              },
+              "count": 1
+            },
+            "from": ["trash"],
+            "payCost": false,
+            "optional": true
+          }
+        ],
+        "description": "[When Digivolving] [End of Attack] If your hand has 4 or fewer cards, you may play 1 level 4 or lower Digimon card with the [Evil], [Dark Dragon] or [Evil Dragon] trait from your trash to the field without paying the cost."
+      },
+      {
+        "trigger": "WhenDigivolving",
+        "actions": [
+          { "kind": "Trash", "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 2 } },
+          { "kind": "ActivateMain", "optional": true }
+        ],
+        "description": "[When Digivolving] [On Deletion] Trash 2 cards in your hand. Then, you may activate 1 [Main] effect on this card's Option side."
+      },
+      {
+        "trigger": "OnDeletion",
+        "actions": [
+          { "kind": "Trash", "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 2 } },
+          { "kind": "ActivateMain", "optional": true }
+        ],
+        "description": "[When Digivolving] [On Deletion] Trash 2 cards in your hand. Then, you may activate 1 [Main] effect on this card's Option side."
+      },
+      {
+        "trigger": "Trash",
+        "isFromTrash": true,
+        "actions": [
+          {
+            "kind": "SubTrigger",
+            "event": "whenAttacking",
+            "sourceFilter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Evil", "Dark Dragon", "Evil Dragon"], "match": "trait" }]
+            },
+            "fireCondition": {
+              "kind": "allOf",
+              "conditions": [
+                { "kind": "isYourTurn" },
+                {
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "hand",
+                  "op": "lte",
+                  "value": 4,
+                  "raw": "your hand has 4 or fewer cards"
+                }
+              ],
+              "raw": "it's your turn and your hand has 4 or fewer cards"
+            },
+            "actions": [
+              {
+                "kind": "UseOptionWithoutCost",
+                "filter": { "isSelfRef": true },
+                "target": { "filter": { "isSelfRef": true }, "count": 1 },
+                "from": ["trash"],
+                "payCost": true,
+                "reduceCostBy": 3,
+                "optional": true
+              }
+            ]
+          }
+        ],
+        "description": "[Trash] [Your Turn] When one of your [Evil], [Dark Dragon] or [Evil Dragon] trait Digimon attacks, if your hand has 4 or fewer cards, you may use this card with the cost reduced by 3."
+      },
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "kind": "Delete",
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": ["Digimon"],
+                "levelComparison": {
+                  "op": "gte",
+                  "value": 0,
+                  "scaling": { "per": 1, "unit": "cards", "filter": { "controller": "mine", "zone": "hand" } }
+                }
+              },
+              "count": 1
+            }
+          }
+        ],
+        "description": "[Main] Delete 1 of your opponent's Digimon with a level as high as the number of cards in your hand or higher."
+      }
+    ],
+    "coverage": "full",
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 5, "traits": ["Dark Dragon", "Evil Dragon"], "cost": 4, "isAlternate": true }
+    ]
+  },
+  "RB1-004": {
+    "effects": [
+      {
+        "trigger": "YourTurn",
+        "actions": [
+          {
+            "kind": "Aura",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "effect": { "kind": "modifyDP", "amount": 2000 },
+            "while": {
+              "kind": "selfHasNameContaining",
+              "names": ["Greymon"],
+              "raw": "this Digimon has [Greymon] in its name"
+            }
+          }
+        ],
+        "isInherited": true
+      }
+    ],
+    "coverage": "full",
+    "residual": []
+  },
+  "RB1-006": {
+    "effects": [
+      {
+        "trigger": "YourTurn",
+        "actions": [
+          {
+            "kind": "GrantCanAttackUnsuspended",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "duration": "permanent",
+            "condition": {
+              "kind": "youHave",
+              "filter": { "zone": "battleArea", "controllerDefault": "mine", "kind": ["Tamer"], "colors": ["Red"] },
+              "raw": "you have a red Tamer in play"
+            }
+          }
+        ]
+      }
+    ],
+    "coverage": "full",
+    "residual": []
+  },
+  "RB1-007": {
+    "effects": [
+      {
+        "trigger": "YourTurn",
+        "actions": [
+          {
+            "kind": "Aura",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "effect": {
+              "kind": "keyword",
+              "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security A. +1＞" }
+            },
+            "while": {
+              "kind": "selfDigivolutionStackHasTrait",
+              "filter": { "nameOrTrait": [{ "tokens": ["Agumon"], "match": "nameExact" }] },
+              "raw": "this Digimon has an [Agumon] digivolution card"
+            }
+          }
+        ]
+      }
+    ],
+    "coverage": "full",
+    "residual": []
   }
 }

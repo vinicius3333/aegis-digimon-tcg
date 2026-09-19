@@ -2,6 +2,9 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
+import "./LM-063.js";
+import "./LM-064.js";
+import "./LM-065.js";
 
 const cases = [
   ["LM-054", "BT1-046", "BT1-054", "BT12-013"],
@@ -13,6 +16,9 @@ const cases = [
   ["LM-060", "BT1-067", "BT6-050", "BT10-061"],
   ["LM-061", "BT10-058", "BT10-061", "BT1-054"],
   ["LM-062", "BT2-067", "BT14-075", "BT10-061"],
+  ["LM-063", "BT1-009", "BT4-013", "BT1-054"],
+  ["LM-064", "BT1-045", "BT1-054", "BT4-013"],
+  ["LM-065", "BT2-052", "BT5-062", "BT1-054"],
 ] as const;
 
 describe.each(cases)("%s Delay evolution", (cardId, hostCard, evolutionCard, wrongColorCard) => {

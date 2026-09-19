@@ -1,8 +1,8 @@
 ---
 set: LM
-cards: 62
+cards: 68
 status: complete
-verified_at: 2026-09-12
+verified_at: 2026-09-19
 catalog_commit: 3657953ac
 evidence_commit: 4a30a66db
 ---
@@ -22,6 +22,17 @@ coordinator ran every test with a single worker and `TEST_HEAP_MB=2048`; workers
 Public play, evolution, attacks, Counter, blocking, activation, and actual turn loops replace
 older timing-only primary assertions. Existing sufficient proof was retained. Structural
 supplements are explicitly not standalone behavioral evidence.
+
+Extended on 2026-09-19. Six cards missing from the collection — LM-063 Endurance Training,
+LM-064 Bobbing Training, LM-065 Weight Training, LM-066 Zephagamon, LM-067 Gundramon and
+LM-068 HeavyMetaldramon — were imported from the community database, authored as compiled IR
+with exclusive `registerIrCard`, and given reproducible focused tests. The printed catalog text
+is the only source for all six: `node tools/kb/query.mjs card LM-06X` returns no knowledge-base
+entry for any of them. After a second fix-and-verify round all six reach 10/10. Every one is now
+imported by `apps/api/src/cards/LM/index.ts` and `LM.collection.test.ts` expects 68 registered
+cards, so the earlier stack gap is closed. LM-066's Option-side cost reduction is scoped by the
+new `wouldBeUsedAsOption` condition, so its IR clause is closed too. The set count rises from 62
+to 68 and the status returns to complete.
 
 ## Gates
 
@@ -494,6 +505,55 @@ supplements; shared keyword execution is tied to the passing mechanism suites be
 - Sources: [catalog](../../packages/shared/src/cards/data/cards.json) · [KB](../../data/kb/qa.json): no card-specific entries · [module](../../apps/api/src/cards/LM/LM-062.ts). Full compiled IR, empty residual; exclusive `registerIrCard`.
 - Reproducible evidence: [test](../../apps/api/src/cards/LM/LM-062.test.ts) · [public Training evolution/stack matrix](../../apps/api/src/cards/LM/LM.training-delay.test.ts). Test cases: “reveals two, adds a purple or yellow card, bottoms the rest and places itself”; “ignores its colour requirements while no copy of itself is in the battle area”; “loses the waiver once a copy of itself is already in the battle area”; “digivolves for the printed cost reduced by 2 through its Delay clause”; “reveals two and places itself from security”; “matches committed metadata and publishes fully covered compiled IR”.
 
+### LM-063 — Endurance Training
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Sources: [catalog](../../packages/shared/src/cards/data/cards.json) · [KB](../../data/kb/qa.json): no card-specific entries · [module](../../apps/api/src/cards/LM/LM-063.ts). Full compiled IR, empty residual; exclusive `registerIrCard`. Imported by `apps/api/src/cards/LM/index.ts`, so the card is live in the shipped API.
+- Reproducible evidence: [test](../../apps/api/src/cards/LM/LM-063.test.ts) · [public Training evolution/stack matrix](../../apps/api/src/cards/LM/LM.training-delay.test.ts) (case row `["LM-063", "BT1-009", "BT4-013", "BT1-054"]`). Test cases: “reveals two, adds a red or purple card, bottoms the rest and places itself”; “ignores its colour requirements while no copy of itself is in the battle area”; “loses the waiver once a copy of itself is already in the battle area”; “digivolves for the printed cost reduced by 2 through its Delay clause”; “reveals two and places itself from security”; “matches committed metadata and publishes fully covered compiled IR”; “puts the revealed card it did not add under the untouched cards when played”; “puts the revealed card it did not add at the bottom on the security path too”; “refuses to digivolve a Digimon the opponent controls”; “exposes the Delay clause as the only OnDeclaration effect key”.
+- Ambiguity: the effect-key test rejects `ir-OnDeclaration-1`, an index that may simply not exist, so it is weak on its own; the accepted `-0` case and the single-Delay-effect metadata assertion carry that proof. No case reveals two cards where neither matches the colour clause, so the “add 1” bound with no legal card revealed is untested; both cards should then go to the bottom.
+
+### LM-064 — Bobbing Training
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Sources: [catalog](../../packages/shared/src/cards/data/cards.json) · [KB](../../data/kb/qa.json): no card-specific entries · [module](../../apps/api/src/cards/LM/LM-064.ts). Full compiled IR, empty residual; exclusive `registerIrCard`. Imported by `apps/api/src/cards/LM/index.ts`, so the card is live in the shipped API.
+- Reproducible evidence: [test](../../apps/api/src/cards/LM/LM-064.test.ts) · [public Training evolution/stack matrix](../../apps/api/src/cards/LM/LM.training-delay.test.ts) (case row `["LM-064", "BT1-045", "BT1-054", "BT4-013"]`). Test cases: “reveals two, adds a yellow or blue card, bottoms the rest and places itself”; “ignores its colour requirements while no copy of itself is in the battle area”; “loses the waiver once a copy of itself is already in the battle area”; “digivolves for the printed cost reduced by 2 through its Delay clause”; “reveals two and places itself from security”; “matches committed metadata and publishes fully covered compiled IR”; “puts the revealed card it did not add under the untouched cards when played”; “puts the revealed card it did not add at the bottom on the security path too”; “refuses to digivolve a Digimon the opponent controls”; “exposes the Delay clause as the only OnDeclaration effect key”.
+- Ambiguity: the effect-key test rejects `ir-OnDeclaration-1`, an index that may simply not exist, so it is weak on its own; the accepted `-0` case and the single-Delay-effect metadata assertion carry that proof. No case reveals two cards where neither matches the colour clause, so the “add 1” bound with no legal card revealed is untested; both cards should then go to the bottom.
+
+### LM-065 — Weight Training
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Sources: [catalog](../../packages/shared/src/cards/data/cards.json) · [KB](../../data/kb/qa.json): no card-specific entries · [module](../../apps/api/src/cards/LM/LM-065.ts). Full compiled IR, empty residual; exclusive `registerIrCard`. Imported by `apps/api/src/cards/LM/index.ts`, so the card is live in the shipped API.
+- Reproducible evidence: [test](../../apps/api/src/cards/LM/LM-065.test.ts) · [public Training evolution/stack matrix](../../apps/api/src/cards/LM/LM.training-delay.test.ts) (case row `["LM-065", "BT2-052", "BT5-062", "BT1-054"]`). Test cases: “reveals two, adds a black or green card, bottoms the rest and places itself”; “ignores its colour requirements while no copy of itself is in the battle area”; “loses the waiver once a copy of itself is already in the battle area”; “digivolves for the printed cost reduced by 2 through its Delay clause”; “reveals two and places itself from security”; “matches committed metadata and publishes fully covered compiled IR”; “puts the revealed card it did not add under the untouched cards when played”; “puts the revealed card it did not add at the bottom on the security path too”; “refuses to digivolve a Digimon the opponent controls”; “exposes the Delay clause as the only OnDeclaration effect key”.
+- Ambiguity: the effect-key test rejects `ir-OnDeclaration-1`, an index that may simply not exist, so it is weak on its own; the accepted `-0` case and the single-Delay-effect metadata assertion carry that proof. No case reveals two cards where neither matches the colour clause, so the “add 1” bound with no legal card revealed is untested; both cards should then go to the bottom.
+
+### LM-066 — Zephagamon
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Sources: [catalog](../../packages/shared/src/cards/data/cards.json) · [KB](../../data/kb/qa.json): no card-specific entries · [module](../../apps/api/src/cards/LM/LM-066.ts). Full compiled IR, empty residual; exclusive `registerIrCard`; imported by `apps/api/src/cards/LM/index.ts`. The Option-side cost reduction is now scoped: the `BeforePayCost` `ReducePlayCost` carries `condition: { kind: "wouldBeUsedAsOption" }` (LM-066.ts line 73), a new predicate in [packages/shared/src/effects/ir/predicates/conditions.ts](../../packages/shared/src/effects/ir/predicates/conditions.ts) handled at [apps/api/src/engine/effects/interpreter/conditions.ts](../../apps/api/src/engine/effects/interpreter/conditions.ts) line 651. The digivolve header uses `digivolutionRequirement { traits: ["Vortex Warriors"], basePlayCostMin: 11, cost: 2, isAlternate: true }` (BT20-101 precedent); the Green Lv.5 cost-4 route stays on the catalog `evoCosts`. The printed “[Rule] Trait: Has [Bird Dragon] Type.” line carries no IR; `staticTraitsOf` in `apps/api/src/engine/cards/cardData.ts` parses [Rule] Trait lines out of the effect text, so the trait is honoured from catalog data.
+- Reproducible evidence: [test](../../apps/api/src/cards/LM/LM-066.test.ts), 15 cases, all passing under `pnpm --filter @aegis/api exec vitest run src/cards/LM/LM-066.test.ts`. Test cases: “matches the catalog record”; “compiles to full coverage with the printed keywords and digivolve header”; “digivolves for 2 from a play-cost-11 Vortex Warriors base and battles after unsuspending”; “rejects the cost-2 path from a base whose play cost is below 11”; “survives an opposing deletion once per turn by suspending a Digimon”; “locks an opposing permanent's unsuspend and bottom-decks 1 Digimon per 2 suspended Digimon”; “returns nothing when fewer than 2 Digimon are suspended”; “shares the once-per-turn use between digivolving and attacking”; “prevents only one deletion per turn even with another Digimon left to suspend”; “cannot pay the survival cost with the opponent's Digimon”; “keeps a locked opposing Tamer suspended through the opponent's unsuspend step”; “reduces the Option use cost by 2 by suspending 2 Digimon and counts those Digimon for the bottom-deck clause”; “cannot be played as a Digimon, so the reducer has no non-Option play path”; “does not reduce the digivolve cost even with 2 Digimon available to suspend”; “counts suspended Digimon on both sides, including when only yours are suspended”.
+- Public-intent proof for the scoped reducer: `playCard` with `useAs: "option"` at memory 8 ends at memory 4 (6 − 2) with both payers suspended; digivolving at memory 4 ends at memory 2 with no payer suspended; `useAs: "digimon"` is rejected outright, because the dual card's Digimon side can only digivolve.
+- Ambiguity: the printed Option clause counts “suspended Digimon” without naming a controller, so the IR scales on `controller: "any"`, while the Return target stays `controller: "opponent"` for “their Digimon”. The combined case proves the two Digimon suspended to pay the use cost count and asserts the exact deck order `[BT1-009, BT1-011, BT1-064, BT1-088, BT1-010]`, so the returned Digimon lands at the bottom with the prior order untouched. No case asserts the [Bird Dragon] trait itself.
+
+### LM-067 — Gundramon
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Sources: [catalog](../../packages/shared/src/cards/data/cards.json) · [KB](../../data/kb/qa.json): no card-specific entries · [module](../../apps/api/src/cards/LM/LM-067.ts). Full compiled IR, empty residual; exclusive `registerIrCard`; imported by `apps/api/src/cards/LM/index.ts`. ＜Use Req.＞ maps to `WaiveColorRequirement` with a `threeMusketeersInPlay` condition (BT25-093 precedent); [When Digivolving] and [Counter] share `sharedUseKey: "LM-067/reveal-six"` so the printed [Once Per Turn] spans both windows; the “trash up to 3, delete 1 each” clause is three distinct `Delete` actions, each gated by its own `digivolutionCards` trash cost, because `Trash { trackCount }` never sets the counter for that zone.
+- Reproducible evidence: [test](../../apps/api/src/cards/LM/LM-067.test.ts). Test cases: “matches committed metadata and publishes fully covered compiled IR”; “digivolves off an off-color Lv.5 with the [TS] trait but not off a plain Lv.5”; “digivolves off a Lv.5 with [Three Musketeers] in text but no [TS] trait”; “reveals six on digivolve and plays a cost 6 [Three Musketeers] card for free”; “leaves a play cost 7 [Three Musketeers] card in the deck, one over the cost 6 bound”; “spends the shared [Once Per Turn] reveal on the digivolve window, blocking the [Counter] one”; “trashes its [Three Musketeers] digivolution cards when attacking and deletes one small Digimon each”; “deletes nothing when no [Three Musketeers] digivolution card can be trashed”; “resolves the shared [Once Per Turn] reveal when [Counter] is the first use of the turn”; “trashes at most 3 [Three Musketeers] cards and deletes at most 3 Digimon”; “deletes a play cost 7 Digimon but leaves a play cost 8 one alone”; “keeps its [Three Musketeers] digivolution cards when no Digimon is small enough to delete”; “gates the Option side on <Use Req. ([Three Musketeers] in text)> without a Black source”; “de-digivolves three opposing Digimon and places a [Three Musketeers] card as the Option side”; “fires the reveal and the trash-and-delete window together on the digivolve”; “allows three deletions on the digivolve window and three more when it attacks the same turn”; “uses a revealed [Three Musketeers] Option instead of playing it in the battle area”; “returns the unchosen revealed cards to the bottom of the deck in order”; “resolves the [Counter] reveal from a real counter window opened by an opposing attack”.
+- Ambiguity: three residual modelling notes, none a card-level regression. The interpreter does not pay the trash cost when no delete target is legal; the measured behaviour matches the printed optional clause and is asserted, not assumed. The alternate “Lv.5 with the [TS] trait” route is never isolated, because the [TS] source BT25-083 also carries [Three Musketeers] in its own digivolve text; EX7-044 covers the text-only route and BT2-078 the refusal. ＜Use Req.＞ as a colour waiver follows the BT25-093 precedent but is not the same rule: a seat that already has a Black source could use the Option side with no [Three Musketeers] card in play. The returned-cards order case pins the engine convention; the rules let the player order them. The two negative trash/delete cases settle on `security.length >= 0`, a predicate that is already true, so those absence checks prove little until they settle on a real post-attack marker.
+
+### LM-068 — HeavyMetaldramon
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Sources: [catalog](../../packages/shared/src/cards/data/cards.json) · [KB](../../data/kb/qa.json): no card-specific entries · [module](../../apps/api/src/cards/LM/LM-068.ts). Full compiled IR, empty residual; exclusive `registerIrCard`; imported by `apps/api/src/cards/LM/index.ts`. The digivolve header maps to `digivolutionRequirement { level: 5, traits: ["Dark Dragon", "Evil Dragon"], cost: 4, isAlternate: true }`; ＜Security A. +1＞ is a card-level keyword; the [Trash][Your Turn] attack trigger follows BT26-078 and resolves the Option half with `UseOptionWithoutCost` at the printed −3; “level as high as the number of cards in your hand or higher” uses a scaled `levelComparison` (op `gte`, value 0, one step per card in hand).
+- Reproducible evidence: [test](../../apps/api/src/cards/LM/LM-068.test.ts). Test cases: “matches the catalog record”; “compiles to full coverage with the printed digivolve header and Security A. +1”; “digivolves for the printed alternate cost of 4 from a Lv.5 [Dark Dragon]”; “refuses the alternate cost of 4 from a Lv.5 without the [Dark Dragon] or [Evil Dragon] trait”; “checks 2 security cards in one attack with <Security A. +1>”; “plays an [Evil Dragon] Digimon from trash and deletes through the Option side when the hand is small”; “skips the trash play above 4 cards in hand and deletes only a Digimon at or above the hand count”; “plays an [Evil Dragon] Digimon from trash at the end of its own attack”; “uses its Option side from trash for 3 less when an [Evil Dragon] Digimon attacks”; “leaves the trash Digimon alone at the end of an attack while the hand holds 5 cards”; “trashes 2 cards and resolves the Option-side delete when it is deleted in battle”; “stays in trash while the opponent attacks with their own [Evil Dragon] Digimon”; “stays in trash when an [Evil Dragon] Digimon attacks while the hand holds 5 cards”; “stays in trash when the attacker carries none of the three traits”; “cannot play a level 5 [Dark Dragon] Digimon out of the trash”.
+- Ambiguity: the trash-play token list accepts [Evil], [Dark Dragon] or [Evil Dragon], but every positive case uses [Dark Dragon] or [Evil Dragon]; an [Evil]-only source is untested. The scaled `levelComparison` threshold is proven at one hand size only, not across two.
+
 ## Mechanisms
 
 - [Collection registration](../../apps/api/src/cards/LM/LM.collection.test.ts): all 62 cards,
@@ -534,6 +594,19 @@ family, and verified by public evolution and exact memory/stack assertions.
 This re-audit supersedes historical source claims and closes post-audit drift: the current
 collection/parity/layout, engine mechanisms, rendered scenarios, typecheck, and style gates
 were reproduced. Historical paths below are provenance only, not current evidence files.
+
+No item remains open from the six cards imported on 2026-09-19. The registration gap is closed:
+`apps/api/src/cards/LM/index.ts` imports LM-063 to LM-068 and `LM.collection.test.ts` expects 68
+cards. The LM-066 missing-primitive block is closed by the `wouldBeUsedAsOption` condition in
+`packages/shared/src/effects/ir/predicates/conditions.ts`, handled in
+`apps/api/src/engine/effects/interpreter/conditions.ts`. The shared card-number rule is enforced by
+`packages/shared/src/cards/sharedCardNumbers.ts` with `apps/api/src/engine/deckValidation.ts`.
+
+Remaining notes are per-card ambiguities recorded in the ledger above, not blocking gaps: the
+untested no-legal-colour reveal and the weak effect-key rejection on LM-063 to LM-065, the missing
+[Bird Dragon] trait assertion on LM-066, the ＜Use Req.＞ colour-waiver modelling and unisolated
+[TS]-only digivolve route on LM-067, and the untested [Evil]-only trash source and single-hand-size
+`levelComparison` threshold on LM-068.
 
 ## History
 

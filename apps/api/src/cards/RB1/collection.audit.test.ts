@@ -12,7 +12,7 @@ const CARDS = allCards()
 
 describe("RB1 collection audit gate", () => {
   it("registers every catalog card with complete compiled IR", () => {
-    expect(CARDS).toHaveLength(33);
+    expect(CARDS).toHaveLength(36);
     expect(CARDS.every((card) => getEffectModule(card.cardId) !== undefined)).toBe(true);
     expect(CARDS.every((card) => runtimeCompiledCard(card.cardId)?.coverage === "full")).toBe(true);
     expect(CARDS.every((card) => runtimeCompiledCard(card.cardId)?.residual.length === 0)).toBe(true);

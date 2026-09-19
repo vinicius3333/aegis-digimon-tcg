@@ -1,8 +1,8 @@
 ---
 set: RB1
-cards: 33
-status: verified
-verified_at: 2026-09-12
+cards: 36
+status: complete
+verified_at: 2026-09-19
 catalog_commit: de4dda717d8c9e0c2420796cb387f68b1379b863
 evidence_commit: 2ccf8e6a24c9ab02daf923e15c1c101beafde3f2
 ---
@@ -18,7 +18,12 @@ reviewed the 33 catalog cards against the committed catalog and local KB.
 Builds and test suites use bounded heaps; tests use one worker.
 All 33 production modules exclusively register compiled IR with `registerIrCard`.
 No RB1 module contains `ts-nocheck`; it had already been removed before this branch.
-IDs 004, 006 and 007 are absent from the catalog and are not missing audit rows.
+On 2026-09-19 the three remaining IDs were imported from the community card database, authored as
+compiled IR and audited here, so RB1 now holds 36 production modules. After a second fix and verify
+round, RB1-004, RB1-006 and RB1-007 all hold 10/10 with reproducible proof: RB1-006 gained the
+opponent's-turn case and the hand-and-trash case that pin its last two IR terms. The earlier claim
+that IDs 004, 006 and 007 were absent from the catalog no longer holds. Every card in the set is at
+10/10, so the set status is complete.
 
 The rubric is catalog/rules, executable IR, behavioral proof, peer/stack proof,
 and delivery gates, each scored 0–2. Shared mechanism evidence supplements
@@ -133,6 +138,16 @@ pnpm audit:index -- --check
 - Executable trace: [compiled module](../../apps/api/src/cards/RB1/RB1-003.ts); each printed timing/filter/cost/duration is represented by its compiled actions and resolved by `engine/effects/interpreter` and production primitives.
 - Reproducible card and stack assertions: [suite](../../apps/api/src/cards/RB1/RB1-003.test.ts): “gives its host +1000 DP while the opponent has no unsuspended Digimon”; “does not give the inherited bonus while an opponent Digimon is unsuspended”.
 
+### RB1-004 — Agumon
+
+- Score: **10/10** (catalog/rules 2/2 · IR 2/2 · behavior 2/2 · peer/stack 2/2 · delivery 2/2).
+- Catalog: colors Red; level 3; DP 2000; play cost 3; evolution `[{"color":"Red","level":2,"memoryCost":0}]`.
+- Contract: Main: [Rule] Card Number: Also treated as [P-009]. A deck may not have more than 4 total copies of this and [P-009]. · Inherited: [Your Turn] While this Digimon has [Greymon] in its name, it gets +2000 DP.
+- KB: no entries returned. Fresh query: `node tools/kb/query.mjs card RB1-004`.
+- Executable trace: [compiled module](../../apps/api/src/cards/RB1/RB1-004.ts) registers only through `registerIrCard`, with `coverage: "full"` and an empty `residual`; each printed timing/filter/cost/duration is represented by its compiled actions and resolved by `engine/effects/interpreter` and production primitives. The inherited effect compiles to trigger `YourTurn` + `Aura` on `isSelfRef` + `modifyDP 2000` gated by `selfHasNameContaining ["Greymon"]`, with `isInherited: true`; `engine/effects/collect.ts` only collects digivolution-card effects when that flag is set, so dropping it removes the bonus.
+- Card-number rule: the `[Rule] Card Number` clause has no IR primitive. `packages/shared/src/cards/sharedCardNumbers.ts` matches the printed string and `apps/api/src/engine/deckValidation.ts` enforces the shared 4-copy budget with [P-009], so coverage stays `full`.
+- Reproducible card and stack assertions: [suite](../../apps/api/src/cards/RB1/RB1-004.test.ts): “gives inherited +2000 DP to hosts whose name contains [Greymon], exactly or as a compound”; “does not give the DP on the opponent's turn”; “matches committed metadata and publishes fully covered compiled IR”. The first case uses RB1-007 Greymon and BT2-035 GeoGreymon as hosts (contains-but-not-equal pins substring matching against `selfHasName`) and BT1-014 Kokatorimon, a red level-4 Digimon with no printed or inherited text, as the clean negative control.
+
 ### RB1-005 — Gammamon
 
 - Score: **10/10** (catalog/rules 2/2 · IR 2/2 · behavior 2/2 · peer/stack 2/2 · delivery 2/2).
@@ -141,6 +156,27 @@ pnpm audit:index -- --check
 - KB: Q4076, Q4077. Fresh query: `node tools/kb/query.mjs card RB1-005`.
 - Executable trace: [compiled module](../../apps/api/src/cards/RB1/RB1-005.ts); each printed timing/filter/cost/duration is represented by its compiled actions and resolved by `engine/effects/interpreter` and production primitives.
 - Reproducible card and stack assertions: [suite](../../apps/api/src/cards/RB1/RB1-005.test.ts): “adds Hiro from the revealed cards”; “fills both search slots and returns the exact remainder to the deck bottom”; “grants inherited DP only when the top card has Gammamon in its text”.
+
+### RB1-006 — Gammamon
+
+- Score: **10/10** (catalog/rules 2/2 · IR 2/2 · behavior 2/2 · peer/stack 2/2 · delivery 2/2).
+- Catalog: colors Red; level 3; DP 4000; play cost 4; evolution `[{"color":"Red","level":2,"memoryCost":1}]`.
+- Contract: Main: [Your Turn] While you have a red Tamer in play, this Digimon may also attack your opponent's unsuspended Digimon. · [Rule] Card Number: Also treated as [P-058]. A deck may not have more than 4 total copies of this and [P-058].
+- KB: no entries returned. Fresh query: `node tools/kb/query.mjs card RB1-006`; clause verification rests on the committed catalog `effectText`.
+- Executable trace: [compiled module](../../apps/api/src/cards/RB1/RB1-006.ts) registers only through `registerIrCard`, with `coverage: "full"` and an empty `residual`. The printed clause compiles to trigger `YourTurn` + `GrantCanAttackUnsuspended` on `isSelfRef`, duration `permanent`, condition `youHave` with filter `zone: "battleArea"`, `kind: ["Tamer"]`, `colors: ["Red"]`. `controllerDefault: "mine"` restates the default already implied by the `youHave` condition kind.
+- Card-number rule: same shared handling as RB1-004, through `packages/shared/src/cards/sharedCardNumbers.ts` and `apps/api/src/engine/deckValidation.ts`, with [P-058].
+- Reproducible card and stack assertions: [suite](../../apps/api/src/cards/RB1/RB1-006.test.ts): “can attack an unsuspended Digimon while a red Tamer is in play”; “can't attack an unsuspended Digimon without a red Tamer”; “can't attack an unsuspended Digimon while the only Tamer in play is not red”; “can't attack an unsuspended Digimon while the red Tamer belongs to the opponent”; “loses the grant in the same game once the red Tamer leaves play”; “can't attack an unsuspended Digimon on the opponent's turn”; “can't attack an unsuspended Digimon while the red Tamer is only in hand and trash”; “matches committed metadata and publishes fully covered compiled IR”. The grant is observed only through public attack intents. Every IR term is now pinned: the colour term by the BT1-086 Matt Ishida case, the controller by the opponent-side Tamer case, the non-latched `while` by deleting the Tamer mid-game, the `YourTurn` trigger by running the turn loop into seat 1's main phase, and `zone: "battleArea"` by seeding P-062 in hand and trash with no Tamer in play.
+- Ambiguity: none in the printed text. No IR term is left unproven.
+
+### RB1-007 — Greymon
+
+- Score: **10/10** (catalog/rules 2/2 · IR 2/2 · behavior 2/2 · peer/stack 2/2 · delivery 2/2).
+- Catalog: colors Red; level 4; DP 5000; play cost 5; evolution `[{"color":"Red","level":3,"memoryCost":2}]`.
+- Contract: Main: [Your Turn] While this Digimon has an [Agumon] digivolution card, it gains ＜Security A. +1＞ · [Rule] Card Number: Also treated as [P-010]. A deck may not have more than 4 total copies of this and [P-010].
+- KB: no entries returned. Fresh query: `node tools/kb/query.mjs card RB1-007`.
+- Executable trace: [compiled module](../../apps/api/src/cards/RB1/RB1-007.ts) registers only through `registerIrCard`, with `coverage: "full"` and an empty `residual`; the printed clause compiles to trigger `YourTurn` + `Aura` on `isSelfRef` + keyword `SecurityAttack 1`, gated by `selfDigivolutionStackHasTrait` with `nameOrTrait` match `nameExact` on `["Agumon"]`. The effect is printed on the card body, so the IR carries no `isInherited` flag.
+- Card-number rule: same shared handling as RB1-004, through `packages/shared/src/cards/sharedCardNumbers.ts` and `apps/api/src/engine/deckValidation.ts`, with [P-010].
+- Reproducible card and stack assertions: [suite](../../apps/api/src/cards/RB1/RB1-007.test.ts): “gains Security A. +1 with an exact [Agumon] digivolution card, not [Agumon Expert]”; “does not gain Security A. +1 on the opponent's turn”; “matches committed metadata and publishes fully covered compiled IR”. The first case pins exact-versus-compound naming with RB1-004 Agumon (grant present) against BT1-011 Agumon Expert (grant absent); the second pins the [Your Turn] gate from seat 1.
 
 ### RB1-008 — BetelGammamon
 
@@ -405,8 +441,17 @@ pnpm audit:index -- --check
 
 ## Open items
 
-None. All 33 cards have accepted 10/10 evidence; no handwritten registration
-or unresolved card limitation remains in RB1.
+- RB1-006 — accepted as non-blocking: the metadata case in
+  `apps/api/src/cards/RB1/RB1-006.test.ts` asserts `cardId`, `nameEn`, `level`, `dp` and `playCost`
+  but not the digivolve header (Red, level 2, cost 1), colors or forms; those fields are pinned by
+  the catalog and collection parity suites instead.
+- RB1-006 — accepted as non-blocking: no KB entry exists for the card
+  (`node tools/kb/query.mjs card RB1-006` returns none), so clause verification rests on the
+  committed catalog `effectText`.
+- RB1-006 — accepted as non-blocking: `controllerDefault: "mine"` is redundant with the `youHave`
+  condition kind and is not independently pinned; the opponent-side case covers the behaviour it
+  names.
+- All 36 cards hold accepted 10/10 evidence; no handwritten registration remains in RB1.
 
 ## History
 

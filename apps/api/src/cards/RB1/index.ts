@@ -1,7 +1,10 @@
 import "./RB1-001.js";
 import "./RB1-002.js";
 import "./RB1-003.js";
+import "./RB1-004.js";
 import "./RB1-005.js";
+import "./RB1-006.js";
+import "./RB1-007.js";
 import "./RB1-008.js";
 import "./RB1-009.js";
 import "./RB1-010.js";

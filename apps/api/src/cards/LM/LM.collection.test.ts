@@ -16,8 +16,8 @@ describe("LM collection gate", () => {
     expect(source).toContain(`registerIrCard("${cardId}", compiled)`);
   });
 
-  it("registers all 62 committed catalog cards", () => {
-    expect(LM_CARDS).toHaveLength(62);
+  it("registers all 68 committed catalog cards", () => {
+    expect(LM_CARDS).toHaveLength(68);
 
     const missing = LM_CARDS.filter((card) => getEffectModule(card.cardId) === undefined).map((card) => card.cardId);
     expect(missing).toEqual([]);
