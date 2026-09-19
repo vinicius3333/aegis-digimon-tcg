@@ -112,6 +112,110 @@ describe("BT26-067 Wizardmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("allows BT26-073 to Assemble when Wizardmon plays it from the trash", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-067", as: "wizardmon" },
+            { card: "BT1-045", as: "yellowDigimon" },
+          ],
+          trash: [
+            { card: "BT26-073", as: "dark" },
+            { card: "BT26-069", as: "assemblyMaterial" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      {
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
+    );
+    preferred.push(s.inst("dark").instanceId, s.inst("assemblyMaterial").instanceId);
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 2;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.players[0]!.battleArea.some(
+          ({ topCard, stack }) => topCard.cardId === "BT26-073" && stack.length === 1,
+        ),
+    );
+
+    const dark = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT26-073");
+    expect(dark?.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("assemblyMaterial").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("wizardmon").instanceId);
+    expect(s.state.memory).toBe(-5);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("may play BT26-073 without Assembly when the material selection is declined", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-067", as: "wizardmon" },
+          { card: "BT1-045", as: "yellowDigimon" },
+        ],
+        trash: [
+          { card: "BT26-073", as: "dark" },
+          { card: "BT26-069", as: "assemblyMaterial" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { deck: ["BT1-011", "BT1-012"] },
+    });
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 2;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-073"),
+    );
+
+    const dark = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT26-073");
+    expect(dark?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("assemblyMaterial").instanceId,
+    );
+    expect(s.state.memory).toBe(-7);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("may decline the legal reduced-cost play without returning itself or moving the target [engine seam: missing PlayWithoutCost optional decision]", async () => {
     const s = setupEngine(
       {

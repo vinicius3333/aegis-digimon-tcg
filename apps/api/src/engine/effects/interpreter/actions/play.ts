@@ -9,9 +9,10 @@ import { permanentMatchesFilter, seatsForController } from "../matching/permanen
 import { countMatching, scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { runPlayPerLevel } from "./dna.js";
-import { CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
+import { CardKind, assemblyRequirementFor, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
 import type { Action, Scaling, Seat, Target, ZoneRef } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
+import { materialMatchesAssemblySlot, materialsSatisfyAssemblyRecipe } from "../../../actions/assembly.js";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
 
 /**
@@ -46,8 +47,7 @@ function playableCandidates<T extends { cardId: string }>(
 ): T[] {
   const requestedKinds = requestedPlayKinds(target);
   const namesOption = requestedKinds.includes("Option");
-  const optionOnly =
-    namesOption && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
+  const optionOnly = namesOption && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
   return candidates.filter((candidate) => {
     const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
     if (!kinds.includes(CardKind.Option)) return true;
@@ -868,6 +868,44 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             }
           }
         }
+        const assemblyMaterialInstanceIdsByPlay: Record<string, string[]> = {};
+        const costDeltaByPlay: Record<string, number> = {};
+        const reservedAssemblyMaterials = new Set<string>();
+        for (const instanceId of permanentIds) {
+          costDeltaByPlay[instanceId] = costReduction ?? 0;
+          const playedCard = candidates.find((candidate) => candidate.instanceId === instanceId);
+          const playedDefinition =
+            playedCard === undefined ? undefined : ctx.game.definitionOf({ cardId: playedCard.cardId } as never);
+          const requirement = playedCard === undefined ? undefined : assemblyRequirementFor(playedCard.cardId)?.[0];
+          if (playedCard === undefined || playedDefinition === undefined || requirement === undefined) continue;
+
+          const requiredCount = requirement.materials.reduce((sum, slot) => sum + slot.count, 0);
+          const materialCandidates = looseCardsInZone(ctx, playedCard.ownerSeat, "trash").filter((candidate) => {
+            if (permanentIds.includes(candidate.instanceId) || reservedAssemblyMaterials.has(candidate.instanceId)) {
+              return false;
+            }
+            const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+            return requirement.materials.some((slot) =>
+              materialMatchesAssemblySlot(definition, slot, playedDefinition),
+            );
+          });
+          if (requiredCount === 0 || materialCandidates.length < requiredCount) continue;
+
+          const selected = await ctx.ask.selectCards(ctx, {
+            candidates: materialCandidates.map((candidate) => candidate.instanceId),
+            min: 0,
+            max: requiredCount,
+          });
+          const selectedDefinitions = selected
+            .map((selectedId) => materialCandidates.find((candidate) => candidate.instanceId === selectedId))
+            .filter((candidate): candidate is (typeof materialCandidates)[number] => candidate !== undefined)
+            .map((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never));
+          if (!materialsSatisfyAssemblyRecipe(selectedDefinitions, requirement.materials, playedDefinition)) continue;
+
+          assemblyMaterialInstanceIdsByPlay[instanceId] = selected;
+          costDeltaByPlay[instanceId] += requirement.reduceCost;
+          for (const materialId of selected) reservedAssemblyMaterials.add(materialId);
+        }
         const hostPermanentIds = Object.fromEntries(
           permanentIds
             .map((instanceId) => {
@@ -886,12 +924,15 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 suspended: action.suspended,
                 effectSourceCardId: ctx.source.cardId,
                 ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
-                ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
+                ...(Object.keys(costDeltaByPlay).length > 0 ? { costDeltaByPlay } : {}),
                 ...((action as typeof action & { costOverride?: number }).costOverride !== undefined
                   ? { costOverride: (action as typeof action & { costOverride?: number }).costOverride }
                   : {}),
                 ...(Object.keys(digiXrosMaterialInstanceIdsByPlay).length > 0
                   ? { digiXrosMaterialInstanceIdsByPlay }
+                  : {}),
+                ...(Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0
+                  ? { assemblyMaterialInstanceIdsByPlay }
                   : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
                 hostPermanentIds,

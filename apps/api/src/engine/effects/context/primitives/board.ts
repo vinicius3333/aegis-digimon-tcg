@@ -42,6 +42,8 @@ export interface BoardPrimitives {
       suspended?: boolean;
       breeding?: boolean;
       costDelta?: number;
+      /** Per-play reduction when a batch contains cards with different alternate play costs. */
+      costDeltaByPlay?: Record<string, number>;
       /** Set the paid play's base cost to this value before continuous modifiers. */
       costOverride?: number;
       suppressOnPlayEffects?: boolean;
@@ -53,6 +55,8 @@ export interface BoardPrimitives {
       digiXrosMaterialInstanceIdsByPlay?: Record<string, string[]>;
       /** Assembly materials selected from trash for this effect-driven play. */
       assemblyMaterialInstanceIds?: string[];
+      /** Per-play Assembly materials when several effect plays resolve as one batch. */
+      assemblyMaterialInstanceIdsByPlay?: Record<string, string[]>;
       /** Resolved host permanent for stack-origin instances, when the source is a stack zone. */
       hostPermanentIds?: Record<string, string>;
     },
