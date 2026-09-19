@@ -20,7 +20,7 @@ import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
 import type { VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
-import { botDeckFor } from "../engine/testDecks.js";
+import { playableBotDeck } from "../engine/botDeck.js";
 import { accountStore } from "../accounts/runtime.js";
 import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
 import { seriesStore } from "../tournaments/runtime.js";
@@ -862,6 +862,17 @@ export class AegisRoom extends Room<GameState> {
     // Acknowledge the existing bot without replacing it or restarting the engine.
     if (this.bots[this.BOT_SEAT] !== undefined) return true;
 
+    // Resolve the deck before anything is mutated: an unplayable preset degrades to the
+    // random pool inside playableBotDeck, and any remaining failure must leave the room
+    // exactly as it was rather than half-seated.
+    let deck;
+    try {
+      deck = playableBotDeck(botDeckId, this.isBetaBattleRoom);
+    } catch (error) {
+      logError("[AegisRoom] addBot could not resolve a legal bot deck", error);
+      return false;
+    }
+
     this.bots[this.BOT_SEAT] = new BotPlayer(this.BOT_SEAT, this.state, (intent) => {
       const result = this.applyLoggedIntent(this.BOT_SEAT, intent);
       // After each bot action, rebuild every human client's StateView so that
@@ -872,15 +883,23 @@ export class AegisRoom extends Room<GameState> {
       return result;
     });
 
-    const deck = botDeckFor(botDeckId);
     this.debug("bot.seated", { seat: this.BOT_SEAT, deck });
-    this.withBatch(() =>
-      this.engine.seatPlayer(this.BOT_SEAT, "bot", {
-        displayName: "Bot",
-        deck,
-        betaBattleMode: this.isBetaBattleRoom,
-      }),
-    );
+    try {
+      this.withBatch(() =>
+        this.engine.seatPlayer(this.BOT_SEAT, "bot", {
+          displayName: "Bot",
+          deck,
+          betaBattleMode: this.isBetaBattleRoom,
+        }),
+      );
+    } catch (error) {
+      // Seating is the last thing that can reject the deck. Releasing the bot slot keeps
+      // the room retryable — the idempotence check above would otherwise report a bot that
+      // was never seated, leaving the player waiting on an opponent that cannot arrive.
+      this.bots[this.BOT_SEAT] = undefined;
+      logError("[AegisRoom] addBot failed to seat the bot", error);
+      return false;
+    }
 
     // The bot never sends its own `ready` intent (it isn't a Colyseus client, so it
     // has no seatByClient entry for applyIntent to route through) — starting the
