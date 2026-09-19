@@ -113,14 +113,14 @@ describe("BT24-095 Sonic Shot", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shot").instanceId })).toEqual({ ok: true });
     await settle(
       () =>
-        observe(s.engine).isRestricted(s.perm("chosenTamer"), "unsuspend") &&
+        observe(s.engine).isRestricted(s.perm("chosenTamer"), "unsuspendDuringOwnUnsuspendPhase") &&
         s.perm("host").linked.some((card) => card.cardId === "BT24-095"),
     );
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("chosenTamer").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("chosenTamer"), "unsuspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("otherDigimon"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("chosenTamer"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("otherDigimon"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.perm("host").linked.some((card) => card.cardId === "BT24-095")).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;

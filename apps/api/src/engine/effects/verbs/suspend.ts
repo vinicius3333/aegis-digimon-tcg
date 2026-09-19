@@ -135,7 +135,10 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
       // filter to report an accurate list of permanents that changed orientation.
       if (
         isRestricted(permanentId, "unsuspend") ||
-        (state.phase === Phase.Active && isRestricted(permanentId, "unsuspendDuringUnsuspendPhase"))
+        (state.phase === Phase.Active &&
+          (isRestricted(permanentId, "unsuspendDuringUnsuspendPhase") ||
+            (state.turnSeat === permanent.controllerSeat &&
+              isRestricted(permanentId, "unsuspendDuringOwnUnsuspendPhase"))))
       )
         continue;
       const handTrashCost = continuous.restrictionCount(permanentId, "unsuspendHandTrashCost");
