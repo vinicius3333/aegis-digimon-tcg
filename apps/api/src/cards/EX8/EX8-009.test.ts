@@ -74,7 +74,7 @@ describe("EX8-009", () => {
           hand: [{ card: "EX8-009", as: "guilmon" }],
           deck: [
             { card: "AD1-003", as: "growlmon" },
-            { card: "BT10-016", as: "xantibody" },
+            { card: "BT9-109", as: "xantibody" },
             { card: "AD1-001", as: "decoy" },
             { card: "BT1-045", as: "anchor" },
           ],
@@ -89,15 +89,46 @@ describe("EX8-009", () => {
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.cardId === "AD1-003") &&
-        s.state.players[0]!.hand.some((card) => card.cardId === "BT10-016"),
+        s.state.players[0]!.hand.some((card) => card.cardId === "BT9-109"),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["AD1-003", "BT9-109"]));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
+  });
+
+  it.each([
+    ["BT9-109", "the X Antibody Option"],
+    ["EX5-070", "X Antibody Proto Form's additional name"],
+  ] as const)("adds %s through %s", async (xAntibodyOption, _label) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX8-009", as: "guilmon" }],
+          deck: [
+            { card: "AD1-003", as: "growlmon" },
+            { card: xAntibodyOption, as: "xAntibodyOption" },
+            { card: "AD1-001", as: "decoy" },
+            { card: "BT1-045", as: "anchor" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.cardId === "AD1-003") &&
+        s.state.players[0]!.hand.some((card) => card.cardId === xAntibodyOption),
     );
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["AD1-003", "BT10-016"]),
+      expect.arrayContaining(["AD1-003", xAntibodyOption]),
     );
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
   });
 
-  it("matches X Antibody by trait rather than requiring the words in the card name", async () => {
+  it("rejects a Digimon that only has the X Antibody trait", async () => {
     const s = setupEngine(
       {
         0: {
@@ -116,15 +147,9 @@ describe("EX8-009", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(
-      () =>
-        s.state.players[0]!.hand.some((card) => card.cardId === "AD1-003") &&
-        s.state.players[0]!.hand.some((card) => card.cardId === "BT10-080"),
-    );
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["AD1-003", "BT10-080"]),
-    );
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "AD1-003"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["AD1-003"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "BT10-080", "AD1-001"]);
   });
 
   it("still adds X Antibody when no Growlmon or Gallantmon is revealed", async () => {
@@ -134,7 +159,7 @@ describe("EX8-009", () => {
           hand: [{ card: "EX8-009", as: "guilmon" }],
           deck: [
             { card: "AD1-001", as: "decoy" },
-            { card: "BT10-016", as: "xantibody" },
+            { card: "BT9-109", as: "xantibody" },
             { card: "BT1-045", as: "anchor" },
           ],
         },
@@ -145,8 +170,8 @@ describe("EX8-009", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT10-016"));
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT10-016"]);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT9-109"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT9-109"]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["AD1-001", "BT1-045"]);
   });
 
@@ -274,7 +299,7 @@ describe("EX8-009", () => {
           deck: [
             { card: "BT1-046", as: "digivolveDraw" },
             { card: "AD1-003", as: "growlmon" },
-            { card: "BT10-080", as: "traitOnlyXAntibody" },
+            { card: "EX5-070", as: "xAntibodyProtoForm" },
             { card: "AD1-001", as: "decoy" },
             { card: "BT1-045", as: "anchor" },
           ],
@@ -295,12 +320,12 @@ describe("EX8-009", () => {
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.cardId === "AD1-003") &&
-        s.state.players[0]!.hand.some((card) => card.cardId === "BT10-080"),
+        s.state.players[0]!.hand.some((card) => card.cardId === "EX5-070"),
     );
     expect(s.state.memory).toBe(0);
     expect(s.perm("guilmonBase").topCard.cardId).toBe("EX8-009");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-046", "AD1-003", "BT10-080"]),
+      expect.arrayContaining(["BT1-046", "AD1-003", "EX5-070"]),
     );
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
   });
