@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
+import "../BT23/BT23-013.js";
+import "../BT23/BT23-076.js";
 import { compiled } from "./BT20-102.js";
 
 const OMNIMON_XA = "BT20-102";
@@ -12,6 +14,52 @@ const OWN_OTHER = "AD1-011";
 const OPPONENT_DIGIMON = "AD1-004";
 
 describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except)", () => {
+  it("does not retroactively trigger when obtained during the VPS SaviorHuckmon end-turn chain", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-014", as: "base" },
+            { card: "BT23-076", as: "sistermon" },
+          ],
+          hand: [
+            { card: "BT23-013", as: "jesmon" },
+            { card: OMNIMON_XA, as: "omnimon" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: { security: ["BT1-010"], deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    for (const [cardId, accept] of [
+      ["BT20-014", true],
+      ["BT23-013", false],
+      ["BT23-076", true],
+    ] as const) {
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      expect(s.decisions.at(-1)?.req.sourceCardId).toBe(cardId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+    }
+    await settle(() => s.state.turnSeat === 1);
+    expect(s.perm("base").topCard.cardId).toBe(OMNIMON_XA);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    s.engine.applyIntent(1, { type: "surrender" });
+    await loop;
+  });
+
   it("matches the catalog identity, printed clauses, Q&A seam, and complete IR coverage", () => {
     expect(getCardDefinition("BT20-102")).toMatchObject({
       cardId: "BT20-102",

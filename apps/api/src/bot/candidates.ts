@@ -135,11 +135,10 @@ function playCandidates(view: BotView): Candidate[] {
 }
 
 function playKindOf(definition: CardDefinition): CandidateKind | undefined {
-  // A dual card is played on its permanent side by default, matching the engine's
-  // `playModeOf`, so Digimon/Tamer are checked before the Option fallback.
+  // A DUAL card can be used as an Option or digivolved, never played as a Digimon.
+  if (isOptionCard(definition)) return "playOption";
   if (isDigimonCard(definition)) return "playDigimon";
   if (isTamerCard(definition)) return "playTamer";
-  if (isOptionCard(definition)) return "playOption";
   return undefined;
 }
 
@@ -149,9 +148,8 @@ function playKindOf(definition: CardDefinition): CandidateKind | undefined {
  *
  * The `required` expression mirrors `GameEngine.printedColorRequirementMet` exactly, and
  * the exactness matters: an explicit `optionColorRequirements` list gates the play in EVERY
- * mode, not just the Option one. All of the dual Digimon/Option cards classify as
- * `playDigimon` here, so gating on the play kind alone would let the bot propose a play the
- * engine refuses with `color-requirement-unmet`.
+ * mode, not just the Option one. DUAL cards classify as `playOption` and use their
+ * Option-side color requirements.
  *
  * Conservative by construction: it cannot see the continuous color grants the engine folds
  * in, so it may skip a play a grant would have allowed, never propose one that is illegal.

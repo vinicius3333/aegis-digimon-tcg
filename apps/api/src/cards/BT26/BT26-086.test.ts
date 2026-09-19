@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { compiled } from "./BT26-086.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,63 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-086 compiled behavior", () => {
+  it("rejects the VPS duplicate-name link response without consuming the decision", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT26-086",
+              as: "dantemon",
+              under: [
+                { card: "BT26-028", as: "medic1" },
+                { card: "BT26-028", as: "medic2" },
+                { card: "BT26-037", as: "weather1" },
+                { card: "BT26-037", as: "weather2" },
+                "BT26-019",
+                "BT26-084",
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    const resolution = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("dantemon"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decisionId = s.state.pendingDecision!.decisionId;
+    expect(s.decisions.at(-1)?.req.options?.distinctNames).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: ["medic1", "medic2", "weather1", "weather2"].map((alias) => s.inst(alias).instanceId),
+        },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.pendingDecision?.decisionId).toBe(decisionId);
+    expect(s.perm("dantemon").linked).toHaveLength(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("medic1").instanceId, s.inst("weather1").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dantemon").linked.length === 2);
+    expect(s.perm("dantemon").stack.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("medic2").instanceId, s.inst("weather2").instanceId]),
+    );
+    s.engine.applyIntent(0, { type: "surrender" });
+    await resolution;
+  });
+
   it("proves Assembly, Link +6, intrinsic keywords, and the link-then-attack windows", () => {
     expect(getCardDefinition("BT26-086")).toMatchObject({
       nameEn: "Dantemon",

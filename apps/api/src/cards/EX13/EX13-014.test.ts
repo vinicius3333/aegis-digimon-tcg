@@ -258,15 +258,18 @@ describe("EX13-014 Jesmon", () => {
     }
   });
 
-  it("plays through the three-slot Assembly recipe for 5 less, stacking all three materials", async () => {
+  it.each([
+    ["ST12-08", "ST12-06", "ST12-04"],
+    ["BT20-014", "BT13-013", "BT20-008"],
+  ])("assembles %s / %s / %s for 5 less, including the VPS Huckmon deck", async (level5, level4, level3) => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: CARD_ID, as: "jesmon" }],
           trash: [
-            { card: "ST12-08", as: "level5" },
-            { card: "ST12-06", as: "level4" },
-            { card: "ST12-04", as: "level3" },
+            { card: level5, as: "level5" },
+            { card: level4, as: "level4" },
+            { card: level3, as: "level3" },
           ],
           deck: ["BT1-009", "BT1-010"],
         },
@@ -293,7 +296,7 @@ describe("EX13-014 Jesmon", () => {
 
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CARD_ID)!;
     expect(s.state.memory).toBe(0);
-    expect(played.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["ST12-08", "ST12-06", "ST12-04"]));
+    expect(played.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining([level5, level4, level3]));
     expect(played.stack).toHaveLength(3);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });

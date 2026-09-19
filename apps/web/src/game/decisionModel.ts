@@ -3,6 +3,7 @@
 
 import {
   getCardDefinition,
+  effectiveExactNames,
   canAssignDistinctColors,
   type CardInstance,
   type DecisionRequest,
@@ -126,6 +127,23 @@ export function differentColorsAllowCandidate(
     ...picks.map((instanceId) => colorsByInstance.get(instanceId) ?? []),
     candidateColors,
   ]);
+}
+
+/** Whether adding a candidate preserves a printed different-name selection requirement. */
+export function distinctNamesAllow(
+  candidateInstanceId: string,
+  picks: readonly string[],
+  cardIdByInstance: ReadonlyMap<string, string | undefined>,
+  enabled: boolean,
+): boolean {
+  if (!enabled || picks.includes(candidateInstanceId)) return true;
+  const namesFor = (instanceId: string): string[] => {
+    const cardId = cardIdByInstance.get(instanceId);
+    const definition = cardId === undefined ? undefined : getCardDefinition(cardId);
+    return definition === undefined ? [] : effectiveExactNames(definition).map((name) => name.toLowerCase());
+  };
+  const names = namesFor(candidateInstanceId);
+  return names.length > 0 && picks.every((id) => !namesFor(id).some((name) => names.includes(name)));
 }
 
 /** Whether a decision candidate has a card number not already represented in the picks. */

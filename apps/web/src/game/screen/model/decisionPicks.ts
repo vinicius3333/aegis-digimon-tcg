@@ -1,4 +1,4 @@
-import { differentColorsAllowCandidate, distinctCardIdsAllow } from "../../decisionModel";
+import { differentColorsAllowCandidate, distinctCardIdsAllow, distinctNamesAllow } from "../../decisionModel";
 
 // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
 // picks stay legal as long as a distinct color can still be assigned to each.
@@ -10,6 +10,7 @@ export function decisionAllowsPick(input: {
   decisionDifferentColors: boolean;
   decisionVisibleCardIds: ReadonlyMap<string, string | undefined>;
   decisionDistinctCardIds: boolean;
+  decisionDistinctNames?: boolean;
 }): boolean {
   const {
     decisionSelectable,
@@ -19,11 +20,13 @@ export function decisionAllowsPick(input: {
     decisionDifferentColors,
     decisionVisibleCardIds,
     decisionDistinctCardIds,
+    decisionDistinctNames,
   } = input;
   return (
     decisionSelectable.has(instanceId) &&
     differentColorsAllowCandidate(instanceId, picks, decisionInstanceColors, decisionDifferentColors) &&
-    distinctCardIdsAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctCardIds)
+    distinctCardIdsAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctCardIds) &&
+    distinctNamesAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctNames === true)
   );
 }
 

@@ -63,6 +63,19 @@ function handCard(cardId: string, definition: BotHandCard["definition"]): BotHan
 
 const balanced = BOT_PROFILES.balanced;
 
+it("classifies a Dual hand action as Option use, not Digimon development", () => {
+  const state = view({
+    hand: [handCard("BT25-043", getCardDefinition("BT25-043"))],
+    ownFieldColors: new Set(["Yellow"]),
+  });
+  expect(enumerateMainPhaseCandidates(state).find((entry) => entry.key === "play:i-BT25-043")?.kind).toBe("playOption");
+  expect(
+    enumerateMainPhaseCandidates({ ...state, ownFieldColors: new Set() }).some(
+      (entry) => entry.key === "play:i-BT25-043",
+    ),
+  ).toBe(false);
+});
+
 function scoreOf(state: BotView, key: string, profile = balanced): number {
   const candidate = enumerateMainPhaseCandidates(state).find((entry) => entry.key === key);
   if (candidate === undefined)

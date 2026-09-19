@@ -49,6 +49,7 @@ export interface SeatScopedDecisionApi {
       maxTotalPlayCost?: number;
       differentColors?: boolean;
       distinctCardIds?: boolean;
+      distinctNames?: boolean;
     },
   ): Promise<string[]>;
   /** Arrange every offered card in deck order; the first id is nearest the deck top. */

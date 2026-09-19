@@ -1,4 +1,11 @@
-import { CardColor, CardKind, type AssemblyRequirement, type CardDefinition } from "@aegis/shared";
+import {
+  CardColor,
+  CardKind,
+  assemblyRequirementFor,
+  requireCardDefinition,
+  type AssemblyRequirement,
+  type CardDefinition,
+} from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assemblyPossible, eligibleAssemblyCandidateIds } from "./assemblyMaterialSelection";
 
@@ -74,6 +81,22 @@ describe("eligibleAssemblyCandidateIds", () => {
 });
 
 describe("assemblyPossible", () => {
+  it("offers the VPS Jesmon deck's SaviorHuckmon as a Huckmon-text Assembly material", () => {
+    // 2026-09-19 match 38f38b13: BT20-014 mentions Jesmon in its effects,
+    // but qualifies for EX13-014 through the Huckmon text in its own name.
+    const requirement = assemblyRequirementFor("EX13-014")![0]!;
+    const candidates = ["BT20-014", "BT13-013", "BT20-008", "BT1-010"].map((cardId) => ({
+      instanceId: cardId,
+      definition: requireCardDefinition(cardId),
+    }));
+    expect([...eligibleAssemblyCandidateIds(requirement, candidates, [])]).toEqual([
+      "BT20-014",
+      "BT13-013",
+      "BT20-008",
+    ]);
+    expect(assemblyPossible(requirement, candidates)).toBe(true);
+  });
+
   it("requires the trash to hold the full material count", () => {
     const one = [{ instanceId: "a", definition: card("BT13-084", "Plutomon") }];
     expect(assemblyPossible(twoPlutomon, one)).toBe(false);

@@ -20,6 +20,7 @@ export type DecisionView = {
   decisionInstanceColors: ReturnType<typeof decisionCardColors>;
   decisionDifferentColors: boolean;
   decisionDistinctCardIds: boolean;
+  decisionDistinctNames: boolean;
   decisionMin: number;
   decisionMax: number;
 };
@@ -83,6 +84,7 @@ export function decisionViewFor({
     decisionInstanceColors: decisionCardColors(decisionVisible),
     decisionDifferentColors: viewerDecision?.options?.differentColors === true,
     decisionDistinctCardIds: viewerDecision?.options?.distinctCardIds === true,
+    decisionDistinctNames: viewerDecision?.options?.distinctNames === true,
     decisionMin: decisionSelectionMin(viewerDecision),
     decisionMax: viewerDecision?.options?.max ?? 1,
   };

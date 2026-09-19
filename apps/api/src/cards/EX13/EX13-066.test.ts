@@ -650,7 +650,7 @@ describe("EX13-066 Option side — Mickey Bullet (Awakened)", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  it("plays as a Digimon for its full play cost when the Digimon side is declared", async () => {
+  it("rejects a Digimon play declaration even when the Option cost is affordable", async () => {
     const s = setupEngine(
       {
         0: {
@@ -667,18 +667,19 @@ describe("EX13-066 Option side — Mickey Bullet (Awakened)", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("noir").instanceId })).toEqual({ ok: true });
-    await settle(() => board(s, 0).includes(CARD_ID));
-    await settle();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("noir").instanceId, useAs: "digimon" }),
+    ).toEqual({ ok: false, reason: "not-playable-kind" });
 
-    expect(s.state.memory).toBe(0);
-    expect(board(s, 0).sort()).toEqual(["BT20-084", CARD_ID]);
+    expect(s.state.memory).toBe(5);
+    expect(board(s, 0)).toEqual(["BT20-084"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(CARD_ID);
     expect(s.perm("victim").topCard.cardId).toBe("BT1-080");
     expect(s.perm("victim").stack).toHaveLength(3);
     expect(trash(s, 1)).toEqual([]);
   });
 
-  it("plays as a Digimon without requiring the Option side's White color", async () => {
+  it("requires the Option side's White color for implicit hand use", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-013", as: "redAlly" }],
@@ -689,11 +690,13 @@ describe("EX13-066 Option side — Mickey Bullet (Awakened)", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("noir").instanceId })).toEqual({ ok: true });
-    await settle(() => board(s, 0).includes(CARD_ID));
-    await settle();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("noir").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
 
-    expect(s.state.memory).toBe(0);
-    expect(board(s, 0)).toContain(CARD_ID);
+    expect(s.state.memory).toBe(5);
+    expect(board(s, 0)).not.toContain(CARD_ID);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(CARD_ID);
   });
 });

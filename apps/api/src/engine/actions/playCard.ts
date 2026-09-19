@@ -45,11 +45,9 @@ export interface PlayCardIntent {
    */
   assembly?: { materialInstanceIds: string[] };
   /**
-   * The player's declared side for a DUAL card (CR §4-5-2: "A player declares whether they
-   * will use either the Digimon information or Option information on a DUAL card, then it can
-   * be used."). Only meaningful when the card's `kinds` include BOTH Digimon/Tamer and Option
-   * (`isDualCard`); ignored for every other card. Absent => the Digimon/Tamer side (the
-   * existing default), so ordinary plays are unaffected.
+   * Option-use declaration. DUAL cards default to Option use through this intent;
+   * an explicit Digimon play is rejected because DUAL cards cannot be played (CR 7-1-1).
+   * Their Digimon side is available through the separate digivolve intent.
    */
   useAs?: "digimon" | "option";
 }
@@ -287,11 +285,8 @@ export function validatePlayCard(
   //     color requirement must be met, UNLESS WaiveColorRequirement has waived this instance.
   //     The hook short-circuits to legal on an active waiver — that is the observable
   //     consumer for the color-waiver store. Absent (standalone runs), no color gate applies.
-  //     LOCKED Q3 gates by `optionColorRequirements` regardless of play mode (mechanic.test.ts
-  //     "WaiveColorRequirement — minimal color-gate bypass" exercises this on BT25-043's
-  //     DIGIMON-mode play) — deliberately not the full CR §4-21-1 scoping ("use an Option
-  //     card" only); `mode` is passed through so a caller MAY narrow it later without another
-  //     signature change, but this gate itself stays mode-independent per the locked decision.
+  //     The mode lets the caller distinguish permanent play from Option use, including
+  //     DUAL cards, while preserving continuous color-waiver handling.
   if (deps.colorRequirementMet && !deps.colorRequirementMet(state, seat, found.instance, definition, mode)) {
     return { ok: false, reason: "color-requirement-unmet" };
   }
@@ -568,16 +563,14 @@ const MEMORY_MIN = -10;
  * Which play mode a card uses, or undefined when it cannot be played from hand by
  * this verb. A Digimon or Tamer is played as a permanent; a (non-permanent) Option
  * resolves then trashes. A DigiEgg is never played from hand. A DUAL card (kinds
- * include BOTH a permanent kind and Option) defaults to its permanent side, UNLESS
- * the player declared `useAs: "option"` (CR §4-5-2) — the requested side is honored
- * only when the card actually carries it.
+ * include BOTH a permanent kind and Option) can only be used as an Option here;
+ * its Digimon side can digivolve but cannot be played (CR 7-1-1).
  */
 function playModeOf(kinds: readonly CardKind[], useAs?: "digimon" | "option"): PlayMode | undefined {
   const hasPermanent = kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
   const hasOption = kinds.includes(CardKind.Option);
-  if (useAs === "option" && hasOption) return "option";
+  if (hasOption) return useAs === "digimon" ? undefined : "option";
   if (hasPermanent) return "permanent";
-  if (hasOption) return "option";
   return undefined;
 }
 

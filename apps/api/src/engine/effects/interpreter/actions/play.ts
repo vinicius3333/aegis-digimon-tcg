@@ -25,7 +25,7 @@ function requestedPlayKinds(target: Target | undefined): string[] {
 }
 
 /**
- * Drop Option-only cards from a play candidate pool whose IR named no card kind.
+ * Exclude Options (including DUAL cards) from permanent-play selections.
  *
  * Only Digimon and Tamers are ever PLAYED; an Option card is USED (comprehensive rules
  * §6-4 vs §6-5), and no printed card says "play N ... Option card". A kind-less filter such
@@ -34,19 +34,20 @@ function requestedPlayKinds(target: Target | undefined): string[] {
  * thing excluding them.
  *
  * An IR that genuinely means "use an Option" says so with `kind: ["Option"]`, which is the
- * same signal the play-vs-use split further down already reads — so naming Option keeps the
- * card in the pool, and a DUAL Digimon/Option is never dropped because it has a playable side.
+ * same signal the play-vs-use split further down already reads. An explicit Option-only
+ * target preserves that use route; a DUAL card cannot be played as a Digimon (CR 7-1-1).
  */
 function playableCandidates<T extends { cardId: string }>(
   ctx: EffectContext,
   target: Target | undefined,
   candidates: readonly T[],
 ): T[] {
-  if (requestedPlayKinds(target).length > 0) return [...candidates];
+  const requestedKinds = requestedPlayKinds(target);
+  const usesOption =
+    requestedKinds.includes("Option") && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
   return candidates.filter((candidate) => {
     const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
-    if (!kinds.includes(CardKind.Option)) return true;
-    return kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
+    return !kinds.includes(CardKind.Option) || usesOption;
   });
 }
 
@@ -627,9 +628,8 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         // Option definitions, so routing every PlayWithoutCost target through it silently
         // dropped effects such as BT4-089 using Hell's Gate from hand. Preserve the Option
         // lifecycle here: resolve [Main], move it to trash, and fire whenOptionUsed. The
-        // printed cost is still reported to watchers even though this action pays no cost. A DUAL
-        // Digimon/Option selected through a Digimon/Tamer filter is played by its permanent side;
-        // it is used as an Option only when the filter requests Option without a permanent kind.
+        // printed cost is still reported to watchers even though this action pays no cost.
+        // DUAL cards are eligible only for an explicit Option-use target.
         const requestedKinds = action.target?.filter?.kind ?? [];
         const explicitlyUsesOption =
           requestedKinds.includes("Option") && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");

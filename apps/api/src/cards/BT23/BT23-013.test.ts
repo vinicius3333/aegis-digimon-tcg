@@ -8,6 +8,37 @@ import "../index.js";
 import { compiled } from "./BT23-013.js";
 
 describe("BT23-013 Jesmon", () => {
+  it.each(["hand", "trash"] as const)("does not play a Dual Sistermon from %s (VPS September 19)", async (zone) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-014", as: "base" }],
+          hand: [{ card: "BT23-013", as: "jesmon" }],
+          [zone]: [
+            ...(zone === "hand" ? [{ card: "BT23-013", as: "jesmon" }] : []),
+            { card: "EX13-066", as: "dual" },
+            { card: "BT23-076", as: "legal" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jesmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]![zone].map((card) => card.instanceId)).toContain(s.inst("dual").instanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toContain("BT23-076");
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).not.toContain("EX13-066");
+  });
+
   it("matches the catalog and carries every modal, keyword, watcher, and evolution clause", () => {
     expect(getCardDefinition("BT23-013")).toMatchObject({
       cardId: "BT23-013",

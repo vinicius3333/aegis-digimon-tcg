@@ -1,4 +1,4 @@
-import { nameIncludesToken } from "@aegis/shared";
+import { effectiveStaticNames, nameIncludesToken, textMatchesToken } from "@aegis/shared";
 import type { AssemblyMaterial, AssemblyRequirement, CardDefinition } from "@aegis/shared";
 
 /*
@@ -31,8 +31,23 @@ function matchesNameOrTrait(definition: CardDefinition, ref: NameOrTraitRef): bo
       case "nameExact":
         return name === folded;
       case "text":
-        return [definition.effectText, definition.inheritedEffectText, definition.securityEffectText].some((text) =>
-          text?.toLocaleLowerCase().includes(folded),
+        // "In text" includes the name and traits, not just the effect boxes (Q4366).
+        return textMatchesToken(
+          [
+            ...effectiveStaticNames(definition),
+            ...traits,
+            definition.effectText,
+            definition.inheritedEffectText,
+            definition.securityEffectText,
+            definition.linkEffect,
+            definition.linkRequirement,
+            definition.dualEffect,
+            definition.optionEffect,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLocaleLowerCase(),
+          token,
         );
       case "any":
         return nameIncludesToken(definition.nameEn, token) || includesFolded(traits, token);

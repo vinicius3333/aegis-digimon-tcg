@@ -642,6 +642,7 @@ export async function pickLoose(
         candidates: ids,
         min: explicitMinimum,
         max: distinctWant,
+        distinctNames: true,
         ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost }),
         visible,
         visibleCards,

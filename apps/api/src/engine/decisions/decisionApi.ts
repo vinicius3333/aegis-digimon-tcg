@@ -151,6 +151,7 @@ function buildSeatScopedApi(
         maxTotalPlayCost?: number;
         differentColors?: boolean;
         distinctCardIds?: boolean;
+        distinctNames?: boolean;
       },
     ): Promise<string[]> {
       const response = await manager.request({
@@ -169,6 +170,7 @@ function buildSeatScopedApi(
           max: opts.max,
           differentColors: opts.differentColors,
           distinctCardIds: opts.distinctCardIds,
+          distinctNames: opts.distinctNames,
           ...provenance(ctx),
         },
       });

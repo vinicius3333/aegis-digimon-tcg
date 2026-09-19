@@ -15,12 +15,10 @@ export function DualPlayChoiceOverlay({
   return (
     <ActionConfirmationOverlay
       cardId={cardId}
-      title={t("overlay.dualPlayTitle")}
+      title={t("overlay.useAsOption")}
       detail={getCardDefinition(cardId)?.optionEffect ?? t("overlay.dualPlayDetail")}
-      confirmLabel={t("overlay.playAsDigimon")}
-      alternateLabel={t("overlay.useAsOption")}
-      onConfirm={() => onChoose("digimon")}
-      onAlternate={() => onChoose("option")}
+      confirmLabel={t("overlay.useAsOption")}
+      onConfirm={() => onChoose("option")}
       onCancel={onCancel}
     />
   );

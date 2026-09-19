@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { ArraySchema } from "@colyseus/schema";
 import { GameState, PlayerState, type DecisionRequest, type Seat } from "@aegis/shared";
 import { DecisionManager, type DecisionTransport } from "./index.js";
+import { makeInstance } from "../testkit/harness.js";
 
 /**
  * Hostile-client coverage for the `min` lower bound on `chooseTargets`/
@@ -33,6 +34,57 @@ function recordingTransport(): { transport: DecisionTransport; sent: Array<{ sea
 }
 
 describe("DecisionManager — min enforcement against a hostile client", () => {
+  it("validates distinct-name picks from the owner's hand without redundant visibleCards", () => {
+    const state = makeState();
+    const first = makeInstance("BT23-076", 0, false);
+    const duplicate = makeInstance("BT6-082", 0, false);
+    const other = makeInstance("BT26-028", 0, false);
+    state.players[0]!.hand.push(first, duplicate, other);
+    const { transport, sent } = recordingTransport();
+    const mgr = new DecisionManager(state, transport);
+    void mgr.request({
+      seat: 0,
+      kind: "selectCards",
+      promptText: "Different names",
+      options: {
+        candidateInstanceIds: [first.instanceId, duplicate.instanceId, other.instanceId],
+        min: 0,
+        max: 2,
+        distinctNames: true,
+      },
+    });
+    const id = sent[0]!.req.decisionId;
+    expect(mgr.respond(0, id, { kind: "selectCards", instanceIds: [first.instanceId, duplicate.instanceId] })).toBe(
+      false,
+    );
+    expect(mgr.respond(0, id, { kind: "selectCards", instanceIds: [first.instanceId, other.instanceId] })).toBe(true);
+  });
+
+  it("enforces distinct names across different card numbers and allows a corrected retry", () => {
+    const { transport, sent } = recordingTransport();
+    const mgr = new DecisionManager(makeState(), transport);
+    void mgr.request({
+      seat: 0,
+      kind: "selectCards",
+      promptText: "Different names",
+      options: {
+        candidateInstanceIds: ["a", "b", "c"],
+        visibleCards: [
+          { instanceId: "a", cardId: "BT23-076" },
+          { instanceId: "b", cardId: "BT6-082" },
+          { instanceId: "c", cardId: "BT26-028" },
+        ],
+        min: 0,
+        max: 2,
+        distinctNames: true,
+      },
+    });
+    const id = sent[0]!.req.decisionId;
+    expect(mgr.respond(0, id, { kind: "selectCards", instanceIds: ["a", "b"] })).toBe(false);
+    expect(mgr.hasPending).toBe(true);
+    expect(mgr.respond(0, id, { kind: "selectCards", instanceIds: ["a", "c"] })).toBe(true);
+  });
+
   it("rejects two instances with the same card number when the decision requires distinct cards", () => {
     const state = makeState();
     const { transport, sent } = recordingTransport();

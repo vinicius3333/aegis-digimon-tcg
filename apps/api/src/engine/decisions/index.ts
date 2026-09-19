@@ -1,4 +1,12 @@
-import { type DecisionRequest, type DecisionResponse, type GameState, type Seat, PendingDecision } from "@aegis/shared";
+import {
+  type DecisionRequest,
+  type DecisionResponse,
+  type GameState,
+  type Seat,
+  PendingDecision,
+  effectiveExactNames,
+  getCardDefinition,
+} from "@aegis/shared";
 import { decisionCardIdentities } from "./visibleIdentities.js";
 
 /**
@@ -39,6 +47,7 @@ interface OpenDecision {
   min: number | undefined;
   candidateInstanceIds: readonly string[] | undefined;
   distinctCardIds: boolean;
+  distinctNames: boolean;
   cardIdByInstance: ReadonlyMap<string, string>;
   /** Trigger identities offered by an `orderTriggers` decision. */
   triggerKeys: readonly string[] | undefined;
@@ -148,7 +157,16 @@ export class DecisionManager {
         min: spec.options?.min,
         candidateInstanceIds: spec.options?.candidateInstanceIds,
         distinctCardIds: spec.options?.distinctCardIds === true,
-        cardIdByInstance: new Map((spec.options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId])),
+        distinctNames: spec.options?.distinctNames === true,
+        cardIdByInstance: new Map([
+          // The deciding player's hand is already visible to them, so enrichment may omit
+          // it from visibleCards. Validation still needs its authoritative identities.
+          ...(this.state.players[spec.seat]?.hand ?? []).map((card): [string, string] => [
+            card.instanceId,
+            card.cardId,
+          ]),
+          ...(options?.visibleCards ?? []).map((card): [string, string] => [card.instanceId, card.cardId]),
+        ]),
         triggerKeys: spec.options?.triggerKeys,
         resolve,
         timer,
@@ -172,6 +190,7 @@ export class DecisionManager {
     if (!responseMatchesKind(open.kind, response)) return false;
     if (!satisfiesMin(open, response)) return false;
     if (!satisfiesDistinctCardIds(open, response)) return false;
+    if (!satisfiesDistinctNames(open, response)) return false;
     if (!choosesExactlyOneTrigger(open, response)) return false;
     if (!ordersEveryCard(open, response)) return false;
 
@@ -197,6 +216,22 @@ export class DecisionManager {
     this.state.pendingDecision = undefined;
     open.resolve(response);
   }
+}
+
+/** Reject duplicate card names before resolving the prompt, preserving the chance to retry. */
+function satisfiesDistinctNames(open: OpenDecision, response: DecisionResponse): boolean {
+  if (!open.distinctNames || response.kind !== "selectCards") return true;
+  const seen = new Set<string>();
+  for (const instanceId of response.instanceIds) {
+    if (!open.candidateInstanceIds?.includes(instanceId)) return false;
+    const cardId = open.cardIdByInstance.get(instanceId);
+    const definition = cardId === undefined ? undefined : getCardDefinition(cardId);
+    if (definition === undefined) return false;
+    const names = effectiveExactNames(definition).map((name) => name.toLowerCase());
+    if (names.some((name) => seen.has(name))) return false;
+    for (const name of names) seen.add(name);
+  }
+  return true;
 }
 
 /** Reject forged selections containing two instances of the same printed card number. */

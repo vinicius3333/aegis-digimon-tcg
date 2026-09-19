@@ -3,7 +3,7 @@ import { digivolveCost } from "./candidates.js";
 import { DEFAULT_BOT_PROFILE } from "./profiles.js";
 import type { AllianceContext, BlockContext, BotPolicy, CounterContext } from "./policy.js";
 import { answerDecisionWith } from "./policy.js";
-import { isDigimonCard, type BotUnit, type BotView } from "./view.js";
+import { isDigimonCard, isOptionCard, type BotUnit, type BotView } from "./view.js";
 
 /**
  * The original hard-coded heuristic policy, preserved verbatim in behavior.
@@ -150,7 +150,7 @@ function bestPlay(view: BotView): DevelopAction | undefined {
   let best: DevelopAction | undefined;
   for (const card of view.hand) {
     const definition = card.definition;
-    if (!isDigimonCard(definition) || definition === undefined) continue;
+    if (!isDigimonCard(definition) || isOptionCard(definition) || definition === undefined) continue;
     if (definition.playCost > view.maxAffordable) continue;
     const value = definition.dp - definition.playCost;
     if (best === undefined || value > best.value) {

@@ -249,7 +249,7 @@ describe("§4-6 DUAL Cards (comprehensive-0289)", () => {
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043")).toBe(false); // NOT played as a Digimon permanent
   });
 
-  it('negative control: playing the SAME DUAL card WITHOUT useAs:"option" does NOT fire the Option side', async () => {
+  it("rejects playing a DUAL card as a Digimon without firing its Option side (CR 7-1-1)", async () => {
     const s = setup({
       0: {
         battleArea: [{ card: "BT1-045", dp: 3000 }], // vanilla Yellow source for the color gate
@@ -264,12 +264,11 @@ describe("§4-6 DUAL Cards (comprehensive-0289)", () => {
     const dualCard = s.inst("dualCard");
     s.state.memory = def.playCost;
 
-    const result = s.engine.applyIntent(0, { type: "playCard", instanceId: dualCard.instanceId } as never);
-    expect(result).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043"), 5000);
-    // Played as the Digimon side (the default): it's a battle-area permanent...
-    expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043")).toBe(true);
-    // ...and the Option side's "-8000 DP" did NOT apply.
+    const result = s.engine.applyIntent(0, { type: "playCard", instanceId: dualCard.instanceId, useAs: "digimon" });
+    expect(result).toEqual({ ok: false, reason: "not-playable-kind" });
+    expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043")).toBe(false);
+    expect(p0.hand.map((card) => card.instanceId)).toContain(dualCard.instanceId);
+    expect(s.state.memory).toBe(def.playCost);
     expect(oppTarget.currentDP).toBe(12000);
   });
 

@@ -201,13 +201,20 @@ describe("validatePlayCard", () => {
     if (r.ok) expect(r.cost).toBe(0);
   });
 
-  it("treats a dual Digimon+Option card as a permanent play", () => {
-    const state = makeState(["BT25-043"]); // Digimon + Option dual, cost 6
+  it("rejects a Dual card as a permanent, including explicit Digimon mode", () => {
+    const state = makeState(["BT25-043"]);
     state.memory = 4; // turn player affords 14
     const id = firstInstanceId(state, 0);
     const r = validatePlayCard(state, 0, playIntent(id), defaultPlayCardDeps);
-    expect(r.ok).toBe(true);
-    if (r.ok) expect(r.mode).toBe("permanent");
+    expect(r).toMatchObject({ ok: true, mode: "option" });
+    expect(validatePlayCard(state, 0, { ...playIntent(id), useAs: "digimon" }, defaultPlayCardDeps)).toEqual({
+      ok: false,
+      reason: "not-playable-kind",
+    });
+    expect(validatePlayCard(state, 0, { ...playIntent(id), useAs: "option" }, defaultPlayCardDeps)).toMatchObject({
+      ok: true,
+      mode: "option",
+    });
   });
 });
 

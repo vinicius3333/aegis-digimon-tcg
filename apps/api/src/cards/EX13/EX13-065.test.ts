@@ -819,7 +819,7 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it('negative control: played WITHOUT useAs:"option" it is a Digimon permanent and the Option body never fires', async () => {
+  it("rejects a Digimon play declaration without firing the Option body", async () => {
     const s = setupEngine(
       {
         0: {
@@ -840,19 +840,21 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await s.ready();
     const wouldBeFreePlayId = s.inst("wouldBeFreePlay").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("awakened").instanceId })).toEqual({
-      ok: true,
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("awakened").instanceId, useAs: "digimon" }),
+    ).toEqual({
+      ok: false,
+      reason: "not-playable-kind",
     });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === cardId));
-    await settle();
 
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === cardId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === cardId)).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("awakened").instanceId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(wouldBeFreePlayId);
     expect(s.perm("target").currentDP).toBe(12_000);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(6);
   });
 
-  it("plays as a Digimon without requiring the Option side's White color", async () => {
+  it("requires the Option side's White color for an implicit hand-use declaration", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: NEUTRAL_LV3, as: "redAlly" }],
@@ -866,12 +868,12 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blancAwakened").instanceId })).toEqual({
-      ok: true,
+      ok: false,
+      reason: "color-requirement-unmet",
     });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === cardId));
-    await settle();
 
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain(cardId);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(cardId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain(cardId);
   });
 });

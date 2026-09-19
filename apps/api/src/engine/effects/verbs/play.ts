@@ -48,7 +48,7 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       if (located === undefined) continue;
       const { owner, index } = located;
       const definition = requireCardDefinition(owner.hand[index]!.cardId);
-      if (!isPermanentKind(definition)) continue; // only permanents are "played" onto the field
+      if (!isPermanentKind(definition) || isOption(definition)) continue;
       const effectSeat = effectSeatStack.at(-1) ?? owner.seat;
       if (continuous.isPlayBlocked(effectSeat, definition, "play", true, "hand")) continue;
       if (opts?.payCost) {
@@ -92,7 +92,7 @@ export function createPlayVerbs(pc: PrimitivesContext) {
     const card = located === undefined ? checked?.card : located.owner.security[located.index];
     if (owner === undefined || card === undefined) return undefined;
     const definition = requireCardDefinition(card.cardId);
-    if (!isPermanentKind(definition)) return undefined;
+    if (!isPermanentKind(definition) || isOption(definition)) return undefined;
     const effectSeat = effectSeatStack.at(-1) ?? owner.seat;
     if (continuous.isPlayBlocked(effectSeat, definition, "play", true, "security")) return undefined;
     if (opts?.payCost) {
@@ -197,7 +197,9 @@ export function createPlayVerbs(pc: PrimitivesContext) {
         if (ownerPlayer.breeding !== undefined) continue; // single-occupancy — no-op
       }
 
-      if (!isPermanentKind(definition)) continue;
+      // DUAL cards have no play cost and cannot be played, even for free (CR 7-1-1).
+      // Keep DigiEgg breeding plays and token placement on their existing dedicated paths.
+      if (!isPermanentKind(definition) || isOption(definition)) continue;
       const effectSeat = effectSeatStack.at(-1) ?? ownerPlayer.seat;
       if (continuous.isPlayBlocked(effectSeat, definition, "play", true, originByInstance.get(instanceId))) continue;
       if (opts?.payCost) {
