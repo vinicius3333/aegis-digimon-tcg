@@ -93,5 +93,20 @@
     "cardId": "BT26-084",
     "field": "evoCosts",
     "reason": "Copipemon is a mono-white Lv.3 whose only printed digivolve condition is 'Lv.2 w/[Appmon] trait: Cost 0' (verified 2026-09-19 at https://en.digimoncard.com/cardlist/?search=true&card_no=BT26-084). The community snapshot's purple Lv.2 evoCost is copied from EX10-038; the committed white entry matches every other BT26 Lv.3 Appmon, whose standard route uses its own color."
+  },
+  {
+    "cardId": "LM-063",
+    "field": "effectText",
+    "reason": "The community-DB snapshot doubles the verb in 'While you have don't have [...] in the battle area'. The official English printing of the same Training line (https://en.digimoncard.com/cardlist/?search=true&card_no=LM-054) reads 'While you don't have [...]'; the committed text uses that wording."
+  },
+  {
+    "cardId": "LM-064",
+    "field": "effectText",
+    "reason": "The community-DB snapshot doubles the verb in 'While you have don't have [...] in the battle area'. The official English printing of the same Training line (https://en.digimoncard.com/cardlist/?search=true&card_no=LM-054) reads 'While you don't have [...]'; the committed text uses that wording."
+  },
+  {
+    "cardId": "LM-065",
+    "field": "effectText",
+    "reason": "The community-DB snapshot doubles the verb in 'While you have don't have [...] in the battle area'. The official English printing of the same Training line (https://en.digimoncard.com/cardlist/?search=true&card_no=LM-054) reads 'While you don't have [...]'; the committed text uses that wording."
   }
 ]

@@ -12,8 +12,9 @@
 // TakaOtaku/Digimon-Card-App's src/assets/cardlists/DigimonCards.json (fetched 2026-08-06;
 // the 13 BT26 cards unreleased at that date, plus BT26-060 and BT26-080 whose records were
 // still incomplete then, were re-fetched 2026-08-18), filtered to just
-// the cardIds imported via this tool: BT26 (all), EX12 (all), and the 6 promo cards
-// P-239..P-244. It is deterministic and committed so this test needs no
+// the cardIds imported via this tool: BT26 (all), EX12 (all), the 6 promo cards
+// P-239..P-244, the LM-09 cards LM-063..LM-068 and the RB1 reprints RB1-004/006/007
+// (the last two batches fetched 2026-09-19). It is deterministic and committed so this test needs no
 // network access. If it is ever removed, the test skips with an explicit message instead
 // of silently passing — it never reports success without having actually compared records.
 //
@@ -40,6 +41,8 @@ const BATCHES = [
   { label: "BT26", validate: "BT26" },
   { label: "EX12", validate: "EX12" },
   { label: "PROMO", validate: "PROMO", ids: ["P-239", "P-240", "P-241", "P-242", "P-243", "P-244"] },
+  { label: "LM-DISTANCIA-CERO", validate: "LM", ids: ["LM-063", "LM-064", "LM-065", "LM-066", "LM-067", "LM-068"] },
+  { label: "RB1-REPRINTS", validate: "RB1", ids: ["RB1-004", "RB1-006", "RB1-007"] },
 ];
 
 const snapshotAvailable = existsSync(SNAPSHOT);

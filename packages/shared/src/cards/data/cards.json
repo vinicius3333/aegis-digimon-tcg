@@ -93965,6 +93965,146 @@
     "imageId": "LM-062"
   },
   {
+    "cardId": "LM-063",
+    "set": "LM",
+    "nameEn": "Endurance Training",
+    "colors": ["Red", "Purple"],
+    "kinds": ["Option"],
+    "playCost": 2,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "P",
+    "maxCountInDeck": 4,
+    "imageId": "LM-063",
+    "effectText": "While you don't have [Endurance Training] in the battle area, you can ignore this card's color requirements.\n[Main] Reveal the top 2 cards of your deck. Add 1 Red or Purple card among them to the hand. Return the rest to the bottom of deck. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・1 of your Digimon may digivolve into a Red or Purple Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+    "securityEffectText": "[Security] Reveal the top 2 cards of your deck. Add 1 Red or Purple card among them to the hand. Return the rest to the bottom of deck. Then, place this card in the battle area.",
+    "nameJp": "エンデュランス・トレーニング"
+  },
+  {
+    "cardId": "LM-064",
+    "set": "LM",
+    "nameEn": "Bobbing Training",
+    "colors": ["Yellow", "Blue"],
+    "kinds": ["Option"],
+    "playCost": 2,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "P",
+    "maxCountInDeck": 4,
+    "imageId": "LM-064",
+    "effectText": "While you don't have [Bobbing Training] in the battle area, you can ignore this card's color requirements.\n[Main] Reveal the top 2 cards of your deck. Add 1 Yellow or Blue card among them to the hand. Return the rest to the bottom of deck. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・1 of your Digimon may digivolve into a Yellow or Blue Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+    "securityEffectText": "[Security] Reveal the top 2 cards of your deck. Add 1 Yellow or Blue card among them to the hand. Return the rest to the bottom of deck. Then, place this card in the battle area.",
+    "nameJp": "ボビング・トレーニング"
+  },
+  {
+    "cardId": "LM-065",
+    "set": "LM",
+    "nameEn": "Weight Training",
+    "colors": ["Black", "Green"],
+    "kinds": ["Option"],
+    "playCost": 2,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "P",
+    "maxCountInDeck": 4,
+    "imageId": "LM-065",
+    "effectText": "While you don't have [Weight Training] in the battle area, you can ignore this card's color requirements.\n[Main] Reveal the top 2 cards of your deck. Add 1 Black or Green card among them to the hand. Return the rest to the bottom of deck. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・1 of your Digimon may digivolve into a Black or Green Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+    "securityEffectText": "[Security] Reveal the top 2 cards of your deck. Add 1 Black or Green card among them to the hand. Return the rest to the bottom of deck. Then, place this card in the battle area.",
+    "nameJp": "ウェイト・トレーニング"
+  },
+  {
+    "cardId": "LM-066",
+    "set": "LM",
+    "nameEn": "Zephagamon",
+    "colors": ["Green"],
+    "kinds": ["Digimon", "Option"],
+    "playCost": 6,
+    "dp": 13000,
+    "evoCosts": [
+      {
+        "color": "Green",
+        "level": 5,
+        "memoryCost": 4
+      }
+    ],
+    "rarity": "P",
+    "maxCountInDeck": 4,
+    "imageId": "LM-066",
+    "level": 6,
+    "forms": ["Mega"],
+    "attributes": ["Data"],
+    "types": ["Magic Knight", "Vortex Warriors", "LIBERATOR"],
+    "effectText": "[Digivolve] Play cost 11 or higher w/[Vortex Warriors] trait: Cost 2 \n\n＜Piercing＞ \n＜Vortex＞ \n＜Blocker＞ \n[When Digivolving] [When Attacking] [Once Per Turn] You may unsuspend 1 Digimon. Then, this Digimon may battle 1 of your opponent's Digimon.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, by suspending 1 Digimon, it doesn't leave.\n[Rule] Trait: Has [Bird Dragon] Type.",
+    "isDualCard": true,
+    "dualEffect": "Divine Tempest Ligero",
+    "optionEffect": "When this card would be used, by suspending 2 Digimon, reduce the cost by 2.\n[Main] 1 of your opponent's Digimon or Tamers can't unsuspend until their turn ends. Then, for every 2 suspended Digimon, return 1 of their Digimon to the bottom of the deck.",
+    "optionColorRequirements": ["Green"],
+    "nameJp": "ゼファーガモン/ディバインテンペスト・リヘロ"
+  },
+  {
+    "cardId": "LM-067",
+    "set": "LM",
+    "nameEn": "Gundramon",
+    "colors": ["Black"],
+    "kinds": ["Digimon", "Option"],
+    "playCost": 6,
+    "dp": 13000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 5,
+        "memoryCost": 4
+      }
+    ],
+    "rarity": "P",
+    "maxCountInDeck": 4,
+    "imageId": "LM-067",
+    "level": 6,
+    "forms": ["Mega"],
+    "attributes": ["Virus"],
+    "types": ["Machine", "Three Musketeers", "Titan", "TS"],
+    "effectText": "[Digivolve] Lv.5 w/[Three Musketeers] in text or w/[TS] trait: Cost 4 \n\n＜Reboot＞ \n＜Blocker＞ \n＜Fragment (3)＞ \n[When Digivolving] [Counter] [Once Per Turn] Reveal the top 6 cards of your deck. You may play or use 1 play or use cost 6 or lower [Three Musketeers] text card among them without paying the cost. Return the rest to the bottom of the deck.\n[When Digivolving] [When Attacking] By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon.",
+    "isDualCard": true,
+    "dualEffect": "Gewalt Schwärmer",
+    "optionEffect": "＜Use Req. ([Three Musketeers] in text)＞ \n[Main] ＜De-Digivolve 3＞ 3 of your opponent's Digimon. Then, you may place 1 [Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution card.",
+    "optionColorRequirements": ["Black"],
+    "nameJp": "ガンドラモン/ゲヴァルトシュベルマー"
+  },
+  {
+    "cardId": "LM-068",
+    "set": "LM",
+    "nameEn": "HeavyMetaldramon",
+    "colors": ["Purple", "Red"],
+    "kinds": ["Digimon", "Option"],
+    "playCost": 6,
+    "dp": 13000,
+    "evoCosts": [
+      {
+        "color": "Purple",
+        "level": 5,
+        "memoryCost": 5
+      },
+      {
+        "color": "Red",
+        "level": 5,
+        "memoryCost": 5
+      }
+    ],
+    "rarity": "P",
+    "maxCountInDeck": 4,
+    "imageId": "LM-068",
+    "level": 6,
+    "forms": ["Mega"],
+    "attributes": ["Virus"],
+    "types": ["Evil Dragon", "LIBERATOR"],
+    "effectText": "[Digivolve] Lv.5 w/[Dark Dragon]/[Evil Dragon] trait: Cost 4 \n\n＜Security A. +1＞ \n[When Digivolving] [End of Attack] If your hand has 4 or fewer cards, you may play 1 level 4 or lower Digimon card with the [Evil], [Dark Dragon] or [Evil Dragon] trait from your trash to the field without paying the cost.\n[When Digivolving] [On Deletion] Trash 2 cards in your hand. Then, you may activate 1 [Main] effect on this card's Option side.",
+    "isDualCard": true,
+    "dualEffect": "Black Sabbath",
+    "optionEffect": "[Trash] [Your Turn] When one of your [Evil], [Dark Dragon] or [Evil Dragon] trait Digimon attacks, if your hand has 4 or fewer cards, you may use this card with the cost reduced by 3.\n[Main] Delete 1 of your opponent's Digimon with a level as high as the number of cards in your hand or higher.",
+    "optionColorRequirements": ["Purple"],
+    "nameJp": "ヘヴィーメタルドラモン/ブラックサバス"
+  },
+  {
     "cardId": "P-001",
     "set": "P",
     "nameEn": "Agumon",
@@ -99892,6 +100032,32 @@
     "nameJp": "ボサモン"
   },
   {
+    "cardId": "RB1-004",
+    "set": "RB1",
+    "nameEn": "Agumon",
+    "colors": ["Red"],
+    "kinds": ["Digimon"],
+    "playCost": 3,
+    "dp": 2000,
+    "evoCosts": [
+      {
+        "color": "Red",
+        "level": 2,
+        "memoryCost": 0
+      }
+    ],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "RB1-004",
+    "level": 3,
+    "forms": ["Rookie"],
+    "attributes": ["Vaccine"],
+    "types": ["Reptile"],
+    "effectText": "[Rule] Card Number: Also treated as [P-009]. A deck may not have more than 4 total copies of this and [P-009].",
+    "inheritedEffectText": "[Your Turn] While this Digimon has [Greymon] in its name, it gets +2000 DP.",
+    "nameJp": "アグモン"
+  },
+  {
     "cardId": "RB1-005",
     "set": "RB1",
     "nameEn": "Gammamon",
@@ -99916,6 +100082,56 @@
     "maxCountInDeck": 4,
     "imageId": "RB1-005",
     "nameJp": "ガンマモン"
+  },
+  {
+    "cardId": "RB1-006",
+    "set": "RB1",
+    "nameEn": "Gammamon",
+    "colors": ["Red"],
+    "kinds": ["Digimon"],
+    "playCost": 4,
+    "dp": 4000,
+    "evoCosts": [
+      {
+        "color": "Red",
+        "level": 2,
+        "memoryCost": 1
+      }
+    ],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "RB1-006",
+    "level": 3,
+    "forms": ["Rookie"],
+    "attributes": ["Virus"],
+    "types": ["Ceratopsian"],
+    "effectText": "[Your Turn] While you have a red Tamer in play, this Digimon may also attack your opponent's unsuspended Digimon.\n[Rule] Card Number: Also treated as [P-058]. A deck may not have more than 4 total copies of this and [P-058].",
+    "nameJp": "ガンマモン"
+  },
+  {
+    "cardId": "RB1-007",
+    "set": "RB1",
+    "nameEn": "Greymon",
+    "colors": ["Red"],
+    "kinds": ["Digimon"],
+    "playCost": 5,
+    "dp": 5000,
+    "evoCosts": [
+      {
+        "color": "Red",
+        "level": 3,
+        "memoryCost": 2
+      }
+    ],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "RB1-007",
+    "level": 4,
+    "forms": ["Champion"],
+    "attributes": ["Vaccine"],
+    "types": ["Dinosaur"],
+    "effectText": "[Your Turn] While this Digimon has an [Agumon] digivolution card, it gains ＜Security A. +1＞ \n[Rule] Card Number: Also treated as [P-010]. A deck may not have more than 4 total copies of this and [P-010].",
+    "nameJp": "グレイモン"
   },
   {
     "cardId": "RB1-008",
