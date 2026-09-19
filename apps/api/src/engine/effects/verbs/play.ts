@@ -167,6 +167,7 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       suspended?: boolean;
       breeding?: boolean;
       costDelta?: number;
+      costDeltaByPlay?: Record<string, number>;
       costOverride?: number;
       suppressOnPlayEffects?: boolean;
       effectSourceCardId?: string;
@@ -174,6 +175,7 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       digiXrosMaterialInstanceIds?: string[];
       digiXrosMaterialInstanceIdsByPlay?: Record<string, string[]>;
       assemblyMaterialInstanceIds?: string[];
+      assemblyMaterialInstanceIdsByPlay?: Record<string, string[]>;
       hostPermanentIds?: Record<string, string>;
     },
   ): Promise<Permanent[]> => {
@@ -213,7 +215,7 @@ export function createPlayVerbs(pc: PrimitivesContext) {
           instanceId,
           definition,
           ownerPlayer.seat,
-          (opts.costDelta ?? 0) + digiXrosReduction,
+          (opts.costDeltaByPlay?.[instanceId] ?? opts.costDelta ?? 0) + digiXrosReduction,
           false,
           opts.costOverride,
           originByInstance.get(instanceId),
@@ -265,6 +267,11 @@ export function createPlayVerbs(pc: PrimitivesContext) {
           }
         }
       }
+      const assemblyMaterials =
+        opts?.assemblyMaterialInstanceIdsByPlay?.[instanceId] ?? opts?.assemblyMaterialInstanceIds;
+      for (const materialInstanceId of assemblyMaterials ?? []) {
+        await placeUnder(permanent.permanentId, [materialInstanceId]);
+      }
       engine.emit({
         kind: "cardPlayed",
         seat: ownerPlayer.seat,
@@ -278,11 +285,6 @@ export function createPlayVerbs(pc: PrimitivesContext) {
         from: "various",
         to: opts?.breeding ? Zone.Breeding : Zone.BattleArea,
       });
-    }
-    if (created.length === 1 && (opts?.assemblyMaterialInstanceIds?.length ?? 0) > 0) {
-      for (const materialInstanceId of opts!.assemblyMaterialInstanceIds!) {
-        await placeUnder(created[0]!.permanentId, [materialInstanceId]);
-      }
     }
     if (created.length > 0 && !opts?.breeding) {
       // A played permanent is already in the battle area before its [On Play] resolves.

@@ -221,7 +221,7 @@ export async function applyAssembly(
 // --- pure helpers ---
 
 /** Whether a material's definition satisfies a single Assembly slot (name/trait AND level gates). */
-function materialMatchesAssemblySlot(
+export function materialMatchesAssemblySlot(
   def: CardDefinition,
   slot: AssemblyMaterial,
   destination?: CardDefinition,
