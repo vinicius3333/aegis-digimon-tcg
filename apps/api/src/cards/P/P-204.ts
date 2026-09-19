@@ -33,6 +33,7 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
           optional: true,
         },

@@ -45,6 +45,8 @@ const compiled: CompiledCard = {
           bindResultAs: "bt16091DnaResult",
         },
         {
+          effectTextPart:
+            "Then, 2 of your Digimon may DNA digivolve into a Digimon card in your hand. The Digimon this effect DNA digivolved may gain <Security A. +1> for the turn and attack a player.",
           kind: "GainKeyword",
           target: {
             filter: {

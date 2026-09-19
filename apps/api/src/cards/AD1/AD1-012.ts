@@ -195,6 +195,7 @@ const compiled: CompiledCard = {
               optional: true,
             },
             {
+              effectTextPart: "Then, you may change the attack target to 1 of your Digimon.",
               kind: "RedirectAttack",
               target: {
                 filter: {

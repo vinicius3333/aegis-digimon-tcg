@@ -48,6 +48,7 @@ export const compiled: CompiledCard = {
               abortOnDecline: true,
             },
             {
+              effectTextPart: "Then, 1 of your Digimon may app fuse into a Digimon card in the hand.",
               kind: "AppFuse",
               source: {
                 filter: {

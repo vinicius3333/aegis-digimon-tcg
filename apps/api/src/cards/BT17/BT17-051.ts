@@ -32,6 +32,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, delete any number of your opponent's Digimon whose levels that add up to 4 or less. For every 2 [Argomon] in this Digimon's digivolution cards, add 1 to the maximum level you can choose with this effect.",
           kind: "DeleteLevelBudget",
           filter: { controller: "opponent", kind: ["Digimon"], hasLevel: true },
           baseBudget: 4,
@@ -75,6 +77,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, delete any number of your opponent's Digimon whose levels that add up to 4 or less. For every 2 [Argomon] in this Digimon's digivolution cards, add 1 to the maximum level you can choose with this effect.",
           kind: "DeleteLevelBudget",
           filter: { controller: "opponent", kind: ["Digimon"], hasLevel: true },
           baseBudget: 4,

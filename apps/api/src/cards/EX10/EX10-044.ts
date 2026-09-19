@@ -64,6 +64,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, ＜Save＞",
           kind: "PlaceUnder",
           target: {
             filter: {

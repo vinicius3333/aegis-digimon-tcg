@@ -94,6 +94,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may end this attack.",
           kind: "EndAttack",
           optional: true,
         },
@@ -129,6 +130,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may end this attack.",
           kind: "EndAttack",
           optional: true,
         },

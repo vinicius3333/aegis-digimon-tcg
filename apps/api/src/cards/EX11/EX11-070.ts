@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, this Tamer may ＜Mind Link＞ with 1 of your Digimon with [Maquinamon] in its text.",
           kind: "MindLink",
           target: { filter: maquinamonText, count: 1 },
           optional: true,

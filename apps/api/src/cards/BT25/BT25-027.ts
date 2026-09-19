@@ -26,6 +26,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by trashing the bottom face-down card from under any of your Tamers, this Digimon unsuspends.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -69,6 +71,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by trashing the bottom face-down card from under any of your Tamers, this Digimon unsuspends.",
           kind: "Unsuspend",
           target: {
             filter: {

@@ -70,6 +70,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
           kind: "Restrict",
           target: {
             filter: {

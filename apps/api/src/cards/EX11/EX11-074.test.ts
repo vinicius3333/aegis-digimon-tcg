@@ -59,7 +59,11 @@ describe("EX11-074 Vortexdramon", () => {
           sourceFilter: { controller: "any", kind: ["Digimon"] },
           actions: [
             { kind: "Unsuspend", optional: true },
-            { kind: "Battle", optional: true },
+            {
+              kind: "Battle",
+              optional: true,
+              effectTextPart: "Then, this Digimon may battle 1 of your opponent's Digimon.",
+            },
           ],
         },
       ],
@@ -216,6 +220,14 @@ describe("EX11-074 Vortexdramon", () => {
 
     expect(s.perm("source").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(initialSecurity);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX11-074")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[All Turns] [Once Per Turn] When any Digimon suspend, this Digimon may unsuspend.",
+      "Then, this Digimon may battle 1 of your opponent's Digimon.",
+    ]);
     assertNoLoudGap(s);
   });
 

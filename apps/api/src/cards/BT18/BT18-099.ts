@@ -48,6 +48,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],
@@ -144,6 +145,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
           optional: true,
         },

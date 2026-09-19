@@ -50,6 +50,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may gain <Rush> for the turn and attack a player.",
           kind: "SelectBind",
           target: {
             filter: { controller: "mine", kind: ["Digimon"] },
