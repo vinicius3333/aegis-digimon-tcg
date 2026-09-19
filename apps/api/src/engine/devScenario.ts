@@ -161,6 +161,11 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
       setTopCard(result, top);
       return result;
     }
+    function catalogPermanent(id: string, cardIds: readonly string[]): Permanent {
+      const result = establishedDigimon(seat, cardIds, `-${id}`);
+      result.permanentId = id;
+      return result;
+    }
     const breeding =
       seat === 0
         ? permanent("you-breeding", ["BT26-001", "BT26-009"])
@@ -170,17 +175,17 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
     const field =
       seat === 0
         ? [
-            permanent("you-chronomon", ["BT26-001", "BT26-009", "BT26-011", "BT26-015", "BT26-016"]),
+            catalogPermanent("you-jupitermon", ["BT26-013", "BT26-030", "BT26-033"]),
             permanent("you-hyokomon", ["BT26-009"]),
             permanent("you-shota", ["BT26-092"]),
           ]
         : [
-            permanent("opponent-plutomon", ["BT24-007", "BT26-066", "BT26-069", "BT26-074", "BT26-059"]),
+            catalogPermanent("opponent-susanoomon", ["EX12-076"]),
             permanent("opponent-dobermon", ["BT26-069"]),
             permanent("opponent-asuna", ["BT24-088"]),
           ];
     field.forEach((entry) => placePermanent(player, entry));
-    if (seat === 1) field[1]!.isSuspended = true;
+    if (seat === 1) field[0]!.isSuspended = true;
     const hand =
       seat === 0
         ? ["BT26-009", "BT26-011", "BT26-016", "BT26-087", "BT8-095"]
