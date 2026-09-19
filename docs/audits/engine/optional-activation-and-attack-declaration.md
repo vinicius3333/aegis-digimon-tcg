@@ -65,8 +65,17 @@ Verification on September 19, 2026, after Luna implementation and independent re
 - `pnpm typecheck`: passed for shared, API, and web.
 - `oxlint`, `oxfmt --check` on the 16 changed TypeScript files, and
   `git diff --check`: passed.
-- The unrelated, concurrently edited `src/engine/attackStepPendingEffects.test.ts`
-  was excluded from the broad run and left untouched.
+
+### Pending attack-step follow-up
+
+The separately captured `attackStepPendingEffects.test.ts` regression is now
+resolved. During an effect-directed attack, Blast Digivolve completed its stack
+change during Counter Timing, but its nested When Digivolving window remained
+parked behind the enclosing effect while combat advanced to Block Timing. The
+combat controller now drains the effect-directed attack's pending timing pool
+again after the Counter response and before attacker validation and Block Timing.
+All three regression cases pass: normal Blast Digivolve, target-switch processing
+before battle, and Blast Digivolve during an effect-directed attack.
 
 Reproduce the broad run from the repository root:
 

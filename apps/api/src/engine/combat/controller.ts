@@ -613,6 +613,13 @@ export class CombatController {
       const counterWait = this.runCounterWindow(attackerSeat, attacker);
       if (counterWait !== undefined) await counterWait;
 
+      // A Counter can create new nested timing effects while an effect-directed attack is
+      // paused inside its enclosing effect body. Blast Digivolve is the canonical case: its
+      // When Digivolving effect must finish before the attack advances to Block Timing.
+      // The pre-Counter drain above cannot see effects that have not triggered yet, so drain
+      // the same attack window again after the Counter response resolves.
+      if (opts.drainTimingWindow !== undefined) await opts.drainTimingWindow();
+
       // source fires OnEndAttack (AttackProcess.EndAttack) whenever the attack reaches its
       // end, including an early end (Comprehensive Rules §11-5-1-4 / §11-6: an unsuccessful
       // attack "ends without anything happening" but still reaches the End of Attack timing).
