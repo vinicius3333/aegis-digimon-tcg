@@ -355,6 +355,46 @@ describe("BT25-036 Craftmon", () => {
     expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("craftmon").instanceId);
   });
 
+  it("offers and accepts only a Digimon recipient, not an Appmon Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-217", as: "haru" },
+            { card: "BT21-009", as: "digimonHost" },
+          ],
+          hand: [{ card: "BT25-036", as: "craftmon" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.engine.recomputeContinuousEffects();
+
+    expect([...s.inst("craftmon").linkTargetPermanentIds]).toEqual([s.perm("digimonHost").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("craftmon").instanceId,
+        targetPermanentId: s.perm("haru").permanentId,
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("haru").linked).toHaveLength(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("craftmon").instanceId,
+        targetPermanentId: s.perm("digimonHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("digimonHost").linked.some((card) => card.instanceId === s.inst("craftmon").instanceId));
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("digimonHost").linked.map((card) => card.instanceId)).toContain(s.inst("craftmon").instanceId);
+  });
+
   it("may decline the linked processing cost without trashing or drawing", async () => {
     const s = setupEngine(
       {

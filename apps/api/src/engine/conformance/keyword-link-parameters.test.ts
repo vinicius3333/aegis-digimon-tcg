@@ -65,7 +65,7 @@ describe("Link public cost and Link Max parameters", () => {
 
   it("publicly pays the printed Link cost 2 and moves the exact card from hand", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT24-087", as: "host" }], hand: [{ card: "BT22-009", as: "link" }] } },
+      { 0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT22-009", as: "link" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
@@ -82,7 +82,7 @@ describe("Link public cost and Link Max parameters", () => {
 
   it("publicly links an Appmon card, pays its printed cost, and preserves its instance", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT24-087", as: "host" }], hand: [{ card: "BT21-041", as: "link" }] } },
+      { 0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT21-041", as: "link" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
@@ -99,7 +99,7 @@ describe("Link public cost and Link Max parameters", () => {
 
   it("refuses a public Link intent when the controller cannot pay its printed cost", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-087", as: "host" }], hand: [{ card: "BT21-041", as: "link" }] },
+      0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT21-041", as: "link" }] },
     });
     s.state.memory = -10;
     await s.ready();
