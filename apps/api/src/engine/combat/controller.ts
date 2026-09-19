@@ -386,6 +386,18 @@ export class CombatController {
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
+      /**
+       * Wrap the Counter Timing -> End of Attack steps. An effect-directed attack supplies this
+       * to pause the effect body that ordered the attack, so triggers arising in those steps
+       * resolve as their own windows instead of being parked as nested pending effects (§11-1).
+       */
+      runAttackSteps?: (body: () => Promise<void>) => Promise<void>;
+      /**
+       * Flush effects an attack step deferred, at the boundary between two steps. Battle
+       * deletions park their [On Deletion] windows behind the ordering effect's still-open
+       * window token, and §11-1-4 puts them before End of Attack.
+       */
+      settleBetweenSteps?: () => Promise<void>;
     } = {},
   ): Promise<void> {
     this.resolving = true;
@@ -595,103 +607,124 @@ export class CombatController {
       // read it only after every pre-Counter redirect opportunity has completed.
       const effectiveTarget = this.currentAttack?.target ?? target;
 
-      // 2. §11-3 Counter Timing (11-1-3's ordered list places it here: after the When
-      // Attacking timings have fully resolved — 11-1-4's own example — and before block
-      // timing). 11-1-5: this window still occurs even if the attacker later becomes
-      // invalid, so it runs before the attacker-validity short-circuit below.
-      //
-      // `runCounterWindow` returns undefined (not a resolved Promise) when nothing is
-      // eligible, so this conditionally skips the `await` entirely rather than awaiting an
-      // already-resolved Promise — every attack pays this window's cost in a real await tick
-      // ONLY when there is something to actually wait for. An unconditional await here (even
-      // of `Promise.resolve()`) would add a microtask tick to EVERY attack, silently exhausting
-      // the fixed microtask-tick budget `testkit/harness.ts`'s `settle()` gives already-deep
-      // async chains elsewhere in the suite (mechanic.test.ts BLK-03, overflow.test.ts,
-      // keywordBattle.test.ts all went from green to red on exactly that regression).
-      const counterWait = this.runCounterWindow(attackerSeat, attacker);
-      if (counterWait !== undefined) await counterWait;
+      // An attack ordered by an effect interrupts that effect (§11-1): from Counter Timing
+      // through End of Attack the enclosing body counts as paused, so each step's triggers
+      // resolve before the attack advances. Step 1 above deliberately stays outside the pause
+      // so the attacker's [When Attacking] effects keep pooling for `drainTimingWindow`
+      // (Q3944). Plain player-declared attacks pass no hook and run the body directly.
+      const runAttackSteps = opts.runAttackSteps ?? ((body: () => Promise<void>) => body());
+      // Read once and branch on it rather than `await opts.settleBetweenSteps?.()`: awaiting an
+      // absent hook still burns a microtask tick on EVERY attack, and the fixed tick budget
+      // `testkit/harness.ts`'s `settle()` gives deep async chains does not absorb that (same
+      // hazard the `counterWait` comment below documents).
+      const settleBetweenSteps = opts.settleBetweenSteps;
+      await runAttackSteps(async () => {
+        // 2. §11-3 Counter Timing (11-1-3's ordered list places it here: after the When
+        // Attacking timings have fully resolved — 11-1-4's own example — and before block
+        // timing). 11-1-5: this window still occurs even if the attacker later becomes
+        // invalid, so it runs before the attacker-validity short-circuit below.
+        //
+        // `runCounterWindow` returns undefined (not a resolved Promise) when nothing is
+        // eligible, so this conditionally skips the `await` entirely rather than awaiting an
+        // already-resolved Promise — every attack pays this window's cost in a real await tick
+        // ONLY when there is something to actually wait for. An unconditional await here (even
+        // of `Promise.resolve()`) would add a microtask tick to EVERY attack, silently exhausting
+        // the fixed microtask-tick budget `testkit/harness.ts`'s `settle()` gives already-deep
+        // async chains elsewhere in the suite (mechanic.test.ts BLK-03, overflow.test.ts,
+        // keywordBattle.test.ts all went from green to red on exactly that regression).
+        const counterWait = this.runCounterWindow(attackerSeat, attacker);
+        if (counterWait !== undefined) await counterWait;
 
-      // source fires OnEndAttack (AttackProcess.EndAttack) whenever the attack reaches its
-      // end, including an early end (Comprehensive Rules §11-5-1-4 / §11-6: an unsuccessful
-      // attack "ends without anything happening" but still reaches the End of Attack timing).
-      // The attacker-invalidation guards below must fire it too, mirroring the endRequested
-      // sibling path, rather than returning silently and skipping the window.
-      if (!this.attackerStillValid(attacker)) {
-        await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          ...attackTrigger,
-          target: effectiveTarget,
-        });
-        return;
-      }
-
-      // An effect (e.g. BT23-069) may have ended the attack during the When Attacking
-      // timings: skip the block window and battle and transition straight to end-of-attack
-      // (AttackProcess.EndAttack). The attack does not succeed.
-      if (this.endRequested) {
-        await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          ...attackTrigger,
-          target: effectiveTarget,
-        });
-        return;
-      }
-
-      // 3. Block window (AttackProcess.BlockTiming, cs:322-405).
-      let defender = this.currentDefender(effectiveTarget);
-      const blockerId = await this.runBlockWindow(attackerSeat, attacker);
-      if (blockerId !== null) {
-        const blocker = this.access.permanentById(blockerId);
-        if (blocker !== undefined) {
-          defender = blocker;
-          await this.switchDefenderToBlocker(attacker, blocker);
+        // source fires OnEndAttack (AttackProcess.EndAttack) whenever the attack reaches its
+        // end, including an early end (Comprehensive Rules §11-5-1-4 / §11-6: an unsuccessful
+        // attack "ends without anything happening" but still reaches the End of Attack timing).
+        // The attacker-invalidation guards below must fire it too, mirroring the endRequested
+        // sibling path, rather than returning silently and skipping the window.
+        if (!this.attackerStillValid(attacker)) {
+          if (settleBetweenSteps !== undefined) await settleBetweenSteps();
+          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
+            ...attackTrigger,
+            target: effectiveTarget,
+          });
+          return;
         }
-      }
 
-      if (!this.attackerStillValid(attacker)) {
-        await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          ...attackTrigger,
-          target: effectiveTarget,
-        });
-        return;
-      }
-
-      // An effect may end the attack specifically because the block switched its target
-      // (BT16-032). That trigger resolves inside switchDefenderToBlocker, after the earlier
-      // pre-block endRequested check, so honor the newly-requested end before comparing DP.
-      if (this.endRequested) {
-        await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          ...attackTrigger,
-          target: effectiveTarget,
-        });
-        return;
-      }
-
-      // 4. Battle resolution (AttackProcess.DetermineAttackOutcome, cs:407-468).
-      if (!this.defenderStillValid(effectiveTarget, defender)) {
-        // Comprehensive Rules §11-2-6: even though the attack target Digimon was removed
-        // mid-resolution (e.g. deleted/bounced during When Attacking or the block window),
-        // that Digimon REMAINS the attack target — the attack simply fails. It must NOT fall
-        // back to a player-directed security check just because `defender` is undefined.
-      } else if (defender === undefined) {
-        // Player-directed, unblocked: hand off to security-and-win-check.
-        await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "attack");
-      } else if (
-        this.access.isBattleAreaDigimon(defender, this.hooks.continuous) &&
-        this.access.isBattleAreaDigimon(attacker, this.hooks.continuous)
-      ) {
-        await this.resolveDigimonBattle(attacker, defender);
-        // A direct effect battle during this same attack can satisfy Piercing even
-        // when the ordinary battle's loser is protected (BT25-020 Q6280/Q6281).
-        // Process it once, after a successful Digimon attack, before End of Attack.
-        if (this.currentAttack?.piercingTriggered && this.attackerStillValid(attacker) && !this.endRequested) {
-          this.currentAttack.piercingTriggered = false;
-          await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "piercing");
+        // An effect (e.g. BT23-069) may have ended the attack during the When Attacking
+        // timings: skip the block window and battle and transition straight to end-of-attack
+        // (AttackProcess.EndAttack). The attack does not succeed.
+        if (this.endRequested) {
+          if (settleBetweenSteps !== undefined) await settleBetweenSteps();
+          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
+            ...attackTrigger,
+            target: effectiveTarget,
+          });
+          return;
         }
-      }
 
-      // 5. End of attack (AttackProcess.EndAttack, cs:473-484).
-      await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-        ...attackTrigger,
-        target: effectiveTarget,
+        // 3. Block window (AttackProcess.BlockTiming, cs:322-405).
+        let defender = this.currentDefender(effectiveTarget);
+        const blockerId = await this.runBlockWindow(attackerSeat, attacker);
+        if (blockerId !== null) {
+          const blocker = this.access.permanentById(blockerId);
+          if (blocker !== undefined) {
+            defender = blocker;
+            await this.switchDefenderToBlocker(attacker, blocker);
+          }
+        }
+
+        if (!this.attackerStillValid(attacker)) {
+          if (settleBetweenSteps !== undefined) await settleBetweenSteps();
+          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
+            ...attackTrigger,
+            target: effectiveTarget,
+          });
+          return;
+        }
+
+        // An effect may end the attack specifically because the block switched its target
+        // (BT16-032). That trigger resolves inside switchDefenderToBlocker, after the earlier
+        // pre-block endRequested check, so honor the newly-requested end before comparing DP.
+        if (this.endRequested) {
+          if (settleBetweenSteps !== undefined) await settleBetweenSteps();
+          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
+            ...attackTrigger,
+            target: effectiveTarget,
+          });
+          return;
+        }
+
+        // 4. Battle resolution (AttackProcess.DetermineAttackOutcome, cs:407-468).
+        if (!this.defenderStillValid(effectiveTarget, defender)) {
+          // Comprehensive Rules §11-2-6: even though the attack target Digimon was removed
+          // mid-resolution (e.g. deleted/bounced during When Attacking or the block window),
+          // that Digimon REMAINS the attack target — the attack simply fails. It must NOT fall
+          // back to a player-directed security check just because `defender` is undefined.
+        } else if (defender === undefined) {
+          // Player-directed, unblocked: hand off to security-and-win-check.
+          await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "attack");
+        } else if (
+          this.access.isBattleAreaDigimon(defender, this.hooks.continuous) &&
+          this.access.isBattleAreaDigimon(attacker, this.hooks.continuous)
+        ) {
+          await this.resolveDigimonBattle(attacker, defender);
+          // §11-1-4: the battle's [On Deletion] windows were parked behind the ordering
+          // effect's window token; activate them before Piercing and End of Attack.
+          if (settleBetweenSteps !== undefined) await settleBetweenSteps();
+          // A direct effect battle during this same attack can satisfy Piercing even
+          // when the ordinary battle's loser is protected (BT25-020 Q6280/Q6281).
+          // Process it once, after a successful Digimon attack, before End of Attack.
+          if (this.currentAttack?.piercingTriggered && this.attackerStillValid(attacker) && !this.endRequested) {
+            this.currentAttack.piercingTriggered = false;
+            await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "piercing");
+          }
+        }
+
+        // 5. End of attack (AttackProcess.EndAttack, cs:473-484).
+        if (settleBetweenSteps !== undefined) await settleBetweenSteps();
+        await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
+          ...attackTrigger,
+          target: effectiveTarget,
+        });
       });
     } finally {
       this.cleanup();

@@ -34,6 +34,18 @@ export interface PrimitivesEngine {
   /** Pause enclosing card bodies while an effect-directed attack drains pending effects. */
   resolveAttackTimingWindow?(drain: () => Promise<void>): Promise<void>;
   /**
+   * Pause enclosing card bodies for the whole Counter -> End of Attack stretch of an
+   * effect-directed attack, so each attack step's triggers resolve as their own windows
+   * before the attack advances (CR §11-1).
+   */
+  runAttackSteps?(body: () => Promise<void>): Promise<void>;
+  /**
+   * Flush what an attack step deferred, at the boundary between two attack steps. Battle
+   * deletions park their [On Deletion] windows while a window token is open (§15-4-4); they
+   * must activate before End of Attack, not after the whole attack (§11-1-4).
+   */
+  settleBetweenAttackSteps?(): Promise<void>;
+  /**
    * Resolve whatever an effect-directed attack left in the nested pending pool. Used as the
    * attack's drain when the body that ordered it is a watcher rather than a timing window.
    */

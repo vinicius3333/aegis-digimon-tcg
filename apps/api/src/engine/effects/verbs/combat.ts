@@ -103,6 +103,16 @@ export function createCombatVerbs(pc: PrimitivesContext) {
         if (drain === undefined) return undefined;
         return () => engine.resolveAttackTimingWindow?.(drain) ?? drain();
       })(),
+      // Counter Timing through End of Attack interrupt the ordering effect (§11-1), so the
+      // triggers each step produces resolve as their own windows instead of being parked in
+      // the nested pending pool until after combat.
+      ...(engine.runAttackSteps === undefined ? {} : { runAttackSteps: engine.runAttackSteps }),
+      // Inside that pause, a battle deletion's [On Deletion] window is still parked behind the
+      // ordering effect's open window token, so each step boundary flushes it explicitly —
+      // §11-1-4 puts those deletions before End of Attack, not after the whole attack.
+      ...(engine.settleBetweenAttackSteps === undefined
+        ? {}
+        : { settleBetweenSteps: engine.settleBetweenAttackSteps }),
     });
   };
 
