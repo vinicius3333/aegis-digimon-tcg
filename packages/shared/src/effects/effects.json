@@ -141541,6 +141541,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }]
               },
@@ -222258,7 +222259,7 @@
             "kind": "Modal",
             "choose": 1,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
-            "labels": ["Play an Iliad card", "Use an Iliad Option"],
+            "labels": ["Play an Iliad/TS card", "Use an Iliad/TS Option"],
             "options": [
               [
                 {
@@ -222267,7 +222268,10 @@
                     "filter": {
                       "controller": "mine",
                       "zone": "hand",
-                      "nameOrTrait": [{ "tokens": ["Iliad"], "match": "trait" }],
+                      "nameOrTrait": [
+                        { "tokens": ["Iliad"], "match": "trait" },
+                        { "tokens": ["TS"], "match": "trait" }
+                      ],
                       "kind": ["Digimon", "Tamer"]
                     },
                     "count": 1
@@ -222284,7 +222288,10 @@
                   "filter": {
                     "controller": "mine",
                     "zone": "hand",
-                    "nameOrTrait": [{ "tokens": ["Iliad"], "match": "trait" }],
+                    "nameOrTrait": [
+                      { "tokens": ["Iliad"], "match": "trait" },
+                      { "tokens": ["TS"], "match": "trait" }
+                    ],
                     "kind": ["Option"]
                   },
                   "from": ["hand"],
@@ -222323,7 +222330,8 @@
             "cost": {
               "kind": "placeAsSecurity",
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-              "position": "bottom"
+              "position": "bottom",
+              "detachPermanentTop": true
             },
             "actions": []
           }

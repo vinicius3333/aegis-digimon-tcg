@@ -196,6 +196,23 @@ describe("EX10-070 God Grade Unleashed", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
   });
 
+  it("plays when the only [Appmon] Digimon is in the breeding area", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: CARD_ID, as: "option" }],
+        breeding: { card: "BT26-084", as: "copipemon" },
+        deck: ["BT1-013", "BT1-014"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 5;
+
+    await playOption(s);
+
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT26-084");
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
+  });
+
   it("[Main] draws exactly the top card of deck, pays 2 memory and places itself in the battle area", async () => {
     const s = setupEngine({
       0: {

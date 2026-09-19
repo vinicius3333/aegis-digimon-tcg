@@ -212,6 +212,71 @@ describe("BT26-033 compiled fidelity", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
+  it("may play a TS-only Digimon with the play cost reduced by 5", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-029", as: "tsBase" }],
+          hand: [
+            { card: CARD_ID, as: "jupitermon" },
+            { card: "BT24-009", as: "tsOnlyDigimon" },
+          ],
+          security: [{ card: "BT1-009", as: "securityTop" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("jupitermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT24-009"));
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT24-009");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("may use a TS-only Option with the use cost reduced by 5", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-029", as: "tsBase" }],
+          hand: [
+            { card: CARD_ID, as: "jupitermon" },
+            { card: "BT24-092", as: "tsOnlyOption" },
+          ],
+          security: [{ card: "BT1-009", as: "securityTop" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("jupitermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT24-092"));
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT24-092");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("pays once to prevent every simultaneous TS departure (Q7005)", async () => {
     const s = setupEngine(
       {
