@@ -104008,12 +104008,7 @@
               "kind": "place",
               "targetIsPermanent": true,
               "target": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "excludeSelf": true,
-                  "kind": ["Digimon"],
-                  "zone": "battleArea"
-                },
+                "filter": { "controller": "any", "excludeSelf": true, "kind": ["Digimon"], "zone": "battleArea" },
                 "count": 1
               },
               "destination": "security",
@@ -104039,12 +104034,7 @@
               "kind": "place",
               "targetIsPermanent": true,
               "target": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "excludeSelf": true,
-                  "kind": ["Digimon"],
-                  "zone": "battleArea"
-                },
+                "filter": { "controller": "any", "excludeSelf": true, "kind": ["Digimon"], "zone": "battleArea" },
                 "count": 1
               },
               "destination": "security",

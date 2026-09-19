@@ -45,7 +45,7 @@ export const compiled: CompiledCard = {
             targetIsPermanent: true,
             target: {
               filter: {
-                controllerDefault: "mine",
+                controller: "any",
                 excludeSelf: true,
                 kind: ["Digimon"],
                 zone: "battleArea",
@@ -81,7 +81,7 @@ export const compiled: CompiledCard = {
             targetIsPermanent: true,
             target: {
               filter: {
-                controllerDefault: "mine",
+                controller: "any",
                 excludeSelf: true,
                 kind: ["Digimon"],
                 zone: "battleArea",

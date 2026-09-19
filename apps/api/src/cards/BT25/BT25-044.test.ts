@@ -36,7 +36,7 @@ describe("BT25-044 Junomon", () => {
           position: "top",
           faceDown: true,
           target: {
-            filter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"], zone: "battleArea" },
+            filter: { controller: "any", excludeSelf: true, kind: ["Digimon"], zone: "battleArea" },
             count: 1,
           },
         },
@@ -112,6 +112,48 @@ describe("BT25-044 Junomon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-002"]);
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
     expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("may place an opponent's Digimon as the On Play cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-044", as: "junomon" }],
+          security: ["BT1-001"],
+          battleArea: [{ card: "BT1-010", as: "ownDigimon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentDigimon" }],
+          security: ["BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("junomon").instanceId })).toEqual({
+      ok: true,
+    });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)?.req.options?.candidateInstanceIds).toContain(s.perm("opponentDigimon").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("opponentDigimon").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("ownDigimon").permanentId,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-002"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
   it("can refuse the On Play security placement while another Digimon is eligible", async () => {
