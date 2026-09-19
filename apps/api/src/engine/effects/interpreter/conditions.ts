@@ -647,7 +647,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "phaseIs":
       return cond.phase !== undefined && ctx.game.state.phase === cond.phase;
     case "duringAttack":
-      return ctx.trigger.attackerPermanentId !== undefined;
+      return ctx.trigger.attackerPermanentId !== undefined || ctx.fx.isAttackResolving?.() === true;
     case "wouldBeUsedAsOption":
       return ctx.trigger.wouldBePlayedAsOption === true;
     case "selfDigivolutionStackHasTrait":
