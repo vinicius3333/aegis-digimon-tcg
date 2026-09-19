@@ -110,9 +110,7 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       // Inside that pause, a battle deletion's [On Deletion] window is still parked behind the
       // ordering effect's open window token, so each step boundary flushes it explicitly —
       // §11-1-4 puts those deletions before End of Attack, not after the whole attack.
-      ...(engine.settleBetweenAttackSteps === undefined
-        ? {}
-        : { settleBetweenSteps: engine.settleBetweenAttackSteps }),
+      ...(engine.settleBetweenAttackSteps === undefined ? {} : { settleBetweenSteps: engine.settleBetweenAttackSteps }),
     });
   };
 
