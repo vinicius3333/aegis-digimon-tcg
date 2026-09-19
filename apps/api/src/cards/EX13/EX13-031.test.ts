@@ -782,6 +782,51 @@ describe("EX13-031 KingSukamon", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("arms when an opposing Digimon rewritten to [Sukamon] is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: NEUTRAL_LV3, as: "host", under: [cardId] }],
+          hand: [
+            { card: cardId, as: "rewriter" },
+            { card: CHUUMON_COST_3, as: "fee" },
+          ],
+          deck: [
+            { card: CHUUMON_PLAYABLE, as: "freePlay" },
+            { card: SENTINEL, as: "second" },
+            { card: SENTINEL, as: "third" },
+            { card: SENTINEL, as: "untouched" },
+          ],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_BODY, as: "opponentFodder" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rewriter").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).effectiveNames(s.perm("opponentFodder")).includes("sukamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    advance(s.engine).verb.enterEffectResolution(0, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("opponentFodder").permanentId], "byEffect")).toBe(1);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CHUUMON_PLAYABLE));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("untouched").instanceId]);
+    expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
+  });
+
   it("keeps the inherited watcher after a Digimon digivolves onto it, preserving source identity", async () => {
     const s = setupEngine(
       {
