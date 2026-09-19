@@ -675,30 +675,43 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   const outerPlacedUnderInstanceIds = ctxWithSelections.placedUnderInstanceIdsThisEffect;
   ctxWithSelections.placedUnderInstanceIdsThisEffect = [];
   try {
-    for (const [actionIndex, action] of actions.entries()) {
-      // Legacy compiled Reboot records carry a self-Unsuspend action beside the keyword
-      // marker. It describes what Reboot does during the opponent's unsuspend phase; it is
-      // not a continuously re-fired "unsuspend now" action. Executing it in the static pass
-      // makes a Reboot Digimon stand back up immediately after declaring an attack.
-      if (isRebootMarker && action.kind === "Unsuspend") continue;
-      const outerActionPath = ctxWithSelections.activeActionPath;
-      const outerChainsSameTarget = ctxWithSelections.nextActionChainsSameTarget;
-      ctxWithSelections.activeActionPath = `${actionIndex}`;
-      ctxWithSelections.nextActionChainsSameTarget =
-        (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
-      let abort: boolean;
-      try {
-        const resolvingAction =
-          declaredProcessingCondition && actionIndex === 0 && action.kind === "CostGatedBlock"
-            ? { ...action, optional: false, cost: { ...action.cost, optional: false } }
-            : action;
-        abort = await runAction(ctxWithSelections, resolvingAction);
-      } finally {
-        ctxWithSelections.activeActionPath = outerActionPath;
-        ctxWithSelections.nextActionChainsSameTarget = outerChainsSameTarget;
+    const runActionsFrom = async (startIndex: number): Promise<void> => {
+      for (let actionIndex = startIndex; actionIndex < actions.length; actionIndex += 1) {
+        const action = actions[actionIndex]!;
+        // Legacy compiled Reboot records carry a self-Unsuspend action beside the keyword
+        // marker. It describes what Reboot does during the opponent's unsuspend phase; it is
+        // not a continuously re-fired "unsuspend now" action. Executing it in the static pass
+        // makes a Reboot Digimon stand back up immediately after declaring an attack.
+        if (isRebootMarker && action.kind === "Unsuspend") continue;
+        const outerActionPath = ctxWithSelections.activeActionPath;
+        const outerChainsSameTarget = ctxWithSelections.nextActionChainsSameTarget;
+        const outerAttackContinuation = ctxWithSelections.continueEffectAfterAttackDeclaration;
+        ctxWithSelections.activeActionPath = `${actionIndex}`;
+        ctxWithSelections.nextActionChainsSameTarget =
+          (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
+        let attackContinuationRan = false;
+        if (action.kind === "Attack" && actionIndex + 1 < actions.length) {
+          ctxWithSelections.continueEffectAfterAttackDeclaration = async () => {
+            attackContinuationRan = true;
+            await runActionsFrom(actionIndex + 1);
+          };
+        }
+        let abort: boolean;
+        try {
+          const resolvingAction =
+            declaredProcessingCondition && actionIndex === 0 && action.kind === "CostGatedBlock"
+              ? { ...action, optional: false, cost: { ...action.cost, optional: false } }
+              : action;
+          abort = await runAction(ctxWithSelections, resolvingAction);
+        } finally {
+          ctxWithSelections.activeActionPath = outerActionPath;
+          ctxWithSelections.nextActionChainsSameTarget = outerChainsSameTarget;
+          ctxWithSelections.continueEffectAfterAttackDeclaration = outerAttackContinuation;
+        }
+        if (abort || attackContinuationRan) return;
       }
-      if (abort) break;
-    }
+    };
+    await runActionsFrom(0);
   } finally {
     // `activeTiming` / `activeEffectText` deliberately survive: they are the provenance a decision
     // raised by this resolution is stamped with, and it is read after the resolution returns.

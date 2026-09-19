@@ -84,6 +84,11 @@ export interface EffectContext {
   /** Re-entrantly resolves the remaining effects from the current timing window. */
   drainCurrentTimingWindow?: () => Promise<void>;
   /**
+   * Resume the remaining actions of this effect immediately after an effect-driven attack is
+   * declared. Combat invokes this before declaration-triggered effects and before Counter Timing.
+   */
+  continueEffectAfterAttackDeclaration?: () => Promise<void>;
+  /**
    * Per-effect-resolution store for `SelectBind` targets: handle (e.g. "A") -> the chosen
    * permanentId. Populated when a `SelectBind` action resolves and read by a later action's
    * `Filter.relativeTo.selectionRef` / `Target.fromSelectionRef` / `PlaceUnder.underSelectionRef`

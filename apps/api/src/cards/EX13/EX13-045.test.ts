@@ -339,6 +339,36 @@ describe("EX13-045 Examon", () => {
     expect(declined.state.players[1]!.battleArea[0]!.permanentId).toBe(declined.perm("prey").permanentId);
   });
 
+  it("resolves its direct battle after declaring the attack but before that attack checks security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: GREEN_MATERIAL, as: "green" },
+            { card: BLUE_MATERIAL, as: "blue" },
+          ],
+          hand: [{ card: cardId, as: "examon" }],
+        },
+        1: {
+          battleArea: [{ card: NON_MATCH, dp: 30_000, as: "prey", suspended: true }],
+          security: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(dnaIntent(s)).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.events.filter(({ kind }) => kind === "attackDeclared")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.events.some(({ kind }) => kind === "securityChecked")).toBe(false);
+  });
+
   it("blocks an opponent's attack on the player and wins the battle", async () => {
     const s = setupEngine(
       {

@@ -92,3 +92,23 @@ pnpm --filter @aegis/api exec vitest run src/engine/fuzzer.test.ts src/engine/ef
 This targeted fix does not claim a full collection audit or change any collection's
 completion status. No card-specific exception, deployment, or Discord status change
 was made.
+
+### Same-effect continuation after attack declaration
+
+Issue #4868 exposed a distinct continuation gap in EX13-045. Its single When
+Digivolving effect declares an attack and then directly battles an opposing Digimon.
+The interpreter previously awaited the complete forced-attack lifecycle before moving
+to the next action in that same effect, so security was checked before the printed
+“Then” battle.
+
+`runEffect` now exposes the remaining sibling actions as a one-shot continuation while
+dispatching a non-final `Attack` action. Combat invokes that continuation immediately
+after attack declaration and before declaration-triggered effects, Counter Timing, the
+block window, and security. If no legal attack is declared, ordinary sequential
+resolution continues and the later actions are not skipped.
+
+Behavioral proof is the EX13-045 test “resolves its direct battle after declaring the
+attack but before that attack checks security”: Examon declares against the player,
+then loses its direct battle to a 30000 DP Digimon; the open attack consequently ends
+without checking either security card. The test was observed failing with both security
+cards removed before the correction.
