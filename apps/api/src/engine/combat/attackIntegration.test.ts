@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { Phase } from "@aegis/shared";
+import { EffectDuration, Phase } from "@aegis/shared";
 import { registerIrCard, runtimeCompiledCard } from "../effects/interpreter.js";
 import { unregisterCard } from "../effects/registry.js";
 import { advance } from "../testkit/advance.js";
 import { setupEngine, settle } from "../testkit/harness.js";
+import { internalsOf } from "../testkit/internals.js";
 import "../../cards/index.js";
 
 /**
@@ -16,6 +17,7 @@ import "../../cards/index.js";
 
 const DIGIMON_A = "AD1-001";
 const DIGIMON_B = "AD1-002";
+const SECURITY_CARD = "BT1-009";
 // A Digimon whose printed text is exactly "＜Blocker＞." — used where a legal blocker is
 // needed (Comprehensive Rules §16-5: only a Digimon with ＜Blocker＞ may block). Its IR
 // module is NOT imported here, so it contributes no effects beyond being a valid blocker.
@@ -87,6 +89,73 @@ describe("GameEngine.applyIntent — attack wiring", () => {
 });
 
 describe("GameEngine.applyIntent — block wiring", () => {
+  it("does not offer a suspend-locked Digimon as a blocker and lets the attack reach security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: DIGIMON_A, dp: 6000, as: "attacker" }] },
+      1: {
+        battleArea: [{ card: BLOCKER_CARD, dp: 7000, as: "lockedBlocker" }],
+        security: [SECURITY_CARD, SECURITY_CARD],
+      },
+    });
+    const attacker = s.perm("attacker");
+    const blocker = s.perm("lockedBlocker");
+    internalsOf(s.engine).continuous.addRestriction(blocker.permanentId, "suspend", EffectDuration.UntilEachTurnEnd);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "blockWindowOpened") ||
+        s.events.some((event) => event.kind === "securityRevealed"),
+      1000,
+    );
+
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(blocker.isSuspended).toBe(false);
+    expect(s.state.players[1]?.security).toHaveLength(1);
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId })).toEqual({
+      ok: false,
+      reason: "wrong-phase",
+    });
+  });
+
+  it("rejects a blocker that becomes suspend-locked after the block window opens", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: DIGIMON_A, dp: 6000, as: "attacker" }] },
+      1: {
+        battleArea: [{ card: BLOCKER_CARD, dp: 7000, as: "blocker" }],
+        security: [SECURITY_CARD, SECURITY_CARD],
+      },
+    });
+    const attacker = s.perm("attacker");
+    const blocker = s.perm("blocker");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"), 1000);
+
+    internalsOf(s.engine).continuous.addRestriction(blocker.permanentId, "suspend", EffectDuration.UntilEachTurnEnd);
+
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId })).toEqual({
+      ok: false,
+      reason: "illegal-target",
+    });
+    expect(blocker.isSuspended).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityRevealed"), 1000);
+    expect(s.state.players[1]?.security).toHaveLength(1);
+  });
+
   it("declareBlock during an open window redirects combat onto the blocker", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: DIGIMON_A, dp: 6000, as: "attacker" }] },
