@@ -201,6 +201,7 @@ export interface LinkCostReductionGrant {
   traits: string[];
   duration: EffectDuration;
   continuous?: boolean;
+  sourceCardId?: string;
   sourceInstanceId?: string;
   controllerSeat?: Seat;
   optional?: boolean;

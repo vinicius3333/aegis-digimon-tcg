@@ -966,6 +966,7 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: {
       continuous?: boolean;
+      sourceCardId?: string;
       sourceInstanceId?: string;
       controllerSeat?: Seat;
       optional?: boolean;
@@ -979,6 +980,7 @@ export class ContinuousEffectLedger {
         traits: traits.map((t) => t.toLowerCase()),
         duration,
         continuous: opts?.continuous,
+        sourceCardId: opts?.sourceCardId,
         sourceInstanceId: opts?.sourceInstanceId,
         controllerSeat: opts?.controllerSeat,
         optional: opts?.optional,

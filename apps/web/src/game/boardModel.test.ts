@@ -1074,6 +1074,16 @@ describe("triggerLabel / triggerLabels", () => {
     const staleEvents = [{ kind: "effectResolved", seat: 0, sourceCardId: "BT9-040" }] as never;
     expect(decisionEffectSource(request, staleEvents)).toBeUndefined();
   });
+
+  it("uses Onmon's authoritative decision source instead of a stale Cyber Engage event", () => {
+    const request = {
+      kind: "optional",
+      seat: 0,
+      sourceCardId: "BT25-045",
+    } as never;
+    const staleEvents = [{ kind: "effectResolved", seat: 0, sourceCardId: "BT25-098" }] as never;
+    expect(decisionEffectSource(request, staleEvents)).toBe("BT25-045");
+  });
 });
 
 describe("canUseBreedingAction", () => {

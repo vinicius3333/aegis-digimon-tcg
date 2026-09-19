@@ -177,6 +177,7 @@ export interface ContinuousPrimitives {
     traits: string[],
     duration: EffectDuration,
     opts?: {
+      sourceCardId?: string;
       sourceInstanceId?: string;
       controllerSeat?: Seat;
       optional?: boolean;
