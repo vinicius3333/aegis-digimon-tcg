@@ -64,6 +64,9 @@ export interface OriginalCardInfoOverride {
   colors?: string[];
   duration: EffectDuration;
   continuous?: boolean;
+  /** Controller and card kinds of the effect that produced this override. */
+  sourceSeat?: Seat;
+  sourceKinds?: string[];
 }
 
 export interface PlayerKeywordGrant {

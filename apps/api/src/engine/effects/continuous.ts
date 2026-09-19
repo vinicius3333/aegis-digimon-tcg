@@ -337,9 +337,8 @@ export class ContinuousEffectLedger {
    * `restrictionCount`, which counts the copies that are effective right now.
    */
   storedRestrictionCount(permanentId: string, restriction: Restriction): number {
-    return this.restrictions.filter(
-      (entry) => entry.permanentId === permanentId && entry.restriction === restriction,
-    ).length;
+    return this.restrictions.filter((entry) => entry.permanentId === permanentId && entry.restriction === restriction)
+      .length;
   }
 
   /** Number of independently-stacking copies of a restriction on one permanent. */
@@ -724,15 +723,24 @@ export class ContinuousEffectLedger {
     permanentId: string,
     info: { name?: string; colors?: string[] },
     duration: EffectDuration,
-    opts?: { continuous?: boolean },
+    opts?: { continuous?: boolean; sourceSeat?: Seat; sourceKinds?: string[] },
   ): void {
-    this.originalCardInfoOverrides.push(
-      this.anchorDuration({ permanentId, ...info, duration, continuous: opts?.continuous }),
-    );
+    this.originalCardInfoOverrides.push(this.anchorDuration({ permanentId, ...info, duration, ...opts }));
   }
 
   originalCardInfoOverride(permanentId: string): { name?: string; colors?: string[] } | undefined {
-    const entries = this.originalCardInfoOverrides.filter((entry) => entry.permanentId === permanentId);
+    const targetSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
+    const entries = this.originalCardInfoOverrides.filter((entry) => {
+      if (entry.permanentId !== permanentId) return false;
+      if (entry.sourceSeat === undefined || targetSeat === undefined || entry.sourceSeat === targetSeat) return true;
+      const sourceKinds = entry.sourceKinds ?? [];
+      if (sourceKinds.length === 0) {
+        return !this.hasRestriction(permanentId, "beAffected", undefined, { byOpponentEffect: true });
+      }
+      return !sourceKinds.some((kind) =>
+        this.hasRestriction(permanentId, "beAffected", kind, { byOpponentEffect: true }),
+      );
+    });
     if (entries.length === 0) return undefined;
     return Object.assign(
       {},

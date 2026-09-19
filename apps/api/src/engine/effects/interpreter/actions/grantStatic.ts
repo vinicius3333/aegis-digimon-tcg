@@ -40,8 +40,12 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         typeof action.grant === "string" &&
         ["effects", "effect", "tokenEffect", "quotedEffect", "gainEffect"].includes(action.grant) &&
         (action.tokens ?? []).some((token) => token !== "get -5000DP");
+      const grantsOriginalCardInfo =
+        typeof action.grant === "object" &&
+        action.grant !== null &&
+        ("dp" in action.grant || "color" in action.grant || "originalName" in action.grant);
       const ids = await resolvePermanentTargets(ctx, action.target, {
-        preserveUnaffectableSelection: grantsTriggeredEffect,
+        preserveUnaffectableSelection: grantsTriggeredEffect || grantsOriginalCardInfo,
       });
       const duration = toDuration("permanent");
       // "nameForDigiXros" (BT19-038) and grant:"name" with digiXrosOnly:true (BT19-012,

@@ -92,6 +92,9 @@ export interface BaseDpOverride {
   duration: EffectDuration;
   /** True when produced by a persistent (static) effect — see DpModifier.continuous. */
   continuous?: boolean;
+  /** Controller and card kinds of the effect that produced this override. */
+  sourceSeat?: Seat;
+  sourceKinds?: string[];
 }
 
 /**
@@ -491,14 +494,14 @@ export class ModifierLedger {
     permanentId: string,
     value: number,
     duration: EffectDuration,
-    opts?: { continuous?: boolean },
+    opts?: { continuous?: boolean; sourceSeat?: Seat; sourceKinds?: string[] },
   ): BaseDpOverride {
     const override: BaseDpOverride = {
       permanentId,
       value,
       activatedAt: this.baseDpOverrideSeq++,
       duration,
-      continuous: opts?.continuous,
+      ...opts,
     };
     this.baseDpOverrides.push(override);
     this.durationOwners.set(override, ownerSeatOfPermanent(state, permanentId));
@@ -516,6 +519,7 @@ export class ModifierLedger {
     let chosen: BaseDpOverride | undefined;
     for (const o of this.baseDpOverrides) {
       if (o.permanentId !== permanent.permanentId) continue;
+      if (this.baseDpOverrideIsSuppressed(permanent, o)) continue;
       if (
         chosen === undefined ||
         (o.continuous === true && chosen.continuous !== true) ||
@@ -525,6 +529,20 @@ export class ModifierLedger {
       }
     }
     return chosen?.value ?? permanent.baseDP;
+  }
+
+  private baseDpOverrideIsSuppressed(permanent: Permanent, override: BaseDpOverride): boolean {
+    if (override.sourceSeat === undefined || this.continuous === undefined) return false;
+    if (permanent.controllerSeat === override.sourceSeat) return false;
+    const sourceKinds = override.sourceKinds ?? [];
+    if (sourceKinds.length === 0) {
+      return this.continuous.hasRestriction(permanent.permanentId, "beAffected", undefined, {
+        byOpponentEffect: true,
+      });
+    }
+    return sourceKinds.some((kind) =>
+      this.continuous!.hasRestriction(permanent.permanentId, "beAffected", kind, { byOpponentEffect: true }),
+    );
   }
 
   /**
