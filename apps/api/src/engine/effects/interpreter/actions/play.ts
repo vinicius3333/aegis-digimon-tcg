@@ -924,6 +924,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 suspended: action.suspended,
                 effectSourceCardId: ctx.source.cardId,
                 ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
+                ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
                 ...(Object.keys(costDeltaByPlay).length > 0 ? { costDeltaByPlay } : {}),
                 ...((action as typeof action & { costOverride?: number }).costOverride !== undefined
                   ? { costOverride: (action as typeof action & { costOverride?: number }).costOverride }
