@@ -41,6 +41,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
             : undefined),
         attackPlayerOnly: action.attackPlayerOnly,
         attackMechanic: action.attackMechanic,
+        afterAttackDeclaration: ctx.continueEffectAfterAttackDeclaration,
         afterAttackTriggers: fireDeferredSuspensionTriggers,
         artsDigivolveOptionInstanceId: ctx.source.definition.isDualCard ? ctx.source.instanceId : undefined,
         // Combat pauses this effect. Its When Attacking and other pending effects
