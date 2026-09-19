@@ -92,6 +92,49 @@ describe("EX12-075 Kunlun's Imperial Decree", () => {
     });
   });
 
+  it("uses the white Option with a Shambala Digimon in the breeding area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX12-022", as: "shambalaInBreeding" },
+          hand: [{ card: CARD_ID, as: "option" }],
+          deck: ["EX12-006", "BT1-009", "EX12-008"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.inst("option").playableFromHand).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === optionId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX12-006")).toBe(true);
+  });
+
+  it.each([
+    ["EX12-002", true],
+    ["EX10-001", false],
+  ])("treats the breeding Digi-Egg %s as a Digimon and applies the Shambala trait boundary", async (egg, legal) => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: egg, as: "egg" },
+        hand: [{ card: CARD_ID, as: "option" }],
+        deck: ["EX12-006", "BT1-009", "EX12-008"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(s.inst("option").playableFromHand).toBe(legal);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toMatchObject(
+      legal ? { ok: true } : { ok: false, reason: "color-requirement-unmet" },
+    );
+  });
+
   it("returns all three revealed cards to deck bottom when none has the Shambala trait", async () => {
     const s = setupEngine(
       {
