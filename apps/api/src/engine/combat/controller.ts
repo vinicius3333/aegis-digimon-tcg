@@ -434,6 +434,12 @@ export class CombatController {
           ? { targetArtId: this.access.permanentById(target.permanentId)!.topCard.artId }
           : {}),
       });
+      // Suspending the attacker used to be followed immediately by the suspension window,
+      // whose trailing continuous recompute is what first brought resident grants up to date:
+      // an inherited ＜Alliance＞ grant, or a "while suspended" DP boost the attacker's own
+      // [When Attacking] condition reads. That window now runs inside `fireAttackTiming`,
+      // after the declaration facts below are captured, so refresh the continuous tier here.
+      if (attackerSuspended) await this.hooks.refreshContinuousEffects?.();
       // The declaration is complete. Resolve an attack-cost payload before suspension-triggered
       // and When Attacking effects while the in-flight attack remains open. Keeping this callback
       // inside the outer try/finally guarantees combat cleanup if it rejects.

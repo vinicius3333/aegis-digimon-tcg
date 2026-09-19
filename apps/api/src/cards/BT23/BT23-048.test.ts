@@ -435,9 +435,13 @@ describe("BT23-048 Gotsumon", () => {
     expect(pending.kind).toBe("orderTriggers");
     expect(pending.seat).toBe(0);
     const keys = (JSON.parse(pending.payloadJson) as { triggerKeys?: string[] }).triggerKeys ?? [];
-    expect(keys).toHaveLength(2);
+    // Attack declaration and the attacker's own suspension are one event (CR §11-1-4 /
+    // §15-4-3), so BT23-020's [All Turns] "when this Digimon is suspended" watcher is ordered
+    // together with the inherited [When Attacking] effect and the ＜Alliance＞ instance.
+    expect(keys).toHaveLength(3);
     expect(keys.some((key) => /Alliance/i.test(key))).toBe(true);
-    expect(keys.some((key) => /Alliance/i.test(key) === false)).toBe(true);
+    expect(keys.some((key) => /whenSuspended/.test(key))).toBe(true);
+    expect(keys.some((key) => /Alliance/i.test(key) === false && /whenSuspended/.test(key) === false)).toBe(true);
   });
 
   it("offers the turn player the order of the end-of-turn trigger and this deletion (Q5568)", async () => {
