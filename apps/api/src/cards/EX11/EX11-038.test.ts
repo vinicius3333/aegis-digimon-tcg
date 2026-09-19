@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
@@ -119,6 +119,60 @@ describe("EX11-038 Sunarizamon", () => {
     assertNoLoudGap(s);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+
+  it("moves over EX8-005 Tumblemon, trashes it for the draw cost, and resolves its inherited memory gain", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "EX8-005", as: "tumblemon" }],
+          hand: [{ card: cardId, as: "sunarizamon" }],
+          deck: ["BT1-009", "BT1-009", { card: "BT1-009", as: "drawn" }],
+          security: ["BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-011", "BT1-011"], security: ["BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    const firstTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === "Breeding" && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && s.state.players[0]!.breeding?.topCard.cardId === "EX8-005");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tumblemon").permanentId,
+        instanceId: s.inst("sunarizamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard.cardId === cardId);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await firstTurn;
+
+    s.state.memory = 0;
+    const secondTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0 && s.state.turnCount === 2);
+    expect(s.perm("sunarizamon").stack[0]?.faceUp).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: s.perm("sunarizamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("tumblemon").instanceId) &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId) &&
+        s.state.memory === 1,
+    );
+
+    expect(s.perm("sunarizamon").topCard.cardId).toBe(cardId);
+    expect(s.perm("sunarizamon").stack).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await secondTurn;
   });
 
   it("draws when trashed by an effect from a Mineral host's evolution stack", async () => {

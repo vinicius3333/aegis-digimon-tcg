@@ -19,7 +19,29 @@ export async function payTrashCost(ctx: EffectContext, cost: Cost, out?: { paidC
     if (want <= 0 || candidates.length < want) return false;
     const chosen = await pickLoose(ctx, { ...cost.target, filter, count: want }, candidates);
     if (chosen.length !== want) return false;
-    const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+    const chosenCandidates = chosen.map((instanceId) =>
+      candidates.find((candidate) => candidate.instanceId === instanceId),
+    );
+    if (chosenCandidates.some((candidate) => candidate === undefined)) return false;
+    const stackSelections = chosenCandidates
+      .filter((candidate) => candidate!.hostPermanentId !== undefined)
+      .map((candidate) => ({
+        hostPermanentId: candidate!.hostPermanentId!,
+        instanceId: candidate!.instanceId,
+      }));
+    const looseIds = chosenCandidates
+      .filter((candidate) => candidate!.hostPermanentId === undefined)
+      .map((candidate) => candidate!.instanceId);
+    const movedFromStacks =
+      stackSelections.length === 0
+        ? []
+        : await ctx.fx.trashDigivolutionCardsAtomic(stackSelections, stackSelections.length, {
+            byEffectSeat: ctx.source.ownerSeat,
+            byEffectCardId: ctx.source.cardId,
+          });
+    const movedLoose =
+      looseIds.length === 0 ? [] : await ctx.fx.trash(looseIds, { byEffectSeat: ctx.source.ownerSeat });
+    const moved = [...movedFromStacks, ...movedLoose];
     if (out) out.paidCount = moved.length;
     return moved.length === want;
   }

@@ -33,6 +33,7 @@ describe("EX8-005", () => {
     ["EX8-047", 5],
     ["EX8-046", 5],
     ["BT2-055", 6],
+    ["EX11-038", 5],
   ] as const)("checks the %s host after an opposing public On Play discards Tumblemon", async (host, memory) => {
     const s = setupEngine(
       {
