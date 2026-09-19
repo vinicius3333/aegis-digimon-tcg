@@ -731,6 +731,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     if (
       action.kind === "PlayWithoutCost" &&
       action.fromOwnDigivolutionStack === true &&
+      action.allowCostWithoutTarget !== true &&
       !costCreatesTrashCandidate &&
       ownStackPlayCandidates(ctx, action.target).length === 0
     ) {
@@ -739,6 +740,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     }
     if (
       action.kind === "PlayWithoutCost" &&
+      action.allowCostWithoutTarget !== true &&
       !costCreatesTrashCandidate &&
       !action.target?.isSelf &&
       action.target?.filter?.isSelfRef !== true &&

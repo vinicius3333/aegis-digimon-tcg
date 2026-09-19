@@ -51,6 +51,7 @@ describe("BT26-067 Wizardmon", () => {
           payCost: true,
           reduceCostBy: 4,
           optional: true,
+          allowCostWithoutTarget: true,
           cost: { kind: "return", to: "deckBottom", target: { filter: { isSelfRef: true } } },
         },
       ],
@@ -254,7 +255,7 @@ describe("BT26-067 Wizardmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
-  it("does not return itself when there is no legal Iliad card to play", async () => {
+  it("may pay the return cost when there is no legal Iliad card to play", async () => {
     const s = setupEngine(
       {
         0: {
@@ -272,11 +273,12 @@ describe("BT26-067 Wizardmon", () => {
     const wizardId = s.perm("wizardmon").permanentId;
     await runEndOfTurn(s, 0);
 
-    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
-    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(wizardId);
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT26-067");
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
   });
 
-  it("does not return itself when the reduced play cost cannot be paid", async () => {
+  it("may pay the return cost when the reduced play cost cannot be paid", async () => {
     const s = setupEngine(
       {
         0: {
@@ -295,7 +297,8 @@ describe("BT26-067 Wizardmon", () => {
     const wizardId = s.perm("wizardmon").permanentId;
     await runEndOfTurn(s);
 
-    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(wizardId);
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT26-067");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-060");
   });
 

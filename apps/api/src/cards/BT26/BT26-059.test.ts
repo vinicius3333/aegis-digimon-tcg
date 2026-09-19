@@ -259,6 +259,30 @@ describe("BT26-059 Plutomon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-021");
   });
 
+  it("may pay the hand-trash cost when there is no Titan to play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT26-059", as: "plutomon" },
+            { card: "BT1-001", as: "cost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plutomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-059"]);
+  });
+
   it("Q7077: stacks its -7 reduction with GranKuwagamon's -4 play reduction", async () => {
     const s = setupEngine(
       {
