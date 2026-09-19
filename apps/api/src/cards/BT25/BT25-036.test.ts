@@ -1,4 +1,4 @@
-import { appFusionCostFor, getCardDefinition } from "@aegis/shared";
+import { appFusionCostFor, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -24,6 +24,7 @@ describe("BT25-036 Craftmon", () => {
     });
     expect(BT25_036.coverage).toBe("full");
     expect(BT25_036.residual).toEqual([]);
+    expect(digivolutionRequirementsFor("BT25-036")).toEqual([{ traits: ["Stnd."], cost: 2, isAlternate: false }]);
 
     expect(BT25_036.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
       trigger: "Security",
@@ -45,6 +46,63 @@ describe("BT25-036 Craftmon", () => {
         },
       ],
     });
+  });
+
+  it("digivolves over differently colored Stnd. Onmon in the breeding area for 2", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT25-045", as: "onmon" },
+        hand: [{ card: "BT25-036", as: "craftmon" }],
+        deck: [{ card: "BT1-010", as: "digivolutionDraw" }],
+        security: [{ card: "BT1-009", as: "securityTop" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("onmon").permanentId,
+        instanceId: s.inst("craftmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").topCard.instanceId === s.inst("craftmon").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("onmon").stack.map(({ cardId }) => cardId)).toEqual(["BT25-045"]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("digivolutionDraw").instanceId,
+    );
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("securityTop").instanceId,
+    ]);
+  });
+
+  it("rejects the Stnd. route over a differently colored non-Stnd. level 3 in breeding", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-064", as: "goblimon" },
+        hand: [{ card: "BT25-036", as: "craftmon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("goblimon").permanentId,
+        instanceId: s.inst("craftmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("goblimon").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("craftmon").instanceId);
+    expect(s.state.memory).toBe(2);
   });
 
   it("adds the top security card, then performs Recovery +1", () => {
