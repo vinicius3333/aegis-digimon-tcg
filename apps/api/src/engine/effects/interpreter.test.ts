@@ -71,6 +71,24 @@ describe("breeding references in effect counts", () => {
   });
 });
 
+describe("duringAttack condition", () => {
+  it("recognizes both an attack-carrying trigger and the live combat window", () => {
+    const triggerContext = makeContext({
+      source: makeSource(),
+      recorder: { calls: [] },
+      trigger: { attackerPermanentId: "attacker" },
+    });
+    expect(evaluateCondition(triggerContext, { kind: "duringAttack" })).toBe(true);
+
+    const combatContext = makeContext({ source: makeSource(), recorder: { calls: [] } });
+    combatContext.fx.isAttackResolving = () => true;
+    expect(evaluateCondition(combatContext, { kind: "duringAttack" })).toBe(true);
+
+    combatContext.fx.isAttackResolving = () => false;
+    expect(evaluateCondition(combatContext, { kind: "duringAttack" })).toBe(false);
+  });
+});
+
 describe("lastDeletedMatchesFilter", () => {
   function card(instanceId: string, cardId: string, ownerSeat: Seat): CardInstance {
     const value = new CardInstance();

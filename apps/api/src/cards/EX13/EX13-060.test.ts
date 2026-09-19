@@ -474,6 +474,48 @@ describe("EX13-060 Alphamon", () => {
     assertNoLoudGap(s);
   });
 
+  it.each(["BT20-053", "EX13-057"])(
+    "lets %s resolve its pending [On Play] rider during the attack Alphamon triggers",
+    async (grademonCardId) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+            hand: [{ card: grademonCardId, as: "grademon" }],
+            deck: ["BT1-011", "BT1-012"],
+            security: ["BT1-013"],
+          },
+          1: {
+            battleArea: [{ card: NON_MATCH, as: "victim", dp: 12_000 }],
+            deck: ["BT1-013"],
+            security: [{ card: "BT1-014", as: "theirSecurity" }],
+          },
+        },
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          autoChooseOption: true,
+          preferTriggerKeys: [CARD_ID],
+          preferInstanceIds: preferred,
+        },
+      );
+      preferred.push(s.inst("grademon").instanceId);
+      s.state.memory = 8;
+      await s.ready();
+
+      await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("alphamon"));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const grademon = s.perm("grademon");
+      expect(grademon.isSuspended).toBe(true);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(grademon.currentDP).toBe(12_000);
+      expect(observe(s.engine).isRestrictedByEffect(grademon, "beAffected", "Digimon")).toBe(true);
+      assertNoLoudGap(s);
+    },
+  );
+
   it("re-runs the [When Digivolving] body on a Tamer-driven watcher", async () => {
     const s = setupEngine(
       {
