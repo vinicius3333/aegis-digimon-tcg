@@ -370,6 +370,14 @@ export function canBlock(
     if (reader.hasRestriction(blocker.permanentId, "block")) {
       return "illegal-target";
     }
+    // Blocking activates by suspending the Digimon (§16-5-1). If a continuous
+    // rule forbids that suspension, the activation cost cannot be paid and the
+    // Digimon is not an eligible blocker. Check this while constructing the
+    // window as well as when declareBlock re-runs canBlock, so a lock gained
+    // after the window opened is also honored.
+    if (reader.hasRestriction(blocker.permanentId, "suspend")) {
+      return "illegal-target";
+    }
     if (!hasBlocker(access, blocker, reader) && !hasCollision(attacker, reader)) {
       return "illegal-target"; // §16-5: a block requires ＜Blocker＞, unless the attacker's ＜Collision＞ grants it (§16-30)
     }
