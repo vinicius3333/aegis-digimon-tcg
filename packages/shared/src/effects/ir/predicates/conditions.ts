@@ -29,6 +29,7 @@ export interface Condition {
     | "phaseIs"
     | "selfBattlesOpponentMatching" // the live Digimon-battle context, excluding security checks
     | "duringAttack" // the current trigger payload carries an attacker
+    | "wouldBeUsedAsOption" // the pay-time declaration uses the source dual card as an Option (LM-066)
     | "attackTargetsPlayer"
     | "attackTargetMatchesFilter" // honors superlatives such as highest DP
     | "lastTargetDpAtLeast" // every permanent the preceding action selected still has >= `value` DP

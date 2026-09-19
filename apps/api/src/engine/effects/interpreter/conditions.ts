@@ -648,6 +648,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return cond.phase !== undefined && ctx.game.state.phase === cond.phase;
     case "duringAttack":
       return ctx.trigger.attackerPermanentId !== undefined;
+    case "wouldBeUsedAsOption":
+      return ctx.trigger.wouldBePlayedAsOption === true;
     case "selfDigivolutionStackHasTrait":
       // "While a card with [X] in its traits is in THIS Digimon's digivolution cards" (BT7-024).
       // Reads the SOURCE permanent's stack and matches each card against the trait token(s) in
