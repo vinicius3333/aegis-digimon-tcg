@@ -183,9 +183,11 @@ describe("ST17-08 MegaGargomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "ST17-08" && s.state.pendingDecision === undefined);
     expect(s.perm("immune").isSuspended).toBe(true);
+    // Latent while the immunity holds: stored but not effective.
     expect(
-      internalsOf(s.engine).continuous.restrictionCount(s.perm("immune").permanentId, "unsuspend"),
+      internalsOf(s.engine).continuous.storedRestrictionCount(s.perm("immune").permanentId, "unsuspend"),
     ).toBeGreaterThan(0);
+    expect(internalsOf(s.engine).continuous.restrictionCount(s.perm("immune").permanentId, "unsuspend")).toBe(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
     expect(internalsOf(s.engine).continuous.restrictionCount(s.perm("immune").permanentId, "beAffected")).toBe(0);

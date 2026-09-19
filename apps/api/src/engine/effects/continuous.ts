@@ -330,6 +330,18 @@ export class ContinuousEffectLedger {
     });
   }
 
+  /**
+   * Stored copies of a restriction, including entries currently suppressed by an
+   * "effects don't affect" immunity. Use this only to prove a restriction is still
+   * recorded and will re-apply once the immunity lapses; every enforcement site wants
+   * `restrictionCount`, which counts the copies that are effective right now.
+   */
+  storedRestrictionCount(permanentId: string, restriction: Restriction): number {
+    return this.restrictions.filter(
+      (entry) => entry.permanentId === permanentId && entry.restriction === restriction,
+    ).length;
+  }
+
   /** Number of independently-stacking copies of a restriction on one permanent. */
   restrictionCount(permanentId: string, restriction: Restriction): number {
     return this.restrictions.filter(
