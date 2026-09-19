@@ -27,7 +27,7 @@ const compiled: CompiledCard = {
                 },
               ],
             },
-            raw: "you have don't have [Heat Training] in the battle area",
+            raw: "you don't have [Heat Training] in the battle area",
           },
         },
       ],

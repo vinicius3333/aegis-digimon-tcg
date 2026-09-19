@@ -192278,7 +192278,7 @@
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Treadmill Training"], "match": "name" }]
               },
-              "raw": "you have don't have [Treadmill Training] in the battle area"
+              "raw": "you don't have [Treadmill Training] in the battle area"
             }
           }
         ]
@@ -192346,7 +192346,7 @@
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Sprint Dash Training"], "match": "name" }]
               },
-              "raw": "you have don't have [Sprint Dash Training] in the battle area"
+              "raw": "you don't have [Sprint Dash Training] in the battle area"
             }
           }
         ]
@@ -192414,7 +192414,7 @@
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Image Training"], "match": "name" }]
               },
-              "raw": "you have don't have [Image Training] in the battle area"
+              "raw": "you don't have [Image Training] in the battle area"
             }
           }
         ]
@@ -192482,7 +192482,7 @@
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Wall Training"], "match": "name" }]
               },
-              "raw": "you have don't have [Wall Training] in the battle area"
+              "raw": "you don't have [Wall Training] in the battle area"
             }
           }
         ]
@@ -192546,7 +192546,7 @@
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Parkour Training"], "match": "name" }]
               },
-              "raw": "you have don't have [Parkour Training] in the battle area"
+              "raw": "you don't have [Parkour Training] in the battle area"
             }
           }
         ]
@@ -192614,7 +192614,7 @@
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Heat Training"], "match": "name" }]
               },
-              "raw": "you have don't have [Heat Training] in the battle area"
+              "raw": "you don't have [Heat Training] in the battle area"
             }
           }
         ]
@@ -192682,7 +192682,7 @@
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Shadow Training"], "match": "name" }]
               },
-              "raw": "you have don't have [Shadow Training] in the battle area"
+              "raw": "you don't have [Shadow Training] in the battle area"
             }
           }
         ]
@@ -192750,7 +192750,7 @@
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Punching Training"], "match": "name" }]
               },
-              "raw": "you have don't have [Punching Training] in the battle area"
+              "raw": "you don't have [Punching Training] in the battle area"
             }
           }
         ]
@@ -192818,7 +192818,7 @@
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Breathing Training"], "match": "name" }]
               },
-              "raw": "you have don't have [Breathing Training] in the battle area"
+              "raw": "you don't have [Breathing Training] in the battle area"
             }
           }
         ]
