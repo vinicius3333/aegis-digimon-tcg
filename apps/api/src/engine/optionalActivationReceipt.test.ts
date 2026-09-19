@@ -1,0 +1,237 @@
+import { describe, expect, it } from "vitest";
+import { EffectTiming, type CompiledCard } from "@aegis/shared";
+import "../cards/index.js";
+import { registerIrCard, runtimeCompiledCard } from "./effects/interpreter.js";
+import { advance } from "./testkit/advance.js";
+import { setupEngine } from "./testkit/harness.js";
+
+const CARD_ID = "BT1-009";
+
+const modifySelfDP = (amount: number, optional = false) => ({
+  kind: "ModifyDP" as const,
+  target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+  amount,
+  duration: "forTheTurn" as const,
+  optional,
+});
+
+async function withCompiledCard(compiled: CompiledCard, run: () => Promise<void>): Promise<void> {
+  const original = runtimeCompiledCard(CARD_ID);
+  if (original === undefined) throw new Error(`${CARD_ID} must be registered by cards/index.js`);
+  registerIrCard(CARD_ID, compiled);
+  try {
+    await run();
+  } finally {
+    registerIrCard(CARD_ID, original);
+  }
+}
+
+function oncePerTurnOnPlay(effect: Omit<CompiledCard["effects"][number], "trigger">): CompiledCard {
+  return { effects: [{ ...effect, trigger: "OnPlay", frequency: "OncePerTurn" }], coverage: "full", residual: [] };
+}
+
+function optionalActionRequests(s: ReturnType<typeof setupEngine>): string[] {
+  return s.decisions.filter(({ req }) => req.kind === "optional").map(({ req }) => req.promptText ?? "");
+}
+
+describe("once-per-turn activation receipt boundaries", () => {
+  it("preserves the once-per-turn opportunity when an optional CostGatedBlock cost is declined", async () => {
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        actions: [
+          {
+            kind: "CostGatedBlock",
+            optional: true,
+            abortOnDecline: true,
+            cost: {
+              kind: "trash",
+              target: { filter: { cardId: "BT1-009", controller: "mine", zone: "hand" }, from: ["hand"], count: 1 },
+            },
+            actions: [modifySelfDP(1000)],
+          },
+        ],
+      }),
+      async () => {
+        const s = setupEngine(
+          {
+            0: {
+              battleArea: [{ card: CARD_ID, as: "source" }],
+              hand: [{ card: "BT1-009", as: "payment" }],
+            },
+          },
+          { autoDeclineOptional: true },
+        );
+        const fire = advance(s.engine);
+
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+
+        expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(2);
+        expect(s.perm("source").currentDP).toBe(3000);
+        expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("payment").instanceId)).toBe(
+          true,
+        );
+      },
+    );
+  });
+
+  it("keeps a CostGatedBlock chosen when its paid cost is followed by a declined optional body", async () => {
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        actions: [
+          {
+            kind: "CostGatedBlock",
+            optional: true,
+            abortOnDecline: true,
+            cost: {
+              kind: "trash",
+              target: { filter: { cardId: "BT1-009", controller: "mine", zone: "hand" }, from: ["hand"], count: 1 },
+            },
+            actions: [modifySelfDP(1000, true)],
+          },
+        ],
+      }),
+      async () => {
+        const s = setupEngine(
+          {
+            0: {
+              battleArea: [{ card: CARD_ID, as: "source" }],
+              hand: [
+                { card: "BT1-009", as: "payment" },
+                { card: "BT1-009", as: "secondPayment" },
+              ],
+            },
+          },
+          { autoSelectCards: true, declinePrompts: ["Modify DP"] },
+        );
+        const fire = advance(s.engine);
+
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+
+        expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
+        expect(optionalActionRequests(s)).toHaveLength(1);
+        expect(s.perm("source").currentDP).toBe(3000);
+        expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("payment").instanceId)).toBe(
+          true,
+        );
+        expect(
+          s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("secondPayment").instanceId),
+        ).toBe(true);
+      },
+    );
+  });
+
+  it("consumes once-per-turn when a declined non-aborting optional cost is followed by mandatory processing", async () => {
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        actions: [
+          {
+            kind: "GainMemory",
+            amount: 1,
+            cost: { kind: "payMemory", memory: 1, optional: true },
+          },
+        ],
+      }),
+      async () => {
+        const s = setupEngine(
+          {
+            0: {
+              battleArea: [{ card: CARD_ID, as: "source" }],
+            },
+          },
+          { autoDeclineOptional: true },
+        );
+        const fire = advance(s.engine);
+
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        const afterFirst = s.state.memory;
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+
+        expect(s.state.memory).toBe(afterFirst);
+        expect(optionalActionRequests(s)).toHaveLength(1);
+      },
+    );
+  });
+
+  it("keeps a mandatory prefix consumed when a later optional action is declined", async () => {
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        actions: [modifySelfDP(1000), modifySelfDP(1000, true)],
+      }),
+      async () => {
+        const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } }, { autoDeclineOptional: true });
+        const fire = advance(s.engine);
+
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        expect(s.perm("source").currentDP).toBe(4000);
+        expect(optionalActionRequests(s)).toHaveLength(1);
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+
+        expect(s.perm("source").currentDP).toBe(4000);
+        expect(optionalActionRequests(s)).toHaveLength(1);
+      },
+    );
+  });
+
+  it("consumes the use after an optional action is accepted even when it changes no state", async () => {
+    await withCompiledCard(oncePerTurnOnPlay({ actions: [modifySelfDP(0, true)] }), async () => {
+      const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } }, { autoAcceptOptional: true });
+      const fire = advance(s.engine);
+
+      await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+      await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+
+      expect(s.perm("source").currentDP).toBe(3000);
+      expect(optionalActionRequests(s)).toHaveLength(1);
+    });
+  });
+
+  it("keeps an accepted whole-effect optional chosen when its optional body is declined", async () => {
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        description: "outer optional gate",
+        optional: true,
+        actions: [modifySelfDP(1000, true)],
+      }),
+      async () => {
+        const s = setupEngine(
+          { 0: { battleArea: [{ card: CARD_ID, as: "source" }] } },
+          { autoAcceptOptional: true, declinePrompts: ["Modify DP"] },
+        );
+        const fire = advance(s.engine);
+
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+
+        expect(s.perm("source").currentDP).toBe(3000);
+        expect(optionalActionRequests(s)).toHaveLength(2);
+        expect(optionalActionRequests(s)[0]).toBe("Use this effect?");
+        expect(optionalActionRequests(s)[1]).toContain("Modify DP");
+      },
+    );
+  });
+
+  it("keeps a once-per-turn use consumed after paying the whole-effect cost before declining its body", async () => {
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+        actions: [modifySelfDP(1000, true)],
+      }),
+      async () => {
+        const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } }, { autoDeclineOptional: true });
+        const fire = advance(s.engine);
+
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        expect(s.perm("source").isSuspended).toBe(true);
+        expect(s.perm("source").currentDP).toBe(3000);
+        await advance(s.engine).verb.unsuspend([s.perm("source").permanentId]);
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+
+        expect(optionalActionRequests(s)).toHaveLength(1);
+        expect(s.perm("source").isSuspended).toBe(false);
+        expect(s.perm("source").currentDP).toBe(3000);
+      },
+    );
+  });
+});

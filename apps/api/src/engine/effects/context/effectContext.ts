@@ -152,6 +152,8 @@ export interface EffectContext {
   lastOpponentDeclined?: boolean;
   /** A printed optional activation was declined, so its provisional OPT mark must be restored. */
   oncePerTurnActivationDeclined?: boolean;
+  /** A processing choice or mandatory action in this activation was actually chosen. */
+  oncePerTurnActivationChosen?: boolean;
   /** Whether the most recently dispatched action's condition matched. */
   lastActionConditionMatched?: boolean;
   lastPlayedPermanentIds?: string[];
