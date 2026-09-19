@@ -141541,6 +141541,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }]
               },
