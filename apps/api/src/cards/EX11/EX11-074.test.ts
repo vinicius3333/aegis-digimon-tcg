@@ -219,6 +219,35 @@ describe("EX11-074 Vortexdramon", () => {
     assertNoLoudGap(s);
   });
 
+  it("keeps the All Turns once-per-turn effect available after both optional actions are declined", async () => {
+    const declinedPrompts = ["Unsuspend", "Battle"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-074", as: "source", dp: 14000, suspended: true },
+            { card: "BT1-014", as: "firstTrigger" },
+            { card: "BT1-014", as: "secondTrigger" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "opponent", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: declinedPrompts },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("firstTrigger").permanentId]);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    declinedPrompts.length = 0;
+    await advance(s.engine).verb.suspend([s.perm("secondTrigger").permanentId]);
+
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("Q5949-Q5954 blocks a public opponent Digimon effect from suspending the protected Vortex", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
