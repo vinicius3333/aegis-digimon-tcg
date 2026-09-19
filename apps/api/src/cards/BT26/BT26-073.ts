@@ -21,7 +21,12 @@ const tsPlayable: Filter = {
   playCostLte: 5,
 };
 
-const deleteOpponent: Action = { kind: "Delete", target: { filter: opponentLevelFive, count: 1 } };
+const deleteOpponent: Action = {
+  kind: "Delete",
+  target: { filter: opponentLevelFive, count: 1 },
+  // CR 15-7-5: either processing cost may be paid without a legal deletion target.
+  allowCostWithoutTarget: true,
+};
 const costChoice: Action = {
   kind: "Modal",
   choose: 1,

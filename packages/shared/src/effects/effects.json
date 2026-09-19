@@ -221951,13 +221951,6 @@
                 "duration": "untilEachTurnEnd"
               },
               {
-                "kind": "GrantStatic",
-                "target": { "filter": {}, "count": 1, "fromSelectionRef": "pumpkinmonIliad" },
-                "grant": "effects",
-                "tokens": ["Execute"],
-                "duration": "untilEachTurnEnd"
-              },
-              {
                 "kind": "GainKeyword",
                 "target": { "filter": {}, "count": 1, "fromSelectionRef": "pumpkinmonIliad" },
                 "keyword": { "keyword": "Ascension" },
@@ -221992,13 +221985,6 @@
                 "kind": "GainKeyword",
                 "target": { "filter": {}, "count": 1, "fromSelectionRef": "pumpkinmonIliad" },
                 "keyword": { "keyword": "Execute" },
-                "duration": "untilEachTurnEnd"
-              },
-              {
-                "kind": "GrantStatic",
-                "target": { "filter": {}, "count": 1, "fromSelectionRef": "pumpkinmonIliad" },
-                "grant": "effects",
-                "tokens": ["Execute"],
                 "duration": "untilEachTurnEnd"
               },
               {
@@ -225804,6 +225790,7 @@
                     },
                     "count": 1
                   },
+                  "allowCostWithoutTarget": true,
                   "cost": { "kind": "deleteOwn", "target": { "filter": { "isSelfRef": true }, "count": 1 } }
                 }
               ],
@@ -225818,6 +225805,7 @@
                     },
                     "count": 1
                   },
+                  "allowCostWithoutTarget": true,
                   "cost": {
                     "kind": "return",
                     "target": {
@@ -225860,6 +225848,7 @@
                     },
                     "count": 1
                   },
+                  "allowCostWithoutTarget": true,
                   "cost": { "kind": "deleteOwn", "target": { "filter": { "isSelfRef": true }, "count": 1 } }
                 }
               ],
@@ -225874,6 +225863,7 @@
                     },
                     "count": 1
                   },
+                  "allowCostWithoutTarget": true,
                   "cost": {
                     "kind": "return",
                     "target": {
@@ -226498,13 +226488,6 @@
                 "kind": "GainKeyword",
                 "target": { "sourceRef": "triggerSubject", "filter": {}, "count": 1 },
                 "keyword": { "keyword": "Execute" },
-                "duration": "forTheTurn"
-              },
-              {
-                "kind": "GrantStatic",
-                "target": { "sourceRef": "triggerSubject", "filter": {}, "count": 1 },
-                "grant": "effects",
-                "tokens": ["Execute"],
                 "duration": "forTheTurn"
               }
             ],

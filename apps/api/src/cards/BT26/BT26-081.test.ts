@@ -186,6 +186,34 @@ describe("BT26-081 compiled behavior", () => {
     expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.currentDP).toBe(2000);
   });
 
+  it("offers cost-8 Iliad cards but excludes Iliad cards over the total play-cost budget", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT26-081", as: "mervamon" },
+            { card: "BT26-029", as: "cost8Iliad" },
+            { card: "BT25-058", as: "cost13Iliad" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    await s.ready();
+
+    s.state.memory = 30;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+
+    const selection = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    expect(selection).toMatchObject({
+      options: { candidateInstanceIds: [s.inst("cost8Iliad").instanceId] },
+    });
+  });
+
   it("Q7115 still reduces DP when no card is played", async () => {
     const s = setupEngine(
       {

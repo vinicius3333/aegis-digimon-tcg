@@ -213,7 +213,17 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         ? action.from
         : [action.from === "digivolution" ? "digivolutionCards" : action.from];
       const target: Target = { filter: action.filter, count: "all", upTo: true };
-      const candidates = playableCandidates(ctx, target, candidateLooseInstances(ctx, target, from));
+      const budget = action.totalCostScaling
+        ? action.totalCostScaling.base +
+          Math.floor(countMatching(ctx, action.totalCostScaling.filter) / action.totalCostScaling.per) *
+            action.totalCostScaling.raise
+        : action.totalCost;
+      const candidates = playableCandidates(ctx, target, candidateLooseInstances(ctx, target, from)).filter(
+        (candidate) => {
+          const playCost = ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost;
+          return playCost !== undefined && playCost <= budget;
+        },
+      );
       if (candidates.length === 0) {
         ctx.lastPlayedPermanentIds = [];
         return false;
@@ -225,11 +235,6 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       });
       const chosen: string[] = [];
       let usedCost = 0;
-      const budget = action.totalCostScaling
-        ? action.totalCostScaling.base +
-          Math.floor(countMatching(ctx, action.totalCostScaling.filter) / action.totalCostScaling.per) *
-            action.totalCostScaling.raise
-        : action.totalCost;
       for (const instanceId of selected) {
         const cand = candidates.find((c) => c.instanceId === instanceId);
         if (cand === undefined) continue;

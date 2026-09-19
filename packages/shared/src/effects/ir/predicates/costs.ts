@@ -129,6 +129,11 @@ export interface Cost {
    */
   detachPermanentTop?: boolean;
   /**
+   * For `placeAsSecurity`, move the card directly beneath the source's top card while leaving
+   * the source permanent in play. The cost is unpayable without a digivolution card.
+   */
+  fromDigivolutionTop?: boolean;
+  /**
    * When relocating a permanent as a placement cost, move only its top card to the destination;
    * trash its existing digivolution and linked cards to their respective owners instead of
    * attaching the entire prior stack. Ignored unless `targetIsPermanent` is true.

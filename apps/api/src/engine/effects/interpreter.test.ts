@@ -3276,6 +3276,53 @@ describe("v2 IR actions dispatch to real primitives", () => {
     expect(plays[0]!.args[1]).toEqual({ payCost: false });
   });
 
+  it("does not offer PlayMultiple candidates whose individual play cost exceeds the total budget", async () => {
+    const module = irCardModule("Z-MULTI", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "PlayMultiple",
+              totalCost: 8,
+              filter: { controller: "mine", kind: ["Digimon"] },
+              from: "hand",
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    });
+    const source = makeSource({ cardId: "Z-MULTI" });
+    const recorder: Recorder = { calls: [] };
+    const ownHand = [
+      { instanceId: "HAND#8", cardId: "COST-8", ownerSeat: 0, faceUp: false },
+      { instanceId: "HAND#13", cardId: "COST-13", ownerSeat: 0, faceUp: false },
+    ];
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownHand,
+      selectCardsAnswer: () => [],
+      definitionOf: (id) =>
+        makeFakeDefinition({
+          cardId: id,
+          kinds: ["Digimon"] as never,
+          playCost: Number(id.split("-")[1]),
+        }),
+    });
+
+    for (const effect of module.effectsForTiming(EffectTiming.OnPlay, source)) await effect.resolve(ctx);
+
+    expect(recorder.calls.find((call) => call.verb === "selectCards")?.args[0]).toMatchObject({
+      candidates: ["HAND#8"],
+      max: 1,
+    });
+  });
+
   it("trashes cards from hand using the added-to-hand trigger count (HandManipulation trashVariable)", async () => {
     const module = irCardModule("Z-HAND", {
       coverage: "full",

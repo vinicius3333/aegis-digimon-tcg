@@ -31,7 +31,12 @@ describe("BT26-033 compiled fidelity", () => {
           mode: "prevent",
           affectsAll: true,
           target: { count: "all", filter: { kind: ["Digimon", "Tamer"] } },
-          cost: { kind: "placeAsSecurity", position: "bottom", target: { filter: { isSelfRef: true }, isSelf: true } },
+          cost: {
+            kind: "placeAsSecurity",
+            position: "bottom",
+            fromDigivolutionTop: true,
+            target: { filter: { isSelfRef: true }, isSelf: true },
+          },
         },
       ],
     });
@@ -198,7 +203,10 @@ describe("BT26-033 compiled fidelity", () => {
     ).toBe(0);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-013")).toBe(true);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-030")).toBe(true);
-    expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT26-033");
+    expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT26-030");
+    expect(s.perm("jupitermon").topCard.cardId).toBe(CARD_ID);
+    expect(s.perm("jupitermon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("protects only owned TS cards and leaves non-TS or opponent TS cards", async () => {
@@ -219,7 +227,8 @@ describe("BT26-033 compiled fidelity", () => {
       await advance(protectedCase.engine).verb.deletePermanent([protectedCase.perm("ownedTs").permanentId], "byEffect"),
     ).toBe(0);
     expect(protectedCase.perm("ownedTs").topCard.cardId).toBe("BT26-015");
-    expect(protectedCase.state.players[0]!.security.at(-1)?.cardId).toBe("BT26-033");
+    expect(protectedCase.state.players[0]!.security.at(-1)?.cardId).toBe("BT26-030");
+    expect(protectedCase.perm("jupitermon").topCard.cardId).toBe(CARD_ID);
 
     const filteredCase = setupEngine(
       {
@@ -243,6 +252,16 @@ describe("BT26-033 compiled fidelity", () => {
     ).toBe(2);
     expect(filteredCase.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual([CARD_ID]);
     expect(filteredCase.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("cannot pay the protection cost without a digivolution card", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "jupitermon" }] } }, { autoAcceptOptional: true });
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("jupitermon").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
   });
 
   it("uses Alliance during a real attack and suspends the chosen ally", async () => {

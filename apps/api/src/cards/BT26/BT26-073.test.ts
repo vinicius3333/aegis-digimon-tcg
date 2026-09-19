@@ -155,6 +155,98 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-060"]);
   });
 
+  it.each([false, true])(
+    "can self-delete without an eligible opponent and resolve On Deletion (level 6: %s)",
+    async (hasLevelSix) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT26-073", as: "dark" },
+              { card: "BT26-069", as: "candidate" },
+            ],
+          },
+          1: { battleArea: hasLevelSix ? [{ card: "BT26-060", as: "high" }] : [] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 8;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dark").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+
+      expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-073");
+      expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-069"]);
+      expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(
+        hasLevelSix ? ["BT26-060"] : [],
+      );
+    },
+  );
+
+  it("can return a trash card as the cost on an empty opposing board", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT26-073", as: "dark" }], trash: [{ card: "BT26-074", as: "cost" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dark").instanceId })).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-073"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("cost").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("may decline either cost on an empty opposing board", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT26-073", as: "dark" }], trash: [{ card: "BT26-074", as: "cost" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dark").instanceId })).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-073"]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+  });
+
+  it("can self-delete after digivolving on an empty opposing board and replay its TS source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-033", as: "aegiomon" }],
+          hand: [{ card: "BT26-073", as: "dark" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("aegiomon").permanentId,
+        instanceId: s.inst("dark").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT25-033"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT26-073"]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("may return an exact Shaman or TS card from trash instead of deleting itself", async () => {
     const s = setupEngine(
       {
