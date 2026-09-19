@@ -94,7 +94,7 @@ describe("famous deck selection", () => {
     expect(onStart).toHaveBeenCalled();
   });
 
-  it("automatically enables beta for an EX13 deck and keeps private matches unavailable", () => {
+  it("automatically enables beta for an EX13 deck and still allows private matches", () => {
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck[0] = "EX13-007";
     render(
@@ -115,7 +115,7 @@ describe("famous deck selection", () => {
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
     expect((screen.getByRole("button", { name: "Play vs Bot" }) as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
-    expect((screen.getByRole("button", { name: "Create Room" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Create Room" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("confirms beta bot battles before starting", () => {

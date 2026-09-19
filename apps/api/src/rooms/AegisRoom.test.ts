@@ -34,7 +34,9 @@ function fakeClient(sessionId: string): Client {
 
 type BroadcastCall = [string, unknown, { afterNextPatch?: boolean } | undefined];
 
-function makeRoom(options: { botRoom?: boolean; betaBattleRoom?: boolean; seed?: number } = {}): AegisRoom {
+function makeRoom(
+  options: { botRoom?: boolean; betaBattleRoom?: boolean; private?: boolean; seed?: number } = {},
+): AegisRoom {
   const room = new AegisRoom();
   const broadcastCalls: BroadcastCall[] = [];
   room.broadcast = vi.fn((type: string, message: unknown, broadcastOptions?: { afterNextPatch?: boolean }) => {
@@ -95,6 +97,26 @@ describe("AegisRoom ready-gated match start", () => {
     room.onJoin(second, secondOptions);
     intentSender(room)(first, { type: "ready" });
     intentSender(room)(second, { type: "ready" });
+    const player = room.state.players[0]!;
+    expect([...player.deck, ...player.hand].some(({ cardId }) => cardId === "EX13-007")).toBe(true);
+  });
+
+  it("seats an unreleased-product deck in a private room without a beta flag", async () => {
+    const room = makeRoom({ betaBattleRoom: true, private: true });
+    const betaDeck = { mainDeck: [...RED_DECK.mainDeck], eggDeck: [...RED_DECK.eggDeck] };
+    betaDeck.mainDeck[0] = "EX13-007";
+    const host = fakeClient("private-host");
+    const hostOptions = { displayName: "Host", deck: betaDeck };
+    expect(await room.onAuth(host, hostOptions)).toBe(true);
+    room.clients.push(host);
+    room.onJoin(host, hostOptions);
+    const guest = fakeClient("private-guest");
+    const guestOptions = { displayName: "Guest", deck: betaDeck, roomCode: room.state.roomCode };
+    expect(await room.onAuth(guest, guestOptions)).toBe(true);
+    room.clients.push(guest);
+    room.onJoin(guest, guestOptions);
+    intentSender(room)(host, { type: "ready" });
+    intentSender(room)(guest, { type: "ready" });
     const player = room.state.players[0]!;
     expect([...player.deck, ...player.hand].some(({ cardId }) => cardId === "EX13-007")).toBe(true);
   });

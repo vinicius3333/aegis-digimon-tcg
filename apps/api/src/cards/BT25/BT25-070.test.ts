@@ -228,9 +228,11 @@ describe("BT25-070 Logamon", () => {
     expect(s.perm("source").stack.map((card) => card.cardId)).toEqual([source]);
   });
 
+  // BT25-008 Coronamon, not an Appmon: Logamon's printed "Stnd. 2" badge makes ANY [Stnd.]
+  // Appmon a legal base regardless of color, so a red Appmon no longer demonstrates rejection.
   it("rejects the wrong-color level-3 source without moving or charging it", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-009", as: "redSource" }], hand: [{ card: "BT25-070", as: "logamon" }] },
+      0: { battleArea: [{ card: "BT25-008", as: "redSource" }], hand: [{ card: "BT25-070", as: "logamon" }] },
     });
     s.state.memory = 5;
     await s.ready();
@@ -241,9 +243,29 @@ describe("BT25-070 Logamon", () => {
         instanceId: s.inst("logamon").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
-    expect(s.perm("redSource").topCard.cardId).toBe("BT21-009");
+    expect(s.perm("redSource").topCard.cardId).toBe("BT25-008");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("logamon").instanceId);
     expect(s.state.memory).toBe(5);
+  });
+
+  // The printed "Stnd. 2" badge carries no color ring, so a red [Stnd.] Appmon IS a legal
+  // base -- one memory cheaper than the Lv.3 badge's 3.
+  it("digivolves from an off-color [Stnd.] Appmon for the badge cost of 2", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-009", as: "redAppmon" }], hand: [{ card: "BT25-070", as: "logamon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redAppmon").permanentId,
+        instanceId: s.inst("logamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("redAppmon").topCard?.cardId === "BT25-070");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("redAppmon").stack.map((card) => card.cardId)).toEqual(["BT21-009"]);
   });
 
   it("publicly App Fuses Offmon and Hackmon into Logamon at zero cost", async () => {

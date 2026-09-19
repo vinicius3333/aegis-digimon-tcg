@@ -42,7 +42,7 @@ export const ptBR: Record<keyof typeof en, string> = {
     "Você está usando cartas que ainda não foram lançadas, então vai jogar em uma fila especial com jogadores que usam as mesmas cartas.",
   "lobby.betaRequiredTitle": "Este deck precisa do modo de batalha beta",
   "lobby.betaRequiredHint":
-    "Cartas beta podem ser usadas em Partida rápida ou Treino contra a IA. Escolha um desses modos para usar este deck.",
+    "Cartas beta podem ser usadas em Partida rápida, Treino contra a IA ou sala privada. Escolha um desses modos para usar este deck.",
   "lobby.betaConfirmTitle": "Jogar com cartas beta?",
   "lobby.betaConfirmHint":
     "{deck} usa cartas de um set que ainda não foi lançado. O texto e o comportamento delas ainda podem mudar. Partidas com esse deck entram em uma fila beta separada, então você só enfrenta outros decks beta. Continuar?",

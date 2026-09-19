@@ -103,21 +103,25 @@ export function Lobby({
   const [roomCodeInput, setRoomCodeInput] = useState("");
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
   const [botDeckId, setBotDeckId] = useState("");
-  const betaSupported = mode === "casual" || mode === "practice";
+  // Which modes route an unreleased-card deck into the separate beta queue.
+  const betaQueueMode = mode === "casual" || mode === "practice";
+  // A private room is invite-only and both seats opt in by sharing the code, so it takes
+  // an unreleased-card deck without the queue routing a public match needs.
+  const betaAllowed = betaQueueMode || mode === "private";
   const userDecks = useMemo(() => {
     return decks
       .map((deck) => ({
         deck,
         legal:
           deckLegality(deck).legal &&
-          (betaSupported ||
+          (betaAllowed ||
             ![...deck.mainDeck, ...deck.eggDeck].some((id) => {
               const card = getCardDefinition(id);
               return card !== undefined && isBetaOnlyCard(card);
             })),
       }))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
-  }, [decks, betaSupported]);
+  }, [decks, betaAllowed]);
   const editDeck = useCallback(
     (deck: DeckListing) => {
       if (onEditDeck) {
@@ -158,14 +162,14 @@ export function Lobby({
         : [],
     [active],
   );
-  const betaEnabled = betaSupported && betaCards.length > 0;
+  const betaEnabled = betaQueueMode && betaCards.length > 0;
   const deckLegal =
     !!active &&
     active.mainDeck.length === 50 &&
     active.eggDeck.length <= 5 &&
     banViolations.length === 0 &&
     pairViolations.length === 0 &&
-    (betaCards.length === 0 || betaEnabled);
+    (betaCards.length === 0 || betaAllowed);
 
   return (
     <main
@@ -392,7 +396,7 @@ export function Lobby({
               {t("lobby.betaBattleHint")}
             </Alert>
           ) : null}
-          {betaCards.length > 0 && !betaEnabled ? (
+          {betaCards.length > 0 && !betaAllowed ? (
             <Alert className="lobby-alert" tone="warning" title={t("lobby.betaRequiredTitle")}>
               {t("lobby.betaRequiredHint")}
             </Alert>

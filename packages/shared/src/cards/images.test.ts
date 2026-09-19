@@ -28,3 +28,15 @@ describe("alternate art provider fallback", () => {
     expect(cardImageUrls("BT1-010", "BT1-010_P999")).toEqual(cardImageUrls("BT1-010"));
   });
 });
+
+describe("errata printings", () => {
+  it("tries the errata art before the pre-errata art", () => {
+    const urls = cardImageUrls("BT16-077");
+    expect(urls.map((url) => url.split("/").at(-1))).toEqual([
+      "BT16-077-Errata.webp",
+      "BT16-077-Errata-Sample.webp",
+      "BT16-077.webp",
+      "BT16-077-Sample.webp",
+    ]);
+  });
+});

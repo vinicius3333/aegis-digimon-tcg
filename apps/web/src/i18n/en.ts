@@ -39,7 +39,7 @@ export const en = {
     "You are using cards that have not been released yet, so you will play in a special queue with players using the same card pool.",
   "lobby.betaRequiredTitle": "This deck needs beta battle mode",
   "lobby.betaRequiredHint":
-    "Beta cards can be played in Quick Match or Practice vs AI. Choose one of these modes to use this deck.",
+    "Beta cards can be played in Quick Match, Practice vs AI or a private room. Choose one of these modes to use this deck.",
   "lobby.betaConfirmTitle": "Play with beta cards?",
   "lobby.betaConfirmHint":
     "{deck} uses cards from a set that is not out yet. Their text and behavior can still change. Matches with this deck run in a separate beta queue, so you only face other beta decks. Continue?",

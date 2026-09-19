@@ -30,13 +30,16 @@ export const RECONNECT_GRACE_SECONDS = 180;
 
 /**
  * Public matchmaking queue that allows cards from an announced-but-unreleased product
- * (`isBetaOnlyCard`, e.g. EX13 ahead of its street date). Every other room type rejects
- * such a card at deck-validation time.
+ * (`isBetaOnlyCard`, e.g. EX13 ahead of its street date). Ranked and tournament rooms reject
+ * such a card at deck-validation time; a private room accepts it (see {@link ROOM_TYPE_PRIVATE}).
  */
 export const ROOM_TYPE_BETA = "aegis_beta" as const;
 
 /** Authenticated rooms bound to one server-owned tournament bracket match. */
 export const ROOM_TYPE_TOURNAMENT = "aegis_tournament" as const;
 
-/** Private room type — registered with the same class but isolated from the public matchmaker. */
+/**
+ * Private room type — registered with the same class but isolated from the public matchmaker.
+ * Invite-only, so an unreleased-product card is legal here without a beta flag.
+ */
 export const ROOM_TYPE_PRIVATE = "aegis_private" as const;

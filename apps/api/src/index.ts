@@ -212,7 +212,9 @@ gameServer.define(ROOM_TYPE_BETA, AegisRoom, {
 gameServer
   .define(ROOM_TYPE_TOURNAMENT, AegisRoom, { botRoom: false, tournamentRoom: true, betaBattleRoom: false })
   .filterBy(["tournamentMatchId", "tournamentGameId"]);
-gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, { botRoom: false, private: true, betaBattleRoom: false });
+// Invite-only, so unreleased-product cards are legal here: both seats opted in by sharing
+// the code, and no public queue or statistic depends on the result.
+gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, { botRoom: false, private: true, betaBattleRoom: true });
 
 /**
  * The deadline worker runs in production by default and nowhere else by default, because a test or

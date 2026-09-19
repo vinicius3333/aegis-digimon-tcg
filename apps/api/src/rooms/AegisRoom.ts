@@ -258,7 +258,9 @@ export class AegisRoom extends Room<GameState> {
       return false;
     if ((options.ranked === true) !== this.isRankedRoom || ((this.isRankedRoom || this.isTournamentRoom) && !account))
       return false;
-    if ((options.betaBattleMode === true) !== this.isBetaBattleRoom) return false;
+    // A private room allows beta cards without the client asking for them, so only the
+    // public room types have to agree with the joiner's beta flag.
+    if (!this.isPrivate && (options.betaBattleMode === true) !== this.isBetaBattleRoom) return false;
     if (
       (this.isRankedRoom || this.isTournamentRoom) &&
       account &&
@@ -707,6 +709,9 @@ export class AegisRoom extends Room<GameState> {
 
   override onJoin(client: Client, options: AegisJoinOptions): void {
     this.debug("player.join", { sessionId: client.sessionId, deck: options.deck });
+    // The room type, not the payload, decides whether unreleased cards are legal: a private
+    // room accepts them and its clients never send the flag (onAuth already vetted the pair).
+    if (this.isBetaBattleRoom) options = { ...options, betaBattleMode: true };
     this.rankedByClient.set(client.sessionId, options.ranked === true);
     this.deckByClient.set(client.sessionId, {
       deckId: options.deckId ?? null,

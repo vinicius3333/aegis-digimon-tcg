@@ -108,6 +108,9 @@ describe("public App Fusion digivolve intent", () => {
     ]);
   });
 
+  // Gomimon is a [Stnd.] Appmon and Craftmon prints a colorless "Stnd. 2" badge, so the
+  // ordinary route is legal here and charges the badge's 2 rather than the yellow Lv.3 cost.
+  // The link is untouched because no fusion material was declared.
   it("keeps the ordinary digivolve route and cost when no App Fusion link is selected", async () => {
     const s = setupEngine({
       0: {
@@ -118,8 +121,9 @@ describe("public App Fusion digivolve intent", () => {
     s.state.memory = 3;
     await s.ready();
     const response = s.engine.applyIntent(0, appFusionIntent(s.perm("host").permanentId, s.inst("result").instanceId));
-    expect(response).toMatchObject({ ok: false });
-    expect(s.state.memory).toBe(3);
+    expect(response).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.cardId === "BT25-036");
+    expect(s.state.memory).toBe(1);
     expect(s.perm("host").linked.map((card) => card.cardId)).toEqual(["EX10-024"]);
   });
 
