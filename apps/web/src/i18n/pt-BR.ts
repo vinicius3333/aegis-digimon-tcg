@@ -479,6 +479,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.returnToMulligan": "Voltar ao mulligan",
   "overlay.awaitingMulligan": "Mulligan pendente",
   "overlay.blockWindow": "Janela de bloqueio",
+  "overlay.allianceWindow": "Janela de aliança",
   "overlay.isAttacking": "{name} está atacando",
   "overlay.attackIncoming": "Um ataque está chegando",
   "overlay.blockPrompt": "Escolha um <Blocker> para redirecionar o ataque, ou aceite o golpe.",

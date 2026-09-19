@@ -3033,6 +3033,33 @@ describe("decision board preview", () => {
     expect(onChoose).toHaveBeenCalledWith("boosted");
   });
 
+  it("keeps a long Alliance choice list scrollable while the pass action remains reachable", () => {
+    render(
+      <I18nProvider>
+        <AllianceOverlay
+          triggerCardId="BT1-010"
+          allies={Array.from({ length: 12 }, (_, index) => ({
+            permanentId: `ally-${index}`,
+            cardId: "EX1-073",
+            currentDP: 11000,
+            sourceCount: index,
+          }))}
+          onChoose={vi.fn<(permanentId: string) => void>()}
+          onPass={vi.fn<() => void>()}
+        />
+      </I18nProvider>,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Alliance window" });
+    const choices = dialog.querySelector(".alliance-overlay__choices");
+    const pass = screen.getByRole("button", { name: "Pass, don't use ＜Alliance＞" });
+
+    expect(dialog.getAttribute("style")).toContain("max-height: calc(100dvh - 264px)");
+    expect(dialog.getAttribute("style")).toContain("overflow: hidden");
+    expect(choices?.getAttribute("style")).toContain("overflow-y: auto");
+    expect(choices?.contains(pass)).toBe(false);
+  });
+
   it("renders and submits the abstract security target used by forced attacks", () => {
     const onRespond = vi.fn();
     function ForcedAttackHarness() {
