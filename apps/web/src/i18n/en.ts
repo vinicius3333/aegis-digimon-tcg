@@ -474,6 +474,7 @@ export const en = {
   "overlay.returnToMulligan": "Back to the mulligan",
   "overlay.awaitingMulligan": "Mulligan pending",
   "overlay.blockWindow": "Block window",
+  "overlay.allianceWindow": "Alliance window",
   "overlay.isAttacking": "{name} is attacking",
   "overlay.attackIncoming": "An attack is incoming",
   "overlay.blockPrompt": "Choose a <Blocker> to redirect the attack, or take the hit.",

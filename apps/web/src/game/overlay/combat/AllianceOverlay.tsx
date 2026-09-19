@@ -30,7 +30,10 @@ export function AllianceOverlay({
 
   return (
     <div
-      className="combat-prompt"
+      className="combat-prompt alliance-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("overlay.allianceWindow")}
       style={{
         position: "absolute",
         left: "50%",
@@ -39,6 +42,10 @@ export function AllianceOverlay({
         zIndex: 80,
         width: 520,
         maxWidth: "calc(100% - 32px)",
+        maxHeight: "calc(100dvh - 264px)",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
         background: "var(--ds-surface)",
         border: `2px solid ${COLORS[sourceKey].base}`,
         borderRadius: 18,
@@ -83,7 +90,18 @@ export function AllianceOverlay({
         {t("overlay.alliancePrompt")}
       </div>
       {allies.length ? (
-        <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+        <div
+          className="alliance-overlay__choices"
+          style={{
+            display: "flex",
+            gap: 12,
+            marginBottom: 16,
+            flexWrap: "wrap",
+            minHeight: 0,
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+          }}
+        >
           {allies.map((ally) => {
             const sourceLabel = t(ally.sourceCount === 1 ? "overlay.sourceCountOne" : "overlay.sourceCountMany", {
               count: ally.sourceCount,
