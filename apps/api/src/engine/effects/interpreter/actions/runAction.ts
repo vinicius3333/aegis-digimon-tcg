@@ -290,6 +290,18 @@ function markActivationDeclined(ctx: EffectContext): void {
   if (ctx.oncePerTurnActivationChosen !== true) ctx.oncePerTurnActivationDeclined = true;
 }
 
+/**
+ * An optional processing whose chooser is the OPPONENT is not the controller's choice to
+ * activate. KB Q4739 (EX8-063): "the effect will be considered to have activated when they
+ * choose whether or not to discard it", so asking the opponent counts toward [Once Per Turn]
+ * whichever way they answer.
+ */
+function isOpponentChosenProcessing(action: Action): boolean {
+  const chooser =
+    (action as { chooser?: string }).chooser ?? (action as { target?: { chooser?: string } }).target?.chooser;
+  return chooser === "opponent";
+}
+
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
   // A placement tally is scoped to this action's current resolution.  In particular, a
   // declined/blocked optional placement must overwrite a prior activation's count rather
@@ -892,7 +904,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         // `ifThisEffectDidNotAct` belongs to the immediately preceding action. The activation
         // receipt is separate and remains chosen if an earlier action was already accepted.
         ctx.lastEffectActed = false;
-        markActivationDeclined(ctx);
+        if (isOpponentChosenProcessing(action)) markActivationChosen(ctx);
+        else markActivationDeclined(ctx);
         return action.abortOnDecline === true;
       }
       markActivationChosen(ctx);
@@ -1116,7 +1129,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind !== "Modal" &&
     action.kind !== "SubTrigger" &&
     action.kind !== "CostGatedBlock" &&
-    action.optional !== true
+    (action.optional !== true || isOpponentChosenProcessing(action))
   ) {
     markActivationChosen(ctx);
   }

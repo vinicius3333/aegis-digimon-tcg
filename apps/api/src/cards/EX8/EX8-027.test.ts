@@ -305,7 +305,11 @@ describe("EX8-027", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision === undefined);
+    // The clause is wholly optional ("2 of your Digimon may DNA digivolve"), so the first
+    // refusal never activated it and its [Once Per Turn] use is still available (CR 15-6-3,
+    // KB Q1818). The second play therefore offers the watcher again, and refusing it once
+    // more likewise leaves the use unspent.
+    await declineOptional();
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("second").instanceId)).toBe(
       true,
     );

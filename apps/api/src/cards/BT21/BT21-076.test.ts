@@ -321,7 +321,10 @@ describe("BT21-076 WarGrowlmon", () => {
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1);
     expect(s.perm("guilmon").topCard.instanceId).toBe(s.inst("wargrowlmon").instanceId);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("megidramon").instanceId)).toBe(true);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    // "This Digimon may digivolve ..." is wholly optional, so refusing the first attack's
+    // offer never activated the clause and its [Once Per Turn] use is still available for the
+    // second attack, which offers it again (CR 15-6-3, KB Q1818).
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(2);
   });
 
   it("inherited deletion trashes the opponent's top security", async () => {

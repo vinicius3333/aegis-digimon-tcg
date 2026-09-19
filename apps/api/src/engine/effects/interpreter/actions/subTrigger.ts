@@ -1234,7 +1234,12 @@ export async function runSubTrigger(
             if (subCtx.oncePerTurnActivationChosen !== true) subCtx.oncePerTurnActivationDeclined = true;
             return;
           }
-          subCtx.oncePerTurnActivationChosen = true;
+          // Accepting the prompt is not yet an activation when the clause still has an
+          // activation cost to pay: CR 15-7-2 makes the processing after an optional
+          // processing condition unreachable when the condition is not executed, so an
+          // unpayable cost leaves the [Once Per Turn] use unspent. `activationCostPaid`
+          // below records the activation once payment succeeds.
+          if (!hasActivationCost) subCtx.oncePerTurnActivationChosen = true;
           subCtx.oncePerTurnActivationDeclined = false;
         }
         if (activationCostOptions.length > 0) {

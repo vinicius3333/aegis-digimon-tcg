@@ -163,7 +163,7 @@ describe("EX12-002 Mococomon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-045")).toBe(true);
   });
 
-  it("may decline the digivolution, consuming this activation of the once-per-turn effect", async () => {
+  it("may decline the digivolution, keeping the once-per-turn effect available for a later play", async () => {
     const s = setupEngine(
       {
         0: {
@@ -192,9 +192,22 @@ describe("EX12-002 Mococomon", () => {
     ).toEqual({ ok: true });
     await first;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
+    // The inherited clause is wholly optional ("this Digimon may digivolve ..."), so
+    // declining never activated it and its [Once Per Turn] use is still available for the
+    // next play (CR 15-6-3, KB Q1818). Decline the re-offer as well.
+    const second = advance(s.engine).fireSubTrigger("whenPlayed", {
       subjectPermanentId: s.perm("played").permanentId,
     });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const declinedAgain = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: declinedAgain.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await second;
     await settle();
 
     expect(s.state.pendingDecision).toBeUndefined();

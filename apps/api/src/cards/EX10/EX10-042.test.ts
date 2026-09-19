@@ -288,7 +288,7 @@ describe("EX10-042 GulusGammamon", () => {
     assertNoLoudGap(s);
   });
 
-  it("[Once Per Turn]: a second same-turn placement offers nothing, and the next own turn resets it", async () => {
+  it("[Once Per Turn]: a refused offer stays available for a second same-turn placement", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -335,6 +335,10 @@ describe("EX10-042 GulusGammamon", () => {
     const decisionsBefore = s.decisions.length;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arms1").instanceId })).toEqual({ ok: true });
     await answerOptional(s, true, /plac/i);
+    // "this Digimon may digivolve into [Regulusmon] ..." is wholly optional, so refusing the
+    // first offer never activated the clause and its [Once Per Turn] use is still available
+    // for this second placement (CR 15-6-3, KB Q1818).
+    await answerOptional(s, false, /digivolve/i);
     await settle(() => s.perm("gulus").stack.length === 2 && s.state.pendingDecision === undefined);
 
     expect(stackCardIds(s, "gulus")).toEqual(["BT9-109", "P-097"]);
@@ -342,7 +346,7 @@ describe("EX10-042 GulusGammamon", () => {
       s.decisions
         .slice(decisionsBefore)
         .filter((entry) => entry.req.kind === "optional" && /digivolve/i.test(entry.req.promptText ?? "")),
-    ).toEqual([]);
+    ).toHaveLength(1);
     expect(s.perm("gulus").topCard.cardId).toBe(CARD_ID);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("regulus").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();

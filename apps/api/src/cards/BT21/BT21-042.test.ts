@@ -138,7 +138,7 @@ describe("BT21-042 compiled implementation", () => {
     expect(s.perm("geogreymon").stack.map((card) => card.cardId)).toEqual(["BT21-042"]);
   });
 
-  it("consumes its once-per-turn trigger after a public refusal and ignores a second Marcus play", async () => {
+  it("keeps its once-per-turn trigger available after a public refusal and re-offers it on a second Marcus play", async () => {
     const s = setupEngine(
       {
         0: {
@@ -175,6 +175,19 @@ describe("BT21-042 compiled implementation", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT4-092").length === 2);
+    // "this Digimon may digivolve ... without paying the cost" is wholly optional, so
+    // refusing it never activated the effect and the [Once Per Turn] use stays available
+    // (CR 15-6-3, KB Q1818). The second Marcus play offers it again; refuse it as well.
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const secondOffer = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondOffer.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.perm("geogreymon").topCard.cardId).toBe("BT21-042");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("rizegreymon").instanceId)).toBe(true);

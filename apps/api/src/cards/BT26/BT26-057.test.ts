@@ -205,6 +205,11 @@ describe("BT26-057 Bearcatmon", () => {
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    // The unsuspend phase stood Bearcatmon back up, so suspend it again: a "may unsuspend"
+    // clause whose host is already unsuspended meets none of its processing conditions and
+    // can't be activated at all, which would leave the shared use untouched (CR 15-6-3).
+    await advance(s.engine).verb.suspend([s.perm("bearcatmon").permanentId]);
+    expect(s.perm("bearcatmon").isSuspended).toBe(true);
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("tamer").permanentId, [s.inst("under").instanceId], 0);
     expect(s.perm("bearcatmon").isSuspended).toBe(false);
     expect(

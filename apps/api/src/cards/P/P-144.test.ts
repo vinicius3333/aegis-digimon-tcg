@@ -116,7 +116,7 @@ describe("P-144 Gotsumon (X Antibody)", () => {
     expect(s.perm("source").isSuspended).toBe(false);
   });
 
-  it("only resolves the target-switch reaction once per opponent turn", async () => {
+  it("tracks the target-switch reaction once per opponent turn for each copy", async () => {
     const s = setupEngine(
       {
         0: {
@@ -129,6 +129,7 @@ describe("P-144 Gotsumon (X Antibody)", () => {
           battleArea: [
             { card: "BT1-009", as: "attackerOne" },
             { card: "BT1-009", as: "attackerTwo" },
+            { card: "BT1-009", as: "attackerThree" },
           ],
         },
       },
@@ -136,10 +137,16 @@ describe("P-144 Gotsumon (X Antibody)", () => {
     );
     s.state.turnSeat = 1;
     await s.ready();
+    // Each printed copy counts its own [Once Per Turn] uses (CR 15-14-1-3), so blocking with
+    // "first" spends only that copy's use and "second" still has its own for the next switch.
+    // The third block finds both uses spent, so the blocker stays suspended.
+    let resolvedCombats = 0;
     for (const [attacker, blocker] of [
       ["attackerOne", "first"],
       ["attackerTwo", "second"],
+      ["attackerThree", "first"],
     ] as const) {
+      resolvedCombats += 1;
       expect(
         s.engine.applyIntent(1, {
           type: "attack",
@@ -151,13 +158,10 @@ describe("P-144 Gotsumon (X Antibody)", () => {
       expect(
         s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm(blocker).permanentId }),
       ).toEqual({ ok: true });
-      await settle(
-        () =>
-          s.events.filter((event) => event.kind === "combatResolved").length >= (attacker === "attackerOne" ? 1 : 2),
-      );
+      await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= resolvedCombats);
     }
-    expect(s.perm("first").isSuspended).toBe(false);
-    expect(s.perm("second").isSuspended).toBe(true);
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(false);
   });
 
   it("denies a second same-turn unsuspend and resets on the next opponent turn", async () => {

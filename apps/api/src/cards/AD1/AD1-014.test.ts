@@ -205,6 +205,9 @@ describe("AD1-014 MetalGarurumon", () => {
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
 
+    // The unsuspend phase already stood this Digimon back up, so an ally suspending while it
+    // is unsuspended meets none of the clause's processing conditions: the effect can't be
+    // activated and its [Once Per Turn] use is untouched (CR 15-6-3, CR 15-14-1-4).
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -212,9 +215,21 @@ describe("AD1-014 MetalGarurumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("metal").isSuspended).toBe(false);
+
+    // Its own attack suspends it, so now the watcher can act — and that spends the use.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("metal").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("metal").isSuspended === false);
     expect(s.perm("metal").isSuspended).toBe(false);
 
+    // A second own attack this turn suspends it again, but the use is gone.
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

@@ -97,7 +97,12 @@ describe("BT6 Gabumon Bond of Friendship historical deck", () => {
     );
 
     expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.perm("gabumon").isSuspended).toBe(true);
+    // Two separate [When Attacking] [Once Per Turn] "you may unsuspend" clauses are in play:
+    // the printed one on BT6-030 and the inherited one from BT6-019. The first attack spends
+    // only one of them, because the other found this Digimon already unsuspended and so met
+    // none of its processing conditions (CR 15-6-3). The second attack spends the remaining
+    // one, leaving the attacker unsuspended again.
+    expect(s.perm("gabumon").isSuspended).toBe(false);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("firstSource").instanceId, s.inst("secondSource").instanceId]),
     );
