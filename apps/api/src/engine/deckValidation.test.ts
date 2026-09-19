@@ -63,6 +63,32 @@ describe("validateDecklist (decklist + banlist legality)", () => {
     expect(validateDecklist(overCopy).ok).toBe(false);
   });
 
+  it("shares one copy budget across printings that share a card number (RB1-004 + P-009)", () => {
+    // Replace the four BT1-010 and one BT1-011 with 2x RB1-004 + 3x P-009: five copies of "P-009".
+    const shared = clone(RED_DECK);
+    for (const [removed, replacement] of [
+      ["BT1-010", "RB1-004"],
+      ["BT1-010", "RB1-004"],
+      ["BT1-010", "P-009"],
+      ["BT1-010", "P-009"],
+      ["BT1-011", "P-009"],
+    ]) {
+      shared.mainDeck.splice(shared.mainDeck.indexOf(removed!), 1, replacement!);
+    }
+    expect(shared.mainDeck.length).toBe(50);
+    const verdict = validateDecklist(shared);
+    expect(verdict.ok).toBe(false);
+    expect(verdict.ok === false && verdict.reason).toMatch(/shared card number/);
+  });
+
+  it("accepts four copies split across printings that share a card number", () => {
+    const shared = clone(RED_DECK);
+    for (const replacement of ["RB1-004", "RB1-004", "P-009", "P-009"]) {
+      shared.mainDeck.splice(shared.mainDeck.indexOf("BT1-010"), 1, replacement);
+    }
+    expect(validateDecklist(shared)).toEqual({ ok: true });
+  });
+
   it("rejects a deck containing a banlisted single card (banned, count 0)", () => {
     // BT5-109 is banned under the current banlist (effective cap 0).
     const banned = clone(RED_DECK);

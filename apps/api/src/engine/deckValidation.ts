@@ -1,4 +1,10 @@
-import { bannedPairViolations, getCardDefinition, isBetaOnlyCard, CardKind } from "@aegis/shared";
+import {
+  bannedPairViolations,
+  getCardDefinition,
+  isBetaOnlyCard,
+  sharedCardNumberGroups,
+  CardKind,
+} from "@aegis/shared";
 import { MAIN_DECK_SIZE, MAX_EGG_DECK_SIZE } from "./testDecks.js";
 import { effectiveCopyLimit } from "./banlistRestrictions.js";
 
@@ -14,7 +20,8 @@ import { effectiveCopyLimit } from "./banlistRestrictions.js";
  *      the main deck (Comprehensive Rules §1-4),
  *   4. each distinct cardId's total count across the whole deck is within its
  *      default 4, lowered by an active banlist restriction (1 for restricted, 0 for
- *      banned),
+ *      banned), and printings that share a card number ("[Rule] Card Number: Also
+ *      treated as [P-009]", `sharedCardNumberGroups`) share one such budget,
  *   5. no banned pair is present: a banned-pair card is legal alone but may not share
  *      a deck with its partner (`BANNED_PAIRS` in @aegis/shared).
  *   6. a card from a product that has not released yet (`isBetaOnlyCard`) may only be
@@ -85,6 +92,18 @@ export function validateDecklist(deck: ReadonlyDecklist, options?: { betaBattleM
       return {
         ok: false,
         reason: `too many copies of ${cardId}: ${count} > limit ${cap}`,
+      };
+    }
+  }
+
+  for (const [, members] of sharedCardNumberGroups(allCards)) {
+    if (members.length < 2) continue;
+    const total = members.reduce((sum, cardId) => sum + (counts.get(cardId) ?? 0), 0);
+    const cap = Math.min(...members.map(effectiveCopyLimit));
+    if (total > cap) {
+      return {
+        ok: false,
+        reason: `too many copies of ${members.join(" + ")} (shared card number): ${total} > limit ${cap}`,
       };
     }
   }

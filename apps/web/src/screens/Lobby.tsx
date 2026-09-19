@@ -8,6 +8,7 @@ import {
   effectiveCopyLimit as banlistLimit,
   getCardDefinition,
   isBetaOnlyCard,
+  sharedCardNumberGroups,
 } from "@aegis/shared";
 import {
   Alert,
@@ -85,6 +86,7 @@ export function Lobby({
   onEditDeck,
   onNav,
   onStart,
+  invitedRoomCode,
 }: {
   player: PlayerIdentity;
   decks: DeckListing[];
@@ -94,13 +96,15 @@ export function Lobby({
   onEditDeck?: (deck: DeckListing) => void;
   onNav: (s: Screen) => void;
   onStart: (mode: StartMode, roomCode?: string, botDeckId?: string, betaBattleMode?: boolean) => void;
+  /** A code carried in by an invite link; opens the private join form with it filled in. */
+  invitedRoomCode?: string;
 }) {
   const { t } = useTranslation();
   const MODES = modesFor(t);
-  const [mode, setMode] = useState("casual");
+  const [mode, setMode] = useState(invitedRoomCode ? "private" : "casual");
   const [betaConfirmation, setBetaConfirmation] = useState<"beta" | "bot" | null>(null);
-  const [privateSub, setPrivateSub] = useState<"create" | "join">("create");
-  const [roomCodeInput, setRoomCodeInput] = useState("");
+  const [privateSub, setPrivateSub] = useState<"create" | "join">(invitedRoomCode ? "join" : "create");
+  const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
   const [botDeckId, setBotDeckId] = useState("");
   // Which modes route an unreleased-card deck into the separate beta queue.
@@ -144,9 +148,19 @@ export function Lobby({
   const vsBot = mode === "practice";
   const banViolations = useMemo(() => {
     if (!active) return [];
+    const cardIds = [...active.mainDeck, ...active.eggDeck];
     const counts = new Map<string, number>();
-    for (const id of [...active.mainDeck, ...active.eggDeck]) counts.set(id, (counts.get(id) ?? 0) + 1);
-    return [...counts.entries()].filter(([id, n]) => n > banlistLimit(id));
+    for (const id of cardIds) counts.set(id, (counts.get(id) ?? 0) + 1);
+    const violations = [...counts.entries()]
+      .filter(([id, n]) => n > banlistLimit(id))
+      .map(([id, n]) => ({ id, n, cap: banlistLimit(id) }));
+    for (const [, members] of sharedCardNumberGroups(cardIds)) {
+      if (members.length < 2) continue;
+      const n = members.reduce((sum, id) => sum + (counts.get(id) ?? 0), 0);
+      const cap = Math.min(...members.map(banlistLimit));
+      if (n > cap) violations.push({ id: members.join(" + "), n, cap });
+    }
+    return violations;
   }, [active]);
   const pairViolations = useMemo(
     () => (active ? bannedPairViolations([...active.mainDeck, ...active.eggDeck]) : []),
@@ -403,10 +417,9 @@ export function Lobby({
           ) : null}
           {banViolations.length > 0 ? (
             <Alert className="lobby-alert" tone="danger" title={t("lobby.banlistTitle")}>
-              {banViolations.map(([id, n]) => {
-                const cap = banlistLimit(id);
-                return <div key={id}>{t("lobby.banlistRow", { cardId: id, count: n, cap })}</div>;
-              })}
+              {banViolations.map(({ id, n, cap }) => (
+                <div key={id}>{t("lobby.banlistRow", { cardId: id, count: n, cap })}</div>
+              ))}
             </Alert>
           ) : null}
           {pairViolations.length > 0 ? (

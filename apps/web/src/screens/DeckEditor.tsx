@@ -9,6 +9,8 @@ import {
   type CardDefinition,
   isBanned,
   effectiveCopyLimit as banlistLimit,
+  sharedCardNumberCount,
+  sharedCardNumberGroups,
 } from "@aegis/shared";
 import { Button, type Screen } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
@@ -82,6 +84,11 @@ export function DeckEditor({
   const eggCount = total(egg);
   const validMain = mainCount === MAIN_TARGET;
 
+  const deckCardIds = useMemo(
+    () => [...Object.entries(main), ...Object.entries(egg)].flatMap(([cardId, count]) => Array(count).fill(cardId)),
+    [main, egg],
+  );
+
   const add = (cardId: string) => {
     const def = getCardDefinition(cardId);
     if (!def) return;
@@ -90,7 +97,7 @@ export function DeckEditor({
     const map = eggCard ? egg : main;
     const cur = map[cardId] ?? 0;
     const cap = Math.min(def.maxCountInDeck, banlistLimit(cardId));
-    if (cur >= cap) return;
+    if (sharedCardNumberCount(deckCardIds, cardId) >= cap) return;
     if (eggCard && eggCount >= EGG_TARGET) return;
     if (!eggCard && mainCount >= MAIN_TARGET) return;
     setArts((previous) => ({
@@ -123,8 +130,14 @@ export function DeckEditor({
       const cap = banlistLimit(cardId);
       if (count > cap) violations.push({ cardId, count, cap });
     }
+    for (const [, members] of sharedCardNumberGroups(deckCardIds)) {
+      if (members.length < 2) continue;
+      const count = sharedCardNumberCount(deckCardIds, members[0]!);
+      const cap = Math.min(...members.map(banlistLimit));
+      if (count > cap) violations.push({ cardId: members.join(" + "), count, cap });
+    }
     return violations;
-  }, [main, egg]);
+  }, [main, egg, deckCardIds]);
 
   const pairViolations = useMemo(() => bannedPairViolations([...Object.keys(main), ...Object.keys(egg)]), [main, egg]);
   const pairedCardIds = useMemo(() => new Set(pairViolations.flat()), [pairViolations]);
@@ -246,7 +259,7 @@ export function DeckEditor({
                 key={card.cardId}
                 cardId={card.cardId}
                 inDeck={inDeck}
-                atMax={inDeck >= cap}
+                atMax={sharedCardNumberCount(deckCardIds, card.cardId) >= cap}
                 pairConflict={pairedCardIds.has(card.cardId)}
                 onAdd={() => add(card.cardId)}
                 onRemove={() => remove(card.cardId)}
