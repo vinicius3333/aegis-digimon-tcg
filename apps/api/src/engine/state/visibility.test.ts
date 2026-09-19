@@ -729,7 +729,47 @@ describe("hidden zone redaction (what the owner's own client receives)", () => {
 });
 
 describe("revealSecurityCardToOpponent", () => {
-  it("exposes a single security card to a view that otherwise hides it", () => {
+  it("synchronizes a newly face-up security card to both player viewpoints", () => {
+    const state = makeState();
+    syncPublicCounts(state);
+    const ownerView = buildStateView(state, 0);
+    const opponentView = buildStateView(state, 1);
+    const ownerDecoder = new Decoder(new GameState());
+    const opponentDecoder = new Decoder(new GameState());
+    const targets = [
+      { view: ownerView, decoder: ownerDecoder },
+      { view: opponentView, decoder: opponentDecoder },
+    ];
+    encodeAllForViews(state, targets);
+
+    const revealed = state.players[0]!.security[2]!;
+    revealed.faceUp = true;
+    syncPublicCounts(state);
+    refreshStateView(ownerView, state, 0);
+    refreshStateView(opponentView, state, 1);
+    encodePatchForViews(state, targets);
+
+    const ownerSecurity = ownerDecoder.state.players[0]!.securityView;
+    const opponentSecurity = opponentDecoder.state.players[0]!.securityView;
+    expect(ownerSecurity[2]).toMatchObject({
+      cardId: "TEST-001",
+      artId: "TEST-001_P1",
+      faceUp: true,
+    });
+    expect(opponentSecurity[2]).toMatchObject({
+      cardId: "TEST-001",
+      artId: "TEST-001_P1",
+      faceUp: true,
+    });
+    expect(ownerSecurity.filter(({ faceUp }) => !faceUp).every(({ cardId }) => !cardId)).toBe(true);
+    expect(
+      opponentSecurity
+        .filter(({ faceUp }) => !faceUp)
+        .every(({ instanceId, cardId, artId }) => !instanceId && !cardId && !artId),
+    ).toBe(true);
+  });
+
+  it("exposes a single security card and its identity to a view that otherwise hides it", () => {
     const state = makeState();
     const view = buildStateView(state, 0);
     const card = state.players[1]!.security[2]!;
@@ -739,5 +779,6 @@ describe("revealSecurityCardToOpponent", () => {
     revealSecurityCardToOpponent(view, card);
 
     expect(view.has(card)).toBe(true);
+    expect(view.hasTag(card, CARD_ID_VIEW_TAG)).toBe(true);
   });
 });

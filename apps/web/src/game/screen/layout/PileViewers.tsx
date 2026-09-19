@@ -34,7 +34,7 @@ export function PileViewers({
   const { t } = useTranslation();
   const trashOwner = trashView === Side.Viewer ? viewer : opponent;
   const securityOwner = securityView === Side.Viewer ? viewer : opponent;
-  const faceUpCount = Array.from(securityOwner.security ?? []).filter((card) => card?.faceUp).length;
+  const faceUpCount = Array.from(securityOwner.securityView ?? []).filter((card) => card?.faceUp).length;
   return (
     <>
       {trashView ? (
@@ -55,11 +55,11 @@ export function PileViewers({
               : t("game.oppSecurityPile", { name: opponentName })
           }
           cardIds={Array.from({ length: securityOwner.securityCount }, (_, index) => {
-            const card = securityOwner.security?.[index];
+            const card = securityOwner.securityView?.[index];
             return card?.faceUp ? card.cardId : "";
           })}
           artIds={Array.from({ length: securityOwner.securityCount }, (_, index) => {
-            const card = securityOwner.security?.[index];
+            const card = securityOwner.securityView?.[index];
             return card?.faceUp ? card.artId : "";
           })}
           preserveOrder

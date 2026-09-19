@@ -113,8 +113,8 @@ export function RightPileColumn({
           breaking={securityBreakMine && securityBreak?.phase === "break"}
           shardSeed={securityBreak?.key}
           securityDpDelta={opponent.securityDpDelta}
-          faceUp={hasFaceUpSecurity(opponent.security)}
-          securityCards={opponent.security}
+          faceUp={hasFaceUpSecurity(opponent.securityView)}
+          securityCards={opponent.securityView}
           landing={securityLanding}
           attackLabel={attackable ? t(securityAttackLabelKey(opponent.securityCount)) : undefined}
           label={t("game.opponentSecurity")}

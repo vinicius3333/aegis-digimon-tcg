@@ -1,4 +1,4 @@
-import type { CardInstance } from "@aegis/shared";
+import type { SecurityCardView } from "@aegis/shared";
 import { CardBack, CardMini } from "../../design/cards";
 import { deckLayerCount } from "../deckChrome";
 import type { Side } from "../side";
@@ -50,7 +50,7 @@ export function Pile({
   /** The stack holds a card the opponent has already seen. */
   securityDpDelta?: number;
   faceUp?: boolean;
-  securityCards?: readonly CardInstance[];
+  securityCards?: ArrayLike<SecurityCardView>;
   /** What attacking this stack would be, while it is a legal target being aimed at. */
   attackLabel?: string;
   /** The pile is being shuffled: it riffles once. */
