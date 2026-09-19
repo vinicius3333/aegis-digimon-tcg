@@ -487,6 +487,7 @@ export function GameScreen({
         actionLabel={notice.actionLabel}
         roomCode={notice.roomCode}
         onAction={notice.exitTo ? () => onExit(notice.exitTo!) : undefined}
+        onCancel={() => onExit("lobby")}
       />
     );
   }

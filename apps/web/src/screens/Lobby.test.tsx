@@ -237,3 +237,26 @@ describe("famous deck selection", () => {
     expect(screen.queryByRole("button", { name: /My build/ })).toBeNull();
   });
 });
+
+describe("invite links", () => {
+  it("opens the private join form with the invited code filled in", () => {
+    const onStart = vi.fn();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[DECKS[0]!]}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+          invitedRoomCode="AB12CD"
+        />
+      </I18nProvider>,
+    );
+    expect((screen.getByLabelText("Enter room code") as HTMLInputElement).value).toBe("AB12CD");
+    fireEvent.click(screen.getByRole("button", { name: "Join Room" }));
+    expect(onStart).toHaveBeenCalledWith("private_guest", "AB12CD");
+  });
+});

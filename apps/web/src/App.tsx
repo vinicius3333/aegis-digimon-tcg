@@ -21,6 +21,7 @@ import { BugReportDialog } from "./bugs/BugReportDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
 import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
+import { roomCodeFromSearch } from "./roomInvite";
 import { isBattleLabPath } from "./dev/BattleLab";
 import { clearReconnectSession } from "./net/reconnectSession";
 
@@ -202,8 +203,10 @@ export function AegisClient({
           },
     [account, player],
   );
+  const [invitedRoomCode] = useState(() => (initialScreen ? undefined : roomCodeFromSearch(window.location.search)));
   const [route, setRoute] = useState<AppRoute>(() => {
     if (initialScreen) return { screen: initialScreen };
+    if (invitedRoomCode) return { screen: "lobby" };
     const directRoute = routeFromPathname(window.location.pathname);
     if (directRoute?.screen === "game") return { screen: "lobby" };
     return directRoute ?? { screen: "home" };
@@ -329,6 +332,7 @@ export function AegisClient({
                 navigateScreen("deck");
               }}
               onNav={navigateScreen}
+              invitedRoomCode={invitedRoomCode}
               onStart={(mode, code, requestedBotDeckId, requestedBetaBattleMode) => {
                 // A lobby start explicitly requests a new match, even if a page
                 // reload left a resumable seat from the previous match in storage.

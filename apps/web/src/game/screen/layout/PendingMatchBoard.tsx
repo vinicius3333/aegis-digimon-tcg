@@ -1,10 +1,14 @@
 /* The board before there is a board: reconnecting, a connection that failed, and the
    wait for a second player.
 
-   The private host's room code is shown under the wait so it can be copied straight
-   out of the screen the guest is being invited to. */
+   The private host gets an invite panel beside the wait: a copyable link, the native
+   share sheet where the browser offers one, and the room code as letter tiles. */
 
+import { useEffect, useState } from "react";
+import { Button } from "../../../design/primitives";
+import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
+import { roomInviteUrl } from "../../../roomInvite";
 import { WaitingOverlay } from "../../overlay";
 import { BoardShell } from "./BoardShell";
 
@@ -15,6 +19,7 @@ export function PendingMatchBoard({
   actionLabel,
   roomCode,
   onAction,
+  onCancel,
 }: {
   title: string;
   detail: string;
@@ -24,36 +29,75 @@ export function PendingMatchBoard({
   /** The code a guest joins this private room with, when there is one to share. */
   roomCode?: string;
   onAction?: () => void;
+  /** Leaves the wait without an opponent, offered while the private host is inviting. */
+  onCancel?: () => void;
 }) {
   const { t } = useTranslation();
   return (
     <BoardShell>
-      <WaitingOverlay spinner={spinner} title={title} detail={detail} actionLabel={actionLabel} onAction={onAction} />
-      {roomCode ? (
-        <div style={{ position: "absolute", bottom: 48, left: "50%", transform: "translateX(-50%)", zIndex: 81 }}>
-          <code
-            onClick={() => navigator.clipboard?.writeText(roomCode)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "12px 32px",
-              borderRadius: 14,
-              background: "var(--ds-surface)",
-              border: "1px solid var(--ds-border)",
-              color: "var(--ds-foreground)",
-              fontSize: 24,
-              fontWeight: 800,
-              fontFamily: "var(--ds-font-mono)",
-              letterSpacing: "0.2em",
-              cursor: "pointer",
-            }}
-            title={t("game.clickToCopy")}
-          >
-            {roomCode}
-          </code>
-        </div>
-      ) : null}
+      <WaitingOverlay
+        spinner={spinner}
+        title={title}
+        detail={detail}
+        actionLabel={actionLabel}
+        onAction={onAction}
+        aside={roomCode ? <RoomInvitePanel roomCode={roomCode} /> : undefined}
+        cancelLabel={roomCode && onCancel ? t("game.cancelInvite") : undefined}
+        onCancel={roomCode ? onCancel : undefined}
+      />
     </BoardShell>
+  );
+}
+
+function RoomInvitePanel({ roomCode }: { roomCode: string }) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState<"link" | "code" | null>(null);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(null), 1800);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+  const inviteUrl = roomInviteUrl(roomCode);
+  const copy = (kind: "link" | "code", text: string) => {
+    void navigator.clipboard?.writeText(text).then(() => setCopied(kind));
+  };
+  const canShare = typeof navigator.share === "function";
+  const share = () => {
+    if (!canShare) return copy("link", inviteUrl);
+    void navigator.share({ title: t("game.inviteShareTitle"), url: inviteUrl }).catch(() => undefined);
+  };
+  return (
+    <div className="room-invite">
+      <h3 className="room-invite__title">{t("game.inviteTitle")}</h3>
+      <Button full icon={canShare ? Icons.Upload : Icons.Link2} onClick={share}>
+        {canShare ? t("game.shareLink") : copied === "link" ? t("game.inviteLinkCopied") : t("game.copyInviteLink")}
+      </Button>
+      <div className="room-invite__url-row">
+        <span className="room-invite__url">{inviteUrl}</span>
+        <button
+          type="button"
+          className={`room-invite__copy${copied === "link" ? " is-copied" : ""}`}
+          onClick={() => copy("link", inviteUrl)}
+          aria-label={t("game.copyInviteLink")}
+          title={t("game.clickToCopy")}
+        >
+          {copied === "link" ? <Icons.Check size={16} /> : <Icons.Copy size={16} />}
+        </button>
+      </div>
+      <span className="room-invite__label">{copied === "code" ? t("game.codeCopied") : t("game.roomCodeLabel")}</span>
+      <button
+        type="button"
+        className="room-invite__tiles"
+        onClick={() => copy("code", roomCode)}
+        aria-label={`${t("game.roomCodeLabel")} ${roomCode}. ${t("game.clickToCopy")}`}
+        title={t("game.clickToCopy")}
+      >
+        {[...roomCode].map((letter, index) => (
+          <span key={index} className="room-invite__tile">
+            {letter}
+          </span>
+        ))}
+      </button>
+    </div>
   );
 }
