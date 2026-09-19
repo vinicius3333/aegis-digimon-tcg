@@ -45,6 +45,7 @@ export const compiled: CompiledCard = {
           payCost: true,
           reduceCostBy: 4,
           optional: true,
+          allowCostWithoutTarget: true,
           condition: {
             kind: "youHave",
             filter: { controllerDefault: "mine", zone: "battleArea", kind: ["Digimon"], colors: ["Blue", "Yellow"] },
