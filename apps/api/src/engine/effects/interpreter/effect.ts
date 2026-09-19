@@ -18,6 +18,7 @@ import {
   onPlay,
   security,
   securityStatic,
+  securityTiming,
   staticModifier,
   turnTiming,
   whenMoving,
@@ -326,7 +327,8 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
   ) {
     return securityStatic;
   }
-  if (effect.isSecurity || effect.trigger === "Security") return security;
+  if (effect.trigger === "Security") return security;
+  if (effect.isSecurity) return securityTiming;
   if (
     effect.trigger === "YourTurn" &&
     effect.actions.some((action) => ["Digivolve", "DnaDigivolve", "AppFuse"].includes(action.kind))

@@ -219,6 +219,16 @@ export const onDeletion = (opts: BuilderOptions): Effect =>
 /** "Security" effects (source rule implementation / PlaySelfTamerSecurityEffect). */
 export const security = (opts: BuilderOptions): Effect => build(opts, { isSecurity: true, baseGuard: () => true });
 
+/** Timed Security effects activate only while their source remains face up in security. */
+export const securityTiming = (opts: BuilderOptions): Effect =>
+  build(opts, {
+    isSecurity: true,
+    baseGuard: (ctx) =>
+      ctx.game.state.players.some((player) =>
+        player.security.some((card) => card.instanceId === ctx.source.instanceId && card.faceUp === true),
+      ),
+  });
+
 /**
  * "When an effect trashes THIS card specifically from the security stack" (EffectTiming.
  * OnDiscardSecurity — not a normal security-check reveal). The card is already loose in trash

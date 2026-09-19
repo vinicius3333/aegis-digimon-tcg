@@ -7,6 +7,33 @@ import { compiled as BT25_039 } from "./BT25-039.js";
 import "../index.js";
 
 describe("BT25-039 Sirenmon", () => {
+  it.each(["hand", "trash", "security"] as const)(
+    "gates the end-of-turn security play with Sirenmon in %s",
+    async (zone) => {
+      const s = setupEngine(
+        {
+          0: {
+            trash: zone === "trash" ? [{ card: "BT25-039", as: "sirenmon", faceUp: true }] : [],
+            security: zone === "security" ? [{ card: "BT25-039", as: "sirenmon", faceUp: true }] : [],
+            hand: [
+              ...(zone === "hand" ? [{ card: "BT25-039", as: "sirenmon" }] : []),
+              { card: "BT25-059", as: "ceresmon" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await advance(s.engine).runTurn(0);
+      expect(
+        s.events.filter(
+          (event) =>
+            event.kind === "effectTriggered" && event.sourceCardId === "BT25-039" && event.timing === "OnEndTurn",
+        ),
+      ).toHaveLength(zone === "security" ? 1 : 0);
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT25-059")).toBe(zone === "security");
+    },
+  );
+
   it("keeps the TS evolution route alternate to the normal Yellow/Green routes", () => {
     expect(getCardDefinition("BT25-039")).toMatchObject({
       evoCosts: [
