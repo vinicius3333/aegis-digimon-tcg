@@ -34,8 +34,10 @@ function requestedPlayKinds(target: Target | undefined): string[] {
  * thing excluding them.
  *
  * An IR that genuinely means "use an Option" says so with `kind: ["Option"]`, which is the
- * same signal the play-vs-use split further down already reads. An explicit Option-only
- * target preserves that use route; a DUAL card cannot be played as a Digimon (CR 7-1-1).
+ * same signal the play-vs-use split further down already reads. Naming Option keeps Option
+ * cards in the pool — including alongside Digimon/Tamer, as EX12-077's "Digimon, Tamer, or
+ * Option card" does — and the play-vs-use split routes each one. A DUAL card is kept only for
+ * an Option-only target, because it cannot be played as a Digimon (CR 7-1-1).
  */
 function playableCandidates<T extends { cardId: string }>(
   ctx: EffectContext,
@@ -43,11 +45,14 @@ function playableCandidates<T extends { cardId: string }>(
   candidates: readonly T[],
 ): T[] {
   const requestedKinds = requestedPlayKinds(target);
-  const usesOption =
-    requestedKinds.includes("Option") && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
+  const namesOption = requestedKinds.includes("Option");
+  const optionOnly =
+    namesOption && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
   return candidates.filter((candidate) => {
     const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
-    return !kinds.includes(CardKind.Option) || usesOption;
+    if (!kinds.includes(CardKind.Option)) return true;
+    const isDual = kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
+    return isDual ? optionOnly : namesOption;
   });
 }
 

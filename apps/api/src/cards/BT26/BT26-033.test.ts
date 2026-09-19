@@ -34,7 +34,7 @@ describe("BT26-033 compiled fidelity", () => {
           cost: {
             kind: "placeAsSecurity",
             position: "bottom",
-            fromDigivolutionTop: true,
+            detachPermanentTop: true,
             target: { filter: { isSelfRef: true }, isSelf: true },
           },
         },
@@ -203,9 +203,78 @@ describe("BT26-033 compiled fidelity", () => {
     ).toBe(0);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-013")).toBe(true);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-030")).toBe(true);
-    expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT26-030");
-    expect(s.perm("jupitermon").topCard.cardId).toBe(CARD_ID);
+    expect(s.state.players[0]!.security.at(-1)?.cardId).toBe(CARD_ID);
+    expect(s.perm("jupitermon").topCard.cardId).toBe("BT26-030");
     expect(s.perm("jupitermon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("places only its own top card as bottom security and keeps the rest of the stack in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "jupitermon",
+              under: [
+                { card: "BT26-013", as: "bottomSource" },
+                { card: "BT26-030", as: "topSource" },
+              ],
+            },
+          ],
+          security: [{ card: "BT1-009", as: "existingSecurity" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    const jupitermonPermanentId = s.perm("jupitermon").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([jupitermonPermanentId], "byEffect")).toBe(0);
+
+    const survivor = s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === jupitermonPermanentId);
+    expect(survivor?.topCard.cardId).toBe("BT26-030");
+    expect(survivor?.stack.map(({ cardId }) => cardId)).toEqual(["BT26-013"]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009", CARD_ID]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("survives a losing battle by placing its top card as bottom security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "jupitermon",
+              suspended: true,
+              under: [{ card: "BT26-030", as: "topSource" }],
+            },
+          ],
+          security: [{ card: "BT1-009", as: "existingSecurity" }],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const jupitermonPermanentId = s.perm("jupitermon").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: jupitermonPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 2);
+
+    const survivor = s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === jupitermonPermanentId);
+    expect(survivor?.topCard.cardId).toBe("BT26-030");
+    expect(survivor?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009", CARD_ID]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
@@ -227,8 +296,8 @@ describe("BT26-033 compiled fidelity", () => {
       await advance(protectedCase.engine).verb.deletePermanent([protectedCase.perm("ownedTs").permanentId], "byEffect"),
     ).toBe(0);
     expect(protectedCase.perm("ownedTs").topCard.cardId).toBe("BT26-015");
-    expect(protectedCase.state.players[0]!.security.at(-1)?.cardId).toBe("BT26-030");
-    expect(protectedCase.perm("jupitermon").topCard.cardId).toBe(CARD_ID);
+    expect(protectedCase.state.players[0]!.security.at(-1)?.cardId).toBe(CARD_ID);
+    expect(protectedCase.perm("jupitermon").topCard.cardId).toBe("BT26-030");
 
     const filteredCase = setupEngine(
       {
@@ -254,14 +323,14 @@ describe("BT26-033 compiled fidelity", () => {
     expect(filteredCase.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("cannot pay the protection cost without a digivolution card", async () => {
+  it("pays with itself when it has no digivolution card, leaving no permanent behind", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "jupitermon" }] } }, { autoAcceptOptional: true });
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("jupitermon").permanentId], "byEffect")).toBe(1);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("jupitermon").permanentId], "byEffect")).toBe(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("uses Alliance during a real attack and suspends the chosen ally", async () => {

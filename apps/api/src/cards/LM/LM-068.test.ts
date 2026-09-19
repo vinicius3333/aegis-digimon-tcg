@@ -3,6 +3,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-068.js";
+import "../index.js";
 
 const FILLER = "BT1-010";
 
@@ -268,7 +269,9 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
       {
         0: {
           battleArea: [{ card: "LM-068", as: "heavy", under: ["BT7-076"] }],
-          hand: [FILLER, FILLER, FILLER, FILLER, FILLER],
+          // Orochimon's inherited [When Attacking] trashes 1 hand card during this attack, so the
+          // hand has to start at 6 for the End of Attack check to see the 5 this case is about.
+          hand: [FILLER, FILLER, FILLER, FILLER, FILLER, FILLER],
           trash: [{ card: "BT11-079", as: "darkLizardmon" }],
           deck: [FILLER, FILLER],
         },
@@ -297,7 +300,9 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
       {
         0: {
           battleArea: [{ card: "LM-068", as: "heavy", under: ["BT7-076"] }],
-          hand: [FILLER, FILLER, FILLER],
+          // Orochimon's inherited [When Attacking] trashes 1 hand card before the battle, so the
+          // hand starts at 4 and the [On Deletion] "trash 2" below leaves the asserted 1.
+          hand: [FILLER, FILLER, FILLER, FILLER],
           deck: [FILLER, FILLER, FILLER],
         },
         1: {

@@ -294,6 +294,31 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
+  it("never plays the Jupitermon DUAL card from hand or trash on deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-073", as: "dark" }],
+          hand: [
+            { card: "BT26-033", as: "handDual" },
+            { card: "BT24-011", as: "eligible" },
+          ],
+          trash: [{ card: "BT26-033", as: "trashDual" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("dark").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT24-011"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("handDual").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("trashDual").instanceId,
+      s.inst("dark").instanceId,
+    ]);
+  });
+
   it("may decline the optional On Deletion play", async () => {
     const s = setupEngine(
       {

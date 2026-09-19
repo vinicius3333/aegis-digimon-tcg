@@ -63,7 +63,7 @@ describe("BT18-095 Wind to Flame, Ice to Sword", () => {
     expect(s.state.memory).toBe(7);
   });
 
-  it("does not treat duplicate Hybrid names as distinct or evolve a Tamer with fewer than five cards", async () => {
+  it("does not treat duplicate Hybrid names as distinct", async () => {
     const s = setupEngine(
       {
         0: {
@@ -76,6 +76,34 @@ describe("BT18-095 Wind to Flame, Ice to Sword", () => {
             { card: "BT18-095", as: "option" },
             { card: "BT18-063", as: "duplicateA" },
             { card: "BT18-063", as: "duplicateB" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    // Only one of the two Beetlemon copies is a distinct name, so the Tamer gains exactly one
+    // card and the other copy stays in hand.
+    expect(s.perm("tamer").stack.filter((card) => card.cardId === "BT18-063")).toHaveLength(2);
+    expect(s.perm("tamer").stack).toHaveLength(4);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT18-063")).toBe(true);
+  });
+
+  it("does not evolve a Tamer with fewer than five cards under it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-088", as: "tamer" }, "BT1-064", "BT1-030"],
+          hand: [
+            { card: "BT18-095", as: "option" },
+            { card: "BT18-063", as: "beetle" },
             { card: "BT18-018", as: "emperor" },
           ],
         },
@@ -90,9 +118,11 @@ describe("BT18-095 Wind to Flame, Ice to Sword", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
+    // The placement leaves the Tamer under five cards, so the [EmperorGreymon] digivolution
+    // never resolves and the Tamer keeps its printed top card.
+    expect(s.perm("tamer").stack.length).toBeLessThan(5);
     expect(s.perm("tamer").topCard?.cardId).toBe("BT18-088");
-    expect(s.perm("tamer").stack.filter((card) => card.cardId === "BT18-063")).toHaveLength(2);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("emperor").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT18-018")).toBe(false);
   });
 
   it("naturally executes Security by playing an inherited-effect Tamer and returning this Option to hand", async () => {

@@ -6,6 +6,7 @@ import {
   CardInstance,
   Phase,
   Zone,
+  effectiveExactNames,
   getCardDefinition,
   isDigiEgg,
   isDigimon,
@@ -472,13 +473,30 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         const rawMax = req.options?.max;
         const cap = typeof rawMax === "number" && Number.isFinite(rawMax) ? rawMax : ordered.length;
         const visibleCardIds = new Map((req.options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId]));
+        // The deciding seat's own hand is already visible to it, so the request may omit it from
+        // `visibleCards`. The server resolves the same identities when it validates a
+        // `distinctNames` selection, so the name lookup has to see them too; `visibleCardIds`
+        // stays as offered, because every other rule here reads only what the prompt revealed.
+        const nameCardIds = new Map([
+          ...(state.players[seat]?.hand ?? []).map((card): [string, string] => [card.instanceId, card.cardId]),
+          ...visibleCardIds,
+        ]);
         const ids: string[] = [];
         const selectedCardIds = new Set<string>();
+        const selectedNames = new Set<string>();
         let selectedDP = 0;
         for (const instanceId of ordered) {
           if (ids.length >= cap) break;
           const cardId = visibleCardIds.get(instanceId);
           if (req.options?.distinctCardIds === true && (cardId === undefined || selectedCardIds.has(cardId))) continue;
+          const nameCardId = nameCardIds.get(instanceId);
+          const names =
+            req.options?.distinctNames === true && nameCardId !== undefined
+              ? effectiveExactNames(getCardDefinition(nameCardId)).map((name) => name.toLowerCase())
+              : [];
+          if (req.options?.distinctNames === true) {
+            if (nameCardId === undefined || names.some((name) => selectedNames.has(name))) continue;
+          }
           if (req.kind === "chooseTargets" && req.options?.maxTotalDP !== undefined) {
             const permanent = findPermanentForDecisionId(state, instanceId);
             if (permanent === undefined || selectedDP + permanent.currentDP > req.options.maxTotalDP) continue;
@@ -486,6 +504,7 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
           }
           ids.push(instanceId);
           if (cardId !== undefined) selectedCardIds.add(cardId);
+          for (const name of names) selectedNames.add(name);
         }
         const response =
           req.kind === "selectCards"

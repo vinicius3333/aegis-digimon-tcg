@@ -112,6 +112,56 @@ describe("BT24-041 Minervamon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(peeledTop);
   });
 
+  it("never plays the Jupitermon DUAL card as the free Iliad play even though its printed cost fits", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-041", as: "minervamon" },
+            { card: "BT26-033", as: "dual" },
+            { card: "BT24-011", as: "eligible" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("dual").instanceId]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT24-041", "BT24-011"]);
+  });
+
+  it("skips the free Iliad play entirely when only the Jupitermon DUAL card is in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-041", as: "minervamon" },
+            { card: "BT26-033", as: "dual" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT26-033"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT24-041"]);
+  });
+
   it("performs two De-Digivolve 1 operations for two own Digimon (Q5628)", async () => {
     const s = setupEngine({
       0: {

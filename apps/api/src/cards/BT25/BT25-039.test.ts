@@ -34,6 +34,66 @@ describe("BT25-039 Sirenmon", () => {
     },
   );
 
+  it("does not fire the end-of-turn security play from trash after being deleted mid-turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-039", as: "sirenmon" }],
+          hand: [{ card: "BT25-059", as: "ceresmon" }],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("sirenmon").permanentId], "byBattle");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: s.state.pendingDecision!.decisionId,
+      response: { kind: "optional", accept: false },
+    });
+    await deletion;
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-039");
+
+    await advance(s.engine).runTurn(0);
+    expect(
+      s.events.filter(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === "BT25-039" && event.timing === "OnEndTurn",
+      ),
+    ).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT25-059")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-059");
+  });
+
+  it("fires the end-of-turn security play after On Deletion placed it face up in security mid-turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-039", as: "sirenmon" }],
+          hand: [{ card: "BT25-059", as: "ceresmon" }],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("sirenmon").permanentId], "byBattle");
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId: "BT25-039", faceUp: true });
+
+    await advance(s.engine).runTurn(0);
+    expect(
+      s.events.filter(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === "BT25-039" && event.timing === "OnEndTurn",
+      ),
+    ).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT25-059")).toBe(true);
+  });
+
   it("keeps the TS evolution route alternate to the normal Yellow/Green routes", () => {
     expect(getCardDefinition("BT25-039")).toMatchObject({
       evoCosts: [

@@ -81,7 +81,7 @@ export const compiled: CompiledCard = {
             kind: "placeAsSecurity",
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             position: "bottom",
-            fromDigivolutionTop: true,
+            detachPermanentTop: true,
           },
           actions: [],
         },

@@ -56,13 +56,16 @@ export async function paySecurityToHandCost(ctx: EffectContext, cost: Cost): Pro
 }
 
 /**
- * Pay by placing a permanent, or its top digivolution card, into the security stack.
+ * Pay by placing a permanent, its top card alone, or its top digivolution card into security.
  */
 export async function payPlaceAsSecurityCost(ctx: EffectContext, cost: Cost): Promise<boolean> {
   // "By placing this Digimon as the face-up bottom security card" (BT19-048).
   // Resolves the target (isSelfRef → the source permanent itself), takes its visible top card
   // or, for `fromDigivolutionTop`, the card directly beneath it, then adds that card to the
   // controller's security stack at the encoded position. `"faceUpBottom"` → bottom and face-up.
+  // `detachPermanentTop` ("by placing this Digimon's top stacked card as the bottom security
+  // card", BT26-033) sheds only the visible top card and promotes the card beneath, so the
+  // rest of the stack stays in play.
   const targets = cost.target
     ? await resolvePermanentTargets(ctx, cost.target)
     : (() => {
@@ -80,6 +83,9 @@ export async function payPlaceAsSecurityCost(ctx: EffectContext, cost: Cost): Pr
   if (instanceIds.length === 0) return false;
   const toTop = cost.position !== "bottom" && cost.position !== "faceUpBottom";
   const faceUp = cost.position === "faceUpBottom";
-  await ctx.fx.addSecurity(ctx.source.ownerSeat, instanceIds, { toTop, faceUp });
-  return true;
+  const detachPermanentTop = cost.detachPermanentTop === true;
+  await ctx.fx.addSecurity(ctx.source.ownerSeat, instanceIds, { toTop, faceUp, detachPermanentTop });
+  if (!detachPermanentTop) return true;
+  const security = ctx.game.player(ctx.source.ownerSeat).security;
+  return instanceIds.every((instanceId) => security.some((card) => card.instanceId === instanceId));
 }

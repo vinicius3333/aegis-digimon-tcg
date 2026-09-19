@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-067.js";
+import "../index.js";
 
 const CARD_ID = "LM-067";
 const FILLER = ["BT1-027", "BT1-028", "BT1-045", "BT1-047", "BT1-050"];
@@ -601,11 +602,14 @@ describe("LM-067 Gundramon / Gewalt Schwärmer", () => {
         instanceId: s.inst("gundramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX7-070"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ stack }) => stack.some(({ cardId }) => cardId === "EX7-070")),
+    );
 
-    // "play OR use": the Option side of the disposition sends it to the trash as a used
-    // Option rather than putting it into the battle area as a played permanent.
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX7-070");
+    // "play OR use": the Option side of the disposition USES the revealed card instead of
+    // putting it into the battle area as a played permanent. Der Blitz's own [Main] then
+    // places it as a digivolution card, which is where a used copy of it ends up.
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("EX7-070");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("EX7-070");
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).not.toContain("EX7-070");
   });

@@ -137,7 +137,7 @@ describe("BT26-078 compiled behavior", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-078");
   });
 
-  it("can play a DUAL Digimon/Option through its Digimon type, without admitting pure Options", async () => {
+  it("does not play a DUAL Digimon/Option through its kind-less card filter (CR 7-1-1)", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT26-078", as: "cherubimon" }], trash: [{ card: "BT26-056", as: "dual" }] },
@@ -154,7 +154,7 @@ describe("BT26-078 compiled behavior", () => {
     expect({
       battleArea: s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId),
       trash: s.state.players[0]!.trash.map(({ cardId }) => cardId),
-    }).toEqual({ battleArea: ["BT26-056"], trash: ["BT26-078"] });
+    }).toEqual({ battleArea: [], trash: ["BT26-056", "BT26-078"] });
   });
 
   it("Q7105 plays a Tamer whose effect text mentions Chronomon", async () => {

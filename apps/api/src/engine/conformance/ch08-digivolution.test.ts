@@ -417,7 +417,10 @@ describe("§8-3 Burst Digivolve (comprehensive-0131..0133)", () => {
   // 0133) and the "trash the top stacked card at end of turn" pending-processing rule
   // (8-3-2-1/2, comprehensive-0132), which no other conformance file exercises.
   function layBurstScenario() {
-    const s = setup({ autoSelectCards: true });
+    // BT13-020's own [When Digivolving] offers an optional "play 1 [Marcus Damon] from hand",
+    // and the burst cost has just put that Tamer back in hand. Leaving the offer unanswered
+    // holds the resolution window open, which defers the OnEndTurn firing this block asserts.
+    const s = setup({ autoSelectCards: true, autoDeclineOptional: true });
     const p0 = s.state.players[0]!;
     const base = digimon(0, 9000, "BT4-020"); // a real "ShineGreymon", Red Lv.6
     p0.battleArea.push(base);

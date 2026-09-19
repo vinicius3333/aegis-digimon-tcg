@@ -214,6 +214,33 @@ describe("BT26-081 compiled behavior", () => {
     });
   });
 
+  it("never offers the Jupitermon DUAL card from hand or trash even though its printed cost fits", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT26-081", as: "mervamon" },
+            { card: "BT26-033", as: "handDual" },
+            { card: "BT24-019", as: "eligible" },
+          ],
+          trash: [{ card: "BT26-033", as: "trashDual" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    await s.ready();
+
+    s.state.memory = 30;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+
+    const selection = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    expect(selection).toMatchObject({ options: { candidateInstanceIds: [s.inst("eligible").instanceId] } });
+  });
+
   it("Q7115 still reduces DP when no card is played", async () => {
     const s = setupEngine(
       {
