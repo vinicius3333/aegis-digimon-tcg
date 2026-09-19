@@ -68,3 +68,18 @@ trigger and the live combat window".
 - After: both variants gain +5000 DP and Digimon-effect immunity in the live attack window.
 - The earlier injected-timing failure remains invalid: without a trigger attacker or open
   combat window, the condition correctly stays false.
+
+## Production trace
+
+A read-only review of the API logs around the report found the exact BT20-053 sequence on
+2026-09-19 (identifiers omitted):
+
+1. 18:03:58Z — EX13-060's [End of Your Turn] effect played BT20-053 and opened an
+   `orderTriggers` decision containing BT20-053 [On Play] and EX13-060 [Your Turn].
+2. 18:04:03Z — EX13-060 was ordered first and offered its optional attack.
+3. 18:04:09Z — BT20-053 declared the attack, then its pending [On Play] triggered inside
+   that attack.
+4. 18:04:13Z — BT20-053's [On Play] resolved, but the following Security battle recorded
+   the attacker at 7000 DP instead of the expected 12000 DP.
+
+This trace proves the report's ordering and symptom independently of the regression fixture.
