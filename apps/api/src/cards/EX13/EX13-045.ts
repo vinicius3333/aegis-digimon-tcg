@@ -10,12 +10,17 @@ const keyword = (keywordName: "Raid" | "Piercing" | "Blocker" | "Evade", raw: st
   keywords: [{ keyword: keywordName, raw }],
 });
 
+const dnaClause =
+  "[When Digivolving] If DNA digivolving, this Digimon attacks and all of your Digimon get +10000 DP until your opponent's turn ends.";
+const thenBattleClause = "Then, this Digimon may battle 1 of your opponent's Digimon.";
+
 const buffAllOwnDigimon: Action = {
   kind: "ModifyDP",
   target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
   amount: 10_000,
   duration: "untilOpponentTurnEnd",
   raw: "all of your Digimon get +10000 DP until your opponent's turn ends",
+  effectTextPart: dnaClause,
 };
 
 const attackSelf: Action = {
@@ -23,6 +28,7 @@ const attackSelf: Action = {
   target: self,
   withoutSuspending: false,
   raw: "this Digimon attacks",
+  effectTextPart: dnaClause,
 };
 
 const mayBattle: Action = {
@@ -31,6 +37,7 @@ const mayBattle: Action = {
   defender: opponentDigimon,
   optional: true,
   raw: "this Digimon may battle 1 of your opponent's Digimon",
+  effectTextPart: thenBattleClause,
 };
 
 const dracomonOrExamonText = [{ tokens: ["Dracomon", "Examon"], match: "text" as const }];

@@ -60,6 +60,8 @@ export interface NarrationStreamDeps {
   queuedNarrationRef: MutableRefObject<Map<string, NarrationItem>>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
+  /** Held items a cue has already read out, so a second cue promised the same item skips it. */
+  readOutHeldRef: MutableRefObject<WeakSet<object>>;
   lastBatchIdRef: MutableRefObject<string>;
   narrationSequenceRef: MutableRefObject<number>;
   narrationRef: MutableRefObject<ReadonlyMap<string, NarrationItem>>;
@@ -90,6 +92,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     queuedNarrationRef,
     heldNoticesRef,
     heldPanelsRef,
+    readOutHeldRef,
     lastBatchIdRef,
     narrationSequenceRef,
     narrationRef,
@@ -303,8 +306,14 @@ export function narrationStream(deps: NarrationStreamDeps) {
    * part only. Draining let the dock read out an [On Play] result that had not happened on
    * screen yet, because a later batch had parked it in the same bucket.
    */
-  function openHeld(ownNotices: readonly MatchNotice[], ownPanels: readonly SidePanel[], opts?: NarrationPlacement) {
+  function openHeld(heldNotices: readonly MatchNotice[], heldPanels: readonly SidePanel[], opts?: NarrationPlacement) {
+    // A held item can be promised to two cues: the late cue a batch enqueued for it while a
+    // reveal was on stage, and the reveal's own close, which reserves everything still held.
+    // Whichever runs first reads it; the other must not read it again.
+    const ownNotices = heldNotices.filter((notice) => !readOutHeldRef.current.has(notice));
+    const ownPanels = heldPanels.filter((panel) => !readOutHeldRef.current.has(panel));
     if (ownNotices.length === 0 && ownPanels.length === 0) return;
+    for (const item of [...ownNotices, ...ownPanels]) readOutHeldRef.current.add(item);
     heldNoticesRef.current = heldNoticesRef.current.filter((held) => !ownNotices.includes(held));
     heldPanelsRef.current = heldPanelsRef.current.filter((held) => !ownPanels.includes(held));
     const origins = new Set(

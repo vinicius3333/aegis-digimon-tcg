@@ -43,6 +43,7 @@ import {
   viewerTurnOrder as modelViewerTurnOrder,
 } from "./screen/model/gameOutcome";
 import { actionGuards } from "./screen/model/actionGuards";
+import { dialogRepeatsEffectNotice } from "./notices";
 import { handEntriesOf } from "./screen/model/handEntries";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { appFusionLive } from "./screen/model/appFusionLive";
@@ -363,7 +364,8 @@ export function GameScreen({
   });
   // The dialog that asks the viewer whether to activate their own effect already names the
   // card and prints its clause, so the matching corner notice would only repeat it.
-  const promptedOwnEffectCardId = decision?.seat === viewerSeat ? decision.sourceCardId : undefined;
+  const promptedOwnEffectCardId =
+    decision?.seat === viewerSeat && dialogRepeatsEffectNotice(decision.options) ? decision.sourceCardId : undefined;
   const ownEffectNoticeRef = useRef({ dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice });
   ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
   useEffect(() => {

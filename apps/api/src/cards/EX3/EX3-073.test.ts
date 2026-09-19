@@ -62,8 +62,8 @@ describe("EX3-073 Imperialdramon: Fighter Mode", () => {
           optional: true,
           condition: { kind: "anyOf" },
           actions: [
-            { kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true },
-            { kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true },
+            { kind: "PlayWithoutCost", from: ["trash"], payCost: false },
+            { kind: "PlayWithoutCost", from: ["trash"], payCost: false },
           ],
         },
       ],

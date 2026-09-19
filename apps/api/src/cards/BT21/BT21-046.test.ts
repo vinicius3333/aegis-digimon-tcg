@@ -27,7 +27,8 @@ describe("BT21-046 compiled implementation", () => {
   it("optionally digivolves itself into a Coredramon from hand for free at both timings", () => {
     for (const trigger of ["StartOfYourMainPhase", "WhenDigivolving"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
-      expect(effect).toMatchObject({ trigger, optional: true });
+      expect(effect).toMatchObject({ trigger });
+      expect(effect?.optional).toBeUndefined();
       expect(effect?.actions).toEqual([
         {
           kind: "Digivolve",

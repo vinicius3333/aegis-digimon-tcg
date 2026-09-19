@@ -15,11 +15,11 @@ import {
 } from "./index.js";
 
 /**
- * Every catalog deck except the nine built around Nyaromon (BT15-003), banned outright on
+ * Every catalog and hand-authored deck except the nine built around Nyaromon (BT15-003), banned outright on
  * 2026-09-01 (a recipe with a banned card cannot be adapted by trimming copies, so it is
  * withheld), and except repeated archetypes within one collection, which are offered once.
  */
-const CATALOG_AVAILABLE_DECKS = 301;
+const CATALOG_AVAILABLE_DECKS = 316;
 
 const futureDeck: FamousDeck = {
   deckId: "future-ex12-example",
@@ -34,7 +34,7 @@ const futureDeck: FamousDeck = {
 
 describe("famous deck catalog", () => {
   it("keeps the whole historical catalog available", () => {
-    expect(ALL_FAMOUS_DECKS).toHaveLength(348);
+    expect(ALL_FAMOUS_DECKS).toHaveLength(363);
     expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(CATALOG_AVAILABLE_DECKS);
   });
 
@@ -70,6 +70,7 @@ describe("famous deck catalog", () => {
     const groups = famousDeckGroups([...ALL_FAMOUS_DECKS, futureDeck]);
 
     expect(groups.map((group) => group.collection)).toEqual([
+      "EX13",
       "BT26",
       "EX12",
       "BT25",
@@ -149,6 +150,9 @@ describe("famous deck catalog", () => {
       "EX9",
       "EX10",
       "EX11",
+      "EX13",
+      "EX13",
+      "EX13",
     ]);
     expect(OFFICIAL_PRODUCT_DECKS.every((deck) => deck.category === "official-recipe")).toBe(true);
     expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(CATALOG_AVAILABLE_DECKS);

@@ -231289,7 +231289,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "restriction": "returnToHandOrDeck",
+            "restriction": "stackReturn",
             "byOpponentEffectsOnly": true,
             "while": { "kind": "selfUnsuspended", "raw": "this Digimon is unsuspended" },
             "duration": "permanent",
@@ -233178,6 +233178,7 @@
             "amount": 10000,
             "duration": "untilOpponentTurnEnd",
             "raw": "all of your Digimon get +10000 DP until your opponent's turn ends",
+            "effectTextPart": "[When Digivolving] If DNA digivolving, this Digimon attacks and all of your Digimon get +10000 DP until your opponent's turn ends.",
             "condition": { "kind": "isDnaDigivolving" }
           },
           {
@@ -233185,6 +233186,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "withoutSuspending": false,
             "raw": "this Digimon attacks",
+            "effectTextPart": "[When Digivolving] If DNA digivolving, this Digimon attacks and all of your Digimon get +10000 DP until your opponent's turn ends.",
             "condition": { "kind": "isDnaDigivolving" }
           },
           {
@@ -233193,6 +233195,7 @@
             "defender": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "optional": true,
             "raw": "this Digimon may battle 1 of your opponent's Digimon",
+            "effectTextPart": "Then, this Digimon may battle 1 of your opponent's Digimon.",
             "condition": { "kind": "isDnaDigivolving" }
           }
         ]

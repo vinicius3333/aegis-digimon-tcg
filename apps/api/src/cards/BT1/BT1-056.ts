@@ -4,7 +4,6 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
-      optional: true,
       actions: [
         {
           kind: "PlayWithoutCost",

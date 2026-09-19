@@ -26,7 +26,6 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfAttack",
-      optional: true,
       condition: {
         kind: "selfDigivolutionCountAtLeast",
         value: 1,

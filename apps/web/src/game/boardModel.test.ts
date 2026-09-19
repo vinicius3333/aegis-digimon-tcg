@@ -30,6 +30,7 @@ import {
   decisionVisibleCards,
   distinctCardIdsAllow,
   buildInstanceIndex,
+  buildInstanceZoneIndex,
 } from "./decisionModel";
 import {
   digivolveBasePermanentIds,
@@ -113,6 +114,43 @@ describe("buildInstanceIndex", () => {
         ["agumon", "BT1-010"],
       ]),
     );
+  });
+});
+
+describe("buildInstanceZoneIndex", () => {
+  it("files digivolution cards under their own zone instead of the battle area", () => {
+    const permanent = (permanentId: string, top: string, under: string) => ({
+      permanentId,
+      topCard: { instanceId: top, cardId: "BT1-010" },
+      stack: [{ instanceId: under, cardId: "BT1-009" }],
+      linked: [],
+    });
+    const state = {
+      players: [
+        {
+          battleArea: [permanent("examon", "examon-card", "dracomon-card")],
+          breeding: undefined,
+          trash: [],
+          hand: [{ instanceId: "hand-card", cardId: "BT1-010" }],
+          deck: [],
+        },
+        {
+          battleArea: [permanent("greymon", "greymon-card", "agumon-card")],
+          breeding: undefined,
+          trash: [],
+          hand: [],
+          deck: [],
+        },
+      ],
+    } as unknown as import("@aegis/shared").GameState;
+
+    const zones = buildInstanceZoneIndex(state, 0);
+    expect(zones.get("hand-card")).toBe("hand");
+    expect(zones.get("examon")).toBe("battle");
+    expect(zones.get("examon-card")).toBe("battle");
+    expect(zones.get("dracomon-card")).toBe("digivolutionCards");
+    expect(zones.get("greymon-card")).toBe("opponentBattle");
+    expect(zones.get("agumon-card")).toBe("opponentDigivolutionCards");
   });
 });
 

@@ -55,6 +55,7 @@ describe("famous deck selection", () => {
         />
       </I18nProvider>,
     );
+    const picker = within(screen.getByRole("region", { name: "Choose your battle deck" }));
     const region = within(screen.getByLabelText("Your decks"));
     const selectors = region
       .getAllByRole("button")
@@ -63,13 +64,14 @@ describe("famous deck selection", () => {
     expect((selectors[1] as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(selectors[1]!);
     expect(onSelectDeck).not.toHaveBeenCalled();
-    fireEvent.change(region.getByRole("searchbox"), { target: { value: "DRAFT" } });
+    fireEvent.change(picker.getByRole("searchbox"), { target: { value: "DRAFT" } });
     expect(region.queryByRole("button", { name: valid.name })).toBeNull();
     fireEvent.click(region.getByRole("button", { name: "Edit" }));
     expect(onSelectDeck).toHaveBeenCalledWith(invalid.id);
     expect(onNav).toHaveBeenCalledWith("deck");
-    fireEvent.change(region.getByRole("searchbox"), { target: { value: "missing" } });
-    expect(region.getByRole("status").textContent).toBe("No decks match your search.");
+    fireEvent.change(picker.getByRole("searchbox"), { target: { value: "missing" } });
+    expect(screen.getAllByText("No decks match your search.").length).toBe(2);
+    expect(picker.getByRole("status").textContent).toBe("0 decks");
   });
   it("keeps ordinary decks in the normal queue without a beta checkbox", () => {
     const onStart = vi.fn();
@@ -166,11 +168,45 @@ describe("famous deck selection", () => {
     expect(personalDeck.closest(".deck-list-card")).toBeTruthy();
     expect(famousDeck.closest(".deck-list-card")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Famous decks" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "BT1" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "EX2" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "BT10" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "BT19" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "EX9" })).toBeTruthy();
+    for (const set of ["BT1", "EX2", "BT10", "BT19", "EX9"]) {
+      expect(screen.getByRole("heading", { name: set })).toBeTruthy();
+    }
+  });
+
+  it("searches famous decks across collapsed collections and filters by owner", () => {
+    const onSelectDeck = vi.fn<(id: string) => void>();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[{ id: "mine", name: "My build", color: "Blue", blurb: "Custom", mainDeck: [], eggDeck: [] }]}
+          activeDeckId="mine"
+          onSelectDeck={onSelectDeck}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={() => undefined}
+        />
+      </I18nProvider>,
+    );
+
+    const picker = within(screen.getByRole("region", { name: "Choose your battle deck" }));
+    fireEvent.change(picker.getByRole("searchbox"), { target: { value: "omnimon" } });
+    expect(picker.queryByRole("button", { name: /My build/ })).toBeNull();
+    expect(picker.queryByRole("heading", { name: "EX2" })).toBeNull();
+    const bt1 = picker.getByRole("region", { name: "BT1" });
+    expect((bt1.querySelector("details") as HTMLDetailsElement).open).toBe(true);
+    const useButtons = within(bt1).getAllByRole("button", { name: "Use deck" });
+    expect(useButtons.length).toBeGreaterThan(0);
+    fireEvent.click(useButtons[0]!);
+    expect(onSelectDeck).toHaveBeenCalledWith("bt1-red-omnimon");
+
+    fireEvent.change(picker.getByRole("searchbox"), { target: { value: "" } });
+    fireEvent.click(picker.getByRole("button", { name: /^Mine/ }));
+    expect(picker.getByRole("button", { name: /My build/ })).toBeTruthy();
+    expect(picker.queryByRole("heading", { name: "Famous decks" })).toBeNull();
+    fireEvent.click(picker.getByRole("button", { name: /^Famous/ }));
+    expect(picker.queryByRole("button", { name: /My build/ })).toBeNull();
+    expect(picker.getByRole("heading", { name: "Famous decks" })).toBeTruthy();
   });
 
   it("selects a famous preset without adding it to personal decks", () => {
@@ -189,10 +225,12 @@ describe("famous deck selection", () => {
       </I18nProvider>,
     );
 
-    const bt1Heading = screen.getByRole("heading", { name: "BT1" });
-    const bt1Group = bt1Heading.closest("section");
-    if (!bt1Group) throw new Error("BT1 group is missing");
-    fireEvent.click(bt1Heading);
+    const ex2 = screen.getByRole("region", { name: "EX2" });
+    expect(within(ex2).queryAllByRole("button", { name: "Use deck" })).toHaveLength(0);
+    fireEvent.click(within(ex2).getByText("EX2"));
+    expect(within(ex2).getAllByRole("button", { name: "Use deck" }).length).toBeGreaterThan(0);
+    const bt1Group = screen.getByRole("region", { name: "BT1" });
+    fireEvent.click(within(bt1Group).getByText("BT1"));
     fireEvent.click(within(bt1Group).getByRole("button", { name: /Red Omnimon/ }));
 
     expect(onSelectDeck).toHaveBeenCalledWith("bt1-red-omnimon");

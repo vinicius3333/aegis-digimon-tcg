@@ -31,7 +31,6 @@ describe("BT1-056 Petermon", () => {
       effects: [
         {
           trigger: "OnPlay",
-          optional: true,
           actions: [
             {
               kind: "PlayWithoutCost",

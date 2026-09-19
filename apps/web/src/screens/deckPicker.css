@@ -1,0 +1,227 @@
+.deck-picker {
+  margin-top: var(--ds-space-6);
+}
+
+.deck-picker__header h2 {
+  margin: var(--ds-space-2) 0 0;
+  color: var(--ds-fg);
+  font: 800 var(--ds-text-2xl)/1.2 var(--ds-font-display);
+}
+
+.deck-picker__header p {
+  max-width: 40rem;
+  margin: var(--ds-space-2) 0 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+  line-height: 1.5;
+}
+
+.deck-picker__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin-top: var(--ds-space-4);
+  padding-bottom: var(--ds-space-4);
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.deck-picker__search {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.deck-picker__search .aegis-field__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.deck-picker__filters {
+  display: flex;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  background: var(--ds-surface);
+}
+
+.deck-picker__filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: 8px 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ds-fg-muted);
+  font: 700 13px var(--ds-font-display);
+  cursor: pointer;
+  transition:
+    color var(--ds-motion-fast),
+    background var(--ds-motion-fast);
+}
+
+.deck-picker__filters button:hover {
+  color: var(--ds-fg);
+}
+
+.deck-picker__filters button:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.deck-picker__filters button.is-selected {
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+}
+
+.deck-picker__filter-count {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  font: 600 11px/1.4 var(--ds-font-mono);
+}
+
+.deck-picker__result-count {
+  margin-left: auto;
+  color: var(--ds-fg-muted);
+  font: 12px/1 var(--ds-font-mono);
+  white-space: nowrap;
+}
+
+.deck-picker__group {
+  margin-top: var(--ds-space-5);
+}
+
+.deck-picker__group-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+}
+
+.deck-picker__group-heading p {
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.5;
+  text-align: right;
+}
+
+.deck-picker__group-title {
+  margin: 0 0 var(--ds-space-3);
+  color: var(--ds-fg-muted);
+  font: 700 var(--ds-text-xs)/1 var(--ds-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.deck-picker__empty {
+  margin: 0;
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border: 1.5px dashed var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-fg-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.deck-picker__collection {
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.deck-picker__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.deck-picker__summary::-webkit-details-marker {
+  display: none;
+}
+
+.deck-picker__summary:hover h4 {
+  color: var(--ds-fg);
+}
+
+.deck-picker__set,
+.deck-picker__set-fallback {
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+.deck-picker__set {
+  width: auto;
+  opacity: 0.6;
+  filter: saturate(0.8);
+  transition: opacity 120ms ease;
+}
+
+.deck-picker__set-fallback {
+  display: grid;
+  width: 30px;
+  place-items: center;
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface-muted);
+  color: var(--ds-fg-muted);
+  font: 700 10px var(--ds-font-mono);
+}
+
+.deck-picker__summary:hover .deck-picker__set {
+  opacity: 0.9;
+}
+
+.deck-picker__summary h4 {
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font: 700 var(--ds-text-sm)/1 var(--ds-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.deck-picker__collection-count {
+  margin-left: auto;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+}
+
+.deck-picker__chevron {
+  flex-shrink: 0;
+  color: var(--ds-fg-muted);
+  transition: transform 150ms ease;
+}
+
+.deck-picker__collection details[open] .deck-picker__chevron {
+  transform: rotate(180deg);
+}
+
+.deck-picker__collection details[open] .lobby-decks {
+  padding-bottom: var(--ds-space-4);
+}
+
+/* Every card in the picker is a selection target, so it must read as one. */
+.deck-picker .deck-list-card:not(.is-disabled):hover {
+  border-color: var(--ds-accent);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+@media (width < 600px) {
+  .deck-picker__result-count {
+    margin-left: 0;
+  }
+  .deck-picker__group-heading {
+    display: block;
+  }
+  .deck-picker__group-heading p {
+    margin-top: var(--ds-space-2);
+    text-align: left;
+  }
+}

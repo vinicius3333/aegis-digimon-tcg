@@ -5,7 +5,6 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
-      optional: true,
       actions: [
         {
           kind: "SubTrigger",

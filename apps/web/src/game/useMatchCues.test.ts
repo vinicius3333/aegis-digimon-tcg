@@ -5434,6 +5434,133 @@ it("presents Imperial's late security consequence before the next turn phases", 
   expect(reports[source]).toMatchObject({ stateVersion: 2 });
 });
 
+it("reads a reaction the removal armed once across the deletion it caused and the next check", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [
+          {
+            permanentId: "perm-18",
+            topCard: { cardId: "BT23-047", instanceId: "s0-31" },
+          },
+        ],
+        hand: [],
+        trash: [],
+      },
+      {
+        battleArea: [
+          {
+            permanentId: "perm-16",
+            topCard: { cardId: "BT10-087", instanceId: "s1-39" },
+          },
+        ],
+        hand: [],
+        trash: [],
+      },
+    ],
+  } as unknown as GameState;
+  const reports: import("@aegis/shared").PresentationReport[] = [];
+  const { result, rerender } = renderCuesOverBoard(board, undefined, (report) =>
+    reports.push(report),
+  );
+  const attack: ServerEvent = {
+    kind: "attackDeclared",
+    seat: 0,
+    attackerPermanentId: "perm-18",
+    attackerCardId: "BT23-047",
+    target: { kind: "player" },
+  };
+  const firstReveal: ServerEvent = {
+    kind: "securityRevealed",
+    seat: 1,
+    revealedCardId: "BT19-061",
+    attackerPermanentId: "perm-18",
+    attackerDP: 21000,
+    securityCardDP: 5000,
+    securityCountBefore: 2,
+    hasSecurityEffect: false,
+    isDigimon: true,
+  };
+  const removalReaction: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "BT23-047",
+    sourceInstanceId: "s0-31",
+    sourcePermanentId: "perm-18",
+    effectKey: "subtrigger/whenSecurityRemoved",
+    timing: "whenSecurityRemoved",
+    printedTiming: "YourTurn",
+    duringSecurityCheck: true,
+    description:
+      "[Your Turn] [Once Per Turn] When your opponent's security stack is removed from, trash 1 of their Option cards in the battle area. Then, delete 1 of their suspended Digimon or Tamers.",
+  };
+  const tamerDeleted: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["s1-29", "s1-39"],
+    from: "battleArea",
+    to: "trash",
+    deletedPermanents: [
+      { permanentId: "perm-16", instanceId: "s1-39", cardId: "BT10-087", seat: 1 },
+    ],
+  };
+  const reactionResolved: ServerEvent = { ...removalReaction, kind: "effectResolved" };
+  const firstCheck: ServerEvent = {
+    kind: "securityChecked",
+    seat: 1,
+    revealedCardId: "BT19-061",
+    resolution: "battle",
+    battle: {
+      attackerDP: 21000,
+      securityCardDP: 5000,
+      attackerDeleted: false,
+      securityDigimonDeleted: true,
+    },
+  };
+  const secondReveal: ServerEvent = {
+    ...firstReveal,
+    revealedCardId: "BT19-035",
+    securityCountBefore: 1,
+  };
+  const secondCheck: ServerEvent = { ...firstCheck, revealedCardId: "BT19-035" };
+  const batches: ServerEvent[][] = [
+    [attack],
+    [firstReveal],
+    [removalReaction],
+    [tamerDeleted],
+    [reactionResolved],
+    [firstCheck],
+    [secondReveal],
+    [secondCheck],
+    [{ kind: "phaseChanged", phase: Phase.End, turnSeat: 0, turnCount: 10 }],
+    [{ kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 10 }],
+    [{ kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 10 }],
+    [{ kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 11 }],
+    [{ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 11 }],
+  ];
+  // The whole run reached the client in one patch, as separate batches delivered in the
+  // same tick: the turn ends while the first reveal is still on stage, which flushes what
+  // the check held, and the late cue the reaction's batch queued must not read it again.
+  const seen: ServerEvent[] = [];
+  for (const batch of batches) {
+    seen.push(...batch);
+    rerender([...seen]);
+  }
+  for (let tick = 0; tick < 300; tick++) await advance(100);
+  const readOut = new Set(
+    reports
+      .filter(
+        (report) =>
+          report.sourceCardId === "BT23-047" &&
+          report.stepId?.startsWith("narration-step"),
+      )
+      .map((report) => report.stepId),
+  );
+  expect(readOut.size).toBe(1);
+  expect(
+    result.current.notices.filter((notice) => notice.body.variant === "effect"),
+  ).toHaveLength(0);
+});
+
 describe("a run of security checks the patch delivered at once", () => {
   /** The board once both checks have resolved, which is the only board the client has. */
   const TWO_CHECKS_DOWN = {

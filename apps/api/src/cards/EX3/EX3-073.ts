@@ -40,6 +40,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
+      optional: true,
       condition: {
         kind: "anyOf",
         conditions: [
@@ -47,7 +48,6 @@ export const compiled: CompiledCard = {
           { kind: "selfHasMinTrash", count: 1, filter: { nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }] } },
         ],
       },
-      optional: true,
       actions: [
         {
           kind: "PlayWithoutCost",
@@ -57,7 +57,6 @@ export const compiled: CompiledCard = {
           },
           from: ["trash"],
           payCost: false,
-          optional: true,
         },
         {
           kind: "PlayWithoutCost",
@@ -67,7 +66,6 @@ export const compiled: CompiledCard = {
           },
           from: ["trash"],
           payCost: false,
-          optional: true,
         },
       ],
     },

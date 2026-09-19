@@ -2,7 +2,7 @@
    second human client; "Practice vs AI" seats a bot automatically server-side;
    "Private Match" creates or joins a code-locked room. */
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   bannedPairViolations,
   effectiveCopyLimit as banlistLimit,
@@ -26,7 +26,8 @@ import { FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, type DeckListing
 import { useTranslation, type Translate } from "../i18n";
 import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
-import { DeckListCard, deckLegality } from "./DeckListCard";
+import { deckLegality } from "./DeckListCard";
+import { DeckPicker } from "./DeckPicker";
 import "./lobby.css";
 
 export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest";
@@ -102,10 +103,8 @@ export function Lobby({
   const [roomCodeInput, setRoomCodeInput] = useState("");
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
   const [botDeckId, setBotDeckId] = useState("");
-  const [deckSearch, setDeckSearch] = useState("");
   const betaSupported = mode === "casual" || mode === "practice";
   const userDecks = useMemo(() => {
-    const query = deckSearch.trim().toLocaleLowerCase();
     return decks
       .map((deck) => ({
         deck,
@@ -117,12 +116,26 @@ export function Lobby({
               return card !== undefined && isBetaOnlyCard(card);
             })),
       }))
-      .filter(({ deck }) => deck.name.toLocaleLowerCase().includes(query))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
-  }, [decks, deckSearch, betaSupported]);
+  }, [decks, betaSupported]);
+  const editDeck = useCallback(
+    (deck: DeckListing) => {
+      if (onEditDeck) {
+        onEditDeck(deck);
+        return;
+      }
+      onSelectDeck(deck.id);
+      onNav("deck");
+    },
+    [onEditDeck, onSelectDeck, onNav],
+  );
+  const buildDeck = useCallback(() => onNav("deck"), [onNav]);
   const availableDecks = selectableDecks(decks);
   const active = availableDecks.find((d) => d.id === activeDeckId) ?? availableDecks[0];
-  const activeIsPreset = FAMOUS_DECK_GROUPS.some((group) => group.decks.some((deck) => deck.id === active?.id));
+  const activeCollection = FAMOUS_DECK_GROUPS.find((group) =>
+    group.decks.some((deck) => deck.id === active?.id),
+  )?.collection;
+  const activeIsPreset = activeCollection !== undefined;
   const ac = COLORS[active?.color ?? "Blue"];
   const vsBot = mode === "practice";
   const banViolations = useMemo(() => {
@@ -262,110 +275,14 @@ export function Lobby({
           })}
         </div>
 
-        <section aria-label={t("lobby.yourDecks")}>
-          <Eyebrow color="var(--ds-fg-muted)">{t("lobby.yourDecks")}</Eyebrow>
-          <Field
-            className="lobby-deck-search"
-            label={t("lobby.searchDecks")}
-            name="deckSearch"
-            type="search"
-            value={deckSearch}
-            onChange={(event) => setDeckSearch(event.target.value)}
-            placeholder={t("lobby.searchDecks")}
-          />
-          {decks.length === 0 ? (
-            <div
-              style={{
-                marginTop: 14,
-                padding: "18px 20px",
-                borderRadius: 16,
-                border: "1.5px dashed var(--ds-border)",
-                color: "var(--ds-fg-muted)",
-                fontSize: 13,
-                textAlign: "center",
-                lineHeight: 1.6,
-              }}
-            >
-              {t("lobby.noDecks")}{" "}
-              <button type="button" className="aegis-text-action" onClick={() => onNav("deck")}>
-                {t("lobby.noDecksLink")}
-              </button>
-              .
-            </div>
-          ) : (
-            <div
-              className="lobby-decks"
-              style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14, marginTop: 14 }}
-            >
-              {userDecks.length === 0 ? <p role="status">{t("lobby.noSearchResults")}</p> : null}
-              {userDecks.map(({ deck, legal }) => (
-                <DeckListCard
-                  key={deck.id}
-                  deck={deck}
-                  active={deck.id === activeDeckId}
-                  compact
-                  disabled={!legal}
-                  onSelect={() => onSelectDeck(deck.id)}
-                  actions={
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      icon={Icons.FileText}
-                      onClick={() => {
-                        if (onEditDeck) {
-                          onEditDeck(deck);
-                          return;
-                        }
-                        onSelectDeck(deck.id);
-                        onNav("deck");
-                      }}
-                    >
-                      {t("common.edit")}
-                    </Button>
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="lobby-famous" aria-labelledby="lobby-famous-title">
-          <header className="lobby-famous__header">
-            <h2 id="lobby-famous-title">{t("lobby.famousDecks")}</h2>
-            <p>{t("lobby.famousDecksDesc")}</p>
-          </header>
-          {FAMOUS_DECK_GROUPS.map((group, index) => {
-            const headingId = `famous-${group.collection.toLowerCase()}`;
-            return (
-              <section className="lobby-famous__group" aria-labelledby={headingId} key={group.collection}>
-                <details open={index === 0}>
-                  <summary className="lobby-famous__summary">
-                    <img
-                      className="lobby-famous__set"
-                      src={`/sets/${group.collection}.jpg`}
-                      alt=""
-                      aria-hidden="true"
-                    />
-                    <h3 id={headingId}>{group.collection}</h3>
-                    <span className="lobby-famous__count">{t("lobby.deckCount", { count: group.decks.length })}</span>
-                    <Icons.ChevronDown className="lobby-famous__chevron" size={16} />
-                  </summary>
-                  <div className="lobby-decks">
-                    {group.decks.map((deck) => (
-                      <DeckListCard
-                        key={deck.id}
-                        deck={deck}
-                        active={deck.id === activeDeckId}
-                        compact
-                        onSelect={() => onSelectDeck(deck.id)}
-                      />
-                    ))}
-                  </div>
-                </details>
-              </section>
-            );
-          })}
-        </section>
+        <DeckPicker
+          ownDecks={userDecks}
+          activeDeckId={activeDeckId}
+          onSelectDeck={onSelectDeck}
+          onCopyDeck={onCopyDeck}
+          onEditDeck={editDeck}
+          onBuildDeck={buildDeck}
+        />
       </div>
 
       <aside
@@ -407,6 +324,11 @@ export function Lobby({
               >
                 {active.name}
               </div>
+              {activeIsPreset ? (
+                <div style={{ fontSize: 11.5, color: "var(--ds-fg-muted)", marginTop: 2 }}>
+                  {t("lobby.presetSource", { collection: activeCollection })}
+                </div>
+              ) : null}
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
                 <span style={{ width: 9, height: 9, flexShrink: 0, borderRadius: "50%", background: ac.base }} />
                 <span

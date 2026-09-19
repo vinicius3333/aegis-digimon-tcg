@@ -3,6 +3,7 @@ import type { Seat, ServerEvent } from "@aegis/shared";
 import {
   deletionNoticesFromEvent,
   effectNoticeFromEvent,
+  dialogRepeatsEffectNotice,
   isOwnEffectNotice,
   keywordNoticeFromEvent,
   noticeRemaining,
@@ -273,6 +274,32 @@ describe("isOwnEffectNotice", () => {
     expect(isOwnEffectNotice(notice({ side: Side.Viewer }), "BT1-002")).toBe(false);
     expect(isOwnEffectNotice(notice({ side: Side.Opponent }), "BT1-001")).toBe(false);
     expect(isOwnEffectNotice(notice({ body: { variant: "recovery", amount: 1 } }), "BT1-001")).toBe(false);
+  });
+});
+
+describe("dialogRepeatsEffectNotice", () => {
+  const clause =
+    "[On Play] [When Digivolving] Suspend 5 of your opponent's Digimon or Tamers. Then, this Digimon may attack.";
+
+  it("repeats the notice when the dialog prints the whole clause", () => {
+    expect(dialogRepeatsEffectNotice({ effectText: clause })).toBe(true);
+    expect(dialogRepeatsEffectNotice(undefined)).toBe(true);
+    expect(dialogRepeatsEffectNotice({ effectText: clause, effectTextPart: "  " })).toBe(true);
+  });
+
+  it("repeats the notice when the dialog leads with the clause's opening passage", () => {
+    expect(
+      dialogRepeatsEffectNotice({
+        effectText: clause,
+        effectTextPart: "[On Play] [When Digivolving] Suspend 5 of your opponent's Digimon or Tamers.",
+      }),
+    ).toBe(true);
+  });
+
+  it("keeps the notice when the dialog prints only a later passage", () => {
+    expect(dialogRepeatsEffectNotice({ effectText: clause, effectTextPart: "Then, this Digimon may attack." })).toBe(
+      false,
+    );
   });
 });
 

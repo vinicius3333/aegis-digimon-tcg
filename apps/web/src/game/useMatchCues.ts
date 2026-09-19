@@ -423,6 +423,7 @@ export function useMatchCues({
   // read out yet. A newer check replaces that track, so they are flushed rather than
   // dropped with it — a lost animation is a shrug, a lost effect description is not.
   const heldNoticesRef = useRef<readonly MatchNotice[]>([]);
+  const readOutHeldRef = useRef(new WeakSet<object>());
   // The side panels those same notices belong with. A revealed-cards panel is the other
   // half of what an effect did, so it waits on exactly the cue the notice waits on —
   // otherwise the panel prints an [On Play] result beside a card still mid-reveal.
@@ -590,6 +591,7 @@ export function useMatchCues({
     queuedNarrationRef,
     heldNoticesRef,
     heldPanelsRef,
+    readOutHeldRef,
     lastBatchIdRef,
     narrationSequenceRef,
     narrationRef,

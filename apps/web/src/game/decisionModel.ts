@@ -48,6 +48,8 @@ export type CandidateZone =
   | "opponentTrash"
   | "battle"
   | "opponentBattle"
+  | "digivolutionCards"
+  | "opponentDigivolutionCards"
   | "breeding"
   | "security"
   | "delay";
@@ -58,17 +60,21 @@ export function buildInstanceZoneIndex(state: GameState, viewerSeat: Seat): Map<
   const add = (ci: CardInstance | undefined, zone: CandidateZone) => {
     if (ci?.instanceId) zones.set(ci.instanceId, zone);
   };
-  const addPermanent = (perm: Permanent | undefined, zone: CandidateZone) => {
+  // A prompt that reaches under a Digimon ("from its digivolution cards") must not read as
+  // the battle area, so the cards beneath a top card get their own zone.
+  const addPermanent = (perm: Permanent | undefined, zone: CandidateZone, stackZone: CandidateZone) => {
     if (!perm) return;
     add(perm.topCard, zone);
-    perm.stack?.forEach((ci) => add(ci, zone));
+    perm.stack?.forEach((ci) => add(ci, stackZone));
     perm.linked?.forEach((ci) => add(ci, zone));
     if (perm.permanentId) zones.set(perm.permanentId, zone);
   };
   state.players.forEach((player, seat) => {
     const mine = seat === viewerSeat;
-    player.battleArea.forEach((perm) => addPermanent(perm, mine ? "battle" : "opponentBattle"));
-    addPermanent(player.breeding, "breeding");
+    player.battleArea.forEach((perm) =>
+      addPermanent(perm, mine ? "battle" : "opponentBattle", mine ? "digivolutionCards" : "opponentDigivolutionCards"),
+    );
+    addPermanent(player.breeding, "breeding", "breeding");
     player.trash.forEach((ci) => add(ci, mine ? "trash" : "opponentTrash"));
     player.delayZone?.forEach((ci) => add(ci, "delay"));
     player.security?.forEach((ci) => add(ci, "security"));

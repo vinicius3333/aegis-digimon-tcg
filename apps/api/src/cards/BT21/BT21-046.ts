@@ -29,7 +29,6 @@ export const compiled: CompiledCard = {
           optional: true,
         },
       ],
-      optional: true,
     },
     {
       trigger: "WhenDigivolving",
@@ -57,7 +56,6 @@ export const compiled: CompiledCard = {
           optional: true,
         },
       ],
-      optional: true,
     },
     {
       trigger: "EndOfYourTurn",

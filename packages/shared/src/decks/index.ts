@@ -33,6 +33,7 @@ import ex9Catalog from "./data/ex9.json" with { type: "json" };
 import ex10Catalog from "./data/ex10.json" with { type: "json" };
 import ex11Catalog from "./data/ex11.json" with { type: "json" };
 import ex12Catalog from "./data/ex12.json" with { type: "json" };
+import ex13Catalog from "./data/ex13.json" with { type: "json" };
 import rb1Catalog from "./data/rb1.json" with { type: "json" };
 import ad1Catalog from "./data/ad1.json" with { type: "json" };
 import { BT1_DECKS } from "./bt1.js";
@@ -46,6 +47,7 @@ import { BT7_DECKS } from "./bt7.js";
 import { BT8_DECKS } from "./bt8.js";
 import { BT9_DECKS } from "./bt9.js";
 import { BT10_DECKS } from "./bt10.js";
+import { EX13_ROYAL_KNIGHTS_DECKS } from "./ex13.js";
 import { ADDITIONAL_COLLECTION_DECKS } from "./additionalCollections.js";
 import type { FamousDeck } from "./types.js";
 
@@ -97,6 +99,7 @@ const CATALOG_FILES: readonly CatalogFile[] = [
   ex10Catalog,
   ex11Catalog,
   ex12Catalog,
+  ex13Catalog,
   rb1Catalog,
   ad1Catalog,
 ] as CatalogFile[];
@@ -120,6 +123,7 @@ export const COMMUNITY_TOURNAMENT_DECKS: readonly FamousDeck[] = Object.freeze(
 export const ALL_FAMOUS_DECKS: readonly FamousDeck[] = Object.freeze([
   ...VALIDATED_FAMOUS_DECKS,
   ...ADDITIONAL_COLLECTION_DECKS,
+  ...EX13_ROYAL_KNIGHTS_DECKS,
   ...CATALOG_DECKS,
 ]);
 
@@ -174,3 +178,4 @@ export function famousDeckGroups(decks: readonly FamousDeck[] = ALL_FAMOUS_DECKS
 export * from "./types.js";
 export type { CatalogDeck, CatalogEntry, CatalogFile, CatalogTournament } from "./catalogSchema.js";
 export { ADDITIONAL_COLLECTION_DECKS } from "./additionalCollections.js";
+export { EX13_ROYAL_KNIGHTS_DECKS } from "./ex13.js";

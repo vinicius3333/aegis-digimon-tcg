@@ -264,3 +264,17 @@ export function noticeRemaining(notice: MatchNotice, nowMs: number): number {
 export function isOwnEffectNotice(notice: MatchNotice, cardId: string): boolean {
   return notice.side === Side.Viewer && notice.body.variant === "effect" && notice.body.cardId === cardId;
 }
+
+/**
+ * True when the dialog for a decision prints the clause its notice would open with.
+ *
+ * A dialog prints only the passage that raised it. When that passage is a later step of the
+ * clause ("Then, this Digimon may attack."), the earlier steps are read nowhere but the
+ * notice, so the notice must stay.
+ */
+export function dialogRepeatsEffectNotice(options: { effectText?: string; effectTextPart?: string } | undefined) {
+  const part = options?.effectTextPart?.trim();
+  if (!part) return true;
+  const clause = options?.effectText?.trim();
+  return clause === undefined || clause.startsWith(part);
+}

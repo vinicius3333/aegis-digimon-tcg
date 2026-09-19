@@ -1,0 +1,367 @@
+{
+  "collection": "EX13",
+  "generatedAt": "2026-09-18",
+  "decks": [
+    {
+      "id": "ex13-adventure-bandai",
+      "revision": 1,
+      "name": "EX13 Adventure",
+      "archetype": "Adventure",
+      "collection": "EX13",
+      "formatBlock": "EX13",
+      "colors": [
+        "Red",
+        "Green",
+        "Purple",
+        "Yellow",
+        "Black",
+        "Blue",
+        "White"
+      ],
+      "sourceType": "product_recipe",
+      "sourceUrl": "https://world.digimoncard.com/products/pack/ex-13/",
+      "mainDeck": [
+        {
+          "cardId": "ST20-02",
+          "name": "Biyomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST21-07",
+          "name": "Palmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST21-10",
+          "name": "Gabumon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST20-03",
+          "name": "Birdramon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST21-05",
+          "name": "Angemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST21-08",
+          "name": "Togemon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-061",
+          "name": "MetalGreymon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-075",
+          "name": "SkullGreymon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX9-019",
+          "name": "WereGarurumon: Sagittarius Mode",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST20-06",
+          "name": "Angewomon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST21-04",
+          "name": "Zudomon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "AD1-004",
+          "name": "WarGreymon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "AD1-014",
+          "name": "MetalGarurumon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX13-077",
+          "name": "Omnimon: Merciful Mode",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "AD1-019",
+          "name": "Matt Ishida & T.K. Takaishi",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "AD1-022",
+          "name": "Izzy Izumi & Tai Kamiya",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "EX13-073",
+          "name": "Tai Kamiya & Matt Ishida",
+          "qty": 4,
+          "type": "Tamer"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "ST21-01",
+          "name": "Tsunomon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex13-imperialdramon-bandai",
+      "revision": 1,
+      "name": "EX13 Imperialdramon",
+      "archetype": "Imperialdramon",
+      "collection": "EX13",
+      "formatBlock": "EX13",
+      "colors": [
+        "Blue",
+        "Green",
+        "Red",
+        "White"
+      ],
+      "sourceType": "product_recipe",
+      "sourceUrl": "https://world.digimoncard.com/products/pack/ex-13/",
+      "mainDeck": [
+        {
+          "cardId": "BT12-021",
+          "name": "Veemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT12-047",
+          "name": "Wormmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-117",
+          "name": "Veemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-248",
+          "name": "Veemon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT12-022",
+          "name": "ExVeemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT12-050",
+          "name": "Stingmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-037",
+          "name": "Lighdramon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST9-09",
+          "name": "Stingmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-025",
+          "name": "Paildramon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "AD1-011",
+          "name": "Paildramon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "AD1-024",
+          "name": "Imperialdramon: Fighter Mode",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST9-06",
+          "name": "Imperialdramon: Dragon Mode",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX13-076",
+          "name": "Imperialdramon: Paladin Mode",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-085",
+          "name": "Davis Motomiya & Ken Ichijoji",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "EX13-070",
+          "name": "Davis Motomiya & Ken Ichijoji",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT17-097",
+          "name": "Return to the Primogenitor",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT12-002",
+          "name": "DemiVeemon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex13-mamemon-bandai",
+      "revision": 1,
+      "name": "EX13 Mamemon",
+      "archetype": "Mamemon",
+      "collection": "EX13",
+      "formatBlock": "EX13",
+      "colors": [
+        "Black",
+        "Blue"
+      ],
+      "sourceType": "product_recipe",
+      "sourceUrl": "https://world.digimoncard.com/products/pack/ex-13/",
+      "mainDeck": [
+        {
+          "cardId": "EX12-053",
+          "name": "Hagurumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX13-046",
+          "name": "Kokuwamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX13-050",
+          "name": "Bokomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT8-061",
+          "name": "Thundermon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT18-064",
+          "name": "Mercurymon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX13-053",
+          "name": "Thundermon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT11-068",
+          "name": "Mamemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX9-018",
+          "name": "MetalMamemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX13-059",
+          "name": "BigMamemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX13-063",
+          "name": "PrinceMamemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-096",
+          "name": "Izzy Izumi",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "P-039",
+          "name": "Black Memory Boost!",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-107",
+          "name": "Defense Training",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "LM-031",
+          "name": "Black Scramble",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "P-246",
+          "name": "Motimon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    }
+  ]
+}
