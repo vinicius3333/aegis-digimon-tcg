@@ -4,9 +4,9 @@
 
 `UseOptionWithoutCost` candidate caps now compare against the candidate's live
 in-hand use cost through `effectiveLooseUseCost`, rather than its printed
-`playCost`. The same projection is used for upper, lower, and exact cost
-constraints; definition-only filters continue to check color, kind, trait, and
-other printed characteristics.
+`playCost`. This applies to upper use-cost ceilings; exact and lower-bound cost
+filters retain their printed-cost semantics. Definition-only filters continue
+to check color, kind, trait, and other printed characteristics.
 
 The Discord regression combines BT24-085 with BT26-033. With one security card,
 Wide Plasment's use cost is 3 (base 2 plus 1), so Dan Yuki & Kanan Yuki must not

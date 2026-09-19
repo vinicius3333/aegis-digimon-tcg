@@ -653,4 +653,79 @@ describe("use-option-without-cost engine path", () => {
     expect(ctx.lastOptionUsed).toBe(false);
     expect(rec.calls).not.toContain("useOptionFromHand");
   });
+
+  it("keeps exact Option cost filters tied to the printed cost", async () => {
+    resetStores();
+    seedOption("OPT-PRINTED-SEVEN", { colors: ["Red"] as never, playCost: 7 }, gainMemoryMain());
+    const rec: Recorder = { calls: [], memoryDeltas: [], trashed: [], optionUsedSubjects: [] };
+    const ctx = makeContext({
+      recorder: rec,
+      ownHand: [{ instanceId: "h-printed-seven", cardId: "OPT-PRINTED-SEVEN", ownerSeat: 0 as Seat, faceUp: true }],
+      effectiveUseCosts: { "h-printed-seven": 6 },
+    });
+
+    const ir: CompiledCard = {
+      coverage: "full",
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              filter: { controller: "mine", kind: ["Option"], playCostOneOf: [7] },
+              payCost: false,
+              from: ["hand"],
+            },
+          ],
+        },
+      ],
+    } as unknown as CompiledCard;
+
+    const effects = irCardModule("X-PRINTED-EXACT-COST", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
+    await effects[0]!.resolve(ctx);
+
+    expect(ctx.lastOptionUsed).toBe(true);
+    expect(rec.calls).toContain("useOptionFromHand");
+  });
+
+  it("applies live use-cost ceilings inside nested Option filter branches", async () => {
+    resetStores();
+    seedOption("OPT-NESTED-LIVE-COST", { colors: ["Yellow"] as never, playCost: 2 }, gainMemoryMain());
+    const rec: Recorder = { calls: [], memoryDeltas: [], trashed: [], optionUsedSubjects: [] };
+    const ctx = makeContext({
+      recorder: rec,
+      ownHand: [
+        { instanceId: "h-nested-live-cost", cardId: "OPT-NESTED-LIVE-COST", ownerSeat: 0 as Seat, faceUp: true },
+      ],
+      effectiveUseCosts: { "h-nested-live-cost": 6 },
+    });
+
+    const ir: CompiledCard = {
+      coverage: "full",
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              filter: {
+                controller: "mine",
+                kind: ["Option"],
+                playCostLte: 99,
+                or: [{ nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, { colors: ["Yellow"], playCostLte: 5 }],
+              },
+              payCost: false,
+              from: ["hand"],
+            },
+          ],
+        },
+      ],
+    } as unknown as CompiledCard;
+
+    const effects = irCardModule("X-NESTED-LIVE-COST-CAP", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
+    await effects[0]!.resolve(ctx);
+
+    expect(ctx.lastOptionUsed).toBe(false);
+    expect(rec.calls).not.toContain("useOptionFromHand");
+  });
 });

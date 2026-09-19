@@ -405,7 +405,6 @@ function optionUseCandidates(
         ? (action.target!.from as ZoneRef[])
         : (["hand"] as ZoneRef[]);
   const filter = (action as { filter?: Filter }).filter ?? action.target?.filter;
-  const exactCosts = filter?.playCostOneOf ?? [];
   const attackerLevelCap =
     filter?.playCostLteAttackerLevel === true
       ? (() => {
@@ -428,35 +427,30 @@ function optionUseCandidates(
           unit: action.playCostCeiling.unit,
         }) *
           action.playCostCeiling.raise;
-  const costCap =
-    dynamicCostCap ??
-    attackerLevelCap ??
-    scaledCostCap ??
-    filter?.playCostLte ??
-    (exactCosts.length > 0 ? Math.max(...exactCosts) : undefined);
+  const costCap = dynamicCostCap ?? attackerLevelCap ?? scaledCostCap ?? filter?.playCostLte;
+  const projectUseCostCeilings = (candidateFilter: Filter, useCost: number, rootCap?: number): Filter => {
+    const localCap =
+      rootCap ??
+      (candidateFilter.playCostLteScaling === undefined
+        ? candidateFilter.playCostLte
+        : (candidateFilter.playCostLte ?? 0) + scaleFactor(ctx, candidateFilter.playCostLteScaling));
+    return {
+      ...candidateFilter,
+      playCostLte: localCap !== undefined && useCost > localCap ? -1 : undefined,
+      playCostLteScaling: undefined,
+      or: candidateFilter.or?.map((branch) => projectUseCostCeilings(branch, useCost)),
+      and: candidateFilter.and?.map((branch) => projectUseCostCeilings(branch, useCost)),
+      not: candidateFilter.not === undefined ? undefined : projectUseCostCeilings(candidateFilter.not, useCost),
+    };
+  };
   const candidates: string[] = [];
   const addIfEligible = (candidate: { instanceId: string; cardId: string }) => {
     if (candidates.includes(candidate.instanceId)) return;
     const def = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
-    const effectiveFilter =
-      filter === undefined
-        ? undefined
-        : (() => {
-            const {
-              playCostLte: _playCostLte,
-              playCostGte: _playCostGte,
-              playCostOneOf: _playCostOneOf,
-              playCostLteScaling: _playCostLteScaling,
-              ...nonCostFilter
-            } = filter;
-            return nonCostFilter;
-          })();
+    const useCost = ctx.fx.effectiveLooseUseCost?.(candidate.instanceId, seat) ?? def.playCost;
+    const effectiveFilter = filter === undefined ? undefined : projectUseCostCeilings(filter, useCost, costCap);
     if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, def)) return;
     if (!def.kinds.includes(CardKind.Option)) return;
-    const useCost = ctx.fx.effectiveLooseUseCost?.(candidate.instanceId, seat) ?? def.playCost;
-    if (costCap !== undefined && useCost > costCap) return;
-    if (filter?.playCostGte !== undefined && useCost < filter.playCostGte) return;
-    if (exactCosts.length > 0 && !exactCosts.includes(useCost)) return;
     if (
       action.waiveColorRequirement !== true &&
       ctx.game.optionColorRequirementMet?.(seat, candidate.instanceId, def) === false
