@@ -607,6 +607,49 @@ describe("EX13-035 KingEtemon", () => {
     expect(s.perm("target").currentDP).toBe(9000);
   });
 
+  it("counts an opposing Digimon rewritten to [Sukamon] and deletes it at 0 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "kingEtemon" }],
+          hand: [
+            { card: "EX13-031", as: "kingSukamon" },
+            { card: CHUUMON_3, as: "fee" },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [
+            { card: OPPONENT_TARGET, as: "rewritten", dp: 9000 },
+            { card: OPPONENT_OTHER, as: "target", dp: 9000 },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingSukamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).effectiveNames(s.perm("rewritten")).includes("sukamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    await s.engine.recomputeContinuousEffects();
+    await settle(() =>
+      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("rewritten").instanceId),
+    );
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      s.inst("target").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("rewritten").instanceId);
+    assertNoLoudGap(s);
+  });
+
   it("does not count a Digimon that carries [Sukamon] only in its text", async () => {
     const s = setupEngine({
       0: {

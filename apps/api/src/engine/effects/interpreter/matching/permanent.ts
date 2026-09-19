@@ -712,6 +712,44 @@ export function permanentMatchesFilter(
     return definitionMatches(rest, def);
   }
 
+  // Name predicates on a LIVE permanent observe original-name rewrites and granted names.
+  // A rewrite replaces the printed name, so do not let definitionMatches fall back to it when
+  // none of the effective names match. Other entries in nameOrTrait remain valid OR branches.
+  if (filter.nameOrTrait?.some((reference) => reference.match === "name" || reference.match === "nameExact")) {
+    const effectiveNames = ctx.game.effectiveNames?.(permanent);
+    if (effectiveNames !== undefined) {
+      const nameReferences = filter.nameOrTrait.filter(
+        (reference) => reference.match === "name" || reference.match === "nameExact",
+      );
+      const matchesEffectiveName = nameReferences.some((reference) =>
+        effectiveNames.some((name) =>
+          matchNameOrTrait({ ...def, cardId: undefined, nameEn: name, nameAliases: undefined }, reference),
+        ),
+      );
+      if (matchesEffectiveName) {
+        const { nameOrTrait: _nameOrTrait, ...rest } = filter;
+        filter = rest;
+      } else {
+        const printedNameStillEffective = effectiveNames.some((name) =>
+          matchNameOrTrait(
+            { ...def, cardId: undefined, nameEn: name, nameAliases: undefined },
+            { tokens: [def.nameEn], match: "nameExact" },
+          ),
+        );
+        // Definition matching also supplies static Rule aliases. Retain the name branches
+        // while the printed identity is still live so those aliases remain order-independent
+        // during continuous-effect recomputation.
+        if (!printedNameStillEffective) {
+          const remainingReferences = filter.nameOrTrait.filter(
+            (reference) => reference.match !== "name" && reference.match !== "nameExact",
+          );
+          if (remainingReferences.length === 0) return false;
+          filter = { ...filter, nameOrTrait: remainingReferences };
+        }
+      }
+    }
+  }
+
   // Trait predicates on a LIVE permanent observe continuously granted traits as well as
   // printed ones. `nameOrTrait` is an OR-list, so one matching runtime trait satisfies the
   // complete clause; other name/text alternatives remain definition-matched when it does not.

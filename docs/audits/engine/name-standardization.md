@@ -157,3 +157,24 @@ the first full run; ledger links/scores were corrected after their failure
 was observed. Final workspace typecheck passed shared, API and web. Scoped
 Oxlint and Oxfmt checks passed all changed TypeScript and all 22 changed files;
 `git diff --check` is clean.
+
+## Live original-name rewrites (issue #4869)
+
+The definition-level matcher remains authoritative for loose cards, but a
+battle-area permanent's identity can be replaced by an active original-card
+information grant. `permanentMatchesFilter` now resolves `name` and
+`nameExact` references against `GameAccess.effectiveNames`. A successful live
+name branch satisfies the `nameOrTrait` union; a failed live name branch is
+removed before static trait/text alternatives are evaluated, so the replaced
+printed name cannot incorrectly remain visible.
+
+EX13-031 proves that deleting an opponent's Digimon after its name is changed
+to Sukamon fires the inherited all-player deletion watcher and free-plays the
+eligible reveal. EX13-035 proves that the same live opponent Sukamon counts
+toward its three-name condition: the aura applies -3000 DP to the rewritten
+3000-DP Digimon, rule-deletes it, and then naturally lapses when the board
+falls below three matching Digimon. Both regressions use the public play flow
+that pays EX13-031's printed trash cost; neither injects an override directly.
+
+The baseline focused command failed both new cases while the preceding 52
+tests passed. With the matcher correction, the same command passes 54 tests.
