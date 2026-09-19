@@ -1,18 +1,13 @@
 import { CardFull } from "../../../design/cards";
-import {
-  NARROW_DIALOG_QUERY,
-  useMediaQuery,
-} from "../../../design/useMediaQuery";
+import { NARROW_DIALOG_QUERY, useMediaQuery } from "../../../design/useMediaQuery";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
 import { printedCardName } from "../printedCardName";
 import type { PendingFateBadge } from "../../pendingFate";
 import type { CandidateZone } from "../../decisionModel";
-import {
-  abstractTargetLabel,
-  cardCopyLabelsByInstance,
-} from "./decisionCandidateLabels";
+import { abstractTargetLabel, cardCopyLabelsByInstance } from "./decisionCandidateLabels";
 import type { DecisionCandidate } from "./decisionTypes";
+import { playCostBudgetAllowsCandidate } from "./decisionPlayCost";
 
 /** The grid of selectable targets for a `chooseTargets` / `selectCards` decision. */
 export function DecisionCandidateGrid({
@@ -79,9 +74,7 @@ export function DecisionCandidateGrid({
           style={{
             fontSize: 12,
             fontWeight: 600,
-            color: withinPlayCostBudget
-              ? "var(--ds-fg-secondary)"
-              : "var(--ds-danger)",
+            color: withinPlayCostBudget ? "var(--ds-fg-secondary)" : "var(--ds-danger)",
             marginBottom: 10,
           }}
         >
@@ -92,10 +85,7 @@ export function DecisionCandidateGrid({
         </div>
       ) : null}
       {zoneGroups.map(({ zone, items }) => (
-        <div
-          key={zone ?? "ungrouped"}
-          style={{ marginBottom: zoneGroups.length > 1 ? 14 : 0 }}
-        >
+        <div key={zone ?? "ungrouped"} style={{ marginBottom: zoneGroups.length > 1 ? 14 : 0 }}>
           {zoneGroups.length > 1 ? (
             <div
               style={{
@@ -110,11 +100,7 @@ export function DecisionCandidateGrid({
                 marginBottom: 6,
               }}
             >
-              <span>
-                {zone
-                  ? t(`overlay.candidateZone.${zone}` as const)
-                  : t("overlay.candidateZone.other")}
-              </span>
+              <span>{zone ? t(`overlay.candidateZone.${zone}` as const) : t("overlay.candidateZone.other")}</span>
               <span
                 style={{
                   color: "var(--ds-fg-muted)",
@@ -123,19 +109,22 @@ export function DecisionCandidateGrid({
               >
                 {items.length}
               </span>
-              <span
-                style={{ flex: 1, height: 1, background: "var(--ds-border)" }}
-              />
+              <span style={{ flex: 1, height: 1, background: "var(--ds-border)" }} />
             </div>
           ) : null}
           {/* Past six options a row would wrap into rows taller than the sheet, so it
               becomes one scrolling row with a visible track instead (reference #110). */}
-          <div
-            className={`decision-overlay__grid${items.length > 6 ? " decision-overlay__grid--scroll" : ""}`}
-          >
+          <div className={`decision-overlay__grid${items.length > 6 ? " decision-overlay__grid--scroll" : ""}`}>
             {items.map((cand) => {
-              const selectable = cand.selectable !== false;
               const on = picks.includes(cand.instanceId);
+              const selectable =
+                cand.selectable !== false &&
+                playCostBudgetAllowsCandidate({
+                  candidateInstanceId: cand.instanceId,
+                  picks,
+                  candidates,
+                  maxTotalPlayCost,
+                });
               const abstractLabel = abstractTargetLabel({
                 instanceId: cand.instanceId,
                 t,
@@ -144,18 +133,11 @@ export function DecisionCandidateGrid({
               const sourceLabel =
                 cand.sourceCount === undefined
                   ? undefined
-                  : t(
-                      cand.sourceCount === 1
-                        ? "overlay.sourceCountOne"
-                        : "overlay.sourceCountMany",
-                      {
-                        count: cand.sourceCount,
-                      },
-                    );
+                  : t(cand.sourceCount === 1 ? "overlay.sourceCountOne" : "overlay.sourceCountMany", {
+                      count: cand.sourceCount,
+                    });
               const liveLabels = [
-                cand.currentDP === undefined
-                  ? undefined
-                  : `${cand.currentDP.toLocaleString()} DP`,
+                cand.currentDP === undefined ? undefined : `${cand.currentDP.toLocaleString()} DP`,
                 cand.isSuspended === true ? t("overlay.suspended") : undefined,
                 sourceLabel,
               ].filter((label): label is string => label !== undefined);
@@ -193,9 +175,7 @@ export function DecisionCandidateGrid({
                         borderRadius: 10,
                         border: `2px solid ${on ? "var(--ds-accent)" : "var(--ds-border)"}`,
                         background: "var(--ds-surface-muted)",
-                        color: on
-                          ? "var(--ds-accent)"
-                          : "var(--ds-fg-secondary)",
+                        color: on ? "var(--ds-accent)" : "var(--ds-fg-secondary)",
                         fontSize: 12,
                         fontWeight: 700,
                         textAlign: "center",
@@ -205,18 +185,10 @@ export function DecisionCandidateGrid({
                       {abstractLabel}
                     </span>
                   ) : (
-                    <CardFull
-                      cardId={cand.cardId ?? ""}
-                      artId={cand.artId}
-                      width={candidateCardWidth}
-                      selected={on}
-                    />
+                    <CardFull cardId={cand.cardId ?? ""} artId={cand.artId} width={candidateCardWidth} selected={on} />
                   )}
                   {on && max > 1 ? (
-                    <span
-                      className="decision-overlay__order-badge"
-                      aria-hidden="true"
-                    >
+                    <span className="decision-overlay__order-badge" aria-hidden="true">
                       {picks.indexOf(cand.instanceId) + 1}
                     </span>
                   ) : null}

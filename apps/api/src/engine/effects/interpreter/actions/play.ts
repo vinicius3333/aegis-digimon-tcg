@@ -237,6 +237,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         candidates: candidates.map((c) => c.instanceId),
         min: action.optional ? 0 : 1,
         max: candidates.length,
+        maxTotalPlayCost: budget,
       });
       const chosen: string[] = [];
       let usedCost = 0;

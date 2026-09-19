@@ -14,3 +14,19 @@ export function totalPlayCost({
     return total + (getCardDefinition(cardId ?? "")?.playCost ?? 0);
   }, 0);
 }
+
+/** Whether one more pick fits; an existing pick always stays enabled so it can be removed. */
+export function playCostBudgetAllowsCandidate({
+  candidateInstanceId,
+  picks,
+  candidates,
+  maxTotalPlayCost,
+}: {
+  candidateInstanceId: string;
+  picks: readonly string[];
+  candidates: readonly DecisionCandidate[];
+  maxTotalPlayCost?: number;
+}): boolean {
+  if (maxTotalPlayCost === undefined || picks.includes(candidateInstanceId)) return true;
+  return totalPlayCost({ picks: [...picks, candidateInstanceId], candidates }) <= maxTotalPlayCost;
+}
