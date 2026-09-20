@@ -109,8 +109,10 @@ export function createEvaluationPolicy(options: EvaluationPolicyOptions = {}): B
           (card) =>
             isDigimonCard(card.definition) &&
             breeding.cardId !== undefined &&
-            (digivolveCost(card.cardId, breeding.cardId, { inBreeding: true }) ?? Number.POSITIVE_INFINITY) <=
-              view.maxAffordable,
+            (digivolveCost(card.cardId, breeding.cardId, {
+              inBreeding: true,
+              controlledUnits: view.board,
+            }) ?? Number.POSITIVE_INFINITY) <= view.maxAffordable,
         );
       if (readyToDeploy || !canStillGrow) {
         return { type: "moveFromBreeding", permanentId: breeding.permanentId };

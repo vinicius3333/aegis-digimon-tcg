@@ -298,6 +298,36 @@ describe("candidate legality", () => {
 
     expect(enumerateMainPhaseCandidates(state).map((entry) => entry.key)).not.toContain("digivolve:i-EX9-046:raising");
   });
+
+  it.each([
+    ["BT22-042 Nyabootmon", "BT22-036", "BT22-042", "BT22-088", 1],
+    ["BT23-071 Dullahamon", "BT23-065", "BT23-071", "BT23-087", 1],
+    // Erika Mishima is itself a [Hudie] Tamer and counts toward the required four.
+    ["BT23-101 Hudiemon", "BT23-084", "BT23-101", "BT23-084", 3],
+    ["BT24-018 Styracomon", "BT24-016", "BT24-018", "BT24-082", 1],
+    ["EX2-022 Antylamon", "EX2-020", "EX2-022", "EX2-059", 1],
+    ["EX10-023 Quartzmon", "EX10-018", "EX10-023", "EX10-067", 1],
+    ["EX10-036 Magneticdramon", "EX10-032", "EX10-036", "EX10-063", 1],
+    ["EX11-074 Vortexdramon", "EX11-032", "EX11-074", "EX11-062", 1],
+  ])(
+    "offers %s's conditional evolution only while its controller gate is met",
+    (_, baseId, evolvingId, gateId, gateCount) => {
+      const base = unit({ permanentId: "base", cardId: baseId, definition: getCardDefinition(baseId) });
+      const evolving = handCard(evolvingId, getCardDefinition(evolvingId));
+      const candidateKey = `digivolve:i-${evolvingId}:base`;
+
+      expect(
+        enumerateMainPhaseCandidates(view({ board: [base], hand: [evolving] })).map((entry) => entry.key),
+      ).not.toContain(candidateKey);
+
+      const gateUnits = Array.from({ length: gateCount }, (_unused, index) =>
+        unit({ permanentId: `gate-${index}`, cardId: gateId, definition: getCardDefinition(gateId) }),
+      );
+      expect(
+        enumerateMainPhaseCandidates(view({ board: [base, ...gateUnits], hand: [evolving] })).map((entry) => entry.key),
+      ).toContain(candidateKey);
+    },
+  );
 });
 
 describe("decision candidate ranking", () => {

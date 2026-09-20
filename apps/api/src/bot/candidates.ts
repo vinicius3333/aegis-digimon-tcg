@@ -1,5 +1,5 @@
-import { CardColor, type CardDefinition, type Intent } from "@aegis/shared";
-import { matchingEvoCost, matchingAlternateDigivolutionRequirement } from "../engine/cards/cardData.js";
+import { CardColor, CardKind, type CardDefinition, type Intent } from "@aegis/shared";
+import { cardHasTrait, matchingEvoCost, matchingAlternateDigivolutionRequirement } from "../engine/cards/cardData.js";
 import { isDigimonCard, isDigiEggCard, isOptionCard, isTamerCard, type BotUnit, type BotView } from "./view.js";
 
 /**
@@ -92,7 +92,10 @@ function digivolveCandidates(view: BotView): Candidate[] {
     if (!isDigimonCard(card.definition)) continue;
     for (const base of bases) {
       if (base.cardId === undefined || base.cannotDigivolve) continue;
-      const cost = digivolveCost(card.cardId, base.cardId, { inBreeding: base === view.breeding });
+      const cost = digivolveCost(card.cardId, base.cardId, {
+        inBreeding: base === view.breeding,
+        controlledUnits: view.board,
+      });
       if (cost === undefined || cost > view.maxAffordable) continue;
       candidates.push({
         kind: "digivolve",
@@ -199,7 +202,7 @@ function activateCandidates(view: BotView): Candidate[] {
 export function digivolveCost(
   evolvingId: string,
   baseId: string,
-  options: { inBreeding?: boolean } = {},
+  options: { inBreeding?: boolean; controlledUnits?: readonly BotUnit[] } = {},
 ): number | undefined {
   const evo = matchingEvoCost(evolvingId, baseId);
   if (evo !== undefined) return evo.memoryCost;
@@ -211,5 +214,25 @@ export function digivolveCost(
     alternate.burstDigivolve !== undefined ||
     alternate.minTraitStackCount !== undefined ||
     alternate.minNameStackCount !== undefined;
-  return hasUnverifiableCost ? undefined : alternate.cost;
+  if (hasUnverifiableCost || !controllerControlsGateMet(alternate.controllerControls, options.controlledUnits)) {
+    return undefined;
+  }
+  return alternate.cost;
+}
+
+function controllerControlsGateMet(
+  gate: NonNullable<ReturnType<typeof matchingAlternateDigivolutionRequirement>>["controllerControls"],
+  controlledUnits: readonly BotUnit[] | undefined,
+): boolean {
+  if (gate === undefined) return true;
+  if (controlledUnits === undefined) return false;
+  const matching = controlledUnits.filter((unit) => {
+    const definition = unit.definition;
+    if (definition === undefined) return false;
+    if (gate.kind?.length && !gate.kind.some((kind) => definition.kinds.includes(kind as CardKind))) return false;
+    if (gate.namesExact?.length && !gate.namesExact.includes(definition.nameEn)) return false;
+    if (gate.traits?.length && !gate.traits.some((trait) => cardHasTrait(definition, trait))) return false;
+    return true;
+  }).length;
+  return matching >= (gate.min ?? 1);
 }
