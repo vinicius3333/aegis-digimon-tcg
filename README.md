@@ -4,7 +4,7 @@
 
 **Play the Digimon Card Game in a browser tab. No download, no desktop client.**
 
-[Play now](https://aegis-digi.online) &nbsp;·&nbsp; [Discord](https://discord.gg/4EDa5Hhd6f) &nbsp;·&nbsp; [Architecture](./docs/ARCHITECTURE.md) &nbsp;·&nbsp; [API contract](./docs/API-CONTRACT.md)
+[Play now](https://aegis-digi.online) &nbsp;·&nbsp; [Discord](https://discord.gg/mmj7u9btCd) &nbsp;·&nbsp; [Architecture](./docs/ARCHITECTURE.md) &nbsp;·&nbsp; [API contract](./docs/API-CONTRACT.md)
 
 <img src="./docs/images/match.jpg" alt="An Aegis match against the AI: battle areas, memory gauge, raising areas, security and cards in hand" width="900">
 

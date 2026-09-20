@@ -16,7 +16,7 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
       level: 7,
       playCost: 16,
       dp: 16000,
-      types: ["Shaman", "Iliad", "TS"],
+      types: ["Shaman", "Titan", "Iliad", "TS"],
     });
     expect(compiled).toMatchObject({
       coverage: "full",

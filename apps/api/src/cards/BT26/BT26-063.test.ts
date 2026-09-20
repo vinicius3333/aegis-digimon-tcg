@@ -80,7 +80,7 @@ describe("BT26-063 Tellermon", () => {
       dp: 4000,
       forms: ["Stnd.", "Appmon"],
       attributes: ["Entertainment"],
-      types: ["Fortune Telling (App Name)", "Seven Code"],
+      types: ["Fortune Telling", "Seven Code"],
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -145,7 +145,7 @@ describe("BT26-063 Tellermon", () => {
           battleArea: [{ card: CARD_ID, as: "tellermon" }],
           hand: [{ card: "P-190", as: "linkCard" }],
           deck: [
-            { card: CARD_ID, as: "matchingTop" },
+            { card: "BT26-086", as: "matchingTop" },
             { card: "BT1-009", as: "nonmatchA" },
             { card: "BT1-010", as: "nonmatchB" },
           ],
@@ -169,6 +169,7 @@ describe("BT26-063 Tellermon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("tellermon").linked.map((card) => card.instanceId)).toContain(linkId);
+    expect(getCardDefinition("BT26-086")?.types).toEqual(["Open"]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).not.toContain(matchingId);
   });
 

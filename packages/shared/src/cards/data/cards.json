@@ -47389,7 +47389,7 @@
     "level": 3,
     "forms": ["Stnd.", "Appmon"],
     "attributes": ["Game"],
-    "types": ["Role-playing (App Name)", "Seven Code"],
+    "types": ["Role-playing", "Seven Code"],
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[When Attacking] By trashing 1 [Game], [Open] or [Seven Code] trait card from your hand, ＜Draw 2＞ ",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "＜Progress＞ \n＜Piercing＞ ",
@@ -47653,7 +47653,7 @@
     "level": 3,
     "forms": ["Stnd.", "Appmon"],
     "attributes": ["Social"],
-    "types": ["Mail (App Name)", "Seven Code"],
+    "types": ["Mail", "Seven Code"],
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[When Attacking] If your hand has 7 or fewer cards, ＜Draw 1＞ ",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
@@ -47675,7 +47675,7 @@
         "memoryCost": 2
       }
     ],
-    "rarity": "C",
+    "rarity": "U",
     "maxCountInDeck": 4,
     "imageId": "BT26-020",
     "level": 4,
@@ -47909,7 +47909,7 @@
     "level": 4,
     "forms": ["Sup.", "Appmon"],
     "attributes": ["Life"],
-    "types": ["Medical (App Name)", "Seven Code"],
+    "types": ["Medical", "Seven Code"],
     "effectText": "[App Fusion] [Aidmon] & [Supplemon] & [Spamon]: Cost 0\n[Assembly -2] Lv.3 [Life]/[System]/[Seven Code] trait Digimon card\n\n＜Barrier＞ \n＜Detach ([Seven Code] trait)＞ \n[On Play] [When Digivolving] You may link 1 level 3 Digimon card with the [Life], [System] or [Seven Code] trait from this Digimon's digivolution cards to this Digimon without paying the cost.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] Until your opponent's turn ends, 1 of their Digimon can't activate [When Digivolving] effects and gets -3000 DP.",
@@ -48178,7 +48178,7 @@
     "level": 4,
     "forms": ["Sup.", "Appmon"],
     "attributes": ["Navi"],
-    "types": ["Weather (App Name)", "Seven Code"],
+    "types": ["Weather", "Seven Code"],
     "effectText": "[App Fusion] [Weathermon] & [Rocketmon] & [Newsmon]: Cost 0\n[Assembly -2] Lv.3 [Navi]/[System]/[Seven Code] trait Digimon card\n\n＜Blocker＞ \n＜Detach ([Seven Code] trait)＞ \n[On Play] [When Digivolving] You may link 1 level 3 Digimon card with the [Navi], [System] or [Seven Code] trait from this Digimon's digivolution cards to this Digimon without paying the cost.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] This Digimon may battle 1 of your opponent's Digimon.",
@@ -48226,7 +48226,7 @@
         "memoryCost": 2
       }
     ],
-    "rarity": "U",
+    "rarity": "C",
     "maxCountInDeck": 4,
     "imageId": "BT26-039",
     "level": 4,
@@ -48316,7 +48316,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Virus"],
     "types": ["Insectoid", "Titan", "TS"],
-    "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.\n[On Play] [When Attacking] [Once Per Turn] Until your opponent's turn ends, 1 of your [Insectoid] or [Titan] trait Digimon gains ＜Piercing＞ and +3000 DP.",
+    "effectText": "[Digivolve] Lv.4 w/[Insectoid]/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.\n[On Play] [When Attacking] [Once Per Turn] Until your opponent's turn ends, 1 of your [Insectoid] or [Titan] trait Digimon gains ＜Piercing＞ and +3000 DP.",
     "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.",
     "nameJp": "オオクワモン"
   },
@@ -48557,7 +48557,7 @@
     "level": 3,
     "forms": ["Stnd.", "Appmon"],
     "attributes": ["Tool"],
-    "types": ["Trashbin (App Name)", "Seven Code"],
+    "types": ["Trashbin", "Seven Code"],
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[Your Turn] [Once Per Turn] When this Digimon gets linked, 1 of your Digimon with the [Social], [Tool], [Open] or [Seven Code] trait gains ＜Collision＞ and +3000 DP for the turn.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. ",
@@ -48734,10 +48734,10 @@
     "forms": ["Ultimate"],
     "attributes": ["Vaccine"],
     "types": ["Beastkin", "Glowing Dawn", "BEATBREAK"],
-    "effectText": "[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 \n\n[When Digivolving] By trashing the bottom face-down card under card from under any of your Tamers, until your opponent's turn ends, their Digimon effects don't affect this Digimon, and it gets +3000 DP.\n[All Turns] [Once Per Turn] When attack targets change or effects trash cards from under your Tamers, this Digimon may unsuspend.",
+    "effectText": "[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 \n\n[When Digivolving] By trashing the bottom face-down card from under any of your Tamers, until your opponent's turn ends, their Digimon effects don't affect this Digimon, and it gets +3000 DP.\n[All Turns] [Once Per Turn] When attack targets change or effects trash cards from under your Tamers, this Digimon may unsuspend.",
     "isDualCard": true,
     "dualEffect": "Penetrate Blow",
-    "optionEffect": "＜Use Req. ([GlowingDawn] trait)＞ \n[Main] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
+    "optionEffect": "＜Use Req. ([Glowing Dawn] trait)＞ \n[Main] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
     "optionColorRequirements": ["Black"],
     "nameJp": "ベアキャットモン/ペネトレイトブロウ"
   },
@@ -48827,7 +48827,7 @@
     "level": 7,
     "forms": ["Mega"],
     "attributes": ["Virus"],
-    "types": ["Shaman", "Iliad", "TS"],
+    "types": ["Shaman", "Titan", "Iliad", "TS"],
     "effectText": "[Digivolve] Lv.6 w/[Chronomon] in text/[Giant Slayer]: Cost 5 \n\n＜Security A. +1＞ \n＜Reboot＞ \n＜Blocker＞ \n＜Succession (Lv.6 w/[Chronomon] in name)＞ \n[On Play] [When Digivolving] Return the top 5 stacked cards of 3 of your opponent's Digimon to the top of the deck.\n[All Turns] [Once Per Turn] When your effects add to decks, you may delete 1 of your opponent's Digimon.",
     "nameJp": "クロノモン：デストロイモード"
   },
@@ -48884,7 +48884,7 @@
     "forms": ["Rookie"],
     "attributes": ["Data"],
     "types": ["Ghost", "NSo"],
-    "effectText": "[Digivolve] Lv.2 w/[NSo] trait: Cost 0 \n\n[Start of Your Main Phase] By trashing 1 card with the [Ghost] or [NSo] trait from your hand, ＜Draw 1＞ and gain 1 memory.",
+    "effectText": "[Digivolve] [DemiMeramon]/Lv.2 w/[NSo] trait: Cost 0 \n\n[Start of Your Main Phase] By trashing 1 card with the [Ghost] or [NSo] trait from your hand, ＜Draw 1＞ and gain 1 memory.",
     "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
     "nameJp": "ゴースモン"
   },
@@ -48909,7 +48909,7 @@
     "level": 3,
     "forms": ["Stnd.", "Appmon"],
     "attributes": ["Entertainment"],
-    "types": ["Fortune Telling (App Name)", "Seven Code"],
+    "types": ["Fortune Telling", "Seven Code"],
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[Your Turn] [Once Per Turn] When this Digimon gets linked, reveal the top 3 cards of your deck. Add 1 card with the [Entertainment], [Open] or [Seven Code] trait among them to the hand. Return the rest to the top or bottom of the deck.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] Delete 1 of your opponent's Digimon with the lowest level.",
@@ -49047,7 +49047,7 @@
     "forms": ["Champion"],
     "attributes": ["Virus"],
     "types": ["Fallen Angel", "Iliad", "TS"],
-    "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 02 \n\n[On Play] [When Digivolving] If your hand has 5 or fewer cards, both players ＜Draw 2＞ \n[All Turns] [Once Per Turn] When effects add to your opponent's hand, by trashing 1 card in your hand, your opponent trashes 1 card in their hand.",
+    "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n[On Play] [When Digivolving] If your hand has 5 or fewer cards, both players ＜Draw 2＞ \n[All Turns] [Once Per Turn] When effects add to your opponent's hand, by trashing 1 card in your hand, your opponent trashes 1 card in their hand.",
     "inheritedEffectText": "[When Attacking] [Once Per Turn] ＜Draw 1＞ and trash 1 card in your hand.",
     "nameJp": "デビモン"
   },
@@ -49506,7 +49506,7 @@
     "dp": 4000,
     "evoCosts": [
       {
-        "color": "White",
+        "color": "Purple",
         "level": 2,
         "memoryCost": 0
       }
@@ -49517,7 +49517,7 @@
     "level": 3,
     "forms": ["Stnd.", "Appmon"],
     "attributes": ["System"],
-    "types": ["Copy & Paste (App Name)", "Seven Code"],
+    "types": ["Copy & Paste", "Seven Code"],
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[Your Turn] [Once Per Turn] When this Digimon gets linked, reveal the top 3 cards of your deck. You may play or use 1 [Seven Code] trait card among them with the cost reduced by 3. Return the rest to the top or bottom of the deck.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] You may link 1 non-white level 4 or lower [System] or [Seven Code] trait card from your trash to this Digimon without paying the cost.",
@@ -49556,7 +49556,7 @@
     "level": 7,
     "forms": ["Unknown", "Appmon"],
     "attributes": ["Unknown"],
-    "types": ["Open (App Name)"],
+    "types": ["Open"],
     "effectText": "[Assembly -7] 7 [Seven Code] trait Digimon cards w/different names\n\n＜Rush＞ \n＜Reboot＞ \n＜Blocker＞ \n＜Link +6＞ \n[On Play] [When Digivolving] You may link up to 7 [Appmon] trait cards with different names from this Digimon's digivolution cards to this Digimon without paying the costs. Then, this Digimon may attack without suspending.\n[All Turns] [Once Per Turn] When this Digimon gets linked, you may delete 1 of your opponent's Digimon. Then, if this Digimon has 7 link cards, return your opponent's top security card to the bottom of the deck.",
     "nameJp": "ダンテモン"
   },
@@ -49573,7 +49573,7 @@
     "maxCountInDeck": 4,
     "imageId": "BT26-087",
     "types": ["TS"],
-    "effectText": "[Start of Your Main Phase] By returning 1 [TS] trait Digimon card from your trash to the bottom of the deck, gain 1 memory. After, you may return 1 [Giant Slayer] from your trash to the hand.\n[On Play] By trashing 1 [TS] card from your hand, ＜Draw 2＞ ",
+    "effectText": "[Start of Your Main Phase] By returning 1 [TS] trait Digimon card from your trash to the bottom of the deck, gain 1 memory. After, you may return 1 [Giant Slayer] from your trash to the hand.\n[On Play] By trashing 1 [TS] trait card from your hand, ＜Draw 2＞ ",
     "securityEffectText": "[Security] Play this card without paying the cost.",
     "nameJp": "久我橙矢"
   },
@@ -49634,7 +49634,7 @@
     "nameEn": "Yoshino Fujieda",
     "colors": ["Green"],
     "kinds": ["Tamer"],
-    "playCost": 4,
+    "playCost": 3,
     "dp": 0,
     "evoCosts": [],
     "rarity": "-",
@@ -49692,7 +49692,7 @@
     "maxCountInDeck": 4,
     "imageId": "BT26-094",
     "types": ["DATA SQUAD"],
-    "effectText": "[Start of Your Main Phase] By placing 1 [DATA SQUAD] card from your hand face down under this Tamer, ＜Draw 1＞ and gain 1 memory.\n[Your Turn] When your opponent's hand is trashed from or effects trash cards from under this Tamer, by suspending this Tamer, 1 of your [DATA SQUAD] trait Digimon gains ＜Execute＞ for the turn. ",
+    "effectText": "[Start of Your Main Phase] By placing 1 [DATA SQUAD] trait card from your hand face down under this Tamer, ＜Draw 1＞ and gain 1 memory.\n[Your Turn] When your opponent's hand is trashed from or effects trash cards from under this Tamer, by suspending this Tamer, 1 of your [DATA SQUAD] trait Digimon gains ＜Execute＞ for the turn. ",
     "securityEffectText": "[Security] Play this card without paying the cost.",
     "nameJp": "イクト"
   },
@@ -49719,7 +49719,7 @@
     "nameEn": "Kosuke Misono",
     "colors": ["Purple"],
     "kinds": ["Tamer"],
-    "playCost": 3,
+    "playCost": 4,
     "dp": 0,
     "evoCosts": [],
     "rarity": "U",
@@ -49777,7 +49777,7 @@
     "maxCountInDeck": 4,
     "imageId": "BT26-099",
     "types": ["DM"],
-    "effectText": "＜Use Req. ([DM] trait)＞ \n[Main] Reveal the top 3 cards of your deck. Add 1 [DM] card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[All Turns] When face-down cards are placed in any of your Digimon's digivolution cards, ＜Delay＞ \n・Any of those Digimon may digivolve into a level 6 or lower [DM] trait Digimon card in the hand without paying the cost.",
+    "effectText": "＜Use Req. ([DM] trait)＞ \n[Main] Reveal the top 3 cards of your deck. Add 1 [DM] trait card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[All Turns] When face-down cards are placed in any of your Digimon's digivolution cards, ＜Delay＞ \n・Any of those Digimon may digivolve into a level 6 or lower [DM] trait Digimon card in the hand without paying the cost.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
     "nameJp": "トレーマニュアル"
   },
@@ -49812,7 +49812,7 @@
     "imageId": "BT26-101",
     "types": ["ADAMAS", "TS"],
     "effectText": "＜Use Req. ([TS] trait)＞ \n[Main] If you have a Tamer with [Dan Yuki] or [Kanan Yuki] in its name, all of your [TS] trait Digimon gain ＜Blocker＞ and +3000 DP until your opponent's turn ends. Then, activate 1 of the effects below:\n・Delete 1 of your opponent's Digimon with as much DP as 1 of your [TS] trait Digimon or less.\n・1 of your [TS] trait Digimon unsuspends.",
-    "securityEffectText": "[Security] You may play 1 play cost 4 or lower [TS] card from your hand or trash without paying the cost.",
+    "securityEffectText": "[Security] You may play 1 play cost 4 or lower [TS] trait card from your hand or trash without paying the cost.",
     "nameJp": "クロスアーツ"
   },
   {
@@ -75910,6 +75910,8 @@
     "rarity": "U",
     "maxCountInDeck": 4,
     "imageId": "EX13-001",
+    "forms": ["In-Training"],
+    "types": ["Lesser"],
     "inheritedEffectText": "[Your Turn] [Once Per Turn] When any of your red Tamers are played, this Digimon may digivolve into a Digimon card with [Growlmon] or [Gallantmon] in its name in the hand with the cost reduced by 2.",
     "nameJp": "ギギモン"
   },
@@ -75964,6 +75966,7 @@
     "imageId": "EX13-004",
     "level": 2,
     "forms": ["In-Training"],
+    "types": ["Flame"],
     "inheritedEffectText": "[When Attacking] [Once Per Turn] This Digimon may digivolve into a Digimon card with [Witchelny] in its text in the hand with the cost reduced by 1. If this effect digivolved, trash your top security card.",
     "nameJp": "プチメラモン"
   },
@@ -76207,7 +76210,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Holy Warrior", "Royal Knight"],
-    "effectText": "[Digivolve] Lv.5 w/[Huckmon] in text: Cost 3 \n[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Huckmon] in text\n\n[When Digivolving] [When Attacking] [Once Per Turn] You may use 1 use cost 5 or lower [Huckmon] text Option card from your hand or this Digimon's digivolution cards without paying the cost.\n[All Turns] [Once Per Turn] When any of your Digimon are played, you may delete 1 of your opponent's lowest DP Digimon. Then, if you don't have [Atho or René & Por], you may play 1 [Atho, René & Por] Token. (Digimon/White/6000 DP/＜Reboot＞ ＜Blocker＞ ＜Decoy (Red)/(Black)＞)",
+    "effectText": "[Digivolve] Lv.5 w/[Huckmon] in text: Cost 3 \n[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Huckmon] in text\n\n[When Digivolving] [When Attacking] [Once Per Turn] You may use 1 use cost 5 or lower [Huckmon] text Option card from your hand or this Digimon's digivolution cards without paying the cost.\n[All Turns] [Once Per Turn] When any of your Digimon are played, you may delete 1 of your opponent's lowest DP Digimon. Then, if you don't have [Atho, René & Por], you may play 1 [Atho, René & Por] Token. (Digimon/White/6000 DP/＜Reboot＞ ＜Blocker＞ ＜Decoy (Red)/(Black)＞)",
     "nameJp": "ジエスモン"
   },
   {
@@ -76724,7 +76727,7 @@
     "cardId": "EX13-033",
     "set": "EX13",
     "nameEn": "Mistymon",
-    "colors": ["Yellow"],
+    "colors": ["Yellow", "Red"],
     "kinds": ["Digimon"],
     "playCost": 7,
     "dp": 7000,
@@ -77249,7 +77252,7 @@
     "level": 4,
     "forms": ["Champion"],
     "attributes": ["Virus"],
-    "types": ["Mine"],
+    "types": ["Machine"],
     "effectText": "＜Blocker＞ \n[All Turns] When any of your other Digimon with ＜Blocker＞ would leave the battle area other than by your effects, by suspending this Digimon, they don't leave.",
     "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When any of your Digimon suspend, this Digimon may unsuspend.",
     "nameJp": "ガードロモン"
@@ -77507,7 +77510,7 @@
     "imageId": "EX13-060",
     "level": 6,
     "forms": ["Mega"],
-    "attributes": ["Data"],
+    "attributes": ["Vaccine"],
     "types": ["Holy Warrior", "Royal Knight", "X Antibody", "Chronicle"],
     "effectText": "[Digivolve] [Grademon]/Lv.5 w/[Chronicle] trait: Cost 4 \n[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Chronicle] trait\n\n[When Digivolving] 1 of your opponent's Digimon gets -8000 DP until their turn ends. Then, if they have 5 or more memory, gain 2 memory.\n[Your Turn] [Once Per Turn] When any of your [Chronicle] trait Digimon or Tamers are played, 1 of your Digimon may attack. Then, you may activate 1 of this Digimon's [When Digivolving] effects.\n[End of Your Turn] [Once Per Turn] You may play 1 [Chronicle] trait card without [Alphamon] in its name from your hand with the cost reduced by 6. It gains ＜Rush＞ for the turn. ",
     "nameJp": "アルファモン"
@@ -77676,7 +77679,7 @@
     "maxCountInDeck": 4,
     "imageId": "EX13-067",
     "types": ["CS"],
-    "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Your Turn] When any of your Digimon digivolve, if you have 1 or fewer Digimon, by suspending this Tamer, you may play 1 [Gabumon] if that Digimon has [Greymon] in its name and 1 [Agumon] if it has [Garurumon] in its name from your hand or trash without paying the cost.",
+    "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Your Turn] When any of your Digimon digivolve, if you have 1 or fewer Digimon, by suspending this Tamer, you may play 1 [Gabumon] if that Digimon has [Greymon] in its name or 1 [Agumon] if it has [Garurumon] in its name from your hand or trash without paying the cost.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
     "nameJp": "白峰ノキア"
   },
@@ -77755,7 +77758,7 @@
     "playCost": 4,
     "dp": 0,
     "evoCosts": [],
-    "rarity": "-",
+    "rarity": "U",
     "maxCountInDeck": 4,
     "imageId": "EX13-072",
     "types": ["Chronicle"],

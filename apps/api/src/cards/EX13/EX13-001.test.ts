@@ -35,6 +35,8 @@ describe("EX13-001 Gigimon", () => {
       set: "EX13",
       nameEn: "Gigimon",
       colors: ["Red"],
+      forms: ["In-Training"],
+      types: ["Lesser"],
       kinds: ["DigiEgg"],
       level: 2,
       playCost: -1,

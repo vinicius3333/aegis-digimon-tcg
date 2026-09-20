@@ -43,7 +43,7 @@ describe("EX13-014 Jesmon", () => {
       "[When Digivolving] [When Attacking] [Once Per Turn] You may use 1 use cost 5 or lower [Huckmon] text Option card from your hand or this Digimon's digivolution cards without paying the cost.",
     );
     expect(text).toContain(
-      "[All Turns] [Once Per Turn] When any of your Digimon are played, you may delete 1 of your opponent's lowest DP Digimon. Then, if you don't have [Atho or René & Por], you may play 1 [Atho, René & Por] Token.",
+      "[All Turns] [Once Per Turn] When any of your Digimon are played, you may delete 1 of your opponent's lowest DP Digimon. Then, if you don't have [Atho, René & Por], you may play 1 [Atho, René & Por] Token.",
     );
     expect((getCardDefinition(CARD_ID)?.inheritedEffectText ?? "").trim()).toBe("");
     expect((getCardDefinition(CARD_ID)?.securityEffectText ?? "").trim()).toBe("");

@@ -31,7 +31,7 @@ describe("EX13-060 Alphamon", () => {
       playCost: 13,
       dp: 13000,
       forms: ["Mega"],
-      attributes: ["Data"],
+      attributes: ["Vaccine"],
       types: ["Holy Warrior", "Royal Knight", "X Antibody", "Chronicle"],
       evoCosts: [
         { color: "Black", level: 5, memoryCost: 5 },
@@ -513,9 +513,7 @@ describe("EX13-060 Alphamon", () => {
         req.kind === "optional" &&
         req.options?.effectTextPart === "Then, you may activate 1 of this Digimon's [When Digivolving] effects.",
     )?.req;
-    const attackTargetChoice = s.decisions.find(
-      ({ req }) => req.options?.selectionContext === "attackTarget",
-    )?.req;
+    const attackTargetChoice = s.decisions.find(({ req }) => req.options?.selectionContext === "attackTarget")?.req;
 
     expect(attackChoice?.options?.effectTextPart).toBe(
       "When any of your [Chronicle] trait Digimon or Tamers are played, 1 of your Digimon may attack.",

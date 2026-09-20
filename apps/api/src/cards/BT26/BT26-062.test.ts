@@ -22,6 +22,11 @@ describe("BT26-062 Ghostmon", () => {
       cost: 0,
       isAlternate: true,
     });
+    expect(digivolutionRequirementsFor("BT26-062")).toContainEqual({
+      namesExact: ["DemiMeramon"],
+      cost: 0,
+      isAlternate: true,
+    });
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects[0]!.actions).toEqual([
       expect.objectContaining({

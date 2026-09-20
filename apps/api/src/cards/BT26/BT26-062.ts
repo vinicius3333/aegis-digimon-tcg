@@ -45,6 +45,9 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 2, traits: ["NSo"], cost: 0, isAlternate: true }],
+  digivolutionRequirement: [
+    { namesExact: ["DemiMeramon"], cost: 0, isAlternate: true },
+    { level: 2, traits: ["NSo"], cost: 0, isAlternate: true },
+  ],
 };
 registerIrCard("BT26-062", compiled);

@@ -74,7 +74,7 @@ describe("BT26-086 compiled behavior", () => {
       dp: 14000,
       forms: ["Unknown", "Appmon"],
       attributes: ["Unknown"],
-      types: ["Open (App Name)"],
+      types: ["Open"],
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);

@@ -23,7 +23,7 @@ describe("EX13-033 Mistymon", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
       cardId: CARD_ID,
       nameEn: "Mistymon",
-      colors: ["Yellow"],
+      colors: ["Yellow", "Red"],
       kinds: ["Digimon"],
       level: 5,
       playCost: 7,

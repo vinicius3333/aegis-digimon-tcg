@@ -223149,7 +223149,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "level": 4, "traits": ["Insectoid", "TS"], "cost": 3, "isAlternate": true }]
   },
   "BT26-043": {
     "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }],
@@ -225090,7 +225090,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "traits": ["NSo"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "namesExact": ["DemiMeramon"], "cost": 0, "isAlternate": true },
+      { "level": 2, "traits": ["NSo"], "cost": 0, "isAlternate": true }
+    ]
   },
   "BT26-063": {
     "keywords": [{ "keyword": "Detach", "raw": "＜Detach ([Seven Code] trait)＞" }],
@@ -225354,6 +225357,7 @@
             "payCost": true,
             "reduceCostBy": 4,
             "optional": true,
+            "allowCostWithoutTarget": true,
             "condition": {
               "kind": "youHave",
               "filter": {

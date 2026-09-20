@@ -10,9 +10,79 @@
     "reason": "Hyokomon: the vendored community-DB snapshot predates the printed card and omits the [Once Per Turn] tag the released card carries on its inherited [When Attacking] clause. The committed text restores it and matches the executable frequency."
   },
   {
+    "cardId": "BT26-010",
+    "field": "types",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Roleplaymon's Type is Role-playing/Seven Code; the community snapshot's '(App Name)' suffix is stale."
+  },
+  {
     "cardId": "BT26-018",
     "field": "effectText",
     "reason": "The snapshot's specialDigivolve header is field-shifted ('Lv.0 w/[2] trait: Cost DS'). Its structured digivolveCondition correctly records blue Lv.2, cost 0; the committed '[DS] trait' header preserves those internally consistent values."
+  },
+  {
+    "cardId": "BT26-019",
+    "field": "types",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Mailmon's Type is Mail/Seven Code; the community snapshot's '(App Name)' suffix is stale."
+  },
+  {
+    "cardId": "BT26-020",
+    "field": "rarity",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: ShellNumemon is uncommon, not common."
+  },
+  {
+    "cardId": "BT26-028",
+    "field": "types",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Medicmon's Type is Medical/Seven Code; the community snapshot's '(App Name)' suffix is stale."
+  },
+  {
+    "cardId": "BT26-037",
+    "field": "types",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Weatherdramon's Type is Weather/Seven Code; the community snapshot's '(App Name)' suffix is stale."
+  },
+  {
+    "cardId": "BT26-039",
+    "field": "rarity",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Sunflowmon is common, not uncommon."
+  },
+  {
+    "cardId": "BT26-042",
+    "field": "effectText",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Okuwamon may digivolve from a level 4 with either the Insectoid or TS trait; the snapshot omits Insectoid."
+  },
+  {
+    "cardId": "BT26-051",
+    "field": "types",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Gomimon's Type is Trashbin/Seven Code; the community snapshot's '(App Name)' suffix is stale."
+  },
+  {
+    "cardId": "BT26-057",
+    "field": "effectText",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page; removed the snapshot's duplicated 'under card from under' scrape corruption."
+  },
+  {
+    "cardId": "BT26-057",
+    "field": "optionEffect",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: the Use Requirement trait is Glowing Dawn, with a space."
+  },
+  {
+    "cardId": "BT26-060",
+    "field": "types",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Chronomon: Destroy Mode also has the Titan trait."
+  },
+  {
+    "cardId": "BT26-062",
+    "field": "effectText",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Ghostmon's alternate evolution also accepts DemiMeramon."
+  },
+  {
+    "cardId": "BT26-063",
+    "field": "types",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Tellermon's Type is Fortune Telling/Seven Code; the community snapshot's '(App Name)' suffix is stale."
+  },
+  {
+    "cardId": "BT26-068",
+    "field": "effectText",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page; corrected the malformed cost '02' to '2'."
   },
   {
     "cardId": "BT26-020",
@@ -96,8 +166,43 @@
   },
   {
     "cardId": "BT26-084",
-    "field": "evoCosts",
-    "reason": "Copipemon is a mono-white Lv.3 whose only printed digivolve condition is 'Lv.2 w/[Appmon] trait: Cost 0' (verified 2026-09-19 at https://en.digimoncard.com/cardlist/?search=true&card_no=BT26-084). The community snapshot's purple Lv.2 evoCost is copied from EX10-038; the committed white entry matches every other BT26 Lv.3 Appmon, whose standard route uses its own color."
+    "field": "types",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Copipemon's Type is Copy & Paste/Seven Code; the community snapshot's '(App Name)' suffix is stale."
+  },
+  {
+    "cardId": "BT26-086",
+    "field": "types",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page (https://world.digimoncard.com/cards/?card_no=BT26-086&search=true): Dantemon's Type is [Open]. The vendored community-DB snapshot's 'Open (App Name)' is stale and prevents exact [Open] trait effects such as BT26-063 Tellermon from selecting it."
+  },
+  {
+    "cardId": "BT26-087",
+    "field": "effectText",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page; restored the printed 'TS trait card' qualifier."
+  },
+  {
+    "cardId": "BT26-091",
+    "field": "playCost",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Yoshino Fujieda's play cost is 3."
+  },
+  {
+    "cardId": "BT26-094",
+    "field": "effectText",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page; restored the printed 'DATA SQUAD trait card' qualifier."
+  },
+  {
+    "cardId": "BT26-096",
+    "field": "playCost",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page: Kosuke Misono's play cost is 4."
+  },
+  {
+    "cardId": "BT26-099",
+    "field": "effectText",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page; restored the printed 'DM trait card' qualifier."
+  },
+  {
+    "cardId": "BT26-101",
+    "field": "securityEffectText",
+    "reason": "Verified 2026-09-20 against Bandai's official English card page; restored the printed 'TS trait card' qualifier."
   },
   {
     "cardId": "LM-063",

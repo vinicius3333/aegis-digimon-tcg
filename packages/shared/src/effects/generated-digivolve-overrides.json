@@ -595,7 +595,7 @@
   "BT26-042": [
     {
       "level": 4,
-      "traits": ["TS"],
+      "traits": ["Insectoid", "TS"],
       "cost": 3,
       "isAlternate": true
     }
@@ -768,6 +768,11 @@
     }
   ],
   "BT26-062": [
+    {
+      "namesExact": ["DemiMeramon"],
+      "cost": 0,
+      "isAlternate": true
+    },
     {
       "level": 2,
       "traits": ["NSo"],

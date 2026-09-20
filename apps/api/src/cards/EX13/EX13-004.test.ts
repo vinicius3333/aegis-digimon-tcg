@@ -23,6 +23,7 @@ describe("EX13-004 DemiMeramon", () => {
       cardId: CARD_ID,
       nameEn: "DemiMeramon",
       colors: ["Yellow"],
+      types: ["Flame"],
       kinds: ["DigiEgg"],
       level: 2,
       playCost: -1,

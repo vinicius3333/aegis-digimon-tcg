@@ -46,7 +46,7 @@ describe("EX13-051 Guardromon", () => {
       dp: 5000,
       forms: ["Champion"],
       attributes: ["Virus"],
-      types: ["Mine"],
+      types: ["Machine"],
       evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }],
       rarity: "U",
     });

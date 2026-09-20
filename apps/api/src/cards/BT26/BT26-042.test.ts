@@ -11,7 +11,7 @@ describe("BT26-042 Okuwamon", () => {
   it("uses exactly the Lv.4 [TS] alternate evolution for cost 3 and rejects a non-TS Lv.4", async () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
       level: 4,
-      traits: ["TS"],
+      traits: ["Insectoid", "TS"],
       cost: 3,
       isAlternate: true,
     });

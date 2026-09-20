@@ -17,7 +17,10 @@ export function LiveArenaDemo() {
     return requested === "arena-aegiochus-dark-assembly" ||
       requested === "arena-alliance-20" ||
       requested === "arena-ex13-grademon-immunity" ||
+      requested === "arena-ex13-giromon-block-triggers" ||
+      requested === "arena-ex13-kingsukamon-immunity-lapse" ||
       requested === "arena-ex13-examon" ||
+      requested === "arena-ex10-god-grade-raising-color" ||
       requested === "arena-junomon-opponent-target" ||
       requested === "arena-jupitermon-siren" ||
       requested === "arena-magnamon-x" ||
@@ -60,7 +63,10 @@ export function LiveArenaDemo() {
             <option value="arena-aegiochus-dark-assembly">Aegiochus Dark · Wizardmon Assembly</option>
             <option value="arena-alliance-20">Alliance · 20 Digimon</option>
             <option value="arena-ex13-grademon-immunity">EX13 Alphamon · Assembly from trash</option>
+            <option value="arena-ex13-giromon-block-triggers">EX13 Giromon · 4 block triggers</option>
+            <option value="arena-ex13-kingsukamon-immunity-lapse">EX13 KingSukamon · immunity lapse</option>
             <option value="arena-ex13-examon">EX13 Examon · Lv.5 DNA + battle timing</option>
+            <option value="arena-ex10-god-grade-raising-color">EX10 God Grade · raising-area colour</option>
             <option value="arena-junomon-opponent-target">Junomon · opponent target</option>
             <option value="arena-jupitermon-siren">Jupitermon · Sirenmon + Dan &amp; Kanan</option>
             <option value="arena-magnamon-x">Magnamon X · Sonic Shot unsuspend</option>
@@ -96,13 +102,25 @@ export function LiveArenaDemo() {
                     ? portuguese
                       ? "Encerre a criação, jogue Junomon e aceite o efeito. O seletor deve permitir escolher o Digimon do oponente."
                       : "End breeding, play Junomon, and accept the effect. The target picker must allow the opponent's Digimon."
-                    : scenario === "arena-suspend-lock-block"
+                    : scenario === "arena-ex13-giromon-block-triggers"
                       ? portuguese
-                        ? "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado."
-                        : "Your Blocker starts unable to suspend. It must not be able to block the bot's attack."
-                      : portuguese
-                        ? "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente."
-                        : "End breeding, select a Digimon, choose Attack and click the opponent's security."}
+                        ? "O bot ataca primeiro. Bloqueie com Giromon para abrir os 4 efeitos simultâneos de Giromon, Guardromon e dos 2 Tai."
+                        : "The bot attacks first. Block with Giromon to open the 4 simultaneous Giromon, Guardromon, and 2 Tai effects."
+                      : scenario === "arena-ex13-kingsukamon-immunity-lapse"
+                        ? portuguese
+                          ? "Jogue KingSukamon, descarte Chuumon e escolha o Digimon imune. Encerre o turno; ele deve então virar Sukamon branco de 3000 DP."
+                          : "Play KingSukamon, trash Chuumon, and choose the immune Digimon. End the turn; it should then become a white 3000 DP Sukamon."
+                        : scenario === "arena-ex10-god-grade-raising-color"
+                          ? portuguese
+                            ? "Copipemon é o único Appmon e está na criação. Compare Cyber Engage com God Grade Unleashed na mão."
+                            : "Copipemon is the only Appmon and is in breeding. Compare Cyber Engage with God Grade Unleashed in hand."
+                          : scenario === "arena-suspend-lock-block"
+                            ? portuguese
+                              ? "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado."
+                              : "Your Blocker starts unable to suspend. It must not be able to block the bot's attack."
+                            : portuguese
+                              ? "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente."
+                              : "End breeding, select a Digimon, choose Attack and click the opponent's security."}
         </span>
         <a className="aegis-arena-demo-back" href="/dev/arena?mode=visual">
           {portuguese ? "Prévia visual" : "Visual preview"}

@@ -16,7 +16,7 @@ describe("BT26-084 compiled behavior", () => {
       level: 3,
       playCost: 4,
       dp: 4000,
-      types: ["Copy & Paste (App Name)", "Seven Code"],
+      types: ["Copy & Paste", "Seven Code"],
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -362,7 +362,7 @@ describe("BT26-084 compiled behavior", () => {
         0: {
           battleArea: [{ card: "BT26-084", as: "copipemon", dp: 4000, linked: [{ card: "BT26-019", as: "link" }] }],
         },
-        1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }] },
+        1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 7000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -376,7 +376,7 @@ describe("BT26-084 compiled behavior", () => {
         target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("link").instanceId));
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("copipemon").permanentId,

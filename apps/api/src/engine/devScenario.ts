@@ -32,7 +32,10 @@ export const DEV_SCENARIO_IDS = [
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
   "arena-ex13-grademon-immunity",
+  "arena-ex13-giromon-block-triggers",
+  "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
+  "arena-ex10-god-grade-raising-color",
   "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
   "arena-magnamon-x",
@@ -531,6 +534,103 @@ function laySuspendLockBlockScenario(state: GameState, decks: readonly [Decklist
   state.memory = 0;
 }
 
+/**
+ * Reproduces the EX13 Craniamon-deck block report: Giromon blocks with EX13 Guardromon
+ * underneath it while two ST15 Tai Kamiya Tamers watch the attack target switch. Suspending
+ * Giromon therefore creates four simultaneous effects for the defending player to order:
+ * Giromon's reveal, Guardromon's inherited unsuspend, and one draw/DP effect from each Tai.
+ *
+ * The top three cards are fixed so Giromon's reveal also shows Black Scramble going to the
+ * trash while Gotsumon is a legal Blocker to play. A Guardromon in hand makes the inherited
+ * Giromon effect actionable after the initial trigger-order window.
+ */
+function layEx13GiromonBlockTriggersScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-051", "EX13-056"], "-ex13-giromon-blocker"));
+    placePermanent(human, establishedDigimon(0, ["ST15-14"], "-ex13-tai-a"));
+    placePermanent(human, establishedDigimon(0, ["ST15-14"], "-ex13-tai-b"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-hand-guardromon", "EX13-051", 0));
+
+    // insertCard(..., "top") prepends, so seed these in reverse reveal order.
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex13-reveal-craniamon", "EX13-062", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex13-reveal-gotsumon", "EX13-047", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex13-reveal-black-scramble", "LM-031", 0), "top");
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["AD1-001"], "-ex13-block-trigger-attacker"));
+  }
+
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** KingSukamon targets an opposing Digimon whose temporary immunity ends this turn. */
+function layEx13KingSukamonImmunityLapseScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-kingsukamon", "EX13-031", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-kingsukamon-fee", "BT3-061", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const target = establishedDigimon(1, ["ST15-11"], "-ex13-kingsukamon-target");
+    target.permanentId = "opponent-kingsukamon-immune-target";
+    placePermanent(bot, target);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 7;
+}
+
+/** Compares two off-colour Options while BT26 Copipemon is the only Appmon in breeding. */
+function layEx10GodGradeRaisingColorScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const copipemon = establishedDigimon(0, ["BT26-084"], "-god-grade-copipemon");
+    copipemon.inBreeding = true;
+    setBreeding(human, copipemon);
+    insertCard(human, Zone.Hand, faceDownCard("dev-god-grade-unleashed", "EX10-070", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-cyber-engage", "BT25-098", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
 /** Wizardmon's end-of-turn trash play offering Aegiochusmon: Dark's Assembly material. */
 function layAegiochusDarkAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -720,7 +820,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
+  "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
+  "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonImmunityLapseScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
+  "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,

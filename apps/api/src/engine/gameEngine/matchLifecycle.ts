@@ -144,6 +144,17 @@ export function startDevScenario(engine: GameEngine, scenario: DevScenarioId): v
       engine.projection.syncRestrictions();
     }
   }
+  if (scenario === "arena-ex13-kingsukamon-immunity-lapse") {
+    const target = engine.state.players[1]?.battleArea.find(
+      ({ permanentId }) => permanentId === "opponent-kingsukamon-immune-target",
+    );
+    if (target !== undefined) {
+      engine.continuous.addRestriction(target.permanentId, "beAffected", EffectDuration.UntilEachTurnEnd, {
+        byOpponentEffectsOnly: true,
+      });
+      engine.projection.syncRestrictions();
+    }
+  }
   engine.hooks.emit({ kind: "matchStarted", firstSeat: engine.state.turnSeat });
   void startTurnLoop(engine);
 }
