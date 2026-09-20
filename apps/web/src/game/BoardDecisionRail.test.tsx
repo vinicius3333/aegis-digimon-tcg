@@ -54,7 +54,7 @@ describe("BoardSelectionRail", () => {
     unmount();
   });
 
-  it("offers an active Pass / Not selected action for an optional field selection", () => {
+  it("offers an active Pass action for an optional field selection", () => {
     const onNoSelection = vi.fn<() => void>();
     renderIn(
       <BoardSelectionRail
@@ -68,8 +68,8 @@ describe("BoardSelectionRail", () => {
         onNoSelection={onNoSelection}
       />,
     );
-    expect((screen.getByRole("button", { name: "Pass / Not selected" }) as HTMLButtonElement).disabled).toBe(false);
-    fireEvent.click(screen.getByRole("button", { name: "Pass / Not selected" }));
+    expect((screen.getByRole("button", { name: "Pass" }) as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Pass" }));
     expect(onNoSelection).toHaveBeenCalledTimes(1);
   });
 

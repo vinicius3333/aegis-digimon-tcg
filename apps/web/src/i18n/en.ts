@@ -552,7 +552,7 @@ export const en = {
   "overlay.effect": "Effect",
   "overlay.viewBoard": "View board",
   "overlay.showEffect": "View effect",
-  "overlay.passNoSelection": "Pass / Not selected",
+  "overlay.passNoSelection": "Pass",
   "overlay.hideEffect": "Hide effect",
   "overlay.returnToDecision": "Return to decision",
   "overlay.decisionPending": "Decision pending",
