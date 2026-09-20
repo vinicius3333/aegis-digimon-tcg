@@ -78887,6 +78887,7 @@
             "payCost": false,
             "cost": { "kind": "payMemory", "memory": 3, "raw": "By paying 3 cost" },
             "optional": true,
+            "payCostBeforeOptional": true,
             "abortOnDecline": true
           },
           {
@@ -106964,6 +106965,7 @@
               "raw": "By trashing 1 card in your hand"
             },
             "optional": true,
+            "payCostBeforeOptional": true,
             "abortOnDecline": true
           },
           {
@@ -107007,6 +107009,7 @@
               "raw": "By trashing 1 card in your hand"
             },
             "optional": true,
+            "payCostBeforeOptional": true,
             "abortOnDecline": true
           },
           {
@@ -220009,6 +220012,7 @@
                   "reduceCostBy": 2,
                   "allowDigiXros": true,
                   "optional": true,
+                  "payCostBeforeOptional": true,
                   "cost": {
                     "kind": "trash",
                     "target": {
@@ -220039,6 +220043,7 @@
                   "payCost": true,
                   "reduceCostBy": 2,
                   "optional": true,
+                  "payCostBeforeOptional": true,
                   "cost": {
                     "kind": "trash",
                     "target": {
@@ -225592,6 +225597,7 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
+            "payCostBeforeOptional": true,
             "cost": {
               "kind": "trashBottomFaceDownUnderTamer",
               "controller": "mine",
@@ -226013,6 +226019,7 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
+            "payCostBeforeOptional": true,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
@@ -226048,6 +226055,7 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
+            "payCostBeforeOptional": true,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
@@ -226083,6 +226091,7 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
+            "payCostBeforeOptional": true,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
@@ -229740,6 +229749,7 @@
             },
             "cost": { "kind": "payMemory", "memory": 1, "raw": "By paying 1 cost" },
             "optional": true,
+            "payCostBeforeOptional": true,
             "abortOnDecline": true
           }
         ],

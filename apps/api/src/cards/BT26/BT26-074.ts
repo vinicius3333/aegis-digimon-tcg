@@ -17,6 +17,7 @@ const useTitanOption: Action = {
   payCost: true,
   reduceCostBy: 2,
   optional: true,
+  payCostBeforeOptional: true,
   condition: currentTurn,
   cost: {
     kind: "trash",

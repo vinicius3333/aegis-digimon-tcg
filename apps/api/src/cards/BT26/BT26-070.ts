@@ -21,6 +21,7 @@ const useOption: Action = {
   payCost: true,
   reduceCostBy: 2,
   optional: true,
+  payCostBeforeOptional: true,
   cost: {
     kind: "trashBottomFaceDownUnderTamer",
     controller: "mine",

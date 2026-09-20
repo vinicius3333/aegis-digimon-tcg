@@ -295,8 +295,14 @@ function markActivationDeclined(ctx: EffectContext): void {
 }
 
 function unavailableAction(ctx: EffectContext, action: Action, abort = false): boolean {
+  const priorActionActed = ctx.lastEffectActed === true;
   ctx.lastEffectActed = false;
-  if (action.kind !== "RawUnparsed" && (action.optional === true || action.preserveOncePerTurnOnDecline === true)) {
+  if (priorActionActed) {
+    markActivationChosen(ctx);
+  } else if (
+    action.kind !== "RawUnparsed" &&
+    (action.optional === true || action.preserveOncePerTurnOnDecline === true)
+  ) {
     markActivationDeclined(ctx);
   }
   return abort;
@@ -318,7 +324,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   const paysProcessingCostBeforeOptional =
     action.kind !== "RawUnparsed" &&
     action.optional === true &&
-    (action.payCostBeforeOptional === true || allowsOptionalProcessingCostWithoutTarget(action));
+    (action.payCostBeforeOptional === true ||
+      (allowsOptionalProcessingCostWithoutTarget(action) && /\bmay\b/i.test(action.effectTextPart ?? "")));
   // A placement tally is scoped to this action's current resolution.  In particular, a
   // declined/blocked optional placement must overwrite a prior activation's count rather
   // than allowing a later conditional to borrow it (EX6-073 Q3825).
