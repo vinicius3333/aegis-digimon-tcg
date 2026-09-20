@@ -15,7 +15,7 @@
   "qa": {
     "url": "https://world.digimoncard.com/rule/?card_no=<card_no>",
     "cardsScanned": 4375,
-    "cardsWithRulings": 2617,
+    "cardsWithRulings": 2686,
     "lastFetched": 2617,
     "fetchedAt": "2026-08-19T00:38:16.560Z",
     "failed": [
@@ -63,6 +63,16 @@
       "P-094"
     ],
     "scopedRefreshes": [
+      {
+        "scope": "EX13 Q&A release refresh",
+        "cardsScanned": 77,
+        "cardsWithRulings": 70,
+        "rulings": 262,
+        "empty": 7,
+        "failed": 0,
+        "source": "https://world.digimoncard.com/rule/?card_no=<card_no>",
+        "fetchedAt": "2026-09-20T04:45:17.354Z"
+      },
       {
         "scope": "224-card replacement/engine fronts Q&A reconciliation",
         "cardsScanned": 224,

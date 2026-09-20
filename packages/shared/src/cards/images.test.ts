@@ -2,9 +2,18 @@ import { describe, expect, it } from "vitest";
 import { cardImageUrls } from "./images.js";
 
 describe("preview card art", () => {
-  it("uses same-origin art for EX13 and the P-245 through P-250 wave", () => {
-    for (const id of ["EX13-001", "EX13-007", "EX13-071", "P-245", "P-250"]) {
+  it("uses same-origin art for the P-245 through P-250 wave", () => {
+    for (const id of ["P-245", "P-250"]) {
       expect(cardImageUrls(id)[0]).toBe(`/cards/preview/${id}.webp`);
+    }
+  });
+
+  it("uses published EX13 art instead of the low-resolution local previews", () => {
+    for (let number = 1; number <= 77; number++) {
+      const id = `EX13-${String(number).padStart(3, "0")}`;
+      expect(cardImageUrls(id)[0]).toBe(
+        `https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/${id}.webp`,
+      );
     }
   });
 
