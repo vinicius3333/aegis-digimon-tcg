@@ -300,9 +300,22 @@ export function usePhaseBanners({
         if (banner.phase === UNSUSPEND_PHASE) {
           drawPhaseWaitingRef.current = openedPhase.turnSeat;
           const drawState = previousDrawStateRef.current;
-          setHeldDrawState(drawState && { seat: openedPhase.turnSeat, state: drawState });
-          setHeldPhaseState(previousDrawStateRef.current);
-          const player = previousDrawStateRef.current?.players[openedPhase.turnSeat];
+          const unsuspendedBeforeActive = new Set(
+            arrivals.flatMap((event) =>
+              event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended"
+                ? event.instanceIds
+                : [],
+            ),
+          );
+          const heldState = drawState
+            ? ({
+                ...drawState,
+                players: drawState.players.map((player) => releaseUnsuspended(player, unsuspendedBeforeActive)),
+              } as GameState)
+            : undefined;
+          setHeldDrawState(heldState && { seat: openedPhase.turnSeat, state: heldState });
+          setHeldPhaseState(heldState);
+          const player = heldState?.players[openedPhase.turnSeat];
           if (player) setHeldBreedingState({ seat: openedPhase.turnSeat, player });
           setHeldSuspendedIds(
             new Set(
