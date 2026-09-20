@@ -153,7 +153,7 @@ export function Pile({
             }}
           >
             {topCardId ? (
-              <CardMini cardId={topCardId} artId={topArtId} width={w} />
+              <CardMini cardId={topCardId} artId={topArtId} width={w} zoomOnHover={false} />
             ) : (
               <CardBack width={w} label={count} useSelectedSleeve={useSelectedSleeve} egg={egg} />
             )}
