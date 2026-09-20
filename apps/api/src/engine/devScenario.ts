@@ -2,6 +2,7 @@ import { CardInstance, Permanent, Zone, getCardDefinition, type GameState, type 
 import {
   extractCardAt,
   insertCard,
+  linkCard,
   placePermanent,
   pushOnStack,
   replaceStack,
@@ -33,6 +34,10 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-examon",
   "arena-jupitermon-siren",
   "arena-magnamon-x",
+  "arena-reboot-timing",
+  "arena-seven-code-link-dp",
+  "arena-suspend-lock-block",
+  "arena-vortex-target-legality",
   "arena-vortexdramon",
   "card-bugs",
   "security-battle",
@@ -144,6 +149,36 @@ function layBattleScenario(state: GameState, decks: readonly [Decklist, Decklist
   state.memory = 0;
 }
 
+/** Starts the human's turn with only suspended ＜Reboot＞ Digimon on their battle area. */
+function layRebootTimingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const field: ReadonlyArray<readonly [Seat, string, string]> = [
+    [0, "reboot-meteormon", "BT4-070"],
+    [0, "reboot-blackwargreymon", "BT5-069"],
+    [1, "opponent-garurumon-one", "ST2-06"],
+    [1, "opponent-garurumon-two", "ST2-06"],
+    [1, "opponent-control", "BT1-024"],
+  ];
+  for (const [seat, permanentId, cardId] of field) {
+    const permanent = establishedDigimon(seat, [cardId]);
+    permanent.permanentId = permanentId;
+    permanent.isSuspended = true;
+    placePermanent(state.players[seat]!, permanent);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
 /** BT26 demo cards are taken from the staged decks, preserving each physical copy. */
 function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -251,12 +286,7 @@ function layJupitermonSirenScenario(state: GameState, decks: readonly [Decklist,
   state.memory = 1;
 }
 
-/**
- * Reproduces EX13-060 Alphamon and EX13-057 Grademon's simultaneous trigger ordering.
- * Play Grademon, activate Alphamon first, and use Alphamon to make the newly played
- * Grademon attack. Grademon's still-pending [On Play] effect should then resolve during
- * that attack and grant the selected Chronicle Digimon immunity and +5000 DP.
- */
+/** Stages EX13-060 Alphamon's three-card [Assembly -5] route from the trash. */
 function layEx13GrademonImmunityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -268,8 +298,11 @@ function layEx13GrademonImmunityScenario(state: GameState, decks: readonly [Deck
 
   const human = state.players[0];
   if (human !== undefined) {
-    placePermanent(human, establishedDigimon(0, ["EX13-060"], "-ex13-alphamon"));
-    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-grademon", "EX13-057", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-alphamon", "EX13-060", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-grademon-hand", "EX13-057", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex13-assembly-lv5", "EX13-057", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex13-assembly-lv4", "EX13-055", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex13-assembly-lv3", "EX13-049", 0));
   }
 
   const opponent = state.players[1];
@@ -282,7 +315,7 @@ function layEx13GrademonImmunityScenario(state: GameState, decks: readonly [Deck
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
-  state.memory = 10;
+  state.memory = 3;
 }
 
 /** Reproduces simultaneous [When Attacking] and optional [All Turns] Vortexdramon triggers. */
@@ -305,6 +338,41 @@ function layVortexdramonScenario(state: GameState, decks: readonly [Decklist, De
     if (seat === 1) field[0]!.isSuspended = true;
     setSecurityStack(player);
   }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** Vortex target picker: only the opponent's unsuspended Digimon is a legal attack target. */
+function layVortexTargetLegalityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const attacker = establishedDigimon(0, ["EX7-034"], "-vortex-target-attacker");
+    attacker.permanentId = "you-vortex-target-attacker";
+    placePermanent(human, attacker);
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const validTarget = establishedDigimon(1, ["BT1-080"], "-vortex-valid-target");
+    validTarget.permanentId = "opponent-vortex-valid-target";
+    placePermanent(bot, validTarget);
+
+    const invalidTarget = establishedDigimon(1, ["BT1-081"], "-vortex-invalid-target");
+    invalidTarget.permanentId = "opponent-vortex-invalid-target";
+    invalidTarget.isSuspended = true;
+    placePermanent(bot, invalidTarget);
+  }
+
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
@@ -340,6 +408,68 @@ function layMagnamonXScenario(state: GameState, decks: readonly [Decklist, Deckl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** A plain bot attacker opposite a real ＜Blocker＞; match startup applies the suspend lock. */
+/**
+ * Reproduces the BT26 Seven Code Link DP report as a three-way comparison:
+ * Medicmon receives a known +2000 DP from BT21 Gatchmon (control), Globemon receives
+ * Weatherdramon's expected +3000 Link DP, and Weatherdramon receives Medicmon's expected
+ * +3000 Link DP. The real engine performs the continuous-DP recomputation after startup.
+ */
+function laySevenCodeLinkDpScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const receivingControl = establishedDigimon(0, ["BT26-028"], "-seven-code-receiving-control");
+    linkCard(receivingControl, faceUpCard("dev-link-bt21-gatchmon", "BT21-009", 0), "bottom");
+    placePermanent(human, receivingControl);
+
+    const sevenCodeGiving = establishedDigimon(0, ["BT21-023"], "-seven-code-giving");
+    linkCard(sevenCodeGiving, faceUpCard("dev-link-weatherdramon", "BT26-037", 0), "bottom");
+    placePermanent(human, sevenCodeGiving);
+
+    const sevenCodeBoth = establishedDigimon(0, ["BT26-037"], "-seven-code-both");
+    linkCard(sevenCodeBoth, faceUpCard("dev-link-medicmon", "BT26-028", 0), "bottom");
+    placePermanent(human, sevenCodeBoth);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+function laySuspendLockBlockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["ST18-07"], "-suspend-locked-blocker"));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["AD1-001"], "-suspend-lock-attacker"));
+  }
+
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /** Wizardmon's end-of-turn trash play offering Aegiochusmon: Dark's Assembly material. */
@@ -533,6 +663,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,
+  "arena-reboot-timing": layRebootTimingScenario,
+  "arena-seven-code-link-dp": laySevenCodeLinkDpScenario,
+  "arena-suspend-lock-block": laySuspendLockBlockScenario,
+  "arena-vortex-target-legality": layVortexTargetLegalityScenario,
   "arena-vortexdramon": layVortexdramonScenario,
   "card-bugs": layCardBugsScenario,
   "security-battle": layDelayedSecurityBattleScenario,

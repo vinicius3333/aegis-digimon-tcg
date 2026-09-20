@@ -4,8 +4,8 @@ import { layDevScenario } from "./devScenario.js";
 import { BLUE_DECK, RED_DECK } from "./testDecks.js";
 import "../cards/index.js";
 
-describe("EX13 Grademon immunity dev scenario", () => {
-  it("stages Alphamon, Grademon, and a legal attack target for the trigger-order interaction", () => {
+describe("EX13 Alphamon Assembly dev scenario", () => {
+  it("stages Alphamon in hand and one Chronicle Lv.5, Lv.4, and Lv.3 in trash", () => {
     const state = new GameState();
     state.players.push(new PlayerState(), new PlayerState());
 
@@ -14,9 +14,10 @@ describe("EX13 Grademon immunity dev scenario", () => {
     const human = state.players[0] as PlayerState;
     const opponent = state.players[1] as PlayerState;
     expect(state.turnSeat).toBe(0);
-    expect(state.memory).toBe(10);
-    expect(human.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX13-060"]);
-    expect(human.hand.map(({ cardId }) => cardId)).toEqual(["EX13-057"]);
+    expect(state.memory).toBe(3);
+    expect(human.battleArea).toHaveLength(0);
+    expect(human.hand.map(({ cardId }) => cardId)).toEqual(["EX13-060", "EX13-057"]);
+    expect(human.trash.map(({ cardId }) => cardId)).toEqual(["EX13-057", "EX13-055", "EX13-049"]);
     expect(opponent.battleArea).toHaveLength(1);
     expect(opponent.battleArea[0]).toMatchObject({
       isSuspended: true,

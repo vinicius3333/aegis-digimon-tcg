@@ -1,5 +1,13 @@
 import type { Client } from "colyseus";
-import { PlayerState, Phase, Permanent, type CardColor, type CardInstance, type Seat } from "@aegis/shared";
+import {
+  EffectDuration,
+  PlayerState,
+  Phase,
+  Permanent,
+  type CardColor,
+  type CardInstance,
+  type Seat,
+} from "@aegis/shared";
 import {
   buildStateView,
   exposeCardInZone,
@@ -129,6 +137,13 @@ export function startDevScenario(engine: GameEngine, scenario: DevScenarioId): v
   if (decks === undefined) return;
   engine.matchSetupStarted = true;
   layDevScenario(scenario, engine.state, decks);
+  if (scenario === "arena-suspend-lock-block") {
+    const blocker = engine.state.players[0]?.battleArea.find(({ topCard }) => topCard.cardId === "ST18-07");
+    if (blocker !== undefined) {
+      engine.continuous.addRestriction(blocker.permanentId, "suspend", EffectDuration.Permanent);
+      engine.projection.syncRestrictions();
+    }
+  }
   engine.hooks.emit({ kind: "matchStarted", firstSeat: engine.state.turnSeat });
   void startTurnLoop(engine);
 }
