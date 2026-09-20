@@ -116,11 +116,6 @@ export function DecisionCandidateGrid({
               becomes one scrolling row with a visible track instead (reference #110). */}
           <div
             className={`decision-overlay__grid${items.length > 6 ? " decision-overlay__grid--scroll" : ""}`}
-            style={
-              items.length > 6
-                ? undefined
-                : { gridTemplateColumns: `repeat(auto-fit, minmax(${candidateCardWidth + 28}px, 1fr))` }
-            }
           >
             {items.map((cand) => {
               const on = picks.includes(cand.instanceId);
@@ -158,11 +153,7 @@ export function DecisionCandidateGrid({
                   disabled={!selectable}
                   key={cand.instanceId}
                   style={{
-                    position: "relative",
-                    padding: 12,
-                    border: `1px solid ${on ? "var(--ds-warning)" : "var(--ds-border-strong)"}`,
-                    borderRadius: 10,
-                    background: "var(--ds-surface-muted)",
+                    width: candidateCardWidth,
                     cursor: selectable ? "pointer" : "not-allowed",
                     opacity: selectable ? 1 : 0.4,
                     filter: selectable ? "none" : "grayscale(0.85)",
@@ -195,15 +186,6 @@ export function DecisionCandidateGrid({
                   ) : (
                     <CardFull cardId={cand.cardId ?? ""} artId={cand.artId} width={candidateCardWidth} selected={on} />
                   )}
-                  {!abstractLabel && cand.cardId ? (
-                    <span className="decision-overlay__candidate-caption">
-                      <strong>{printedCardName(cand.cardId)}</strong>
-                      <span>
-                        {cand.cardId}
-                        {copyLabel ? ` · ${copyLabel}` : ""}
-                      </span>
-                    </span>
-                  ) : null}
                   {on && max > 1 ? (
                     <span className="decision-overlay__order-badge" aria-hidden="true">
                       {picks.indexOf(cand.instanceId) + 1}
@@ -223,21 +205,6 @@ export function DecisionCandidateGrid({
                     >
                       <i aria-hidden="true">{fateBadge.glyph}</i>
                       {t(fateBadge.labelKey)}
-                    </span>
-                  ) : null}
-                  {liveLabel ? <span className="decision-overlay__candidate-stats">{liveLabel}</span> : null}
-                  {on ? (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: 6,
-                        right: 6,
-                        color: "var(--ds-accent)",
-                        background: "var(--ds-surface)",
-                        borderRadius: "50%",
-                      }}
-                    >
-                      <Icons.CircleCheck size={18} />
                     </span>
                   ) : null}
                   {!selectable ? (

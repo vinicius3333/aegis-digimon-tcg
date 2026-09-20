@@ -1,7 +1,6 @@
 /* Card-first effect selection, including the generic Decoy decision. */
 .game-modal__panel.effect-prompt-family {
-  border-color: var(--ds-warning) !important;
-  border-width: 2px !important;
+  border: 0 !important;
   border-radius: 18px;
 }
 .decision-overlay.effect-prompt-family {
@@ -33,33 +32,24 @@
   color: var(--ds-fg-secondary);
 }
 .decision-overlay.effect-prompt-family .decision-overlay__grid:not(.decision-overlay__grid--scroll) {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
   gap: var(--ds-space-3);
 }
 .decision-overlay__candidate {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  flex: none;
   min-width: 0;
+  padding: 0;
   color: var(--ds-fg);
-}
-.decision-overlay__candidate-caption {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-width: 100%;
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-.decision-overlay__candidate-caption > span {
-  color: var(--ds-fg-muted);
-  font: 11px var(--ds-font-mono);
-}
-.decision-overlay__candidate-stats {
-  color: var(--ds-warning);
-  font: 700 12px var(--ds-font-mono);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 .decision-overlay.effect-prompt-family .decision-overlay__fate {
   position: static;
@@ -67,21 +57,12 @@
   max-width: 100%;
 }
 @media (max-width: 400px) {
-  .decision-overlay.effect-prompt-family .decision-overlay__grid:not(.decision-overlay__grid--scroll) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .decision-overlay.effect-prompt-family .decision-overlay__title {
     font-size: 17px;
   }
 }
 .decision-overlay.effect-prompt-family .decision-overlay__grid > button {
-  outline: 1px solid var(--ds-border-strong);
-  outline-offset: 3px;
-}
-.decision-overlay.effect-prompt-family
-  .decision-overlay__grid
-  > button:is(:hover, [aria-pressed="true"]):not(:disabled) {
-  outline-color: var(--ds-warning);
+  outline: none;
 }
 .decision-overlay.effect-prompt-family button:focus-visible {
   outline: 3px solid var(--ds-focus-color);

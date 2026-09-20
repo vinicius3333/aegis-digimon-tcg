@@ -2024,7 +2024,7 @@ describe("EX3-046 Commandramon decisions", () => {
     expect(screen.getByText(getCardDefinition("EX3-046")!.effectText!.match(/＜Decoy[^＞]*＞/)![0])).toBeTruthy();
     expect(screen.getByRole("button", { name: /Commandramon, 0 source/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: "None" })).toBeTruthy();
-    expect(screen.getByText("EX3-046")).toBeTruthy();
+    expect(screen.queryByText("EX3-046")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "View board" }));
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(onRespond).not.toHaveBeenCalled();
@@ -3166,8 +3166,8 @@ describe("decision board preview", () => {
 
     expect(screen.getByRole("button", { name: /Machinedramon, 0 source/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Machinedramon, 5 source/ })).toBeTruthy();
-    expect(screen.getByText("0 sources")).toBeTruthy();
-    expect(screen.getByText("5 sources")).toBeTruthy();
+    expect(screen.queryByText("0 sources")).toBeNull();
+    expect(screen.queryByText("5 sources")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: /Machinedramon, 5 source/ }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm targets" }));
