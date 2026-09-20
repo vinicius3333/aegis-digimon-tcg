@@ -1263,15 +1263,32 @@ export async function runSubTrigger(
         if (activationCostPaid) subCtx.oncePerTurnActivationChosen = true;
       }
       let anyActionGateMatched = false;
-      for (const a of action.actions) {
-        const gate =
-          a.kind === "RawUnparsed" || a.kind === "ConditionalBranch"
-            ? undefined
-            : (a.condition ?? ("while" in a ? a.while : undefined));
-        if (gate === undefined || evaluateCondition(subCtx, gate)) anyActionGateMatched = true;
-        const abort = await runAction(subCtx, a);
-        if (abort) break;
-      }
+      const runActionsFrom = async (startIndex: number): Promise<void> => {
+        for (let index = startIndex; index < action.actions.length; index += 1) {
+          const current = action.actions[index]!;
+          const gate =
+            current.kind === "RawUnparsed" || current.kind === "ConditionalBranch"
+              ? undefined
+              : (current.condition ?? ("while" in current ? current.while : undefined));
+          if (gate === undefined || evaluateCondition(subCtx, gate)) anyActionGateMatched = true;
+          const outerContinuation = subCtx.continueEffectAfterAttackDeclaration;
+          let continuationRan = false;
+          if (current.kind === "Attack" && index + 1 < action.actions.length) {
+            subCtx.continueEffectAfterAttackDeclaration = async () => {
+              continuationRan = true;
+              await runActionsFrom(index + 1);
+            };
+          }
+          let abort: boolean;
+          try {
+            abort = await runAction(subCtx, current);
+          } finally {
+            subCtx.continueEffectAfterAttackDeclaration = outerContinuation;
+          }
+          if (abort || continuationRan) return;
+        }
+      };
+      await runActionsFrom(0);
       // A clause whose every action gate rejects the event never triggered, so it cannot spend
       // the printed [Once Per Turn] budget: BT11-008/010/014 watch "when this Digimon's attack
       // target is switched" and must stay armed while another Digimon's target is switched.

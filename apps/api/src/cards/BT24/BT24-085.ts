@@ -27,19 +27,14 @@ export const compiled: CompiledCard = {
         {
           effectTextPart:
             "[End of Your Turn] By suspending this Tamer, you may use 1 [TS] trait Option card with as high or lower a use cost as your opponent's memory from your hand without paying the cost.",
-          kind: "Suspend",
-          target: self,
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          effectTextPart:
-            "[End of Your Turn] By suspending this Tamer, you may use 1 [TS] trait Option card with as high or lower a use cost as your opponent's memory from your hand without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: tsOption,
           from: ["hand"],
           payCost: false,
           optional: true,
+          cost: { kind: "suspend", target: self, raw: "by suspending this Tamer" },
+          abortOnDecline: true,
+          allowCostWithoutTarget: true,
         },
         {
           effectTextPart: "Then, 1 of your Digimon with the [TS] trait may attack.",

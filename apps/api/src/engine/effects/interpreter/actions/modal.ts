@@ -11,7 +11,7 @@ import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
 import { applyPlayCostCeiling, playableCandidates } from "./play.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
-import { CardKind, type Action } from "@aegis/shared";
+import type { Action } from "@aegis/shared";
 
 /**
  * Whether any option of a modal can currently be attempted. A modal whose every option is
@@ -20,16 +20,8 @@ import { CardKind, type Action } from "@aegis/shared";
  */
 export function modalHasAvailableOption(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): boolean {
   const merged = mergedPlayOrUseAction(action);
-  if (merged !== undefined && !hasAmbiguousDualCandidate(ctx, merged)) return canAttemptModalAction(ctx, merged);
+  if (merged !== undefined) return canAttemptModalAction(ctx, merged);
   return action.options.some((option, idx) => optionIsAvailable(ctx, action, option, idx));
-}
-
-function hasAmbiguousDualCandidate(ctx: EffectContext, action: Extract<Action, { kind: "PlayWithoutCost" }>): boolean {
-  const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-  return candidateLooseInstances(ctx, action.target, zones).some(({ cardId }) => {
-    const kinds = ctx.game.definitionOf({ cardId } as never).kinds;
-    return kinds.includes(CardKind.Option) && (kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer));
-  });
 }
 
 const comparable = (value: unknown): string => JSON.stringify(value);
@@ -84,8 +76,12 @@ export function mergedPlayOrUseAction(
     return undefined;
   return {
     ...play,
+    chooseDualMode: true,
+    optional: false,
     target: {
       ...play.target,
+      upTo: play.optional === true,
+      minimum: 0,
       filter: { ...playFilter, kind: ["Digimon", "Tamer", "Option"] },
     },
     raw: play.raw ?? use.raw,
@@ -114,7 +110,7 @@ function optionIsAvailable(
 export async function runModal(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): Promise<void> {
   if (action.options.length === 0) return;
   const merged = mergedPlayOrUseAction(action);
-  if (merged !== undefined && !hasAmbiguousDualCandidate(ctx, merged)) {
+  if (merged !== undefined) {
     await runAction(ctx, merged);
     return;
   }
@@ -212,7 +208,7 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
   ) {
     const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
     const target = applyPlayCostCeiling(ctx, action, action.target);
-    return playableCandidates(ctx, target, candidateLooseInstances(ctx, target, zones)).some(
+    return playableCandidates(ctx, target, candidateLooseInstances(ctx, target, zones), action.chooseDualMode).some(
       (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
     );
   }

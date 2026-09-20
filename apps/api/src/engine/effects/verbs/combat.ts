@@ -80,7 +80,14 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       1,
       1,
       "Choose the attack target for the forced attack.",
-      { ...opts?.decisionProvenance, selectionContext: "attackTarget" },
+      {
+        ...opts?.decisionProvenance,
+        // The clause's source remains available through sourceCardId/effectText, but
+        // the board arrow for this second decision must leave from the Digimon that
+        // was selected to attack, not from the permanent owning the effect.
+        sourcePermanentId: attacker.permanentId,
+        selectionContext: "attackTarget",
+      },
     );
     const pick = chosen[0] ?? candidates[0]!;
     const target: AttackTarget = pick === PLAYER ? { kind: "player" } : { kind: "permanent", permanentId: pick };

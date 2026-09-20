@@ -62,6 +62,8 @@ export interface EffectContext {
    * Display-only.
    */
   activeTargetFate?: TargetFate;
+  /** The selected permanent will become the attacker; it is not a target of the source card. */
+  activeSelectionContext?: "attackSource";
   /**
    * How many `payCost` frames are currently on the stack. Non-zero means every decision
    * raised right now is asking the controller to PAY a cost, not to pick a target — the

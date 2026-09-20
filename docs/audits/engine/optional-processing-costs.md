@@ -1,0 +1,33 @@
+# Optional processing costs without payload targets
+
+## Contract
+
+Comprehensive Rules §15-7-1 defines printed `By X, Y` text as an optional
+processing condition. Section 15-7-5 permits that condition to be performed
+even when the subsequent effect content has no legal target.
+
+## Correction
+
+Generated IR preserves the printed `By ...` prefix in the cost's `raw` field.
+The processing-condition seam now classifies that wording directly, while
+retaining `allowCostWithoutTarget` as a compatibility escape hatch for manual
+IR without printed cost text. Every target preflight delegates to this single
+classification. This covers more than 1,000 compiled actions across the card
+catalog instead of requiring per-card flags.
+
+Loose-zone `Return` previously performed a separate candidate preflight that
+ignored even the explicit flag, preventing cards such as BT12-073 from paying
+their hand-trash condition when no eligible recovery card was in the trash.
+It now delegates to the same seam; payment and the empty payload resolve in
+printed order.
+
+## Behavioral proof
+
+- `optionalActivationReceipt.test.ts` proves an opted-in Return pays its hand
+  trash cost with no matching trash target, both through printed `By` wording
+  and through the compatibility flag used by handwritten IR.
+- `processingCondition.test.ts` walks the complete persisted catalog and proves
+  every optional cost carrying printed `By` wording is classified by the seam.
+- `BT12-073.test.ts` proves Impmon (X Antibody) may trash an Option with only an
+  ineligible Digimon in trash at both printed timings, while retaining its
+  separate refusal path.

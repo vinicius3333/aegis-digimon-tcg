@@ -6,13 +6,10 @@ const ts = {
   kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
 } satisfies Filter;
-const iliadOrTs = {
+const iliad = {
   controller: "mine",
   zone: "hand",
-  nameOrTrait: [
-    { tokens: ["Iliad"], match: "trait" },
-    { tokens: ["TS"], match: "trait" },
-  ],
+  nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
 } satisfies Filter;
 const opponentLowestDpDigimon = {
   controller: "opponent",
@@ -29,6 +26,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
+      description: "[When Digivolving] Add your top security card to the hand.",
       actions: [
         {
           effectTextPart: "[When Digivolving] Add your top security card to the hand.",
@@ -42,12 +40,14 @@ export const compiled: CompiledCard = {
           kind: "Modal",
           choose: 1,
           condition: { kind: "isYourTurn", raw: "if it is your turn" },
-          labels: ["Play an Iliad/TS card", "Use an Iliad/TS Option"],
+          effectTextPart:
+            "Then, if it's your turn, you may play or use 1 [Iliad] card from your hand with the cost reduced by 5.",
+          labels: ["Play an Iliad card", "Use an Iliad Option"],
           options: [
             [
               {
                 kind: "PlayWithoutCost",
-                target: { filter: { ...iliadOrTs, kind: ["Digimon", "Tamer"] }, count: 1 },
+                target: { filter: { ...iliad, kind: ["Digimon", "Tamer"] }, count: 1 },
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 5,
@@ -57,7 +57,7 @@ export const compiled: CompiledCard = {
             [
               {
                 kind: "UseOptionWithoutCost",
-                filter: { ...iliadOrTs, kind: ["Option"] },
+                filter: { ...iliad, kind: ["Option"] },
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 5,
@@ -65,7 +65,7 @@ export const compiled: CompiledCard = {
               },
             ],
           ],
-          optional: true,
+          optional: false,
         },
       ],
     },

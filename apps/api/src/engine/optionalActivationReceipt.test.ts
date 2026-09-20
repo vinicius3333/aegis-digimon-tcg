@@ -162,6 +162,46 @@ describe("once-per-turn activation receipt boundaries", () => {
     );
   });
 
+  it("allows an opted-in Return activation cost when its payload has no target", async () => {
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        actions: [
+          {
+            kind: "Return",
+            target: {
+              filter: { cardId: "BT1-010", controller: "mine", zone: "trash" },
+              count: 1,
+            },
+            to: "hand",
+            optional: true,
+            abortOnDecline: true,
+            cost: {
+              kind: "trash",
+              target: { filter: { cardId: "BT1-009", controller: "mine", zone: "hand" }, count: 1 },
+              raw: "By trashing 1 card in your hand",
+            },
+          },
+        ],
+      }),
+      async () => {
+        const s = setupEngine(
+          {
+            0: {
+              battleArea: [{ card: CARD_ID, as: "source" }],
+              hand: [{ card: "BT1-009", as: "payment" }],
+            },
+          },
+          { autoAcceptOptional: true, autoSelectCards: true },
+        );
+
+        await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+
+        expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("payment").instanceId);
+        expect(s.state.players[0]!.battleArea).toHaveLength(1);
+      },
+    );
+  });
+
   it("consumes once-per-turn when a declined non-aborting optional cost is followed by mandatory processing", async () => {
     await withCompiledCard(
       oncePerTurnOnPlay({

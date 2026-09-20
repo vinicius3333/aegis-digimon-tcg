@@ -16,7 +16,10 @@ export interface ResolverDecisions {
   askOptional(seat: Seat, collected: CollectedEffect): Promise<boolean>;
 }
 
-export function createResolverDecisions(manager: DecisionManager): ResolverDecisions {
+export function createResolverDecisions(
+  manager: DecisionManager,
+  beforeRequest: () => Promise<void> = async () => {},
+): ResolverDecisions {
   return {
     async chooseOrder(seat, active, timing) {
       log(
@@ -29,6 +32,11 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
       // lone groups so any direct/legacy caller cannot recreate a confirmation-only
       // round trip.
       if (active.length < 2) return active.length === 1 ? 0 : null;
+      // A preceding effect may have changed the board and installed a duration-scoped
+      // keyword before engine asks which newly-triggered effect resolves next. Publish
+      // those derived fields first: the decision itself causes the room to flush state,
+      // and clients must not see a legal attacker as summoning-sick during the pause.
+      await beforeRequest();
       // The `orderTriggers` decision carries one key per triggering PERMANENT, not per
       // effect: `effect.effectKey` alone is `cardId/effect-index`, shared by every
       // permanent of the same card, so two copies of the same card triggering
@@ -97,6 +105,7 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
         "[askOptional]",
         `seat=${seat} card=${collected.source.cardId} desc="${collected.effect.description}" optional=${collected.effect.optional} isSecurity=${collected.effect.isSecurity}`,
       );
+      await beforeRequest();
       const response = await manager.request({
         seat,
         kind: "optional",

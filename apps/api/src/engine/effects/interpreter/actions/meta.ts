@@ -94,9 +94,16 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
             [...(ctx.source.definition.kinds ?? [])],
             ctx.source.permanent()?.permanentId,
           );
+          const finishAnnouncement = ctx.fx.announceEffect?.(ctx, {
+            ...eff,
+            effectKey: eff.effectKey ?? `${ctx.source.cardId}/reactivated/${eff.trigger}`,
+            description: eff.description ?? action.raw ?? action.fromTrigger,
+            timing: eff.timing ?? eff.trigger,
+          });
           try {
             await runEffect(ctx, eff);
           } finally {
+            finishAnnouncement?.();
             ctx.fx.leaveEffectResolution?.();
             ctx.activeTiming = outerTiming;
             ctx.activeEffectText = outerEffectText;

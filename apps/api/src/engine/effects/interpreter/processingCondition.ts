@@ -3,15 +3,18 @@ import type { Action } from "@aegis/shared";
 /**
  * §15-7-5: an optional `by [cost], [effect]` processing condition may pay its
  * condition even when the following effect currently has no legal target.
- *
- * The explicit flag remains the compatibility escape hatch for cards whose
- * generated shape cannot express the condition. The unflagged compiled shape
- * covered here is the independent loose-card placement condition used by
- * EX7-011 and its EX9-010 peer; other activation costs retain their existing
- * target gate unless they opt in explicitly.
+ * Generated IR preserves the printed `By ...` prefix on the cost, which is the
+ * authoritative distinction from transactional "you may X; if you did" costs.
+ * The explicit flag remains the compatibility escape hatch for handwritten IR
+ * that cannot carry the printed wording.
  */
 export function allowsOptionalProcessingCostWithoutTarget(action: Action): boolean {
   if (action.kind === "RawUnparsed") return false;
+  const printedByCondition =
+    action.optional === true &&
+    [action.cost, action.additionalCost, ...(action.additionalCosts ?? []), ...(action.costOptions ?? [])].some(
+      (cost) => typeof cost !== "number" && /^\s*by\b/i.test(cost?.raw ?? ""),
+    );
   const placementSource =
     action.kind === "Delete" ? (action.cost?.kind === "place" ? action.cost.target?.from : undefined) : undefined;
   const hasLoosePlacementSource = Array.isArray(placementSource)
@@ -19,6 +22,7 @@ export function allowsOptionalProcessingCostWithoutTarget(action: Action): boole
     : placementSource === "hand" || placementSource === "trash";
   return (
     action.allowCostWithoutTarget === true ||
+    printedByCondition ||
     (action.kind === "Delete" &&
       action.optional === true &&
       action.abortOnDecline === true &&

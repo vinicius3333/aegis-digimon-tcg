@@ -32,6 +32,8 @@ const chronicleEntryAttack = (): Action => ({
       kind: "Attack",
       target: { filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" }, count: 1 },
       optional: true,
+      effectTextPart:
+        "When any of your [Chronicle] trait Digimon or Tamers are played, 1 of your Digimon may attack.",
       raw: "1 of your Digimon may attack",
     },
     {
@@ -39,6 +41,7 @@ const chronicleEntryAttack = (): Action => ({
       fromTrigger: "WhenDigivolving",
       count: 1,
       optional: true,
+      effectTextPart: "Then, you may activate 1 of this Digimon's [When Digivolving] effects.",
       raw: "Then, you may activate 1 of this Digimon's [When Digivolving] effects",
     },
   ],

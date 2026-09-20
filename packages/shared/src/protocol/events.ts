@@ -492,7 +492,7 @@ export interface DecisionRequest {
     distinctCardIds?: boolean; // prevent selecting multiple instances with the same card number
     distinctNames?: boolean; // prevent selecting cards sharing a name, including exact-name aliases
     /** Lets the client use a dedicated in-board interaction without inferring semantics from prompt text. */
-    selectionContext?: "attackTarget";
+    selectionContext?: "attackSource" | "attackTarget";
     orderDestination?: "deckTop" | "deckBottom" | "stackBottom"; // explains how ordered positions map to the destination
     choices?: string[]; // modal labels for chooseOption
     /** Aligned to `choices` when each choice is a printed effect of a card: the client shows the card and its clause. */

@@ -44,6 +44,7 @@ export function playableCandidates<T extends { instanceId: string; cardId: strin
   ctx: EffectContext,
   target: Target | undefined,
   candidates: readonly T[],
+  chooseDualMode?: true,
 ): T[] {
   const requestedKinds = requestedPlayKinds(target);
   const namesOption = requestedKinds.includes("Option");
@@ -53,7 +54,7 @@ export function playableCandidates<T extends { instanceId: string; cardId: strin
     const kinds = definition.kinds;
     if (!kinds.includes(CardKind.Option)) return true;
     const isDual = kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
-    if (isDual) return optionOnly;
+    if (isDual) return optionOnly || chooseDualMode === true;
     return (
       namesOption &&
       ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false
@@ -535,6 +536,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         ctx,
         playCostAdjustedTarget,
         candidateLooseInstances(ctx, playCostAdjustedTarget, zones),
+        action.chooseDualMode,
       );
       if (action.fromTriggerHandTrash === true) {
         const triggeringIds = new Set(ctx.trigger.handTrashedInstanceIds ?? []);
@@ -620,6 +622,47 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           (c) => ctx.game.definitionOf({ cardId: c.cardId } as never).nameEn !== excludedTriggerSubjectName,
         );
       }
+      const costReduction = paidReduction(ctx, action) ?? action.costReduction;
+      const dualModeAffordability = new Map<string, { play: boolean; use: boolean }>();
+      if (action.payCost === true && ctx.fx.canAffordEffectPlay !== undefined) {
+        const affordability = await Promise.all(
+          candidates.map(async (candidate) => {
+            const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+            const hasOption = definition.kinds.includes(CardKind.Option);
+            const hasPermanent =
+              definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer);
+            const canUseByColor =
+              hasOption &&
+              ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false;
+            const play =
+              hasPermanent &&
+              (await ctx.fx.canAffordEffectPlay!(candidate.instanceId, {
+                costDelta: costReduction,
+                controllerSeat: ctx.source.ownerSeat,
+              }));
+            const use =
+              canUseByColor &&
+              (await ctx.fx.canAffordEffectPlay!(candidate.instanceId, {
+                costDelta: costReduction,
+                useAsOption: true,
+                controllerSeat: ctx.source.ownerSeat,
+              }));
+            return { candidate, play, use };
+          }),
+        );
+        for (const entry of affordability) {
+          dualModeAffordability.set(entry.candidate.instanceId, { play: entry.play, use: entry.use });
+        }
+        candidates = affordability
+          .filter(({ candidate, play, use }) => {
+            const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
+            const isDual =
+              kinds.includes(CardKind.Option) && (kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer));
+            if (isDual && action.chooseDualMode === true) return play || use;
+            return kinds.includes(CardKind.Option) ? use : play;
+          })
+          .map(({ candidate }) => candidate);
+      }
       const visibleZoneIds = zones.every((zone) => zone === "trash" || zone === "hand")
         ? seatsForController(ctx, playCostAdjustedTarget.filter).flatMap((seat) =>
             zones.flatMap((zone) => looseCardsInZone(ctx, seat, zone).map((candidate) => candidate.instanceId)),
@@ -638,7 +681,6 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       if (playCostAdjustedTarget.chooser === "opponent" && action.optional === true) {
         ctx.lastOpponentDeclined = chosen.length === 0;
       }
-      const costReduction = paidReduction(ctx, action) ?? action.costReduction;
       if (chosen.length > 0) {
         // Options are USED, not played as permanents. `playInstances` intentionally rejects
         // Option definitions, so routing every PlayWithoutCost target through it silently
@@ -649,12 +691,39 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         const requestedKinds = action.target?.filter?.kind ?? [];
         const explicitlyUsesOption =
           requestedKinds.includes("Option") && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
+        const dualOptionIds = new Set<string>();
+        if (action.chooseDualMode === true) {
+          for (const instanceId of chosen) {
+            const candidate = candidates.find((entry) => entry.instanceId === instanceId);
+            if (candidate === undefined) continue;
+            const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+            const isDual =
+              definition.kinds.includes(CardKind.Option) &&
+              (definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer));
+            if (!isDual) continue;
+            const affordable = dualModeAffordability.get(instanceId);
+            const canPlay = affordable?.play ?? true;
+            const canUseOption =
+              (affordable?.use ?? true) &&
+              ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false;
+            if (!canPlay && canUseOption) {
+              dualOptionIds.add(instanceId);
+              continue;
+            }
+            if (!canUseOption) continue;
+            const mode = await ctx.ask.chooseOption(ctx, ["Play the Digimon/Tamer side", "Use the Option side"]);
+            if (mode === 1) dualOptionIds.add(instanceId);
+          }
+        }
         const optionIds = chosen.filter((instanceId) => {
           const candidate = candidates.find((c) => c.instanceId === instanceId);
           if (candidate === undefined) return false;
           const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
           const hasPermanentSide = kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
-          return kinds.includes(CardKind.Option) && (!hasPermanentSide || explicitlyUsesOption);
+          return (
+            kinds.includes(CardKind.Option) &&
+            (!hasPermanentSide || explicitlyUsesOption || dualOptionIds.has(instanceId))
+          );
         });
         for (const optionId of optionIds) {
           const candidate = candidates.find((c) => c.instanceId === optionId);

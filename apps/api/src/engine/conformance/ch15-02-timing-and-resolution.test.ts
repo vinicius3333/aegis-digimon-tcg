@@ -834,18 +834,21 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
     expect(result.ok).toBe(true);
   });
 
-  it("15-8-4-3-1: a cost-bearing activation with no legal target is not declarable by default", async () => {
+  it("15-7-5: a payable By condition remains declarable with no legal target", async () => {
     cite(
       "comprehensive-0176",
-      "15-8-4-3-1 an activation-type effect can be declared only while its processing " +
-        "conditions are met; EX2-051's deletion clause has no legal target above its DP ceiling",
+      "15-8-4-4-1 requires EX2-051's suspend condition to be payable at declaration; " +
+        "15-7-5 permits paying it when the deletion payload has no legal target",
       "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
     );
 
-    const s = setup({
-      0: { battleArea: [{ card: "EX2-051", as: "palates" }, "EX2-007"] },
-      1: { battleArea: [{ card: "EX2-022", as: "tooLarge" }] },
-    });
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "EX2-051", as: "palates" }, "EX2-007"] },
+        1: { battleArea: [{ card: "EX2-022", as: "tooLarge" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     const result = s.engine.applyIntent(0, {
@@ -854,8 +857,10 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
       effectKey: "EX2-051/ir-27-0",
     });
 
-    expect(result).toEqual({ ok: false, reason: "illegal-target" });
-    expect(s.perm("palates").isSuspended).toBe(false);
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.perm("palates").isSuspended);
+    expect(s.perm("palates").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX2-022"]);
   });
 
   it("15-8-4-3-1 (boundary): a cost exactly equal to maxCostFor(seat) is payable, one more is not", () => {

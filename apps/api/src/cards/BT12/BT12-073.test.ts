@@ -114,23 +114,26 @@ describe("BT12-073 Impmon (X Antibody)", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([targetId]);
   });
 
-  it("does not pay the Option cost for an ineligible Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT12-073", as: "impX" }],
-          hand: [{ card: "BT1-109", as: "option" }],
-          trash: [{ card: "BT1-009", as: "plain" }],
+  it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
+    "%s may trash the Option cost when there is no eligible Digimon to return",
+    async (timing) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT12-073", as: "impX" }],
+            hand: [{ card: "BT1-109", as: "option" }],
+            trash: [{ card: "BT1-009", as: "plain" }],
+          },
         },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const optionId = s.inst("option").instanceId;
-    const plainId = s.inst("plain").instanceId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("impX"));
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([optionId]);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([plainId]);
-  });
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const optionId = s.inst("option").instanceId;
+      const plainId = s.inst("plain").instanceId;
+      await advance(s.engine).fire(timing, s.perm("impX"));
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(optionId);
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([plainId, optionId]);
+    },
+  );
 
   it("trashes two deck cards from its inherited attack effect", async () => {
     const s = setupEngine({

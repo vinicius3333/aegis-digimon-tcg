@@ -264,13 +264,16 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (action.kind !== "RawUnparsed" && action.effectTextPart !== undefined)
     ctx.activeEffectTextPart = action.effectTextPart;
   const outerFate = ctx.activeTargetFate;
+  const outerSelectionContext = ctx.activeSelectionContext;
   const outerDelayArmedConsumed = ctx.delayArmedConsumed;
   const outerPendingRotationHostPermanentId = ctx.pendingRotationHostPermanentId;
   ctx.activeTargetFate = targetFateOf(action);
+  ctx.activeSelectionContext = action.kind === "Attack" ? "attackSource" : undefined;
   try {
     return await runActionInner(ctx, action);
   } finally {
     ctx.activeTargetFate = outerFate;
+    ctx.activeSelectionContext = outerSelectionContext;
     ctx.activeEffectTextPart = outerEffectTextPart;
     // `requiresDelayArmed` is scoped to this action resolution. Some focused
     // contexts are intentionally reused across timing windows; leaking the
@@ -366,7 +369,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Return" &&
     action.cost !== undefined &&
-    action.allowCostWithoutTarget !== true &&
+    !allowsOptionalProcessingCostWithoutTarget(action) &&
     !returnsLooseCard &&
     !returnBoundProducedByCost &&
     action.target.filter.dpLessOrEqualToSuspendedDigimon !== true &&
@@ -505,7 +508,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     (action.kind === "TrashDigivolution" || action.kind === "SelectBind" || action.kind === "DeDigivolve") &&
     action.cost !== undefined &&
-    action.allowCostWithoutTarget !== true &&
+    !allowsOptionalProcessingCostWithoutTarget(action) &&
     candidatePermanents(ctx, action.target).length === 0
   ) {
     return action.abortOnDecline === true;
@@ -525,7 +528,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Unsuspend" &&
     (action.optional === true || action.cost !== undefined) &&
-    action.allowCostWithoutTarget !== true &&
+    !allowsOptionalProcessingCostWithoutTarget(action) &&
     !(action.cost?.bindHostAs !== undefined && action.cost.bindHostAs === action.target.fromSelectionRef) &&
     candidatePermanents(ctx, action.target, { includeUnaffectable: true }).every(
       (permanent) => permanent.isSuspended !== true,
@@ -555,7 +558,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "PlayWithoutCost" &&
     (action.requiresEmpty === "breedingArea" || action.breeding === true) &&
-    action.allowCostWithoutTarget !== true &&
+    !allowsOptionalProcessingCostWithoutTarget(action) &&
     ctx.game.player(ctx.source.ownerSeat).breeding !== undefined
   ) {
     return action.abortOnDecline === true;
@@ -575,7 +578,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind === "RedirectAttack" &&
     action.mode !== "endAttack" &&
     action.includePlayer !== true &&
-    action.allowCostWithoutTarget !== true
+    !allowsOptionalProcessingCostWithoutTarget(action)
   ) {
     const target =
       action.chooser === "opponent"
@@ -618,7 +621,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "UseOptionWithoutCost" &&
     action.cost !== undefined &&
-    action.allowCostWithoutTarget !== true &&
+    !allowsOptionalProcessingCostWithoutTarget(action) &&
     !(await canAttemptUseOptionWithoutCost(ctx, action))
   ) {
     return action.abortOnDecline === true;
@@ -732,7 +735,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     if (
       action.kind === "PlayWithoutCost" &&
       action.fromOwnDigivolutionStack === true &&
-      action.allowCostWithoutTarget !== true &&
+      !allowsOptionalProcessingCostWithoutTarget(action) &&
       !costCreatesTrashCandidate &&
       ownStackPlayCandidates(ctx, action.target).length === 0
     ) {
@@ -741,7 +744,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     }
     if (
       action.kind === "PlayWithoutCost" &&
-      action.allowCostWithoutTarget !== true &&
+      !allowsOptionalProcessingCostWithoutTarget(action) &&
       !costCreatesTrashCandidate &&
       !action.target?.isSelf &&
       action.target?.filter?.isSelfRef !== true &&
@@ -784,6 +787,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         ctx,
         staticPreflightTarget,
         candidateLooseInstances(ctx, staticPreflightTarget, zones),
+        action.chooseDualMode,
       ).filter((candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"));
       // A return-cost clause can define the play target's color dynamically. Preflight the
       // pair transactionally: at least one currently returnable card must share a color with
@@ -843,6 +847,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // never ask the player to confirm a move that has no selectable card or permanent.
     if (
       action.kind === "Return" &&
+      !allowsOptionalProcessingCostWithoutTarget(action) &&
       !action.target.isSelf &&
       action.target.filter.isSelfRef !== true &&
       !(action.from ?? []).includes("digivolutionCards")

@@ -474,6 +474,83 @@ describe("EX13-060 Alphamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("describes the attack clause, marks Grademon as the attacker and resolves the Then before combat", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+          hand: [{ card: "EX13-057", as: "grademon" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: NON_MATCH, as: "victim", dp: 16_000, suspended: true }],
+          deck: ["BT1-013"],
+          security: ["BT1-014", "BT1-013"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferTriggerKeys: [CARD_ID],
+        preferInstanceIds: preferred,
+      },
+    );
+    preferred.push(s.inst("grademon").instanceId, s.inst("victim").instanceId);
+    s.state.memory = 8;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("alphamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    await settle(() => s.state.players[1]!.security.length === 1);
+    const attackChoice = s.decisions.find(
+      ({ req }) => req.kind === "chooseTargets" && req.options?.selectionContext === "attackSource",
+    )?.req;
+    const thenChoice = s.decisions.find(
+      ({ req }) =>
+        req.kind === "optional" &&
+        req.options?.effectTextPart === "Then, you may activate 1 of this Digimon's [When Digivolving] effects.",
+    )?.req;
+    const attackTargetChoice = s.decisions.find(
+      ({ req }) => req.options?.selectionContext === "attackTarget",
+    )?.req;
+
+    expect(attackChoice?.options?.effectTextPart).toBe(
+      "When any of your [Chronicle] trait Digimon or Tamers are played, 1 of your Digimon may attack.",
+    );
+    expect(attackChoice?.options?.selectionContext).toBe("attackSource");
+    expect(thenChoice?.options?.effectTextPart).toBe(
+      "Then, you may activate 1 of this Digimon's [When Digivolving] effects.",
+    );
+    expect(attackTargetChoice?.sourcePermanentId).toBe(s.perm("grademon").permanentId);
+    const attackDeclaredAt = s.events.findIndex(
+      (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("grademon").permanentId,
+    );
+    const reactivatedWhenDigivolvingAt = s.events.findIndex(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === CARD_ID &&
+        s.events.indexOf(event) > attackDeclaredAt,
+    );
+    const combatResolvedAt = s.events.findIndex(
+      (event) =>
+        (event.kind === "securityChecked" || event.kind === "combatResolved") &&
+        s.events.indexOf(event) > attackDeclaredAt,
+    );
+    expect(attackDeclaredAt).toBeGreaterThanOrEqual(0);
+    expect(reactivatedWhenDigivolvingAt).toBeGreaterThan(attackDeclaredAt);
+    expect(combatResolvedAt).toBeGreaterThan(reactivatedWhenDigivolvingAt);
+    expect(s.perm("grademon").isSuspended).toBe(true);
+    expect(s.perm("grademon").currentDP).toBe(12_000);
+    expect(observe(s.engine).hasKeyword(s.perm("grademon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("grademon"), "Blocker")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("grademon"), "beAffected", "Digimon")).toBe(true);
+    expect(s.perm("victim").currentDP).toBe(8000);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it.each(["BT20-053", "EX13-057"])(
     "lets %s resolve its pending [On Play] rider during the attack Alphamon triggers",
     async (grademonCardId) => {
@@ -684,6 +761,7 @@ describe("EX13-060 Alphamon", () => {
   });
 
   it("plays a [Chronicle] Digimon from hand for 6 less and gives it ＜Rush＞", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -692,10 +770,11 @@ describe("EX13-060 Alphamon", () => {
           deck: ["BT1-011", "BT1-012"],
           security: ["BT1-013"],
         },
-        1: { deck: ["BT1-013"], security: ["BT1-014"] },
+        1: { deck: ["BT1-013"], security: ["BT1-014", "BT1-013"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.inst("hisyaryumon").instanceId);
     s.state.memory = 8;
     await s.ready();
 
@@ -706,6 +785,11 @@ describe("EX13-060 Alphamon", () => {
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === TRAIT_ONLY_SOURCE)!;
     expect(s.state.memory).toBe(7);
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
+    expect([...played.keywords]).toContain("Rush");
+    expect([...played.grantedKeywords]).toContain("Rush");
+    expect(played.summoningSick).toBe(false);
+    expect(played.isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     assertNoLoudGap(s);
 
@@ -715,6 +799,72 @@ describe("EX13-060 Alphamon", () => {
     await settle();
     const stillThere = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === TRAIT_ONLY_SOURCE)!;
     expect(observe(s.engine).hasKeyword(stillThere, "Rush")).toBe(false);
+  });
+
+  it("lets the freshly played [Chronicle] Digimon attack in the real end-of-turn window", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+          hand: [{ card: TRAIT_ONLY_SOURCE, as: "hisyaryumon" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: { deck: ["BT1-013"], security: ["BT1-014", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("hisyaryumon").instanceId);
+    s.state.memory = 8;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+    await turn;
+
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === TRAIT_ONLY_SOURCE)!;
+    expect(played.isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
+  it("publishes Rush before asking how to order the effects triggered by the end-of-turn play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+          hand: [{ card: "EX13-057", as: "grademon" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: { deck: ["BT1-013"], security: ["BT1-014"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 8;
+    await s.ready();
+
+    const firing = advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("alphamon"));
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const grademon = s.perm("grademon");
+    expect(observe(s.engine).hasKeyword(grademon, "Rush")).toBe(true);
+    expect([...grademon.keywords]).toContain("Rush");
+    expect([...grademon.grantedKeywords]).toContain("Rush");
+    expect(grademon.summoningSick).toBe(false);
+
+    const order = (JSON.parse(s.state.pendingDecision!.payloadJson) as { triggerKeys: string[] }).triggerKeys;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "orderTriggers", order: [order[0]!] },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
   });
 
   it("reaches a [Chronicle] TAMER — the printed subject is '1 card', not '1 Digimon card'", async () => {

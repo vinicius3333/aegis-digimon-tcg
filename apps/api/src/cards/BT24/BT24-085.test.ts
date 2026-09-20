@@ -16,12 +16,14 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
     expect(compiled.effects[1]).toMatchObject({
       trigger: "EndOfYourTurn",
       actions: [
-        { kind: "Suspend", optional: true, abortOnDecline: true },
         {
           kind: "UseOptionWithoutCost",
           from: ["hand"],
           payCost: false,
           optional: true,
+          abortOnDecline: true,
+          allowCostWithoutTarget: true,
+          cost: { kind: "suspend", target: { isSelf: true } },
           filter: { playCostLte: 0, playCostLteScaling: { unit: "memory", per: 1 } },
         },
         { kind: "Attack", optional: true, target: { filter: { kind: ["Digimon"] }, count: 1 } },
@@ -169,16 +171,10 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
-    const suspendPrompt = s.decisions.find(({ req }) => req.kind === "optional")!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: suspendPrompt.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
-    const optionPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[1]!.req;
+    const optionPrompt = s.decisions.find(({ req }) => req.kind === "optional")!.req;
+    expect(optionPrompt.options?.effectTextPart).toBe(
+      "[End of Your Turn] By suspending this Tamer, you may use 1 [TS] trait Option card with as high or lower a use cost as your opponent's memory from your hand without paying the cost.",
+    );
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -186,8 +182,8 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 3);
-    const linkPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[2]!.req;
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
+    const linkPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[1]!.req;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -195,8 +191,8 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 4);
-    const attackPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[3]!.req;
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 3);
+    const attackPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[2]!.req;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -672,7 +668,7 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
         },
         1: { security: [{ card: "BT1-012", as: "enemySecurity" }], deck: ["BT1-013", "BT1-014"] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, declinePrompts: ["Dan Yuki & Kanan Yuki"] },
     );
     s.state.memory = 2;
     await s.ready();
@@ -686,15 +682,6 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
         type: "respondDecision",
         decisionId: suspendDecision.decisionId,
         response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional" && s.perm("source").isSuspended);
-    const optionDecision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optionDecision.decisionId,
-        response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
     await settle(
