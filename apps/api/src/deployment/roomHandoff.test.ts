@@ -157,7 +157,6 @@ describe("RoomHandoffCoordinator", () => {
       commandId: "late-command",
       participantId: "account-0",
       seat: 0,
-      participantSequence: 1,
       ownerEpoch: 1,
       payload: { intent: "endTurn" },
       now: ++now,

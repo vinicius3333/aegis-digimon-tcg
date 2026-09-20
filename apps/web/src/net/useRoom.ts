@@ -16,6 +16,7 @@ import {
   roomHandoffEnabled,
   updateRoomHandoffIdentity,
   reconcileHandoffCommandReceipt,
+  requestHandoffCommandReconciliation,
   type AegisRoom,
   type RoomSlot,
 } from "./client";
@@ -379,6 +380,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         }
         void attemptReconnect();
       });
+      requestHandoffCommandReconciliation(room);
       requestResumeCredential(currentIdentity);
     };
 

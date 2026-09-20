@@ -7,8 +7,9 @@ considered. The API routes, owner resolver, logical reconnect path, web integrat
 and controller promotion hold now exist in the source, but this is not yet a safe,
 validated end-to-end operational path. Production remains blocked by the server
 experiment gate, and neither a staging pilot nor source cleanup is safe until
-authoritative pending-task accounting and final command-receipt reconciliation are
-complete and proven. See [the contract and implementation status](live-room-handoff-contracts.md)
+the implemented pending-task accounting has real-PostgreSQL and operational proof,
+and command-receipt reconciliation is proven across process replacement. Focused
+tests do not satisfy those operational gates. See [the contract and implementation status](live-room-handoff-contracts.md)
 and [the installed deployment procedure](deployment-room-continuity.md).
 
 ## Current production behavior
@@ -23,7 +24,7 @@ sufficient on its own:
 
 | Gate or seam                                                  | Current behavior                                                                                                                                           |
 | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AEGIS_ROOM_HANDOFF_EXPERIMENT=1`                             | Enables only the narrow stopped-Main snapshot experiment outside production.                                                                               |
+| `AEGIS_ROOM_HANDOFF_EXPERIMENT=1`                             | Enables the gated handoff coordinator/routes outside production, subject to casual settled-Main or the single explicit pending-mulligan boundary. It does not make other ineligible states migratable. |
 | `AEGIS_ROOM_HANDOFF_SERVER=1`                                 | Must also be set; the helper still returns disabled when `NODE_ENV=production`.                                                                            |
 | Manifest `capabilities.liveRoomHandoff`                       | Must be explicitly `true` before deploy-controller `handoff-prepare` or `handoff-migrate` will mutate. The normal deploy does not publish this capability. |
 | API `/deployment/handoff/*` operations, owner resolver, and logical reconnect | Present and wired in source. API routes require the server/experiment gates and descriptor secret; web owner resolution requires the manifest capability, which also gates controller mutations. Their existence is not proof of operational safety. |
@@ -33,6 +34,30 @@ manifest capability to `true`, and do not invoke handoff actions against a live
 deployment. `NODE_ENV=production` currently provides an additional server-side
 off switch, not permission to test around the remaining safety gaps.
 
+## Disposable production-like proof
+
+Run `pnpm --filter @aegis/web test:handoff:production-like` from the repository root.
+It builds the API, starts an ephemeral PostgreSQL container and two isolated Redis
+containers, then starts one real API Node process for each generation. Two real
+`colyseus.js` clients join with persisted account tickets, complete the ready,
+mulligan, and Breeding-to-Main flow, and retain separate resume credentials. The
+test exercises compatibility, signed destination reservation, source checkpoint,
+destination validation, and owner claim. A local TCP proxy drops the migrate
+response after the source has committed it; green reconciles the PostgreSQL owner
+record, blue is killed with `SIGKILL`, green activates, and both participants
+resolve and consume fresh seat reservations. Each resumed client is checked
+against its own pre-transfer view, including private hand contents.
+
+This is service-level proof, not a full browser or production deployment proof:
+API processes run as host child processes rather than API containers, each
+generation has one process, clients use the Colyseus SDK directly rather than the
+React/mobile UI, and there is no gateway/load balancer or real mobile network
+transition. It does not yet prove a lost command receipt across process
+replacement, controller restart/duplicate-operation recovery, multi-process
+generation routing, or cleanup safety under production load. The harness sets
+`NODE_ENV=test` and the two API opt-ins only in its disposable child processes;
+the production capability remains off and must not be changed for this test.
+
 ## Preconditions before any staging pilot
 
 All of the following must be demonstrated in an isolated staging environment
@@ -40,17 +65,21 @@ before a production change is proposed:
 
 1. The authenticated API exposes compatibility, prepare, migrate, progress,
    reconcile, abort, and cleanup-safety operations backed by the durable owner
-   store. The client resolves a logical game to its current owner and handles
-   command receipts, but final durable reconciliation of command outcomes across
-   disconnect/reload is not complete. Prove that boundary before any pilot; these
-   operations must not return snapshots, reconnect credentials, private room
-   codes, or hidden game data in logs or error bodies.
+   store. On reconnect, the client now queries durable status for each saved
+   command ID through its authenticated room. The room serves those
+   statuses only to the matching account/seat on the current owner epoch; terminal
+   receipts compact the local queue, while an explicit `missing` response retries
+   that same command ID under the current epoch. Participant order is assigned by
+   the durable store, not independently by each tab. Focused API and web
+   tests cover this boundary. Prove it in the staging failure exercise below;
+   these operations must not return snapshots, reconnect credentials, private
+   room codes, or hidden game data in logs or error bodies.
 2. The deployment controller is wired to those API operations, publishes the
    capability only for a compatible release, serializes deploys, and pauses after
    the canary in `awaiting_promotion`. Later batches require the explicit
    `handoff-promote` action, providing an operator observation/decision hold. This
-   hold does not make a pilot safe while the pending-task and command-receipt
-   accounting gaps remain.
+   hold does not make a pilot safe while authoritative pending-task accounting
+   and cross-process command-receipt behavior remain unproven.
 3. Compatibility failures are reported before freeze. The only eligible
    prototype case is a casual two-account room at a settled Main-action
    boundary. Pending decisions, combat, private rooms, bots, ranked play, and
@@ -60,18 +89,26 @@ before a production change is proposed:
    real-PostgreSQL atomicity tests (`POSTGRES_TESTS=1` with a configured test
    database). `pg-mem` and mocked admin ports are useful unit seams, not proof
    of cross-process PostgreSQL locking, gateway routing, or deploy recovery.
+   Before any pilot, enforce one deployment-generation identity: `index.ts` gives
+   the coordinator `AEGIS_DEPLOYMENT_SLOT`, while room ownership/reconnect code can
+   prefer `AEGIS_DEPLOYMENT_GENERATION_ID`. Make them the same source of truth or
+   reject mismatches at startup. The production processes inspected on 2026-09-20
+   had no override set, but that does not remove the latent mismatch risk.
 5. Complete a two-process staging exercise that includes a lost owner-switch
    response, controller restart, duplicate migrate request, stale owner epoch,
    abort before commit, client reload after losing the notice, and a second
    deploy during/after transfer. Prove the result by querying the authoritative
    owner and epoch, not by trusting the caller's last response.
-6. Implement and prove authoritative pending-task accounting and final command
-   receipt reconciliation before any staging pilot or source cleanup. The current
-   Aegis room handoff port returns `undefined` for `authoritativePendingTasks`, so
-   cleanup safety reports ownership as unverified and cleanup must fail closed.
-   The command receipt path also lacks the final durable reconciliation proof
-   needed to decide safely whether a disconnected client's pending command was
-   applied, rejected, or must be retried.
+6. The Aegis room handoff port now reads authoritative pending-task counts from
+   PostgreSQL: admitted commands and undelivered outbox effects for sessions
+   currently owned by the generation, plus in-flight transfers involving it.
+   Database errors and invalid totals remain unverifiable and block cleanup. The
+   focused store test uses `pg-mem`, while the port test verifies wiring and
+   fail-closed propagation with a mocked store; run and pass the real-PostgreSQL
+   atomicity/concurrency checks and exercise the cleanup path before any staging
+   pilot or source cleanup. The new receipt query has focused mocked-room coverage;
+   staging must still prove a lost terminal receipt across process replacement and
+   confirm the matching mutation is neither lost nor applied twice.
 7. Add production-safe aggregate telemetry and alerting before rollout. The
    controller has an optional aggregate timing callback for tests/injected
    callers, but the deploy CLI does not emit it and the current API has no
@@ -109,7 +146,7 @@ intended controller flow is:
    checked. The controller then holds in `awaiting_promotion`; promote only after
    an explicit human decision. This control exists, but the sequence is not safe
    to execute until authoritative pending-task accounting and final command
-   receipt reconciliation are complete.
+   receipt reconciliation have passed their cross-process staging proof.
 4. Increase batch size and concurrency gradually. The current controller
    accepts batch size up to 500 and concurrency up to 32, but production limits
    must be lower values established by load tests, not these code maxima.
@@ -127,9 +164,10 @@ intended controller flow is:
 The deploy CLI exposes experimental `handoff-*` actions, the API routes are
 wired, and the controller has an explicit canary promotion hold. Nevertheless,
 production remains disabled (`NODE_ENV=production` rejects the experiment flag),
-and no staging pilot or source cleanup is safe until `authoritativePendingTasks`
-is implemented and final command-receipt reconciliation is proven. Treat the
-sequence above as an acceptance procedure, not a current operator workflow.
+and no staging pilot or source cleanup is safe until the pending-task query passes
+real-PostgreSQL and operational checks and command-receipt reconciliation is
+proven across process replacement. Treat the sequence above as an acceptance
+procedure, not a current operator workflow.
 
 ## Failure handling and authority boundaries
 

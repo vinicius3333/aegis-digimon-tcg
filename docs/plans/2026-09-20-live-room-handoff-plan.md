@@ -1,7 +1,15 @@
 # Migração rápida de partidas entre deploys
 
-Status: proposta para validação; implementação e deploy não iniciados.
+Status: implementação parcial; fundamentos de handoff e reconexão existem, mas transferência de partidas não foi validada ponta a ponta nem habilitada em produção.
 Data: 2026-09-20.
+
+Estado observado em 2026-09-20: o site público respondeu HTTP 200. A geração ativa
+era `g-8dfce0e651dc` (revisão `8dfce0e651dcca68c4ab51a3cdf70dc81d59ed7e`) e
+`g-861ae9396eda` ainda aparecia em drain. O manifesto não anunciava
+`capabilities.liveRoomHandoff`; as flags do servidor estavam ausentes e o override
+`AEGIS_DEPLOYMENT_GENERATION_ID` estava vazio nos processos observados. Portanto, o
+comportamento em produção continuava sendo deploy normal com drain, não handoff. Essa
+é uma leitura pontual do host, não uma garantia sobre estado futuro.
 
 ## 1. Objetivo e experiência esperada
 
@@ -21,7 +29,7 @@ Metas propostas, a validar com carga representativa:
 
 Esses tempos são critérios de aceitação propostos, não garantias já demonstradas. Rede móvel, navegador suspenso e indisponibilidade externa precisam de métricas próprias.
 
-## 2. Evidências e limites atuais
+## 2. Evidências e limites da proposta original
 
 - `apps/api/src/rooms/AegisRoom.ts`: estado em memória; mapas de jogadores, bots, vínculo de torneio, temporizadores e eventos privados também estão fora do schema sincronizado. `onLeave` usa `allowReconnection`; `onDispose` remove registros e códigos de sala.
 - `apps/api/src/engine/GameEngine.ts`: possui continuações assíncronas, janelas de resolução aninhadas, efeitos adiados, ledgers de modificadores e contadores que precisam sobreviver à transferência.
@@ -33,7 +41,8 @@ Esses tempos são critérios de aceitação propostos, não garantias já demons
 - `apps/api/src/db/migrations/005-match-series-and-games.ts`: o vínculo de jogo de torneio com `room_id` possui invariantes que não podem ser quebradas por uma nova sala física.
 - `tools/deploy/`: já oferece gerações, gateway estável e limpeza conservadora. Reutilizar essa infraestrutura durante a evolução.
 
-Base: inspeção do código local. Não foi verificado o estado atual do host de produção nesta tarefa.
+Base desta seção: inspeção que originou a proposta. O estado atual do código e do host foi
+reavaliado em 2026-09-20; veja o checklist de implementação na seção 8.
 
 ## 3. Alternativas e decisão recomendada
 
@@ -88,7 +97,7 @@ O executor pode concluir um pequeno passo síncrono antes de congelar a sala. De
 
 ### 4.4 Comandos duráveis e efeitos externos
 
-Adicionar envelope de intenção com identidade da sessão, `commandId`, sequência por participante, época conhecida e revisão esperada quando aplicável. Persistir a admissão do comando antes de confirmá-la; distinguir “recebido” de “aplicado”.
+Adicionar envelope de intenção com identidade da sessão, `commandId`, época conhecida e revisão esperada quando aplicável. A sequência por participante é atribuída pelo servidor dentro da transação durável; nunca usar contadores locais de aba como ordenação autoritativa. Persistir a admissão do comando antes de confirmá-la; distinguir “recebido” de “aplicado”.
 
 Persistir nos pontos estáveis de execução o checkpoint, o progresso do comando e os efeitos externos pendentes de forma transacional. Se o processo cair entre admissão e conclusão, recuperar a partir do checkpoint e continuar apenas os comandos ainda não consolidados.
 
@@ -231,6 +240,31 @@ Saída: metas acordadas atendidas, invariantes preservadas sob falhas e capacida
 - Atualizar `docs/deployment-room-continuity.md`, os documentos de arquitetura/API e o runbook do controlador. Só retirar caminhos obsoletos depois da validação operacional.
 
 Saída: rotina normal mantém gerações sobrepostas apenas pelo preparo/transferência, e não pela duração das partidas. Compatibilidade e recuperação de exceções continuam explícitas.
+
+### Situação verificada em 2026-09-20
+
+Os status abaixo medem implementação e evidência disponível; “parcial” não satisfaz os critérios
+de saída da etapa. O checklist não declara o projeto concluído.
+
+| Etapa | Status | Evidência e trabalho restante |
+| --- | --- | --- |
+| 0 — Contratos e baseline | Parcial | Contratos e casos sintéticos existem; baseline representativo de carga, distribuição de salas e todos os casos difíceis ainda não foi demonstrado. |
+| 1 — Prova vertical | Parcial | Teste com processos-filhos encerra a origem e continua uma partida de `GameEngine`, comparando projeções públicas/privadas e resultado. Não é E2E de duas APIs Colyseus, Redis isolado, PostgreSQL real e dois browsers. |
+| 2 — Motor retomável | Incompleta; bloqueador | Há uma prova entre processos de mulligan suspenso que restaura o cursor, a espera, o RNG e aplica o redraw uma única vez; `AegisRoom` admite apenas esse estado explícito além de Main estável. Decisões IR genéricas, combate, janelas/filas de efeitos e demais execuções não quiescentes seguem fail-closed; a restauração geral continua sem prova. |
+| 3 — Persistência e propriedade | Parcial | Migrations 016–018, store e accounting de tarefas existem; há suíte PostgreSQL opt-in, mas falta prova integrada de concorrência/queda e recuperação de sala entre processos. |
+| 4 — Sala, auth e cliente | Parcial | Rotas de handoff/owner-resolution, reconexão lógica e consulta de recibos de comandos existem; testes focados não comprovam fluxo completo entre processos. A elegibilidade segue restrita a casual, duas contas e sala em Main estável ou com a escolha de mulligan serializável aberta; outros prompts permanecem rejeitados. |
+| 5 — Torneios, bots e relógios | Incompleta | Existem alguns hooks de série/compensação, mas o coordenador exclui torneios, bots e outros modos; restauração completa desses estados não está provada. |
+| 6 — Controlador e tráfego | Parcial | Ações experimentais, journal local e hold de canário existem. O deploy normal não anuncia a capability nem executa transferências; não há rollout integrado comprovado. |
+| 7 — Falhas, desempenho e observabilidade | Incompleta; bloqueador | Não há E2E completo de dois processos/API + Redis + PostgreSQL real + browsers, soak representativo, SLO p95/p99 medido ou telemetria de produção. |
+| 8 — Adoção gradual | Incompleta | Produção permanece com handoff desligado e drain normal; nenhum piloto de staging ou rollout foi comprovado. |
+
+Bloqueios adicionais para qualquer ativação: `index.ts` cria o coordenador com
+`AEGIS_DEPLOYMENT_SLOT`, enquanto salas, ports e reconexão podem usar
+`AEGIS_DEPLOYMENT_GENERATION_ID ?? AEGIS_DEPLOYMENT_SLOT`. A divergência não foi observada
+nos processos de produção consultados (override vazio), mas o código permite que surja; usar
+uma única fonte ou falhar no startup se os valores divergirem. A identidade lógica experimental
+reutiliza `matchLogId`/`GameState.matchId`; a migração de todos os vínculos e chaves de resultados
+para uma identidade canônica separada ainda não foi demonstrada.
 
 ## 9. Matriz mínima de validação
 

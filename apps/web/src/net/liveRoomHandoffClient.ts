@@ -93,9 +93,9 @@ export function supportsLiveRoomHandoff(manifest: { capabilities?: { liveRoomHan
   return manifest.capabilities?.liveRoomHandoff === true;
 }
 
-export type HandoffCommandStatus = "received" | "applied" | "rejected";
+export type HandoffCommandStatus = "received" | "applied" | "rejected" | "missing";
 
-/** Client-side envelope prepared for a future durable command protocol. */
+/** Local retry envelope; participant ordering is allocated by the durable room owner. */
 export interface HandoffCommand<TIntent = Intent> {
   gameId: string;
   commandId: string;
@@ -126,10 +126,16 @@ export interface HandoffCommandStorage {
 export interface HandoffCommandQueue<TIntent = Intent> {
   enqueue(input: { gameId: string; ownerEpoch: number; intent: TIntent }): HandoffCommand<TIntent>;
   commandsToSend(gameId: string): HandoffCommand<TIntent>[];
+  commandsToReconcile(gameId: string): HandoffCommand<TIntent>[];
   rebasePendingOwnerEpoch(gameId: string, ownerEpoch: number): HandoffCommand<TIntent>[];
+  rebasePendingCommandOwnerEpoch(
+    gameId: string,
+    commandId: string,
+    ownerEpoch: number,
+  ): HandoffCommand<TIntent> | undefined;
   reconcile(
     gameId: string,
-    receipts: readonly { commandId: string; status: HandoffCommandStatus }[],
+    receipts: readonly { commandId: string; status: HandoffCommandStatus; sequence?: number }[],
   ): { resend: HandoffCommand<TIntent>[]; awaitingApplication: HandoffCommand<TIntent>[] };
   acknowledge(gameId: string, commandId: string): boolean;
 }
@@ -138,8 +144,8 @@ const COMMAND_QUEUE_STORAGE_KEY = "aegis:liveRoomCommands";
 const TAB_ID_STORAGE_KEY = "aegis:liveRoomTabId";
 
 /**
- * A per-tab, reload-safe command queue. Replays retain commandId and sequence;
- * terminal receipts compact the queue while preserving the sequence high-water mark.
+ * A per-tab, reload-safe command queue. Local sequences aid tab ordering only; commandId is the
+ * idempotency key and the durable store assigns the participant-wide sequence.
  */
 export function createHandoffCommandQueue<TIntent = Intent>({
   storage,
@@ -194,6 +200,12 @@ export function createHandoffCommandQueue<TIntent = Intent>({
         .map(({ command }) => command);
     },
 
+    commandsToReconcile(gameId) {
+      return load()
+        .commands.filter(({ command }) => command.gameId === gameId)
+        .map(({ command }) => command);
+    },
+
     rebasePendingOwnerEpoch(gameId, ownerEpoch) {
       assertIdentity(gameId, ownerEpoch);
       const state = load();
@@ -208,18 +220,37 @@ export function createHandoffCommandQueue<TIntent = Intent>({
       return pending;
     },
 
+    rebasePendingCommandOwnerEpoch(gameId, commandId, ownerEpoch) {
+      assertIdentity(gameId, ownerEpoch);
+      const state = load();
+      let rebased: HandoffCommand<TIntent> | undefined;
+      state.commands = state.commands.map((entry) => {
+        if (entry.command.gameId !== gameId || entry.command.commandId !== commandId || entry.status !== "pending")
+          return entry;
+        rebased = { ...entry.command, ownerEpoch };
+        return { ...entry, command: rebased };
+      });
+      if (rebased) save(state);
+      return rebased;
+    },
+
     reconcile(gameId, receipts) {
       const state = load();
-      const receiptById = new Map(receipts.map((receipt) => [receipt.commandId, receipt.status]));
+      const receiptById = new Map(receipts.map((receipt) => [receipt.commandId, receipt]));
       const retained: StoredCommand<TIntent>[] = [];
       for (const entry of state.commands) {
         if (entry.command.gameId !== gameId) {
           retained.push(entry);
           continue;
         }
-        const status = receiptById.get(entry.command.commandId);
+        const receipt = receiptById.get(entry.command.commandId);
+        const status = receipt?.status;
         if (status === "applied" || status === "rejected") continue;
-        retained.push({ command: entry.command, status: status === "received" ? "received" : "pending" });
+        if (status === "missing") {
+          retained.push({ command: entry.command, status: "pending" });
+          continue;
+        }
+        retained.push({ command: entry.command, status: status === "received" ? "received" : entry.status });
       }
       state.commands = retained;
       save(state);

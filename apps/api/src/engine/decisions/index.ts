@@ -155,6 +155,15 @@ export class DecisionManager {
     return this.open?.seat;
   }
 
+  /** True only for an imported frame; an origin-side Promise still owns its continuation. */
+  isRestoredExecutionFramePending(decisionId: string): boolean {
+    return (
+      this.open?.decisionId === decisionId &&
+      this.open.resolve === undefined &&
+      this.open.executionFrame !== undefined
+    );
+  }
+
   /** Register compiled continuation code by its stable frame kind and version. */
   registerExecutionFrameResumer(kind: string, version: number, resumer: DecisionExecutionFrameResumer): void {
     const key = executionFrameResumerKey(kind, version);

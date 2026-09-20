@@ -182,6 +182,20 @@ describe.skipIf(!ENABLED)("transaction atomicity against a real Postgres", () =>
       const claimedSession = await source.getSession(sessionId);
       expect(claimedSession?.ownerEpoch).toBe(2);
       expect(claimedSession?.owner.generationId).toBe("g-green");
+      expect(await source.countPendingTasksByGeneration("g-blue")).toEqual({
+        commands: 0,
+        outbox: 0,
+        transfers: 1,
+        total: 1,
+      });
+      expect(await destination.countPendingTasksByGeneration("g-green")).toEqual({
+        commands: 0,
+        outbox: 0,
+        transfers: 1,
+        total: 1,
+      });
+      await destination.activateTransfer({ transferId, ownerEpoch: 2, now: now + 7 });
+      await destination.completeTransfer({ transferId, ownerEpoch: 2, now: now + 8 });
 
       const commandId = `command-${randomUUID()}`;
       const command = await destination.admitCommand({
@@ -189,10 +203,9 @@ describe.skipIf(!ENABLED)("transaction atomicity against a real Postgres", () =>
         commandId,
         participantId: participants[0]!.principalId,
         seat: 0,
-        participantSequence: 1,
         ownerEpoch: 2,
         payload: { intent: "endTurn" },
-        now: now + 7,
+        now: now + 9,
       });
       expect(command.ok).toBe(true);
       await destination.enqueueOutbox({
@@ -202,7 +215,7 @@ describe.skipIf(!ENABLED)("transaction atomicity against a real Postgres", () =>
         ownerEpoch: 2,
         effectType: "record_result",
         payload: { winnerSeat: 0 },
-        now: now + 8,
+        now: now + 10,
       });
       const atomicFailure = await destination.completeCommand({
         sessionId,
@@ -210,7 +223,7 @@ describe.skipIf(!ENABLED)("transaction atomicity against a real Postgres", () =>
         ownerEpoch: 2,
         status: "applied",
         result: { resultId: "result-1" },
-        now: now + 9,
+        now: now + 11,
         outbox: [
           {
             id: `outbox-conflict-${randomUUID()}`,
@@ -219,7 +232,7 @@ describe.skipIf(!ENABLED)("transaction atomicity against a real Postgres", () =>
             ownerEpoch: 2,
             effectType: "record_result",
             payload: { winnerSeat: 1 },
-            now: now + 9,
+            now: now + 11,
           },
         ],
       });
@@ -241,12 +254,25 @@ describe.skipIf(!ENABLED)("transaction atomicity against a real Postgres", () =>
           ownerEpoch: 2,
           effectType: "test_effect",
           payload: { index },
-          now: now + 10,
+          now: now + 12,
         });
       }
+      expect(await source.countPendingTasksByGeneration("g-blue")).toEqual({
+        commands: 0,
+        outbox: 0,
+        transfers: 0,
+        total: 0,
+      });
+      expect(await destination.countPendingTasksByGeneration("g-green")).toEqual({
+        commands: 1,
+        outbox: 5,
+        transfers: 0,
+        total: 6,
+      });
+
       const [firstBatch, secondBatch] = await Promise.all([
-        source.claimOutbox({ workerId: "worker-a", now: now + 11, leaseMs: 1_000, limit: 4 }),
-        destination.claimOutbox({ workerId: "worker-b", now: now + 11, leaseMs: 1_000, limit: 4 }),
+        source.claimOutbox({ workerId: "worker-a", now: now + 13, leaseMs: 1_000, limit: 4 }),
+        destination.claimOutbox({ workerId: "worker-b", now: now + 13, leaseMs: 1_000, limit: 4 }),
       ]);
       const claimedIds = [...firstBatch, ...secondBatch].map(({ id }) => id);
       expect(new Set(claimedIds).size).toBe(5);

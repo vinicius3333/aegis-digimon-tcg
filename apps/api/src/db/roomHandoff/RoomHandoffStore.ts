@@ -128,8 +128,6 @@ export type HandoffFailure =
   | "participant_not_seated"
   | "command_not_found"
   | "command_id_conflict"
-  | "participant_sequence_conflict"
-  | "participant_sequence_gap"
   | "command_sequence_gap"
   | "command_not_completed"
   | "checkpoint_regression"
@@ -147,7 +145,6 @@ export type NewRoomCommand = {
   commandId: string;
   participantId: string;
   seat: 0 | 1;
-  participantSequence: number;
   ownerEpoch: number;
   expectedRevision?: number | null;
   payload: JsonValue;
@@ -640,6 +637,34 @@ export class RoomHandoffStore {
     return { commands, outbox, transfers, total: commands + outbox + transfers };
   }
 
+  /** Counts durable work still assigned to a generation; failures propagate so cleanup fails closed. */
+  async countPendingTasksByGeneration(generationId: string): Promise<RoomHandoffPendingTaskCount> {
+    await this.ensureReady();
+    const result = await this.pool.query<{
+      commands: string | number;
+      outbox: string | number;
+      transfers: string | number;
+    }>(
+      `SELECT
+         (SELECT COUNT(*) FROM room_commands c
+          JOIN room_sessions s ON s.id=c.session_id
+          WHERE s.owner_generation_id=$1 AND c.status='admitted') AS commands,
+         (SELECT COUNT(*) FROM room_outbox o
+          JOIN room_sessions s ON s.id=o.session_id
+          WHERE s.owner_generation_id=$1 AND o.status <> 'delivered') AS outbox,
+         (SELECT COUNT(*) FROM room_transfers
+          WHERE (from_generation_id=$1 OR to_generation_id=$1)
+            AND status NOT IN ('completed','aborted')) AS transfers`,
+      [generationId],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error("room handoff generation pending-task count returned no row");
+    const commands = number(row.commands);
+    const outbox = number(row.outbox);
+    const transfers = number(row.transfers);
+    return { commands, outbox, transfers, total: commands + outbox + transfers };
+  }
+
   /** Stores one replaceable confirmed checkpoint; uncommitted command state remains in room_commands. */
   async saveCheckpoint(input: {
     sessionId: string;
@@ -724,7 +749,6 @@ export class RoomHandoffStore {
         if (
           prior.participant_id !== input.participantId ||
           prior.seat !== input.seat ||
-          number(prior.participant_sequence) !== input.participantSequence ||
           !sameJson(prior.payload, input.payload)
         )
           return failure("command_id_conflict");
@@ -744,9 +768,9 @@ export class RoomHandoffStore {
         [input.sessionId, input.participantId],
       );
       if (!cursor.rows[0]) return failure("participant_not_seated");
-      const expectedParticipantSequence = number(cursor.rows[0].last_sequence) + 1;
-      if (input.participantSequence < expectedParticipantSequence) return failure("participant_sequence_conflict");
-      if (input.participantSequence > expectedParticipantSequence) return failure("participant_sequence_gap");
+      // The participant cursor is durable and locked here, so concurrent tabs cannot
+      // submit colliding client-local counters or create gaps in the participant stream.
+      const participantSequence = number(cursor.rows[0].last_sequence) + 1;
       const commandSequence = number(session.next_command_sequence);
       await client.query(
         `INSERT INTO room_commands (
@@ -758,7 +782,7 @@ export class RoomHandoffStore {
           input.commandId,
           input.participantId,
           input.seat,
-          input.participantSequence,
+          participantSequence,
           commandSequence,
           input.ownerEpoch,
           input.expectedRevision ?? null,
@@ -773,7 +797,7 @@ export class RoomHandoffStore {
       ]);
       await client.query(
         "UPDATE room_participant_sequences SET last_sequence=$3, updated_at=$4 WHERE session_id=$1 AND participant_id=$2",
-        [input.sessionId, input.participantId, input.participantSequence, input.now],
+        [input.sessionId, input.participantId, participantSequence, input.now],
       );
       const result = await client.query<CommandRow>(
         "SELECT * FROM room_commands WHERE session_id=$1 AND command_id=$2",

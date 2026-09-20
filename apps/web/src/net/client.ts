@@ -78,8 +78,8 @@ export function updateRoomHandoffIdentity(
 
 export interface HandoffCommandReceipt {
   commandId: string;
-  sequence: number;
-  status: "admitted" | "applied" | "rejected";
+  sequence?: number;
+  status: "admitted" | "applied" | "rejected" | "missing";
   ownerEpoch: number;
   error?: string;
 }
@@ -495,10 +495,26 @@ function sendHandoffCommand(room: AegisRoom, command: ReturnType<HandoffCommandQ
     gameId: command.gameId,
     ownerEpoch: command.ownerEpoch,
     commandId: command.commandId,
-    sequence: command.tabSequence,
     kind,
     payload,
   });
+}
+
+/** Ask the authenticated current owner for durable outcomes lost while this tab was disconnected. */
+export function requestHandoffCommandReconciliation(room: AegisRoom): void {
+  const metadata = roomHandoffMetadata.get(room);
+  const identity = metadata?.identity;
+  if (!metadata?.enabled || !identity || !room.connection?.isOpen) return;
+  const commands = getHandoffCommandQueue().commandsToReconcile(identity.gameId);
+  for (let offset = 0; offset < commands.length; offset += 64) {
+    room.send("reconcileCommands", {
+      gameId: identity.gameId,
+      ownerEpoch: identity.ownerEpoch,
+      commands: commands.slice(offset, offset + 64).map((command) => ({
+        commandId: command.commandId,
+      })),
+    });
+  }
 }
 
 export function sendIntent(room: AegisRoom, intent: Intent): void {
@@ -506,6 +522,13 @@ export function sendIntent(room: AegisRoom, intent: Intent): void {
   if (metadata?.enabled) {
     const identity = metadata.identity;
     if (!identity) return;
+    // Setup choices are deliberately folded into the next authoritative snapshot rather than
+    // admitted as Main-phase commands. The room accepts these raw inputs only on its fenced
+    // owner, and only while the exact setup prompt is open.
+    if (intent.type === "ready" || intent.type === "mulligan") {
+      sendRawIntent(room, intent);
+      return;
+    }
     const command = getHandoffCommandQueue().enqueue({
       gameId: identity.gameId,
       ownerEpoch: identity.ownerEpoch,
@@ -524,6 +547,20 @@ export function flushIntents(room: AegisRoom): void {
   if (metadata?.enabled) {
     const identity = metadata.identity;
     if (!identity) return;
+    const queued = pendingIntents.splice(0);
+    for (const { type, payload } of queued) {
+      if (type === "ready" || type === "mulligan") {
+        if (room.connection?.isOpen) room.send(type, payload);
+        else pendingIntents.push({ type, payload });
+        continue;
+      }
+      const command = getHandoffCommandQueue().enqueue({
+        gameId: identity.gameId,
+        ownerEpoch: identity.ownerEpoch,
+        intent: { type, ...payload } as Intent,
+      });
+      sendHandoffCommand(room, command);
+    }
     const queue = getHandoffCommandQueue();
     for (const command of queue.rebasePendingOwnerEpoch(identity.gameId, identity.ownerEpoch)) {
       sendHandoffCommand(room, command);
@@ -537,6 +574,12 @@ export function flushIntents(room: AegisRoom): void {
   }
 }
 
+function sendRawIntent(room: AegisRoom, intent: Intent): void {
+  const { type, ...payload } = intent;
+  if (room.connection?.isOpen) room.send(type, payload);
+  else pendingIntents.push({ type, payload });
+}
+
 export function clearPendingIntents(): void {
   pendingIntents.length = 0;
 }
@@ -547,13 +590,24 @@ export function reconcileHandoffCommandReceipt(room: AegisRoom, message: unknown
   const receipt = message as Partial<HandoffCommandReceipt>;
   if (
     typeof receipt.commandId !== "string" ||
-    !Number.isSafeInteger(receipt.sequence) ||
+    (receipt.sequence !== undefined && (!Number.isSafeInteger(receipt.sequence) || receipt.sequence < 0)) ||
     !Number.isSafeInteger(receipt.ownerEpoch) ||
-    !["admitted", "applied", "rejected"].includes(String(receipt.status))
+    !["admitted", "applied", "rejected", "missing"].includes(String(receipt.status))
   )
     return false;
   const status: HandoffCommandStatus = receipt.status === "admitted" ? "received" : receipt.status!;
-  getHandoffCommandQueue().reconcile(metadata.identity.gameId, [{ commandId: receipt.commandId, status }]);
-  updateRoomHandoffIdentity(room, { ownerEpoch: receipt.ownerEpoch });
+  const queue = getHandoffCommandQueue();
+  queue.reconcile(metadata.identity.gameId, [
+    { commandId: receipt.commandId, status },
+  ]);
+  const identity = updateRoomHandoffIdentity(room, { ownerEpoch: receipt.ownerEpoch });
+  if (status === "missing" && identity) {
+    const retry = queue.rebasePendingCommandOwnerEpoch(
+      identity.gameId,
+      receipt.commandId,
+      identity.ownerEpoch,
+    );
+    if (retry) sendHandoffCommand(room, retry);
+  }
   return true;
 }

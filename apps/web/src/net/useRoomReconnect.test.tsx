@@ -26,6 +26,7 @@ vi.mock("./client", () => ({
   roomHandoffEnabled: () => false,
   updateRoomHandoffIdentity: () => undefined,
   reconcileHandoffCommandReceipt: () => false,
+  requestHandoffCommandReconciliation: vi.fn(),
   flushIntents: vi.fn(),
   clearPendingIntents: vi.fn(),
   sendIntent: vi.fn(),

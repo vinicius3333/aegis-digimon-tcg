@@ -1,8 +1,7 @@
 import { ArraySchema } from "@colyseus/schema";
 import { EffectTiming, GameState, PlayerState, type DecisionResponse } from "@aegis/shared";
-import { DecisionManager, type DecisionExecutionFrame } from "../../engine/decisions/index.js";
-import { createDecisionApi } from "../../engine/decisions/decisionApi.js";
-import { createResolverDecisions } from "../../engine/decisions/resolverDecisions.js";
+import type { DecisionExecutionFrame } from "../../engine/decisions/index.js";
+import { GameEngine } from "../../engine/GameEngine.js";
 import type { CollectedEffect } from "../../engine/effects/collect.js";
 import { MulliganCoordinator, type MulliganExecutionFrame } from "../../engine/mulligan.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
@@ -60,61 +59,127 @@ async function exportApiScenario(scenario: ApiScenario): Promise<FrameCase> {
   const runtime = createDecisionRuntime();
   const promise = requestApiScenario(runtime.api, runtime.context, scenario);
   await waitForDecision(runtime.manager);
-  const frame = JSON.parse(JSON.stringify(runtime.manager.exportExecutionFrame())) as DecisionExecutionFrame;
+  const frame = JSON.parse(JSON.stringify(runtime.engine.exportPendingDecisionExecutionFrame())) as DecisionExecutionFrame;
   const response = responseFor(scenario);
-  if (!runtime.manager.respond(0, frame.request.decisionId, response)) {
+  if (!runtime.engine.applyIntent(0, { type: "respondDecision", decisionId: frame.request.decisionId, response }).ok) {
     throw new Error(`origin rejected the ${scenario} response`);
   }
   const sourceResult = await promise;
+  // On the source process the original callsite Promise still owns its continuation. The raw
+  // response mapping is inspected here only as the equality oracle for the migrated runtime.
+  const sourceContinuation = runtime.manager.takeResumedExecutionFrameResult(frame.request.decisionId);
   return {
     frame,
     sourceResult,
-    sourceContinuation: runtime.manager.takeResumedExecutionFrameResult(frame.request.decisionId),
+    sourceContinuation,
   };
 }
 
 async function resumeApiScenario(
   scenario: ApiScenario,
   frame: DecisionExecutionFrame,
-): Promise<{ continuation: unknown; pendingCleared: boolean }> {
+): Promise<{
+  continuation: unknown;
+  wrongSeatContinuation: unknown;
+  wrongSeatAnswerAccepted: boolean;
+  duplicateContinuation: unknown;
+  duplicateAnswerAccepted: boolean;
+  pendingCleared: boolean;
+}> {
   const runtime = createDecisionRuntime();
-  runtime.manager.restoreExecutionFrame(frame);
-  if (!runtime.manager.respond(0, frame.request.decisionId, responseFor(scenario))) {
+  runtime.engine.restorePendingDecisionExecutionFrame(frame);
+  const wrongSeatAnswerAccepted = runtime.engine.applyIntent(1, {
+    type: "respondDecision",
+    decisionId: frame.request.decisionId,
+    response: responseFor(scenario),
+  }).ok;
+  const wrongSeatContinuation = runtime.engine.takeResumedDecisionExecutionFrameResult(frame.request.decisionId);
+  if (
+    !runtime.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: frame.request.decisionId,
+      response: responseFor(scenario),
+    }).ok
+  ) {
     throw new Error(`destination rejected the ${scenario} response`);
   }
+  const continuation = runtime.engine.takeResumedDecisionExecutionFrameResult(frame.request.decisionId);
+  const duplicateAnswerAccepted = runtime.engine.applyIntent(0, {
+    type: "respondDecision",
+    decisionId: frame.request.decisionId,
+    response: responseFor(scenario),
+  }).ok;
   return {
-    continuation: runtime.manager.takeResumedExecutionFrameResult(frame.request.decisionId),
+    continuation,
+    wrongSeatContinuation,
+    wrongSeatAnswerAccepted,
+    duplicateContinuation: runtime.engine.takeResumedDecisionExecutionFrameResult(frame.request.decisionId),
+    duplicateAnswerAccepted,
     pendingCleared: runtime.state.pendingDecision === undefined,
   };
 }
 
 async function exportResolverOptionalScenario(): Promise<FrameCase> {
   const runtime = createDecisionRuntime();
-  const resolver = createResolverDecisions(runtime.manager);
-  const promise = resolver.askOptional(0, collectedEffect());
+  const promise = runtime.engine.resolverDecisions.askOptional(0, collectedEffect());
   await waitForDecision(runtime.manager);
-  const frame = JSON.parse(JSON.stringify(runtime.manager.exportExecutionFrame())) as DecisionExecutionFrame;
-  if (!runtime.manager.respond(0, frame.request.decisionId, { kind: "optional", accept: true })) {
+  const frame = JSON.parse(JSON.stringify(runtime.engine.exportPendingDecisionExecutionFrame())) as DecisionExecutionFrame;
+  if (
+    !runtime.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: frame.request.decisionId,
+      response: { kind: "optional", accept: true },
+    }).ok
+  ) {
     throw new Error("origin rejected the resolver optional response");
   }
+  const sourceContinuation = runtime.manager.takeResumedExecutionFrameResult(frame.request.decisionId);
   return {
     frame,
     sourceResult: await promise,
-    sourceContinuation: runtime.manager.takeResumedExecutionFrameResult(frame.request.decisionId),
+    sourceContinuation,
   };
 }
 
 async function resumeResolverOptionalScenario(
   frame: DecisionExecutionFrame,
-): Promise<{ continuation: unknown; pendingCleared: boolean }> {
+): Promise<{
+  continuation: unknown;
+  wrongSeatContinuation: unknown;
+  wrongSeatAnswerAccepted: boolean;
+  duplicateContinuation: unknown;
+  duplicateAnswerAccepted: boolean;
+  pendingCleared: boolean;
+}> {
   const runtime = createDecisionRuntime();
-  createResolverDecisions(runtime.manager);
-  runtime.manager.restoreExecutionFrame(frame);
-  if (!runtime.manager.respond(0, frame.request.decisionId, { kind: "optional", accept: true })) {
+  runtime.engine.restorePendingDecisionExecutionFrame(frame);
+  const wrongSeatAnswerAccepted = runtime.engine.applyIntent(1, {
+    type: "respondDecision",
+    decisionId: frame.request.decisionId,
+    response: { kind: "optional", accept: true },
+  }).ok;
+  const wrongSeatContinuation = runtime.engine.takeResumedDecisionExecutionFrameResult(frame.request.decisionId);
+  if (
+    !runtime.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: frame.request.decisionId,
+      response: { kind: "optional", accept: true },
+    }).ok
+  ) {
     throw new Error("destination rejected the resolver optional response");
   }
+  const continuation = runtime.engine.takeResumedDecisionExecutionFrameResult(frame.request.decisionId);
+  const duplicateAnswerAccepted = runtime.engine.applyIntent(0, {
+    type: "respondDecision",
+    decisionId: frame.request.decisionId,
+    response: { kind: "optional", accept: true },
+  }).ok;
   return {
-    continuation: runtime.manager.takeResumedExecutionFrameResult(frame.request.decisionId),
+    continuation,
+    wrongSeatContinuation,
+    wrongSeatAnswerAccepted,
+    duplicateContinuation: runtime.engine.takeResumedDecisionExecutionFrameResult(frame.request.decisionId),
+    duplicateAnswerAccepted,
     pendingCleared: runtime.state.pendingDecision === undefined,
   };
 }
@@ -135,26 +200,38 @@ async function exportMulliganScenario(keep: boolean): Promise<FrameCase> {
 async function resumeMulliganScenario(
   frame: MulliganExecutionFrame,
   keep: boolean,
-): Promise<{ continuation: unknown; pendingCleared: boolean }> {
+): Promise<{
+  continuation: unknown;
+  duplicateContinuation: unknown;
+  duplicateAnswerAccepted: boolean;
+  pendingCleared: boolean;
+}> {
   const state = makeState();
   const coordinator = new MulliganCoordinator(state, { requestDecision: () => {} }, { executionFramesEnabled: true });
   coordinator.restoreExecutionFrame(frame);
   if (!coordinator.answer(0, keep)) throw new Error("destination rejected the mulligan answer");
   return {
     continuation: coordinator.takeResumedExecutionFrameResult(frame.request.decisionId),
+    duplicateContinuation: undefined,
+    duplicateAnswerAccepted: false,
     pendingCleared: state.pendingDecision === undefined,
   };
 }
 
 function createDecisionRuntime(): {
   readonly state: GameState;
-  readonly manager: DecisionManager;
-  readonly api: ReturnType<typeof createDecisionApi>;
+  readonly manager: GameEngine["decisions"];
+  readonly api: GameEngine["decisionApi"];
+  readonly engine: GameEngine;
   readonly context: EffectContext;
 } {
   const state = makeState();
-  const manager = new DecisionManager(state, { requestDecision: () => {} }, { executionFramesEnabled: true });
-  const api = createDecisionApi(manager);
+  const engine = new GameEngine(state, {
+    seed: 17,
+    requestDecision: () => {},
+    emit: () => {},
+    executionFramesEnabled: true,
+  });
   const context = {
     source: {
       ownerSeat: 0,
@@ -165,7 +242,7 @@ function createDecisionRuntime(): {
     },
     game: {},
   } as unknown as EffectContext;
-  return { state, manager, api, context };
+  return { state, engine, manager: engine.decisions, api: engine.decisionApi, context };
 }
 
 function makeState(): GameState {
@@ -200,7 +277,7 @@ function collectedEffect(): CollectedEffect {
 }
 
 function requestApiScenario(
-  api: ReturnType<typeof createDecisionApi>,
+  api: GameEngine["decisionApi"],
   context: EffectContext,
   scenario: ApiScenario,
 ): Promise<unknown> {
@@ -237,7 +314,7 @@ function responseFor(scenario: ApiScenario): DecisionResponse {
   }
 }
 
-async function waitForDecision(manager: DecisionManager): Promise<void> {
+async function waitForDecision(manager: GameEngine["decisions"]): Promise<void> {
   for (let attempt = 0; attempt < 20 && !manager.hasPending; attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, 0));
   }

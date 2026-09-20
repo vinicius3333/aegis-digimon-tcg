@@ -39,7 +39,17 @@ describe("serializable decision API continuation frames", () => {
     expect(destination.code, destination.stderr).toBe(0);
     const destinationResult = JSON.parse(resultLine(destination.stdout)) as {
       pid: number;
-      cases: Record<string, { continuation: unknown; pendingCleared: boolean }>;
+      cases: Record<
+        string,
+        {
+          continuation: unknown;
+          wrongSeatContinuation: unknown;
+          wrongSeatAnswerAccepted: boolean;
+          duplicateContinuation: unknown;
+          duplicateAnswerAccepted: boolean;
+          pendingCleared: boolean;
+        }
+      >;
     };
 
     expect(destinationResult.pid).not.toBe(originResult.pid);
@@ -49,6 +59,12 @@ describe("serializable decision API continuation frames", () => {
       expect(source.frame, name).not.toHaveProperty("resolve");
       expect(restored!.pendingCleared, name).toBe(true);
       expect(restored!.continuation, name).toEqual(source.sourceContinuation);
+      if (!name.startsWith("mulligan")) {
+        expect(restored!.wrongSeatAnswerAccepted, name).toBe(false);
+        expect(restored!.wrongSeatContinuation, name).toBeUndefined();
+        expect(restored!.duplicateAnswerAccepted, name).toBe(false);
+        expect(restored!.duplicateContinuation, name).toBeUndefined();
+      }
       expect((source.sourceContinuation as { value?: unknown }).value, name).toEqual(source.sourceResult);
       if (name === "mulliganKeep") expect(source.sourceResult, name).toBe(true);
       if (name === "mulliganRedraw") expect(source.sourceResult, name).toBe(false);

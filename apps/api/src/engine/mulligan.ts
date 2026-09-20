@@ -40,6 +40,15 @@ export interface MulliganExecutionFrameResult {
   readonly value: boolean;
 }
 
+/** The explicit match-lifecycle cursor waiting on one seat's mulligan response. */
+export interface MulliganWindowExecutionFrame {
+  readonly protocol: "aegis-mulligan-window-execution-frame";
+  readonly version: 1;
+  readonly firstSeat: Seat;
+  readonly nextSeatIndex: 0 | 1;
+  readonly decision: MulliganExecutionFrame;
+}
+
 interface MulliganCoordinatorOptions {
   /** Handoff experiments are opt-in and may never be enabled by a production process. */
   executionFramesEnabled?: boolean;
@@ -52,6 +61,7 @@ export class MulliganCoordinator {
         decisionId: string;
         frame: MulliganExecutionFrame | undefined;
         resolve: ((keep: boolean) => void) | undefined;
+        completion: Promise<boolean>;
       }
     | undefined;
   private seq = 0;
@@ -71,6 +81,16 @@ export class MulliganCoordinator {
   /** The seat whose mulligan window is open, if any. */
   get pendingSeat(): Seat | undefined {
     return this.open?.seat;
+  }
+
+  get pendingRequest(): DecisionRequest | undefined {
+    return this.open?.frame?.request;
+  }
+
+  /** Reconstructed completion promise for a restored wait owned by a new lifecycle runner. */
+  waitForOpen(): Promise<boolean> {
+    if (!this.open) throw new Error("there is no open mulligan to await");
+    return this.open.completion;
   }
 
   /** Export the supported mulligan wait without its source Promise resolver. */
@@ -106,7 +126,11 @@ export class MulliganCoordinator {
       pending.payloadJson = "";
       this.state.pendingDecision = pending;
     }
-    this.open = { seat: request.seat, decisionId: request.decisionId, frame, resolve: undefined };
+    let resolve!: (keep: boolean) => void;
+    const completion = new Promise<boolean>((accept) => {
+      resolve = accept;
+    });
+    this.open = { seat: request.seat, decisionId: request.decisionId, frame, resolve, completion };
     const sequence = /^mull-(\d+)$/.exec(request.decisionId)?.[1];
     if (sequence !== undefined) this.seq = Math.max(this.seq, Number(sequence));
   }
@@ -157,10 +181,19 @@ export class MulliganCoordinator {
     pending.payloadJson = "";
     this.state.pendingDecision = pending;
 
-    return new Promise<boolean>((resolve) => {
-      this.open = { seat, decisionId, frame, resolve };
-      this.transport.requestDecision(seat, req);
+    let resolve!: (keep: boolean) => void;
+    const completion = new Promise<boolean>((accept) => {
+      resolve = accept;
     });
+    this.open = {
+      seat,
+      decisionId,
+      frame,
+      resolve,
+      completion,
+    };
+    this.transport.requestDecision(seat, req);
+    return completion;
   }
 
   /**

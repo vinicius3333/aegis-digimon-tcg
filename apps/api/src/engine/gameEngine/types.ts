@@ -17,6 +17,8 @@ export interface GameEngineHooks {
   seed: number;
   requestDecision: (seat: Seat, req: DecisionRequest) => void;
   emit: (event: ServerEvent) => void;
+  /** Enables the experimental decision-result frame seam outside production only. */
+  executionFramesEnabled?: boolean;
   /** Fires once, the first time both seats have sent `ready` (see {@link GameEngine.intentRouterDeps}). */
   onBothReady?: () => void;
   /** Notifies in-process actors only after an asynchronous action has fully settled. */

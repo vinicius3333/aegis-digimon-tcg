@@ -31,6 +31,7 @@ import { drainForShutdown, startDeadlineWorker, type DeadlineWorker } from "./to
 import { accountStore } from "./accounts/runtime.js";
 import { createDeploymentRuntime, installDeploymentRoutes, type DeploymentSlot } from "./deployment/runtime.js";
 import { RoomHandoffStore } from "./db/roomHandoff/RoomHandoffStore.js";
+import { resolveDeploymentIdentity } from "./deployment/generation.js";
 import {
   createLogicalRoomReconnectHandler,
   RoomHandoffCoordinator,
@@ -87,10 +88,7 @@ installAccountRoutes(
 const cluster = createClusterRuntime();
 setRoomCodeDirectory(cluster.roomCodes);
 
-const configuredSlot = process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy";
-if (!/^(?:blue|green|legacy|g-[a-f0-9]{12})$/.test(configuredSlot)) {
-  throw new Error(`Invalid AEGIS_DEPLOYMENT_SLOT: ${configuredSlot}`);
-}
+const { slot: configuredSlot, generationId } = resolveDeploymentIdentity();
 const deploymentRuntime = createDeploymentRuntime({
   slot: configuredSlot as DeploymentSlot,
   revision: process.env.AEGIS_REVISION ?? "development",
@@ -115,14 +113,14 @@ const handoffDescriptorConfigured =
   typeof handoffDescriptorSecret === "string" && Buffer.byteLength(handoffDescriptorSecret) >= 32;
 const roomHandoffStore = new RoomHandoffStore(accountStore.pool);
 const handoffCoordinator = new RoomHandoffCoordinator({
-  generationId: configuredSlot,
+  generationId,
   processId: matchMaker.processId ?? `${process.env.HOSTNAME ?? "local"}:${process.pid}`,
   executionVersion: process.env.AEGIS_HANDOFF_EXECUTION_VERSION ?? "engine-v1",
   rulesVersion: process.env.AEGIS_HANDOFF_RULES_VERSION ?? "rules-v1",
   sourceRevision: process.env.AEGIS_REVISION ?? "development",
   authorizationSecret: handoffDescriptorSecret,
   store: roomHandoffStore,
-  rooms: createAegisRoomHandoffPorts(),
+  rooms: createAegisRoomHandoffPorts({ store: roomHandoffStore, generationId }),
 });
 const verifyRoomResumeCredential = async (gameId: string, credential: string) => {
   if (!/^[A-Za-z0-9_-]{43}$/.test(credential)) return undefined;
@@ -146,7 +144,7 @@ installRoomOwnerResolutionRoute({
 });
 const logicalReconnectHandler = createLogicalRoomReconnectHandler({
   coordinator: handoffCoordinator,
-  currentGenerationId: process.env.AEGIS_DEPLOYMENT_GENERATION_ID ?? configuredSlot,
+  currentGenerationId: generationId,
   verifyResumeCredential: verifyRoomResumeCredential,
   createRoomTicket: (accountId) => accountStore.createRoomTicket(accountId),
   joinById: (roomId, options) => matchMaker.joinById(roomId, options),

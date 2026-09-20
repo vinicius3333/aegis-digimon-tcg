@@ -14,45 +14,56 @@ the [live-room handoff rollout runbook](live-room-handoff-runbook.md).
 `AegisRoom` owns a `GameState`, one `GameEngine`, transport/session maps, event sequencing,
 presentation replay fields, timers, bot drivers, and tournament bindings. `GameEngine` owns the
 rules runtime and several mutable ledgers. `GameState` is the Colyseus synchronized model, not a
-complete checkpoint. In the ordinary production path there is no durable canonical game identity,
-owner-epoch directory, intent admission/deduplication log, or serializable engine continuation.
-The gated prototype adds durable records and room fences for eligible sessions, but it is not yet
-the lookup/control plane used by clients or normal deployment.
+complete checkpoint. The ordinary production reconnect/deploy path remains generation draining.
+The gated handoff path now has durable owner records, command admission/deduplication, room fences,
+owner-resolution/reconnect routes and client integration for eligible sessions. It is not enabled
+in production, and no end-to-end staging proof establishes it as a safe operational control plane.
 
 The room's `roomId` remains a physical Colyseus identifier and is still an idempotency or binding
-key for existing ranked records and tournament room claims. In the opt-in experiment,
-`AegisRoom` creates a logical session from `matchLogId` and copies that value to `GameState.matchId`
-after both stable participants are known. That prototype identity does not migrate existing
-persistence keys or provide a public owner lookup. A complete handoff still needs a stable identity
-integrated with ranked/tournament records; changing only the Colyseus room ID would break existing
-result and tournament ownership checks.
+key for existing ranked records and tournament room claims. In the opt-in path, `AegisRoom` creates
+a logical session from `matchLogId` and copies that value to `GameState.matchId` after both stable
+participants are known; owner lookup and logical reconnect routes now exist behind the feature
+gates. This is not yet a separate canonical game identity integrated across ranked/tournament
+records and all result keys. Changing only the Colyseus room ID would break existing result and
+tournament ownership checks.
 
 ## Implemented foundation and current limits
 
 The repository now contains experimental pieces, not a usable production migration path:
 
-- Migration `016-room-handoff-persistence` and `RoomHandoffStore` define durable logical sessions,
-  owner epochs, checkpoints, command admission/deduplication, transfers, and an outbox. Store tests
-  use `pg-mem`; the opt-in real-PostgreSQL atomicity suite is separate and must be run against a
-  configured database before relying on transactional behavior in production.
+- Migrations 016–018 and `RoomHandoffStore` define durable logical sessions, owner epochs,
+  checkpoints, command admission/deduplication, transfers, and an outbox. Store tests include
+  `pg-mem`; an opt-in real-PostgreSQL atomicity suite exists, but the repository has no demonstrated
+  cross-process room-crash/recovery proof using the production-like API stack.
 - `AegisRoom` can register logical session identity, check its durable owner epoch, freeze, save a
   narrowly scoped checkpoint, restore an inert destination, and fence/dispose an old owner. The
-  snapshot proof only accepts a settled Main-action boundary with both seats present and no pending
-  decision or combat window. Prepared rooms reject private, bot, ranked, and tournament modes.
+  coordinator currently admits only casual two-account sessions with no tournament binding, at a
+  settled Main-action boundary or the explicit setup-mulligan suspension frame, and with no
+  unsupported combat window or in-flight execution. Only a pending `mulligan` decision whose
+  serialized lifecycle cursor, coordinator wait, match RNG, and setup state all agree is admitted.
+  Generic pending decisions, combat, and other non-quiescent execution remain fail-closed. Private
+  rooms, bots, ranked sessions and tournaments remain outside coordinator eligibility.
 - These room hooks require both `AEGIS_ROOM_HANDOFF_SERVER=1` and
   `AEGIS_ROOM_HANDOFF_EXPERIMENT=1`; they remain disabled whenever `NODE_ENV=production`.
-- The web package contains a current-owner resolver and a reload-safe per-tab command-queue
-  abstraction, but `useRoom` does not use them and there is no server owner-resolution endpoint.
+- The web package integrates current-owner resolution, logical reconnect, and a reload-safe
+  per-tab command queue. After reconnect, it can query durable command status and compact terminal
+  receipts or retry a missing command with the same ID/sequence under the current owner epoch.
+  Focused tests cover this boundary; proof across process replacement, reload and real persistence
+  is still required.
 - `tools/deploy` has an injected-port controller and local transfer journal for compatibility,
-  prepare, migration, progress, abort, and reconciliation tests. The API does not implement the
-  corresponding `/deployment/handoff/*` endpoints, and the deploy script does not publish the
-  `liveRoomHandoff` manifest capability. Its prepare/migrate actions therefore remain gated off;
-  `handoff-check` also cannot complete against the current API.
+  prepare, migration, progress, abort, and reconciliation. The API now implements the
+  `/deployment/handoff/*` operations and owner resolution/reconnect routes. The normal deploy does
+  not publish the `liveRoomHandoff` manifest capability, and mutations remain gated off unless an
+  explicitly compatible manifest and API flags are present.
 
-No supported end-to-end transfer coordinator currently connects the database, room hooks, web
-client, deployment controller, and gateway. The prototype does not resume open choices, combat,
-private rooms, bots, ranked games, or tournaments. Normal reconnection and generation draining
-remain the supported production behavior. See the runbook before changing any handoff flag.
+These components are now connected in the gated source path, but there is not yet a validated
+end-to-end transfer of a real room across two API processes with PostgreSQL, isolated Redis,
+gateway routing and two browsers. Supported boundaries are limited to a settled casual Main-action
+boundary and one explicit suspended setup mulligan. The mulligan frame resumes the post-choice
+redraw/security setup once; it does not generalize to effect decisions. Generic pending decisions,
+combat, other non-quiescent execution, private rooms, bots, ranked games and tournaments remain
+fail-closed or coordinator-ineligible. Normal reconnection and generation draining remain the
+supported production behavior. See the runbook before changing any handoff flag.
 
 ## State coverage matrix
 
@@ -80,7 +91,7 @@ current implementation.
 | Bots                                                                                  | `AegisRoom.bots`; `BotPlayer` has profile/policy, private PRNG closure, running/resume flags, turn markers and narration deadline                                                                                 | Persist driver/profile/version and RNG state, or define and prove deterministic reconstruction; reconstruct driver                     | A destination must remain inert before ownership transfer. Do not let a bot act twice due to source and destination callbacks. In-flight think/narration delays are presentation-only and may be canceled or resumed by remaining duration.                                                                |
 | Room, decision, combat and reconnect timers                                           | `waitingRoomTimeout`, `readyTimeout`, decision `setTimeout`, combat timeout and Colyseus `allowReconnection`                                                                                                      | Persist deadline/remaining time and policy; reconstruct timers                                                                         | Capture paused remaining time at freeze. Handoff downtime must not count against a player's decision/combat grace. Existing offline duration must not be reset by repeated deploys. Pre-game wait timers are not active-match state but still need explicit transfer/abort policy.                         |
 | Tournament series, game result and attendance deadlines                               | PostgreSQL series/game rows, `room_id`, deadline queue and scheduler; room stores game/match IDs and seat holders                                                                                                 | Keep authoritative records in existing stores; update owner binding transactionally and idempotently                                   | A game stays the same tournament game and participant assignment. Deadline clock compensation is a series policy applied once per transfer. Result/outbox writes must use stable game/result IDs and validate owner epoch. Do not call normal room disposal/result/forfeit paths for a successful handoff. |
-| RNG and ID generators                                                                 | seeded setup stream; `Math.random` in security shuffle; bot RNG; room UUID; per-match `perm-N`/`inst-N`; `dec-N`/`mull-N`; room event/batch counters                                                              | Persist serializable PRNG state and ID high-water marks; replace unseeded runtime randomness with an injected source                   | Existing RNG closures hide their internal state. See [RNG, clock and ID inventory](#rng-clock-and-id-inventory). Tests/fuzzers may use separate nondeterministic generators; production game paths must be audited separately.                                                                             |
+| RNG and ID generators                                                                 | seeded setup stream; per-seat engine RNG for security shuffle with `Math.random` fallback; bot RNG; room UUID; per-match `perm-N`/`inst-N`; `dec-N`/`mull-N`; room event/batch counters                          | Persist serializable PRNG state and ID high-water marks; reject transferable sessions without a serializable source                   | The production engine supplies the per-seat stream, but the primitive fallback is still nondeterministic and must not qualify for transfer. Bot and ID-generator state also need explicit proof. See [RNG, clock and ID inventory](#rng-clock-and-id-inventory).                                      |
 | Logs and presentation history                                                         | `matchLogId`, bounded presentation report window, emitted server events and room logs                                                                                                                             | Reconstruct minimal operational context; persist only explicitly retained diagnostics                                                  | Never put snapshots, hidden card identities, credentials, authorization tokens, or reusable room codes in ordinary logs. Presentation history is not needed to determine rules state; open scenes/prompts are represented by their frame descriptors.                                                      |
 
 ## Target snapshot contract
@@ -153,21 +164,37 @@ An intent becomes a durable command envelope before the server acknowledges admi
 interface GameCommandV1 {
   gameId: string;
   commandId: string; // client-generated UUID; stable across retries
-  participantId: string;
-  seat: 0 | 1;
-  seatSequence: number; // strictly increasing for this participant/game
   ownerEpoch: number;
   expectedStateVersion?: number; // optimistic concurrency hint, where meaningful
   intent: Intent;
 }
 ```
 
+The owner derives participant and seat from the authenticated room connection; clients do not
+choose them. The durable store allocates a monotonically increasing participant sequence while
+locking that participant's sequence row, and allocates a session-wide command sequence for rule
+execution. These values are returned in receipts, not supplied by the client. Each tab may keep a
+local sequence for its own queue, but it is not sent as participant order. The owning room
+serializes arrivals from its sockets, while the durable participant cursor prevents another tab
+from reusing or skipping a participant sequence.
+
 The server records a command ID and its admission outcome durably before claiming it as received.
 It distinguishes `received` (durably admitted) from `applied` (rules mutation and resulting
 checkpoint/outbox are committed) and `rejected` (stable rejection result, no mutation). Repeated
 `commandId` returns the known outcome; same ID with different payload is rejected as a protocol
-error. Per-seat order is enforced by `seatSequence`. A gap or stale `ownerEpoch` is not silently
-reordered or applied.
+error. Stale `ownerEpoch` is not silently applied. The server-assigned participant sequence and
+session command sequence preserve ordering without trusting per-tab counters.
+
+After reconnect, the client sends the current owner a bounded list of outstanding command IDs.
+The room accepts this query only from an authenticated seat whose account,
+session, physical room and owner epoch match the durable records. It returns only that participant's
+durable status; an unknown ID or an ID belonging to another seat is reported as `missing`, without
+revealing whether another participant used it. A matching `applied` or `rejected` receipt removes
+the local command by `commandId`, regardless of the server-assigned sequence in the receipt.
+`received` stays queued for a later status query, while `missing` retries the same command ID and
+intent under the resolved current owner epoch; the owner allocates a sequence only if that ID has
+not already been admitted. Reconciliation is ordered behind earlier room commands so a receipt
+cannot race an in-flight application.
 
 No network can guarantee delivery exactly once. The required guarantee is one durable effect per
 `commandId`: the rules mutation, applied sequence, and pending external writes commit together, and
@@ -176,10 +203,11 @@ with an idempotency key derived from stable game/command identity. `respondDecis
 its stable decision ID; retries after migration return the original result without resolving the
 decision twice.
 
-Current `Intent` has no command ID, sequence, or epoch. It is sent by message type, reassembled in
-`AegisRoom.handleIntent`, and immediately passed to `GameEngine.applyIntent`; the room logs and
-returns an `IntentResult` but does not durably record admission. This is a hard prerequisite, not
-an optional optimization.
+The legacy `Intent` shape still has no command ID, sequence, or epoch and remains the ordinary
+production path when handoff is disabled. The gated path wraps supported actions in a durable
+command envelope and records/query-reconciles command status in `RoomHandoffStore`; the reconnect
+client handles terminal receipts and missing-command retries. Focused tests exist, but the durable
+effect and receipt behavior has not yet been demonstrated through a real cross-process failure.
 
 ## Transfer contract and invariants
 
@@ -222,6 +250,23 @@ resolves `gameId` to the current owner when they reconnect.
 
 ## Execution suspension inventory
 
+### Experimental decision-frame runtime seam
+
+The engine can export/import an allowlisted `DecisionApi` wait and route its answer through the
+real `GameEngine.applyIntent` path. On the destination, the normalized API result is transferred
+to the runtime owner once; a repeated answer is rejected and cannot produce a second result.
+This is a response-to-value continuation only. It does **not** restore the awaiting TypeScript
+effect/caller stack, apply the selected value to that effect, or make an in-flight effect safe to
+replay. The seam is opt-in, disabled in production, and is not by itself a supported room handoff.
+
+`AegisRoom` remains fail-closed for every pending decision except the explicit setup-mulligan
+frame described below, every combat prompt, and all other non-quiescent execution. The supported
+mulligan frame includes the setup cursor, pending seat/request, RNG state and a reconstructed
+coordinator wait; it resumes the redraw and security setup exactly once. It is intentionally not
+a generic decision executor. Arbitrary IR/card-effect waits, nested trigger pools, security
+effects, costs, substitutions, and combat still require explicit runtime continuations and
+state/RNG restoration before eligibility can be widened.
+
 The explicit client-input suspension seams found in the current engine are:
 
 - `DecisionManager.request()` in `engine/decisions/index.ts`, reached through `EffectContext.ask`,
@@ -245,7 +290,7 @@ combat prompt, timer, bot callback, or nested effect that is not represented by
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Match setup / deck shuffle / mulligan | `AegisRoom.onCreate` chooses a 32-bit seed; `setup.ts` derives per-seat Mulberry32 streams and stores closure-valued `rngForSeat`.                                               | Store each PRNG algorithm/version and current 32-bit state, not only the original seed. A seed alone cannot recover how many random draws have already occurred.                    |
 | First-player choice                   | Derived from the setup seed in `matchLifecycle.ts`.                                                                                                                              | Once chosen, persist the `turnSeat` and setup progress. Keep seed only if required for remaining deterministic streams.                                                             |
-| Security shuffle                      | `engine/effects/verbs/securityStack.ts` calls `Math.random()` directly.                                                                                                          | Route through a versioned per-game RNG and serialize its state before deterministic transfer/recovery is claimed. This is currently nondeterministic in production rules execution. |
+| Security shuffle                      | `engine/effects/verbs/securityStack.ts` uses `engine.rngForSeat?.(seat) ?? Math.random`.                                                                                         | Production `GameEngine` supplies the per-seat RNG, but the fallback remains nondeterministic for harnesses/engines without it. Ensure transferable sessions always serialize and restore the stream; do not infer determinism from the fallback. |
 | Bot policy/timing                     | `BotPlayer` has a seeded private Mulberry32 closure; its evaluation policy also receives a seed. The constructor defaults its seed to a constant unless the room passes options. | Record profile/policy version, seed, RNG states and action progress, or explicitly define a deterministic policy restart boundary. Avoid running old and new drivers concurrently.  |
 | Fuzzer and test helpers               | `Math.random()` appears in fuzzer/test-deck generation and test fixtures.                                                                                                        | Keep distinct from production game RNG; inject/report test seeds for reproducible cases. Do not mistake test-only sources for server behavior.                                      |
 | Card and permanent IDs                | Initial physical card IDs are `s{seat}-{ordinal}`; engine token/instance and permanent counters mint `inst-N` and `perm-N`.                                                      | Persist high-water counters, preserve every existing physical ID, ensure next generated ID is unused.                                                                               |

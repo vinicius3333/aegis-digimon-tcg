@@ -1,5 +1,5 @@
 import { ContinuousEffectScope } from "./effects/ContinuousEffectScope.js";
-import { CardKind, EffectTiming, GameState, type CardInstance, type Seat } from "@aegis/shared";
+import { CardKind, EffectTiming, GameState, Phase, type CardInstance, type Seat } from "@aegis/shared";
 import { buildCombatHooks } from "./gameEngine/combatHooks.js";
 import type { CardColor, Permanent } from "@aegis/shared";
 import type { Client } from "colyseus";
@@ -20,6 +20,7 @@ import {
   refreshStateView,
   runMatch,
   runMulliganWindow,
+  resumeRestoredMatchSetup,
   runOneTurn,
   seatPlayer,
   startDevScenario,
@@ -40,7 +41,11 @@ import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
 import { DpDeleteBudgetLedger } from "./dpDeleteBudget.js";
 import { lookupDefinition, isDigimon } from "./cards/cardData.js";
-import { DecisionManager } from "./decisions/index.js";
+import {
+  DecisionManager,
+  type DecisionExecutionFrame,
+  type DecisionExecutionFrameResult,
+} from "./decisions/index.js";
 import { createDecisionApi } from "./decisions/decisionApi.js";
 import { createResolverDecisions, type ResolverDecisions } from "./decisions/resolverDecisions.js";
 import { MainPhaseController } from "./MainPhaseController.js";
@@ -69,7 +74,7 @@ import {
   type Rng,
   type Decklist,
 } from "./setup.js";
-import { MulliganCoordinator } from "./mulligan.js";
+import { MulliganCoordinator, type MulliganWindowExecutionFrame } from "./mulligan.js";
 import { mergeRuleDeletions, type PooledRuleDeletion } from "./gameEngine/ruleDeletions.js";
 import { DigivolveSupport } from "./gameEngine/digivolveSupport.js";
 import { BoardProjection } from "./gameEngine/projections.js";
@@ -109,6 +114,9 @@ export interface GameEngineContinuityFrame {
   readonly instanceSeq: number;
   readonly windowTokenSeq: number;
   readonly random: MatchRngStateFrame | null;
+  /** True while the match-start pipeline has consumed staged decks and awaits mulligans. */
+  readonly matchSetupStarted?: boolean;
+  readonly mulliganWindow?: MulliganWindowExecutionFrame | null;
 }
 
 /**
@@ -317,6 +325,9 @@ export class GameEngine {
   bothReadyFired = false;
   /** The opening-hand mulligan window (subsystem: deck-and-setup). */
   readonly mulligan: MulliganCoordinator;
+  /** Match-setup cursor retained while the current mulligan prompt is open. */
+  mulliganWindowCursor: { firstSeat: Seat; nextSeatIndex: 0 | 1 } | undefined;
+  private readonly resumedDecisionExecutionFrameResults = new Map<string, DecisionExecutionFrameResult>();
   /** Decklists staged at seatPlayer, consumed by startMatch (index === seat). */
   readonly stagedDecks: (Decklist | undefined)[] = [undefined, undefined];
   /** Per-seat shuffle PRNG produced by setup (so a mulligan reshuffles deterministically). */
@@ -344,6 +355,16 @@ export class GameEngine {
       instanceSeq: this.instanceSeq,
       windowTokenSeq: this.windowTokenSeq,
       random: this.exportRngState() ?? null,
+      matchSetupStarted: this.matchSetupStarted,
+      mulliganWindow:
+        this.mulligan.isOpen && this.mulliganWindowCursor
+          ? {
+              protocol: "aegis-mulligan-window-execution-frame",
+              version: 1,
+              ...this.mulliganWindowCursor,
+              decision: this.mulligan.exportExecutionFrame(),
+            }
+          : null,
     };
   }
 
@@ -356,15 +377,37 @@ export class GameEngine {
       !isCounter(frame.permanentSeq) ||
       !isCounter(frame.instanceSeq) ||
       !isCounter(frame.windowTokenSeq) ||
-      (frame.random !== null && (typeof frame.random !== "object" || frame.random === undefined))
+      (frame.matchSetupStarted !== undefined && typeof frame.matchSetupStarted !== "boolean") ||
+      (frame.random !== null && (typeof frame.random !== "object" || frame.random === undefined)) ||
+      (frame.mulliganWindow !== undefined &&
+        frame.mulliganWindow !== null &&
+        !isMulliganWindowExecutionFrame(frame.mulliganWindow))
     ) {
       throw new Error("invalid game-engine continuity frame");
     }
     this.permanentSeq = frame.permanentSeq;
     this.instanceSeq = frame.instanceSeq;
     this.windowTokenSeq = frame.windowTokenSeq;
+    this.matchSetupStarted = frame.matchSetupStarted === true;
     if (frame.random === null) this.rngForSeat = undefined;
     else this.restoreRngState(frame.random);
+    if (frame.mulliganWindow) {
+      const cursor = frame.mulliganWindow;
+      const order: Seat[] = [cursor.firstSeat, (1 - cursor.firstSeat) as Seat];
+      if (
+        frame.matchSetupStarted !== true ||
+        this.state.phase !== Phase.None ||
+        this.state.gameOver ||
+        this.state.combatWindow !== undefined ||
+        cursor.decision.request.seat !== order[cursor.nextSeatIndex]
+      ) {
+        throw new Error("mulligan execution frame does not match the restored setup boundary");
+      }
+      this.mulligan.restoreExecutionFrame(cursor.decision);
+      this.mulliganWindowCursor = { firstSeat: cursor.firstSeat, nextSeatIndex: cursor.nextSeatIndex };
+    } else {
+      this.mulliganWindowCursor = undefined;
+    }
   }
   /** Monotonic source of permanentIds unique within the match. */
   permanentSeq = 0;
@@ -482,12 +525,12 @@ export class GameEngine {
     this.subTriggers = new SubTriggerRegistry();
     this.decisions = new DecisionManager(this.state, {
       requestDecision: (seat, req) => this.hooks.requestDecision(seat, req),
-    });
+    }, { executionFramesEnabled: this.hooks.executionFramesEnabled });
     this.decisionApi = createDecisionApi(this.decisions);
     this.resolverDecisions = createResolverDecisions(this.decisions, () => this.recomputeContinuousEffects());
     this.mulligan = new MulliganCoordinator(this.state, {
       requestDecision: (seat, req) => this.hooks.requestDecision(seat, req),
-    });
+    }, { executionFramesEnabled: this.hooks.executionFramesEnabled });
     this.primitives = buildPrimitives(this);
     this.digivolveSupport = new DigivolveSupport({
       state: this.state,
@@ -684,6 +727,32 @@ export class GameEngine {
     return applyIntent(this, seat, intent);
   }
 
+  /** Export the currently open, allowlisted DecisionApi wait as data for a trusted handoff. */
+  exportPendingDecisionExecutionFrame(): DecisionExecutionFrame {
+    return this.decisions.exportExecutionFrame();
+  }
+
+  /** Restore an allowlisted decision wait; this does not restore its enclosing effect stack. */
+  restorePendingDecisionExecutionFrame(frame: DecisionExecutionFrame): void {
+    this.decisions.restoreExecutionFrame(frame);
+  }
+
+  /**
+   * Called by the real intent router after an imported wait accepts its response. The frame
+   * result is consumed from DecisionManager here, then exposed once to the runtime owner.
+   */
+  captureResumedDecisionExecutionFrameResult(decisionId: string): void {
+    const result = this.decisions.takeResumedExecutionFrameResult(decisionId);
+    if (result !== undefined) this.resumedDecisionExecutionFrameResults.set(decisionId, result);
+  }
+
+  /** Read an imported decision result once; duplicate answers cannot produce a second value. */
+  takeResumedDecisionExecutionFrameResult(decisionId: string): DecisionExecutionFrameResult | undefined {
+    const result = this.resumedDecisionExecutionFrameResults.get(decisionId);
+    this.resumedDecisionExecutionFrameResults.delete(decisionId);
+    return result;
+  }
+
   /**
    * The three fire seams tests reach through an `as unknown as` cast. Their bodies live in
    * {@link ./gameEngine/timing.ts}; these keep the shape those casts name so the harness has
@@ -775,6 +844,10 @@ export class GameEngine {
 
   runMulliganWindow(firstSeat: Seat): Promise<void> {
     return runMulliganWindow(this, firstSeat);
+  }
+
+  resumeRestoredMatchSetup(): Promise<void> {
+    return resumeRestoredMatchSetup(this);
   }
 
   startTurnLoop(): Promise<void> {
@@ -871,4 +944,17 @@ export class GameEngine {
 
 function isCounter(value: unknown): value is number {
   return Number.isSafeInteger(value) && typeof value === "number" && value >= 0;
+}
+
+function isMulliganWindowExecutionFrame(value: unknown): value is MulliganWindowExecutionFrame {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const frame = value as Partial<MulliganWindowExecutionFrame>;
+  return (
+    frame.protocol === "aegis-mulligan-window-execution-frame" &&
+    frame.version === 1 &&
+    (frame.firstSeat === 0 || frame.firstSeat === 1) &&
+    (frame.nextSeatIndex === 0 || frame.nextSeatIndex === 1) &&
+    typeof frame.decision === "object" &&
+    frame.decision !== null
+  );
 }

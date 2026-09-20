@@ -22,6 +22,12 @@ export interface StoppedMainBoundarySnapshot {
   readonly payload: string;
 }
 
+export interface PendingMulliganBoundarySnapshot extends Omit<StoppedMainBoundarySnapshot, "boundary"> {
+  readonly boundary: "mulligan-window";
+}
+
+export type RoomHandoffBoundarySnapshot = StoppedMainBoundarySnapshot | PendingMulliganBoundarySnapshot;
+
 /** The proof remains unavailable in production even if the environment flag is set. */
 export function roomHandoffExperimentEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   return env.NODE_ENV !== "production" && env[ROOM_HANDOFF_EXPERIMENT_ENV] === "1";
@@ -50,13 +56,38 @@ export function exportStoppedMainBoundary(state: GameState): StoppedMainBoundary
   };
 }
 
+/** Export only the explicit setup state-machine suspension supported by the mulligan runtime. */
+export function exportPendingMulliganBoundary(state: GameState): PendingMulliganBoundarySnapshot {
+  assertPendingMulliganBoundary(state);
+  const encoded = JSON.stringify(state.toJSON());
+  return {
+    protocol: "aegis-room-handoff-experiment",
+    snapshotVersion: ROOM_HANDOFF_SNAPSHOT_VERSION,
+    format: SNAPSHOT_FORMAT,
+    boundary: "mulligan-window",
+    matchId: state.matchId,
+    payloadSha256: sha256(encoded),
+    payload: encoded,
+  };
+}
+
 /** Restore a snapshot into a fresh schema tree, validating version, digest, and boundary. */
 export function importStoppedMainBoundary(snapshot: StoppedMainBoundarySnapshot): GameState {
+  if (snapshot.boundary !== "main-action") throw new Error("unsupported room handoff snapshot boundary");
+  return importHandoffBoundary(snapshot);
+}
+
+export function importPendingMulliganBoundary(snapshot: PendingMulliganBoundarySnapshot): GameState {
+  if (snapshot.boundary !== "mulligan-window") throw new Error("unsupported room handoff snapshot boundary");
+  return importHandoffBoundary(snapshot);
+}
+
+export function importHandoffBoundary(snapshot: RoomHandoffBoundarySnapshot): GameState {
   if (
     snapshot.protocol !== "aegis-room-handoff-experiment" ||
     snapshot.snapshotVersion !== ROOM_HANDOFF_SNAPSHOT_VERSION ||
     snapshot.format !== SNAPSHOT_FORMAT ||
-    snapshot.boundary !== "main-action" ||
+    (snapshot.boundary !== "main-action" && snapshot.boundary !== "mulligan-window") ||
     typeof snapshot.matchId !== "string" ||
     typeof snapshot.payload !== "string" ||
     typeof snapshot.payloadSha256 !== "string"
@@ -69,11 +100,24 @@ export function importStoppedMainBoundary(snapshot: StoppedMainBoundarySnapshot)
 
   const data = JSON.parse(snapshot.payload) as unknown;
   const restored = restoreSchema(GameState, data);
-  assertStoppedMainBoundary(restored);
+  if (snapshot.boundary === "main-action") assertStoppedMainBoundary(restored);
+  else assertPendingMulliganBoundary(restored);
   if (restored.matchId !== snapshot.matchId) {
     throw new Error("room handoff snapshot match identity mismatch");
   }
   return restored;
+}
+
+function assertPendingMulliganBoundary(state: GameState): void {
+  if (state.phase !== Phase.None || state.gameOver) {
+    throw new Error("room handoff experiment supports a mulligan window only during match setup");
+  }
+  if (state.pendingDecision?.kind !== "mulligan" || state.combatWindow !== undefined) {
+    throw new Error("room handoff experiment supports only a pending mulligan decision");
+  }
+  if (state.players[0]?.seat !== 0 || state.players[1]?.seat !== 1) {
+    throw new Error("room handoff snapshot requires both player seats");
+  }
 }
 
 function assertStoppedMainBoundary(state: GameState): void {

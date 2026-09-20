@@ -300,7 +300,6 @@ describe("RoomHandoffStore", () => {
       commandId: "cmd-1",
       participantId: "account-1",
       seat: 0,
-      participantSequence: 1,
       ownerEpoch: 1,
       expectedRevision: 0,
       payload: { intent: "endTurn" },
@@ -313,15 +312,18 @@ describe("RoomHandoffStore", () => {
         reason: "participant_not_seated",
       },
     );
-    expect(await store.admitCommand({ ...input, commandId: "sequence-gap", participantSequence: 2 })).toEqual({
-      ok: false,
-      reason: "participant_sequence_gap",
-    });
-
     const first = await store.admitCommand(input);
     const retry = await store.admitCommand({ ...input, ownerEpoch: 99, now: 102 });
-    expect(first).toMatchObject({ ok: true, replayed: false, value: { commandSequence: 1, status: "admitted" } });
-    expect(retry).toMatchObject({ ok: true, replayed: true, value: { commandSequence: 1, status: "admitted" } });
+    expect(first).toMatchObject({
+      ok: true,
+      replayed: false,
+      value: { participantSequence: 1, commandSequence: 1, status: "admitted" },
+    });
+    expect(retry).toMatchObject({
+      ok: true,
+      replayed: true,
+      value: { participantSequence: 1, commandSequence: 1, status: "admitted" },
+    });
 
     const completed = await store.completeCommand({
       sessionId: "logical-room-1",
@@ -343,8 +345,56 @@ describe("RoomHandoffStore", () => {
       }),
     ).toMatchObject({ ok: true, replayed: true });
 
+    const nextCommand = await store.admitCommand({
+      ...input,
+      commandId: "cmd-from-second-tab",
+      payload: { intent: "surrender" },
+      now: 105,
+    });
+    expect(nextCommand).toMatchObject({
+      ok: true,
+      value: { participantSequence: 2, commandSequence: 2, status: "admitted" },
+    });
+
     const stale = await store.admitCommand({ ...input, commandId: "cmd-stale", ownerEpoch: 99 });
     expect(stale).toEqual({ ok: false, reason: "owner_epoch_mismatch" });
+  });
+
+  it("assigns a unique durable participant sequence to commands from separate tabs", async () => {
+    await store.createSession({
+      sessionId: "logical-room-concurrent-tabs",
+      mode: "casual",
+      participants: PARTICIPANTS,
+      owner: SOURCE,
+      now: 150,
+    });
+    const sharedInput = {
+      sessionId: "logical-room-concurrent-tabs",
+      participantId: "account-1",
+      seat: 0 as const,
+      ownerEpoch: 1,
+      now: 151,
+    };
+
+    // AegisRoom serializes requests from concurrent sockets before admission; the
+    // durable participant cursor then allocates one shared stream rather than trusting
+    // each tab's local sequence (both would independently start at 1).
+    const tabA = await store.admitCommand({
+      ...sharedInput,
+      commandId: "tab-a-command",
+      payload: { intent: { type: "endPhase" } },
+    });
+    const tabB = await store.admitCommand({
+      ...sharedInput,
+      commandId: "tab-b-command",
+      payload: { intent: { type: "surrender" } },
+    });
+
+    expect(tabA.ok).toBe(true);
+    expect(tabB.ok).toBe(true);
+    if (!tabA.ok || !tabB.ok) return;
+    expect([tabA.value.participantSequence, tabB.value.participantSequence].sort()).toEqual([1, 2]);
+    expect([tabA.value.commandSequence, tabB.value.commandSequence].sort()).toEqual([1, 2]);
   });
 
   it("commits an applied command with its recovery checkpoint and reports authoritative pending work", async () => {
@@ -360,7 +410,6 @@ describe("RoomHandoffStore", () => {
       commandId: "command-recover-1",
       participantId: "account-1",
       seat: 0,
-      participantSequence: 1,
       ownerEpoch: 1,
       payload: { type: "endPhase" },
       now: 101,
@@ -412,6 +461,83 @@ describe("RoomHandoffStore", () => {
     expect(await store.countPendingTasks()).toMatchObject({ commands: 0, total: 0 });
   });
 
+  it("counts pending commands, outbox effects, and transfers against each affected generation", async () => {
+    await store.createSession({
+      sessionId: "generation-pending-blue",
+      mode: "casual",
+      participants: PARTICIPANTS,
+      owner: SOURCE,
+      now: 120,
+    });
+    await store.createSession({
+      sessionId: "generation-pending-green",
+      mode: "casual",
+      participants: PARTICIPANTS,
+      owner: TARGET,
+      now: 120,
+    });
+    await store.admitCommand({
+      sessionId: "generation-pending-blue",
+      commandId: "generation-pending-command",
+      participantId: "account-1",
+      seat: 0,
+      ownerEpoch: 1,
+      payload: { intent: "endTurn" },
+      now: 121,
+    });
+    await store.enqueueOutbox({
+      id: "generation-pending-outbox-blue",
+      effectKey: "generation-pending-blue-result",
+      sessionId: "generation-pending-blue",
+      ownerEpoch: 1,
+      effectType: "record_match_result",
+      payload: { winnerSeat: 0 },
+      now: 122,
+    });
+    await store.enqueueOutbox({
+      id: "generation-pending-outbox-green",
+      effectKey: "generation-pending-green-result",
+      sessionId: "generation-pending-green",
+      ownerEpoch: 1,
+      effectType: "record_match_result",
+      payload: { winnerSeat: 1 },
+      now: 122,
+    });
+
+    expect(await store.countPendingTasksByGeneration(SOURCE.generationId)).toEqual({
+      commands: 1,
+      outbox: 1,
+      transfers: 0,
+      total: 2,
+    });
+    expect(await store.countPendingTasksByGeneration(TARGET.generationId)).toEqual({
+      commands: 0,
+      outbox: 1,
+      transfers: 0,
+      total: 1,
+    });
+
+    await store.beginTransfer({
+      transferId: "generation-pending-transfer",
+      sessionId: "generation-pending-blue",
+      ownerEpoch: 1,
+      target: TARGET,
+      now: 123,
+    });
+    expect(await store.countPendingTasksByGeneration(SOURCE.generationId)).toMatchObject({
+      commands: 1,
+      outbox: 1,
+      transfers: 1,
+      total: 3,
+    });
+    expect(await store.countPendingTasksByGeneration(TARGET.generationId)).toMatchObject({
+      commands: 0,
+      outbox: 1,
+      transfers: 1,
+      total: 2,
+    });
+  });
+
   it("replaces the checkpoint only under the current epoch and only through a completed command", async () => {
     await store.createSession({
       sessionId: "logical-room-2",
@@ -425,7 +551,6 @@ describe("RoomHandoffStore", () => {
       commandId: "cmd-2",
       participantId: "account-1",
       seat: 0,
-      participantSequence: 1,
       ownerEpoch: 1,
       payload: { intent: "endTurn" },
       now: 201,
@@ -589,7 +714,6 @@ describe("RoomHandoffStore", () => {
         commandId: "stale-after-transfer",
         participantId: "account-1",
         seat: 0,
-        participantSequence: 1,
         ownerEpoch: 1,
         payload: { intent: "endTurn" },
         now: 307,

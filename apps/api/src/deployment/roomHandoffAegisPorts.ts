@@ -1,10 +1,14 @@
 import { matchMaker } from "colyseus";
 import { ROOM_TYPE } from "@aegis/shared";
+import type { RoomHandoffStore } from "../db/roomHandoff/RoomHandoffStore.js";
 import { roomRegistry } from "../rooms/AegisRoom.js";
 import type { RoomHandoffRoomPort } from "./roomHandoff.js";
 
 /** Colyseus bridge for the API coordinator; cross-process room calls remain server-private. */
-export function createAegisRoomHandoffPorts(): RoomHandoffRoomPort {
+export function createAegisRoomHandoffPorts(input: {
+  store: Pick<RoomHandoffStore, "countPendingTasksByGeneration">;
+  generationId: string;
+}): RoomHandoffRoomPort {
   return {
     inspectSource: async ({ session }) =>
       matchMaker.remoteRoomCall<{ eligible: boolean; reasonCode?: string }>(
@@ -20,7 +24,7 @@ export function createAegisRoomHandoffPorts(): RoomHandoffRoomPort {
       });
       if (!listing.roomId || !listing.processId) throw new Error("prepared_destination_unavailable");
       return {
-        generationId: process.env.AEGIS_DEPLOYMENT_GENERATION_ID ?? process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy",
+        generationId: input.generationId,
         processId: listing.processId,
         roomId: listing.roomId,
       };
@@ -50,6 +54,15 @@ export function createAegisRoomHandoffPorts(): RoomHandoffRoomPort {
       await matchMaker.remoteRoomCall<void>(roomId, "disconnect", []);
       return true;
     },
-    authoritativePendingTasks: async () => undefined,
+    authoritativePendingTasks: async (generationId) => {
+      const pending = await input.store.countPendingTasksByGeneration(generationId);
+      const counts = [pending.commands, pending.outbox, pending.transfers, pending.total];
+      if (
+        counts.some((count) => !Number.isSafeInteger(count) || count < 0) ||
+        pending.total !== pending.commands + pending.outbox + pending.transfers
+      )
+        throw new Error("room_handoff_pending_task_count_invalid");
+      return pending.total;
+    },
   };
 }

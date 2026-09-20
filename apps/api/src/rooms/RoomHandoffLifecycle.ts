@@ -5,10 +5,10 @@ import type {
   RoomTransferRecord,
 } from "../db/roomHandoff/RoomHandoffStore.js";
 import {
-  importStoppedMainBoundary,
+  importHandoffBoundary,
   roomHandoffExperimentEnabled,
   ROOM_HANDOFF_SNAPSHOT_VERSION,
-  type StoppedMainBoundarySnapshot,
+  type RoomHandoffBoundarySnapshot,
 } from "./handoff/experiment.js";
 
 export const ROOM_HANDOFF_SERVER_ENV = "AEGIS_ROOM_HANDOFF_SERVER";
@@ -86,11 +86,11 @@ export type PreparedRoomCheckpoint = {
   session: RoomSessionRecord;
   checkpoint: RoomCheckpointRecord;
   transfer: RoomTransferRecord;
-  state: ReturnType<typeof importStoppedMainBoundary>;
+  state: ReturnType<typeof importHandoffBoundary>;
 };
 
 /**
- * Load and validate the narrow stopped-Main snapshot into an inert destination. Before the
+ * Load and validate a supported room-boundary snapshot into an inert destination. Before the
  * ownership switch, the transfer must be snapshot_saved/destination_validated and target this room;
  * after a process restart it may also be reloaded from owner_switched/destination_active. Callers
  * still have to explicitly activate the room after their transfer coordinator confirms the switch.
@@ -142,8 +142,8 @@ export async function loadPreparedMainCheckpoint(
     return undefined;
 
   try {
-    const snapshot = checkpoint.snapshot as unknown as StoppedMainBoundarySnapshot;
-    const state = importStoppedMainBoundary(snapshot);
+    const snapshot = checkpoint.snapshot as unknown as RoomHandoffBoundarySnapshot;
+    const state = importHandoffBoundary(snapshot);
     if (state.matchId !== input.sessionId) return undefined;
     return { session, checkpoint, transfer, state };
   } catch {

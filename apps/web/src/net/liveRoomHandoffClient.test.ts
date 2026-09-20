@@ -19,6 +19,15 @@ const storage = {
   removeItem: (key: string) => sessionStorage.removeItem(key),
 };
 
+function isolatedStorage() {
+  const values = new Map<string, string>();
+  return {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+}
+
 const logicalSession: LogicalGameSessionIdentity = { gameId: "game-7", ownerEpoch: 4 };
 const oldOwner: SessionOwner = {
   slot: "blue",
@@ -160,7 +169,7 @@ describe("live room handoff client foundation", () => {
     expect(connect).not.toHaveBeenCalled();
   });
 
-  it("keeps the command ID and sequence unchanged when the same queued command is retried", () => {
+  it("keeps the command ID and local tab order unchanged when the same queued command is retried", () => {
     sessionStorage.clear();
     const firstQueue = queue(() => "command-1");
     const original = firstQueue.enqueue({
@@ -179,10 +188,45 @@ describe("live room handoff client foundation", () => {
       awaitingApplication: [original],
     });
     expect(afterReload.reconcile("game-7", [])).toEqual({
-      resend: [original],
-      awaitingApplication: [],
+      resend: [],
+      awaitingApplication: [original],
     });
     expect(sessionStorage.getItem("aegis:liveRoomCommands")).not.toContain("secret-resume-token");
+  });
+
+  it("reconciles individual receipts without resetting other commands and retries commands reported missing", () => {
+    sessionStorage.clear();
+    let nextId = 0;
+    const commands = queue(() => `command-${++nextId}`);
+    const first = commands.enqueue({ gameId: "game-7", ownerEpoch: 4, intent: { type: "ready" } });
+    const second = commands.enqueue({ gameId: "game-7", ownerEpoch: 4, intent: { type: "endPhase" } });
+
+    commands.reconcile("game-7", [
+      { commandId: first.commandId, status: "received" },
+      { commandId: second.commandId, status: "received" },
+    ]);
+    const afterSecondApplied = commands.reconcile("game-7", [{ commandId: second.commandId, status: "applied" }]);
+
+    expect(afterSecondApplied).toEqual({ resend: [], awaitingApplication: [first] });
+    expect(commands.reconcile("game-7", [{ commandId: first.commandId, status: "missing" }])).toEqual({
+      resend: [first],
+      awaitingApplication: [],
+    });
+    const unrelatedPending = commands.enqueue({ gameId: "game-7", ownerEpoch: 4, intent: { type: "endPhase" } });
+    expect(commands.rebasePendingCommandOwnerEpoch("game-7", first.commandId, 5)).toEqual({
+      ...first,
+      ownerEpoch: 5,
+    });
+    expect(commands.commandsToSend("game-7")).toEqual([{ ...first, ownerEpoch: 5 }, unrelatedPending]);
+  });
+
+  it("exposes all outstanding commands for an authenticated reconnect status query", () => {
+    sessionStorage.clear();
+    const commands = queue(() => "command-1");
+    const command = commands.enqueue({ gameId: "game-7", ownerEpoch: 4, intent: { type: "ready" } });
+    commands.reconcile("game-7", [{ commandId: command.commandId, status: "received" }]);
+
+    expect(commands.commandsToReconcile("game-7")).toEqual([command]);
   });
 
   it("keeps a stable per-tab identity and advances its sequence after reload", () => {
@@ -196,6 +240,55 @@ describe("live room handoff client foundation", () => {
 
     expect(secondCommand).toMatchObject({ tabId: "tab-1", tabSequence: 2, commandId: "command-2" });
     expect(secondCommand.ownerEpoch).toBe(5);
+  });
+
+  it("reconciles commands from two tabs by command ID, not their colliding local sequence", () => {
+    const firstTab = createHandoffCommandQueue({
+      storage: isolatedStorage(),
+      idFactory: () => "tab-a-command",
+      tabIdFactory: () => "tab-a",
+    });
+    const secondTab = createHandoffCommandQueue({
+      storage: isolatedStorage(),
+      idFactory: () => "tab-b-command",
+      tabIdFactory: () => "tab-b",
+    });
+    const first = firstTab.enqueue({ gameId: "game-7", ownerEpoch: 4, intent: { type: "ready" } });
+    const second = secondTab.enqueue({ gameId: "game-7", ownerEpoch: 4, intent: { type: "ready" } });
+
+    expect(first.tabSequence).toBe(1);
+    expect(second.tabSequence).toBe(1);
+    expect(first.commandId).not.toBe(second.commandId);
+    expect(firstTab.reconcile("game-7", [{ commandId: first.commandId, sequence: 1, status: "applied" }])).toEqual({
+      resend: [],
+      awaitingApplication: [],
+    });
+    expect(secondTab.reconcile("game-7", [{ commandId: second.commandId, sequence: 2, status: "applied" }])).toEqual({
+      resend: [],
+      awaitingApplication: [],
+    });
+  });
+
+  it("retries an unconfirmed command after reconnect with its original ID despite server sequence assignment", () => {
+    const tabStorage = isolatedStorage();
+    const beforeReconnect = createHandoffCommandQueue({
+      storage: tabStorage,
+      idFactory: () => "stable-command-id",
+      tabIdFactory: () => "tab-a",
+    });
+    const command = beforeReconnect.enqueue({ gameId: "game-7", ownerEpoch: 4, intent: { type: "endPhase" } });
+
+    const afterReconnect = createHandoffCommandQueue({
+      storage: tabStorage,
+      idFactory: () => "unused-after-reconnect",
+      tabIdFactory: () => "unused-tab-id",
+    });
+    const retry = afterReconnect.reconcile("game-7", [
+      { commandId: command.commandId, sequence: 3, status: "missing" },
+    ]);
+
+    expect(retry).toEqual({ resend: [command], awaitingApplication: [] });
+    expect(afterReconnect.commandsToReconcile("game-7")).toEqual([command]);
   });
 
   it("rebases only pending command epochs while retaining command IDs and sequences", () => {

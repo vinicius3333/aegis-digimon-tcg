@@ -454,6 +454,45 @@ describe("BT25-044 Junomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondAngel").instanceId);
   });
 
+  it("preserves the security-removal play when the first trigger has no legal card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-044", as: "junomon" }],
+          hand: [{ card: "BT1-009", as: "wrongTrait" }],
+          deck: [{ card: "BT25-034", as: "laterAngel" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    await advance(s.engine).verb.draw(0, 1);
+    const secondRemoval = advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(decision.promptText).toMatch(/play/i);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await secondRemoval;
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("laterAngel").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("laterAngel").instanceId)).toBe(
+      true,
+    );
+  });
+
   it("can play the matching free-play card from trash", async () => {
     const s = setupEngine(
       {

@@ -6,6 +6,59 @@ import { runAction } from "./runAction.js";
 import "../../../../cards/index.js";
 
 describe("optional target preflight", () => {
+  it("preserves an optional play activation when no loose card is legal", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST1-03", as: "source" }],
+        hand: [{ card: "BT1-009", as: "wrongCard" }],
+      },
+    });
+    await s.ready();
+    const engine = internalsOf(s.engine);
+    const ctx = engine.buildEffectContext(engine.cardSourceOf(s.perm("source").topCard), {});
+
+    await runAction(ctx, {
+      kind: "PlayWithoutCost",
+      target: {
+        filter: { controller: "mine", nameOrTrait: [{ tokens: ["No Such Card"], match: "nameExact" }] },
+        count: 1,
+      },
+      from: ["hand", "trash"],
+      payCost: false,
+      optional: true,
+      preserveOncePerTurnOnDecline: true,
+    });
+
+    expect(s.decisions).toHaveLength(0);
+    expect(ctx).toMatchObject({ lastEffectActed: false, oncePerTurnActivationDeclined: true });
+  });
+
+  it("preserves an optional play activation when no own-stack card is legal", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST1-03", as: "source", under: ["BT1-009"] }],
+      },
+    });
+    await s.ready();
+    const engine = internalsOf(s.engine);
+    const ctx = engine.buildEffectContext(engine.cardSourceOf(s.perm("source").topCard), {});
+
+    await runAction(ctx, {
+      kind: "PlayWithoutCost",
+      target: {
+        filter: { nameOrTrait: [{ tokens: ["No Such Card"], match: "nameExact" }] },
+        count: 1,
+      },
+      fromOwnDigivolutionStack: true,
+      payCost: false,
+      optional: true,
+      preserveOncePerTurnOnDecline: true,
+    });
+
+    expect(s.decisions).toHaveLength(0);
+    expect(ctx).toMatchObject({ lastEffectActed: false, oncePerTurnActivationDeclined: true });
+  });
+
   it("confirms Unsuspend before selecting once from multiple suspended candidates", async () => {
     const s = setupEngine(
       {
