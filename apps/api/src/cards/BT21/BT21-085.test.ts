@@ -22,10 +22,11 @@ describe("BT21-085 Davis Motomiya", () => {
           kind: "trash",
           target: {
             filter: {
-              zone: "digivolutionCards",
-              position: "top",
-              hostFilter: { nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }] },
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }],
             },
+            topCardOnly: true,
           },
         },
       },
@@ -79,7 +80,7 @@ describe("BT21-085 Davis Motomiya", () => {
     await turn;
   });
 
-  it("suspends, trashes only the top Armor Form source, draws, and gains memory", async () => {
+  it("suspends, trashes the Armor Form top card, promotes Veemon, draws, and gains memory", async () => {
     const s = setupEngine(
       {
         0: {
@@ -113,9 +114,10 @@ describe("BT21-085 Davis Motomiya", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
     expect(s.perm("davis").isSuspended).toBe(true);
+    expect(s.perm("armor").topCard.instanceId).toBe(s.inst("top").instanceId);
     expect(s.perm("armor").stack.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
     expect(s.perm("nonArmor").stack).toHaveLength(1);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("armor").instanceId)).toBe(true);
     expect(s.state.memory).toBe(1);
   });
 
@@ -150,12 +152,13 @@ describe("BT21-085 Davis Motomiya", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("cannot pay the Main effect without a stacked Armor Form Digimon", async () => {
+  it("cannot pay the Main effect when an Armor Form has no card beneath it", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT21-085", as: "davis" },
+            { card: "BT21-036", as: "armorWithoutSource" },
             { card: "BT1-019", as: "nonArmor", under: ["BT1-010"] },
           ],
           deck: ["BT1-011"],
@@ -174,6 +177,7 @@ describe("BT21-085 Davis Motomiya", () => {
     ).toEqual({ ok: false, reason: "illegal-target" });
 
     expect(s.perm("davis").isSuspended).toBe(false);
+    expect(s.perm("armorWithoutSource").topCard.cardId).toBe("BT21-036");
     expect(s.perm("nonArmor").stack).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.memory).toBe(0);

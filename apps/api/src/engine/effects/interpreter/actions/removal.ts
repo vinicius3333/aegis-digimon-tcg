@@ -632,14 +632,16 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // below moves loose cards, and a permanent's top card is not loose — it would be skipped
       // in silence. `armorPurge` is the move this wording describes: the top card goes to
       // trash and the digivolution card beneath is promoted (CR §16-19-1). With nothing
-      // beneath to promote there is no card left for the permanent to be, so it is deleted.
+      // beneath it, the permanent has no "stacked card" to trash and the action does nothing.
       if (action.target.topCardOnly === true) {
+        let acted = false;
         for (const permanentId of permanentIds) {
           const permanent = ctx.game.permanentById(permanentId);
-          if (permanent === undefined) continue;
-          if (permanent.stack.length > 0) await ctx.fx.armorPurge?.(permanentId);
-          else await ctx.fx.deletePermanent([permanentId]);
+          if (permanent === undefined || permanent.stack.length === 0) continue;
+          const trashed = await ctx.fx.armorPurge?.(permanentId);
+          if (trashed !== undefined) acted = true;
         }
+        ctx.lastEffectActed = acted;
         return false;
       }
       // A field-scoped Trash action names a card in a permanent's stack (the IR uses the

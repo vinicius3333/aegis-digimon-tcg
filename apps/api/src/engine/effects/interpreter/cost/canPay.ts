@@ -33,6 +33,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
   }
+  if (cost.kind === "trash" && cost.target?.topCardOnly === true) {
+    const candidates = candidatePermanents(ctx, cost.target).filter((permanent) => permanent.stack.length > 0);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return required > 0 && candidates.length >= required;
+  }
   if (
     cost.kind === "trash" &&
     cost.target?.filter.zone === "digivolutionCards" &&

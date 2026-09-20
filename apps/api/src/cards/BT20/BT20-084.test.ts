@@ -44,14 +44,14 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
     }
   });
 
-  it("places this Digimon's top digivolution card on top of security at end of all turns", () => {
+  it("places this Digimon's visible top card on top of security at end of all turns", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfAllTurns")).toMatchObject({
       actions: [
         {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
-          fromDigivolutionTop: true,
+          detachPermanentTop: true,
           toTop: true,
           source: { isSelf: true },
         },
@@ -224,7 +224,7 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
     }
   });
 
-  it("moves its top stack card to the top of security at End of All Turns", async () => {
+  it("moves Sistermon Ciel itself to the top of security and promotes its source", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT20-084", under: [{ card: "BT20-047", as: "stackTop" }], as: "awakened" }],
@@ -236,9 +236,10 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
-    await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("stackTop").instanceId);
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("awakened").instanceId);
 
-    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("stackTop").instanceId);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("awakened").instanceId);
+    expect(s.perm("awakened").topCard.instanceId).toBe(s.inst("stackTop").instanceId);
     expect(s.perm("awakened").stack).toHaveLength(0);
   });
 

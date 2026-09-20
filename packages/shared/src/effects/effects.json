@@ -70313,7 +70313,7 @@
             "op": "placeAsSecurity",
             "controller": "mine",
             "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "fromDigivolutionTop": true,
+            "detachPermanentTop": true,
             "toTop": true
           }
         ]
@@ -77072,15 +77072,12 @@
               "kind": "trash",
               "target": {
                 "filter": {
-                  "zone": "digivolutionCards",
-                  "position": "top",
-                  "hostFilter": {
-                    "controller": "mine",
-                    "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Armor Form"], "match": "trait" }]
-                  }
+                  "controller": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Armor Form"], "match": "trait" }]
                 },
-                "count": 1
+                "count": 1,
+                "topCardOnly": true
               },
               "raw": "trashing the top stacked card of 1 of your [Armor Form] trait Digimon"
             },
@@ -99908,7 +99905,7 @@
                   },
                   "count": 1
                 },
-                "fromDigivolutionTop": true,
+                "detachPermanentTop": true,
                 "toTop": true
               }
             ]
@@ -132116,10 +132113,7 @@
         "actions": [
           {
             "kind": "Trash",
-            "target": {
-              "filter": { "zone": "digivolutionCards", "hostFilter": { "isSelfRef": true }, "position": "top" },
-              "count": 1
-            }
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true, "topCardOnly": true }
           },
           {
             "kind": "Trash",
@@ -137471,10 +137465,8 @@
         "trigger": "EndOfOpponentsTurn",
         "actions": [
           {
-            "kind": "TrashDigivolution",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "amount": 1,
-            "fromTop": true,
+            "kind": "Trash",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true, "topCardOnly": true },
             "condition": {
               "kind": "selfTopHasText",
               "filter": { "nameOrTrait": [{ "tokens": ["Belphemon: Sleep Mode"], "match": "name" }] },

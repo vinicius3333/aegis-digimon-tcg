@@ -34,7 +34,7 @@ describe("BT9-083 Omnimon: Merciful Mode", () => {
         {
           trigger: "StartOfYourTurn",
           actions: [
-            { kind: "Trash", target: { filter: { zone: "digivolutionCards", position: "top" } } },
+            { kind: "Trash", target: { filter: { isSelfRef: true }, topCardOnly: true } },
             {
               kind: "Trash",
               condition: { kind: "ifThisEffectActed" },
@@ -78,7 +78,7 @@ describe("BT9-083 Omnimon: Merciful Mode", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("trashes its top source and the opponent's top security instead of moving security to hand", async () => {
+  it("trashes itself, promotes its top source, and trashes the opponent's top security", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -94,10 +94,24 @@ describe("BT9-083 Omnimon: Merciful Mode", () => {
 
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("mercifulMode"));
 
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("topSource").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("mercifulMode").instanceId)).toBe(true);
+    expect(s.perm("mercifulMode").topCard.instanceId).toBe(s.inst("topSource").instanceId);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("securityTop").instanceId)).toBe(true);
     expect(s.state.players[1]!.hand).toHaveLength(0);
+  });
+
+  it("does nothing with no card beneath it and leaves the opponent's security untouched", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT9-083", as: "mercifulMode" }] },
+      1: { security: [{ card: "BT1-010", as: "securityTop" }] },
+    });
+
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("mercifulMode"));
+
+    expect(s.perm("mercifulMode").topCard.instanceId).toBe(s.inst("mercifulMode").instanceId);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("securityTop").instanceId]);
   });
 
   it("publishes opponent trash identities, honors bottom order, and returns Digi-Eggs to the egg deck", async () => {

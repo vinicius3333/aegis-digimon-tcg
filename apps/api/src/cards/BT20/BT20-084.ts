@@ -92,7 +92,7 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          fromDigivolutionTop: true,
+          detachPermanentTop: true,
           toTop: true,
         },
       ],

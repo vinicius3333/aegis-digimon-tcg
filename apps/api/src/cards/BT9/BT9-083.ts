@@ -31,8 +31,10 @@ export const compiled: CompiledCard = {
         {
           kind: "Trash",
           target: {
-            filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true }, position: "top" },
+            filter: { isSelfRef: true },
             count: 1,
+            isSelf: true,
+            topCardOnly: true,
           },
         },
         {

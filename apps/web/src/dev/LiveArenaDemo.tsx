@@ -65,7 +65,7 @@ export function LiveArenaDemo() {
             <option value="arena">Attack steps · Counter/Blocker</option>
             <option value="arena-aegiochus-dark-assembly">Aegiochus Dark · Wizardmon Assembly</option>
             <option value="arena-alliance-20">Alliance · 20 Digimon</option>
-            <option value="arena-bt21-davis-top-stack">BT21 Davis · top stacked card bug</option>
+            <option value="arena-bt21-davis-top-stack">BT21 Davis · top stacked card regression</option>
             <option value="arena-face-up-security">Security · opponent face-up cards</option>
             <option value="arena-ex13-grademon-immunity">EX13 Alphamon · Assembly from trash</option>
             <option value="arena-ex13-giromon-block-triggers">EX13 Giromon · 6 block triggers</option>
@@ -98,8 +98,8 @@ export function LiveArenaDemo() {
                 : "End breeding, attack with Seadramon, and choose 1 of the other 19 Digimon for Alliance."
               : scenario === "arena-bt21-davis-top-stack"
                 ? portuguese
-                  ? "Encerre a criação e ative o efeito Main de Davis. O bug manda Veemon ao lixo e mantém Magnamon no campo."
-                  : "End breeding and activate Davis's Main effect. The bug trashes Veemon and leaves Magnamon in play."
+                  ? "Encerre a criação e ative o efeito Main de Davis. Magnamon deve ir ao lixo e Veemon deve permanecer no campo."
+                  : "End breeding and activate Davis's Main effect. Magnamon should be trashed and Veemon should remain in play."
                 : scenario === "arena-seven-code-link-dp"
                   ? portuguese
                     ? "DP esperado: Medicmon 7000, Globemon 13000 e Weatherdramon 8000. Compare os valores exibidos."

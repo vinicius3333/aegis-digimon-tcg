@@ -151,16 +151,15 @@ const compiled: CompiledCard = {
       trigger: "EndOfOpponentsTurn",
       actions: [
         {
-          kind: "TrashDigivolution",
+          kind: "Trash",
           target: {
             filter: {
               isSelfRef: true,
             },
             count: 1,
             isSelf: true,
+            topCardOnly: true,
           },
-          amount: 1,
-          fromTop: true,
           condition: {
             kind: "selfTopHasText",
             filter: {

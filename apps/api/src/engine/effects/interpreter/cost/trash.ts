@@ -46,6 +46,20 @@ export async function payTrashCost(ctx: EffectContext, cost: Cost, out?: { paidC
     return moved.length === want;
   }
   if (!cost.target) return false;
+  if (cost.target.topCardOnly === true) {
+    const permanentIds = await resolvePermanentTargets(ctx, cost.target, {
+      eligible: (permanentId) => (ctx.game.permanentById(permanentId)?.stack.length ?? 0) > 0,
+    });
+    const required = cost.target.count === "all" ? permanentIds.length : cost.target.count;
+    if (required <= 0 || permanentIds.length < required) return false;
+    let movedCount = 0;
+    for (const permanentId of permanentIds.slice(0, required)) {
+      const card = await ctx.fx.armorPurge?.(permanentId);
+      if (card !== undefined) movedCount += 1;
+    }
+    if (out) out.paidCount = movedCount;
+    return movedCount === required;
+  }
   // "By trashing (the top/bottom card of) your/their security stack" — a SECURITY-trash
   // compiler does not always tag the filter with zone:"security" (BT18-082's "by trashing
   // the bottom card of your security stack"), so the raw description is the fallback

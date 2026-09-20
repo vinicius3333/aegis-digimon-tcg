@@ -58,9 +58,8 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
       trigger: "EndOfOpponentsTurn",
       actions: [
         {
-          kind: "TrashDigivolution",
-          amount: 1,
-          fromTop: true,
+          kind: "Trash",
+          target: { filter: { isSelfRef: true }, topCardOnly: true },
           condition: {
             kind: "selfTopHasText",
             filter: { nameOrTrait: [{ tokens: ["Belphemon: Sleep Mode"], match: "name" }] },
@@ -423,9 +422,9 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
 
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("rageSource").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("sleep").instanceId]);
     expect(s.perm("sleep").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("bottom").instanceId]);
-    expect(s.perm("sleep").topCard!.cardId).toBe("EX10-021");
+    expect(s.perm("sleep").topCard.instanceId).toBe(s.inst("rageSource").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

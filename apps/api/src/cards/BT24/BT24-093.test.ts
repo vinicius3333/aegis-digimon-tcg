@@ -25,7 +25,7 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
         {
           kind: "SecurityManipulation",
           op: "addTop",
-          fromDigivolutionTop: true,
+          detachPermanentTop: true,
           source: { filter: { nameOrTrait: [{ tokens: ["Aegiochusmon", "Jupitermon"], match: "nameExact" }] } },
         },
       ],
@@ -190,9 +190,9 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     s.perm("option").placedByEffect = true;
 
     await advance(s.engine).verb.trashFromSecurity(0, 1);
-    await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("stacked").instanceId);
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("host").instanceId);
 
-    expect(s.perm("host").topCard.cardId).toBe("BT24-014");
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("stacked").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
 
@@ -244,6 +244,8 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     await s.ready();
     s.perm("option").placedByEffect = true;
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+    const hostInstanceId = s.inst("host").instanceId;
+    const stackedInstanceId = s.inst("stacked").instanceId;
 
     expect(
       s.engine.applyIntent(1, {
@@ -252,10 +254,10 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("stacked").instanceId);
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === hostInstanceId);
 
-    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("stacked").instanceId);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(hostInstanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
-    expect(s.perm("host").topCard.cardId).toBe("BT24-014");
+    expect(s.perm("host").topCard.instanceId).toBe(stackedInstanceId);
   });
 });

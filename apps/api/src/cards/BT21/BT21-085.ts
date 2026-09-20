@@ -42,20 +42,17 @@ export const compiled: CompiledCard = {
             kind: "trash",
             target: {
               filter: {
-                zone: "digivolutionCards",
-                position: "top",
-                hostFilter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["Armor Form"],
-                      match: "trait",
-                    },
-                  ],
-                },
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Armor Form"],
+                    match: "trait",
+                  },
+                ],
               },
               count: 1,
+              topCardOnly: true,
             },
             raw: "trashing the top stacked card of 1 of your [Armor Form] trait Digimon",
           },
