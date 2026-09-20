@@ -3179,7 +3179,7 @@ Score: **8/10 provisional**. All six focused tests pass with public evolution, o
 - Public evolution from EX7-033 pays exactly 3, draws the exact deck card, preserves top/under identity, and suspends an own ally.
 - Suspending that ally grants the evolved stack protection; a publicly played opposing BT1-070 resolves its Digimon suspension effect while GrandGalemon remains unsuspended.
 - Selecting the opponent's Digimon instead suspends it but does not grant protection, proving the conditional branch.
-- A real end-of-turn Vortex declaration attacks and deletes an initially unsuspended opponent Digimon.
+- A real end-of-turn Vortex declaration attacks and deletes a suspended opponent Digimon.
 - A host carrying EX7-034 unsuspends after its first Digimon-target attack but remains suspended after its second same-turn attack, proving the shared condition and frequency.
 - A wrong-color level 4 source is rejected without payment, draw, hand, or stack mutation.
 - No injected timing, legacy `registerCard`, diagnostic output, or out-of-scope production edit remains.
@@ -3251,7 +3251,7 @@ Score: **8/10 provisional**. All eight focused tests pass with public evolution,
 - Public evolution from EX7-035 pays exactly 4, draws the exact card, preserves top/under identity, suspends an own ally, and moves the exact suspended opponent to the bottom behind the existing deck card.
 - Choosing the opponent for suspension does not bottom-deck it because no own Digimon was suspended.
 - Choosing an already-suspended own Digimon likewise does not satisfy the causal clause, so the opponent remains.
-- A real end-of-turn Vortex attack legally targets and deletes an initially unsuspended opponent.
+- A real end-of-turn Vortex attack legally targets and deletes a suspended opponent.
 - A public player attack performs exactly two Security checks through Security Attack +1.
 - The live observer sees Bird Dragon as an effective trait.
 - A non-green level 5 evolution is rejected without memory, draw, hand, or stack mutation.

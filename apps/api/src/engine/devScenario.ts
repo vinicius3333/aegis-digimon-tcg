@@ -344,7 +344,7 @@ function layVortexdramonScenario(state: GameState, decks: readonly [Decklist, De
   state.memory = 0;
 }
 
-/** Vortex target picker: only the opponent's unsuspended Digimon is a legal attack target. */
+/** Vortex target picker: only the opponent's suspended Digimon is a legal attack target. */
 function layVortexTargetLegalityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -365,11 +365,11 @@ function layVortexTargetLegalityScenario(state: GameState, decks: readonly [Deck
   if (bot !== undefined) {
     const validTarget = establishedDigimon(1, ["BT1-080"], "-vortex-valid-target");
     validTarget.permanentId = "opponent-vortex-valid-target";
+    validTarget.isSuspended = true;
     placePermanent(bot, validTarget);
 
     const invalidTarget = establishedDigimon(1, ["BT1-081"], "-vortex-invalid-target");
     invalidTarget.permanentId = "opponent-vortex-invalid-target";
-    invalidTarget.isSuspended = true;
     placePermanent(bot, invalidTarget);
   }
 

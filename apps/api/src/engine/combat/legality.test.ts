@@ -353,17 +353,24 @@ describe("legality reads the continuous ledger (restrictions + ＜Blocker＞)", 
 // illegal unless a VortexCanAttackPlayers grant relaxes it. This is the CONSUME site for the
 // otherwise-inert ＜Vortex＞ keyword — without it the keyword grant would be a dead store (INRT-01).
 describe("base ＜Vortex＞ attack subsystem (keyword consume site)", () => {
-  function reader(opts: { keywords?: [string, string][]; vortexCanAttackPlayers?: string[] }): {
+  function reader(opts: {
+    keywords?: [string, string][];
+    vortexCanAttackPlayers?: string[];
+    canAttackUnsuspended?: string[];
+  }): {
     hasRestriction: (p: string, r: string) => boolean;
     hasKeyword: (p: string, k: string) => boolean;
     vortexCanAttackPlayers: (p: string) => boolean;
+    canAttackUnsuspended: (p: string) => boolean;
   } {
     const ks = new Set((opts.keywords ?? []).map(([p, k]) => `${p}|${k}`));
     const vp = new Set(opts.vortexCanAttackPlayers ?? []);
+    const au = new Set(opts.canAttackUnsuspended ?? []);
     return {
       hasRestriction: () => false,
       hasKeyword: (p, k) => ks.has(`${p}|${k}`),
       vortexCanAttackPlayers: (p) => vp.has(p),
+      canAttackUnsuspended: (p) => au.has(p),
     };
   }
 
@@ -400,7 +407,7 @@ describe("base ＜Vortex＞ attack subsystem (keyword consume site)", () => {
     ).toBeNull();
   });
 
-  it("a ＜Vortex＞ attack against an opponent's UNSUSPENDED Digimon is legal (core ability, §16-33-1)", () => {
+  it("a ＜Vortex＞ attack against an opponent's UNSUSPENDED Digimon is illegal without a separate grant", () => {
     const { state, access } = makeState();
     const attacker = digimonPermanent(0, VORTEX_DIGIMON);
     const defender = digimonPermanent(1, DIGIMON_B, { suspended: false });
@@ -415,7 +422,7 @@ describe("base ＜Vortex＞ attack subsystem (keyword consume site)", () => {
         reader({}) as never,
         true,
       ),
-    ).toBeNull();
+    ).toBe("illegal-target");
     // Without isVortex, the same unsuspended target stays illegal (base rule unaffected).
     expect(
       canAttackTarget(
@@ -434,6 +441,19 @@ describe("base ＜Vortex＞ attack subsystem (keyword consume site)", () => {
     state.players[0]?.battleArea.push(attacker);
     const r = reader({ vortexCanAttackPlayers: [attacker.permanentId] });
     expect(canAttackTarget(access, 0, attacker, { kind: "player" }, r as never, true)).toBeNull();
+  });
+
+  it("a separate unsuspended-target grant lets a ＜Vortex＞ attack an unsuspended Digimon", () => {
+    const { state, access } = makeState();
+    const attacker = digimonPermanent(0, VORTEX_DIGIMON);
+    const defender = digimonPermanent(1, DIGIMON_B, { suspended: false });
+    state.players[0]?.battleArea.push(attacker);
+    state.players[1]?.battleArea.push(defender);
+    const r = reader({ canAttackUnsuspended: [attacker.permanentId] });
+
+    expect(
+      canAttackTarget(access, 0, attacker, { kind: "permanent", permanentId: defender.permanentId }, r as never, true),
+    ).toBeNull();
   });
 
   it("a ＜Vortex＞ declaration from a Digimon WITHOUT ＜Vortex＞ is illegal (keyword required)", () => {

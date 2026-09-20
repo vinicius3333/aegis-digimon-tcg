@@ -5,7 +5,7 @@ import { BLUE_DECK, RED_DECK } from "./testDecks.js";
 import "../cards/index.js";
 
 describe("arena-vortex-target-legality dev scenario", () => {
-  it("stages one unsuspended valid target and one suspended invalid target", () => {
+  it("stages one suspended valid target and one unsuspended invalid target", () => {
     const state = new GameState();
     state.players.push(new PlayerState(), new PlayerState());
 
@@ -21,8 +21,8 @@ describe("arena-vortex-target-legality dev scenario", () => {
       }),
     ]);
     expect([...state.players[1]!.battleArea]).toEqual([
-      expect.objectContaining({ permanentId: "opponent-vortex-valid-target", isSuspended: false }),
-      expect.objectContaining({ permanentId: "opponent-vortex-invalid-target", isSuspended: true }),
+      expect.objectContaining({ permanentId: "opponent-vortex-valid-target", isSuspended: true }),
+      expect.objectContaining({ permanentId: "opponent-vortex-invalid-target", isSuspended: false }),
     ]);
   });
 });

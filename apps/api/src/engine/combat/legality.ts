@@ -275,29 +275,24 @@ export function canAttackTarget(
     if (reader?.hasRestriction(attacker.permanentId, "attackOnlySuspendedDigimon")) {
       return "illegal-target";
     }
-    // Base rule: only suspended Digimon may be attacked — UNLESS the attacker carries a
-    // "can also attack unsuspended Digimon" grant (rule implementation,
-    // e.g. ST12-08), or this is a ＜Vortex＞ declaration (Comprehensive Rules §16-33-1:
-    // ＜Vortex＞'s core ability IS "attack an opponent's Digimon" — unsuspended included,
-    // no separate grant needed), either of which relaxes the suspension requirement.
+    // Base rule: only suspended Digimon may be attacked, unless the attacker carries a
+    // separate "can also attack unsuspended Digimon" grant (for example, ST12-08).
+    // ＜Vortex＞ changes when the attack may happen and lets a newly played Digimon attack;
+    // it does not relax the normal suspension requirement for the target.
     const defenderLevel =
       defender.topCard === undefined ? undefined : getCardDefinition(defender.topCard.cardId)?.level;
     const exactGrantAllows = reader?.canAttackUnsuspendedTarget?.(attacker.permanentId, {
       level: defenderLevel,
       hasDigivolutionCards: defender.stack.length > 0,
     });
-    if (isVortex !== true) {
-      if (reader?.canAttackUnsuspendedTarget !== undefined) {
-        if (exactGrantAllows !== true) return "illegal-target";
-      } else if (reader?.canAttackUnsuspended?.(attacker.permanentId) !== true) {
-        return "illegal-target";
-      }
+    if (reader?.canAttackUnsuspendedTarget !== undefined) {
+      if (exactGrantAllows !== true) return "illegal-target";
+    } else if (reader?.canAttackUnsuspended?.(attacker.permanentId) !== true) {
+      return "illegal-target";
     }
     // A "with no digivolution cards" grant (EX1-016/BT7-095) only relaxes the rule for a
     // defender whose digivolution stack is empty.
-    // Vortex's own unsuspended-target permission carries no such restriction.
     if (
-      isVortex !== true &&
       exactGrantAllows === undefined &&
       reader?.canAttackUnsuspendedRequiresNoDigivolution?.(attacker.permanentId) === true &&
       defender.stack.length > 0

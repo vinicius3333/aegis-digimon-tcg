@@ -114,11 +114,15 @@ describe("＜Vortex＞ end-of-turn attack synthesis", () => {
     expect(endOfTurn("BT1-009")).toHaveLength(1);
   });
 
-  it("accepts the optional end-of-turn Vortex attack against an unsuspended Digimon", async () => {
+  it("accepts the optional end-of-turn Vortex attack against a suspended Digimon", async () => {
     const s = setupEngine(
       {
         0: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "BT20-101", as: "vortexer", dp: 8000 }] },
-        1: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "BT1-009", as: "target", dp: 1000 }] },
+        1: {
+          hand: ["AD1-001"],
+          deck: ["AD1-001"],
+          battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

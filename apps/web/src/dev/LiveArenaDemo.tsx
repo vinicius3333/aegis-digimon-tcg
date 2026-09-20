@@ -82,8 +82,8 @@ export function LiveArenaDemo() {
               : "Expected DP: Medicmon 7000, Globemon 13000, and Weatherdramon 8000. Compare the displayed values."
             : scenario === "arena-vortex-target-legality"
             ? portuguese
-              ? "Encerre o turno e aceite Vortex. Só o Digimon não suspenso do oponente deve ser um alvo válido."
-              : "End the turn and accept Vortex. Only the opponent's unsuspended Digimon should be a valid target."
+              ? "Encerre o turno e aceite Vortex. Só o Digimon suspenso do oponente deve ser um alvo válido."
+              : "End the turn and accept Vortex. Only the opponent's suspended Digimon should be a valid target."
             : scenario === "arena-suspend-lock-block"
               ? portuguese
                 ? "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado."

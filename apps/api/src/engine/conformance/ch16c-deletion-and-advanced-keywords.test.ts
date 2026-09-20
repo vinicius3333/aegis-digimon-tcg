@@ -608,10 +608,10 @@ describe("§16-32 <Scapegoat> (comprehensive-0251)", () => {
 });
 
 describe("§16-33 <Vortex> (comprehensive-0252)", () => {
-  it("16-33-1: a <Vortex>-mode attack may target an opponent's UNSUSPENDED Digimon", () => {
+  it("16-33-1: <Vortex> does not bypass the normal suspended-target requirement", () => {
     cite(
       "comprehensive-0252",
-      "16-33-1 <Vortex>: allows this Digimon to attack an opponent's Digimon, unsuspended included",
+      "16-33-1 <Vortex>: allows an end-of-turn attack and same-turn attack, but doesn't grant unsuspended targeting",
       "8c22c20a35de0e99fda6f0d9557c5f6ef178d32d9de0e47ee2aed70127b1aa5c",
     );
 
@@ -634,7 +634,7 @@ describe("§16-33 <Vortex> (comprehensive-0252)", () => {
         undefined,
         true,
       ),
-    ).toBeNull();
+    ).toBe("illegal-target");
   });
 
   it("NOW MET: 16-33-1's 'also allows attacking the same turn the Digimon was played' relax summoning sickness for a Vortex attack", () => {

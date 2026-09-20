@@ -121,7 +121,7 @@ describe("BT26-046 Gryphonmon", () => {
     await loop;
   });
 
-  it("uses Vortex and Piercing in a real battle against an unsuspended Digimon", async () => {
+  it("uses Vortex and Piercing in a real battle against a suspended Digimon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -130,7 +130,7 @@ describe("BT26-046 Gryphonmon", () => {
           battleArea: [{ card: "BT26-046", as: "gryphonmon" }],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "unsuspendedTarget", suspended: false, dp: 3000 }],
+          battleArea: [{ card: "BT1-009", as: "suspendedTarget", suspended: true, dp: 3000 }],
           security: [{ card: "BT1-012", as: "security" }],
         },
       },

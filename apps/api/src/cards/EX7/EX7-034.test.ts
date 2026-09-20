@@ -158,11 +158,11 @@ describe("EX7-034 GrandGalemon", () => {
     expect(observe(s.engine).isRestrictedByEffect(s.perm("base"), "beAffected", "Digimon")).toBe(false);
   });
 
-  it("uses Vortex at end of turn to attack an unsuspended opposing Digimon", async () => {
+  it("uses Vortex at end of turn to attack a suspended opposing Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX7-034", as: "vortex", dp: 7000 }], deck: ["BT1-009"] },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }], deck: ["BT1-011"] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 3000, suspended: true }], deck: ["BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

@@ -11,8 +11,7 @@ import "../../cards/index.js";
  *   Digimon to attack in the same turn it was played.
  *
  * combat/legality.ts's `canAttackerDeclare` gated summoning sickness on `hasRush`
- * alone; a Vortex-only Digimon that entered the field this turn was rejected before
- * the (correctly implemented) unsuspended-target relaxation was ever reached. Real
+ * alone; a Vortex-only Digimon that entered the field this turn was rejected. Real
  * card: BT20-101, printed <Vortex>, no <Rush>.
  */
 
@@ -33,7 +32,8 @@ describe("<Vortex> (Comprehensive Rules §16-33) — same-turn-attack grant", ()
     const vortexer = digimon(0, 8000, VORTEX_CARD); // printed <Vortex>, no <Rush>
     vortexer.enterFieldTurnCount = s.state.turnCount; // entered THIS turn
     p0.battleArea.push(vortexer);
-    const target = digimon(1, 3000, NON_KEYWORD_CARD); // unsuspended -- only a Vortex attack may hit it
+    const target = digimon(1, 3000, NON_KEYWORD_CARD);
+    target.isSuspended = true;
     p1.battleArea.push(target);
     await s.engine.recomputeContinuousEffects(); // pick up the printed <Vortex> grant
 

@@ -119,21 +119,14 @@ describe("EX11-062 — ＜Vortex＞ player-attack legality (real end-of-turn flo
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  it("control: an UNSUSPENDED opponent Digimon fails the condition => grant not derived => Digimon only", async () => {
+  it("an UNSUSPENDED opponent Digimon prevents both the player grant and the base Vortex attack", async () => {
     const { s, runTurn } = vortexTurn({ withShoto: true, opponentDigimon: { suspended: false } });
-    const vortexAttacker = s.perm("vortexAttacker");
-    const opponentDigimonId = s.perm("opponentDigimon").permanentId;
     const { grantAtMain } = await runTurn();
 
     expect(grantAtMain).toBe(false);
-    expect(declaredAttacks(s)).toEqual([
-      expect.objectContaining({
-        attackerPermanentId: vortexAttacker.permanentId,
-        target: { kind: "permanent", permanentId: opponentDigimonId },
-      }),
-    ]);
+    expect(declaredAttacks(s)).toEqual([]);
     expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("control: a SUSPENDED opponent Digimon still satisfies the condition => grant derived => player legal", async () => {
