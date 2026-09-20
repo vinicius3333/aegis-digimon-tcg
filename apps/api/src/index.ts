@@ -78,7 +78,7 @@ const cluster = createClusterRuntime();
 setRoomCodeDirectory(cluster.roomCodes);
 
 const configuredSlot = process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy";
-if (!["blue", "green", "legacy"].includes(configuredSlot)) {
+if (!/^(?:blue|green|legacy|g-[a-f0-9]{12})$/.test(configuredSlot)) {
   throw new Error(`Invalid AEGIS_DEPLOYMENT_SLOT: ${configuredSlot}`);
 }
 const deploymentRuntime = createDeploymentRuntime({

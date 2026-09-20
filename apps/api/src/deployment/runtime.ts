@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import type { Express, NextFunction, Request, Response } from "express";
 
-export type DeploymentSlot = "blue" | "green" | "legacy";
+export type DeploymentSlot = "blue" | "green" | "legacy" | `g-${string}`;
 
 export interface DeploymentRuntimeOptions {
   slot: DeploymentSlot;

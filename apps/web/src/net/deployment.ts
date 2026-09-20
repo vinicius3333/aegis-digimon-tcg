@@ -1,4 +1,4 @@
-export type DeploymentSlot = "blue" | "green";
+export type DeploymentSlot = "blue" | "green" | `g-${string}`;
 
 export interface DeploymentRevision {
   slot: DeploymentSlot;
@@ -7,6 +7,7 @@ export interface DeploymentRevision {
 
 export interface DeploymentManifest {
   version: 1;
+  webRevision?: string;
   active: DeploymentRevision;
   draining: DeploymentRevision[];
 }
@@ -42,7 +43,13 @@ export class DeploymentRefreshScheduledError extends Error {
 }
 
 export function parseDeploymentManifest(input: unknown): DeploymentManifest {
-  if (!isRecord(input) || input.version !== 1 || !isRevision(input.active) || !Array.isArray(input.draining)) {
+  if (
+    !isRecord(input) ||
+    input.version !== 1 ||
+    (input.webRevision !== undefined && !isSafeRevision(input.webRevision)) ||
+    !isRevision(input.active) ||
+    !Array.isArray(input.draining)
+  ) {
     throw invalidManifest();
   }
   const draining = input.draining;
@@ -51,6 +58,7 @@ export function parseDeploymentManifest(input: unknown): DeploymentManifest {
   if (new Set(slots).size !== slots.length) throw invalidManifest();
   return {
     version: 1,
+    ...(typeof input.webRevision === "string" ? { webRevision: input.webRevision } : {}),
     active: input.active,
     draining,
   };
@@ -118,13 +126,14 @@ function ensureDeploymentRevision({
   bundleRevision: string | undefined;
   navigation: NavigationLike;
 }): boolean {
-  if (!bundleRevision || bundleRevision === "development" || manifest.active.revision === bundleRevision) return true;
+  const currentWebRevision = manifest.webRevision ?? manifest.active.revision;
+  if (!bundleRevision || bundleRevision === "development" || currentWebRevision === bundleRevision) return true;
 
   const reloadUrl = new URL(navigation.href);
-  if (reloadUrl.searchParams.get("aegis-revision") === manifest.active.revision) {
+  if (reloadUrl.searchParams.get("aegis-revision") === currentWebRevision) {
     throw new Error("The current web version does not match the active deployment");
   }
-  reloadUrl.searchParams.set("aegis-revision", manifest.active.revision);
+  reloadUrl.searchParams.set("aegis-revision", currentWebRevision);
   navigation.replace(reloadUrl.toString());
   return false;
 }
@@ -146,10 +155,14 @@ export function deploymentEndpoint(
 function isRevision(value: unknown): value is DeploymentRevision {
   return (
     isRecord(value) &&
-    (value.slot === "blue" || value.slot === "green") &&
-    typeof value.revision === "string" &&
-    value.revision.length > 0
+    typeof value.slot === "string" &&
+    /^(?:blue|green|g-[a-f0-9]{12})$/.test(value.slot) &&
+    isSafeRevision(value.revision)
   );
+}
+
+function isSafeRevision(value: unknown): value is string {
+  return typeof value === "string" && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

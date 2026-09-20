@@ -33,14 +33,14 @@ function router({
   blue: ColyseusClientPort;
   green: ColyseusClientPort;
 }): AegisConnectionRouter {
-  const clients: Record<DeploymentSlot, ColyseusClientPort> = { blue, green };
+  const clients: Record<string, ColyseusClientPort> = { blue, green };
   return new AegisConnectionRouter({
     loadManifest: async () => manifest,
     endpointForSlot: (slot) => ({
       http: `https://example.test/api/${slot}`,
       websocket: `wss://example.test/api/${slot}`,
     }),
-    createClient: (_endpoint, slot) => clients[slot],
+    createClient: (_endpoint, slot) => clients[slot]!,
     fetcher: vi.fn(async () => new Response("{}", { status: 404 })),
   });
 }
@@ -141,7 +141,7 @@ describe("room-scoped deployment affinity", () => {
     });
     const greenRoom = room("green-bot-room");
     const greenCreate = vi.fn(async () => greenRoom);
-    const clients = {
+    const clients: Record<string, ColyseusClientPort> = {
       blue: clientPort({ create: blueCreate }),
       green: clientPort({ create: greenCreate }),
     };
@@ -151,7 +151,7 @@ describe("room-scoped deployment affinity", () => {
         http: `https://example.test/api/${slot}`,
         websocket: `wss://example.test/api/${slot}`,
       }),
-      createClient: (_endpoint, slot) => clients[slot],
+      createClient: (_endpoint, slot) => clients[slot]!,
       fetcher: vi.fn(async () => new Response("{}", { status: 404 })),
     });
 
@@ -230,7 +230,7 @@ describe("room-scoped deployment affinity", () => {
     });
     const greenRoom = room("green-room");
     const greenJoinOrCreate = vi.fn(async () => greenRoom);
-    const clients = {
+    const clients: Record<string, ColyseusClientPort> = {
       blue: clientPort({ joinOrCreate: blueJoinOrCreate }),
       green: clientPort({ joinOrCreate: greenJoinOrCreate }),
     };
@@ -240,7 +240,7 @@ describe("room-scoped deployment affinity", () => {
         http: `https://example.test/api/${slot}`,
         websocket: `wss://example.test/api/${slot}`,
       }),
-      createClient: (_endpoint, slot) => clients[slot],
+      createClient: (_endpoint, slot) => clients[slot]!,
       fetcher: vi.fn(async () => new Response("{}", { status: 404 })),
     });
 

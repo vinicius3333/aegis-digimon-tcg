@@ -74,7 +74,7 @@ export function createGateway({ state, upstreamFor = (slot, index) => `http://ae
   function target(request, manifest) {
     syncHealthRevisions(manifest);
     const url = new URL(request.url, "http://gateway");
-    const slotRoute = /^\/api\/(blue|green)(?:\/p([123]))?(?=\/|$)/.exec(url.pathname);
+    const slotRoute = /^\/api\/(blue|green|g-[a-f0-9]{12})(?:\/p([123]))?(?=\/|$)/.exec(url.pathname);
     const legacyOwner = /^\/p([123])(?=\/|$)/.exec(url.pathname);
     const slot = slotRoute?.[1] ?? manifest.active.slot;
     if (!isApiPath(url.pathname, request.headers) && !slotRoute && !legacyOwner) return undefined;
@@ -185,7 +185,7 @@ export function createGateway({ state, upstreamFor = (slot, index) => `http://ae
       return response.end();
     }
     const assets = pathname.startsWith("/assets/");
-    const root = resolve(state, assets ? "assets" : `releases/${manifest.active.revision}/web`);
+    const root = resolve(state, assets ? "assets" : `releases/${manifest.webRevision ?? manifest.active.revision}/web`);
     let file = resolve(root, `.${assets ? pathname.slice(7) : pathname}`);
     if (!file.startsWith(root + "/") && file !== root) return json(response, 404, { error: "Not found" });
     let info;
@@ -215,6 +215,17 @@ export function createGateway({ state, upstreamFor = (slot, index) => `http://ae
       const manifest = readManifest(state);
       const url = new URL(request.url, "http://gateway");
       if (url.pathname === "/deployment/manifest.json") {
+        const bundleRevision = request.headers["x-aegis-web-revision"];
+        if (manifest.webRevision && typeof bundleRevision === "string" && bundleRevision !== manifest.webRevision) {
+          // Bundles shipped before dynamic generations only understand blue/green.
+          // Give them a parseable revision mismatch so they reload the current web
+          // release before they ever try to route matchmaking with this manifest.
+          return json(response, 200, {
+            version: 1,
+            active: { slot: "green", revision: manifest.webRevision },
+            draining: [],
+          });
+        }
         return json(response, 200, manifest);
       }
       if (/^\/deployment(\/|$)/.test(url.pathname)) {

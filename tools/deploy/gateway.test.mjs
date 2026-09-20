@@ -24,18 +24,22 @@ test("cutover retains established sockets, routes reconnect to the old owner, an
     await Promise.all(servers.map((server) => new Promise((done) => server.close(done))));
     rmSync(state, { recursive: true });
   });
-  for (const directory of ["routing", "assets", "releases/v1/web", "releases/v2/web"])
+  for (const directory of ["routing", "assets", "releases/v1/web", "releases/v2/web", "releases/web-v3/web"])
     mkdirSync(`${state}/${directory}`, { recursive: true });
   writeFileSync(`${state}/releases/v1/web/index.html`, "old web");
   writeFileSync(`${state}/releases/v2/web/index.html`, "new web");
+  writeFileSync(`${state}/releases/web-v3/web/index.html`, "independent web");
   writeFileSync(`${state}/assets/old-abc123.js`, "old chunk");
   writeFileSync(`${state}/admin-token`, "private secret");
-  const publish = (active, draining) => {
-    writeFileSync(`${state}/routing/next.json`, JSON.stringify({ version: 1, active, draining }));
+  const publish = (active, draining, webRevision) => {
+    writeFileSync(
+      `${state}/routing/next.json`,
+      JSON.stringify({ version: 1, active, draining, ...(webRevision ? { webRevision } : {}) }),
+    );
     renameSync(`${state}/routing/next.json`, `${state}/routing/manifest.json`);
   };
   const origins = new Map();
-  for (const slot of ["blue", "green"]) {
+  for (const slot of ["blue", "green", "g-333333333333"]) {
     for (const index of [1, 2, 3]) {
       const server = createServer((request, response) => {
         response.setHeader("content-type", "application/json");
@@ -111,14 +115,27 @@ test("cutover retains established sockets, routes reconnect to the old owner, an
     await fetch(`${origin}/matchmake/reconnect/old-room`, { method: "POST", body: "{}" })
   ).json();
   assert.equal(legacyDuringOutage.slot, "blue");
-  // A reused slot must not inherit failed health from the removed release.
-  for (const index of [1, 2, 3]) {
-    const server = createServer((request, response) => response.end(JSON.stringify({ slot: "green", index })));
-    servers.push(server);
-    origins.set(`green:${index}`, await listen(server));
-  }
-  publish({ slot: "green", revision: "v3" }, [{ slot: "blue", revision: "v1" }]);
-  const reused = await fetch(`${origin}/api/green/matchmake/create/aegis`, { method: "POST" });
-  assert.equal(reused.status, 200);
-  assert.equal((await reused.json()).slot, "green");
+  publish(
+    { slot: "g-333333333333", revision: "v3" },
+    [
+      { slot: "green", revision: "v2" },
+      { slot: "blue", revision: "v1" },
+    ],
+    "web-v3",
+  );
+  await new Promise((done) => setTimeout(done, 2100));
+  const dynamic = await fetch(`${origin}/api/g-333333333333/matchmake/create/aegis`, { method: "POST" });
+  assert.equal(dynamic.status, 200);
+  assert.equal((await dynamic.json()).slot, "g-333333333333");
+  assert.equal(await (await fetch(origin)).text(), "independent web");
+  const currentManifest = await (await fetch(`${origin}/deployment/manifest.json`)).json();
+  assert.equal(currentManifest.active.slot, "g-333333333333");
+  const legacyBundleManifest = await (
+    await fetch(`${origin}/deployment/manifest.json`, { headers: { "x-aegis-web-revision": "v2" } })
+  ).json();
+  assert.deepEqual(legacyBundleManifest, {
+    version: 1,
+    active: { slot: "green", revision: "web-v3" },
+    draining: [],
+  });
 });

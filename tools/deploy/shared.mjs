@@ -1,16 +1,22 @@
 import { readFileSync } from "node:fs";
 
-export const SLOTS = ["blue", "green"];
+const LEGACY_SLOTS = new Set(["blue", "green"]);
+
+export function isDeploymentSlot(value) {
+  return typeof value === "string" && (LEGACY_SLOTS.has(value) || /^g-[a-f0-9]{12}$/.test(value));
+}
 
 export function validateManifest(value) {
   const validRevision = (entry) =>
     entry &&
-    SLOTS.includes(entry.slot) &&
+    isDeploymentSlot(entry.slot) &&
     typeof entry.revision === "string" &&
     /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(entry.revision);
   if (
     value?.version !== 1 ||
     !validRevision(value.active) ||
+    (value.webRevision !== undefined &&
+      (typeof value.webRevision !== "string" || !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(value.webRevision))) ||
     !Array.isArray(value.draining) ||
     !value.draining.every(validRevision) ||
     new Set([value.active.slot, ...value.draining.map((entry) => entry.slot)]).size !== 1 + value.draining.length

@@ -16,17 +16,25 @@ describe("deployment manifest", () => {
     expect(usesSlotDeploymentRouter({ production: false, deploymentMode: undefined })).toBe(false);
   });
 
-  it("parses an active slot and a distinct draining slot", () => {
+  it("parses a dynamic active generation, independent web revision, and multiple draining generations", () => {
     expect(
       parseDeploymentManifest({
         version: 1,
-        active: { slot: "green", revision: "new-sha" },
-        draining: [{ slot: "blue", revision: "old-sha" }],
+        webRevision: "web-sha",
+        active: { slot: "g-333333333333", revision: "api-sha" },
+        draining: [
+          { slot: "green", revision: "old-sha" },
+          { slot: "g-111111111111", revision: "older-sha" },
+        ],
       }),
     ).toEqual({
       version: 1,
-      active: { slot: "green", revision: "new-sha" },
-      draining: [{ slot: "blue", revision: "old-sha" }],
+      webRevision: "web-sha",
+      active: { slot: "g-333333333333", revision: "api-sha" },
+      draining: [
+        { slot: "green", revision: "old-sha" },
+        { slot: "g-111111111111", revision: "older-sha" },
+      ],
     });
   });
 
@@ -35,6 +43,8 @@ describe("deployment manifest", () => {
       undefined,
       { version: 2, active: { slot: "blue", revision: "x" }, draining: [] },
       { version: 1, active: { slot: "purple", revision: "x" }, draining: [] },
+      { version: 1, active: { slot: "g-UPPER", revision: "x" }, draining: [] },
+      { version: 1, webRevision: "../escape", active: { slot: "blue", revision: "x" }, draining: [] },
       { version: 1, active: { slot: "blue", revision: "x" }, draining: [{ slot: "blue", revision: "y" }] },
     ]) {
       expect(() => parseDeploymentManifest(input)).toThrow("Invalid deployment manifest");
@@ -69,7 +79,8 @@ describe("deployment manifest", () => {
         new Response(
           JSON.stringify({
             version: 1,
-            active: { slot: "green", revision: "new-sha" },
+            webRevision: "new-web-sha",
+            active: { slot: "g-222222222222", revision: "api-sha" },
             draining: [],
           }),
           { status: 200, headers: { "content-type": "application/json" } },
@@ -93,7 +104,8 @@ describe("deployment manifest", () => {
         new Response(
           JSON.stringify({
             version: 1,
-            active: { slot: "green", revision: "new-sha" },
+            webRevision: "new-web-sha",
+            active: { slot: "green", revision: "api-sha" },
             draining: [],
           }),
           { status: 200, headers: { "content-type": "application/json" } },
@@ -104,7 +116,7 @@ describe("deployment manifest", () => {
       synchronizeDeploymentRevision({
         bundleRevision: "old-sha",
         fetcher,
-        navigation: { href: "https://aegis-digi.online/?aegis-revision=new-sha", replace },
+        navigation: { href: "https://aegis-digi.online/?aegis-revision=new-web-sha", replace },
       }),
     ).rejects.toThrow("does not match");
     expect(replace).not.toHaveBeenCalled();
@@ -118,6 +130,14 @@ describe("deployment manifest", () => {
     });
   });
 
+  it("builds endpoints for a dynamic generation", () => {
+    const location = { protocol: "https:", host: "aegis-digi.online" };
+    expect(deploymentEndpoint(location, "g-abcdef012345")).toEqual({
+      http: "https://aegis-digi.online/api/g-abcdef012345",
+      websocket: "wss://aegis-digi.online/api/g-abcdef012345",
+    });
+  });
+
   it("replaces a stale bundle navigation with the active revision", async () => {
     const replace = vi.fn();
     const fetcher = vi.fn(
@@ -125,7 +145,8 @@ describe("deployment manifest", () => {
         new Response(
           JSON.stringify({
             version: 1,
-            active: { slot: "green", revision: "new-sha" },
+            webRevision: "new-web-sha",
+            active: { slot: "g-222222222222", revision: "api-sha" },
             draining: [{ slot: "blue", revision: "old-sha" }],
           }),
           { status: 200, headers: { "content-type": "application/json" } },
@@ -141,7 +162,7 @@ describe("deployment manifest", () => {
     ).resolves.toBe(false);
 
     expect(replace).toHaveBeenCalledOnce();
-    expect(replace).toHaveBeenCalledWith("https://aegis-digi.online/lobby?aegis-revision=new-sha");
+    expect(replace).toHaveBeenCalledWith("https://aegis-digi.online/lobby?aegis-revision=new-web-sha");
     expect(fetcher).toHaveBeenCalledWith("/deployment/manifest.json", {
       cache: "no-store",
       signal: expect.any(AbortSignal),

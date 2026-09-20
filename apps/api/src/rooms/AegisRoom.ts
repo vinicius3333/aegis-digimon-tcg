@@ -30,6 +30,7 @@ import { parsePresentationReport } from "./presentationReport.js";
 
 /** Hand-laid boards must never be reachable by a real player. */
 const DEV_SCENARIOS_ENABLED = process.env.NODE_ENV !== "production";
+const WAITING_ROOM_TIMEOUT_SECONDS = positiveSeconds(process.env.AEGIS_WAITING_ROOM_TIMEOUT_SECONDS, 30 * 60);
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
 
@@ -40,6 +41,12 @@ function generateRoomCode(length = 6): string {
     code += CODE_CHARS[bytes[i]! % CODE_CHARS.length]!;
   }
   return code;
+}
+
+function positiveSeconds(value: string | undefined, fallback: number): number {
+  if (value === undefined) return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 /**
@@ -189,6 +196,7 @@ export class AegisRoom extends Room<GameState> {
   private tournamentMatchId: string | undefined;
   private tournamentGameId: string | undefined;
   private readyTimeout: Delayed | undefined;
+  private waitingRoomTimeout: Delayed | undefined;
   private matchStartRequested = false;
 
   /** Position of the last event put on the wire; the first event of a room is `seq` 1. */
@@ -398,6 +406,11 @@ export class AegisRoom extends Room<GameState> {
       this.state.roomCode = code;
       roomCodes.claim(code, this.roomId);
       this.autoDispose = true;
+    }
+    if (!this.isTournamentRoom && this.devScenario === undefined) {
+      this.waitingRoomTimeout = this.clock.setTimeout(() => {
+        if (!this.matchStartRequested) void this.disconnect();
+      }, WAITING_ROOM_TIMEOUT_SECONDS * 1000);
     }
     this.engine = new GameEngine(this.state, {
       seed,
@@ -694,6 +707,7 @@ export class AegisRoom extends Room<GameState> {
   override onDispose(): void {
     this.debug("room.disposed");
     this.readyTimeout?.clear();
+    this.waitingRoomTimeout?.clear();
     // Legacy only. A Tournament Game's room binding is permanent by design: the game either
     // finished here or is voided by the scheduler, and re-binding it to a second room would be the
     // duplicate-claim the UNIQUE room_id exists to prevent.

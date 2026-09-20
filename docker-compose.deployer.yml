@@ -10,6 +10,7 @@
 # Installed Dokploy command (see docs/deployment-room-continuity.md):
 #   compose -p aegis-deployer -f <code>/docker-compose.deployer.yml \
 #     run --rm --build deployer deploy --source <code> --env-file <code>/.env
+# For a web-only release, replace the `deploy` action with `deploy-web`.
 services:
   deployer:
     build:
@@ -17,9 +18,9 @@ services:
       dockerfile: docker/Deployer.Dockerfile
     image: aegis-deployer:1
     volumes:
-      # The controller builds images and starts slot stacks on the host daemon.
+      # The controller builds images and starts immutable generation stacks on the host daemon.
       - /var/run/docker.sock:/var/run/docker.sock
       # The checked-out source and its environment file, read-only.
       - /etc/dokploy:/etc/dokploy:ro
-      # Rollout state: the routing manifest, releases and slot records.
+      # Rollout state: the routing manifest, releases and generation records.
       - /opt/aegis-rollout:/opt/aegis-rollout

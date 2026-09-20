@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync, renameSync, existsSync, rmSync, cpSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { SLOTS, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
+import { isDeploymentSlot, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
 
 function run(program, args, { capture = false } = {}) {
   return new Promise((resolveResult, reject) => {
@@ -25,7 +25,7 @@ function atomicJson(path, value, mode = 0o600) {
 }
 
 export function buildSlotCompose({ slot, revision, apiEnvironment, network, state }) {
-  if (!SLOTS.includes(slot)) throw new Error("Invalid slot");
+  if (!isDeploymentSlot(slot)) throw new Error("Invalid slot");
   const services = {
     redis: {
       image: "redis:7-alpine",
@@ -90,6 +90,13 @@ export function buildSlotCompose({ slot, revision, apiEnvironment, network, stat
   return { services, networks: { default: { external: true, name: network } }, volumes: { redis_data: {} } };
 }
 
+export function generationForRevision(revision) {
+  if (typeof revision !== "string" || !/^[a-fA-F0-9]{40}$/.test(revision)) {
+    throw new Error("A full Git revision is required for a deployment generation");
+  }
+  return `g-${revision.slice(0, 12).toLowerCase()}`;
+}
+
 /** Compose config emits escaped dollars so its output can itself be reloaded. */
 export function restoreComposeEnvironment(environment) {
   return Object.fromEntries(
@@ -116,10 +123,6 @@ export async function controller({ action, source, envFile, state, revision }) {
       `${lock}/owner.json`,
       JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString(), action }),
     );
-    const adminTokenPath = `${state}/admin-token`;
-    if (!existsSync(adminTokenPath)) throw new Error("Install the private admin-token before deployment");
-    const adminToken = readFileSync(adminTokenPath, "utf8").trim();
-    if (adminToken.length < 32) throw new Error("Deployment admin token must have at least 32 characters");
     const slotPath = (slot) => `${state}/slots/${slot}/compose.json`;
     const compose = (slot, args, capture = false) =>
       run("docker", ["compose", "-p", `aegis-${slot}`, "-f", slotPath(slot), ...args], { capture });
@@ -135,6 +138,65 @@ export async function controller({ action, source, envFile, state, revision }) {
       );
     const installedManifest = () => (existsSync(`${state}/routing/manifest.json`) ? readManifest(state) : undefined);
     const publish = (manifest) => atomicJson(`${state}/routing/manifest.json`, validateManifest(manifest), 0o644);
+    const composeConfig = async () =>
+      JSON.parse(
+        await run(
+          "docker",
+          ["compose", "--env-file", envFile, "-f", `${source}/docker-compose.prod.yml`, "config", "--format", "json"],
+          { capture: true },
+        ),
+      );
+    async function buildWebRelease(config, webRevision) {
+      const apiEnvironment = restoreComposeEnvironment(config.services.api.environment);
+      await run("docker", [
+        "build",
+        "--label",
+        `org.opencontainers.image.revision=${webRevision}`,
+        "--build-arg",
+        `VITE_AEGIS_API_URL=${apiEnvironment.AEGIS_API_URL.replace(/^http/, "ws")}`,
+        "--build-arg",
+        `VITE_AEGIS_REVISION=${webRevision}`,
+        "--build-arg",
+        "VITE_AEGIS_DEPLOYMENT_MODE=slots",
+        "-t",
+        `aegis-static:${webRevision}`,
+        "-f",
+        `${source}/apps/web/Dockerfile`,
+        source,
+      ]);
+      const release = `${state}/releases/${webRevision}`;
+      mkdirSync(release, { recursive: true, mode: 0o755 });
+      const extractor = await run("docker", ["create", `aegis-static:${webRevision}`], { capture: true });
+      try {
+        mkdirSync(`${release}/web`, { recursive: true, mode: 0o755 });
+        await run("docker", ["cp", `${extractor}:/usr/share/caddy/.`, `${release}/web`]);
+        if (!existsSync(`${release}/web/index.html`)) throw new Error("Static web extraction failed");
+        cpSync(`${release}/web/assets`, `${state}/assets`, { recursive: true });
+      } finally {
+        await run("docker", ["rm", extractor], { capture: true });
+      }
+    }
+
+    if (action === "deploy-web") {
+      revision ??= await run("git", ["-c", `safe.directory=${source}`, "-C", source, "rev-parse", "HEAD"], {
+        capture: true,
+      });
+      const manifest = readManifest(state);
+      validateManifest({ ...manifest, webRevision: revision });
+      if (manifest.webRevision === revision) {
+        console.log(`Web revision ${revision} already active`);
+        return;
+      }
+      await buildWebRelease(await composeConfig(), revision);
+      publish({ ...manifest, webRevision: revision });
+      console.log(`WEB ${revision}; API generation ${manifest.active.slot} unchanged`);
+      return;
+    }
+
+    const adminTokenPath = `${state}/admin-token`;
+    if (!existsSync(adminTokenPath)) throw new Error("Install the private admin-token before deployment");
+    const adminToken = readFileSync(adminTokenPath, "utf8").trim();
+    if (adminToken.length < 32) throw new Error("Deployment admin token must have at least 32 characters");
     async function cleanupSlot(slot) {
       const manifest = installedManifest();
       if (manifest?.active.slot === slot) throw new Error("Cannot remove the active slot");
@@ -169,7 +231,18 @@ export async function controller({ action, source, envFile, state, revision }) {
       return;
     }
     if (action === "cleanup") {
-      for (const { slot } of readManifest(state).draining) await cleanupSlot(slot);
+      const pending = [];
+      for (const { slot } of readManifest(state).draining) {
+        try {
+          await cleanupSlot(slot);
+        } catch (error) {
+          pending.push({ slot, error });
+        }
+      }
+      if (pending.length > 0) {
+        const details = pending.map(({ slot, error }) => `${slot}: ${error.message}`).join("; ");
+        throw new Error(`Cleanup pending for ${details}`);
+      }
       return;
     }
     if (action === "rollback") {
@@ -177,30 +250,29 @@ export async function controller({ action, source, envFile, state, revision }) {
       const previous = manifest.draining[0];
       if (!previous) throw new Error("No retained slot is available to roll back");
       await setAccepting(previous.slot, true);
-      publish({ version: 1, active: previous, draining: [manifest.active] });
+      publish({
+        version: 1,
+        webRevision: previous.revision,
+        active: previous,
+        draining: [manifest.active, ...manifest.draining.slice(1)],
+      });
       await setAccepting(manifest.active.slot, false);
       console.log(`Rolled back to ${previous.revision}; both versions' rooms retained`);
       return;
     }
-    if (action !== "deploy") throw new Error("Expected deploy, status, cleanup, or rollback");
+    if (action !== "deploy") throw new Error("Expected deploy, deploy-web, status, cleanup, or rollback");
     const before = installedManifest();
     revision ??= await run("git", ["-c", `safe.directory=${source}`, "-C", source, "rev-parse", "HEAD"], {
       capture: true,
     });
-    validateManifest({ version: 1, active: { slot: "blue", revision }, draining: [] });
+    const slot = generationForRevision(revision);
+    validateManifest({ version: 1, active: { slot, revision }, draining: [] });
     if (before?.active.revision === revision) {
       console.log(`Revision ${revision} already active; no running services recreated`);
       return;
     }
-    const slot = before?.active.slot === "blue" ? "green" : "blue";
-    if (existsSync(slotPath(slot))) await cleanupSlot(slot);
-    const config = JSON.parse(
-      await run(
-        "docker",
-        ["compose", "--env-file", envFile, "-f", `${source}/docker-compose.prod.yml`, "config", "--format", "json"],
-        { capture: true },
-      ),
-    );
+    if (existsSync(slotPath(slot))) throw new Error(`${slot} already exists for a non-active release`);
+    const config = await composeConfig();
     const apiEnvironment = restoreComposeEnvironment(config.services.api.environment);
     apiEnvironment.AEGIS_DEPLOYMENT_ADMIN_TOKEN = adminToken;
     // Docker builds run serially; there is no build or recreation of active-slot services.
@@ -215,33 +287,7 @@ export async function controller({ action, source, envFile, state, revision }) {
       `${source}/apps/api/Dockerfile`,
       source,
     ]);
-    await run("docker", [
-      "build",
-      "--label",
-      `org.opencontainers.image.revision=${revision}`,
-      "--build-arg",
-      `VITE_AEGIS_API_URL=${apiEnvironment.AEGIS_API_URL.replace(/^http/, "ws")}`,
-      "--build-arg",
-      `VITE_AEGIS_REVISION=${revision}`,
-      "--build-arg",
-      "VITE_AEGIS_DEPLOYMENT_MODE=slots",
-      "-t",
-      `aegis-static:${revision}`,
-      "-f",
-      `${source}/apps/web/Dockerfile`,
-      source,
-    ]);
-    const release = `${state}/releases/${revision}`;
-    mkdirSync(release, { recursive: true, mode: 0o755 });
-    const extractor = await run("docker", ["create", `aegis-static:${revision}`], { capture: true });
-    try {
-      mkdirSync(`${release}/web`, { recursive: true, mode: 0o755 });
-      await run("docker", ["cp", `${extractor}:/usr/share/caddy/.`, `${release}/web`]);
-      if (!existsSync(`${release}/web/index.html`)) throw new Error("Static web extraction failed");
-      cpSync(`${release}/web/assets`, `${state}/assets`, { recursive: true });
-    } finally {
-      await run("docker", ["rm", extractor], { capture: true });
-    }
+    await buildWebRelease(config, revision);
     mkdirSync(`${state}/slots/${slot}`, { recursive: true, mode: 0o700 });
     atomicJson(
       slotPath(slot),
@@ -276,18 +322,32 @@ export async function controller({ action, source, envFile, state, revision }) {
     }
     await setAccepting(slot, true);
     const current = installedManifest();
-    publish({ version: 1, active: { slot, revision }, draining: current ? [current.active] : [] });
-    if (current) await setAccepting(current.active.slot, false);
+    try {
+      if (current) await setAccepting(current.active.slot, false);
+      publish({
+        version: 1,
+        webRevision: revision,
+        active: { slot, revision },
+        draining: current ? [current.active, ...current.draining] : [],
+      });
+    } catch (error) {
+      // Restore the last published routing state if admission changes or publication fail.
+      if (current) await setAccepting(current.active.slot, true).catch(() => undefined);
+      await setAccepting(slot, false).catch(() => undefined);
+      throw error;
+    }
     const after = await statuses(slot);
     if (after.some((status) => !status.acceptingNewRooms))
       throw new Error("Published slot needs admission recovery; run status/rollback");
     console.log(`ACTIVE ${slot} ${revision}; existing rooms retained on ${current?.active.slot ?? "no previous slot"}`);
     // Cleanup is optional. A busy old slot must never fail the successful cutover or be killed.
     if (current) {
-      try {
-        await cleanupSlot(current.active.slot);
-      } catch {
-        console.log(`${current.active.slot}: cleanup pending; old processes remain running`);
+      for (const draining of [current.active, ...current.draining]) {
+        try {
+          await cleanupSlot(draining.slot);
+        } catch {
+          console.log(`${draining.slot}: cleanup pending; old processes remain running`);
+        }
       }
     }
   } finally {

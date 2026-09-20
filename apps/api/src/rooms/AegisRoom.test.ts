@@ -80,6 +80,31 @@ function joinBothSeats(room: AegisRoom): [Client, Client] {
 describe("AegisRoom ready-gated match start", () => {
   afterEach(() => vi.useRealTimers());
 
+  it("disposes a waiting room that never starts", async () => {
+    vi.useFakeTimers();
+    const room = makeRoom();
+    room.disconnect = vi.fn(async () => undefined) as AegisRoom["disconnect"];
+
+    await vi.advanceTimersByTimeAsync(30 * 60 * 1000);
+    room.clock.tick();
+
+    expect(room.disconnect).toHaveBeenCalledOnce();
+  });
+
+  it("does not expire a match after both players start it", async () => {
+    vi.useFakeTimers();
+    const room = makeRoom();
+    room.disconnect = vi.fn(async () => undefined) as AegisRoom["disconnect"];
+    const [first, second] = joinBothSeats(room);
+    intentSender(room)(first, { type: "ready" });
+    intentSender(room)(second, { type: "ready" });
+
+    await vi.advanceTimersByTimeAsync(30 * 60 * 1000);
+    room.clock.tick();
+
+    expect(room.disconnect).not.toHaveBeenCalled();
+  });
+
   it("requires explicit opt-in from both seats of a beta battle room", async () => {
     const room = makeRoom({ betaBattleRoom: true });
     const first = fakeClient("beta-first");
