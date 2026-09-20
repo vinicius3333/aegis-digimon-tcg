@@ -1305,6 +1305,41 @@ describe("match cues", () => {
     ).toBe(true);
   });
 
+  it("keeps an end-of-turn unsuspend released when the next Active phase freezes the board", async () => {
+    const state = {
+      phase: Phase.Main,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    const magnamon = new Permanent();
+    magnamon.permanentId = "magnamon";
+    magnamon.isSuspended = true;
+    state.players[0]!.battleArea.push(magnamon);
+    const { result, rerender } = renderCuesOverBoard(state);
+    await advance(0);
+
+    rerender([
+      {
+        kind: "cardsMoved",
+        instanceIds: ["magnamon"],
+        from: "suspended",
+        to: "unsuspended",
+      },
+      { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 },
+      { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 1 },
+    ]);
+    await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
+
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended).toBe(false);
+  });
+
   it("releases a permanent whose unsuspend move arrives after the ribbon read the timeline", async () => {
     const state = {
       phase: Phase.Main,
