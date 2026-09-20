@@ -7,6 +7,23 @@ import { fileURLToPath } from "node:url";
 import { assertEmptySlot, validateManifest } from "./shared.mjs";
 import { buildSlotCompose, generationForRevision, restoreComposeEnvironment } from "./deploy.mjs";
 
+test("deployer image copies every local runtime module imported by deploy.mjs", () => {
+  const deploySource = readFileSync(new URL("./deploy.mjs", import.meta.url), "utf8");
+  const dockerfile = readFileSync(new URL("../../docker/Deployer.Dockerfile", import.meta.url), "utf8");
+  const localImports = [...deploySource.matchAll(/from\s+["'](\.\/[^"']+)["']/g)].map((match) => match[1]);
+  const copiedFiles = new Set(
+    [...dockerfile.matchAll(/^COPY\s+(.+?)\s+\.\/$/gm)].flatMap((match) => match[1].split(/\s+/)),
+  );
+
+  for (const importPath of localImports) {
+    const moduleName = importPath.slice(2);
+    assert.ok(
+      copiedFiles.has(`tools/deploy/${moduleName}`),
+      `Deployer.Dockerfile must copy tools/deploy/${moduleName}`,
+    );
+  }
+});
+
 test("generation infrastructure isolates Redis and advertises exact owning process routes", () => {
   const blue = buildSlotCompose({
     slot: "g-111111111111",
