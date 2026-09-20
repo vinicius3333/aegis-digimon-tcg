@@ -3,10 +3,6 @@
   display: none;
 }
 .board-prompt[data-variant="field-selection"] {
-  /* Field selection must not share the board's containing block. The field can
-     resize as cards leave play or a side notice appears; anchoring this rail to
-     the viewport keeps both the board and the controls visually stationary. */
-  position: fixed;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.62fr);
   grid-template-areas:

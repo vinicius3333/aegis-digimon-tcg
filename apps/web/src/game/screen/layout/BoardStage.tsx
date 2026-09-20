@@ -118,6 +118,7 @@ export interface HandDockInputs {
       }
     | undefined;
   actionBar: { selCardId?: string; hasBase: boolean; linkingCardId?: string; onCancel: () => void } | undefined;
+  reserveActionBarSpace: boolean;
   onHoverChange: (instanceId: string | undefined) => void;
 }
 
@@ -416,6 +417,7 @@ export function BoardStage({
             draggingInstanceId={drag.isPlay && drag.state?.kind === DragKind.Play ? drag.state.instanceId : undefined}
             shakeInstanceId={handDock.shakeInstanceId}
             actionBar={handDock.actionBar}
+            reserveActionBarSpace={handDock.reserveActionBarSpace}
             eggDeckCount={breedingViewer.eggDeckCount}
             handCount={seats.shownHandCount}
             deckCount={shownViewer.deckCount}
