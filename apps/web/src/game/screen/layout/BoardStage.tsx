@@ -90,6 +90,7 @@ export interface BoardTargeting {
   attackerPermanent: Permanent | undefined;
   draggedAttackerPermanent: Permanent | undefined;
   canAttackSecurity: boolean;
+  securityDecision: { selected: boolean; onToggle: () => void } | undefined;
   isBasePermanent: (perm: Permanent) => boolean;
   isDecisionCandidate: (perm: Permanent) => boolean;
 }
@@ -378,16 +379,23 @@ export function BoardStage({
               securityHit={cues.securityHitSeat === other}
               securityLanding={cues.securityFlights.has(other)}
               securityDrop={{ "data-drop": "opp-security", ...chrome.dropIntentAttrs("opp-security") }}
-              attackable={targeting.canAttackSecurity || canAttackPlayerWith(targeting.draggedAttackerPermanent, false)}
+              attackable={
+                targeting.securityDecision !== undefined ||
+                targeting.canAttackSecurity ||
+                canAttackPlayerWith(targeting.draggedAttackerPermanent, false)
+              }
+              selected={targeting.securityDecision?.selected}
               onOpenOpponentBreeding={
                 opponent.breeding
                   ? () => actions.showCardMenu(opponent.breeding!.permanentId, Side.Opponent)
                   : undefined
               }
               onAttackSecurity={
-                selection.selPerm && targeting.canAttackSecurity
-                  ? () => senders.attack(selection.selPerm!, { kind: "player" }, selection.vortexMode)
-                  : undefined
+                targeting.securityDecision
+                  ? targeting.securityDecision.onToggle
+                  : selection.selPerm && targeting.canAttackSecurity
+                    ? () => senders.attack(selection.selPerm!, { kind: "player" }, selection.vortexMode)
+                    : undefined
               }
               onOpenOpponentSecurity={
                 shownOpponent.securityCount ? () => overlays.setSecurityView(Side.Opponent) : undefined

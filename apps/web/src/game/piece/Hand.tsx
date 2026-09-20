@@ -101,7 +101,9 @@ export function Hand({
           const hov = hoveredIndex === i;
           const playable = selection
             ? pickable
-            : entry.playableFromHand || entry.digivolveTargetPermanentIds.length > 0;
+            : entry.playableFromHand ||
+              entry.digivolveTargetPermanentIds.length > 0 ||
+              (entry.dnaDigivolveRoutes?.length ?? 0) > 0;
           const style = computeHandCardLayout({
             index: i,
             count: n,

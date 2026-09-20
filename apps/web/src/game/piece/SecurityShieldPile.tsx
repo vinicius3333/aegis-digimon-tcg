@@ -12,6 +12,7 @@ export function SecurityShieldPile({
   className,
   dim,
   glow,
+  selected,
   shield,
   armed,
   breaking,
@@ -30,6 +31,7 @@ export function SecurityShieldPile({
   className?: string;
   dim?: boolean;
   glow?: boolean;
+  selected?: boolean;
   /** Red for the viewer, blue for the opponent. */
   shield: Side;
   /** The stack is under attack: the pane pulses before it breaks. */
@@ -58,6 +60,7 @@ export function SecurityShieldPile({
         "game-security-shield",
         `game-security-shield--${shield}`,
         glow ? "game-security-shield--glow" : "",
+        selected ? "game-security-shield--selected" : "",
         armed ? "game-security-shield--armed" : "",
         landing ? "game-security-shield--landing" : "",
         className ?? "",
@@ -77,6 +80,7 @@ export function SecurityShieldPile({
       }
       role={onClick ? "button" : "img"}
       tabIndex={onClick ? 0 : undefined}
+      aria-pressed={onClick ? selected : undefined}
       aria-label={`${label} · ${count}${dpLabel ? ` · ${dpLabel}` : ""}`}
       {...(drop ?? {})}
       style={{ cursor: onClick ? "pointer" : "default", opacity: dim ? 0.5 : 1 }}

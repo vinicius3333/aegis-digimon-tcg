@@ -40,7 +40,7 @@ function requestedPlayKinds(target: Target | undefined): string[] {
  * Option card" does — and the play-vs-use split routes each one. A DUAL card is kept only for
  * an Option-only target, because it cannot be played as a Digimon (CR 7-1-1).
  */
-function playableCandidates<T extends { cardId: string }>(
+export function playableCandidates<T extends { instanceId: string; cardId: string }>(
   ctx: EffectContext,
   target: Target | undefined,
   candidates: readonly T[],
@@ -49,10 +49,15 @@ function playableCandidates<T extends { cardId: string }>(
   const namesOption = requestedKinds.includes("Option");
   const optionOnly = namesOption && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
   return candidates.filter((candidate) => {
-    const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
+    const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+    const kinds = definition.kinds;
     if (!kinds.includes(CardKind.Option)) return true;
     const isDual = kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
-    return isDual ? optionOnly : namesOption;
+    if (isDual) return optionOnly;
+    return (
+      namesOption &&
+      ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false
+    );
   });
 }
 
@@ -657,7 +662,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             candidate === undefined ? undefined : ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost;
           await ctx.fx.useOptionFromHand(ctx, optionId, usedCost, {
             payCost: action.payCost,
-            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+            ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
           });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));

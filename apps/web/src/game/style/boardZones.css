@@ -158,6 +158,11 @@
   animation: aegis-pulse 1.2s ease-in-out infinite;
 }
 
+.game-security-shield--selected {
+  filter: drop-shadow(0 0 4px var(--ds-background)) drop-shadow(0 0 12px var(--ds-accent));
+  animation: none;
+}
+
 .game-security-shield__count {
   position: relative;
   z-index: 3;

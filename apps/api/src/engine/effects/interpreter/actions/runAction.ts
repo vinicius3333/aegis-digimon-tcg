@@ -30,8 +30,9 @@ import {
   applyPlayCostCeiling,
   materializeLevelComparisonScaling,
   materializePlayCostLteScaling,
-  runPlayAction,
   ownStackPlayCandidates,
+  playableCandidates,
+  runPlayAction,
 } from "./play.js";
 import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
 import { runRemovalAction } from "./removal.js";
@@ -779,9 +780,11 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       const staticPreflightTarget = sameColorAsReturned
         ? { ...preflightTarget, filter: { ...preflightTarget.filter, sameColorAsReturned: undefined } }
         : preflightTarget;
-      let candidates = candidateLooseInstances(ctx, staticPreflightTarget, zones).filter(
-        (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
-      );
+      let candidates = playableCandidates(
+        ctx,
+        staticPreflightTarget,
+        candidateLooseInstances(ctx, staticPreflightTarget, zones),
+      ).filter((candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"));
       // A return-cost clause can define the play target's color dynamically. Preflight the
       // pair transactionally: at least one currently returnable card must share a color with
       // at least one currently playable card, otherwise paying the return first would strand

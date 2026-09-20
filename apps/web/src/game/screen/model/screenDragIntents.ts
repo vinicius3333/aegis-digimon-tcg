@@ -40,6 +40,7 @@ export function dragIntentAt(input: {
         drag.cardId,
         you.battleArea,
         digivolveTargetsOf({ handEntries, instanceId: drag.instanceId }).includes(hit.id ?? ""),
+        handEntries.find((entry) => entry.instanceId === drag.instanceId)?.dnaDigivolveRoutes,
       )
     : undefined;
   const appFusion = base

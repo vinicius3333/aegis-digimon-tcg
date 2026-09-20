@@ -10,7 +10,6 @@ import {
   type PlayerState,
 } from "@aegis/shared";
 import { assemblyPossible } from "../../assemblyMaterialSelection";
-import { findDnaMaterialCombination } from "../../digivolveModel";
 import type { AssemblyCandidate, DigiXrosCandidate, DigiXrosEligibleExpander } from "../../overlay";
 import type { HandEntry } from "../../piece";
 import { DragKind } from "../enums";
@@ -61,7 +60,7 @@ export function prePlayPromptFor({
   if (!entry) return undefined;
   const { instanceId, cardId } = entry;
   if (getCardDefinition(cardId)?.isDualCard) return { kind: "dual", instanceId, cardId };
-  const materialPermanentIds = findDnaMaterialCombination(cardId, viewer.battleArea);
+  const materialPermanentIds = entry.dnaDigivolveRoutes?.[0]?.materialPermanentIds;
   if (materialPermanentIds) return { kind: "dna", instanceId, cardId, materialPermanentIds: [...materialPermanentIds] };
   const requirements = digiXrosRequirementFor(cardId);
   if (requirements && requirements.length > 0)

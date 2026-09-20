@@ -71,7 +71,14 @@ import { RuleChecks } from "./gameEngine/ruleChecks.js";
 import { securityStrikeCount } from "./gameEngine/securityStrike.js";
 import { type ArmedSubTrigger } from "./gameEngine/subTriggerIdentity.js";
 import type { GameEngineHooks, SeatJoinOptions } from "./gameEngine/types.js";
-import { attackDeps, buildTurnFlowHooks, digivolveDeps, linkCardDeps, playCardDeps } from "./gameEngine/actionDeps.js";
+import {
+  attackDeps,
+  buildTurnFlowHooks,
+  digivolveDeps,
+  dnaDigivolveDeps,
+  linkCardDeps,
+  playCardDeps,
+} from "./gameEngine/actionDeps.js";
 import { applyIntent, isNewlyPlayedRushAttacker, validateAppFusion } from "./gameEngine/intents.js";
 import { fireTiming, fireTimingForInstance, reactivateOnPlay } from "./gameEngine/timing.js";
 import { fireSubTrigger } from "./gameEngine/subTriggers.js";
@@ -447,6 +454,7 @@ export class GameEngine {
       validateAppFusion: (seat, intent) => validateAppFusion(this, seat, intent),
       attackDeps: () => attackDeps(this),
       digivolveDeps: () => digivolveDeps(this),
+      dnaDigivolveDeps: () => dnaDigivolveDeps(this),
       playCardDeps: () => playCardDeps(this),
       linkCardDeps: () => linkCardDeps(this),
     });

@@ -9,9 +9,9 @@ import { scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances } from "../targeting/loose.js";
 import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
-import { applyPlayCostCeiling } from "./play.js";
+import { applyPlayCostCeiling, playableCandidates } from "./play.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
-import type { Action } from "@aegis/shared";
+import { CardKind, type Action } from "@aegis/shared";
 
 /**
  * Whether any option of a modal can currently be attempted. A modal whose every option is
@@ -19,7 +19,77 @@ import type { Action } from "@aegis/shared";
  * guaranteed no-op (BT17-050 Q2803).
  */
 export function modalHasAvailableOption(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): boolean {
+  const merged = mergedPlayOrUseAction(action);
+  if (merged !== undefined && !hasAmbiguousDualCandidate(ctx, merged)) return canAttemptModalAction(ctx, merged);
   return action.options.some((option, idx) => optionIsAvailable(ctx, action, option, idx));
+}
+
+function hasAmbiguousDualCandidate(ctx: EffectContext, action: Extract<Action, { kind: "PlayWithoutCost" }>): boolean {
+  const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
+  return candidateLooseInstances(ctx, action.target, zones).some(({ cardId }) => {
+    const kinds = ctx.game.definitionOf({ cardId } as never).kinds;
+    return kinds.includes(CardKind.Option) && (kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer));
+  });
+}
+
+const comparable = (value: unknown): string => JSON.stringify(value);
+
+/** Collapse a compiler-style Play/Use split into the card selection the printed effect describes. */
+export function mergedPlayOrUseAction(
+  modal: Extract<Action, { kind: "Modal" }>,
+): Extract<Action, { kind: "PlayWithoutCost" }> | undefined {
+  if (
+    modal.choose !== 1 ||
+    modal.chooseScaling !== undefined ||
+    modal.chooseAll !== undefined ||
+    modal.optionConditions !== undefined ||
+    modal.options.length !== 2 ||
+    modal.options.some((option) => option.length !== 1)
+  )
+    return undefined;
+  const nested = modal.options.flat();
+  const play = nested.find(
+    (entry): entry is Extract<Action, { kind: "PlayWithoutCost" }> => entry.kind === "PlayWithoutCost",
+  );
+  const use = nested.find(
+    (entry): entry is Extract<Action, { kind: "UseOptionWithoutCost" }> => entry.kind === "UseOptionWithoutCost",
+  );
+  if (play === undefined || use === undefined) return undefined;
+  const playFilter = play.target?.filter;
+  const useFilter = use.filter ?? use.target?.filter;
+  if (playFilter === undefined || useFilter === undefined) return undefined;
+  const { kind: _playKinds, ...playFilterWithoutKind } = playFilter;
+  const { kind: _useKinds, ...useFilterWithoutKind } = useFilter;
+  if (playFilterWithoutKind.playCostLte === undefined && useFilterWithoutKind.playCostLte === 99) {
+    useFilterWithoutKind.playCostLte = undefined;
+  }
+  if (comparable(playFilterWithoutKind) !== comparable(useFilterWithoutKind)) return undefined;
+  for (const key of [
+    "from",
+    "payCost",
+    "reduceCostBy",
+    "reduceCostByScaling",
+    "playCostCeiling",
+    "optional",
+    "cost",
+    "condition",
+  ] as const) {
+    if (comparable(play[key]) !== comparable(use[key])) return undefined;
+  }
+  if (
+    use.waiveColorRequirement === true ||
+    use.selectionRequired === true ||
+    use.reduceCostByOpponentMemory !== undefined
+  )
+    return undefined;
+  return {
+    ...play,
+    target: {
+      ...play.target,
+      filter: { ...playFilter, kind: ["Digimon", "Tamer", "Option"] },
+    },
+    raw: play.raw ?? use.raw,
+  };
 }
 
 /**
@@ -43,6 +113,11 @@ function optionIsAvailable(
 /** "Activate N of the effects below" — ask the controller which option(s), run them. */
 export async function runModal(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): Promise<void> {
   if (action.options.length === 0) return;
+  const merged = mergedPlayOrUseAction(action);
+  if (merged !== undefined && !hasAmbiguousDualCandidate(ctx, merged)) {
+    await runAction(ctx, merged);
+    return;
+  }
   const availableOptionIndices = (): number[] =>
     action.options
       .map((option, idx) => ({ option, idx }))
@@ -137,7 +212,7 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
   ) {
     const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
     const target = applyPlayCostCeiling(ctx, action, action.target);
-    return candidateLooseInstances(ctx, target, zones).some(
+    return playableCandidates(ctx, target, candidateLooseInstances(ctx, target, zones)).some(
       (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
     );
   }

@@ -331,6 +331,15 @@ export interface SelectionPort {
     min: number,
     max: number,
     promptText: string,
-    provenance?: { sourceCardId?: string; timing?: string; effectText?: string },
+    provenance?: {
+      sourceCardId?: string;
+      timing?: string;
+      effectText?: string;
+      effectTextPart?: string;
+      sourceInstanceId?: string;
+      sourcePermanentId?: string;
+      isInherited?: boolean;
+      selectionContext?: "attackTarget";
+    },
   ): Promise<string[]>;
 }

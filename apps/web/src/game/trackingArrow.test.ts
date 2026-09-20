@@ -103,6 +103,26 @@ describe("effectTargetArrow", () => {
     });
   });
 
+  it("draws a forced-attack arrow from the attacker to security", () => {
+    const arrow = effectTargetArrow({
+      decision: {
+        decisionId: "forced-attack",
+        seat: 0,
+        kind: "selectCards",
+        promptText: "Choose the attack target for the forced attack.",
+        options: { candidateInstanceIds: ["player", "opp-1"], selectionContext: "attackTarget" },
+      },
+      picks: ["player"],
+      viewerSeat: 0,
+      sourcePermanentId: "examon",
+    });
+    expect(arrow).toMatchObject({
+      kind: "effect",
+      from: { kind: "permanent", permanentId: "examon" },
+      to: [{ kind: "security", seat: 1 }],
+    });
+  });
+
   it("draws nothing before a target is picked", () => {
     expect(
       effectTargetArrow({ decision: targetDecision, picks: [], viewerSeat: 0, sourcePermanentId: "src" }),

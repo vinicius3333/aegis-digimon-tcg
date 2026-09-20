@@ -29,6 +29,15 @@ export interface CombatPrimitives {
       afterAttackTriggers?: () => Promise<void>;
       artsDigivolveOptionInstanceId?: string;
       drainTimingWindow?: () => Promise<void>;
+      decisionProvenance?: {
+        sourceCardId?: string;
+        sourceInstanceId?: string;
+        sourcePermanentId?: string;
+        timing?: string;
+        effectText?: string;
+        effectTextPart?: string;
+        isInherited?: boolean;
+      };
     },
   ): Promise<void>;
   /** Whether combat is currently resolving an attack. */

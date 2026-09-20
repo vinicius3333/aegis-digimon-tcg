@@ -525,12 +525,17 @@ export function buildPrimitives(engine: GameEngine): Primitives {
           kind: "selectCards",
           promptText,
           sourceCardId: provenance?.sourceCardId,
+          sourceInstanceId: provenance?.sourceInstanceId,
+          sourcePermanentId: provenance?.sourcePermanentId,
           options: {
             candidateInstanceIds,
             min,
             max,
             timing: provenance?.timing,
             effectText: provenance?.effectText,
+            effectTextPart: provenance?.effectTextPart,
+            isInherited: provenance?.isInherited,
+            selectionContext: provenance?.selectionContext,
           },
         });
         return response.kind === "selectCards" ? response.instanceIds : [];

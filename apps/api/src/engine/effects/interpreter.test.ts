@@ -910,6 +910,7 @@ function makeContext(opts: {
   playInstancesResult?: Permanent[];
   selectCardsAnswer?: (o: { candidates: string[]; max: number }) => string[];
   chooseOptionAnswer?: number;
+  optionColorRequirementMet?: boolean;
   orderCardsAnswer?: (o: { candidates: string[] }) => string[];
   trigger?: EffectContext["trigger"];
   /**
@@ -959,6 +960,7 @@ function makeContext(opts: {
     },
     definitionOf: (card) =>
       opts.definitionOf ? opts.definitionOf(card.cardId) : makeFakeDefinition({ cardId: card.cardId }),
+    optionColorRequirementMet: () => opts.optionColorRequirementMet ?? true,
     linkMax: () => 1,
     canDeclareAttack: opts.canDeclareAttack,
   };
@@ -2337,6 +2339,101 @@ describe("optional PlayWithoutCost", () => {
 
     expect(optionalPrompts).toBe(0);
     expect(recorder.calls.some((call) => call.verb === "playInstances")).toBe(false);
+  });
+
+  it("does not offer a mixed play-or-use action when its only Option fails its color requirement", async () => {
+    const source = makeSource({ cardId: "X-MIXED-COLOR" });
+    const recorder: Recorder = { calls: [] };
+    let optionalPrompts = 0;
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownHand: [{ instanceId: "option", cardId: "OPTION", ownerSeat: 0, faceUp: false }],
+      definitionOf: (cardId) =>
+        makeFakeDefinition({ cardId, kinds: cardId === "OPTION" ? [CardKind.Option] : [CardKind.Digimon] }),
+      optionColorRequirementMet: false,
+      onOptional: () => {
+        optionalPrompts += 1;
+      },
+    });
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: { controller: "mine", kind: ["Digimon", "Tamer", "Option"] }, count: 1 },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    };
+
+    await irCardModule("X-MIXED-COLOR", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+
+    expect(optionalPrompts).toBe(0);
+    expect(recorder.calls.some(({ verb }) => verb === "useOptionFromHand")).toBe(false);
+  });
+
+  it("applies dynamic cost reduction when a mixed play-or-use action selects an Option", async () => {
+    const source = makeSource({ cardId: "X-MIXED-REDUCTION" });
+    const recorder: Recorder = { calls: [] };
+    const suspended = makeFakePermanent({
+      permanentId: "suspended",
+      isSuspended: true,
+      topCard: { instanceId: "suspended-card", cardId: "DIGIMON", ownerSeat: 1, faceUp: true } as never,
+    });
+    const ctx = makeContext({
+      source,
+      recorder,
+      opponentBattleArea: [suspended],
+      ownHand: [{ instanceId: "option", cardId: "OPTION", ownerSeat: 0, faceUp: false }],
+      definitionOf: (cardId) =>
+        makeFakeDefinition({
+          cardId,
+          kinds: cardId === "OPTION" ? [CardKind.Option] : [CardKind.Digimon],
+          playCost: 9,
+        }),
+      optionalAnswer: true,
+      selectCardsAnswer: ({ candidates }) => candidates,
+    });
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: { controller: "mine", kind: ["Digimon", "Tamer", "Option"] }, count: 1 },
+              from: ["hand"],
+              payCost: true,
+              reduceCostBy: 4,
+              reduceCostByScaling: {
+                per: 1,
+                filter: { controller: "any", kind: ["Digimon"], suspended: true },
+                unit: "cards",
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    };
+
+    await irCardModule("X-MIXED-REDUCTION", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+
+    expect(recorder.calls.find(({ verb }) => verb === "useOptionFromHand")?.args[3]).toEqual({
+      payCost: true,
+      costDelta: 5,
+    });
   });
 });
 

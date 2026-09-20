@@ -1,4 +1,4 @@
-import type { ProjectedDigivolveRoute } from "../digivolveModel";
+import type { ProjectedDigivolveRoute, ProjectedDnaDigivolveRoute } from "../digivolveModel";
 
 export type DropAttrs = Record<string, string>;
 
@@ -18,6 +18,8 @@ export interface HandEntry {
   /** Server-projected digivolution prices, one per (base x cost path); the board never
    * derives a cost locally when the server published one. */
   digivolveRoutes?: readonly ProjectedDigivolveRoute[];
+  /** Server-projected legal DNA material combinations and their final costs. */
+  dnaDigivolveRoutes?: readonly ProjectedDnaDigivolveRoute[];
   /** Server-projected App Fusion routes; the board never derives legality locally. */
   appFusionRoutes?: readonly {
     hostPermanentId: string;

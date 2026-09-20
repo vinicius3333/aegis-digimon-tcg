@@ -100,14 +100,25 @@ export function effectTargetArrow({
   /** The source card's own board position, when it has one; without it there is no tail to draw from. */
   sourcePermanentId: string | undefined;
 }): TrackingArrow | null {
-  if (!decision || decision.kind !== "chooseTargets" || decision.seat !== viewerSeat) return null;
+  if (
+    !decision ||
+    (decision.kind !== "chooseTargets" && decision.options?.selectionContext !== "attackTarget") ||
+    decision.seat !== viewerSeat
+  )
+    return null;
   if (!sourcePermanentId) return null;
   const candidates = new Set(decision.options?.candidateInstanceIds ?? []);
-  const to = picks.filter((id) => candidates.has(id)).map((id) => ({ kind: "permanent" as const, permanentId: id }));
+  const to = picks
+    .filter((id) => candidates.has(id))
+    .map((id) =>
+      decision.options?.selectionContext === "attackTarget" && (id === "player" || id === "opponent")
+        ? { kind: "security" as const, seat: (1 - viewerSeat) as Seat }
+        : { kind: "permanent" as const, permanentId: id },
+    );
   if (to.length === 0) return null;
   return {
     kind: "effect",
-    key: `effect:${decision.decisionId}:${to.map((end) => end.permanentId).join(",")}`,
+    key: `effect:${decision.decisionId}:${picks.join(",")}`,
     from: { kind: "permanent", permanentId: sourcePermanentId },
     to,
   };

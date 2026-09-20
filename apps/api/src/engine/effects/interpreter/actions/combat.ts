@@ -47,6 +47,15 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         // Combat pauses this effect. Its When Attacking and other pending effects
         // must finish before Counter / security, including attacks without an IR flag.
         drainTimingWindow: ctx.drainCurrentTimingWindow,
+        decisionProvenance: {
+          sourceCardId: ctx.source.cardId,
+          sourceInstanceId: ctx.source.instanceId,
+          sourcePermanentId: ctx.source.permanent()?.permanentId ?? ctx.sourcePermanentIdAtCreation,
+          timing: ctx.activeTiming,
+          effectText: ctx.activeEffectText,
+          effectTextPart: ctx.activeEffectTextPart,
+          isInherited: ctx.activeEffectIsInherited,
+        },
       };
       if (attackSubject.isSelf || attackSubject.filter?.isSelfRef) {
         const self = ctx.source.permanent();

@@ -242,6 +242,7 @@ export function boardActions({
                 d.cardId,
                 viewer.battleArea,
                 digivolveTargetsOf(d.instanceId).includes(perm.permanentId),
+                handEntries.find((entry) => entry.instanceId === d.instanceId)?.dnaDigivolveRoutes,
               )
             : undefined;
         if (perm && evolutionRoute?.kind === "normal")
@@ -306,7 +307,12 @@ export function boardActions({
       if (appFusionHostIdsOf(handSel).includes(perm.permanentId)) {
         return () => openAppFusionChoice(handSel, perm.permanentId);
       }
-      const route = handCardEvolutionRoute(selCardId, viewer.battleArea, eligibleBase(perm));
+      const route = handCardEvolutionRoute(
+        selCardId,
+        viewer.battleArea,
+        eligibleBase(perm),
+        handEntries.find((entry) => entry.instanceId === handSel)?.dnaDigivolveRoutes,
+      );
       if (route?.kind === "both")
         return () =>
           setActionConfirm({

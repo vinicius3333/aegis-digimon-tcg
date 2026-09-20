@@ -1,5 +1,5 @@
 import { ArraySchema } from "@colyseus/schema";
-import type { AppFusionRoute, DigivolveRoute, Permanent } from "@aegis/shared";
+import type { AppFusionRoute, DigivolveRoute, DnaDigivolveRoute, Permanent } from "@aegis/shared";
 
 export function sameNumericMap(left: ReadonlyMap<string, number>, right: ReadonlyMap<string, number>): boolean {
   if (left.size !== right.size) return false;
@@ -34,6 +34,25 @@ export function replaceDigivolveRoutesIfChanged(
         route.permanentId === next.permanentId &&
         route.alternateRequirementIndex === next.alternateRequirementIndex &&
         route.projectedCost === next.projectedCost
+      );
+    });
+  if (same) return;
+  target.splice(0, target.length);
+  for (const value of values) target.push(value);
+}
+
+export function replaceDnaDigivolveRoutesIfChanged(
+  target: ArraySchema<DnaDigivolveRoute>,
+  values: readonly DnaDigivolveRoute[],
+): void {
+  const same =
+    target.length === values.length &&
+    target.every((route, index) => {
+      const next = values[index];
+      return (
+        next !== undefined &&
+        route.projectedCost === next.projectedCost &&
+        route.materialPermanentIdsJson === next.materialPermanentIdsJson
       );
     });
   if (same) return;

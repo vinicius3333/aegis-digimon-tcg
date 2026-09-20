@@ -38,6 +38,12 @@ export function decisionPresentation({
   if (candidates.length === 0) return "dialog";
   const visible = decision.options?.visibleInstanceIds ?? [];
   const field = new Set(fieldInstanceIds);
+  if (
+    decision.options?.selectionContext === "attackTarget" &&
+    [...candidates, ...visible].every((instanceId) => instanceId === "player" || field.has(instanceId))
+  ) {
+    return "board";
+  }
   if ([...candidates, ...visible].every((instanceId) => field.has(instanceId))) return "board";
   if (decision.kind === "chooseTargets" || isDecoyDecision(decision)) return "dialog";
   const hand = new Set(handInstanceIds);

@@ -393,7 +393,9 @@ export function GameScreen({
   // A field selection leaves the board visible and is part of the effect's action, so preserve
   // the effect toast there (notably BlackWarGreymon's Blast Digivolve deletion).
   const promptedOwnEffectCardId =
-    decision?.seat === viewerSeat && !fieldEffectDecision && dialogRepeatsEffectNotice(decision.options)
+    decision?.seat === viewerSeat &&
+    (!fieldEffectDecision || decision.options?.selectionContext === "attackTarget") &&
+    dialogRepeatsEffectNotice(decision.options)
       ? decision.sourceCardId
       : undefined;
   const ownEffectNoticeRef = useRef({ dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice });
@@ -692,7 +694,12 @@ export function GameScreen({
   const dragBasePermanentIds = new Set(
     dragIsPlay && drag
       ? [
-          ...digivolveBasePermanentIds(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId)),
+          ...digivolveBasePermanentIds(
+            drag.cardId,
+            you.battleArea,
+            digivolveTargetsOf(drag.instanceId),
+            handEntries.find((entry) => entry.instanceId === drag.instanceId)?.dnaDigivolveRoutes,
+          ),
           ...appFusionHostIdsOf(drag.instanceId),
         ]
       : [],
@@ -779,9 +786,10 @@ export function GameScreen({
   const fieldDecision =
     decisionView.answerOnBoard &&
     (decisionView.viewerDecision?.kind === "selectCards" || decisionView.viewerDecision?.kind === "chooseTargets") &&
-    decisionView.decisionVisible.some(
-      (candidate) => candidate.zone === "battle" || candidate.zone === "opponentBattle",
-    );
+    (decisionView.viewerDecision.options?.selectionContext === "attackTarget" ||
+      decisionView.decisionVisible.some(
+        (candidate) => candidate.zone === "battle" || candidate.zone === "opponentBattle",
+      ));
   const decisionCandidateIdFor = (perm: Permanent) =>
     [perm.topCard.instanceId, perm.permanentId].find((id) => decisionView.decisionSelectable.has(id));
   const {
@@ -814,6 +822,10 @@ export function GameScreen({
     if (!decisionAllowsPick(instanceId)) return;
     setPicks((current) => nextDecisionPicks({ picks: current, instanceId, max: decisionMax }));
   };
+  const securityDecisionTargetId =
+    fieldDecision && decisionView.viewerDecision?.options?.selectionContext === "attackTarget"
+      ? (["player", "opponent"].find((id) => decisionSelectable.has(id)) ?? undefined)
+      : undefined;
   // What the resolving effect will do to each target the viewer has picked. The
   // fate is the server's own projection (`options.targetFate`); a prompt that
   // carries none badges nothing.
@@ -1032,6 +1044,12 @@ export function GameScreen({
         attackerPermanent: attackerPerm,
         draggedAttackerPermanent: draggedAttackerPerm,
         canAttackSecurity,
+        securityDecision: securityDecisionTargetId
+          ? {
+              selected: picks.includes(securityDecisionTargetId),
+              onToggle: () => toggleDecisionPick(securityDecisionTargetId),
+            }
+          : undefined,
         isBasePermanent: (perm) =>
           combatWindows.counterWindow
             ? counterHostIds.has(perm.permanentId)
@@ -1074,6 +1092,7 @@ export function GameScreen({
                 selCardId: handPreview ? undefined : selCardId,
                 hasBase:
                   (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
+                  (selEntry?.dnaDigivolveRoutes?.length ?? 0) > 0 ||
                   appFusionHostIdsOf(selEntry?.instanceId).length > 0,
                 linkingCardId: linkSel?.cardId,
                 onCancel: clearSel,

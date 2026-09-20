@@ -32,6 +32,7 @@ export function RightPileColumn({
   securityLanding,
   securityDrop,
   attackable,
+  selected,
   onOpenOpponentBreeding,
   onAttackSecurity,
   onOpenOpponentSecurity,
@@ -60,6 +61,8 @@ export function RightPileColumn({
   securityDrop: DropAttrs;
   /** An attack on the player is available, which lights the shield and names it. */
   attackable: boolean;
+  /** The security stack is the currently picked target in an in-board decision. */
+  selected?: boolean;
   onOpenOpponentBreeding: (() => void) | undefined;
   onAttackSecurity: (() => void) | undefined;
   onOpenOpponentSecurity: (() => void) | undefined;
@@ -124,6 +127,7 @@ export function RightPileColumn({
           }}
           drop={securityDrop}
           glow={attackable}
+          selected={selected}
           onClick={onAttackSecurity ?? onOpenOpponentSecurity}
         />
       </div>

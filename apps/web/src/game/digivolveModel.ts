@@ -70,6 +70,11 @@ export type HandCardEvolutionRoute =
   | { kind: "both"; materialPermanentIds: string[] }
   | undefined;
 
+export interface ProjectedDnaDigivolveRoute {
+  materialPermanentIds: readonly string[];
+  projectedCost: number;
+}
+
 export interface AppFusionOverlayRoute {
   linkedInstanceId: string;
   linkedCardId: string;
@@ -106,8 +111,14 @@ export function handCardEvolutionRoute(
   cardId: string,
   battleArea: readonly Permanent[],
   normal: boolean,
+  projectedDnaRoutes?: readonly ProjectedDnaDigivolveRoute[],
 ): HandCardEvolutionRoute {
-  const materialPermanentIds = findDnaMaterialCombination(cardId, battleArea);
+  const materialPermanentIds =
+    projectedDnaRoutes === undefined
+      ? findDnaMaterialCombination(cardId, battleArea)
+      : projectedDnaRoutes[0]?.materialPermanentIds
+        ? [...projectedDnaRoutes[0].materialPermanentIds]
+        : undefined;
   if (normal && materialPermanentIds) return { kind: "both", materialPermanentIds };
   if (normal) return { kind: "normal" };
   return materialPermanentIds ? { kind: "dna", materialPermanentIds } : undefined;
@@ -124,8 +135,13 @@ export function digivolveBasePermanentIds(
   cardId: string,
   battleArea: readonly Permanent[],
   serverBasePermanentIds: readonly string[],
+  projectedDnaRoutes?: readonly ProjectedDnaDigivolveRoute[],
 ): string[] {
-  const bases = new Set([...serverBasePermanentIds, ...(findDnaMaterialCombination(cardId, battleArea) ?? [])]);
+  const dnaMaterials =
+    projectedDnaRoutes === undefined
+      ? (findDnaMaterialCombination(cardId, battleArea) ?? [])
+      : [...(projectedDnaRoutes[0]?.materialPermanentIds ?? [])];
+  const bases = new Set([...serverBasePermanentIds, ...dnaMaterials]);
   return battleArea.filter((permanent) => bases.has(permanent.permanentId)).map((permanent) => permanent.permanentId);
 }
 

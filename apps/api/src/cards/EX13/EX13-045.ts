@@ -17,6 +17,7 @@ const thenBattleClause = "Then, this Digimon may battle 1 of your opponent's Dig
 const buffAllOwnDigimon: Action = {
   kind: "ModifyDP",
   target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
+  playerWide: true,
   amount: 10_000,
   duration: "untilOpponentTurnEnd",
   raw: "all of your Digimon get +10000 DP until your opponent's turn ends",
@@ -42,21 +43,10 @@ const mayBattle: Action = {
 
 const dracomonOrExamonText = [{ tokens: ["Dracomon", "Examon"], match: "text" as const }];
 
-const playableTarget = {
+const playableOrUsableTarget = {
   filter: {
     controllerDefault: "mine",
-    kind: ["Digimon", "Tamer"],
-    nameOrTrait: dracomonOrExamonText,
-    playCostLte: 12,
-  },
-  count: 1,
-  source: "thisDigimon",
-} satisfies Target;
-
-const optionTarget = {
-  filter: {
-    controllerDefault: "mine",
-    kind: ["Option"],
+    kind: ["Digimon", "Tamer", "Option"],
     nameOrTrait: dracomonOrExamonText,
     playCostLte: 12,
   },
@@ -65,32 +55,12 @@ const optionTarget = {
 } satisfies Target;
 
 const playOrUseDragonCard: Action = {
-  kind: "Modal",
-  choose: 1,
-  labels: ["Play a [Dracomon]/[Examon] text card", "Use a [Dracomon]/[Examon] text Option"],
-  options: [
-    [
-      {
-        kind: "PlayWithoutCost",
-        target: playableTarget,
-        from: ["hand", "digivolutionCards"],
-        payCost: false,
-        optional: true,
-        raw: "you may play 1 play or use cost 12 or lower [Dracomon] or [Examon] text card from your hand or its digivolution cards without paying the cost",
-      },
-    ],
-    [
-      {
-        kind: "UseOptionWithoutCost",
-        filter: optionTarget.filter,
-        target: optionTarget,
-        from: ["hand", "digivolutionCards"],
-        payCost: false,
-        optional: true,
-        raw: "you may use 1 play or use cost 12 or lower [Dracomon] or [Examon] text card from your hand or its digivolution cards without paying the cost",
-      },
-    ],
-  ],
+  kind: "PlayWithoutCost",
+  target: playableOrUsableTarget,
+  from: ["hand", "digivolutionCards"],
+  payCost: false,
+  optional: true,
+  raw: "you may play or use 1 play or use cost 12 or lower [Dracomon] or [Examon] text card from your hand or its digivolution cards without paying the cost",
 };
 
 export const compiled: CompiledCard = {

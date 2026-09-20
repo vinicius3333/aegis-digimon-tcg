@@ -333,19 +333,9 @@ describe("BT26-032 compiled fidelity", () => {
     s.state.memory = 2;
 
     const resolving = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
-    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
-    expect(
-      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("zeroDp").instanceId),
-    ).toBe(true);
-    const pending = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: pending.decisionId,
-        response: { kind: "chooseOption", optionIndex: 1 },
-      }),
-    ).toEqual({ ok: true });
     await resolving;
+
+    expect(s.decisions.some(({ req }) => req.kind === "chooseOption")).toBe(false);
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-077")).toBe(true);

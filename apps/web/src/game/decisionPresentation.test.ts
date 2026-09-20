@@ -80,6 +80,21 @@ describe("decisionPresentation", () => {
     );
   });
 
+  it("puts an attack-target choice spanning security and the field on the board", () => {
+    const request = decision({
+      kind: "selectCards",
+      options: {
+        candidateInstanceIds: ["player", "defender"],
+        min: 1,
+        max: 1,
+        selectionContext: "attackTarget",
+      },
+    });
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["defender"] })).toBe(
+      "board",
+    );
+  });
+
   it("puts a hand-only selectCards decision on the board", () => {
     const request = decision({ options: { candidateInstanceIds: ["h1", "h2"], min: 1, max: 1 } });
     expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("board");

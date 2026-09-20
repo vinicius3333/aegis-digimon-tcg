@@ -66,7 +66,9 @@ export function useTrackingArrow({
       decision,
       picks,
       viewerSeat,
-      sourcePermanentId: decision?.sourceCardId ? attackerCardIds.get(decision.sourceCardId) : undefined,
+      sourcePermanentId:
+        decision?.sourcePermanentId ??
+        (decision?.sourceCardId ? attackerCardIds.get(decision.sourceCardId) : undefined),
     });
   const [trackingArrow, setTrackingArrow] = useState<TrackingArrowGeometry | null>(null);
   const trackingArrowRef = useRef<TrackingArrow | null>(null);

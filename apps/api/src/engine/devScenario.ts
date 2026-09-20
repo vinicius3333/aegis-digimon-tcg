@@ -29,6 +29,9 @@ export const DEV_SCENARIO_IDS = [
   "battle",
   "arena",
   "arena-aegiochus-dark-assembly",
+  "arena-ex13-grademon-immunity",
+  "arena-ex13-examon",
+  "arena-jupitermon-siren",
   "arena-magnamon-x",
   "arena-vortexdramon",
   "card-bugs",
@@ -191,10 +194,7 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
             catalogPermanent("you-leopard-base", ["BT3-053"]),
             catalogPermanent("you-yuuko", ["BT22-083"]),
           ]
-        : [
-            catalogPermanent("opponent-attacker", ["BT12-069"]),
-            catalogPermanent("opponent-cost-7", ["BT10-065"]),
-          ];
+        : [catalogPermanent("opponent-attacker", ["BT12-069"]), catalogPermanent("opponent-cost-7", ["BT10-065"])];
     field.forEach((entry) => placePermanent(player, entry));
     if (seat === 1) field[1]!.isSuspended = true;
     const hand = seat === 0 ? ["EX10-010", "BT22-052", "BT1-013"] : [];
@@ -219,6 +219,70 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/**
+ * Reproduces BT26-033's two faces in one short line. Dan & Kanan raise the human from 1 to
+ * 2 memory at the start of main phase. One Jupitermon can then digivolve over Sirenmon for
+ * 4, remove the sole security card, and leave the opponent at 2 memory; at end of turn the
+ * second copy's now-2 use cost is low enough for Dan & Kanan to use Wide Plasment for free.
+ */
+function layJupitermonSirenScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    if (seat === 1) setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT25-039"], "-sirenmon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-085"], "-dan-kanan"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-jupitermon-digivolve", "BT26-033", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-jupitermon-option", "BT26-033", 0));
+    insertCard(human, Zone.Security, faceDownCard("dev-jupitermon-security", "BT1-009", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 1;
+}
+
+/**
+ * Reproduces EX13-060 Alphamon and EX13-057 Grademon's simultaneous trigger ordering.
+ * Play Grademon, activate Alphamon first, and use Alphamon to make the newly played
+ * Grademon attack. Grademon's still-pending [On Play] effect should then resolve during
+ * that attack and grant the selected Chronicle Digimon immunity and +5000 DP.
+ */
+function layEx13GrademonImmunityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-060"], "-ex13-alphamon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-grademon", "EX13-057", 0));
+  }
+
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    const attackTarget = establishedDigimon(1, ["BT1-080"], "-grademon-attack-target");
+    attackTarget.isSuspended = true;
+    placePermanent(opponent, attackTarget);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** Reproduces simultaneous [When Attacking] and optional [All Turns] Vortexdramon triggers. */
@@ -306,6 +370,46 @@ function layAegiochusDarkAssemblyScenario(state: GameState, decks: readonly [Dec
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 2;
+}
+
+/**
+ * Reproduces the EX13 Examon report from a board where its printed DNA action should already
+ * be legal. Wingdramon and Groundramon are printed Lv.5s, but each treats itself as the named
+ * Lv.6 material for an Examon DNA digivolution. EX13 Dracomon sits under Wingdramon so ending
+ * the turn also preserves the reported fallback path through its inherited DNA effect.
+ *
+ * After the DNA digivolution, Examon's forced attack can target security while its following
+ * optional battle still has a real opposing Digimon to select. This makes it possible to see
+ * whether that battle resolves before Examon's two security checks.
+ */
+function layEx13ExamonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-008", "EX13-021"], "-ex13-wingdramon"));
+    placePermanent(human, establishedDigimon(0, ["EX13-041"], "-ex13-groundramon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-examon", "EX13-045", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-dragon-option", "BT20-093", 0));
+  }
+
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    const battleTarget = establishedDigimon(1, ["BT1-080"], "-ex13-battle-target");
+    battleTarget.isSuspended = true;
+    placePermanent(opponent, battleTarget);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
@@ -425,6 +529,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
+  "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
+  "arena-ex13-examon": layEx13ExamonScenario,
+  "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,
   "arena-vortexdramon": layVortexdramonScenario,
   "card-bugs": layCardBugsScenario,

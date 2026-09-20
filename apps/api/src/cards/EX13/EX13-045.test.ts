@@ -61,6 +61,7 @@ describe("EX13-045 Examon", () => {
         {
           kind: "ModifyDP",
           amount: 10_000,
+          playerWide: true,
           duration: "untilOpponentTurnEnd",
           target: { count: "all", filter: { controller: "mine", kind: ["Digimon"] } },
           condition: { kind: "isDnaDigivolving" },
@@ -92,43 +93,20 @@ describe("EX13-045 Examon", () => {
           sourceFilter: { isSelfRef: true },
           actions: [
             {
-              kind: "Modal",
-              choose: 1,
-              options: [
-                [
-                  {
-                    kind: "PlayWithoutCost",
-                    from: ["hand", "digivolutionCards"],
-                    payCost: false,
-                    optional: true,
-                    target: {
-                      count: 1,
-                      source: "thisDigimon",
-                      filter: {
-                        controllerDefault: "mine",
-                        kind: ["Digimon", "Tamer"],
-                        playCostLte: 12,
-                        nameOrTrait: [{ tokens: ["Dracomon", "Examon"], match: "text" }],
-                      },
-                    },
-                  },
-                ],
-                [
-                  {
-                    kind: "UseOptionWithoutCost",
-                    from: ["hand", "digivolutionCards"],
-                    payCost: false,
-                    optional: true,
-                    filter: {
-                      controllerDefault: "mine",
-                      kind: ["Option"],
-                      playCostLte: 12,
-                      nameOrTrait: [{ tokens: ["Dracomon", "Examon"], match: "text" }],
-                    },
-                    target: { count: 1, source: "thisDigimon" },
-                  },
-                ],
-              ],
+              kind: "PlayWithoutCost",
+              from: ["hand", "digivolutionCards"],
+              payCost: false,
+              optional: true,
+              target: {
+                count: 1,
+                source: "thisDigimon",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon", "Tamer", "Option"],
+                  playCostLte: 12,
+                  nameOrTrait: [{ tokens: ["Dracomon", "Examon"], match: "text" }],
+                },
+              },
             },
           ],
         },
@@ -254,6 +232,41 @@ describe("EX13-045 Examon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("keeps the 10000 DP bonus active for an own Digimon played after Examon resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: GREEN_MATERIAL, as: "green" },
+            { card: BLUE_MATERIAL, as: "blue" },
+          ],
+          hand: [
+            { card: cardId, as: "examon" },
+            { card: NON_MATCH, as: "laterDigimon" },
+          ],
+        },
+        1: { security: ["BT1-011", "BT1-012", "BT1-013"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(dnaIntent(s)).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("laterDigimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === NON_MATCH));
+
+    const laterDigimon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === NON_MATCH)!;
+    expect(laterDigimon.currentDP).toBe(15_000);
+  });
+
   it("does not attack or buff when Examon arrives by the printed non-DNA route", async () => {
     const s = setupEngine(
       {
@@ -315,6 +328,17 @@ describe("EX13-045 Examon", () => {
     expect(accepted.state.players[1]!.battleArea).toHaveLength(0);
     expect(accepted.state.players[0]!.battleArea).toHaveLength(1);
     expect(accepted.state.players[0]!.battleArea[0]!.topCard.cardId).toBe(cardId);
+    expect(
+      accepted.decisions.find(({ req }) => req.promptText === "Choose the attack target for the forced attack.")?.req,
+    ).toMatchObject({
+      sourceCardId: cardId,
+      sourcePermanentId: accepted.state.players[0]!.battleArea[0]!.permanentId,
+      options: {
+        selectionContext: "attackTarget",
+        effectTextPart:
+          "[When Digivolving] If DNA digivolving, this Digimon attacks and all of your Digimon get +10000 DP until your opponent's turn ends.",
+      },
+    });
 
     const declined = setupEngine(
       {
@@ -542,6 +566,31 @@ describe("EX13-045 Examon", () => {
     );
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id).sort()).toEqual([NEAR_MISS, NON_MATCH, cardId].sort());
     expect(s.state.memory).toBe(3);
+  });
+
+  it("offers playable cards and Options together after the optional effect prompt", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "examon" }],
+          hand: [
+            { card: NAME_MATCH, as: "dracomon" },
+            { card: OPTION_MATCH, as: "option" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("examon").permanentId });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "chooseOption")).toBe(false);
+    expect(s.decisions.find(({ req }) => req.kind === "selectCards")?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("dracomon").instanceId, s.inst("option").instanceId]),
+    );
   });
 
   it("finds no candidate at all when only the near-miss and over-cost cards are available", async () => {

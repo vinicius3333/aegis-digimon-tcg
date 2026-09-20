@@ -23,6 +23,15 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       afterAttackTriggers?: () => Promise<void>;
       artsDigivolveOptionInstanceId?: string;
       drainTimingWindow?: () => Promise<void>;
+      decisionProvenance?: {
+        sourceCardId?: string;
+        sourceInstanceId?: string;
+        sourcePermanentId?: string;
+        timing?: string;
+        effectText?: string;
+        effectTextPart?: string;
+        isInherited?: boolean;
+      };
     },
   ): Promise<void> => {
     const combat = engine.combat;
@@ -71,6 +80,7 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       1,
       1,
       "Choose the attack target for the forced attack.",
+      { ...opts?.decisionProvenance, selectionContext: "attackTarget" },
     );
     const pick = chosen[0] ?? candidates[0]!;
     const target: AttackTarget = pick === PLAYER ? { kind: "player" } : { kind: "permanent", permanentId: pick };

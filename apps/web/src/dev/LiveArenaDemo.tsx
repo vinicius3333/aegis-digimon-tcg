@@ -12,9 +12,18 @@ export function LiveArenaDemo() {
   const { locale } = useTranslation();
   const portuguese = locale === "pt-BR";
   const [run, setRun] = useState(0);
-  const [scenario, setScenario] = useState<NonNullable<AegisJoinOptions["devScenario"]>>(() =>
-    new URLSearchParams(window.location.search).get("scenario") === "card-bugs" ? "card-bugs" : "arena",
-  );
+  const [scenario, setScenario] = useState<NonNullable<AegisJoinOptions["devScenario"]>>(() => {
+    const requested = new URLSearchParams(window.location.search).get("scenario");
+    return requested === "arena-aegiochus-dark-assembly" ||
+      requested === "arena-ex13-grademon-immunity" ||
+      requested === "arena-ex13-examon" ||
+      requested === "arena-jupitermon-siren" ||
+      requested === "arena-magnamon-x" ||
+      requested === "arena-vortexdramon" ||
+      requested === "card-bugs"
+      ? requested
+      : "arena";
+  });
   const player = useMemo(loadIdentity, []);
   const joinOptions = useMemo<AegisJoinOptions>(() => {
     const deck = CATALOG_DECKS.find((entry) => entry.deckId === "bt26-dgo-2026-08-28-7-chronomon");
@@ -43,6 +52,9 @@ export function LiveArenaDemo() {
           >
             <option value="arena">Attack steps · Counter/Blocker</option>
             <option value="arena-aegiochus-dark-assembly">Aegiochus Dark · Wizardmon Assembly</option>
+            <option value="arena-ex13-grademon-immunity">EX13 Alphamon · Grademon immunity timing</option>
+            <option value="arena-ex13-examon">EX13 Examon · Lv.5 DNA + battle timing</option>
+            <option value="arena-jupitermon-siren">Jupitermon · Sirenmon + Dan &amp; Kanan</option>
             <option value="arena-magnamon-x">Magnamon X · Sonic Shot unsuspend</option>
             <option value="arena-vortexdramon">Vortexdramon · optional OPT</option>
             {scenario === "card-bugs" ? <option value="card-bugs">Card bugs</option> : null}

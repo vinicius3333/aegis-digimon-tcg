@@ -13,6 +13,7 @@ export function Pile({
   topArtId,
   dim,
   glow,
+  selected,
   compact,
   shield,
   armed,
@@ -38,6 +39,7 @@ export function Pile({
   topArtId?: string;
   dim?: boolean;
   glow?: boolean;
+  selected?: boolean;
   compact?: boolean;
   /** Render as a shield-shaped security counter (red for the viewer, blue for the opponent). */
   shield?: Side;
@@ -73,6 +75,7 @@ export function Pile({
         className={className}
         dim={dim}
         glow={glow}
+        selected={selected}
         shield={shield}
         armed={armed}
         breaking={breaking}

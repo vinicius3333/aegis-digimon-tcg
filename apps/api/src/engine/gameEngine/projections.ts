@@ -1,11 +1,13 @@
 import {
   CardKind,
+  dnaDigivolutionRequirementsFor,
   digivolutionRequirementsFor,
   EffectDuration,
   EffectTiming,
   Phase,
   AppFusionRoute,
   DigivolveRoute,
+  DnaDigivolveRoute,
 } from "@aegis/shared";
 import { hasSummoningSickness } from "../combat/legality.js";
 import { resolveKeywords } from "../combat/keywords.js";
@@ -14,11 +16,18 @@ import { linkEligible } from "../effects/mindLink.js";
 import { canActivate } from "../effects/kernel.js";
 import { gatherTriggeredEffects } from "../effects/context.js";
 import { ACTIVATE_TIMING } from "../actions/activateEffect.js";
-import { validateAttack, validateDigivolve, validateLinkCard, validatePlayCard } from "../actions/index.js";
+import {
+  validateAttack,
+  validateDigivolve,
+  validateDnaDigivolve,
+  validateLinkCard,
+  validatePlayCard,
+} from "../actions/index.js";
 import { NO_DIGIVOLVE_TARGETS, NO_LINK_TARGETS, NO_PROJECTED_COST, playableFromHand } from "./intentGating.js";
 import {
   clearAttackProjection,
   replaceAppFusionRoutesIfChanged,
+  replaceDnaDigivolveRoutesIfChanged,
   replaceDigivolveRoutesIfChanged,
   replaceIfChanged,
 } from "./schemaSync.js";
@@ -33,7 +42,7 @@ import type { CollectedEffect } from "../effects/collect.js";
 import type { EffectContext, TriggerInfo } from "../effects/EffectContext.js";
 import type { EffectEnvironment } from "../effects/index.js";
 import type { CardSource } from "../effects/CardSource.js";
-import type { AttackDeps, DigivolveDeps, LinkCardDeps, PlayCardDeps } from "../actions/index.js";
+import type { AttackDeps, DigivolveDeps, DnaDigivolveDeps, LinkCardDeps, PlayCardDeps } from "../actions/index.js";
 import type { AppFusionValidation } from "./types.js";
 
 /**
@@ -61,6 +70,7 @@ export interface ProjectionDeps {
   ) => AppFusionValidation;
   readonly attackDeps: () => AttackDeps;
   readonly digivolveDeps: () => DigivolveDeps;
+  readonly dnaDigivolveDeps: () => DnaDigivolveDeps;
   readonly playCardDeps: () => PlayCardDeps;
   readonly linkCardDeps: () => LinkCardDeps;
 }
@@ -492,6 +502,7 @@ export class BoardProjection {
             player: turnPlayer,
             playDeps: this.deps.playCardDeps(),
             digivolveDeps: this.deps.digivolveDeps(),
+            dnaDigivolveDeps: this.deps.dnaDigivolveDeps(),
             bases: [...turnPlayer.battleArea, ...(turnPlayer.breeding ? [turnPlayer.breeding] : [])],
           };
 
@@ -503,6 +514,7 @@ export class BoardProjection {
       if (activeHand?.includes(instance) === true) return;
       replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
       replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
+      replaceDnaDigivolveRoutesIfChanged(instance.dnaDigivolveRoutes, []);
     };
     for (const player of this.deps.state.players) {
       for (const instance of [
@@ -533,6 +545,7 @@ export class BoardProjection {
           instance.projectedPlayCost = NO_PROJECTED_COST;
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
           replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
+          replaceDnaDigivolveRoutesIfChanged(instance.dnaDigivolveRoutes, []);
           replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
           continue;
         }
@@ -554,11 +567,13 @@ export class BoardProjection {
         if (!definition.kinds.includes(CardKind.Digimon)) {
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
           replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
+          replaceDnaDigivolveRoutesIfChanged(instance.dnaDigivolveRoutes, []);
           replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
           continue;
         }
         const targets: string[] = [];
         const digivolveRoutes: DigivolveRoute[] = [];
+        const dnaDigivolveRoutes: DnaDigivolveRoute[] = [];
         // Every alternate path the card PRINTS, priced one index at a time. The default path
         // (-1) cannot stand in for them: when a printed EvoCost also matches the server takes
         // the printed one, and a card may print several alternates at different costs.
@@ -571,6 +586,40 @@ export class BoardProjection {
           digivolveRoutes.push(route);
         };
         const appFusionRoutes: AppFusionRoute[] = [];
+
+        const battleArea = [...active.player.battleArea];
+        const materialCounts = new Set(
+          dnaDigivolutionRequirementsFor(instance.cardId)
+            .map(({ materials }) => materials.length)
+            .filter((count) => count >= 2),
+        );
+        const chooseMaterials = (requiredCount: number, start: number, chosen: Permanent[]): boolean => {
+          if (chosen.length === requiredCount) {
+            const materialPermanentIds = chosen.map(({ permanentId }) => permanentId);
+            const check = validateDnaDigivolve(
+              this.deps.state,
+              seat,
+              { type: "dnaDigivolve", materialPermanentIds, instanceId: instance.instanceId },
+              active.dnaDigivolveDeps,
+            );
+            if (check.ok) {
+              const route = new DnaDigivolveRoute();
+              route.materialPermanentIdsJson = JSON.stringify(materialPermanentIds);
+              route.projectedCost = check.cost;
+              dnaDigivolveRoutes.push(route);
+              return true;
+            }
+            return false;
+          }
+          for (let index = start; index < battleArea.length; index += 1) {
+            if (chooseMaterials(requiredCount, index + 1, [...chosen, battleArea[index]!])) return true;
+          }
+          return false;
+        };
+        for (const materialCount of materialCounts) {
+          if (chooseMaterials(materialCount, 0, [])) break;
+        }
+
         for (const base of active.bases) {
           const check = validateDigivolve(
             this.deps.state,
@@ -617,6 +666,7 @@ export class BoardProjection {
         }
         replaceIfChanged(instance.digivolveTargetPermanentIds, targets);
         replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, digivolveRoutes);
+        replaceDnaDigivolveRoutesIfChanged(instance.dnaDigivolveRoutes, dnaDigivolveRoutes);
         replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, appFusionRoutes);
       }
     }

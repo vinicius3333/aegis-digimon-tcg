@@ -37,6 +37,10 @@ export function handEntriesOf({
       alternateRequirementIndex: route.alternateRequirementIndex,
       projectedCost: route.projectedCost,
     })),
+    dnaDigivolveRoutes: [...(ci.dnaDigivolveRoutes ?? [])].map((route) => ({
+      materialPermanentIds: JSON.parse(route.materialPermanentIdsJson) as string[],
+      projectedCost: route.projectedCost,
+    })),
     appFusionRoutes: [...(ci.appFusionRoutes ?? [])].map((route) => ({
       hostPermanentId: route.hostPermanentId,
       linkedInstanceId: route.linkedInstanceId,
@@ -57,6 +61,7 @@ export function handEntriesOf({
               projectedPlayCost: -1,
               digivolveTargetPermanentIds: [],
               linkTargetPermanentIds: [],
+              dnaDigivolveRoutes: [],
               appFusionRoutes: [],
             },
         )

@@ -525,6 +525,25 @@ describe("findDnaMaterialCombination", () => {
     });
   });
 
+  it("uses the server-projected EX13 DNA route for destination-specific effective levels", () => {
+    const permanent = (permanentId: string, cardId: string) =>
+      ({
+        permanentId,
+        controllerSeat: 0,
+        topCard: { instanceId: `${permanentId}-top`, cardId },
+        stack: [],
+        linked: [],
+      }) as unknown as Permanent;
+    const wingdramon = permanent("wingdramon", "EX13-021");
+    const groundramon = permanent("groundramon", "EX13-041");
+
+    expect(
+      handCardEvolutionRoute("EX13-045", [wingdramon, groundramon], false, [
+        { materialPermanentIds: ["wingdramon", "groundramon"], projectedCost: 0 },
+      ]),
+    ).toEqual({ kind: "dna", materialPermanentIds: ["wingdramon", "groundramon"] });
+  });
+
   it("finds two same-color level 4 materials for Kimeramon, whose requirement lives only in the shared overrides", () => {
     const permanent = (permanentId: string, cardId: string) =>
       ({
@@ -560,6 +579,22 @@ describe("digivolveBasePermanentIds", () => {
     expect(digivolveBasePermanentIds("ST10-06", [digimon, tamer], [digimon.permanentId])).toEqual([
       digimon.permanentId,
     ]);
+  });
+
+  it("highlights exactly the deterministic server-projected DNA pair", () => {
+    const second = permOf("ST10-12");
+    const unused = permOf("BT8-082");
+    expect(
+      digivolveBasePermanentIds(
+        "ST10-06",
+        [digimon, second, unused],
+        [],
+        [
+          { materialPermanentIds: [digimon.permanentId, second.permanentId], projectedCost: 0 },
+          { materialPermanentIds: [digimon.permanentId, unused.permanentId], projectedCost: 0 },
+        ],
+      ),
+    ).toEqual([digimon.permanentId, second.permanentId]);
   });
 
   it("marks nothing when the card has no base on the field", () => {

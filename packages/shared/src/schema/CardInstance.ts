@@ -33,6 +33,15 @@ export class DigivolveRoute extends Schema {
   @type("int8") projectedCost!: number;
 }
 
+/** A server-authorized DNA digivolution declaration for one hand card. */
+export class DnaDigivolveRoute extends Schema {
+  /** JSON string array of battle-area permanent ids consumed by this declaration. Nested
+   * primitive ArraySchema values do not survive the Colyseus client decoder reliably. */
+  @type("string") materialPermanentIdsJson = "[]";
+  /** Memory the declaration would charge after active continuous modifiers. */
+  @type("int8") projectedCost!: number;
+}
+
 /**
  * A specific physical card in the match. Static card facts (DP, cost, colors,
  * level, effect text) come from CardDefinition in @aegis/shared/cards, looked up
@@ -78,6 +87,9 @@ export class CardInstance extends Schema {
    * Parallel to `digivolveTargetPermanentIds` (which stays public for board highlighting):
    * that array says WHERE this card may go, these say WHAT each path there costs. */
   @view(PRIVATE_VIEW_TAG) @type([DigivolveRoute]) digivolveRoutes = new ArraySchema<DigivolveRoute>();
+  /** Legal DNA declarations for this hand card, validated and priced by the server. The owning
+   * hand zone already controls visibility; keeping this untagged matches public target projections. */
+  @type([DnaDigivolveRoute]) dnaDigivolveRoutes = new ArraySchema<DnaDigivolveRoute>();
   /** Legal App Fusion routes for this hand card, visible only with the owner's hand view. */
   @view(PRIVATE_VIEW_TAG) @type([AppFusionRoute]) appFusionRoutes = new ArraySchema<AppFusionRoute>();
 }

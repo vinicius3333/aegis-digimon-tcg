@@ -660,6 +660,42 @@ describe("EX3-061 Dinobeemon decisions", () => {
   });
 });
 
+describe("mixed-zone card selection", () => {
+  it("groups hand and digivolution-card candidates in the standard selection modal", () => {
+    render(
+      <I18nProvider>
+        <DecisionOverlay
+          request={{
+            decisionId: "examon-play-or-use",
+            seat: 0,
+            kind: "selectCards",
+            promptText: "Examon",
+            sourceCardId: "EX13-045",
+            options: {
+              candidateInstanceIds: ["dragon-option", "dracomon-source"],
+              min: 1,
+              max: 1,
+            },
+          }}
+          sourceCardId="EX13-045"
+          candidates={[
+            { instanceId: "dragon-option", cardId: "BT20-093", zone: "hand" },
+            { instanceId: "dracomon-source", cardId: "EX13-008", zone: "digivolutionCards" },
+          ]}
+          picks={[]}
+          onTogglePick={vi.fn<(instanceId: string) => void>()}
+          onRespond={vi.fn<(response: DecisionResponse) => void>()}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.getByText("Your hand")).toBeTruthy();
+    expect(screen.getByText("Digivolution cards")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Unleash the Dragon Gene/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Dracomon/ })).toBeTruthy();
+  });
+});
+
 describe("EX3-062 WarGrowlmon decisions", () => {
   const effectText =
     "[When Digivolving] Trash the top 3 cards of both players' decks. Then, if either player has 5 or more cards in their trash, you may play 1 [Guilmon] or [Takato Matsuki] from your hand or trash without paying the cost.";
