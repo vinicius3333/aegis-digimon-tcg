@@ -113,11 +113,10 @@ scenario("block", () => {
     const agumonPermanentId = opponent.room.state.players[1]!.battleArea[0]!.permanentId;
     opponent.attack(agumonPermanentId, { kind: "player" });
 
-    // The block window renders: its "decline" action proves the window itself
-    // opened, and Monmon appears as its own button among the eligible blockers.
+    // The block window renders on the board: its "decline" action proves the
+    // window opened, and Monmon is selected directly from the battle area.
     await screen.findByRole("button", { name: /take the attack/i }, { timeout: 10_000 });
-    const blockDialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
-    const monmonBlockerButton = within(blockDialog).getByRole("button", { name: /monmon/i });
+    const monmonBlockerButton = within(yourBattleArea()).getByRole("button", { name: /monmon/i });
     fireEvent.click(monmonBlockerButton);
 
     // The attack is redirected onto Monmon instead of the protagonist's security —

@@ -1538,17 +1538,43 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Commandramon · effect/i });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const rail = screen.getByRole("region", { name: "＜Decoy＞" });
     expect(
       await screen.findByText(/excluir este Digimon para impedir que o outro Digimon seja excluído/i),
     ).toBeTruthy();
-    expect(within(dialog).getByRole("button", { name: /Commandramon, 2,000 DP, 0 sources?/i })).toBeTruthy();
-    const stacked = within(dialog).getByRole("button", { name: /Commandramon, 2,000 DP, 1 source/i });
-    expect(stacked).toBeTruthy();
-    expect(within(dialog).getByRole("button", { name: "None" })).toBeTruthy();
+    const field = within(screen.getByRole("group", { name: "Your battle area" }));
+    const copies = field.getAllByRole("button", { name: "Commandramon" });
+    expect(copies).toHaveLength(2);
+    const stacked = copies[1]!;
+    expect(within(rail).getByRole("button", { name: "Confirm targets" }).hasAttribute("disabled")).toBe(true);
+    expect(within(rail).getByRole("button", { name: "None" })).toBeTruthy();
     fireEvent.click(stacked);
-    fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(within(rail).getByText("1 selected of 0–1")).toBeTruthy();
+    fireEvent.click(stacked);
+    expect(within(rail).getByRole("button", { name: "Confirm targets" }).hasAttribute("disabled")).toBe(true);
+    fireEvent.click(stacked);
+    fireEvent.click(within(rail).getByRole("button", { name: "Confirm targets" }));
+    expect(screen.queryByRole("region", { name: "＜Decoy＞" })).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("declines Decoy directly from the field without selecting a sacrifice", () => {
+    mockDesktop();
+    window.history.replaceState({}, "", "/dev/card-effects/EX3-046");
+    render(
+      <I18nProvider>
+        <CardEffectsDemo cardId="EX3-046" />
+      </I18nProvider>,
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const rail = screen.getByRole("region", { name: "＜Decoy＞" });
+    fireEvent.click(within(rail).getByRole("button", { name: "None" }));
+    expect(screen.queryByRole("region", { name: "＜Decoy＞" })).toBeNull();
+    expect(
+      within(screen.getByRole("group", { name: "Your battle area" })).getAllByRole("button", { name: "Commandramon" }),
+    ).toHaveLength(2);
   });
 
   it("shows the selected Commandramon paid and the D-Brigade Digimon protected", async () => {

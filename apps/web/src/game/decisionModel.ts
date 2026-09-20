@@ -198,11 +198,13 @@ export function permCardId(state: GameState, permanentId: string): string | unde
   return undefined;
 }
 
-/** Locate any card instance on the board by instanceId (topCard / stack / linked) and return its cardId. */
+/** Locate a visible card instance in hand or on the board by instanceId. */
 export function instanceCardId(state: GameState, instanceId: string): string | undefined {
   const onPermanent = (perm: Permanent): CardInstance | undefined =>
     [perm.topCard, ...perm.stack, ...perm.linked].find((c) => c?.instanceId === instanceId);
   for (const player of state.players) {
+    const inHand = player.hand.find((card) => card.instanceId === instanceId);
+    if (inHand) return inHand.cardId;
     for (const perm of player.battleArea) {
       const found = onPermanent(perm);
       if (found) return found.cardId;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-083.js";
 
@@ -26,6 +27,7 @@ describe("BT22-083 Yuuko Kamishiro", () => {
     expect(block.actions[1]).toMatchObject({
       kind: "GrantImmunity",
       target: { fromSelectionRef: "yuukoProtectedDigimon" },
+      immuneFrom: "opponentDigimonEffects",
     });
     expect(block.actions[2]).toMatchObject({
       kind: "ModifyDP",
@@ -64,5 +66,28 @@ describe("BT22-083 Yuuko Kamishiro", () => {
     ).fireTiming(EffectTiming.OnStartMainPhase, {});
     await settle(() => s.state.memory !== before);
     expect(s.state.memory).toBe(before + 1);
+  });
+
+  it("protects the chosen Digimon from opposing Digimon effects but not Option effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-083", as: "yuuko" },
+            { card: "AD1-001", as: "greymon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const greymon = s.perm("greymon");
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: greymon.permanentId,
+    });
+
+    expect(greymon.immuneToOpponentDigimonEffects).toBe(true);
+    expect(greymon.immuneToOpponentOptionEffects).toBe(false);
   });
 });

@@ -133,7 +133,7 @@ export class DigivolveSupport {
   /**
    * The cost of a base-granted digivolve path (ST7-03/BT6-060) for digivolving `evolving` onto
    * `base`, or undefined when none applies. The grant lives as a static on the base permanent's
-   * `IsExistOnBattleArea`; own-turn is guaranteed by the Main-phase verb) and matches when the
+   * `IsExistOnBattleArea`; its own-turn/all-turn gate also applies during Counter) and matches when the
    * evolving card satisfies the grant's target predicate AND the activation condition holds.
    */
   matchBaseGrantedDigivolve(
@@ -142,12 +142,12 @@ export class DigivolveSupport {
     evolving: CardDefinition,
     sourceZone?: ZoneRef,
   ): { cost: number } | undefined {
-    if (base.inBreeding || base.controllerSeat !== seat || this.deps.state.turnSeat !== seat || sourceZone !== "hand")
-      return undefined;
+    if (base.inBreeding || base.controllerSeat !== seat || sourceZone !== "hand") return undefined;
     if (this.deps.continuous.cannotIgnoreDigivolution(seat)) return undefined;
     const grants = baseGrantedDigivolveFor(base.topCard.cardId);
     if (grants === undefined) return undefined;
     for (const grant of grants) {
+      if (this.deps.state.turnSeat !== seat && grant.allTurns !== true) continue;
       if (!baseGrantTargetMatches(grant.target, evolving)) continue;
       if (grant.condition !== undefined && !this.baseGrantConditionHolds(seat, grant.condition)) continue;
       return { cost: grant.cost };

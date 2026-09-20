@@ -1,5 +1,6 @@
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { CardMini } from "../../design/cards";
+import { Icons } from "../../design/icons";
 import { useTranslation } from "../../i18n";
 import { CardBurst } from "../CardBurst";
 import { hasBlocker, restrictionBadges, sourceCountBadge } from "../fieldBadges";
@@ -52,6 +53,7 @@ export function PermanentView({
   drop,
   onPointerDown,
   onKeyboardActivate,
+  onInspect,
 }: {
   perm: Permanent;
   keywordLabels?: Readonly<Record<string, string>>;
@@ -95,6 +97,8 @@ export function PermanentView({
   onPointerDown?: (e: React.PointerEvent) => void;
   /** Keyboard fallback for drag-only interactions (select to play or attack). */
   onKeyboardActivate?: () => void;
+  /** Secondary action used while the permanent's primary click answers a field selection. */
+  onInspect?: () => void;
 }) {
   const permanentWidth = width ?? (compact ? 76 : 116);
   const { t } = useTranslation();
@@ -207,6 +211,20 @@ export function PermanentView({
           width={permanentWidth}
           suspended={heldSuspended || perm.isSuspended}
         />
+      ) : null}
+      {onInspect ? (
+        <button
+          type="button"
+          className="game-permanent__inspect"
+          aria-label={t("game.inspectCard", { card: cardName })}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            onInspect();
+          }}
+        >
+          <Icons.Search size={14} />
+        </button>
       ) : null}
     </div>
   );

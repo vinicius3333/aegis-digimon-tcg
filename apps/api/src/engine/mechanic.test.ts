@@ -4271,7 +4271,7 @@ describe("A3 wrong-permanent cluster — self-reference and compound-clause fixe
   // FAILS-WHEN-REVERTED: revert the new "<opponent's ...> effects don't affect <target> and it
   // gets +/-N DP" handler => the ModifyDP target's controller flips to "opponent" (the OWN
   // Greymon never gets +3000 DP) and no GrantImmunity action exists at all.
-  it("BT22-083 [All Turns]: whenAttackTargetSwitched grants +3000 DP and opponent-effect immunity to OWN Greymon", async () => {
+  it("BT22-083 [All Turns]: grants +3000 DP and opposing Digimon-effect immunity to OWN Greymon", async () => {
     const s = setup(
       {
         0: {
@@ -4297,7 +4297,8 @@ describe("A3 wrong-permanent cluster — self-reference and compound-clause fixe
     await settle(() => false, 60);
 
     expect(ownGreymon.currentDP).toBe(dpBefore + 3000);
-    expect(ledger(s).hasRestriction(ownGreymon.permanentId, "beAffected")).toBe(true);
+    expect(ownGreymon.immuneToOpponentDigimonEffects).toBe(true);
+    expect(ownGreymon.immuneToOpponentOptionEffects).toBe(false);
     // The opponent's own [Greymon] must NOT receive the buff or the immunity.
     expect(oppControl.currentDP).toBe(5000);
     expect(ledger(s).hasRestriction(oppControl.permanentId, "beAffected")).toBe(false);

@@ -31,6 +31,77 @@ async function openCounter(s: ReturnType<typeof setupEngine>, attacker: string) 
 describe("Blast Digivolve public Counter consent and host selection", () => {
   beforeEach(() => sourcePin());
 
+  it.each(["BT25-082", "BT6-060"])(
+    "does not waive a base grant's condition or turn restriction for %s",
+    async (baseCard) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [
+            { card: baseCard, as: "restricted" },
+            { card: "BT1-024", as: "base" },
+          ],
+          hand: [
+            { card: "EX7-059", as: "beel" },
+            { card: "EX10-010", as: "ace" },
+          ],
+          security: ["BT1-009"],
+          deck: ["BT1-013", "BT1-014"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-013", "BT1-014"] },
+      });
+      s.state.turnSeat = 1;
+      await s.ready();
+      const opened = await openCounter(s, "attacker");
+      const effectKey = `blast-digivolve:${s.perm("restricted").permanentId}`;
+      expect(opened.eligibleCounters.filter((entry) => entry.effectKey === effectKey)).toEqual([]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondCounter",
+          sourceInstanceId: s.inst("beel").instanceId,
+          effectKey,
+        }),
+      ).toEqual({ ok: false, reason: "illegal-target" });
+      expect(s.engine.applyIntent(0, { type: "respondCounter" })).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+    },
+  );
+
+  it("does not offer or accept a generic Blast Digivolve onto Yuuko", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT22-083", as: "yuuko" },
+          { card: "BT1-024", as: "base" },
+        ],
+        hand: [
+          { card: "EX10-010", as: "ace" },
+          { card: "BT22-052", as: "leopardmon" },
+        ],
+        security: ["BT1-009"],
+        deck: ["BT1-013", "BT1-014"],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-013", "BT1-014"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const opened = await openCounter(s, "attacker");
+    const effectKey = `blast-digivolve:${s.perm("yuuko").permanentId}`;
+    expect(opened.eligibleCounters.filter((entry) => entry.effectKey === effectKey)).toEqual([]);
+    for (const alias of ["ace", "leopardmon"]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondCounter",
+          sourceInstanceId: s.inst(alias).instanceId,
+          effectKey,
+        }),
+      ).toEqual({ ok: false, reason: "illegal-target" });
+    }
+    expect(s.perm("yuuko").topCard.cardId).toBe("BT22-083");
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.engine.applyIntent(0, { type: "respondCounter" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+  });
+
   it("passes the real Counter window without consuming an ACE or base when the defender declines", async () => {
     const s = setupEngine(
       {

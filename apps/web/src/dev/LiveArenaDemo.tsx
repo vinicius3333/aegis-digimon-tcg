@@ -12,6 +12,9 @@ export function LiveArenaDemo() {
   const { locale } = useTranslation();
   const portuguese = locale === "pt-BR";
   const [run, setRun] = useState(0);
+  const [scenario, setScenario] = useState<NonNullable<AegisJoinOptions["devScenario"]>>(() =>
+    new URLSearchParams(window.location.search).get("scenario") === "card-bugs" ? "card-bugs" : "arena",
+  );
   const player = useMemo(loadIdentity, []);
   const joinOptions = useMemo<AegisJoinOptions>(() => {
     const deck = CATALOG_DECKS.find((entry) => entry.deckId === "bt26-dgo-2026-08-28-7-chronomon");
@@ -21,14 +24,30 @@ export function LiveArenaDemo() {
       deckId: deck.deckId,
       deckName: deck.name,
       deck: { mainDeck: [...deck.decklist.mainDeck], eggDeck: [...deck.decklist.eggDeck] },
-      devScenario: new URLSearchParams(window.location.search).get("scenario") === "card-bugs" ? "card-bugs" : "arena",
+      devScenario: scenario,
     };
-  }, [player]);
+  }, [player, scenario]);
   const reset = () => setRun((current) => current + 1);
   return (
     <div className="aegis-arena-demo">
       <header className="aegis-arena-demo-toolbar">
         <strong>{portuguese ? "Demo com servidor · contra bot" : "Server demo · vs bot"}</strong>
+        <label className="aegis-arena-demo-field">
+          <span className="aegis-arena-demo-field-label">{portuguese ? "Cenário" : "Scenario"}</span>
+          <select
+            value={scenario}
+            onChange={(event) => {
+              setScenario(event.target.value as NonNullable<AegisJoinOptions["devScenario"]>);
+              setRun((current) => current + 1);
+            }}
+          >
+            <option value="arena">Attack steps · Counter/Blocker</option>
+            <option value="arena-aegiochus-dark-assembly">Aegiochus Dark · Wizardmon Assembly</option>
+            <option value="arena-magnamon-x">Magnamon X · Sonic Shot unsuspend</option>
+            <option value="arena-vortexdramon">Vortexdramon · optional OPT</option>
+            {scenario === "card-bugs" ? <option value="card-bugs">Card bugs</option> : null}
+          </select>
+        </label>
         <button type="button" className="aegis-arena-demo-replay" onClick={reset}>
           {portuguese ? "Reiniciar combate" : "Reset combat"}
         </button>
@@ -42,7 +61,7 @@ export function LiveArenaDemo() {
         </a>
       </header>
       <GameScreen
-        key={run}
+        key={`${scenario}-${run}`}
         joinOptions={joinOptions}
         identityColor={colorKey(player.color)}
         startMode="bot"

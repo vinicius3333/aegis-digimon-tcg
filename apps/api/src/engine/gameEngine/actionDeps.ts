@@ -357,7 +357,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
     },
     // Base-granted digivolve path (ST7-03/BT6-060): the base permanent's static grant lets engine
     // specific evolving card digivolve onto it, ignoring color/level, when active (battle area,
-    // owner's turn — guaranteed by the verb — and the opponent-level condition when present).
+    // the grant's allowed turns and its printed condition when present).
     baseGrantedDigivolve: (_state, seat, base, evolving, sourceZone) =>
       engine.digivolveSupport.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
     // ＜Blast Digivolve＞/＜Blast DNA Digivolve＞ (§16-26-1/§16-31-1): the evolving hand card's

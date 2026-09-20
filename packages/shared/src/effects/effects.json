@@ -84179,7 +84179,7 @@
                   {
                     "kind": "GrantImmunity",
                     "target": { "filter": {}, "fromSelectionRef": "yuukoProtectedDigimon", "count": 1 },
-                    "immuneFrom": "opponentEffects",
+                    "immuneFrom": "opponentDigimonEffects",
                     "duration": "forTheTurn"
                   },
                   {

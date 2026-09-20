@@ -201,11 +201,14 @@ describe("EX7-059", () => {
     await stopLoop(s, loop, 1);
   });
 
-  it("Q6391: Blast Digivolves onto a Tamer with Three Musketeers in its text", async () => {
+  it("Q6391: Blast Digivolves onto BlackGatomon while a Three Musketeers Tamer enables its route", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-093", as: "tamer" }],
+          battleArea: [
+            { card: "BT18-093", as: "tamer" },
+            { card: "BT25-082", as: "base" },
+          ],
           hand: [{ card: "EX7-059", as: "beel" }],
           trash: [{ card: "EX7-066", as: "option" }],
           security: ["BT1-009"],
@@ -238,8 +241,9 @@ describe("EX7-059", () => {
         effectKey: eligible!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tamer").topCard.cardId === "EX7-059");
-    expect(s.perm("tamer").stack.map((card) => card.cardId)).toContain("BT18-093");
+    await settle(() => s.perm("base").topCard.cardId === "EX7-059");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT25-082");
+    expect(s.perm("tamer").topCard.cardId).toBe("BT18-093");
     expect(s.state.memory).toBe(3);
     await stopLoop(s, loop, 1);
   });

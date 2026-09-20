@@ -7,6 +7,8 @@ import { DragKind } from "./screen/enums";
 import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
+import { counterTargetIds } from "./overlay/combat/CounterOverlay";
+import { isDecoyDecision } from "./decisionPresentation";
 import { decisionViewFor } from "./screen/model/decisionView";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
 import { useAttackPreviewArrow } from "./screen/hooks/useAttackPreviewArrow";
@@ -243,6 +245,11 @@ export function GameScreen({
   /** The last combat-answer rejection already rolled back, so one refusal clears the optimistic
    * hide exactly once. */
   const rolledBackRejectionSeqRef = useRef<number | undefined>(undefined);
+  const [counterHandChoice, setCounterHandChoice] = useState<{
+    windowKey: string;
+    instanceId: string;
+    targetPermanentId?: string;
+  }>();
 
   const { drag, dragHover, handleTapRef, handleDropRef, startHandDrag, startPermDrag } = useDragPlumbing();
 
@@ -319,6 +326,9 @@ export function GameScreen({
   // both be open at once (the server never opens one of these while a decision is unanswered),
   // so folding it into the same `decisionPending`/`decisionStateVersion` inputs below is safe.
   const openCombatWindowForBarrier = state ? openCombatWindow(events, state, viewerSeat) : null;
+  useEffect(() => {
+    if (!openCombatWindowForBarrier?.key.startsWith("counter:")) setCounterHandChoice(undefined);
+  }, [openCombatWindowForBarrier?.key]);
   // The server's own record of the window still awaiting this seat's answer. Authoritative for
   // whether a prompt may be shown: the opening event can be missed entirely (broadcast while the
   // socket was down) or fall out of the capped live log, and an optimistic local hide can outlive
@@ -362,10 +372,30 @@ export function GameScreen({
       room?.send(PRESENTATION_CHANNEL, report);
     },
   });
-  // The dialog that asks the viewer whether to activate their own effect already names the
-  // card and prints its clause, so the matching corner notice would only repeat it.
+  const fieldDecisionCandidateIds = new Set<string>();
+  if (state) {
+    for (const player of state.players) {
+      for (const permanent of player.battleArea) {
+        fieldDecisionCandidateIds.add(permanent.permanentId);
+        fieldDecisionCandidateIds.add(permanent.topCard.instanceId);
+      }
+    }
+  }
+  const decisionCandidateIds = decision?.options?.candidateInstanceIds ?? [];
+  const fieldEffectDecision =
+    decision?.seat === viewerSeat &&
+    (decision.kind === "selectCards" || decision.kind === "chooseTargets") &&
+    decisionCandidateIds.length > 0 &&
+    [...decisionCandidateIds, ...(decision.options?.visibleInstanceIds ?? [])].every((id) =>
+      fieldDecisionCandidateIds.has(id),
+    );
+  // A modal already repeats the source card and its clause, so its matching toast is redundant.
+  // A field selection leaves the board visible and is part of the effect's action, so preserve
+  // the effect toast there (notably BlackWarGreymon's Blast Digivolve deletion).
   const promptedOwnEffectCardId =
-    decision?.seat === viewerSeat && dialogRepeatsEffectNotice(decision.options) ? decision.sourceCardId : undefined;
+    decision?.seat === viewerSeat && !fieldEffectDecision && dialogRepeatsEffectNotice(decision.options)
+      ? decision.sourceCardId
+      : undefined;
   const ownEffectNoticeRef = useRef({ dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice });
   ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
   useEffect(() => {
@@ -563,7 +593,9 @@ export function GameScreen({
   const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
   const handPreviewEntry = handPreview ? shownHandEntries.find((entry) => entry.instanceId === handPreview) : undefined;
   const handPreviewActions =
-    handPreview && !decision ? handEntries.find((entry) => entry.instanceId === handPreview) : undefined;
+    handPreview && !decision && !mainActionBlocked
+      ? handEntries.find((entry) => entry.instanceId === handPreview)
+      : undefined;
 
   const selection = { clearSel, setHandSel, setHandPreview, setSelPerm, setVortexMode, setLinkSel };
   const overlayControls = {
@@ -608,6 +640,27 @@ export function GameScreen({
     rolledBackRejectionSeqRef,
   });
   const { markCombatWindowAnswered } = combatWindows;
+  const counterWindowKey = `${openCombatWindowForBarrier?.key ?? ""}:${openCombatWindowForBarrier?.stateVersion ?? ""}`;
+  const counterSourceInstanceId =
+    counterHandChoice?.windowKey === counterWindowKey ? counterHandChoice.instanceId : undefined;
+  const selectCounterSource = (instanceId?: string) => {
+    setHandPreview(null);
+    setCounterHandChoice(instanceId ? { windowKey: counterWindowKey, instanceId } : undefined);
+  };
+  const counterHandInstanceIds = you.hand.map((card) => card.instanceId);
+  const eligibleCounterHandIds =
+    combatWindows.counterWindow?.eligibleCounters
+      .filter((choice) => counterHandInstanceIds.includes(choice.instanceId))
+      .map((choice) => choice.instanceId) ?? [];
+  const counterSourceChoices =
+    combatWindows.counterWindow?.eligibleCounters.filter((choice) => choice.instanceId === counterSourceInstanceId) ??
+    [];
+  const counterHostIds = new Set(
+    counterSourceChoices.flatMap((choice) => {
+      const target = counterTargetIds(choice.effectKey);
+      return target ? [target.permanentId] : [];
+    }),
+  );
 
   // ----- eligibility helpers -----
   // Every "can I do this?" answer below is the server's, read off the state it already
@@ -723,6 +776,14 @@ export function GameScreen({
     permanents: allPermanents,
     handInstanceIds,
   });
+  const fieldDecision =
+    decisionView.answerOnBoard &&
+    (decisionView.viewerDecision?.kind === "selectCards" || decisionView.viewerDecision?.kind === "chooseTargets") &&
+    decisionView.decisionVisible.some(
+      (candidate) => candidate.zone === "battle" || candidate.zone === "opponentBattle",
+    );
+  const decisionCandidateIdFor = (perm: Permanent) =>
+    [perm.topCard.instanceId, perm.permanentId].find((id) => decisionView.decisionSelectable.has(id));
   const {
     viewerDecision,
     decisionHighlightPermanentId,
@@ -880,6 +941,12 @@ export function GameScreen({
       allowsPick={decisionAllowsPick}
       onTogglePick={toggleDecisionPick}
       combatWindows={combatWindows}
+      counterSelection={{
+        instanceId: counterSourceInstanceId,
+        targetPermanentId: counterHandChoice?.targetPermanentId,
+        onSelect: selectCounterSource,
+        handInstanceIds: counterHandInstanceIds,
+      }}
       combatWindowAnswers={combatWindowAnswers}
       scenes={{ securityBreak, securityClash, securityBranch, optionBranch, zoneShowcase }}
       collapseNotices={collapseNotices}
@@ -901,6 +968,7 @@ export function GameScreen({
       keywordLabels={demoConnection?.keywordLabels}
       narrowGameLayout={narrowGameLayout}
       isMyTurn={isMyTurn}
+      mainActionBlocked={mainActionBlocked}
       linkTargetsOfPermanent={linkTargetsOfPermanent}
       handEntries={handEntries}
       shownHandEntries={shownHandEntries}
@@ -921,6 +989,7 @@ export function GameScreen({
     effectSourcePermanentIds,
     effectLinkedPermanentIds,
     decisionHighlightPermanentId,
+    decisionPickedInstanceIds: fieldDecision ? new Set(picks) : new Set<string>(),
     permanentBursts,
     pendingPermanentIds,
     fateBadges,
@@ -964,17 +1033,34 @@ export function GameScreen({
         draggedAttackerPermanent: draggedAttackerPerm,
         canAttackSecurity,
         isBasePermanent: (perm) =>
-          (handIsDigi && eligibleBase(perm)) ||
-          dragBasePermanentIds.has(perm.permanentId) ||
-          (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
+          combatWindows.counterWindow
+            ? counterHostIds.has(perm.permanentId)
+            : combatWindows.blockWindow
+              ? combatWindows.blockWindow.eligibleBlockerIds.includes(perm.permanentId)
+              : fieldDecision
+                ? decisionCandidateIdFor(perm) !== undefined
+                : (handIsDigi && eligibleBase(perm)) ||
+                  dragBasePermanentIds.has(perm.permanentId) ||
+                  (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
+        isDecisionCandidate: (perm) =>
+          combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId) === true ||
+          (fieldDecision && decisionCandidateIdFor(perm) !== undefined),
       }}
       chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
       handDock={{
         effectSourceInstanceId:
           handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined,
         shakeInstanceId: shakeHandInstanceId,
-        selection:
-          decisionView.answerOnBoard && decisionView.viewerDecision?.kind === "selectCards"
+        selection: combatWindows.counterWindow
+          ? {
+              selectableInstanceIds: eligibleCounterHandIds,
+              pickedInstanceIds: counterSourceInstanceId ? [counterSourceInstanceId] : [],
+              onToggle: (instanceId) => {
+                if (eligibleCounterHandIds.includes(instanceId)) selectCounterSource(instanceId);
+              },
+              onInspect: setHandPreview,
+            }
+          : !fieldDecision && decisionView.answerOnBoard && decisionView.viewerDecision?.kind === "selectCards"
             ? {
                 selectableInstanceIds: decisionView.viewerDecision.options?.candidateInstanceIds ?? [],
                 pickedInstanceIds: picks,
@@ -982,21 +1068,64 @@ export function GameScreen({
                 onInspect: setHandPreview,
               }
             : undefined,
-        actionBar: !selPerm
-          ? {
-              selCardId: handPreview ? undefined : selCardId,
-              hasBase:
-                (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
-                appFusionHostIdsOf(selEntry?.instanceId).length > 0,
-              linkingCardId: linkSel?.cardId,
-              onCancel: clearSel,
-            }
-          : undefined,
+        actionBar:
+          !selPerm && !combatWindows.counterWindow && !fieldDecision
+            ? {
+                selCardId: handPreview ? undefined : selCardId,
+                hasBase:
+                  (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
+                  appFusionHostIdsOf(selEntry?.instanceId).length > 0,
+                linkingCardId: linkSel?.cardId,
+                onCancel: clearSel,
+              }
+            : undefined,
         onHoverChange: setHoveredHandInstanceId,
       }}
       selection={selectionState}
       overlays={overlayState}
-      actions={actions}
+      actions={
+        combatWindows.counterWindow
+          ? {
+              ...actions,
+              onYourPerm: (perm) => () => {
+                const choices = counterSourceChoices.filter(
+                  (choice) => counterTargetIds(choice.effectKey)?.permanentId === perm.permanentId,
+                );
+                if (choices.length === 1) combatWindowAnswers.onCounter(choices[0]!.instanceId, choices[0]!.effectKey);
+                else if (choices.length > 1)
+                  setCounterHandChoice((current) =>
+                    current ? { ...current, targetPermanentId: perm.permanentId } : current,
+                  );
+                else setZoomCardId(perm.topCard.cardId);
+              },
+            }
+          : combatWindows.blockWindow
+            ? {
+                ...actions,
+                onYourPerm: (perm) => () => {
+                  if (combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId))
+                    combatWindowAnswers.onBlock(perm.permanentId);
+                  else setZoomCardId(perm.topCard.cardId);
+                },
+              }
+            : fieldDecision
+              ? {
+                  ...actions,
+                  onYourPerm: (perm) => () => {
+                    const candidateId = decisionCandidateIdFor(perm);
+                    if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
+                      toggleDecisionPick(candidateId);
+                    else setZoomCardId(perm.topCard.cardId);
+                  },
+                  onOppPerm: (perm) => () => {
+                    const candidateId = decisionCandidateIdFor(perm);
+                    if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
+                      toggleDecisionPick(candidateId);
+                    else setZoomCardId(perm.topCard.cardId);
+                  },
+                }
+              : actions
+      }
       senders={matchSenders}
       drag={{ state: drag, isPlay: dragIsPlay, cardId: dragCardId, hoveredIntent: hoveredDragIntent ?? undefined }}
       breedingDock={yourBreedingDock}
@@ -1004,6 +1133,10 @@ export function GameScreen({
       stageEl={stageEl}
       onStartHandDrag={(index, event) => startHandDrag(index, shownHandEntries[index], event)}
       onStartPermanentDrag={startPermDrag}
+      onInspectPermanent={{
+        viewer: (perm) => actions.onYourPerm(perm)?.(),
+        opponent: (perm) => actions.onOppPerm(perm)?.(),
+      }}
       onOpenCard={(cardId, artId) => {
         setZoomCardId(cardId);
         setZoomArtId(artId);

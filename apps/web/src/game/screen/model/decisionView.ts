@@ -62,7 +62,12 @@ export function decisionViewFor({
       ? sourcePermanentIdOf(decisionSourceCardId, permanents, viewerDecision)
       : undefined;
   const boardPresentation = viewerDecision
-    ? decisionPresentation({ decision: viewerDecision, handInstanceIds, sourcePermanentId: decisionSourcePermanentId })
+    ? decisionPresentation({
+        decision: viewerDecision,
+        handInstanceIds,
+        sourcePermanentId: decisionSourcePermanentId,
+        fieldInstanceIds: permanents.flatMap((permanent) => [permanent.permanentId, permanent.topCard.instanceId]),
+      })
     : "dialog";
   const answerOnBoard = boardPresentation === "board" && !decisionAsDialog;
   const decisionVisible = viewerDecision

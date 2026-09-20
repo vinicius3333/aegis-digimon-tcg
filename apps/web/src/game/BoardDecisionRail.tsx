@@ -10,6 +10,7 @@ import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { cardDisplayName, useCardOpener } from "./cardLinks";
+import "./overlay/fieldDecisionRail.css";
 
 function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
   useEffect(() => {
@@ -28,7 +29,7 @@ function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
     the hand, so the phone sheet must leave the hand uncovered; a `prompt` is
     answered with the sheet's own buttons, so the sheet may cover the hand and
     give the board the space instead. */
-type BoardPromptVariant = "prompt" | "selection";
+type BoardPromptVariant = "prompt" | "selection" | "field-selection";
 
 /** The art of the card asking the question, big enough to recognise beside its clause. */
 const BOARD_PROMPT_ART_WIDTH = 92;
@@ -87,7 +88,12 @@ function BoardPromptRail({
       {/* Phone only (see game.css): dims the board under the sheet, not the hand
           a selection picks from nor the notices that explain the decision. */}
       <div className="board-prompt-scrim" data-variant={variant} aria-hidden />
-      <section className="board-prompt" aria-label={label} data-testid="board-prompt" data-variant={variant}>
+      <section
+        className={`board-prompt${variant === "field-selection" ? " combat-prompt" : ""}`}
+        aria-label={label}
+        data-testid="board-prompt"
+        data-variant={variant}
+      >
         <div className="board-prompt__grip" aria-hidden />
         {onOpenDialog && showDialogButton ? (
           <Button
@@ -127,6 +133,7 @@ function BoardPromptRail({
 
 /** `selectCards` answered out of the viewer's hand: the rail counts the picks. */
 export function BoardSelectionRail({
+  fieldSelection = false,
   sourceCardId,
   prompt,
   clause,
@@ -138,6 +145,7 @@ export function BoardSelectionRail({
   onNoSelection,
   onOpenDialog,
 }: {
+  fieldSelection?: boolean;
   /** The card asking for the selection, shown as the same art cue the optional rail uses. */
   sourceCardId?: string;
   prompt: string;
@@ -154,9 +162,9 @@ export function BoardSelectionRail({
   const { t } = useTranslation();
   return (
     <BoardPromptRail
-      variant="selection"
-      label={t("overlay.handSelection")}
-      eyebrow={t("overlay.handSelection")}
+      variant={fieldSelection ? "field-selection" : "selection"}
+      label={fieldSelection ? t("overlay.confirmTargets") : t("overlay.handSelection")}
+      eyebrow={fieldSelection ? t("overlay.confirmTargets") : t("overlay.handSelection")}
       art={sourceCardId}
       prompt={prompt}
       clause={clause}
@@ -168,11 +176,40 @@ export function BoardSelectionRail({
           one (BT24-016 forcing the opponent to place a card as security) has no way out,
           so offering the button would promise an answer the server rejects. */}
       <Button full icon={Icons.Check} disabled={pickCount === 0 || !canConfirm} onClick={onConfirm}>
-        {t("overlay.endSelection")}
+        {t(fieldSelection ? "overlay.confirmTargets" : "overlay.endSelection")}
       </Button>
       {min === 0 ? (
         <Button full variant="secondary" onClick={onNoSelection}>
-          {t("overlay.noSelection")}
+          {t(fieldSelection ? "common.none" : "overlay.noSelection")}
+        </Button>
+      ) : null}
+    </BoardPromptRail>
+  );
+}
+
+/** A block window is answered from the battle area; the rail only carries context and decline. */
+export function BoardBlockPrompt({
+  attackerCardId,
+  mustBlock,
+  onDecline,
+}: {
+  attackerCardId?: string;
+  mustBlock: boolean;
+  onDecline: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <BoardPromptRail
+      variant="field-selection"
+      label={t("overlay.blockWindow")}
+      eyebrow={mustBlock ? `${t("overlay.blockWindow")} · ${t("overlay.blockForced")}` : t("overlay.blockWindow")}
+      art={attackerCardId}
+      prompt={t("overlay.blockChooseCard")}
+      clause={t(mustBlock ? "overlay.blockForcedPrompt" : "overlay.blockPrompt")}
+    >
+      {!mustBlock ? (
+        <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
+          {t("overlay.takeAttack")}
         </Button>
       ) : null}
     </BoardPromptRail>

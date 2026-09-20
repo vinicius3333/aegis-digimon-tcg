@@ -1,0 +1,47 @@
+/* A field selection keeps the eligible permanents visible and clickable. */
+.board-prompt-scrim[data-variant="field-selection"] {
+  display: none;
+}
+.board-prompt[data-variant="field-selection"] {
+  top: auto;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  translate: none;
+  transform: none;
+  width: min(560px, calc(100% - 24px));
+  max-height: 28dvh;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border: 2px solid var(--ds-warning);
+  border-radius: 12px;
+  box-sizing: border-box;
+  animation: aegis-fadeIn 140ms ease-out;
+}
+.board-prompt[data-variant="field-selection"] .board-prompt__text {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.board-prompt[data-variant="field-selection"] .board-prompt__grip {
+  display: none;
+}
+.board-prompt[data-variant="field-selection"] .board-prompt__actions {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
+  flex-direction: row;
+  gap: var(--ds-space-3);
+}
+.board-prompt[data-variant="field-selection"] .board-prompt__actions > button {
+  min-height: 44px;
+  min-width: 0;
+  flex: 1 1 0;
+  white-space: normal;
+}
+@media (width < 600px), (height < 520px) and (orientation: landscape) {
+  .board-prompt.combat-prompt[data-variant="field-selection"] {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    max-height: 30dvh !important;
+  }
+}

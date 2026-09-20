@@ -45,6 +45,11 @@ describe("DigiXrosMaterialOverlay accessibility", () => {
     fireEvent.click(material);
     expect(material.getAttribute("aria-pressed")).toBe("true");
 
+    fireEvent.click(screen.getByRole("button", { name: "View board" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
+    expect(screen.getByRole("button", { name: "Vorvomon (hand)" }).getAttribute("aria-pressed")).toBe("true");
+
     expect(translator("pt-BR")("overlay.xrosTraitContains", { traits: "Dragon/saur/Ceratopsian" })).toBe(
       "[Dragon/saur/Ceratopsian] nas características",
     );

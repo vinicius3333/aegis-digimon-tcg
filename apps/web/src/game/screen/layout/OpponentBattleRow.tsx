@@ -18,7 +18,9 @@ export function OpponentBattleRow({
   draggedAttackerPermanent,
   vortexMode,
   dropIntentAttrs,
+  isDecisionCandidate,
   onPermanentClick,
+  onPermanentInspect,
 }: {
   permanents: readonly Permanent[];
   chrome: PermanentChrome;
@@ -28,7 +30,9 @@ export function OpponentBattleRow({
   draggedAttackerPermanent: Permanent | undefined;
   vortexMode: boolean;
   dropIntentAttrs: (target: DropTarget, id?: string) => DropAttrs;
+  isDecisionCandidate: (perm: Permanent) => boolean;
   onPermanentClick: (perm: Permanent) => (() => void) | undefined;
+  onPermanentInspect: (perm: Permanent) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -56,6 +60,7 @@ export function OpponentBattleRow({
       ) : null}
       {permanents.map((p, index) => {
         const isCand =
+          isDecisionCandidate(p) ||
           attackTargetIdsOf(attackerPermanent, vortexMode).includes(p.permanentId) ||
           attackTargetIdsOf(draggedAttackerPermanent, false).includes(p.permanentId);
         return (
@@ -76,7 +81,11 @@ export function OpponentBattleRow({
             candidate={isCand}
             effectSource={chrome.effectSourcePermanentIds.has(p.permanentId)}
             effectLinked={chrome.effectLinkedPermanentIds.has(p.permanentId)}
-            highlight={chrome.decisionHighlightPermanentId === p.permanentId}
+            highlight={
+              chrome.decisionHighlightPermanentId === p.permanentId ||
+              chrome.decisionPickedInstanceIds.has(p.permanentId) ||
+              chrome.decisionPickedInstanceIds.has(p.topCard.instanceId)
+            }
             burst={chrome.permanentBursts.get(p.permanentId)}
             pending={chrome.pendingPermanentIds.has(p.permanentId)}
             fate={chrome.fateBadges.get(p.permanentId)}
@@ -88,6 +97,7 @@ export function OpponentBattleRow({
             heldSuspended={chrome.heldSuspendedIds.has(p.permanentId)}
             suspendDelayMs={chrome.suspendDelayMs(index)}
             onClick={onPermanentClick(p)}
+            onInspect={isDecisionCandidate(p) ? () => onPermanentInspect(p) : undefined}
           />
         );
       })}

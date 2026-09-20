@@ -11,8 +11,13 @@ import type { DecisionRequest, Permanent } from "@aegis/shared";
 
 export type DecisionPresentation = "board" | "dialog";
 
+/** The engine's dedicated optional Decoy sacrifice question, not any effect mentioning the keyword. */
+export function isDecoyDecision(decision: DecisionRequest | undefined): boolean {
+  return decision?.kind === "selectCards" && /^[＜<]\s*Decoy(?:\s*[＞>]|\s*\()/i.test(decision.promptText ?? "");
+}
+
 /**
- * `selectCards` answered entirely out of the viewer's own hand needs no dialog:
+ * Card selections answered entirely from the hand or battle area need no dialog:
  * the cards are already on screen. `optional` prompts read better beside the
  * field they are about to change, as long as their source card is visible there.
  */
@@ -20,25 +25,25 @@ export function decisionPresentation({
   decision,
   handInstanceIds,
   sourcePermanentId,
+  fieldInstanceIds = [],
 }: {
   decision: DecisionRequest;
   handInstanceIds: readonly string[];
   sourcePermanentId?: string;
+  fieldInstanceIds?: readonly string[];
 }): DecisionPresentation {
   if (decision.kind === "optional") return sourcePermanentId === undefined ? "dialog" : "board";
-  // `chooseTargets` deliberately keeps the dialog. Its candidates are frequently
-  // cards that are NOT on the field (a revealed deck card, a card in the trash),
-  // and the grid is the only surface that can show those at all — so moving the
-  // on-field cases to the board would split one prompt across two answering
-  // surfaces depending on where its candidates happen to live.
-  if (decision.kind !== "selectCards") return "dialog";
+  if (decision.kind !== "selectCards" && decision.kind !== "chooseTargets") return "dialog";
   const candidates = decision.options?.candidateInstanceIds ?? [];
   if (candidates.length === 0) return "dialog";
+  const visible = decision.options?.visibleInstanceIds ?? [];
+  const field = new Set(fieldInstanceIds);
+  if ([...candidates, ...visible].every((instanceId) => field.has(instanceId))) return "board";
+  if (decision.kind === "chooseTargets" || isDecoyDecision(decision)) return "dialog";
   const hand = new Set(handInstanceIds);
   if (!candidates.every((instanceId) => hand.has(instanceId))) return "dialog";
   // A visible card outside the hand (a revealed deck card shown alongside) has
   // nowhere to render on the board, so that decision keeps the dialog.
-  const visible = decision.options?.visibleInstanceIds ?? [];
   return visible.every((instanceId) => hand.has(instanceId)) ? "board" : "dialog";
 }
 

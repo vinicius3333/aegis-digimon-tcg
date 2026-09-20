@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
-import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
+import { BoardBlockPrompt, BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
 import { CardOpenerProvider } from "./cardLinks";
 import { Hand } from "./piece";
 
@@ -172,6 +172,23 @@ describe("board prompt scrim", () => {
     );
     expect(selection.container.querySelector('.board-prompt[data-variant="selection"]')).toBeTruthy();
     expect(selection.container.querySelector('.board-prompt-scrim[data-variant="selection"]')).toBeTruthy();
+  });
+});
+
+describe("BoardBlockPrompt", () => {
+  it("keeps the blocker choice on the field and offers the decline action", () => {
+    const onDecline = vi.fn<() => void>();
+    renderIn(<BoardBlockPrompt attackerCardId="ST1-07" mustBlock={false} onDecline={onDecline} />);
+
+    expect(screen.getByRole("region", { name: "Block window" })).toBeTruthy();
+    expect(screen.getByText("Choose your blocker")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Take the attack, no block" }));
+    expect(onDecline).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not offer decline when blocking is mandatory", () => {
+    renderIn(<BoardBlockPrompt mustBlock onDecline={noop} />);
+    expect(screen.queryByRole("button", { name: "Take the attack, no block" })).toBeNull();
   });
 });
 

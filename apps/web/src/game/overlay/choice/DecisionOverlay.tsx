@@ -21,9 +21,10 @@ import { totalPlayCost } from "./decisionPlayCost";
 import { DecisionSelectFooter } from "./DecisionSelectFooter";
 import { DecisionTriggerChooser } from "./DecisionTriggerChooser";
 import type { DecisionCandidate } from "./decisionTypes";
+import "../effectPromptFamily.css";
 
 /** The art of the card asking the question, big enough to recognise beside its clause. */
-const DECISION_SOURCE_ART_WIDTH = 76;
+const DECISION_SOURCE_ART_WIDTH = 64;
 
 export function DecisionOverlay({
   request,
@@ -142,19 +143,14 @@ export function DecisionOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={dialogLabel}
-      className={`game-modal__panel game-modal__panel--bare decision-overlay${wideDialog ? " decision-overlay--wide" : ""}`}
+      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}`}
       onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
       /* Geometry, surface and entrance all live in game.css: inline values could not be
          overridden by the phone bottom-sheet rules, and an inline `animation` shorthand
          hid both the shared `--t-dialog-in` timing and the reduced-motion override. */
-      style={{ width: wideDialog ? 1000 : 600 }}
+      style={{ width: wideDialog && Math.max(candidates.length, triggerKeys.length) > 3 ? 1000 : 560 }}
     >
-      {/* The question itself is the headline, in a band across the top of the sheet. The
-          card's art already says which card asked it, so its name is not spelled out
-          again above the clause. */}
-      <div className="decision-overlay__heading">
-        <h2 className="decision-overlay__title">{promptText}</h2>
-      </div>
+      {/* Artwork and the question share the same compact header as combat prompts. */}
       <div className="decision-overlay__header">
         {sourceCardId ? (
           /* The art is now the only mention of the card, so it carries the link that the
@@ -174,7 +170,14 @@ export function DecisionOverlay({
             </span>
           )
         ) : null}
-        {sourceEffectText ? <p className="decision-overlay__effect-text">{sourceEffectText}</p> : null}
+        <div className="decision-overlay__question">
+          <div className="decision-overlay__heading">
+            <h2 className="decision-overlay__title">{promptText}</h2>
+          </div>
+          {!isOrderTriggers && sourceEffectText ? (
+            <p className="decision-overlay__effect-text">{sourceEffectText}</p>
+          ) : null}
+        </div>
       </div>
 
       {isSelect ? (

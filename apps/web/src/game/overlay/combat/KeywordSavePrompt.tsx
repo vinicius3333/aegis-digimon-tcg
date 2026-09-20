@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Button } from "../../../design/primitives";
-import { CardArt } from "../CardArt";
+import { CardPromptFrame } from "./CardPromptFrame";
+import "../effectPromptFamily.css";
 
 /**
  * The yes/no sheet for a keyword that can save a Digimon from deletion (＜Evade＞,
@@ -25,12 +26,13 @@ export function KeywordSavePrompt({
   onDecline: () => void;
 }) {
   return (
-    <div className="combat-prompt keyword-prompt" style={{ animation: "battle-dialog-in 200ms ease-out" }}>
-      <div className="keyword-prompt__title">{keyword}</div>
-      <div className="keyword-prompt__body">
-        {cardId ? <CardArt cardId={cardId} width={96} /> : null}
-        <p className="keyword-prompt__rules">{rulesText}</p>
-      </div>
+    <CardPromptFrame
+      cardId={cardId}
+      eyebrow=""
+      title={keyword}
+      description={rulesText}
+      className="keyword-save-overlay"
+    >
       <div className="game-actions-row">
         <Button full onClick={onAccept}>
           {acceptLabel}
@@ -39,6 +41,6 @@ export function KeywordSavePrompt({
           {declineLabel}
         </Button>
       </div>
-    </div>
+    </CardPromptFrame>
   );
 }

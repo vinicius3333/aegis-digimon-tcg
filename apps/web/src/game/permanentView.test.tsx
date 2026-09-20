@@ -1,12 +1,26 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { CardInstance, Permanent } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { PermanentView } from "./piece";
 
 afterEach(() => cleanup());
+
+it("inspects a field-selection candidate without activating its primary choice", () => {
+  const choose = vi.fn<() => void>();
+  const inspect = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <PermanentView perm={opponentWithDpDown()} candidate onClick={choose} onInspect={inspect} />
+    </I18nProvider>,
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: /read saberleomon/i }));
+  expect(inspect).toHaveBeenCalledTimes(1);
+  expect(choose).not.toHaveBeenCalled();
+});
 
 it("shows printed and granted Security Attack modifiers in field badges", () => {
   const printed = new Permanent();

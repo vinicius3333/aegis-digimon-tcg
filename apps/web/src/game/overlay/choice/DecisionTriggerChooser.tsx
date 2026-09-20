@@ -51,7 +51,7 @@ export function DecisionTriggerChooser({
       : undefined;
 
   return (
-    <div>
+    <div className="trigger-chooser__layout">
       <div
         style={{
           fontSize: 11,
@@ -115,9 +115,6 @@ export function DecisionTriggerChooser({
         })}
       </div>
       <div className="trigger-chooser__footer">
-        <span className="trigger-chooser__selection" aria-live="polite">
-          {selectedTriggerKeys.length === 1 ? triggerKeyLabels[triggerKeys.indexOf(selectedTriggerKeys[0]!)] : null}
-        </span>
         <DecisionViewBoardButton onOpenBoard={onOpenBoard} />
         <Button
           size="lg"

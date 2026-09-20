@@ -97,6 +97,62 @@
     0 18px 60px rgb(0 0 0 / 65%) !important;
 }
 
+.evo-cost-prompt {
+  position: absolute;
+  top: 7.5rem;
+  left: 50%;
+  box-sizing: border-box;
+  width: min(26.25rem, calc(100% - var(--ds-space-6)));
+  max-height: calc(100dvh - 9rem);
+  padding: var(--ds-space-5);
+  overflow-y: auto;
+  border: 2px solid var(--ds-accent);
+  border-radius: var(--ds-radius-lg);
+  transform: translateX(-50%);
+  animation: battle-dialog-in 200ms ease-out;
+}
+
+.evo-cost-prompt__header {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
+}
+
+.evo-cost-prompt__title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.evo-cost-prompt__eyebrow {
+  color: var(--ds-accent);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.evo-cost-prompt__matchup {
+  margin-top: var(--ds-space-1);
+  color: var(--ds-fg);
+  font: 700 1.0625rem/1.25 var(--ds-font-display);
+}
+
+.evo-cost-prompt__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin-bottom: var(--ds-space-3);
+}
+
+.evo-cost-prompt__option {
+  height: auto;
+  min-height: var(--ds-touch-target);
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 @keyframes battle-dialog-in {
   from {
     translate: 0 0.75rem;

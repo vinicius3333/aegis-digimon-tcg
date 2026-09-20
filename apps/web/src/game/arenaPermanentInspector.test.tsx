@@ -1,5 +1,15 @@
 // @vitest-environment jsdom
-import { CardInstance, GameState, Permanent, Phase, PlayerState, getCardDefinition, type Seat } from "@aegis/shared";
+import {
+  CardInstance,
+  GameState,
+  PendingDecision,
+  Permanent,
+  Phase,
+  PlayerState,
+  getCardDefinition,
+  type DecisionRequest,
+  type Seat,
+} from "@aegis/shared";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
@@ -272,6 +282,62 @@ it.each([
   fireEvent.keyDown(selected, { key: "Enter" });
   expect(screen.getByRole("dialog", { name: "MetalGreymon" }).getAttribute("data-half")).toBe(half);
   expect(screen.queryByRole("tooltip")).toBeNull();
+});
+
+it("keeps an own field card inspectable while an effect decision blocks game actions", () => {
+  const state = new GameState();
+  state.phase = Phase.Main;
+  state.turnSeat = 0;
+  const pending = new PendingDecision();
+  pending.decisionId = "effect-decision";
+  pending.seat = 0;
+  pending.kind = "optional";
+  pending.promptText = "Use this effect?";
+  state.pendingDecision = pending;
+  const decision: DecisionRequest = {
+    decisionId: pending.decisionId,
+    seat: pending.seat,
+    kind: "optional",
+    promptText: pending.promptText,
+    sourceInstanceId: "top-0",
+  };
+  for (const playerSeat of [0, 1] as const) {
+    const player = new PlayerState();
+    player.seat = playerSeat;
+    player.sessionId = `session-${playerSeat}`;
+    const fieldCard = permanent(playerSeat);
+    fieldCard.canAttackPlayer = true;
+    player.battleArea.push(fieldCard);
+    state.players.push(player);
+  }
+
+  const { container } = render(
+    <I18nProvider>
+      <GameScreen
+        joinOptions={{ displayName: "You", deck: { mainDeck: [], eggDeck: [] } }}
+        identityColor="Red"
+        onExit={() => undefined}
+        demoConnection={{
+          room: undefined,
+          status: "connected",
+          state,
+          events: [],
+          batches: [],
+          decision,
+          acknowledgeDecision: () => undefined,
+          error: undefined,
+          sessionId: "session-0",
+          roomCode: "",
+        }}
+      />
+    </I18nProvider>,
+  );
+
+  const selected = container.querySelector<HTMLElement>('[data-drop="perm-you"][data-id="permanent-0"]')!;
+  fireEvent.click(selected);
+
+  expect(screen.getByRole("dialog", { name: "MetalGreymon" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Attack" })).toBeNull();
 });
 
 it("preserves every supplied legal action and zoom while leaving schema source order intact", () => {

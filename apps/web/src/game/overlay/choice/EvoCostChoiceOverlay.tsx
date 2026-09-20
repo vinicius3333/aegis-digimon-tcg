@@ -1,8 +1,11 @@
 import { Button } from "../../../design/primitives";
 import { useTranslation } from "../../../i18n";
+import { useEffect, useId, useRef } from "react";
 import type { EvoCostOption } from "../../digivolveModel";
 import { CardArt } from "../CardArt";
 import { printedCardName } from "../printedCardName";
+import { useBoardPreview } from "./useBoardPreview";
+import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
 
 export function EvoCostChoiceOverlay({
   evolvingCardId,
@@ -20,61 +23,42 @@ export function EvoCostChoiceOverlay({
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
+  const titleId = useId();
+  const { isViewingBoard, openBoard, boardReturn } = useBoardPreview();
+  const panelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isViewingBoard) panelRef.current?.focus();
+  }, [isViewingBoard]);
+  if (isViewingBoard) return boardReturn;
 
   return (
     <div
       className="combat-prompt evo-cost-prompt"
+      ref={panelRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
       onClick={(e) => e.stopPropagation()}
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: 120,
-        transform: "translateX(-50%)",
-        zIndex: 85,
-        width: 420,
-        background: "var(--ds-surface)",
-        border: "2px solid var(--ds-accent)",
-        borderRadius: 20,
-        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
-        padding: 22,
-        animation: "battle-dialog-in 200ms ease-out",
-      }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+      <div className="evo-cost-prompt__header">
         <CardArt cardId={evolvingCardId} width={56} />
-        <div>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--ds-accent)",
-            }}
-          >
-            {t("overlay.digivolveCost")}
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--ds-font-display)",
-              fontWeight: 700,
-              fontSize: 17,
-              color: "var(--ds-fg)",
-              marginTop: 2,
-            }}
-          >
+        <div className="evo-cost-prompt__title">
+          <div className="evo-cost-prompt__eyebrow">{t("overlay.digivolveCost")}</div>
+          <div id={titleId} className="evo-cost-prompt__matchup">
             {printedCardName(evolvingCardId)} → {baseName}
           </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
+      <div className="evo-cost-prompt__options">
         {[...options]
           .sort((a, b) => a.cost - b.cost)
           .map((opt) => (
             <Button
               key={`${opt.type}:${opt.alternateRequirementIndex ?? -1}:${opt.label}`}
               full
+              className="evo-cost-prompt__option"
               variant={opt.type === "alternate" ? "secondary" : "primary"}
               onClick={() => onConfirm(opt)}
             >
@@ -86,6 +70,7 @@ export function EvoCostChoiceOverlay({
       <Button full variant="ghost" onClick={onCancel}>
         {t("common.cancel")}
       </Button>
+      <DecisionViewBoardButton onOpenBoard={openBoard} />
     </div>
   );
 }

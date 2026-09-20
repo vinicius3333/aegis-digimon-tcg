@@ -8,6 +8,10 @@ import { CardArt } from "../CardArt";
 import { printedCardName } from "../printedCardName";
 import { Scrim } from "../Scrim";
 import type { AssemblyCandidate } from "../types";
+import { useEffectPromptFocus } from "./useEffectPromptFocus";
+import { useBoardPreview } from "./useBoardPreview";
+import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
+import "../effectPromptFamily.css";
 
 /** Human-readable label for one Assembly material slot. */
 function assemblySlotLabel(slot: AssemblyRequirement["materials"][number], t: Translate): string {
@@ -52,6 +56,8 @@ export function AssemblyMaterialOverlay({
 }) {
   const { t } = useTranslation();
   const titleId = useId();
+  const { isViewingBoard, openBoard, boardReturn } = useBoardPreview();
+  const focusProps = useEffectPromptFocus(isViewingBoard);
   const [picks, setPicks] = useState<string[]>([]);
   const needed = assemblyMaterialCount(requirement);
   const candidateDefinitions = candidates.flatMap((candidate) => {
@@ -67,10 +73,12 @@ export function AssemblyMaterialOverlay({
     setPicks((prev) => (prev.includes(instanceId) ? prev.filter((id) => id !== instanceId) : [...prev, instanceId]));
   };
 
+  if (isViewingBoard) return boardReturn;
   return (
     <Scrim className="game-modal">
       <div
-        className="game-modal__panel"
+        {...focusProps}
+        className="game-modal__panel effect-prompt-family material-prompt"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -79,7 +87,7 @@ export function AssemblyMaterialOverlay({
           maxWidth: 640,
           width: "100%",
           background: "var(--ds-surface)",
-          borderRadius: 20,
+          borderRadius: 18,
           border: "1px solid var(--ds-border)",
           boxShadow: "var(--ds-shadow-summary)",
           padding: 24,
@@ -89,20 +97,7 @@ export function AssemblyMaterialOverlay({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              display: "grid",
-              placeItems: "center",
-              width: 38,
-              height: 38,
-              borderRadius: 11,
-              background: "var(--ds-accent-surface)",
-              color: "var(--ds-accent)",
-              flexShrink: 0,
-            }}
-          >
-            <Icons.Sparkles size={20} />
-          </div>
+          <CardArt cardId={playingCardId} width={64} />
           <div>
             <div
               id={titleId}
@@ -185,6 +180,9 @@ export function AssemblyMaterialOverlay({
           <Button full variant="ghost" onClick={onCancel}>
             {t("common.cancel")}
           </Button>
+        </div>
+        <div className="effect-prompt-family__board-action">
+          <DecisionViewBoardButton onOpenBoard={openBoard} />
         </div>
       </div>
     </Scrim>

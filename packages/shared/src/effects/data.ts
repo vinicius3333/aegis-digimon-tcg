@@ -1815,6 +1815,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { traits: ["Three Musketeers"] },
       cost: 4,
       ignoreRequirements: true,
+      allTurns: true,
       condition: { kind: "tamerHasText", text: "Three Musketeers" },
     },
   ],

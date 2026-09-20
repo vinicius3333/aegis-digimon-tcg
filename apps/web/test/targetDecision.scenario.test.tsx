@@ -162,28 +162,29 @@ scenario("target-decision", () => {
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
     // Brave Shield's [Main] Unsuspend target can't auto-resolve (2 Monodramon in
-    // play) — the real "chooseTargets" decision overlay opens.
-    // The dialog carries the source card as its accessible name; its body no longer repeats it.
-    const dialog = await screen.findByRole("dialog", { name: /brave shield/i }, { timeout: 10_000 });
+    // play), so the real field-only "chooseTargets" decision opens on the board.
+    const targetRail = await screen.findByTestId("board-prompt", {}, { timeout: 10_000 });
+    expect(within(targetRail).getByText(/unsuspend 1 of your digimon/i)).toBeTruthy();
 
     // Pick the first candidate and confirm once. "That Digimon" binds the Blocker
-    // grant to the Digimon chosen for Unsuspend, so no second target dialog may open.
+    // grant to the Digimon chosen for Unsuspend, so no second target prompt may open.
     const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
-    const [candidate] = within(dialog).getAllByRole("button", { pressed: false });
+    const [candidate] = within(yourBattleArea()).getAllByRole("button", { name: /monodramon/i });
     fireEvent.click(candidate!);
-    fireEvent.click(within(dialog).getByRole("button", { name: /confirm target/i }));
+    fireEvent.click(within(targetRail).getByRole("button", { name: /confirm target/i }));
     await vi.waitFor(
       () => {
         expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionIdBefore);
-        expect(screen.queryByRole("dialog")).toBeNull();
+        expect(screen.queryByTestId("board-prompt")).toBeNull();
       },
       { timeout: 10_000 },
     );
 
-    // Every target decision resolved and no dialog remains. Exactly one Monodramon
+    // Every target decision resolved and no prompt remains. Exactly one Monodramon
     // became active while the other stayed suspended, proving the chosen target was
     // accepted and the Unsuspend effect completed.
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByTestId("board-prompt")).toBeNull();
     expect(within(yourBattleArea()).getAllByRole("img", { name: /monodramon/i })).toHaveLength(2);
     expect(
       opponent.room.state.players[0]!.battleArea.filter(

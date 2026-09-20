@@ -6,7 +6,8 @@
 
 import type { GameState } from "@aegis/shared";
 import { findPermanentInState, instanceCardId, permCardId } from "../../decisionModel";
-import { AllianceOverlay, BarrierOverlay, BlockOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
+import { AllianceOverlay, BarrierOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
+import { BoardBlockPrompt } from "../../BoardDecisionRail";
 import type { CombatWindows } from "../model/combatWindows";
 
 export function CombatWindowPrompts({
@@ -21,6 +22,7 @@ export function CombatWindowPrompts({
   onAlliance,
   onEvade,
   onBarrier,
+  counterSelection,
 }: {
   state: GameState;
   blockWindow: CombatWindows["blockWindow"];
@@ -36,20 +38,19 @@ export function CombatWindowPrompts({
   onAlliance: (allyPermanentId?: string) => void;
   onEvade: (permanentId: string, accept: boolean) => void;
   onBarrier: (permanentId: string, accept: boolean) => void;
+  counterSelection?: {
+    instanceId?: string;
+    targetPermanentId?: string;
+    onSelect: (instanceId?: string) => void;
+    handInstanceIds: readonly string[];
+  };
 }) {
   return (
     <>
       {blockWindow ? (
-        <BlockOverlay
+        <BoardBlockPrompt
           attackerCardId={permCardId(state, blockWindow.attackerPermanentId)}
-          blockers={blockWindow.eligibleBlockerIds.map((pid) => ({
-            permanentId: pid,
-            cardId: permCardId(state, pid) ?? "",
-            currentDP: findPermanentInState(state, pid)?.currentDP ?? 0,
-            sourceCount: findPermanentInState(state, pid)?.stack.length ?? 0,
-          }))}
           mustBlock={blockWindow.mustBlock}
-          onBlock={(pid) => onBlock(pid)}
           onDecline={() => onBlock()}
         />
       ) : null}
@@ -58,7 +59,12 @@ export function CombatWindowPrompts({
         <CounterOverlay
           attackerCardId={permCardId(state, counterWindow.attackerPermanentId)}
           eligibleCounters={counterWindow.eligibleCounters}
+          selectedInstanceId={counterSelection?.instanceId}
+          selectedTargetPermanentId={counterSelection?.targetPermanentId}
+          onSelectInstance={counterSelection?.onSelect ?? (() => undefined)}
+          handInstanceIds={counterSelection?.handInstanceIds ?? []}
           getCardId={(instanceId) => instanceCardId(state, instanceId)}
+          getPermanentCardId={(permanentId) => permCardId(state, permanentId)}
           onActivate={(instanceId, effectKey) => onCounter(instanceId, effectKey)}
           onPass={() => onCounter()}
         />

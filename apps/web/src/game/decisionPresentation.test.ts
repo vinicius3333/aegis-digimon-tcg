@@ -40,6 +40,46 @@ function permanent(permanentId: string, cardId: string, stackCardIds: readonly s
 describe("decisionPresentation", () => {
   const hand = ["h1", "h2", "h3"];
 
+  it("routes a field-only selection to the board", () => {
+    const request = decision({
+      promptText: "＜Decoy＞: delete this Digimon to prevent deletion?",
+      options: { candidateInstanceIds: ["plain", "stacked"], min: 0, max: 1 },
+    });
+    expect(
+      decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["plain", "stacked"] }),
+    ).toBe("board");
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["plain"] })).toBe(
+      "dialog",
+    );
+    expect(
+      decisionPresentation({
+        decision: { ...request, promptText: "Choose a card to gain ＜Decoy＞" },
+        handInstanceIds: hand,
+        fieldInstanceIds: ["plain", "stacked"],
+      }),
+    ).toBe("board");
+  });
+
+  it("puts field-only chooseTargets decisions on the board", () => {
+    const request = decision({
+      kind: "chooseTargets",
+      options: { candidateInstanceIds: ["mine", "theirs"], min: 1, max: 1 },
+    });
+    expect(
+      decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["mine", "theirs"] }),
+    ).toBe("board");
+  });
+
+  it("keeps mixed-zone chooseTargets decisions in the dialog", () => {
+    const request = decision({
+      kind: "chooseTargets",
+      options: { candidateInstanceIds: ["field", "trash"], min: 1, max: 1 },
+    });
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["field"] })).toBe(
+      "dialog",
+    );
+  });
+
   it("puts a hand-only selectCards decision on the board", () => {
     const request = decision({ options: { candidateInstanceIds: ["h1", "h2"], min: 1, max: 1 } });
     expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("board");
@@ -71,15 +111,10 @@ describe("decisionPresentation", () => {
     expect(decisionPresentation({ decision: decision({ kind: "optional" }), handInstanceIds: hand })).toBe("dialog");
   });
 
-  it.each(["chooseTargets", "orderCards", "orderTriggers", "chooseOption", "mulligan"] as const)(
-    "renders %s in the dialog",
-    (kind) => {
-      const request = decision({ kind, options: { candidateInstanceIds: ["h1"], min: 1, max: 1 } });
-      expect(decisionPresentation({ decision: request, handInstanceIds: hand, sourcePermanentId: "p1" })).toBe(
-        "dialog",
-      );
-    },
-  );
+  it.each(["orderCards", "orderTriggers", "chooseOption", "mulligan"] as const)("renders %s in the dialog", (kind) => {
+    const request = decision({ kind, options: { candidateInstanceIds: ["h1"], min: 1, max: 1 } });
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand, sourcePermanentId: "p1" })).toBe("dialog");
+  });
 });
 
 describe("sourcePermanentIdOf", () => {

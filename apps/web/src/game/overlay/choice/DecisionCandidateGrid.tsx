@@ -38,7 +38,7 @@ export function DecisionCandidateGrid({
   // Three tiles plus their gaps and the row's own badge gutter have to clear the
   // sheet's padding; on a phone narrower than the grid's breakpoint they only do
   // at the smaller size, and below that the row wraps rather than being clipped.
-  const candidateCardWidth = wideDialog ? 154 : narrowDialog ? 96 : 110;
+  const candidateCardWidth = wideDialog && candidates.length > 3 ? 154 : narrowDialog ? 96 : 110;
   const cardCopyLabels = cardCopyLabelsByInstance({ candidates, t });
   // A prompt that reaches into two zones at once (a hand and a trash, say) is
   // unreadable as one undivided row, so each zone gets its own titled section;
@@ -114,7 +114,14 @@ export function DecisionCandidateGrid({
           ) : null}
           {/* Past six options a row would wrap into rows taller than the sheet, so it
               becomes one scrolling row with a visible track instead (reference #110). */}
-          <div className={`decision-overlay__grid${items.length > 6 ? " decision-overlay__grid--scroll" : ""}`}>
+          <div
+            className={`decision-overlay__grid${items.length > 6 ? " decision-overlay__grid--scroll" : ""}`}
+            style={
+              items.length > 6
+                ? undefined
+                : { gridTemplateColumns: `repeat(auto-fit, minmax(${candidateCardWidth + 28}px, 1fr))` }
+            }
+          >
             {items.map((cand) => {
               const on = picks.includes(cand.instanceId);
               const selectable =
@@ -144,6 +151,7 @@ export function DecisionCandidateGrid({
               const liveLabel = liveLabels.join(" · ");
               return (
                 <button
+                  className="decision-overlay__candidate"
                   type="button"
                   aria-label={`${abstractLabel ?? (cand.cardId ? printedCardName(cand.cardId) : t("overlay.card"))}${liveLabels.length ? `, ${liveLabels.join(", ")}` : ""}${copyLabel ? `, ${copyLabel}` : ""}${on ? t("overlay.selected") : ""}`}
                   aria-pressed={on}
@@ -151,10 +159,10 @@ export function DecisionCandidateGrid({
                   key={cand.instanceId}
                   style={{
                     position: "relative",
-                    padding: 0,
-                    border: "none",
+                    padding: 12,
+                    border: `1px solid ${on ? "var(--ds-warning)" : "var(--ds-border-strong)"}`,
                     borderRadius: 10,
-                    background: "transparent",
+                    background: "var(--ds-surface-muted)",
                     cursor: selectable ? "pointer" : "not-allowed",
                     opacity: selectable ? 1 : 0.4,
                     filter: selectable ? "none" : "grayscale(0.85)",
@@ -187,6 +195,15 @@ export function DecisionCandidateGrid({
                   ) : (
                     <CardFull cardId={cand.cardId ?? ""} artId={cand.artId} width={candidateCardWidth} selected={on} />
                   )}
+                  {!abstractLabel && cand.cardId ? (
+                    <span className="decision-overlay__candidate-caption">
+                      <strong>{printedCardName(cand.cardId)}</strong>
+                      <span>
+                        {cand.cardId}
+                        {copyLabel ? ` · ${copyLabel}` : ""}
+                      </span>
+                    </span>
+                  ) : null}
                   {on && max > 1 ? (
                     <span className="decision-overlay__order-badge" aria-hidden="true">
                       {picks.indexOf(cand.instanceId) + 1}
@@ -208,25 +225,7 @@ export function DecisionCandidateGrid({
                       {t(fateBadge.labelKey)}
                     </span>
                   ) : null}
-                  {liveLabel ? (
-                    <span
-                      style={{
-                        position: "absolute",
-                        left: 6,
-                        bottom: 6,
-                        padding: "3px 7px",
-                        borderRadius: 7,
-                        background: "var(--ds-surface)",
-                        color: "var(--ds-fg)",
-                        fontFamily: "var(--ds-font-mono)",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        boxShadow: "var(--ds-shadow-sm)",
-                      }}
-                    >
-                      {liveLabel}
-                    </span>
-                  ) : null}
+                  {liveLabel ? <span className="decision-overlay__candidate-stats">{liveLabel}</span> : null}
                   {on ? (
                     <span
                       style={{

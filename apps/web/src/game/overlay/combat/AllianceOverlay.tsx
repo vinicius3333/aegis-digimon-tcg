@@ -1,17 +1,12 @@
-import { getCardDefinition } from "@aegis/shared";
-import { Badge, Button } from "../../../design/primitives";
-import { CardFull } from "../../../design/cards";
-import { COLORS, colorKey } from "../../../design/theme";
+import { Button } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
-import { CardLink } from "../../cardLinks";
+import { CardArt } from "../CardArt";
 import { printedCardName } from "../printedCardName";
+import { CardPromptFrame } from "./CardPromptFrame";
+import "../effectPromptFamily.css";
 
-/**
- * ＜Alliance＞ (Comprehensive Rules §16-24): when this Digimon attacks, its controller
- * may suspend one of their OTHER Digimon to add its DP (and ＜Security A. +1＞) to the
- * attacker for the battle — an optional processing condition (§16-24-3).
- */
+/** Alliance suspends one other eligible Digimon, adding its current DP to the attacker. */
 export function AllianceOverlay({
   triggerCardId,
   allies,
@@ -24,136 +19,45 @@ export function AllianceOverlay({
   onPass: () => void;
 }) {
   const { t } = useTranslation();
-  const triggerName = triggerCardId ? printedCardName(triggerCardId) : t("overlay.yourDigimon");
-  const kw = { label: "＜Alliance＞", icon: Icons.Users, action: t("overlay.allianceAction") };
-  const sourceKey = colorKey(getCardDefinition(triggerCardId ?? "")?.colors[0]);
-
   return (
-    <div
-      className="combat-prompt alliance-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("overlay.allianceWindow")}
-      style={{
-        position: "absolute",
-        left: "50%",
-        bottom: 232,
-        transform: "translateX(-50%)",
-        zIndex: 80,
-        width: 520,
-        maxWidth: "calc(100% - 32px)",
-        maxHeight: "calc(100dvh - 264px)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        background: "var(--ds-surface)",
-        border: `2px solid ${COLORS[sourceKey].base}`,
-        borderRadius: 18,
-        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
-        padding: 20,
-        animation: "battle-dialog-in 200ms ease-out",
-      }}
+    <CardPromptFrame
+      cardId={triggerCardId}
+      fallback={<Icons.Users size={28} />}
+      eyebrow="＜Alliance＞"
+      title={t("overlay.allianceWindow")}
+      description={t("overlay.alliancePrompt")}
+      className="alliance-overlay"
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
-        <span
-          style={{
-            display: "grid",
-            placeItems: "center",
-            width: 38,
-            height: 38,
-            borderRadius: 11,
-            flexShrink: 0,
-            background: COLORS[sourceKey].soft,
-            color: COLORS[sourceKey].base,
-          }}
-        >
-          <kw.icon size={20} />
-        </span>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span
-              style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 17, color: "var(--ds-fg)" }}
-            >
-              {kw.label}
-            </span>
-            <Badge tone="primary">
-              <Icons.Plus size={11} />
-              {t("overlay.dpBoost")}
-            </Badge>
-          </div>
-          <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", marginTop: 1 }}>
-            {triggerCardId ? <CardLink cardId={triggerCardId} /> : triggerName} {kw.action}
-          </div>
-        </div>
-      </div>
-      <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", lineHeight: 1.5, marginBottom: 14 }}>
-        {t("overlay.alliancePrompt")}
-      </div>
       {allies.length ? (
-        <div
-          className="alliance-overlay__choices"
-          style={{
-            display: "flex",
-            gap: 12,
-            marginBottom: 16,
-            flexWrap: "wrap",
-            minHeight: 0,
-            overflowY: "auto",
-            overscrollBehavior: "contain",
-          }}
-        >
+        <div className="counter-overlay__gallery alliance-overlay__choices">
           {allies.map((ally) => {
             const sourceLabel = t(ally.sourceCount === 1 ? "overlay.sourceCountOne" : "overlay.sourceCountMany", {
               count: ally.sourceCount,
             });
             return (
               <button
+                type="button"
+                className="counter-overlay__card"
                 key={ally.permanentId}
                 onClick={() => onChoose(ally.permanentId)}
                 aria-label={`${t("overlay.suspendAlly", { name: printedCardName(ally.cardId), dp: ally.currentDP.toLocaleString() })}, ${sourceLabel}`}
-                style={{
-                  position: "relative",
-                  padding: 0,
-                  border: "none",
-                  borderRadius: 12,
-                  background: "transparent",
-                  cursor: "pointer",
-                }}
               >
-                <CardFull cardId={ally.cardId} width={104} />
-                <span
-                  style={{
-                    position: "absolute",
-                    left: 6,
-                    right: 6,
-                    bottom: 6,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 3,
-                    padding: "3px 0",
-                    borderRadius: 8,
-                    background: "var(--ds-accent)",
-                    color: "#fff",
-                    fontFamily: "var(--ds-font-mono)",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    boxShadow: "0 2px 8px rgba(15,23,42,0.35)",
-                  }}
-                >
-                  <Icons.Plus size={12} />
-                  {ally.currentDP.toLocaleString()} DP · {sourceLabel}
+                <CardArt cardId={ally.cardId} width={104} />
+                <strong>{printedCardName(ally.cardId)}</strong>
+                <span className="counter-overlay__card-id">{ally.cardId}</span>
+                <span className="alliance-overlay__stats">
+                  +{ally.currentDP.toLocaleString()} DP · {sourceLabel}
                 </span>
               </button>
             );
           })}
         </div>
       ) : (
-        <div style={{ fontSize: 12, color: "var(--ds-fg-muted)", marginBottom: 16 }}>{t("overlay.noAllies")}</div>
+        <p className="alliance-overlay__empty">{t("overlay.noAllies")}</p>
       )}
       <Button full variant="secondary" icon={Icons.ChevronRight} onClick={onPass}>
         {t("overlay.passAlliance")}
       </Button>
-    </div>
+    </CardPromptFrame>
   );
 }

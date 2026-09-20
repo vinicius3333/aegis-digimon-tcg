@@ -81,7 +81,7 @@ export const compiled: CompiledCard = {
                     fromSelectionRef: "yuukoProtectedDigimon",
                     count: 1,
                   },
-                  immuneFrom: "opponentEffects",
+                  immuneFrom: "opponentDigimonEffects",
                   duration: "forTheTurn",
                 },
                 {

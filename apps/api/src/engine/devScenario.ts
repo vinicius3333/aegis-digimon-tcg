@@ -25,7 +25,16 @@ import {
  * mulligan, security) with a hand-laid board and then hands control to the real turn loop, so
  * a developer lands mid-match instead of playing the opening turns every time.
  */
-export const DEV_SCENARIO_IDS = ["battle", "arena", "card-bugs", "security-battle", "security-chain"] as const;
+export const DEV_SCENARIO_IDS = [
+  "battle",
+  "arena",
+  "arena-aegiochus-dark-assembly",
+  "arena-magnamon-x",
+  "arena-vortexdramon",
+  "card-bugs",
+  "security-battle",
+  "security-chain",
+] as const;
 export type DevScenarioId = (typeof DEV_SCENARIO_IDS)[number];
 
 export function isDevScenarioId(value: unknown): value is DevScenarioId {
@@ -161,6 +170,14 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
       setTopCard(result, top);
       return result;
     }
+    function catalogPermanent(id: string, cardIds: readonly string[]): Permanent {
+      const result = establishedDigimon(seat, cardIds, `-${id}`);
+      result.permanentId = id;
+      return result;
+    }
+    function catalogCard(cardId: string, zone: string, index: number): CardInstance {
+      return faceDownCard(`dev-catalog-${seat}-${zone}-${index}`, cardId, seat);
+    }
     const breeding =
       seat === 0
         ? permanent("you-breeding", ["BT26-001", "BT26-009"])
@@ -170,24 +187,24 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
     const field =
       seat === 0
         ? [
-            permanent("you-chronomon", ["BT26-001", "BT26-009", "BT26-011", "BT26-015", "BT26-016"]),
-            permanent("you-hyokomon", ["BT26-009"]),
-            permanent("you-shota", ["BT26-092"]),
+            catalogPermanent("you-bwg-base", ["BT1-024"]),
+            catalogPermanent("you-leopard-base", ["BT3-053"]),
+            catalogPermanent("you-yuuko", ["BT22-083"]),
           ]
         : [
-            permanent("opponent-plutomon", ["BT24-007", "BT26-066", "BT26-069", "BT26-074", "BT26-059"]),
-            permanent("opponent-dobermon", ["BT26-069"]),
-            permanent("opponent-asuna", ["BT24-088"]),
+            catalogPermanent("opponent-attacker", ["BT12-069"]),
+            catalogPermanent("opponent-cost-7", ["BT10-065"]),
           ];
     field.forEach((entry) => placePermanent(player, entry));
     if (seat === 1) field[1]!.isSuspended = true;
-    const hand =
-      seat === 0
-        ? ["BT26-009", "BT26-011", "BT26-016", "BT26-087", "BT8-095"]
-        : ["BT26-059", "BT26-079", "BT26-074", "BT26-056", "BT26-100"];
-    hand.forEach((cardId) => insertCard(player, Zone.Hand, take(cardId)));
-    const trash = seat === 0 ? ["BT26-015", "BT8-095"] : ["BT26-074", "BT26-100"];
-    trash.forEach((cardId) => insertCard(player, Zone.Trash, take(cardId)));
+    const hand = seat === 0 ? ["EX10-010", "BT22-052", "BT1-013"] : [];
+    hand.forEach((cardId, index) =>
+      insertCard(player, Zone.Hand, seat === 0 ? catalogCard(cardId, "hand", index) : take(cardId)),
+    );
+    const trash: string[] = [];
+    trash.forEach((cardId, index) =>
+      insertCard(player, Zone.Trash, seat === 0 ? catalogCard(cardId, "trash", index) : take(cardId)),
+    );
     // Reserve a real Digimon from Plutomon's deck for the first security battle.
     const securityTop = seat === 1 ? take("BT24-045") : undefined;
     shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
@@ -198,10 +215,96 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
       insertCard(player, Zone.Security, securityTop, "top");
     }
   }
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** Reproduces simultaneous [When Attacking] and optional [All Turns] Vortexdramon triggers. */
+function layVortexdramonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    const permanent = (id: string, cardId: string): Permanent => {
+      const result = establishedDigimon(seat, [cardId], `-${id}`);
+      result.permanentId = id;
+      return result;
+    };
+    const field =
+      seat === 0
+        ? [permanent("you-vortexdramon", "EX11-074"), permanent("you-trigger-ally", "BT1-014")]
+        : [permanent("opponent-target-a", "BT1-080"), permanent("opponent-target-b", "BT1-081")];
+    field.forEach((entry) => placePermanent(player, entry));
+    if (seat === 1) field[0]!.isSuspended = true;
+    setSecurityStack(player);
+  }
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Sonic Shot phase-lock versus Magnamon X's immediate and security-triggered unsuspends. */
+function layMagnamonXScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    const permanent = (id: string, cardId: string): Permanent => {
+      const result = establishedDigimon(seat, [cardId], `-${id}`);
+      result.permanentId = id;
+      return result;
+    };
+    const field =
+      seat === 0
+        ? [permanent("you-magnamon-base", "BT21-036"), permanent("you-security-attacker", "BT1-009")]
+        : [permanent("opponent-security-attacker", "BT1-009")];
+    field.forEach((entry) => placePermanent(player, entry));
+    if (seat === 0) insertCard(player, Zone.Hand, faceDownCard("dev-magnamon-x", "BT16-102", seat));
+    setSecurityStack(player);
+    if (seat === 1) {
+      const displaced = takeBottom(player, Zone.Security);
+      if (displaced !== undefined) insertCard(player, Zone.Deck, displaced);
+      insertCard(player, Zone.Security, faceDownCard("dev-sonic-shot", "BT24-095", seat), "top");
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+/** Wizardmon's end-of-turn trash play offering Aegiochusmon: Dark's Assembly material. */
+function layAegiochusDarkAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    const permanent = (id: string, cardId: string): Permanent => {
+      const result = establishedDigimon(seat, [cardId], `-${id}`);
+      result.permanentId = id;
+      return result;
+    };
+    const field =
+      seat === 0
+        ? [permanent("you-wizardmon", "BT26-067"), permanent("you-yellow-digimon", "BT1-045")]
+        : [permanent("opponent-level-5", "BT26-074")];
+    field.forEach((entry) => placePermanent(player, entry));
+    if (seat === 0) {
+      insertCard(player, Zone.Trash, faceUpCard("dev-aegiochus-dark", "BT26-073", seat));
+      insertCard(player, Zone.Trash, faceUpCard("dev-assembly-material", "BT26-069", seat));
+    }
+    setSecurityStack(player);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 2;
 }
 
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
@@ -320,6 +423,9 @@ function laySecurityCheckScenario(
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
+  "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
+  "arena-magnamon-x": layMagnamonXScenario,
+  "arena-vortexdramon": layVortexdramonScenario,
   "card-bugs": layCardBugsScenario,
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,

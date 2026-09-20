@@ -191,12 +191,6 @@
   margin-bottom: -1.7rem;
 }
 
-/* A hand answering a decision is being read, so no layout may push its cards
-   past the screen's bottom edge. */
-.game-hand.game-hand--selecting {
-  margin-bottom: 0;
-}
-
 /* Every highlighted hand card wears the same thin rim plus soft glow and differs
    only in intensity, lift and motion. The lift rides `top` rather than a
    transform because the fan, the draw animation and the touch layout each already
@@ -300,7 +294,8 @@
 }
 
 /* The magnifier sits opposite the pick badge, so both read at once on a picked card. */
-.game-hand-card__inspect {
+.game-hand-card__inspect,
+.game-permanent__inspect {
   position: absolute;
   top: -0.4rem;
   left: -0.4rem;
@@ -316,6 +311,11 @@
   background: var(--ds-surface-raised);
   box-shadow: var(--ds-shadow-sm);
   cursor: zoom-in;
+}
+
+.game-permanent__inspect {
+  top: -0.4rem;
+  left: -0.4rem;
 }
 /* A held finger reads the card; the browser's own callout must not answer it first. */
 .game-hand--selecting .game-hand-card {

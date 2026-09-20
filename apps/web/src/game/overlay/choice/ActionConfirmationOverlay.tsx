@@ -1,6 +1,10 @@
 import { Button } from "../../../design/primitives";
 import { CardFull } from "../../../design/cards";
 import { useTranslation } from "../../../i18n";
+import { useEffectPromptFocus } from "./useEffectPromptFocus";
+import { useBoardPreview } from "./useBoardPreview";
+import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
+import "../effectPromptFamily.css";
 
 export function ActionConfirmationOverlay({
   cardId,
@@ -22,6 +26,9 @@ export function ActionConfirmationOverlay({
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
+  const { isViewingBoard, openBoard, boardReturn } = useBoardPreview();
+  const focusProps = useEffectPromptFocus(isViewingBoard);
+  if (isViewingBoard) return boardReturn;
   return (
     <div
       className="game-modal"
@@ -37,12 +44,16 @@ export function ActionConfirmationOverlay({
       }}
     >
       <div
-        className="game-modal__panel action-confirmation"
+        {...focusProps}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="game-modal__panel action-confirmation effect-prompt-family"
         style={{
           width: 480,
           maxWidth: "calc(100% - 32px)",
           padding: 22,
-          borderRadius: 20,
+          borderRadius: 18,
           background: "var(--ds-surface)",
           border: "2px solid var(--ds-accent)",
           boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
@@ -55,7 +66,7 @@ export function ActionConfirmationOverlay({
               style={{
                 fontSize: 12,
                 fontWeight: 800,
-                color: "var(--ds-accent)",
+                color: "var(--ds-warning)",
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
               }}
@@ -77,6 +88,9 @@ export function ActionConfirmationOverlay({
           <Button full variant="ghost" onClick={onCancel}>
             {t("common.cancel")}
           </Button>
+        </div>
+        <div className="effect-prompt-family__board-action">
+          <DecisionViewBoardButton onOpenBoard={openBoard} />
         </div>
       </div>
     </div>

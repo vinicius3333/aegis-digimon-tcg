@@ -20,11 +20,13 @@ export function ViewerBattleRow({
   dragIsPlay,
   selectedAttackerPermanentId,
   isBasePermanent,
+  isDecisionCandidate,
   draggable,
   dropIntentAttrs,
   baseDropIntentAttrs,
   onPermanentClick,
   onPermanentPointerDown,
+  onPermanentInspect,
 }: {
   permanents: readonly Permanent[];
   chrome: PermanentChrome;
@@ -33,12 +35,15 @@ export function ViewerBattleRow({
   selectedAttackerPermanentId: string | null;
   /** The held or selected card would digivolve onto this permanent. */
   isBasePermanent: (perm: Permanent) => boolean;
+  /** This permanent's primary click answers a field decision, so inspection needs its own control. */
+  isDecisionCandidate: (perm: Permanent) => boolean;
   /** This permanent answers a drag rather than a tap. */
   draggable: (perm: Permanent) => boolean;
   dropIntentAttrs: (target: DropTarget, id?: string) => DropAttrs;
   baseDropIntentAttrs: (permanentId: string) => DropAttrs;
   onPermanentClick: (perm: Permanent) => (() => void) | undefined;
   onPermanentPointerDown: (perm: Permanent, event: ReactPointerEvent) => void;
+  onPermanentInspect: (perm: Permanent) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -94,7 +99,10 @@ export function ViewerBattleRow({
             // A board-mode optional prompt points at the permanent whose
             // effect is asking, so the rail and the field read as one.
             highlight={
-              selectedAttackerPermanentId === p.permanentId || chrome.decisionHighlightPermanentId === p.permanentId
+              selectedAttackerPermanentId === p.permanentId ||
+              chrome.decisionHighlightPermanentId === p.permanentId ||
+              chrome.decisionPickedInstanceIds.has(p.permanentId) ||
+              chrome.decisionPickedInstanceIds.has(p.topCard.instanceId)
             }
             burst={chrome.permanentBursts.get(p.permanentId)}
             pending={chrome.pendingPermanentIds.has(p.permanentId)}
@@ -116,6 +124,7 @@ export function ViewerBattleRow({
             // Drag-only permanents still need a pointer-free path: Enter or
             // Space selects them like a tap would.
             onKeyboardActivate={canDrag ? onPermanentClick(p) : undefined}
+            onInspect={isDecisionCandidate(p) ? () => onPermanentInspect(p) : undefined}
           />
         );
       })}

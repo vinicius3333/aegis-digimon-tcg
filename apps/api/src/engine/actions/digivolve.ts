@@ -22,7 +22,6 @@ import {
   definitionOf,
   dpOf,
   isDigimon,
-  isTamer,
   matchingAlternateDigivolutionRequirement,
   matchingEvoCost,
   matchingEvoCostIgnoringColor,
@@ -514,7 +513,6 @@ export function validateDigivolve(
   const matchedAlternateRequirement = matchingAlternateDigivolutionRequirement(definition, baseDef, {
     ...(intent.alternateRequirementIndex === undefined ? {} : { requirementIndex: intent.alternateRequirementIndex }),
     isBlastDigivolve: intent.useBlastDigivolve === true,
-    ...(intent.useBlastDigivolve === true && isTamer(baseDef) ? { ignoreLevel: true } : {}),
   });
   const altRequirement =
     !appFusionRequested &&

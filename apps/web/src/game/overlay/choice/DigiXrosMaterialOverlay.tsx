@@ -12,6 +12,11 @@ import { DigiXrosLockedZone } from "./DigiXrosLockedZone";
 import { digiXrosMaterialPool } from "./digiXrosMaterialPool";
 import { pruneDigiXrosPicksForZoneLimits, toggleDigiXrosPick } from "./digiXrosPicks";
 import { digiXrosSlotLabel } from "./digiXrosSlotLabel";
+import { CardArt } from "../CardArt";
+import { useEffectPromptFocus } from "./useEffectPromptFocus";
+import { useBoardPreview } from "./useBoardPreview";
+import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
+import "../effectPromptFamily.css";
 
 /**
  * Overlay shown when the player initiates play of a card with a DigiXros requirement.
@@ -51,6 +56,8 @@ export function DigiXrosMaterialOverlay({
 }) {
   const { t } = useTranslation();
   const titleId = useId();
+  const { isViewingBoard, openBoard, boardReturn } = useBoardPreview();
+  const focusProps = useEffectPromptFocus(isViewingBoard);
   const [picks, setPicks] = useState<string[]>([]);
   const [chosenExpanderPermanentIds, setChosenExpanderPermanentIds] = useState<string[]>([]);
 
@@ -107,10 +114,12 @@ export function DigiXrosMaterialOverlay({
     t,
   };
 
+  if (isViewingBoard) return boardReturn;
   return (
     <Scrim className="game-modal">
       <div
-        className="game-modal__panel"
+        {...focusProps}
+        className="game-modal__panel effect-prompt-family material-prompt"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -119,7 +128,7 @@ export function DigiXrosMaterialOverlay({
           maxWidth: 640,
           width: "100%",
           background: "var(--ds-surface)",
-          borderRadius: 20,
+          borderRadius: 18,
           border: "1px solid var(--ds-border)",
           boxShadow: "var(--ds-shadow-summary)",
           padding: 24,
@@ -129,20 +138,7 @@ export function DigiXrosMaterialOverlay({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              display: "grid",
-              placeItems: "center",
-              width: 38,
-              height: 38,
-              borderRadius: 11,
-              background: "var(--ds-accent-surface)",
-              color: "var(--ds-accent)",
-              flexShrink: 0,
-            }}
-          >
-            <Icons.Sparkles size={20} />
-          </div>
+          <CardArt cardId={playingCardId} width={64} />
           <div>
             <div
               id={titleId}
@@ -201,6 +197,9 @@ export function DigiXrosMaterialOverlay({
           <Button full variant="ghost" onClick={onCancel}>
             {t("common.cancel")}
           </Button>
+        </div>
+        <div className="effect-prompt-family__board-action">
+          <DecisionViewBoardButton onOpenBoard={openBoard} />
         </div>
       </div>
     </Scrim>

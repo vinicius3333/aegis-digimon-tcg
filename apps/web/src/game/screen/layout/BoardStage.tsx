@@ -91,6 +91,7 @@ export interface BoardTargeting {
   draggedAttackerPermanent: Permanent | undefined;
   canAttackSecurity: boolean;
   isBasePermanent: (perm: Permanent) => boolean;
+  isDecisionCandidate: (perm: Permanent) => boolean;
 }
 
 /** The per-permanent and per-drop-area chrome both halves of the field read. */
@@ -146,6 +147,7 @@ export function BoardStage({
   stageEl,
   onStartHandDrag,
   onStartPermanentDrag,
+  onInspectPermanent,
   onOpenCard,
 }: {
   state: GameState;
@@ -182,6 +184,7 @@ export function BoardStage({
   stageEl: HTMLElement | null;
   onStartHandDrag: (index: number, event: ReactPointerEvent) => void;
   onStartPermanentDrag: (perm: Permanent, event: ReactPointerEvent) => void;
+  onInspectPermanent: { viewer: (perm: Permanent) => void; opponent: (perm: Permanent) => void };
   onOpenCard: (cardId: string, artId?: string) => void;
 }) {
   const other = otherSeat(viewerSeat);
@@ -314,7 +317,9 @@ export function BoardStage({
                 draggedAttackerPermanent={targeting.draggedAttackerPermanent}
                 vortexMode={selection.vortexMode}
                 dropIntentAttrs={chrome.dropIntentAttrs}
+                isDecisionCandidate={targeting.isDecisionCandidate}
                 onPermanentClick={actions.onOppPerm}
+                onPermanentInspect={onInspectPermanent.opponent}
               />
               <MemoryBand
                 phaseBanner={cues.phaseBanner}
@@ -336,11 +341,15 @@ export function BoardStage({
                 dragIsPlay={drag.isPlay}
                 selectedAttackerPermanentId={selection.selPerm}
                 isBasePermanent={targeting.isBasePermanent}
-                draggable={(perm) => !selection.handSel && !selection.linkSel && canAttackWith(perm)}
+                isDecisionCandidate={targeting.isDecisionCandidate}
+                draggable={(perm) =>
+                  !guards.mainActionBlocked && !selection.handSel && !selection.linkSel && canAttackWith(perm)
+                }
                 dropIntentAttrs={chrome.dropIntentAttrs}
                 baseDropIntentAttrs={chrome.baseDropIntentAttrs}
                 onPermanentClick={actions.onYourPerm}
                 onPermanentPointerDown={onStartPermanentDrag}
+                onPermanentInspect={onInspectPermanent.viewer}
               />
             </BattleZones>
 

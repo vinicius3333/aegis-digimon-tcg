@@ -146,10 +146,11 @@ export interface BaseGrantedDigivolve {
   cost: number;
   /** The granted path is its own gate, replacing the printed color+level requirement. */
   ignoreRequirements: boolean;
+  /** All-turn grants also apply during Counter timing; omitted grants are own-turn only. */
+  allTurns?: boolean;
   /**
    * Evaluated against live state at digivolve time. Absent means active whenever the granting
-   * card is a battle-area permanent on its controller's turn — those two requirements live in
-   * the digivolve verb and the matcher, not here.
+   * card is a battle-area permanent during the grant's allowed turns.
    */
   condition?: BaseGrantedDigivolveCondition;
 }

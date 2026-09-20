@@ -57,6 +57,7 @@ export function MatchOverlays({
   allowsPick,
   onTogglePick,
   combatWindows,
+  counterSelection,
   combatWindowAnswers,
   scenes,
   collapseNotices,
@@ -78,6 +79,7 @@ export function MatchOverlays({
   keywordLabels,
   narrowGameLayout,
   isMyTurn,
+  mainActionBlocked,
   linkTargetsOfPermanent,
   handEntries,
   shownHandEntries,
@@ -101,6 +103,12 @@ export function MatchOverlays({
   allowsPick: (instanceId: string) => boolean;
   onTogglePick: (instanceId: string) => void;
   combatWindows: CombatWindows;
+  counterSelection?: {
+    instanceId?: string;
+    targetPermanentId?: string;
+    onSelect: (instanceId?: string) => void;
+    handInstanceIds: readonly string[];
+  };
   combatWindowAnswers: ReturnType<typeof combatAnswers>;
   scenes: {
     securityBreak: SecurityBreakCue | null;
@@ -136,6 +144,8 @@ export function MatchOverlays({
   keywordLabels: Readonly<Record<string, Readonly<Record<string, string>>>> | undefined;
   narrowGameLayout: boolean;
   isMyTurn: boolean;
+  /** Reading stays available while effects resolve, but every game action remains gated. */
+  mainActionBlocked: boolean;
   linkTargetsOfPermanent: (perm: Permanent) => readonly string[];
   handEntries: HandEntry[];
   shownHandEntries: HandEntry[];
@@ -234,6 +244,7 @@ export function MatchOverlays({
         state={state}
         blockWindow={combatWindows.blockWindow}
         counterWindow={combatWindows.counterWindow}
+        counterSelection={counterSelection}
         allianceWindow={combatWindows.allianceWindow}
         evadeWindow={combatWindows.evadeWindow}
         barrierWindow={combatWindows.barrierWindow}
@@ -290,7 +301,7 @@ export function MatchOverlays({
         {...playAnswers}
       />
 
-      {cardMenuPermanent && presentedCardMenuPermanent && cardMenu && !decision ? (
+      {cardMenuPermanent && presentedCardMenuPermanent && cardMenu ? (
         <FieldCardMenu
           permanent={cardMenuPermanent}
           presentedPermanent={presentedCardMenuPermanent}
@@ -303,12 +314,13 @@ export function MatchOverlays({
           fate={fateBadges.get(cardMenuPermanent.permanentId)}
           sheet={narrowGameLayout}
           stackCards={actions.stackCardsOf(cardMenuPermanent)}
-          mine={cardMenu.side === Side.Viewer}
-          activatable={cardMenu.side === Side.Viewer && isMyTurn}
+          mine={cardMenu.side === Side.Viewer && !mainActionBlocked}
+          activatable={cardMenu.side === Side.Viewer && isMyTurn && !mainActionBlocked}
           // Same gate as the action bar: a breeding Digimon only moves out at
           // level 3, so below that the action would just refuse.
           promotable={
             cardMenu.side === Side.Viewer &&
+            !mainActionBlocked &&
             cardMenuPermanent.inBreeding &&
             canUseBreedingAction({
               phase: state.phase,
@@ -317,7 +329,7 @@ export function MatchOverlays({
               canMove: canMoveFromBreeding(cardMenuPermanent),
             })
           }
-          linkTargets={linkTargetsOfPermanent(cardMenuPermanent)}
+          linkTargets={mainActionBlocked ? [] : linkTargetsOfPermanent(cardMenuPermanent)}
           onPromote={() => {
             overlays.setCardMenu(null);
             actions.onBreeding();

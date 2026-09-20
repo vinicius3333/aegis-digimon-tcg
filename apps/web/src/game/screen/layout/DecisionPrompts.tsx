@@ -56,6 +56,8 @@ export function DecisionPrompts({
         isInherited: decision?.options?.isInherited,
       })
     : undefined;
+  const boardSelectionKind =
+    decision?.kind === "selectCards" || decision?.kind === "chooseTargets" ? decision.kind : undefined;
   return (
     <>
       {decision && decision.kind !== "mulligan" && !answerOnBoard
@@ -89,8 +91,11 @@ export function DecisionPrompts({
           })()
         : null}
 
-      {decision && answerOnBoard && decision.kind === "selectCards" ? (
+      {decision && answerOnBoard && boardSelectionKind ? (
         <BoardSelectionRail
+          fieldSelection={candidates.some(
+            (candidate) => candidate.zone === "battle" || candidate.zone === "opponentBattle",
+          )}
           key={decision.decisionId}
           sourceCardId={sourceCardId}
           prompt={
@@ -104,8 +109,8 @@ export function DecisionPrompts({
           max={max}
           pickCount={picks.length}
           canConfirm={picks.length >= min && picks.length <= max}
-          onConfirm={() => onRespond({ kind: "selectCards", instanceIds: picks })}
-          onNoSelection={() => onRespond({ kind: "selectCards", instanceIds: [] })}
+          onConfirm={() => onRespond({ kind: boardSelectionKind, instanceIds: picks })}
+          onNoSelection={() => onRespond({ kind: boardSelectionKind, instanceIds: [] })}
           onOpenDialog={onOpenDialog}
         />
       ) : null}

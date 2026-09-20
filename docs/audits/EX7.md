@@ -126,7 +126,7 @@ Scores below were independently recalculated on 2026-09-12 against current sourc
 | EX7-056 | Orochimon                | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public battle On Deletion exact cost/level targets, Tortomon protection with declined block, exact evolution payment/draw/stack, live Blocker and inherited Retaliation unequal-DP combat green; 7 pass                                                    |
 | EX7-057 | Loudmon                  | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/evolution exact trash and 7000-DP ceiling, Rule trait, Dark/Evil Dragon alternate and red standard stacks, plus inherited matching/nonmatching and four/five-hand real Security checks green; 7 pass                                        |
 | EX7-058 | LadyDevimon (X Antibody) | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public evolution/play/attacks, Q3864/Q3865, inherited OPT and canonical token stats/Blocker/Retaliation green after live printed-keyword reader fix; 7 focused, 145 mechanism pass                                                                         |
-| EX7-059 | BeelStarmon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/evolution/attack Option flows, refusal/own-stack scope, real Blast over Digimon and Q6391 text-qualified Tamer, plus Overflow 4 green; 11 pass                                                                                              |
+| EX7-059 | BeelStarmon              | 2             | 2        | 2                | 2          | 2     | 10/10 | Corrected 2026-09-19: Q6391 Blast uses BT25-082 as its base with a separate text-qualified Tamer; Option flows, own-stack scope and Overflow 4 remain green; 11 focused tests pass |
 | EX7-060 | Nidhoggmon               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; client-visible trash Main at exact four/five-card boundary, 7-memory paid play/refusal, exact evolution stack, live Blocker, real battle-deletion Dark Dragon/Evil Dragon plays, and level-6/nonmatching exclusions green; 9 pass                          |
 | EX7-061 | Lilithmon (X Antibody)   | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; corrected both turn branches under one deletion subscription; public standard/named evolution, battle/Retaliation replacement, Q3866/Q3867/Q5169, Security/free play, refusal, same-turn suppression and real-turn re-arm green; 14 focused + 19 peer pass |
 | EX7-062 | HeavyMetaldramon         | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; restored missing Dark Dragon/Evil Dragon alternate route; public dual-standard/dual-trait evolution, exact trash/DP boundaries, three scaled end-turn trait branches, refusal/near misses and real-turn re-arm green; 13 pass                              |
@@ -4061,7 +4061,7 @@ Current independent review (2026-09-12): committed catalog and KB reconciled; di
 
 #### Result
 
-Score: **8/10 provisional**. All eleven focused tests pass, including Q6391's text-qualified Tamer Blast base.
+Historical score: **8/10 provisional**. All eleven focused tests pass. Correction (2026-09-19): Q6391's base is BT25-082 BlackGatomon, with a separate text-qualified Tamer enabling its grant; the Tamer itself is not the base.
 
 | Area                | Score | Evidence                                                                                                                                                      |
 | ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -4077,7 +4077,7 @@ Score: **8/10 provisional**. All eleven focused tests pass, including Q6391's te
 - Public text-based evolution from EX7-044 pays exactly 3, preserves the source, performs the standard draw, returns and uses EX7-066, and resolves its target deletion.
 - Public attack trashes an Option from BeelStarmon's own stack, uses a hand EX7-066 free, and preserves memory; an Option beneath another Digimon cannot pay the cost.
 - A real opponent attack opens Counter and Blast Digivolves EX7-059 from hand over eligible EX7-044 without changing memory.
-- Q6391 is reproduced through the same public Counter flow over BT18-093, whose Tamer text contains Three Musketeers.
+- Q6391 is reproduced through the public Counter flow over BT25-082 BlackGatomon while BT18-093 supplies the required Three Musketeers text. BlackGatomon becomes the ACE's source; BT18-093 remains a separate Tamer.
 - Public battle deletion of the ACE charges Overflow 4, moving memory from 3 to -1.
 - No injected timing, manual phase/turn mutation, legacy `registerCard`, or diagnostic output remains.
 
@@ -4630,11 +4630,13 @@ None found for EX7-074.
 
 ### BLAST-TAMER-BASE-MECHANISM
 
-EX7-059 Q6391 permits Blast Digivolve over a Tamer with Three Musketeers in its text while ignoring normal digivolution conditions. Candidate validation still uses the card's alternate requirement to prevent Blast from becoming unrestricted.
+Correction (2026-09-19): this historical mechanism misread Q6391. Its original entry belongs to BT25-082 in `data/kb/qa.json`; "this card" refers to BlackGatomon. The EX7-059 mirrored entry loses that referent. A separate Tamer with Three Musketeers in its text enables BlackGatomon's printed all-turn evolution grant; the ruling does not permit evolution onto the Tamer.
 
-For Blast only, and only when the current base is a Tamer, the alternate matcher ignores the requirement's level gate. Its identity gates remain mandatory, so BT18-093 qualifies through its printed Three Musketeers text while an unrelated Tamer does not.
+Removed the generic Blast Tamer level waiver from `validateDigivolve`: it incorrectly exposed BT22-052 over BT22-083 Yuuko. Base-granted requirements now carry an explicit optional `allTurns` flag; BT25-082 uses it, while existing own-turn grants retain their turn restriction. Printed alternate requirements, including explicit legal Tamer routes, continue through the existing matcher.
 
-The public regression opens a real Counter window, selects EX7-059 from hand, and observes the exact resulting Tamer-under-ACE stack without changing memory. Ordinary Blast and Blast DNA conformance suites remain green.
+The corrected EX7-059 public regression proves the BlackGatomon-under-ACE stack, unchanged separate Violet Inboots, and waived memory cost. Three public Counter regressions in `keyword-blast-digivolve-consent.test.ts` reject Yuuko, BlackGatomon without its enabling Tamer, and an own-turn-only Deputymon grant during the opponent's turn, including forged response intents.
+
+Validation on 2026-09-19: 11 suites / 145 tests passed across Blast consent, Blast DNA, attack conformance, all seven attack pending-effect regressions, ordinary digivolution, EX7-059, BT25-082 and BT18-102. API/shared typechecks, scoped Oxlint/Oxfmt, and `git diff --check` passed. This targeted correction does not claim a new whole-collection audit or delivery.
 
 ### DEFERRED-TOKEN-DELETION-MECHANISM
 
@@ -5346,10 +5348,9 @@ passed**; scoped Oxlint, Oxfmt, and `git diff --check` pass.
 
 ### EX7-059 — Q6391 Tamer Blast Digivolve base
 
-- Resolved in Blast validation: a Tamer base may ignore an alternate requirement's level gate during Blast, but must still satisfy its printed identity/text gates.
-- Public Counter over BT18-093 now exposes and resolves EX7-059, while ordinary Blast Digivolve and Blast DNA regressions remain green.
-- Focused and proportional Blast suites pass 54/54.
-- Retained as a top-level `it.fails`; queue for serialized Blast Digivolve candidate validation that supports text-qualified Tamers while ignoring normal digivolution conditions.
+- Superseded on 2026-09-19: the prior Tamer-base interpretation was incorrect. Q6391 concerns BT25-082's base-granted evolution while a separate text-qualified Tamer is present.
+- Removed the generic Tamer level waiver and corrected the ordinary passing regression to use BlackGatomon, preserving Violet Inboots as a separate permanent. See the corrected mechanism above for the 145-test validation and precise source.
+- The historical 54/54 result and expected-failure notes below are provenance, not evidence for permitting Blast onto a Tamer.
 
 ### Source reconciliation
 
@@ -5441,6 +5442,8 @@ Generated from the committed local knowledge base with `node tools/kb/query.mjs 
 | EX7-074 | Q3873                                                                | none    | none    |
 
 ## Open items
+
+2026-09-19 correction: the historical Q6391 "Tamer Blast base" interpretation in the closeout notes below is superseded by the corrected mechanism above. The current passing test evolves BT25-082 BlackGatomon with a separate enabling Tamer. The original collection scores and delivery references below describe their historical closeout, not a new collection audit in this correction.
 
 Current re-audit: none. EX7-059/Q6391 is an ordinary passing test in both the collection and closing mechanism regression; the historical expected-failure contradiction is resolved. EX7-014’s departure replacement removes its own source identity; reusable once-per-turn ledger coverage plus public activation/DigiXros mechanisms prove the applicable accounting, so no artificial repeated-departure test was added. Historical notes below are retained solely for provenance and do not describe remaining work.
 

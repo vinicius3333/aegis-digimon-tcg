@@ -13,5 +13,13 @@ export interface AegisJoinOptions {
   betaBattleMode?: boolean;
   authTicket?: string;
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
-  devScenario?: "battle" | "arena" | "card-bugs" | "security-battle" | "security-chain";
+  devScenario?:
+    | "battle"
+    | "arena"
+    | "arena-aegiochus-dark-assembly"
+    | "arena-magnamon-x"
+    | "arena-vortexdramon"
+    | "card-bugs"
+    | "security-battle"
+    | "security-chain";
 }

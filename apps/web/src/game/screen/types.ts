@@ -92,6 +92,8 @@ export interface PermanentChrome {
   effectSourcePermanentIds: ReadonlySet<string>;
   effectLinkedPermanentIds: ReadonlySet<string>;
   decisionHighlightPermanentId?: string;
+  /** Permanents currently picked by a board-answered target decision. */
+  decisionPickedInstanceIds: ReadonlySet<string>;
   permanentBursts: ReadonlyMap<string, PermanentBurst>;
   pendingPermanentIds: ReadonlySet<string>;
   fateBadges: ReadonlyMap<string, PendingFateBadge>;

@@ -187,6 +187,31 @@ describe("order-trigger chooser identity", () => {
     expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [keys[1]] });
   });
 
+  it("does not repeat an unrelated source effect or the selected Digimon below the choices", () => {
+    renderDecision({
+      decisionId: "distinct-pending-effects",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      sourceCardId: "EX11-074",
+      options: {
+        effectText: "This source effect belongs to a different pending effect.",
+        triggerKeys: [
+          buildTriggerKey("vortexdramon", "EX11-074/when-digivolving"),
+          buildTriggerKey("vortexdramon", "EX11-074/all-turns"),
+        ],
+        triggerCardIds: ["EX11-074", "EX11-074"],
+        triggerDescriptions: ["First pending effect.", "Second pending effect."],
+      },
+    });
+
+    expect(document.querySelector(".decision-overlay__effect-text")).toBeNull();
+    expect(document.querySelector(".trigger-chooser__selection")).toBeNull();
+
+    fireEvent.click(screen.getAllByRole("button", { name: /Vortexdramon/ })[0]!);
+    expect(document.querySelector(".trigger-chooser__selection")).toBeNull();
+  });
+
   it("names two effects of ONE permanent by their firing window, never as copies", () => {
     renderDecision({
       decisionId: "megadramon-two-timings",
@@ -1964,6 +1989,12 @@ describe("EX3-046 Commandramon decisions", () => {
     expect(screen.getByText(getCardDefinition("EX3-046")!.effectText!.match(/＜Decoy[^＞]*＞/)![0])).toBeTruthy();
     expect(screen.getByRole("button", { name: /Commandramon, 0 source/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: "None" })).toBeTruthy();
+    expect(screen.getByText("EX3-046")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "View board" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(onRespond).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
+    expect(screen.getByRole("button", { name: /Commandramon, 0 source/ }).getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(screen.getByRole("button", { name: "Confirm targets" }));
     expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["commandramon"] });
   });
@@ -3054,9 +3085,8 @@ describe("decision board preview", () => {
     const choices = dialog.querySelector(".alliance-overlay__choices");
     const pass = screen.getByRole("button", { name: "Pass, don't use ＜Alliance＞" });
 
-    expect(dialog.getAttribute("style")).toContain("max-height: calc(100dvh - 264px)");
-    expect(dialog.getAttribute("style")).toContain("overflow: hidden");
-    expect(choices?.getAttribute("style")).toContain("overflow-y: auto");
+    expect(dialog.classList.contains("alliance-overlay")).toBe(true);
+    expect(choices?.classList.contains("counter-overlay__gallery")).toBe(true);
     expect(choices?.contains(pass)).toBe(false);
   });
 
