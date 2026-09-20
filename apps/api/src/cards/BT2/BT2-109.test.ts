@@ -64,6 +64,48 @@ describe("BT2-109 Heat Viper", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
+  it("requires at least one opposing target after the delete-own cost is paid", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT2-067", as: "own" }], hand: [{ card: "BT2-109", as: "option" }] },
+      1: {
+        battleArea: [
+          { card: "BT2-043", as: "firstOpponent" },
+          { card: "BT2-044", as: "secondOpponent" },
+        ],
+      },
+    });
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const costDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("own").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.state.pendingDecision.decisionId !== costDecision.decisionId,
+    );
+    const targetDecision = s.state.pendingDecision!;
+    const targetRequest = s.decisions.findLast(({ req }) => req.decisionId === targetDecision.decisionId)?.req;
+    expect(targetRequest?.options).toMatchObject({ min: 1, max: 2 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("adds itself to its owner's hand from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT2-109", as: "securityOption", faceUp: true }] } });
     const instanceId = s.inst("securityOption").instanceId;

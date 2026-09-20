@@ -42,6 +42,7 @@ describe("BoardSelectionRail", () => {
     const { unmount } = renderIn(
       <BoardSelectionRail
         prompt="Select 1 card."
+        fieldSelection
         min={1}
         max={1}
         pickCount={0}
@@ -51,6 +52,7 @@ describe("BoardSelectionRail", () => {
       />,
     );
     expect(screen.queryByRole("button", { name: "No Selection" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Pass" })).toBeNull();
     unmount();
   });
 

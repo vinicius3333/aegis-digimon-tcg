@@ -511,7 +511,11 @@ export async function resolvePermanentTargets(
       (p) => p.permanentId,
     );
   }
-  const min = target.upTo || opts?.allowDecline === true ? 0 : Math.min(want, candidates.length);
+  // CR §1-3-6: choosing cards for an effect always means choosing at least 1.
+  // "Up to N" lowers the required count to one, not zero. A zero-card answer is
+  // reserved for a selection that itself represents declining an optional processing
+  // condition (for example Heat Viper's delete-own cost).
+  const min = opts?.allowDecline === true ? 0 : target.upTo ? 1 : Math.min(want, candidates.length);
   const max = Math.min(want, candidates.length);
   const asker = target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
   const chosen = await asker.chooseTargets(ctx, { candidates: ids, visible: visibleIds, min, max });

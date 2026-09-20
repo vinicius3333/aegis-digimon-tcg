@@ -28,6 +28,13 @@ required count, and treats zero picks as declining the processing condition.
 This removes the redundant optional confirmation without weakening the cost:
 the payload still runs only after the complete deletion succeeds.
 
+The cost refusal and the payload target count remain separate. Comprehensive
+Rules §1-3-6 requires at least 1 card whenever an effect chooses cards, so an
+`up to N` permanent-target payload uses minimum 1 when candidates exist. Only
+the preceding decline-capable cost selection uses minimum 0. Heat Viper thus
+offers Pass while choosing the own Digimon, but not while choosing the opposing
+Digimon after payment.
+
 ## Behavioral proof
 
 - `optionalActivationReceipt.test.ts` proves an opted-in Return pays its hand
@@ -40,4 +47,6 @@ the payload still runs only after the complete deletion succeeds.
   separate refusal path.
 - `BT2-109.test.ts` proves Heat Viper goes directly to a zero-or-one own-Digimon
   selection, exposes no preceding optional request, and leaves both fields
-  unchanged when the player selects nothing.
+  unchanged when the player selects nothing. Its paired paid-cost case proves
+  the subsequent up-to-two opposing target request has minimum 1 and rejects an
+  empty response.

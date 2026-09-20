@@ -1466,7 +1466,7 @@ Static pass score: 10/10 (`docs/audits/BT2-STATIC-AUDIT.md`, 2026-09-02).
 
 Re-audit evidence, merged from `docs/audits/BT2-reaudit/BT2-109.md` (2026-09-10):
 
-Catalog/KB and exclusive IR match optional own deletion cost, up-to-two opposing level-4 deletion and Security-to-hand. The focused proof “may decline from the delete-own selection without a separate optional prompt” verifies that the cost selection itself carries the optional choice: selecting no Digimon preserves both boards, while selecting one pays the cost and continues. Q1041 remains enforced because the cost filter is battle-area only. Cost/target/decline peers pass in coordinator batch. Gates passed at collection closeout.
+Catalog/KB and exclusive IR match optional own deletion cost, up-to-two opposing level-4 deletion and Security-to-hand. The focused proof “may decline from the delete-own selection without a separate optional prompt” verifies that the cost selection itself carries the optional choice: selecting no Digimon preserves both boards, while selecting one pays the cost and continues. “requires at least one opposing target after the delete-own cost is paid” proves the distinct §1-3-6 boundary: after payment, “up to 2” has minimum 1 when legal targets exist, and an empty target response is rejected. Q1041 remains enforced because the cost filter is battle-area only. Cost/target/decline peers pass in coordinator batch. Gates passed at collection closeout.
 
 ### BT2-110 — Trump Sword
 
