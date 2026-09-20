@@ -245,7 +245,7 @@ describe("BT26-006 Monimon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
-  it("may decline without trashing either source or paying to play the hand card", async () => {
+  it("pays the By cost before declining the optional play payload", async () => {
     const s = setupEngine(
       {
         0: {
@@ -272,12 +272,9 @@ describe("BT26-006 Monimon", () => {
       attackerPermanentId: s.perm("host").permanentId,
     });
 
-    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("monimon").instanceId,
-      s.inst("costA").instanceId,
-      s.inst("costB").instanceId,
-    ]);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("host").stack).toHaveLength(1);
+    expect(s.perm("host").topCard.cardId).toBe("BT10-073");
+    expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("candidate").instanceId]);
     expect(s.state.memory).toBe(1);
   });

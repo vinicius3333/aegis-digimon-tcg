@@ -130,7 +130,7 @@ describe("BT22-011 BlueMeramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(false);
   });
 
-  it("declines the optional paid trash-play clause without paying or attacking", async () => {
+  it("pays the By cost before declining the optional trash-play payload", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT22-011", as: "blueMeramon" }], trash: [{ card: "BT22-010", as: "candidate" }] } },
       { autoDeclineOptional: true },
@@ -146,8 +146,8 @@ describe("BT22-011 BlueMeramon", () => {
     expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
       { ok: true },
     );
-    await settle(() => s.state.memory === 5);
-    expect(s.state.memory).toBe(5);
+    await settle(() => s.state.memory === 2);
+    expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("candidate").instanceId]);
   });
 

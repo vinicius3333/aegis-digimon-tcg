@@ -50,6 +50,7 @@ export const compiled: CompiledCard = {
             raw: "By paying 3 cost",
           },
           optional: true,
+          payCostBeforeOptional: true,
           abortOnDecline: true,
         },
         {

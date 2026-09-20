@@ -17,8 +17,13 @@ const useTitanOption: Action = {
   payCost: true,
   reduceCostBy: 2,
   optional: true,
+  payCostBeforeOptional: true,
   condition: currentTurn,
-  cost: { kind: "trash", target: { filter: ownHand, count: 1 } },
+  cost: {
+    kind: "trash",
+    target: { filter: ownHand, count: 1 },
+    raw: "by trashing 1 card in your hand",
+  },
 };
 
 export const compiled: CompiledCard = {

@@ -15,8 +15,8 @@ const altCostDelete: Action = {
   optional: true,
   abortOnDecline: true,
   options: [
-    [{ kind: "Delete", target: highestDp, cost: deleteOwn }],
-    [{ kind: "Delete", target: highestDp, cost: trashTwoTamerBottoms }],
+    [{ kind: "Delete", target: highestDp, cost: deleteOwn, allowCostWithoutTarget: true }],
+    [{ kind: "Delete", target: highestDp, cost: trashTwoTamerBottoms, allowCostWithoutTarget: true }],
   ],
 };
 const playFromSecurity: Action = { kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false };

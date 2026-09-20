@@ -78887,6 +78887,7 @@
             "payCost": false,
             "cost": { "kind": "payMemory", "memory": 3, "raw": "By paying 3 cost" },
             "optional": true,
+            "payCostBeforeOptional": true,
             "abortOnDecline": true
           },
           {
@@ -106964,6 +106965,7 @@
               "raw": "By trashing 1 card in your hand"
             },
             "optional": true,
+            "payCostBeforeOptional": true,
             "abortOnDecline": true
           },
           {
@@ -107007,6 +107009,7 @@
               "raw": "By trashing 1 card in your hand"
             },
             "optional": true,
+            "payCostBeforeOptional": true,
             "abortOnDecline": true
           },
           {
@@ -220009,6 +220012,7 @@
                   "reduceCostBy": 2,
                   "allowDigiXros": true,
                   "optional": true,
+                  "payCostBeforeOptional": true,
                   "cost": {
                     "kind": "trash",
                     "target": {
@@ -220021,7 +220025,8 @@
                         }
                       },
                       "count": 2
-                    }
+                    },
+                    "raw": "By trashing any 2 digivolution cards from your [Bagra Army] trait Digimon"
                   }
                 }
               ],
@@ -220038,6 +220043,7 @@
                   "payCost": true,
                   "reduceCostBy": 2,
                   "optional": true,
+                  "payCostBeforeOptional": true,
                   "cost": {
                     "kind": "trash",
                     "target": {
@@ -220050,7 +220056,8 @@
                         }
                       },
                       "count": 2
-                    }
+                    },
+                    "raw": "By trashing any 2 digivolution cards from your [Bagra Army] trait Digimon"
                   }
                 }
               ]
@@ -221278,7 +221285,8 @@
               "host": "self",
               "faceDown": true
             },
-            "optional": true
+            "optional": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -221304,7 +221312,8 @@
               "host": "self",
               "faceDown": true
             },
-            "optional": true
+            "optional": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -225588,7 +225597,13 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
-            "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 }
+            "payCostBeforeOptional": true,
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 2,
+              "raw": "By trashing 2 bottom face-down cards from under any of your Tamers"
+            }
           }
         ]
       },
@@ -225690,7 +225705,8 @@
                   "cost": {
                     "kind": "trash",
                     "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ],
               [
@@ -225715,7 +225731,8 @@
                     "host": "target",
                     "position": "bottom",
                     "faceDown": true
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ]
             ]
@@ -225745,7 +225762,8 @@
                   "cost": {
                     "kind": "trash",
                     "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ],
               [
@@ -225770,7 +225788,8 @@
                     "host": "target",
                     "position": "bottom",
                     "faceDown": true
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ]
             ]
@@ -226000,10 +226019,12 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
+            "payCostBeforeOptional": true,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
+              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 },
+              "raw": "by trashing 1 card in your hand"
             }
           }
         ]
@@ -226034,10 +226055,12 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
+            "payCostBeforeOptional": true,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
+              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 },
+              "raw": "by trashing 1 card in your hand"
             }
           }
         ]
@@ -226068,10 +226091,12 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
+            "payCostBeforeOptional": true,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
+              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 },
+              "raw": "by trashing 1 card in your hand"
             }
           }
         ]
@@ -226992,7 +227017,8 @@
                   "cost": {
                     "kind": "deleteOwn",
                     "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ],
               [
@@ -227002,7 +227028,8 @@
                     "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "highestDP" },
                     "count": 1
                   },
-                  "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 }
+                  "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 },
+                  "allowCostWithoutTarget": true
                 }
               ]
             ]
@@ -227028,7 +227055,8 @@
                   "cost": {
                     "kind": "deleteOwn",
                     "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ],
               [
@@ -227038,7 +227066,8 @@
                     "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "highestDP" },
                     "count": 1
                   },
-                  "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 }
+                  "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 },
+                  "allowCostWithoutTarget": true
                 }
               ]
             ]
@@ -229720,6 +229749,7 @@
             },
             "cost": { "kind": "payMemory", "memory": 1, "raw": "By paying 1 cost" },
             "optional": true,
+            "payCostBeforeOptional": true,
             "abortOnDecline": true
           }
         ],

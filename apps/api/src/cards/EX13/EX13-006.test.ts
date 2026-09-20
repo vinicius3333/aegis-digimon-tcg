@@ -104,7 +104,7 @@ describe("EX13-006 Dorimon", () => {
     expect(s.perm("plain").isSuspended).toBe(true);
     expect(s.perm("chronicleTamer").isSuspended).toBe(true);
     expect(s.perm("host").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(1);
   });
 
   it("treats the catalog's hyphenated [X-Antibody] spelling as the same trait", async () => {
@@ -145,10 +145,10 @@ describe("EX13-006 Dorimon", () => {
 
     expect(s.perm("theirs").isSuspended).toBe(true);
     expect(s.perm("host").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(1);
   });
 
-  it("keeps the Digimon suspended and pays nothing when the optional effect is declined", async () => {
+  it("pays the By cost before declining the optional unsuspend payload", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-063", as: "host", under: ["EX13-006"], suspended: true }] },
@@ -161,7 +161,7 @@ describe("EX13-006 Dorimon", () => {
     await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("host"));
 
     expect(s.perm("host").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(1);
   });
 
   it("enters a legal host through public egg digivolution and unsuspends it at the natural end of turn", async () => {

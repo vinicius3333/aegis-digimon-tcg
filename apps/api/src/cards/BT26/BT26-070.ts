@@ -21,7 +21,13 @@ const useOption: Action = {
   payCost: true,
   reduceCostBy: 2,
   optional: true,
-  cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
+  payCostBeforeOptional: true,
+  cost: {
+    kind: "trashBottomFaceDownUnderTamer",
+    controller: "mine",
+    count: 2,
+    raw: "By trashing 2 bottom face-down cards from under any of your Tamers",
+  },
 };
 
 export const compiled: CompiledCard = {
