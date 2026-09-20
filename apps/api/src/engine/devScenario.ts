@@ -44,6 +44,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-jupitermon-siren",
   "arena-magnamon-x",
   "arena-reboot-timing",
+  "arena-ex13-magnamon-end-turn",
   "arena-seven-code-link-dp",
   "arena-suspend-lock-block",
   "arena-vortex-target-legality",
@@ -253,6 +254,40 @@ function layBt21DavisTopStackScenario(state: GameState, decks: readonly [Decklis
     placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-bt21-davis-opponent"));
   }
 
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Attack with both Digimon, then pass: Magnamon resolves before the opponent's Reboot window. */
+function layEx13MagnamonEndTurnScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    if (seat === 1) {
+      // Neutral security lets both attackers survive without opening unrelated effects.
+      while (player.security.length > 0) {
+        const displaced = takeBottom(player, Zone.Security);
+        if (displaced !== undefined) insertCard(player, Zone.Deck, displaced);
+      }
+      for (let index = 0; index < 5; index += 1) {
+        insertCard(player, Zone.Security, faceDownCard(`magnamon-security-${index}`, "BT1-029", seat));
+      }
+    }
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    const magnamon = establishedDigimon(0, ["BT2-021", "EX13-020"], "-end-turn");
+    magnamon.permanentId = "you-ex13-magnamon";
+    placePermanent(human, magnamon);
+    const reboot = establishedDigimon(0, ["BT4-070"], "-end-turn-reboot");
+    reboot.permanentId = "you-reboot-meteormon";
+    placePermanent(human, reboot);
+  }
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
@@ -968,6 +1003,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,
   "arena-reboot-timing": layRebootTimingScenario,
+  "arena-ex13-magnamon-end-turn": layEx13MagnamonEndTurnScenario,
   "arena-seven-code-link-dp": laySevenCodeLinkDpScenario,
   "arena-suspend-lock-block": laySuspendLockBlockScenario,
   "arena-vortex-target-legality": layVortexTargetLegalityScenario,
