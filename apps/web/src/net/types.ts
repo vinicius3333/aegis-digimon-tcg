@@ -25,6 +25,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-kings-opponent-sukamon"
     | "arena-ex13-kingsukamon-immunity-lapse"
     | "arena-ex13-examon"
+    | "arena-ex5-attack-priority"
     | "arena-ex10-god-grade-raising-color"
     | "arena-junomon-opponent-target"
     | "arena-jupitermon-siren"

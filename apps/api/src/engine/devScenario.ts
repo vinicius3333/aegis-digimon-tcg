@@ -38,6 +38,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
+  "arena-ex5-attack-priority",
   "arena-ex10-god-grade-raising-color",
   "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
@@ -182,6 +183,48 @@ function layAllianceTwentyScenario(state: GameState, decks: readonly [Decklist, 
   }
 
   state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** Reproduces turn-player attack triggers resolving before EX5 opponent-attack reactions. */
+function layEx5AttackPriorityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    // Betsumon's inherited +1000 DP keeps MetalEtemon above Shoutmon EX6's printed 12000 DP,
+    // so Shoutmon's deletion resolves visibly without removing either EX5 reaction source.
+    const metalEtemon = establishedDigimon(0, ["BT12-067", "EX5-048", "EX5-054"], "-ex5-priority");
+    metalEtemon.permanentId = "you-ex5-metal-etemon";
+    placePermanent(human, metalEtemon);
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex5-redirect-cost", "BT11-040", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex5-reveal-three", "BT1-012", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex5-reveal-two", "BT1-010", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex5-reveal-one", "BT11-040", 0), "top");
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const attacker = establishedDigimon(1, ["BT19-014"], "-ex5-priority-attacker");
+    attacker.permanentId = "opponent-shoutmon-ex6";
+    placePermanent(bot, attacker);
+    const ally = establishedDigimon(1, ["BT1-012"], "-ex5-priority-ally");
+    ally.permanentId = "opponent-alliance-ally";
+    // It may pay Alliance's suspension cost, but summoning sickness keeps the bot from
+    // choosing this vanilla body as the attacker instead of Shoutmon EX6.
+    ally.enterFieldTurnCount = 1;
+    placePermanent(bot, ally);
+  }
+
+  state.turnSeat = 1;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
@@ -919,6 +962,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
+  "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,

@@ -186,6 +186,48 @@ describe("attack trigger ordering", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("attackerSource").instanceId);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
   });
+
+  it("gives Shoutmon EX6's When Attacking and Alliance priority over EX5 opponent-attack watchers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-054", as: "metalEtemon", under: ["BT12-067", "EX5-048"] }],
+          hand: [{ card: "BT11-040", as: "redirectCost" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-014", as: "shoutmonEx6" },
+            { card: "BT1-009", as: "allianceAlly" },
+          ],
+          security: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("shoutmonEx6").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const firstOrder = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(firstOrder?.seat).toBe(1);
+    expect(firstOrder?.req.options?.triggerCardIds).toEqual(["BT19-014", "BT19-014"]);
+    expect(
+      s.events.some(
+        (event) => event.kind === "effectTriggered" && ["EX5-048", "EX5-054"].includes(event.sourceCardId ?? ""),
+      ),
+    ).toBe(false);
+  });
+
   it("resolves an effect-driven attacker's [When Attacking] before the security check it opens", async () => {
     // Match 89641815: BT26-015's "when your effect adds cards to a deck, 1 of your Digimon may
     // get +3000 DP and attack" ordered the attack from inside its own resolving body, so the
