@@ -50,6 +50,10 @@ export function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledR
         ...trigger.deletedEffectiveColorsByInstanceId,
         ...into.deletedEffectiveColorsByInstanceId,
       },
+      deletedEffectiveNamesByPermanentId: {
+        ...trigger.deletedEffectiveNamesByPermanentId,
+        ...into.deletedEffectiveNamesByPermanentId,
+      },
       deletedPermanentSnapshots: [
         ...(into.deletedPermanentSnapshots ?? []),
         ...(trigger.deletedPermanentSnapshots ?? []),

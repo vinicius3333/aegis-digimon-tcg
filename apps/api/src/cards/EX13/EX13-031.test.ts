@@ -881,6 +881,51 @@ describe("EX13-031 KingSukamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("arms when an opposing Digimon rewritten to [Sukamon] is deleted at 0 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: NEUTRAL_LV3, as: "host", under: [cardId] },
+            { card: "EX13-035", as: "dpAura" },
+            { card: SUKAMON, as: "firstNamed" },
+            { card: PLATINUM_SUKAMON, as: "secondNamed" },
+          ],
+          hand: [
+            { card: cardId, as: "rewriter" },
+            { card: CHUUMON_COST_3, as: "fee" },
+          ],
+          deck: [
+            { card: CHUUMON_PLAYABLE, as: "freePlay" },
+            { card: SENTINEL, as: "second" },
+            { card: SENTINEL, as: "third" },
+            { card: SENTINEL, as: "untouched" },
+          ],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_BODY, as: "opponentFodder" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const opponentFodderId = s.perm("opponentFodder").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rewriter").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opponentFodderId));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CHUUMON_PLAYABLE));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("untouched").instanceId]);
+    assertNoLoudGap(s);
+  });
+
   it("keeps the inherited watcher after a Digimon digivolves onto it, preserving source identity", async () => {
     const s = setupEngine(
       {

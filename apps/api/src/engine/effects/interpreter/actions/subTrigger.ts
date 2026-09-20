@@ -384,7 +384,29 @@ export async function runSubTrigger(
           const deletedCardId = subCtx.trigger.deletedTopCardId;
           if (deletedCardId === undefined) return false;
           const definition = getCardDefinition(deletedCardId);
-          if (definition === undefined || !definitionMatches(sourceFilter, definition as DefinitionFacts)) return false;
+          if (definition === undefined) return false;
+          let snapshotFilter = sourceFilter;
+          const effectiveNames =
+            deletedPermanentId === undefined
+              ? undefined
+              : subCtx.trigger.deletedEffectiveNamesByPermanentId?.[deletedPermanentId];
+          if (
+            effectiveNames !== undefined &&
+            sourceFilter.nameOrTrait?.some(
+              (reference) =>
+                (reference.match === "name" || reference.match === "nameExact") &&
+                effectiveNames.some((name) =>
+                  matchNameOrTrait(
+                    { ...definition, cardId: undefined, nameEn: name, nameAliases: undefined } as DefinitionFacts,
+                    reference,
+                  ),
+                ),
+            )
+          ) {
+            const { nameOrTrait: _nameOrTrait, ...rest } = sourceFilter;
+            snapshotFilter = rest;
+          }
+          if (!definitionMatches(snapshotFilter, definition as DefinitionFacts)) return false;
 
           const sourceCount = subCtx.trigger.deletedDigivolutionCardCount;
           if (sourceFilter.digivolutionCards === "hasAny" && !(sourceCount !== undefined && sourceCount > 0))

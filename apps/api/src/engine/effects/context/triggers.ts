@@ -95,6 +95,8 @@ export interface TriggerInfo {
   deletedDigivolutionCardCount?: number;
   /** Effective host colors captured before deletion, keyed by every moved card instance. */
   deletedEffectiveColorsByInstanceId?: Record<string, import("@aegis/shared").CardColor[]>;
+  /** Effective host names captured before deletion, keyed by the deleted permanent. */
+  deletedEffectiveNamesByPermanentId?: Record<string, string[]>;
   /**
    * The subset of {@link deletedInstanceIds} that were STACK cards (not top cards)
    * of the deleted permanents. Used by the placement guard to distinguish inherited

@@ -8,6 +8,7 @@ import {
   partitionSpecOf,
 } from "../../combat/keywords.js";
 import type { Primitives } from "../EffectContext.js";
+import { effectiveNames } from "../continuous.js";
 
 import type { PrimitivesContext } from "./context.js";
 
@@ -360,6 +361,14 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       if (scapegoatSaved.size > 0) toDelete = toDelete.filter((id) => !scapegoatSaved.has(id));
     }
     const deletedPermanentSnapshots = snapshotDeletedPermanents(toDelete);
+    const deletedEffectiveNamesByPermanentId = Object.fromEntries(
+      toDelete.flatMap((permanentId) => {
+        const permanent = access.permanentById(permanentId);
+        if (permanent?.topCard === undefined) return [];
+        const printedName = requireCardDefinition(permanent.topCard.cardId).nameEn ?? permanent.topCard.cardId;
+        return [[permanentId, effectiveNames(continuous, permanent, printedName)]];
+      }),
+    );
     // SubTrigger bus (System B): "when [a matching Digimon] is deleted" watchers fire over
     // the to-be-deleted set, co-located with the deletion. Fired here — while each subject is
     // STILL a live permanent — so a watcher's captured sourceFilter ("a [Puppet] Digimon")
@@ -377,6 +386,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
             deletedPermanentId: permanentId,
             deletedPermanentIds: toDelete,
             deletedPermanentSnapshots,
+            deletedEffectiveNamesByPermanentId,
             deletedControllerSeat: deleted.controllerSeat,
             deletedTopCardId: deleted.topCard?.cardId,
             removalCause: cause,
@@ -599,6 +609,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         deletedControllerSeat: deletedPermanentSnapshots.find(({ permanentId }) => permanentId === allMoved[0])
           ?.controllerSeat,
         deletedPermanentSnapshots,
+        deletedEffectiveNamesByPermanentId,
         deletedTopCardId: topCardIdsByPermanent.find((cardId) => cardId !== undefined),
         deletedEffectiveColorsByInstanceId,
         deletedByDpZero,

@@ -176,5 +176,15 @@ toward its three-name condition: the aura applies -3000 DP to the rewritten
 falls below three matching Digimon. Both regressions use the public play flow
 that pays EX13-031's printed trash cost; neither injects an override directly.
 
+The rule-deletion follow-up now also carries effective names captured before
+movement, keyed by permanent identity. Deferred `onDeletionOf` filters use
+that snapshot when the deleted permanent is no longer live, and simultaneous
+rule-deletion pools merge the maps with their existing color and identity
+snapshots. This closes the gap where the EX13-035 aura correctly deleted a
+rewritten Sukamon at 0 DP but EX13-031's inherited watcher later saw only the
+printed MetalGreymon definition. The focused EX13-031 regression fails at the
+missing free play on the prior implementation and passes all 26 direct tests
+with the snapshot correction.
+
 The baseline focused command failed both new cases while the preceding 52
 tests passed. With the matcher correction, the same command passes 54 tests.
