@@ -61,6 +61,8 @@ const stripRules = mediaRules(gameCss, "(width < 960px)");
 const phonePortraitRules = mediaRules(gameCss, "(width < 600px) and (orientation: portrait)");
 /** Narrow width at any orientation — a landscape phone is ~844px wide, so it is not this. */
 const narrowWidthRules = mediaRules(gameCss, "(width < 600px)");
+/** Portrait phones and small tablets whose dialogs cannot sustain the desktop two-column chooser. */
+const compactDialogRules = mediaRules(gameCss, "(width < 768px)");
 /** Pointer widths, which keep the full-size fanned hand. */
 const pointerWidthRules = mediaRules(gameCss, "(width >= 960px)");
 
@@ -680,6 +682,8 @@ describe("the trigger chooser is one readable column on a phone in portrait", ()
       /\.decision-overlay--trigger-chooser \.trigger-chooser \{[^}]*min-height:\s*0[^}]*overflow-y:\s*auto/,
     );
     expect(gameCss).toMatch(/\.trigger-chooser__footer \{[^}]*flex:\s*none[^}]*flex-wrap:\s*wrap/);
+    expect(gameCss).toMatch(/\.trigger-chooser__layout \{[^}]*flex-direction:\s*column[^}]*flex-wrap:\s*nowrap !important/);
+    expect(gameCss).toMatch(/\.trigger-chooser__option \{[^}]*flex:\s*none/);
   });
 
   it("stacks the pending effects instead of splitting the width between them", () => {
@@ -687,13 +691,25 @@ describe("the trigger chooser is one readable column on a phone in portrait", ()
     expect(phonePortraitRules).toMatch(/\.trigger-chooser__option \{[^}]*min-width:\s*0/);
   });
 
+  it("also contains every effect at small-tablet portrait widths", () => {
+    expect(compactDialogRules).toMatch(
+      /\.decision-overlay--trigger-chooser \.trigger-chooser \{[^}]*width:\s*100%[^}]*min-width:\s*0[^}]*overflow-x:\s*hidden/,
+    );
+    expect(compactDialogRules).toMatch(/\.trigger-chooser__option \{[^}]*width:\s*100%[^}]*min-width:\s*0/);
+  });
+
   it("shrinks the art to a thumbnail so the printed clause keeps the width", () => {
     expect(phonePortraitRules).toMatch(/\.trigger-chooser__card > div \{[^}]*width:\s*64px/);
     expect(phonePortraitRules).toMatch(/\.trigger-chooser__meta \{[^}]*max-width:\s*100%/);
   });
 
-  it("keeps the desktop chooser on a grid that fits as many full cards as the width allows", () => {
-    expect(gameCss).toMatch(/\n\.trigger-chooser \{[^}]*grid-template-columns:\s*repeat\(auto-fit/);
+  it("defaults to a contained column and only adds columns when the viewport proves it has room", () => {
+    expect(gameCss).toMatch(
+      /\n\.trigger-chooser \{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*width:\s*100%[^}]*min-width:\s*0/,
+    );
+    expect(mediaRules(gameCss, "(width >= 900px)")).toMatch(
+      /\.trigger-chooser \{[^}]*display:\s*grid[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/,
+    );
     expect(gameCss).toMatch(/\n\.trigger-chooser__option \{[^}]*flex-direction:\s*column/);
   });
 });

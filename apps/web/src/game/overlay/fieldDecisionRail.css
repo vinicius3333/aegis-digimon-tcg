@@ -76,6 +76,126 @@
   flex: 0 0 auto;
   padding-inline: var(--ds-space-4);
 }
+
+/* Portrait boards at small-tablet widths are still too narrow for the desktop
+   two-column rail: the action column and source art can crush a long effect into
+   one word per line. Give every field decision a clear vertical reading order
+   before that pressure appears. */
+@media (width < 768px) {
+  .board-prompt[data-variant="field-selection"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "heading"
+      "body"
+      "detail"
+      "actions";
+    gap: var(--ds-space-2);
+    width: calc(100% - var(--ds-space-6));
+    max-height: min(44dvh, 21rem);
+    padding: var(--ds-space-3);
+    border-width: 1px;
+  }
+
+  .board-prompt[data-variant="field-selection"] .board-prompt__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--ds-space-3);
+    align-items: center;
+  }
+
+  .board-prompt[data-variant="field-selection"] .board-prompt__clause {
+    padding: var(--ds-space-2) var(--ds-space-3);
+    font-size: var(--ds-text-sm);
+    line-height: 1.45;
+  }
+
+  .board-prompt[data-variant="field-selection"] .board-prompt__art .game-card-mini,
+  .board-prompt[data-variant="field-selection"] .board-prompt__art > div {
+    width: 3.5rem !important;
+  }
+
+  .board-prompt[data-variant="field-selection"] .board-prompt__actions {
+    width: 100%;
+  }
+
+  .board-prompt[data-variant="field-selection"] .board-prompt__actions > button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .board-prompt--alliance[data-variant="field-selection"] .board-prompt__actions {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .board-prompt--alliance[data-variant="field-selection"] .board-prompt__actions > button {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  /* Target picking happens on the board, so the board keeps the visual priority.
+     The printed clause is available on demand instead of permanently covering
+     the eligible cards. */
+  .board-prompt--target-selection[data-variant="field-selection"] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "heading detail"
+      "actions actions";
+    max-height: min(34dvh, 15rem);
+  }
+
+  .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__heading {
+    align-self: center;
+  }
+
+  .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__detail {
+    align-self: center;
+    color: var(--ds-accent);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__body {
+    display: none;
+  }
+
+  .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ds-space-2);
+  }
+
+  .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__actions > button:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .board-prompt--target-selection.board-prompt--effect-expanded[data-variant="field-selection"] {
+    grid-template-areas:
+      "heading detail"
+      "body body"
+      "actions actions";
+    max-height: min(54dvh, 24rem);
+    overflow-y: auto;
+  }
+
+  .board-prompt--target-selection.board-prompt--effect-expanded[data-variant="field-selection"] .board-prompt__body {
+    display: grid;
+  }
+}
+
+/* On a narrow phone the board is more valuable than repeating which card is
+   attacking: it remains visible immediately above the prompt. Keep one concise
+   instruction and the decision action in the thumb zone. */
+@media (width < 480px) {
+  .board-prompt--block[data-variant="field-selection"] .board-prompt__art {
+    display: none;
+  }
+
+  .board-prompt--block[data-variant="field-selection"] .board-prompt__body {
+    display: block;
+  }
+}
 @media (width < 600px), (height < 520px) and (orientation: landscape) {
   .board-prompt.combat-prompt[data-variant="field-selection"] {
     bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;

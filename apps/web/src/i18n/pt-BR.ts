@@ -557,6 +557,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.continue": "Continuar",
   "overlay.effect": "Efeito",
   "overlay.viewBoard": "Visualizar mesa",
+  "overlay.showEffect": "Ver efeito",
+  "overlay.hideEffect": "Ocultar efeito",
   "overlay.returnToDecision": "Voltar à decisão",
   "overlay.decisionPending": "Decisão pendente",
   "overlay.cardEffect": "{name} · efeito",

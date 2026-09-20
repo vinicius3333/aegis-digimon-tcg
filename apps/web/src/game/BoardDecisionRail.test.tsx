@@ -181,12 +181,61 @@ describe("board prompt scrim", () => {
   });
 });
 
+describe("BoardSelectionRail board view", () => {
+  it("keeps the field effect collapsed until the player asks for it", () => {
+    const { container } = renderIn(
+      <BoardSelectionRail
+        fieldSelection
+        sourceCardId="ST1-07"
+        prompt="Choose 1 target"
+        clause="Draw 1 card."
+        min={1}
+        max={1}
+        pickCount={0}
+        canConfirm={false}
+        onConfirm={noop}
+        onNoSelection={noop}
+      />,
+    );
+
+    const rail = container.querySelector(".board-prompt--target-selection");
+    expect(rail?.classList.contains("board-prompt--effect-expanded")).toBe(false);
+    const toggle = screen.getByRole("button", { name: "View effect" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(toggle);
+    expect(rail?.classList.contains("board-prompt--effect-expanded")).toBe(true);
+    expect(screen.getByRole("button", { name: "Hide effect" }).getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("temporarily hides the confirmation rail and offers a return to the pending decision", () => {
+    renderIn(
+      <BoardSelectionRail
+        fieldSelection
+        prompt="Choose 1 target"
+        min={1}
+        max={1}
+        pickCount={1}
+        canConfirm
+        onConfirm={noop}
+        onNoSelection={noop}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "View board" }));
+    expect(screen.queryByRole("region", { name: "Confirm targets" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
+    expect(screen.getByRole("region", { name: "Confirm targets" })).toBeTruthy();
+  });
+});
+
 describe("BoardBlockPrompt", () => {
   it("keeps the blocker choice on the field and offers the decline action", () => {
     const onDecline = vi.fn<() => void>();
     renderIn(<BoardBlockPrompt attackerCardId="ST1-07" mustBlock={false} onDecline={onDecline} />);
 
-    expect(screen.getByRole("region", { name: "Block window" })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Block window" }).classList.contains("board-prompt--block")).toBe(
+      true,
+    );
     expect(screen.getByText("Choose your blocker")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Take the attack, no block" }));
     expect(onDecline).toHaveBeenCalledTimes(1);

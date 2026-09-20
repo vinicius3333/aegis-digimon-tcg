@@ -18,7 +18,7 @@ export function DecisionSelectFooter({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="game-actions-row decision-overlay__footer">
+    <div className="game-actions-row decision-overlay__footer decision-overlay__footer--selection">
       <Button full size="lg" icon={Icons.Check} disabled={!canConfirm} onClick={onConfirm}>
         {t("overlay.confirmTargets")}
       </Button>

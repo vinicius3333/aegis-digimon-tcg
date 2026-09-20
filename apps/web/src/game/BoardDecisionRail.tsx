@@ -4,12 +4,13 @@
    own. Which decisions land here is decided by ./decisionPresentation; this file
    only draws them. */
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "../design/primitives";
 import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { cardDisplayName, useCardOpener } from "./cardLinks";
+import { DecisionBoardReturn } from "./overlay/choice/DecisionBoardReturn";
 import "./overlay/fieldDecisionRail.css";
 
 function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
@@ -165,6 +166,23 @@ export function BoardSelectionRail({
   onOpenDialog?: () => void;
 }) {
   const { t } = useTranslation();
+  const [isViewingBoard, setIsViewingBoard] = useState(false);
+  const [isEffectExpanded, setIsEffectExpanded] = useState(false);
+  const returnControlRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isViewingBoard) returnControlRef.current?.querySelector("button")?.focus();
+  }, [isViewingBoard]);
+
+  if (isViewingBoard) {
+    return (
+      <DecisionBoardReturn
+        returnControlRef={returnControlRef}
+        onReturn={() => setIsViewingBoard(false)}
+      />
+    );
+  }
+
   const selectionLabel = attackSelection
     ? t("overlay.attackTarget")
     : fieldSelection
@@ -173,6 +191,7 @@ export function BoardSelectionRail({
   return (
     <BoardPromptRail
       variant={fieldSelection || attackSelection ? "field-selection" : "selection"}
+      className={`${fieldSelection || attackSelection ? "board-prompt--target-selection" : ""}${isEffectExpanded ? " board-prompt--effect-expanded" : ""}`}
       label={selectionLabel}
       eyebrow={selectionLabel}
       art={sourceCardId}
@@ -188,6 +207,21 @@ export function BoardSelectionRail({
       <Button full icon={Icons.Check} disabled={pickCount === 0 || !canConfirm} onClick={onConfirm}>
         {t(fieldSelection || attackSelection ? "overlay.confirmTargets" : "overlay.endSelection")}
       </Button>
+      <Button full variant="secondary" icon={Icons.Map} onClick={() => setIsViewingBoard(true)}>
+        {t("overlay.viewBoard")}
+      </Button>
+      {(fieldSelection || attackSelection) && clause ? (
+        <Button
+          className="board-prompt__effect-toggle"
+          full
+          variant="secondary"
+          icon={isEffectExpanded ? Icons.ChevronDown : Icons.Info}
+          aria-expanded={isEffectExpanded}
+          onClick={() => setIsEffectExpanded((expanded) => !expanded)}
+        >
+          {t(isEffectExpanded ? "overlay.hideEffect" : "overlay.showEffect")}
+        </Button>
+      ) : null}
       {min === 0 ? (
         <Button full variant="secondary" onClick={onNoSelection}>
           {t(fieldSelection || attackSelection ? "common.none" : "overlay.noSelection")}
@@ -211,6 +245,7 @@ export function BoardBlockPrompt({
   return (
     <BoardPromptRail
       variant="field-selection"
+      className="board-prompt--block"
       label={t("overlay.blockWindow")}
       eyebrow={mustBlock ? `${t("overlay.blockWindow")} · ${t("overlay.blockForced")}` : t("overlay.blockWindow")}
       art={attackerCardId}

@@ -551,6 +551,8 @@ export const en = {
   "overlay.continue": "Continue",
   "overlay.effect": "Effect",
   "overlay.viewBoard": "View board",
+  "overlay.showEffect": "View effect",
+  "overlay.hideEffect": "Hide effect",
   "overlay.returnToDecision": "Return to decision",
   "overlay.decisionPending": "Decision pending",
   "overlay.cardEffect": "{name} · effect",

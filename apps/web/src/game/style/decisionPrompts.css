@@ -83,6 +83,44 @@
   flex: 1 1 0;
 }
 
+/* A portrait tablet is already too narrow for the three long selection actions
+   in one row. Keep the commit action dominant, then share a second row between
+   the two secondary exits without abbreviating their labels. */
+@media (width < 768px) {
+  .decision-overlay__footer--selection {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ds-space-2);
+  }
+
+  .decision-overlay__footer--selection > .aegis-button:first-child {
+    grid-column: 1 / -1;
+  }
+
+  /* A mandatory selection has no None action. Let its only secondary action use
+     the whole row instead of leaving an unexplained empty half. */
+  .decision-overlay__footer--selection > .aegis-button:last-child:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+
+  .decision-overlay__footer--selection > .aegis-button {
+    width: 100%;
+    min-height: 48px;
+    padding-inline: var(--ds-space-3);
+    white-space: normal;
+  }
+}
+
+@media (width < 420px) {
+  .decision-overlay__footer--selection {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .decision-overlay__footer--selection > .aegis-button {
+    grid-column: 1;
+  }
+}
+
 .decision-overlay--selection .decision-overlay__selection {
   min-height: 0;
   overflow-y: auto;
@@ -120,10 +158,18 @@
 /* --- Trigger chooser ------------------------------------------------------ */
 
 .trigger-chooser {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
   gap: var(--ds-space-3);
   margin-bottom: var(--ds-space-4);
+}
+@media (width >= 900px) {
+  .trigger-chooser {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .decision-overlay--trigger-chooser {
   box-sizing: border-box;
@@ -139,6 +185,10 @@
   display: flex;
   flex: 1;
   flex-direction: column;
+  /* The generic phone dialog rule wraps every direct flex child. On this
+     vertical layout that creates a second column and pushes the footer past
+     the right edge instead of wrapping buttons within the footer itself. */
+  flex-wrap: nowrap !important;
   min-height: 0;
 }
 .decision-overlay--trigger-chooser .trigger-chooser {
@@ -151,6 +201,7 @@
 }
 .trigger-chooser__option {
   display: flex;
+  flex: none;
   flex-direction: column;
   gap: var(--ds-space-2);
   padding: var(--ds-space-3);
@@ -270,6 +321,42 @@
   padding-top: 12px;
   border-top: 1px solid var(--ds-border);
 }
+
+/* At small-tablet portrait widths the desktop auto-fit grid can preserve its
+   cards' intrinsic width inside a flex child. The chooser then becomes wider
+   than the dialog and the panel's intentional overflow clipping leaves only a
+   strip of every option visible. Make the scroll region itself shrinkable and
+   use one contained column before that pressure starts. */
+@media (width < 768px) {
+  .trigger-chooser__layout {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .decision-overlay--trigger-chooser .trigger-chooser {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .trigger-chooser__option {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .trigger-chooser__heading,
+  .trigger-chooser__meta {
+    min-width: 0;
+  }
+
+  .trigger-chooser__card > div {
+    width: 64px !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+}
+
 @media (max-width: 600px) {
   .decision-overlay--trigger-chooser {
     max-height: calc(100dvh - 2 * var(--ds-space-3));

@@ -31,9 +31,11 @@ export const DEV_SCENARIO_IDS = [
   "arena",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
+  "arena-bt21-davis-top-stack",
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex13-giromon-block-triggers",
+  "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
   "arena-ex10-god-grade-raising-color",
@@ -183,6 +185,35 @@ function layAllianceTwentyScenario(state: GameState, decks: readonly [Decklist, 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Reproduces BT21-085 selecting Veemon under an Armor Form instead of the visible top card. */
+function layBt21DavisTopStackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT21-085"], "-bt21-davis"));
+    placePermanent(human, establishedDigimon(0, ["BT3-021", "BT21-036"], "-bt21-armor"));
+    insertCard(human, Zone.Deck, faceDownCard("dev-bt21-davis-effect-draw", "BT1-011", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-bt21-davis-turn-draw", "BT1-010", 0), "top");
+  }
+
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-bt21-davis-opponent"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** Starts the human's turn with only suspended ＜Reboot＞ Digimon on their battle area. */
@@ -545,8 +576,9 @@ function laySuspendLockBlockScenario(state: GameState, decks: readonly [Decklist
 
 /**
  * Reproduces the EX13 Craniamon-deck block report: Giromon blocks with EX13 Guardromon
- * underneath it while two ST15 Tai Kamiya Tamers watch the attack target switch. Suspending
- * Giromon therefore creates four simultaneous effects for the defending player to order:
+ * underneath it, two more EX13 Giromon beside it, and four ST15 Tai Kamiya Tamers watching
+ * the attack target switch. Suspending Giromon therefore creates six simultaneous effects
+ * for the defending player to order:
  * Giromon's reveal, Guardromon's inherited unsuspend, and one draw/DP effect from each Tai.
  *
  * The top three cards are fixed so Giromon's reveal also shows Black Scramble going to the
@@ -565,8 +597,12 @@ function layEx13GiromonBlockTriggersScenario(state: GameState, decks: readonly [
   const human = state.players[0];
   if (human !== undefined) {
     placePermanent(human, establishedDigimon(0, ["EX13-051", "EX13-056"], "-ex13-giromon-blocker"));
+    placePermanent(human, establishedDigimon(0, ["EX13-056"], "-ex13-field-giromon-a"));
+    placePermanent(human, establishedDigimon(0, ["EX13-056"], "-ex13-field-giromon-b"));
     placePermanent(human, establishedDigimon(0, ["ST15-14"], "-ex13-tai-a"));
     placePermanent(human, establishedDigimon(0, ["ST15-14"], "-ex13-tai-b"));
+    placePermanent(human, establishedDigimon(0, ["ST15-14"], "-ex13-tai-c"));
+    placePermanent(human, establishedDigimon(0, ["ST15-14"], "-ex13-tai-d"));
     insertCard(human, Zone.Hand, faceDownCard("dev-ex13-hand-guardromon", "EX13-051", 0));
 
     // insertCard(..., "top") prepends, so seed these in reverse reveal order.
@@ -577,7 +613,7 @@ function layEx13GiromonBlockTriggersScenario(state: GameState, decks: readonly [
 
   const bot = state.players[1];
   if (bot !== undefined) {
-    placePermanent(bot, establishedDigimon(1, ["AD1-001"], "-ex13-block-trigger-attacker"));
+    placePermanent(bot, establishedDigimon(1, ["ST1-10"], "-ex13-block-trigger-attacker"));
   }
 
   state.turnSeat = 1;
@@ -613,6 +649,45 @@ function layEx13KingSukamonImmunityLapseScenario(state: GameState, decks: readon
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 7;
+}
+
+/** Proves both EX13 kings count and react to [Sukamon]-named Digimon on the opponent's field. */
+function layEx13KingsOpponentSukamonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-031", "EX13-035"], "-ex13-kings"));
+
+    // insertCard(..., "top") prepends, so seed these in reverse reveal order. Only Sukamon
+    // is a legal play for KingSukamon's inherited reveal.
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex13-kings-reveal-third", "BT1-014", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex13-kings-reveal-second", "BT1-013", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex13-kings-reveal-sukamon", "EX13-028", 0), "top");
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const battleTarget = establishedDigimon(1, ["BT13-069"], "-ex13-kings-battle-target");
+    battleTarget.permanentId = "opponent-sukamon-battle-target";
+    battleTarget.isSuspended = true;
+    placePermanent(bot, battleTarget);
+
+    const thresholdWitness = establishedDigimon(1, ["BT13-069"], "-ex13-kings-threshold-witness");
+    thresholdWitness.permanentId = "opponent-sukamon-threshold-witness";
+    placePermanent(bot, thresholdWitness);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /** Compares two off-colour Options while BT26 Copipemon is the only Appmon in breeding. */
@@ -828,9 +903,11 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
+  "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
+  "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonImmunityLapseScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
