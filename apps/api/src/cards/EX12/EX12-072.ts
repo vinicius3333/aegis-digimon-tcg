@@ -65,12 +65,13 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              playCostLte: 5,
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 5 },
               nameOrTrait: [{ tokens: ["ME"], match: "trait" }],
             },
             count: 1,
           },
-          from: ["hand", "trash"],
+          from: ["hand"],
           payCost: false,
           optional: true,
         },

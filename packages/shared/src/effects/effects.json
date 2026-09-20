@@ -153979,12 +153979,13 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "playCostLte": 5,
+                "kind": ["Digimon"],
+                "levelComparison": { "op": "lte", "value": 5 },
                 "nameOrTrait": [{ "tokens": ["VB"], "match": "trait" }]
               },
               "count": 1
             },
-            "from": ["hand", "trash"],
+            "from": ["hand"],
             "payCost": false,
             "optional": true
           }
@@ -154226,12 +154227,13 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "playCostLte": 5,
+                "kind": ["Digimon"],
+                "levelComparison": { "op": "lte", "value": 5 },
                 "nameOrTrait": [{ "tokens": ["ME"], "match": "trait" }]
               },
               "count": 1
             },
-            "from": ["hand", "trash"],
+            "from": ["hand"],
             "payCost": false,
             "optional": true
           }

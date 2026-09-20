@@ -95,7 +95,8 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              playCostLte: 5,
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 5 },
               nameOrTrait: [
                 {
                   tokens: ["VB"],
@@ -105,7 +106,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          from: ["hand", "trash"],
+          from: ["hand"],
           payCost: false,
           optional: true,
         },

@@ -47,10 +47,15 @@ describe("EX12-072 Metal Empire", () => {
       actions: [
         {
           kind: "PlayWithoutCost",
-          from: ["hand", "trash"],
+          from: ["hand"],
           payCost: false,
           optional: true,
-          target: { filter: { playCostLte: 5 } },
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 5 },
+            },
+          },
         },
       ],
     });
@@ -217,13 +222,13 @@ describe("EX12-072 Metal Empire", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
   });
 
-  it("plays a cost-5-or-lower ME card from hand when its Security effect resolves", async () => {
+  it("plays a level-5-or-lower ME Digimon from hand when its Security effect resolves", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [
-            { card: "EX12-008", as: "target" },
-            { card: "EX12-016", as: "tooExpensive" },
+            { card: "EX12-016", as: "target" },
+            { card: "EX12-017", as: "tooHigh" },
           ],
           security: [{ card: CARD_ID, as: "security", faceUp: true }],
         },
@@ -240,10 +245,10 @@ describe("EX12-072 Metal Empire", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("target").instanceId),
     ).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
   });
 
-  it("also plays a qualifying ME card from the trash", async () => {
+  it("does not play a qualifying ME Digimon from the trash", async () => {
     const s = setupEngine(
       {
         0: {
@@ -257,9 +262,10 @@ describe("EX12-072 Metal Empire", () => {
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-010"));
+    await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-010")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-010")).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashTarget").instanceId)).toBe(true);
   });
 
   it("activates its Security effect when checked while already face-up", async () => {
@@ -314,6 +320,8 @@ describe("EX12-072 Metal Empire", () => {
       dp: 0,
       evoCosts: [],
       types: ["ME"],
+      securityEffectText:
+        "[Security] You may play 1 level 5 or lower [ME] trait Digimon card from your hand without paying the cost.",
     });
   });
 });

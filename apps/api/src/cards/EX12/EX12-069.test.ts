@@ -46,10 +46,15 @@ describe("EX12-069 Virus Busters", () => {
       actions: [
         {
           kind: "PlayWithoutCost",
-          from: ["hand", "trash"],
+          from: ["hand"],
           payCost: false,
           optional: true,
-          target: { filter: { playCostLte: 5 } },
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 5 },
+            },
+          },
         },
       ],
     });
@@ -233,11 +238,14 @@ describe("EX12-069 Virus Busters", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
-  it("plays a cost-5-or-lower VB card from hand when its security skill resolves", async () => {
+  it("plays a level-5-or-lower VB Digimon from hand when its security skill resolves", async () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "EX12-013", as: "target" }],
+          hand: [
+            { card: "EX12-016", as: "target" },
+            { card: "EX12-017", as: "tooHigh" },
+          ],
           security: [{ card: CARD_ID, as: "security", faceUp: true }],
         },
         1: { security: ["BT1-101"] },
@@ -254,15 +262,15 @@ describe("EX12-069 Virus Busters", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("target").instanceId),
     ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("security").instanceId)).toBe(true);
   });
 
-  it("plays an eligible VB card from trash but rejects a cost-6-or-higher VB card", async () => {
+  it("does not play a qualifying VB Digimon from trash", async () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "EX12-017", as: "tooExpensive" }],
-          trash: [{ card: "EX12-013", as: "valid" }],
+          trash: [{ card: "EX12-013", as: "trashTarget" }],
           security: [{ card: CARD_ID, as: "security", faceUp: true }],
         },
       },
@@ -271,9 +279,11 @@ describe("EX12-069 Virus Busters", () => {
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-013"));
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("tooExpensive").instanceId);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("valid").instanceId)).toBe(false);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-013")).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("trashTarget").instanceId)).toBe(
+      true,
+    );
   });
 
   it("matches the complete catalog identity", () => {
@@ -285,6 +295,8 @@ describe("EX12-069 Virus Busters", () => {
       dp: 0,
       evoCosts: [],
       types: ["VB"],
+      securityEffectText:
+        "[Security] You may play 1 level 5 or lower [VB] trait Digimon card from your hand without paying the cost.",
     });
   });
 });
