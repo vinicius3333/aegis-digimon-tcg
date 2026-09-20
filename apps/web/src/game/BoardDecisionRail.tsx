@@ -175,12 +175,7 @@ export function BoardSelectionRail({
   }, [isViewingBoard]);
 
   if (isViewingBoard) {
-    return (
-      <DecisionBoardReturn
-        returnControlRef={returnControlRef}
-        onReturn={() => setIsViewingBoard(false)}
-      />
-    );
+    return <DecisionBoardReturn returnControlRef={returnControlRef} onReturn={() => setIsViewingBoard(false)} />;
   }
 
   const selectionLabel = attackSelection
@@ -207,6 +202,11 @@ export function BoardSelectionRail({
       <Button full icon={Icons.Check} disabled={pickCount === 0 || !canConfirm} onClick={onConfirm}>
         {t(fieldSelection || attackSelection ? "overlay.confirmTargets" : "overlay.endSelection")}
       </Button>
+      {min === 0 ? (
+        <Button full variant="secondary" onClick={onNoSelection}>
+          {t(fieldSelection || attackSelection ? "overlay.passNoSelection" : "overlay.noSelection")}
+        </Button>
+      ) : null}
       <Button full variant="secondary" icon={Icons.Map} onClick={() => setIsViewingBoard(true)}>
         {t("overlay.viewBoard")}
       </Button>
@@ -220,11 +220,6 @@ export function BoardSelectionRail({
           onClick={() => setIsEffectExpanded((expanded) => !expanded)}
         >
           {t(isEffectExpanded ? "overlay.hideEffect" : "overlay.showEffect")}
-        </Button>
-      ) : null}
-      {min === 0 ? (
-        <Button full variant="secondary" onClick={onNoSelection}>
-          {t(fieldSelection || attackSelection ? "common.none" : "overlay.noSelection")}
         </Button>
       ) : null}
     </BoardPromptRail>

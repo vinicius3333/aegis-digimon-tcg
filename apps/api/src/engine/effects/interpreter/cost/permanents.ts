@@ -141,7 +141,7 @@ export async function payUnsuspendNamedCost(ctx: EffectContext, cost: Cost): Pro
  */
 export async function payDeleteOwnCost(ctx: EffectContext, cost: Cost): Promise<boolean> {
   if (!cost.target) return false;
-  const permanentIds = await resolvePermanentTargets(ctx, cost.target);
+  const permanentIds = await resolvePermanentTargets(ctx, cost.target, { allowDecline: ctx.costIsTheQuestion });
   if (permanentIds.length === 0) return false;
   const deletedTopInstanceIds = topInstanceIds(ctx, permanentIds);
   // Capture the deleted Digimon's level BEFORE removal so a

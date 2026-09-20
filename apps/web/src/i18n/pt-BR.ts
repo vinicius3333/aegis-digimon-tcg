@@ -558,6 +558,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.effect": "Efeito",
   "overlay.viewBoard": "Visualizar mesa",
   "overlay.showEffect": "Ver efeito",
+  "overlay.passNoSelection": "Passar / Não selecionar",
   "overlay.hideEffect": "Ocultar efeito",
   "overlay.returnToDecision": "Voltar à decisão",
   "overlay.decisionPending": "Decisão pendente",

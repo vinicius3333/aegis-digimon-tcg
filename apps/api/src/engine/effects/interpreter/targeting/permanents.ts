@@ -376,6 +376,8 @@ export async function resolvePermanentTargets(
      * is checked only when its later trigger activates (Q7060-Q7066). */
     preserveUnaffectableSelection?: boolean;
     allowPendingRotationHost?: boolean;
+    /** Let an otherwise fixed-count selection answer an optional processing condition with zero picks. */
+    allowDecline?: boolean;
   },
 ): Promise<string[]> {
   // SourceRef: resolve to the permanent that triggered this SubTrigger event.
@@ -490,6 +492,7 @@ export async function resolvePermanentTargets(
   if (
     candidates.length <= want &&
     !target.upTo &&
+    opts?.allowDecline !== true &&
     !holdsUnaffectableCandidate &&
     (target as Target & { forceSelection?: boolean }).forceSelection !== true
   ) {
@@ -508,7 +511,7 @@ export async function resolvePermanentTargets(
       (p) => p.permanentId,
     );
   }
-  const min = target.upTo ? 0 : Math.min(want, candidates.length);
+  const min = target.upTo || opts?.allowDecline === true ? 0 : Math.min(want, candidates.length);
   const max = Math.min(want, candidates.length);
   const asker = target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
   const chosen = await asker.chooseTargets(ctx, { candidates: ids, visible: visibleIds, min, max });

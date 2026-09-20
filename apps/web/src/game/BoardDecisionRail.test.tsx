@@ -54,11 +54,12 @@ describe("BoardSelectionRail", () => {
     unmount();
   });
 
-  it("offers an active No Selection action for an up-to selection", () => {
+  it("offers an active Pass / Not selected action for an optional field selection", () => {
     const onNoSelection = vi.fn<() => void>();
     renderIn(
       <BoardSelectionRail
         prompt="Select up to 1 card."
+        fieldSelection
         min={0}
         max={1}
         pickCount={0}
@@ -67,8 +68,8 @@ describe("BoardSelectionRail", () => {
         onNoSelection={onNoSelection}
       />,
     );
-    expect((screen.getByRole("button", { name: "No Selection" }) as HTMLButtonElement).disabled).toBe(false);
-    fireEvent.click(screen.getByRole("button", { name: "No Selection" }));
+    expect((screen.getByRole("button", { name: "Pass / Not selected" }) as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Pass / Not selected" }));
     expect(onNoSelection).toHaveBeenCalledTimes(1);
   });
 
@@ -233,9 +234,7 @@ describe("BoardBlockPrompt", () => {
     const onDecline = vi.fn<() => void>();
     renderIn(<BoardBlockPrompt attackerCardId="ST1-07" mustBlock={false} onDecline={onDecline} />);
 
-    expect(screen.getByRole("region", { name: "Block window" }).classList.contains("board-prompt--block")).toBe(
-      true,
-    );
+    expect(screen.getByRole("region", { name: "Block window" }).classList.contains("board-prompt--block")).toBe(true);
     expect(screen.getByText("Choose your blocker")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Take the attack, no block" }));
     expect(onDecline).toHaveBeenCalledTimes(1);
