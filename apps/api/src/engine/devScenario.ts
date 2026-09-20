@@ -622,8 +622,8 @@ function layEx13GiromonBlockTriggersScenario(state: GameState, decks: readonly [
   state.memory = 0;
 }
 
-/** KingSukamon targets an opposing Digimon whose temporary immunity ends this turn. */
-function layEx13KingSukamonImmunityLapseScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+/** KingSukamon rewrites an opponent that EX13-035 then rule-deletes at 0 DP. */
+function layEx13KingSukamonZeroDpScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
     if (player === undefined) continue;
@@ -634,14 +634,23 @@ function layEx13KingSukamonImmunityLapseScenario(state: GameState, decks: readon
 
   const human = state.players[0];
   if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-031", "BT1-013"], "-ex13-kingsukamon-host"));
+    placePermanent(human, establishedDigimon(0, ["EX13-035"], "-ex13-kingsukamon-aura"));
+    placePermanent(human, establishedDigimon(0, ["BT14-034"], "-ex13-kingsukamon-first-name"));
+    placePermanent(human, establishedDigimon(0, ["BT13-065"], "-ex13-kingsukamon-second-name"));
     insertCard(human, Zone.Hand, faceDownCard("dev-ex13-kingsukamon", "EX13-031", 0));
     insertCard(human, Zone.Hand, faceDownCard("dev-ex13-kingsukamon-fee", "BT3-061", 0));
+
+    // insertCard(..., "top") prepends, so seed these in reverse reveal order.
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex13-kingsukamon-reveal-third", "BT1-014", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex13-kingsukamon-reveal-second", "BT1-009", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-ex13-kingsukamon-reveal-chuumon", "BT13-062", 0), "top");
   }
 
   const bot = state.players[1];
   if (bot !== undefined) {
     const target = establishedDigimon(1, ["ST15-11"], "-ex13-kingsukamon-target");
-    target.permanentId = "opponent-kingsukamon-immune-target";
+    target.permanentId = "opponent-kingsukamon-zero-dp-target";
     placePermanent(bot, target);
   }
 
@@ -908,7 +917,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
-  "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonImmunityLapseScenario,
+  "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,

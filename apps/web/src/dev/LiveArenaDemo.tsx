@@ -70,7 +70,7 @@ export function LiveArenaDemo() {
             <option value="arena-ex13-grademon-immunity">EX13 Alphamon · Assembly from trash</option>
             <option value="arena-ex13-giromon-block-triggers">EX13 Giromon · 6 block triggers</option>
             <option value="arena-ex13-kings-opponent-sukamon">EX13 Kings · opponent Sukamon</option>
-            <option value="arena-ex13-kingsukamon-immunity-lapse">EX13 KingSukamon · immunity lapse</option>
+            <option value="arena-ex13-kingsukamon-immunity-lapse">EX13 KingSukamon · 0 DP deletion</option>
             <option value="arena-ex13-examon">EX13 Examon · Lv.5 DNA + battle timing</option>
             <option value="arena-ex10-god-grade-raising-color">EX10 God Grade · raising-area colour</option>
             <option value="arena-junomon-opponent-target">Junomon · opponent target</option>
@@ -118,8 +118,8 @@ export function LiveArenaDemo() {
                           : "The bot attacks first. Block with Giromon to open the 6 simultaneous Giromon, Guardromon, and 4 Tai effects."
                         : scenario === "arena-ex13-kingsukamon-immunity-lapse"
                           ? portuguese
-                            ? "Jogue KingSukamon, descarte Chuumon e escolha o Digimon imune. Encerre o turno; ele deve então virar Sukamon branco de 3000 DP."
-                            : "Play KingSukamon, trash Chuumon, and choose the immune Digimon. End the turn; it should then become a white 3000 DP Sukamon."
+                            ? "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon."
+                            : "Play KingSukamon, trash Chuumon, and rewrite the opposing Digimon. KingEtemon's aura should delete it at 0 DP; then accept the inherited effect to reveal 3 and play Chuumon."
                           : scenario === "arena-ex13-kings-opponent-sukamon"
                             ? portuguese
                               ? "Os 2 KingSukamon adversários completam o requisito de 3 nomes: ambos devem estar com 3000 DP. Ataque o suspenso com KingEtemon; a herança deve revelar 3 cartas."
