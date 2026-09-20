@@ -2,7 +2,6 @@ import { resolveCardArt } from "./arts.js";
 
 const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards";
 const LOCAL_PREVIEW_IDS = new Set([
-  ...Array.from({ length: 71 }, (_, index) => `EX13-${String(index + 1).padStart(3, "0")}`),
   ...Array.from({ length: 6 }, (_, index) => `P-${245 + index}`),
 ]);
 
