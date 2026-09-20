@@ -90,6 +90,11 @@
     "reason": "Verified 2026-09-13 against the official card page (https://world.digimoncard.com/cards/?category=522901&search=true), P-244 section line 11556: the committed clause is [Your Turn]; the community snapshot's [All Turns] is wrong."
   },
   {
+    "cardId": "BT26-033",
+    "field": "effectText",
+    "reason": "Verified 2026-09-20 against Bandai's official English BT-26 card list and product page: Jupitermon's continuation plays or uses 1 [Iliad] or [TS] trait card. The vendored community-DB snapshot omits [TS], so the committed official wording intentionally differs."
+  },
+  {
     "cardId": "BT26-084",
     "field": "evoCosts",
     "reason": "Copipemon is a mono-white Lv.3 whose only printed digivolve condition is 'Lv.2 w/[Appmon] trait: Cost 0' (verified 2026-09-19 at https://en.digimoncard.com/cardlist/?search=true&card_no=BT26-084). The community snapshot's purple Lv.2 evoCost is copied from EX10-038; the committed white entry matches every other BT26 Lv.3 Appmon, whose standard route uses its own color."

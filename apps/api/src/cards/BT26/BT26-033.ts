@@ -6,10 +6,13 @@ const ts = {
   kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
 } satisfies Filter;
-const iliad = {
+const iliadOrTs = {
   controller: "mine",
   zone: "hand",
-  nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
+  nameOrTrait: [
+    { tokens: ["Iliad"], match: "trait" },
+    { tokens: ["TS"], match: "trait" },
+  ],
 } satisfies Filter;
 const opponentLowestDpDigimon = {
   controller: "opponent",
@@ -41,13 +44,13 @@ export const compiled: CompiledCard = {
           choose: 1,
           condition: { kind: "isYourTurn", raw: "if it is your turn" },
           effectTextPart:
-            "Then, if it's your turn, you may play or use 1 [Iliad] card from your hand with the cost reduced by 5.",
-          labels: ["Play an Iliad card", "Use an Iliad Option"],
+            "Then, if it's your turn, you may play or use 1 [Iliad] or [TS] trait card from your hand with the cost reduced by 5.",
+          labels: ["Play an Iliad/TS card", "Use an Iliad/TS Option"],
           options: [
             [
               {
                 kind: "PlayWithoutCost",
-                target: { filter: { ...iliad, kind: ["Digimon", "Tamer"] }, count: 1 },
+                target: { filter: { ...iliadOrTs, kind: ["Digimon", "Tamer"] }, count: 1 },
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 5,
@@ -57,7 +60,7 @@ export const compiled: CompiledCard = {
             [
               {
                 kind: "UseOptionWithoutCost",
-                filter: { ...iliad, kind: ["Option"] },
+                filter: { ...iliadOrTs, kind: ["Option"] },
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 5,

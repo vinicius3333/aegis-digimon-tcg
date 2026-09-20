@@ -252,10 +252,13 @@ describe("BT26-033 compiled fidelity", () => {
     if (request.kind !== "selectCards") throw new Error("Expected the shared card picker");
     expect(request.options?.min).toBe(0);
     expect(request.options?.candidateInstanceIds).toEqual(
-      expect.arrayContaining([s.inst("handIliad").instanceId, s.inst("securityDual").instanceId]),
+      expect.arrayContaining([
+        s.inst("handIliad").instanceId,
+        s.inst("tsOnly").instanceId,
+        s.inst("tsOnlyOption").instanceId,
+        s.inst("securityDual").instanceId,
+      ]),
     );
-    expect(request.options?.candidateInstanceIds).not.toContain(s.inst("tsOnly").instanceId);
-    expect(request.options?.candidateInstanceIds).not.toContain(s.inst("tsOnlyOption").instanceId);
     expect(request.options?.candidateInstanceIds).not.toContain(s.inst("unaffordableIliad").instanceId);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
     expect(request.options).toMatchObject({
@@ -266,7 +269,7 @@ describe("BT26-033 compiled fidelity", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("securityDual").instanceId);
   });
 
-  it("does not offer or play a TS-only Digimon", async () => {
+  it("may play a TS-only Digimon with the play cost reduced by 5", async () => {
     const s = setupEngine(
       {
         0: {
@@ -292,14 +295,14 @@ describe("BT26-033 compiled fidelity", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tsBase").topCard.cardId === CARD_ID);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT24-009"));
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT24-009");
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT24-009");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT24-009");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT24-009");
     expect(s.state.memory).toBe(0);
   });
 
-  it("does not offer or use a TS-only Option", async () => {
+  it("may use a TS-only Option with the use cost reduced by 5", async () => {
     const s = setupEngine(
       {
         0: {
@@ -326,9 +329,9 @@ describe("BT26-033 compiled fidelity", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tsBase").topCard.cardId === CARD_ID);
+    await settle(() => !s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT24-092"));
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT24-092");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT24-092");
     expect(s.state.memory).toBe(0);
   });
 

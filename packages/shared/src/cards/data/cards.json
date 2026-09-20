@@ -48072,7 +48072,7 @@
     "forms": ["Mega"],
     "attributes": ["Vaccine"],
     "types": ["Shaman", "Olympos XII", "Iliad", "TS"],
-    "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 4 \n\n＜Raid＞ \n＜Alliance＞ \n＜Engage＞ \n[When Digivolving] Add your top security card to the hand. Then, if it's your turn, you may play or use 1 [Iliad] card from your hand with the cost reduced by 5.\n[All Turns] When any of your [TS] trait Digimon or Tamers would leave the battle area, by placing this Digimon's top stacked card as the bottom security card, they don't leave.",
+    "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 4 \n\n＜Raid＞ \n＜Alliance＞ \n＜Engage＞ \n[When Digivolving] Add your top security card to the hand. Then, if it's your turn, you may play or use 1 [Iliad] or [TS] trait card from your hand with the cost reduced by 5.\n[All Turns] When any of your [TS] trait Digimon or Tamers would leave the battle area, by placing this Digimon's top stacked card as the bottom security card, they don't leave.",
     "isDualCard": true,
     "dualEffect": "Wide Plasment",
     "optionEffect": "For each of your security cards, add 1 to this card's use cost.\n＜Use Req. ([TS] trait)＞ \n[Main] Delete all of your opponent's Digimon with the lowest DP. Then, ＜Recovery +1＞ ",
