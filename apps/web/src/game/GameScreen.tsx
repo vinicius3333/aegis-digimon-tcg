@@ -1134,13 +1134,13 @@ export function GameScreen({
                     const candidateId = decisionCandidateIdFor(perm);
                     if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
                       toggleDecisionPick(candidateId);
-                    else setZoomCardId(perm.topCard.cardId);
+                    else actions.onYourPerm(perm)?.();
                   },
                   onOppPerm: (perm) => () => {
                     const candidateId = decisionCandidateIdFor(perm);
                     if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
                       toggleDecisionPick(candidateId);
-                    else setZoomCardId(perm.topCard.cardId);
+                    else actions.onOppPerm(perm)?.();
                   },
                 }
               : actions

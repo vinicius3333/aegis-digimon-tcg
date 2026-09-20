@@ -2229,6 +2229,7 @@ describe("digivolution cost choice", () => {
       cost: 0,
       alternateRequirementIndex: 1,
     });
+    expect(document.querySelector(".evo-cost-prompt__footer")?.children).toHaveLength(2);
   });
 
   it("shows the digivolving card's art beside the title instead of a bare sigil", () => {

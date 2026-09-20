@@ -1,6 +1,43 @@
 import type { Permanent, PlayerState } from "@aegis/shared";
 import type { HeldDeletion } from "../../match/types";
 
+/**
+ * Keep transient server-resolved abilities current while the presentation queue is still
+ * rendering an older board revision. A decision can already be actionable against the live
+ * state at that point (EX13-060's end-of-turn play grants Rush), so showing the snapshot's
+ * stale keywords would contradict both the prompt and the attack the server accepts.
+ *
+ * Only projection fields are refreshed. Membership, stacks, suspension and zones remain on
+ * the presented timeline so arrival and combat animations do not jump ahead.
+ */
+export function liveProjectionFields({ player, live }: { player: PlayerState; live: PlayerState }): PlayerState {
+  let changed = false;
+  const battleArea = player.battleArea.map((permanent) => {
+    const current = live.battleArea.find((candidate) => candidate.permanentId === permanent.permanentId);
+    if (current === undefined) return permanent;
+    if (
+      permanent.keywords === current.keywords &&
+      permanent.grantedKeywords === current.grantedKeywords &&
+      permanent.summoningSick === current.summoningSick &&
+      permanent.securityAttackModifier === current.securityAttackModifier &&
+      permanent.currentDP === current.currentDP &&
+      permanent.immuneToOpponentDigimonEffects === current.immuneToOpponentDigimonEffects
+    )
+      return permanent;
+    changed = true;
+    return {
+      ...permanent,
+      keywords: current.keywords,
+      grantedKeywords: current.grantedKeywords,
+      summoningSick: current.summoningSick,
+      securityAttackModifier: current.securityAttackModifier,
+      currentDP: current.currentDP,
+      immuneToOpponentDigimonEffects: current.immuneToOpponentDigimonEffects,
+    } as Permanent;
+  });
+  return changed ? ({ ...player, battleArea } as PlayerState) : player;
+}
+
 export function phaseField(input: { player: PlayerState; held: PlayerState | undefined }): PlayerState {
   const { player, held } = input;
   if (!held) return player;

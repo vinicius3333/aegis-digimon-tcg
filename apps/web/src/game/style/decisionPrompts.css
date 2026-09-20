@@ -53,6 +53,43 @@
   background: var(--ds-accent);
 }
 
+/* A target-selection dialog has three stable regions: the question, the candidates,
+   and the answer. Only the candidates yield on a short viewport, so the action row
+   never falls below the screen as it did for Arts Digivolve. */
+.decision-overlay--selection {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: min(calc(100dvh - 7.5rem - var(--ds-space-6)), calc(100% - 7rem));
+  overflow: hidden;
+}
+
+.decision-overlay--selection .decision-overlay__header {
+  flex: none;
+}
+
+.decision-overlay--selection .decision-overlay__footer {
+  position: static;
+  bottom: auto;
+  flex: none;
+  margin-top: var(--ds-space-3);
+  margin-bottom: 0;
+  padding: var(--ds-space-3) 0;
+  padding-bottom: 0;
+}
+
+.decision-overlay--selection .decision-overlay__footer > .aegis-button {
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.decision-overlay--selection .decision-overlay__selection {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
 .decision-overlay__order-card {
   position: relative;
   flex: none;

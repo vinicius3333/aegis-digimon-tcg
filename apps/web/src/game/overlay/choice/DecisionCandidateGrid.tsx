@@ -46,7 +46,7 @@ export function DecisionCandidateGrid({
   const zoneGroups = candidateZoneGroups(candidates);
 
   return (
-    <div style={{ marginBottom: 18 }}>
+    <div className="decision-overlay__selection" style={{ marginBottom: 18 }}>
       <div
         style={{
           fontSize: 11,

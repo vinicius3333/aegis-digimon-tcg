@@ -340,6 +340,74 @@ it("keeps an own field card inspectable while an effect decision blocks game act
   expect(screen.queryByRole("button", { name: "Attack" })).toBeNull();
 });
 
+it("uses the detail overlay for non-candidates and a magnifier for candidates during a combat decision", () => {
+  const state = new GameState();
+  state.phase = Phase.Main;
+  state.turnSeat = 0;
+  const pending = new PendingDecision();
+  pending.decisionId = "combat-decision";
+  pending.seat = 0;
+  pending.kind = "selectCards";
+  pending.promptText = "Choose 1 Digimon that may attack.";
+  state.pendingDecision = pending;
+  const decision: DecisionRequest = {
+    decisionId: pending.decisionId,
+    seat: pending.seat,
+    kind: "selectCards",
+    promptText: pending.promptText,
+    options: {
+      candidateInstanceIds: ["top-1"],
+      min: 1,
+      max: 1,
+    },
+  };
+  for (const playerSeat of [0, 1] as const) {
+    const player = new PlayerState();
+    player.seat = playerSeat;
+    player.sessionId = `session-${playerSeat}`;
+    player.battleArea.push(permanent(playerSeat));
+    state.players.push(player);
+  }
+
+  const { container } = render(
+    <I18nProvider>
+      <GameScreen
+        joinOptions={{ displayName: "You", deck: { mainDeck: [], eggDeck: [] } }}
+        identityColor="Red"
+        onExit={() => undefined}
+        demoConnection={{
+          room: undefined,
+          status: "connected",
+          state,
+          events: [],
+          batches: [],
+          decision,
+          acknowledgeDecision: () => undefined,
+          error: undefined,
+          sessionId: "session-0",
+          roomCode: "",
+        }}
+      />
+    </I18nProvider>,
+  );
+
+  const nonCandidate = container.querySelector<HTMLElement>(
+    '[data-drop="perm-you"][data-id="permanent-0"]',
+  )!;
+  fireEvent.click(nonCandidate);
+  expect(screen.getByRole("dialog", { name: "MetalGreymon" })).toBeTruthy();
+  fireEvent.keyDown(document, { key: "Escape" });
+
+  const candidate = container.querySelector<HTMLElement>(
+    '[data-drop="perm-opp"][data-id="permanent-1"]',
+  )!;
+  fireEvent.click(candidate);
+  expect(screen.queryByRole("dialog", { name: "MetalGreymon" })).toBeNull();
+
+  fireEvent.click(screen.getByRole("button", { name: "Read MetalGreymon" }));
+  expect(screen.getByRole("dialog", { name: "MetalGreymon" })).toBeTruthy();
+});
+
 it("preserves every supplied legal action and zoom while leaving schema source order intact", () => {
   const source = permanent(0);
   source.linked.push(card("BT21-009", "linked", 0));

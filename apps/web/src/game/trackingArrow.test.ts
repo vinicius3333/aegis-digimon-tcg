@@ -123,6 +123,20 @@ describe("effectTargetArrow", () => {
     });
   });
 
+  it("does not draw an effect arrow from the effect source to a picked attacker", () => {
+    expect(
+      effectTargetArrow({
+        decision: {
+          ...targetDecision,
+          options: { ...targetDecision.options, selectionContext: "attackSource" },
+        },
+        picks: ["opp-1"],
+        viewerSeat: 0,
+        sourcePermanentId: "alphamon",
+      }),
+    ).toBeNull();
+  });
+
   it("draws nothing before a target is picked", () => {
     expect(
       effectTargetArrow({ decision: targetDecision, picks: [], viewerSeat: 0, sourcePermanentId: "src" }),

@@ -49,3 +49,40 @@ it("reuses the Assembly material overlay for an effect-driven play", () => {
   fireEvent.click(screen.getByRole("button", { name: /Assembly \(1 card/ }));
   expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["dobermon-trash"] });
 });
+
+it("labels a player-only attack target as an attack target instead of a hand selection", () => {
+  render(
+    <I18nProvider>
+      <DecisionPrompts
+        decision={{
+          decisionId: "attack-target-decision",
+          seat: 0,
+          kind: "chooseTargets",
+          promptText: "Choose an attack target.",
+          options: {
+            candidateInstanceIds: ["player"],
+            selectionContext: "attackTarget",
+            min: 1,
+            max: 1,
+          },
+        }}
+        answerOnBoard
+        permanents={[]}
+        sourceCardId={undefined}
+        candidates={[{ instanceId: "player" }]}
+        allowsPick={() => true}
+        picks={[]}
+        min={1}
+        max={1}
+        triggerDetails={[]}
+        opponentSelecting={false}
+        onTogglePick={() => {}}
+        onRespond={() => {}}
+        onOpenDialog={() => {}}
+      />
+    </I18nProvider>,
+  );
+
+  expect(screen.getByRole("region", { name: "Attack target" })).toBeTruthy();
+  expect(screen.queryByRole("region", { name: "Hand selection" })).toBeNull();
+});

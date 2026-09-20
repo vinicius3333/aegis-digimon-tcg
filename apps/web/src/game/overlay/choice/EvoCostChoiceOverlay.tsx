@@ -67,10 +67,12 @@ export function EvoCostChoiceOverlay({
           ))}
       </div>
 
-      <Button full variant="ghost" onClick={onCancel}>
-        {t("common.cancel")}
-      </Button>
-      <DecisionViewBoardButton onOpenBoard={openBoard} />
+      <div className="evo-cost-prompt__footer">
+        <Button full variant="ghost" onClick={onCancel}>
+          {t("common.cancel")}
+        </Button>
+        <DecisionViewBoardButton onOpenBoard={openBoard} />
+      </div>
     </div>
   );
 }

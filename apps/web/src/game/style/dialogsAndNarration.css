@@ -142,7 +142,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-2);
-  margin-bottom: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
 }
 
 .evo-cost-prompt__option {
@@ -151,6 +151,17 @@
   line-height: 1.25;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.evo-cost-prompt__footer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.evo-cost-prompt__footer > .aegis-button {
+  width: 100%;
+  min-width: 0;
 }
 
 @keyframes battle-dialog-in {

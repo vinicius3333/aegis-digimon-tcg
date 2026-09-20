@@ -13,7 +13,7 @@
 
 import type { GameState, PlayerState, Seat } from "@aegis/shared";
 import { otherSeat } from "../../boardModel";
-import { blowField, deletionField, phaseField } from "./presentedBoard";
+import { blowField, deletionField, liveProjectionFields, phaseField } from "./presentedBoard";
 import type { PresentedPlayer } from "../types";
 import type { HeldDeletion } from "../../match/types";
 
@@ -42,25 +42,31 @@ export function presentedSeats({
   optimisticPlayedInstanceId: string | undefined;
 }) {
   const heldDeletionsOf = (seat: Seat) => [...heldDeletions.values()].filter((deletion) => deletion.seat === seat);
-  const presentedViewer = deletionField({
-    player: blowField({
-      player: phaseField({
-        player: shownState.players[viewerSeat] ?? viewer,
-        held: heldPhaseState?.players[viewerSeat],
+  const presentedViewer = liveProjectionFields({
+    player: deletionField({
+      player: blowField({
+        player: phaseField({
+          player: shownState.players[viewerSeat] ?? viewer,
+          held: heldPhaseState?.players[viewerSeat],
+        }),
+        held: heldBlowState?.players[viewerSeat],
       }),
-      held: heldBlowState?.players[viewerSeat],
+      held: heldDeletionsOf(viewerSeat),
     }),
-    held: heldDeletionsOf(viewerSeat),
+    live: viewer,
   });
-  const presentedOpponent = deletionField({
-    player: blowField({
-      player: phaseField({
-        player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
-        held: heldPhaseState?.players[otherSeat(viewerSeat)],
+  const presentedOpponent = liveProjectionFields({
+    player: deletionField({
+      player: blowField({
+        player: phaseField({
+          player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
+          held: heldPhaseState?.players[otherSeat(viewerSeat)],
+        }),
+        held: heldBlowState?.players[otherSeat(viewerSeat)],
       }),
-      held: heldBlowState?.players[otherSeat(viewerSeat)],
+      held: heldDeletionsOf(otherSeat(viewerSeat)),
     }),
-    held: heldDeletionsOf(otherSeat(viewerSeat)),
+    live: opponent,
   });
   const heldViewer = heldDrawState?.seat === viewerSeat ? heldDrawState.state.players[viewerSeat] : undefined;
   const heldOpponent =

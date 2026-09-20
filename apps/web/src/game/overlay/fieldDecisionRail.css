@@ -3,6 +3,15 @@
   display: none;
 }
 .board-prompt[data-variant="field-selection"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.62fr);
+  grid-template-areas:
+    "heading heading"
+    "body actions"
+    "detail actions";
+  column-gap: var(--ds-space-4);
+  row-gap: var(--ds-space-2);
+  align-items: start;
   top: auto;
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   left: 0;
@@ -10,13 +19,25 @@
   margin-inline: auto;
   translate: none;
   transform: none;
-  width: min(560px, calc(100% - 24px));
-  max-height: 28dvh;
+  width: min(620px, calc(100% - 24px));
+  max-height: min(42dvh, 26rem);
   padding: var(--ds-space-3) var(--ds-space-4);
   border: 2px solid var(--ds-warning);
   border-radius: 12px;
   box-sizing: border-box;
   animation: aegis-fadeIn 140ms ease-out;
+}
+.board-prompt[data-variant="field-selection"] .board-prompt__heading {
+  grid-area: heading;
+  min-width: 0;
+}
+.board-prompt[data-variant="field-selection"] .board-prompt__body {
+  grid-area: body;
+  min-width: 0;
+}
+.board-prompt[data-variant="field-selection"] .board-prompt__detail {
+  grid-area: detail;
+  min-width: 0;
 }
 .board-prompt[data-variant="field-selection"] .board-prompt__text {
   font-size: 12px;
@@ -26,22 +47,25 @@
   display: none;
 }
 .board-prompt[data-variant="field-selection"] .board-prompt__actions {
+  grid-area: actions;
   display: flex;
   width: 100%;
   min-width: 0;
   align-self: stretch;
-  flex-direction: row;
+  justify-content: flex-start;
+  flex-direction: column;
   gap: var(--ds-space-3);
+  margin-top: 0;
 }
 .board-prompt[data-variant="field-selection"] .board-prompt__actions > button {
   min-height: 44px;
   min-width: 0;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   white-space: normal;
 }
 @media (width < 600px), (height < 520px) and (orientation: landscape) {
   .board-prompt.combat-prompt[data-variant="field-selection"] {
     bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
-    max-height: 30dvh !important;
+    max-height: min(56dvh, 22rem) !important;
   }
 }

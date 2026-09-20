@@ -143,7 +143,7 @@ export function DecisionOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={dialogLabel}
-      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}`}
+      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}`}
       onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
       /* Geometry, surface and entrance all live in game.css: inline values could not be
          overridden by the phone bottom-sheet rules, and an inline `animation` shorthand

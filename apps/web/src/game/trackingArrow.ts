@@ -102,6 +102,7 @@ export function effectTargetArrow({
 }): TrackingArrow | null {
   if (
     !decision ||
+    decision.options?.selectionContext === "attackSource" ||
     (decision.kind !== "chooseTargets" && decision.options?.selectionContext !== "attackTarget") ||
     decision.seat !== viewerSeat
   )

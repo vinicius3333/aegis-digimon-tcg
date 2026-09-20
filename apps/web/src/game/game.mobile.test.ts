@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { mediaRules, readStylesheet } from "./style/stylesheetSource";
 
 const gameCss = readStylesheet("game.css");
+const fieldDecisionRailCss = readFileSync(new URL("./overlay/fieldDecisionRail.css", import.meta.url), "utf8");
 
 /**
  * The overlays live one component per file under ./overlay, so a component's own
@@ -146,6 +147,19 @@ describe("mobile portrait match layout", () => {
     // Flex rows default to min-width:auto, which is what pushed the confirm
     // dialog past the right edge instead of wrapping its text.
     expect(portraitRules).toMatch(/\.game-modal__panel > div \{\s*min-width:\s*0/);
+  });
+
+  it("keeps target-selection dialogs inside the viewport with only their candidates scrolling", () => {
+    expect(overlaysSource).toMatch(/decision-overlay--selection/);
+    expect(gameCss).toMatch(
+      /\.decision-overlay--selection \{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*max-height:\s*min\(calc\(100dvh - 7\.5rem - var\(--ds-space-6\)\), calc\(100% - 7rem\)\)[^}]*overflow:\s*hidden/,
+    );
+    expect(gameCss).toMatch(
+      /\.decision-overlay--selection \.decision-overlay__selection \{[^}]*min-height:\s*0[^}]*overflow-y:\s*auto/,
+    );
+    expect(gameCss).toMatch(
+      /\.decision-overlay--selection \.decision-overlay__footer \{[^}]*position:\s*static[^}]*bottom:\s*auto[^}]*flex:\s*none[^}]*margin-bottom:\s*0[^}]*padding-bottom:\s*0/,
+    );
   });
 
   it("declares the board metrics where the portalled overlays can read them", () => {
@@ -386,6 +400,9 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
       /\.evo-cost-prompt \{[^}]*border-radius:\s*var\(--ds-radius-lg\) var\(--ds-radius-lg\) 0 0 !important/,
     );
     expect(portraitRules).toMatch(/\.evo-cost-prompt::before \{[^}]*height:\s*4px[^}]*border-radius:\s*999px/);
+    expect(gameCss).toMatch(
+      /\.evo-cost-prompt__footer \{[^}]*display:\s*grid[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)[^}]*gap:\s*var\(--ds-space-3\)/,
+    );
   });
 
   it("wraps long digivolve routes inside the responsive cost chooser", () => {
@@ -639,6 +656,18 @@ describe("the board-mode rail becomes a bottom sheet on a phone in portrait", ()
 
   it("leaves the landscape phone with the left rail it was tuned for", () => {
     expect(landscapeRules).not.toMatch(/\.board-prompt \{/);
+  });
+});
+
+describe("field selection rail", () => {
+  it("keeps its actions visible beside the prompt instead of below overflowing content", () => {
+    expect(fieldDecisionRailCss).toMatch(
+      /\.board-prompt\[data-variant="field-selection"\] \{[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(12rem, 0\.62fr\)[^}]*width:\s*min\(620px/,
+    );
+    expect(fieldDecisionRailCss).toMatch(/"heading heading"\s*"body actions"\s*"detail actions"/);
+    expect(fieldDecisionRailCss).toMatch(
+      /\.board-prompt\[data-variant="field-selection"\] \.board-prompt__actions \{[^}]*grid-area:\s*actions[^}]*justify-content:\s*flex-start[^}]*flex-direction:\s*column[^}]*margin-top:\s*0/,
+    );
   });
 });
 

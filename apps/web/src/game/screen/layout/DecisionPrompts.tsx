@@ -101,6 +101,7 @@ export function DecisionPrompts({
 
       {decision && answerOnBoard && boardSelectionKind && !isAssemblyDecision ? (
         <BoardSelectionRail
+          attackSelection={decision.options?.selectionContext === "attackTarget"}
           fieldSelection={candidates.some(
             (candidate) => candidate.zone === "battle" || candidate.zone === "opponentBattle",
           )}

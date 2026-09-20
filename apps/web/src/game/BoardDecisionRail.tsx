@@ -134,6 +134,7 @@ function BoardPromptRail({
 /** `selectCards` answered out of the viewer's hand: the rail counts the picks. */
 export function BoardSelectionRail({
   fieldSelection = false,
+  attackSelection = false,
   sourceCardId,
   prompt,
   clause,
@@ -146,6 +147,8 @@ export function BoardSelectionRail({
   onOpenDialog,
 }: {
   fieldSelection?: boolean;
+  /** Attack declarations pick their target on the field even when the only candidate is the opposing player. */
+  attackSelection?: boolean;
   /** The card asking for the selection, shown as the same art cue the optional rail uses. */
   sourceCardId?: string;
   prompt: string;
@@ -160,11 +163,16 @@ export function BoardSelectionRail({
   onOpenDialog?: () => void;
 }) {
   const { t } = useTranslation();
+  const selectionLabel = attackSelection
+    ? t("overlay.attackTarget")
+    : fieldSelection
+      ? t("overlay.confirmTargets")
+      : t("overlay.handSelection");
   return (
     <BoardPromptRail
-      variant={fieldSelection ? "field-selection" : "selection"}
-      label={fieldSelection ? t("overlay.confirmTargets") : t("overlay.handSelection")}
-      eyebrow={fieldSelection ? t("overlay.confirmTargets") : t("overlay.handSelection")}
+      variant={fieldSelection || attackSelection ? "field-selection" : "selection"}
+      label={selectionLabel}
+      eyebrow={selectionLabel}
       art={sourceCardId}
       prompt={prompt}
       clause={clause}
@@ -176,11 +184,11 @@ export function BoardSelectionRail({
           one (BT24-016 forcing the opponent to place a card as security) has no way out,
           so offering the button would promise an answer the server rejects. */}
       <Button full icon={Icons.Check} disabled={pickCount === 0 || !canConfirm} onClick={onConfirm}>
-        {t(fieldSelection ? "overlay.confirmTargets" : "overlay.endSelection")}
+        {t(fieldSelection || attackSelection ? "overlay.confirmTargets" : "overlay.endSelection")}
       </Button>
       {min === 0 ? (
         <Button full variant="secondary" onClick={onNoSelection}>
-          {t(fieldSelection ? "common.none" : "overlay.noSelection")}
+          {t(fieldSelection || attackSelection ? "common.none" : "overlay.noSelection")}
         </Button>
       ) : null}
     </BoardPromptRail>
