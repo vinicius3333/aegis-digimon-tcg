@@ -197,6 +197,12 @@ export class GameEngine {
   /** Watchers armed for the event of the enclosing window, offered to that window's resolver. */
   pendingWindowSubTriggers: ArmedSubTrigger[] = [];
   /**
+   * Third-party deletion watchers captured before the deleted permanent moves. They are
+   * transferred to the deletion reaction window, which may itself be deferred until the
+   * effect that caused the deletion finishes.
+   */
+  pendingDeletionSubTriggers: ArmedSubTrigger[] = [];
+  /**
    * Watchers parked next to {@link pendingNestedTimingEffects} by
    * {@link parkArmedForEnclosingWindow}. Kept in a field of its own rather than in
    * {@link pendingWindowSubTriggers}: that list is SWAPPED per window, so a nested window would
@@ -249,6 +255,7 @@ export class GameEngine {
     trigger: TriggerInfo;
     transientCandidates: readonly CardInstance[];
     ascensionCandidates?: readonly { instanceId: string; seat: Seat }[];
+    deletionSubTriggers?: readonly ArmedSubTrigger[];
   }> = [];
   flushingDeferredTimingWindows = false;
 

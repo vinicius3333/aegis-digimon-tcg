@@ -4,7 +4,7 @@ import { permanentIdentityOf } from "../effects/index.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { TriggerInfo } from "../effects/EffectContext.js";
 import { fireTiming, resolveDeletionReactions, runTimingWindow } from "./timing.js";
-import { fireSubTriggerSnapshot } from "./subTriggers.js";
+import { armedAsPendingCollected, fireSubTriggerSnapshot } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
 import { effectEnvironment } from "./effectContext.js";
 
@@ -106,8 +106,17 @@ export async function flushDeferredTimingWindows(engine: GameEngine): Promise<vo
             engine,
             deferred.trigger,
             deferred.ascensionCandidates,
-            (trigger) => runTimingWindow(engine, deferred.timing, trigger, deferred.transientCandidates),
+            (trigger) =>
+              runTimingWindow(
+                engine,
+                deferred.timing,
+                trigger,
+                deferred.transientCandidates,
+                armedAsPendingCollected(engine, deferred.deletionSubTriggers ?? []),
+              ),
             deferred.transientCandidates,
+            true,
+            deferred.deletionSubTriggers,
           );
         } else {
           await fireTiming(engine, deferred.timing, deferred.trigger, deferred.transientCandidates);

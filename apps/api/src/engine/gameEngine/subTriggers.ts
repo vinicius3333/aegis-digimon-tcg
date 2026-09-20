@@ -91,7 +91,7 @@ export async function fireSubTrigger(
       const context = buildSubTriggerContext(engine, sub, payload);
       if (context !== undefined) contexts.set(sub.id, context);
     }
-    engine.pendingWindowSubTriggers.push(...armedSubTriggers(engine, subscriptions, payload, contexts));
+    engine.pendingDeletionSubTriggers.push(...armedSubTriggers(engine, subscriptions, payload, contexts));
     return;
   }
   // A security card removed while another effect is resolving creates a pending trigger;

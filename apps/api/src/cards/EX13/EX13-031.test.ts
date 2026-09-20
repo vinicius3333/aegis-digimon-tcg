@@ -690,6 +690,62 @@ describe("EX13-031 KingSukamon", () => {
     expect(triggeredCardIds).toEqual([cardId, "EX13-028"]);
   });
 
+  it("orders both deletion reactions when Heat Viper deletes Sukamon as its cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-035", as: "kingEtemon", under: [cardId] },
+            { card: "EX13-028", as: "deletedSukamon" },
+            { card: "BT2-067", as: "purpleSource" },
+          ],
+          hand: [{ card: "BT2-109", as: "heatViper" }],
+          deck: [SENTINEL, SENTINEL, SENTINEL, SENTINEL, SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: "BT2-043", as: "opponentTarget" }],
+          security: [SENTINEL],
+        },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("heatViper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const costDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("deletedSukamon").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.state.pendingDecision.decisionId !== costDecision.decisionId,
+    );
+    const effectDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: effectDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("opponentTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")?.req;
+    expect(order?.options?.triggerCardIds).toEqual(expect.arrayContaining(["EX13-028", cardId]));
+    expect(order?.options?.triggerKeys).toHaveLength(2);
+  });
+
   it("trashes all three revealed cards when the only named one costs more than 3", async () => {
     const s = setupEngine(
       {
