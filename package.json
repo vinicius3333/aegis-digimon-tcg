@@ -14,6 +14,7 @@
     "typecheck": "pnpm --filter @aegis/shared build && pnpm -r typecheck",
     "test": "pnpm -r --workspace-concurrency=1 test",
     "test:tools": "node --test tools/*.test.mjs tools/kb/*.test.mjs",
+    "poc:official-card": "node tools/prototypes/official-card-source.mjs",
     "effects:sync:set": "node tools/sync-effects-from-card-modules.mjs",
     "effects:check:set": "node tools/sync-effects-from-card-modules.mjs --check",
     "ci": "pnpm -r typecheck && pnpm test:tools && pnpm test",
