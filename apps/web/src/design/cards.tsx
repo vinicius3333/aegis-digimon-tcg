@@ -223,6 +223,8 @@ export function CardFull({
   onClick,
   count,
   zoomOnHover = true,
+  preferRemote = false,
+  fallbackImageUrl,
 }: {
   cardId: string;
   artId?: string;
@@ -236,9 +238,17 @@ export function CardFull({
    * card is inspected by clicking it rather than by growing under the cursor.
    */
   zoomOnHover?: boolean;
+  /** Try hosted artwork first while retaining bundled preview art as a fallback. */
+  preferRemote?: boolean;
+  /** Last-resort image owned by the caller, after every catalog provider fails. */
+  fallbackImageUrl?: string;
 }) {
   const def = getCardDefinition(cardId);
-  const urls = cardImageUrls(cardId, artId);
+  const imageUrls = cardImageUrls(cardId, artId);
+  const orderedUrls = preferRemote
+    ? [...imageUrls.filter((url) => url.startsWith("http")), ...imageUrls.filter((url) => !url.startsWith("http"))]
+    : imageUrls;
+  const urls = fallbackImageUrl ? [...new Set([...orderedUrls, fallbackImageUrl])] : orderedUrls;
   const [urlIndex, setUrlIndex] = useState(0);
   useEffect(() => setUrlIndex(0), [artId, cardId]);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);

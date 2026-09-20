@@ -23,6 +23,6 @@ export function cardImageUrls(cardId: string | undefined, artId?: string): strin
   const ids = [...new Set([...selected, ...base])];
   return ids.flatMap((id) => {
     const local = LOCAL_PREVIEW_IDS.has(id) ? `/cards/preview/${id}.webp` : undefined;
-    return [...(local ? [local] : []), `${GITHUB_BASE}/${id}.webp`, `${GITHUB_BASE}/${id}-Sample.webp`];
+    return [`${GITHUB_BASE}/${id}.webp`, `${GITHUB_BASE}/${id}-Sample.webp`, ...(local ? [local] : [])];
   });
 }

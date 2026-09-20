@@ -90,7 +90,13 @@ export function DecisionTriggerChooser({
             >
               <span className="trigger-chooser__heading">
                 <span className="trigger-chooser__card">
-                  <CardFull cardId={cardId} width={wideDialog ? 96 : 72} />
+                  <CardFull
+                    cardId={cardId}
+                    width={wideDialog ? 96 : 72}
+                    preferRemote
+                    fallbackImageUrl={cardId.startsWith("EX13-") ? `/cards/preview/${cardId}.webp` : undefined}
+                    zoomOnHover={false}
+                  />
                 </span>
                 <span className="trigger-chooser__meta">
                   <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>
