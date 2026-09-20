@@ -63,6 +63,7 @@ function BoardPromptRail({
   prompt,
   clause,
   detail,
+  className,
   onOpenDialog,
   showDialogButton,
   children,
@@ -75,6 +76,7 @@ function BoardPromptRail({
   prompt: string;
   clause?: string;
   detail?: string;
+  className?: string;
   /** Escape hands the decision back to its dialog whenever this is set. */
   onOpenDialog?: () => void;
   /** Also offer that hand-off as a visible control; only worth it when the dialog shows more than the rail does. */
@@ -89,7 +91,7 @@ function BoardPromptRail({
           a selection picks from nor the notices that explain the decision. */}
       <div className="board-prompt-scrim" data-variant={variant} aria-hidden />
       <section
-        className={`board-prompt${variant === "field-selection" ? " combat-prompt" : ""}`}
+        className={`board-prompt${variant === "field-selection" ? " combat-prompt" : ""}${className ? ` ${className}` : ""}`}
         aria-label={label}
         data-testid="board-prompt"
         data-variant={variant}
@@ -220,6 +222,25 @@ export function BoardBlockPrompt({
           {t("overlay.takeAttack")}
         </Button>
       ) : null}
+    </BoardPromptRail>
+  );
+}
+
+/** Alliance is answered by choosing an eligible Digimon directly in the battle area. */
+export function BoardAlliancePrompt({ attackerCardId, onPass }: { attackerCardId?: string; onPass: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <BoardPromptRail
+      variant="field-selection"
+      className="board-prompt--alliance"
+      label={t("overlay.allianceWindow")}
+      eyebrow="＜Alliance＞"
+      art={attackerCardId}
+      prompt={t("overlay.alliancePrompt")}
+    >
+      <Button variant="secondary" icon={Icons.ChevronRight} onClick={onPass}>
+        {t("overlay.passAlliance")}
+      </Button>
     </BoardPromptRail>
   );
 }

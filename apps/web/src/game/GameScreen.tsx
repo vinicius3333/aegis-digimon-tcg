@@ -7,6 +7,7 @@ import { DragKind } from "./screen/enums";
 import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
+import { ownAlliancePromptCardId } from "./combatWindowModel";
 import { counterTargetIds } from "./overlay/combat/CounterOverlay";
 import { isDecoyDecision } from "./decisionPresentation";
 import { decisionViewFor } from "./screen/model/decisionView";
@@ -250,6 +251,11 @@ export function GameScreen({
     instanceId: string;
     targetPermanentId?: string;
   }>();
+  const [allianceConfirmation, setAllianceConfirmation] = useState<{
+    windowKey: string;
+    permanentId: string;
+  }>();
+  const allianceConfirmationSubmittedRef = useRef(false);
 
   const { drag, dragHover, handleTapRef, handleDropRef, startHandDrag, startPermDrag } = useDragPlumbing();
 
@@ -392,12 +398,14 @@ export function GameScreen({
   // A modal already repeats the source card and its clause, so its matching toast is redundant.
   // A field selection leaves the board visible and is part of the effect's action, so preserve
   // the effect toast there (notably BlackWarGreymon's Blast Digivolve deletion).
+  const alliancePromptCardId = state ? ownAlliancePromptCardId(state, viewerSeat) : undefined;
   const promptedOwnEffectCardId =
-    decision?.seat === viewerSeat &&
+    alliancePromptCardId ??
+    (decision?.seat === viewerSeat &&
     (!fieldEffectDecision || decision.options?.selectionContext === "attackTarget") &&
     dialogRepeatsEffectNotice(decision.options)
       ? decision.sourceCardId
-      : undefined;
+      : undefined);
   const ownEffectNoticeRef = useRef({ dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice });
   ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
   useEffect(() => {
@@ -641,6 +649,15 @@ export function GameScreen({
     answeredCombatWindowKeyRef,
     rolledBackRejectionSeqRef,
   });
+  const allianceWindowKey = combatWindows.allianceWindow
+    ? `alliance:${combatWindows.allianceWindow.permanentId}:${combatWindows.allianceWindow.stateVersion ?? state.stateVersion}`
+    : undefined;
+  const activeAllianceConfirmationPermanentId =
+    allianceConfirmation &&
+    allianceConfirmation.windowKey === allianceWindowKey &&
+    combatWindows.allianceWindow?.eligibleAllyIds.includes(allianceConfirmation.permanentId)
+      ? allianceConfirmation.permanentId
+      : undefined;
   const { markCombatWindowAnswered } = combatWindows;
   const counterWindowKey = `${openCombatWindowForBarrier?.key ?? ""}:${openCombatWindowForBarrier?.stateVersion ?? ""}`;
   const counterSourceInstanceId =
@@ -960,6 +977,17 @@ export function GameScreen({
         handInstanceIds: counterHandInstanceIds,
       }}
       combatWindowAnswers={combatWindowAnswers}
+      allianceConfirmationPermanentId={activeAllianceConfirmationPermanentId}
+      onConfirmAlliance={() => {
+        if (!activeAllianceConfirmationPermanentId || allianceConfirmationSubmittedRef.current) return;
+        allianceConfirmationSubmittedRef.current = true;
+        combatWindowAnswers.onAlliance(activeAllianceConfirmationPermanentId);
+        setAllianceConfirmation(undefined);
+      }}
+      onCancelAllianceConfirmation={() => {
+        allianceConfirmationSubmittedRef.current = false;
+        setAllianceConfirmation(undefined);
+      }}
       scenes={{ securityBreak, securityClash, securityBranch, optionBranch, zoneShowcase }}
       collapseNotices={collapseNotices}
       log={log}
@@ -1055,13 +1083,16 @@ export function GameScreen({
             ? counterHostIds.has(perm.permanentId)
             : combatWindows.blockWindow
               ? combatWindows.blockWindow.eligibleBlockerIds.includes(perm.permanentId)
-              : fieldDecision
-                ? decisionCandidateIdFor(perm) !== undefined
-                : (handIsDigi && eligibleBase(perm)) ||
-                  dragBasePermanentIds.has(perm.permanentId) ||
-                  (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
+              : combatWindows.allianceWindow
+                ? combatWindows.allianceWindow.eligibleAllyIds.includes(perm.permanentId)
+                : fieldDecision
+                  ? decisionCandidateIdFor(perm) !== undefined
+                  : (handIsDigi && eligibleBase(perm)) ||
+                    dragBasePermanentIds.has(perm.permanentId) ||
+                    (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
         isDecisionCandidate: (perm) =>
           combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId) === true ||
+          combatWindows.allianceWindow?.eligibleAllyIds.includes(perm.permanentId) === true ||
           (fieldDecision && decisionCandidateIdFor(perm) !== undefined),
       }}
       chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
@@ -1127,23 +1158,33 @@ export function GameScreen({
                   else setZoomCardId(perm.topCard.cardId);
                 },
               }
-            : fieldDecision
+            : combatWindows.allianceWindow
               ? {
                   ...actions,
                   onYourPerm: (perm) => () => {
-                    const candidateId = decisionCandidateIdFor(perm);
-                    if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
-                      toggleDecisionPick(candidateId);
-                    else actions.onYourPerm(perm)?.();
-                  },
-                  onOppPerm: (perm) => () => {
-                    const candidateId = decisionCandidateIdFor(perm);
-                    if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
-                      toggleDecisionPick(candidateId);
-                    else actions.onOppPerm(perm)?.();
+                    if (combatWindows.allianceWindow?.eligibleAllyIds.includes(perm.permanentId) && allianceWindowKey) {
+                      allianceConfirmationSubmittedRef.current = false;
+                      setAllianceConfirmation({ windowKey: allianceWindowKey, permanentId: perm.permanentId });
+                    } else setZoomCardId(perm.topCard.cardId);
                   },
                 }
-              : actions
+              : fieldDecision
+                ? {
+                    ...actions,
+                    onYourPerm: (perm) => () => {
+                      const candidateId = decisionCandidateIdFor(perm);
+                      if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
+                        toggleDecisionPick(candidateId);
+                      else actions.onYourPerm(perm)?.();
+                    },
+                    onOppPerm: (perm) => () => {
+                      const candidateId = decisionCandidateIdFor(perm);
+                      if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
+                        toggleDecisionPick(candidateId);
+                      else actions.onOppPerm(perm)?.();
+                    },
+                  }
+                : actions
       }
       senders={matchSenders}
       drag={{ state: drag, isPlay: dragIsPlay, cardId: dragCardId, hoveredIntent: hoveredDragIntent ?? undefined }}

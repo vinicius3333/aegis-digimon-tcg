@@ -6,7 +6,6 @@ import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider, translator } from "../i18n";
 import {
-  AllianceOverlay,
   BlockOverlay,
   cardEffectClauseForTiming,
   DecisionOverlay,
@@ -3077,54 +3076,6 @@ describe("decision board preview", () => {
     expect(blocker).toBeTruthy();
     fireEvent.click(blocker);
     expect(onBlock).toHaveBeenCalledWith("extyrannomon-permanent");
-  });
-
-  it("shows Alliance allies with current DP and stack identity", () => {
-    const onChoose = vi.fn();
-    render(
-      <I18nProvider>
-        <AllianceOverlay
-          triggerCardId="BT1-010"
-          allies={[
-            { permanentId: "plain", cardId: "EX1-073", currentDP: 11000, sourceCount: 0 },
-            { permanentId: "boosted", cardId: "EX1-073", currentDP: 15000, sourceCount: 5 },
-          ]}
-          onChoose={onChoose}
-          onPass={vi.fn()}
-        />
-      </I18nProvider>,
-    );
-
-    const boosted = screen.getByRole("button", { name: /Machinedramon.*15,000 DP.*5 source/ });
-    expect(screen.getByText(/11,000 DP · 0 source/)).toBeTruthy();
-    fireEvent.click(boosted);
-    expect(onChoose).toHaveBeenCalledWith("boosted");
-  });
-
-  it("keeps a long Alliance choice list scrollable while the pass action remains reachable", () => {
-    render(
-      <I18nProvider>
-        <AllianceOverlay
-          triggerCardId="BT1-010"
-          allies={Array.from({ length: 12 }, (_, index) => ({
-            permanentId: `ally-${index}`,
-            cardId: "EX1-073",
-            currentDP: 11000,
-            sourceCount: index,
-          }))}
-          onChoose={vi.fn<(permanentId: string) => void>()}
-          onPass={vi.fn<() => void>()}
-        />
-      </I18nProvider>,
-    );
-
-    const dialog = screen.getByRole("dialog", { name: "Alliance window" });
-    const choices = dialog.querySelector(".alliance-overlay__choices");
-    const pass = screen.getByRole("button", { name: "Pass, don't use ＜Alliance＞" });
-
-    expect(dialog.classList.contains("alliance-overlay")).toBe(true);
-    expect(choices?.classList.contains("counter-overlay__gallery")).toBe(true);
-    expect(choices?.contains(pass)).toBe(false);
   });
 
   it("renders and submits the abstract security target used by forced attacks", () => {

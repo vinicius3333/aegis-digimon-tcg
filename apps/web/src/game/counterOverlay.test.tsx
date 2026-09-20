@@ -95,6 +95,103 @@ function chooseHandAce() {
 }
 
 afterEach(cleanup);
+
+function renderAllianceGame() {
+  localStorage.clear();
+  const state = new GameState();
+  state.phase = Phase.Main;
+  state.turnSeat = 0;
+  for (const seat of [0, 1] as const) {
+    const player = new PlayerState();
+    player.seat = seat;
+    player.sessionId = `session-${seat}`;
+    state.players.push(player);
+  }
+  for (const [permanentId, cardId] of [
+    ["attacker", "ST1-07"],
+    ["ally", "ST1-09"],
+    ["ineligible", "BT1-024"],
+  ]) {
+    const permanent = new Permanent();
+    permanent.permanentId = permanentId!;
+    permanent.controllerSeat = 0;
+    permanent.topCard = new CardInstance();
+    permanent.topCard.instanceId = `${permanentId}-top`;
+    permanent.topCard.cardId = cardId!;
+    permanent.baseDP = permanent.currentDP = 6000;
+    state.players[0]!.battleArea.push(permanent);
+  }
+  state.combatWindow = new CombatWindow();
+  state.combatWindow.kind = "alliance";
+  state.combatWindow.seat = 0;
+  state.combatWindow.permanentId = "attacker";
+  state.combatWindow.eligiblePermanentIds.push("ally");
+  const send = vi.fn<(type: string, payload: unknown) => void>();
+  const room = { connection: { isOpen: true }, send } as unknown as AegisRoom;
+  const view = render(
+    <I18nProvider>
+      <GameScreen
+        joinOptions={{ displayName: "You", deck: { mainDeck: [], eggDeck: [] } }}
+        identityColor="Red"
+        onExit={() => undefined}
+        demoConnection={{
+          room,
+          status: "connected",
+          state,
+          events: [],
+          batches: [],
+          decision: undefined,
+          acknowledgeDecision: () => undefined,
+          error: undefined,
+          sessionId: "session-0",
+          roomCode: "",
+        }}
+      />
+    </I18nProvider>,
+  );
+  const permanent = (id: string) =>
+    view.container.querySelector<HTMLElement>(`[data-drop="perm-you"][data-id="${id}"]`)!;
+  return { send, permanent };
+}
+
+it("selects an eligible Alliance Digimon directly on the real field", () => {
+  const { send, permanent } = renderAllianceGame();
+
+  expect(screen.queryByRole("dialog", { name: "Alliance window" })).toBeNull();
+  expect(permanent("ally").classList.contains("game-permanent--candidate")).toBe(true);
+  expect(permanent("ineligible").classList.contains("game-permanent--candidate")).toBe(false);
+  fireEvent.click(permanent("ineligible"));
+  expect(send).not.toHaveBeenCalled();
+  fireEvent.keyDown(permanent("ally"), { key: "Enter" });
+  expect(send).not.toHaveBeenCalled();
+  expect(screen.getByRole("dialog", { name: "Confirm Alliance" })).toBeTruthy();
+  expect(screen.getByText(/\(6,000 DP\).*Alliance/)).toBeTruthy();
+  const confirm = screen.getByRole("button", { name: "Use Alliance" });
+  fireEvent.click(confirm);
+  fireEvent.click(confirm);
+  expect(send).toHaveBeenCalledWith("respondAlliance", { allyPermanentId: "ally" });
+  expect(send).toHaveBeenCalledTimes(1);
+});
+
+it("returns to Alliance field selection when confirmation is cancelled", () => {
+  const { send, permanent } = renderAllianceGame();
+
+  fireEvent.click(permanent("ally"));
+  expect(screen.getByRole("dialog", { name: "Confirm Alliance" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(screen.queryByRole("dialog", { name: "Confirm Alliance" })).toBeNull();
+  expect(screen.getByRole("region", { name: "Alliance window" })).toBeTruthy();
+  expect(permanent("ally").classList.contains("game-permanent--candidate")).toBe(true);
+  expect(send).not.toHaveBeenCalled();
+});
+
+it("passes Alliance from the field prompt without choosing a Digimon", () => {
+  const { send } = renderAllianceGame();
+
+  fireEvent.click(screen.getByRole("button", { name: "Pass" }));
+  expect(send).toHaveBeenCalledWith("respondAlliance", { allyPermanentId: undefined });
+});
+
 it("routes real GameScreen hand and field clicks to the exact Counter intent without a modal", () => {
   localStorage.clear();
   const state = new GameState();

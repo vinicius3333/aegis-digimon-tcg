@@ -33,6 +33,13 @@ export interface MirroredCombatWindow {
   mustBlock: boolean;
 }
 
+/** Source card whose Alliance explanation replaces the viewer's own duplicate effect toast. */
+export function ownAlliancePromptCardId(state: GameState, viewerSeat: Seat): string | undefined {
+  const window = state.combatWindow;
+  if (window?.kind !== "alliance" || window.seat !== viewerSeat) return undefined;
+  return findPermanentInState(state, window.permanentId)?.topCard.cardId;
+}
+
 /** The authoritative open combat window for `viewerSeat`, or null when none is open for it. */
 export function mirroredCombatWindow(state: GameState, viewerSeat: Seat): MirroredCombatWindow | null {
   const window = state.combatWindow;

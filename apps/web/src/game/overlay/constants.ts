@@ -2,7 +2,7 @@ import { type CombatPromptEvent, type DecisionKind } from "@aegis/shared";
 import type { StackCard } from "./types";
 
 /**
- * BlockOverlay, CounterOverlay, AllianceOverlay, EvadeOverlay and BarrierOverlay
+ * BlockOverlay, CounterOverlay, EvadeOverlay and BarrierOverlay, plus the board Alliance prompt,
  * dispatch on GameScreen's `blockWindow`/`counterWindow`/`allianceWindow`/
  * `evadeWindow`/`barrierWindow` state; this pins that coverage against
  * COMBAT_PROMPT_EVENTS so a new prompt event fails typecheck instead of shipping

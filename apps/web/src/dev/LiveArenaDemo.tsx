@@ -15,8 +15,10 @@ export function LiveArenaDemo() {
   const [scenario, setScenario] = useState<NonNullable<AegisJoinOptions["devScenario"]>>(() => {
     const requested = new URLSearchParams(window.location.search).get("scenario");
     return requested === "arena-aegiochus-dark-assembly" ||
+      requested === "arena-alliance-20" ||
       requested === "arena-ex13-grademon-immunity" ||
       requested === "arena-ex13-examon" ||
+      requested === "arena-junomon-opponent-target" ||
       requested === "arena-jupitermon-siren" ||
       requested === "arena-magnamon-x" ||
       requested === "arena-reboot-timing" ||
@@ -56,8 +58,10 @@ export function LiveArenaDemo() {
           >
             <option value="arena">Attack steps · Counter/Blocker</option>
             <option value="arena-aegiochus-dark-assembly">Aegiochus Dark · Wizardmon Assembly</option>
+            <option value="arena-alliance-20">Alliance · 20 Digimon</option>
             <option value="arena-ex13-grademon-immunity">EX13 Alphamon · Assembly from trash</option>
             <option value="arena-ex13-examon">EX13 Examon · Lv.5 DNA + battle timing</option>
+            <option value="arena-junomon-opponent-target">Junomon · opponent target</option>
             <option value="arena-jupitermon-siren">Jupitermon · Sirenmon + Dan &amp; Kanan</option>
             <option value="arena-magnamon-x">Magnamon X · Sonic Shot unsuspend</option>
             <option value="arena-reboot-timing">Reboot · Active phase timing</option>
@@ -76,21 +80,29 @@ export function LiveArenaDemo() {
             ? portuguese
               ? "Seu turno começa com todos os seus Digimon com Reboot suspensos. Observe a fase de Dessuspensão."
               : "Your turn starts with all your Reboot Digimon suspended. Watch the Unsuspend phase."
-            : scenario === "arena-seven-code-link-dp"
-            ? portuguese
-              ? "DP esperado: Medicmon 7000, Globemon 13000 e Weatherdramon 8000. Compare os valores exibidos."
-              : "Expected DP: Medicmon 7000, Globemon 13000, and Weatherdramon 8000. Compare the displayed values."
-            : scenario === "arena-vortex-target-legality"
-            ? portuguese
-              ? "Encerre o turno e aceite Vortex. Só o Digimon suspenso do oponente deve ser um alvo válido."
-              : "End the turn and accept Vortex. Only the opponent's suspended Digimon should be a valid target."
-            : scenario === "arena-suspend-lock-block"
+            : scenario === "arena-alliance-20"
               ? portuguese
-                ? "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado."
-                : "Your Blocker starts unable to suspend. It must not be able to block the bot's attack."
-              : portuguese
-                ? "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente."
-                : "End breeding, select a Digimon, choose Attack and click the opponent's security."}
+                ? "Encerre a criação, ataque com Seadramon e escolha 1 dos outros 19 Digimon para Alliance."
+                : "End breeding, attack with Seadramon, and choose 1 of the other 19 Digimon for Alliance."
+              : scenario === "arena-seven-code-link-dp"
+                ? portuguese
+                  ? "DP esperado: Medicmon 7000, Globemon 13000 e Weatherdramon 8000. Compare os valores exibidos."
+                  : "Expected DP: Medicmon 7000, Globemon 13000, and Weatherdramon 8000. Compare the displayed values."
+                : scenario === "arena-vortex-target-legality"
+                  ? portuguese
+                    ? "Encerre o turno e aceite Vortex. Só o Digimon suspenso do oponente deve ser um alvo válido."
+                    : "End the turn and accept Vortex. Only the opponent's suspended Digimon should be a valid target."
+                  : scenario === "arena-junomon-opponent-target"
+                    ? portuguese
+                      ? "Encerre a criação, jogue Junomon e aceite o efeito. O seletor deve permitir escolher o Digimon do oponente."
+                      : "End breeding, play Junomon, and accept the effect. The target picker must allow the opponent's Digimon."
+                    : scenario === "arena-suspend-lock-block"
+                      ? portuguese
+                        ? "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado."
+                        : "Your Blocker starts unable to suspend. It must not be able to block the bot's attack."
+                      : portuguese
+                        ? "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente."
+                        : "End breeding, select a Digimon, choose Attack and click the opponent's security."}
         </span>
         <a className="aegis-arena-demo-back" href="/dev/arena?mode=visual">
           {portuguese ? "Prévia visual" : "Visual preview"}

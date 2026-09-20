@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CardKind, Phase, PlayerState, Permanent, CardInstance } from "@aegis/shared";
+import { CardKind, CombatWindow, GameState, Phase, PlayerState, Permanent, CardInstance } from "@aegis/shared";
 import { effectiveExactNames, effectiveStaticNames, getCardDefinition } from "@aegis/shared";
 import { buildTriggerKey } from "@aegis/shared";
 import type { ServerEvent } from "@aegis/shared";
@@ -21,6 +21,7 @@ import {
   openCombatWindow,
   mirroredCombatWindow,
   lastRejectedCombatAnswer,
+  ownAlliancePromptCardId,
 } from "./combatWindowModel";
 import {
   decisionCardColors,
@@ -364,6 +365,30 @@ describe("openCombatWindow", () => {
         1,
       ),
     ).toBeNull();
+  });
+});
+
+describe("ownAlliancePromptCardId", () => {
+  it("suppresses the Alliance toast only for the player answering the prompt", () => {
+    const state = new GameState();
+    for (const seat of [0, 1] as const) {
+      const player = new PlayerState();
+      player.seat = seat;
+      state.players.push(player);
+    }
+    const attacker = new Permanent();
+    attacker.permanentId = "attacker";
+    attacker.controllerSeat = 0;
+    attacker.topCard = new CardInstance();
+    attacker.topCard.cardId = "ST1-07";
+    state.players[0]!.battleArea.push(attacker);
+    state.combatWindow = new CombatWindow();
+    state.combatWindow.kind = "alliance";
+    state.combatWindow.seat = 0;
+    state.combatWindow.permanentId = attacker.permanentId;
+
+    expect(ownAlliancePromptCardId(state, 0)).toBe("ST1-07");
+    expect(ownAlliancePromptCardId(state, 1)).toBeUndefined();
   });
 });
 

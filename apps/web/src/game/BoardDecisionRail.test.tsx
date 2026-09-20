@@ -3,7 +3,13 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
-import { BoardBlockPrompt, BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
+import {
+  BoardAlliancePrompt,
+  BoardBlockPrompt,
+  BoardOptionalPrompt,
+  BoardSelectionRail,
+  OpponentSelectingPill,
+} from "./BoardDecisionRail";
 import { CardOpenerProvider } from "./cardLinks";
 import { Hand } from "./piece";
 
@@ -189,6 +195,22 @@ describe("BoardBlockPrompt", () => {
   it("does not offer decline when blocking is mandatory", () => {
     renderIn(<BoardBlockPrompt mustBlock onDecline={noop} />);
     expect(screen.queryByRole("button", { name: "Take the attack, no block" })).toBeNull();
+  });
+});
+
+describe("BoardAlliancePrompt", () => {
+  it("keeps the ally choice on the field and offers the pass action", () => {
+    const onPass = vi.fn<() => void>();
+    renderIn(<BoardAlliancePrompt attackerCardId="ST1-07" onPass={onPass} />);
+
+    expect(screen.getByRole("region", { name: "Alliance window" })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Alliance window" }).classList.contains("board-prompt--alliance")).toBe(
+      true,
+    );
+    expect(screen.getByText(/Suspend one of your other Digimon to add its DP/)).toBeTruthy();
+    expect(screen.queryByRole("dialog", { name: "Alliance window" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Pass" }));
+    expect(onPass).toHaveBeenCalledTimes(1);
   });
 });
 

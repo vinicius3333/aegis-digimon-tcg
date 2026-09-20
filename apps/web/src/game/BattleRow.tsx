@@ -3,8 +3,17 @@ import { createPortal } from "react-dom";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 
+/** Horizontal overhang of a 1.4:1 card after a 90° turn, plus room for its outline and shadow. */
+export function suspendedCardEdgeClearance(cardWidth: number): number {
+  return Math.ceil(cardWidth * 0.2) + 8;
+}
+
 /** Keep the row's existing arena layout; controls live outside its clipping area. */
-export function BattleRow({ children, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function BattleRow({
+  children,
+  edgeClearance = 0,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & { edgeClearance?: number }) {
   const { t } = useTranslation();
   const rowRef = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ left: false, right: false, x: 0, y: 0, end: 0 });
@@ -53,7 +62,21 @@ export function BattleRow({ children, ...props }: HTMLAttributes<HTMLDivElement>
   return (
     <>
       <div {...props} ref={rowRef}>
+        {edgeClearance > 0 ? (
+          <span
+            className="game-battle-row__turn-clearance"
+            aria-hidden
+            style={{ flex: `0 0 ${edgeClearance}px`, width: edgeClearance, alignSelf: "stretch" }}
+          />
+        ) : null}
         {children}
+        {edgeClearance > 0 ? (
+          <span
+            className="game-battle-row__turn-clearance"
+            aria-hidden
+            style={{ flex: `0 0 ${edgeClearance}px`, width: edgeClearance, alignSelf: "stretch" }}
+          />
+        ) : null}
       </div>
       {createPortal(
         <>

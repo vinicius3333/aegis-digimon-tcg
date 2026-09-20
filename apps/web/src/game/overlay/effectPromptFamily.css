@@ -74,33 +74,6 @@
     font-size: 17px;
   }
 }
-.counter-overlay.alliance-overlay {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-4);
-  max-height: calc(100dvh - 264px);
-  overflow: hidden;
-}
-.alliance-overlay > .counter-overlay__header,
-.alliance-overlay > .counter-overlay__board-action,
-.alliance-overlay > .aegis-button {
-  flex-shrink: 0;
-}
-.alliance-overlay__choices {
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 4px;
-  margin-bottom: 0;
-}
-.alliance-overlay__stats {
-  font: 700 12px var(--ds-font-mono);
-  color: var(--ds-warning);
-}
-.alliance-overlay__empty {
-  color: var(--ds-fg-muted);
-  font-size: 12px;
-}
 .decision-overlay.effect-prompt-family .decision-overlay__grid > button {
   outline: 1px solid var(--ds-border-strong);
   outline-offset: 3px;

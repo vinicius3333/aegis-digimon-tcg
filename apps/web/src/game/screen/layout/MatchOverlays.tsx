@@ -13,7 +13,7 @@ import type { RefObject } from "react";
 import { canMoveFromBreeding, canUseBreedingAction, parseActivatable } from "../../boardModel";
 import type { GameState, DecisionRequest, Permanent, PlayerState, Seat } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
-import { MulliganOverlay } from "../../overlay";
+import { ActionConfirmationOverlay, MulliganOverlay, printedCardName } from "../../overlay";
 import { HandCardPreview } from "./HandCardPreview";
 import { DecisionPrompts } from "./DecisionPrompts";
 import { CombatWindowPrompts } from "./CombatWindowPrompts";
@@ -59,6 +59,9 @@ export function MatchOverlays({
   combatWindows,
   counterSelection,
   combatWindowAnswers,
+  allianceConfirmationPermanentId,
+  onConfirmAlliance,
+  onCancelAllianceConfirmation,
   scenes,
   collapseNotices,
   log,
@@ -110,6 +113,9 @@ export function MatchOverlays({
     handInstanceIds: readonly string[];
   };
   combatWindowAnswers: ReturnType<typeof combatAnswers>;
+  allianceConfirmationPermanentId?: string;
+  onConfirmAlliance: () => void;
+  onCancelAllianceConfirmation: () => void;
   scenes: {
     securityBreak: SecurityBreakCue | null;
     securityClash: SecurityClashScene | null;
@@ -162,6 +168,9 @@ export function MatchOverlays({
     : undefined;
   const presentedStackPermanent = stackViewPermanent
     ? (actions.findPresentedPermanent(stackViewPermanent.permanentId) ?? stackViewPermanent)
+    : undefined;
+  const allianceConfirmationPermanent = allianceConfirmationPermanentId
+    ? allPermanents.find((permanent) => permanent.permanentId === allianceConfirmationPermanentId)
     : undefined;
   return (
     <>
@@ -250,6 +259,20 @@ export function MatchOverlays({
         barrierWindow={combatWindows.barrierWindow}
         {...combatWindowAnswers}
       />
+
+      {allianceConfirmationPermanent ? (
+        <ActionConfirmationOverlay
+          cardId={allianceConfirmationPermanent.topCard.cardId}
+          title={t("overlay.confirmAllianceTitle")}
+          detail={t("overlay.confirmAllianceDetail", {
+            name: printedCardName(allianceConfirmationPermanent.topCard.cardId),
+            dp: allianceConfirmationPermanent.currentDP.toLocaleString(),
+          })}
+          confirmLabel={t("overlay.confirmAlliance")}
+          onConfirm={onConfirmAlliance}
+          onCancel={onCancelAllianceConfirmation}
+        />
+      ) : null}
 
       {!state.gameOver ? <SecurityScenes {...scenes} compact={collapseNotices} /> : null}
 

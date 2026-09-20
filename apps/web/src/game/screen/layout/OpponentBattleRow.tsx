@@ -5,7 +5,7 @@
 
 import type { Permanent } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
-import { BattleRow } from "../../BattleRow";
+import { BattleRow, suspendedCardEdgeClearance } from "../../BattleRow";
 import { PermanentView, type DropAttrs } from "../../piece";
 import { attackTargetIdsOf } from "../../boardModel";
 import type { DropTarget } from "../../dragIntents";
@@ -40,6 +40,7 @@ export function OpponentBattleRow({
       className="game-battle-row game-battle-row--opp"
       role="group"
       aria-label={t("game.oppBattleArea")}
+      edgeClearance={suspendedCardEdgeClearance(chrome.width)}
       style={{
         flex: 1,
         minWidth: 0,

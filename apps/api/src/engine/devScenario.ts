@@ -30,8 +30,10 @@ export const DEV_SCENARIO_IDS = [
   "battle",
   "arena",
   "arena-aegiochus-dark-assembly",
+  "arena-alliance-20",
   "arena-ex13-grademon-immunity",
   "arena-ex13-examon",
+  "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
   "arena-magnamon-x",
   "arena-reboot-timing",
@@ -151,6 +153,30 @@ function layBattleScenario(state: GameState, decks: readonly [Decklist, Decklist
   state.turnSeat = 0;
   state.turnCount = 0;
   // Not the rulebook's first turn: the human draws on turn 1 like any later turn.
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** Stresses the Alliance ally picker with one attacker and 19 eligible allies. */
+function layAllianceTwentyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT23-020"], "-alliance-attacker"));
+    for (let index = 1; index < 20; index += 1) {
+      placePermanent(human, establishedDigimon(0, ["BT1-010"], `-alliance-ally-${index}`));
+    }
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
 }
@@ -290,6 +316,33 @@ function layJupitermonSirenScenario(state: GameState, decks: readonly [Decklist,
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 1;
+}
+
+/** BT25-044 Junomon [On Play]: both players' Digimon must be offered for its placement cost. */
+function layJunomonOpponentTargetScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT1-010"], "-junomon-own-target"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-junomon", "BT25-044", 0));
+  }
+
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-junomon-opponent-target"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** Stages EX13-060 Alphamon's three-card [Assembly -5] route from the trash. */
@@ -665,8 +718,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
+  "arena-alliance-20": layAllianceTwentyScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
+  "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,
   "arena-reboot-timing": layRebootTimingScenario,

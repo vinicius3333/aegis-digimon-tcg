@@ -32,7 +32,6 @@ export type {
   TurnOrder,
 } from "./types";
 
-export { AllianceOverlay } from "./combat/AllianceOverlay";
 export { BarrierOverlay } from "./combat/BarrierOverlay";
 export { BlockOverlay } from "./combat/BlockOverlay";
 export { CounterOverlay } from "./combat/CounterOverlay";

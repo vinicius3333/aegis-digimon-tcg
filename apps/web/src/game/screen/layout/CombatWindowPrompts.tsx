@@ -5,9 +5,9 @@
    one while a decision is unanswered — so at most one of these is ever on screen. */
 
 import type { GameState } from "@aegis/shared";
-import { findPermanentInState, instanceCardId, permCardId } from "../../decisionModel";
-import { AllianceOverlay, BarrierOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
-import { BoardBlockPrompt } from "../../BoardDecisionRail";
+import { instanceCardId, permCardId } from "../../decisionModel";
+import { BarrierOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
+import { BoardAlliancePrompt, BoardBlockPrompt } from "../../BoardDecisionRail";
 import type { CombatWindows } from "../model/combatWindows";
 
 export function CombatWindowPrompts({
@@ -71,18 +71,8 @@ export function CombatWindowPrompts({
       ) : null}
 
       {allianceWindow ? (
-        <AllianceOverlay
-          triggerCardId={permCardId(state, allianceWindow.permanentId)}
-          allies={allianceWindow.eligibleAllyIds.map((pid) => {
-            const permanent = findPermanentInState(state, pid);
-            return {
-              permanentId: pid,
-              cardId: permanent?.topCard?.cardId ?? "",
-              currentDP: permanent?.currentDP ?? 0,
-              sourceCount: permanent?.stack.length ?? 0,
-            };
-          })}
-          onChoose={(allyPid) => onAlliance(allyPid)}
+        <BoardAlliancePrompt
+          attackerCardId={permCardId(state, allianceWindow.permanentId)}
           onPass={() => onAlliance()}
         />
       ) : null}

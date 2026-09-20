@@ -63,6 +63,19 @@
   flex: 0 0 auto;
   white-space: normal;
 }
+.board-prompt--alliance[data-variant="field-selection"] .board-prompt__actions {
+  width: auto;
+  justify-self: end;
+  align-self: start;
+}
+.board-prompt--alliance[data-variant="field-selection"] .board-prompt__actions > button {
+  width: auto;
+  min-width: 12rem;
+  max-width: 18rem;
+  min-height: 44px;
+  flex: 0 0 auto;
+  padding-inline: var(--ds-space-4);
+}
 @media (width < 600px), (height < 520px) and (orientation: landscape) {
   .board-prompt.combat-prompt[data-variant="field-selection"] {
     bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
