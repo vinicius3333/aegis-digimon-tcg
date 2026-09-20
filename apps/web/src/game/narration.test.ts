@@ -105,6 +105,37 @@ describe("folding a batch into moments", () => {
     expect(items.map((item) => (item.notice ? "notice" : "panel"))).toEqual(["notice", "panel"]);
   });
 
+  it("does not repeat a Recovery already named by the resolving effect clause", () => {
+    const effect = notice({
+      body: {
+        variant: "effect",
+        cardId: "BT26-033",
+        timing: "Main",
+        description: "Delete all of your opponent's lowest DP Digimon. Then, ＜Recovery +1＞.",
+      },
+    });
+    const recovery = notice({ id: "n2", body: { variant: "recovery", amount: 1 } });
+
+    const items = build({ notices: [effect, recovery] });
+
+    expect(items).toHaveLength(1);
+    expect(items[0]?.notice).toBe(effect);
+  });
+
+  it("keeps Recovery when the preceding clause does not explain that amount and side", () => {
+    const effect = notice({
+      body: {
+        variant: "effect",
+        cardId: "BT26-033",
+        description: "Then, ＜Recovery +2＞.",
+      },
+    });
+    const differentAmount = notice({ id: "n2", body: { variant: "recovery", amount: 1 } });
+    const oppositeSide = notice({ id: "n3", side: Side.Opponent, body: { variant: "recovery", amount: 2 } });
+
+    expect(build({ notices: [effect, differentAmount, oppositeSide] })).toHaveLength(3);
+  });
+
   it("leaves a refusal out of the queue, because it answers the viewer's own tap", () => {
     const refusal = notice({ body: { variant: "rejection", reason: "Not enough memory." } });
     expect(isQueuedNotice(refusal)).toBe(false);

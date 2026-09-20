@@ -289,7 +289,6 @@ it("flies a face-down card from the deck to its Tamer and clears it after landin
   await advance(result.current.drawFlights[0]!.duration);
   expect(result.current.drawFlights).toHaveLength(0);
 });
-
 it.each([0, 1] as const)(
   "presents seat %s's Option draw before the next turn ribbons when patches coalesce",
   async (seat) => {
@@ -3282,6 +3281,29 @@ describe("notices", () => {
     expect(result.current.notices).toEqual([]);
   });
 
+  it("does not repeat Wide Plasment's Recovery after its effect clause already names it", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([
+      {
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: "BT26-033",
+        effectKey: "BT26-033/ir-4",
+        description: "[Main] Delete all of your opponent's lowest DP Digimon. Then, ＜Recovery +1＞.",
+        timing: "Main",
+      },
+      { kind: "securityRecovered", seat: 0, amount: 1 },
+    ]);
+    await advance(0);
+
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.notices[0]).toMatchObject({
+      body: { variant: "effect", cardId: "BT26-033", description: expect.stringContaining("Recovery +1") },
+    });
+  });
+
   it("reads a notice out on its own clock while the viewer's decision waits", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
@@ -3748,8 +3770,9 @@ describe("the figure a shield shows", () => {
 });
 
 describe("security gains", () => {
-  function boardWithSecurity(you: number, opp: number): GameState {
+  function boardWithSecurity(you: number, opp: number, stateVersion?: number): GameState {
     return {
+      ...(stateVersion === undefined ? {} : { stateVersion }),
       players: [
         { battleArea: [], trash: [], hand: [], securityCount: you },
         { battleArea: [], trash: [], hand: [], securityCount: opp },
@@ -3841,6 +3864,32 @@ describe("security gains", () => {
       state: boardWithSecurity(6, 5),
     });
     await advance(0);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
+      ["recovery"],
+    );
+  });
+
+  it("keeps a recovery claim until its later state patch arrives", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(
+      boardWithSecurity(5, 5, 0),
+    );
+    await advance(0);
+
+    rerender({
+      events: [{ kind: "securityRecovered", seat: VIEWER, amount: 1 }],
+      state: boardWithSecurity(5, 5, 0),
+    });
+    await advance(0);
+
+    rerender({
+      events: [
+        { kind: "securityRecovered", seat: VIEWER, amount: 1 },
+        { kind: "memoryChanged", from: 2, to: -2, reason: "playCard" },
+      ],
+      state: boardWithSecurity(6, 5, 2),
+    });
+    await advance(0);
+
     expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(
       ["recovery"],
     );
@@ -3972,7 +4021,7 @@ describe("security gains", () => {
 
   it("does not let a claim that met no growth swallow the next growth the count shows", async () => {
     const { result, rerender } = renderCuesOverGrowingBoard(
-      boardWithSecurity(5, 5),
+      boardWithSecurity(5, 5, 0),
     );
     await advance(0);
 
@@ -3986,7 +4035,7 @@ describe("security gains", () => {
           seat: 1,
         },
       ],
-      state: boardWithSecurity(5, 5),
+      state: boardWithSecurity(5, 5, 1),
     });
     await advance(0);
     rerender({
@@ -4005,7 +4054,7 @@ describe("security gains", () => {
           to: "security",
         },
       ],
-      state: boardWithSecurity(5, 6),
+      state: boardWithSecurity(5, 6, 2),
     });
     await advance(0);
     // Both independent security additions remain visible.

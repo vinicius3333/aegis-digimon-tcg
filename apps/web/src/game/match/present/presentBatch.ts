@@ -220,7 +220,7 @@ export function presentServerBatch({
   }>;
   effectSourceKeyRef: MutableRefObject<number>;
   deckRiffleKeyRef: MutableRefObject<number>;
-  securityGrowthClaimedRef: MutableRefObject<Set<Seat>>;
+  securityGrowthClaimedRef: MutableRefObject<Map<Seat, number>>;
   memoryHoldKeyRef: MutableRefObject<number>;
   turnStartDrawRef: MutableRefObject<{ you: boolean; opp: boolean }>;
   optionDockKeyRef: MutableRefObject<number>;
@@ -458,6 +458,7 @@ export function presentServerBatch({
     enqueueDeckRiffles({ fresh, deckRiffleKeyRef, setDeckRiffles, enqueue });
     enqueueSecurityGrowth({
       fresh,
+      stateVersion,
       securityGrowthClaimedRef,
       setSecurityFlights,
       launchSecurityGainFlight,

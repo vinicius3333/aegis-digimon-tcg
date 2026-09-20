@@ -27,6 +27,7 @@ export function useSecurityCountWatcher({
   securityCountsRef,
   openingSecurityDealRef,
   securityGrowthClaimedRef,
+  stateVersion,
   noticeSequenceRef,
   lastBatchIdRef,
   growthNamedAhead,
@@ -43,7 +44,9 @@ export function useSecurityCountWatcher({
   /** Mutated: flipped to done by the first pass that could have seen the opening deal. */
   openingSecurityDealRef: MutableRefObject<OpeningDealState>;
   /** Mutated: a seat whose growth a batch already played is consumed here, not flown again. */
-  securityGrowthClaimedRef: MutableRefObject<Set<Seat>>;
+  securityGrowthClaimedRef: MutableRefObject<Map<Seat, number>>;
+  /** State patch revision, used to retire only claims whose patch has actually arrived. */
+  stateVersion: number | undefined;
   noticeSequenceRef: MutableRefObject<number>;
   lastBatchIdRef: MutableRefObject<string>;
   /** Whether an event not yet presented names this seat's stack growing. */
@@ -73,7 +76,11 @@ export function useSecurityCountWatcher({
     ];
     for (const { seat, side, amount } of gains) {
       if (amount <= 0) continue;
-      if (securityGrowthClaimedRef.current.delete(seat)) continue;
+      const claimedAt = securityGrowthClaimedRef.current.get(seat);
+      if (claimedAt !== undefined && (stateVersion === undefined || claimedAt <= stateVersion)) {
+        securityGrowthClaimedRef.current.delete(seat);
+        continue;
+      }
       if (growthNamedAhead(seat)) continue;
       launchSecurityGainFlight(seat);
       noticeSequenceRef.current += 1;
@@ -83,6 +90,11 @@ export function useSecurityCountWatcher({
         lastBatchIdRef.current,
       );
     }
+    if (stateVersion !== undefined) {
+      for (const [seat, claimedAt] of securityGrowthClaimedRef.current) {
+        if (claimedAt <= stateVersion) securityGrowthClaimedRef.current.delete(seat);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewer?.securityCount, opponent?.securityCount]);
+  }, [viewer?.securityCount, opponent?.securityCount, stateVersion]);
 }

@@ -23,31 +23,32 @@ export function securityGrowthSeatOf(event: ServerEvent): Seat | undefined {
  */
 export function enqueueSecurityGrowth({
   fresh,
+  stateVersion,
   securityGrowthClaimedRef,
   setSecurityFlights,
   launchSecurityGainFlight,
   enqueue,
 }: {
   fresh: readonly ServerEvent[];
-  /** Mutated: cleared, then filled with the seats this batch accounts for itself. */
-  securityGrowthClaimedRef: MutableRefObject<Set<Seat>>;
+  stateVersion: number;
+  /** Mutated: the latest state revision whose event accounts for each seat's growth. */
+  securityGrowthClaimedRef: MutableRefObject<Map<Seat, number>>;
   setSecurityFlights: Dispatch<SetStateAction<ReadonlySet<number>>>;
   launchSecurityGainFlight: (seat: Seat) => void;
   enqueue: (step: AnimationStep) => void;
 }) {
-  securityGrowthClaimedRef.current.clear();
   // A card an effect stacked lands with the same bounce a recovery plays. The event names
   // the seat, so the notice is its own (see `securityGainNoticeFromEvent`).
   for (const event of fresh) {
     if (event.kind !== "cardsMoved" || event.to !== "security" || event.seat === undefined) continue;
     if (event.instanceIds.length === 0) continue;
-    securityGrowthClaimedRef.current.add(event.seat);
+    securityGrowthClaimedRef.current.set(event.seat, stateVersion);
     launchSecurityGainFlight(event.seat);
   }
   for (const event of fresh) {
     if (event.kind !== "securityRecovered") continue;
     const seat = event.seat;
-    securityGrowthClaimedRef.current.add(seat);
+    securityGrowthClaimedRef.current.set(seat, stateVersion);
     enqueue({
       id: `security-flight-${seat}-${event.amount}`,
       track: `securityFlight-${seat}`,

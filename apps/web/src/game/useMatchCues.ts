@@ -491,7 +491,7 @@ export function useMatchCues({
   // Last read of each seat's security count, so a stack an effect grew can be told
   // from one an event already narrated — a recovery or an effect's add owns its own flight and notice.
   const securityCountsRef = useRef<{ you: number; opp: number } | null>(null);
-  const securityGrowthClaimedRef = useRef<Set<Seat>>(new Set());
+  const securityGrowthClaimedRef = useRef<Map<Seat, number>>(new Map());
   const securityGainKeyRef = useRef(0);
   // The opening stack is dealt once. Security seen before that — a reconnection into a
   // match already under way — retires the deal rather than playing it late.
@@ -912,6 +912,7 @@ export function useMatchCues({
     securityCountsRef,
     openingSecurityDealRef,
     securityGrowthClaimedRef,
+    stateVersion: state?.stateVersion,
     noticeSequenceRef,
     lastBatchIdRef,
     growthNamedAhead: (seat) =>

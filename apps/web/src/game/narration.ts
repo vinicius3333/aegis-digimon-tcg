@@ -184,6 +184,29 @@ export function pushNarrationItem(
 }
 
 /**
+ * A resolving effect clause already names its own Recovery. The server also emits the
+ * dedicated `securityRecovered` event so the client can animate the hidden card movement;
+ * keeping both notices would print the same Recovery twice. Consume that mechanical notice
+ * only when the latest clause for the same side names the exact amount.
+ */
+function withoutRestatedRecovery(notices: readonly MatchNotice[]): MatchNotice[] {
+  const latestEffectBySide = new Map<Side, string>();
+  return notices.filter((notice) => {
+    if (notice.body.variant === "effect") {
+      latestEffectBySide.set(notice.side, notice.body.description ?? "");
+      return true;
+    }
+    if (notice.body.variant !== "recovery") return true;
+    const description = latestEffectBySide.get(notice.side);
+    if (description === undefined) return true;
+    const namesRecovery = new RegExp(`\\bRecovery\\s*\\+\\s*${notice.body.amount}(?!\\d)`, "i").test(description);
+    if (!namesRecovery) return true;
+    latestEffectBySide.delete(notice.side);
+    return false;
+  });
+}
+
+/**
  * The items one server batch earns, in the order they are presented.
  *
  * A panel and a notice of the same side about the same card are one moment, and the
@@ -207,6 +230,7 @@ export function buildNarrationItems({
   nextId: () => string;
   mergeWindowMs?: number;
 }): NarrationItem[] {
+  const distinctNotices = withoutRestatedRecovery(notices);
   const merged = panels.reduce<readonly SidePanel[]>((stack, panel) => pushSidePanel(stack, panel, mergeWindowMs), []);
   const items: NarrationItem[] = merged.map((panel) => {
     const source = panelSourceCardId(panel);
@@ -219,7 +243,7 @@ export function buildNarrationItems({
       panel,
     };
   });
-  for (const notice of notices) {
+  for (const notice of distinctNotices) {
     if (!isQueuedNotice(notice)) continue;
     const source = noticeSourceCardId(notice);
     const host = source
@@ -230,7 +254,8 @@ export function buildNarrationItems({
     const revealHost =
       !host &&
       notice.body.variant === "effect" &&
-      notices.filter((candidate) => candidate.side === notice.side && candidate.body.variant === "effect").length === 1
+      distinctNotices.filter((candidate) => candidate.side === notice.side && candidate.body.variant === "effect")
+        .length === 1
         ? items.find(
             (item) =>
               item.notice === undefined && item.side === notice.side && item.panel?.titleKey === "panel.revealedCards",
