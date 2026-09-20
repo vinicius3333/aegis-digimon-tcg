@@ -81,6 +81,7 @@ export async function runTimingWindow(
   timing: EffectTiming,
   trigger: TriggerInfo,
   transientCandidates: readonly CardInstance[] = [],
+  extraPending: readonly CollectedEffect[] = [],
 ): Promise<void> {
   // A play-cost deletion belongs to the play's own trigger batch (KB Q5131): collect its
   // [On Deletion] effects at trigger time and hand them to the play's entry window, where
@@ -161,6 +162,7 @@ export async function runTimingWindow(
             effectEnvironment(engine, trigger),
             resolutionDeps(engine, listWindowCandidates, {
               outermost: wasOutermostWindow,
+              extraPending,
               excludeNestedPending: excludedNestedPending,
             }),
           ),

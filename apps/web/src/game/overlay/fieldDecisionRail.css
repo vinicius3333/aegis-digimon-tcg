@@ -63,6 +63,9 @@
   flex: 0 0 auto;
   white-space: normal;
 }
+.board-prompt[data-variant="field-selection"] .board-prompt__effect-toggle {
+  display: none;
+}
 .board-prompt--alliance[data-variant="field-selection"] .board-prompt__actions {
   width: auto;
   justify-self: end;
@@ -82,6 +85,10 @@
    one word per line. Give every field decision a clear vertical reading order
    before that pressure appears. */
 @media (width < 768px) {
+  .board-prompt[data-variant="field-selection"] .board-prompt__effect-toggle {
+    display: inline-flex;
+  }
+
   .board-prompt[data-variant="field-selection"] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:

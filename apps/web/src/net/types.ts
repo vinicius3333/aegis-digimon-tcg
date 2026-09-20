@@ -22,6 +22,7 @@ export interface AegisJoinOptions {
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
     | "arena-ex13-giromon-block-triggers"
+    | "arena-ex13-deletion-trigger-ordering"
     | "arena-ex13-kings-opponent-sukamon"
     | "arena-ex13-kingsukamon-immunity-lapse"
     | "arena-ex13-examon"

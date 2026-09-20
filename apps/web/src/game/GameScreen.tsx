@@ -1129,6 +1129,7 @@ export function GameScreen({
                 onCancel: clearSel,
               }
             : undefined,
+        reserveActionBarSpace: fieldDecision,
         onHoverChange: setHoveredHandInstanceId,
       }}
       selection={selectionState}

@@ -35,6 +35,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex13-giromon-block-triggers",
+  "arena-ex13-deletion-trigger-ordering",
   "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
@@ -738,6 +739,48 @@ function layEx13KingSukamonZeroDpScenario(state: GameState, decks: readonly [Dec
   state.memory = 7;
 }
 
+/** Reproduces native [On Deletion] versus KingSukamon's inherited deletion watcher. */
+function layEx13DeletionTriggerOrderingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-031", "EX13-035"], "-ex13-deletion-order-host"));
+    placePermanent(human, establishedDigimon(0, ["EX13-028"], "-ex13-deletion-order-sukamon"));
+    placePermanent(human, establishedDigimon(0, ["BT2-067"], "-ex13-deletion-order-purple"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-deletion-order-option", "BT2-109", 0));
+
+    // Each simultaneous reveal gets a distinct legal first card, making chosen order visible.
+    for (const [suffix, cardId] of [
+      ["sixth", "BT1-014"],
+      ["fifth", "BT1-009"],
+      ["second-chuumon", "BT13-062"],
+      ["third", "BT1-014"],
+      ["second", "BT1-009"],
+      ["first-sukamon", "EX13-028"],
+    ] as const) {
+      insertCard(human, Zone.Deck, faceDownCard(`dev-ex13-deletion-order-${suffix}`, cardId, 0), "top");
+    }
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-ex13-deletion-order-target-one"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-010"], "-ex13-deletion-order-target-two"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
 /** Proves both EX13 kings count and react to [Sukamon]-named Digimon on the opponent's field. */
 function layEx13KingsOpponentSukamonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -994,6 +1037,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
+  "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,

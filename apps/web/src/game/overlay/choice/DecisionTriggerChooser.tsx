@@ -90,7 +90,7 @@ export function DecisionTriggerChooser({
             >
               <span className="trigger-chooser__heading">
                 <span className="trigger-chooser__card">
-                  <CardFull cardId={cardId} width={wideDialog ? 96 : 72} />
+                  <CardFull cardId={cardId} width={wideDialog ? 96 : 72} zoomOnHover={false} />
                 </span>
                 <span className="trigger-chooser__meta">
                   <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>

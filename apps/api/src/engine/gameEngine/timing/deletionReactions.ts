@@ -4,6 +4,8 @@ import type { TriggerInfo } from "../../effects/EffectContext.js";
 import { findLooseInstance } from "../intents.js";
 import type { GameEngine } from "../../GameEngine.js";
 import { shouldDeferNestedTiming } from "../windows.js";
+import { runSubTriggersInChosenOrder } from "../subTriggers.js";
+import { subTriggerIdentity, type ArmedSubTrigger } from "../subTriggerIdentity.js";
 
 /**
  * Resolve the two trigger families created by one deletion. Ascension is deliberately
@@ -21,7 +23,12 @@ export async function resolveDeletionReactions(
     engine.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger),
   transientCandidates: readonly CardInstance[] = [],
   deferNested = true,
+  prearmedDeletionSubTriggers?: readonly ArmedSubTrigger[],
 ): Promise<void> {
+  const deletionSubTriggers =
+    prearmedDeletionSubTriggers === undefined
+      ? engine.pendingDeletionSubTriggers.splice(0)
+      : [...prearmedDeletionSubTriggers];
   // A rule-check pass pools every deletion it performs, Ascension offer included, and
   // resolves them as one simultaneous group once the fixpoint converges (§17-1-3,
   // §15-4-3-3). Without engine each sweep would resolve its own [On Deletion] effects
@@ -43,9 +50,27 @@ export async function resolveDeletionReactions(
       trigger: { ...trigger },
       transientCandidates: [...transientCandidates],
       ascensionCandidates: [...ascensionCandidates],
+      deletionSubTriggers,
     });
     return;
   }
+  const fireWithDeletionSubTriggers = async (): Promise<void> => {
+    if (deletionSubTriggers.length === 0) return fire(trigger);
+    const enclosing = engine.pendingWindowSubTriggers;
+    engine.pendingWindowSubTriggers = [...enclosing, ...deletionSubTriggers];
+    engine.subTriggerWindowDepth += 1;
+    try {
+      await fire(trigger);
+      const remaining = deletionSubTriggers.filter(
+        (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)),
+      );
+      await runSubTriggersInChosenOrder(engine, remaining);
+    } finally {
+      engine.pendingWindowSubTriggers = enclosing;
+      engine.subTriggerWindowDepth -= 1;
+      if (engine.subTriggerWindowDepth === 0) engine.consumedSubTriggerKeys.clear();
+    }
+  };
   const ascend = async ({ instanceId, seat }: { instanceId: string; seat: Seat }): Promise<void> => {
     if (findLooseInstance(engine, instanceId) === undefined) return;
     const response = await engine.decisions.request({
@@ -70,7 +95,7 @@ export async function resolveDeletionReactions(
     return card !== undefined && definitionOf(card).effectText?.includes("[On Deletion]") === true;
   });
   if (selfEffectCandidates.length === 0) {
-    await fire(trigger);
+    await fireWithDeletionSubTriggers();
     for (const pending of ascensionCandidates) await ascend(pending);
     return;
   }
@@ -90,7 +115,7 @@ export async function resolveDeletionReactions(
     (ascensionFirst ? ascendBeforeFire : ascendAfterFire).push(candidate);
   }
   for (const candidate of ascendBeforeFire) await ascend(candidate);
-  await fire(trigger);
+  await fireWithDeletionSubTriggers();
   for (const candidate of ascendAfterFire) await ascend(candidate);
   for (const pending of ascensionCandidates) {
     if (!selfEffectCandidates.some(({ instanceId }) => instanceId === pending.instanceId)) await ascend(pending);

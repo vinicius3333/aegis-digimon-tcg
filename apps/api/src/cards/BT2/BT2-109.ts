@@ -1,7 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
@@ -32,6 +32,7 @@ const compiled: CompiledCard = {
             raw: "by deleting 1 of your Digimon",
           },
           optional: true,
+          abortOnDecline: true,
         },
       ],
     },

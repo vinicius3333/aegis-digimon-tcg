@@ -20,6 +20,7 @@ export function LiveArenaDemo() {
       requested === "arena-face-up-security" ||
       requested === "arena-ex13-grademon-immunity" ||
       requested === "arena-ex13-giromon-block-triggers" ||
+      requested === "arena-ex13-deletion-trigger-ordering" ||
       requested === "arena-ex13-kings-opponent-sukamon" ||
       requested === "arena-ex13-kingsukamon-immunity-lapse" ||
       requested === "arena-ex13-examon" ||
@@ -71,6 +72,7 @@ export function LiveArenaDemo() {
             <option value="arena-face-up-security">Security · opponent face-up cards</option>
             <option value="arena-ex13-grademon-immunity">EX13 Alphamon · Assembly from trash</option>
             <option value="arena-ex13-giromon-block-triggers">EX13 Giromon · 6 block triggers</option>
+            <option value="arena-ex13-deletion-trigger-ordering">EX13 Kings · deletion trigger ordering</option>
             <option value="arena-ex13-kings-opponent-sukamon">EX13 Kings · opponent Sukamon</option>
             <option value="arena-ex13-kingsukamon-immunity-lapse">EX13 KingSukamon · 0 DP deletion</option>
             <option value="arena-ex13-examon">EX13 Examon · Lv.5 DNA + battle timing</option>
@@ -128,6 +130,10 @@ export function LiveArenaDemo() {
                             ? portuguese
                               ? "O bot ataca primeiro. Bloqueie com Giromon para abrir os 6 efeitos simultâneos de Giromon, Guardromon e dos 4 Tai."
                               : "The bot attacks first. Block with Giromon to open the 6 simultaneous Giromon, Guardromon, and 4 Tai effects."
+                            : scenario === "arena-ex13-deletion-trigger-ordering"
+                              ? portuguese
+                                ? "Use Heat Viper, delete seu EX13-028 Sukamon e escolha a ordem entre o efeito On Deletion dele e a herança do KingSukamon sob KingEtemon."
+                                : "Use Heat Viper, delete your EX13-028 Sukamon, and choose the order between its On Deletion effect and KingSukamon inherited under KingEtemon."
                             : scenario === "arena-ex13-kingsukamon-immunity-lapse"
                               ? portuguese
                                 ? "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon."

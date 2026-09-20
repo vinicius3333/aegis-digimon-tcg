@@ -20,6 +20,7 @@ export function PlayerDock({
   draggingInstanceId,
   shakeInstanceId,
   actionBar,
+  reserveActionBarSpace = false,
   eggDeckCount,
   handCount,
   deckCount,
@@ -46,6 +47,8 @@ export function PlayerDock({
   shakeInstanceId?: string;
   /** What the bar above the hand says, or nothing while an attacker is chosen. */
   actionBar: { selCardId?: string; hasBase: boolean; linkingCardId?: string; onCancel: () => void } | undefined;
+  /** Keep the desktop dock height stable while a field decision replaces the action bar. */
+  reserveActionBarSpace?: boolean;
   eggDeckCount: number;
   handCount: number;
   deckCount: number;
@@ -75,6 +78,8 @@ export function PlayerDock({
             linkingCardId={actionBar.linkingCardId}
             onCancel={actionBar.onCancel}
           />
+        ) : reserveActionBarSpace ? (
+          <div className="game-action-bar game-action-bar--idle" aria-hidden />
         ) : null}
         <Hand
           cardWidth={cardWidth}

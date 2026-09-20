@@ -1005,11 +1005,14 @@
   }
 }
 
-/* A short board leaves the rails taller than the field they sit in, so they
-   scroll rather than hiding whichever pile falls off the bottom. */
-.game-pile-column {
-  overflow: hidden auto;
-  scrollbar-width: thin;
+/* Only a genuinely short board needs scrollable pile rails. Applying this to
+   every viewport lets a pile changing from empty to one card create scroll
+   overflow and switch the desktop arena to its overflow geometry mid-action. */
+@media (height < 760px) {
+  .game-pile-column {
+    overflow: hidden auto;
+    scrollbar-width: thin;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

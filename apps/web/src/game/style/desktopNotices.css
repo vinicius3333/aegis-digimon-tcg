@@ -17,6 +17,7 @@
   .narration-slot[data-slot="narration-cards"] {
     width: min(20rem, calc(100% - var(--ds-space-8)));
     bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+    overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
   }

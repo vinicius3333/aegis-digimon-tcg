@@ -190,8 +190,6 @@
 /* A desktop hand that cannot fit its readable slivers becomes a bounded tray. */
 @media (min-width: 1024px) and (min-height: 760px) {
   .game-player-dock:has([data-testid="hand"][data-hand-overflow="true"]) {
-    height: 13rem;
-    min-height: 13rem;
     padding-top: 0;
   }
 

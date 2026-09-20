@@ -376,6 +376,8 @@ export async function resolvePermanentTargets(
      * is checked only when its later trigger activates (Q7060-Q7066). */
     preserveUnaffectableSelection?: boolean;
     allowPendingRotationHost?: boolean;
+    /** Let an otherwise fixed-count selection answer an optional processing condition with zero picks. */
+    allowDecline?: boolean;
   },
 ): Promise<string[]> {
   // SourceRef: resolve to the permanent that triggered this SubTrigger event.
@@ -490,6 +492,7 @@ export async function resolvePermanentTargets(
   if (
     candidates.length <= want &&
     !target.upTo &&
+    opts?.allowDecline !== true &&
     !holdsUnaffectableCandidate &&
     (target as Target & { forceSelection?: boolean }).forceSelection !== true
   ) {
@@ -508,7 +511,11 @@ export async function resolvePermanentTargets(
       (p) => p.permanentId,
     );
   }
-  const min = target.upTo ? 0 : Math.min(want, candidates.length);
+  // CR §1-3-6: choosing cards for an effect always means choosing at least 1.
+  // "Up to N" lowers the required count to one, not zero. A zero-card answer is
+  // reserved for a selection that itself represents declining an optional processing
+  // condition (for example Heat Viper's delete-own cost).
+  const min = opts?.allowDecline === true ? 0 : target.upTo ? 1 : Math.min(want, candidates.length);
   const max = Math.min(want, candidates.length);
   const asker = target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
   const chosen = await asker.chooseTargets(ctx, { candidates: ids, visible: visibleIds, min, max });

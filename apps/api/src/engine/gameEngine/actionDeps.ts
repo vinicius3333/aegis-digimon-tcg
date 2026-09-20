@@ -100,6 +100,7 @@ export function resolutionDeps(
                   (pending) => !excludeNestedPending.has(pending) && nestedTriggerSourceStillResident(engine, pending),
                 )),
             ...parkedEntryCollected(engine),
+            ...(opts.extraPending ?? []),
           ],
         }),
     turnSeat: engine.state.turnSeat,
