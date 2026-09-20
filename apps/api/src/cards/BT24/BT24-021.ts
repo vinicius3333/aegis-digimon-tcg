@@ -40,6 +40,21 @@ export const compiled: CompiledCard = {
           ],
           rest: "deckBottom",
         },
+        {
+          effectTextPart: "If this effect added, trash 1 card in your hand.",
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect added",
+          },
+        },
       ],
     },
     {

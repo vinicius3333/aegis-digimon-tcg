@@ -42380,7 +42380,7 @@
     "forms": ["Rookie"],
     "attributes": ["Virus"],
     "types": ["Demon", "Titan", "TS"],
-    "effectText": "[Digivolve] [Tsunomon]/Lv.2 w/[TS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 Digimon card with the [Demon] or [Shaman] trait and 1 card with the [Titan] trait among them to the hand. Return the rest to the bottom of the deck.",
+    "effectText": "[Digivolve] [Tsunomon]/Lv.2 w/[TS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 Digimon card with the [Demon] or [Shaman] trait and 1 card with the [Titan] trait among them to the hand. Return the rest to the bottom of the deck. If this effect added, trash 1 card in your hand.",
     "inheritedEffectText": "[Your Turn] [Once Per Turn] When your hand is trashed from, this [Demon] or [Titan] trait Digimon may digivolve into [Titamon] or a [Titan] trait Digimon card in the trash with the digivolution cost reduced by 1.",
     "rarity": "C",
     "maxCountInDeck": 4,

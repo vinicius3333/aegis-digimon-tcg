@@ -28,7 +28,14 @@ describe("BT24-021 SnowGoblimon", () => {
   it("reveals three cards for one Demon/Shaman Digimon and one Titan card", () => {
     const reveal = compiled.effects.find((effect) => effect.trigger === "OnPlay");
     expect(reveal).toMatchObject({
-      actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{}, {}] }],
+      actions: [
+        { kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{}, {}] },
+        {
+          kind: "Trash",
+          target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+          condition: { kind: "ifThisEffectActed" },
+        },
+      ],
     });
   });
 
@@ -67,6 +74,7 @@ describe("BT24-021 SnowGoblimon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-021", as: "snowGoblimon" }],
+          hand: [{ card: "BT1-010", as: "discard" }],
           deck: [
             { card: "BT24-014", as: "shaman" },
             { card: "BT24-015", as: "titan" },
@@ -84,13 +92,32 @@ describe("BT24-021 SnowGoblimon", () => {
     );
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("discard").instanceId);
+  });
+
+  it("does not discard when the top-three search adds no cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-021", as: "snowGoblimon" }],
+        hand: [{ card: "BT1-010", as: "kept" }],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+    });
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("snowGoblimon"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("resolves the top-three search through a public play intent", async () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT24-021", as: "snowGoblimon" }],
+          hand: [
+            { card: "BT24-021", as: "snowGoblimon" },
+            { card: "BT1-010", as: "discard" },
+          ],
           deck: [
             { card: "BT24-014", as: "shaman" },
             { card: "BT24-015", as: "titan" },
@@ -112,6 +139,7 @@ describe("BT24-021 SnowGoblimon", () => {
       expect.arrayContaining([s.inst("shaman").instanceId, s.inst("titan").instanceId]),
     );
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("discard").instanceId);
   });
 
   it("suppresses a second injected hand-trash evolution in the same turn", async () => {
