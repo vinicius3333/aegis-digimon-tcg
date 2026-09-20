@@ -608,6 +608,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.chooseTargetsSubtitle": "Escolha {count} alvo(s).",
   "overlay.chooseTargetsRangeSubtitle": "Escolha {range} alvo(s).",
   "overlay.handSelection": "Seleção na mão",
+  "overlay.attackTarget": "Alvo do ataque",
   "overlay.selectedOfRange": "{count} de {range} selecionada(s)",
   "overlay.endSelection": "Encerrar seleção",
   "overlay.noSelection": "Nenhuma seleção",

@@ -602,6 +602,7 @@ export const en = {
   "overlay.chooseTargetsSubtitle": "Choose {count} target(s).",
   "overlay.chooseTargetsRangeSubtitle": "Choose {range} target(s).",
   "overlay.handSelection": "Hand selection",
+  "overlay.attackTarget": "Attack target",
   "overlay.selectedOfRange": "{count} selected of {range}",
   "overlay.endSelection": "End Selection",
   "overlay.noSelection": "No Selection",
