@@ -47393,7 +47393,7 @@
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[When Attacking] By trashing 1 [Game], [Open] or [Seven Code] trait card from your hand, ＜Draw 2＞ ",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "＜Progress＞ \n＜Piercing＞ ",
-    "linkDp": null,
+    "linkDp": 3000,
     "nameJp": "ロープレモン"
   },
   {
@@ -47657,7 +47657,7 @@
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[When Attacking] If your hand has 7 or fewer cards, ＜Draw 1＞ ",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
-    "linkDp": null,
+    "linkDp": 3000,
     "nameJp": "メールモン"
   },
   {
@@ -47913,7 +47913,7 @@
     "effectText": "[App Fusion] [Aidmon] & [Supplemon] & [Spamon]: Cost 0\n[Assembly -2] Lv.3 [Life]/[System]/[Seven Code] trait Digimon card\n\n＜Barrier＞ \n＜Detach ([Seven Code] trait)＞ \n[On Play] [When Digivolving] You may link 1 level 3 Digimon card with the [Life], [System] or [Seven Code] trait from this Digimon's digivolution cards to this Digimon without paying the cost.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] Until your opponent's turn ends, 1 of their Digimon can't activate [When Digivolving] effects and gets -3000 DP.",
-    "linkDp": null,
+    "linkDp": 3000,
     "nameJp": "メディックモン"
   },
   {
@@ -48182,7 +48182,7 @@
     "effectText": "[App Fusion] [Weathermon] & [Rocketmon] & [Newsmon]: Cost 0\n[Assembly -2] Lv.3 [Navi]/[System]/[Seven Code] trait Digimon card\n\n＜Blocker＞ \n＜Detach ([Seven Code] trait)＞ \n[On Play] [When Digivolving] You may link 1 level 3 Digimon card with the [Navi], [System] or [Seven Code] trait from this Digimon's digivolution cards to this Digimon without paying the cost.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] This Digimon may battle 1 of your opponent's Digimon.",
-    "linkDp": null,
+    "linkDp": 3000,
     "nameJp": "ウェザドラモン"
   },
   {
@@ -48561,7 +48561,7 @@
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[Your Turn] [Once Per Turn] When this Digimon gets linked, 1 of your Digimon with the [Social], [Tool], [Open] or [Seven Code] trait gains ＜Collision＞ and +3000 DP for the turn.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. ",
-    "linkDp": null,
+    "linkDp": 3000,
     "nameJp": "ゴミモン"
   },
   {
@@ -48913,7 +48913,7 @@
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[Your Turn] [Once Per Turn] When this Digimon gets linked, reveal the top 3 cards of your deck. Add 1 card with the [Entertainment], [Open] or [Seven Code] trait among them to the hand. Return the rest to the top or bottom of the deck.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] Delete 1 of your opponent's Digimon with the lowest level.",
-    "linkDp": null,
+    "linkDp": 3000,
     "nameJp": "テラーモン"
   },
   {
@@ -49521,7 +49521,7 @@
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n＜Detach ([Seven Code] trait)＞ \n[Your Turn] [Once Per Turn] When this Digimon gets linked, reveal the top 3 cards of your deck. You may play or use 1 [Seven Code] trait card among them with the cost reduced by 3. Return the rest to the top or bottom of the deck.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 3 ",
     "linkEffect": "[When Linking] You may link 1 non-white level 4 or lower [System] or [Seven Code] trait card from your trash to this Digimon without paying the cost.",
-    "linkDp": null,
+    "linkDp": 3000,
     "nameJp": "コピペモン"
   },
   {

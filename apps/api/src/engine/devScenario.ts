@@ -110,6 +110,12 @@ function establishedDigimon(seat: Seat, cardIds: readonly string[], slot = ""): 
   return permanent;
 }
 
+/** Seed a link card while keeping the scenario's serialized DP projection internally consistent. */
+function linkEstablishedCard(permanent: Permanent, card: CardInstance): void {
+  linkCard(permanent, card, "bottom");
+  permanent.currentDP += getCardDefinition(card.cardId)?.linkDp ?? 0;
+}
+
 /**
  * Seat 0 (the human) is the turn player about to take turn 1 with two Digimon ready to attack,
  * one of them a full digivolution stack; seat 1 (the bot) has a Digimon of its own to block or
@@ -429,15 +435,15 @@ function laySevenCodeLinkDpScenario(state: GameState, decks: readonly [Decklist,
   const human = state.players[0];
   if (human !== undefined) {
     const receivingControl = establishedDigimon(0, ["BT26-028"], "-seven-code-receiving-control");
-    linkCard(receivingControl, faceUpCard("dev-link-bt21-gatchmon", "BT21-009", 0), "bottom");
+    linkEstablishedCard(receivingControl, faceUpCard("dev-link-bt21-gatchmon", "BT21-009", 0));
     placePermanent(human, receivingControl);
 
     const sevenCodeGiving = establishedDigimon(0, ["BT21-023"], "-seven-code-giving");
-    linkCard(sevenCodeGiving, faceUpCard("dev-link-weatherdramon", "BT26-037", 0), "bottom");
+    linkEstablishedCard(sevenCodeGiving, faceUpCard("dev-link-weatherdramon", "BT26-037", 0));
     placePermanent(human, sevenCodeGiving);
 
     const sevenCodeBoth = establishedDigimon(0, ["BT26-037"], "-seven-code-both");
-    linkCard(sevenCodeBoth, faceUpCard("dev-link-medicmon", "BT26-028", 0), "bottom");
+    linkEstablishedCard(sevenCodeBoth, faceUpCard("dev-link-medicmon", "BT26-028", 0));
     placePermanent(human, sevenCodeBoth);
   }
 

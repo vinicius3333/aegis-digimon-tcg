@@ -98,6 +98,12 @@ function parseOverflow(aceEffect) {
   return m ? Number(m[1]) : undefined;
 }
 
+function parseLinkDp(linkDp) {
+  if (isBlank(linkDp)) return undefined;
+  const match = clean(String(linkDp)).match(/\d+/);
+  return match === null ? undefined : Number(match[0]);
+}
+
 function convert(t) {
   const cardId = t.cardNumber;
   const kinds = KIND_MAP[t.cardType];
@@ -152,7 +158,8 @@ function convert(t) {
 
   if (!isBlank(t.linkRequirement)) def.linkRequirement = clean(t.linkRequirement);
   if (!isBlank(t.linkEffect)) def.linkEffect = clean(t.linkEffect);
-  if (!isBlank(t.linkDP)) def.linkDp = Number(t.linkDP);
+  const linkDp = parseLinkDp(t.linkDP);
+  if (linkDp !== undefined) def.linkDp = linkDp;
 
   if (isDual) {
     def.isDualCard = true;

@@ -349,7 +349,7 @@ describe("BT26-028 Medicmon", () => {
           ],
           security: [{ card: "BT1-009", as: "barrierCost" }],
         },
-        1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-025", as: "attacker" }] },
       },
       { autoSelectCards: false },
     );
@@ -382,7 +382,7 @@ describe("BT26-028 Medicmon", () => {
           ],
           security: [{ card: "BT1-009", as: "barrierCost" }],
         },
-        1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-025", as: "attacker" }] },
       },
       { autoSelectCards: false },
     );
