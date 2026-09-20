@@ -18,6 +18,7 @@ export interface AegisJoinOptions {
     | "arena"
     | "arena-aegiochus-dark-assembly"
     | "arena-alliance-20"
+    | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
     | "arena-ex13-giromon-block-triggers"
     | "arena-ex13-kingsukamon-immunity-lapse"

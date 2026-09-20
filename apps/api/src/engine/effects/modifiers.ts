@@ -531,6 +531,12 @@ export class ModifierLedger {
     return chosen?.value ?? permanent.baseDP;
   }
 
+  /** Active rewritten base DP, excluding the physical card's printed fallback. */
+  baseDpOverrideOf(permanent: Permanent): number | undefined {
+    const resolved = this.baseDpOf(permanent);
+    return resolved === permanent.baseDP ? undefined : resolved;
+  }
+
   private baseDpOverrideIsSuppressed(permanent: Permanent, override: BaseDpOverride): boolean {
     if (override.sourceSeat === undefined || this.continuous === undefined) return false;
     if (permanent.controllerSeat === override.sourceSeat) return false;

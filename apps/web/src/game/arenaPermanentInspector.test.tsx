@@ -391,16 +391,12 @@ it("uses the detail overlay for non-candidates and a magnifier for candidates du
     </I18nProvider>,
   );
 
-  const nonCandidate = container.querySelector<HTMLElement>(
-    '[data-drop="perm-you"][data-id="permanent-0"]',
-  )!;
+  const nonCandidate = container.querySelector<HTMLElement>('[data-drop="perm-you"][data-id="permanent-0"]')!;
   fireEvent.click(nonCandidate);
   expect(screen.getByRole("dialog", { name: "MetalGreymon" })).toBeTruthy();
   fireEvent.keyDown(document, { key: "Escape" });
 
-  const candidate = container.querySelector<HTMLElement>(
-    '[data-drop="perm-opp"][data-id="permanent-1"]',
-  )!;
+  const candidate = container.querySelector<HTMLElement>('[data-drop="perm-opp"][data-id="permanent-1"]')!;
   fireEvent.click(candidate);
   expect(screen.queryByRole("dialog", { name: "MetalGreymon" })).toBeNull();
 
@@ -484,7 +480,8 @@ it("lays a token over a transformed Digimon and reads the change out in the insp
   const source = permanent(1);
   source.originalNameOverride = "Sukamon";
   source.originalColorsOverride.push("White");
-  source.baseDP = 3000;
+  source.baseDP = 8000;
+  source.originalDPOverride = 3000;
   source.currentDP = 3000;
   render(
     <I18nProvider>
@@ -509,10 +506,8 @@ it("lays a token over a transformed Digimon and reads the change out in the insp
     </I18nProvider>,
   );
   expect(screen.getByText("Counts as Sukamon")).toBeTruthy();
-  expect(
-    screen.getByText(/its original name is now \[Sukamon\], its original color is White, and its original DP is 3,000/),
-  ).toBeTruthy();
-  expect(screen.getByText(/Only the original information changes/)).toBeTruthy();
+  expect(screen.queryByText(/original card information/)).toBeNull();
+  expect(screen.queryByText(/Only the original information changes/)).toBeNull();
 });
 
 it("shows no transformation token or reading while nothing overrode the card information", () => {

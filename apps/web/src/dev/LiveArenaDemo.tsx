@@ -16,6 +16,7 @@ export function LiveArenaDemo() {
     const requested = new URLSearchParams(window.location.search).get("scenario");
     return requested === "arena-aegiochus-dark-assembly" ||
       requested === "arena-alliance-20" ||
+      requested === "arena-face-up-security" ||
       requested === "arena-ex13-grademon-immunity" ||
       requested === "arena-ex13-giromon-block-triggers" ||
       requested === "arena-ex13-kingsukamon-immunity-lapse" ||
@@ -62,6 +63,7 @@ export function LiveArenaDemo() {
             <option value="arena">Attack steps · Counter/Blocker</option>
             <option value="arena-aegiochus-dark-assembly">Aegiochus Dark · Wizardmon Assembly</option>
             <option value="arena-alliance-20">Alliance · 20 Digimon</option>
+            <option value="arena-face-up-security">Security · opponent face-up cards</option>
             <option value="arena-ex13-grademon-immunity">EX13 Alphamon · Assembly from trash</option>
             <option value="arena-ex13-giromon-block-triggers">EX13 Giromon · 4 block triggers</option>
             <option value="arena-ex13-kingsukamon-immunity-lapse">EX13 KingSukamon · immunity lapse</option>

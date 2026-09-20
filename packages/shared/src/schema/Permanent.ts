@@ -67,10 +67,11 @@ export class Permanent extends Schema {
   //
   // Projected for both seats: a transformation is public information, and the opponent
   // must be able to read that their Digimon is currently a white 3000 DP [Sukamon].
-  // The overridden DP arrives through `baseDP`/`currentDP` like any other DP figure;
-  // only name and colors need their own channel.
+  // `baseDP` remains the physical card's printed baseline for modifier calculations, so the
+  // active original-DP rewrite has its own public projection too.
   @type("string") originalNameOverride = "";
   @type(["string"]) originalColorsOverride = new ArraySchema<string>();
+  @type("int32") originalDPOverride = 0;
   // Server-resolved aliases that apply only while this permanent is chosen as a
   // DigiXros material. Kept separate from normal names because the grant must not
   // affect any other name-based rule or UI affordance.

@@ -394,13 +394,14 @@ export class BoardProjection {
    * Publish the active original-card-information override (KB Q2080-Q2084), so the client can
    * show a transformed position for what it now counts as instead of only the printed card.
    * Read straight off the same ledger entry `effectiveNames`/`effectiveColors` consult, so the
-   * board can never disagree with the rules; the overridden DP already reaches the client
-   * through `baseDP`.
+   * board can never disagree with the rules. `baseDP` remains the printed calculation
+   * baseline, so the active DP rewrite is projected separately.
    */
   projectOriginalCardInfo(perm: Permanent): void {
     const override = this.deps.continuous.originalCardInfoOverride(perm.permanentId);
     perm.originalNameOverride = override?.name ?? "";
     replaceIfChanged(perm.originalColorsOverride, override?.colors ?? []);
+    perm.originalDPOverride = override === undefined ? 0 : (this.deps.modifiers.baseDpOverrideOf(perm) ?? 0);
   }
 
   /**

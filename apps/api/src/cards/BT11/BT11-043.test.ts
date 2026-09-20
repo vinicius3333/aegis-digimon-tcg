@@ -39,6 +39,7 @@ describe("BT11-043 KingSukamon", () => {
     // inferring a transformation from a name that no longer matches the art.
     expect(target.originalNameOverride).toBe("Sukamon");
     expect([...target.originalColorsOverride]).toEqual(["White"]);
+    expect(target.originalDPOverride).toBe(3000);
   });
 
   it("does nothing when neither trash condition is met", async () => {
@@ -60,6 +61,7 @@ describe("BT11-043 KingSukamon", () => {
     expect(target.currentDP).toBe(8000);
     expect(target.originalNameOverride).toBe("");
     expect([...target.originalColorsOverride]).toEqual([]);
+    expect(target.originalDPOverride).toBe(0);
   });
 
   it("counts every other Sukamon for Security Attack", async () => {

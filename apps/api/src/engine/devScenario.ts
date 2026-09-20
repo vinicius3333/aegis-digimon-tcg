@@ -31,6 +31,7 @@ export const DEV_SCENARIO_IDS = [
   "arena",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
+  "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex13-giromon-block-triggers",
   "arena-ex13-kingsukamon-immunity-lapse",
@@ -289,6 +290,14 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Reproduces the opponent view of a mixed security stack with public, face-up cards. */
+function layFaceUpSecurityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layArenaScenario(state, decks);
+  const opponent = state.players[1];
+  if (opponent === undefined) return;
+  for (const card of opponent.security.slice(0, 2)) card.faceUp = true;
 }
 
 /**
@@ -819,6 +828,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
+  "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonImmunityLapseScenario,

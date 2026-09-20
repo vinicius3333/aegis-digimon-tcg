@@ -7,7 +7,7 @@
    lays a token over it, the way players mark the change in paper with an overlay card.
 
    Pure projection over a `Permanent`; every figure is server truth (`originalNameOverride`,
-   `originalColorsOverride`, `baseDP`), re-derived by the engine each continuous-recompute
+   `originalColorsOverride`, `originalDPOverride`), re-derived by the engine each continuous-recompute
    pass from the same ledger entry the rules read. No rules here. */
 
 import { CardColor } from "@aegis/shared";
@@ -18,7 +18,7 @@ export interface PermanentTransformation {
   name: string;
   /** The original colors the effect imposed; empty when only the name changed. */
   colors: readonly CardColor[];
-  /** The original DP the effect imposed, which the engine already published as `baseDP`. */
+  /** The original DP the effect imposed. */
   dp: number;
   /** Card whose art stands in for the token, when we have one for this name. */
   tokenArtCardId?: string;
@@ -45,7 +45,7 @@ export function permanentTransformation(permanent: Permanent): PermanentTransfor
   return {
     name,
     colors,
-    dp: permanent.baseDP,
+    dp: permanent.originalDPOverride || permanent.currentDP,
     ...(tokenArtCardId ? { tokenArtCardId } : {}),
   };
 }
