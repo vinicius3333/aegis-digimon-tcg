@@ -92,7 +92,9 @@
   }
 }
 
-/* The trash throws its top card up with an orange outline and a punch. */
+/* The trash throws its top card up with an orange outline. Keep the card at its
+   pile width: scaling a pile at the edge of the desktop board enlarges the
+   scrollable overflow area and makes the arena switch geometry mid-resolution. */
 .game-pile--effect-source .game-pile__top {
   outline: 2px solid var(--battle-arrow-effect);
   outline-offset: 2px;
@@ -102,13 +104,13 @@
 
 @keyframes battle-effect-trash-rise {
   0% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
   55% {
-    transform: translateY(-26px) scale(1.35);
+    transform: translateY(-26px);
   }
   100% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
