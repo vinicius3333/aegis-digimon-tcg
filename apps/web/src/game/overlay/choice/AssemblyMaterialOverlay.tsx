@@ -52,7 +52,7 @@ export function AssemblyMaterialOverlay({
   onConfirm: (materialInstanceIds: string[]) => void;
   /** Play the card normally at full cost. */
   onSkip: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
 }) {
   const { t } = useTranslation();
   const titleId = useId();
@@ -177,9 +177,11 @@ export function AssemblyMaterialOverlay({
           <Button full variant="secondary" onClick={onSkip}>
             {t("overlay.assemblyPlayWithout")}
           </Button>
-          <Button full variant="ghost" onClick={onCancel}>
-            {t("common.cancel")}
-          </Button>
+          {onCancel ? (
+            <Button full variant="ghost" onClick={onCancel}>
+              {t("common.cancel")}
+            </Button>
+          ) : null}
         </div>
         <div className="effect-prompt-family__board-action">
           <DecisionViewBoardButton onOpenBoard={openBoard} />

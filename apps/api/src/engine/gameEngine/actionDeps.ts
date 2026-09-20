@@ -122,7 +122,9 @@ export function resolutionDeps(
         effectKey: collected.effect.effectKey,
         description: collected.effect.description,
         timing: collected.timingLabel ?? EffectTiming[collected.timing ?? timing],
-        ...(collected.printedTiming !== undefined ? { printedTiming: collected.printedTiming } : {}),
+        ...(collected.printedTiming !== undefined || collected.effect.irTrigger !== undefined
+          ? { printedTiming: collected.printedTiming ?? collected.effect.irTrigger }
+          : {}),
         ...(collected.effect.isInherited ? { isInherited: true } : {}),
         // `securityChecked` closes the check AFTER these effects have resolved, so the
         // client needs engine to hold the announcement until the reveal has been shown.

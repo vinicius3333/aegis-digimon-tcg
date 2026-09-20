@@ -152,6 +152,7 @@ function buildSeatScopedApi(
         differentColors?: boolean;
         distinctCardIds?: boolean;
         distinctNames?: boolean;
+        assemblyCardId?: string;
       },
     ): Promise<string[]> {
       const response = await manager.request({
@@ -171,6 +172,7 @@ function buildSeatScopedApi(
           differentColors: opts.differentColors,
           distinctCardIds: opts.distinctCardIds,
           distinctNames: opts.distinctNames,
+          assemblyCardId: opts.assemblyCardId,
           ...provenance(ctx),
         },
       });

@@ -525,6 +525,8 @@ export interface DecisionRequest {
      * seat needs to tell apart before answering.
      */
     purpose?: "cost";
+    /** Effect-driven play awaiting the existing Assembly material picker for this card. */
+    assemblyCardId?: string;
   };
 }
 

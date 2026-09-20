@@ -4,11 +4,16 @@
    over a lit field — and everything else is asked in the dialog. The pill is the other
    half of the same idea: the opponent has a question open and the viewer is waiting. */
 
-import type { DecisionRequest, DecisionResponse, Permanent } from "@aegis/shared";
+import { assemblyRequirementFor, type DecisionRequest, type DecisionResponse, type Permanent } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../../BoardDecisionRail";
 import { decisionPermanentDetails, decisionSourceCounts, type CandidateZone } from "../../decisionModel";
-import { DecisionOverlay, playerFacingEffectClause, playerFacingPromptText } from "../../overlay";
+import {
+  AssemblyMaterialOverlay,
+  DecisionOverlay,
+  playerFacingEffectClause,
+  playerFacingPromptText,
+} from "../../overlay";
 import type { TriggerDetail } from "../../overlay";
 
 export function DecisionPrompts({
@@ -58,9 +63,12 @@ export function DecisionPrompts({
     : undefined;
   const boardSelectionKind =
     decision?.kind === "selectCards" || decision?.kind === "chooseTargets" ? decision.kind : undefined;
+  const assemblyCardId = decision?.kind === "selectCards" ? decision.options?.assemblyCardId : undefined;
+  const assemblyRequirement = assemblyCardId ? assemblyRequirementFor(assemblyCardId)?.[0] : undefined;
+  const isAssemblyDecision = assemblyCardId !== undefined && assemblyRequirement !== undefined;
   return (
     <>
-      {decision && decision.kind !== "mulligan" && !answerOnBoard
+      {decision && decision.kind !== "mulligan" && !answerOnBoard && !isAssemblyDecision
         ? (() => {
             const sourceCounts = decisionSourceCounts(permanents);
             const permanentDetails = decisionPermanentDetails(permanents);
@@ -91,7 +99,7 @@ export function DecisionPrompts({
           })()
         : null}
 
-      {decision && answerOnBoard && boardSelectionKind ? (
+      {decision && answerOnBoard && boardSelectionKind && !isAssemblyDecision ? (
         <BoardSelectionRail
           fieldSelection={candidates.some(
             (candidate) => candidate.zone === "battle" || candidate.zone === "opponentBattle",
@@ -112,6 +120,20 @@ export function DecisionPrompts({
           onConfirm={() => onRespond({ kind: boardSelectionKind, instanceIds: picks })}
           onNoSelection={() => onRespond({ kind: boardSelectionKind, instanceIds: [] })}
           onOpenDialog={onOpenDialog}
+        />
+      ) : null}
+
+      {decision?.kind === "selectCards" && assemblyCardId && assemblyRequirement ? (
+        <AssemblyMaterialOverlay
+          playingCardId={assemblyCardId}
+          requirement={assemblyRequirement}
+          candidates={candidates.flatMap((candidate) =>
+            candidate.cardId
+              ? [{ instanceId: candidate.instanceId, cardId: candidate.cardId, artId: candidate.artId }]
+              : [],
+          )}
+          onConfirm={(instanceIds) => onRespond({ kind: "selectCards", instanceIds })}
+          onSkip={() => onRespond({ kind: "selectCards", instanceIds: [] })}
         />
       ) : null}
 

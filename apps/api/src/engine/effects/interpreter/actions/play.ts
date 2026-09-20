@@ -896,6 +896,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             candidates: materialCandidates.map((candidate) => candidate.instanceId),
             min: 0,
             max: requiredCount,
+            assemblyCardId: playedCard.cardId,
           });
           const selectedDefinitions = selected
             .map((selectedId) => materialCandidates.find((candidate) => candidate.instanceId === selectedId))

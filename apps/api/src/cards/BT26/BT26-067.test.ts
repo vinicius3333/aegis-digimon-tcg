@@ -165,6 +165,53 @@ describe("BT26-067 Wizardmon", () => {
     await loop;
   });
 
+  it("asks for optional BT26-073 Assembly materials in a dedicated trash selection", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-067", as: "wizardmon" },
+          { card: "BT1-045", as: "yellowDigimon" },
+        ],
+        trash: [
+          { card: "BT26-073", as: "dark" },
+          { card: "BT26-069", as: "assemblyMaterial" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { deck: ["BT1-011", "BT1-012"] },
+    });
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 2;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision !== undefined);
+    expect(s.state.pendingDecision).toMatchObject({
+      kind: "selectCards",
+    });
+    expect(JSON.parse(s.state.pendingDecision!.payloadJson)).toMatchObject({
+      candidateInstanceIds: [s.inst("assemblyMaterial").instanceId],
+      min: 0,
+      max: 1,
+      assemblyCardId: "BT26-073",
+    });
+    expect(
+      s.events.find((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT26-067"),
+    ).toMatchObject({ timing: "OnEndTurn", printedTiming: "EndOfYourTurn" });
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("may play BT26-073 without Assembly when the material selection is declined", async () => {
     const s = setupEngine({
       0: {
@@ -193,7 +240,11 @@ describe("BT26-067 Wizardmon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "selectCards" &&
+        JSON.parse(s.state.pendingDecision.payloadJson).assemblyCardId === "BT26-073",
+    );
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

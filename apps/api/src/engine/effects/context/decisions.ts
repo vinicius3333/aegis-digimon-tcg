@@ -50,6 +50,7 @@ export interface SeatScopedDecisionApi {
       differentColors?: boolean;
       distinctCardIds?: boolean;
       distinctNames?: boolean;
+      assemblyCardId?: string;
     },
   ): Promise<string[]>;
   /** Arrange every offered card in deck order; the first id is nearest the deck top. */

@@ -297,6 +297,7 @@ function layAegiochusDarkAssemblyScenario(state: GameState, decks: readonly [Dec
     field.forEach((entry) => placePermanent(player, entry));
     if (seat === 0) {
       insertCard(player, Zone.Trash, faceUpCard("dev-aegiochus-dark", "BT26-073", seat));
+      insertCard(player, Zone.Trash, faceUpCard("dev-coronamon", "BT25-008", seat));
       insertCard(player, Zone.Trash, faceUpCard("dev-assembly-material", "BT26-069", seat));
     }
     setSecurityStack(player);

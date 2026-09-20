@@ -63,6 +63,45 @@ function item(id: string): NarrationItem {
   };
 }
 
+it("shows Wizardmon's End of Your Turn clause in the effect toast", () => {
+  const endTurn: NarrationItem = {
+    id: "wizardmon-end-turn",
+    side: Side.Viewer,
+    batchId: "batch",
+    createdAt: 0,
+    notice: {
+      id: "wizardmon-end-turn",
+      side: Side.Viewer,
+      fromSecurity: false,
+      createdAt: 0,
+      body: {
+        variant: "effect",
+        cardId: "BT26-067",
+        timing: "EndOfYourTurn",
+        description:
+          "[End of Your Turn] If you have a blue or yellow Digimon, by returning this Digimon to the bottom of the deck, you may play 1 red or blue [Iliad] trait Digimon card from your trash with the cost reduced by 4.",
+      },
+    },
+  };
+
+  render(
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map([[endTurn.id, endTurn]])}
+        nowMs={0}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>,
+  );
+
+  expect(screen.getByText("End of Your Turn")).toBeTruthy();
+  expect(document.querySelector(".match-notice__text")?.textContent).toMatch(
+    /^\[End of Your Turn\].*cost reduced by 4\.$/,
+  );
+});
+
 /* The portrait column collapses whole: the accordion stands in for every record until the
    viewer opens it, so the band is all the board carries. */
 it("collapses the whole portrait column into the accordion", () => {
