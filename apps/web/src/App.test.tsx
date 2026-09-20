@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { AegisClient, cardEffectsLabCardId, withAccountAvatar } from "./App";
+import { AegisClient, cardEffectsLabCardId, initialAppRoute, withAccountAvatar } from "./App";
 import { I18nProvider } from "./i18n";
 
 function setViewportWidth(width: number): void {
@@ -39,6 +39,17 @@ describe("account avatar identity", () => {
       avatarId: null,
       avatarUrl: null,
     });
+  });
+});
+
+describe("game reload routing", () => {
+  it("resumes a game route only when the tab still owns a reconnectable seat", () => {
+    expect(initialAppRoute({ pathname: "/play/game", invitedRoomCode: undefined, hasReconnectSession: true })).toEqual({
+      screen: "game",
+    });
+    expect(initialAppRoute({ pathname: "/play/game", invitedRoomCode: undefined, hasReconnectSession: false })).toEqual(
+      { screen: "lobby" },
+    );
   });
 });
 

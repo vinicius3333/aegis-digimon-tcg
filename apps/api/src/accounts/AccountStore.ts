@@ -10,6 +10,7 @@ import { resolveCardArt } from "@aegis/shared";
 import { Pool, type PoolClient, type PoolConfig } from "pg";
 import { migrations } from "../db/migrations/index.js";
 import { type Queryable, runMigrations } from "../db/migrator.js";
+import { resultEffectIdempotencyKey } from "../rooms/handoff/stage5Primitives.js";
 
 export type Account = {
   id: string;
@@ -467,6 +468,8 @@ export class AccountStore {
       opponentKind?: "human" | "bot";
       opponentDisplayName?: string | null;
       deckSnapshots?: [DeckSnapshot, DeckSnapshot];
+      /** Stable logical result key; physical room IDs remain the default for legacy callers. */
+      resultKey?: string;
     },
     queryable?: PoolClient,
   ): Promise<boolean> {
@@ -477,8 +480,36 @@ export class AccountStore {
       const outcome = input.outcome ?? seatOutcome(input.playerAccountIds, input.winnerAccountId);
       const winnerAccountId =
         input.winnerAccountId ?? (outcome === "draw" ? null : input.playerAccountIds[outcome === "player0" ? 0 : 1]);
+      if (input.resultKey !== undefined) {
+        if (input.resultKey.length === 0) throw new Error("result idempotency key must not be empty");
+        const previous = (
+          await client.query<{
+            mode: "ranked" | "tournament";
+            player0_account_id: string;
+            player1_account_id: string | null;
+            winner_account_id: string | null;
+            reason: string;
+            outcome: MatchOutcomeSeat;
+          }>(
+            "SELECT mode,player0_account_id,player1_account_id,winner_account_id,reason,outcome FROM match_records WHERE result_effect_key=$1",
+            [input.resultKey],
+          )
+        ).rows[0];
+        if (previous) {
+          const sameResult =
+            previous.mode === input.mode &&
+            previous.player0_account_id === input.playerAccountIds[0] &&
+            previous.player1_account_id === input.playerAccountIds[1] &&
+            previous.winner_account_id === winnerAccountId &&
+            previous.reason === input.reason &&
+            previous.outcome === outcome;
+          if (!sameResult) throw new Error("result idempotency key was reused for a different result");
+          return false;
+        }
+      }
+      if ((await client.query("SELECT 1 FROM match_records WHERE room_id=$1", [input.roomId])).rowCount) return false;
       const inserted = await client.query<{ id: string }>(
-        "INSERT INTO match_records (id,room_id,mode,player0_account_id,player1_account_id,winner_account_id,reason,finished_at,opponent_kind,outcome,opponent_display_name) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT (room_id) DO NOTHING RETURNING id",
+        "INSERT INTO match_records (id,room_id,mode,player0_account_id,player1_account_id,winner_account_id,reason,finished_at,opponent_kind,outcome,opponent_display_name,result_effect_key) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT DO NOTHING RETURNING id",
         [
           matchId,
           input.roomId,
@@ -491,6 +522,7 @@ export class AccountStore {
           opponentKind,
           outcome,
           input.opponentDisplayName ?? null,
+          input.resultKey ?? null,
         ],
       );
       if (!inserted.rows[0]) return false;
@@ -841,6 +873,7 @@ export class AccountStore {
     ids: [string, string],
     reason: string,
     decks?: [DeckSnapshot, DeckSnapshot],
+    resultKey?: string,
   ): Promise<boolean> {
     return this.transaction(async (client) => {
       const valid =
@@ -852,7 +885,14 @@ export class AccountStore {
         ).rowCount === 1;
       if (!valid) return false;
       const recorded = await this.recordMatch(
-        { roomId, mode: "tournament", playerAccountIds: ids, reason, deckSnapshots: decks },
+        {
+          roomId,
+          mode: "tournament",
+          playerAccountIds: ids,
+          reason,
+          deckSnapshots: decks,
+          ...(resultKey === undefined ? {} : { resultKey }),
+        },
         client,
       );
       if (recorded) await client.query("UPDATE tournament_matches SET room_id=NULL WHERE id=$1", [matchId]);
@@ -866,6 +906,7 @@ export class AccountStore {
     winner: string | undefined,
     reason: string,
     decks?: [DeckSnapshot, DeckSnapshot],
+    resultKey?: string,
   ): Promise<boolean> {
     if (!winner) return false;
     return this.transaction(async (client) => {
@@ -879,7 +920,15 @@ export class AccountStore {
       const match = (await this.tournamentMatches(row.tournament_id, client)).find((m) => m.id === matchId)!;
       if (
         !(await this.recordMatch(
-          { roomId, mode: "tournament", playerAccountIds: ids, winnerAccountId: winner, reason, deckSnapshots: decks },
+          {
+            roomId,
+            mode: "tournament",
+            playerAccountIds: ids,
+            winnerAccountId: winner,
+            reason,
+            deckSnapshots: decks,
+            resultKey: resultKey ?? resultEffectIdempotencyKey(matchId, matchId, "tournament-result"),
+          },
           client,
         ))
       )

@@ -23,7 +23,7 @@ import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 import { roomCodeFromSearch } from "./roomInvite";
 import { isBattleLabPath } from "./dev/BattleLab";
-import { clearReconnectSession } from "./net/reconnectSession";
+import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
 const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Login })));
@@ -69,6 +69,21 @@ export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount
     avatarId: account?.avatarId ?? null,
     avatarUrl: account?.avatarUrl ?? null,
   };
+}
+
+export function initialAppRoute({
+  pathname,
+  invitedRoomCode,
+  hasReconnectSession,
+}: {
+  pathname: string;
+  invitedRoomCode: string | undefined;
+  hasReconnectSession: boolean;
+}): AppRoute {
+  if (invitedRoomCode) return { screen: "lobby" };
+  const directRoute = routeFromPathname(pathname);
+  if (directRoute?.screen === "game" && !hasReconnectSession) return { screen: "lobby" };
+  return directRoute ?? { screen: "home" };
 }
 
 export function App() {
@@ -206,10 +221,11 @@ export function AegisClient({
   const [invitedRoomCode] = useState(() => (initialScreen ? undefined : roomCodeFromSearch(window.location.search)));
   const [route, setRoute] = useState<AppRoute>(() => {
     if (initialScreen) return { screen: initialScreen };
-    if (invitedRoomCode) return { screen: "lobby" };
-    const directRoute = routeFromPathname(window.location.pathname);
-    if (directRoute?.screen === "game") return { screen: "lobby" };
-    return directRoute ?? { screen: "home" };
+    return initialAppRoute({
+      pathname: window.location.pathname,
+      invitedRoomCode,
+      hasReconnectSession: loadReconnectSession() !== undefined,
+    });
   });
   const [startMode, setStartMode] = useState<StartMode>("casual");
   const [editingDeck, setEditingDeck] = useState<DeckListing | null>(null);
@@ -243,7 +259,11 @@ export function AegisClient({
     if (initialScreen) return;
     const onPopState = () => {
       const nextRoute = routeFromPathname(window.location.pathname);
-      setRoute(nextRoute?.screen === "game" ? { screen: "lobby" } : (nextRoute ?? { screen: "home" }));
+      setRoute(
+        nextRoute?.screen === "game" && !loadReconnectSession()
+          ? { screen: "lobby" }
+          : (nextRoute ?? { screen: "home" }),
+      );
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);

@@ -21,6 +21,41 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.startup-recovery {
+  display: grid;
+  min-height: 100dvh;
+  place-content: center;
+  justify-items: center;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-6);
+  color: var(--ds-fg);
+  text-align: center;
+  background: var(--ds-bg);
+}
+
+.startup-recovery h1,
+.startup-recovery p {
+  margin: 0;
+}
+
+.startup-recovery p {
+  max-width: 32rem;
+  color: var(--ds-fg-muted);
+}
+
+.startup-recovery button {
+  padding: var(--ds-space-3) var(--ds-space-5);
+  color: var(--ds-on-accent);
+  cursor: pointer;
+  background: var(--ds-accent);
+  border: 1px solid var(--ds-accent);
+  border-radius: var(--ds-radius-md);
+}
+
+.startup-recovery button:hover {
+  background: var(--ds-accent-hover);
+}
+
 button,
 input,
 select,

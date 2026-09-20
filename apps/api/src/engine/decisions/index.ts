@@ -51,7 +51,9 @@ interface OpenDecision {
   cardIdByInstance: ReadonlyMap<string, string>;
   /** Trigger identities offered by an `orderTriggers` decision. */
   triggerKeys: readonly string[] | undefined;
-  resolve: (response: DecisionResponse) => void;
+  executionFrame: DecisionExecutionFrame | undefined;
+  expiresAt: number | undefined;
+  resolve: ((response: DecisionResponse) => void) | undefined;
   timer: ReturnType<typeof setTimeout> | undefined;
 }
 
@@ -69,6 +71,8 @@ export interface DecisionManagerOptions {
    * synchronously). Defaults to {@link DEFAULT_DECISION_TIMEOUT_MS} in a server.
    */
   timeoutMs?: number;
+  /** Handoff experiments are opt-in and may never be enabled by a production process. */
+  executionFramesEnabled?: boolean;
 }
 
 /** Default turn timer for an open decision (server). */
@@ -83,11 +87,57 @@ export interface DecisionSpec {
   sourceCardId?: string;
   sourceInstanceId?: string;
   sourcePermanentId?: string;
+  /** Stable continuation data for the small number of waits that can be resumed after handoff. */
+  executionContinuation?: DecisionExecutionContinuation;
 }
+
+export type DecisionJsonValue =
+  | null
+  | boolean
+  | number
+  | string
+  | readonly DecisionJsonValue[]
+  | { readonly [key: string]: DecisionJsonValue };
+
+/** Stable, JSON-only identifier and data needed to continue one supported wait on a new process. */
+export interface DecisionExecutionContinuation {
+  readonly kind: string;
+  readonly version: number;
+  readonly data: { readonly [key: string]: DecisionJsonValue };
+}
+
+/** Serializable description of a pending decision and the execution frame waiting on it. */
+export interface DecisionExecutionFrame {
+  readonly protocol: "aegis-decision-execution-frame";
+  readonly version: 1;
+  readonly request: DecisionRequest;
+  readonly validation: {
+    readonly min: number | null;
+    readonly candidateInstanceIds: readonly string[] | null;
+    readonly distinctCardIds: boolean;
+    readonly distinctNames: boolean;
+    readonly cardIdByInstance: readonly (readonly [string, string])[];
+    readonly triggerKeys: readonly string[] | null;
+  };
+  readonly continuation: DecisionExecutionContinuation;
+  /** Milliseconds left on the source decision timer, or null when timers are disabled. */
+  readonly timeoutRemainingMs: number | null;
+}
+
+export interface DecisionExecutionFrameResult {
+  readonly decisionId: string;
+  readonly continuationKind: string;
+  readonly value: DecisionJsonValue;
+}
+
+/** Pure response-to-next-step mapping; it must return JSON data and never mutate game state. */
+type DecisionExecutionFrameResumer = (frame: DecisionExecutionFrame, response: DecisionResponse) => DecisionJsonValue;
 
 export class DecisionManager {
   private open: OpenDecision | undefined;
   private seq = 0;
+  private readonly executionFrameResumers = new Map<string, DecisionExecutionFrameResumer>();
+  private readonly resumedExecutionFrames = new Map<string, DecisionExecutionFrameResult>();
 
   constructor(
     private readonly state: GameState,
@@ -103,6 +153,122 @@ export class DecisionManager {
   /** The seat that must answer the open decision, if any. */
   get pendingSeat(): Seat | undefined {
     return this.open?.seat;
+  }
+
+  /** Register compiled continuation code by its stable frame kind and version. */
+  registerExecutionFrameResumer(kind: string, version: number, resumer: DecisionExecutionFrameResumer): void {
+    const key = executionFrameResumerKey(kind, version);
+    const registered = this.executionFrameResumers.get(key);
+    if (registered !== undefined && registered !== resumer) {
+      throw new Error(`decision execution frame resumer already registered: ${key}`);
+    }
+    this.executionFrameResumers.set(key, resumer);
+  }
+
+  /** Export the currently open supported decision as plain data, never its resolver closure. */
+  exportExecutionFrame(): DecisionExecutionFrame {
+    const frame = this.open?.executionFrame;
+    if (frame === undefined) {
+      throw new Error("the open decision has no serializable execution continuation");
+    }
+    return {
+      ...frame,
+      timeoutRemainingMs: this.open?.expiresAt === undefined ? null : Math.max(0, this.open.expiresAt - Date.now()),
+      request: {
+        ...frame.request,
+        ...(frame.request.options !== undefined ? { options: structuredClone(frame.request.options) } : {}),
+      },
+      validation: {
+        ...frame.validation,
+        candidateInstanceIds:
+          frame.validation.candidateInstanceIds === null ? null : [...frame.validation.candidateInstanceIds],
+        cardIdByInstance: frame.validation.cardIdByInstance.map(([instanceId, cardId]) => [instanceId, cardId]),
+        triggerKeys: frame.validation.triggerKeys === null ? null : [...frame.validation.triggerKeys],
+      },
+      continuation: structuredClone(frame.continuation),
+    };
+  }
+
+  /** Restore a pending decision without reconstructing its source Promise or resolver closure. */
+  restoreExecutionFrame(frame: DecisionExecutionFrame): void {
+    if (!this.executionFramesEnabled) throw new Error("decision execution frames are disabled");
+    assertDecisionExecutionFrame(frame);
+    if (this.open !== undefined) throw new Error("cannot restore over an open decision");
+    const resumerKey = executionFrameResumerKey(frame.continuation.kind, frame.continuation.version);
+    const resumer = this.executionFrameResumers.get(resumerKey);
+    if (resumer === undefined) {
+      throw new Error(`unsupported decision execution continuation: ${resumerKey}`);
+    }
+    try {
+      // Resumers are pure continuation mappings. Preflight here so corrupt/unsupported
+      // frame data cannot consume the player's answer or leave a restored prompt stranded.
+      const preflightResult = resumer(frame, safeDefault(frame.request.kind));
+      if (!isJsonValue(preflightResult)) throw new Error("non-serializable continuation result");
+    } catch {
+      throw new Error(`invalid decision execution continuation frame: ${resumerKey}`);
+    }
+
+    const request = structuredClone(frame.request);
+    const payloadJson = request.options === undefined ? "" : JSON.stringify(request.options);
+    const currentPending = this.state.pendingDecision;
+    if (
+      currentPending !== undefined &&
+      (currentPending.decisionId !== request.decisionId ||
+        currentPending.seat !== request.seat ||
+        currentPending.kind !== request.kind ||
+        currentPending.promptText !== request.promptText ||
+        currentPending.payloadJson !== payloadJson)
+    ) {
+      throw new Error("decision execution frame does not match restored game state");
+    }
+    if (currentPending === undefined) {
+      const pending = new PendingDecision();
+      pending.decisionId = request.decisionId;
+      pending.seat = request.seat;
+      pending.kind = request.kind;
+      pending.promptText = request.promptText;
+      pending.payloadJson = payloadJson;
+      this.state.pendingDecision = pending;
+    }
+
+    const timeoutRemainingMs = frame.timeoutRemainingMs;
+    const expiresAt = timeoutRemainingMs === null ? undefined : Date.now() + timeoutRemainingMs;
+    const timer =
+      timeoutRemainingMs === null
+        ? undefined
+        : setTimeout(() => this.resolveOpen(request.decisionId, safeDefault(request.kind)), timeoutRemainingMs);
+    this.open = {
+      decisionId: request.decisionId,
+      seat: request.seat,
+      kind: request.kind,
+      min: frame.validation.min ?? undefined,
+      candidateInstanceIds: frame.validation.candidateInstanceIds ?? undefined,
+      distinctCardIds: frame.validation.distinctCardIds,
+      distinctNames: frame.validation.distinctNames,
+      cardIdByInstance: new Map(frame.validation.cardIdByInstance),
+      triggerKeys: frame.validation.triggerKeys ?? undefined,
+      executionFrame: structuredClone(frame),
+      expiresAt,
+      resolve: undefined,
+      timer,
+    };
+    const sequence = /^dec-(\d+)$/.exec(request.decisionId)?.[1];
+    if (sequence !== undefined) this.seq = Math.max(this.seq, Number(sequence));
+
+    if (timeoutRemainingMs === 0) {
+      queueMicrotask(() => this.resolveOpen(request.decisionId, safeDefault(request.kind)));
+    }
+  }
+
+  private get executionFramesEnabled(): boolean {
+    return this.options.executionFramesEnabled === true && process.env.NODE_ENV !== "production";
+  }
+
+  /** Read a completed serializable continuation after its response was accepted. */
+  takeResumedExecutionFrameResult(decisionId: string): DecisionExecutionFrameResult | undefined {
+    const result = this.resumedExecutionFrames.get(decisionId);
+    this.resumedExecutionFrames.delete(decisionId);
+    return result;
   }
 
   /**
@@ -135,6 +301,14 @@ export class DecisionManager {
       ...(spec.sourcePermanentId !== undefined ? { sourcePermanentId: spec.sourcePermanentId } : {}),
     };
 
+    const executionContinuationKey =
+      this.executionFramesEnabled && spec.executionContinuation !== undefined
+        ? executionFrameResumerKey(spec.executionContinuation.kind, spec.executionContinuation.version)
+        : undefined;
+    if (executionContinuationKey !== undefined && !this.executionFrameResumers.has(executionContinuationKey)) {
+      throw new Error(`unsupported decision execution continuation: ${executionContinuationKey}`);
+    }
+
     // Mirror into synchronized state so the intent-validation gate ("only
     // respondDecision while a decision is open") and the client UI both see it.
     const pending = new PendingDecision();
@@ -147,10 +321,11 @@ export class DecisionManager {
 
     return new Promise<DecisionResponse>((resolve) => {
       const timeoutMs = this.options.timeoutMs ?? 0;
+      const expiresAt = timeoutMs > 0 ? Date.now() + timeoutMs : undefined;
       const timer =
         timeoutMs > 0 ? setTimeout(() => this.resolveOpen(decisionId, safeDefault(spec.kind)), timeoutMs) : undefined;
 
-      this.open = {
+      const open: OpenDecision = {
         decisionId,
         seat: spec.seat,
         kind: spec.kind,
@@ -168,9 +343,29 @@ export class DecisionManager {
           ...(options?.visibleCards ?? []).map((card): [string, string] => [card.instanceId, card.cardId]),
         ]),
         triggerKeys: spec.options?.triggerKeys,
+        executionFrame: undefined,
+        expiresAt,
         resolve,
         timer,
       };
+      if (executionContinuationKey !== undefined && spec.executionContinuation !== undefined) {
+        open.executionFrame = {
+          protocol: "aegis-decision-execution-frame",
+          version: 1,
+          request: structuredClone(req),
+          validation: {
+            min: open.min ?? null,
+            candidateInstanceIds: open.candidateInstanceIds === undefined ? null : [...open.candidateInstanceIds],
+            distinctCardIds: open.distinctCardIds,
+            distinctNames: open.distinctNames,
+            cardIdByInstance: [...open.cardIdByInstance.entries()].map(([instanceId, cardId]) => [instanceId, cardId]),
+            triggerKeys: open.triggerKeys === undefined ? null : [...open.triggerKeys],
+          },
+          continuation: structuredClone(spec.executionContinuation),
+          timeoutRemainingMs: timeoutMs > 0 ? timeoutMs : null,
+        };
+      }
+      this.open = open;
       this.transport.requestDecision(spec.seat, req);
     });
   }
@@ -211,11 +406,107 @@ export class DecisionManager {
   private resolveOpen(decisionId: string, response: DecisionResponse): void {
     const open = this.open;
     if (open === undefined || open.decisionId !== decisionId) return;
+    let frameResult: DecisionExecutionFrameResult | undefined;
+    if (open.executionFrame !== undefined) {
+      const key = executionFrameResumerKey(
+        open.executionFrame.continuation.kind,
+        open.executionFrame.continuation.version,
+      );
+      const resumer = this.executionFrameResumers.get(key);
+      if (resumer === undefined) throw new Error(`unsupported decision execution continuation: ${key}`);
+      const value = resumer(open.executionFrame, response);
+      if (!isJsonValue(value)) throw new Error(`non-serializable decision continuation result: ${key}`);
+      frameResult = {
+        decisionId,
+        continuationKind: key,
+        value,
+      };
+    }
     if (open.timer !== undefined) clearTimeout(open.timer);
     this.open = undefined;
     this.state.pendingDecision = undefined;
-    open.resolve(response);
+    if (frameResult !== undefined) this.resumedExecutionFrames.set(decisionId, frameResult);
+    open.resolve?.(response);
   }
+}
+
+function executionFrameResumerKey(kind: string, version: number): string {
+  return `${kind}@${version}`;
+}
+
+function assertDecisionExecutionFrame(value: unknown): asserts value is DecisionExecutionFrame {
+  if (typeof value !== "object" || value === null) throw new Error("invalid decision execution frame");
+  const frame = value as Partial<DecisionExecutionFrame>;
+  const request = frame.request;
+  const validation = frame.validation;
+  const continuation = frame.continuation;
+  const decisionKinds: readonly string[] = [
+    "optional",
+    "chooseTargets",
+    "selectCards",
+    "orderCards",
+    "orderTriggers",
+    "chooseOption",
+    "mulligan",
+  ];
+  if (
+    frame.protocol !== "aegis-decision-execution-frame" ||
+    frame.version !== 1 ||
+    typeof request !== "object" ||
+    request === null ||
+    typeof request.decisionId !== "string" ||
+    (request.seat !== 0 && request.seat !== 1) ||
+    typeof request.kind !== "string" ||
+    !decisionKinds.includes(request.kind) ||
+    typeof request.promptText !== "string" ||
+    typeof validation !== "object" ||
+    validation === null ||
+    (validation.min !== null &&
+      (typeof validation.min !== "number" || !Number.isFinite(validation.min) || validation.min < 0)) ||
+    (validation.candidateInstanceIds !== null &&
+      (!Array.isArray(validation.candidateInstanceIds) ||
+        !validation.candidateInstanceIds.every((id) => typeof id === "string"))) ||
+    typeof validation.distinctCardIds !== "boolean" ||
+    typeof validation.distinctNames !== "boolean" ||
+    !Array.isArray(validation.cardIdByInstance) ||
+    (frame.timeoutRemainingMs !== null &&
+      (typeof frame.timeoutRemainingMs !== "number" ||
+        !Number.isFinite(frame.timeoutRemainingMs) ||
+        frame.timeoutRemainingMs < 0)) ||
+    typeof continuation !== "object" ||
+    continuation === null ||
+    typeof continuation.kind !== "string" ||
+    continuation.kind === "" ||
+    typeof continuation.version !== "number" ||
+    !Number.isSafeInteger(continuation.version) ||
+    continuation.version < 1 ||
+    typeof continuation.data !== "object" ||
+    continuation.data === null ||
+    Array.isArray(continuation.data) ||
+    !isJsonValue(continuation.data)
+  ) {
+    throw new Error("invalid decision execution frame");
+  }
+  for (const pair of validation.cardIdByInstance) {
+    if (!Array.isArray(pair) || pair.length !== 2 || typeof pair[0] !== "string" || typeof pair[1] !== "string") {
+      throw new Error("invalid decision execution frame validation data");
+    }
+  }
+  if (
+    validation.triggerKeys !== null &&
+    (!Array.isArray(validation.triggerKeys) || !validation.triggerKeys.every((key) => typeof key === "string"))
+  ) {
+    throw new Error("invalid decision execution frame validation data");
+  }
+}
+
+function isJsonValue(value: unknown): value is DecisionJsonValue {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return true;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every(isJsonValue);
+  if (typeof value !== "object") return false;
+  const prototype = Object.getPrototypeOf(value);
+  return (prototype === Object.prototype || prototype === null) && Object.values(value).every(isJsonValue);
 }
 
 /** Reject duplicate card names before resolving the prompt, preserving the chance to retry. */

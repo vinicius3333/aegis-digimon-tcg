@@ -15,6 +15,9 @@ import { accountAdmin } from "./013-account-admin.js";
 import { accountDisplayNameChange } from "./014-account-display-name-change.js";
 
 import { deckCardArts } from "./015-deck-card-arts.js";
+import { roomHandoffPersistence } from "./016-room-handoff-persistence.js";
+import { handoffEffects } from "./017-handoff-effects.js";
+import { roomResumeCredentials } from "./018-room-resume-credentials.js";
 
 export const migrations: readonly Migration[] = [
   initialSchema,
@@ -32,4 +35,7 @@ export const migrations: readonly Migration[] = [
   accountAdmin,
   accountDisplayNameChange,
   deckCardArts,
+  roomHandoffPersistence,
+  handoffEffects,
+  roomResumeCredentials,
 ];

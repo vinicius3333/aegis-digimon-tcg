@@ -74,8 +74,9 @@ describe("deployment manifest", () => {
 
   it("aborts a new-room manifest load after scheduling a stale-bundle refresh", async () => {
     const replace = vi.fn();
-    const fetcher = vi.fn(
-      async () =>
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
             version: 1,
@@ -85,7 +86,8 @@ describe("deployment manifest", () => {
           }),
           { status: 200, headers: { "content-type": "application/json" } },
         ),
-    );
+      )
+      .mockResolvedValueOnce(new Response("<!doctype html>", { headers: { "content-type": "text/html" } }));
 
     await expect(
       loadCurrentDeploymentManifest({
@@ -140,8 +142,9 @@ describe("deployment manifest", () => {
 
   it("replaces a stale bundle navigation with the active revision", async () => {
     const replace = vi.fn();
-    const fetcher = vi.fn(
-      async () =>
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
             version: 1,
@@ -151,7 +154,8 @@ describe("deployment manifest", () => {
           }),
           { status: 200, headers: { "content-type": "application/json" } },
         ),
-    );
+      )
+      .mockResolvedValueOnce(new Response("<!doctype html>", { headers: { "content-type": "text/html" } }));
 
     await expect(
       synchronizeDeploymentRevision({
@@ -171,6 +175,43 @@ describe("deployment manifest", () => {
         "x-aegis-web-revision": "old-sha",
       },
     });
+    expect(fetcher).toHaveBeenCalledWith("https://aegis-digi.online/lobby?aegis-revision=new-web-sha", {
+      cache: "no-store",
+      signal: expect.any(AbortSignal),
+      headers: { accept: "text/html" },
+    });
+  });
+
+  it("keeps the current UI mounted when the replacement HTML is unavailable", async () => {
+    const replace = vi.fn();
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            version: 1,
+            webRevision: "new-web-sha",
+            active: { slot: "g-222222222222", revision: "api-sha" },
+            draining: [],
+          }),
+          { headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response('{"error":"Deployment routing unavailable"}', {
+          status: 503,
+          headers: { "content-type": "application/json" },
+        }),
+      );
+
+    await expect(
+      synchronizeDeploymentRevision({
+        bundleRevision: "old-sha",
+        fetcher,
+        navigation: { href: "https://aegis-digi.online/play/game", replace },
+      }),
+    ).rejects.toThrow("Deployment update unavailable (503)");
+    expect(replace).not.toHaveBeenCalled();
   });
 
   it("keeps rendering when the bundle already matches the active revision", async () => {

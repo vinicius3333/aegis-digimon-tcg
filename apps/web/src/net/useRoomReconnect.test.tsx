@@ -19,7 +19,13 @@ vi.mock("./client", () => ({
   createPrivate: vi.fn(),
   joinPrivateByCode: vi.fn(),
   reconnect: (...args: unknown[]) => reconnect(...args),
+  resumeReconnectSession: (session: { reconnectionToken: string; slot: string }) =>
+    reconnect(session.reconnectionToken, session.slot),
   connectionSlot: () => "legacy",
+  roomHandoffIdentity: () => undefined,
+  roomHandoffEnabled: () => false,
+  updateRoomHandoffIdentity: () => undefined,
+  reconcileHandoffCommandReceipt: () => false,
   flushIntents: vi.fn(),
   clearPendingIntents: vi.fn(),
   sendIntent: vi.fn(),
@@ -100,6 +106,7 @@ describe("useRoom reconnection token persistence", () => {
       roomId: "room-1",
       slot: "legacy",
       savedAt: Date.now(),
+      logicalSession: { gameId: "logical-game-1", ownerEpoch: 7 },
     });
     const resumed = fakeRoom("room-1");
     reconnect.mockResolvedValue(resumed.room);
@@ -110,26 +117,32 @@ describe("useRoom reconnection token persistence", () => {
     await waitFor(() => expect(result.current.status).toBe("connected"));
     expect(reconnect).toHaveBeenCalledWith("room-1:token", "legacy");
     expect(joinOrCreate).not.toHaveBeenCalled();
+    expect(loadReconnectSession()?.logicalSession).toEqual({ gameId: "logical-game-1", ownerEpoch: 7 });
   });
 
-  it("falls back to a new match when the persisted token is no longer valid", async () => {
+  it("retries the original persisted session instead of matchmaking after a transient reload failure", async () => {
     saveReconnectSession({
-      reconnectionToken: "gone:token",
-      roomId: "gone",
+      reconnectionToken: "room-1:token",
+      roomId: "room-1",
       slot: "legacy",
       savedAt: Date.now(),
     });
-    reconnect.mockRejectedValue(new Error("room not found"));
-    const joined = fakeRoom("room-2");
-    joinOrCreate.mockResolvedValue(joined.room);
+    const resumed = fakeRoom("room-1");
+    reconnect.mockRejectedValueOnce(new Error("gateway unavailable")).mockResolvedValueOnce(resumed.room);
 
-    const { result } = renderHook(() => useRoom(OPTIONS));
+    const { result, rerender } = renderHook(({ options }) => useRoom(options), {
+      initialProps: { options: OPTIONS },
+    });
 
-    await waitFor(() => expect(result.current.status).toBe("connected"));
-    expect(reconnect).toHaveBeenCalledTimes(1);
-    expect(joinOrCreate).toHaveBeenCalledTimes(1);
-    expect(loadReconnectSession()).toMatchObject({ roomId: "room-2" });
-  });
+    rerender({ options: { ...OPTIONS, displayName: "Hydrated account name" } });
+
+    await waitFor(() => expect(result.current.status).toBe("connected"), { timeout: 2_500 });
+    expect(reconnect).toHaveBeenCalledTimes(2);
+    expect(reconnect).toHaveBeenNthCalledWith(1, "room-1:token", "legacy");
+    expect(reconnect).toHaveBeenNthCalledWith(2, "room-1:token", "legacy");
+    expect(joinOrCreate).not.toHaveBeenCalled();
+    expect(loadReconnectSession()).toMatchObject({ roomId: "room-1" });
+  }, 3_000);
 
   it("forgets the session once the match is over", async () => {
     const joined = fakeRoom("room-1");

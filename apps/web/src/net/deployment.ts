@@ -8,6 +8,10 @@ export interface DeploymentRevision {
 export interface DeploymentManifest {
   version: 1;
   webRevision?: string;
+  capabilities?: {
+    /** Cross-process room ownership is opt-in; absent means the current reconnect protocol. */
+    liveRoomHandoff: boolean;
+  };
   active: DeploymentRevision;
   draining: DeploymentRevision[];
 }
@@ -47,6 +51,7 @@ export function parseDeploymentManifest(input: unknown): DeploymentManifest {
     !isRecord(input) ||
     input.version !== 1 ||
     (input.webRevision !== undefined && !isSafeRevision(input.webRevision)) ||
+    (input.capabilities !== undefined && !isDeploymentCapabilities(input.capabilities)) ||
     !isRevision(input.active) ||
     !Array.isArray(input.draining)
   ) {
@@ -59,9 +64,14 @@ export function parseDeploymentManifest(input: unknown): DeploymentManifest {
   return {
     version: 1,
     ...(typeof input.webRevision === "string" ? { webRevision: input.webRevision } : {}),
+    ...(input.capabilities !== undefined ? { capabilities: input.capabilities } : {}),
     active: input.active,
     draining,
   };
+}
+
+function isDeploymentCapabilities(value: unknown): value is DeploymentManifest["capabilities"] {
+  return isRecord(value) && typeof value.liveRoomHandoff === "boolean";
 }
 
 export async function loadDeploymentManifest(
@@ -97,7 +107,7 @@ export async function synchronizeDeploymentRevision({
   if (!bundleRevision || bundleRevision === "development") return true;
 
   const manifest = await loadDeploymentManifest(fetcher, bundleRevision);
-  return ensureDeploymentRevision({ manifest, bundleRevision, navigation });
+  return ensureDeploymentRevision({ manifest, bundleRevision, navigation, fetcher });
 }
 
 /** Load the routing decision and abort a new-room operation when its bundle is stale. */
@@ -111,21 +121,23 @@ export async function loadCurrentDeploymentManifest({
   navigation: NavigationLike;
 }): Promise<DeploymentManifest> {
   const manifest = await loadDeploymentManifest(fetcher, bundleRevision);
-  if (!ensureDeploymentRevision({ manifest, bundleRevision, navigation })) {
+  if (!(await ensureDeploymentRevision({ manifest, bundleRevision, navigation, fetcher }))) {
     throw new DeploymentRefreshScheduledError();
   }
   return manifest;
 }
 
-function ensureDeploymentRevision({
+async function ensureDeploymentRevision({
   manifest,
   bundleRevision,
   navigation,
+  fetcher,
 }: {
   manifest: DeploymentManifest;
   bundleRevision: string | undefined;
   navigation: NavigationLike;
-}): boolean {
+  fetcher: typeof fetch;
+}): Promise<boolean> {
   const currentWebRevision = manifest.webRevision ?? manifest.active.revision;
   if (!bundleRevision || bundleRevision === "development" || currentWebRevision === bundleRevision) return true;
 
@@ -134,6 +146,19 @@ function ensureDeploymentRevision({
     throw new Error("The current web version does not match the active deployment");
   }
   reloadUrl.searchParams.set("aegis-revision", currentWebRevision);
+
+  // Never replace a working application with an edge/gateway error document.
+  // Mobile browsers keep that failed top-level navigation on screen indefinitely,
+  // which used to turn a short deploy outage into a permanent white page. Prove
+  // that the new HTML is available before handing navigation to the browser.
+  const response = await fetcher(reloadUrl.toString(), {
+    cache: "no-store",
+    signal: AbortSignal.timeout(MANIFEST_TIMEOUT_MS),
+    headers: { accept: "text/html" },
+  });
+  if (!response.ok || !response.headers.get("content-type")?.includes("text/html")) {
+    throw new Error(`Deployment update unavailable (${response.status})`);
+  }
   navigation.replace(reloadUrl.toString());
   return false;
 }

@@ -658,6 +658,104 @@ describe("BotPlayer action pacing and player attacks", () => {
   });
 });
 
+describe("BotPlayer handoff boundary", () => {
+  it("restores a bot dormant and resumes the same policy choice only under the destination epoch", async () => {
+    const sourceFixture = botState();
+    const baselineFixture = botState();
+    const source = new BotPlayer(1, sourceFixture.state, () => ({ ok: true }), {
+      handoffEnabled: true,
+      seed: 41,
+      thinkDelay: () => Promise.resolve(),
+    });
+    const frame = source.suspendForHandoff({
+      gameId: "logical-game-1",
+      ownerEpoch: 2,
+      participantId: "bot-participant-1",
+      connectedClientSeats: [],
+    });
+    expect(frame.connectedClientSeats).toEqual([]);
+    expect(frame.bots[0]?.pendingThinkMs).toBeNull();
+    expect(frame.activation).toBe("dormant");
+
+    const resumedIntents: Intent[] = [];
+    const resumed = BotPlayer.restoreDormant({
+      roster: JSON.parse(JSON.stringify(frame)),
+      seat: 1,
+      state: sourceFixture.state,
+      sendIntent: (intent) => {
+        resumedIntents.push(intent);
+        return { ok: true };
+      },
+      options: { thinkDelay: () => Promise.resolve() },
+    });
+    resumed.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    expect(resumedIntents).toEqual([]);
+    expect(() => resumed.activateAfterHandoff({ gameId: "logical-game-1", ownerEpoch: 1 })).toThrow(
+      "bot roster does not match the current owner epoch",
+    );
+    expect(resumed.activateAfterHandoff({ gameId: "logical-game-1", ownerEpoch: 2 })).toBe(true);
+
+    const baselineIntents: Intent[] = [];
+    const baseline = new BotPlayer(
+      1,
+      baselineFixture.state,
+      (intent) => {
+        baselineIntents.push(intent);
+        return { ok: true };
+      },
+      { seed: 41, thinkDelay: () => Promise.resolve() },
+    );
+    baseline.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    for (let turn = 0; turn < 5; turn++) await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(resumedIntents).toEqual(baselineIntents);
+    expect(resumedIntents).toHaveLength(1);
+  });
+
+  it("keeps experimental bot handoff disabled unless the runtime opts in", () => {
+    const { state } = botState();
+    const bot = new BotPlayer(1, state, () => ({ ok: true }));
+    expect(() =>
+      bot.suspendForHandoff({
+        gameId: "logical-game-1",
+        ownerEpoch: 2,
+        participantId: "bot-1",
+        connectedClientSeats: [],
+      }),
+    ).toThrow("bot handoff capability is disabled");
+  });
+
+  it("resumes the source driver only for the matching durable abort", async () => {
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      { handoffEnabled: true, thinkDelay: () => Promise.resolve() },
+    );
+    bot.suspendForHandoff({
+      gameId: "logical-game-1",
+      ownerEpoch: 2,
+      participantId: "bot-participant-1",
+      connectedClientSeats: [],
+    });
+    expect(() =>
+      bot.resumeAfterAbortedHandoff({ gameId: "logical-game-1", ownerEpoch: 1, transferStatus: "completed" }),
+    ).toThrow("aborted bot transfer does not match the source owner epoch");
+    expect(() =>
+      bot.resumeAfterAbortedHandoff({ gameId: "logical-game-1", ownerEpoch: 0, transferStatus: "aborted" }),
+    ).toThrow("aborted bot transfer does not match the source owner epoch");
+    expect(bot.resumeAfterAbortedHandoff({ gameId: "logical-game-1", ownerEpoch: 1, transferStatus: "aborted" })).toBe(
+      true,
+    );
+    for (let turn = 0; turn < 5; turn++) await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(intents).toHaveLength(1);
+  });
+});
+
 /**
  * Observed in match fd8ad770-b50f-40ef-ba29-94f51d697c13: the last security check of the
  * match froze the board for 5.2 seconds. The reveal was up, the engine was holding the

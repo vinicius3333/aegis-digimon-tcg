@@ -171,6 +171,29 @@ async function resultOf(kind: DeadlineKind): Promise<string | null | undefined> 
   return (await fixture.queue.find(kind, fixture.matchId))?.result;
 }
 
+async function beginFrozenHandoff(matchId: string): Promise<{ sessionId: string; transferId: string }> {
+  const sessionId = `session-${matchId}`;
+  const transferId = `transfer-${matchId}`;
+  await fixture.accounts.pool.query(
+    `INSERT INTO room_sessions
+       (id,mode,status,participants,tournament_match_id,owner_generation_id,owner_process_id,owner_room_id,created_at,updated_at)
+     VALUES ($1,'tournament','active','[]',$2,'generation-a','process-a','room-a',$3,$3)`,
+    [sessionId, matchId, PUBLISHED_AT],
+  );
+  await fixture.accounts.pool.query(
+    `INSERT INTO room_transfers
+       (id,session_id,from_generation_id,from_process_id,from_room_id,to_generation_id,to_process_id,to_room_id,
+        from_owner_epoch,to_owner_epoch,status,started_at,updated_at)
+     VALUES ($1,$2,'generation-a','process-a','room-a','generation-b','process-b','room-b',1,2,'frozen',$3,$3)`,
+    [transferId, sessionId, PUBLISHED_AT],
+  );
+  await fixture.accounts.pool.query("UPDATE room_sessions SET active_transfer_id=$1 WHERE id=$2", [
+    transferId,
+    sessionId,
+  ]);
+  return { sessionId, transferId };
+}
+
 beforeEach(async () => {
   fixture = await build();
 });
@@ -204,6 +227,22 @@ describe("the published timeline", () => {
 });
 
 describe("the due boundary", () => {
+  it("releases a due penalty during handoff freeze and applies it exactly once after transfer", async () => {
+    await publishRound();
+    await arrive(fixture.alice, PUBLISHED_AT);
+    const { sessionId, transferId } = await beginFrozenHandoff(fixture.matchId);
+
+    expect(await fixture.scheduler.processDueDeadlines(GAME_LOSS_AT)).toBe(0);
+    expect(await resultOf("join_game_loss")).toBeNull();
+    expect(await fixture.series.seriesForMatch(fixture.matchId)).toBeUndefined();
+
+    await fixture.accounts.pool.query("UPDATE room_transfers SET status='completed' WHERE id=$1", [transferId]);
+    await fixture.accounts.pool.query("UPDATE room_sessions SET active_transfer_id=NULL WHERE id=$1", [sessionId]);
+    expect(await fixture.scheduler.processDueDeadlines(GAME_LOSS_AT + 1)).toBe(1);
+    expect(await fixture.scheduler.processDueDeadlines(GAME_LOSS_AT + 2)).toBe(0);
+    expect((await fixture.series.seriesForMatch(fixture.matchId))?.wins).toEqual([1, 0]);
+  });
+
   it("leaves a rung alone one millisecond early and fires it exactly on the instant", async () => {
     await publishRound();
     await arrive(fixture.alice, PUBLISHED_AT);

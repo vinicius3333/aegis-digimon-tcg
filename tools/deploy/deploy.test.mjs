@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -120,6 +120,107 @@ test("cleanup command leaves a busy retiring process and manifest intact, and re
   assert.equal(calls.filter((args) => args.includes("down")).length, 2);
   assert.ok(calls.some((args) => args.includes("down") && args.includes("aegis-blue")));
   assert.deepEqual(JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8")).draining, []);
+});
+
+test("cleanup refuses to stop a handoff generation while authoritative rooms remain", (t) => {
+  const root = mkdtempSync(`${tmpdir()}/aegis-handoff-cleanup-`);
+  t.after(() => rmSync(root, { recursive: true }));
+  mkdirSync(`${root}/bin`);
+  mkdirSync(`${root}/state/routing`, { recursive: true });
+  mkdirSync(`${root}/state/slots/blue`, { recursive: true });
+  writeFileSync(`${root}/state/admin-token`, "test-private-token-at-least-32-characters");
+  writeFileSync(`${root}/state/slots/blue/compose.json`, "{}");
+  writeFileSync(
+    `${root}/state/routing/manifest.json`,
+    JSON.stringify({
+      version: 1,
+      capabilities: { liveRoomHandoff: true },
+      active: { slot: "green", revision: "v2" },
+      draining: [{ slot: "blue", revision: "v1" }],
+    }),
+  );
+  writeFileSync(
+    `${root}/bin/docker`,
+    `#!/usr/bin/env node
+const fs=require('node:fs');const args=process.argv.slice(2);fs.appendFileSync(process.env.TEST_DOCKER_LOG,JSON.stringify(args)+'\\n');const script=args[args.indexOf('-e')+1]||'';
+if(args.includes('exec')&&script.includes('/deployment/handoff/cleanup-safety')) console.log(JSON.stringify({slot:'blue',ownershipVerified:true,authoritativeRooms:1,inFlightTransfers:0,pendingTasks:0}));
+else if(args.includes('exec')&&script.includes('/deployment/status')) console.log(JSON.stringify({slot:'blue',revision:'v1',acceptingNewRooms:false,activeRooms:0,connectedClients:0}));
+else if(args.includes('exec')) console.log(JSON.stringify({slot:'blue',revision:'v1',acceptingNewRooms:false,activeRooms:0,connectedClients:0}));
+`,
+    { mode: 0o755 },
+  );
+
+  const result = spawnSync(
+    process.execPath,
+    [fileURLToPath(new URL("./deploy.mjs", import.meta.url)), "cleanup", "--state", `${root}/state`],
+    {
+      env: {
+        ...process.env,
+        PATH: `${root}/bin:${process.env.PATH}`,
+        TEST_DOCKER_LOG: `${root}/calls.jsonl`,
+      },
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /still owns rooms/);
+  const calls = readFileSync(`${root}/calls.jsonl`, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+  assert.ok(calls.some((args) => args.includes("-e") && args[args.indexOf("-e") + 1].includes("cleanup-safety")));
+  assert.equal(
+    calls.some((args) => args.includes("down")),
+    false,
+  );
+  assert.deepEqual(JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8")).draining, [
+    { slot: "blue", revision: "v1" },
+  ]);
+});
+
+test("handoff prepare CLI remains disabled until the manifest opts in", (t) => {
+  const root = mkdtempSync(`${tmpdir()}/aegis-handoff-disabled-`);
+  t.after(() => rmSync(root, { recursive: true }));
+  mkdirSync(`${root}/bin`);
+  mkdirSync(`${root}/state/routing`, { recursive: true });
+  writeFileSync(`${root}/state/admin-token`, "test-private-token-at-least-32-characters");
+  writeFileSync(
+    `${root}/state/routing/manifest.json`,
+    JSON.stringify({ version: 1, active: { slot: "blue", revision: "v1" }, draining: [] }),
+  );
+  writeFileSync(
+    `${root}/bin/docker`,
+    `#!/usr/bin/env node\nrequire('node:fs').appendFileSync(process.env.TEST_DOCKER_LOG,'invoked\\n');\n`,
+    { mode: 0o755 },
+  );
+  const result = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(new URL("./deploy.mjs", import.meta.url)),
+      "handoff-prepare",
+      "--state",
+      `${root}/state`,
+      "--source-slot",
+      "blue",
+      "--destination-slot",
+      "green",
+      "--migration-id",
+      "migration-disabled",
+    ],
+    {
+      env: {
+        ...process.env,
+        PATH: `${root}/bin:${process.env.PATH}`,
+        TEST_DOCKER_LOG: `${root}/calls.jsonl`,
+      },
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /not enabled by the deployment manifest/);
+  assert.equal(existsSync(`${root}/calls.jsonl`), false);
 });
 
 test("deploy-web atomically publishes static content without touching API generations", (t) => {

@@ -320,8 +320,14 @@ describe("stats segregation", () => {
     await elimination.createBracket({ tournamentId });
     await playOut();
 
-    const records = (await accounts.pool.query("SELECT opponent_kind, mode FROM match_records")).rows;
-    expect(records).toEqual([{ opponent_kind: "human", mode: "tournament" }]);
+    const records = (
+      await accounts.pool.query<{ opponent_kind: string; mode: string; result_effect_key: string }>(
+        "SELECT opponent_kind, mode, result_effect_key FROM match_records",
+      )
+    ).rows;
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({ opponent_kind: "human", mode: "tournament" });
+    expect(records[0]?.result_effect_key).toMatch(/:tournament-result$/);
     const stats = await statsOf(alice.id);
     expect((stats.tournament_wins ?? 0) + (stats.tournament_losses ?? 0)).toBe(1);
   });

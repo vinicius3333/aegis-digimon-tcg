@@ -1,9 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 import { ArraySchema } from "@colyseus/schema";
-import { GameState, PlayerState, type DecisionRequest, type DecisionResponse, type Seat } from "@aegis/shared";
+import {
+  EffectTiming,
+  GameState,
+  PlayerState,
+  type DecisionRequest,
+  type DecisionResponse,
+  type Seat,
+} from "@aegis/shared";
 import { DecisionManager, type DecisionTransport } from "./index.js";
 import { createDecisionApi } from "./decisionApi.js";
 import type { EffectContext } from "../effects/EffectContext.js";
+import { createResolverDecisions } from "./resolverDecisions.js";
+import type { CollectedEffect } from "../effects/collect.js";
 
 function makeState(): GameState {
   const state = new GameState();
@@ -168,7 +177,89 @@ describe("DecisionManager", () => {
     // Options are JSON-encoded into the synchronized PendingDecision payload.
     expect(JSON.parse(state.pendingDecision!.payloadJson)).toEqual({ choices: ["A", "B"] });
   });
+
+  it("exports and restores a real trigger-order wait without carrying its Promise resolver", async () => {
+    const sourceState = makeState();
+    const sourceManager = new DecisionManager(sourceState, recordingTransport().transport, {
+      executionFramesEnabled: true,
+    });
+    const sourceResolver = createResolverDecisions(sourceManager);
+    const choosing = sourceResolver.chooseOrder(
+      0,
+      [collectedEffect("permanent-a", "BT1-010/on-play"), collectedEffect("permanent-b", "BT1-011/on-play")],
+      EffectTiming.OnPlay,
+    );
+    await vi.waitFor(() => expect(sourceManager.hasPending).toBe(true));
+
+    const serialized = JSON.stringify(sourceManager.exportExecutionFrame());
+    const frame = JSON.parse(serialized) as ReturnType<typeof sourceManager.exportExecutionFrame>;
+    const decisionId = frame.request.decisionId;
+    const selectedKey = frame.validation.triggerKeys?.[1];
+    expect(selectedKey).toBeDefined();
+    expect(sourceManager.respond(0, decisionId, { kind: "orderTriggers", order: [selectedKey!] })).toBe(true);
+    const sourceIndex = await choosing;
+    const sourceContinuation = sourceManager.takeResumedExecutionFrameResult(decisionId);
+
+    const destinationState = makeState();
+    const destinationManager = new DecisionManager(destinationState, recordingTransport().transport, {
+      executionFramesEnabled: true,
+    });
+    createResolverDecisions(destinationManager);
+    destinationManager.restoreExecutionFrame(frame);
+
+    expect(destinationState.pendingDecision).toMatchObject({ decisionId, kind: "orderTriggers", seat: 0 });
+    expect(destinationManager.respond(0, decisionId, { kind: "orderTriggers", order: [selectedKey!] })).toBe(true);
+    const destinationContinuation = destinationManager.takeResumedExecutionFrameResult(decisionId);
+
+    expect(sourceIndex).toBe(1);
+    expect(destinationContinuation).toEqual(sourceContinuation);
+    expect(destinationContinuation?.value).toEqual({ selectedTriggerKey: selectedKey, selectedIndex: 1 });
+    expect(destinationState.pendingDecision).toBeUndefined();
+    expect(destinationManager.hasPending).toBe(false);
+  });
+
+  it("keeps execution-frame capture disabled in production even when requested", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    try {
+      const state = makeState();
+      const manager = new DecisionManager(state, recordingTransport().transport, { executionFramesEnabled: true });
+      const resolver = createResolverDecisions(manager);
+      const choosing = resolver.chooseOrder(
+        0,
+        [collectedEffect("permanent-a", "BT1-010/on-play"), collectedEffect("permanent-b", "BT1-011/on-play")],
+        EffectTiming.OnPlay,
+      );
+      await vi.waitFor(() => expect(manager.hasPending).toBe(true));
+
+      expect(() => manager.exportExecutionFrame()).toThrow(/no serializable execution continuation/);
+      const pending = state.pendingDecision!;
+      expect(manager.respond(0, pending.decisionId, { kind: "orderTriggers", order: ["invalid"] })).toBe(false);
+      const triggerKeys = JSON.parse(pending.payloadJson) as { triggerKeys: string[] };
+      expect(
+        manager.respond(0, pending.decisionId, { kind: "orderTriggers", order: [triggerKeys.triggerKeys[0]!] }),
+      ).toBe(true);
+      await expect(choosing).resolves.toBe(0);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
 });
+
+function collectedEffect(instanceId: string, effectKey: string): CollectedEffect {
+  return {
+    source: { cardId: "BT1-010", instanceId } as CollectedEffect["source"],
+    effect: {
+      effectKey,
+      description: effectKey,
+      optional: false,
+      isInherited: false,
+      isSecurity: false,
+      isLinked: false,
+      maxPerTurn: -1,
+    } as CollectedEffect["effect"],
+    timing: EffectTiming.OnPlay,
+  };
+}
 
 describe("createDecisionApi", () => {
   /**
@@ -198,5 +289,45 @@ describe("createDecisionApi", () => {
     expect(sent[0]!.req).toMatchObject({ sourceInstanceId: "tamer-instance", sourcePermanentId: "tamer-permanent" });
     mgr.respond(0, sent[0]!.req.decisionId, { kind: "optional", accept: false });
     await promise;
+  });
+
+  it("leaves selections with context-dependent play-cost budgets outside the frame registry", async () => {
+    const state = makeState();
+    const manager = new DecisionManager(state, recordingTransport().transport, { executionFramesEnabled: true });
+    const api = createDecisionApi(manager);
+    const ctx = {
+      source: {
+        ownerSeat: 0 as Seat,
+        cardId: "BT1-010",
+        instanceId: "effect-source",
+        definition: { nameEn: "Frame boundary" },
+        permanent: () => undefined,
+      },
+      game: {},
+    } as unknown as EffectContext;
+
+    const selectingCards = api.selectCards(ctx, {
+      candidates: ["card-a"],
+      min: 0,
+      max: 1,
+      maxTotalPlayCost: 5,
+    });
+    await vi.waitFor(() => expect(manager.hasPending).toBe(true));
+    expect(() => manager.exportExecutionFrame()).toThrow(/no serializable execution continuation/);
+    const cardDecisionId = state.pendingDecision!.decisionId;
+    expect(manager.respond(0, cardDecisionId, { kind: "selectCards", instanceIds: [] })).toBe(true);
+    await expect(selectingCards).resolves.toEqual([]);
+
+    const selectingPermanents = api.selectPermanents(ctx, {
+      candidates: ["permanent-a"],
+      min: 0,
+      max: 1,
+      maxTotalPlayCost: 5,
+    });
+    await vi.waitFor(() => expect(manager.hasPending).toBe(true));
+    expect(() => manager.exportExecutionFrame()).toThrow(/no serializable execution continuation/);
+    const permanentDecisionId = state.pendingDecision!.decisionId;
+    expect(manager.respond(0, permanentDecisionId, { kind: "chooseTargets", instanceIds: [] })).toBe(true);
+    await expect(selectingPermanents).resolves.toEqual([]);
   });
 });

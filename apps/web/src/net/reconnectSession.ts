@@ -14,11 +14,22 @@ const STORAGE_KEY = "aegis:matchSession";
 /** Matches AegisRoom.RECONNECT_GRACE_SECONDS; past it the server has already resolved the drop. */
 export const RECONNECT_GRACE_MS = 180_000;
 
+/** Stable logical match identity plus the latest owner-fencing epoch observed by this tab. */
+export interface LogicalGameSessionIdentity {
+  gameId: string;
+  ownerEpoch: number;
+}
+
 export interface ReconnectSession {
   reconnectionToken: string;
   roomId: string;
   slot: RoomSlot;
   savedAt: number;
+  /** Present only when a server advertises the live-room handoff protocol. */
+  logicalSession?: LogicalGameSessionIdentity;
+  /** Distinct from Colyseus' transport reconnection token; only used by the owner directory. */
+  resumeCredential?: string;
+  resumeCredentialExpiresAt?: number;
 }
 
 export function isReconnectSessionFresh(session: ReconnectSession, now: number): boolean {
@@ -66,12 +77,43 @@ export function loadReconnectSession(now: number = Date.now()): ReconnectSession
     clearReconnectSession();
     return undefined;
   }
+  if (parsed.logicalSession !== undefined && !isLogicalSessionIdentity(parsed.logicalSession)) {
+    clearReconnectSession();
+    return undefined;
+  }
   const session = parsed as ReconnectSession;
+  let credentialDiscarded = false;
+  if (
+    (session.resumeCredential !== undefined && typeof session.resumeCredential !== "string") ||
+    (session.resumeCredentialExpiresAt !== undefined &&
+      (!Number.isSafeInteger(session.resumeCredentialExpiresAt) || session.resumeCredentialExpiresAt <= 0)) ||
+    (session.resumeCredential !== undefined && session.resumeCredentialExpiresAt === undefined)
+  ) {
+    delete session.resumeCredential;
+    delete session.resumeCredentialExpiresAt;
+    credentialDiscarded = true;
+  } else if (session.resumeCredentialExpiresAt !== undefined && session.resumeCredentialExpiresAt <= now) {
+    delete session.resumeCredential;
+    delete session.resumeCredentialExpiresAt;
+    credentialDiscarded = true;
+  }
   if (!isReconnectSessionFresh(session, now)) {
     clearReconnectSession();
     return undefined;
   }
+  if (credentialDiscarded) saveReconnectSession(session);
   return session;
+}
+
+function isLogicalSessionIdentity(value: unknown): value is LogicalGameSessionIdentity {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const identity = value as Partial<LogicalGameSessionIdentity>;
+  return (
+    typeof identity.gameId === "string" &&
+    /^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$/.test(identity.gameId) &&
+    Number.isSafeInteger(identity.ownerEpoch) &&
+    (identity.ownerEpoch ?? -1) >= 0
+  );
 }
 
 export function clearReconnectSession(): void {

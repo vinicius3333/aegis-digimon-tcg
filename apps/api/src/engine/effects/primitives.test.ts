@@ -25,6 +25,7 @@ import { makeInstance, setupEngine, type BoardSpec, type EngineSetup, type Perma
 import { registerCard, unregisterCard } from "./registry.js";
 import type { EffectContext } from "./EffectContext.js";
 import type { EffectModule } from "./EffectModule.js";
+import { makeRng, shuffleInPlace } from "../setup.js";
 
 // Concrete card ids present in the generated card data (packages/shared cards.json):
 const DIGIMON = "AD1-001"; // Digimon, DP 5000, playCost 5
@@ -63,7 +64,13 @@ interface Harness {
  * laid through the Test Seam's Board Spec — `setupEngine` supplies the seated `GameState`
  * and the alias handles, and the port below is wired over that same state.
  */
-function harness(opts?: { turnSeat?: Seat; memory?: number; board?: BoardSpec; combat?: CombatPort }): Harness {
+function harness(opts?: {
+  turnSeat?: Seat;
+  memory?: number;
+  board?: BoardSpec;
+  combat?: CombatPort;
+  rngForSeat?: PrimitivesEngine["rngForSeat"];
+}): Harness {
   const s = setupEngine(opts?.board);
   const state = s.state;
   state.turnSeat = opts?.turnSeat ?? 0;
@@ -96,6 +103,7 @@ function harness(opts?: { turnSeat?: Seat; memory?: number; board?: BoardSpec; c
     emit: (e) => events.push(e),
     nextPermanentId: () => `perm-${permanentSeq++}`,
     nextInstanceId: () => `tok-${instanceIdSeq++}`,
+    rngForSeat: opts?.rngForSeat,
     memory,
     modifiers: ledger,
     continuous,
@@ -2276,6 +2284,22 @@ describe("primitives: recoverToSecurity", () => {
 });
 
 describe("primitives: shuffleSecurity re-hides face-up cards", () => {
+  it("uses the match's serializable per-seat stream rather than process randomness", () => {
+    const expectedRng = makeRng(73);
+    const security = [DIGIMON, TAMER, OPTION, "BT1-001"];
+    const expected = shuffleInPlace([...security], expectedRng);
+    const actualRng = makeRng(73);
+    const h = harness({
+      board: { 0: { security } },
+      rngForSeat: () => actualRng,
+    });
+
+    h.fx.shuffleSecurity(0);
+
+    expect(h.state.players[0]!.security.map((card) => card.cardId)).toEqual(expected);
+    expect(actualRng.exportState()).toBe(expectedRng.exportState());
+  });
+
   it("publishes one chosen card identity without revealing any surrounding private cards", () => {
     const h = harness();
 

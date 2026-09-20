@@ -3,6 +3,14 @@ import { mkdirSync, readFileSync, writeFileSync, renameSync, existsSync, rmSync,
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isDeploymentSlot, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
+import {
+  createHandoffAdminPort,
+  createJsonHandoffStore,
+  createMigrationId,
+  HANDOFF_ACTIONS,
+  runHandoffController,
+  assertHandoffCleanupSafe,
+} from "./handoff-controller.mjs";
 
 function run(program, args, { capture = false } = {}) {
   return new Promise((resolveResult, reject) => {
@@ -107,7 +115,19 @@ export function restoreComposeEnvironment(environment) {
   );
 }
 
-export async function controller({ action, source, envFile, state, revision }) {
+export async function controller({
+  action,
+  source,
+  envFile,
+  state,
+  revision,
+  sourceSlot,
+  destinationSlot,
+  migrationId,
+  canaryCount,
+  batchSize,
+  concurrencyLimit,
+}) {
   mkdirSync(state, { recursive: true, mode: 0o755 });
   for (const directory of ["routing", "releases", "assets"])
     mkdirSync(`${state}/${directory}`, { recursive: true, mode: 0o755 });
@@ -126,12 +146,16 @@ export async function controller({ action, source, envFile, state, revision }) {
     const slotPath = (slot) => `${state}/slots/${slot}/compose.json`;
     const compose = (slot, args, capture = false) =>
       run("docker", ["compose", "-p", `aegis-${slot}`, "-f", slotPath(slot), ...args], { capture });
-    const admin = async (slot, index, path, method = "GET") => {
-      const script = `fetch('http://127.0.0.1:2567${path}', {method:'${method}',headers:{authorization:'Bearer '+process.env.AEGIS_DEPLOYMENT_ADMIN_TOKEN}}).then(async r=>{if(!r.ok)throw Error('admin request rejected');console.log(JSON.stringify(await r.json()))}).catch(()=>process.exit(1))`;
+    const admin = async (slot, index, path, method = "GET", body) => {
+      const encodedBody = body === undefined ? undefined : Buffer.from(JSON.stringify(body)).toString("base64");
+      const bodyExpression = encodedBody ? `Buffer.from('${encodedBody}','base64').toString()` : "undefined";
+      const script = `const body=${bodyExpression};fetch('http://127.0.0.1:2567${path}', {method:'${method}',headers:{authorization:'Bearer '+process.env.AEGIS_DEPLOYMENT_ADMIN_TOKEN,...(body?{'content-type':'application/json'}:{})},...(body?{body}:{})}).then(async r=>{if(!r.ok)throw Error('admin request rejected');console.log(JSON.stringify(await r.json()))}).catch(()=>process.exit(1))`;
       const raw = await compose(slot, ["exec", "-T", `api${index}`, "node", "-e", script], true);
       return JSON.parse(raw);
     };
     const statuses = (slot) => Promise.all([1, 2, 3].map((index) => admin(slot, index, "/deployment/status")));
+    const readiness = (slot) => Promise.all([1, 2, 3].map((index) => admin(slot, index, "/ready")));
+    const handoffStore = createJsonHandoffStore(`${state}/handoff-transfers.json`);
     const setAccepting = (slot, accepting) =>
       Promise.all(
         [1, 2, 3].map((index) => admin(slot, index, `/deployment/${accepting ? "activate" : "drain"}`, "POST")),
@@ -201,6 +225,11 @@ export async function controller({ action, source, envFile, state, revision }) {
       const manifest = installedManifest();
       if (manifest?.active.slot === slot) throw new Error("Cannot remove the active slot");
       if (!existsSync(slotPath(slot))) return;
+      const handoffFeatureAdvertised = manifest?.capabilities?.liveRoomHandoff === true;
+      const handoffHistory = await handoffStore.hasTransferForSlot(slot);
+      if (handoffFeatureAdvertised || handoffHistory) {
+        assertHandoffCleanupSafe(await admin(slot, 1, "/deployment/handoff/cleanup-safety"), slot);
+      }
       await setAccepting(slot, false);
       assertEmptySlot(await statuses(slot), slot);
       // Every process is closed to creation, including internal creation, before the zero-room check.
@@ -210,6 +239,34 @@ export async function controller({ action, source, envFile, state, revision }) {
         publish({ ...manifest, draining: manifest.draining.filter((entry) => entry.slot !== slot) });
       }
       console.log(`${slot}: empty slot removed; immutable web assets retained`);
+    }
+    const handoffMode = Object.hasOwn(HANDOFF_ACTIONS, action) ? HANDOFF_ACTIONS[action] : undefined;
+    if (handoffMode) {
+      const manifest = installedManifest();
+      if (
+        (handoffMode === "prepare" || handoffMode === "migrate" || handoffMode === "promote") &&
+        manifest?.capabilities?.liveRoomHandoff !== true
+      ) {
+        throw new Error("Live room handoff is not enabled by the deployment manifest; refusing to mutate rooms");
+      }
+      const adminPort = createHandoffAdminPort({
+        request: (slot, path, method, body) => admin(slot, 1, path, method, body),
+        statuses,
+        readiness,
+      });
+      const result = await runHandoffController({
+        mode: handoffMode,
+        migrationId: migrationId ?? (handoffMode === "check" ? createMigrationId() : undefined),
+        sourceSlot,
+        destinationSlot,
+        store: handoffStore,
+        admin: adminPort,
+        canaryCount,
+        batchSize,
+        concurrencyLimit,
+      });
+      console.log(JSON.stringify(result, null, 2));
+      return;
     }
     if (action === "status") {
       const manifest = readManifest(state);
@@ -260,7 +317,11 @@ export async function controller({ action, source, envFile, state, revision }) {
       console.log(`Rolled back to ${previous.revision}; both versions' rooms retained`);
       return;
     }
-    if (action !== "deploy") throw new Error("Expected deploy, deploy-web, status, cleanup, or rollback");
+    if (action !== "deploy") {
+      throw new Error(
+        `Expected deploy, deploy-web, status, cleanup, rollback, or ${Object.keys(HANDOFF_ACTIONS).join(", ")}`,
+      );
+    }
     const before = installedManifest();
     revision ??= await run("git", ["-c", `safe.directory=${source}`, "-C", source, "rev-parse", "HEAD"], {
       capture: true,
@@ -368,6 +429,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     envFile: resolve(option("env-file", `${source}/.env`)),
     state: resolve(option("state", "/opt/aegis-rollout")),
     revision: option("revision"),
+    sourceSlot: option("source-slot"),
+    destinationSlot: option("destination-slot"),
+    migrationId: option("migration-id"),
+    canaryCount: option("canary-count") === undefined ? undefined : Number(option("canary-count")),
+    batchSize: option("batch-size") === undefined ? undefined : Number(option("batch-size")),
+    concurrencyLimit: option("concurrency") === undefined ? undefined : Number(option("concurrency")),
   }).catch((error) => {
     console.error(`[aegis/deploy] ${error.message}`);
     process.exitCode = 1;

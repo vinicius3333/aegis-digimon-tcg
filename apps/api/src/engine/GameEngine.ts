@@ -62,7 +62,13 @@ import type {
   SubTriggerSourceScope,
 } from "./effects/EffectContext.js";
 import { TurnStateMachine } from "./TurnStateMachine.js";
-import { type Rng, type Decklist } from "./setup.js";
+import {
+  exportMatchRngState,
+  restoreMatchRngState,
+  type MatchRngStateFrame,
+  type Rng,
+  type Decklist,
+} from "./setup.js";
 import { MulliganCoordinator } from "./mulligan.js";
 import { mergeRuleDeletions, type PooledRuleDeletion } from "./gameEngine/ruleDeletions.js";
 import { DigivolveSupport } from "./gameEngine/digivolveSupport.js";
@@ -95,6 +101,15 @@ import { buildPrimitives } from "./gameEngine/effectContext.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
+
+export interface GameEngineContinuityFrame {
+  readonly protocol: "aegis-game-engine-continuity";
+  readonly version: 1;
+  readonly permanentSeq: number;
+  readonly instanceSeq: number;
+  readonly windowTokenSeq: number;
+  readonly random: MatchRngStateFrame | null;
+}
 
 /**
  * The brain of a single match. The ONLY object permitted to mutate GameState
@@ -299,6 +314,51 @@ export class GameEngine {
   readonly stagedDecks: (Decklist | undefined)[] = [undefined, undefined];
   /** Per-seat shuffle PRNG produced by setup (so a mulligan reshuffles deterministically). */
   rngForSeat: ((seat: Seat) => Rng) | undefined;
+
+  /**
+   * Deterministic shuffle streams are hidden game state too: security-shuffle effects and mulligans
+   * consume them after initial setup. This frame allows an opt-in handoff adapter to preserve the
+   * continuation rather than reseeding or falling back to process randomness.
+   */
+  exportRngState(): MatchRngStateFrame | undefined {
+    return this.rngForSeat === undefined ? undefined : exportMatchRngState(this.rngForSeat);
+  }
+
+  restoreRngState(frame: MatchRngStateFrame): void {
+    this.rngForSeat = restoreMatchRngState(frame);
+  }
+
+  /** Explicit, JSON-safe allocator/RNG state for a quiescent engine handoff boundary. */
+  exportContinuityState(): GameEngineContinuityFrame {
+    return {
+      protocol: "aegis-game-engine-continuity",
+      version: 1,
+      permanentSeq: this.permanentSeq,
+      instanceSeq: this.instanceSeq,
+      windowTokenSeq: this.windowTokenSeq,
+      random: this.exportRngState() ?? null,
+    };
+  }
+
+  restoreContinuityState(value: unknown): void {
+    if (typeof value !== "object" || value === null) throw new Error("invalid game-engine continuity frame");
+    const frame = value as Partial<GameEngineContinuityFrame>;
+    if (
+      frame.protocol !== "aegis-game-engine-continuity" ||
+      frame.version !== 1 ||
+      !isCounter(frame.permanentSeq) ||
+      !isCounter(frame.instanceSeq) ||
+      !isCounter(frame.windowTokenSeq) ||
+      (frame.random !== null && (typeof frame.random !== "object" || frame.random === undefined))
+    ) {
+      throw new Error("invalid game-engine continuity frame");
+    }
+    this.permanentSeq = frame.permanentSeq;
+    this.instanceSeq = frame.instanceSeq;
+    this.windowTokenSeq = frame.windowTokenSeq;
+    if (frame.random === null) this.rngForSeat = undefined;
+    else this.restoreRngState(frame.random);
+  }
   /** Monotonic source of permanentIds unique within the match. */
   permanentSeq = 0;
   /** Shared completion barrier for the current continuous recompute batch. */
@@ -800,4 +860,8 @@ export class GameEngine {
   hasAcceptedBlitzAttack(permanentId: string): boolean {
     return this.acceptedBlitzAttackers.has(permanentId);
   }
+}
+
+function isCounter(value: unknown): value is number {
+  return Number.isSafeInteger(value) && typeof value === "number" && value >= 0;
 }

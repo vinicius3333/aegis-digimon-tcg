@@ -12,8 +12,11 @@ export function createSecurityStackVerbs(pc: PrimitivesContext) {
 
   const shuffleSecurity = (seat: Seat): void => {
     const stack = player(seat).security;
+    // Production engines always supply the setup stream. The fallback preserves direct primitive
+    // harnesses that construct no match lifecycle, but cannot be used by a transferable match.
+    const random = engine.rngForSeat?.(seat) ?? Math.random;
     for (let i = stack.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       const a = stack[i]!;
       const b = stack[j]!;
       stack[i] = b;

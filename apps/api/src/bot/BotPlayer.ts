@@ -16,8 +16,15 @@ import {
   type ServerEvent,
 } from "@aegis/shared";
 import { createEvaluationPolicy, type BotPolicy } from "./policy.js";
-import { resolveBotProfile, type BotProfile, type BotProfileName } from "./profiles.js";
-import { createBotRandom } from "./rng.js";
+import { DEFAULT_BOT_PROFILE, resolveBotProfile, type BotProfile, type BotProfileName } from "./profiles.js";
+import { createBotRandom, createBotRandomFromState, type BotRandom } from "./rng.js";
+import {
+  activateDormantBotRoster,
+  createDormantBotRoster,
+  restoreDormantBotRoster,
+  type DormantBotDescriptor,
+  type DormantBotRosterFrame,
+} from "../rooms/handoff/stage5Primitives.js";
 import { buildBotView, type BotView } from "./view.js";
 
 /* Default think-time window (ms). It is a window rather than a fixed beat so a
@@ -49,7 +56,21 @@ export interface BotOptions {
   policy?: BotPolicy;
   /** Replaces the think delay. The headless benchmark passes a microtask yield. */
   thinkDelay?: () => Promise<void>;
+  /** Explicit experimental capability; no production caller enables this yet. */
+  handoffEnabled?: boolean;
+  /** Internal state supplied only by `restoreDormant`. */
+  handoffRestore?: { roster: DormantBotRosterFrame; descriptor: DormantBotDescriptor };
 }
+
+export type BotHandoffOwner = { gameId: string; ownerEpoch: number };
+
+export type SuspendBotInput = {
+  gameId: string;
+  /** The epoch expected to own the destination copy. */
+  ownerEpoch: number;
+  participantId: string;
+  connectedClientSeats: readonly Seat[];
+};
 
 /**
  * Bot seat driver: owns the asynchronous plumbing, owns none of the judgement.
@@ -86,6 +107,15 @@ export class BotPlayer {
   private resolvingSecurityCheck = false;
   private readonly usesRealTimePacing: boolean;
   private readonly pause: (minMs: number, maxMs: number) => Promise<void>;
+  private readonly handoffEnabled: boolean;
+  private readonly policyCanHandoff: boolean;
+  private readonly handoffProfile: BotProfileName | undefined;
+  private readonly seed: number;
+  private readonly driverRandom: BotRandom;
+  private dormant = false;
+  private pendingWaits = 0;
+  private pendingContinuations = 0;
+  private handoffRoster: DormantBotRosterFrame | undefined;
 
   constructor(
     private readonly seat: Seat,
@@ -95,15 +125,153 @@ export class BotPlayer {
   ) {
     this.minThinkMs = options.minThinkMs ?? DEFAULT_MIN_ACTION_DELAY_MS;
     this.maxThinkMs = Math.max(options.maxThinkMs ?? DEFAULT_MAX_ACTION_DELAY_MS, this.minThinkMs);
-    const seed = options.seed ?? 0x5eed;
-    this.policy = options.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
-    const random = createBotRandom(seed ^ 0x9e37);
+    const restored = options.handoffRestore;
+    this.seed = restored?.descriptor.seed ?? options.seed ?? 0x5eed;
+    this.handoffEnabled = options.handoffEnabled === true;
+    this.policyCanHandoff = restored !== undefined || options.policy === undefined;
+    this.handoffProfile =
+      restored?.descriptor.profile ??
+      (options.profile === undefined
+        ? DEFAULT_BOT_PROFILE.name
+        : typeof options.profile === "string"
+          ? options.profile
+          : undefined);
+    this.policy =
+      options.policy ??
+      createEvaluationPolicy({
+        profile: resolveBotProfile(restored?.descriptor.profile ?? options.profile),
+        seed: this.seed,
+        ...(restored === undefined
+          ? {}
+          : {
+              handoffState: {
+                protocol: "aegis-evaluation-policy" as const,
+                version: 1 as const,
+                randomState: restored.descriptor.policyRngState,
+                rejectedKeys: restored.descriptor.policyRejectedKeys ?? [],
+                attemptedKeys: restored.descriptor.policyAttemptedKeys ?? [],
+              },
+            }),
+      });
+    this.driverRandom = restored
+      ? createBotRandomFromState(restored.descriptor.rngState)
+      : createBotRandom(this.seed ^ 0x9e37);
+    this.dormant = restored !== undefined;
+    this.handoffRoster = restored?.roster;
+    if (restored) {
+      this.lastTurnStarted = restored.descriptor.turnCount;
+      this.breedingActionTurn = restored.descriptor.breedingActionTurn ?? -1;
+      this.narrationUntil = Date.now() + (restored.descriptor.narrationRemainingMs ?? 0);
+    }
     const injected = options.thinkDelay;
     this.usesRealTimePacing = injected === undefined;
     this.pause = injected
       ? () => injected()
       : (minMs, maxMs) =>
-          new Promise<void>((resolve) => setTimeout(resolve, minMs + Math.floor(random.next() * (maxMs - minMs + 1))));
+          new Promise<void>((resolve) =>
+            setTimeout(resolve, minMs + Math.floor(this.driverRandom.next() * (maxMs - minMs + 1))),
+          );
+  }
+
+  /**
+   * Import a bot descriptor without starting it. The caller must prove the transferred game and
+   * seat match the surrounding room snapshot; owner-epoch activation remains a separate step.
+   */
+  static restoreDormant(input: {
+    roster: unknown;
+    seat: Seat;
+    state: GameState;
+    sendIntent: (intent: Intent) => IntentResult | void;
+    options?: Omit<BotOptions, "policy" | "profile" | "seed" | "handoffRestore">;
+  }): BotPlayer {
+    const roster = restoreDormantBotRoster(input.roster);
+    const descriptor = roster.bots.find((bot) => bot.seat === input.seat);
+    if (!descriptor) throw new Error(`dormant bot roster has no seat ${input.seat}`);
+    if (descriptor.pendingThinkMs !== null)
+      throw new Error("handoff does not support restoring an in-flight bot timer");
+    return new BotPlayer(input.seat, input.state, input.sendIntent, {
+      ...input.options,
+      handoffEnabled: true,
+      profile: descriptor.profile,
+      seed: descriptor.seed,
+      handoffRestore: { roster, descriptor },
+    });
+  }
+
+  /** Stop this driver and export its deterministic state at a quiescent engine boundary. */
+  suspendForHandoff(input: SuspendBotInput): DormantBotRosterFrame {
+    if (!this.handoffEnabled) throw new Error("bot handoff capability is disabled");
+    if (!this.handoffProfile) throw new Error("custom bot profiles are not serializable for handoff");
+    if (!this.policyCanHandoff) throw new Error("custom bot policies are not restorable by this adapter");
+    if (!this.policy.exportHandoffState) throw new Error("bot policy does not support handoff export");
+    if (
+      this.runningMainPhase ||
+      this.pendingWaits > 0 ||
+      this.pendingContinuations > 0 ||
+      this.state.pendingDecision !== undefined ||
+      this.state.combatWindow !== undefined
+    ) {
+      throw new Error("bot handoff requires a quiescent decision boundary");
+    }
+    const policy = this.policy.exportHandoffState();
+    const roster = createDormantBotRoster({
+      gameId: input.gameId,
+      ownerEpoch: input.ownerEpoch,
+      connectedClientSeats: input.connectedClientSeats,
+      bots: [
+        {
+          seat: this.seat,
+          participantId: input.participantId,
+          profile: this.handoffProfile,
+          seed: this.seed >>> 0,
+          turnCount: this.state.turnCount,
+          rngState: this.driverRandom.exportState(),
+          policyRngState: policy.randomState,
+          pendingThinkMs: null,
+          policyRejectedKeys: policy.rejectedKeys,
+          policyAttemptedKeys: policy.attemptedKeys,
+          breedingActionTurn: this.breedingActionTurn,
+          narrationRemainingMs: Math.max(0, this.narrationUntil - Date.now()),
+        },
+      ],
+    });
+    this.dormant = true;
+    this.handoffRoster = roster;
+    return roster;
+  }
+
+  /** Activate only after the destination room has committed the matching logical owner epoch. */
+  activateAfterHandoff(owner: BotHandoffOwner): boolean {
+    if (!this.handoffEnabled) throw new Error("bot handoff capability is disabled");
+    if (!this.dormant || !this.handoffRoster) return false;
+    this.handoffRoster = activateDormantBotRoster(this.handoffRoster, owner);
+    this.dormant = false;
+    this.resumeCurrentTurn();
+    return true;
+  }
+
+  /** Resume the source only after the coordinator has durably marked its transfer aborted. */
+  resumeAfterAbortedHandoff(input: BotHandoffOwner & { transferStatus: string }): boolean {
+    if (!this.handoffEnabled) throw new Error("bot handoff capability is disabled");
+    if (!this.dormant || !this.handoffRoster) return false;
+    if (
+      input.transferStatus !== "aborted" ||
+      input.gameId !== this.handoffRoster.gameId ||
+      input.ownerEpoch + 1 !== this.handoffRoster.ownerEpoch
+    ) {
+      throw new Error("aborted bot transfer does not match the source owner epoch");
+    }
+    this.handoffRoster = undefined;
+    this.dormant = false;
+    this.resumeCurrentTurn();
+    return true;
+  }
+
+  private resumeCurrentTurn(): void {
+    if (this.state.turnSeat === this.seat) {
+      if (this.state.phase === Phase.Main) this.startMainPhaseLoop();
+      else if (this.state.phase === Phase.Breeding) void this.nextActionDelay().then(() => this.runBreedingPhase());
+    }
   }
 
   /** Which policy this seat is running — surfaced for benchmark reporting. */
@@ -120,6 +288,7 @@ export class BotPlayer {
   }
 
   onDecisionRequested(request: DecisionRequest): void {
+    if (this.dormant) return;
     const requestedTurnCount = this.state.turnCount;
     const answer = () => this.answerDecision(request, requestedTurnCount);
     // A reactive [All Turns] clause has already interrupted an action. Holding its optional
@@ -138,12 +307,16 @@ export class BotPlayer {
   }
 
   private answerDecision(request: DecisionRequest, requestedTurnCount: number): void {
+    if (this.dormant) return;
     this.act(this.policy.answerDecision(this.view(), request));
     // Answering may have been what the phase driver was waiting on. Let the engine's
     // continuation settle before reading the phase and scheduling the next action.
-    void settleContinuation().then(() => {
+    this.pendingContinuations++;
+    void settleContinuation().finally(() => {
+      this.pendingContinuations--;
       // A decision can finish a combat or effect that also ends the turn. The new
       // phaseChanged event owns the next turn; this stale callback must not act in it.
+      if (this.dormant) return;
       if (this.state.turnCount !== requestedTurnCount || this.state.turnSeat !== this.seat) return;
       if (this.state.phase === Phase.Breeding) this.runBreedingPhase();
       else this.startMainPhaseLoop();
@@ -152,6 +325,7 @@ export class BotPlayer {
 
   /** Resume only after the engine's asynchronous combat continuation has settled. */
   onActionSettled(intentType: Intent["type"]): void {
+    if (this.dormant) return;
     if (intentType !== "attack" || !this.isMyMainPhase()) return;
     if (this.runningMainPhase) {
       this.resumeMainPhaseWhenIdle = true;
@@ -161,6 +335,7 @@ export class BotPlayer {
   }
 
   onEvent(event: ServerEvent): void {
+    if (this.dormant) return;
     switch (event.kind) {
       case "phaseChanged":
         if (event.phase !== Phase.None) {
@@ -279,6 +454,7 @@ export class BotPlayer {
     stillOpen: () => boolean = () => true,
   ): void {
     void this.reflex().then(() => {
+      if (this.dormant) return;
       if (!stillOpen()) return;
       const view = this.view();
       this.act(view === undefined ? fallback : choose(view));
@@ -291,12 +467,14 @@ export class BotPlayer {
 
   /** Send an intent and tell the policy when the engine refused it. */
   private act(intent: Intent): IntentResult | void {
+    if (this.dormant) return;
     const result = this.sendIntent(intent);
     if (result !== undefined && result.ok === false) this.policy.noteRejected(intent);
     return result;
   }
 
   private onOwnPhase(phase: Phase, turnCount: number): void {
+    if (this.dormant) return;
     if (turnCount !== this.lastTurnStarted) {
       this.lastTurnStarted = turnCount;
       // A turn change can reach the client before its security scene ends.
@@ -331,6 +509,7 @@ export class BotPlayer {
 
   private runBreedingPhase(): void {
     if (
+      this.dormant ||
       this.state.gameOver ||
       this.state.turnSeat !== this.seat ||
       this.state.phase !== Phase.Breeding ||
@@ -398,12 +577,14 @@ export class BotPlayer {
   }
 
   private isMyMainPhase(): boolean {
-    return !this.state.gameOver && this.state.turnSeat === this.seat && this.state.phase === Phase.Main;
+    return (
+      !this.dormant && !this.state.gameOver && this.state.turnSeat === this.seat && this.state.phase === Phase.Main
+    );
   }
 
   /** The answer to a combat window, which the engine and the attacker are both waiting on. */
   private reflex(): Promise<void> {
-    return this.pause(COMBAT_REFLEX_MIN_MS, COMBAT_REFLEX_MAX_MS);
+    return this.waitForPause(COMBAT_REFLEX_MIN_MS, COMBAT_REFLEX_MAX_MS);
   }
 
   /**
@@ -414,11 +595,20 @@ export class BotPlayer {
    */
   private async nextActionDelay(): Promise<void> {
     const narration = Math.max(0, this.narrationUntil - Date.now());
-    await this.pause(Math.max(this.minThinkMs, narration), Math.max(this.maxThinkMs, narration));
+    await this.waitForPause(Math.max(this.minThinkMs, narration), Math.max(this.maxThinkMs, narration));
     // More checks can arrive while this seat is already waiting to act.
     while (this.usesRealTimePacing && this.narrationUntil > Date.now()) {
       const remaining = this.narrationUntil - Date.now();
-      await this.pause(remaining, remaining);
+      await this.waitForPause(remaining, remaining);
+    }
+  }
+
+  private async waitForPause(minMs: number, maxMs: number): Promise<void> {
+    this.pendingWaits++;
+    try {
+      await this.pause(minMs, maxMs);
+    } finally {
+      this.pendingWaits--;
     }
   }
 }
