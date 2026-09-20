@@ -28,3 +28,32 @@ intentional normalization and historical English wording. A production version
 should snapshot the official responses, report field-level diffs in CI, and
 require human review before catalog changes. Taka can remain a bulk metadata
 source, but official-page drift should take precedence for printed text.
+
+## Full newest-set trial
+
+Run against the complete newest Booster and Extra Booster collections in the
+catalog on 2026-09-20:
+
+| Set  | Cards | Exact normalized match | Text mismatch | Fetch/parser failure |
+| ---- | ----: | ---------------------: | ------------: | -------------------: |
+| BT26 |   104 |                     35 |            69 |        0 after retry |
+| EX13 |    77 |                     33 |            44 |                    0 |
+
+BT26 mismatches affected `effectText` on 53 cards and
+`inheritedEffectText` on 39 cards. EX13 mismatches affected `effectText` on
+38 cards and `inheritedEffectText` on 7 cards; a card can differ in both.
+
+The mismatches mix several classes that a production validator should report
+separately:
+
+- editorial-only differences, such as a missing final period after a keyword;
+- official reminder text omitted from the local catalog;
+- structural differences, such as an Assembly header present locally but not
+  in the official English HTML;
+- likely stale or incorrect local text, such as EX13-002 carrying a local rule
+  that appears on neither official language page.
+
+The high raw mismatch rate means exact normalized equality is useful for
+finding candidates but too noisy as a blocking CI gate. The next version should
+emit a review report with raw official text and classify punctuation, reminder
+text, structural clauses, and substantive wording separately.
