@@ -269,7 +269,7 @@ describe("BT25-080 Witchmon", () => {
     });
     await settle(() => false, 60);
     expect(alive(noTarget.state.players[1] as PlayerState, noTargetId)).toBe(true);
-    expect((noTarget.state.players[0] as PlayerState).hand).toHaveLength(1);
+    expect((noTarget.state.players[0] as PlayerState).hand).toHaveLength(0);
   });
 
   it("shares one Once Per Turn use between On Play and When Attacking", async () => {

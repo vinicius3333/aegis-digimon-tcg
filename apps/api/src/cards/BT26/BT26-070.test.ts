@@ -126,7 +126,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("may decline the legal Main effect without trashing Tamers or using the Option", async () => {
+  it("pays the By cost before declining the optional Option use", async () => {
     const s = setupEngine(
       {
         0: {
@@ -150,8 +150,8 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
       s.perm("nightchiropmon").permanentId,
     );
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(optionId);
-    expect(s.perm("tamerA").stack).toHaveLength(1);
-    expect(s.perm("tamerB").stack).toHaveLength(1);
+    expect(s.perm("tamerA").stack).toHaveLength(0);
+    expect(s.perm("tamerB").stack).toHaveLength(0);
     expect(s.state.memory).toBe(20);
   });
 
@@ -501,6 +501,6 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("second"));
 
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(4);
   });
 });

@@ -253,7 +253,7 @@ describe("BT26-074 Cerberusmon", () => {
     expect(useOptionFromHand).not.toHaveBeenCalled();
   });
 
-  it("does not trash its hand when the reduced Titan Option cost is unaffordable after digivolving", async () => {
+  it("pays its By cost before resolving the reduced Titan Option", async () => {
     const s = setupEngine(
       {
         0: {
@@ -280,10 +280,9 @@ describe("BT26-074 Cerberusmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("cerberusmon").instanceId);
 
-    expect(s.state.memory).toBe(-3);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("handCost").instanceId);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("titanOption").instanceId);
-    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.state.memory).toBe(-4);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("handCost").instanceId);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
   });
 
   it("shares one use across On Play and When Attacking for the same physical copy", async () => {

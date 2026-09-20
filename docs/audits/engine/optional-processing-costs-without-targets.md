@@ -117,6 +117,16 @@ NODE_OPTIONS=--max-old-space-size=1536 apps/api/node_modules/.bin/tsx tools/diag
 | LM-005   | Amphimon                     | TrashDigivolution                     | OnPlay, WhenDigivolving                | Unverified static candidate                                                         |
 | ST23-13  | Tomoro Tenma & Kyo Sawashiro | ModifyDP                              | AllTurns                               | Unverified static candidate                                                         |
 
+## Exhaustive text and engine follow-up
+
+A catalog-wide clause scan found **250 matching clauses across 246 cards** containing a printed `By` together with either `[Once Per Turn]` or a later `may`: 41 clauses contain all three, 97 contain `[Once Per Turn]` plus `By`, and 112 contain `By` plus a later `may`. This is the complete textual population, not a claim that 246 cards shared the same resolver bug. The executable-IR scanner remains the narrower way to locate target-sensitive implementations.
+
+The engine follow-up found a separate receipt bug: target preflights could return before recording that an optional action was never chosen. `stack.ts` then registered the `[Once Per Turn]` use. All central no-candidate preflights now route through one receipt helper, which clears `lastEffectActed` and preserves the use when the optional activation was not previously chosen. A regression proves the full sequence: no play candidate, first trigger skipped, candidate added, second same-turn trigger succeeds.
+
+The engine now also derives pay-before-payload behavior directly from a recognized printed `By` processing condition. Therefore declining the later `may` cannot undo a paid cost or restore the Once Per Turn use. Focused stale expectations were corrected for BT22-011, BT25-080, BT26-006, BT26-070, BT26-074, and EX13-006. BT26-006/070/074 had omitted their printed `By` text from handwritten IR; that text is now preserved in both the direct modules and shared aggregate.
+
+The engine review confirmed the remaining boundaries: declining before any payment preserves the use; successful payment consumes it; declining a payload after payment leaves it consumed; shared-use keys follow the same receipt; mandatory no-ops remain consumed. BT26-059 provides the card-level shared-timing decline proof, while the generic receipt suite covers paid-cost then declined-payload consumption.
+
 ## Validation scope and resource budget
 
 Tests ran sequentially, one worker, with 1536 MiB V8 old-space ceilings for runner and worker. This is a heap ceiling, not a total RSS limit. No full card suite, build, browser/server, or parallel test processes were started.

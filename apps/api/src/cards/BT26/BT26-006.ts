@@ -11,6 +11,7 @@ const cost: Cost = {
     },
     count: 2,
   },
+  raw: "By trashing any 2 digivolution cards from your [Bagra Army] trait Digimon",
 };
 
 export const compiled: CompiledCard = {

@@ -18,11 +18,15 @@ function walk(value, cardId, path) {
   );
   if (costs.length && a.kind) {
     const card = getCardDefinition(cardId);
+    const effect = registeredCompiledCards.get(cardId)?.effects[Number(path.match(/\[(\d+)\]/)?.[1])];
     rows.push({
       cardId,
       name: card?.nameEn,
       path,
-      trigger: registeredCompiledCards.get(cardId)?.effects[Number(path.match(/\[(\d+)\]/)?.[1])]?.trigger,
+      trigger: effect?.trigger,
+      frequency: effect?.frequency,
+      sharedUseKey: effect?.sharedUseKey,
+      effectOptional: effect?.optional === true,
       kind: a.kind,
       optional: a.optional === true,
       protected: allowsOptionalProcessingCostWithoutTarget(a),

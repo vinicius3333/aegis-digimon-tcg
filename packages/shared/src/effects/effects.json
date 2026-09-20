@@ -220021,7 +220021,8 @@
                         }
                       },
                       "count": 2
-                    }
+                    },
+                    "raw": "By trashing any 2 digivolution cards from your [Bagra Army] trait Digimon"
                   }
                 }
               ],
@@ -220050,7 +220051,8 @@
                         }
                       },
                       "count": 2
-                    }
+                    },
+                    "raw": "By trashing any 2 digivolution cards from your [Bagra Army] trait Digimon"
                   }
                 }
               ]
@@ -225590,7 +225592,12 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
-            "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 }
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 2,
+              "raw": "By trashing 2 bottom face-down cards from under any of your Tamers"
+            }
           }
         ]
       },
@@ -226009,7 +226016,8 @@
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
+              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 },
+              "raw": "by trashing 1 card in your hand"
             }
           }
         ]
@@ -226043,7 +226051,8 @@
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
+              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 },
+              "raw": "by trashing 1 card in your hand"
             }
           }
         ]
@@ -226077,7 +226086,8 @@
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
+              "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 },
+              "raw": "by trashing 1 card in your hand"
             }
           }
         ]

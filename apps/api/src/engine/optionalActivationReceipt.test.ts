@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type CompiledCard } from "@aegis/shared";
+import { EffectTiming, Zone, type CompiledCard } from "@aegis/shared";
 import "../cards/index.js";
 import { registerIrCard, runtimeCompiledCard } from "./effects/interpreter.js";
 import { advance } from "./testkit/advance.js";
@@ -35,6 +35,32 @@ function optionalActionRequests(s: ReturnType<typeof setupEngine>): string[] {
 }
 
 describe("once-per-turn activation receipt boundaries", () => {
+  it("preserves the once-per-turn opportunity when an optional play has no candidate", async () => {
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            target: { filter: { cardId: "BT1-010", controller: "mine", zone: "trash" }, count: 1 },
+            from: ["trash"],
+            payCost: false,
+            optional: true,
+          },
+        ],
+      }),
+      async () => {
+        const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } }, { autoAcceptOptional: true });
+        const fire = advance(s.engine);
+
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        s.give(0, Zone.Trash, { card: "BT1-010", as: "candidate" });
+        await fire.fire(EffectTiming.OnPlay, s.perm("source"));
+
+        expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-010")).toBe(true);
+      },
+    );
+  });
+
   it("preserves the once-per-turn opportunity when an optional CostGatedBlock cost is declined", async () => {
     await withCompiledCard(
       oncePerTurnOnPlay({
