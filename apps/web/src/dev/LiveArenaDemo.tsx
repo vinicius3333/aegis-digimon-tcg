@@ -20,6 +20,7 @@ export function LiveArenaDemo() {
       requested === "arena-face-up-security" ||
       requested === "arena-ex13-grademon-immunity" ||
       requested === "arena-ex13-giromon-block-triggers" ||
+      requested === "arena-ex13-deletion-trigger-ordering" ||
       requested === "arena-ex13-kings-opponent-sukamon" ||
       requested === "arena-ex13-kingsukamon-immunity-lapse" ||
       requested === "arena-ex13-examon" ||
@@ -69,6 +70,7 @@ export function LiveArenaDemo() {
             <option value="arena-face-up-security">Security · opponent face-up cards</option>
             <option value="arena-ex13-grademon-immunity">EX13 Alphamon · Assembly from trash</option>
             <option value="arena-ex13-giromon-block-triggers">EX13 Giromon · 6 block triggers</option>
+            <option value="arena-ex13-deletion-trigger-ordering">EX13 Kings · deletion trigger ordering</option>
             <option value="arena-ex13-kings-opponent-sukamon">EX13 Kings · opponent Sukamon</option>
             <option value="arena-ex13-kingsukamon-immunity-lapse">EX13 KingSukamon · 0 DP deletion</option>
             <option value="arena-ex13-examon">EX13 Examon · Lv.5 DNA + battle timing</option>
@@ -116,25 +118,29 @@ export function LiveArenaDemo() {
                         ? portuguese
                           ? "O bot ataca primeiro. Bloqueie com Giromon para abrir os 6 efeitos simultâneos de Giromon, Guardromon e dos 4 Tai."
                           : "The bot attacks first. Block with Giromon to open the 6 simultaneous Giromon, Guardromon, and 4 Tai effects."
-                        : scenario === "arena-ex13-kingsukamon-immunity-lapse"
+                        : scenario === "arena-ex13-deletion-trigger-ordering"
                           ? portuguese
-                            ? "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon."
-                            : "Play KingSukamon, trash Chuumon, and rewrite the opposing Digimon. KingEtemon's aura should delete it at 0 DP; then accept the inherited effect to reveal 3 and play Chuumon."
-                          : scenario === "arena-ex13-kings-opponent-sukamon"
+                            ? "Use Heat Viper, delete seu EX13-028 Sukamon e escolha a ordem entre o efeito On Deletion dele e a herança do KingSukamon sob KingEtemon."
+                            : "Use Heat Viper, delete your EX13-028 Sukamon, and choose the order between its On Deletion effect and KingSukamon inherited under KingEtemon."
+                          : scenario === "arena-ex13-kingsukamon-immunity-lapse"
                             ? portuguese
-                              ? "Os 2 KingSukamon adversários completam o requisito de 3 nomes: ambos devem estar com 3000 DP. Ataque o suspenso com KingEtemon; a herança deve revelar 3 cartas."
-                              : "The opponent's 2 KingSukamon complete the 3-name threshold: both should have 3000 DP. Attack the suspended one with KingEtemon; the inherited effect should reveal 3 cards."
-                            : scenario === "arena-ex10-god-grade-raising-color"
+                              ? "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon."
+                              : "Play KingSukamon, trash Chuumon, and rewrite the opposing Digimon. KingEtemon's aura should delete it at 0 DP; then accept the inherited effect to reveal 3 and play Chuumon."
+                            : scenario === "arena-ex13-kings-opponent-sukamon"
                               ? portuguese
-                                ? "Copipemon é o único Appmon e está na criação. Compare Cyber Engage com God Grade Unleashed na mão."
-                                : "Copipemon is the only Appmon and is in breeding. Compare Cyber Engage with God Grade Unleashed in hand."
-                              : scenario === "arena-suspend-lock-block"
+                                ? "Os 2 KingSukamon adversários completam o requisito de 3 nomes: ambos devem estar com 3000 DP. Ataque o suspenso com KingEtemon; a herança deve revelar 3 cartas."
+                                : "The opponent's 2 KingSukamon complete the 3-name threshold: both should have 3000 DP. Attack the suspended one with KingEtemon; the inherited effect should reveal 3 cards."
+                              : scenario === "arena-ex10-god-grade-raising-color"
                                 ? portuguese
-                                  ? "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado."
-                                  : "Your Blocker starts unable to suspend. It must not be able to block the bot's attack."
-                                : portuguese
-                                  ? "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente."
-                                  : "End breeding, select a Digimon, choose Attack and click the opponent's security."}
+                                  ? "Copipemon é o único Appmon e está na criação. Compare Cyber Engage com God Grade Unleashed na mão."
+                                  : "Copipemon is the only Appmon and is in breeding. Compare Cyber Engage with God Grade Unleashed in hand."
+                                : scenario === "arena-suspend-lock-block"
+                                  ? portuguese
+                                    ? "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado."
+                                    : "Your Blocker starts unable to suspend. It must not be able to block the bot's attack."
+                                  : portuguese
+                                    ? "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente."
+                                    : "End breeding, select a Digimon, choose Attack and click the opponent's security."}
         </span>
         <a className="aegis-arena-demo-back" href="/dev/arena?mode=visual">
           {portuguese ? "Prévia visual" : "Visual preview"}

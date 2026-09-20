@@ -78,6 +78,22 @@ export async function fireSubTrigger(
     });
     return;
   }
+  // A third-party "when [something] is deleted" watcher and the deleted cards'
+  // [On Deletion] effects trigger from the same deletion event (CR §15-4). Capture the
+  // watcher while the subject is still on the field, where its source filter can inspect
+  // the subject's last live state, but let the ensuing OnDestroyedAnyone window activate
+  // both effects from one ordered pool. Self-anchored onDeletionOf clauses are deliberately
+  // excluded: the deletion verb runs those before leave prevention (EX3-013/Q2212).
+  if (event === "onDeletionOf" && sourceScope === "excludeSelfSource") {
+    const subscriptions = subscriptionsFor();
+    const contexts = new Map<number, EffectContext>();
+    for (const sub of subscriptions) {
+      const context = buildSubTriggerContext(engine, sub, payload);
+      if (context !== undefined) contexts.set(sub.id, context);
+    }
+    engine.pendingWindowSubTriggers.push(...armedSubTriggers(engine, subscriptions, payload, contexts));
+    return;
+  }
   // A security card removed while another effect is resolving creates a pending trigger;
   // it does not interrupt that effect. Dynasmon BT6-044 must finish revealing its 6 cards
   // before its Recovery reaction can consume the next deck card (KB Q1430/Q1432).

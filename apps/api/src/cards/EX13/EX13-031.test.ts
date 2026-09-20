@@ -644,6 +644,52 @@ describe("EX13-031 KingSukamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("orders the deleted Sukamon's On Deletion with the inherited deletion watcher", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-035", as: "kingEtemon", under: [cardId] },
+            { card: "EX13-028", as: "deletedSukamon" },
+          ],
+          deck: [SENTINEL, SENTINEL, SENTINEL, SENTINEL, SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: { security: [SENTINEL] },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("deletedSukamon").permanentId], "byEffect");
+    advance(s.engine).verb.leaveEffectResolution();
+
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")?.req;
+    expect(order?.options?.triggerCardIds).toEqual(expect.arrayContaining(["EX13-028", cardId]));
+    expect(order?.options?.triggerKeys).toHaveLength(2);
+
+    const triggerKeys = order!.options!.triggerKeys!;
+    const inheritedIndex = order!.options!.triggerCardIds!.findIndex((id) => id === cardId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order!.decisionId,
+        response: { kind: "orderTriggers", order: [triggerKeys[inheritedIndex]!] },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const triggeredCardIds = s.events.flatMap((event) =>
+      event.kind === "effectTriggered" && ["EX13-028", cardId].includes(event.sourceCardId ?? "")
+        ? [event.sourceCardId]
+        : [],
+    );
+    expect(triggeredCardIds).toEqual([cardId, "EX13-028"]);
+  });
+
   it("trashes all three revealed cards when the only named one costs more than 3", async () => {
     const s = setupEngine(
       {

@@ -1,6 +1,6 @@
 ---
 title: Trigger ordering audit
-updated: 2026-09-12
+updated: 2026-09-20
 ---
 
 # Trigger ordering
@@ -79,6 +79,13 @@ The paired control removes BT20-073; the same copied effect is then offered, acc
 and deletes a 6,000-DP survivor. Both cases assert the old/new physical IDs, trigger
 keys, trash, security, and completed attack.
 
+The tenth bounded case covers two trigger families created by one deletion. EX13-028
+Sukamon is deleted while EX13-031 KingSukamon is inherited under EX13-035 KingEtemon.
+The engine snapshots KingSukamon's `onDeletionOf` watcher while Sukamon is still live,
+then offers that watcher and Sukamon's native `[On Deletion]` in one `orderTriggers`
+request. Selecting KingSukamon first produces effect-trigger events in that chosen order.
+This proves the watcher no longer resolves eagerly before the deleted card's own effect.
+
 ## Current source and ordering classes
 
 | Class                                                                  | Current public consumer/provider                                                                 | Executable proof                                                                                                      | Status                                       |
@@ -91,6 +98,7 @@ keys, trash, security, and completed attack.
 | Nested inherited On Deletion after a public deletion window            | BT8-085 Yolei deletes BT19-065 carrying BT20-073 during an attack                                | Seventh case selects the exact BT20-073 trigger key, then checks old/new attacker top IDs and all trash zones         | Proven for this public nested shape          |
 | Copied effect loses its source role before activation                  | BT26-060 over BT26-016; Yolei + BT20-073 De-Digivolve the Chronomon attacker                     | Eighth case orders Yolei, then BT20-073, and observes no BT26-016 optional attack effect after the source becomes top | Proven for this copied-source turnover shape |
 | Copied effect remains eligible when source role is unchanged           | Same Chronomon stack without BT20-073                                                            | Ninth case accepts the copied BT26-016 effect and deletes the eligible 6,000-DP survivor                              | Proven by paired control                     |
+| Native On Deletion and third-party deletion watcher                    | EX13-028 deleted beside EX13-035 carrying EX13-031                                               | Tenth case receives one two-entry order request and chooses the inherited watcher first                               | Proven for this effect-deletion shape        |
 
 The second class must not be described as a source leaving before its own activation:
 the selected EX7-072 source departs after the public order decision and the remaining
