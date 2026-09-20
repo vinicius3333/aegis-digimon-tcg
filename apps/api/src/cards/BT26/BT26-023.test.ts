@@ -16,10 +16,17 @@ describe("BT26-023 Mojyamon", () => {
       ]),
     );
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")).toMatchObject({
-      actions: [{ kind: "Return", to: "deckBottom", cost: { kind: "place", position: "bottom", faceDown: true } }],
+      actions: [
+        {
+          kind: "Return",
+          to: "deckBottom",
+          cost: { kind: "place", position: "bottom", faceDown: true },
+          allowCostWithoutTarget: true,
+        },
+      ],
     });
     expect(compiled.effects.find((effect) => effect.trigger === "WhenAttacking" && !effect.isInherited)).toMatchObject({
-      actions: [{ kind: "Return", to: "deckBottom" }],
+      actions: [{ kind: "Return", to: "deckBottom", allowCostWithoutTarget: true }],
     });
   });
 
@@ -94,26 +101,33 @@ describe("BT26-023 Mojyamon", () => {
     expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(targetId);
   });
 
-  it("does not pay or return a level-5, a Tamer, or a breeding-area Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-023", as: "mojyamon" }],
-        hand: [{ card: "BT1-009", as: "material" }],
+  it("may pay without a legal return target and leaves level-5, Tamer, and breeding cards in place", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-023", as: "mojyamon" }],
+          hand: [{ card: "BT1-009", as: "material" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT26-030", as: "level5" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          breeding: { card: "BT26-039", as: "breeding" },
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT26-030", as: "level5" },
-          { card: "BT1-085", as: "tamer" },
-        ],
-        breeding: { card: "BT26-039", as: "breeding" },
-      },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mojyamon"));
 
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.perm("mojyamon").stack).toHaveLength(0);
-    expect(s.decisions.some(({ req }) => req.kind === "selectCards" || req.kind === "chooseTargets")).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("mojyamon").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("material").instanceId]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      s.inst("level5").instanceId,
+      s.inst("tamer").instanceId,
+    ]);
+    expect(s.state.players[1]!.breeding?.topCard.instanceId).toBe(s.inst("breeding").instanceId);
   });
 
   it("may decline the optional hand placement without returning an eligible target", async () => {

@@ -221278,7 +221278,8 @@
               "host": "self",
               "faceDown": true
             },
-            "optional": true
+            "optional": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -221304,7 +221305,8 @@
               "host": "self",
               "faceDown": true
             },
-            "optional": true
+            "optional": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -225690,7 +225692,8 @@
                   "cost": {
                     "kind": "trash",
                     "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ],
               [
@@ -225715,7 +225718,8 @@
                     "host": "target",
                     "position": "bottom",
                     "faceDown": true
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ]
             ]
@@ -225745,7 +225749,8 @@
                   "cost": {
                     "kind": "trash",
                     "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 }
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ],
               [
@@ -225770,7 +225775,8 @@
                     "host": "target",
                     "position": "bottom",
                     "faceDown": true
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ]
             ]
@@ -226992,7 +226998,8 @@
                   "cost": {
                     "kind": "deleteOwn",
                     "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ],
               [
@@ -227002,7 +227009,8 @@
                     "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "highestDP" },
                     "count": 1
                   },
-                  "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 }
+                  "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 },
+                  "allowCostWithoutTarget": true
                 }
               ]
             ]
@@ -227028,7 +227036,8 @@
                   "cost": {
                     "kind": "deleteOwn",
                     "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
-                  }
+                  },
+                  "allowCostWithoutTarget": true
                 }
               ],
               [
@@ -227038,7 +227047,8 @@
                     "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "highestDP" },
                     "count": 1
                   },
-                  "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 }
+                  "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 2 },
+                  "allowCostWithoutTarget": true
                 }
               ]
             ]

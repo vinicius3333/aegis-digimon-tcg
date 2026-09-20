@@ -11,6 +11,8 @@ const deleteWithTrash: Action = {
   kind: "Delete",
   target: { filter: opponentLv4, count: 1 },
   cost: { kind: "trash", target: { filter: handCard, count: 1 } },
+  // CR 15-7-5: either "By..." cost can be paid with no deletion target.
+  allowCostWithoutTarget: true,
 };
 const deleteWithKeenan: Action = {
   kind: "Delete",
@@ -27,6 +29,7 @@ const deleteWithKeenan: Action = {
     position: "bottom",
     faceDown: true,
   },
+  allowCostWithoutTarget: true,
 };
 const altCostDelete: Action = {
   kind: "Modal",

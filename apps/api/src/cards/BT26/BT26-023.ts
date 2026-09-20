@@ -19,6 +19,8 @@ const returnLevelFour = {
   to: "deckBottom",
   cost: handCardCost,
   optional: true,
+  // CR 15-7-5: the "By placing..." condition can be paid with no return target.
+  allowCostWithoutTarget: true,
 } satisfies Action;
 
 export const compiled: CompiledCard = {

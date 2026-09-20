@@ -33,10 +33,17 @@ describe("BT26-072 Peckmon", () => {
           optional: true,
           abortOnDecline: true,
           options: [
-            [expect.objectContaining({ kind: "Delete", cost: expect.objectContaining({ kind: "trash" }) })],
             [
               expect.objectContaining({
                 kind: "Delete",
+                cost: expect.objectContaining({ kind: "trash" }),
+                allowCostWithoutTarget: true,
+              }),
+            ],
+            [
+              expect.objectContaining({
+                kind: "Delete",
+                allowCostWithoutTarget: true,
                 cost: expect.objectContaining({
                   kind: "place",
                   faceDown: true,

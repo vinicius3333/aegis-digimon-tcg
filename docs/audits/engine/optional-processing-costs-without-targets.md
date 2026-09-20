@@ -6,7 +6,7 @@ Investigation date: 2026-09-20. Base: `af6fd390b` (local main). Branch: `investi
 
 The reported behavior is real for some cards, but not all optional effects. Three additional BT26 cards reproduce it through public intents: **BT26-023 Mojyamon, BT26-072 Peckmon, BT26-082 Ravemon**. The originally reported Wizardmon BT26-067, likely Aegiochusmon: Dark BT26-073 (the report did not specify an ID), and suggested Plutomon BT26-059 already pass their no-target tests at this base. No production deployment/version was inspected.
 
-This is an investigation, not a collection completion or a delivered engine fix. No card scores were recalculated. Runtime changes used for diagnosis were reverted.
+The three reproduced gaps are fixed by marking their printed processing-condition actions with `allowCostWithoutTarget: true`. No collection scores were recalculated; the broader inventory remains triage evidence rather than proof that every listed card is affected.
 
 ## Rules evidence
 
@@ -16,18 +16,18 @@ This is an investigation, not a collection completion or a delivered engine fix.
 
 ## Reproduction and causal experiment
 
-| Card              | Trigger and payable cost                          | Without payload target on base | With target control | Temporary classification probe |
-| ----------------- | ------------------------------------------------- | ------------------------------ | ------------------- | ------------------------------ |
-| BT26-023 Mojyamon | On Play; place one hand card face down under self | Cost card stays in hand        | Cost paid           | Cost paid without target       |
-| BT26-072 Peckmon  | On Play; trash one hand card                      | Cost card stays in hand        | Cost paid           | Cost paid without target       |
-| BT26-082 Ravemon  | Digivolve from BT26-076; delete self              | Ravemon stays in battle        | Self deleted        | Self deleted without target    |
+| Card              | Trigger and payable cost                          | Before fix              | With target control | After semantic annotation   |
+| ----------------- | ------------------------------------------------- | ----------------------- | ------------------- | --------------------------- |
+| BT26-023 Mojyamon | On Play; place one hand card face down under self | Cost card stays in hand | Cost paid           | Cost paid without target    |
+| BT26-072 Peckmon  | On Play; trash one hand card                      | Cost card stays in hand | Cost paid           | Cost paid without target    |
+| BT26-082 Ravemon  | Digivolve from BT26-076; delete self              | Ravemon stays in battle | Self deleted        | Self deleted without target |
 
-All scenarios auto-answer optional, target, card, and modal decisions and assert no pending decision remains. Each has an otherwise identical control containing ST1-03 on the opponent's board. The initial six-case run had **3 passed, 3 failed**, all failures at the paid-cost assertion. Adding only `allowCostWithoutTarget: true` to the relevant Return/Delete actions gave **6 passed** (4.29 s). The changes were then restored byte-for-byte. This rules out an unanswered modal prompt and isolates target preflight/classification as the cause.
+All scenarios auto-answer optional, target, card, and modal decisions and assert no pending decision remains. Each has an otherwise identical control containing ST1-03 on the opponent's board. The initial six-case run had **3 passed, 3 failed**, all failures at the paid-cost assertion. Adding only `allowCostWithoutTarget: true` to the relevant Return/Delete actions gave **6 passed**, ruling out an unanswered modal prompt and isolating target preflight/classification as the cause.
 
-The retained test `apps/api/src/engine/optionalCostInvestigation.test.ts` marks the three unresolved no-target assertions with Vitest’s `fails` option. A green result therefore records known failures, not a fix. Set `OPTIONAL_COST_REPRO=1` to run them as ordinary failing tests:
+The retained regression test exercises all three fixed no-target paths and their otherwise identical with-target controls:
 
 ```sh
-OPTIONAL_COST_REPRO=1 TEST_HEAP_MB=1536 NODE_OPTIONS=--max-old-space-size=1536 pnpm --filter @aegis/api exec vitest run src/engine/optionalCostInvestigation.test.ts --maxWorkers=1 --no-file-parallelism
+TEST_HEAP_MB=1536 NODE_OPTIONS=--max-old-space-size=1536 pnpm --filter @aegis/api exec vitest run src/engine/optionalCostInvestigation.test.ts --maxWorkers=1 --no-file-parallelism
 ```
 
 ## Implementation cause
@@ -40,7 +40,7 @@ The existing fix in `38cfb36cc` (2026-09-20, “Correct effect resolution and de
 
 The scanner imports the actual card modules and inspects `registeredCompiledCards`, not only the generated shared aggregate. It scanned **4485 registered compiled cards**, finding **1543 cost-bearing object occurrences across 1096 cards**. **1115 occurrences across 798 cards** are recognized by the classifier; **97 CostGatedBlock occurrences across 66 cards** form another representation (these counts overlap and are not additive guarantees of correctness). Legacy cards without registered compiled IR are outside this inventory.
 
-The following **66-card triage list** selects cards whose catalog contains “by”, with an unrecognized cost-bearing action in a target-sensitive family, excluding CostGatedBlock itself. This is deliberately broad: the word can belong to a different clause, a cost can create its own target, self-targets may always exist, nested optionality differs, and Main/ruling guards can be legitimate. **Only the three CONFIRMED rows are proven bugs.** Other rows are leads, including explicitly identified caveats. Classifier recognition also does not prove all resolver branches are correct.
+The original **66-card triage list** selects cards whose catalog contains “by”, with an unrecognized cost-bearing action in a target-sensitive family, excluding CostGatedBlock itself. After the three fixes, rerunning the scanner leaves **63 unverified candidates**. This is deliberately broad: the word can belong to a different clause, a cost can create its own target, self-targets may always exist, nested optionality differs, and Main/ruling guards can be legitimate. Only the three fixed rows were proven bugs. Other rows are leads, including explicitly identified caveats. Classifier recognition also does not prove all resolver branches are correct.
 
 Rebuild raw inventory outside the audit directory:
 
@@ -84,14 +84,14 @@ NODE_OPTIONS=--max-old-space-size=1536 apps/api/node_modules/.bin/tsx tools/diag
 | BT23-045 | TigerVespamon                | Return                                | OnPlay, WhenDigivolving                | Unverified static candidate                                                         |
 | BT26-005 | Pinamon                      | PlayWithoutCost                       | OnDeletion                             | Hidden-source cost has a special cost-creates-target bypass; investigate separately |
 | BT26-006 | Monimon                      | PlayWithoutCost, UseOptionWithoutCost | WhenAttacking                          | Modal play/use merge and hidden-source bypass need separate validation              |
-| BT26-023 | Mojyamon                     | Return                                | OnPlay, WhenAttacking                  | CONFIRMED: no opponent target prevents hand-to-stack cost                           |
+| BT26-023 | Mojyamon                     | Return                                | OnPlay, WhenAttacking                  | FIXED: no-target hand-to-stack cost is explicitly permitted                         |
 | BT26-069 | Dobermon                     | Delete                                | OnPlay, WhenDigivolving                | Self is normally a valid level-4 target; empty opponent board alone is insufficient |
 | BT26-070 | NightChiropmon               | UseOptionWithoutCost                  | Main                                   | Unverified; includes Main activation restrictions                                   |
-| BT26-072 | Peckmon                      | Delete                                | OnPlay, WhenDigivolving                | CONFIRMED: no opponent target prevents hand-trash cost                              |
+| BT26-072 | Peckmon                      | Delete                                | OnPlay, WhenDigivolving                | FIXED: both no-target alternate costs are explicitly permitted                      |
 | BT26-074 | Cerberusmon                  | UseOptionWithoutCost                  | OnPlay, WhenDigivolving, WhenAttacking | Unverified static candidate                                                         |
 | BT26-075 | ScourgeChiropmon             | PlayWithoutCost                       | Security, OnDeletion                   | Hidden-source cost has a special cost-creates-target bypass; investigate separately |
 | BT26-078 | Cherubimon                   | PlayWithoutCost                       | OnPlay, WhenDigivolving                | Self-deletion may itself supply a legal trash play; investigate separately          |
-| BT26-082 | Ravemon                      | Delete                                | WhenDigivolving, EndOfAttack           | CONFIRMED: no opponent target prevents self-deletion cost                           |
+| BT26-082 | Ravemon                      | Delete                                | WhenDigivolving, EndOfAttack           | FIXED: both no-target alternate costs are explicitly permitted                      |
 | BT26-090 | Kanan Yuki                   | UseOptionWithoutCost                  | EndOfYourTurn                          | Unverified static candidate                                                         |
 | BT26-091 | Yoshino Fujieda              | Digivolve                             | YourTurn                               | Unverified static candidate                                                         |
 | BT26-096 | Kosuke Misono                | PlayWithoutCost                       | Main                                   | Unverified; includes Main activation restrictions                                   |
@@ -121,4 +121,4 @@ NODE_OPTIONS=--max-old-space-size=1536 apps/api/node_modules/.bin/tsx tools/diag
 
 Tests ran sequentially, one worker, with 1536 MiB V8 old-space ceilings for runner and worker. This is a heap ceiling, not a total RSS limit. No full card suite, build, browser/server, or parallel test processes were started.
 
-Original report cards: 3 files / 45 tests passed (12.11 s cold). Diagnostic ordinary assertions: 3 passed / 3 failed (4.21 s). Temporary classification probe: 6 passed (4.29 s). Final focused run: 5 files, **49 passed and 3 expected failures** (52 cases, 3.62 s), covering the original report cards, diagnostic controls/known gaps, and processing-condition classification. No full typecheck was run for this investigation-only change.
+Original report cards: 3 files / 45 tests passed (12.11 s cold). Red regression: 3 passed / 3 failed (8.38 s after rebuilding shared). Fixed regression: 6 passed / 6 (2.80 s). Focused card and mechanism verification: 6 files, **48 passed** (3.55 s). Scoped Oxlint/Oxfmt and `git diff --check` passed. Shared typecheck passed; API typecheck exceeded 1.5 GiB and 2 GiB heap limits, and the 3 GiB retry was stopped when another worktree's concurrent `tsc` made the machine unresponsive. No TypeScript diagnostic was emitted before those resource stops.

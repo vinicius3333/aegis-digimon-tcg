@@ -39,12 +39,20 @@ describe("BT26-082 compiled behavior", () => {
         optional: true,
         abortOnDecline: true,
         options: [
-          [{ kind: "Delete", target: { filter: { superlative: "highestDP" } }, cost: { kind: "deleteOwn" } }],
+          [
+            {
+              kind: "Delete",
+              target: { filter: { superlative: "highestDP" } },
+              cost: { kind: "deleteOwn" },
+              allowCostWithoutTarget: true,
+            },
+          ],
           [
             {
               kind: "Delete",
               target: { filter: { superlative: "highestDP" } },
               cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
+              allowCostWithoutTarget: true,
             },
           ],
         ],

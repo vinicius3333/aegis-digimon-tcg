@@ -5,9 +5,7 @@ import "../cards/index.js";
 const answers = { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true };
 
 describe.each([true, false])("optional processing costs (payload target present: %s)", (hasTarget) => {
-  // Keep known gaps executable; OPTIONAL_COST_REPRO=1 exposes the ordinary failing assertions.
-  const fails = !hasTarget && process.env.OPTIONAL_COST_REPRO !== "1";
-  it("Ravemon BT26-082 can self-delete after digivolving", { fails }, async () => {
+  it("Ravemon BT26-082 can self-delete after digivolving", async () => {
     const s = setupEngine(
       {
         0: {
@@ -34,7 +32,7 @@ describe.each([true, false])("optional processing costs (payload target present:
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).not.toContain("BT26-082");
   });
 
-  it.each(["BT26-023", "BT26-072"])("%s can pay its hand-card processing cost on play", { fails }, async (cardId) => {
+  it.each(["BT26-023", "BT26-072"])("%s can pay its hand-card processing cost on play", async (cardId) => {
     const s = setupEngine(
       {
         0: {
