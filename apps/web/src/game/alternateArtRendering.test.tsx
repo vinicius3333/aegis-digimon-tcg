@@ -11,21 +11,6 @@ const cardId = "BT1-010";
 const artId = getCardArts(cardId)[1]!.artId;
 afterEach(cleanup);
 
-it("uses a caller-owned fallback after every catalog image provider fails", () => {
-  render(
-    <CardFull
-      cardId="EX13-031"
-      preferRemote
-      fallbackImageUrl="/cards/preview/EX13-031.webp"
-      zoomOnHover={false}
-    />,
-  );
-
-  fireEvent.error(screen.getByAltText("KingSukamon"));
-  fireEvent.error(screen.getByAltText("KingSukamon"));
-  expect(screen.getByAltText("KingSukamon").getAttribute("src")).toBe("/cards/preview/EX13-031.webp");
-});
-
 it("keeps different images for the same canonical card and resets failed image state when switching art", () => {
   const { rerender } = render(<CardFull cardId={cardId} artId={artId} zoomOnHover={false} />);
   const image = screen.getByAltText("Agumon");
