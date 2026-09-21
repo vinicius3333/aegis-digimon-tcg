@@ -975,10 +975,11 @@ function layIssue4890ReinaDeletionScenario(state: GameState, decks: readonly [De
   const human = state.players[0];
   if (human !== undefined) {
     placePermanent(human, establishedDigimon(0, ["EX11-059"], "-issue-4890-reina"));
-    placePermanent(human, establishedDigimon(0, ["EX8-032"], "-issue-4890-apemon"));
-    placePermanent(human, establishedDigimon(0, ["EX12-024"], "-issue-4890-garurumon"));
+    placePermanent(human, establishedDigimon(0, ["EX8-060"], "-issue-4890-myotismon"));
+    placePermanent(human, establishedDigimon(0, ["EX8-062"], "-issue-4890-piedmon"));
+    placePermanent(human, establishedDigimon(0, ["EX12-032"], "-issue-4890-weregarurumon"));
     insertCard(human, Zone.Hand, faceDownCard("dev-issue-4890-heat-viper", "BT2-109", 0));
-    insertCard(human, Zone.Hand, faceDownCard("dev-issue-4890-weregarurumon", "EX12-032", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-issue-4890-granddracmon", "EX8-064", 0));
   }
   const bot = state.players[1];
   if (bot !== undefined) {

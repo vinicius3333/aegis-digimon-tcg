@@ -128,6 +128,7 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
+          allowDigiXros: true,
           optional: true,
           reduceCostBy: 3,
         },

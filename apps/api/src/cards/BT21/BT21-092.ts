@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
           target: { filter: xrosHeartDigimon, count: 1 },
           from: ["hand"],
           payCost: true,
+          allowDigiXros: true,
           optional: true,
           reduceCostByScaling: { per: 1, unit: "namedCount", countSource: "placedXrosSources" },
         },

@@ -25,16 +25,16 @@ describe("recent player-report arena scenarios", () => {
     expect(result?.dnaDigivolveRoutes[0]?.projectedCost).toBe(0);
   });
 
-  it("stages #4890 with Reina, Heat Viper, and a legal NSo DNA line", () => {
+  it("stages #4890 with both reported deletions and Myotismon's legal NSo DNA line", () => {
     const s = setupEngine({ 0: {}, 1: {} });
     layDevScenario("arena-issue-4890-reina-deletion", s.state, [BLUE_DECK, RED_DECK]);
 
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(
-      expect.arrayContaining(["EX11-059", "EX8-032", "EX12-024"]),
+      expect.arrayContaining(["EX11-059", "EX8-060", "EX8-062", "EX12-032"]),
     );
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT2-109", "EX12-032"]),
+      expect.arrayContaining(["BT2-109", "EX8-064"]),
     );
   });
 

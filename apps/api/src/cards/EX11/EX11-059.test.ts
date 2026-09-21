@@ -162,6 +162,59 @@ describe("EX11-059 Reina Oumi", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-032")).toBe(true);
   });
 
+  it("reproduces the reported own-turn EX8 Myotismon deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-059", as: "reina" },
+            { card: "EX8-060", as: "deletedNso" },
+            { card: "EX8-062", as: "fieldMaterial" },
+          ],
+          hand: [{ card: "EX8-064", as: "dnaTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deletedNso").permanentId], "byEffect");
+    await settle(() => s.perm("reina").isSuspended);
+
+    expect(s.perm("reina").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX8-064")).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("offers the reported WereGarurumon deletion even when no legal NSo DNA exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-059", as: "reina" },
+            { card: "EX12-032", as: "deletedNso" },
+            { card: "EX8-032", as: "onlyLevelFour" },
+          ],
+          hand: [{ card: "EX12-032", as: "dnaTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deletedNso").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-032"));
+    await settle(() => false, 30);
+
+    expect(s.perm("reina").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX12-032")).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-032")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("plays itself from security through a public security check", async () => {
     const s = setupEngine({
       0: { security: [{ card: "EX11-059", as: "reina", faceUp: false }] },

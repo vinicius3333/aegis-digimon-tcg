@@ -122,8 +122,8 @@ export function LiveArenaDemo() {
                 : "Select WereGarurumon in hand and DNA Digivolve using yellow Apemon and purple Garurumon."
               : scenario === "arena-issue-4890-reina-deletion"
                 ? portuguese
-                  ? "Use Heat Viper e delete seu Apemon. Suspenda Reina para fazer DNA Digivolve com Apemon no lixo e Garurumon no campo."
-                  : "Use Heat Viper and delete your Apemon. Suspend Reina to DNA Digivolve with Apemon in trash and Garurumon in play."
+                  ? "Use Heat Viper e delete Myotismon; Reina deve oferecer GrandDracmon com Piedmon. Reinicie e delete WereGarurumon: Reina ainda pode suspender, mas nenhum DNA ocorre porque não há alvo NSo legal para esse nível 5."
+                  : "Use Heat Viper and delete Myotismon; Reina must offer GrandDracmon with Piedmon. Reset and delete WereGarurumon: Reina can still suspend, but no DNA occurs because no legal NSo target can use that level 5."
                 : scenario === "arena-issue-4891-seiten-on-play"
                   ? portuguese
                     ? "Jogue SeitenGokuumon, escolha o Digimon adversário e confirme que ele recebe -8000 DP antes do ataque opcional."

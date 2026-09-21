@@ -57,6 +57,7 @@ const digivolveBody = [
           target: { filter: { ...playable, kind: ["Digimon", "Tamer"] }, count: 1 },
           from: ["hand"],
           payCost: true,
+          allowDigiXros: true,
           reduceCostBy: 5,
           optional: true,
         },
