@@ -50,3 +50,7 @@ Digimon after payment.
   unchanged when the player selects nothing. Its paired paid-cost case proves
   the subsequent up-to-two opposing target request has minimum 1 and rejects an
   empty response.
+- `BT20-073.test.ts` and `trigger-ordering-source-departure.test.ts` prove the
+  same interaction survives a derived `[On Play]` window: accepting the
+  preceding `[On Deletion]` play publishes MetalPhantomon's decline-capable
+  `deleteOwn` selection directly, and its later trigger ordering is unchanged.
