@@ -23,7 +23,7 @@ import {
 import { CoverThumb } from "../design/cards";
 import { COLORS } from "../design/theme";
 import { Icons, type IconComponent } from "../design/icons";
-import { FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, type DeckListing } from "../game/decks";
+import { FAMOUS_DECKS, FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, type DeckListing } from "../game/decks";
 import { useTranslation, type Translate } from "../i18n";
 import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
@@ -32,6 +32,25 @@ import { DeckPicker } from "./DeckPicker";
 import "./lobby.css";
 
 export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest";
+export type RandomDeckPool = "mine" | "famous" | "all";
+
+function randomEligible(deck: DeckListing): boolean {
+  if (!deckLegality(deck).legal) return false;
+  return ![...deck.mainDeck, ...deck.eggDeck].some((id) => {
+    const card = getCardDefinition(id);
+    return card !== undefined && isBetaOnlyCard(card);
+  });
+}
+
+export function randomDeckPool(personalDecks: readonly DeckListing[], scope: RandomDeckPool): DeckListing[] {
+  const candidates = scope === "mine" ? personalDecks : scope === "famous" ? FAMOUS_DECKS : selectableDecks(personalDecks);
+  return [...new Map(candidates.filter(randomEligible).map((deck) => [deck.id, deck])).values()];
+}
+
+export function randomDeckId(decks: readonly DeckListing[], random = Math.random): string | undefined {
+  if (decks.length === 0) return undefined;
+  return decks[Math.floor(random() * decks.length)]?.id;
+}
 
 interface Mode {
   key: string;
@@ -95,7 +114,13 @@ export function Lobby({
   onCopyDeck: (deck: DeckListing) => void;
   onEditDeck?: (deck: DeckListing) => void;
   onNav: (s: Screen) => void;
-  onStart: (mode: StartMode, roomCode?: string, botDeckId?: string, betaBattleMode?: boolean) => void;
+  onStart: (
+    mode: StartMode,
+    roomCode?: string,
+    botDeckId?: string,
+    betaBattleMode?: boolean,
+    deckId?: string,
+  ) => void;
   /** A code carried in by an invite link; opens the private join form with it filled in. */
   invitedRoomCode?: string;
 }) {
@@ -107,6 +132,8 @@ export function Lobby({
   const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
   const [botDeckId, setBotDeckId] = useState("");
+  const [randomSelected, setRandomSelected] = useState(false);
+  const [randomPoolScope, setRandomPoolScope] = useState<RandomDeckPool>("all");
   // Which modes route an unreleased-card deck into the separate beta queue.
   const betaQueueMode = mode === "casual" || mode === "practice";
   // A private room is invite-only and both seats opt in by sharing the code, so it takes
@@ -176,7 +203,7 @@ export function Lobby({
         : [],
     [active],
   );
-  const betaEnabled = betaQueueMode && betaCards.length > 0;
+  const betaEnabled = !randomSelected && betaQueueMode && betaCards.length > 0;
   const deckLegal =
     !!active &&
     active.mainDeck.length === 50 &&
@@ -184,6 +211,36 @@ export function Lobby({
     banViolations.length === 0 &&
     pairViolations.length === 0 &&
     (betaCards.length === 0 || betaAllowed);
+  const randomPool = useMemo(() => randomDeckPool(decks, randomPoolScope), [decks, randomPoolScope]);
+  const randomPoolLabel = t(randomPool.length === 1 ? "lobby.randomPoolOne" : "lobby.randomPool", {
+    count: randomPool.length,
+  });
+  const selectionLegal = randomSelected ? randomPool.length > 0 : deckLegal;
+  const selectDeck = useCallback(
+    (deckId: string) => {
+      setRandomSelected(false);
+      onSelectDeck(deckId);
+    },
+    [onSelectDeck],
+  );
+  const start = useCallback(
+    (startMode: StartMode, code?: string, requestedBotDeckId?: string, requestedBetaBattleMode?: boolean) => {
+      const selectedDeckId = randomSelected ? randomDeckId(randomPool) : active?.id;
+      if (!selectedDeckId) return;
+      if (randomSelected) {
+        onStart(startMode, code, requestedBotDeckId, requestedBetaBattleMode, selectedDeckId);
+      } else if (requestedBetaBattleMode !== undefined) {
+        onStart(startMode, code, requestedBotDeckId, requestedBetaBattleMode);
+      } else if (requestedBotDeckId !== undefined) {
+        onStart(startMode, code, requestedBotDeckId);
+      } else if (code !== undefined) {
+        onStart(startMode, code);
+      } else {
+        onStart(startMode);
+      }
+    },
+    [active?.id, onStart, randomPool, randomSelected],
+  );
 
   return (
     <main
@@ -195,7 +252,20 @@ export function Lobby({
         overflow: "hidden",
       }}
     >
-      {active ? (
+      {randomSelected ? (
+        <div className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
+          <div className="lobby-active-strip__jump">
+            <span className="lobby-active-strip__thumb lobby-active-strip__thumb--mystery">
+              <Icons.Dices size={22} aria-hidden="true" />
+            </span>
+            <span className="lobby-active-strip__text">
+              <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
+              <span className="lobby-active-strip__name">{t("lobby.randomDeck")}</span>
+            </span>
+          </div>
+          <span className="lobby-active-strip__status">{randomPoolLabel}</span>
+        </div>
+      ) : active ? (
         <div className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
           <button type="button" className="lobby-active-strip__jump" onClick={scrollToActiveDeckCard}>
             <span
@@ -296,7 +366,10 @@ export function Lobby({
         <DeckPicker
           ownDecks={userDecks}
           activeDeckId={activeDeckId}
-          onSelectDeck={onSelectDeck}
+          randomSelected={randomSelected}
+          randomPoolSize={randomPool.length}
+          onSelectRandom={() => setRandomSelected(true)}
+          onSelectDeck={selectDeck}
           onCopyDeck={onCopyDeck}
           onEditDeck={editDeck}
           onBuildDeck={buildDeck}
@@ -314,7 +387,17 @@ export function Lobby({
         }}
       >
         <Eyebrow color="var(--ds-fg-muted)">{t("lobby.battleDeck")}</Eyebrow>
-        {active ? (
+        {randomSelected ? (
+          <div className="lobby-mystery-summary">
+            <div className="lobby-mystery-summary__cards" aria-hidden="true">
+              <Icons.Dices size={34} />
+            </div>
+            <div>
+              <div className="lobby-mystery-summary__title">{t("lobby.randomDeck")}</div>
+              <div className="lobby-mystery-summary__pool">{randomPoolLabel}</div>
+            </div>
+          </div>
+        ) : active ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 13, alignItems: "center", margin: "14px 0 18px" }}>
             <div
               style={{
@@ -405,6 +488,24 @@ export function Lobby({
         <div style={{ height: 1, background: "var(--ds-border)", margin: "4px 0 18px" }} />
 
         <div style={{ flex: 1 }}>
+            {randomSelected ? (
+              <div className="lobby-random-pool">
+                <span id="lobby-random-pool-label">{t("lobby.randomPoolLabel")}</span>
+                <div role="group" aria-labelledby="lobby-random-pool-label">
+                  {(["mine", "famous", "all"] as const).map((scope) => (
+                    <button
+                      type="button"
+                      key={scope}
+                      className={randomPoolScope === scope ? "is-selected" : undefined}
+                      aria-pressed={randomPoolScope === scope}
+                      onClick={() => setRandomPoolScope(scope)}
+                    >
+                      {t(`lobby.filter${scope === "mine" ? "Mine" : scope === "famous" ? "Famous" : "All"}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           {betaEnabled ? (
             <Alert className="lobby-alert" tone="warning" title={t("lobby.betaBattleMode")}>
               {t("lobby.betaBattleHint")}
@@ -432,7 +533,9 @@ export function Lobby({
             </Alert>
           ) : null}
           <div style={{ fontSize: 13.5, color: "var(--ds-fg-secondary)", lineHeight: 1.6, marginBottom: 20 }}>
-            {active ? (
+            {randomSelected ? (
+              t("lobby.randomQueueNotice")
+            ) : active ? (
               <>
                 {t("lobby.queueNoticePrefix")}
                 <strong style={{ color: "var(--ds-fg)" }}>{MODES.find((m) => m.key === mode)?.title}</strong>
@@ -447,15 +550,15 @@ export function Lobby({
             <PrivateSidebar
               t={t}
               sub={privateSub}
-              deckLegal={deckLegal}
+              deckLegal={selectionLegal}
               onSub={setPrivateSub}
               roomCode={roomCodeInput}
               onRoomCode={setRoomCodeInput}
               onStart={(startMode) => {
                 if (startMode === "private_guest") {
-                  onStart(startMode, roomCodeInput);
+                  start(startMode, roomCodeInput);
                 } else {
-                  onStart(startMode);
+                  start(startMode);
                 }
               }}
             />
@@ -523,11 +626,11 @@ export function Lobby({
                       size="lg"
                       full
                       icon={Icons.Bot}
-                      disabled={!deckLegal}
+                      disabled={!selectionLegal}
                       onClick={() =>
                         betaEnabled
                           ? setBetaConfirmation("bot")
-                          : onStart("bot", undefined, botDeckId || undefined, false)
+                          : start("bot", undefined, botDeckId || undefined, false)
                       }
                     >
                       {t("lobby.playVsBot")}
@@ -540,7 +643,7 @@ export function Lobby({
                     size="lg"
                     full
                     icon={Icons.Swords}
-                    disabled={!deckLegal}
+                    disabled={!selectionLegal}
                     onClick={() => setBetaConfirmation("beta")}
                   >
                     {t("lobby.enterBetaQueue")}
@@ -548,15 +651,15 @@ export function Lobby({
                 </div>
               ) : RANKED_ENABLED ? (
                 <RankedStart
-                  disabled={!deckLegal}
+                  disabled={!selectionLegal}
                   actionClassName="lobby-launch"
                   buttonLabel={t("lobby.enterQueue")}
                   onOpenSettings={() => onNav("settings")}
-                  onStart={(isRanked) => onStart(isRanked ? "ranked" : "casual")}
+                  onStart={(isRanked) => start(isRanked ? "ranked" : "casual")}
                 />
               ) : (
                 <div className="lobby-launch">
-                  <Button size="lg" full icon={Icons.Swords} disabled={!deckLegal} onClick={() => onStart("casual")}>
+                  <Button size="lg" full icon={Icons.Swords} disabled={!selectionLegal} onClick={() => start("casual")}>
                     {t("lobby.enterQueue")}
                   </Button>
                 </div>
@@ -577,8 +680,8 @@ export function Lobby({
               onClick={() => {
                 const startMode = betaConfirmation;
                 setBetaConfirmation(null);
-                if (deckLegal && betaEnabled)
-                  onStart(startMode, undefined, startMode === "bot" ? botDeckId || undefined : undefined, true);
+                if (selectionLegal && betaEnabled)
+                  start(startMode, undefined, startMode === "bot" ? botDeckId || undefined : undefined, true);
               }}
             >
               {t("common.confirm")}
