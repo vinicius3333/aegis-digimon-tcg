@@ -164,8 +164,11 @@ it("selects an eligible Alliance Digimon directly on the real field", () => {
   expect(send).not.toHaveBeenCalled();
   fireEvent.keyDown(permanent("ally"), { key: "Enter" });
   expect(send).not.toHaveBeenCalled();
-  expect(screen.getByRole("dialog", { name: "Confirm Alliance" })).toBeTruthy();
-  expect(screen.getByText(/\(6,000 DP\).*Alliance/)).toBeTruthy();
+  expect(screen.getByRole("dialog", { name: "＜Alliance＞" })).toBeTruthy();
+  expect(screen.getByText(/Suspend .+ to add 6,000 DP\./)).toBeTruthy();
+  expect(screen.getByRole("dialog", { name: "＜Alliance＞" }).querySelector<HTMLElement>("[data-tone='keyword']")?.textContent).toBe(
+    "＜Alliance＞",
+  );
   const confirm = screen.getByRole("button", { name: "Use Alliance" });
   fireEvent.click(confirm);
   fireEvent.click(confirm);
@@ -177,9 +180,9 @@ it("returns to Alliance field selection when confirmation is cancelled", () => {
   const { send, permanent } = renderAllianceGame();
 
   fireEvent.click(permanent("ally"));
-  expect(screen.getByRole("dialog", { name: "Confirm Alliance" })).toBeTruthy();
+  expect(screen.getByRole("dialog", { name: "＜Alliance＞" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-  expect(screen.queryByRole("dialog", { name: "Confirm Alliance" })).toBeNull();
+  expect(screen.queryByRole("dialog", { name: "＜Alliance＞" })).toBeNull();
   expect(screen.getByRole("region", { name: "Alliance window" })).toBeTruthy();
   expect(permanent("ally").classList.contains("game-permanent--candidate")).toBe(true);
   expect(send).not.toHaveBeenCalled();

@@ -84,6 +84,32 @@
   justify-content: center;
   margin-top: var(--ds-space-3);
 }
+.action-confirmation__copy {
+  min-width: 0;
+}
+.action-confirmation__title {
+  width: fit-content;
+  color: var(--ds-warning);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.action-confirmation__title[data-tone="keyword"] {
+  display: inline-flex;
+  padding: 4px 10px;
+  color: #fff;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff6fae, var(--battle-keyword));
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--battle-keyword) 34%, transparent);
+  white-space: nowrap;
+}
+.action-confirmation__detail {
+  margin-top: 7px;
+  color: var(--ds-fg);
+  font-size: 15px;
+  line-height: 1.45;
+}
 .material-prompt .game-actions-row {
   flex-wrap: wrap;
 }

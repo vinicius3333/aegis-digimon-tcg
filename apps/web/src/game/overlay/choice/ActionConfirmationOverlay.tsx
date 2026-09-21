@@ -9,6 +9,7 @@ import "../effectPromptFamily.css";
 export function ActionConfirmationOverlay({
   cardId,
   title,
+  titleTone,
   detail,
   confirmLabel,
   alternateLabel,
@@ -18,6 +19,7 @@ export function ActionConfirmationOverlay({
 }: {
   cardId: string;
   title: string;
+  titleTone?: "keyword";
   detail: string;
   confirmLabel: string;
   alternateLabel?: string;
@@ -61,19 +63,11 @@ export function ActionConfirmationOverlay({
       >
         <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 18 }}>
           <CardFull cardId={cardId} width={92} />
-          <div>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 800,
-                color: "var(--ds-warning)",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-              }}
-            >
+          <div className="action-confirmation__copy">
+            <div className="action-confirmation__title" data-tone={titleTone}>
               {title}
             </div>
-            <div style={{ marginTop: 7, color: "var(--ds-fg)", fontSize: 15, lineHeight: 1.45 }}>{detail}</div>
+            <div className="action-confirmation__detail">{detail}</div>
           </div>
         </div>
         <div className="game-actions-row">

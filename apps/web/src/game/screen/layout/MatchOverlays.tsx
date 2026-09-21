@@ -264,6 +264,7 @@ export function MatchOverlays({
         <ActionConfirmationOverlay
           cardId={allianceConfirmationPermanent.topCard.cardId}
           title={t("overlay.confirmAllianceTitle")}
+          titleTone="keyword"
           detail={t("overlay.confirmAllianceDetail", {
             name: printedCardName(allianceConfirmationPermanent.topCard.cardId),
             dp: allianceConfirmationPermanent.currentDP.toLocaleString(),
