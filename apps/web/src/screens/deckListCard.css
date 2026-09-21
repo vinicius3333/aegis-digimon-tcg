@@ -216,25 +216,6 @@
   text-transform: uppercase;
 }
 
-.deck-list-card.is-compact .deck-list-card__actions {
-  margin-top: var(--ds-space-2);
-}
-
-.deck-list-card.is-compact .deck-list-card__actions .aegis-button {
-  min-height: 34px;
-  padding: var(--ds-space-2) 0;
-  border: 0;
-  border-bottom: 2px solid color-mix(in srgb, var(--ds-accent) 55%, transparent);
-  border-radius: 0;
-  background: transparent;
-}
-
-.deck-list-card.is-compact .deck-list-card__actions .aegis-button:hover {
-  color: var(--ds-accent-hover);
-  border-bottom-color: var(--ds-accent-hover);
-  background: transparent;
-}
-
 .deck-list-card.is-compact .deck-list-card__violation,
 .deck-list-card.is-compact .deck-list-card__pair-violation {
   margin-top: var(--ds-space-2);
