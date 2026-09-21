@@ -2,10 +2,7 @@
   {
     "version": "1.0.0-beta",
     "releasedAt": "2026-09-21",
-    "summary": {
-      "en": "The first official Aegis beta milestone. From now on, every player-facing update is recorded here.",
-      "pt-BR": "O primeiro marco oficial do beta do Aegis. Daqui para frente, todas as novidades para jogadores ficam registradas aqui."
-    },
+    "summaryKey": "releases.1.0.0-beta.summary",
     "features": [],
     "fixes": []
   }

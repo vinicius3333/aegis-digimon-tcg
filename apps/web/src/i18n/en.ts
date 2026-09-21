@@ -1,3 +1,5 @@
+import releaseMessages from "../releases/messages.json";
+
 /* English source strings. This object is the key contract: every other locale is
    typed as Record<TranslationKey, string>, so a missing translation is a compile
    error. Placeholders use {name} and are filled by `t(key, params)`. */
@@ -74,6 +76,7 @@ export const en = {
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",
+  "releases.1.0.0-beta.summary": releaseMessages["releases.1.0.0-beta.summary"].en,
 
   "playerMenu.open": "Open the player menu",
   "playerMenu.guest": "Guest · saved on this device",

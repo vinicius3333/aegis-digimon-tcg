@@ -4,6 +4,7 @@
    because the card text the player reads is English. */
 
 import type { en } from "./en";
+import releaseMessages from "../releases/messages.json";
 
 export const ptBR: Record<keyof typeof en, string> = {
   "common.loading": "Carregando...",
@@ -77,6 +78,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.0.0-beta.summary": releaseMessages["releases.1.0.0-beta.summary"]["pt-BR"],
 
   "playerMenu.open": "Abrir o menu do jogador",
   "playerMenu.guest": "Convidado · salvo neste aparelho",

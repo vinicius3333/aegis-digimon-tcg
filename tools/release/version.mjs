@@ -23,11 +23,12 @@ function validate() {
   for (const [path, candidate] of versions)
     if (candidate !== version) throw new Error(`${path} has ${candidate}, expected ${version}`);
   const releases = readJson("apps/web/src/releases/releases.json");
+  const messages = readJson("apps/web/src/releases/messages.json");
   if (!Array.isArray(releases) || releases.length === 0) throw new Error("Release catalog is empty");
   if (releases[0].version !== version) throw new Error("Newest release must match package version");
   const seen = new Set();
-  const releaseKeys = ["features", "fixes", "releasedAt", "summary", "version"];
-  const itemKeys = ["issue", "text"];
+  const releaseKeys = ["features", "fixes", "releasedAt", "summaryKey", "version"];
+  const itemKeys = ["issue", "textKey"];
   for (const [index, release] of releases.entries()) {
     if (!pattern.test(release.version) || seen.has(release.version))
       throw new Error(`Invalid or duplicate release: ${release.version}`);
@@ -41,12 +42,12 @@ function validate() {
       new Date(`${release.releasedAt}T00:00:00Z`).toISOString().slice(0, 10) !== release.releasedAt
     )
       throw new Error(`Invalid release date: ${release.releasedAt}`);
-    if (!release.summary?.en || !release.summary?.["pt-BR"])
-      throw new Error(`Missing localized summary: ${release.version}`);
+    if (!messages[release.summaryKey]?.en || !messages[release.summaryKey]?.["pt-BR"])
+      throw new Error(`Missing i18n summary: ${release.version}`);
     for (const item of [...release.features, ...release.fixes]) {
       if (Object.keys(item).some((key) => !itemKeys.includes(key))) throw new Error("Unknown release item fields");
-      if (!item.text?.en || !item.text?.["pt-BR"])
-        throw new Error(`Missing localized release item: ${release.version}`);
+      if (!messages[item.textKey]?.en || !messages[item.textKey]?.["pt-BR"])
+        throw new Error(`Missing i18n release item: ${release.version}`);
       if (item.issue !== undefined && (!Number.isInteger(item.issue) || item.issue <= 0))
         throw new Error("Invalid issue number");
     }

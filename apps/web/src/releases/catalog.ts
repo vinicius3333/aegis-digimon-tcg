@@ -1,24 +1,14 @@
 import releases from "./releases.json";
 import { GITHUB_REPO_URL } from "../community";
-import type { Locale } from "../i18n/locales";
 
-type LocalizedText = Record<Locale, string>;
-export type ReleaseItem = { text: LocalizedText; issue?: number };
+export type ReleaseItem = { textKey: string; issue?: number };
 export type Release = {
   version: string;
   releasedAt: string;
-  summary: LocalizedText;
+  summaryKey: string;
   features: ReleaseItem[];
   fixes: ReleaseItem[];
 };
-
-function isLocalizedText(value: unknown): value is LocalizedText {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    ["en", "pt-BR"].every((key) => typeof (value as Record<string, unknown>)[key] === "string")
-  );
-}
 
 export function parseCatalog(value: unknown): Release[] {
   if (!Array.isArray(value) || value.length === 0) throw new Error("The release catalog is empty");
@@ -26,7 +16,7 @@ export function parseCatalog(value: unknown): Release[] {
   return value.map((candidate, index) => {
     if (typeof candidate !== "object" || candidate === null) throw new Error("Invalid release entry");
     const release = candidate as Record<string, unknown>;
-    if (!hasOnlyKeys(release, ["features", "fixes", "releasedAt", "summary", "version"]))
+    if (!hasOnlyKeys(release, ["features", "fixes", "releasedAt", "summaryKey", "version"]))
       throw new Error("Unknown release fields");
     if (typeof release.version !== "string" || !/^\d+\.\d+\.\d+-beta$/.test(release.version))
       throw new Error("Invalid release version");
@@ -40,8 +30,8 @@ export function parseCatalog(value: unknown): Release[] {
       new Date(`${release.releasedAt}T00:00:00Z`).toISOString().slice(0, 10) !== release.releasedAt
     )
       throw new Error("Invalid release date");
-    if (!isLocalizedText(release.summary) || !Array.isArray(release.features) || !Array.isArray(release.fixes))
-      throw new Error("Invalid localized release content");
+    if (typeof release.summaryKey !== "string" || !Array.isArray(release.features) || !Array.isArray(release.fixes))
+      throw new Error("Invalid release content");
     for (const item of [...release.features, ...release.fixes]) validateItem(item);
     return release as Release;
   });
@@ -54,9 +44,9 @@ function hasOnlyKeys(value: Record<string, unknown>, keys: string[]): boolean {
 function validateItem(value: unknown): asserts value is ReleaseItem {
   if (typeof value !== "object" || value === null) throw new Error("Invalid release item");
   const item = value as Record<string, unknown>;
-  if (!hasOnlyKeys(item, item.issue === undefined ? ["text"] : ["issue", "text"]))
+  if (!hasOnlyKeys(item, item.issue === undefined ? ["textKey"] : ["issue", "textKey"]))
     throw new Error("Unknown release item fields");
-  if (!isLocalizedText(item.text)) throw new Error("Invalid localized release item");
+  if (typeof item.textKey !== "string") throw new Error("Invalid release item translation key");
   if (item.issue !== undefined && (!Number.isInteger(item.issue) || Number(item.issue) <= 0))
     throw new Error("Invalid release issue");
 }

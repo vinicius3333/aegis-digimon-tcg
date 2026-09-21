@@ -19,7 +19,7 @@ describe("release catalog", () => {
         {
           version: "wrong",
           releasedAt: "2026-09-21",
-          summary: { en: "Summary", "pt-BR": "Resumo" },
+          summaryKey: "releases.invalid.summary",
           features: [],
           fixes: [],
         },
@@ -31,9 +31,9 @@ describe("release catalog", () => {
     const release = {
       version: "1.0.1-beta",
       releasedAt: "2026-09-21",
-      summary: { en: "Summary", "pt-BR": "Resumo" },
+      summaryKey: "releases.test.summary",
       features: [],
-      fixes: [{ text: { en: "Fix", "pt-BR": "Correção" }, issue: 0 }],
+      fixes: [{ textKey: "releases.test.fix", issue: 0 }],
     };
     expect(() => parseCatalog([release])).toThrow("Invalid release issue");
     expect(() =>

@@ -1,6 +1,6 @@
 import { Icons } from "../design/icons";
 import { Badge, Panel } from "../design/primitives";
-import { useTranslation } from "../i18n";
+import { useTranslation, type TranslationKey } from "../i18n";
 import { allReleases, displayVersion, issueUrl, releaseUrl, type ReleaseItem } from "./catalog";
 import "./releases.css";
 
@@ -38,13 +38,11 @@ export function ReleasesScreen() {
                   {t("releases.github")}
                 </a>
               </header>
-              <p className="release__summary">{release.summary[locale]}</p>
+              <p className="release__summary">{t(release.summaryKey as TranslationKey)}</p>
               {release.features.length ? (
-                <ReleaseSection title={t("releases.features")} items={release.features} locale={locale} />
+                <ReleaseSection title={t("releases.features")} items={release.features} />
               ) : null}
-              {release.fixes.length ? (
-                <ReleaseSection title={t("releases.fixes")} items={release.fixes} locale={locale} />
-              ) : null}
+              {release.fixes.length ? <ReleaseSection title={t("releases.fixes")} items={release.fixes} /> : null}
             </Panel>
           </article>
         ))}
@@ -53,16 +51,16 @@ export function ReleasesScreen() {
   );
 }
 
-function ReleaseSection({ title, items, locale }: { title: string; items: ReleaseItem[]; locale: "en" | "pt-BR" }) {
+function ReleaseSection({ title, items }: { title: string; items: ReleaseItem[] }) {
   const { t } = useTranslation();
   return (
     <section className="release__section">
       <h2>{title}</h2>
       <ul>
         {items.map((item) => (
-          <li key={`${item.text.en}:${item.issue ?? "none"}`}>
+          <li key={`${item.textKey}:${item.issue ?? "none"}`}>
             <div>
-              <p>{item.text[locale]}</p>
+              <p>{t(item.textKey as TranslationKey)}</p>
               {item.issue ? (
                 <a className="release__reported" href={issueUrl(item.issue)} target="_blank" rel="noreferrer">
                   {t("releases.reported", { issue: item.issue })}
