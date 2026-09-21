@@ -144,6 +144,37 @@
 .lobby-summary .aegis-eyebrow {
   color: var(--ds-brand-accent-soft) !important;
 }
+.lobby-mystery-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-4);
+  margin: var(--ds-space-4) 0 var(--ds-space-5);
+}
+.lobby-mystery-summary__cards {
+  display: grid;
+  width: 68px;
+  height: 78px;
+  flex-shrink: 0;
+  place-items: center;
+  color: var(--ds-brand-on-ink);
+  border: 1px solid var(--ds-brand-accent-soft);
+  border-radius: var(--ds-radius-sm);
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--ds-accent) 42%, transparent), transparent 60%),
+    var(--ds-brand-ink-soft);
+  box-shadow:
+    5px 5px 0 -2px var(--ds-brand-ink),
+    5px 5px 0 -1px var(--ds-brand-accent-soft);
+}
+.lobby-mystery-summary__title {
+  color: var(--ds-brand-on-ink);
+  font: 700 var(--ds-text-xl)/1.2 var(--ds-font-display);
+}
+.lobby-mystery-summary__pool {
+  margin-top: var(--ds-space-2);
+  color: var(--ds-brand-on-ink-muted);
+  font: var(--ds-text-xs)/1.4 var(--ds-font-mono);
+}
 .lobby-summary .aegis-button--secondary {
   color: var(--ds-brand-on-ink);
   border-color: var(--ds-brand-accent-soft);
@@ -307,6 +338,10 @@
     overflow: hidden;
     border-radius: 10px;
     border: 1px solid rgb(255 255 255 / 18%);
+  }
+  .lobby-active-strip__thumb--mystery {
+    color: var(--ds-brand-on-ink);
+    background: color-mix(in srgb, var(--ds-accent) 28%, var(--ds-brand-ink));
   }
   .lobby-active-strip__text {
     display: flex;

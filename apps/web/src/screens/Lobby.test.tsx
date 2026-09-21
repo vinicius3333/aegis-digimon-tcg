@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Lobby } from "./Lobby";
-import { DECKS } from "../game/decks";
+import { DECKS, selectableDecks } from "../game/decks";
 
 afterEach(() => {
   cleanup();
@@ -60,9 +60,13 @@ describe("famous deck selection", () => {
     const selectors = region
       .getAllByRole("button")
       .filter((button) => button.classList.contains("deck-list-card__selector"));
-    expect(selectors.map((button) => button.getAttribute("aria-label"))).toEqual([valid.name, invalid.name]);
-    expect((selectors[1] as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.click(selectors[1]!);
+    expect(selectors.map((button) => button.getAttribute("aria-label"))).toEqual([
+      "Mystery deck",
+      valid.name,
+      invalid.name,
+    ]);
+    expect((selectors[2] as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(selectors[2]!);
     expect(onSelectDeck).not.toHaveBeenCalled();
     fireEvent.change(picker.getByRole("searchbox"), { target: { value: "DRAFT" } });
     expect(region.queryByRole("button", { name: valid.name })).toBeNull();
@@ -92,6 +96,33 @@ describe("famous deck selection", () => {
     expect(screen.queryByRole("button", { name: "Enter beta queue" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
     expect(onStart).toHaveBeenCalled();
+  });
+
+  it("keeps a random choice hidden and passes a legal deck only when starting", () => {
+    const onStart = vi.fn();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Mystery deck" }));
+    expect(screen.getAllByText("Mystery deck").length).toBeGreaterThan(1);
+    expect(screen.getByText("A legal deck will be chosen when the match begins.")).toBeTruthy();
+    expect(screen.queryByText(/Randomly selected/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
+
+    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(onStart.mock.calls[0]?.slice(0, 4)).toEqual(["casual", undefined, undefined, undefined]);
+    expect(selectableDecks(DECKS).map((deck) => deck.id)).toContain(onStart.mock.calls[0]?.[4]);
   });
 
   it("automatically enables beta for an EX13 deck and still allows private matches", () => {
