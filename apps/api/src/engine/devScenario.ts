@@ -505,12 +505,21 @@ function laySagaSolGuardSourceScenario(state: GameState, decks: readonly [Deckli
   }
   const human = state.players[0];
   if (human !== undefined) {
-    placePermanent(human, establishedDigimon(0, ["EX12-008"], "-sagasol-guard"));
     placePermanent(human, establishedDigimon(0, ["EX12-005"], "-sagasol-protected"));
+    // The bot deterministically picks the first legal Gaia Force target. Put the protected
+    // Digimon first and the Guard holder second so the replacement decision is exercised.
+    placePermanent(human, establishedDigimon(0, ["EX12-008"], "-sagasol-guard"));
     insertCard(human, Zone.Security, faceUpCard("dev-sagasol-metal-empire", "EX12-072", 0), "top");
   }
   const bot = state.players[1];
-  if (bot !== undefined) insertCard(bot, Zone.Hand, faceDownCard("dev-sagasol-gaia-force", "ST1-16", 1));
+  if (bot !== undefined) {
+    // Gaia Force still has its normal red use requirement. Give the bot a red source so
+    // it actually uses the Option instead of passing with 10 memory and never opening Guard.
+    // A Tamer satisfies the color requirement without giving the bot an attacker that could
+    // remove the face-up Metal Empire from security before Gaia Force is used.
+    placePermanent(bot, establishedDigimon(1, ["BT1-085"], "-sagasol-red-source"));
+    insertCard(bot, Zone.Hand, faceDownCard("dev-sagasol-gaia-force", "ST1-16", 1));
+  }
   state.turnSeat = 1;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
