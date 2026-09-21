@@ -118,8 +118,8 @@
 
 .deck-list-card__split-color {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   border: 1px solid color-mix(in srgb, var(--ds-fg) 18%, transparent);
   border-radius: 50%;
