@@ -95,6 +95,25 @@ describe("immunity is an affectation rule, not a targeting rule", () => {
     expect(s.perm("victim").currentDP).toBe(3000);
   });
 
+  it("re-applies a stored DP modifier when conditional continuous immunity lapses", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT15-047", as: "victim", suspended: true }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    await s.ready();
+    const victim = s.perm("victim");
+    expect(observe(s.engine).hasRestriction(victim, "beAffected", "Digimon")).toBe(true);
+
+    await opponentDigimonModifyDp(s, victim.permanentId, -3000);
+    expect(victim.currentDP).toBe(5000);
+
+    victim.isSuspended = false;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(observe(s.engine).hasRestriction(victim, "beAffected", "Digimon")).toBe(false);
+    expect(victim.currentDP).toBe(2000);
+  });
+
   it("keeps affecting a Digimon that is only immune to a different source kind", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-011", as: "victim", dp: 6000 }] },

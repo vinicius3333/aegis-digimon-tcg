@@ -108,6 +108,13 @@
   color: var(--ds-success);
 }
 
+.deck-list-card__name-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
 .deck-list-card__blurb {
   display: -webkit-box;
   overflow: hidden;
@@ -154,6 +161,21 @@
   grid-template-columns: 84px minmax(0, 1fr);
   min-height: 124px;
   border-radius: var(--ds-radius-sm);
+  background: linear-gradient(135deg, var(--deck-color-soft), transparent 62%), var(--ds-surface);
+}
+
+.deck-list-card.is-compact::after {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-bottom: 13px solid transparent;
+  border-left: 13px solid transparent;
+  border-top: 13px solid var(--deck-color);
+  content: "";
+  pointer-events: none;
 }
 
 .deck-list-card.is-compact .deck-list-card__cover {
@@ -166,17 +188,32 @@
 }
 
 .deck-list-card.is-compact .deck-list-card__body {
+  position: relative;
   padding: var(--ds-space-4);
+}
+
+.deck-list-card.is-compact .deck-list-card__heading {
+  min-height: 48px;
+  padding-right: 86px;
+}
+
+.deck-list-card.is-compact .aegis-badge {
+  position: absolute;
+  top: var(--ds-space-4);
+  right: var(--ds-space-4);
 }
 
 .deck-list-card.is-compact .deck-list-card__identity h3 {
   font-size: var(--ds-text-lg);
 }
 
-.deck-list-card.is-compact .deck-list-card__blurb {
-  margin: var(--ds-space-2) 0 0;
-  font-size: var(--ds-text-xs);
-  -webkit-line-clamp: 1;
+.deck-list-card__eyebrow {
+  display: block;
+  margin-bottom: var(--ds-space-1);
+  color: var(--deck-color);
+  font: 700 10px/1 var(--ds-font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .deck-list-card.is-compact .deck-list-card__violation,
@@ -220,6 +257,14 @@
   .deck-list-card.is-compact .deck-list-card__cover img {
     width: 64px !important;
     height: 90px !important;
+  }
+
+  .deck-list-card.is-compact .deck-list-card__heading {
+    padding-right: 0;
+  }
+
+  .deck-list-card.is-compact .aegis-badge {
+    position: static;
   }
 
   /* A phone-width body cannot hold "Edit" and "Make active" side by side, and the

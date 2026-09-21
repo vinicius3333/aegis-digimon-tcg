@@ -53,6 +53,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-magnamon-x",
   "arena-reboot-timing",
   "arena-sagasol-effect-assembly",
+  "arena-sagasol-etemon-protected-dp",
   "arena-sagasol-guard-source",
   "arena-ex13-magnamon-end-turn",
   "arena-seven-code-link-dp",
@@ -499,6 +500,36 @@ function laySagaSolEffectAssemblyScenario(state: GameState, decks: readonly [Dec
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 11;
+}
+
+/** SagaSol regression: EX5 Etemon's DP reduction is retained while its target is unaffected. */
+function laySagaSolEtemonProtectedDpScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-sagasol-etemon", "EX5-048", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-sagasol-action-buffer", "BT1-009", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const protectedTarget = establishedDigimon(1, ["BT15-047"], "-sagasol-protected-dp-target");
+    protectedTarget.permanentId = "opponent-sagasol-protected-dp-target";
+    protectedTarget.isSuspended = true;
+    placePermanent(bot, protectedTarget);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** SagaSol regression: Metal Empire must own the Guard prompt it grants from security. */
@@ -1225,6 +1256,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-magnamon-x": layMagnamonXScenario,
   "arena-reboot-timing": layRebootTimingScenario,
   "arena-sagasol-effect-assembly": laySagaSolEffectAssemblyScenario,
+  "arena-sagasol-etemon-protected-dp": laySagaSolEtemonProtectedDpScenario,
   "arena-sagasol-guard-source": laySagaSolGuardSourceScenario,
   "arena-ex13-magnamon-end-turn": layEx13MagnamonEndTurnScenario,
   "arena-seven-code-link-dp": laySevenCodeLinkDpScenario,

@@ -38,6 +38,7 @@ import type { MemoryGauge } from "../MemoryGauge.js";
 import type { UseTracker } from "../effects/kernel.js";
 import type { ContinuousEffectLedger } from "../effects/continuous.js";
 import type { ModifierLedger } from "../effects/primitives.js";
+import type { SubTriggerRegistry } from "../effects/subtriggers.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { EffectContext, TriggerInfo } from "../effects/EffectContext.js";
 import type { EffectEnvironment } from "../effects/index.js";
@@ -55,6 +56,7 @@ export interface ProjectionDeps {
   readonly access: GameStateAccess;
   readonly continuous: ContinuousEffectLedger;
   readonly modifiers: ModifierLedger;
+  readonly subTriggers: SubTriggerRegistry;
   readonly memory: MemoryGauge;
   readonly tracker: UseTracker;
   /** Continuous DP deltas as of the last pass, kept across recomputes. */
@@ -170,6 +172,24 @@ export class BoardProjection {
   }
 
   projectRestrictions(perm: Permanent): void {
+    perm.attacksAtStartOfMainPhase = this.deps.subTriggers
+      .subscriptionsFor("startOfYourMainPhase", perm.permanentId)
+      .some(({ publicBadge, publicBadgeGrantingSeat, publicBadgeSourceKinds }) => {
+        if (publicBadge !== "attackAtStartOfMainPhase") return false;
+        if (publicBadgeGrantingSeat === undefined || publicBadgeGrantingSeat === perm.controllerSeat) return true;
+        if (
+          this.deps.continuous.hasRestriction(perm.permanentId, "beAffected", undefined, {
+            byOpponentEffect: true,
+          })
+        ) {
+          return false;
+        }
+        return !(publicBadgeSourceKinds ?? []).some((kind) =>
+          this.deps.continuous.hasRestriction(perm.permanentId, "beAffected", kind, {
+            byOpponentEffect: true,
+          }),
+        );
+      });
     perm.immuneToOpponentDigimonEffects = this.deps.continuous.hasRestriction(
       perm.permanentId,
       "beAffected",

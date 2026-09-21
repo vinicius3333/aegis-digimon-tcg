@@ -36,6 +36,7 @@ const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ de
 const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m.BattleLab })));
 const LiveArenaDemo = lazy(() => import("./dev/LiveArenaDemo").then((m) => ({ default: m.LiveArenaDemo })));
 const ArenaDemo = lazy(() => import("./dev/ArenaDemo").then((m) => ({ default: m.ArenaDemo })));
+const BadgeLayoutLab = lazy(() => import("./dev/BadgeLayoutLab").then((m) => ({ default: m.BadgeLayoutLab })));
 
 export function isBoardShowcasePath(pathname: string): boolean {
   return /^\/dev\/board\/?$/i.test(pathname);
@@ -92,7 +93,9 @@ export function App() {
   return (
     <I18nProvider>
       <Suspense fallback={<ScreenFallback />}>
-        {labCardId ? (
+        {/^\/dev\/badges\/?$/i.test(pathname) ? (
+          <BadgeLayoutLab />
+        ) : labCardId ? (
           <CardEffectsDemo cardId={labCardId} />
         ) : /^\/dev\/arena\/?$/i.test(pathname) ? (
           <Stage>
@@ -232,6 +235,7 @@ export function AegisClient({
   const [roomCode, setRoomCode] = useState<string>();
   const [botDeckId, setBotDeckId] = useState<string>();
   const [betaBattleMode, setBetaBattleMode] = useState(false);
+  const [matchDeckId, setMatchDeckId] = useState<string>();
   const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const screen = route.screen;
@@ -279,23 +283,23 @@ export function AegisClient({
   const navigateScreen = (nextScreen: Screen) => navigate({ screen: nextScreen });
 
   const availableDecks = useMemo(() => selectableDecks(decks), [decks]);
-  const activeDeck = deckById(availableDecks, activeDeckId);
+  const matchDeck = deckById(availableDecks, matchDeckId ?? activeDeckId);
   const collectionSize = useMemo(() => activeCollectionCards().length, []);
   const identityColor: ColorName = colorKey(player.color);
 
   const joinOptions = useMemo<AegisJoinOptions>(
     () => ({
       displayName: effectivePlayer.name,
-      deckId: activeDeck?.id,
-      deckName: activeDeck?.name,
+      deckId: matchDeck?.id,
+      deckName: matchDeck?.name,
       deck: {
-        mainDeck: activeDeck?.mainDeck ?? [],
-        eggDeck: activeDeck?.eggDeck ?? [],
-        mainDeckArts: activeDeck?.mainDeckArts,
-        eggDeckArts: activeDeck?.eggDeckArts,
+        mainDeck: matchDeck?.mainDeck ?? [],
+        eggDeck: matchDeck?.eggDeck ?? [],
+        mainDeckArts: matchDeck?.mainDeckArts,
+        eggDeckArts: matchDeck?.eggDeckArts,
       },
     }),
-    [effectivePlayer.name, activeDeck],
+    [effectivePlayer.name, matchDeck],
   );
 
   const showNav = NAV_SCREENS.includes(screen);
@@ -353,7 +357,7 @@ export function AegisClient({
               }}
               onNav={navigateScreen}
               invitedRoomCode={invitedRoomCode}
-              onStart={(mode, code, requestedBotDeckId, requestedBetaBattleMode) => {
+              onStart={(mode, code, requestedBotDeckId, requestedBetaBattleMode, requestedDeckId) => {
                 // A lobby start explicitly requests a new match, even if a page
                 // reload left a resumable seat from the previous match in storage.
                 clearReconnectSession();
@@ -361,6 +365,7 @@ export function AegisClient({
                 setRoomCode(code);
                 setBotDeckId(requestedBotDeckId);
                 setBetaBattleMode(requestedBetaBattleMode === true);
+                setMatchDeckId(requestedDeckId);
                 navigateScreen("game");
               }}
             />

@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectDuration, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -81,7 +81,10 @@ describe("EX5-048 Etemon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "EX5-048", as: "etemon" }],
+          hand: [
+            { card: "EX5-048", as: "etemon" },
+            { card: "BT1-009", as: "actionBuffer" },
+          ],
           security: ["BT1-009", "BT1-010"],
           deck: ["BT1-011", "BT1-012"],
         },
@@ -146,6 +149,84 @@ describe("EX5-048 Etemon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT11-040"]);
     expect(s.state.memory).toBe(0);
     expect(s.perm("target").currentDP).toBe(7000);
+  });
+
+  it("keeps -3000 DP and the forced attack latent while the chosen Digimon is protected", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX5-048", as: "etemon" },
+            { card: "BT1-009", as: "actionBuffer" },
+          ],
+          security: ["BT1-085", "BT1-085"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "target" }],
+          security: ["BT1-009"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    const drive = advance(s.engine);
+    await drive.waitForMainPhase(0);
+    drive.ledgers.continuous.addRestriction(
+      s.perm("target").permanentId,
+      "beAffected",
+      EffectDuration.UntilOpponentTurnEnd,
+      {
+        fromSourceKind: ["Digimon"],
+        byOpponentEffectsOnly: true,
+        originSeat: 1,
+        sourceKinds: ["Digimon"],
+      },
+    );
+    await drive.recompute();
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "beAffected", "Digimon")).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("etemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.perm("target").attacksAtStartOfMainPhase).toBe(true);
+
+    drive.endMainPhaseIfOpen(0);
+    await drive.waitForMainPhase(1);
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("target").currentDP).toBe(1000);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "attackDeclared" &&
+          "attackerPermanentId" in event &&
+          event.attackerPermanentId === s.perm("target").permanentId,
+      ),
+    ).toBe(true);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectTriggered" &&
+          event.sourcePermanentId === s.perm("target").permanentId &&
+          event.description === "[Start of Your Main Phase] This Digimon attacks.",
+      ),
+    ).toBe(true);
+
+    drive.endMainPhaseIfOpen(1);
+    await drive.waitForMainPhase(0);
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.perm("target").attacksAtStartOfMainPhase).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("resolves Q3625 through the real turn loop: simultaneous forced attacks yield only one attack", async () => {

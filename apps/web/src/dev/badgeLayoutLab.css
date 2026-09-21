@@ -1,0 +1,118 @@
+.badge-lab {
+  min-height: 100vh;
+  padding: 2rem;
+  color: var(--ds-fg);
+  background: #b66f52;
+}
+
+.badge-lab__header {
+  max-width: 48rem;
+  margin: 0 auto 2rem;
+}
+
+.badge-lab__header p,
+.badge-lab__header h1,
+.badge-lab__header span {
+  margin: 0;
+}
+
+.badge-lab__header p {
+  font: 800 0.7rem/1 var(--ds-font-sans);
+  letter-spacing: 0.16em;
+}
+
+.badge-lab__header h1 {
+  margin-top: 0.35rem;
+  font: 900 2rem/1 var(--ds-font-sans);
+}
+
+.badge-lab__header span {
+  display: block;
+  margin-top: 0.6rem;
+  font: 600 0.85rem/1.4 var(--ds-font-sans);
+}
+
+.badge-lab__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.badge-lab__case {
+  min-width: 0;
+  padding: 1rem;
+  background: rgb(8 14 24 / 28%);
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 0.75rem;
+}
+
+.badge-lab__case h2 {
+  min-height: 2rem;
+  margin: 0;
+  font: 800 0.72rem/1.2 var(--ds-font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-lab__field {
+  position: relative;
+  display: flex;
+  min-height: 15rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.badge-lab__security {
+  position: absolute;
+  top: 0.35rem;
+  left: 50%;
+  z-index: 2;
+  min-width: 1.5rem;
+  padding: 0.15rem 0.3rem;
+  color: #fff6b8;
+  background: #18303a;
+  border: 1px solid #ffe980;
+  border-radius: 0.25rem;
+  transform: translateX(-50%);
+  font: 700 0.75rem/1rem var(--ds-font-mono);
+  text-align: center;
+}
+
+.badge-lab__permanent {
+  position: relative;
+  width: 116px;
+}
+
+.badge-lab__memory {
+  display: flex;
+  gap: 0.45rem;
+  justify-content: center;
+  margin-top: 0.45rem;
+}
+
+.badge-lab__memory span {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  font: 900 1rem/1 var(--ds-font-sans);
+  color: white;
+  background: #4d5662;
+  border: 2px solid rgb(255 255 255 / 65%);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 35%);
+}
+
+@media (max-width: 36rem) {
+  .badge-lab {
+    padding: 1rem;
+  }
+
+  .badge-lab__grid {
+    grid-template-columns: 1fr;
+  }
+}

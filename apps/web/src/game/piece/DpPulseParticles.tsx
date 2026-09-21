@@ -13,11 +13,20 @@ const DP_PARTICLE_OFFSETS = [-34, -20, -7, 7, 20, 34];
  * the change the player most needs to catch.
  */
 export function DpPulseParticles({ pulse }: { pulse: DpPulse }) {
-  const hold = pulse.kind === "debuffFatal" ? TIMINGS.dpPulseFatalHold : TIMINGS.dpPulseHold;
+  const hold = pulse.emphasized
+    ? 300
+    : pulse.kind === "debuffFatal"
+      ? TIMINGS.dpPulseFatalHold
+      : TIMINGS.dpPulseHold;
   return (
     <span
-      className={`game-dp-pulse game-dp-pulse--${pulse.kind}`}
-      style={{ "--dp-pulse-hold": `${hold}ms` } as CSSProperties}
+      className={`game-dp-pulse game-dp-pulse--${pulse.kind}${pulse.emphasized ? " game-dp-pulse--emphasized" : ""}`}
+      style={
+        {
+          "--dp-pulse-hold": `${hold}ms`,
+          ...(pulse.emphasized ? { "--t-dp-pulse": "900ms" } : {}),
+        } as CSSProperties
+      }
       aria-hidden="true"
     >
       {DP_PARTICLE_OFFSETS.map((offset, index) => (

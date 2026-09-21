@@ -129,6 +129,13 @@ export function createResourcesVerbs(pc: PrimitivesContext) {
     engine.memory.setMemoryForSeat(seat, value, "setMemory");
   };
 
+  const announceSuppressedDpModifier: NonNullable<Primitives["announceSuppressedDpModifier"]> = (
+    permanentId,
+    delta,
+  ) => {
+    engine.emit({ kind: "dpModifierApplied", permanentId, delta });
+  };
+
   return {
     draw,
     gainMemory,
@@ -146,5 +153,6 @@ export function createResourcesVerbs(pc: PrimitivesContext) {
     declareWinner,
     setMemory,
     setMemoryForSeat,
+    announceSuppressedDpModifier,
   };
 }

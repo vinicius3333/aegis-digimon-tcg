@@ -55,6 +55,9 @@ function SetCover({ collection }: { collection: string }) {
 function DeckPickerView({
   ownDecks,
   activeDeckId,
+  randomSelected,
+  randomPoolSize,
+  onSelectRandom,
   onSelectDeck,
   onCopyDeck,
   onEditDeck,
@@ -62,6 +65,9 @@ function DeckPickerView({
 }: {
   ownDecks: OwnDeckEntry[];
   activeDeckId: string;
+  randomSelected: boolean;
+  randomPoolSize: number;
+  onSelectRandom: () => void;
   onSelectDeck: (id: string) => void;
   onCopyDeck: (deck: DeckListing) => void;
   onEditDeck: (deck: DeckListing) => void;
@@ -121,9 +127,21 @@ function DeckPickerView({
   return (
     <section className="deck-picker" aria-labelledby="deck-picker-title">
       <header className="deck-picker__header">
-        <Eyebrow color="var(--ds-fg-muted)">{t("lobby.battleDeck")}</Eyebrow>
-        <h2 id="deck-picker-title">{t("lobby.pickDeck")}</h2>
-        <p>{t("lobby.pickDeckHint")}</p>
+        <div>
+          <Eyebrow color="var(--ds-fg-muted)">{t("lobby.battleDeck")}</Eyebrow>
+          <h2 id="deck-picker-title">{t("lobby.pickDeck")}</h2>
+          <p>{t("lobby.pickDeckHint")}</p>
+        </div>
+        <Button
+          className="deck-picker__random-action"
+          variant={randomSelected ? "primary" : "secondary"}
+          icon={randomSelected ? Icons.Check : Icons.Dices}
+          disabled={randomPoolSize === 0}
+          aria-pressed={randomSelected}
+          onClick={onSelectRandom}
+        >
+          {t(randomSelected ? "lobby.randomSelected" : "lobby.randomAction")}
+        </Button>
       </header>
 
       <div className="deck-picker__toolbar">
@@ -182,12 +200,8 @@ function DeckPickerView({
             </summary>
             {ownDecks.length === 0 ? (
               <p className="deck-picker__empty">
-                {t("lobby.noDecks")}{" "}
-                <button
-                  type="button"
-                  className="aegis-text-action"
-                  onClick={onBuildDeck}
-                >
+                {t("lobby.noDecks")} {" "}
+                <button type="button" className="aegis-text-action" onClick={onBuildDeck}>
                   {t("lobby.noDecksLink")}
                 </button>
                 .
@@ -200,7 +214,7 @@ function DeckPickerView({
                   <DeckListCard
                     key={deck.id}
                     deck={deck}
-                    active={deck.id === activeDeckId}
+                    active={!randomSelected && deck.id === activeDeckId}
                     compact
                     disabled={!legal}
                     onSelect={() => onSelectDeck(deck.id)}
@@ -276,7 +290,7 @@ function DeckPickerView({
                   {open ? (
                     <div className="lobby-decks">
                       {group.decks.map((deck) => {
-                        const active = deck.id === activeDeckId;
+                        const active = !randomSelected && deck.id === activeDeckId;
                         return (
                           <DeckListCard
                             key={deck.id}

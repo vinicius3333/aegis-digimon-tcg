@@ -3058,6 +3058,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     markLinkCostReductionUsed: true,
     minDpFloor: true,
     modifyDP: true,
+    announceSuppressedDpModifier: true,
     modifyPlayerDP: true,
     modifySecurityDp: true,
     movePermanentZone: true,

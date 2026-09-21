@@ -451,6 +451,7 @@ export class GameEngine {
       access: this.access,
       continuous: this.continuous,
       modifiers: this.modifiers,
+      subTriggers: this.subTriggers,
       memory: this.memory,
       tracker: this.tracker,
       continuousDpSeedState: this.continuousDpSeedState,

@@ -36,6 +36,11 @@ export interface SubTriggerSubscription {
   printedTiming?: string;
   /** The printed clause this watcher implements, for players; identity and prompts keep `description`. */
   printedClause?: string;
+  /** Server-resolved standing badge exposed while this granted watcher remains installed. */
+  publicBadge?: "attackAtStartOfMainPhase";
+  /** Effect provenance used to suppress the badge while its recipient is unaffected. */
+  publicBadgeGrantingSeat?: Seat;
+  publicBadgeSourceKinds?: ("Digimon" | "Option")[];
   /** Stable action identity used to collapse duplicate installs without collapsing
    * distinct clauses that intentionally share one once-per-turn budget. */
   dedupeKey?: string;

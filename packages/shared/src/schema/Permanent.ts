@@ -113,6 +113,10 @@ export class Permanent extends Schema {
   @type("boolean") protectedFromDeDigivolve = false;
   @type("boolean") protectedFromEffectDeletion = false;
   @type("boolean") protectedFromEffectReturn = false;
+  // A duration-scoped gained effect will force this Digimon to attack when its controller's
+  // next Main phase starts. Projected from the authoritative SubTrigger subscription so the
+  // client can keep the pending action visible before it fires.
+  @type("boolean") attacksAtStartOfMainPhase = false;
   // Number of security cards an attack by this Digimon checks: base 1 plus every resolved
   // ＜Security Attack ±N＞ grant, floored at 0 (Comprehensive Rules §16-4-4). Projected from
   // the same helper the security-check loop uses (`securityStrikeCount`) so the inspector can

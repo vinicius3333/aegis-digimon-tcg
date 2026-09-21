@@ -2,6 +2,17 @@
   margin-top: var(--ds-space-6);
 }
 
+.deck-picker__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ds-space-5);
+}
+
+.deck-picker__header > div {
+  min-width: 0;
+}
+
 .deck-picker__header h2 {
   margin: var(--ds-space-2) 0 0;
   color: var(--ds-fg);
@@ -95,6 +106,12 @@
 
 .deck-picker__group {
   margin-top: var(--ds-space-5);
+}
+
+.deck-picker__random-action {
+  min-width: 240px;
+  flex-shrink: 0;
+  margin-bottom: 2px;
 }
 
 .deck-picker__group-heading {
@@ -239,6 +256,15 @@
 }
 
 @media (width < 600px) {
+  .deck-picker__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .deck-picker__random-action {
+    width: 100%;
+  }
+
   .deck-picker__result-count {
     margin-left: 0;
   }
