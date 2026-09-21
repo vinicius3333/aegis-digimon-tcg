@@ -34,6 +34,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt21-davis-top-stack",
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
+  "arena-ex13-gotsumon-blocker-search",
   "arena-ex13-giromon-block-triggers",
   "arena-ex13-deletion-trigger-ordering",
   "arena-ex13-kings-opponent-sukamon",
@@ -491,6 +492,31 @@ function layEx13GrademonImmunityScenario(state: GameState, decks: readonly [Deck
     const attackTarget = establishedDigimon(1, ["BT1-080"], "-grademon-attack-target");
     attackTarget.isSuspended = true;
     placePermanent(opponent, attackTarget);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** EX13-047 must find main-text ＜Blocker＞, not a keyword printed only as an inherited effect. */
+function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-gotsumon", "EX13-047", 0));
+    // Insert in reverse because deck[0] is the top card.
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-neutral", "BT1-009", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-inherited-blocker", "BT1-079", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-main-blocker", "BT20-047", 0), "top");
   }
 
   state.turnSeat = 0;
@@ -1036,6 +1062,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
+  "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,

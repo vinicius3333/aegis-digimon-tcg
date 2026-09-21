@@ -21,6 +21,7 @@ export interface AegisJoinOptions {
     | "arena-bt21-davis-top-stack"
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
+    | "arena-ex13-gotsumon-blocker-search"
     | "arena-ex13-giromon-block-triggers"
     | "arena-ex13-deletion-trigger-ordering"
     | "arena-ex13-kings-opponent-sukamon"
