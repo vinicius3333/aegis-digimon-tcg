@@ -1,6 +1,6 @@
 {
   "name": "aegis",
-  "version": "1.2.2",
+  "version": "1.0.0-beta",
   "private": true,
   "description": "Aegis - a server-authoritative Digimon-style trading card game (React + PixiJS client, Colyseus API).",
   "license": "MIT",
@@ -30,7 +30,12 @@
     "check:cards:style": "pnpm lint:cards && pnpm format:cards:check",
     "start": "pnpm --filter @aegis/api start",
     "clean": "pnpm -r exec rm -rf dist",
-    "audit:index": "node tools/audit-docs/build-index.mjs"
+    "audit:index": "node tools/audit-docs/build-index.mjs",
+    "release:check": "node tools/release/version.mjs check",
+    "release:set": "node tools/release/version.mjs set",
+    "release:current": "node tools/release/version.mjs current",
+    "release:notes": "node tools/release/render-notes.mjs",
+    "release:publish": "node tools/release/publish.mjs"
   },
   "devDependencies": {
     "concurrently": "^10.0.0",
