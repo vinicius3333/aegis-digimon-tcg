@@ -5645,8 +5645,8 @@ describe("combat IR actions dispatch to the attack-and-block verbs", () => {
     const calls = recorder.calls.filter((c) => c.verb === "redirectAttack");
     expect(calls).toHaveLength(1);
     expect(calls[0]!.args[0]).toEqual(["R1"]);
-    // Default chooser/optional: no opts (controller chooses, mandatory). Existing RedirectAttack
-    // cards must not regress to an opponent chooser.
+    // The combat primitive resolves the current effect controller from its effect-seat stack.
+    // The interpreter leaves chooserSeat absent unless printed text assigns another chooser.
     expect((calls[0]!.args[1] as { chooserSeat?: Seat })?.chooserSeat).toBeUndefined();
   });
 

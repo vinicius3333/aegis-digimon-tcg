@@ -18,6 +18,7 @@ export interface AegisJoinOptions {
     | "arena"
     | "arena-aegiochus-dark-assembly"
     | "arena-alliance-20"
+    | "arena-bt20-grademon-redirect"
     | "arena-bt21-davis-top-stack"
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"

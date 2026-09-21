@@ -31,6 +31,7 @@ export const DEV_SCENARIO_IDS = [
   "arena",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
+  "arena-bt20-grademon-redirect",
   "arena-bt21-davis-top-stack",
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
@@ -619,6 +620,32 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** BT20-053 inherited effect: redirect the bot's player attack to the human's Digimon. */
+function layBt20GrademonRedirectScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT20-053", "BT20-056"], "-bt20-grademon-host"));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["ST1-10"], "-bt20-grademon-attacker"));
+  }
+
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /** Reproduces simultaneous [When Attacking] and optional [All Turns] Vortexdramon triggers. */
@@ -1233,6 +1260,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
+  "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,

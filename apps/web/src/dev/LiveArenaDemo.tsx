@@ -118,6 +118,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena", "Attack steps · Counter/Blocker"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
+  ["arena-bt20-grademon-redirect", "BT20 Grademon · inherited redirect"],
   ["arena-bt21-davis-top-stack", "BT21 Davis · top stacked card regression"],
   ["arena-face-up-security", "Security · opponent face-up cards"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
