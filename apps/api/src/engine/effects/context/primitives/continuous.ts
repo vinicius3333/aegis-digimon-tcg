@@ -107,7 +107,7 @@ export interface ContinuousPrimitives {
     kind: "name" | "trait",
     tokens: string[],
     duration: EffectDuration,
-    opts?: { digiXrosOnly?: boolean },
+    opts?: { digiXrosOnly?: boolean; ruleDerived?: boolean },
   ): void;
   /** Grant names whose current values are recomputed from live game state. */
   grantDynamicNames?(permanentId: string, names: () => string[], duration: EffectDuration): void;

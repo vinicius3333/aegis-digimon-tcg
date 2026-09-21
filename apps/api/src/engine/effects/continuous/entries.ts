@@ -53,6 +53,8 @@ export interface NameTraitGrant {
   tokens: string[];
   duration: EffectDuration;
   continuous?: boolean;
+  /** True when the alias is original card information supplied by a printed [Rule]. */
+  ruleDerived?: boolean;
   /** When true, this name alias is ONLY valid for DigiXros material matching. */
   digiXrosOnly?: boolean;
   dynamicTokens?: () => string[];

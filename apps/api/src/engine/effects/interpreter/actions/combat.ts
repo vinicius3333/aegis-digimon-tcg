@@ -144,7 +144,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
           ? [...existingIds]
           : existingId !== undefined
             ? [existingId]
-            : await resolvePermanentTargets(ctx, target);
+            : await resolvePermanentTargets(ctx, target, { preserveUnaffectableSelection: true });
       if (ids.length > 0) {
         ctx.selections ??= new Map();
         ctx.selections.set(name, ids[0]!);

@@ -184,9 +184,12 @@ export function createSharedHelpers(pc: PrimitivesContext) {
       if (permanent === undefined || fired.has(permanent.permanentId)) continue;
       fired.add(permanent.permanentId);
       const byEffectSeat = opts?.byEffectSeat ?? effectSeatStack.at(-1);
+      const deletedPermanentSnapshots = snapshotDeletedPermanents([permanent.permanentId]);
       await engine.fireSubTrigger("whenLeavesPlay", {
         deletedPermanentId: permanent.permanentId,
+        deletedPermanentSnapshots,
         deletedControllerSeat: permanent.controllerSeat,
+        deletedTopCardId: permanent.topCard.cardId,
         removalCause: byEffectSeat === undefined ? "byRule" : "byEffect",
         ...(byEffectSeat === undefined ? {} : { byEffectSeat }),
       });

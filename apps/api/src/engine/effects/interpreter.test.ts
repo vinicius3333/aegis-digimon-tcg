@@ -911,6 +911,7 @@ function makeContext(opts: {
   selectCardsAnswer?: (o: { candidates: string[]; max: number }) => string[];
   chooseOptionAnswer?: number;
   optionColorRequirementMet?: boolean;
+  deletionMaxDpBonus?: number;
   orderCardsAnswer?: (o: { candidates: string[] }) => string[];
   trigger?: EffectContext["trigger"];
   /**
@@ -966,6 +967,7 @@ function makeContext(opts: {
   };
 
   const fx: Primitives = {
+    deletionMaxDpBonus: () => opts.deletionMaxDpBonus ?? 0,
     draw: async (...a) => {
       rec.calls.push({ verb: "draw", args: a });
       return [];
@@ -1502,6 +1504,48 @@ describe("filtered hand-trash cost feasibility", () => {
     });
 
     expect(canPayCost(ctx, cost)).toBe(true);
+  });
+});
+
+describe("DP-capped deletion costs", () => {
+  it("raises a deleteOwn cost target's printed DP cap for feasibility and payment (Q7252)", async () => {
+    const sourcePermanent = makeFakePermanent({
+      permanentId: "source",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "source-card", cardId: "SOURCE", ownerSeat: 0, faceUp: true } as never,
+    });
+    const raisedTarget = makeFakePermanent({
+      permanentId: "opponent-11000",
+      controllerSeat: 1 as Seat,
+      currentDP: 11_000,
+      topCard: { instanceId: "target-card", cardId: "TARGET", ownerSeat: 1, faceUp: true } as never,
+    });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source: makeSource({ permanent: () => sourcePermanent }),
+      recorder,
+      ownBattleArea: [sourcePermanent],
+      opponentBattleArea: [raisedTarget],
+      deletionMaxDpBonus: 2000,
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    const cost = {
+      kind: "deleteOwn" as const,
+      target: {
+        filter: {
+          controller: "opponent" as const,
+          kind: ["Digimon" as const],
+          dp: { op: "lte" as const, value: 9000 },
+        },
+        count: 1 as const,
+      },
+    };
+
+    expect(canPayCost(ctx, cost)).toBe(true);
+    expect(await payCost(ctx, cost)).toBe(true);
+    expect(recorder.calls.filter(({ verb }) => verb === "deletePermanent")).toMatchObject([
+      { args: [["opponent-11000"], "byEffect", {}] },
+    ]);
   });
 });
 

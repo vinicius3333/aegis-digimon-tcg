@@ -34,7 +34,7 @@ export function ownerSeatOfPermanent(state: GameState, permanentId: string): Sea
 /** Re-export the matcher so consumers can resolve a permanent's effective name set. */
 export function effectiveNames(ledger: ContinuousEffectLedger, permanent: Permanent, printedName: string): string[] {
   const original = ledger.originalCardInfoOverride(permanent.permanentId)?.name ?? printedName;
-  return [original.toLowerCase(), ...ledger.grantedNames(permanent.permanentId)];
+  return [original.toLowerCase(), ...ledger.grantedExactNames(permanent.permanentId)];
 }
 
 /**

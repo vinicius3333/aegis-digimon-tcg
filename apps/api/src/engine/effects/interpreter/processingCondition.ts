@@ -10,10 +10,11 @@ import type { Action } from "@aegis/shared";
  */
 export function allowsOptionalProcessingCostWithoutTarget(action: Action): boolean {
   if (action.kind === "RawUnparsed") return false;
+  if (action.allowCostWithoutTarget === true) return true;
   const printedByCondition =
     action.optional === true &&
     [action.cost, action.additionalCost, ...(action.additionalCosts ?? []), ...(action.costOptions ?? [])].some(
-      (cost) => typeof cost !== "number" && /^\s*by\b/i.test(cost?.raw ?? ""),
+      (cost) => typeof cost !== "number" && cost?.kind !== "deleteOwn" && /^\s*by\b/i.test(cost?.raw ?? ""),
     );
   const placementSource =
     action.kind === "Delete" ? (action.cost?.kind === "place" ? action.cost.target?.from : undefined) : undefined;
@@ -21,7 +22,6 @@ export function allowsOptionalProcessingCostWithoutTarget(action: Action): boole
     ? placementSource.some((zone) => zone === "hand" || zone === "trash")
     : placementSource === "hand" || placementSource === "trash";
   return (
-    action.allowCostWithoutTarget === true ||
     printedByCondition ||
     (action.kind === "Delete" &&
       action.optional === true &&

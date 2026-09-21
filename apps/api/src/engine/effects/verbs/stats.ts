@@ -79,6 +79,7 @@ export function createStatsVerbs(pc: PrimitivesContext) {
       ...continuousOpt(),
       ...(effectSeatStack.at(-1) === undefined ? {} : { sourceSeat: effectSeatStack.at(-1) }),
       ...(effectSourceKindsStack.at(-1) === undefined ? {} : { sourceKinds: effectSourceKindsStack.at(-1) }),
+      ...(continuous.originalCardInfoOverride(permanentId) === undefined ? {} : { requiresDigimonTop: true }),
     });
     // currentDP was recomputed by the ledger (override replaces base, deltas sum on top).
   };

@@ -678,7 +678,12 @@ export class ContinuousEffectLedger {
     kind: "name" | "trait",
     tokens: string[],
     duration: EffectDuration,
-    opts?: { continuous?: boolean; digiXrosOnly?: boolean; dynamicTokens?: () => string[] },
+    opts?: {
+      continuous?: boolean;
+      digiXrosOnly?: boolean;
+      ruleDerived?: boolean;
+      dynamicTokens?: () => string[];
+    },
   ): void {
     this.nameTraitGrants.push(
       this.anchorDuration({
@@ -688,6 +693,7 @@ export class ContinuousEffectLedger {
         duration,
         continuous: opts?.continuous,
         digiXrosOnly: opts?.digiXrosOnly,
+        ruleDerived: opts?.ruleDerived,
         dynamicTokens: opts?.dynamicTokens,
       }),
     );
@@ -695,10 +701,38 @@ export class ContinuousEffectLedger {
 
   /** Extra name aliases granted to a permanent (lowercased tokens), excluding DigiXros-only grants. */
   grantedNames(permanentId: string): string[] {
+    const originalNameReplaced = this.originalCardInfoOverride(permanentId)?.name !== undefined;
     return this.nameTraitGrants
-      .filter((g) => g.permanentId === permanentId && g.kind === "name" && !g.digiXrosOnly)
+      .filter(
+        (g) =>
+          g.permanentId === permanentId &&
+          g.kind === "name" &&
+          !g.digiXrosOnly &&
+          !(originalNameReplaced && g.ruleDerived === true),
+      )
       .flatMap((g) =>
         g.dynamicTokens ? g.dynamicTokens().map((t) => t.toLowerCase()) : g.tokens.map((t) => t.toLowerCase()),
+      );
+  }
+
+  /**
+   * Additional names that are exact effective identities. A `(Rule)` clause saying a card's
+   * name "also contains [X]" is intentionally absent: it satisfies inclusion filters without
+   * renaming the card to exactly X (EX13-053/Q7377).
+   */
+  grantedExactNames(permanentId: string): string[] {
+    return this.nameTraitGrants
+      .filter(
+        (grant) =>
+          grant.permanentId === permanentId &&
+          grant.kind === "name" &&
+          !grant.digiXrosOnly &&
+          grant.ruleDerived !== true,
+      )
+      .flatMap((grant) =>
+        grant.dynamicTokens
+          ? grant.dynamicTokens().map((token) => token.toLowerCase())
+          : grant.tokens.map((token) => token.toLowerCase()),
       );
   }
 

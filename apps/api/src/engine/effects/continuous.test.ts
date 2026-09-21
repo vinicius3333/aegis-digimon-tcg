@@ -113,6 +113,29 @@ describe("ContinuousEffectLedger", () => {
     expect(effectiveColors(ledger, "P1", ["Black"])).toEqual(["White", "Green"]);
   });
 
+  it("suppresses Rule-derived names when an effect replaces the original name", () => {
+    const ledger = new ContinuousEffectLedger();
+    const permanent = { permanentId: "P1" } as Permanent;
+    ledger.addNameTraitGrant("P1", "name", ["Numemon"], EffectDuration.Permanent, {
+      ruleDerived: true,
+    });
+    ledger.addNameTraitGrant("P1", "name", ["Effect Alias"], EffectDuration.Permanent);
+    ledger.addOriginalCardInfoOverride("P1", { name: "Sukamon" }, EffectDuration.UntilOpponentTurnEnd);
+
+    expect(effectiveNames(ledger, permanent, "Geremon")).toEqual(["sukamon", "effect alias"]);
+  });
+
+  it("Q7377: keeps Rule inclusion aliases out of exact effective identity", () => {
+    const ledger = new ContinuousEffectLedger();
+    const permanent = { permanentId: "P1" } as Permanent;
+    ledger.addNameTraitGrant("P1", "name", ["Mamemon"], EffectDuration.Permanent, {
+      ruleDerived: true,
+    });
+
+    expect(ledger.grantedNames("P1")).toEqual(["mamemon"]);
+    expect(effectiveNames(ledger, permanent, "Thundermon")).toEqual(["thundermon"]);
+  });
+
   it("unions printed and runtime-granted traits case-insensitively", () => {
     const ledger = new ContinuousEffectLedger();
     ledger.addNameTraitGrant("P1", "trait", ["Glowing Dawn", "TS"], EffectDuration.UntilEachTurnEnd);

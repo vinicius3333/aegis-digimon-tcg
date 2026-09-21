@@ -65,7 +65,11 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           unsupported(ctx, action, "GrantStatic name/trait with no tokens");
           return false;
         }
-        for (const id of ids) ctx.fx.grantNameTrait(id, action.grant, tokens, duration);
+        for (const id of ids) {
+          ctx.fx.grantNameTrait(id, action.grant, tokens, duration, {
+            ruleDerived: ctx.activeTiming === "Rule",
+          });
+        }
         return false;
       }
       if (action.grant === "colorFromLastTrashed") {
@@ -431,7 +435,6 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           const grant = action.grant as { dp?: number; color?: string; originalName?: string };
           const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
           for (const permanentId of ids) {
-            if (grant.dp !== undefined) ctx.fx.setBaseDP(permanentId, grant.dp, grantDuration);
             if (grant.color !== undefined || grant.originalName !== undefined) {
               ctx.fx.setOriginalCardInfo(
                 permanentId,
@@ -452,6 +455,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
                 grantDuration,
               );
             }
+            if (grant.dp !== undefined) ctx.fx.setBaseDP(permanentId, grant.dp, grantDuration);
           }
           return false;
         }

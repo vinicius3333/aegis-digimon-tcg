@@ -1014,8 +1014,17 @@ export async function runSubTrigger(
           sourceFilter?.kind?.includes("Tamer") === true ||
           sourceFilter?.digivolutionStackKind?.includes("Tamer") === true
       : undefined;
+  // A SubTrigger's action-level condition is checked when the watcher is installed, but the
+  // board may change while simultaneous copies wait to activate. Keep it among the live event
+  // gates so every pending copy revalidates before its optional prompt and activation cost.
+  const actionConditionGate =
+    action.condition !== undefined
+      ? (subCtx: EffectContext): boolean =>
+          action.condition!.kind !== "raw" && evaluateCondition(subCtx, action.condition!)
+      : undefined;
   const gates = [
     filterMatch,
+    actionConditionGate,
     tamerDigivolvedGate,
     digivolutionTrashByEffectGate,
     addDigivolutionByEffectGate,

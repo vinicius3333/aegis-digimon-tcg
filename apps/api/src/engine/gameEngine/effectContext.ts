@@ -47,7 +47,12 @@ import {
   resolveDeletionReactions,
 } from "./timing.js";
 import { collectRuleProcessMovements, flushRuleTriggerPool, nextInstanceId, nextPermanentId } from "./ruleProcess.js";
-import { inContinuousPass, settleBetweenEffects } from "./windows.js";
+import {
+  flushDeferredTimingWindows,
+  inContinuousPass,
+  parkDeferredSecurityRemovalTriggersForAttack,
+  settleBetweenEffects,
+} from "./windows.js";
 import type { GameEngine } from "../GameEngine.js";
 
 export function effectAccess(engine: GameEngine): GameAccess {
@@ -373,7 +378,8 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       const pausedDepth = engine.effectResolutionDepth;
       engine.effectResolutionDepth = 0;
       try {
-        await settleBetweenEffects(engine);
+        await flushDeferredTimingWindows(engine);
+        parkDeferredSecurityRemovalTriggersForAttack(engine);
         await drain();
       } finally {
         engine.effectResolutionDepth = pausedDepth;
@@ -394,7 +400,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       const pausedDepth = engine.effectResolutionDepth;
       engine.effectResolutionDepth = 0;
       try {
-        await settleBetweenEffects(engine);
+        await flushDeferredTimingWindows(engine);
         await body();
         await settleBetweenEffects(engine);
       } finally {

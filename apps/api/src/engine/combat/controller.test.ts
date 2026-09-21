@@ -191,6 +191,27 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
     expect(h.securityCalls).toHaveLength(1);
   });
 
+  it("Q7339: snapshots whenDeletesInBattle when both battle participants are deleted", async () => {
+    const h = harness();
+    const attacker = digimon(0, 5000);
+    const defender = digimon(1, 5000, { suspended: true });
+    h.state.players[0]!.battleArea.push(attacker);
+    h.state.players[1]!.battleArea.push(defender);
+
+    await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
+
+    expect(h.state.players[0]!.battleArea).toHaveLength(0);
+    expect(h.state.players[1]!.battleArea).toHaveLength(0);
+    expect(h.firedSubTriggers).toContainEqual({
+      event: "whenDeletesInBattle",
+      payload: expect.objectContaining({
+        subjectPermanentId: attacker.permanentId,
+        attackerPermanentId: attacker.permanentId,
+        deletedPermanentId: defender.permanentId,
+      }),
+    });
+  });
+
   it.each([
     { initial: true, afterDeletion: false, checks: 1 },
     { initial: false, afterDeletion: true, checks: 0 },

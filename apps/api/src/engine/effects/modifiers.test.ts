@@ -5,6 +5,24 @@ import { setupEngine } from "../testkit/harness.js";
 import { ModifierLedger } from "./modifiers.js";
 
 describe("ModifierLedger DP modifiers", () => {
+  it("stops applying a base-DP rewrite when the current top card has no DP", () => {
+    const s = setupEngine({
+      1: { battleArea: [{ card: "ST15-11", as: "target", under: [{ card: "BT1-085", as: "tamer" }] }] },
+    });
+    const ledger = new ModifierLedger();
+    const permanent = s.perm("target");
+    ledger.addBaseDpOverride(s.state, permanent.permanentId, 3000, EffectDuration.UntilOpponentTurnEnd, {
+      requiresDigimonTop: true,
+    });
+    expect(permanent.currentDP).toBe(3000);
+
+    permanent.topCard = s.inst("tamer");
+    permanent.stack.splice(0, permanent.stack.length);
+    permanent.baseDP = 0;
+    ledger.recomputeDP(s.state, permanent.permanentId);
+
+    expect(permanent.currentDP).toBe(0);
+  });
   it("does not identify increases or fixed evo costs as intrinsic reductions", () => {
     const ledger = new ModifierLedger();
     const target = new Permanent();
