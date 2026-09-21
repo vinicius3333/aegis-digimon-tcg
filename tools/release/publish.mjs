@@ -21,9 +21,28 @@ try {
   if (requested !== tag) throw new Error(`Confirm the exact tag: pnpm release:publish -- ${tag}`);
   run("node", ["tools/release/version.mjs", "check"], { inherit: true });
   run("pnpm", ["typecheck"], { inherit: true });
+  run(
+    "pnpm",
+    [
+      "--filter",
+      "@aegis/web",
+      "exec",
+      "vitest",
+      "run",
+      "src/releases",
+      "src/App.routes.test.tsx",
+      "src/screens/Home.test.tsx",
+      "src/game/PlayerMenu.test.tsx",
+    ],
+    { inherit: true },
+  );
+  run("pnpm", ["--filter", "@aegis/api", "exec", "vitest", "run", "src/bugs/GitHubIssueTracker.test.ts"], {
+    inherit: true,
+  });
   run("pnpm", ["test:deploy"], { inherit: true });
   run("pnpm", ["exec", "oxlint", "tools/release", "apps/web/src/releases"], { inherit: true });
   run("pnpm", ["exec", "oxfmt", "--check", "tools/release", "apps/web/src/releases"], { inherit: true });
+  run("git", ["diff", "--check"], { inherit: true });
   if (run("git", ["status", "--porcelain"])) throw new Error("The worktree must be clean");
   if (run("git", ["tag", "--list", tag])) throw new Error(`${tag} already exists locally`);
   try {

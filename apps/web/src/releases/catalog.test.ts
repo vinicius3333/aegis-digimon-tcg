@@ -14,6 +14,33 @@ describe("release catalog", () => {
   });
 
   it("rejects malformed bundled release data", () => {
-    expect(() => parseCatalog([{ version: "wrong" }])).toThrow("Invalid release version");
+    expect(() =>
+      parseCatalog([
+        {
+          version: "wrong",
+          releasedAt: "2026-09-21",
+          summary: { en: "Summary", "pt-BR": "Resumo" },
+          features: [],
+          fixes: [],
+        },
+      ]),
+    ).toThrow("Invalid release version");
+  });
+
+  it("rejects malformed items and release ordering", () => {
+    const release = {
+      version: "1.0.1-beta",
+      releasedAt: "2026-09-21",
+      summary: { en: "Summary", "pt-BR": "Resumo" },
+      features: [],
+      fixes: [{ text: { en: "Fix", "pt-BR": "Correção" }, issue: 0 }],
+    };
+    expect(() => parseCatalog([release])).toThrow("Invalid release issue");
+    expect(() =>
+      parseCatalog([
+        { ...release, fixes: [] },
+        { ...release, version: "1.1.0-beta", fixes: [] },
+      ]),
+    ).toThrow("Releases must be newest first");
   });
 });
