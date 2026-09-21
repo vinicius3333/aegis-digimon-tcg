@@ -41,16 +41,20 @@ export function deckLegality(deck: DeckListing): DeckLegality {
 type DeckColor = Exclude<ColorName, "Neutral">;
 
 function deckColors(deck: DeckListing): DeckColor[] {
-  const colors = new Set<DeckColor>();
-  if (deck.color !== "Neutral") colors.add(deck.color);
+  const counts = new Map<DeckColor, number>();
   for (const cardId of [...deck.mainDeck, ...deck.eggDeck]) {
     const definition = getCardDefinition(cardId);
     for (const printedColor of definition?.colors ?? []) {
       const color = colorKey(printedColor);
-      if (color !== "Neutral") colors.add(color);
+      if (color !== "Neutral") counts.set(color, (counts.get(color) ?? 0) + 1);
     }
   }
-  return [...colors];
+  const ranked = [...counts].sort((left, right) => right[1] - left[1]).map(([color]) => color);
+  if (deck.color !== "Neutral") {
+    const withoutPrimary = ranked.filter((color) => color !== deck.color);
+    return [deck.color, ...withoutPrimary].slice(0, 2);
+  }
+  return ranked.slice(0, 2);
 }
 
 export function DeckListCard({
@@ -108,9 +112,15 @@ export function DeckListCard({
                 className="deck-list-card__colors"
                 aria-label={colors.map((deckColor) => t(`game.color.${deckColor}`)).join(", ")}
               >
-                {colors.map((deckColor) => (
-                  <ColorDot key={deckColor} color={deckColor} size={10} />
-                ))}
+                <span
+                  className="deck-list-card__split-color"
+                  style={{
+                    background:
+                      colors.length > 1
+                        ? `linear-gradient(90deg, ${COLORS[colors[0]!].base} 0 50%, ${COLORS[colors[1]!].base} 50% 100%)`
+                        : COLORS[colors[0] ?? "Neutral"].base,
+                  }}
+                />
               </div>
             ) : (
               <div className="deck-list-card__counts">

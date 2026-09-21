@@ -116,6 +116,15 @@
   margin-top: var(--ds-space-2);
 }
 
+.deck-list-card__split-color {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--ds-fg) 18%, transparent);
+  border-radius: 50%;
+}
+
 .deck-list-card__blurb {
   display: -webkit-box;
   overflow: hidden;
