@@ -3,7 +3,7 @@ import type { Translate } from "../../../i18n";
 import { CardArt } from "../CardArt";
 import type { DigiXrosCandidate } from "../types";
 
-/** Selectable grid of DigiXros material candidates, filtered to those still eligible. */
+/** Stable grid of DigiXros materials; candidates that cannot extend the current pick stay visible but disabled. */
 export function DigiXrosCandidateGrid({
   items,
   emptyText,
@@ -28,14 +28,13 @@ export function DigiXrosCandidateGrid({
   t: Translate;
 }) {
   const zoneLabel = (zone: DigiXrosCandidate["zone"]): string => t(`overlay.zone.${zone}` as const);
-  const eligibleItems = items.filter((candidate) => eligibleCandidateIds.has(candidate.instanceId));
-  return eligibleItems.length === 0 ? (
+  return items.length === 0 ? (
     <div style={{ padding: "14px 0", textAlign: "center", fontSize: 13, color: "var(--ds-fg-disabled)" }}>
       {emptyText}
     </div>
   ) : (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxHeight: 280, overflowY: "auto" }}>
-      {eligibleItems.map((c) => {
+      {items.map((c) => {
         const selected = picks.includes(c.instanceId);
         const def = getCardDefinition(c.cardId);
         const accessibleName = t("overlay.xrosMaterialLabel", {
@@ -44,7 +43,7 @@ export function DigiXrosCandidateGrid({
         });
         const zoneCount = c.zone === "trash" ? pickedTrash : c.zone === "underTamer" ? pickedUnderTamer : 0;
         const zoneMax = c.zone === "trash" ? trashMax : c.zone === "underTamer" ? underTamerMax : Infinity;
-        const disabled = !selected && zoneCount >= zoneMax;
+        const disabled = !selected && (!eligibleCandidateIds.has(c.instanceId) || zoneCount >= zoneMax);
         return (
           <button
             key={c.instanceId}
