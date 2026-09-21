@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-059.js";
 import "./EX11-023.js";
+import "../BT2/BT2-109.js";
 
 describe("EX11-059 Reina Oumi", () => {
   it("preserves the printed dual-color NSo Tamer and complete compiled coverage", () => {
@@ -186,6 +187,69 @@ describe("EX11-059 Reina Oumi", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX8-064")).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     assertNoLoudGap(s);
+  });
+
+  it("offers Reina once when Heat Viper deletes one own NSo Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-059", as: "reina" },
+            { card: "EX8-060", as: "deletedNso" },
+            { card: "EX8-062", as: "fieldMaterial" },
+          ],
+          hand: [
+            { card: "BT2-109", as: "heatViper" },
+            { card: "EX8-064", as: "dnaTarget" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "targetA" },
+            { card: "BT1-010", as: "targetB" },
+          ],
+        },
+      },
+      { autoOrderTriggers: false },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("heatViper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const costDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("deletedNso").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () => s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== costDecision.decisionId,
+    );
+    const targetDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("targetA").permanentId, s.perm("targetB").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () => s.state.pendingDecision !== undefined && s.state.pendingDecision.decisionId !== targetDecision.decisionId,
+    );
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")?.req;
+    expect(order?.options?.triggerCardIds?.filter((cardId) => cardId === "EX11-059") ?? []).toHaveLength(
+      order === undefined ? 0 : 1,
+    );
   });
 
   it("offers the reported WereGarurumon deletion even when no legal NSo DNA exists", async () => {

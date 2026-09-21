@@ -57,6 +57,27 @@ describe("recent player-report arena scenarios", () => {
     );
   });
 
+  it("installs one Reina deletion watcher in #4890's live Main phase", async () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    s.engine.stagedDecks[0] = BLUE_DECK;
+    s.engine.stagedDecks[1] = RED_DECK;
+    s.engine.startDevScenario("arena-issue-4890-reina-deletion");
+
+    for (let tick = 0; tick < 400 && s.state.phase !== Phase.Main; tick += 1) {
+      if (s.state.phase === Phase.Breeding) s.engine.applyIntent(0, { type: "endPhase" });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    const reina = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX11-059")!;
+    expect(
+      s.engine.subTriggers
+        .subscriptionsFor("onDeletionOf")
+        .filter(({ sourcePermanentId }) => sourcePermanentId === reina.permanentId),
+    ).toHaveLength(1);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+  });
+
   it("stages #4891 with enough memory to play SeitenGokuumon into a DP target", () => {
     const s = setupEngine({ 0: {}, 1: {} });
     layDevScenario("arena-issue-4891-seiten-on-play", s.state, [BLUE_DECK, RED_DECK]);
