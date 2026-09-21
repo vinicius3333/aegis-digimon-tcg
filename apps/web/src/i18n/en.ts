@@ -65,6 +65,15 @@ export const en = {
   "home.footer.github": "GitHub",
   "home.footer.legal":
     "Free fan project with no affiliation to Bandai. Digimon, the Digimon Card Game and the card images belong to Bandai and their respective owners. If you enjoy Aegis, support the official game.",
+  "releases.nav": "What's new",
+  "releases.eyebrow": "Aegis updates",
+  "releases.title": "What's new",
+  "releases.subtitle": "See what arrived and what got better in Aegis.",
+  "releases.current": "Current version",
+  "releases.github": "View details on GitHub",
+  "releases.features": "What's new",
+  "releases.fixes": "Improvements and fixes",
+  "releases.reported": "You reported it, we fixed it · #{issue}",
 
   "playerMenu.open": "Open the player menu",
   "playerMenu.guest": "Guest · saved on this device",

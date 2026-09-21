@@ -40,6 +40,7 @@ export function PlayerMenu({
   }, [query]);
 
   const links: { key: string; label: string; icon: IconComponent; action: () => void }[] = [
+    { key: "releases", label: t("releases.nav"), icon: Icons.Sparkles, action: () => onNav("releases") },
     { key: "settings", label: t("menu.settings"), icon: Icons.Settings, action: () => onNav("settings") },
   ];
 
