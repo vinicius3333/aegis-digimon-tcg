@@ -12,10 +12,10 @@
 import type { DecisionRequest, TargetFate } from "@aegis/shared";
 
 /** The translation key each fate prints, named per fate so a rename is caught. */
-export type PendingFateLabelKey = `game.fate.${TargetFate}`;
+export type PendingFateLabelKey = `game.fate.${TargetFate}` | "game.fate.effectTarget";
 
 export interface PendingFateBadge {
-  fate: TargetFate;
+  fate: TargetFate | "effectTarget";
   /** Translation key for the badge's short label. */
   labelKey: PendingFateLabelKey;
   /** The glyph printed ahead of the label; matches the sense of the fate. */
@@ -59,7 +59,17 @@ export function pendingFateBadges({
   picks: readonly string[];
   viewerSeat: number;
 }): ReadonlyMap<string, PendingFateBadge> {
-  if (!decision || decision.kind !== "chooseTargets" || decision.seat !== viewerSeat) return new Map();
+  if (!decision || decision.seat !== viewerSeat) return new Map();
+  if (decision.options?.affectedPermanentIds?.length) {
+    const badge: PendingFateBadge = {
+      fate: "effectTarget",
+      labelKey: "game.fate.effectTarget",
+      glyph: "⌖",
+      tone: "danger",
+    };
+    return new Map(decision.options.affectedPermanentIds.map((id) => [id, badge]));
+  }
+  if (decision.kind !== "chooseTargets") return new Map();
   const fate = decision.options?.targetFate;
   if (fate === undefined) return new Map();
   const candidates = new Set(decision.options?.candidateInstanceIds ?? []);

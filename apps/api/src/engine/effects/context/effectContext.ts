@@ -62,6 +62,8 @@ export interface EffectContext {
    * Display-only.
    */
   activeTargetFate?: TargetFate;
+  /** Public board targets whose pending removal caused a nested prevention decision. Display-only. */
+  affectedPermanentIds?: readonly string[];
   /** The selected permanent will become the attacker; it is not a target of the source card. */
   activeSelectionContext?: "attackSource";
   /**

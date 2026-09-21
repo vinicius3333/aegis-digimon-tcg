@@ -417,6 +417,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.fate.suspend": "Suspender",
   "game.fate.unsuspend": "Reativar",
   "game.fate.digivolve": "Digivolução",
+  "game.fate.effectTarget": "Alvo do efeito",
   "game.blockerBadge": "Bloqueador",
   "game.restriction.cannotAttack": "Não pode atacar",
   "game.restriction.cannotBlock": "Não pode bloquear",

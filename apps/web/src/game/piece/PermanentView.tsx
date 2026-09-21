@@ -147,7 +147,15 @@ export function PermanentView({
           ? permanentAriaLabel({ perm, heldSuspended, restrictions, fate, cardName, delta, hasDpDelta, t })
           : undefined
       }
-      className={permanentClassName({ lunge, shake, freezePulse, effectSource, effectLinked, candidate })}
+      className={permanentClassName({
+        lunge,
+        shake,
+        freezePulse,
+        effectSource,
+        effectLinked,
+        candidate,
+        threatened: fate?.fate === "effectTarget",
+      })}
       {...(drop ?? {})}
       style={{
         position: "relative",

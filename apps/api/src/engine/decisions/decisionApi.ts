@@ -84,6 +84,7 @@ function buildSeatScopedApi(
     effectText: ctx.activeEffectText,
     ...(ctx.activeEffectTextPart !== undefined ? { effectTextPart: ctx.activeEffectTextPart } : {}),
     ...(ctx.activeSelectionContext !== undefined ? { selectionContext: ctx.activeSelectionContext } : {}),
+    ...(ctx.affectedPermanentIds !== undefined ? { affectedPermanentIds: [...ctx.affectedPermanentIds] } : {}),
     // Raised by `payCost` for as long as a cost payment is on the stack. Without it a
     // cost selection and a target selection reach the deciding seat as the same request.
     ...((ctx.payingCostDepth ?? 0) > 0 ? { purpose: "cost" as const } : {}),

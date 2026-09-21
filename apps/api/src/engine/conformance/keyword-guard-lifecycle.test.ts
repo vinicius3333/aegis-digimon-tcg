@@ -755,8 +755,7 @@ describe("Guard departure lifecycle", () => {
       sourceCardId: "EX13-063",
       sourceInstanceId: s.inst("prince").instanceId,
       options: {
-        effectText:
-          "[All Turns] All of your Digimon with [Mamemon] in their names gain ＜Blocker＞ and ＜Guard＞",
+        effectText: "[All Turns] All of your Digimon with [Mamemon] in their names gain ＜Blocker＞ and ＜Guard＞",
       },
     });
     expect(
@@ -861,6 +860,7 @@ describe("Guard departure lifecycle", () => {
       expect(guardRequest.sourceCardId).toBe("EX13-052");
       expect(guardRequest.seat).toBe(1);
       expect(guardRequest.options?.effectText).toContain("Guard");
+      expect(guardRequest.options?.affectedPermanentIds).toEqual([targetPermanentId]);
       expect(
         s.engine.applyIntent(1, {
           type: "respondDecision",

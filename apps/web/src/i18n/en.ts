@@ -413,6 +413,7 @@ export const en = {
   "game.fate.suspend": "Suspend",
   "game.fate.unsuspend": "Unsuspend",
   "game.fate.digivolve": "Digivolution",
+  "game.fate.effectTarget": "Effect target",
   "game.blockerBadge": "Blocker",
   "game.restriction.cannotAttack": "Can't attack",
   "game.restriction.immuneToOpponentDigimonEffects": "Protected from opposing Digimon effects",
