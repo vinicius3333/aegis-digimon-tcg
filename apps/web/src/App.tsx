@@ -36,6 +36,7 @@ const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ de
 const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m.BattleLab })));
 const LiveArenaDemo = lazy(() => import("./dev/LiveArenaDemo").then((m) => ({ default: m.LiveArenaDemo })));
 const ArenaDemo = lazy(() => import("./dev/ArenaDemo").then((m) => ({ default: m.ArenaDemo })));
+const BadgeLayoutLab = lazy(() => import("./dev/BadgeLayoutLab").then((m) => ({ default: m.BadgeLayoutLab })));
 
 export function isBoardShowcasePath(pathname: string): boolean {
   return /^\/dev\/board\/?$/i.test(pathname);
@@ -92,7 +93,9 @@ export function App() {
   return (
     <I18nProvider>
       <Suspense fallback={<ScreenFallback />}>
-        {labCardId ? (
+        {/^\/dev\/badges\/?$/i.test(pathname) ? (
+          <BadgeLayoutLab />
+        ) : labCardId ? (
           <CardEffectsDemo cardId={labCardId} />
         ) : /^\/dev\/arena\/?$/i.test(pathname) ? (
           <Stage>

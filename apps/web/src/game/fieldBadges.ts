@@ -66,6 +66,7 @@ export function dpChipColors(permanent: Pick<Permanent, "topCard">): DpChipColor
 
 /** A blanket restriction a permanent wears as a standing debuff chip. */
 export type RestrictionBadgeKind =
+  | "immuneToOpponentEffects"
   | "cannotAttack"
   | "cannotBlock"
   | "cannotSuspend"
@@ -77,7 +78,8 @@ export type RestrictionBadgeKind =
   | "protectedFromDpReduction"
   | "protectedFromDeDigivolve"
   | "protectedFromEffectDeletion"
-  | "protectedFromEffectReturn";
+  | "protectedFromEffectReturn"
+  | "attacksAtStartOfMainPhase";
 
 /** The translation key each chip prints, named per restriction so a rename is caught. */
 export type RestrictionLabelKey = `game.restriction.${RestrictionBadgeKind}`;
@@ -87,7 +89,22 @@ export interface RestrictionBadge {
   /** Translation key of the chip's short label. */
   labelKey: RestrictionLabelKey;
   protection?: boolean;
-  shortLabelKey?: Extract<TranslationKey, `game.protectionBadge.${string}`>;
+  action?: boolean;
+  icon?:
+    | "allEffects"
+    | "digimon"
+    | "option"
+    | "tamer"
+    | "attackOff"
+    | "blockOff"
+    | "suspendOff"
+    | "unsuspendOff"
+    | "effectOff"
+    | "dpShield"
+    | "deDigivolveShield"
+    | "deleteShield"
+    | "returnShield";
+  shortLabelKey?: Extract<TranslationKey, `game.badge.${string}` | `game.protectionBadge.${string}`>;
 }
 
 /**
@@ -96,51 +113,69 @@ export interface RestrictionBadge {
  */
 const RESTRICTION_BADGES: readonly RestrictionBadge[] = [
   {
+    kind: "attacksAtStartOfMainPhase",
+    labelKey: "game.restriction.attacksAtStartOfMainPhase",
+    shortLabelKey: "game.badge.attacksAtStartOfMainPhase",
+    action: true,
+  },
+  {
     kind: "immuneToOpponentOptionEffects",
     labelKey: "game.restriction.immuneToOpponentOptionEffects",
     shortLabelKey: "game.protectionBadge.immuneToOpponentOptionEffects",
     protection: true,
+    icon: "option",
   },
   {
     kind: "immuneToOpponentTamerEffects",
     labelKey: "game.restriction.immuneToOpponentTamerEffects",
     shortLabelKey: "game.protectionBadge.immuneToOpponentTamerEffects",
     protection: true,
+    icon: "tamer",
   },
   {
     kind: "protectedFromDpReduction",
     labelKey: "game.restriction.protectedFromDpReduction",
     shortLabelKey: "game.protectionBadge.protectedFromDpReduction",
     protection: true,
+    icon: "dpShield",
   },
   {
     kind: "protectedFromDeDigivolve",
     labelKey: "game.restriction.protectedFromDeDigivolve",
     shortLabelKey: "game.protectionBadge.protectedFromDeDigivolve",
     protection: true,
+    icon: "deDigivolveShield",
   },
   {
     kind: "protectedFromEffectDeletion",
     labelKey: "game.restriction.protectedFromEffectDeletion",
     shortLabelKey: "game.protectionBadge.protectedFromEffectDeletion",
     protection: true,
+    icon: "deleteShield",
   },
   {
     kind: "protectedFromEffectReturn",
     labelKey: "game.restriction.protectedFromEffectReturn",
     shortLabelKey: "game.protectionBadge.protectedFromEffectReturn",
     protection: true,
+    icon: "returnShield",
   },
   {
     kind: "immuneToOpponentDigimonEffects",
     labelKey: "game.restriction.immuneToOpponentDigimonEffects",
+    shortLabelKey: "game.protectionBadge.immuneToOpponentDigimonEffects",
     protection: true,
+    icon: "digimon",
   },
-  { kind: "cannotAttack", labelKey: "game.restriction.cannotAttack" },
-  { kind: "cannotBlock", labelKey: "game.restriction.cannotBlock" },
-  { kind: "cannotSuspend", labelKey: "game.restriction.cannotSuspend" },
-  { kind: "cannotUnsuspend", labelKey: "game.restriction.cannotUnsuspend" },
-  { kind: "cannotActivateWhenDigivolving", labelKey: "game.restriction.cannotActivateWhenDigivolving" },
+  { kind: "cannotAttack", labelKey: "game.restriction.cannotAttack", icon: "attackOff" },
+  { kind: "cannotBlock", labelKey: "game.restriction.cannotBlock", icon: "blockOff" },
+  { kind: "cannotSuspend", labelKey: "game.restriction.cannotSuspend", icon: "suspendOff" },
+  { kind: "cannotUnsuspend", labelKey: "game.restriction.cannotUnsuspend", icon: "unsuspendOff" },
+  {
+    kind: "cannotActivateWhenDigivolving",
+    labelKey: "game.restriction.cannotActivateWhenDigivolving",
+    icon: "effectOff",
+  },
 ];
 
 /**
@@ -153,6 +188,33 @@ const RESTRICTION_BADGES: readonly RestrictionBadge[] = [
  * server resolves those into `attackablePermanentIds` / `canAttackPlayer`, and a chip
  * would double-count them.
  */
-export function restrictionBadges(permanent: Pick<Permanent, RestrictionBadgeKind>): readonly RestrictionBadge[] {
-  return RESTRICTION_BADGES.filter((badge) => permanent[badge.kind]);
+export function restrictionBadges(
+  permanent: Pick<Permanent, Exclude<RestrictionBadgeKind, "immuneToOpponentEffects">>,
+): readonly RestrictionBadge[] {
+  const immuneToAllOpponentEffects =
+    permanent.immuneToOpponentDigimonEffects &&
+    permanent.immuneToOpponentOptionEffects &&
+    permanent.immuneToOpponentTamerEffects;
+  const badges = RESTRICTION_BADGES.filter((badge) => {
+    if (
+      immuneToAllOpponentEffects &&
+      (badge.kind === "immuneToOpponentDigimonEffects" ||
+        badge.kind === "immuneToOpponentOptionEffects" ||
+        badge.kind === "immuneToOpponentTamerEffects")
+    ) {
+      return false;
+    }
+    return permanent[badge.kind];
+  });
+  if (!immuneToAllOpponentEffects) return badges;
+  return [
+    {
+      kind: "immuneToOpponentEffects",
+      labelKey: "game.restriction.immuneToOpponentEffects",
+      shortLabelKey: "game.protectionBadge.immuneToOpponentEffects",
+      protection: true,
+      icon: "allEffects",
+    },
+    ...badges,
+  ];
 }

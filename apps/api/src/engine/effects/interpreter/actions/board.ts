@@ -218,7 +218,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         }
         return false;
       }
-      const ids = await resolvePermanentTargets(ctx, action.target);
+      // An unaffected Digimon remains the chosen recipient of a DP modifier. Record the
+      // modifier with its source provenance so the DP ledger suppresses it while immunity
+      // applies and re-applies it if that immunity lapses before the modifier expires (Q5328).
+      const ids = await resolvePermanentTargets(ctx, action.target, { preserveUnaffectableSelection: true });
       if (nextOpponentTurnDuration && ids.length > 1) {
         unsupported(ctx, action, '"untilOpponentNextTurnEnd" resolved more than one DP target');
         return false;
@@ -231,6 +234,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         sourceKinds: [...(ctx.effectSourceKinds ?? ctx.source.definition.kinds)],
       };
       for (const id of ids) {
+        const dpBefore = ctx.game.permanentById(id)?.currentDP;
         const targetScale =
           action.scaling?.unit === "targetFaceDownDigivolutionCards"
             ? Math.floor(
@@ -261,6 +265,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
                 ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}),
               },
         );
+        const dpAfter = ctx.game.permanentById(id)?.currentDP;
+        if (ctx.continuousPass !== true && dpBefore !== undefined && dpAfter === dpBefore) {
+          ctx.fx.announceSuppressedDpModifier?.(id, amount);
+        }
         for (const keyword of action.alsoGainKeywords ?? []) {
           ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
         }

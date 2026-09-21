@@ -1420,7 +1420,12 @@ export class ContinuousEffectLedger {
    * only at their own boundary via `sweep`.
    */
   clearContinuous(): void {
-    this.restrictions = this.restrictions.filter((r) => !r.continuous);
+    this.restrictions = this.restrictions.filter((r) => {
+      if (r.continuous && r.restriction === "beAffected") {
+        this.expiredAffectationRecipients.add(r.permanentId);
+      }
+      return !r.continuous;
+    });
     this.playerRestrictions = this.playerRestrictions.filter((r) => !r.continuous);
     this.attackTargetRestrictions = this.attackTargetRestrictions.filter((r) => !r.continuous);
     this.canAttackUnsuspendedGrants = this.canAttackUnsuspendedGrants.filter((g) => !g.continuous);

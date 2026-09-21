@@ -83,6 +83,7 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
+          allowDigiXros: true,
           optional: true,
           costReduction: 4,
           raw: "play 1 Digimon card with the [Ten Warriors] trait or 1 Tamer card with inherited effects from your hand with the play cost reduced by 4",

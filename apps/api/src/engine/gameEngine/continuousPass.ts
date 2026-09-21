@@ -231,6 +231,11 @@ export async function runContinuousPass(
   // pass so it tracks plays/digivolves/removals (KB Q5250/Q5252; Q6025/Q6026 all-restricted).
   engine.projection.applySuspendRestrictionRecompute();
 
+  // A continuous immunity can disappear because its live condition stopped matching (for
+  // example, a suspended Digimon unsuspended), not only because a duration was swept. Re-read
+  // stored opponent-effect DP modifiers after every such immunity has been re-derived.
+  engine.projection.recomputeExpiredAffectationRecipients();
+
   // A seed is only an input to engine pass. Recompute every seeded permanent from the rebuilt
   // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.
   for (const permanentId of seed.keys()) engine.modifiers.recomputeDP(engine.state, permanentId);
