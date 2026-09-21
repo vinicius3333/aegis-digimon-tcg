@@ -8,6 +8,38 @@ import "../../cards/index.js";
 // §15-16-15-1: [End of Attack] triggers only when the attack was performed using the card
 // carrying the effect.
 describe("[End of Attack] binds to the attacking permanent", () => {
+  it("Q7378: discovers End of Attack on a top card gained during that attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX13-055", as: "attacker", under: ["BT1-010"] }],
+          hand: [
+            { card: "EX13-057", as: "grademon" },
+            { card: "BT20-056", as: "alphamon" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("attacker").permanentId).toBe(attackerId);
+    expect(s.perm("attacker").topCard.cardId).toBe("BT20-056");
+    expect(s.perm("attacker").stack.map((card) => card.cardId)).toEqual(["BT1-010", "EX13-055", "EX13-057"]);
+  });
+
   it("does not activate the opponent's inherited End of Attack when I attack", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-010", as: "attacker" }], security: ["BT1-001"] },

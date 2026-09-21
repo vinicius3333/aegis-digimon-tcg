@@ -241,7 +241,36 @@ describe("EX13-030 Reppamon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("paid").instanceId]);
   });
 
-  it("ignores a Tamer that is not [Richard Sampson] and never spends the security card", async () => {
+  it("Q7293 can play the [Richard Sampson] just trashed from top security as the cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "reppamon" }],
+          security: [
+            { card: SAMPSON_EX13, as: "securitySampson" },
+            { card: "BT1-009", as: "remaining" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await attackWindow(s, "reppamon");
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("securitySampson").instanceId),
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("remaining").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("securitySampson").instanceId),
+    ).toBe(true);
+  });
+
+  it("ignores a non-[Richard Sampson] Tamer after paying the security cost", async () => {
     const s = setupEngine(
       {
         0: {
@@ -270,9 +299,10 @@ describe("EX13-030 Reppamon", () => {
       s.inst("otherTamer").instanceId,
       s.inst("spare").instanceId,
     ]);
-    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("untouched").instanceId]);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("inertTrash").instanceId]);
-    expect(s.decisions.some(({ req }) => req.sourceCardId === CARD_ID)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("inertTrash").instanceId, s.inst("untouched").instanceId].sort(),
+    );
   });
 
   it("does nothing at all with an empty security stack, leaving the Tamer in hand", async () => {
@@ -560,10 +590,10 @@ describe("EX13-030 Reppamon", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("opponentTrashSampson").instanceId,
     ]);
-    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("mySecurity").instanceId]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("opponentSecurity").instanceId,
     ]);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("mySecurity").instanceId]);
   });
 });

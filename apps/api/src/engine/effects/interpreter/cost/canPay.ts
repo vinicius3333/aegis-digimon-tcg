@@ -4,7 +4,7 @@ import { canAttemptDigivolve } from "../actions/digivolve.js";
 import { definitionMatches } from "../matching/definition.js";
 import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
 import { LooseCandidate, candidateLooseInstances } from "../targeting/loose.js";
-import { candidatePermanents, effectiveTargetCount } from "../targeting/permanents.js";
+import { candidatePermanents, effectiveTargetCount, raiseDeletionDpCap } from "../targeting/permanents.js";
 import { distinctColorPermanentIds, permanentTopReturnCostCandidates, placeCostHostCandidates } from "./candidates.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
 import type { Cost, ZoneRef } from "@aegis/shared";
@@ -114,7 +114,8 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   }
   if (cost.kind === "deleteOwn") {
     if (cost.target === undefined) return false;
-    const candidates = candidatePermanents(ctx, cost.target);
+    const target = raiseDeletionDpCap(ctx, cost.target);
+    const candidates = candidatePermanents(ctx, target);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return required > 0 && (cost.target.upTo === true || candidates.length >= required);
   }

@@ -10,4 +10,12 @@ describe("definition keyword matching", () => {
     expect(definitionMatches({ keywords: ["DigiBurst"] }, declaresDigiBurst)).toBe(true);
     expect(definitionMatches({ keywords: ["DigiBurst"] }, onlyRefersToDigiBurst)).toBe(false);
   });
+
+  it("matches a keyword printed on the main card, not one present only in inherited text", () => {
+    const mainBlocker = getCardDefinition("BT20-047")!;
+    const inheritedBlockerReference = getCardDefinition("BT1-079")!;
+
+    expect(definitionMatches({ keywords: ["Blocker"] }, mainBlocker)).toBe(true);
+    expect(definitionMatches({ keywords: ["Blocker"] }, inheritedBlockerReference)).toBe(false);
+  });
 });

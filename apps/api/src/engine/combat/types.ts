@@ -1,7 +1,7 @@
 import type { AttackTarget, CardColor, CardInstance, EffectTiming, Seat, ServerEvent } from "@aegis/shared";
 import type { RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import type { ContinuousLegalityReader } from "./legality.js";
-import type { SecurityCheckReason } from "../security/securityCheck.js";
+import type { SecurityCheckOptions, SecurityCheckReason } from "../security/securityCheck.js";
 
 /**
  * The shapes the attack-and-block subsystem passes around: the decision windows a
@@ -195,7 +195,12 @@ export interface CombatHooks {
    * by running the security check (subsystem: security-and-win-check). The engine
    * binds this to runSecurityCheck(...); combat never flips a security card itself.
    */
-  checkSecurity: (defenderSeat: Seat, attackerPermanentId: string, reason: SecurityCheckReason) => Promise<void>;
+  checkSecurity: (
+    defenderSeat: Seat,
+    attackerPermanentId: string,
+    reason: SecurityCheckReason,
+    options?: SecurityCheckOptions,
+  ) => Promise<void>;
   /**
    * Whether a permanent currently has ＜Piercing＞ (subsystem: keyword-abilities).
    * Read post-win in resolveDigimonBattle: a piercing attacker that deletes the

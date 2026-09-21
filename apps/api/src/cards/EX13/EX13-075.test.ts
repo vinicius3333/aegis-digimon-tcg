@@ -1,10 +1,21 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-075.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import "../index.js";
+
+vi.hoisted(() => vi.resetModules());
+vi.mock("@aegis/shared", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@aegis/shared")>();
+  const { syntheticCardLookups, syntheticDefinitions: fixtures } =
+    await import("../../engine/testkit/syntheticDefinitions.js");
+  return { ...actual, ...syntheticCardLookups(actual, fixtures) };
+});
+
+afterEach(() => syntheticDefinitions.clear());
 
 const CARD_ID = "EX13-075";
 const inertDeck = ["BT1-009", "BT1-012", "BT1-013", "BT1-014"];
@@ -236,6 +247,44 @@ describe("EX13-075 Mon", () => {
       s.inst("secondRest").instanceId,
     ]);
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
+  });
+
+  it("Q7456 adds a card whose only [Huckmon] mention is in its inherited effect", async () => {
+    const inheritedOnlyId = "TEST-EX13-075-INHERITED-HUCKMON";
+    syntheticDefinitions.set(inheritedOnlyId, {
+      ...getCardDefinition("BT1-009")!,
+      cardId: inheritedOnlyId,
+      nameEn: "Synthetic Neutral Rookie",
+      effectText: undefined,
+      inheritedEffectText: "[Your Turn] While you have [Huckmon], this Digimon gets +1000 DP.",
+    });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "mon" }],
+          deck: [
+            { card: "BT1-009", as: "firstRest" },
+            { card: inheritedOnlyId, as: "inheritedOnly" },
+            { card: "BT1-012", as: "secondRest" },
+            { card: "BT1-013", as: "unrevealed" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("inheritedOnly").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("unrevealed").instanceId,
+      s.inst("firstRest").instanceId,
+      s.inst("secondRest").instanceId,
+    ]);
   });
 
   it("accepts a card carrying the token inside a longer name (BaoHuckmon)", async () => {

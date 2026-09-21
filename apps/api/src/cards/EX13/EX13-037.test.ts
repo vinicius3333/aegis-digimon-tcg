@@ -141,13 +141,13 @@ describe("EX13-037 Dynasmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
-  it("trashes THEIR top security once your own stack is down to 3 or fewer", async () => {
+  it("Q7327: rechecks the gate after trashing from four to three before security-removal reactions", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "dynasmon" }],
           deck: ["BT1-010", "BT1-012"],
-          security: ["BT1-013", "BT1-011"],
+          security: ["BT1-013", "BT1-011", "BT1-012", "BT1-010"],
         },
         1: { deck: ["BT1-011"], security: [{ card: "BT1-013", as: "theirTop" }, "BT1-011"] },
       },
@@ -159,7 +159,8 @@ describe("EX13-037 Dynasmon", () => {
     await settle();
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
-    expect(s.state.players[0]!.security).toHaveLength(2);
+    // Dynasmon's own watcher recovers after the complete On Play effect resolves.
+    expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("theirTop").instanceId);
   });
@@ -229,19 +230,16 @@ describe("EX13-037 Dynasmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(2);
   });
 
-  it("[All Turns] fires when YOUR security stack is removed from, and recovers under the gate", async () => {
+  it("Q7328/Q7329: resolves [Security] first, finishes recovery, then rule-deletes the 0 DP target", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "dynasmon", suspended: true }],
           deck: [{ card: "BT1-012", as: "recovered" }, "BT1-010"],
-          security: ["BT1-013"],
+          security: ["BT10-087"],
         },
         1: {
-          battleArea: [
-            { card: "BT9-035", as: "attacker", dp: 20_000 },
-            { card: BIG_VICTIM, as: "victim" },
-          ],
+          battleArea: [{ card: "BT9-035", as: "attacker", dp: 12_000 }],
           deck: ["BT1-011", "BT1-014"],
         },
       },
@@ -263,11 +261,15 @@ describe("EX13-037 Dynasmon", () => {
     );
     await settle();
 
+    const triggerOrder = s.events
+      .filter((event) => event.kind === "effectTriggered")
+      .map((event) => `${event.sourceCardId}/${event.timing}`);
+    expect(triggerOrder).toContain("BT10-087/OnPlay");
+    expect(triggerOrder).toContain("EX13-037/whenSecurityRemoved");
+    expect(triggerOrder.indexOf("BT10-087/OnPlay")).toBeLessThan(triggerOrder.indexOf("EX13-037/whenSecurityRemoved"));
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("recovered").instanceId);
-    const dropped = ["attacker", "victim"].filter(
-      (alias) => s.perm(alias).currentDP === (alias === "victim" ? 1000 : 8000),
-    );
-    expect(dropped).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("attacker").instanceId);
   });
 
   it("[All Turns] also fires when the OPPONENT's security stack is the one removed from", async () => {
@@ -306,7 +308,7 @@ describe("EX13-037 Dynasmon", () => {
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("recovered").instanceId);
   });
 
-  it("digivolves from a Lv.5 [Witchelny]-text source for 3 and refuses an off-colour plain Lv.5", async () => {
+  it("Q7325: matches [Witchelny] anywhere in a Lv.5 card's text for the alternate evolution", async () => {
     const legal = setupEngine({
       0: {
         battleArea: [{ card: WITCHELNY_LV5, as: "base" }],
@@ -469,7 +471,7 @@ describe("EX13-037 Dynasmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(4);
   });
 
-  it("gains the +10000 DP even with an EMPTY security stack: the trash is an action, not a cost", async () => {
+  it("Q7326: resolves the remaining effect with an empty security stack because trashing is not a cost", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: CARD_ID, as: "dynasmon" }], deck: ["BT1-010", "BT1-012"], security: [] },
@@ -597,7 +599,7 @@ describe("EX13-037 Dynasmon", () => {
   it.each([
     ["a material without the [Witchelny] token", [PLAIN_LV5, WITCHELNY_LV4, WITCHELNY_LV3]],
     ["the wrong level in a slot", [WITCHELNY_LV5, WITCHELNY_LV4, WITCHELNY_LV5]],
-  ])("rejects Assembly with %s", (_why, materials) => {
+  ])("Q7330: rejects Assembly when each material does not independently satisfy %s", (_why, materials) => {
     const s = setupEngine({
       0: {
         hand: [{ card: CARD_ID, as: "dynasmon" }],

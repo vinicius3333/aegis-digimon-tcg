@@ -224,6 +224,41 @@ describe("EX13-010 Growlmon", () => {
     assertNoLoudGap(s);
   });
 
+  it("gains Raid and +3000 DP when the mandatory chosen deletion is prevented (Q7232)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "base" }],
+          hand: [{ card: cardId, as: "host" }],
+          deck: ["BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT22-022", as: "protected", under: ["EX13-017"], dp: 4000 }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Raid"));
+
+    expect(s.perm("protected").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("protected").permanentId,
+    ]);
+    expect(s.perm("base").currentDP).toBe(9000);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("treats an own 4000 DP Digimon as no target: 'your opponent's' discriminates", async () => {
     const s = setupEngine(
       {
@@ -506,5 +541,41 @@ describe("EX13-010 Growlmon", () => {
     expect(s.perm("base").currentDP).toBe(9000);
     expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toEqual([]);
     assertNoLoudGap(s);
+  });
+
+  it("does not raise a deletion threshold that references the source Digimon's DP (Q7234)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-014", as: "host", under: [cardId], dp: 12_000 }],
+          security: ["BT1-010"],
+          deck: ["BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "aboveSourceDp", dp: 13_000 }],
+          security: ["BT1-012"],
+          deck: ["BT1-013"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("aboveSourceDp").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("aboveSourceDp").instanceId,
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

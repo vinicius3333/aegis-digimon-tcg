@@ -205,7 +205,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Keyword-exclusion ("without ＜Blocker＞"). Static definition path for loose cards;
   // live permanents also account for granted keywords below.
   if (filter.excludeKeywords && filter.excludeKeywords.length > 0) {
-    if (filter.excludeKeywords.some((kw) => textHasKeyword(def, kw))) return false;
+    if (filter.excludeKeywords.some((kw) => textHasKeyword({ effectText: def.effectText }, kw))) return false;
   }
   // dp filter for LOOSE CARDS (hand/trash): compare against the card's printed DP.
   // For battle-area permanents the live DP is checked in permanentMatchesFilter instead.
@@ -276,13 +276,15 @@ export function definitionHasKeyword(def: DefinitionFacts, keyword: string | { k
   if (def.cardId !== undefined) {
     const compiled = runtimeCompiledCard(def.cardId);
     if (compiled !== undefined) {
-      const declared = compiled.effects.some((effect) =>
-        (effect.keywords ?? []).some((entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested),
+      const declared = compiled.effects.some(
+        (effect) =>
+          effect.isInherited !== true &&
+          (effect.keywords ?? []).some((entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested),
       );
       if (declared || requested === "digiburst") return declared;
     }
   }
-  return textHasKeyword(def, keyword);
+  return textHasKeyword({ effectText: def.effectText }, keyword);
 }
 
 /** Does a card's printed text declare a keyword ability (e.g. ＜Save＞, ＜Blocker＞)? */

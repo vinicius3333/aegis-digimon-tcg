@@ -1,13 +1,14 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, nameIncludesToken } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX13-066.js";
 import "./EX13-066.js";
 
 const CARD_ID = "EX13-066";
+const NOIR_ON_PLAY = "BT6-084";
 
 const board = (s: ReturnType<typeof setupEngine>, seat: 0 | 1): string[] =>
   s.state.players[seat]!.battleArea.map((permanent) => permanent.topCard.cardId);
@@ -112,6 +113,15 @@ describe("EX13-066 compiled fidelity", () => {
     expect(optionPlay.target.filter).not.toHaveProperty("kind");
     expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
   });
+
+  it("Q7431-Q7432: is an Option card with [Huckmon] in its whole printed text", () => {
+    const definition = getCardDefinition(CARD_ID)!;
+
+    expect(definition.kinds).toContain("Option");
+    expect(definition.nameEn).not.toContain("Huckmon");
+    expect(definition.types).not.toContain("Huckmon");
+    expect(definition.effectText).toContain("Huckmon");
+  });
 });
 
 describe("EX13-066 [Rule] Also has Name / Trait", () => {
@@ -120,12 +130,10 @@ describe("EX13-066 [Rule] Also has Name / Trait", () => {
     await s.ready();
 
     const noir = s.perm("noir");
-    expect(observe(s.engine).grantedNames(noir)).toContain("sistermon ciel (awakened)");
-    expect(
-      observe(s.engine)
-        .effectiveNames(noir)
-        .map((name) => name.toLowerCase()),
-    ).toEqual(expect.arrayContaining(["sistermon noir (awakened)", "sistermon ciel (awakened)"]));
+    const grantedNames = observe(s.engine).grantedNames(noir);
+    expect(grantedNames).toContain("sistermon ciel (awakened)");
+    expect(grantedNames.some((name) => nameIncludesToken(name, "Sistermon Ciel"))).toBe(true);
+    expect(observe(s.engine).effectiveNames(noir)).toEqual(["sistermon noir (awakened)"]);
     expect(observe(s.engine).hasEffectiveTrait(noir, "Data")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(noir, "Virus")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(noir, "Vaccine")).toBe(false);
@@ -444,6 +452,102 @@ describe("EX13-066 Option side — Mickey Bullet (Awakened)", () => {
   });
 
   const whiteAnchor = () => ({ card: "BT20-084", as: "white" });
+
+  it("Q7433: finishes Then before rule-deleting the newly played 0 DP Digimon", async () => {
+    const { registerIrCard } = await import("../../engine/effects/interpreter.js");
+    const auraId = "BT1-011";
+    registerIrCard(auraId, {
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "Aura",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              effect: { kind: "modifyDP", amount: -5000 },
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+    const prefer: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [whiteAnchor()],
+          hand: [
+            { card: CARD_ID, as: "mickey" },
+            { card: NOIR_ON_PLAY, as: "freePlay" },
+          ],
+        },
+        1: { battleArea: [{ card: auraId, as: "aura" }, victim()] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["Arts Digivolve"],
+        preferInstanceIds: prefer,
+      },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    prefer.push(s.perm("victim").permanentId);
+
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mickey").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === NOIR_ON_PLAY));
+    await settle();
+
+    expect(s.perm("victim").topCard.cardId).toBe("BT7-083");
+    expect(s.perm("victim").stack.map(({ cardId }) => cardId)).toEqual(["BT7-082"]);
+    expect(trash(s, 0)).toEqual(expect.arrayContaining([CARD_ID, NOIR_ON_PLAY]));
+  });
+
+  it("Q7434: Arts Digivolve removes the played Sistermon Noir's pending On Play effect", async () => {
+    await import("../BT6/BT6-084.js");
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [whiteAnchor()],
+          hand: [
+            { card: CARD_ID, as: "mickey" },
+            { card: NOIR_ON_PLAY, as: "artsTarget" },
+          ],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: false, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mickey").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(decision.promptText).toContain("Arts Digivolve");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("artsTarget").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("artsTarget").topCard.cardId === CARD_ID);
+    await settle();
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("artsTarget").stack.map(({ cardId }) => cardId)).toEqual([NOIR_ON_PLAY]);
+    expect(
+      s.events.some(
+        (event) => event.kind === "effectResolved" && event.sourceCardId === NOIR_ON_PLAY && event.timing === "OnPlay",
+      ),
+    ).toBe(false);
+  });
 
   it("plays a cost 4 [Sistermon] from hand for free, then De-Digivolves once per own Digimon", async () => {
     const s = setupEngine(

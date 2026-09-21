@@ -130,7 +130,7 @@ describe("EX13-059 BigMamemon", () => {
     }
   });
 
-  it("free-plays the NAME-matching MetalMamemon when digivolved, and trashes the other two", async () => {
+  it("Q7391: free-plays the revealed candidate directly, without assembling revealed cards under it", async () => {
     const s = setupEngine(
       {
         0: {
@@ -172,6 +172,9 @@ describe("EX13-059 BigMamemon", () => {
       s.inst("big").instanceId,
       s.inst("freePlay").instanceId,
     ]);
+    expect(
+      s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === s.inst("freePlay").instanceId)!.stack,
+    ).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual(
       [s.inst("nearMatch").instanceId, s.inst("nonMatch").instanceId].sort(),
     );
@@ -218,7 +221,7 @@ describe("EX13-059 BigMamemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("refuses a play cost 8 [Mamemon] card and a text-only near-match, trashing all three", async () => {
+  it("Q7390: applies the play-cost-7 ceiling to both the Mamemon-name and Mutant-trait alternatives", async () => {
     const s = setupEngine(
       {
         0: {

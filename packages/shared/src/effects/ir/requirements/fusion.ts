@@ -1,5 +1,7 @@
 // DNA digivolution, App Fusion, and Assembly prerequisites.
 
+import type { Keyword } from "../keywords.js";
+
 /**
  * A DNA-digivolve (Jogress) prerequisite from the "DNA Digivolution: N from <colorA> Lv.<a> +
  * <colorB> Lv.<b>" header. A structural play-legality field, not a parse hint.
@@ -55,6 +57,8 @@ export interface AssemblyMaterial {
     tokens: string[];
     match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any";
   }[];
+  /** Keywords printed in the material card's main effect portion; inherited-only text does not qualify. */
+  printedKeywords?: Keyword[];
   /** Original selectMessage label when it is not a plain card name. */
   desc?: string;
   /** Default 1. */

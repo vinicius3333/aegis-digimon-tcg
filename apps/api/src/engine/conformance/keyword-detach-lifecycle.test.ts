@@ -264,13 +264,14 @@ describe("Detach departure lifecycle", () => {
           battleArea: [{ card: "BT26-019", as: "attacker", linked: [{ card: "BT26-010", as: "link" }] }],
         },
         1: {
-          security: [{ card: "BT1-014", as: "securityDigimon" }],
+          security: [{ card: "BT1-040", as: "securityDigimon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 0;
     await s.ready();
+    const linkId = s.inst("link").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -282,12 +283,13 @@ describe("Detach departure lifecycle", () => {
       () =>
         s.state.pendingDecision === undefined &&
         s.state.players[0]!.battleArea.length === 1 &&
-        s.state.players[1]!.security.length === 0,
+        s.state.players[1]!.security.length === 0 &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === linkId),
     );
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("attacker").permanentId,
     );
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(linkId);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
       s.inst("securityDigimon").instanceId,
     );

@@ -15,7 +15,6 @@ import { permanentClassName } from "./permanentClassName";
 import { resolvePermanentKeywords } from "./permanentKeywords";
 import { PermanentBlockerBadge } from "./PermanentBlockerBadge";
 import { PermanentCardStack } from "./PermanentCardStack";
-import { PermanentDpDeltaBadge } from "./PermanentDpDeltaBadge";
 import { PermanentEffectSourceParticles } from "./PermanentEffectSourceParticles";
 import { PermanentFateBadge } from "./PermanentFateBadge";
 import { PermanentKeywordBadges } from "./PermanentKeywordBadges";
@@ -147,8 +146,17 @@ export function PermanentView({
           ? permanentAriaLabel({ perm, heldSuspended, restrictions, fate, cardName, delta, hasDpDelta, t })
           : undefined
       }
-      className={permanentClassName({ lunge, shake, freezePulse, effectSource, effectLinked, candidate })}
+      className={permanentClassName({
+        lunge,
+        shake,
+        freezePulse,
+        effectSource,
+        effectLinked,
+        candidate,
+        threatened: fate?.fate === "effectTarget",
+      })}
       {...(drop ?? {})}
+      data-suspended={heldSuspended || perm.isSuspended || undefined}
       style={{
         position: "relative",
         cursor: interactive ? "pointer" : "default",
@@ -202,9 +210,10 @@ export function PermanentView({
       {sources ? <PermanentSourceBadge sources={sources} /> : null}
       {blocker ? <PermanentBlockerBadge /> : null}
       {fate ? <PermanentFateBadge fate={fate} /> : null}
-      {hasDpDelta ? <PermanentDpDeltaBadge delta={delta} /> : null}
       {activeKeywords.length > 0 ? <PermanentKeywordBadges keywords={activeKeywords} width={permanentWidth} /> : null}
-      {restrictions.length > 0 ? <PermanentRestrictionBadges restrictions={restrictions} /> : null}
+      {restrictions.length > 0 || hasDpDelta ? (
+        <PermanentRestrictionBadges restrictions={restrictions} dpDelta={hasDpDelta ? delta : undefined} />
+      ) : null}
       {transformation ? (
         <PermanentTransformToken
           transformation={transformation}

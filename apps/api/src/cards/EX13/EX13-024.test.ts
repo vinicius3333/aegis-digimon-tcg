@@ -546,6 +546,45 @@ describe("EX13-024 Slayerdramon", () => {
     await loop;
   });
 
+  it("prevents Examon from leaving and still resolves its simultaneous Partition (Q7274)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "slayer" },
+            {
+              card: "BT23-047",
+              as: "examon",
+              under: [
+                { card: "BT1-076", as: "greenLv5" },
+                { card: "BT1-038", as: "blueLv5" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const examonId = s.perm("examon").permanentId;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+    try {
+      expect(await advance(s.engine).verb.deletePermanent([examonId], "byEffect")).toBe(0);
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+    await settle(() => s.state.players[0]!.battleArea.length === 4);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === examonId)).toBe(true);
+    expect(s.perm("examon").stack).toHaveLength(0);
+    expect(s.perm("slayer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("greenLv5").instanceId, s.inst("blueLv5").instanceId]),
+    );
+  });
+
   it("redirects its attack onto the unsuspended highest-DP Digimon with Raid", async () => {
     const s = setupEngine(
       {

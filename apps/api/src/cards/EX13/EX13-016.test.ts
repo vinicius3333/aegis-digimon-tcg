@@ -191,6 +191,51 @@ describe("EX13-016 Omnimon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
   });
 
+  it("lets the controller order the two simultaneous On Play effects (Q7254)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX13-016", as: "omnimon" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "deletionTarget" },
+            { card: "BT1-010", as: "lockTarget" },
+          ],
+          deck: ["BT1-011"],
+          security: ["BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const pendingOrder = s.state.pendingDecision!;
+    const order = s.decisions.find(({ req }) => req.decisionId === pendingOrder.decisionId)!.req;
+    expect(order.options?.triggerCardIds).toEqual(["EX13-016", "EX13-016"]);
+    expect(order.options?.triggerKeys).toHaveLength(2);
+    const chosenFirst = [...order.options!.triggerKeys!].reverse()[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [chosenFirst] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    const survivor = s.state.players[1]!.battleArea[0]!;
+    expect(observe(s.engine).isRestricted(survivor.permanentId, "suspend")).toBe(true);
+  });
+
   it("blocks two opposing attacks and leaves a third free", async () => {
     const s = setupEngine(
       {
@@ -554,5 +599,59 @@ describe("EX13-016 Omnimon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === attackerId));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("allows only one Counter activation per attack when two Omnimon are eligible (Q7253)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-016", as: "first" },
+            { card: "EX13-016", as: "second" },
+          ],
+          deck: ["BT1-009"],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "attacker", dp: 5000 }],
+          deck: ["BT1-012"],
+          security: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const first = opened.eligibleCounters.find((entry) => entry.instanceId === s.perm("first").topCard.instanceId)!;
+    const second = opened.eligibleCounters.find((entry) => entry.instanceId === s.perm("second").topCard.instanceId)!;
+    expect(first).toBeDefined();
+    expect(second).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: first.instanceId,
+        effectKey: first.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: second.instanceId,
+        effectKey: second.effectKey,
+      }).ok,
+    ).toBe(false);
   });
 });

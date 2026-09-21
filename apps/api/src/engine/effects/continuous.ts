@@ -678,7 +678,12 @@ export class ContinuousEffectLedger {
     kind: "name" | "trait",
     tokens: string[],
     duration: EffectDuration,
-    opts?: { continuous?: boolean; digiXrosOnly?: boolean; dynamicTokens?: () => string[] },
+    opts?: {
+      continuous?: boolean;
+      digiXrosOnly?: boolean;
+      ruleDerived?: boolean;
+      dynamicTokens?: () => string[];
+    },
   ): void {
     this.nameTraitGrants.push(
       this.anchorDuration({
@@ -688,6 +693,7 @@ export class ContinuousEffectLedger {
         duration,
         continuous: opts?.continuous,
         digiXrosOnly: opts?.digiXrosOnly,
+        ruleDerived: opts?.ruleDerived,
         dynamicTokens: opts?.dynamicTokens,
       }),
     );
@@ -695,10 +701,38 @@ export class ContinuousEffectLedger {
 
   /** Extra name aliases granted to a permanent (lowercased tokens), excluding DigiXros-only grants. */
   grantedNames(permanentId: string): string[] {
+    const originalNameReplaced = this.originalCardInfoOverride(permanentId)?.name !== undefined;
     return this.nameTraitGrants
-      .filter((g) => g.permanentId === permanentId && g.kind === "name" && !g.digiXrosOnly)
+      .filter(
+        (g) =>
+          g.permanentId === permanentId &&
+          g.kind === "name" &&
+          !g.digiXrosOnly &&
+          !(originalNameReplaced && g.ruleDerived === true),
+      )
       .flatMap((g) =>
         g.dynamicTokens ? g.dynamicTokens().map((t) => t.toLowerCase()) : g.tokens.map((t) => t.toLowerCase()),
+      );
+  }
+
+  /**
+   * Additional names that are exact effective identities. A `(Rule)` clause saying a card's
+   * name "also contains [X]" is intentionally absent: it satisfies inclusion filters without
+   * renaming the card to exactly X (EX13-053/Q7377).
+   */
+  grantedExactNames(permanentId: string): string[] {
+    return this.nameTraitGrants
+      .filter(
+        (grant) =>
+          grant.permanentId === permanentId &&
+          grant.kind === "name" &&
+          !grant.digiXrosOnly &&
+          grant.ruleDerived !== true,
+      )
+      .flatMap((grant) =>
+        grant.dynamicTokens
+          ? grant.dynamicTokens().map((token) => token.toLowerCase())
+          : grant.tokens.map((token) => token.toLowerCase()),
       );
   }
 
@@ -807,6 +841,7 @@ export class ContinuousEffectLedger {
       active?: () => boolean;
       specifiers?: string[];
       sourceCardId?: string;
+      sourceInstanceId?: string;
       sourceEffectText?: string;
       sourceSeat?: Seat;
       sourceKinds?: string[];
@@ -822,6 +857,7 @@ export class ContinuousEffectLedger {
         active: opts?.active,
         specifiers: opts?.specifiers,
         sourceCardId: opts?.sourceCardId,
+        sourceInstanceId: opts?.sourceInstanceId,
         sourceEffectText: opts?.sourceEffectText,
         sourceSeat: opts?.sourceSeat,
         sourceKinds: opts?.sourceKinds,
@@ -893,13 +929,14 @@ export class ContinuousEffectLedger {
   keywordGrantSources(
     permanentId: string,
     keyword: string,
-  ): Array<{ sourceCardId?: string; effectText?: string; specifiers?: string[] }> {
+  ): Array<{ sourceCardId?: string; sourceInstanceId?: string; effectText?: string; specifiers?: string[] }> {
     return this.keywordGrants
       .filter(
         (grant) => grant.permanentId === permanentId && grant.keyword === keyword && this.keywordGrantIsActive(grant),
       )
-      .map(({ sourceCardId, sourceEffectText, specifiers }) => ({
+      .map(({ sourceCardId, sourceInstanceId, sourceEffectText, specifiers }) => ({
         sourceCardId,
+        sourceInstanceId,
         effectText: sourceEffectText,
         specifiers,
       }));
@@ -1383,7 +1420,12 @@ export class ContinuousEffectLedger {
    * only at their own boundary via `sweep`.
    */
   clearContinuous(): void {
-    this.restrictions = this.restrictions.filter((r) => !r.continuous);
+    this.restrictions = this.restrictions.filter((r) => {
+      if (r.continuous && r.restriction === "beAffected") {
+        this.expiredAffectationRecipients.add(r.permanentId);
+      }
+      return !r.continuous;
+    });
     this.playerRestrictions = this.playerRestrictions.filter((r) => !r.continuous);
     this.attackTargetRestrictions = this.attackTargetRestrictions.filter((r) => !r.continuous);
     this.canAttackUnsuspendedGrants = this.canAttackUnsuspendedGrants.filter((g) => !g.continuous);

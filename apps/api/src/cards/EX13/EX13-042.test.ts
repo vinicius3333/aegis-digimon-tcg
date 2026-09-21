@@ -450,6 +450,46 @@ describe("EX13-042 Bastemon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("Q7340: can suspend the Digimon just played by its When Attacking effect for Alliance", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "bastemon" }],
+          hand: [{ card: BEAST, as: "newAlly" }],
+          deck: Array(6).fill(NO_TOKEN),
+          security: [NO_TOKEN],
+        },
+        1: { deck: Array(6).fill(NO_TOKEN), security: [NO_TOKEN, NO_TOKEN] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("bastemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("newAlly").instanceId),
+    );
+    const newlyPlayed = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("newAlly").instanceId,
+    )!;
+    await settle(() => allianceState(s).hasOpenAllianceDecision);
+
+    expect(newlyPlayed.isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: newlyPlayed.permanentId } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(newlyPlayed.isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("opens no ＜Alliance＞ window for a Digimon that does not carry the keyword", async () => {
     const s = setupEngine(
       {

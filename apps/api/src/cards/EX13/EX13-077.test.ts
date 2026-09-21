@@ -1,7 +1,15 @@
-import { assemblyRequirementFor, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import {
+  assemblyRequirementFor,
+  digivolutionRequirementsFor,
+  EffectDuration,
+  EffectTiming,
+  getCardDefinition,
+} from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-077.js";
 import "../BT1/BT1-101.js";
 
@@ -122,7 +130,7 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(invalid.state.players[0]!.trash).toHaveLength(6);
   });
 
-  it("derives effective colors from its live stack and updates the color-scaled DP", async () => {
+  it("Q7475: counts its own White and colors gained from its live stack", async () => {
     const s = setupEngine(
       {
         0: {
@@ -166,7 +174,7 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(merciful.currentDP).toBe(18_000);
   });
 
-  it("scales the modal from zero through two activations and may repeat Recovery", async () => {
+  it("Q7472-Q7474/Q7478: snapshots unique colors, resolves sequentially, and may repeat Recovery", async () => {
     const make = (allies: string[], trashCount: number) =>
       setupEngine(
         {
@@ -237,7 +245,7 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(fourColors.perm("merciful").isSuspended).toBe(false);
   });
 
-  it("does not offer Recovery when only four opposing trash cards can be returned", async () => {
+  it("Q7471: does not offer Recovery when only four opposing trash cards can be returned", async () => {
     const s = setupEngine(
       {
         0: {
@@ -262,7 +270,46 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-012"]);
   });
 
-  it("publicly resolves the optional non-suspending attack and modal Battle branch", async () => {
+  it("Q7470: returns a selected Digi-Egg to the bottom of its owner's Digi-Egg deck", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          battleArea: [{ card: "AD1-001", as: "redAlly" }],
+          deck: ["BT1-012"],
+          security: ["BT1-090"],
+        },
+        1: {
+          trash: [
+            { card: "BT1-001", as: "egg" },
+            { card: "BT1-009", as: "trash0" },
+            { card: "BT1-010", as: "trash1" },
+            { card: "BT1-011", as: "trash2" },
+            { card: "BT1-012", as: "trash3" },
+          ],
+          deck: [{ card: "BT1-013", as: "mainDeck" }],
+          eggDeck: [{ card: "BT1-002", as: "existingEgg" }],
+          security: ["BT1-014"],
+        },
+      },
+      { autoDeclineOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.length === 0);
+
+    expect(s.state.players[1]!.eggDeck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("existingEgg").instanceId,
+      s.inst("egg").instanceId,
+    ]);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).not.toContain(s.inst("egg").instanceId);
+  });
+
+  it("Q7468: the modal Battle branch immediately performs a normal DP battle", async () => {
     const s = setupEngine(
       {
         0: {
@@ -289,6 +336,37 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.perm("merciful").isSuspended).toBe(false);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
+  });
+
+  it("Q7469: the Battle branch can choose and battle a Digimon unaffected by effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "merciful" },
+            { card: "AD1-001", as: "redAlly" },
+          ],
+          deck: ["BT1-012"],
+          security: ["BT1-090"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "immune" }], deck: ["BT1-013"], security: ["BT1-014"] },
+      },
+      {
+        autoAcceptOptional: true,
+        declinePrompts: ["Attack"],
+        autoChooseOption: true,
+        autoSelectCards: true,
+        preferOptionIndex: 0,
+      },
+    );
+    await s.ready();
+    await advance(s.engine).verb.restrict(s.perm("immune").permanentId, "beAffected", EffectDuration.Permanent);
+    expect(observe(s.engine).isRestricted(s.perm("immune"), "beAffected")).toBe(true);
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("merciful"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
   it("uses the normal Omnimon alternate evolution and resolves When Digivolving Recovery", async () => {

@@ -26,15 +26,14 @@ export function createStatsVerbs(pc: PrimitivesContext) {
   // whole set exists before any of it runs, so forwarding at call time is safe.
   const effectDrivenPlayCost: PrimitivesContext["helpers"]["effectDrivenPlayCost"] = (...args) =>
     pc.helpers.effectDrivenPlayCost(...args);
-  const isRestricted: PrimitivesContext["helpers"]["isRestricted"] = (...args) => pc.helpers.isRestricted(...args);
-
   const modifyDP: Primitives["modifyDP"] = (permanentId, delta, duration, opts): void => {
     const before = access.permanentById(permanentId);
     if (before === undefined) return; // no such battle-area permanent; nothing to buff
     // "DP can't be reduced" (§15-1-3). Every printed instance of this protection says REDUCED
     // (BT3-105, EX1-073, BT23-085, BT7-064, BT9-098, BT19-089), so it gates negative deltas
     // only — a buff still lands on a DP-immune Digimon.
-    if (delta < 0 && isRestricted(permanentId, "dpImmune")) return;
+    const byOpponentEffect = pc.helpers.isOpponentEffectAgainst(permanentId);
+    if (delta < 0 && continuous.hasRestriction(permanentId, "dpImmune", undefined, { byOpponentEffect })) return;
     ledger.addDpModifier(state, permanentId, delta, durationForTarget(permanentId, duration), {
       ...(opts?.continuous === undefined ? continuousOpt() : { continuous: opts.continuous }),
       ...(opts?.sourceInstanceId !== undefined ? { sourceInstanceId: opts.sourceInstanceId } : {}),
@@ -79,6 +78,7 @@ export function createStatsVerbs(pc: PrimitivesContext) {
       ...continuousOpt(),
       ...(effectSeatStack.at(-1) === undefined ? {} : { sourceSeat: effectSeatStack.at(-1) }),
       ...(effectSourceKindsStack.at(-1) === undefined ? {} : { sourceKinds: effectSourceKindsStack.at(-1) }),
+      ...(continuous.originalCardInfoOverride(permanentId) === undefined ? {} : { requiresDigimonTop: true }),
     });
     // currentDP was recomputed by the ledger (override replaces base, deltas sum on top).
   };

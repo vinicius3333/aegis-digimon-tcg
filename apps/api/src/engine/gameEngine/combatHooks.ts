@@ -176,8 +176,8 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
         const activeAtDeletion = grant.isActive?.() ?? true;
         return { ...grant, isActive: () => activeAtDeletion };
       }),
-    checkSecurity: async (defenderSeat, attackerPermanentId, reason) =>
-      engineRunSecurityCheck(engine, defenderSeat, attackerPermanentId, reason),
+    checkSecurity: async (defenderSeat, attackerPermanentId, reason, options) =>
+      engineRunSecurityCheck(engine, defenderSeat, attackerPermanentId, reason, options),
     // The pierce read seam: combat consults both the temporary modifier ledger and
     // the resolved printed/continuous keyword state. Printed ＜Piercing＞ lives in the
     // latter; only effect-granted, battle-scoped Piercing lives in the former.

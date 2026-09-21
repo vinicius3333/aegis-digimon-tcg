@@ -5,6 +5,46 @@ import { observe } from "./testkit/observe.js";
 import "../cards/index.js";
 
 describe("BT25-020 Marsmon Piercing controls", () => {
+  it("Q7352: retains a direct-battle Piercing entitlement through Barrier reactions", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX13-044", as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-013", as: "directVictim", dp: 5000, suspended: true },
+            { card: "EX13-033", as: "barrierTarget", suspended: true },
+          ],
+          security: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    preferred.push(s.perm("directVictim").topCard.instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("barrierTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondBarrier",
+        permanentId: s.perm("barrierTarget").permanentId,
+        accept: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("does not Piercing-check when the direct battle deletes the original attack target before ordinary combat", async () => {
     const s = setupEngine(
       {

@@ -59,10 +59,10 @@ export const compiled: CompiledCard = {
             trashTopOrBottomSecurity,
             { kind: "Draw", controller: "mine", amount: 1, raw: "＜Draw 1＞" },
             { kind: "GainMemory", amount: 1, raw: "gain 1 memory" },
-            placeWitchelnyTextCardAsBottomSecurity,
           ],
           raw: "If you have 3 or more security cards, trash your top or bottom security card, ＜Draw 1＞ and gain 1 memory",
         },
+        placeWitchelnyTextCardAsBottomSecurity,
       ],
     },
     {

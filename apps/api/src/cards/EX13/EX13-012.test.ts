@@ -493,6 +493,51 @@ describe("EX13-012 SaviorHuckmon", () => {
     await loop;
   });
 
+  it("Q7237 can suspend the Digimon played by its When Attacking effect for ＜Alliance＞", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "savior" }],
+          hand: [{ card: "ST12-13", as: "newAlly" }],
+          deck: Array(10).fill("BT1-009"),
+          security: Array(5).fill("BT1-009"),
+        },
+        1: { deck: Array(10).fill("BT1-010"), security: Array(5).fill("BT1-010") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 6;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("savior").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("newAlly").instanceId) &&
+        combat.hasOpenAllianceDecision,
+    );
+
+    expect(
+      s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("newAlly").permanentId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("newAlly").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("passes ＜Alliance＞ down to the Digimon that digivolves on top of it", async () => {
     const s = setupEngine(
       {

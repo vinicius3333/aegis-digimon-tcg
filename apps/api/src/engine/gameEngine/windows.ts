@@ -4,7 +4,7 @@ import { permanentIdentityOf } from "../effects/index.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { TriggerInfo } from "../effects/EffectContext.js";
 import { fireTiming, resolveDeletionReactions, runTimingWindow } from "./timing.js";
-import { armedAsPendingCollected, fireSubTriggerSnapshot } from "./subTriggers.js";
+import { armedAsPendingCollected, armedSubTriggers, fireSubTriggerSnapshot } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
 import { effectEnvironment } from "./effectContext.js";
 
@@ -52,7 +52,9 @@ export async function withPendingPoolDrain(
 /** Close a window opened by `beginResolvingWindow`; a no-op for a non-outermost (nested) call. */
 export function endResolvingWindow(engine: GameEngine, wasOutermost: boolean): void {
   if (!wasOutermost) return;
-  engine.pendingNestedTimingEffects = [];
+  // An Option can resolve entry-event watchers before its post-use routing finishes while
+  // deliberately retaining the played cards' printed [On Play] effects for that later boundary.
+  if (engine.optionResolutionDepth === 0) engine.pendingNestedTimingEffects = [];
   engine.pendingWindowSubTriggers = [];
   engine.parkedEntrySubTriggers = [];
   // Claims outlive an inner window when parked watchers are still queued (see
@@ -75,6 +77,20 @@ export async function flushDeferredSecurityRemovalTriggers(engine: GameEngine): 
     }
   } finally {
     engine.flushingDeferredSecurityRemovalTriggers = false;
+  }
+}
+
+/** Fold an effect-attack cost's security-removal reactions into its [When Attacking] pool. */
+export function parkDeferredSecurityRemovalTriggersForAttack(engine: GameEngine): void {
+  while (engine.deferredSecurityRemovalTriggers.length > 0) {
+    const deferred = engine.deferredSecurityRemovalTriggers.shift();
+    if (deferred === undefined) continue;
+    const armed = armedSubTriggers(engine, deferred.subscriptions, deferred.payload, deferred.contexts);
+    const collected = armedAsPendingCollected(engine, armed);
+    for (const entry of collected) {
+      engine.nestedTriggerSourceIdentity.set(entry, permanentIdentityOf(entry.source) ?? null);
+    }
+    engine.pendingNestedTimingEffects.push(...collected);
   }
 }
 

@@ -79,6 +79,46 @@ describe("EX9-074", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("assembles with seven differently named level-4 DM cards and applies the full reduction", async () => {
+    const materialCards = [
+      "EX9-009",
+      "EX9-010",
+      "EX9-017",
+      "EX9-025",
+      "EX9-026",
+      "EX9-028",
+      "EX9-029",
+    ];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX9-074", as: "source" }],
+          trash: materialCards.map((card, index) => ({ card, as: `material-${index}` })),
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        assembly: {
+          materialInstanceIds: materialCards.map((_, index) => s.inst(`material-${index}`).instanceId),
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea[0]?.stack.length === 7);
+
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(materialCards),
+    );
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(7);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
   it.each(["EX9-035", "EX9-038"])(
     "digivolves on a legal red level-four stack and places %s above the original stack",
     async (sourceCard) => {

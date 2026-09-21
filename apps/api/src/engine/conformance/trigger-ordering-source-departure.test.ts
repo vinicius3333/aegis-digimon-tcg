@@ -386,18 +386,10 @@ describe("bounded trigger ordering and pending source departure", () => {
       }),
     ).toMatchObject({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const cost = s.state.pendingDecision!;
     expect(s.decisions.find(({ req }) => req.decisionId === cost.decisionId)?.req.sourceCardId).toBe("BT20-073");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: cost.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toMatchObject({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    const sacrifice = s.state.pendingDecision!;
+    const sacrifice = cost;
     const sacrificeRequest = s.decisions.find(({ req }) => req.decisionId === sacrifice.decisionId)?.req;
     expect(sacrificeRequest?.options?.candidateInstanceIds).toEqual(
       expect.arrayContaining([s.perm("turnSacrifice").permanentId]),
@@ -491,14 +483,14 @@ describe("bounded trigger ordering and pending source departure", () => {
           response: { kind: "optional", accept: true },
         }),
       ).toMatchObject({ ok: true });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const metalCost = s.state.pendingDecision!;
       expect(s.decisions.find(({ req }) => req.decisionId === metalCost.decisionId)?.req.sourceCardId).toBe("BT20-073");
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
           decisionId: metalCost.decisionId,
-          response: { kind: "optional", accept: false },
+          response: { kind: "chooseTargets", instanceIds: [] },
         }),
       ).toMatchObject({ ok: true });
       await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -589,14 +581,14 @@ describe("bounded trigger ordering and pending source departure", () => {
           response: { kind: "optional", accept: true },
         }),
       ).toMatchObject({ ok: true });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const metalCost = s.state.pendingDecision!;
       expect(s.decisions.find(({ req }) => req.decisionId === metalCost.decisionId)?.req.sourceCardId).toBe("BT20-073");
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
           decisionId: metalCost.decisionId,
-          response: { kind: "optional", accept: false },
+          response: { kind: "chooseTargets", instanceIds: [] },
         }),
       ).toMatchObject({ ok: true });
       await settle(() => s.state.pendingDecision?.kind === "optional");

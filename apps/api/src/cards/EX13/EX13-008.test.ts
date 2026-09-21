@@ -9,6 +9,7 @@ import { compiled } from "./EX13-008.js";
 const cardId = "EX13-008";
 
 const NAME_MATCH = "ST1-04";
+const EXAMON_NAME_MATCH = "BT13-059";
 const TEXT_ONLY_MATCH = "BT20-044";
 const NEAR_MATCH = "BT1-009";
 const NON_MATCH = "BT1-011";
@@ -192,7 +193,7 @@ describe("EX13-008 Dracomon", () => {
     assertNoLoudGap(s);
   });
 
-  it("adds exactly one card when two revealed cards match the text reference", async () => {
+  it("Q7226/Q7227 adds exactly one when name, printed text, and Examon-only references all match", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -201,7 +202,7 @@ describe("EX13-008 Dracomon", () => {
           deck: [
             { card: NAME_MATCH, as: "nameMatch" },
             { card: TEXT_ONLY_MATCH, as: "textMatch" },
-            { card: NON_MATCH, as: "nonMatch" },
+            { card: EXAMON_NAME_MATCH, as: "examonNameMatch" },
             { card: "BT1-012", as: "sentinel" },
           ],
           security: ["BT1-013"],
@@ -224,7 +225,7 @@ describe("EX13-008 Dracomon", () => {
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
       s.inst("textMatch").instanceId,
-      s.inst("nonMatch").instanceId,
+      s.inst("examonNameMatch").instanceId,
     ]);
     assertNoLoudGap(s);
   });

@@ -110,6 +110,7 @@ describe("EX13-036 Kentaurosmon", () => {
         source: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" } },
         ownerSecurity: true,
         toTop: true,
+        condition: { kind: "selfIsInBattleArea" },
       },
     ];
     for (const index of [3, 4, 5]) {
@@ -138,7 +139,7 @@ describe("EX13-036 Kentaurosmon", () => {
     expect(assemblyRequirementFor(cardId)).toEqual(compiled.assemblyRequirement);
   });
 
-  it("drops ONE opponent Digimon by 7000 on play while both stacks total 7 or more", async () => {
+  it("Q7318: uses the replacement single-target branch while both stacks total 7 or more", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -180,7 +181,7 @@ describe("EX13-036 Kentaurosmon", () => {
     assertNoLoudGap(s);
   });
 
-  it("drops ALL opponent Digimon by 7000 on play while both stacks total 6 or fewer", async () => {
+  it("Q7318: uses the replacement all-target branch while both stacks total 6 or fewer", async () => {
     const s = setupEngine(
       {
         0: {
@@ -246,7 +247,7 @@ describe("EX13-036 Kentaurosmon", () => {
     expect(s.perm("body").currentDP).toBe(10_000);
   });
 
-  it("activates the printed [Security] body from a real security check, then still battles (§6-5)", async () => {
+  it("Q7323: activates the printed [Security] body from a real security check, then still battles", async () => {
     const s = setupEngine(
       {
         0: {
@@ -280,7 +281,7 @@ describe("EX13-036 Kentaurosmon", () => {
     expect(s.events.find(({ kind }) => kind === "securityChecked")).toMatchObject({ resolution: "battle" });
   });
 
-  it("trashes the chosen tied-largest stack's top card and runs the single-target branch", async () => {
+  it("Q7319: lets the activating player choose either tied-largest security stack", async () => {
     const preferred = ["opponent"];
     const s = setupEngine(
       {
@@ -406,6 +407,43 @@ describe("EX13-036 Kentaurosmon", () => {
     expect(s.perm("body").currentDP).toBe(10_000);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  it("Q7321: lets the player order both simultaneous When Digivolving effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: YELLOW_HOLY_BEAST_LV5, as: "base" }],
+          hand: [{ card: cardId, as: "kentaurosmon" }],
+          security: ["BT1-011"],
+          deck: DECK,
+        },
+        1: { battleArea: [{ card: BIG_BODY, as: "body" }], security: ["BT1-012"], deck: DECK },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kentaurosmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")!.req;
+    expect(order.options?.triggerCardIds).toEqual([cardId, cardId]);
+    expect(order.options?.triggerKeys).toHaveLength(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [order.options!.triggerKeys!.at(-1)!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
   });
 
   it("places one Digimon of EACH player on top of its own owner's security stack when digivolving", async () => {
@@ -548,7 +586,7 @@ describe("EX13-036 Kentaurosmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
-  it("offers the placement at [Counter] timing on the opponent's turn", async () => {
+  it("Q7320: closes the counter window after activating this card's single Counter", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -599,6 +637,58 @@ describe("EX13-036 Kentaurosmon", () => {
     expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual([BIG_BODY]);
     expect(s.state.players[1]!.security[0]!.cardId).toBe(OTHER_BIG_BODY);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("Q7324: may place itself when it is the controller's only Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "kentaurosmon" }], deck: DECK },
+        1: {
+          battleArea: [{ card: OTHER_BIG_BODY, as: "attacker" }],
+          security: ["BT1-012"],
+          deck: DECK,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find(
+      ({ instanceId }) => instanceId === s.perm("kentaurosmon").topCard.instanceId,
+    )!;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible.instanceId,
+        effectKey: eligible.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.events.find(({ kind }) => kind === "securityChecked")).toMatchObject({ resolution: "battle" });
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain(cardId);
+    expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain(OTHER_BIG_BODY);
+    expect(s.state.players[1]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-012"]);
   });
 
   it("digivolves from the printed Yellow Lv.5 EvoCost for 3 with the bonus draw", async () => {
@@ -735,7 +825,7 @@ describe("EX13-036 Kentaurosmon", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  it("plays by Assembly -5, stacking the three trash materials for a play cost of 7", async () => {
+  it("Q7322: plays by Assembly -5 with three separately qualifying Yellow Holy Beasts", async () => {
     const s = setupEngine(
       {
         0: {

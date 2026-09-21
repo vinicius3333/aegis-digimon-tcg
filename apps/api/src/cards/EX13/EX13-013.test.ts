@@ -243,6 +243,49 @@ describe("EX13-013 WarGrowlmon", () => {
     assertNoLoudGap(s);
   });
 
+  it("takes the Piercing / +3000 DP branch when the mandatory deletion is prevented (Q7239)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: LV4_RED, as: "source" }],
+          hand: [{ card: CARD_ID, as: "war" }],
+          deck: [LV3_RED],
+        },
+        1: {
+          battleArea: [{ card: "BT18-036", as: "protected", under: ["BT19-029"], dp: 5000 }],
+          security: [{ card: LV3_RED, as: "preventionCost" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("war").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.cardId === CARD_ID && observe(s.engine).hasPierce(permanent),
+      ),
+    );
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("protected").permanentId,
+    ]);
+    expect(s.perm("war").currentDP).toBe(11_000);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("preventionCost").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
   it("deletes a 5000 DP Digimon when it attacks and then plays a [Guilmon] Tamer from hand", async () => {
     const s = setupEngine(
       {

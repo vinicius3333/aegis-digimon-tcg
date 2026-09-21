@@ -323,7 +323,7 @@ describe("EX13-068 Takato Matsuki", () => {
     await turn;
   });
 
-  it("does nothing at all when the return cost is declined", async () => {
+  it("Q7436 does nothing at all when the return cost is declined", async () => {
     const s = setupEngine(
       {
         0: {
@@ -357,7 +357,7 @@ describe("EX13-068 Takato Matsuki", () => {
     await turn;
   });
 
-  it("offers no play at all once the return cost itself is declined (abortOnDecline)", async () => {
+  it("Q7436 offers no play at all once the return cost itself is declined (abortOnDecline)", async () => {
     const s = setupEngine(
       {
         0: {

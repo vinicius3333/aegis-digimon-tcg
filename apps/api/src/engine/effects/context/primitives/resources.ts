@@ -85,6 +85,8 @@ export interface ResourcePrimitives {
       skipsCurrentOpponentTurnEnd?: boolean;
     },
   ): void;
+  /** Tell clients that a DP modifier landed even when immunity suppresses its visible value. */
+  announceSuppressedDpModifier?(permanentId: string, delta: number): void;
   /** Modify every current and future Digimon controlled by `seat` for the duration. */
   modifyPlayerDP(
     seat: Seat,

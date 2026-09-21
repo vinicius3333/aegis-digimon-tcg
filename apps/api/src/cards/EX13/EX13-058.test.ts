@@ -10,6 +10,7 @@ import { compiled } from "./EX13-058.js";
 const cardId = "EX13-058";
 
 const TEXT_ONLY_LV4 = "BT7-059";
+const INHERITED_TEXT_ONLY_LV4 = "EX13-052";
 const NAMED_LV4 = "BT7-058";
 const INERT_LV4 = "ST13-10";
 const TOO_EXPENSIVE = "BT18-062";
@@ -211,7 +212,7 @@ describe("EX13-058 Knightmon", () => {
     assertNoLoudGap(s);
   });
 
-  it("matches a card whose [Knightmon] reference lives only in its TEXT, not its name", async () => {
+  it("Q7389: matches a card whose [Knightmon] reference lives in effect text, not its name", async () => {
     const s = setupEngine(
       {
         0: {
@@ -237,6 +238,35 @@ describe("EX13-058 Knightmon", () => {
 
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("axemon").instanceId);
+  });
+
+  it("Q7389: also matches a card whose only [Knightmon] reference is in inherited effect text", async () => {
+    const definition = getCardDefinition(INHERITED_TEXT_ONLY_LV4)!;
+    expect(definition.nameEn).not.toContain("Knightmon");
+    expect(definition.types).not.toContain("Knightmon");
+    expect(definition.effectText ?? "").not.toContain("Knightmon");
+    expect(definition.inheritedEffectText).toContain("Knightmon");
+
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "knightmon" }],
+          hand: [{ card: INHERITED_TEXT_ONLY_LV4, as: "inheritedTextMatch" }],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await attackWindow(s, "knightmon");
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("inheritedTextMatch").instanceId,
+    );
   });
 
   it("reaches a TAMER too, because the printed noun is 'card' and not 'Digimon card'", async () => {

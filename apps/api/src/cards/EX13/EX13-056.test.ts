@@ -14,6 +14,7 @@ const MATCH_LV4 = "BT2-058";
 const MATCH_LV5 = "BT2-061";
 const MATCH_LV6 = "BT13-077";
 const NEAR_MATCH_KEYWORD = "BT13-067";
+const INHERITED_ONLY_BLOCKER = "BT14-058";
 const NO_KEYWORD_BLACK = "BT13-066";
 const WRONG_COLOUR = "BT2-072";
 const HOST = "BT1-014";
@@ -204,8 +205,8 @@ describe("EX13-056 Giromon", () => {
     assertNoLoudGap(s);
   });
 
-  it("discriminates every printed predicate: refuses a near-match keyword, a keywordless black Lv.4, a purple ＜Blocker＞ and a Lv.5 black ＜Blocker＞", async () => {
-    for (const rejected of [NEAR_MATCH_KEYWORD, NO_KEYWORD_BLACK, WRONG_COLOUR, MATCH_LV5]) {
+  it("Q7379: reveal requires printed main Blocker, rejecting inherited-only and other near matches", async () => {
+    for (const rejected of [NEAR_MATCH_KEYWORD, INHERITED_ONLY_BLOCKER, NO_KEYWORD_BLACK, WRONG_COLOUR, MATCH_LV5]) {
       const s = setupEngine(
         revealBoard([
           { card: rejected, as: "rejected" },
@@ -600,11 +601,12 @@ describe("EX13-056 Giromon", () => {
     );
   });
 
-  it("refuses a Lv.6 ＜Blocker＞, a near-match keyword, a keywordless black Lv.4 and a purple ＜Blocker＞ in hand", async () => {
+  it("Q7379: inherited hand filter also rejects inherited-only Blocker and other near matches", async () => {
     const s = setupEngine(
       inheritedBoard([
         { card: MATCH_LV6, as: "tooHigh" },
         { card: NEAR_MATCH_KEYWORD, as: "nearMiss" },
+        { card: INHERITED_ONLY_BLOCKER, as: "inheritedOnly" },
         { card: NO_KEYWORD_BLACK, as: "noKeyword" },
         { card: WRONG_COLOUR, as: "purple" },
       ]),
@@ -618,7 +620,7 @@ describe("EX13-056 Giromon", () => {
     await settle();
 
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
-    expect(s.state.players[0]!.hand).toHaveLength(4);
+    expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });

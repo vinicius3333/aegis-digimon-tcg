@@ -229766,31 +229766,12 @@
         "trigger": "WhenMoving",
         "actions": [
           {
-            "kind": "Return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Gallantmon"], "match": "name" }],
-                "orFilters": [{ "zone": "trash", "controller": "mine", "kind": ["Tamer"], "colors": ["Red"] }]
-              },
-              "count": 1
-            },
-            "to": "hand",
-            "cost": {
-              "kind": "trash",
-              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
-              "raw": "By trashing 1 card in your hand"
-            },
+            "kind": "Trash",
+            "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+            "raw": "By trashing 1 card in your hand",
             "optional": true,
             "abortOnDecline": true
-          }
-        ]
-      },
-      {
-        "trigger": "OnPlay",
-        "actions": [
+          },
           {
             "kind": "Return",
             "target": {
@@ -229804,13 +229785,34 @@
               "count": 1
             },
             "to": "hand",
-            "cost": {
-              "kind": "trash",
-              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
-              "raw": "By trashing 1 card in your hand"
-            },
+            "optional": true
+          }
+        ]
+      },
+      {
+        "trigger": "OnPlay",
+        "actions": [
+          {
+            "kind": "Trash",
+            "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+            "raw": "By trashing 1 card in your hand",
             "optional": true,
             "abortOnDecline": true
+          },
+          {
+            "kind": "Return",
+            "target": {
+              "filter": {
+                "zone": "trash",
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Gallantmon"], "match": "name" }],
+                "orFilters": [{ "zone": "trash", "controller": "mine", "kind": ["Tamer"], "colors": ["Red"] }]
+              },
+              "count": 1
+            },
+            "to": "hand",
+            "optional": true
           }
         ]
       },
@@ -232445,6 +232447,10 @@
             "source": { "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
             "ownerSecurity": true,
             "toTop": true,
+            "condition": {
+              "kind": "selfIsInBattleArea",
+              "raw": "this Digimon remains in the battle area after placing your Digimon"
+            },
             "raw": "place 1 of your opponent's Digimon as the top security card"
           }
         ]
@@ -232472,6 +232478,10 @@
             "source": { "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
             "ownerSecurity": true,
             "toTop": true,
+            "condition": {
+              "kind": "selfIsInBattleArea",
+              "raw": "this Digimon remains in the battle area after placing your Digimon"
+            },
             "raw": "place 1 of your opponent's Digimon as the top security card"
           }
         ]
@@ -232499,6 +232509,10 @@
             "source": { "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
             "ownerSecurity": true,
             "toTop": true,
+            "condition": {
+              "kind": "selfIsInBattleArea",
+              "raw": "this Digimon remains in the battle area after placing your Digimon"
+            },
             "raw": "place 1 of your opponent's Digimon as the top security card"
           }
         ]
@@ -233214,6 +233228,7 @@
           {
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
+            "playerWide": true,
             "amount": 10000,
             "duration": "untilOpponentTurnEnd",
             "raw": "all of your Digimon get +10000 DP until your opponent's turn ends",
@@ -233234,8 +233249,7 @@
             "defender": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "optional": true,
             "raw": "this Digimon may battle 1 of your opponent's Digimon",
-            "effectTextPart": "Then, this Digimon may battle 1 of your opponent's Digimon.",
-            "condition": { "kind": "isDnaDigivolving" }
+            "effectTextPart": "Then, this Digimon may battle 1 of your opponent's Digimon."
           }
         ]
       },
@@ -233250,55 +233264,21 @@
             "raw": "When this Digimon wins a battle",
             "actions": [
               {
-                "kind": "Modal",
-                "choose": 1,
-                "labels": ["Play a [Dracomon]/[Examon] text card", "Use a [Dracomon]/[Examon] text Option"],
-                "options": [
-                  [
-                    {
-                      "kind": "PlayWithoutCost",
-                      "target": {
-                        "filter": {
-                          "controllerDefault": "mine",
-                          "kind": ["Digimon", "Tamer"],
-                          "nameOrTrait": [{ "tokens": ["Dracomon", "Examon"], "match": "text" }],
-                          "playCostLte": 12
-                        },
-                        "count": 1,
-                        "source": "thisDigimon"
-                      },
-                      "from": ["hand", "digivolutionCards"],
-                      "payCost": false,
-                      "optional": true,
-                      "raw": "you may play 1 play or use cost 12 or lower [Dracomon] or [Examon] text card from your hand or its digivolution cards without paying the cost"
-                    }
-                  ],
-                  [
-                    {
-                      "kind": "UseOptionWithoutCost",
-                      "filter": {
-                        "controllerDefault": "mine",
-                        "kind": ["Option"],
-                        "nameOrTrait": [{ "tokens": ["Dracomon", "Examon"], "match": "text" }],
-                        "playCostLte": 12
-                      },
-                      "target": {
-                        "filter": {
-                          "controllerDefault": "mine",
-                          "kind": ["Option"],
-                          "nameOrTrait": [{ "tokens": ["Dracomon", "Examon"], "match": "text" }],
-                          "playCostLte": 12
-                        },
-                        "count": 1,
-                        "source": "thisDigimon"
-                      },
-                      "from": ["hand", "digivolutionCards"],
-                      "payCost": false,
-                      "optional": true,
-                      "raw": "you may use 1 play or use cost 12 or lower [Dracomon] or [Examon] text card from your hand or its digivolution cards without paying the cost"
-                    }
-                  ]
-                ]
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controllerDefault": "mine",
+                    "kind": ["Digimon", "Tamer", "Option"],
+                    "nameOrTrait": [{ "tokens": ["Dracomon", "Examon"], "match": "text" }],
+                    "playCostLte": 12
+                  },
+                  "count": 1,
+                  "source": "thisDigimon"
+                },
+                "from": ["hand", "digivolutionCards"],
+                "payCost": false,
+                "optional": true,
+                "raw": "you may play or use 1 play or use cost 12 or lower [Dracomon] or [Examon] text card from your hand or its digivolution cards without paying the cost"
               }
             ]
           }
@@ -233375,11 +233355,7 @@
                 "count": 1,
                 "to": "hand"
               },
-              {
-                "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Blocker"], "match": "text" }] },
-                "count": 1,
-                "to": "hand"
-              }
+              { "filter": { "controllerDefault": "mine", "keywords": ["Blocker"] }, "count": 1, "to": "hand" }
             ],
             "rest": "deckBottom",
             "raw": "Reveal the top 3 cards of your deck. Add 1 card with the [Royal Knight] trait and 1 card with ＜Blocker＞ among them to the hand. Return the rest to the bottom of the deck"
@@ -234237,24 +234213,9 @@
       {
         "reduceCost": 5,
         "materials": [
-          {
-            "count": 1,
-            "level": 5,
-            "colors": ["Black"],
-            "nameOrTrait": [{ "tokens": ["＜Blocker＞"], "match": "text" }]
-          },
-          {
-            "count": 1,
-            "level": 4,
-            "colors": ["Black"],
-            "nameOrTrait": [{ "tokens": ["＜Blocker＞"], "match": "text" }]
-          },
-          {
-            "count": 1,
-            "level": 3,
-            "colors": ["Black"],
-            "nameOrTrait": [{ "tokens": ["＜Blocker＞"], "match": "text" }]
-          }
+          { "count": 1, "level": 5, "colors": ["Black"], "printedKeywords": ["Blocker"] },
+          { "count": 1, "level": 4, "colors": ["Black"], "printedKeywords": ["Blocker"] },
+          { "count": 1, "level": 3, "colors": ["Black"], "printedKeywords": ["Blocker"] }
         ]
       }
     ]
@@ -236002,33 +235963,33 @@
                 "raw": "trash your top or bottom security card"
               },
               { "kind": "Draw", "controller": "mine", "amount": 1, "raw": "＜Draw 1＞" },
-              { "kind": "GainMemory", "amount": 1, "raw": "gain 1 memory" },
-              {
-                "kind": "SecurityManipulation",
-                "op": "addBottom",
-                "controller": "mine",
-                "amount": 1,
-                "source": {
-                  "filter": {
-                    "controller": "mine",
-                    "zone": "hand",
-                    "nameOrTrait": [{ "tokens": ["Witchelny"], "match": "text" }]
-                  },
-                  "count": 1
-                },
-                "optional": true,
-                "condition": {
-                  "kind": "zoneCount",
-                  "seat": "mine",
-                  "zone": "security",
-                  "op": "lte",
-                  "value": 2,
-                  "raw": "you have 2 or fewer security cards"
-                },
-                "raw": "you may place 1 card with [Witchelny] in its text from your hand as the bottom security card"
-              }
+              { "kind": "GainMemory", "amount": 1, "raw": "gain 1 memory" }
             ],
             "raw": "If you have 3 or more security cards, trash your top or bottom security card, ＜Draw 1＞ and gain 1 memory"
+          },
+          {
+            "kind": "SecurityManipulation",
+            "op": "addBottom",
+            "controller": "mine",
+            "amount": 1,
+            "source": {
+              "filter": {
+                "controller": "mine",
+                "zone": "hand",
+                "nameOrTrait": [{ "tokens": ["Witchelny"], "match": "text" }]
+              },
+              "count": 1
+            },
+            "optional": true,
+            "condition": {
+              "kind": "zoneCount",
+              "seat": "mine",
+              "zone": "security",
+              "op": "lte",
+              "value": 2,
+              "raw": "you have 2 or fewer security cards"
+            },
+            "raw": "you may place 1 card with [Witchelny] in its text from your hand as the bottom security card"
           }
         ]
       },
@@ -237110,6 +237071,7 @@
                 "kind": "Attack",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
                 "optional": true,
+                "effectTextPart": "When any of your [Chronicle] trait Digimon or Tamers are played, 1 of your Digimon may attack.",
                 "raw": "1 of your Digimon may attack"
               },
               {
@@ -237117,6 +237079,7 @@
                 "fromTrigger": "WhenDigivolving",
                 "count": 1,
                 "optional": true,
+                "effectTextPart": "Then, you may activate 1 of this Digimon's [When Digivolving] effects.",
                 "raw": "Then, you may activate 1 of this Digimon's [When Digivolving] effects"
               }
             ],

@@ -8,7 +8,7 @@ const royalKnightCard: Filter = {
 
 const blockerCard: Filter = {
   controllerDefault: "mine",
-  nameOrTrait: [{ tokens: ["Blocker"], match: "text" }],
+  keywords: ["Blocker"],
 };
 
 export const compiled: CompiledCard = {

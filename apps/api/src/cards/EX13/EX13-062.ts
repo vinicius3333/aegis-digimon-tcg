@@ -77,9 +77,9 @@ const compiled: CompiledCard = {
     {
       reduceCost: 5,
       materials: [
-        { count: 1, level: 5, colors: ["Black"], nameOrTrait: [{ tokens: ["＜Blocker＞"], match: "text" }] },
-        { count: 1, level: 4, colors: ["Black"], nameOrTrait: [{ tokens: ["＜Blocker＞"], match: "text" }] },
-        { count: 1, level: 3, colors: ["Black"], nameOrTrait: [{ tokens: ["＜Blocker＞"], match: "text" }] },
+        { count: 1, level: 5, colors: ["Black"], printedKeywords: ["Blocker"] },
+        { count: 1, level: 4, colors: ["Black"], printedKeywords: ["Blocker"] },
+        { count: 1, level: 3, colors: ["Black"], printedKeywords: ["Blocker"] },
       ],
     },
   ],

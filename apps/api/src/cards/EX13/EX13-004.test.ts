@@ -145,7 +145,7 @@ describe("EX13-004 DemiMeramon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("accepts a destination that carries [Witchelny] only in its printed effect text", async () => {
+  it("accepts [Witchelny] in effect text and lets the new Digimon see its security trash", async () => {
     const s = setupEngine(
       {
         0: {
@@ -160,7 +160,11 @@ describe("EX13-004 DemiMeramon", () => {
           ],
           deck: DECK,
         },
-        1: { security: [INERT, INERT], deck: DECK },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "victim", under: [{ card: HOST, as: "victimBase" }] }],
+          security: [INERT, INERT],
+          deck: DECK,
+        },
       },
       AUTOMATION,
     );
@@ -181,6 +185,8 @@ describe("EX13-004 DemiMeramon", () => {
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("bottomSecurity").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
+    expect(s.perm("victim").topCard.instanceId).toBe(s.inst("victimBase").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-020");
   });
 
   it("refuses a [Witchelny] hand card that is an illegal evolution over this carrier", async () => {

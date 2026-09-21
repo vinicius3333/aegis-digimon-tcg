@@ -50,6 +50,7 @@ import {
   fireBeforeDigivolveCost,
   fireBeforePayCost,
   firePlayEntryWindows,
+  drainPendingOptionEntryTriggers,
   fireTimingForPermanent,
   projectLooseUseCost,
   residentPlayCostEffects,
@@ -82,6 +83,10 @@ export function resolutionDeps(
   } = {},
 ): ResolutionDeps {
   const excludeNestedPending = opts.excludeNestedPending;
+  const pendingWhileOptionResolves = (): CollectedEffect[] => {
+    const deferredPrintedEffects = new Set(engine.pendingNestedTimingEffects);
+    return pendingWindowCollected(engine).filter((pending) => !deferredPrintedEffects.has(pending));
+  };
   return {
     // The outermost loop settles deferred queues between effects. A nested resolver normally
     // cannot reach into the enclosing pool while its card body is still running; a settlement
@@ -90,16 +95,22 @@ export function resolutionDeps(
     ...(opts.outermost === true
       ? {
           betweenEffects: () => settleBetweenEffects(engine),
-          collectPending: () => [...pendingWindowCollected(engine), ...(opts.extraPending ?? [])],
+          collectPending: () => [
+            ...(engine.optionResolutionDepth > 0 ? pendingWhileOptionResolves() : pendingWindowCollected(engine)),
+            ...(opts.extraPending ?? []),
+          ],
         }
       : {
           collectPending: () => [
             ...(excludeNestedPending === undefined
               ? []
-              : engine.pendingNestedTimingEffects.filter(
-                  (pending) => !excludeNestedPending.has(pending) && nestedTriggerSourceStillResident(engine, pending),
-                )),
-            ...parkedEntryCollected(engine),
+              : engine.optionResolutionDepth > 0
+                ? pendingWhileOptionResolves()
+                : engine.pendingNestedTimingEffects.filter(
+                    (pending) =>
+                      !excludeNestedPending.has(pending) && nestedTriggerSourceStillResident(engine, pending),
+                  )),
+            ...(engine.optionResolutionDepth > 0 ? [] : parkedEntryCollected(engine)),
             ...(opts.extraPending ?? []),
           ],
         }),
@@ -518,8 +529,13 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
       engine.optionResolutionDepth += 1;
     },
     finishOptionResolution: async () => {
-      engine.optionResolutionDepth = Math.max(0, engine.optionResolutionDepth - 1);
-      if (engine.optionResolutionDepth === 0) await ruleProcess(engine);
+      if (engine.optionResolutionDepth === 1) {
+        await ruleProcess(engine);
+        engine.optionResolutionDepth = 0;
+        await drainPendingOptionEntryTriggers(engine);
+      } else {
+        engine.optionResolutionDepth = Math.max(0, engine.optionResolutionDepth - 1);
+      }
     },
     fireOptionUsed: async (usedInstanceId, usedOptionCost) =>
       engine.primitives.fireOptionUsed(usedInstanceId, usedOptionCost),

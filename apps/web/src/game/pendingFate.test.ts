@@ -52,4 +52,20 @@ describe("pendingFateBadges", () => {
     expect(pendingFateBadges({ decision, picks: ["p1"], viewerSeat: 1 }).size).toBe(0);
     expect(pendingFateBadges({ decision: undefined, picks: ["p1"], viewerSeat: 0 }).size).toBe(0);
   });
+
+  it("keeps an opponent-selected public target marked during a follow-up prevention prompt", () => {
+    const guardDecision: DecisionRequest = {
+      decisionId: "guard",
+      seat: 0,
+      kind: "optional",
+      promptText: "Use Guard?",
+      options: { affectedPermanentIds: ["target-permanent"] },
+    };
+    const badges = pendingFateBadges({ decision: guardDecision, picks: [], viewerSeat: 0 });
+    expect(badges.get("target-permanent")).toMatchObject({
+      fate: "effectTarget",
+      labelKey: "game.fate.effectTarget",
+      glyph: "⌖",
+    });
+  });
 });

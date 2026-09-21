@@ -207,7 +207,7 @@ describe("EX13-035 KingEtemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("returns ten such cards to the deck bottom and then plays a card the base maximum refuses", async () => {
+  it("Q7315: chooses and pays the ten-card return before playing with the raised maximum", async () => {
     const s = setupEngine(
       {
         0: {
@@ -242,7 +242,7 @@ describe("EX13-035 KingEtemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("never offers the raised maximum with only nine such cards in the trash", async () => {
+  it("Q7316: never offers the raised maximum with only nine such cards in the trash", async () => {
     const s = setupEngine(
       {
         0: {
@@ -569,7 +569,7 @@ describe("EX13-035 KingEtemon", () => {
     expect(s.state.memory).toBe(10);
   });
 
-  it("debuffs every opposing Digimon while three named Digimon stand on either side of the board", async () => {
+  it("Q7317: counts named Digimon on both players' battle areas for the board-wide opposing debuff", async () => {
     const s = setupEngine({
       0: {
         battleArea: [

@@ -14,6 +14,7 @@ import {
 } from "@aegis/shared";
 import { cardHasTrait, definitionOf, isDigimon } from "../cards/cardData.js";
 import { matchNameOrTrait } from "../effects/interpreter.js";
+import { definitionHasKeyword } from "../effects/interpreter/matching/definition.js";
 import { extractCardAt } from "../state/access.js";
 import { normalizeCost, placePermanent } from "./digiXros.js";
 
@@ -28,7 +29,7 @@ import { normalizeCost, placePermanent } from "./digiXros.js";
  *   - stacking order is dictated by the requirement's slot order for distinct-named slots, and by
  *     the player's own declaration order when the requirement is a single repeated slot (§7-3-2-6)
  *
- * IR coverage: `AssemblyMaterial` carries `names`/`namesExact`/`traits`/`nameOrTrait`/`level`/`levelMin`/
+ * IR coverage: `AssemblyMaterial` carries `names`/`namesExact`/`traits`/`nameOrTrait`/`printedKeywords`/`level`/`levelMin`/
  * `levelMax`/`colors`/`differentLevels`/`differentNames`/`differentColors`, all enforced below. The
  * `differentColors` constraint applies to the repeated single-slot form used by EX13-077. `nameOrTrait` mirrors
  * `DigiXrosMaterial.nameOrTrait` for a genuine cross-kind disjunction the compiler can't flatten
@@ -234,7 +235,8 @@ export function materialMatchesAssemblySlot(
     (slot.names?.length ?? 0) > 0 ||
     (slot.namesExact?.length ?? 0) > 0 ||
     (slot.traits?.length ?? 0) > 0 ||
-    (slot.nameOrTrait?.length ?? 0) > 0;
+    (slot.nameOrTrait?.length ?? 0) > 0 ||
+    (slot.printedKeywords?.length ?? 0) > 0;
   if (!hasNameOrTrait) return false;
 
   if (slot.kinds && slot.kinds.length > 0 && !slot.kinds.some((kind) => def.kinds.includes(kind as never))) {
@@ -259,6 +261,7 @@ export function materialMatchesAssemblySlot(
   if (slot.nameOrTrait && slot.nameOrTrait.length > 0) {
     if (!slot.nameOrTrait.some((ref) => matchNameOrTrait(def, ref))) return false;
   }
+  if (slot.printedKeywords?.some((keyword) => !definitionHasKeyword(def, keyword))) return false;
   // "Also treated as level 4" is an additional permission for Kimeramon only;
   // it neither changes the catalog definition nor removes SkullGreymon's printed level.
   const levels = def.cardId === "EX9-062" && destination?.nameEn === "Kimeramon" ? [def.level, 4] : [def.level];

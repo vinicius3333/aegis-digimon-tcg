@@ -117,6 +117,64 @@ describe("EX13-070 Davis Motomiya & Ken Ichijoji", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
   });
 
+  it("Q7440 still digivolves but pays full cost while Syakomon blocks digivolution-cost reductions", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "tamer" },
+            { card: "BT12-021", as: "source" },
+          ],
+          hand: [{ card: "BT12-022", as: "result" }],
+          deck: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT5-021", as: "syakomon" }], deck: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("tamer"));
+    await settle(() => s.perm("source").topCard.cardId === "BT12-022");
+
+    expect(s.perm("source").topCard.cardId).toBe("BT12-022");
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8);
+  });
+
+  it("Q7441 does not combine two Tamer reductions onto one end-of-turn digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "tamerA" },
+            { card: CARD_ID, as: "tamerB" },
+            { card: "BT12-021", as: "source" },
+          ],
+          hand: [{ card: "BT12-022", as: "result" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-012", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.perm("source").topCard.cardId === "BT12-022");
+    await settle();
+
+    expect(s.perm("source").topCard.cardId).toBe("BT12-022");
+    expect(s.perm("tamerA").isSuspended).toBe(true);
+    expect(s.perm("tamerB").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-4);
+    await turn;
+  });
+
   it("refuses an exhausted Tamer and an explicitly declined suspension cost", async () => {
     const exhausted = setupEngine({
       0: {

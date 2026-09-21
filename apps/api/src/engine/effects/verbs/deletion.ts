@@ -110,6 +110,36 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         );
       }
     }
+    // ＜Partition (...)＞ is a simultaneous "would be removed" reaction, so capture it from
+    // the full endangered set BEFORE another effect can prevent the holder from leaving
+    // (EX13-024 / BT23-047 Q7274). Its matched cards may later be loose in trash when the
+    // holder leaves, or may still be under a holder saved by the simultaneous prevention.
+    const partitionCandidates = permanentIds
+      .map((permanentId) => {
+        if (cause === "byBattle") return undefined;
+        const perm = access.permanentById(permanentId);
+        if (perm === undefined || perm.topCard === undefined) return undefined;
+        if (!continuous.hasKeyword(permanentId, "Partition")) return undefined;
+        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+        if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) return undefined;
+        const spec =
+          partitionSpecOf(perm.topCard.cardId) ??
+          perm.stack.map((card) => partitionSpecOf(card.cardId)).find((clauses) => clauses !== undefined);
+        if (spec === undefined) return undefined;
+        const remaining = [...perm.stack];
+        const matchedInstanceIds: string[] = [];
+        for (const clause of spec) {
+          const idx = remaining.findIndex((card) => partitionClauseMatches(clause, card.cardId));
+          if (idx < 0) return undefined;
+          matchedInstanceIds.push(remaining[idx]!.instanceId);
+          remaining.splice(idx, 1);
+        }
+        return { holderPermanentId: permanentId, seat: perm.controllerSeat, matchedInstanceIds };
+      })
+      .filter(
+        (candidate): candidate is { holderPermanentId: string; seat: Seat; matchedInstanceIds: string[] } =>
+          candidate !== undefined,
+      );
     // Leave-the-battle-area PREVENT reactions: a card may prevent some of these effect-deletions
     // by paying a cost. Consult them and drop the prevented permanents from the deletion set.
     // Default-safe: the consult returns empty unless a matching prevent-replacement is active.
@@ -398,7 +428,9 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         // whenLeavesPlay is the superset event (delete + bounce); deletion is one path.
         await engine.fireSubTrigger("whenLeavesPlay", {
           deletedPermanentId: permanentId,
+          deletedPermanentSnapshots,
           deletedControllerSeat: deleted.controllerSeat,
+          deletedTopCardId: deleted.topCard.cardId,
           removalCause: cause,
           ...(cause === "byEffect" ? { byEffectSeat: effectSeatStack.at(-1) ?? engine.controllerSeat() } : {}),
         });
@@ -474,42 +506,6 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         return { instanceId: perm.topCard.instanceId, seat: perm.controllerSeat };
       })
       .filter((c): c is { instanceId: string; seat: Seat } => c !== undefined);
-    // ＜Partition (...)＞ keyword (Comprehensive Rules §16-29): "when a Digimon with this
-    // effect and 1 of each of the specified cards in its digivolution cards would be removed
-    // from the battle area OTHER THAN by one of your effects or a battle, you may play 1 of
-    // each of the specified cards from the digivolution cards without paying their costs" — an
-    // optional (§16-29-3), all-or-nothing (§16-29-4) immediate-type reaction. Battle deaths
-    // are excluded explicitly: security battles also use this primitive's deletion pipeline.
-    // The cause gate also excludes the holder's OWN controller's effect deletions
-    // (mirrors the ＜Scapegoat＞ gate above). Captured pre-deletion (same
-    // reason as Fortitude/Ascension) so the live stack can be matched against the specifier;
-    // the actual replay happens after the movement below, once the cards are loose in trash.
-    const partitionCandidates = toDelete
-      .map((permanentId) => {
-        if (cause === "byBattle") return undefined;
-        const perm = access.permanentById(permanentId);
-        if (perm === undefined || perm.topCard === undefined) return undefined;
-        if (!continuous.hasKeyword(permanentId, "Partition")) return undefined;
-        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
-        if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) return undefined;
-        // ＜Partition＞ can be GRANTED by a digivolution card, in which case the specifier lives on
-        // that card, not on the top card (BT16-025 under BT12-030, Q2889). `hasKeyword` already
-        // accepts the inherited grant; resolve the specifier from the same place.
-        const spec =
-          partitionSpecOf(perm.topCard.cardId) ??
-          perm.stack.map((card) => partitionSpecOf(card.cardId)).find((clauses) => clauses !== undefined);
-        if (spec === undefined) return undefined;
-        const remaining = [...perm.stack];
-        const matchedInstanceIds: string[] = [];
-        for (const clause of spec) {
-          const idx = remaining.findIndex((c) => partitionClauseMatches(clause, c.cardId));
-          if (idx < 0) return undefined; // must find 1 of EACH specified card — no partial pick
-          matchedInstanceIds.push(remaining[idx]!.instanceId);
-          remaining.splice(idx, 1);
-        }
-        return { seat: perm.controllerSeat, matchedInstanceIds };
-      })
-      .filter((c): c is { seat: Seat; matchedInstanceIds: string[] } => c !== undefined);
     // `toDelete` is ONE simultaneous action (CR §4-18-5: "when multiple instances of
     // <Overflow> are processed simultaneously..."), so every permanent's cards must be moved
     // to trash and Overflow charged ONCE across the whole batch (turn-player-first), not once
@@ -667,12 +663,16 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       if (chosen.length === 0) continue;
       await ascendToSecurity(instanceId);
     }
-    // ＜Partition＞ reaction: only for candidates whose ENTIRE matched set actually left the
-    // field (in allMoved) — a partial leave (leave-prevention saved the permanent but not this
-    // batch entry, or vice versa) means the specified cards never reach trash. Playing them
-    // is a "you may" choice (§16-29-3); accepting plays all of them at once (§16-29-4).
-    for (const { seat, matchedInstanceIds } of partitionCandidates) {
-      if (!matchedInstanceIds.every((id) => allMoved.includes(id))) continue;
+    // ＜Partition＞ reaction: the full matched set must still be available together, either
+    // loose after the holder left or under the same holder after a simultaneous prevention.
+    // Playing them is a "you may" choice (§16-29-3); accepting plays all at once (§16-29-4).
+    for (const { holderPermanentId, seat, matchedInstanceIds } of partitionCandidates) {
+      const survivingHolder = access.permanentById(holderPermanentId);
+      const allMovedToLooseZone = matchedInstanceIds.every((id) => allMoved.includes(id));
+      const allStillUnderSurvivingHolder = matchedInstanceIds.every((id) =>
+        survivingHolder?.stack.some((card) => card.instanceId === id),
+      );
+      if (!allMovedToLooseZone && !allStillUnderSurvivingHolder) continue;
       const chosen = await engine.ask.selectInstances(
         seat,
         [matchedInstanceIds[0]!],

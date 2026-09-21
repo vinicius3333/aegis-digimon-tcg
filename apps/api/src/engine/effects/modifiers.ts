@@ -1,4 +1,5 @@
 import {
+  CardKind,
   EffectDuration,
   requireCardDefinition,
   type CardDefinition,
@@ -95,6 +96,8 @@ export interface BaseDpOverride {
   /** Controller and card kinds of the effect that produced this override. */
   sourceSeat?: Seat;
   sourceKinds?: string[];
+  /** This DP value belongs to an original-card-information rewrite and lapses off a non-Digimon top. */
+  requiresDigimonTop?: boolean;
 }
 
 /**
@@ -494,7 +497,7 @@ export class ModifierLedger {
     permanentId: string,
     value: number,
     duration: EffectDuration,
-    opts?: { continuous?: boolean; sourceSeat?: Seat; sourceKinds?: string[] },
+    opts?: { continuous?: boolean; sourceSeat?: Seat; sourceKinds?: string[]; requiresDigimonTop?: boolean },
   ): BaseDpOverride {
     const override: BaseDpOverride = {
       permanentId,
@@ -516,9 +519,11 @@ export class ModifierLedger {
    * order (BT25-104 Q6503); within the same tier, the latest activation wins.
    */
   private baseDpOf(permanent: Permanent): number {
+    const topDefinition = permanent.topCard === undefined ? undefined : requireCardDefinition(permanent.topCard.cardId);
     let chosen: BaseDpOverride | undefined;
     for (const o of this.baseDpOverrides) {
       if (o.permanentId !== permanent.permanentId) continue;
+      if (o.requiresDigimonTop === true && !topDefinition?.kinds.includes(CardKind.Digimon)) continue;
       if (this.baseDpOverrideIsSuppressed(permanent, o)) continue;
       if (
         chosen === undefined ||

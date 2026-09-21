@@ -133,16 +133,16 @@ describe("BT20-073 MetalPhantomon", () => {
         0: { hand: [{ card: "BT20-073", as: "metal" }], battleArea: [{ card: "BT20-063", as: "cost" }] },
         1: { battleArea: [{ card: "BT20-071", as: "target" }] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: false, autoSelectCards: false },
     );
     s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
@@ -167,21 +167,12 @@ describe("BT20-073 MetalPhantomon", () => {
     const paymentId = s.inst("payment").instanceId;
     const level6Id = s.inst("level6").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    const paymentChoice = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: paymentChoice.decisionId,
         response: { kind: "chooseTargets", instanceIds: [s.perm("payment").permanentId] },
       }),
     ).toEqual({ ok: true });

@@ -258,7 +258,16 @@ export function prepareFrozenSubTrigger(
   return async () => {
     if (frozen.length === 0) return;
     await withTriggeredMutations(engine, async () => {
-      const remaining = frozen.filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
+      const remaining = frozen.filter(
+        (item) =>
+          !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) &&
+          // Unlike [On Deletion], this is an external battle-result watcher. Its trigger
+          // subject may have traded with the opponent, but the permanent hosting the watcher
+          // must still exist when the effect activates (Q7339).
+          (event !== "whenDeletesInBattle" ||
+            item.sub.sourcePermanentId === undefined ||
+            engine.access.permanentById(item.sub.sourcePermanentId) !== undefined),
+      );
       if (remaining.length > 0) await runSubTriggersInChosenOrder(engine, remaining);
     });
     await engine.recomputeContinuousEffects();

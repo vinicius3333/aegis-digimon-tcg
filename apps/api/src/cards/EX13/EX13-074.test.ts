@@ -220,7 +220,39 @@ describe("EX13-074 Rie Kishibe", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("fires for a Digimon that only MENTIONS [Knightmon] in its text, not just a named one", async () => {
+  it("Q7454: places the paid card at the bottom of an existing Tamer stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "rie", under: ["BT1-009", "BT1-010"] }],
+          hand: [
+            { card: "ST13-12", as: "playedKnightmon" },
+            { card: "BT18-058", as: "placedCard" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: { deck: ["BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const existingStack = s.perm("rie").stack.map(({ instanceId }) => instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedKnightmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("rie").stack.length === 3);
+    await settle();
+
+    expect(s.perm("rie").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("placedCard").instanceId,
+      ...existingStack,
+    ]);
+    expect(s.perm("rie").stack.map(({ cardId }) => cardId)).toEqual(["BT18-058", "BT1-009", "BT1-010"]);
+  });
+
+  it("Q7453: fires for a Digimon that only mentions [Knightmon] in its whole printed text", async () => {
     const s = setupEngine(
       {
         0: {
@@ -349,6 +381,54 @@ describe("EX13-074 Rie Kishibe", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
+  });
+
+  it("Q7455: choosing Rie first moves the deleted source and invalidates its pending On Deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "rie" },
+            { card: "EX10-026", as: "skullKnightmon" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { deck: ["BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("skullKnightmon").permanentId], "byEffect");
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const decision = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)?.req;
+    expect(request?.options?.triggerKeys).toHaveLength(2);
+    const rieIndex = request?.options?.triggerCardIds?.findIndex((id) => id === CARD_ID) ?? -1;
+    const rieKey = rieIndex >= 0 ? request?.options?.triggerKeys?.[rieIndex] : undefined;
+    expect(rieKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "orderTriggers", order: [rieKey!] },
+      }),
+    ).toEqual({ ok: true });
+    expect(await deletion).toBe(1);
+    await settle(() => s.perm("rie").stack.some(({ cardId }) => cardId === "EX10-026"));
+    await settle();
+
+    expect(s.perm("rie").stack.map(({ cardId }) => cardId)).toEqual(["EX10-026"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("EX10-026");
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectResolved" && event.sourceCardId === "EX10-026" && event.timing === "OnDeletion",
+      ),
+    ).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("does not treat a Digimon that merely CARRIES a [Knightmon] card in its stack as a [Knightmon] text Digimon", async () => {

@@ -121,6 +121,11 @@ export async function unsuspendForActivePhase(engine: GameEngine, seat: Seat): P
     await engine.fireSubTrigger("whenUnsuspended", payload);
     await fireTiming(engine, EffectTiming.OnUnTappedAnyone, payload);
   }
+  // The next timing is [Start of Your Main Phase]. Rebuild once after the whole
+  // simultaneous unsuspend so conditional protection (for example, "while this
+  // Digimon is suspended") has lapsed before granted main-phase effects test
+  // whether they can activate and announce themselves.
+  await engine.recomputeContinuousEffects();
   return allFlipped;
 }
 

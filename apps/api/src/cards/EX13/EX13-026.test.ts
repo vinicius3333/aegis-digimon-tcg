@@ -233,12 +233,18 @@ describe("EX13-026 Kudamon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
   });
 
-  it("adds one applicable card to hand and saves a second face down under the [DATA SQUAD] Tamer", async () => {
+  it("Q7279/Q7280 saves at the immutable bottom of the [DATA SQUAD] Tamer's existing stack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: DATA_SQUAD_TAMER, as: "tamer" }],
+          battleArea: [
+            {
+              card: DATA_SQUAD_TAMER,
+              as: "tamer",
+              under: [{ card: NON_MATCH, as: "existing", faceUp: false }],
+            },
+          ],
           hand: [{ card: CARD_ID, as: "kudamon" }],
           deck: [
             { card: HOLY_BEAST, as: "toHand" },
@@ -259,14 +265,17 @@ describe("EX13-026 Kudamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kudamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("tamer").stack.length === 1);
+    await settle(() => s.perm("tamer").stack.length === 2);
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([DATA_SQUAD_TAMER, CARD_ID]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("toHand").instanceId]);
     const saved = s.perm("tamer").stack;
-    expect(saved.map(({ instanceId }) => instanceId)).toEqual([s.inst("toSave").instanceId]);
-    expect(saved[0]!.faceUp).toBe(false);
+    expect(saved.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("toSave").instanceId,
+      s.inst("existing").instanceId,
+    ]);
+    expect(saved.every(({ faceUp }) => faceUp === false)).toBe(true);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("sentinel").instanceId,
       s.inst("nonMatch").instanceId,

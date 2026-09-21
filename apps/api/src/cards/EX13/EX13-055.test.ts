@@ -347,14 +347,14 @@ describe("EX13-055 Raptordramon", () => {
     assertNoLoudGap(s);
   });
 
-  it("digivolves during a REAL declared attack, fires the new top card's [When Digivolving], and the attack continues", async () => {
+  it("Q7378: Grademon gained mid-attack triggers its [End of Attack] evolution", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "raptor", under: ["BT1-010"], dp: 5000 }],
           hand: [
-            { card: CHRONICLE_LV5, as: "grademon" },
-            { card: NAME_ONLY_SOURCE, as: "dorumon" },
+            { card: "EX13-057", as: "grademon" },
+            { card: "BT20-056", as: "alphamon" },
           ],
           deck: [{ card: NON_MATCH, as: "bonusDraw" }, "BT1-011", "BT1-012"],
           security: ["BT1-013"],
@@ -374,15 +374,14 @@ describe("EX13-055 Raptordramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("raptor").topCard.cardId === CHRONICLE_LV5);
+    await settle(() => s.perm("raptor").topCard.cardId === "EX13-057");
 
-    await settle(() => s.state.players[0]!.breeding !== undefined);
-    expect(s.state.players[0]!.breeding!.topCard.cardId).toBe(NAME_ONLY_SOURCE);
-    expect(s.perm("raptor").currentDP).toBe(12000);
+    expect(s.perm("raptor").currentDP).toBe(16000);
 
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("raptor").permanentId).toBe(raptorId);
-    expect(s.perm("raptor").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", CARD_ID]);
+    expect(s.perm("raptor").topCard.cardId).toBe("BT20-056");
+    expect(s.perm("raptor").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", CARD_ID, "EX13-057"]);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("topSecurity").instanceId)).toBe(
       true,

@@ -728,9 +728,11 @@ export class CombatController {
           // A direct effect battle during this same attack can satisfy Piercing even
           // when the ordinary battle's loser is protected (BT25-020 Q6280/Q6281).
           // Process it once, after a successful Digimon attack, before End of Attack.
-          if (this.currentAttack?.piercingTriggered && this.attackerStillValid(attacker) && !this.endRequested) {
+          if (this.currentAttack?.piercingTriggered && !this.endRequested) {
             this.currentAttack.piercingTriggered = false;
-            await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "piercing");
+            await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "piercing", {
+              allowMissingAttacker: true,
+            });
           }
         }
 
@@ -1443,6 +1445,33 @@ export class CombatController {
             },
           ];
     });
+
+    // A Digimon still "deletes an opponent's Digimon in battle" when both combatants are
+    // deleted by the same battle result. Match these watchers while the event subject and the
+    // reacting inherited host are still live, then activate them after the simultaneous batch
+    // has left play. A watcher on a separate surviving host remains eligible; the frozen bus
+    // drops a watcher whose own host was part of the batch.
+    const prepareBattleDeleteReaction = (subject: Permanent, victim: Permanent): (() => Promise<void>) | undefined => {
+      if (!postCardPreventionDeletedIds.includes(victim.permanentId)) return undefined;
+      const payload: TriggerInfo = {
+        subjectPermanentId: subject.permanentId,
+        attackerPermanentId: subject.permanentId,
+        deletedPermanentId: victim.permanentId,
+        deletedPermanentIds: postCardPreventionDeletedIds,
+        deletedPermanentSnapshots,
+        deletedControllerSeat: victim.controllerSeat,
+        ...(victim.topCard?.cardId === undefined ? {} : { deletedTopCardId: victim.topCard.cardId }),
+        deletedInstanceIds,
+        deletedWasStackInstanceIds,
+        removalCause: "byBattle",
+      };
+      return (
+        this.hooks.prepareFrozenSubTrigger?.("whenDeletesInBattle", payload) ??
+        (async () => {
+          await this.hooks.fireSubTrigger?.("whenDeletesInBattle", payload);
+        })
+      );
+    };
     for (const permanentId of postCardPreventionDeletedIds) {
       if (this.access.permanentById(permanentId)?.topCard === undefined) continue;
       prepareDeletionReaction("onDeletionOf", {
@@ -1483,6 +1512,8 @@ export class CombatController {
         await this.hooks.materialSave?.(permanentId);
       }
     }
+    const attackerBattleDeleteReaction = prepareBattleDeleteReaction(attacker, defender);
+    const defenderBattleDeleteReaction = prepareBattleDeleteReaction(defender, attacker);
     // Capture custom-grant eligibility while every battle loser is still live. Material Save
     // has now run, so this set reflects the cards that will actually leave play.
     const departingInstanceIds = postCardPreventionDeletedIds.flatMap((permanentId) => {
@@ -1628,17 +1659,8 @@ export class CombatController {
         deletedInstanceIds,
         deletedWasStackInstanceIds,
       });
-
-      await this.hooks.fireSubTrigger?.("whenDeletesInBattle", {
-        subjectPermanentId: attacker.permanentId,
-        attackerPermanentId: attacker.permanentId,
-        deletedPermanentId: defender.permanentId,
-        deletedControllerSeat: defender.controllerSeat,
-        ...(defenderTopCardId !== undefined ? { deletedTopCardId: defenderTopCardId } : {}),
-        deletedInstanceIds,
-        deletedWasStackInstanceIds,
-      });
     }
+    await attackerBattleDeleteReaction?.();
 
     // A defending Digimon can also be the surviving battle winner and delete the attacker.
     // Effects such as BT5-062 say "when this Digimon deletes an opponent's Digimon in battle"
@@ -1654,17 +1676,8 @@ export class CombatController {
         deletedInstanceIds,
         deletedWasStackInstanceIds,
       });
-
-      await this.hooks.fireSubTrigger?.("whenDeletesInBattle", {
-        subjectPermanentId: defender.permanentId,
-        attackerPermanentId: defender.permanentId,
-        deletedPermanentId: attacker.permanentId,
-        deletedControllerSeat: attacker.controllerSeat,
-        ...(attackerTopCardId !== undefined ? { deletedTopCardId: attackerTopCardId } : {}),
-        deletedInstanceIds,
-        deletedWasStackInstanceIds,
-      });
     }
+    await defenderBattleDeleteReaction?.();
 
     // Comprehensive Rules §14-2-5: "If an effect is triggered by the end of the battle
     // timing when a battle ends, that effect is to be resolved." This is a distinct window

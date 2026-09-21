@@ -211,6 +211,55 @@ describe("EX13-067 Nokia Shiramine", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("Q7435 lets only the first of two Nokias activate after its play raises the Digimon count", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-067", as: "nokiaA" },
+            { card: "EX13-067", as: "nokiaB" },
+            { card: "BT1-010", as: "agumon" },
+          ],
+          hand: [
+            { card: "BT1-015", as: "greymon" },
+            { card: "BT1-029", as: "gabumonA" },
+            { card: "BT1-029", as: "gabumonB" },
+          ],
+          deck: Array(8).fill("BT1-009"),
+          security: ["BT1-011"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: Array(8).fill("BT1-011"), security: ["BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("agumon").topCard.cardId === "BT1-015" &&
+        s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT1-029").length >= 1,
+    );
+    await settle();
+
+    expect([s.perm("nokiaA").isSuspended, s.perm("nokiaB").isSuspended].filter(Boolean)).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT1-029")).toHaveLength(1);
+    expect(
+      s.state.players[0]!.hand.filter(({ cardId }) => cardId === "BT1-029").concat(
+        s.state.players[0]!.trash.filter(({ cardId }) => cardId === "BT1-029"),
+      ),
+    ).toHaveLength(1);
+  });
+
   it("does not suspend Nokia or play Gabumon when its optional watcher is declined", async () => {
     const s = setupEngine(
       {

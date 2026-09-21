@@ -305,7 +305,7 @@ describe("EX13-014 Jesmon", () => {
     ["Lv.5", "BT1-020", "ST12-06", "ST12-04"],
     ["Lv.4", "ST12-08", "BT1-014", "ST12-04"],
     ["Lv.3", "ST12-08", "ST12-06", "BT1-011"],
-  ])("rejects Assembly when the %s material lacks the [Huckmon] token", (_slot, l5, l4, l3) => {
+  ])("Q7246 rejects Assembly when the %s material lacks the [Huckmon] token", (_slot, l5, l4, l3) => {
     const s = setupEngine({
       0: {
         hand: [{ card: CARD_ID, as: "jesmon" }],
@@ -332,7 +332,7 @@ describe("EX13-014 Jesmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(3);
   });
 
-  it("reads [Huckmon] 'in text' as the full printed union, not the name alone", async () => {
+  it("Q7243 reads [Huckmon] 'in text' as the full printed union, not the name alone", async () => {
     const s = setupEngine(
       {
         0: {
@@ -410,7 +410,7 @@ describe("EX13-014 Jesmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("uses an Option out of its OWN digivolution cards on [When Attacking]", async () => {
+  it("Q7241 removes an Option used from its OWN digivolution cards", async () => {
     const s = setupEngine(
       {
         0: {
@@ -467,7 +467,7 @@ describe("EX13-014 Jesmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "jesmon" }],
+          battleArea: [{ card: CARD_ID, as: "jesmon", dp: 9000 }],
           hand: [
             { card: "BT1-091", as: "noToken" },
             { card: "ST12-16", as: "overCap" },
@@ -613,7 +613,7 @@ describe("EX13-014 Jesmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("arms the watcher from its OWN play: the printed clause says 'any', not 'any other'", async () => {
+  it("Q7244 arms the watcher from its OWN play: the printed clause says 'any', not 'any other'", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: CARD_ID, as: "jesmon" }], deck: ["BT1-009", "BT1-010"] },
@@ -639,6 +639,71 @@ describe("EX13-014 Jesmon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([highestId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
+
+  it("Q7242 activates a newly assembled inherited effect for Jesmon's own play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "jesmon" }],
+          trash: [
+            { card: "ST12-08", as: "level5" },
+            { card: "ST12-06", as: "level4" },
+            { card: "EX13-009", as: "level3" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("jesmon").instanceId,
+        assembly: {
+          materialInstanceIds: [s.inst("level5").instanceId, s.inst("level4").instanceId, s.inst("level3").instanceId],
+        },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["ST12-08", "ST12-06", "EX13-009"]),
+    );
+  });
+
+  it("Q7245 finishes the token half after an immediate would-leave effect removes Jesmon", async () => {
+    const preferredTargets: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "jesmon", dp: 9000 }],
+          hand: [{ card: "BT1-010", as: "played" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "EX13-015", as: "gallantmon", dp: 1000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredTargets },
+    );
+    preferredTargets.push(s.perm("jesmon").topCard.instanceId);
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === TOKEN_ID));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX13-015"]);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === TOKEN_ID)).toBe(true);
   });
 
   it("skips the token half while an [Atho, René & Por] Token is already on the board", async () => {

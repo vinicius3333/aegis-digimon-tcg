@@ -8,6 +8,7 @@ import {
   settle,
 } from "../testkit/harness.js";
 import { MemoryGauge } from "../MemoryGauge.js";
+import { advance } from "../testkit/advance.js";
 import "../../cards/index.js";
 
 /**
@@ -51,7 +52,8 @@ async function driveAttackTarget(
   const action = harnessAction().then(() => {
     done = true;
   });
-  while (!done) {
+  for (;;) {
+    if (done) break;
     while (processed < s.decisions.length) {
       const { seat, req } = s.decisions[processed]!;
       processed++;
@@ -165,6 +167,44 @@ describe("§16-38 <Execute> — an ordinary attack neither self-deletes nor anno
 });
 
 describe("§16-29 <Partition> — replay the specified digivolution cards for free on a qualifying deletion", () => {
+  it("Q7274: replays Partition materials after a simultaneous leave effect prevents the holder's deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-024", as: "slayer" },
+            {
+              card: "BT23-047",
+              as: "examon",
+              under: [
+                { card: "BT1-076", as: "greenLv5" },
+                { card: "BT1-038", as: "blueLv5" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const examonId = s.perm("examon").permanentId;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+    try {
+      expect(await advance(s.engine).verb.deletePermanent([examonId], "byEffect")).toBe(0);
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+    await settle(() => s.state.players[0]!.battleArea.length === 4);
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === examonId)).toBe(true);
+    expect(s.perm("examon").stack).toHaveLength(0);
+    expect(s.perm("slayer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("greenLv5").instanceId, s.inst("blueLv5").instanceId]),
+    );
+  });
+
   it("does not offer Partition when its holder loses a security battle", async () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;

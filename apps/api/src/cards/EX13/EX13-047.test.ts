@@ -59,7 +59,7 @@ describe("EX13-047 Gotsumon", () => {
               to: "hand",
             },
             {
-              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Blocker"], match: "text" }] },
+              filter: { controllerDefault: "mine", keywords: ["Blocker"] },
               count: 1,
               to: "hand",
             },
@@ -189,7 +189,7 @@ describe("EX13-047 Gotsumon", () => {
     ]);
   });
 
-  it("accepts a card whose only ＜Blocker＞ icon sits in its inherited effect", async () => {
+  it("rejects a card whose only ＜Blocker＞ icon sits in its inherited effect (Q7368)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -211,10 +211,13 @@ describe("EX13-047 Gotsumon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.deck.every(({ faceUp }) => !faceUp));
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("unrevealed").instanceId,
       s.inst("inheritedBlocker").instanceId,
+      s.inst("firstRest").instanceId,
+      s.inst("secondRest").instanceId,
     ]);
-    expect(s.state.players[0]!.deck).toHaveLength(3);
   });
 
   it("rejects a [Royal Base] card and a card that only names [Royal Knight] in its text", async () => {

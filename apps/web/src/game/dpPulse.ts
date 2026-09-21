@@ -17,6 +17,8 @@ export interface DpPulse {
   to: number;
   /** Re-mounts the pulse so a second change on the same card restarts its keyframes. */
   key: number;
+  /** Strong target feedback for a modifier that landed behind effect protection. */
+  emphasized?: boolean;
 }
 
 /** DP at or below zero is the point a Digimon stops surviving its own modifiers. */

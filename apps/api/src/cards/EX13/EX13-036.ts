@@ -54,6 +54,10 @@ const placeOneEach = (): Action[] => [
     source: { filter: theirDigimon, count: 1 },
     ownerSecurity: true,
     toTop: true,
+    condition: {
+      kind: "selfIsInBattleArea",
+      raw: "this Digimon remains in the battle area after placing your Digimon",
+    },
     raw: "place 1 of your opponent's Digimon as the top security card",
   },
 ];

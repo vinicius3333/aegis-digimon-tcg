@@ -129,7 +129,7 @@ describe("EX13-038 Salamon", () => {
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(2);
   });
 
-  it("adds an Option whose only [Leopardmon] mention sits inside its printed text", async () => {
+  it("Q7331: adds an Option whose only [Leopardmon] mention sits inside its printed text", async () => {
     const s = setupEngine(
       {
         0: {

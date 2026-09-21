@@ -101,7 +101,7 @@ describe("EX13-048 Kotemon", () => {
     });
   });
 
-  it("adds one text match and one name match to hand and bottoms the rest", async () => {
+  it("Q7369: adds one general text match and one name match, then bottoms the rest", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {

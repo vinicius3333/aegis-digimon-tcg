@@ -220,6 +220,31 @@ export async function drainPendingAttackTriggers(engine: GameEngine): Promise<vo
 }
 
 /**
+ * Drain entry effects parked by cards an Option played, after that Option finishes routing.
+ * Arts Digivolve belongs to the Option's post-use overwrite step, so this boundary must occur
+ * after it; normal pending-source residency then drops an On Play source buried by the Arts
+ * evolution while retaining the evolution bonus draw.
+ */
+export async function drainPendingOptionEntryTriggers(engine: GameEngine): Promise<void> {
+  if (pendingWindowCollected(engine).length === 0) return;
+  const wasOutermostWindow = beginResolvingWindow(engine);
+  try {
+    await withTriggeredMutations(engine, () =>
+      withPendingPoolDrain(engine, wasOutermostWindow, () =>
+        runTiming(
+          EffectTiming.OnPlay,
+          effectEnvironment(engine, {}),
+          resolutionDeps(engine, () => [], { outermost: true }),
+        ),
+      ),
+    );
+    await engine.recomputeContinuousEffects();
+  } finally {
+    endResolvingWindow(engine, wasOutermostWindow);
+  }
+}
+
+/**
  * Fire a timing window scoped to one source instance (subsystem:
  * effect-stack-resolution). The play-card verb fires On Play for a newly placed
  * permanent and the option activation for an Option card; only the played card's

@@ -102,6 +102,12 @@ export type ServerEvent =
   | { kind: "movedFromBreeding"; seat: Seat; permanentId: string; cardId: string }
   | { kind: "memoryChanged"; from: number; to: number; reason: string }
   | {
+      /** A DP modifier landed but protection kept the displayed DP unchanged. */
+      kind: "dpModifierApplied";
+      permanentId: string;
+      delta: number;
+    }
+  | {
       kind: "attackDeclared";
       seat: Seat;
       attackerPermanentId: string;
@@ -401,6 +407,7 @@ export const SERVER_EVENT_KINDS = [
   "effectActivated",
   "effectTriggered",
   "effectResolved",
+  "dpModifierApplied",
   "cardsMoved",
   "turnEnded",
   "actionRejected",
@@ -517,6 +524,8 @@ export interface DecisionRequest {
     isInherited?: boolean;
     /** What the resolving action will do to the permanents picked here (`chooseTargets` only). */
     targetFate?: TargetFate;
+    /** Public board permanents already selected by the effect that opened this follow-up decision. */
+    affectedPermanentIds?: string[];
     promptKey?: "activateBlitz";
     /**
      * Why the engine is asking. `"cost"` means the selection IS the payment of a cost the

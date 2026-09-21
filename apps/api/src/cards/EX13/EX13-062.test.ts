@@ -132,14 +132,13 @@ describe("EX13-062 Craniamon", () => {
     });
     expect(compiled.effects[4]?.frequency).toBeUndefined();
 
-    const blockerInText = [{ tokens: ["＜Blocker＞"], match: "text" }];
     const assembly = [
       {
         reduceCost: 5,
         materials: [
-          { count: 1, level: 5, colors: ["Black"], nameOrTrait: blockerInText },
-          { count: 1, level: 4, colors: ["Black"], nameOrTrait: blockerInText },
-          { count: 1, level: 3, colors: ["Black"], nameOrTrait: blockerInText },
+          { count: 1, level: 5, colors: ["Black"], printedKeywords: ["Blocker"] },
+          { count: 1, level: 4, colors: ["Black"], printedKeywords: ["Blocker"] },
+          { count: 1, level: 3, colors: ["Black"], printedKeywords: ["Blocker"] },
         ],
       },
     ];
@@ -262,6 +261,32 @@ describe("EX13-062 Craniamon", () => {
     ).toEqual({ ok: false, reason: "invalid-material" });
     expect(fromHand.state.players[0]!.hand).toHaveLength(4);
     expect(fromHand.state.memory).toBe(10);
+  });
+
+  it("Q7412/Q7413: rejects an Assembly material whose ＜Blocker＞ is inherited only", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: CARD_ID, as: "craniamon" }],
+        trash: [
+          { card: LV5_BLACK_BLOCKER, as: "lv5" },
+          { card: LV4_BLACK_BLOCKER, as: "lv4" },
+          { card: "EX13-050", as: "inheritedOnly" },
+        ],
+        deck: DECK,
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("craniamon").instanceId,
+        assembly: {
+          materialInstanceIds: [s.inst("lv5").instanceId, s.inst("lv4").instanceId, s.inst("inheritedOnly").instanceId],
+        },
+      } as never),
+    ).toEqual({ ok: false, reason: "invalid-material" });
   });
 
   it("digivolves from a black Lv.5 for 3, keeping source identity and drawing the bonus card", async () => {

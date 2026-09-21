@@ -121,7 +121,7 @@ describe("EX13-018 Coredramon", () => {
     });
   });
 
-  it("discriminates [Dracomon]/[Examon] in text from the narrower in-name reading", () => {
+  it("Q7257/Q7258 treats either [Dracomon] or [Examon] in the full printed text as a match", () => {
     const reference: NameOrTraitReference = { tokens: ["Dracomon", "Examon"], match: "text" };
     const nameOnly: NameOrTraitReference = { tokens: ["Dracomon", "Examon"], match: "name" };
     const textMatch = getCardDefinition(TEXT_MATCH)!;
@@ -387,6 +387,55 @@ describe("EX13-018 Coredramon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === wingdramonInstanceId)).toBe(false);
     expect(s.perm("host").currentDP).toBe(7000 + 2000);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+  });
+
+  it("Q7256 resolves the newly derived [When Digivolving] before the played Digimon's pending [On Play]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "host" }],
+          hand: [
+            { card: "EX13-008", as: "playedDracomon" },
+            { card: EXAMON_DEST, as: "wingdramon" },
+          ],
+          deck: ["BT20-040", "BT20-045", FILLER, FILLER],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget", dp: 3000 },
+            { card: "BT1-010", as: "secondTarget", dp: 4000 },
+          ],
+          deck: DECK,
+          security: [FILLER, FILLER, FILLER],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferTriggerKeys: [CARD_ID],
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedDracomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.cardId === EXAMON_DEST);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const derivedIndex = s.decisions.findIndex(
+      ({ req }) => req.sourceCardId === EXAMON_DEST && req.kind === "chooseTargets",
+    );
+    const originalIndex = s.decisions.findIndex(
+      ({ req }) => req.sourceCardId === "EX13-008" && req.kind === "selectCards",
+    );
+    expect(derivedIndex).toBeGreaterThanOrEqual(0);
+    expect(originalIndex).toBeGreaterThanOrEqual(0);
+    expect(derivedIndex).toBeLessThan(originalIndex);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT20-040" || cardId === "BT20-045")).toBe(true);
   });
 
   it("leaves the host alone when the only hand Digimon has no [Examon] in its text", async () => {

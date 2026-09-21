@@ -71,6 +71,11 @@ export interface SecurityCheckAttacker {
  */
 export type SecurityCheckReason = "attack" | "piercing";
 
+export interface SecurityCheckOptions {
+  /** A previously triggered Piercing check can activate from last-known information. */
+  allowMissingAttacker?: boolean;
+}
+
 /**
  * Ports the security check needs from subsystems it does not own. The engine
  * supplies these; unit tests supply fakes.
@@ -212,6 +217,7 @@ export async function runSecurityCheck(
   defenderSeat: Seat,
   attacker: SecurityCheckAttacker,
   reason: SecurityCheckReason = "attack",
+  options: SecurityCheckOptions = {},
 ): Promise<void> {
   const defender: PlayerState | undefined = state.players[defenderSeat];
   if (defender === undefined) return;
@@ -245,7 +251,7 @@ export async function runSecurityCheck(
     await deps.recomputeContinuousEffects?.();
     if (checkedCount >= deps.strikeFor(attacker)) break;
     // Stop if the attacker left play (Source: StopSecurityCheck()).
-    if (deps.permanentById(attacker.permanentId) === undefined) break;
+    if (deps.permanentById(attacker.permanentId) === undefined && options.allowMissingAttacker !== true) break;
     if (defender.security.length === 0) break;
     if (win.isGameOver) break;
 

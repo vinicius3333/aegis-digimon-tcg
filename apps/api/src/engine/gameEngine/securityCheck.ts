@@ -1,6 +1,11 @@
 import { CardKind, EffectTiming, type CardInstance, type ServerEvent, type Seat } from "@aegis/shared";
 import { resolveKeywords } from "../combat/keywords.js";
-import { runSecurityCheck, type SecurityCheckDeps, type SecurityCheckReason } from "../security/index.js";
+import {
+  runSecurityCheck,
+  type SecurityCheckDeps,
+  type SecurityCheckOptions,
+  type SecurityCheckReason,
+} from "../security/index.js";
 import { lookupDefinition } from "../cards/cardData.js";
 import { canActivate, canTrigger } from "../effects/kernel.js";
 import { buildResolutionEnv, resolveTiming } from "../effects/index.js";
@@ -27,6 +32,7 @@ export async function engineRunSecurityCheck(
   defenderSeat: Seat,
   attackerPermanentId: string,
   reason: SecurityCheckReason = "attack",
+  options: SecurityCheckOptions = {},
 ): Promise<void> {
   // Re-derive the continuous tier at the start of the live security battle so the
   // continuous ModifySecurityDP (ST3-12's [Opponent's Turn] +2000) is re-applied under its
@@ -182,6 +188,7 @@ export async function engineRunSecurityCheck(
       defenderSeat,
       { permanentId: attackerPermanentId },
       reason,
+      options,
     );
   } finally {
     engine.securityCheckDepth -= 1;

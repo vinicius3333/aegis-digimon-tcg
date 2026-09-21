@@ -191,14 +191,14 @@ describe("EX13-034 Wisemon", () => {
     expect(selections()).toBe(2);
   });
 
-  it("[All Turns] fires when the opponent's attack removes YOUR security", async () => {
+  it("Q7314: resolves the checked [Security] effect before Wisemon's security-removal trigger", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "wisemon" }],
           deck: ["BT1-010", "BT1-012"],
-          security: ["BT1-013"],
+          security: ["BT10-087"],
         },
         1: {
           battleArea: [
@@ -224,6 +224,13 @@ describe("EX13-034 Wisemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
     await settle();
+
+    const triggerOrder = s.events
+      .filter((event) => event.kind === "effectTriggered")
+      .map((event) => `${event.sourceCardId}/${event.timing}`);
+    expect(triggerOrder).toContain("BT10-087/OnPlay");
+    expect(triggerOrder).toContain("EX13-034/whenSecurityRemoved");
+    expect(triggerOrder.indexOf("BT10-087/OnPlay")).toBeLessThan(triggerOrder.indexOf("EX13-034/whenSecurityRemoved"));
 
     expect(s.perm("victim").topCard.cardId).toBe(PLAIN_LV4);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-020");
@@ -338,7 +345,7 @@ describe("EX13-034 Wisemon", () => {
     expect(s.perm("host").isSuspended).toBe(false);
   });
 
-  it("digivolves from a BLUE Lv.4 [Witchelny]-text source for 3 and refuses a plain Lv.4", async () => {
+  it("Q7313: matches [Witchelny] anywhere in a Lv.4 card's text and refuses a plain Lv.4", async () => {
     const legal = setupEngine(
       {
         0: {

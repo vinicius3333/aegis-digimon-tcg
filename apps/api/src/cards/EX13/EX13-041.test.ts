@@ -124,7 +124,7 @@ describe("EX13-041 Groundramon", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Coredramon"], cost: 3, isAlternate: true }]);
   });
 
-  it("reads [Coredramon] as an exact name and [Dracomon]/[Examon] as a text union", () => {
+  it("Q7335/Q7336: reads [Coredramon] exactly and matches either [Dracomon] or [Examon] in card text", () => {
     const coredramon = { tokens: ["Coredramon"], match: "nameExact" as const };
     expect(matchNameOrTrait({ nameEn: "Coredramon" }, coredramon)).toBe(true);
     expect(matchNameOrTrait({ nameEn: "Coredramon X" }, coredramon)).toBe(false);
@@ -138,7 +138,7 @@ describe("EX13-041 Groundramon", () => {
     expect(matchNameOrTrait(getCardDefinition("BT1-013")!, union)).toBe(false);
   });
 
-  it("plays for 7, suspends one opposing Digimon and locks a DIFFERENT Tamer", async () => {
+  it("Q7337: suspends one opposing Digimon and locks a DIFFERENT Tamer", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -380,7 +380,7 @@ describe("EX13-041 Groundramon", () => {
     expect(s.state.players[0]!.hand.some((card) => ["BT20-027", "BT20-045"].includes(card.cardId))).toBe(false);
   });
 
-  it("does not offer Examon's Blast DNA while Groundramon is only in hand", async () => {
+  it("Q7338: does not offer Examon's Blast DNA while Groundramon is only in hand", async () => {
     const s = setupEngine(
       {
         0: {
@@ -489,6 +489,63 @@ describe("EX13-041 Groundramon", () => {
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+
+  it("Q7339: triggers after a separate qualifying Digimon trades in battle, but not when its own host trades", async () => {
+    const separate = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-013", as: "survivingHost", under: [CARD_ID] },
+            { card: "ST1-04", as: "qualifyingAttacker", dp: 5000 },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "prey", dp: 5000, suspended: true }],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await separate.ready();
+
+    expect(
+      separate.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: separate.perm("qualifyingAttacker").permanentId,
+        target: { kind: "permanent", permanentId: separate.perm("prey").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => separate.state.players[0]!.battleArea.length === 1);
+    await settle();
+
+    expect(separate.state.players[1]!.battleArea).toHaveLength(0);
+    expect(separate.state.players[1]!.security).toHaveLength(1);
+
+    const ownHost = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST1-04", as: "hostAttacker", dp: 5000, under: [CARD_ID] }] },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "prey", dp: 5000, suspended: true }],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await ownHost.ready();
+
+    expect(
+      ownHost.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: ownHost.perm("hostAttacker").permanentId,
+        target: { kind: "permanent", permanentId: ownHost.perm("prey").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => ownHost.state.players[0]!.battleArea.length === 0);
+    await settle();
+
+    expect(ownHost.state.players[1]!.battleArea).toHaveLength(0);
+    expect(ownHost.state.players[1]!.security).toHaveLength(2);
   });
 
   it("stays silent for hosts with neither token in their OWN printed text", async () => {

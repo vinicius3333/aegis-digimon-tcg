@@ -34,14 +34,18 @@ describe("EX13-007 Guilmon", () => {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect.isInherited).toBeUndefined();
       expect(effect.actions[0]).toMatchObject({
+        kind: "Trash",
+        optional: true,
+        abortOnDecline: true,
+        target: { count: 1, filter: { zone: "hand", controller: "mine" } },
+      });
+      expect(effect.actions[1]).toMatchObject({
         kind: "Return",
         to: "hand",
         optional: true,
-        abortOnDecline: true,
         target: { count: 1, filter: { zone: "trash", controller: "mine", kind: ["Digimon"] } },
-        cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
       });
-      const filter = irNode(effect.actions[0]).target.filter;
+      const filter = irNode(effect.actions[1]).target.filter;
       expect(filter.nameOrTrait).toEqual([{ tokens: ["Gallantmon"], match: "name" }]);
       expect(filter.orFilters).toEqual([{ zone: "trash", controller: "mine", kind: ["Tamer"], colors: ["Red"] }]);
     }
@@ -167,10 +171,11 @@ describe("EX13-007 Guilmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
     await drainMicrotasks(20);
 
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("fodder").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("plainRedDigimon").instanceId,
       s.inst("blueTamer").instanceId,
+      s.inst("fodder").instanceId,
     ]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("theirGallantmon").instanceId,
@@ -205,6 +210,55 @@ describe("EX13-007 Guilmon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("fodder").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("gallantmon").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("may trash the hand cost and then decline the optional return (Q7223)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "source" },
+            { card: "BT1-009", as: "fodder" },
+          ],
+          trash: [{ card: "BT2-020", as: "gallantmon" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const payDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: payDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const returnDecision = s.state.pendingDecision!;
+    expect(returnDecision.decisionId).not.toBe(payDecision.decisionId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("gallantmon").instanceId,
+      s.inst("fodder").instanceId,
+    ]);
     assertNoLoudGap(s);
   });
 
@@ -329,6 +383,42 @@ describe("EX13-007 Guilmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1, 20);
 
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("does not raise a deletion threshold that references the source Digimon's DP (Q7225)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-014", as: "host", under: [cardId], dp: 12_000 }],
+          security: ["BT1-010"],
+          deck: ["BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "aboveSourceDp", dp: 13_000 }],
+          security: ["BT1-012"],
+          deck: ["BT1-013"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("aboveSourceDp").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("aboveSourceDp").instanceId,
+    );
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });

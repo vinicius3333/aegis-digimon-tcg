@@ -140,7 +140,7 @@ describe("EX13-009 Huckmon", () => {
     ]);
   });
 
-  it("adds a Digimon whose only [Sistermon] mention sits inside its effect text", async () => {
+  it("Q7228/Q7229 adds a Digimon whose only matching token is [Sistermon] in effect text", async () => {
     const s = setupEngine(
       {
         0: {
@@ -232,15 +232,15 @@ describe("EX13-009 Huckmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(3);
   });
 
-  it("returns all three revealed cards to the bottom when neither category matches", async () => {
+  it("Q7230 rejects Digimon, Tamer, and Option cards without [Huckmon] or [Sistermon] in text", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "EX13-009", as: "huckmon" }],
           deck: [
-            { card: "BT1-009", as: "first" },
-            { card: "BT1-010", as: "second" },
-            { card: "BT1-011", as: "third" },
+            { card: "BT1-009", as: "digimonMiss" },
+            { card: "BT1-085", as: "tamerMiss" },
+            { card: "BT1-108", as: "optionMiss" },
           ],
         },
       },
