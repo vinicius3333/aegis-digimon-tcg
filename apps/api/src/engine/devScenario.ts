@@ -513,10 +513,11 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
   const human = state.players[0];
   if (human !== undefined) {
     insertCard(human, Zone.Hand, faceDownCard("dev-ex13-gotsumon", "EX13-047", 0));
-    // Insert in reverse because deck[0] is the top card.
-    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-neutral", "BT1-009", 0), "top");
-    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-inherited-blocker", "BT1-079", 0), "top");
+    // Insert in reverse because deck[0] is the top card. The neutral card absorbs the turn draw.
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-inherited-blocker-ex8", "EX8-046", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-inherited-blocker-bt19", "BT19-069", 0), "top");
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-main-blocker", "BT20-047", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-turn-draw", "BT1-009", 0), "top");
   }
 
   state.turnSeat = 0;

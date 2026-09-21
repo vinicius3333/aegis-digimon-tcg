@@ -102,8 +102,8 @@ export function LiveArenaDemo() {
               : "End breeding, attack security with Magnamon and Meteormon, then end your turn. Accept Magnamon’s unsuspend: it should resolve during your turn. Meteormon’s Reboot should resolve in the opponent’s Unsuspend phase, before Main. Reset to test declining the effect."
             : scenario === "arena-ex13-gotsumon-blocker-search"
               ? portuguese
-                ? "Encerre a criação e jogue Gotsumon. Na busca por Blocker, somente BT20-047 deve ser elegível; BT1-079 tem Blocker apenas herdado e deve voltar ao fundo com BT1-009."
-                : "End breeding and play Gotsumon. Only BT20-047 should be eligible for the Blocker search; BT1-079 has inherited-only Blocker and must return to the bottom with BT1-009."
+                ? "Compre BT1-009, encerre a criação e jogue Gotsumon. Na busca por Blocker, somente BT20-047 deve ser elegível; BT19-069 e EX8-046 têm Blocker apenas herdado e devem voltar ao fundo."
+                : "Draw BT1-009, end breeding, and play Gotsumon. Only BT20-047 should be eligible for the Blocker search; BT19-069 and EX8-046 have inherited-only Blocker and must return to the bottom."
               : scenario === "arena-ex5-attack-priority"
                 ? portuguese
                   ? "O bot ataca com Shoutmon EX6. Os efeitos Ao Atacar e Alliance dele devem resolver antes das reações de MetalEtemon e da herança de Etemon."
