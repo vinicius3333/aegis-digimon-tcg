@@ -50,9 +50,10 @@ export function ActionConfirmationOverlay({
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        data-summary={showSummary || undefined}
         className="game-modal__panel action-confirmation effect-prompt-family"
         style={{
-          width: 480,
+          width: showSummary ? 480 : 360,
           maxWidth: "calc(100% - 32px)",
           padding: 22,
           borderRadius: 18,

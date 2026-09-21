@@ -168,6 +168,7 @@ it("selects an eligible Alliance Digimon directly on the real field", () => {
   expect(confirmation).toBeTruthy();
   expect(confirmation.querySelector(".action-confirmation__copy")).toBeNull();
   expect(confirmation.querySelector("img")).toBeNull();
+  expect(confirmation.hasAttribute("data-summary")).toBe(false);
   const confirm = screen.getByRole("button", { name: "Use Alliance" });
   fireEvent.click(confirm);
   fireEvent.click(confirm);

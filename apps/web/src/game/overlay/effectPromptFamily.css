@@ -101,6 +101,13 @@
   font-size: 15px;
   line-height: 1.45;
 }
+.action-confirmation:not([data-summary]) .game-actions-row {
+  flex-direction: column;
+}
+.action-confirmation:not([data-summary]) .game-actions-row > button,
+.action-confirmation:not([data-summary]) .effect-prompt-family__board-action > button {
+  width: 100%;
+}
 .material-prompt .game-actions-row {
   flex-wrap: wrap;
 }

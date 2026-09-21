@@ -822,6 +822,7 @@ export const en = {
   "panel.attacking": "{card} is attacking",
   "notice.rejected": "Not allowed",
   "notice.keyword.digiXros": "DigiXros!",
+  "notice.digiXrosMaterials": "DigiXros materials",
   "notice.keyword.cannotAttack": "Can't attack",
   "notice.keyword.cannotBlock": "Can't block",
   "notice.keyword.scapegoat": "＜Scapegoat＞ saved it",

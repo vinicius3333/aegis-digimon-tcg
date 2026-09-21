@@ -829,6 +829,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "panel.attacking": "{card} está atacando",
   "notice.rejected": "Não permitido",
   "notice.keyword.digiXros": "DigiXros!",
+  "notice.digiXrosMaterials": "Materiais de DigiXros",
   "notice.keyword.cannotAttack": "Não pode atacar",
   "notice.keyword.cannotBlock": "Não pode bloquear",
   "notice.keyword.scapegoat": "＜Scapegoat＞ salvou",

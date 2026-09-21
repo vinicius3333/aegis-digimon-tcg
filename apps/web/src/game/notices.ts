@@ -11,7 +11,7 @@
    This module is the pure half: the model and the mapping from server events.
    Card text and translation belong to NoticeStack.tsx. */
 
-import { digiXrosRequirementFor, type PreventionKeyword, type Seat, type ServerEvent } from "@aegis/shared";
+import { type PreventionKeyword, type Seat, type ServerEvent } from "@aegis/shared";
 import { Side } from "./side";
 import { TIMINGS } from "./timings";
 
@@ -41,7 +41,7 @@ export type NoticeBody =
   | { variant: "recovery"; amount: number }
   | { variant: "securityGain"; amount: number }
   | { variant: "rejection"; reason: string }
-  | { variant: "keyword"; keyword: NoticeKeyword; cardId: string };
+  | { variant: "keyword"; keyword: NoticeKeyword; cardId: string; materialCardIds?: readonly string[] };
 
 /** The named mechanics the board calls out by name as they happen. */
 export type NoticeKeyword =
@@ -220,11 +220,9 @@ export function preventionNoticeFromEvent(
 /**
  * The call-out a named mechanic earns as it happens, for either seat.
  *
- * The mechanic has to be identifiable from the event alone: a played card whose
- * definition carries a DigiXros requirement was DigiXrosed, because that is the
- * only way the server lets such a card reach the field. Nothing else in the
- * protocol names its mechanic, so nothing else is called out — a client that
- * guessed would be inventing rules (ARCHITECTURE.md §4).
+ * The mechanic and its public materials come directly from the server event. The
+ * client does not infer DigiXros from printed requirements because those cards may
+ * also be played normally.
  */
 export function keywordNoticeFromEvent(
   event: ServerEvent,
@@ -232,13 +230,17 @@ export function keywordNoticeFromEvent(
   id: string,
   nowMs: number,
 ): MatchNotice | null {
-  if (event.kind !== "cardPlayed") return null;
-  if ((digiXrosRequirementFor(event.cardId)?.length ?? 0) === 0) return null;
+  if (event.kind !== "cardPlayed" || event.mechanic !== "digiXros") return null;
   return {
     id,
     side: sideOf(event.seat, viewerSeat),
     fromSecurity: false,
-    body: { variant: "keyword", keyword: "digiXros", cardId: event.cardId },
+    body: {
+      variant: "keyword",
+      keyword: "digiXros",
+      cardId: event.cardId,
+      materialCardIds: event.sourceCardIds,
+    },
     createdAt: nowMs,
   };
 }

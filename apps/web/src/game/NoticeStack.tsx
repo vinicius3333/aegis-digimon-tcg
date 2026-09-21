@@ -30,12 +30,12 @@ const NOTICE_THUMB_WIDTH_DESKTOP = 92;
  * Decorative: the notice already names the card next to it as a link, and a
  * second accessible copy would make every card on screen ambiguous.
  */
-function NoticeThumb({ cardId, artId }: { cardId: string; artId?: string }) {
+function NoticeThumb({ cardId, artId, material = false }: { cardId: string; artId?: string; material?: boolean }) {
   const openCard = useCardOpener();
   const desktop = useMediaQuery(DESKTOP_NOTICE_QUERY);
-  const width = desktop ? NOTICE_THUMB_WIDTH_DESKTOP : NOTICE_THUMB_WIDTH;
+  const width = material ? (desktop ? 42 : 32) : desktop ? NOTICE_THUMB_WIDTH_DESKTOP : NOTICE_THUMB_WIDTH;
   return (
-    <span className="match-notice__thumb" aria-hidden="true">
+    <span className={`match-notice__thumb${material ? " match-notice__thumb--material" : ""}`} aria-hidden="true">
       <CardMini
         cardId={cardId}
         artId={artId}
@@ -104,7 +104,15 @@ function SecurityGainNoticeBody({ amount, mine, recovery }: { amount: number; mi
 }
 
 /** The named-mechanic call-out: a pink pill saying what just happened, over the card that did it. */
-function KeywordNoticeBody({ keyword, cardId }: { keyword: NoticeKeyword; cardId: string }) {
+function KeywordNoticeBody({
+  keyword,
+  cardId,
+  materialCardIds,
+}: {
+  keyword: NoticeKeyword;
+  cardId: string;
+  materialCardIds?: readonly string[];
+}) {
   const { t } = useTranslation();
   return (
     <>
@@ -114,6 +122,13 @@ function KeywordNoticeBody({ keyword, cardId }: { keyword: NoticeKeyword; cardId
         <span className="match-notice__label">
           <CardLink cardId={cardId} />
         </span>
+        {materialCardIds?.length ? (
+          <div className="match-notice__materials" aria-label={t("notice.digiXrosMaterials")}>
+            {materialCardIds.map((materialCardId, index) => (
+              <NoticeThumb key={`${materialCardId}:${index}`} cardId={materialCardId} material />
+            ))}
+          </div>
+        ) : null}
       </div>
     </>
   );
@@ -155,6 +170,7 @@ export function NoticeStack({
       <article
         className="match-notice"
         data-variant={body.variant}
+        data-keyword={body.variant === "keyword" ? body.keyword : undefined}
         data-side={notice.side}
         data-testid="match-notice"
         role="status"
@@ -180,7 +196,7 @@ export function NoticeStack({
             recovery={body.variant === "recovery"}
           />
         ) : body.variant === "keyword" ? (
-          <KeywordNoticeBody keyword={body.keyword} cardId={body.cardId} />
+          <KeywordNoticeBody keyword={body.keyword} cardId={body.cardId} materialCardIds={body.materialCardIds} />
         ) : body.variant === "rejection" ? (
           <RejectionNoticeBody reason={body.reason} />
         ) : /* A deletion is a titled list of cards, so the board draws it with the panel
