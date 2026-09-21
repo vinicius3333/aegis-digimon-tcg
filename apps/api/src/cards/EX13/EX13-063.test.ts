@@ -757,7 +757,14 @@ describe("EX13-063 PrinceMamemon", () => {
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const payerDecision = s.state.pendingDecision!;
     const payerRequest = s.decisions.find(({ req }) => req.decisionId === payerDecision.decisionId)!.req;
-    expect(payerRequest.sourceCardId).toBe(MAT_BIG);
+    expect(payerRequest).toMatchObject({
+      sourceCardId: cardId,
+      sourceInstanceId: s.inst("prince").instanceId,
+      options: {
+        effectText:
+          "[All Turns] All of your Digimon with [Mamemon] in their names gain ＜Blocker＞ and ＜Guard＞",
+      },
+    });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
