@@ -102,6 +102,12 @@ export type ServerEvent =
   | { kind: "movedFromBreeding"; seat: Seat; permanentId: string; cardId: string }
   | { kind: "memoryChanged"; from: number; to: number; reason: string }
   | {
+      /** A DP modifier landed but protection kept the displayed DP unchanged. */
+      kind: "dpModifierApplied";
+      permanentId: string;
+      delta: number;
+    }
+  | {
       kind: "attackDeclared";
       seat: Seat;
       attackerPermanentId: string;
@@ -401,6 +407,7 @@ export const SERVER_EVENT_KINDS = [
   "effectActivated",
   "effectTriggered",
   "effectResolved",
+  "dpModifierApplied",
   "cardsMoved",
   "turnEnded",
   "actionRejected",

@@ -36,8 +36,7 @@
     --arena-hand-card-height: min(
       calc(var(--arena-hand-width) * 1.4),
       calc(
-        var(--arena-hand-height) - var(--arena-hand-reserved) - var(--arena-hand-lift) -
-          var(--arena-hand-row-chrome)
+        var(--arena-hand-height) - var(--arena-hand-reserved) - var(--arena-hand-lift) - var(--arena-hand-row-chrome)
       )
     );
     --arena-header-height: 52px;

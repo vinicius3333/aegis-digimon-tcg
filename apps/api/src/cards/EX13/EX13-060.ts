@@ -63,6 +63,7 @@ const endOfTurnDiscount = (): Action[] => [
     },
     from: ["hand"],
     payCost: true,
+    allowDigiXros: true,
     reduceCostBy: 6,
     optional: true,
     abortOnDecline: true,

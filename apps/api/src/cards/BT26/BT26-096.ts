@@ -27,6 +27,7 @@ export const compiled: CompiledCard = {
           },
           from: ["hand", "trash"],
           payCost: true,
+          allowDigiXros: true,
           reduceCostBy: 2,
           optional: true,
           cost: {

@@ -39,6 +39,74 @@ const ShieldCheck = (p: IconProps) => (
     <polyline points="9 12 11 14 15 10" />
   </Svg>
 );
+/** Dinosaur silhouette adapted from Game Icons' `dinosaur-rex` (CC BY 3.0). */
+const DigimonEffect = ({ size = 24, className = "", style }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 512 512" fill="currentColor" className={className} style={style}>
+    <path d="M249 21c-15 0-31 3-44 9-8-1-15-1-23-1-90 0-143 47-163 126v341h189c-5-55 5-115 27-155-29-5-58-8-86-9l-8-1-1-7c-9-59-10-119 22-177l17 10c-28 50-29 102-21 157 82 4 170 25 239 55 23-6 34-30 42-66l-32 22-10-45-46 31-11-48-43 30-11-48-44 30-15-66 71-48 11 47 44-30 11 48 43-30 10 44 46-31 8 34c21-27 35-66 14-85-25-23-52-43-79-61-7-25-61-77-94-48-14-21-38-30-63-30Zm2 22c18 0 33 14 33 32 0 4-1 7-2 10-3-7-9-11-16-11a19 19 0 0 0-19 19c0 6 3 12 8 15h-4c-18 0-32-15-32-33s14-32 32-32Z" />
+  </svg>
+);
+const OptionEffect = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="4" y="3" width="13" height="18" rx="2" />
+    <path d="m16 6 .65 1.35L18 8l-1.35.65L16 10l-.65-1.35L14 8l1.35-.65L16 6Z" />
+    <path d="M7 13h7M7 16h5" />
+  </Svg>
+);
+const TamerEffect = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="8" r="3" />
+    <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+    <path d="M4 4h3M17 4h3" />
+  </Svg>
+);
+const AttackOff = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m3 3 18 18" />
+    <path d="m14.5 17.5-2-2M6.5 11.5 3 8V4h4l10.5 10.5M15 9l3-3h3v3l-3 3" />
+  </Svg>
+);
+const BlockOff = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M5 5v7c0 5 7 9 7 9 1.5-.8 2.8-1.8 4-2.8M19 14V5l-7-3-3 1.3M3 3l18 18" />
+  </Svg>
+);
+const SuspendOff = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M8 5v9M16 5v5M4 20 20 4" />
+  </Svg>
+);
+const UnsuspendOff = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 10a8 8 0 0 1 13-4l2 2M20 14a8 8 0 0 1-13 4l-2-2M19 4v4h-4M5 20v-4h4M3 3l18 18" />
+  </Svg>
+);
+const EffectOff = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m12 3-1.5 4.5L6 9l4.5 1.5L12 15l1.5-4.5L18 9l-4.5-1.5L12 3ZM4 4l16 16" />
+  </Svg>
+);
+const DpShield = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+    <path d="M8 9h4a3 3 0 0 1 0 6H8V9Zm0 3h4M16 9v6" />
+  </Svg>
+);
+const DeDigivolveShield = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m5 7 7-4 7 4-7 4-7-4ZM7 11l5 3 5-3M8 16h8M12 14v7m-3-3 3 3 3-3" />
+  </Svg>
+);
+const DeleteShield = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M7 7h10l-1 13H8L7 7ZM5 7h14M9 4h6M10 10v6M14 10v6" />
+  </Svg>
+);
+const ReturnShield = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M9 7 4 12l5 5M4 12h9a6 6 0 0 1 6 6v1" />
+    <path d="M18 4v5" />
+  </Svg>
+);
 const LogIn = (p: IconProps) => (
   <Svg {...p}>
     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
@@ -423,6 +491,18 @@ export const Icons = {
   Copy,
   Shield,
   ShieldCheck,
+  DigimonEffect,
+  OptionEffect,
+  TamerEffect,
+  AttackOff,
+  BlockOff,
+  SuspendOff,
+  UnsuspendOff,
+  EffectOff,
+  DpShield,
+  DeDigivolveShield,
+  DeleteShield,
+  ReturnShield,
   LogIn,
   LogOut,
   Rocket,

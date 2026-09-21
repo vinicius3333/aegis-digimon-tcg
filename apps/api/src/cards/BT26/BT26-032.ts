@@ -47,6 +47,7 @@ const digivolveBody = [
           filter: { ...playable, kind: ["Option"] },
           from: ["hand"],
           payCost: true,
+          allowDigiXros: true,
           reduceCostBy: 5,
           optional: true,
         },

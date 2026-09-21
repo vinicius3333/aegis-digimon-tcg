@@ -61,6 +61,7 @@ export const compiled: CompiledCard = {
               target: { filter: eligibleIliad, count: 1 },
               from: ["hand"],
               payCost: true,
+              allowDigiXros: true,
               reduceCostBy: 4,
               optional: true,
             },

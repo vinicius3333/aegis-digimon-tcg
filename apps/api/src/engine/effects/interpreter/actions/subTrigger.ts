@@ -1362,6 +1362,8 @@ export async function runGainTriggeredEffect(
     return;
   }
   const targetIds = await resolvePermanentTargets(ctx, action.target, { preserveUnaffectableSelection: true });
+  const attacksAtStartOfMainPhase =
+    action.gainedTrigger === "StartOfYourMainPhase" && action.gainedActions.some((gained) => gained.kind === "Attack");
   const grantingSeat = ctx.source.ownerSeat;
   const grantingKinds = ctx.source.definition.kinds.filter((kind) => kind === "Digimon" || kind === "Option");
   for (const targetPermanentId of targetIds) {
@@ -1443,6 +1445,18 @@ export async function runGainTriggeredEffect(
       continuous: false,
       ...(matches ? { matches } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
+      ...(attacksAtStartOfMainPhase
+        ? {
+            publicBadge: "attackAtStartOfMainPhase" as const,
+            publicBadgeGrantingSeat: grantingSeat,
+            publicBadgeSourceKinds: grantingKinds,
+            printedTiming: "[Start of Your Main Phase]",
+            // This clause belongs to the effect granted onto the recipient, not to the
+            // recipient's own printed text. The client strips the marker and presents the
+            // supplied clause beside the recipient instead of looking it up on the wrong card.
+            printedClause: "[Granted] [Start of Your Main Phase] This Digimon attacks.",
+          }
+        : {}),
       description: action.raw ?? `GainTriggeredEffect(${action.gainedTrigger}) on ${targetPermanentId}`,
       run: async (subCtx) => {
         for (const a of gainedActions) {

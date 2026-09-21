@@ -90,7 +90,7 @@ import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClas
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress } from "./presentationProgress";
-import { observeGateExpiry } from "./match/presentationGate";
+import { CONSEQUENCE_GATE_MAX_MS, observeGateExpiry, waitForGate } from "./match/presentationGate";
 import type { DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
 import { presentationTelemetry } from "./presentationTelemetry";
 import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
@@ -822,6 +822,42 @@ export function useMatchCues({
     for (const batch of pending) {
       enqueuePhaseOrderRef.current = phaseOrderFor(batch.events);
       presentBatch(batch.id, batch.stateVersion, batch.events, replayingHistory);
+      if (!replayingHistory) {
+        for (const event of batch.events) {
+          if (event.kind !== "dpModifierApplied" || event.delta === 0) continue;
+          dpPulseKeyRef.current += 1;
+          const pulse: DpPulse = {
+            permanentId: event.permanentId,
+            kind: event.delta < 0 ? "debuff" : "buff",
+            from: 0,
+            to: event.delta,
+            key: dpPulseKeyRef.current,
+            emphasized: true,
+          };
+          const causingEffectGate = causingEffectGateRef.current;
+          queue.enqueue({
+            id: `suppressed-dp-pulse-${pulse.key}`,
+            track: `dpPulse-${pulse.permanentId}`,
+            replace: true,
+            async run(context) {
+              if (context.mode !== "live") return;
+              await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "dpModifierApplied/causingEffect");
+              if (context.cancelled) return;
+              try {
+                setDpPulses((active) => new Map(active).set(pulse.permanentId, pulse));
+                await context.wait(1_200);
+              } finally {
+                setDpPulses((active) => {
+                  if (active.get(pulse.permanentId)?.key !== pulse.key) return active;
+                  const next = new Map(active);
+                  next.delete(pulse.permanentId);
+                  return next;
+                });
+              }
+            },
+          });
+        }
+      }
     }
     enqueuePhaseOrderRef.current = undefined;
     // presentBatch is rebuilt every render and reads only refs and setters.

@@ -109,6 +109,16 @@ describe("restrictionBadges", () => {
     ]);
   });
 
+  it("shows a pending start-of-turn attack as an action badge", () => {
+    expect(restrictionBadges(restricted({ attacksAtStartOfMainPhase: true }))).toEqual([
+      {
+        kind: "attacksAtStartOfMainPhase",
+        labelKey: "game.restriction.attacksAtStartOfMainPhase",
+        action: true,
+      },
+    ]);
+  });
+
   it("wears a chip for each of the server's blanket locks, in reading order", () => {
     const badges = restrictionBadges(
       restricted({ cannotActivateWhenDigivolving: true, cannotAttack: true, cannotUnsuspend: true }),

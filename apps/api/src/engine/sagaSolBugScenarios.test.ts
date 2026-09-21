@@ -24,4 +24,20 @@ describe("SagaSol bug arena scenarios", () => {
     expect(s.state.players[1]!.hand.some(({ cardId }) => cardId === "ST1-16")).toBe(true);
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-085")).toBe(true);
   });
+
+  it("stages EX5 Etemon against a suspended Digimon protected from opposing Digimon effects", () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    layDevScenario("arena-sagasol-etemon-protected-dp", s.state, [BLUE_DECK, RED_DECK]);
+
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX5-048")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]).toMatchObject({
+      permanentId: "opponent-sagasol-protected-dp-target",
+      isSuspended: true,
+      currentDP: 5000,
+      topCard: { cardId: "BT15-047" },
+    });
+  });
 });
