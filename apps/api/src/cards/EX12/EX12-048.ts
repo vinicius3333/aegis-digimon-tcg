@@ -114,8 +114,8 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
-    { level: 5, texts: ["Gokuumon"], cost: 3, isAlternate: true },
-    { level: 5, traits: ["Shambala"], cost: 3, isAlternate: true },
+    { level: 5, texts: ["Gokuumon"], cost: 4, isAlternate: true },
+    { level: 5, traits: ["Shambala"], cost: 4, isAlternate: true },
   ],
   assemblyRequirement: [
     {

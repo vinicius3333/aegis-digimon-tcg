@@ -50,6 +50,49 @@ it("reuses the Assembly material overlay for an effect-driven play", () => {
   expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["dobermon-trash"] });
 });
 
+it("reuses the DigiXros material overlay for an effect-driven play", () => {
+  const onRespond = vi.fn<(response: DecisionResponse) => void>();
+  render(
+    <I18nProvider>
+      <DecisionPrompts
+        decision={{
+          decisionId: "digixros-decision",
+          seat: 0,
+          kind: "selectCards",
+          promptText: "Hakubamon",
+          sourceCardId: "EX12-043",
+          options: {
+            candidateInstanceIds: ["kakamon-hand"],
+            visibleInstanceIds: ["kakamon-hand"],
+            min: 0,
+            max: 1,
+            digiXrosCardId: "EX12-015",
+          },
+        }}
+        answerOnBoard={false}
+        permanents={[]}
+        sourceCardId="EX12-043"
+        candidates={[{ instanceId: "kakamon-hand", cardId: "EX12-006", zone: "hand" }]}
+        allowsPick={() => true}
+        picks={[]}
+        min={0}
+        max={1}
+        triggerDetails={[]}
+        opponentSelecting={false}
+        onTogglePick={() => {}}
+        onRespond={onRespond}
+        onOpenDialog={() => {}}
+      />
+    </I18nProvider>,
+  );
+
+  expect(screen.getByRole("dialog", { name: "＜DigiXros＞ Gokuumon" })).toBeTruthy();
+  expect(screen.queryByRole("heading", { name: "Resolve effect" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: /Kakamon \(hand\)/ }));
+  fireEvent.click(screen.getByRole("button", { name: /DigiXros \(1 card\)/ }));
+  expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["kakamon-hand"] });
+});
+
 it("labels a player-only attack target as an attack target instead of a hand selection", () => {
   render(
     <I18nProvider>

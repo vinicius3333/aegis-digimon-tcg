@@ -42,6 +42,12 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-examon",
   "arena-ex5-attack-priority",
   "arena-ex10-god-grade-raising-color",
+  "arena-issue-4888-app-fusion",
+  "arena-issue-4889-weregarurumon-dna",
+  "arena-issue-4890-reina-deletion",
+  "arena-issue-4891-seiten-on-play",
+  "arena-issue-4892-effect-digixros",
+  "arena-issue-4893-seiten-evo-cost",
   "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
   "arena-magnamon-x",
@@ -962,6 +968,84 @@ function layEx10GodGradeRaisingColorScenario(state: GameState, decks: readonly [
   state.memory = 5;
 }
 
+function prepareIssueScenario(state: GameState, decks: readonly [Decklist, Decklist], memory: number): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = memory;
+}
+
+function layIssue4888AppFusionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 0);
+  const human = state.players[0];
+  if (human === undefined) return;
+  const host = establishedDigimon(0, ["EX10-016"], "-issue-4888-host");
+  linkEstablishedCard(host, faceUpCard("dev-issue-4888-copipemon", "EX10-038", 0));
+  placePermanent(human, host);
+  insertCard(human, Zone.Hand, faceDownCard("dev-issue-4888-mienumon", "EX10-017", 0));
+}
+
+function layIssue4889WereGarurumonDnaScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 0);
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX8-032"], "-issue-4889-apemon"));
+  placePermanent(human, establishedDigimon(0, ["EX12-024"], "-issue-4889-garurumon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-issue-4889-weregarurumon", "EX12-032", 0));
+}
+
+function layIssue4890ReinaDeletionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 5);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX11-059"], "-issue-4890-reina"));
+    placePermanent(human, establishedDigimon(0, ["EX8-060"], "-issue-4890-myotismon"));
+    placePermanent(human, establishedDigimon(0, ["EX8-062"], "-issue-4890-piedmon"));
+    placePermanent(human, establishedDigimon(0, ["EX12-032"], "-issue-4890-weregarurumon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-issue-4890-heat-viper", "BT2-109", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-issue-4890-granddracmon", "EX8-064", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-issue-4890-target-a"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-010"], "-issue-4890-target-b"));
+  }
+}
+
+function layIssue4891SeitenOnPlayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 13);
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-issue-4891-seiten", "EX12-048", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) placePermanent(bot, establishedDigimon(1, ["BT1-024"], "-issue-4891-target"));
+}
+
+function layIssue4892EffectDigiXrosScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX12-043"], "-issue-4892-hakubamon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-issue-4892-gokuumon", "EX12-015", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-issue-4892-material", "EX12-006", 0));
+}
+
+function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 4);
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX12-015"], "-issue-4893-gokuumon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-issue-4893-seiten", "EX12-048", 0));
+}
+
 /** Wizardmon's end-of-turn trash play offering Aegiochusmon: Dark's Assembly material. */
 function layAegiochusDarkAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -1161,6 +1245,12 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
+  "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
+  "arena-issue-4889-weregarurumon-dna": layIssue4889WereGarurumonDnaScenario,
+  "arena-issue-4890-reina-deletion": layIssue4890ReinaDeletionScenario,
+  "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
+  "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
+  "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,

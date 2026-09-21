@@ -268,6 +268,7 @@ export function MatchOverlays({
             name: printedCardName(allianceConfirmationPermanent.topCard.cardId),
             dp: allianceConfirmationPermanent.currentDP.toLocaleString(),
           })}
+          showSummary={false}
           confirmLabel={t("overlay.confirmAlliance")}
           onConfirm={onConfirmAlliance}
           onCancel={onCancelAllianceConfirmation}

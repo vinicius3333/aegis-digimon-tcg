@@ -54,6 +54,7 @@ describe("EX12-043 Hakubamon", () => {
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 2,
+                allowDigiXros: true,
                 optional: true,
                 target: { filter: { kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["SW"], match: "trait" }] } },
               },
@@ -98,6 +99,41 @@ describe("EX12-043 Hakubamon", () => {
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("target").instanceId),
     );
 
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("offers DigiXros while effect-playing Gokuumon with the cost reduced by two", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [
+            { card: "EX12-015", as: "gokuumon" },
+            { card: "EX12-006", as: "material" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-015"));
+
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX12-015");
+    expect(played?.stack.map(({ instanceId }) => instanceId)).toContain(s.inst("material").instanceId);
+    expect(
+      s.decisions.some(
+        ({ req }) => req.kind === "selectCards" && req.options?.digiXrosCardId === "EX12-015",
+      ),
+    ).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 

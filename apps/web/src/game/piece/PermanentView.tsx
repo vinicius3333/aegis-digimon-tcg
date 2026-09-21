@@ -41,6 +41,7 @@ export function PermanentView({
   shake,
   claw,
   dpPulse,
+  dpBadgeSuppressed = false,
   freezePulse,
   effectSource,
   effectLinked,
@@ -70,6 +71,7 @@ export function PermanentView({
   claw?: boolean;
   /** The DP change this permanent is currently pulsing over. */
   dpPulse?: DpPulse;
+  dpBadgeSuppressed?: boolean;
   /** The attack/block lock that just landed on this permanent, which jolts the card. */
   freezePulse?: FreezePulse;
   /** This permanent's own effect is activating: it glows and throws a small particle. */
@@ -100,6 +102,8 @@ export function PermanentView({
   onInspect?: () => void;
 }) {
   const permanentWidth = width ?? (compact ? 76 : 116);
+  const isVisuallySuspended = heldSuspended || perm.isSuspended;
+  const suspendedInlineMargin = Math.ceil(permanentWidth * 0.2);
   const { t } = useTranslation();
   const topId = perm.topCard?.cardId;
   if (!topId) return null;
@@ -156,7 +160,7 @@ export function PermanentView({
         threatened: fate?.fate === "effectTarget",
       })}
       {...(drop ?? {})}
-      data-suspended={heldSuspended || perm.isSuspended || undefined}
+      data-suspended={isVisuallySuspended || undefined}
       style={{
         position: "relative",
         cursor: interactive ? "pointer" : "default",
@@ -166,7 +170,8 @@ export function PermanentView({
         // announcement is over, rather than flying the card across the board.
         visibility: pending ? "hidden" : undefined,
         transform: highlight || effectSource || effectLinked ? "translateY(-6px)" : "none",
-        transition: "transform 160ms, opacity 160ms",
+        marginInline: isVisuallySuspended ? suspendedInlineMargin : 0,
+        transition: "transform 160ms, opacity 160ms, margin-inline 200ms",
       }}
     >
       <PermanentCardStack stack={perm.stack} width={permanentWidth} />
@@ -191,7 +196,7 @@ export function PermanentView({
           cardId={topId}
           artId={perm.topCard?.artId}
           width={permanentWidth}
-          suspended={heldSuspended || perm.isSuspended}
+          suspended={isVisuallySuspended}
           suspendDelayMs={suspendDelayMs}
           selected={highlight}
           attackable={candidate}
@@ -211,14 +216,17 @@ export function PermanentView({
       {blocker ? <PermanentBlockerBadge /> : null}
       {fate ? <PermanentFateBadge fate={fate} /> : null}
       {activeKeywords.length > 0 ? <PermanentKeywordBadges keywords={activeKeywords} width={permanentWidth} /> : null}
-      {restrictions.length > 0 || hasDpDelta ? (
-        <PermanentRestrictionBadges restrictions={restrictions} dpDelta={hasDpDelta ? delta : undefined} />
+      {restrictions.length > 0 || (hasDpDelta && !dpBadgeSuppressed) ? (
+        <PermanentRestrictionBadges
+          restrictions={restrictions}
+          dpDelta={hasDpDelta && !dpBadgeSuppressed ? delta : undefined}
+        />
       ) : null}
       {transformation ? (
         <PermanentTransformToken
           transformation={transformation}
           width={permanentWidth}
-          suspended={heldSuspended || perm.isSuspended}
+          suspended={isVisuallySuspended}
         />
       ) : null}
       {onInspect ? (

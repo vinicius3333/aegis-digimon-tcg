@@ -397,6 +397,7 @@ export async function applyDigiXros(
     ...(instance.artId ? { artId: instance.artId } : {}),
     permanentId: permanent.permanentId,
     mechanic: "digiXros",
+    sourceCardIds: materials.map((material) => material.definition.cardId),
   });
 
   // (4) Place each material under the new permanent. A battle-area material contributes only its

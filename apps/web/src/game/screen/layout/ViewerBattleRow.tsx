@@ -111,6 +111,7 @@ export function ViewerBattleRow({
             shake={chrome.combatImpactIds.has(p.permanentId)}
             claw={chrome.combatImpactIds.has(p.permanentId)}
             dpPulse={chrome.dpPulses.get(p.permanentId)}
+            dpBadgeSuppressed={chrome.dpBadgeSuppressedIds.has(p.permanentId)}
             freezePulse={chrome.freezePulses.get(p.permanentId)}
             lunge={chrome.attackLunge?.permanentId === p.permanentId ? chrome.attackLunge.direction : undefined}
             heldSuspended={chrome.heldSuspendedIds.has(p.permanentId)}

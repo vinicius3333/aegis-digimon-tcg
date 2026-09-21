@@ -1,45 +1,162 @@
 import { useMemo, useState } from "react";
-import { colorKey } from "../design/theme";
 import { CATALOG_DECKS } from "@aegis/shared";
+import { colorKey } from "../design/theme";
 import { GameScreen } from "../game/GameScreen";
 import { loadIdentity } from "../identity";
 import { useTranslation } from "../i18n";
 import type { AegisJoinOptions } from "../net/types";
 import "./arenaDemo.css";
 
+type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
+type ScenarioCopy = { en: string; ptBR: string };
+
+const DEFAULT_NOTE: ScenarioCopy = {
+  ptBR: "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente.",
+  en: "End breeding, select a Digimon, choose Attack and click the opponent's security.",
+};
+
+const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-issue-4888-app-fusion": {
+    ptBR: "Selecione Mienumon na mão e use App Fusion no Mirrormon com Copipemon vinculado. O custo deve ser 0.",
+    en: "Select Mienumon in hand and App Fuse onto Mirrormon with linked Copipemon. The cost must be 0.",
+  },
+  "arena-issue-4889-weregarurumon-dna": {
+    ptBR: "Selecione WereGarurumon na mão e faça DNA Digivolve usando Apemon amarelo e Garurumon roxo.",
+    en: "Select WereGarurumon in hand and DNA Digivolve using yellow Apemon and purple Garurumon.",
+  },
+  "arena-issue-4890-reina-deletion": {
+    ptBR: "Use Heat Viper e delete Myotismon; Reina deve oferecer GrandDracmon com Piedmon. Reinicie e delete WereGarurumon: Reina ainda pode suspender, mas nenhum DNA ocorre porque não há alvo NSo legal para esse nível 5.",
+    en: "Use Heat Viper and delete Myotismon; Reina must offer GrandDracmon with Piedmon. Reset and delete WereGarurumon: Reina can still suspend, but no DNA occurs because no legal NSo target can use that level 5.",
+  },
+  "arena-issue-4891-seiten-on-play": {
+    ptBR: "Jogue SeitenGokuumon, escolha o Digimon adversário e confirme que ele recebe -8000 DP antes do ataque opcional.",
+    en: "Play SeitenGokuumon, choose the opposing Digimon, and confirm it gets -8000 DP before the optional attack.",
+  },
+  "arena-issue-4892-effect-digixros": {
+    ptBR: "Ative o efeito Main de Hakubamon, escolha Gokuumon e use Kakamon como material de DigiXros. O custo final deve ser 3.",
+    en: "Activate Hakubamon's Main effect, choose Gokuumon, and use Kakamon as DigiXros material. The final cost must be 3.",
+  },
+  "arena-issue-4893-seiten-evo-cost": {
+    ptBR: "Selecione SeitenGokuumon e evolua sobre Gokuumon pela condição especial. O custo exibido e pago deve ser 4.",
+    en: "Select SeitenGokuumon and digivolve onto Gokuumon through the special condition. The shown and paid cost must be 4.",
+  },
+  "arena-ex13-magnamon-end-turn": {
+    ptBR: "Encerre a criação, ataque a segurança com Magnamon e Meteormon e encerre o turno. Aceite dessuspender Magnamon: deve ocorrer ainda no seu turno. Reboot de Meteormon deve ocorrer na Dessuspensão do oponente, antes da Main. Reinicie para testar recusar o efeito.",
+    en: "End breeding, attack security with Magnamon and Meteormon, then end your turn. Accept Magnamon’s unsuspend: it should resolve during your turn. Meteormon’s Reboot should resolve in the opponent’s Unsuspend phase, before Main. Reset to test declining the effect.",
+  },
+  "arena-sagasol-effect-assembly": {
+    ptBR: "Encerre a criação, jogue HiAndromon, escolha Megadramon e depois o material no lixo para Assembly.",
+    en: "End breeding, play HiAndromon, choose Megadramon, then choose the trash material for Assembly.",
+  },
+  "arena-sagasol-etemon-protected-dp": {
+    ptBR: "Encerre a criação e jogue Etemon, escolhendo Kabuterimon. Enquanto ele estiver protegido, a badge de ataque não deve aparecer. No começo da Main Phase, o ataque forçado deve ser anunciado por toast.",
+    en: "End breeding and play Etemon, choosing Kabuterimon. While it is protected, the attack badge must stay hidden. At the start of the Main Phase, the forced attack must be announced by a toast.",
+  },
+  "arena-sagasol-guard-source": {
+    ptBR: "O bot usa Gaia Force. A decisão de Guard deve mostrar Metal Empire e seu texto, não o efeito do Digimon.",
+    en: "The bot uses Gaia Force. The Guard decision must show Metal Empire and its text, not the Digimon's effect.",
+  },
+  "arena-ex13-gotsumon-blocker-search": {
+    ptBR: "Compre BT1-009, encerre a criação e jogue Gotsumon. Na busca por Blocker, somente BT20-047 deve ser elegível; BT19-069 e EX8-046 têm Blocker apenas herdado e devem voltar ao fundo.",
+    en: "Draw BT1-009, end breeding, and play Gotsumon. Only BT20-047 should be eligible for the Blocker search; BT19-069 and EX8-046 have inherited-only Blocker and must return to the bottom.",
+  },
+  "arena-ex5-attack-priority": {
+    ptBR: "O bot ataca com Shoutmon EX6. Os efeitos Ao Atacar e Alliance dele devem resolver antes das reações de MetalEtemon e da herança de Etemon.",
+    en: "The bot attacks with Shoutmon EX6. Its When Attacking and Alliance effects must resolve before MetalEtemon and inherited Etemon react.",
+  },
+  "arena-reboot-timing": {
+    ptBR: "Seu turno começa com todos os seus Digimon com Reboot suspensos. Observe a fase de Dessuspensão.",
+    en: "Your turn starts with all your Reboot Digimon suspended. Watch the Unsuspend phase.",
+  },
+  "arena-alliance-20": {
+    ptBR: "Encerre a criação, ataque com Seadramon e escolha 1 dos outros 19 Digimon para Alliance.",
+    en: "End breeding, attack with Seadramon, and choose 1 of the other 19 Digimon for Alliance.",
+  },
+  "arena-bt21-davis-top-stack": {
+    ptBR: "Encerre a criação e ative o efeito Main de Davis. Magnamon deve ir ao lixo e Veemon deve permanecer no campo.",
+    en: "End breeding and activate Davis's Main effect. Magnamon should be trashed and Veemon should remain in play.",
+  },
+  "arena-seven-code-link-dp": {
+    ptBR: "DP esperado: Medicmon 7000, Globemon 13000 e Weatherdramon 8000. Compare os valores exibidos.",
+    en: "Expected DP: Medicmon 7000, Globemon 13000, and Weatherdramon 8000. Compare the displayed values.",
+  },
+  "arena-vortex-target-legality": {
+    ptBR: "Encerre o turno e aceite Vortex. Só o Digimon suspenso do oponente deve ser um alvo válido.",
+    en: "End the turn and accept Vortex. Only the opponent's suspended Digimon should be a valid target.",
+  },
+  "arena-junomon-opponent-target": {
+    ptBR: "Encerre a criação, jogue Junomon e aceite o efeito. O seletor deve permitir escolher o Digimon do oponente.",
+    en: "End breeding, play Junomon, and accept the effect. The target picker must allow the opponent's Digimon.",
+  },
+  "arena-ex13-giromon-block-triggers": {
+    ptBR: "O bot ataca primeiro. Bloqueie com Giromon para abrir os 6 efeitos simultâneos de Giromon, Guardromon e dos 4 Tai.",
+    en: "The bot attacks first. Block with Giromon to open the 6 simultaneous Giromon, Guardromon, and 4 Tai effects.",
+  },
+  "arena-ex13-deletion-trigger-ordering": {
+    ptBR: "Use Heat Viper, delete seu EX13-028 Sukamon e escolha a ordem entre o efeito On Deletion dele e a herança do KingSukamon sob KingEtemon.",
+    en: "Use Heat Viper, delete your EX13-028 Sukamon, and choose the order between its On Deletion effect and KingSukamon inherited under KingEtemon.",
+  },
+  "arena-ex13-kingsukamon-immunity-lapse": {
+    ptBR: "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon.",
+    en: "Play KingSukamon, trash Chuumon, and rewrite the opposing Digimon. KingEtemon's aura should delete it at 0 DP; then accept the inherited effect to reveal 3 and play Chuumon.",
+  },
+  "arena-ex13-kings-opponent-sukamon": {
+    ptBR: "Os 2 KingSukamon adversários completam o requisito de 3 nomes: ambos devem estar com 3000 DP. Ataque o suspenso com KingEtemon; a herança deve revelar 3 cartas.",
+    en: "The opponent's 2 KingSukamon complete the 3-name threshold: both should have 3000 DP. Attack the suspended one with KingEtemon; the inherited effect should reveal 3 cards.",
+  },
+  "arena-ex10-god-grade-raising-color": {
+    ptBR: "Copipemon é o único Appmon e está na criação. Compare Cyber Engage com God Grade Unleashed na mão.",
+    en: "Copipemon is the only Appmon and is in breeding. Compare Cyber Engage with God Grade Unleashed in hand.",
+  },
+  "arena-suspend-lock-block": {
+    ptBR: "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado.",
+    en: "Your Blocker starts unable to suspend. It must not be able to block the bot's attack.",
+  },
+};
+
+const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena", "Attack steps · Counter/Blocker"],
+  ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
+  ["arena-alliance-20", "Alliance · 20 Digimon"],
+  ["arena-bt21-davis-top-stack", "BT21 Davis · top stacked card regression"],
+  ["arena-face-up-security", "Security · opponent face-up cards"],
+  ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
+  ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
+  ["arena-ex13-giromon-block-triggers", "EX13 Giromon · 6 block triggers"],
+  ["arena-ex13-deletion-trigger-ordering", "EX13 Kings · deletion trigger ordering"],
+  ["arena-ex13-kings-opponent-sukamon", "EX13 Kings · opponent Sukamon"],
+  ["arena-ex13-kingsukamon-immunity-lapse", "EX13 KingSukamon · 0 DP deletion"],
+  ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
+  ["arena-ex5-attack-priority", "EX5 Etemon · attack trigger priority"],
+  ["arena-ex10-god-grade-raising-color", "EX10 God Grade · raising-area colour"],
+  ["arena-issue-4888-app-fusion", "#4888 · co-linked App Fusion"],
+  ["arena-issue-4889-weregarurumon-dna", "#4889 · WereGarurumon DNA"],
+  ["arena-issue-4890-reina-deletion", "#4890 · Reina deletion trigger"],
+  ["arena-issue-4891-seiten-on-play", "#4891 · SeitenGokuumon On Play"],
+  ["arena-issue-4892-effect-digixros", "#4892 · effect DigiXros"],
+  ["arena-issue-4893-seiten-evo-cost", "#4893 · SeitenGokuumon evo cost"],
+  ["arena-junomon-opponent-target", "Junomon · opponent target"],
+  ["arena-jupitermon-siren", "Jupitermon · Sirenmon + Dan & Kanan"],
+  ["arena-magnamon-x", "Magnamon X · Sonic Shot unsuspend"],
+  ["arena-ex13-magnamon-end-turn", "EX13 Magnamon · End of turn / Reboot"],
+  ["arena-reboot-timing", "Reboot · Active phase timing"],
+  ["arena-sagasol-effect-assembly", "SagaSol · effect-played Assembly"],
+  ["arena-sagasol-etemon-protected-dp", "SagaSol · Etemon vs protected DP"],
+  ["arena-sagasol-guard-source", "SagaSol · granted Guard source"],
+  ["arena-seven-code-link-dp", "Seven Code · Link DP comparison"],
+  ["arena-suspend-lock-block", "Suspend lock · Blocker legality"],
+  ["arena-vortex-target-legality", "Vortex · target legality"],
+  ["arena-vortexdramon", "Vortexdramon · optional OPT"],
+];
+
 /** Uses the normal room, bot and intent pipeline; all results come from the engine. */
 export function LiveArenaDemo() {
   const { locale } = useTranslation();
   const portuguese = locale === "pt-BR";
   const [run, setRun] = useState(0);
-  const [scenario, setScenario] = useState<NonNullable<AegisJoinOptions["devScenario"]>>(() => {
-    const requested = new URLSearchParams(window.location.search).get("scenario");
-    return requested === "arena-aegiochus-dark-assembly" ||
-      requested === "arena-alliance-20" ||
-      requested === "arena-bt21-davis-top-stack" ||
-      requested === "arena-face-up-security" ||
-      requested === "arena-ex13-grademon-immunity" ||
-      requested === "arena-ex13-gotsumon-blocker-search" ||
-      requested === "arena-ex13-giromon-block-triggers" ||
-      requested === "arena-ex13-deletion-trigger-ordering" ||
-      requested === "arena-ex13-kings-opponent-sukamon" ||
-      requested === "arena-ex13-kingsukamon-immunity-lapse" ||
-      requested === "arena-ex13-examon" ||
-      requested === "arena-ex5-attack-priority" ||
-      requested === "arena-ex10-god-grade-raising-color" ||
-      requested === "arena-junomon-opponent-target" ||
-      requested === "arena-jupitermon-siren" ||
-      requested === "arena-magnamon-x" ||
-      requested === "arena-reboot-timing" ||
-      requested === "arena-sagasol-effect-assembly" ||
-      requested === "arena-sagasol-etemon-protected-dp" ||
-      requested === "arena-sagasol-guard-source" ||
-      requested === "arena-ex13-magnamon-end-turn" ||
-      requested === "arena-seven-code-link-dp" ||
-      requested === "arena-suspend-lock-block" ||
-      requested === "arena-vortex-target-legality" ||
-      requested === "arena-vortexdramon" ||
-      requested === "card-bugs"
+  const [scenario, setScenario] = useState<DevScenario>(() => {
+    const requested = new URLSearchParams(window.location.search).get("scenario") as DevScenario | null;
+    return requested && (SCENARIO_OPTIONS.some(([value]) => value === requested) || requested === "card-bugs")
       ? requested
       : "arena";
   });
@@ -55,7 +172,9 @@ export function LiveArenaDemo() {
       devScenario: scenario,
     };
   }, [player, scenario]);
+  const note = SCENARIO_NOTES[scenario] ?? DEFAULT_NOTE;
   const reset = () => setRun((current) => current + 1);
+
   return (
     <div className="aegis-arena-demo">
       <header className="aegis-arena-demo-toolbar">
@@ -65,119 +184,22 @@ export function LiveArenaDemo() {
           <select
             value={scenario}
             onChange={(event) => {
-              setScenario(event.target.value as NonNullable<AegisJoinOptions["devScenario"]>);
+              setScenario(event.target.value as DevScenario);
               setRun((current) => current + 1);
             }}
           >
-            <option value="arena">Attack steps · Counter/Blocker</option>
-            <option value="arena-aegiochus-dark-assembly">Aegiochus Dark · Wizardmon Assembly</option>
-            <option value="arena-alliance-20">Alliance · 20 Digimon</option>
-            <option value="arena-bt21-davis-top-stack">BT21 Davis · top stacked card regression</option>
-            <option value="arena-face-up-security">Security · opponent face-up cards</option>
-            <option value="arena-ex13-grademon-immunity">EX13 Alphamon · Assembly from trash</option>
-            <option value="arena-ex13-gotsumon-blocker-search">EX13 Gotsumon · printed Blocker search</option>
-            <option value="arena-ex13-giromon-block-triggers">EX13 Giromon · 6 block triggers</option>
-            <option value="arena-ex13-deletion-trigger-ordering">EX13 Kings · deletion trigger ordering</option>
-            <option value="arena-ex13-kings-opponent-sukamon">EX13 Kings · opponent Sukamon</option>
-            <option value="arena-ex13-kingsukamon-immunity-lapse">EX13 KingSukamon · 0 DP deletion</option>
-            <option value="arena-ex13-examon">EX13 Examon · Lv.5 DNA + battle timing</option>
-            <option value="arena-ex5-attack-priority">EX5 Etemon · attack trigger priority</option>
-            <option value="arena-ex10-god-grade-raising-color">EX10 God Grade · raising-area colour</option>
-            <option value="arena-junomon-opponent-target">Junomon · opponent target</option>
-            <option value="arena-jupitermon-siren">Jupitermon · Sirenmon + Dan &amp; Kanan</option>
-            <option value="arena-magnamon-x">Magnamon X · Sonic Shot unsuspend</option>
-            <option value="arena-ex13-magnamon-end-turn">EX13 Magnamon · End of turn / Reboot</option>
-            <option value="arena-reboot-timing">Reboot · Active phase timing</option>
-            <option value="arena-sagasol-effect-assembly">SagaSol · effect-played Assembly</option>
-            <option value="arena-sagasol-etemon-protected-dp">SagaSol · Etemon vs protected DP</option>
-            <option value="arena-sagasol-guard-source">SagaSol · granted Guard source</option>
-            <option value="arena-seven-code-link-dp">Seven Code · Link DP comparison</option>
-            <option value="arena-suspend-lock-block">Suspend lock · Blocker legality</option>
-            <option value="arena-vortex-target-legality">Vortex · target legality</option>
-            <option value="arena-vortexdramon">Vortexdramon · optional OPT</option>
+            {SCENARIO_OPTIONS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
             {scenario === "card-bugs" ? <option value="card-bugs">Card bugs</option> : null}
           </select>
         </label>
         <button type="button" className="aegis-arena-demo-replay" onClick={reset}>
           {portuguese ? "Reiniciar combate" : "Reset combat"}
         </button>
-        <span className="aegis-arena-demo-note">
-          {scenario === "arena-ex13-magnamon-end-turn"
-            ? portuguese
-              ? "Encerre a criação, ataque a segurança com Magnamon e Meteormon e encerre o turno. Aceite dessuspender Magnamon: deve ocorrer ainda no seu turno. Reboot de Meteormon deve ocorrer na Dessuspensão do oponente, antes da Main. Reinicie para testar recusar o efeito."
-              : "End breeding, attack security with Magnamon and Meteormon, then end your turn. Accept Magnamon’s unsuspend: it should resolve during your turn. Meteormon’s Reboot should resolve in the opponent’s Unsuspend phase, before Main. Reset to test declining the effect."
-            : scenario === "arena-sagasol-effect-assembly"
-              ? portuguese
-                ? "Encerre a criação, jogue HiAndromon, escolha Megadramon e depois o material no lixo para Assembly."
-                : "End breeding, play HiAndromon, choose Megadramon, then choose the trash material for Assembly."
-              : scenario === "arena-sagasol-etemon-protected-dp"
-                ? portuguese
-                  ? "Encerre a criação e jogue Etemon, escolhendo Kabuterimon. Enquanto ele estiver protegido, a badge de ataque não deve aparecer. No começo da Main Phase, o ataque forçado deve ser anunciado por toast."
-                  : "End breeding and play Etemon, choosing Kabuterimon. While it is protected, the attack badge must stay hidden. At the start of the Main Phase, the forced attack must be announced by a toast."
-                : scenario === "arena-sagasol-guard-source"
-                  ? portuguese
-                    ? "O bot usa Gaia Force. A decisão de Guard deve mostrar Metal Empire e seu texto, não o efeito do Digimon."
-                    : "The bot uses Gaia Force. The Guard decision must show Metal Empire and its text, not the Digimon's effect."
-                  : scenario === "arena-ex13-gotsumon-blocker-search"
-                    ? portuguese
-                      ? "Compre BT1-009, encerre a criação e jogue Gotsumon. Na busca por Blocker, somente BT20-047 deve ser elegível; BT19-069 e EX8-046 têm Blocker apenas herdado e devem voltar ao fundo."
-                      : "Draw BT1-009, end breeding, and play Gotsumon. Only BT20-047 should be eligible for the Blocker search; BT19-069 and EX8-046 have inherited-only Blocker and must return to the bottom."
-                    : scenario === "arena-ex5-attack-priority"
-                      ? portuguese
-                        ? "O bot ataca com Shoutmon EX6. Os efeitos Ao Atacar e Alliance dele devem resolver antes das reações de MetalEtemon e da herança de Etemon."
-                        : "The bot attacks with Shoutmon EX6. Its When Attacking and Alliance effects must resolve before MetalEtemon and inherited Etemon react."
-                      : scenario === "arena-reboot-timing"
-                        ? portuguese
-                          ? "Seu turno começa com todos os seus Digimon com Reboot suspensos. Observe a fase de Dessuspensão."
-                          : "Your turn starts with all your Reboot Digimon suspended. Watch the Unsuspend phase."
-                        : scenario === "arena-alliance-20"
-                          ? portuguese
-                            ? "Encerre a criação, ataque com Seadramon e escolha 1 dos outros 19 Digimon para Alliance."
-                            : "End breeding, attack with Seadramon, and choose 1 of the other 19 Digimon for Alliance."
-                          : scenario === "arena-bt21-davis-top-stack"
-                            ? portuguese
-                              ? "Encerre a criação e ative o efeito Main de Davis. Magnamon deve ir ao lixo e Veemon deve permanecer no campo."
-                              : "End breeding and activate Davis's Main effect. Magnamon should be trashed and Veemon should remain in play."
-                            : scenario === "arena-seven-code-link-dp"
-                              ? portuguese
-                                ? "DP esperado: Medicmon 7000, Globemon 13000 e Weatherdramon 8000. Compare os valores exibidos."
-                                : "Expected DP: Medicmon 7000, Globemon 13000, and Weatherdramon 8000. Compare the displayed values."
-                              : scenario === "arena-vortex-target-legality"
-                                ? portuguese
-                                  ? "Encerre o turno e aceite Vortex. Só o Digimon suspenso do oponente deve ser um alvo válido."
-                                  : "End the turn and accept Vortex. Only the opponent's suspended Digimon should be a valid target."
-                                : scenario === "arena-junomon-opponent-target"
-                                  ? portuguese
-                                    ? "Encerre a criação, jogue Junomon e aceite o efeito. O seletor deve permitir escolher o Digimon do oponente."
-                                    : "End breeding, play Junomon, and accept the effect. The target picker must allow the opponent's Digimon."
-                                  : scenario === "arena-ex13-giromon-block-triggers"
-                                    ? portuguese
-                                      ? "O bot ataca primeiro. Bloqueie com Giromon para abrir os 6 efeitos simultâneos de Giromon, Guardromon e dos 4 Tai."
-                                      : "The bot attacks first. Block with Giromon to open the 6 simultaneous Giromon, Guardromon, and 4 Tai effects."
-                                    : scenario === "arena-ex13-deletion-trigger-ordering"
-                                      ? portuguese
-                                        ? "Use Heat Viper, delete seu EX13-028 Sukamon e escolha a ordem entre o efeito On Deletion dele e a herança do KingSukamon sob KingEtemon."
-                                        : "Use Heat Viper, delete your EX13-028 Sukamon, and choose the order between its On Deletion effect and KingSukamon inherited under KingEtemon."
-                                      : scenario === "arena-ex13-kingsukamon-immunity-lapse"
-                                        ? portuguese
-                                          ? "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon."
-                                          : "Play KingSukamon, trash Chuumon, and rewrite the opposing Digimon. KingEtemon's aura should delete it at 0 DP; then accept the inherited effect to reveal 3 and play Chuumon."
-                                        : scenario === "arena-ex13-kings-opponent-sukamon"
-                                          ? portuguese
-                                            ? "Os 2 KingSukamon adversários completam o requisito de 3 nomes: ambos devem estar com 3000 DP. Ataque o suspenso com KingEtemon; a herança deve revelar 3 cartas."
-                                            : "The opponent's 2 KingSukamon complete the 3-name threshold: both should have 3000 DP. Attack the suspended one with KingEtemon; the inherited effect should reveal 3 cards."
-                                          : scenario === "arena-ex10-god-grade-raising-color"
-                                            ? portuguese
-                                              ? "Copipemon é o único Appmon e está na criação. Compare Cyber Engage com God Grade Unleashed na mão."
-                                              : "Copipemon is the only Appmon and is in breeding. Compare Cyber Engage with God Grade Unleashed in hand."
-                                            : scenario === "arena-suspend-lock-block"
-                                              ? portuguese
-                                                ? "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado."
-                                                : "Your Blocker starts unable to suspend. It must not be able to block the bot's attack."
-                                              : portuguese
-                                                ? "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente."
-                                                : "End breeding, select a Digimon, choose Attack and click the opponent's security."}
-        </span>
+        <span className="aegis-arena-demo-note">{portuguese ? note.ptBR : note.en}</span>
         <a className="aegis-arena-demo-back" href="/dev/arena?mode=visual">
           {portuguese ? "Prévia visual" : "Visual preview"}
         </a>

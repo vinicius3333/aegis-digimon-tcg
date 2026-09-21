@@ -84,6 +84,30 @@
   justify-content: center;
   margin-top: var(--ds-space-3);
 }
+.action-confirmation__copy {
+  min-width: 0;
+}
+.action-confirmation__title {
+  width: fit-content;
+  color: var(--ds-warning);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.action-confirmation__detail {
+  margin-top: 7px;
+  color: var(--ds-fg);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.action-confirmation:not([data-summary]) .game-actions-row {
+  flex-direction: column;
+}
+.action-confirmation:not([data-summary]) .game-actions-row > button,
+.action-confirmation:not([data-summary]) .effect-prompt-family__board-action > button {
+  width: 100%;
+}
 .material-prompt .game-actions-row {
   flex-wrap: wrap;
 }

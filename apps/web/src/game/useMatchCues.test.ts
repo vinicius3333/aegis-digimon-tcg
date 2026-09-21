@@ -2899,6 +2899,58 @@ describe("match cues", () => {
     expect(result.current.deleteBursts).toHaveLength(1);
   });
 
+  it("finishes a Raid field battle before a Piercing security battle", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    const redirect: ServerEvent = {
+      kind: "attackDeclared",
+      seat: 1,
+      attackerPermanentId: "perm-1",
+      attackerCardId: "BT1-010",
+      target: { kind: "permanent", permanentId: "perm-dead" },
+      targetCardId: "BT1-020",
+      redirected: true,
+    };
+    const battleDeletion: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["dead-card"],
+      from: "battleArea",
+      to: "trash",
+      battleDeletion: true,
+      deletedPermanents: [
+        { permanentId: "perm-dead", instanceId: "dead-card", cardId: "BT1-020", seat: 0 },
+      ],
+    };
+    const piercingReveal: ServerEvent = {
+      ...REVEAL,
+      isDigimon: true,
+      attackerDP: 8_000,
+      securityCardDP: 3_000,
+    };
+
+    rerender([ATTACK]);
+    await advance(0);
+    rerender([ATTACK, redirect]);
+    await advance(0);
+    rerender([ATTACK, redirect, battleDeletion]);
+    await advance(0);
+    expect(result.current.fieldClash).not.toBeNull();
+
+    rerender([ATTACK, redirect, battleDeletion, piercingReveal]);
+    await advance(0);
+    expect(result.current.fieldClash).not.toBeNull();
+    expect(result.current.securityBreak).toBeNull();
+    expect(result.current.securityClash).toBeNull();
+
+    await advance(FIELD_CLASH_TOTAL_MS + 16);
+    expect(result.current.fieldClash).toBeNull();
+    expect(result.current.securityBreak).not.toBeNull();
+
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.attacker).toMatchObject({ cardId: "BT1-010" });
+  });
+
   it("holds a battle's effect notices until the blow has landed", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

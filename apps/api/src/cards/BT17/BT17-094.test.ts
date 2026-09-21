@@ -139,7 +139,12 @@ describe("BT17-094 Ancient Guardian Deity", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-017")).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("spare").instanceId);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(3);
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-017")?.stack.some(
+        (card) => card.instanceId === s.inst("hybrid").instanceId,
+      ),
+    ).toBe(true);
   });
 
   it("Q2880: plays only the Tamer with an inherited effect, never the Tamer with a [Security] lower text", async () => {
@@ -193,8 +198,13 @@ describe("BT17-094 Ancient Guardian Deity", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-017"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-017")).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("hybrid").instanceId);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("hybrid").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-017")?.stack.some(
+        (card) => card.instanceId === s.inst("hybrid").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 
   it("naturally plays only an inherited-effect Tamer from Security, then returns this Option to hand", async () => {

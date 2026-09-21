@@ -376,6 +376,7 @@ export function useMatchCues({
   const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
   const [fieldClash, setFieldClash] = useState<FieldClashScene | null>(null);
   const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
+  const [dpBadgeSuppressions, setDpBadgeSuppressions] = useState<ReadonlyMap<string, number>>(new Map());
   const [freezePulses, setFreezePulses] = useState<ReadonlyMap<string, FreezePulse>>(new Map());
   const [effectSources, setEffectSources] = useState<readonly EffectActivation[]>([]);
   const [deckRiffles, setDeckRiffles] = useState<ReadonlySet<string>>(new Set());
@@ -835,6 +836,7 @@ export function useMatchCues({
             emphasized: true,
           };
           const causingEffectGate = causingEffectGateRef.current;
+          setDpBadgeSuppressions((suppressed) => new Map(suppressed).set(pulse.permanentId, pulse.key));
           queue.enqueue({
             id: `suppressed-dp-pulse-${pulse.key}`,
             track: `dpPulse-${pulse.permanentId}`,
@@ -850,6 +852,12 @@ export function useMatchCues({
                 setDpPulses((active) => {
                   if (active.get(pulse.permanentId)?.key !== pulse.key) return active;
                   const next = new Map(active);
+                  next.delete(pulse.permanentId);
+                  return next;
+                });
+                setDpBadgeSuppressions((suppressed) => {
+                  if (suppressed.get(pulse.permanentId) !== pulse.key) return suppressed;
+                  const next = new Map(suppressed);
                   next.delete(pulse.permanentId);
                   return next;
                 });
@@ -897,7 +905,15 @@ export function useMatchCues({
     setPendingRevealKey,
   });
 
-  useDpPulses({ state, queue, dpByPermanentRef, dpPulseKeyRef, causingEffectGateRef, setDpPulses });
+  useDpPulses({
+    state,
+    queue,
+    dpByPermanentRef,
+    dpPulseKeyRef,
+    causingEffectGateRef,
+    setDpPulses,
+    setDpBadgeSuppressions,
+  });
 
   useRestrictionPulses({
     state,
@@ -1088,6 +1104,7 @@ export function useMatchCues({
     combatImpactIds,
     fieldClash,
     dpPulses,
+    dpBadgeSuppressedIds: new Set(dpBadgeSuppressions.keys()),
     freezePulses,
     securityHitSeat,
     heldSecurityCounts,

@@ -229,6 +229,8 @@ export interface MatchCues {
   fieldClash: FieldClashScene | null;
   /** The DP change each permanent is currently pulsing over, by permanent id. */
   dpPulses: ReadonlyMap<string, DpPulse>;
+  /** Permanents whose persistent DP badge waits for the queued impact animation to finish. */
+  dpBadgeSuppressedIds: ReadonlySet<string>;
   /** The attack/block lock each permanent is currently jolting over, by permanent id. */
   freezePulses: ReadonlyMap<string, FreezePulse>;
   securityHitSeat: number | null;

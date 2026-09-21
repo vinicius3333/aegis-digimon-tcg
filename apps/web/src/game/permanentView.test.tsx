@@ -22,6 +22,22 @@ it("inspects a field-selection candidate without activating its primary choice",
   expect(choose).not.toHaveBeenCalled();
 });
 
+it("keeps a deletion target selectable without covering it with a Delete pill", () => {
+  render(
+    <I18nProvider>
+      <PermanentView
+        perm={opponentWithDpDown()}
+        candidate
+        fate={{ fate: "delete", labelKey: "game.fate.delete", glyph: "✕", tone: "danger" }}
+        onClick={vi.fn<() => void>()}
+      />
+    </I18nProvider>,
+  );
+
+  expect(screen.getByRole("button", { name: /SaberLeomon/i })).toBeTruthy();
+  expect(screen.queryByText("Delete")).toBeNull();
+});
+
 it("shows printed and granted Security Attack modifiers in field badges", () => {
   const printed = new Permanent();
   printed.permanentId = "fighter";
@@ -194,7 +210,7 @@ describe("PermanentView DP changes", () => {
 
     expect(screen.getByRole("button", { name: /Darkdramon, 14,000 DP, DP \+2K/i })).toBeTruthy();
     expect(screen.getByText("14K")).toBeTruthy();
-    expect(screen.getByText((_, element) => element?.textContent === "↑DP 2K")).toBeTruthy();
+    expect(screen.getByTitle(/DP \+2K/)).toBeTruthy();
   });
 
   it("labels a DP reduction explicitly on the affected Digimon", () => {
@@ -204,7 +220,42 @@ describe("PermanentView DP changes", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText((_, element) => element?.textContent === "↓DP 6K")).toBeTruthy();
+    expect(document.querySelector('[data-dp="down"][data-label="DP −6K"]')).toBeTruthy();
+  });
+
+  it("reveals the persistent DP-down badge only after the impact animation", () => {
+    const permanent = opponentWithDpDown();
+    const pulse = {
+      permanentId: permanent.permanentId,
+      kind: "debuff" as const,
+      from: 10_000,
+      to: 4_000,
+      key: 1,
+      emphasized: true,
+    };
+    const view = render(
+      <I18nProvider>
+        <PermanentView perm={permanent} dpBadgeSuppressed />
+      </I18nProvider>,
+    );
+
+    expect(view.container.querySelector(".game-dp-pulse--emphasized")).toBeNull();
+    expect(view.container.querySelector('[data-dp="down"]')).toBeNull();
+
+    view.rerender(
+      <I18nProvider>
+        <PermanentView perm={permanent} dpPulse={pulse} dpBadgeSuppressed />
+      </I18nProvider>,
+    );
+    expect(view.container.querySelector(".game-dp-pulse--emphasized")).toBeTruthy();
+    expect(view.container.querySelector('[data-dp="down"]')).toBeNull();
+
+    view.rerender(
+      <I18nProvider>
+        <PermanentView perm={permanent} />
+      </I18nProvider>,
+    );
+    expect(view.container.querySelector('[data-dp="down"][data-label="DP −6K"]')).toBeTruthy();
   });
 
   it("renders BT5-068's inherited +2000 DP from the synchronized current DP", () => {
@@ -214,7 +265,7 @@ describe("PermanentView DP changes", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText((_, element) => element?.textContent === "↑DP 2K")).toBeTruthy();
+    expect(screen.getByTitle(/DP \+2K/)).toBeTruthy();
     expect(screen.getByText("14K")).toBeTruthy();
   });
 });
@@ -230,6 +281,7 @@ describe("PermanentView resolved keywords", () => {
     expect(screen.getByRole("button", { name: /ExTyrannomon.*Suspended/i })).toBeTruthy();
     const card = screen.getByTitle("ExTyrannomon");
     expect(card.dataset.state).toBe("suspended");
+    expect(card.closest<HTMLElement>("[data-suspended]")?.style.marginInline).toBe("24px");
     expect(card.style.rotate).toBe("90deg");
     expect(screen.getByText("Blocker")).toBeTruthy();
   });
@@ -301,7 +353,7 @@ describe("PermanentView activatable effects", () => {
 
     expect(screen.getByText("×5")).toBeTruthy();
     expect(screen.getByText("13K")).toBeTruthy();
-    expect(screen.getByText((_, element) => element?.textContent === "↑DP 1K")).toBeTruthy();
+    expect(screen.getByTitle(/DP \+1K/)).toBeTruthy();
   });
 });
 

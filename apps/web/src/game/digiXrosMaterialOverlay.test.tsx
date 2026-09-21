@@ -80,4 +80,28 @@ describe("DigiXrosMaterialOverlay accessibility", () => {
     fireEvent.click(material);
     expect(screen.getByRole("button", { name: "DigiXros (1 card)" }).hasAttribute("disabled")).toBe(false);
   });
+
+  it("keeps materials visible and disables alternatives that no longer fit", () => {
+    render(
+      <I18nProvider>
+        <DigiXrosMaterialOverlay
+          playingCardId="EX12-015"
+          requirements={digiXrosRequirementFor("EX12-015")!}
+          candidates={[
+            { instanceId: "kakamon", cardId: "EX12-006", zone: "hand" },
+            { instanceId: "hakubamon", cardId: "EX12-043", zone: "battle" },
+          ]}
+          lockedCandidates={[]}
+          eligibleExpanders={[]}
+          onConfirm={vi.fn<(materialInstanceIds: string[], expanderPermanentIds: string[]) => void>()}
+          onSkip={vi.fn<() => void>()}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Kakamon (hand)" }));
+
+    expect(screen.getByRole("button", { name: "Kakamon (hand)" }).hasAttribute("disabled")).toBe(false);
+    expect(screen.getByRole("button", { name: "Hakubamon (battle)" }).hasAttribute("disabled")).toBe(true);
+  });
 });

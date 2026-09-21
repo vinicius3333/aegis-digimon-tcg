@@ -83,13 +83,13 @@ export class CardInstance extends Schema {
   // primitive array breaks the client decoder in the scenario suite, so this shares
   // that projection's exposure of which hand cards have a legal recipient.
   @type(["string"]) linkTargetPermanentIds = new ArraySchema<string>();
-  /** Priced digivolution routes for this hand card, visible only with the owner's hand view.
-   * Parallel to `digivolveTargetPermanentIds` (which stays public for board highlighting):
-   * that array says WHERE this card may go, these say WHAT each path there costs. */
-  @view(PRIVATE_VIEW_TAG) @type([DigivolveRoute]) digivolveRoutes = new ArraySchema<DigivolveRoute>();
+  /** Priced digivolution routes for this hand card. The owning hand zone already controls
+   * visibility; leaving the nested collection untagged also lets routes projected after a
+   * late hand arrival reach the owner, matching DNA routes below. */
+  @type([DigivolveRoute]) digivolveRoutes = new ArraySchema<DigivolveRoute>();
   /** Legal DNA declarations for this hand card, validated and priced by the server. The owning
    * hand zone already controls visibility; keeping this untagged matches public target projections. */
   @type([DnaDigivolveRoute]) dnaDigivolveRoutes = new ArraySchema<DnaDigivolveRoute>();
-  /** Legal App Fusion routes for this hand card, visible only with the owner's hand view. */
-  @view(PRIVATE_VIEW_TAG) @type([AppFusionRoute]) appFusionRoutes = new ArraySchema<AppFusionRoute>();
+  /** Legal App Fusion routes for this hand card. The owning hand zone controls visibility. */
+  @type([AppFusionRoute]) appFusionRoutes = new ArraySchema<AppFusionRoute>();
 }

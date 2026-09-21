@@ -128,7 +128,6 @@ export async function flushDeferredTimingWindows(engine: GameEngine): Promise<vo
                 deferred.timing,
                 trigger,
                 deferred.transientCandidates,
-                armedAsPendingCollected(engine, deferred.deletionSubTriggers ?? []),
               ),
             deferred.transientCandidates,
             true,

@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-059.js";
 import "./EX11-023.js";
+import "../BT2/BT2-109.js";
 
 describe("EX11-059 Reina Oumi", () => {
   it("preserves the printed dual-color NSo Tamer and complete compiled coverage", () => {
@@ -110,8 +111,8 @@ describe("EX11-059 Reina Oumi", () => {
         0: {
           battleArea: [
             { card: "EX11-059", as: "reina" },
-            { card: "EX8-013", as: "deletedNso", dp: 1000, suspended: true },
-            { card: "EX8-033", as: "fieldMaterial", dp: 3000 },
+            { card: "EX8-032", as: "deletedNso", dp: 1000, suspended: true },
+            { card: "EX12-024", as: "fieldMaterial", dp: 3000 },
           ],
           hand: [{ card: "EX12-032", as: "dnaTarget" }],
         },
@@ -131,10 +132,150 @@ describe("EX11-059 Reina Oumi", () => {
     await settle(() => s.perm("reina").isSuspended);
     expect(s.perm("reina").isSuspended).toBe(true);
     const dnaStack = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "EX12-032")!.stack;
-    expect(dnaStack.map(({ cardId }) => cardId)).toEqual(["EX8-033", "EX8-013"]);
+    expect(dnaStack.map(({ cardId }) => cardId)).toEqual(["EX12-024", "EX8-032"]);
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX12-032")).toBe(false);
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX8-013")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX8-032")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("triggers on the controller's turn when a valid NSo DNA material is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-059", as: "reina" },
+            { card: "EX8-032", as: "deletedNso" },
+            { card: "EX12-024", as: "fieldMaterial" },
+          ],
+          hand: [{ card: "EX12-032", as: "dnaTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deletedNso").permanentId], "byEffect");
+    await settle(() => s.perm("reina").isSuspended);
+
+    expect(s.perm("reina").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-032")).toBe(true);
+  });
+
+  it("reproduces the reported own-turn EX8 Myotismon deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-059", as: "reina" },
+            { card: "EX8-060", as: "deletedNso" },
+            { card: "EX8-062", as: "fieldMaterial" },
+          ],
+          hand: [{ card: "EX8-064", as: "dnaTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deletedNso").permanentId], "byEffect");
+    await settle(() => s.perm("reina").isSuspended);
+
+    expect(s.perm("reina").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX8-064")).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("offers Reina once when Heat Viper deletes one own NSo Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-059", as: "reina" },
+            { card: "EX8-060", as: "deletedNso" },
+            { card: "EX8-062", as: "fieldMaterial" },
+          ],
+          hand: [
+            { card: "BT2-109", as: "heatViper" },
+            { card: "EX8-064", as: "dnaTarget" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "targetA" },
+            { card: "BT1-010", as: "targetB" },
+          ],
+        },
+      },
+      { autoOrderTriggers: false },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("heatViper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const costDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("deletedNso").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () => s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== costDecision.decisionId,
+    );
+    const targetDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("targetA").permanentId, s.perm("targetB").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () => s.state.pendingDecision !== undefined && s.state.pendingDecision.decisionId !== targetDecision.decisionId,
+    );
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")?.req;
+    expect(order?.options?.triggerCardIds?.filter((cardId) => cardId === "EX11-059") ?? []).toHaveLength(
+      order === undefined ? 0 : 1,
+    );
+  });
+
+  it("offers the reported WereGarurumon deletion even when no legal NSo DNA exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-059", as: "reina" },
+            { card: "EX12-032", as: "deletedNso" },
+            { card: "EX8-032", as: "onlyLevelFour" },
+          ],
+          hand: [{ card: "EX12-032", as: "dnaTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deletedNso").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-032"));
+    await settle(() => false, 30);
+
+    expect(s.perm("reina").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX12-032")).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-032")).toBe(true);
     assertNoLoudGap(s);
   });
 

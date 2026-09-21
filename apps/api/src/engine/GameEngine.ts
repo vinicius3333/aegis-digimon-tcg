@@ -186,6 +186,7 @@ export class GameEngine {
    * cleared when the outermost one closes.
    */
   readonly consumedSubTriggerKeys = new Set<string>();
+  readonly announcedSubTriggerEffectKeys = new Set<string>();
   /**
    * How many resolution loops that DRAIN the pending pool ({@link pendingWindowCollected}) are on
    * the stack. Parking a watcher only makes sense while one of them is running: with no draining

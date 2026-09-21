@@ -16,13 +16,6 @@ export interface BatchFacts {
   turnEnd: EventOfKind<"turnEnded"> | undefined;
   /** Compound predicates do not infer a type guard, so this stays the wide event. */
   securityAttack: ServerEvent | undefined;
-  /**
-   * A redirect that moves the attack off the player (＜Raid＞, a Counter effect) leaves the
-   * lunge the declaration already played as the whole of what security gets: the battle is
-   * a field clash now. The attacker remembered for the centre-stage check has to be dropped
-   * with it, or the next check on this seat opens with the wrong card.
-   */
-  redirectedOffPlayer: ServerEvent | undefined;
   usedOption: ServerEvent | undefined;
   optionRouted: boolean;
 }
@@ -44,9 +37,6 @@ export function batchFacts({ fresh }: { fresh: readonly ServerEvent[] }): BatchF
   const securityAttack = [...fresh]
     .reverse()
     .find((event) => event.kind === "attackDeclared" && event.target.kind === "player");
-  const redirectedOffPlayer = [...fresh]
-    .reverse()
-    .find((event) => event.kind === "attackDeclared" && event.redirected === true && event.target.kind !== "player");
   const usedOption = fresh.find(
     (event) =>
       event.kind === "cardPlayed" &&
@@ -67,7 +57,6 @@ export function batchFacts({ fresh }: { fresh: readonly ServerEvent[] }): BatchF
     closingCheck,
     turnEnd,
     securityAttack,
-    redirectedOffPlayer,
     usedOption,
     optionRouted,
   };

@@ -458,6 +458,15 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+.board-prompt--alliance .board-prompt__eyebrow {
+  align-self: flex-start;
+  width: fit-content;
+  padding: 4px 10px;
+  color: #fff;
+  border-radius: 0.125rem;
+  background: rgb(58 105 174 / 72%);
+  white-space: nowrap;
+}
 .board-prompt__text {
   margin: 0;
   font-family: var(--ds-font-display);

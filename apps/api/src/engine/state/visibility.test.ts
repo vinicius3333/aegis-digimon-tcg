@@ -477,6 +477,34 @@ describe("visibility port (per-move exposure)", () => {
     expect(opponentDecoder.state.players[0]!.handCount).toBe(ownerHand.length);
   });
 
+  it("sends private evolution routes for a card that arrives in hand after the view exists", () => {
+    const ownerView = buildStateView(state, 0);
+    const opponentView = buildStateView(state, 1);
+    wirePort([ownerView, opponentView]);
+
+    const ownerDecoder = new Decoder(new GameState());
+    const opponentDecoder = new Decoder(new GameState());
+    const targets = [
+      { view: ownerView, decoder: ownerDecoder },
+      { view: opponentView, decoder: opponentDecoder },
+    ];
+    encodeAllForViews(state, targets);
+
+    const drawn = makeCard("late-route", 0);
+    insertCard(state.players[0]!, Zone.Hand, drawn);
+    const route = new AppFusionRoute();
+    route.hostPermanentId = "host";
+    route.linkedInstanceId = "linked";
+    route.projectedCost = 0;
+    drawn.appFusionRoutes.push(route);
+    syncPublicCounts(state);
+    encodePatchForViews(state, targets);
+
+    const ownerCard = ownerDecoder.state.players[0]!.hand.find(({ instanceId }) => instanceId === "late-route");
+    expect(ownerCard?.appFusionRoutes[0]?.linkedInstanceId).toBe("linked");
+    expect(opponentDecoder.state.players[0]!.hand).toHaveLength(0);
+  });
+
   /**
    * The property `refreshStateView`'s old per-patch walk existed to guarantee, now carried by
    * arrival-time exposure alone: a view that learned a card when it entered the hand still

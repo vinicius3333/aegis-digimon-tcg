@@ -80,9 +80,8 @@ export type ServerEvent =
        * rather than as a `digivolved` event: DNA digivolve (§8-2-2) consumes two permanents,
        * DigiXros (§7-2-2-7) consumes materials. Absent for an ordinary play. */
       mechanic?: Extract<DigivolveMechanic, "dna" | "digiXros">;
-      /** Top cards of the permanents consumed as DNA materials, for the cut-in's two flanking
-       * card images (JogressEffectObject.cs:24). DNA only — every one of them was a face-up
-       * battle-area top card a moment ago, so this reveals nothing new. */
+      /** Cards consumed as DNA or DigiXros materials, for the mechanic's visual call-out.
+       * Every id is already public to the receiving player when the mechanic resolves. */
       sourceCardIds?: string[];
       sourceArtIds?: string[];
     }
@@ -538,6 +537,8 @@ export interface DecisionRequest {
     purpose?: "cost";
     /** Effect-driven play awaiting the existing Assembly material picker for this card. */
     assemblyCardId?: string;
+    /** Effect-driven play awaiting the existing DigiXros material picker for this card. */
+    digiXrosCardId?: string;
   };
 }
 

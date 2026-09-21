@@ -23369,6 +23369,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 4,
             "optional": true
           }
@@ -23393,6 +23394,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 4,
             "optional": true
           }
@@ -36141,6 +36143,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 3,
             "optional": true
           }
@@ -39144,6 +39147,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "optional": true,
             "reduceCostBy": 8
           }
@@ -41886,6 +41890,7 @@
                 },
                 "from": ["hand"],
                 "payCost": true,
+                "allowDigiXros": true,
                 "reduceCostBy": 9,
                 "breeding": true,
                 "requiresEmpty": "breedingArea",
@@ -49231,6 +49236,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "optional": true,
             "costReduction": 4,
             "raw": "play 1 Digimon card with the [Ten Warriors] trait or 1 Tamer card with inherited effects from your hand with the play cost reduced by 4"
@@ -65590,6 +65596,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 2,
             "optional": true
           }
@@ -71009,6 +71016,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 3,
             "optional": true
           },
@@ -71542,6 +71550,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 4,
             "optional": true
           },
@@ -77685,6 +77694,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "optional": true,
             "reduceCostByScaling": { "per": 1, "unit": "namedCount", "countSource": "placedXrosSources" }
           }
@@ -85906,6 +85916,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 2,
             "cost": {
               "kind": "place",
@@ -86628,6 +86639,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 2,
             "cost": {
               "kind": "place",
@@ -99664,6 +99676,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 3,
             "optional": true
           }
@@ -100033,6 +100046,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 3,
             "optional": true
           }
@@ -103388,6 +103402,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 7,
             "optional": true
           },
@@ -108414,6 +108429,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "optional": true,
             "reduceCostBy": 3
           }
@@ -108536,6 +108552,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "optional": true,
             "reduceCostBy": 3
           }
@@ -108784,6 +108801,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 3,
             "optional": true
           }
@@ -108863,6 +108881,7 @@
               "upTo": true
             },
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 3,
             "from": ["hand"],
             "optional": true
@@ -108967,6 +108986,7 @@
             "from": ["hand"],
             "reduceCostBy": 3,
             "payCost": true,
+            "allowDigiXros": true,
             "optional": true
           }
         ]
@@ -109274,6 +109294,7 @@
             "from": ["hand"],
             "reduceCostBy": 3,
             "payCost": true,
+            "allowDigiXros": true,
             "optional": true
           }
         ]
@@ -136633,6 +136654,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 5,
             "raw": "play this card with the play cost reduced by 5"
           },
@@ -137190,6 +137212,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 5,
             "raw": "play this card with the play cost reduced by 5"
           },
@@ -138605,6 +138628,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 5,
             "raw": "play this card with the play cost reduced by 5"
           },
@@ -140494,6 +140518,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 5,
             "raw": "play this card with the play cost reduced by 5"
           },
@@ -147594,6 +147619,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 2,
             "cost": {
               "kind": "return",
@@ -148408,6 +148434,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -149714,6 +149741,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -150419,29 +150447,29 @@
       {
         "cost": 0,
         "materials": [
-          { "color": "Blue", "level": 5 },
-          { "color": "Purple", "level": 5 }
+          { "color": "Blue", "level": 4 },
+          { "color": "Purple", "level": 4 }
         ]
       },
       {
         "cost": 0,
         "materials": [
-          { "color": "Blue", "level": 5 },
-          { "color": "Red", "level": 5 }
+          { "color": "Blue", "level": 4 },
+          { "color": "Red", "level": 4 }
         ]
       },
       {
         "cost": 0,
         "materials": [
-          { "color": "Yellow", "level": 5 },
-          { "color": "Purple", "level": 5 }
+          { "color": "Yellow", "level": 4 },
+          { "color": "Purple", "level": 4 }
         ]
       },
       {
         "cost": 0,
         "materials": [
-          { "color": "Yellow", "level": 5 },
-          { "color": "Red", "level": 5 }
+          { "color": "Yellow", "level": 4 },
+          { "color": "Red", "level": 4 }
         ]
       }
     ]
@@ -151304,6 +151332,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -151425,6 +151454,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -151670,6 +151700,7 @@
                 "from": ["hand"],
                 "payCost": true,
                 "reduceCostBy": 2,
+                "allowDigiXros": true,
                 "optional": true
               }
             ]
@@ -152014,8 +152045,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "level": 5, "texts": ["Gokuumon"], "cost": 3, "isAlternate": true },
-      { "level": 5, "traits": ["Shambala"], "cost": 3, "isAlternate": true }
+      { "level": 5, "texts": ["Gokuumon"], "cost": 4, "isAlternate": true },
+      { "level": 5, "traits": ["Shambala"], "cost": 4, "isAlternate": true }
     ],
     "assemblyRequirement": [
       {
@@ -152100,6 +152131,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -153955,6 +153987,7 @@
                 "from": ["hand"],
                 "payCost": true,
                 "reduceCostBy": 3,
+                "allowDigiXros": true,
                 "optional": true
               }
             ]
@@ -154383,6 +154416,7 @@
             "from": ["hand"],
             "payCost": true,
             "reduceCostBy": 3,
+            "allowDigiXros": true,
             "optional": true
           }
         ]
@@ -183764,6 +183798,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 2,
             "reduceCostByScaling": {
               "per": 1,
@@ -188400,6 +188435,7 @@
                 },
                 "from": ["hand"],
                 "payCost": true,
+                "allowDigiXros": true,
                 "reduceCostBy": 3,
                 "optional": true
               }
@@ -210424,6 +210460,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 2,
             "optional": true
           }
@@ -215293,6 +215330,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 3
                 }
               ],
@@ -215349,6 +215387,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 3
                 }
               ],
@@ -215646,6 +215685,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 3
                 }
               ],
@@ -215702,6 +215742,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 3
                 }
               ],
@@ -220371,6 +220412,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 2,
                   "optional": true
                 }
@@ -221235,6 +221277,7 @@
                 },
                 "from": ["hand"],
                 "payCost": true,
+                "allowDigiXros": true,
                 "reduceCostBy": 4,
                 "optional": true
               }
@@ -222193,6 +222236,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 5,
                   "optional": true
                 }
@@ -222316,6 +222360,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 5,
                   "optional": true
                 }
@@ -228321,6 +228366,7 @@
             },
             "from": ["hand", "trash"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 2,
             "optional": true,
             "cost": { "kind": "return", "target": { "filter": { "isSelfRef": true }, "count": 1 }, "to": "deckBottom" }
@@ -229705,6 +229751,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 1,
                   "optional": true
                 }
@@ -230093,6 +230140,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 3,
                   "optional": true
                 }
@@ -230142,6 +230190,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 3,
                   "optional": true
                 }
@@ -232953,6 +233002,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 4,
                   "reduceCostByScaling": {
                     "per": 1,
@@ -233012,6 +233062,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 4,
                   "reduceCostByScaling": {
                     "per": 1,
@@ -237103,6 +237154,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 6,
             "optional": true,
             "abortOnDecline": true,

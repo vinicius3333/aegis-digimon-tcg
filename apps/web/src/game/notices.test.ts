@@ -137,21 +137,32 @@ describe("deletionNoticesFromEvent", () => {
 });
 
 describe("keywordNoticeFromEvent", () => {
-  const played = (cardId: string, seat: Seat = 0): ServerEvent => ({ kind: "cardPlayed", seat, cardId });
+  const played = (cardId: string, seat: Seat = 0): ServerEvent => ({
+    kind: "cardPlayed",
+    seat,
+    cardId,
+    mechanic: "digiXros",
+    sourceCardIds: ["BT10-049", "BT10-060"],
+  });
 
   it("calls out a played card that could only have reached the field by DigiXros", () => {
     expect(keywordNoticeFromEvent(played("BT10-066"), VIEWER, "k", 4)).toEqual({
       id: "k",
       side: Side.Viewer,
       fromSecurity: false,
-      body: { variant: "keyword", keyword: "digiXros", cardId: "BT10-066" },
+      body: {
+        variant: "keyword",
+        keyword: "digiXros",
+        cardId: "BT10-066",
+        materialCardIds: ["BT10-049", "BT10-060"],
+      },
       createdAt: 4,
     });
     expect(keywordNoticeFromEvent(played("BT10-066", 1), VIEWER, "k", 0)?.side).toBe("opp");
   });
 
-  it("stays quiet for a card with no DigiXros requirement", () => {
-    expect(keywordNoticeFromEvent(played("BT1-001"), VIEWER, "k", 0)).toBeNull();
+  it("stays quiet when a DigiXros-capable card was played normally", () => {
+    expect(keywordNoticeFromEvent({ kind: "cardPlayed", seat: VIEWER, cardId: "BT10-066" }, VIEWER, "k", 0)).toBeNull();
   });
 
   it("ignores other events", () => {

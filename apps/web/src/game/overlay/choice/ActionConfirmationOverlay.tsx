@@ -10,6 +10,7 @@ export function ActionConfirmationOverlay({
   cardId,
   title,
   detail,
+  showSummary = true,
   confirmLabel,
   alternateLabel,
   onConfirm,
@@ -19,6 +20,7 @@ export function ActionConfirmationOverlay({
   cardId: string;
   title: string;
   detail: string;
+  showSummary?: boolean;
   confirmLabel: string;
   alternateLabel?: string;
   onConfirm: () => void;
@@ -48,9 +50,10 @@ export function ActionConfirmationOverlay({
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        data-summary={showSummary || undefined}
         className="game-modal__panel action-confirmation effect-prompt-family"
         style={{
-          width: 480,
+          width: showSummary ? 480 : 360,
           maxWidth: "calc(100% - 32px)",
           padding: 22,
           borderRadius: 18,
@@ -59,23 +62,15 @@ export function ActionConfirmationOverlay({
           boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
         }}
       >
-        <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 18 }}>
-          <CardFull cardId={cardId} width={92} />
-          <div>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 800,
-                color: "var(--ds-warning)",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-              }}
-            >
-              {title}
+        {showSummary ? (
+          <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 18 }}>
+            <CardFull cardId={cardId} width={92} />
+            <div className="action-confirmation__copy">
+              <div className="action-confirmation__title">{title}</div>
+              <div className="action-confirmation__detail">{detail}</div>
             </div>
-            <div style={{ marginTop: 7, color: "var(--ds-fg)", fontSize: 15, lineHeight: 1.45 }}>{detail}</div>
           </div>
-        </div>
+        ) : null}
         <div className="game-actions-row">
           <Button full onClick={onConfirm}>
             {confirmLabel}

@@ -174,6 +174,22 @@ describe("NoticeStack", () => {
     expect(shown.textContent).not.toContain("ZZ9-999");
   });
 
+  it("shows DigiXros materials and marks the notice with the mechanic tone", () => {
+    renderNotice(
+      notice({
+        body: {
+          variant: "keyword",
+          keyword: "digiXros",
+          cardId: "BT10-066",
+          materialCardIds: ["BT10-049", "BT10-060"],
+        },
+      }),
+    );
+    const shown = screen.getByTestId("match-notice");
+    expect(shown.dataset.keyword).toBe("digiXros");
+    expect(screen.getByLabelText("DigiXros materials").children).toHaveLength(2);
+  });
+
   it("advances to the next moment through its close button", () => {
     const onDismiss = vi.fn<(id: string) => void>();
     renderNotice(notice(), {}, onDismiss);
