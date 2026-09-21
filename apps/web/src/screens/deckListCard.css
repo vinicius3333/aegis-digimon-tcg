@@ -115,15 +115,6 @@
   gap: var(--ds-space-2);
 }
 
-.deck-list-card__split-color {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  border: 1px solid color-mix(in srgb, var(--ds-fg) 18%, transparent);
-  border-radius: 50%;
-}
-
 .deck-list-card__blurb {
   display: -webkit-box;
   overflow: hidden;
@@ -185,10 +176,6 @@
   border-top: 13px solid var(--deck-color);
   content: "";
   pointer-events: none;
-}
-
-.deck-list-card.is-compact.is-active::after {
-  display: none;
 }
 
 .deck-list-card.is-compact .deck-list-card__cover {

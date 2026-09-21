@@ -7,7 +7,7 @@ import {
 } from "@aegis/shared";
 import { Badge, ColorDot } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
-import { COLORS, type ColorName } from "../design/theme";
+import { COLORS } from "../design/theme";
 import { Icons } from "../design/icons";
 import { deckBlurbLabel, displayCoverCard, displayCoverArt, type DeckListing } from "../game/decks";
 import { useTranslation } from "../i18n";
@@ -38,12 +38,6 @@ export function deckLegality(deck: DeckListing): DeckLegality {
   };
 }
 
-type DeckColor = Exclude<ColorName, "Neutral">;
-
-function deckColors(deck: DeckListing): DeckColor[] {
-  return deck.color === "Neutral" ? [] : [deck.color];
-}
-
 export function DeckListCard({
   deck,
   active,
@@ -62,7 +56,6 @@ export function DeckListCard({
   const { t } = useTranslation();
   const color = COLORS[deck.color];
   const { legal, banViolations, pairViolations } = deckLegality(deck);
-  const colors = compact ? deckColors(deck) : [];
 
   return (
     <article
@@ -101,13 +94,6 @@ export function DeckListCard({
             {compact ? <span className="deck-list-card__eyebrow">{t("deck.cardEyebrow")}</span> : null}
             <div className="deck-list-card__name-row">
               <h3>{deck.name}</h3>
-              {compact ? (
-                <span
-                  className="deck-list-card__split-color"
-                  aria-label={colors.map((deckColor) => t(`game.color.${deckColor}`)).join(", ")}
-                  style={{ background: COLORS[colors[0] ?? "Neutral"].base }}
-                />
-              ) : null}
             </div>
             {!compact ? (
               <div className="deck-list-card__counts">
