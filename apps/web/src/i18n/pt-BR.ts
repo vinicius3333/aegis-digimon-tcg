@@ -124,6 +124,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "lobby.filterFamous": "Famosos",
   "lobby.useDeck": "Usar deck",
   "lobby.randomDeck": "Deck misterioso",
+  "lobby.randomAction": "Surpreenda-me",
+  "lobby.randomSelected": "Mistério selecionado",
   "lobby.randomDeckHint": "Seu deck será revelado quando a partida começar.",
   "lobby.randomPool": "{count} decks válidos no sorteio",
   "lobby.randomPoolOne": "1 deck válido no sorteio",

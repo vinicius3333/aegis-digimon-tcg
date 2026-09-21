@@ -14,35 +14,6 @@
   border-color: var(--ds-primary);
 }
 
-.deck-list-card--mystery {
-  color: var(--ds-brand-on-ink);
-  border-color: var(--ds-brand-accent-soft);
-  background: var(--ds-brand-ink);
-}
-
-.deck-list-card--mystery .deck-list-card__identity h3,
-.deck-list-card--mystery .deck-list-card__counts span,
-.deck-list-card--mystery .deck-list-card__blurb {
-  color: var(--ds-brand-on-ink);
-}
-
-.deck-list-card--mystery .deck-list-card__counts span,
-.deck-list-card--mystery .deck-list-card__blurb {
-  opacity: 0.72;
-}
-
-.deck-list-card--mystery.is-active {
-  border-color: var(--ds-accent);
-  box-shadow: inset 0 0 0 1px var(--ds-accent);
-}
-
-.deck-list-card__mystery-cover {
-  color: var(--ds-brand-on-ink);
-  background:
-    radial-gradient(circle, color-mix(in srgb, var(--ds-accent) 38%, transparent), transparent 58%),
-    var(--ds-brand-ink) !important;
-}
-
 .deck-list-card.is-disabled,
 .deck-list-card__selector:disabled {
   cursor: not-allowed;

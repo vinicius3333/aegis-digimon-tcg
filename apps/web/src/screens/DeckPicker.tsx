@@ -127,9 +127,21 @@ function DeckPickerView({
   return (
     <section className="deck-picker" aria-labelledby="deck-picker-title">
       <header className="deck-picker__header">
-        <Eyebrow color="var(--ds-fg-muted)">{t("lobby.battleDeck")}</Eyebrow>
-        <h2 id="deck-picker-title">{t("lobby.pickDeck")}</h2>
-        <p>{t("lobby.pickDeckHint")}</p>
+        <div>
+          <Eyebrow color="var(--ds-fg-muted)">{t("lobby.battleDeck")}</Eyebrow>
+          <h2 id="deck-picker-title">{t("lobby.pickDeck")}</h2>
+          <p>{t("lobby.pickDeckHint")}</p>
+        </div>
+        <Button
+          className="deck-picker__random-action"
+          variant={randomSelected ? "primary" : "secondary"}
+          icon={randomSelected ? Icons.Check : Icons.Dices}
+          disabled={randomPoolSize === 0}
+          aria-pressed={randomSelected}
+          onClick={onSelectRandom}
+        >
+          {t(randomSelected ? "lobby.randomSelected" : "lobby.randomAction")}
+        </Button>
       </header>
 
       <div className="deck-picker__toolbar">
@@ -163,40 +175,6 @@ function DeckPickerView({
         <span className="deck-picker__result-count" role="status">
           {deckCount(visibleCount)}
         </span>
-      </div>
-
-      <div className="deck-picker__mystery-row">
-        <article
-          className={`deck-list-card deck-list-card--mystery is-compact${randomSelected ? " is-active" : ""}`}
-        >
-          <button
-            type="button"
-            className="deck-list-card__selector"
-            aria-label={t("lobby.randomDeck")}
-            aria-pressed={randomSelected}
-            disabled={randomPoolSize === 0}
-            onClick={onSelectRandom}
-          />
-          <div className="deck-list-card__cover deck-list-card__mystery-cover" aria-hidden="true">
-            <Icons.Dices size={34} />
-          </div>
-          <div className="deck-list-card__body">
-            <div className="deck-list-card__heading">
-              <div className="deck-list-card__identity">
-                <h3>{t("lobby.randomDeck")}</h3>
-                <div className="deck-list-card__counts">
-                  <Icons.Dices size={13} />
-                  <span>
-                    {t(randomPoolSize === 1 ? "lobby.randomPoolOne" : "lobby.randomPool", {
-                      count: randomPoolSize,
-                    })}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <p className="deck-list-card__blurb">{t("lobby.randomDeckHint")}</p>
-          </div>
-        </article>
       </div>
 
       {showOwn ? (

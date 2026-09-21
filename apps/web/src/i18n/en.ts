@@ -121,6 +121,8 @@ export const en = {
   "lobby.filterFamous": "Famous",
   "lobby.useDeck": "Use deck",
   "lobby.randomDeck": "Mystery deck",
+  "lobby.randomAction": "Surprise me",
+  "lobby.randomSelected": "Mystery selected",
   "lobby.randomDeckHint": "Your deck is revealed when the match begins.",
   "lobby.randomPool": "{count} legal decks in pool",
   "lobby.randomPoolOne": "1 legal deck in pool",

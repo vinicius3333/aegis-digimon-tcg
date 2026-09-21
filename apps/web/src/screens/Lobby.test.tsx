@@ -110,8 +110,9 @@ describe("famous deck selection", () => {
       </I18nProvider>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Mystery deck" }));
-    expect(screen.getAllByText("Mystery deck").length).toBeGreaterThan(1);
+    fireEvent.click(screen.getByRole("button", { name: "Surprise me" }));
+    expect(screen.getByRole("button", { name: "Mystery selected" })).toBeTruthy();
+    expect(screen.getAllByText("Mystery deck").length).toBeGreaterThan(0);
     expect(screen.getByText("A legal deck will be chosen when the match begins.")).toBeTruthy();
     expect(screen.queryByText(/Randomly selected/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
