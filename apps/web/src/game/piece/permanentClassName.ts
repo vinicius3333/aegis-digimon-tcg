@@ -8,6 +8,7 @@ export function permanentClassName({
   effectSource,
   effectLinked,
   candidate,
+  threatened,
 }: {
   lunge?: "up" | "down";
   shake?: boolean;
@@ -15,6 +16,7 @@ export function permanentClassName({
   effectSource?: boolean;
   effectLinked?: boolean;
   candidate?: boolean;
+  threatened?: boolean;
 }): string | undefined {
   return (
     [
@@ -24,6 +26,7 @@ export function permanentClassName({
       effectSource ? "game-permanent--effect-source" : "",
       effectLinked ? "game-permanent--effect-linked" : "",
       candidate ? "game-permanent--candidate" : "",
+      threatened ? "game-permanent--threatened" : "",
     ]
       .filter(Boolean)
       .join(" ") || undefined

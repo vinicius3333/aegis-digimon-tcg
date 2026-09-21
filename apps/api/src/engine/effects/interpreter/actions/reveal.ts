@@ -6,10 +6,11 @@ import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
-import { type LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
+import { type LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
-import { CardKind, filterToDistinctColors, isDigimon } from "@aegis/shared";
+import { CardKind, assemblyRequirementFor, filterToDistinctColors, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
+import { materialMatchesAssemblySlot, materialsSatisfyAssemblyRecipe } from "../../../actions/assembly.js";
 
 /** Cards whose rule text changes a static fact only while they are revealed from deck. */
 export function revealedDefinition(
@@ -449,6 +450,37 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   if (toPlay.length > 0) {
     const toPlayIds = toPlay.map((p) => p.instanceId);
     await ctx.fx.returnToHand(toPlayIds, { silent: true });
+    const assemblyMaterialInstanceIdsByPlay: Record<string, string[]> = {};
+    const assemblyReductionByPlay: Record<string, number> = {};
+    const reservedAssemblyMaterials = new Set<string>();
+    for (const entry of toPlay) {
+      const playedCard = revealed.find((card) => card.instanceId === entry.instanceId);
+      if (playedCard === undefined) continue;
+      const playedDefinition = ctx.game.definitionOf(playedCard);
+      const requirement = assemblyRequirementFor(playedCard.cardId)?.[0];
+      if (requirement === undefined) continue;
+      const requiredCount = requirement.materials.reduce((sum, slot) => sum + slot.count, 0);
+      const materialCandidates = looseCardsInZone(ctx, playedCard.ownerSeat, "trash").filter((candidate) => {
+        if (reservedAssemblyMaterials.has(candidate.instanceId)) return false;
+        const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+        return requirement.materials.some((slot) => materialMatchesAssemblySlot(definition, slot, playedDefinition));
+      });
+      if (requiredCount === 0 || materialCandidates.length < requiredCount) continue;
+      const selected = await ctx.ask.selectCards(ctx, {
+        candidates: materialCandidates.map((candidate) => candidate.instanceId),
+        min: 0,
+        max: requiredCount,
+        assemblyCardId: playedCard.cardId,
+      });
+      const selectedDefinitions = selected
+        .map((selectedId) => materialCandidates.find((candidate) => candidate.instanceId === selectedId))
+        .filter((candidate): candidate is LooseCandidate => candidate !== undefined)
+        .map((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never));
+      if (!materialsSatisfyAssemblyRecipe(selectedDefinitions, requirement.materials, playedDefinition)) continue;
+      assemblyMaterialInstanceIdsByPlay[entry.instanceId] = selected;
+      assemblyReductionByPlay[entry.instanceId] = requirement.reduceCost;
+      for (const materialId of selected) reservedAssemblyMaterials.add(materialId);
+    }
     // Group by costDelta so a "play with the cost reduced by N" spec (BT25-074) plays
     // separately from a plain "without paying the cost" spec (payCost: false) in the
     // same RevealAdd action.
@@ -474,14 +506,26 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     // `playFromHand` is the legacy placement-only primitive; `playInstances` owns the
     // complete effect-play lifecycle (ST13-02 revealing ST13-09, and the wider reveal-play
     // family). The revealed cards were staged into hand above solely to leave the reveal pool.
-    if (freeReadyIds.length > 0) await ctx.fx.playInstances(freeReadyIds, { payCost: false });
+    if (freeReadyIds.length > 0)
+      await ctx.fx.playInstances(freeReadyIds, { payCost: false, assemblyMaterialInstanceIdsByPlay });
     if (freeSuspendedIds.length > 0) {
-      await ctx.fx.playInstances(freeSuspendedIds, { payCost: false, suspended: true });
+      await ctx.fx.playInstances(freeSuspendedIds, {
+        payCost: false,
+        suspended: true,
+        assemblyMaterialInstanceIdsByPlay,
+      });
     }
     for (const { costDelta, suspended, ids } of reducedGroups.values()) {
       // "With the play cost reduced by N" is not a free play. The old call omitted
       // `payCost:true`, silently waiving the remaining cost in every RevealAdd reduced-play.
-      await ctx.fx.playInstances(ids, { payCost: true, costDelta, ...(suspended ? { suspended: true } : {}) });
+      await ctx.fx.playInstances(ids, {
+        payCost: true,
+        costDeltaByPlay: Object.fromEntries(
+          ids.map((id) => [id, costDelta + (assemblyReductionByPlay[id] ?? 0)]),
+        ),
+        assemblyMaterialInstanceIdsByPlay,
+        ...(suspended ? { suspended: true } : {}),
+      });
     }
   }
   if (toUseOption.length > 0) {

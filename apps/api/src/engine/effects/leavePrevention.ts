@@ -267,7 +267,10 @@ export async function consultLeavePrevention(
       opts.reentryGuard.activeReplacementKeys.add(activationKey);
       let did: boolean;
       try {
-        did = await repl.preventCheck(ctx, leavingId);
+        // Keep the public target visible while a nested prevention prompt is open. The
+        // original target decision may belong to the opponent and is intentionally
+        // private, but the permanent it selected is public game state by this point.
+        did = await repl.preventCheck({ ...ctx, affectedPermanentIds: [leavingId] }, leavingId);
       } finally {
         opts.reentryGuard.activeReplacementKeys.delete(activationKey);
       }

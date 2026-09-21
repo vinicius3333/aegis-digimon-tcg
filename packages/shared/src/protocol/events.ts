@@ -517,6 +517,8 @@ export interface DecisionRequest {
     isInherited?: boolean;
     /** What the resolving action will do to the permanents picked here (`chooseTargets` only). */
     targetFate?: TargetFate;
+    /** Public board permanents already selected by the effect that opened this follow-up decision. */
+    affectedPermanentIds?: string[];
     promptKey?: "activateBlitz";
     /**
      * Why the engine is asking. `"cost"` means the selection IS the payment of a cost the

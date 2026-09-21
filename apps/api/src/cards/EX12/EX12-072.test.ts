@@ -94,6 +94,40 @@ describe("EX12-072 Metal Empire", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX12-008");
   });
 
+  it("names Metal Empire and its granted Guard clause in the prevention decision", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX12-008", as: "guard" },
+          { card: "EX12-005", as: "protected" },
+        ],
+        security: [{ card: CARD_ID, as: "metal", faceUp: true }],
+      },
+      1: {},
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    const deletion = primitivesOf(s.engine).deletePermanent([s.perm("protected").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+
+    const request = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)?.req;
+    expect(request).toMatchObject({
+      sourceCardId: CARD_ID,
+      sourceInstanceId: s.inst("metal").instanceId,
+      options: { effectText: "[Security] [All Turns] All of your [ME] trait Digimon gain ＜Guard＞" },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+  });
+
   it("does not protect while the security card is face-down", async () => {
     const s = setupEngine(
       {

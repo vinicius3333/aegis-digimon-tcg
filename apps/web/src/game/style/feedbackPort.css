@@ -108,6 +108,32 @@
   --fate-tint: rgb(255 255 255);
 }
 
+/* A follow-up prevention window outlives the opponent's private target picker.
+   Keep its public target unmistakable on the field; the crosshair badge means
+   the cue remains understandable without colour. */
+.game-permanent--threatened::after {
+  content: "";
+  position: absolute;
+  inset: -0.35rem;
+  z-index: 4;
+  pointer-events: none;
+  border: 3px solid rgb(255 109 233);
+  border-radius: 0.55rem;
+  box-shadow:
+    0 0 0 2px rgb(12 15 24 / 85%),
+    0 0 18px rgb(255 109 233 / 75%);
+  animation: battle-target-pulse 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes battle-target-pulse {
+  from {
+    opacity: 0.72;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes battle-fate-badge {
   0% {
     opacity: 0;

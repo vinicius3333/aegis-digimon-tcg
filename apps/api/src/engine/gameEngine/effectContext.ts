@@ -228,6 +228,16 @@ export async function engineConsultLeavePrevention(
             permanentById: (id) => engine.access.permanentById(id),
             isBattleAreaDigimon: (permanent) => engine.access.isBattleAreaDigimon(permanent, engine.continuous),
             hasGuard: (id) => engine.continuous.hasKeyword(id, "Guard"),
+            guardSource: (id) => {
+              const source = engine.continuous.keywordGrantSources(id, "Guard")[0];
+              return source === undefined
+                ? undefined
+                : {
+                    cardId: source.sourceCardId,
+                    instanceId: source.sourceInstanceId,
+                    effectText: source.effectText,
+                  };
+            },
           },
         ),
       ],

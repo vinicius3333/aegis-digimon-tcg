@@ -102,6 +102,41 @@ describe("EX12-058 HiAndromon", () => {
     expect(s.state.memory).toBe(-1);
   });
 
+  it("lets a revealed Megadramon use Assembly while it is played by HiAndromon's effect", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX12-058", as: "hiandromon" }],
+          deck: [
+            { card: "EX12-064", as: "megadramon" },
+            "BT1-009",
+            "BT1-014",
+          ],
+          trash: [{ card: "EX12-054", as: "assemblyMaterial" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 11;
+    preferred.push(s.inst("megadramon").instanceId, s.inst("assemblyMaterial").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hiandromon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-064"));
+
+    const megadramon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.cardId === "EX12-064",
+    )!;
+    expect(megadramon.stack.map(({ instanceId }) => instanceId)).toContain(s.inst("assemblyMaterial").instanceId);
+    expect(
+      s.decisions.some(
+        ({ req }) => req.kind === "selectCards" && req.options?.assemblyCardId === "EX12-064",
+      ),
+    ).toBe(true);
+  });
+
   it("grants Alliance and Reboot to every own ME Digimon, but not to a non-ME Digimon", async () => {
     const s = setupEngine({
       0: {

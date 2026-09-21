@@ -841,6 +841,7 @@ export class ContinuousEffectLedger {
       active?: () => boolean;
       specifiers?: string[];
       sourceCardId?: string;
+      sourceInstanceId?: string;
       sourceEffectText?: string;
       sourceSeat?: Seat;
       sourceKinds?: string[];
@@ -856,6 +857,7 @@ export class ContinuousEffectLedger {
         active: opts?.active,
         specifiers: opts?.specifiers,
         sourceCardId: opts?.sourceCardId,
+        sourceInstanceId: opts?.sourceInstanceId,
         sourceEffectText: opts?.sourceEffectText,
         sourceSeat: opts?.sourceSeat,
         sourceKinds: opts?.sourceKinds,
@@ -927,13 +929,14 @@ export class ContinuousEffectLedger {
   keywordGrantSources(
     permanentId: string,
     keyword: string,
-  ): Array<{ sourceCardId?: string; effectText?: string; specifiers?: string[] }> {
+  ): Array<{ sourceCardId?: string; sourceInstanceId?: string; effectText?: string; specifiers?: string[] }> {
     return this.keywordGrants
       .filter(
         (grant) => grant.permanentId === permanentId && grant.keyword === keyword && this.keywordGrantIsActive(grant),
       )
-      .map(({ sourceCardId, sourceEffectText, specifiers }) => ({
+      .map(({ sourceCardId, sourceInstanceId, sourceEffectText, specifiers }) => ({
         sourceCardId,
+        sourceInstanceId,
         effectText: sourceEffectText,
         specifiers,
       }));
