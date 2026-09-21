@@ -23,7 +23,7 @@ import {
 import { CoverThumb } from "../design/cards";
 import { COLORS } from "../design/theme";
 import { Icons, type IconComponent } from "../design/icons";
-import { FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, type DeckListing } from "../game/decks";
+import { FAMOUS_DECKS, FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, type DeckListing } from "../game/decks";
 import { useTranslation, type Translate } from "../i18n";
 import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
@@ -32,6 +32,20 @@ import { DeckPicker } from "./DeckPicker";
 import "./lobby.css";
 
 export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest";
+export type RandomDeckPool = "mine" | "famous" | "all";
+
+function randomEligible(deck: DeckListing): boolean {
+  if (!deckLegality(deck).legal) return false;
+  return ![...deck.mainDeck, ...deck.eggDeck].some((id) => {
+    const card = getCardDefinition(id);
+    return card !== undefined && isBetaOnlyCard(card);
+  });
+}
+
+export function randomDeckPool(personalDecks: readonly DeckListing[], scope: RandomDeckPool): DeckListing[] {
+  const candidates = scope === "mine" ? personalDecks : scope === "famous" ? FAMOUS_DECKS : selectableDecks(personalDecks);
+  return [...new Map(candidates.filter(randomEligible).map((deck) => [deck.id, deck])).values()];
+}
 
 export function randomDeckId(decks: readonly DeckListing[], random = Math.random): string | undefined {
   if (decks.length === 0) return undefined;
@@ -119,6 +133,7 @@ export function Lobby({
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
   const [botDeckId, setBotDeckId] = useState("");
   const [randomSelected, setRandomSelected] = useState(false);
+  const [randomPoolScope, setRandomPoolScope] = useState<RandomDeckPool>("all");
   // Which modes route an unreleased-card deck into the separate beta queue.
   const betaQueueMode = mode === "casual" || mode === "practice";
   // A private room is invite-only and both seats opt in by sharing the code, so it takes
@@ -149,6 +164,7 @@ export function Lobby({
     },
     [onEditDeck, onSelectDeck, onNav],
   );
+  const buildDeck = useCallback(() => onNav("deck"), [onNav]);
   const availableDecks = selectableDecks(decks);
   const active = availableDecks.find((d) => d.id === activeDeckId) ?? availableDecks[0];
   const activeCollection = FAMOUS_DECK_GROUPS.find((group) =>
@@ -195,17 +211,10 @@ export function Lobby({
     banViolations.length === 0 &&
     pairViolations.length === 0 &&
     (betaCards.length === 0 || betaAllowed);
-  const randomPool = useMemo(
-    () =>
-      selectableDecks(decks).filter((deck) => {
-        if (!deckLegality(deck).legal) return false;
-        return ![...deck.mainDeck, ...deck.eggDeck].some((id) => {
-          const card = getCardDefinition(id);
-          return card !== undefined && isBetaOnlyCard(card);
-        });
-      }),
-    [decks],
-  );
+  const randomPool = useMemo(() => randomDeckPool(decks, randomPoolScope), [decks, randomPoolScope]);
+  const randomPoolLabel = t(randomPool.length === 1 ? "lobby.randomPoolOne" : "lobby.randomPool", {
+    count: randomPool.length,
+  });
   const selectionLegal = randomSelected ? randomPool.length > 0 : deckLegal;
   const selectDeck = useCallback(
     (deckId: string) => {
@@ -254,7 +263,7 @@ export function Lobby({
               <span className="lobby-active-strip__name">{t("lobby.randomDeck")}</span>
             </span>
           </div>
-          <span className="lobby-active-strip__status">{t("lobby.randomPool", { count: randomPool.length })}</span>
+          <span className="lobby-active-strip__status">{randomPoolLabel}</span>
         </div>
       ) : active ? (
         <div className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
@@ -363,6 +372,7 @@ export function Lobby({
           onSelectDeck={selectDeck}
           onCopyDeck={onCopyDeck}
           onEditDeck={editDeck}
+          onBuildDeck={buildDeck}
         />
       </div>
 
@@ -384,7 +394,7 @@ export function Lobby({
             </div>
             <div>
               <div className="lobby-mystery-summary__title">{t("lobby.randomDeck")}</div>
-              <div className="lobby-mystery-summary__pool">{t("lobby.randomPool", { count: randomPool.length })}</div>
+              <div className="lobby-mystery-summary__pool">{randomPoolLabel}</div>
             </div>
           </div>
         ) : active ? (
@@ -478,6 +488,24 @@ export function Lobby({
         <div style={{ height: 1, background: "var(--ds-border)", margin: "4px 0 18px" }} />
 
         <div style={{ flex: 1 }}>
+            {randomSelected ? (
+              <div className="lobby-random-pool">
+                <span id="lobby-random-pool-label">{t("lobby.randomPoolLabel")}</span>
+                <div role="group" aria-labelledby="lobby-random-pool-label">
+                  {(["mine", "famous", "all"] as const).map((scope) => (
+                    <button
+                      type="button"
+                      key={scope}
+                      className={randomPoolScope === scope ? "is-selected" : undefined}
+                      aria-pressed={randomPoolScope === scope}
+                      onClick={() => setRandomPoolScope(scope)}
+                    >
+                      {t(`lobby.filter${scope === "mine" ? "Mine" : scope === "famous" ? "Famous" : "All"}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           {betaEnabled ? (
             <Alert className="lobby-alert" tone="warning" title={t("lobby.betaBattleMode")}>
               {t("lobby.betaBattleHint")}

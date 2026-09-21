@@ -280,7 +280,6 @@ export function AegisClient({
   const navigateScreen = (nextScreen: Screen) => navigate({ screen: nextScreen });
 
   const availableDecks = useMemo(() => selectableDecks(decks), [decks]);
-  const activeDeck = deckById(availableDecks, activeDeckId);
   const matchDeck = deckById(availableDecks, matchDeckId ?? activeDeckId);
   const collectionSize = useMemo(() => activeCollectionCards().length, []);
   const identityColor: ColorName = colorKey(player.color);

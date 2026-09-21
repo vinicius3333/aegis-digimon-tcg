@@ -61,6 +61,7 @@ function DeckPickerView({
   onSelectDeck,
   onCopyDeck,
   onEditDeck,
+  onBuildDeck,
 }: {
   ownDecks: OwnDeckEntry[];
   activeDeckId: string;
@@ -70,6 +71,7 @@ function DeckPickerView({
   onSelectDeck: (id: string) => void;
   onCopyDeck: (deck: DeckListing) => void;
   onEditDeck: (deck: DeckListing) => void;
+  onBuildDeck: () => void;
 }) {
   const { t } = useTranslation();
   const deckCount = (count: number) =>
@@ -163,6 +165,40 @@ function DeckPickerView({
         </span>
       </div>
 
+      <div className="deck-picker__mystery-row">
+        <article
+          className={`deck-list-card deck-list-card--mystery is-compact${randomSelected ? " is-active" : ""}`}
+        >
+          <button
+            type="button"
+            className="deck-list-card__selector"
+            aria-label={t("lobby.randomDeck")}
+            aria-pressed={randomSelected}
+            disabled={randomPoolSize === 0}
+            onClick={onSelectRandom}
+          />
+          <div className="deck-list-card__cover deck-list-card__mystery-cover" aria-hidden="true">
+            <Icons.Dices size={34} />
+          </div>
+          <div className="deck-list-card__body">
+            <div className="deck-list-card__heading">
+              <div className="deck-list-card__identity">
+                <h3>{t("lobby.randomDeck")}</h3>
+                <div className="deck-list-card__counts">
+                  <Icons.Dices size={13} />
+                  <span>
+                    {t(randomPoolSize === 1 ? "lobby.randomPoolOne" : "lobby.randomPool", {
+                      count: randomPoolSize,
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p className="deck-list-card__blurb">{t("lobby.randomDeckHint")}</p>
+          </div>
+        </article>
+      </div>
+
       {showOwn ? (
         <section
           className="deck-picker__group deck-picker__own"
@@ -184,37 +220,18 @@ function DeckPickerView({
               </span>
               <Icons.ChevronDown className="deck-picker__chevron" size={16} />
             </summary>
-            {visibleOwnDecks.length === 0 && searching ? (
+            {ownDecks.length === 0 ? (
+              <p className="deck-picker__empty">
+                {t("lobby.noDecks")} {" "}
+                <button type="button" className="aegis-text-action" onClick={onBuildDeck}>
+                  {t("lobby.noDecksLink")}
+                </button>
+                .
+              </p>
+            ) : visibleOwnDecks.length === 0 ? (
               <p className="deck-picker__empty">{t("lobby.noSearchResults")}</p>
             ) : (
               <div className="lobby-decks">
-                <article
-                  className={`deck-list-card deck-list-card--mystery is-compact${randomSelected ? " is-active" : ""}`}
-                >
-                  <button
-                    type="button"
-                    className="deck-list-card__selector"
-                    aria-label={t("lobby.randomDeck")}
-                    aria-pressed={randomSelected}
-                    disabled={randomPoolSize === 0}
-                    onClick={onSelectRandom}
-                  />
-                  <div className="deck-list-card__cover deck-list-card__mystery-cover" aria-hidden="true">
-                    <Icons.Dices size={34} />
-                  </div>
-                  <div className="deck-list-card__body">
-                    <div className="deck-list-card__heading">
-                      <div className="deck-list-card__identity">
-                        <h3>{t("lobby.randomDeck")}</h3>
-                        <div className="deck-list-card__counts">
-                          <Icons.Dices size={13} />
-                          <span>{t("lobby.randomPool", { count: randomPoolSize })}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="deck-list-card__blurb">{t("lobby.randomDeckHint")}</p>
-                  </div>
-                </article>
                 {visibleOwnDecks.map(({ deck, legal }) => (
                   <DeckListCard
                     key={deck.id}

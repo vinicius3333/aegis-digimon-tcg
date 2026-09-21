@@ -175,6 +175,41 @@
   color: var(--ds-brand-on-ink-muted);
   font: var(--ds-text-xs)/1.4 var(--ds-font-mono);
 }
+.lobby-random-pool {
+  margin-bottom: var(--ds-space-5);
+}
+.lobby-random-pool > span {
+  display: block;
+  margin-bottom: var(--ds-space-2);
+  color: var(--ds-brand-on-ink-muted);
+  font: 700 11px/1 var(--ds-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lobby-random-pool > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 3px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: var(--ds-radius-sm);
+}
+.lobby-random-pool button {
+  padding: var(--ds-space-2);
+  border: 0;
+  border-radius: calc(var(--ds-radius-sm) - 2px);
+  color: var(--ds-brand-on-ink-muted);
+  background: transparent;
+  font: 700 var(--ds-text-xs)/1 var(--ds-font-display);
+  cursor: pointer;
+}
+.lobby-random-pool button.is-selected {
+  color: var(--ds-on-accent);
+  background: var(--ds-accent);
+}
+.lobby-random-pool button:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
 .lobby-summary .aegis-button--secondary {
   color: var(--ds-brand-on-ink);
   border-color: var(--ds-brand-accent-soft);

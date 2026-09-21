@@ -123,6 +123,8 @@ export const en = {
   "lobby.randomDeck": "Mystery deck",
   "lobby.randomDeckHint": "Your deck is revealed when the match begins.",
   "lobby.randomPool": "{count} legal decks in pool",
+  "lobby.randomPoolOne": "1 legal deck in pool",
+  "lobby.randomPoolLabel": "Mystery pool",
   "lobby.randomQueueNotice": "A legal deck will be chosen when the match begins.",
   "lobby.presetSource": "Famous deck · {collection}",
   "lobby.noSearchResults": "No decks match your search.",

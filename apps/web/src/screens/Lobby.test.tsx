@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
-import { Lobby } from "./Lobby";
+import { Lobby, randomDeckPool } from "./Lobby";
 import { DECKS, selectableDecks } from "../game/decks";
 
 afterEach(() => {
@@ -60,13 +60,9 @@ describe("famous deck selection", () => {
     const selectors = region
       .getAllByRole("button")
       .filter((button) => button.classList.contains("deck-list-card__selector"));
-    expect(selectors.map((button) => button.getAttribute("aria-label"))).toEqual([
-      "Mystery deck",
-      valid.name,
-      invalid.name,
-    ]);
-    expect((selectors[2] as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.click(selectors[2]!);
+    expect(selectors.map((button) => button.getAttribute("aria-label"))).toEqual([valid.name, invalid.name]);
+    expect((selectors[1] as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(selectors[1]!);
     expect(onSelectDeck).not.toHaveBeenCalled();
     fireEvent.change(picker.getByRole("searchbox"), { target: { value: "DRAFT" } });
     expect(region.queryByRole("button", { name: valid.name })).toBeNull();
@@ -123,6 +119,17 @@ describe("famous deck selection", () => {
     expect(onStart).toHaveBeenCalledTimes(1);
     expect(onStart.mock.calls[0]?.slice(0, 4)).toEqual(["casual", undefined, undefined, undefined]);
     expect(selectableDecks(DECKS).map((deck) => deck.id)).toContain(onStart.mock.calls[0]?.[4]);
+  });
+
+  it("builds mystery pools by source and excludes drafts and beta cards", () => {
+    const legal = { ...DECKS[0]!, id: "legal-personal" };
+    const draft = { ...DECKS[0]!, id: "draft-personal", mainDeck: [] };
+    const beta = { ...DECKS[0]!, id: "beta-personal", mainDeck: [...DECKS[0]!.mainDeck] };
+    beta.mainDeck[0] = "EX13-007";
+
+    expect(randomDeckPool([legal, draft, beta], "mine").map((deck) => deck.id)).toEqual([legal.id]);
+    expect(randomDeckPool([legal, draft, beta], "famous")).not.toContainEqual(expect.objectContaining({ id: legal.id }));
+    expect(randomDeckPool([legal, draft, beta], "all")).toContainEqual(expect.objectContaining({ id: legal.id }));
   });
 
   it("automatically enables beta for an EX13 deck and still allows private matches", () => {

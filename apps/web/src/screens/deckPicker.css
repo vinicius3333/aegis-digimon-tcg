@@ -97,6 +97,11 @@
   margin-top: var(--ds-space-5);
 }
 
+.deck-picker__mystery-row {
+  max-width: 34rem;
+  margin-top: var(--ds-space-4);
+}
+
 .deck-picker__group-heading {
   display: flex;
   align-items: baseline;
