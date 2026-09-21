@@ -196,6 +196,8 @@ export function restrictionBadges(
     permanent.immuneToOpponentOptionEffects &&
     permanent.immuneToOpponentTamerEffects;
   const badges = RESTRICTION_BADGES.filter((badge) => {
+    // This aggregate kind is synthesized below and has no direct Permanent flag.
+    if (badge.kind === "immuneToOpponentEffects") return false;
     if (
       immuneToAllOpponentEffects &&
       (badge.kind === "immuneToOpponentDigimonEffects" ||
