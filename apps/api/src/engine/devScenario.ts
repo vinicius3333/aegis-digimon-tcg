@@ -45,6 +45,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-jupitermon-siren",
   "arena-magnamon-x",
   "arena-reboot-timing",
+  "arena-sagasol-effect-assembly",
+  "arena-sagasol-guard-source",
   "arena-ex13-magnamon-end-turn",
   "arena-seven-code-link-dp",
   "arena-suspend-lock-block",
@@ -462,6 +464,54 @@ function layJunomonOpponentTargetScenario(state: GameState, decks: readonly [Dec
   }
 
   state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+/** SagaSol regression: HiAndromon reveals Megadramon, which may Assembly from trash. */
+function laySagaSolEffectAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-sagasol-hiandromon", "EX12-058", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-sagasol-reveal-filler-2", "BT1-014", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-sagasol-reveal-filler-1", "BT1-009", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-sagasol-megadramon", "EX12-064", 0), "top");
+    // Turn 1's Draw phase consumes this card, leaving Megadramon on top for HiAndromon's reveal.
+    insertCard(human, Zone.Deck, faceDownCard("dev-sagasol-draw-buffer", "BT1-012", 0), "top");
+    insertCard(human, Zone.Trash, faceUpCard("dev-sagasol-assembly-material", "EX12-054", 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 11;
+}
+
+/** SagaSol regression: Metal Empire must own the Guard prompt it grants from security. */
+function laySagaSolGuardSourceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX12-008"], "-sagasol-guard"));
+    placePermanent(human, establishedDigimon(0, ["EX12-005"], "-sagasol-protected"));
+    insertCard(human, Zone.Security, faceUpCard("dev-sagasol-metal-empire", "EX12-072", 0), "top");
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) insertCard(bot, Zone.Hand, faceDownCard("dev-sagasol-gaia-force", "ST1-16", 1));
+  state.turnSeat = 1;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
@@ -1047,6 +1097,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,
   "arena-reboot-timing": layRebootTimingScenario,
+  "arena-sagasol-effect-assembly": laySagaSolEffectAssemblyScenario,
+  "arena-sagasol-guard-source": laySagaSolGuardSourceScenario,
   "arena-ex13-magnamon-end-turn": layEx13MagnamonEndTurnScenario,
   "arena-seven-code-link-dp": laySevenCodeLinkDpScenario,
   "arena-suspend-lock-block": laySuspendLockBlockScenario,

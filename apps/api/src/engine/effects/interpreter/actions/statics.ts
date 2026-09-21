@@ -45,6 +45,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
               ctx.fx.grantKeyword(id, kw, duration, amount, {
                 continuous: true,
                 sourceCardId: ctx.source.cardId,
+                sourceInstanceId: ctx.source.instanceId,
                 sourceEffectText: ctx.activeEffectText,
               });
             }

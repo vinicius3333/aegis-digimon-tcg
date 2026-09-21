@@ -500,6 +500,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           ctx.fx.grantKeyword(id, kw, duration, keywordAmount, {
             ...(active === undefined ? {} : { active }),
             sourceCardId: ctx.source.cardId,
+            sourceInstanceId: ctx.source.instanceId,
             sourceEffectText: ctx.activeEffectText,
             ...grantProvenance,
           });

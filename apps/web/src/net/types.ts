@@ -32,6 +32,8 @@ export interface AegisJoinOptions {
     | "arena-jupitermon-siren"
     | "arena-magnamon-x"
     | "arena-reboot-timing"
+    | "arena-sagasol-effect-assembly"
+    | "arena-sagasol-guard-source"
     | "arena-ex13-magnamon-end-turn"
     | "arena-seven-code-link-dp"
     | "arena-suspend-lock-block"

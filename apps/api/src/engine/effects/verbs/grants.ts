@@ -47,6 +47,7 @@ export function createGrantsVerbs(pc: PrimitivesContext) {
     // grants need the legacy mode inference.
     const provenance = {
       sourceCardId: opts?.sourceCardId,
+      sourceInstanceId: opts?.sourceInstanceId,
       sourceEffectText: opts?.sourceEffectText,
       sourceSeat: opts?.sourceSeat,
       sourceKinds: opts?.sourceKinds,

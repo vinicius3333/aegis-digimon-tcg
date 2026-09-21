@@ -168,6 +168,7 @@ export interface KeywordGrant {
   specifiers?: string[];
   /** Exact card/clause that granted the keyword, including inherited sources. */
   sourceCardId?: string;
+  sourceInstanceId?: string;
   sourceEffectText?: string;
   /** Provenance used to suppress (but retain) opponent-granted effects under immunity. */
   sourceSeat?: Seat;

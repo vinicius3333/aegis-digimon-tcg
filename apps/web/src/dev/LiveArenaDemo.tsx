@@ -30,6 +30,8 @@ export function LiveArenaDemo() {
       requested === "arena-jupitermon-siren" ||
       requested === "arena-magnamon-x" ||
       requested === "arena-reboot-timing" ||
+      requested === "arena-sagasol-effect-assembly" ||
+      requested === "arena-sagasol-guard-source" ||
       requested === "arena-ex13-magnamon-end-turn" ||
       requested === "arena-seven-code-link-dp" ||
       requested === "arena-suspend-lock-block" ||
@@ -83,6 +85,8 @@ export function LiveArenaDemo() {
             <option value="arena-magnamon-x">Magnamon X · Sonic Shot unsuspend</option>
             <option value="arena-ex13-magnamon-end-turn">EX13 Magnamon · End of turn / Reboot</option>
             <option value="arena-reboot-timing">Reboot · Active phase timing</option>
+            <option value="arena-sagasol-effect-assembly">SagaSol · effect-played Assembly</option>
+            <option value="arena-sagasol-guard-source">SagaSol · granted Guard source</option>
             <option value="arena-seven-code-link-dp">Seven Code · Link DP comparison</option>
             <option value="arena-suspend-lock-block">Suspend lock · Blocker legality</option>
             <option value="arena-vortex-target-legality">Vortex · target legality</option>
@@ -98,7 +102,15 @@ export function LiveArenaDemo() {
             ? portuguese
               ? "Encerre a criação, ataque a segurança com Magnamon e Meteormon e encerre o turno. Aceite dessuspender Magnamon: deve ocorrer ainda no seu turno. Reboot de Meteormon deve ocorrer na Dessuspensão do oponente, antes da Main. Reinicie para testar recusar o efeito."
               : "End breeding, attack security with Magnamon and Meteormon, then end your turn. Accept Magnamon’s unsuspend: it should resolve during your turn. Meteormon’s Reboot should resolve in the opponent’s Unsuspend phase, before Main. Reset to test declining the effect."
-            : scenario === "arena-ex5-attack-priority"
+            : scenario === "arena-sagasol-effect-assembly"
+              ? portuguese
+                ? "Encerre a criação, jogue HiAndromon, escolha Megadramon e depois o material no lixo para Assembly."
+                : "End breeding, play HiAndromon, choose Megadramon, then choose the trash material for Assembly."
+              : scenario === "arena-sagasol-guard-source"
+                ? portuguese
+                  ? "O bot usa Gaia Force. A decisão de Guard deve mostrar Metal Empire e seu texto, não o efeito do Digimon."
+                  : "The bot uses Gaia Force. The Guard decision must show Metal Empire and its text, not the Digimon's effect."
+                : scenario === "arena-ex5-attack-priority"
               ? portuguese
                 ? "O bot ataca com Shoutmon EX6. Os efeitos Ao Atacar e Alliance dele devem resolver antes das reações de MetalEtemon e da herança de Etemon."
                 : "The bot attacks with Shoutmon EX6. Its When Attacking and Alliance effects must resolve before MetalEtemon and inherited Etemon react."

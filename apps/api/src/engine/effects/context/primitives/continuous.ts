@@ -131,6 +131,7 @@ export interface ContinuousPrimitives {
       active?: () => boolean;
       specifiers?: string[];
       sourceCardId?: string;
+      sourceInstanceId?: string;
       sourceEffectText?: string;
       /** Controller and physical kinds of the effect that granted this keyword. */
       sourceSeat?: Seat;
