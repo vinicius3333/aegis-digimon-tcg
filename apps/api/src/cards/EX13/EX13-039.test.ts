@@ -128,7 +128,7 @@ describe("EX13-039 Coredramon", () => {
     });
   });
 
-  it("discriminates [Dracomon]/[Examon] in text from the narrower in-name reading", () => {
+  it("Q7333-Q7334: matches either token across the whole printed card text", () => {
     const reference: NameOrTraitReference = { tokens: ["Dracomon", "Examon"], match: "text" };
     const nameOnly: NameOrTraitReference = { tokens: ["Dracomon", "Examon"], match: "name" };
 
@@ -453,6 +453,62 @@ describe("EX13-039 Coredramon", () => {
     expect(s.perm("host").currentDP).toBe(7000 + 2000);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+  });
+
+  it("Q7332: resolves the newly derived When Digivolving before the played Digimon's pending On Play", async () => {
+    const PLAYED_DRACOMON = "EX13-008";
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "host" }],
+          hand: [
+            { card: PLAYED_DRACOMON, as: "dracomon" },
+            { card: EXAMON_DEST, as: "wingdramon" },
+          ],
+          deck: DECK,
+        },
+        1: {
+          battleArea: [
+            { card: FILLER, as: "firstTarget", dp: 5000 },
+            { card: FILLER, as: "secondTarget", dp: 5000 },
+          ],
+          deck: DECK,
+          security: [FILLER],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderTriggers: false,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dracomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")!.req;
+    expect(order.options?.triggerCardIds).toEqual(expect.arrayContaining([CARD_ID, PLAYED_DRACOMON]));
+    const coredramonIndex = order.options!.triggerCardIds!.findIndex((id) => id === CARD_ID);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [order.options!.triggerKeys![coredramonIndex]!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").topCard.cardId).toBe(EXAMON_DEST);
+    const relevantActivations = s.events.flatMap((event) =>
+      event.kind === "effectTriggered" && [EXAMON_DEST, PLAYED_DRACOMON].includes(event.sourceCardId ?? "")
+        ? [event.sourceCardId]
+        : [],
+    );
+    expect(relevantActivations).toEqual([EXAMON_DEST, PLAYED_DRACOMON]);
   });
 
   it("leaves the host alone when the only hand Digimon has no [Examon] in its text", async () => {

@@ -376,7 +376,7 @@ describe("EX13-057 Grademon", () => {
     expect(observe(noCandidate.engine).hasKeyword(self, "Reboot")).toBe(true);
   });
 
-  it("adds the immunity and +5000 DP to the same recipient when the trigger carries an attacker", async () => {
+  it("Q7380-Q7386: gives the same target both keywords, immunity and +5000 DP during an attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -550,7 +550,7 @@ describe("EX13-057 Grademon", () => {
     expect(declined.state.memory).toBe(9);
   });
 
-  it("saves a [Chronicle] ally from an effect deletion by trashing the top security card", async () => {
+  it("Q7388: saves a [Chronicle] ally from an effect deletion by trashing the top security card", async () => {
     const s = setupEngine(
       {
         0: {
@@ -891,10 +891,12 @@ describe("EX13-057 Grademon", () => {
     expect(s.perm("chronicle").currentDP).toBe(6000);
   });
 
-  it("fires [End of Attack] off a real attack and refuses a second attack the same turn", async () => {
+  it("Q7387: End of Attack evolution still satisfies Alphamon's during-an-attack condition", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
+          breeding: { card: CARD_ID, as: "breedingGrademon" },
           battleArea: [
             { card: CARD_ID, as: "grademon", under: ["BT1-010"], dp: 7000 },
             { card: CHRONICLE_LV3, as: "other", dp: 9000 },
@@ -908,11 +910,12 @@ describe("EX13-057 Grademon", () => {
         },
         1: { deck: ["BT1-013", "BT1-011"], security: ["BT1-014", "BT1-012"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );
     s.state.turnSeat = 0;
     s.state.memory = 12;
     await s.ready();
+    preferred.push(s.inst("firstTarget").instanceId, s.inst("secondTarget").instanceId);
     const grademonId = s.perm("grademon").permanentId;
 
     expect(
@@ -927,8 +930,9 @@ describe("EX13-057 Grademon", () => {
 
     const host = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === grademonId)!;
     const afterFirst = host.topCard.cardId;
-    expect([CHRONICLE_LV6, "BT20-018"]).toContain(afterFirst);
+    expect(afterFirst).toBe(CHRONICLE_LV6);
     expect(host.stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", CARD_ID]);
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT20-018");
 
     const handBefore = s.state.players[0]!.hand.length;
     expect(

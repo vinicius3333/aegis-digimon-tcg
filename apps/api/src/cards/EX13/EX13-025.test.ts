@@ -52,23 +52,23 @@ describe("EX13-025 Candlemon", () => {
             { kind: "SecurityManipulation", op: "trashTop", controller: "mine", amount: 1, chooseTopOrBottom: true },
             { kind: "Draw", controller: "mine", amount: 1 },
             { kind: "GainMemory", amount: 1 },
-            {
-              kind: "SecurityManipulation",
-              op: "addBottom",
-              controller: "mine",
-              amount: 1,
-              optional: true,
-              source: {
-                filter: {
-                  controller: "mine",
-                  zone: "hand",
-                  nameOrTrait: [{ tokens: ["Witchelny"], match: "text" }],
-                },
-                count: 1,
-              },
-              condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 2 },
-            },
           ],
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "addBottom",
+          controller: "mine",
+          amount: 1,
+          optional: true,
+          source: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+              nameOrTrait: [{ tokens: ["Witchelny"], match: "text" }],
+            },
+            count: 1,
+          },
+          condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 2 },
         },
       ],
     });
@@ -244,7 +244,7 @@ describe("EX13-025 Candlemon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does nothing at all below the printed 3-security gate", async () => {
+  it("Q7278 skips the first part at 2 security but still places a [Witchelny]-text card", async () => {
     const s = setupEngine(
       {
         0: {
@@ -269,9 +269,10 @@ describe("EX13-025 Candlemon", () => {
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
       s.inst("top").instanceId,
       s.inst("bottom").instanceId,
+      s.inst("witchelny").instanceId,
     ]);
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("witchelny").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -361,6 +362,31 @@ describe("EX13-025 Candlemon", () => {
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([hostId]);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("top").instanceId);
+  });
+
+  it("Q7276 independently protects a [Dynasmon]-name host without [Witchelny] in its text", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-087", as: "dynasmon", under: [CARD_ID] }],
+          security: [{ card: "BT1-010", as: "top" }],
+          deck: DECK,
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    await s.ready();
+    const hostId = s.perm("dynasmon").permanentId;
+    expect(getCardDefinition("BT13-087")?.effectText ?? "").not.toContain("Witchelny");
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([hostId]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("does not protect a host without [Dynasmon] or [Witchelny] in its text", async () => {

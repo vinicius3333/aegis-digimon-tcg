@@ -73,10 +73,11 @@ export const compiled: CompiledCard = {
     keyword("Evade", "＜Evade＞"),
     {
       trigger: "WhenDigivolving",
-      actions: [buffAllOwnDigimon, attackSelf, mayBattle].map((action) => ({
-        ...action,
-        condition: { kind: "isDnaDigivolving" as const },
-      })),
+      actions: [
+        { ...buffAllOwnDigimon, condition: { kind: "isDnaDigivolving" } },
+        { ...attackSelf, condition: { kind: "isDnaDigivolving" } },
+        mayBattle,
+      ],
     },
     {
       trigger: "YourTurn",

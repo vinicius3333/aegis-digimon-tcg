@@ -218,7 +218,7 @@ describe("EX13-043 Leopardmon", () => {
     assertNoLoudGap(s);
   });
 
-  it("suspends EITHER player's Digimon, because the printed sentence names no controller", async () => {
+  it("Q7341: suspends EITHER player's Digimon, because the printed sentence names no controller", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -319,6 +319,43 @@ describe("EX13-043 Leopardmon", () => {
     expect(s.state.players[1]!.deck.map(({ cardId: id }) => id)).toEqual(["BT1-014", "BT1-013"]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolutionDraw").instanceId);
     assertNoLoudGap(s);
+  });
+
+  it("Q7344: offers both simultaneous [When Digivolving] effects for player-ordered activation", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GREEN_BEASTKIN_LV5, as: "base" }],
+          hand: [{ card: cardId, as: "leopardmon" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: { deck: DECK },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("leopardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")!.req;
+    expect(order.options?.triggerCardIds).toEqual([cardId, cardId]);
+    expect(order.options?.triggerKeys).toHaveLength(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [order.options!.triggerKeys!.at(-1)!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
   });
 
   it("plays a [Beastkin] hand card for 4 less while no Digimon is suspended", async () => {
@@ -936,7 +973,7 @@ describe("EX13-043 Leopardmon", () => {
     expect(s.state.memory).toBe(8);
   });
 
-  it("rejects an Assembly material with a near-match trait, and one of the wrong colour", async () => {
+  it("Q7343: rejects Assembly when any material has a near-match trait or the wrong colour", async () => {
     for (const wrongLv3 of [NEAR_TRAIT_LV3, OFF_COLOUR_MAMMAL_LV3]) {
       const s = setupEngine(
         {
@@ -971,13 +1008,14 @@ describe("EX13-043 Leopardmon", () => {
     }
   });
 
-  it("saves a suspended ally from the opponent's effect by unsuspending one of your Digimon", async () => {
+  it("Q7342: one replacement activation prevents ALL matching suspended Digimon from leaving", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: cardId, as: "leopardmon", suspended: true },
-            { card: GREEN_MAMMAL_LV3, as: "victim", suspended: true },
+            { card: GREEN_MAMMAL_LV3, as: "firstVictim", suspended: true },
+            { card: GREEN_BEAST_LV4, as: "secondVictim", suspended: true },
           ],
           deck: DECK,
           security: ["BT1-011"],
@@ -987,18 +1025,18 @@ describe("EX13-043 Leopardmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
-    const victimId = s.perm("victim").permanentId;
+    const victimIds = [s.perm("firstVictim").permanentId, s.perm("secondVictim").permanentId];
 
     advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
-    expect(await advance(s.engine).verb.deletePermanent([victimId], "byEffect")).toBe(0);
+    expect(await advance(s.engine).verb.deletePermanent(victimIds, "byEffect")).toBe(0);
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
-      expect.arrayContaining([victimId, s.perm("leopardmon").permanentId]),
+      expect.arrayContaining([...victimIds, s.perm("leopardmon").permanentId]),
     );
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.filter(({ isSuspended }) => isSuspended)).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter(({ isSuspended }) => isSuspended)).toHaveLength(2);
   });
 
   it("lets the suspended victim pay for itself when it is the only Digimon on the board", async () => {

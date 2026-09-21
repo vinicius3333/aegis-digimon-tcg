@@ -271,7 +271,7 @@ describe("EX13-060 Alphamon", () => {
     expect(printedRoute.state.memory).toBe(3);
   });
 
-  it("plays through Assembly for 8, stacking the Lv.5 material closest to the played card", async () => {
+  it("Q7395: assembles only from separately qualifying Chronicle levels 5, 4 and 3", async () => {
     const s = setupEngine(
       {
         0: {
@@ -348,7 +348,7 @@ describe("EX13-060 Alphamon", () => {
     expect(s.state.memory).toBe(8);
   });
 
-  it("gains 2 memory only when the opponent holds 5 or more, and the debuff survives to their turn end", async () => {
+  it("Q7393: gains 2 memory at opponent memory 5 but not at 4", async () => {
     const rich = setupEngine(
       {
         0: {
@@ -397,6 +397,41 @@ describe("EX13-060 Alphamon", () => {
     await settle(() => poor.state.pendingDecision === undefined);
     expect(poor.perm("victim").currentDP).toBe(4000);
     expect(poor.state.memory).toBe(-4);
+  });
+
+  it("Q7392: performs the memory action before the 0-DP rules deletion", async () => {
+    let memoryWhenZeroDpVictimLeft: number | undefined;
+    let s!: ReturnType<typeof setupEngine>;
+    s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "alphamon" }],
+          deck: ["BT1-011"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: NON_MATCH, as: "zeroDpVictim", dp: 8000 }],
+          deck: ["BT1-013"],
+          security: ["BT1-014"],
+        },
+      },
+      {
+        autoSelectCards: true,
+        onEvent(event) {
+          if (event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("zeroDpVictim").instanceId)) {
+            memoryWhenZeroDpVictimLeft = s.state.memory;
+          }
+        },
+      },
+    );
+    s.state.memory = -5;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("alphamon"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(memoryWhenZeroDpVictimLeft).toBe(-3);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("zeroDpVictim").instanceId);
   });
 
   it("keeps the -8000 through the opponent's turn and lets it lapse when that turn ends", async () => {
@@ -474,7 +509,7 @@ describe("EX13-060 Alphamon", () => {
     assertNoLoudGap(s);
   });
 
-  it("describes the attack clause, marks Grademon as the attacker and resolves the Then before combat", async () => {
+  it("Q7396: attacks with Grademon, then resolves its pending rider during that attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -614,6 +649,36 @@ describe("EX13-060 Alphamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("victim").currentDP).toBe(4000);
+  });
+
+  it("Q7394: its Your Turn watcher triggers when Alphamon itself is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "alphamon" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: NON_MATCH, as: "victim", dp: 12_000 }],
+          deck: ["BT1-013"],
+          security: ["BT1-014", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alphamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("victim").currentDP === 4000);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("alphamon").isSuspended).toBe(false);
+    expect(s.perm("victim").currentDP).toBe(4000);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("fires for a [Chronicle] Digimon, ignores a non-[Chronicle] play, and runs once per turn", async () => {

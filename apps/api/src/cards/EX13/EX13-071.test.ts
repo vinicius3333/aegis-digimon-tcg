@@ -226,7 +226,42 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("trashes 3 face-down cards, stacks a level 4 and a level 5 Holy Beast under Kudamon, and digivolves into Kentaurosmon for 2", async () => {
+  it("Q7442/Q7443 places each new face-down card at the bottom without reordering existing cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "sampson",
+              under: [
+                { card: "BT1-012", as: "oldBottom", faceUp: false },
+                { card: "BT1-013", as: "oldTop", faceUp: false },
+              ],
+            },
+          ],
+          deck: [
+            { card: "BT1-009", as: "newBottom", faceUp: true },
+            { card: "BT1-010", as: "deckSecond" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("sampson"));
+    await settle();
+
+    expect(s.perm("sampson").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("newBottom").instanceId,
+      s.inst("oldBottom").instanceId,
+      s.inst("oldTop").instanceId,
+    ]);
+    expect(s.perm("sampson").stack.every(({ faceUp }) => faceUp === false)).toBe(true);
+  });
+
+  it("Q7445 trashes face-down cards face-up, stacks both materials, and digivolves into Kentaurosmon for 2", async () => {
     const s = setupEngine(
       {
         0: {
@@ -276,9 +311,44 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.perm("sampson").stack).toHaveLength(0);
     const trashIds = s.state.players[0]!.trash.map((card) => card.instanceId);
     for (const alias of ["fd1", "fd2", "fd3"]) expect(trashIds).toContain(s.inst(alias).instanceId);
+    expect(
+      s.state.players[0]!.trash.filter(({ instanceId }) =>
+        [s.inst("fd1").instanceId, s.inst("fd2").instanceId, s.inst("fd3").instanceId].includes(instanceId),
+      ).every(({ faceUp }) => faceUp !== false),
+    ).toBe(true);
 
     expect(s.state.memory).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("Q7448 digivolves but pays full cost while Syakomon blocks the reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "sampson", under: THREE_FACE_DOWN },
+            { card: "BT1-046", as: "kudamon" },
+          ],
+          hand: [{ card: "BT3-043", as: "kentaurosmon" }],
+          trash: [
+            { card: "BT1-051", as: "lv4Material" },
+            { card: "BT3-038", as: "lv5Material" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT5-021", as: "syakomon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("sampson"));
+    await settle(() => s.perm("kudamon").topCard.cardId === "BT3-043");
+    await settle();
+
+    expect(s.perm("kudamon").topCard.instanceId).toBe(s.inst("kentaurosmon").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 
   it("also reaches a Kentaurosmon sitting in the trash", async () => {
@@ -311,7 +381,7 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("does nothing when only 2 bottom face-down cards are available under the controller's Tamers", async () => {
+  it("Q7446 does nothing when only 2 bottom face-down cards are available under the controller's Tamers", async () => {
     const s = setupEngine(
       {
         0: {
@@ -355,7 +425,7 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("refuses a trash holding two level 4 Holy Beasts — '1 each of level 4 and level 5' needs both levels", async () => {
+  it("Q7446/Q7447 refuses a trash without one each of the required level 4 and level 5 materials", async () => {
     const s = setupEngine(
       {
         0: {
@@ -388,7 +458,7 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.state.memory).toBe(3);
   });
 
-  it("discriminates the material filter: [Beastkin] and a blue [Holy Beast] are not legal materials", async () => {
+  it("Q7450 applies level, color and trait to both material alternatives", async () => {
     const s = setupEngine(
       {
         0: {

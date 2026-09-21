@@ -122,7 +122,7 @@ describe("EX13-021 Wingdramon", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Coredramon"], cost: 3, isAlternate: true }]);
   });
 
-  it("reads [Coredramon] as an exact name and [Dracomon]/[Examon] as a text union", () => {
+  it("Q7261/Q7262 reads [Coredramon] exactly and either [Dracomon]/[Examon] through the full text union", () => {
     const coredramon = { tokens: ["Coredramon"], match: "nameExact" as const };
     expect(matchNameOrTrait({ nameEn: "Coredramon" }, coredramon)).toBe(true);
     expect(matchNameOrTrait({ nameEn: "Coredramon X" }, coredramon)).toBe(false);
@@ -297,7 +297,7 @@ describe("EX13-021 Wingdramon", () => {
     expect(illegal.state.memory).toBe(5);
   });
 
-  it("is treated as [Slayerdramon] only while in the battle area", async () => {
+  it("Q7263 grants the [Slayerdramon] alias only while Wingdramon is in the battle area", async () => {
     const field = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "wingdramon" }] } });
     await field.ready();
     expect(observe(field.engine).grantedNames(field.perm("wingdramon"))).toContain("slayerdramon");
@@ -312,7 +312,7 @@ describe("EX13-021 Wingdramon", () => {
     expect(observe(breeding.engine).grantedNames(breeding.perm("egg"))).not.toContain("slayerdramon");
   });
 
-  it("fills the [Slayerdramon] slot of Examon's Blast DNA from the battle area", async () => {
+  it("Q7263 fills the [Slayerdramon] slot of Examon's Blast DNA from the battle area", async () => {
     const s = setupEngine(
       {
         0: {
@@ -361,7 +361,7 @@ describe("EX13-021 Wingdramon", () => {
     expect(s.state.players[0]!.hand.some((card) => ["BT20-044", "BT20-045"].includes(card.cardId))).toBe(false);
   });
 
-  it("does not offer Examon's Blast DNA while Wingdramon is only in hand", async () => {
+  it("Q7263 does not offer Examon's Blast DNA while Wingdramon is only in hand", async () => {
     const s = setupEngine(
       {
         0: {
@@ -475,7 +475,7 @@ describe("EX13-021 Wingdramon", () => {
     return s.perm("host").isSuspended;
   }
 
-  it("offers the inherited unsuspend to hosts whose own printed text carries [Dracomon] or [Examon]", async () => {
+  it("Q7261/Q7262 offers the inherited unsuspend when either token occurs in the host's printed text", async () => {
     expect(await suspendAndFire("ST1-04")).toBe(false);
     expect(await suspendAndFire("EX13-018")).toBe(false);
   });

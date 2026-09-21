@@ -63,7 +63,7 @@ describe("EX13-050 Bokomon", () => {
     expect(compiled.digivolutionRequirement).toBeUndefined();
   });
 
-  it("locks BOTH seats out of non-Tamer memory gain while leaving Tamer effects open", async () => {
+  it("Q7370/Q7371: locks both seats except for effects that are also Tamer effects", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: CARD_ID, as: "bokomon" }], deck: DECK, security: [INERT] },
       1: { deck: DECK, security: [INERT] },
@@ -74,6 +74,7 @@ describe("EX13-050 Bokomon", () => {
       expect(observe(s.engine).canGainMemoryFromEffect(seat, ["Digimon"])).toBe(false);
       expect(observe(s.engine).canGainMemoryFromEffect(seat, ["Option"])).toBe(false);
       expect(observe(s.engine).canGainMemoryFromEffect(seat, ["Tamer"])).toBe(true);
+      expect(observe(s.engine).canGainMemoryFromEffect(seat, ["Digimon", "Tamer"])).toBe(true);
     }
   });
 

@@ -25,6 +25,11 @@ const SENTINEL = "BT1-009";
 const NEUTRAL_LV3 = "BT1-013";
 const SPARE = "BT1-014";
 const OPPONENT_BODY = "ST15-11";
+const GEREMON = "BT15-035";
+const TYRANNOMON = "EX1-005";
+const RED_LV5 = "AD1-002";
+const TAI_KAMIYA = "BT1-085";
+const DE_DIGIVOLVER = "AD1-009";
 
 describe("EX13-031 KingSukamon", () => {
   it("matches the catalog printing", () => {
@@ -273,6 +278,144 @@ describe("EX13-031 KingSukamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("Q7295: rewrites exact identity without treating Rule name inclusion as exact identity", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "king" },
+            { card: CHUUMON_COST_3, as: "fee" },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: GEREMON, as: "victim" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(getCardDefinition(GEREMON)?.effectText).toContain("[Rule] Name: Also treated as [Numemon]");
+    expect(observe(s.engine).effectiveNames(s.perm("victim"))).toEqual(["geremon"]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).effectiveNames(s.perm("victim"))).toEqual(["sukamon"]);
+    expect(observe(s.engine).effectiveColors(s.perm("victim"))).toEqual(["White"]);
+    expect(s.perm("victim").currentDP).toBe(3000);
+  });
+
+  it("Q7296: preserves effect-derived card information after rewriting the base information", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "king" },
+            { card: CHUUMON_COST_3, as: "fee" },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: TYRANNOMON, as: "victim" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+
+    expect(observe(s.engine).effectiveNames(s.perm("victim"))).toEqual(["sukamon"]);
+    expect(observe(s.engine).effectiveColors(s.perm("victim"))).toEqual(["White", "Green"]);
+    expect(s.perm("victim").currentDP).toBe(3000);
+  });
+
+  it("Q7297: keeps the rewrite on the permanent after another card digivolves onto it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "king" },
+            { card: CHUUMON_COST_3, as: "fee" },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: TYRANNOMON, as: "victim" }],
+          hand: [{ card: RED_LV5, as: "evolver" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const victim = s.perm("victim");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    await advance(s.engine).verb.digivolveFromInstance(victim.permanentId, s.inst("evolver").instanceId, {
+      payCost: false,
+    });
+
+    expect(victim.topCard.cardId).toBe(RED_LV5);
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["sukamon"]);
+    expect(observe(s.engine).effectiveColors(victim)).toEqual(["White"]);
+    expect(victim.currentDP).toBe(3000);
+  });
+
+  it("Q7298: keeps the rewritten name and color but not DP when De-Digivolve reveals a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "king" },
+            { card: CHUUMON_COST_3, as: "fee" },
+            { card: DE_DIGIVOLVER, as: "deDigivolver" },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_BODY, as: "victim", under: [{ card: TAI_KAMIYA, as: "tamer" }] }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const victim = s.perm("victim");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deDigivolver").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => victim.topCard.instanceId === s.inst("tamer").instanceId);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["sukamon"]);
+    expect(observe(s.engine).effectiveColors(victim)).toEqual(["White"]);
+    expect(victim.currentDP).toBe(0);
+  });
+
   it("pays the cost from another of your Digimon's digivolution cards", async () => {
     const s = setupEngine(
       {
@@ -302,6 +445,39 @@ describe("EX13-031 KingSukamon", () => {
     expect(victim.currentDP).toBe(3000);
     expect(s.perm("other").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("fee").instanceId]);
+  });
+
+  it("Q7300: cannot pay the cost from an opponent's Digimon's digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "king" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [
+            { card: OPPONENT_BODY, as: "victim" },
+            { card: NEUTRAL_LV3, as: "opponentHost", under: [{ card: SUKAMON, as: "opponentFee" }] },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const victim = s.perm("victim");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["metalgreymon"]);
+    expect(s.perm("opponentHost").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("opponentFee").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("cannot pay with a [Sukamon]-in-text card, so nothing is rewritten or trashed", async () => {

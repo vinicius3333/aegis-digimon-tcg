@@ -69,13 +69,19 @@ describe("EX13-017 Veemon", () => {
     });
   });
 
-  it("adds a Veedramon-named card to hand and bottoms the other two revealed cards", async () => {
+  it("Q7255 matches [Veedramon] inside the longer AeroVeedramon name", async () => {
+    const longerName = getCardDefinition("BT11-029")!;
+    expect(longerName.nameEn).toBe("AeroVeedramon");
+    expect(longerName.types).not.toContain("Royal Knight");
+    expect(longerName.effectText).not.toContain("Veedramon");
+    expect(longerName.inheritedEffectText).not.toContain("Veedramon");
+
     const s = setupEngine(
       {
         0: {
           hand: [{ card: cardId, as: "source" }],
           deck: [
-            { card: "BT22-022", as: "veedramon" },
+            { card: "BT11-029", as: "veedramon" },
             { card: "BT1-009", as: "firstRest" },
             { card: "BT1-010", as: "secondRest" },
             { card: "BT1-011", as: "untouched" },
@@ -90,7 +96,7 @@ describe("EX13-017 Veemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some(({ cardId: id }) => id === "BT22-022"));
+    await settle(() => s.state.players[0]!.hand.some(({ cardId: id }) => id === "BT11-029"));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("veedramon").instanceId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
@@ -104,7 +110,12 @@ describe("EX13-017 Veemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("matches a card that only PRINTS [Veedramon] without being named it", async () => {
+  it("Q7255 matches a card that only prints [Veedramon] in its effect", async () => {
+    const effectOnly = getCardDefinition("BT22-019")!;
+    expect(effectOnly.nameEn).not.toContain("Veedramon");
+    expect(effectOnly.types).not.toContain("Veedramon");
+    expect(effectOnly.effectText).toContain("[Veedramon]");
+
     const s = setupEngine(
       {
         0: {

@@ -114,7 +114,12 @@ describe("EX13-029 FlameWizardmon", () => {
     });
   });
 
-  it("digivolves off a Lv.3 with [Witchelny] in its text for the header's 2, then debuffs and deletes", async () => {
+  it("Q7289 digivolves off a Lv.3 whose printed text contains [Witchelny] for 2", async () => {
+    const textSource = getCardDefinition(WITCHELNY_TEXT_SOURCE)!;
+    expect(textSource.nameEn).not.toContain("Witchelny");
+    expect(textSource.types).not.toContain("Witchelny");
+    expect(`${textSource.effectText ?? ""} ${textSource.inheritedEffectText ?? ""}`).toContain("Witchelny");
+
     const s = setupEngine(
       {
         0: {
@@ -279,7 +284,7 @@ describe("EX13-029 FlameWizardmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("cannot pay the cost with an empty security stack, so neither process happens", async () => {
+  it("Q7291 cannot process the debuff or the After clause when the security cost isn't paid", async () => {
     const s = setupEngine(
       {
         0: {
@@ -383,7 +388,7 @@ describe("EX13-029 FlameWizardmon", () => {
     expect(observe(s.engine).grantedNames(s.perm("flameWizardmon"))).toContain("wizardmon");
   });
 
-  it("keeps a [Witchelny]-text host on the board, but not a host without it", async () => {
+  it("Q7289/Q7290 keeps a [Witchelny]-text host on the board, but not a host with neither token", async () => {
     const protectedBoard = setupEngine(
       {
         0: {
@@ -432,6 +437,32 @@ describe("EX13-029 FlameWizardmon", () => {
 
     expect(unprotected.state.players[0]!.battleArea).toHaveLength(0);
     expect(unprotected.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("Q7290 also protects a host matching the [Dynasmon] side of the text union", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-044", as: "dynasmon", under: [CARD_ID] }],
+          security: ["BT1-010"],
+          deck: DECK,
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    await s.ready();
+    const hostId = s.perm("dynasmon").permanentId;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([hostId]);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).not.toContain("BT1-010");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
   });
 
   it("fires the delete when the post-cost security stack is exactly 3", async () => {
@@ -493,6 +524,60 @@ describe("EX13-029 FlameWizardmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain(OPPONENT);
+  });
+
+  it("Q7292 finishes the After deletion before the 0-DP rule check deletes the debuffed Digimon", async () => {
+    const preferred: string[] = [];
+    let zeroDpStillPresentWhenAfterDeleted = false;
+    let s!: ReturnType<typeof setupEngine>;
+    s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WITCHELNY_TEXT_SOURCE, as: "source" }],
+          hand: [{ card: CARD_ID, as: "flameWizardmon" }],
+          security: ["BT1-010", "BT1-011"],
+          deck: DECK,
+        },
+        1: {
+          battleArea: [
+            { card: OPPONENT, as: "zeroTarget", dp: 4000 },
+            { card: "BT1-009", as: "afterTarget", dp: 3000 },
+          ],
+          security: [INERT],
+          deck: DECK,
+        },
+      },
+      {
+        ...AUTOMATION,
+        preferInstanceIds: preferred,
+        onEvent(event) {
+          if (event.kind !== "cardsMoved" || !event.instanceIds.includes(s.inst("afterTarget").instanceId)) return;
+          zeroDpStillPresentWhenAfterDeleted = s.state.players[1]!.battleArea.some(
+            ({ permanentId }) => permanentId === s.perm("zeroTarget").permanentId,
+          );
+        },
+      },
+    );
+    preferred.includes = (id: string) =>
+      s.perm("zeroTarget").currentDP === 4000
+        ? id === s.perm("zeroTarget").permanentId
+        : id === s.perm("afterTarget").permanentId;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("flameWizardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(zeroDpStillPresentWhenAfterDeleted).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining([OPPONENT, "BT1-009"]),
+    );
   });
 
   it("ignores the host's own effects and cannot prevent with an empty security stack", async () => {

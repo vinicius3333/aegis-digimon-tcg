@@ -1,4 +1,4 @@
-import { EffectTiming, assemblyRequirementFor, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, EffectTiming, assemblyRequirementFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { cardHasTrait } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -338,7 +338,7 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     }
   });
 
-  it("suspends, empties the chosen Digimon's whole stack to the deck bottom, and battles it", async () => {
+  it("Q7457/Q7466 immediately battles the chosen Digimon after returning its whole stack", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: cardId, as: "paladin", under: [FILLER_B] }], deck: DECK, security: [FILLER_B] },
@@ -367,6 +367,81 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("paladin").stack).toHaveLength(1);
     assertNoLoudGap(s);
+  });
+
+  it("Q7458 can choose and battle a Digimon unaffected by this Digimon's effects", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "paladin" }], deck: DECK, security: [FILLER_B] },
+        1: { battleArea: [{ card: VICTIM, as: "immune" }], deck: DECK, security: [FILLER_B] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.restrict(s.perm("immune").permanentId, "beAffected", EffectDuration.Permanent);
+    expect(observe(s.engine).isRestricted(s.perm("immune"), "beAffected")).toBe(true);
+
+    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("paladin"));
+    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondEvade",
+        permanentId: s.perm("paladin").permanentId,
+        accept: true,
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.perm("paladin").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain(VICTIM);
+  });
+
+  it("Q7467 may suspend one Digimon but return sources from and battle a different Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "paladin", under: [FILLER_B] }], deck: DECK, security: [FILLER_B] },
+        1: {
+          battleArea: [
+            { card: FILLER_C, as: "suspendedOnly" },
+            { card: VICTIM, as: "battleTarget", under: [FILLER_A, FILLER_C] },
+          ],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    await s.ready();
+    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("paladin"));
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    let decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("suspendedOnly").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("suspendedOnly").isSuspended);
+    expect(s.perm("suspendedOnly").isSuspended).toBe(true);
+    const suspendedOnlyId = s.inst("suspendedOnly").instanceId;
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("battleTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    await settle();
+
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === VICTIM)).toBe(false);
+    expect(s.state.players[1]!.deck.some(({ instanceId }) => instanceId === suspendedOnlyId)).toBe(true);
+    expect(s.state.players[1]!.deck).toHaveLength(DECK.length + 3);
   });
 
   it("compares digivolution cards, not DP: a stackless Paladin Mode TIES a 5000 DP victim", async () => {

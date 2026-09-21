@@ -77,7 +77,6 @@ describe("EX13-045 Examon", () => {
           optional: true,
           attacker: { count: 1, isSelf: true, filter: { isSelfRef: true } },
           defender: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
-          condition: { kind: "isDnaDigivolving" },
         },
       ],
     });
@@ -267,7 +266,7 @@ describe("EX13-045 Examon", () => {
     expect(laterDigimon.currentDP).toBe(15_000);
   });
 
-  it("does not attack or buff when Examon arrives by the printed non-DNA route", async () => {
+  it("Q7356/Q7357: on a non-DNA evolution, skips attack/buff but still may immediately battle", async () => {
     const s = setupEngine(
       {
         0: {
@@ -277,7 +276,10 @@ describe("EX13-045 Examon", () => {
           ],
           hand: [{ card: cardId, as: "examon" }],
         },
-        1: { security: ["BT1-011", "BT1-012", "BT1-013"] },
+        1: {
+          battleArea: [{ card: NON_MATCH, as: "prey", dp: 5000 }],
+          security: ["BT1-011", "BT1-012", "BT1-013"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -297,7 +299,8 @@ describe("EX13-045 Examon", () => {
     expect(s.perm("ally").currentDP).toBe(5000);
     expect(s.perm("green").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(3);
-    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("prey").instanceId);
   });
 
   it("battles a surviving opponent Digimon after the forced attack, and declines when told to", async () => {
@@ -310,7 +313,7 @@ describe("EX13-045 Examon", () => {
           ],
           hand: [{ card: cardId, as: "examon" }],
         },
-        1: { battleArea: [{ card: NON_MATCH, as: "prey", suspended: true }], security: ["BT1-011", "BT1-012"] },
+        1: { battleArea: [{ card: NON_MATCH, as: "prey" }], security: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -349,14 +352,28 @@ describe("EX13-045 Examon", () => {
           ],
           hand: [{ card: cardId, as: "examon" }],
         },
-        1: { battleArea: [{ card: NON_MATCH, as: "prey", suspended: true }], security: ["BT1-011", "BT1-012"] },
+        1: { battleArea: [{ card: NON_MATCH, as: "prey" }], security: ["BT1-011", "BT1-012"] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: false },
     );
     declined.state.memory = 2;
     await declined.ready();
 
     expect(dnaIntent(declined)).toEqual({ ok: true });
+    await settle(
+      () => declined.state.pendingDecision?.promptText === "Choose the attack target for the forced attack.",
+    );
+    const attackTarget = declined.state.pendingDecision!;
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackTarget.decisionId,
+        response:
+          attackTarget.kind === "selectCards"
+            ? { kind: "selectCards", instanceIds: ["player"] }
+            : { kind: "chooseTargets", instanceIds: ["player"] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(declined.engine).isAttacking() && declined.state.pendingDecision === undefined);
 
     expect(declined.state.players[1]!.battleArea).toHaveLength(1);
@@ -459,7 +476,7 @@ describe("EX13-045 Examon", () => {
     expect(s.perm("examon").isSuspended).toBe(true);
   });
 
-  it("pierces through a deleted defender into two security checks", async () => {
+  it("Q7364/Q7365: Piercing produces one check event with the Security Attack +1 total", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: cardId, as: "examon" }], hand: [{ card: "BT1-010", as: "spare" }] },
@@ -505,7 +522,7 @@ describe("EX13-045 Examon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
-  it("plays a [Dracomon]-text card from its own digivolution cards after winning a battle", async () => {
+  it("Q7354/Q7355/Q7359: after winning, matches either token anywhere in text and plays from sources", async () => {
     const s = setupEngine(
       {
         0: {

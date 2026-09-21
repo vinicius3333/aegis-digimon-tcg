@@ -194,7 +194,7 @@ describe("EX13-053 Thundermon", () => {
     assertNoLoudGap(s);
   });
 
-  it("returns 3 [Mamemon]-text Digimon to the deck top and deletes at a maximum of 6", async () => {
+  it("Q7375: returns name and effect-text [Mamemon] Digimon and deletes at the raised maximum", async () => {
     const s = setupEngine(
       {
         0: {
@@ -397,7 +397,7 @@ describe("EX13-053 Thundermon", () => {
     assertNoLoudGap(s);
   });
 
-  it("runs the same return-and-delete body when it is deleted from the battle area", async () => {
+  it("Q7376: returns itself from trash and still finishes the remaining deletion", async () => {
     const s = setupEngine(
       {
         0: {
@@ -521,14 +521,23 @@ describe("EX13-053 Thundermon", () => {
     await s.ready();
 
     expect(observe(s.engine).grantedNames(s.perm("thunder"))).toContain("mamemon");
-    expect(observe(s.engine).effectiveNames(s.perm("thunder"))).toEqual(
-      expect.arrayContaining(["thundermon", "mamemon"]),
-    );
+    expect(observe(s.engine).effectiveNames(s.perm("thunder"))).toEqual(["thundermon"]);
     expect(observe(s.engine).hasKeyword(s.perm("thunder"), "Jamming")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("thunder"), "Reboot")).toBe(true);
     expect(observe(s.engine).grantedNames(s.perm("zenimon"))).not.toContain("mamemon");
     expect(observe(s.engine).hasKeyword(s.perm("zenimon"), "Jamming")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("zenimon"), "Reboot")).toBe(false);
+  });
+
+  it("Q7377: includes [Mamemon] in its name without being exactly named Mamemon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: cardId, as: "thunder" }], deck: DECK, security: [SENTINEL] },
+      1: { deck: DECK, security: [SENTINEL] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).effectiveNames(s.perm("thunder"))).toContain("thundermon");
+    expect(observe(s.engine).effectiveNames(s.perm("thunder"))).not.toContain("mamemon");
   });
 
   it("digivolves from a Black Lv.3 for 2 on the first printed route, without firing [On Play]", async () => {

@@ -1,4 +1,10 @@
-import { assemblyRequirementFor, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import {
+  assemblyRequirementFor,
+  digivolutionRequirementsFor,
+  EffectDuration,
+  EffectTiming,
+  getCardDefinition,
+} from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -182,7 +188,7 @@ describe("EX13-044 Breakdramon", () => {
     expect(illegal.state.memory).toBe(4);
   });
 
-  it("suspends up to 2 permanents across BOTH seats, Tamers included", async () => {
+  it("Q7347: suspends up to 2 permanents across BOTH seats, Tamers included", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -225,6 +231,43 @@ describe("EX13-044 Breakdramon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.isSuspended));
 
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.isSuspended)).toHaveLength(2);
+  });
+
+  it("Q7348: may lock different opponent permanents from the ones it suspended", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "breakdramon" },
+            { card: NON_MATCH, as: "suspended" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT2-084", as: "firstLocked" },
+            { card: "BT2-084", as: "secondLocked" },
+            { card: "BT2-084", as: "unlocked" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("suspended").topCard.instanceId);
+    preferred.includes = (id: string) =>
+      s.perm("suspended").isSuspended
+        ? [s.perm("firstLocked").topCard.instanceId, s.perm("secondLocked").topCard.instanceId].includes(id)
+        : id === s.perm("suspended").topCard.instanceId;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("breakdramon"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("suspended").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspended"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("firstLocked"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("secondLocked"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("unlocked"), "unsuspend")).toBe(false);
   });
 
   it("locks exactly 2 opponent permanents, leaving a third free to unsuspend", async () => {
@@ -285,7 +328,7 @@ describe("EX13-044 Breakdramon", () => {
     expect(observe(s.engine).isRestricted(s.perm("victim"), "unsuspend")).toBe(true);
   });
 
-  it("battles with a [Dracomon]-text ally when any of the controller's Digimon suspends", async () => {
+  it("Q7349: immediately battles with a [Dracomon]-text ally when one of your Digimon suspends", async () => {
     const s = setupEngine(
       {
         0: {
@@ -313,6 +356,29 @@ describe("EX13-044 Breakdramon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("Q7350: can choose and battle a Digimon unaffected by the effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "breakdramon" },
+            { card: NON_MATCH, as: "trigger" },
+          ],
+        },
+        1: { battleArea: [{ card: NON_MATCH, dp: 5000, as: "immuneDefender" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.restrict(s.perm("immuneDefender").permanentId, "beAffected", EffectDuration.Permanent);
+    expect(observe(s.engine).isRestricted(s.perm("immuneDefender"), "beAffected")).toBe(true);
+
+    await advance(s.engine).verb.suspend([s.perm("trigger").permanentId]);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toEqual([NON_MATCH]);
+  });
+
   it("does not fire when an OPPONENT's Digimon suspends", async () => {
     const s = setupEngine(
       {
@@ -335,7 +401,7 @@ describe("EX13-044 Breakdramon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
 
-  it("refuses the near-miss and the plain non-matching Digimon as the battler", async () => {
+  it("Q7345-Q7346: accepts either printed-text token and refuses near misses as the battler", async () => {
     const s = setupEngine(
       {
         0: {
@@ -509,6 +575,86 @@ describe("EX13-044 Breakdramon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("Q7351: performs only one Piercing security check after two battle deletions in one attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "breakdramon" }] },
+        1: {
+          battleArea: [
+            { card: NON_MATCH, dp: 5000, suspended: true, as: "effectDefender" },
+            { card: NON_MATCH, dp: 5000, suspended: true, as: "attackDefender" },
+          ],
+          security: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("effectDefender").topCard.instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("breakdramon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("attackDefender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.filter(({ cardId: id }) => id === NON_MATCH)).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("Q7352: retains Piercing from the effect battle when the attack defender prevents deletion", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "breakdramon" }] },
+        1: {
+          battleArea: [
+            { card: NON_MATCH, dp: 5000, suspended: true, as: "effectDefender" },
+            { card: "EX13-033", suspended: true, as: "barrierDefender" },
+          ],
+          security: [
+            { card: "BT1-010", as: "barrierCost" },
+            { card: "BT1-011", as: "piercingCheck" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("effectDefender").topCard.instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("breakdramon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("barrierDefender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenBarrierDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenBarrierDecision);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondBarrier",
+        permanentId: s.perm("barrierDefender").permanentId,
+        accept: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("barrierDefender").permanentId,
+    ]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("effectDefender").instanceId, s.inst("barrierCost").instanceId]),
+    );
+  });
+
   it("blocks an opponent's attack on the player and wins the battle", async () => {
     const s = setupEngine(
       {
@@ -541,7 +687,7 @@ describe("EX13-044 Breakdramon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
-  it("assembles for 7 from one trash material per printed level and enforces each slot", async () => {
+  it("Q7353: assembles only when every level slot independently has Dracomon or Examon in its text", async () => {
     const valid = setupEngine(
       {
         0: {

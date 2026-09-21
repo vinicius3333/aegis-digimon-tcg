@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX13-046.js";
@@ -107,7 +108,7 @@ describe("EX13-046 Kokuwamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("adds an Option whose only [Mamemon] mention sits inside its effect text", async () => {
+  it("Q7367: adds an Option whose only [Mamemon] mention sits inside its effect text", async () => {
     const s = setupEngine(
       {
         0: {
@@ -138,6 +139,16 @@ describe("EX13-046 Kokuwamon", () => {
       s.inst("secondRest").instanceId,
     ]);
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
+  });
+
+  it("Q7367: also reads [Mamemon] from inherited effect text", () => {
+    const inheritedTextOnly = getCardDefinition("P-246")!;
+    expect(inheritedTextOnly.nameEn).not.toContain("Mamemon");
+    expect(inheritedTextOnly.types).not.toContain("Mamemon");
+    expect(inheritedTextOnly.effectText ?? "").not.toContain("Mamemon");
+    expect(inheritedTextOnly.inheritedEffectText).toContain("Mamemon");
+    expect(matchNameOrTrait(inheritedTextOnly, { tokens: ["Mamemon"], match: "text" })).toBe(true);
+    expect(matchNameOrTrait(inheritedTextOnly, { tokens: ["Mamemon"], match: "name" })).toBe(false);
   });
 
   it("discriminates the exact [Mutant] trait from [Ancient Mutant] and from an unrelated trait", async () => {

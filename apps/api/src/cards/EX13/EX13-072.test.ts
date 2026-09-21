@@ -278,6 +278,40 @@ describe("EX13-072 Kota Domoto", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("Q7451: two Kotas can't combine their reductions on one Option card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "firstKota" },
+            { card: CARD_ID, as: "secondKota" },
+            { card: "BT20-051", as: "attacker" },
+          ],
+          hand: [{ card: "P-204", as: "option" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { security: ["BT1-011"], deck: ["BT1-012", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
+    await settle();
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash.filter((card) => card.instanceId === s.inst("option").instanceId)).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("uses the exactly-named [X Antibody] Option through the name branch", async () => {
     const s = setupEngine(
       {

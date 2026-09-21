@@ -266,7 +266,7 @@ describe("EX13-061 Gankoomon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("gankoomon").instanceId]);
   });
 
-  it("plays through Assembly for 5 less, stacking all three trash materials", async () => {
+  it("Q7405: an inherited watcher assembled under Gankoomon sees Gankoomon being played", async () => {
     const s = setupEngine(
       {
         0: {
@@ -274,7 +274,7 @@ describe("EX13-061 Gankoomon", () => {
           trash: [
             { card: "ST12-08", as: "first" },
             { card: "ST12-06", as: "second" },
-            { card: "ST12-04", as: "third" },
+            { card: "EX13-009", as: "third" },
           ],
           deck: DECK,
         },
@@ -300,13 +300,15 @@ describe("EX13-061 Gankoomon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CARD_ID)!;
-    expect(s.state.memory).toBe(-1);
-    expect(played.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["ST12-08", "ST12-06", "ST12-04"]));
+    expect(s.state.memory).toBe(0);
+    expect(played.stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["ST12-08", "ST12-06", "EX13-009"]),
+    );
     expect(played.stack).toHaveLength(3);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
-  it("accepts three SAME-level materials: the printed header fixes no level per slot", async () => {
+  it("Q7397: accepts three same-level materials when each has [Huckmon] somewhere in its text", async () => {
     const s = setupEngine(
       {
         0: {
@@ -496,7 +498,7 @@ describe("EX13-061 Gankoomon", () => {
     expect(tokenIds).toContain(existingId);
   });
 
-  it("makes a chosen white Digimon immune to the opponent's DIGIMON effects only", async () => {
+  it("Q7398-Q7403: chosen white Digimon ignores opponent Digimon effects but remains targetable", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: CARD_ID, as: "gankoomon", dp: 13000 }], deck: DECK },
@@ -759,7 +761,7 @@ describe("EX13-061 Gankoomon", () => {
     ]);
   });
 
-  it("uses an Option out of its OWN digivolution cards, never a neighbour's", async () => {
+  it("Q7404: removes the used Option from Gankoomon's own digivolution cards", async () => {
     const s = setupEngine(
       {
         0: {

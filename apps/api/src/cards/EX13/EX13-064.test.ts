@@ -18,6 +18,7 @@ const INERT_LV5_BLACK = "BT10-064";
 const TOO_EXPENSIVE = "BT19-072";
 const KNIGHTMON_OPTION = "BT18-099";
 const RIE_KISHIBE = "BT22-090";
+const INHERITED_TAMER = "BT12-088";
 const OTHER_TAMER = "BT10-092";
 const THEIR_BODY = "BT1-014";
 const SPARE = "BT1-010";
@@ -263,7 +264,7 @@ describe("EX13-064 LordKnightmon", () => {
     }
   });
 
-  it("digivolves onto the [Rie Kishibe] TAMER for 5 while you have 3 security cards", async () => {
+  it("Q7421/Q7422: digivolves onto the [Rie Kishibe] TAMER and still performs the evolution draw", async () => {
     const s = setupEngine(routeBoard(RIE_KISHIBE, { security: SECURITY_3 }), {
       autoDeclineOptional: true,
       autoSelectCards: true,
@@ -287,6 +288,91 @@ describe("EX13-064 LordKnightmon", () => {
     expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual([RIE_KISHIBE]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    assertNoLoudGap(s);
+  });
+
+  it("Q7423: remains unable to attack when Rie Kishibe was played earlier in the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: RIE_KISHIBE, as: "rie" },
+            { card: cardId, as: "lord" },
+            { card: SPARE, as: "spare" },
+          ],
+          deck: DECK,
+          security: SECURITY_3,
+        },
+        1: { deck: DECK, security: ["BT1-011"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rie").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === RIE_KISHIBE));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("rie").permanentId,
+        instanceId: s.inst("lord").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("rie").topCard.cardId === cardId);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("rie").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("rie").isSuspended).toBe(false);
+  });
+
+  it("Q7424/Q7425: trashes Rie with the evolved Digimon without activating her security effect", async () => {
+    const s = setupEngine(routeBoard(RIE_KISHIBE, { security: SECURITY_3 }), {
+      autoDeclineOptional: true,
+      autoSelectCards: true,
+      autoChooseOption: true,
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lord").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === cardId);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("base").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual(
+      expect.arrayContaining([cardId, RIE_KISHIBE]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("Q7426: applies the inherited effect of a Tamer beneath a Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: cardId, as: "lord", under: [INHERITED_TAMER] }], deck: DECK },
+      1: { deck: DECK },
+    });
+    await s.ready();
+    await advance(s.engine).recompute();
+
+    expect(s.perm("lord").stack.map(({ cardId: id }) => id)).toContain(INHERITED_TAMER);
+    expect(s.perm("lord").currentDP).toBe(14_000);
     assertNoLoudGap(s);
   });
 
@@ -389,7 +475,7 @@ describe("EX13-064 LordKnightmon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId, INERT_TEXT_LV5]);
   });
 
-  it("discriminates the text gate AND the cost ceiling: only the cheap [Knightmon]-text card is eligible", async () => {
+  it("Q7418/Q7420: applies both the text gate and cost ceiling to the chosen card", async () => {
     const s = setupEngine(
       whenDigivolvingBoard({
         hand: [
@@ -638,7 +724,7 @@ describe("EX13-064 LordKnightmon", () => {
     };
   }
 
-  it("grants ＜Rush＞ and ＜Collision＞ to a chosen [Knightmon]-text Digimon and attacks when another Digimon is played", async () => {
+  it("Q7419: after choosing, grants ＜Rush＞/＜Collision＞ and mandatorily attacks", async () => {
     const s = setupEngine(rushBoard([{ card: NO_TEXT_LV4, as: "other" }]), {
       autoAcceptOptional: true,
       autoSelectCards: true,

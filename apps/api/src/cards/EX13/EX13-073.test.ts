@@ -225,6 +225,34 @@ describe("EX13-073 Tai Kamiya & Matt Ishida", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("discard").instanceId]);
   });
 
+  it("Q7452 triggers from this Tamer's own play and may suspend itself to draw then trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "selfPlayed" },
+            { card: "BT1-010", as: "discard" },
+          ],
+          deck: [{ card: "BT1-012", as: "drawn" }, "BT1-013"],
+        },
+        1: { deck: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("selfPlayed").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("selfPlayed").isSuspended);
+    await settle();
+
+    expect(s.perm("selfPlayed").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("discard").instanceId);
+  });
+
   it("cannot pay the suspension cost when this Tamer is already suspended", async () => {
     const s = setupEngine(
       {

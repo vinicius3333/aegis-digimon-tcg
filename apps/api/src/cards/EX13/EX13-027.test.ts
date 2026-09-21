@@ -101,7 +101,7 @@ describe("EX13-027 Chuumon", () => {
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
   });
 
-  it("adds one named card to hand, trashes a second, and bottoms the text-only near-match", async () => {
+  it("Q7286 trashes only a second specified card and bottoms the text-only near-match", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -140,7 +140,7 @@ describe("EX13-027 Chuumon", () => {
     assertNoLoudGap(s);
   });
 
-  it("adds a substring match and trashes nothing when only one revealed card is named", async () => {
+  it("Q7285 adds the sole specified card and trashes nothing", async () => {
     const s = setupEngine(
       {
         0: {
@@ -310,7 +310,7 @@ describe("EX13-027 Chuumon", () => {
     ]);
   });
 
-  it("keeps the host in play against an opponent's effect by deleting your own [Sukamon]-named Digimon", async () => {
+  it("Q7287 may preserve the host by deleting your own [Sukamon]-named Digimon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -392,7 +392,7 @@ describe("EX13-027 Chuumon", () => {
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id).sort()).toEqual([cardId, PLATINUM_SUKAMON].sort());
   });
 
-  it("may pay the cost with the opponent's [Sukamon]-named Digimon", async () => {
+  it("Q7287 may preserve the host by deleting the opponent's [Sukamon]-named Digimon", async () => {
     const s = setupEngine(
       {
         0: {

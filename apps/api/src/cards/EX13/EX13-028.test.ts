@@ -374,7 +374,7 @@ describe("EX13-028 Sukamon", () => {
     ]);
   });
 
-  it("keeps the host in play against an opponent's effect by deleting a [Sukamon]-named Digimon", async () => {
+  it("Q7288 may pay with your own [Sukamon]-named Digimon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -432,7 +432,7 @@ describe("EX13-028 Sukamon", () => {
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id).sort()).toEqual([cardId, NEUTRAL_LV3].sort());
   });
 
-  it("may pay the cost with the opponent's [Sukamon]-named Digimon — the text says 1 other Digimon", async () => {
+  it("Q7288 may pay with the opponent's [Sukamon]-named Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: NEUTRAL_LV3, as: "host", under: [cardId] }], deck: DECK, security: [SENTINEL] },

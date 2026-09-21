@@ -1,4 +1,4 @@
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -92,7 +92,12 @@ describe("EX13-011 BaoHuckmon", () => {
     ).toEqual([0]);
   });
 
-  it("takes the alternate route over a non-red Lv.3 with [Huckmon] in its text and refuses other bases", async () => {
+  it("Q7235 takes the alternate route when [Huckmon] occurs only in a non-red Lv.3's effect text", async () => {
+    const textOnlyBase = getCardDefinition(HUCKMON_TEXT_BASE)!;
+    expect(textOnlyBase.nameEn).not.toContain("Huckmon");
+    expect(textOnlyBase.types).not.toContain("Huckmon");
+    expect(textOnlyBase.effectText).toContain("[Huckmon]");
+
     const legal = setupEngine(
       {
         0: {

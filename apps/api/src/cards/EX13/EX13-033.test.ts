@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -463,7 +463,7 @@ describe("EX13-033 Mistymon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
-  it("reads the printed TEXT, not just the traits, and places the card face down", async () => {
+  it("Q7309: reads the whole printed TEXT, not just the traits, and places the card face down", async () => {
     const s = setupEngine(
       {
         0: {
@@ -490,7 +490,10 @@ describe("EX13-033 Mistymon", () => {
     });
     await settle(() => s.state.players[1]!.security.length === 2);
 
-    expect(getCardDefinition(WITCHELNY_TEXT_ONLY)?.types).not.toContain("Witchelny");
+    const textOnlyCard = getCardDefinition(WITCHELNY_TEXT_ONLY)!;
+    expect(textOnlyCard.nameEn).not.toContain("Witchelny");
+    expect(textOnlyCard.types).not.toContain("Witchelny");
+    expect(`${textOnlyCard.effectText} ${textOnlyCard.inheritedEffectText}`).toContain("Witchelny");
     const security = s.state.players[0]!.security;
     expect(security.map((card) => card.instanceId)).toEqual([
       s.inst("bottom").instanceId,
@@ -642,7 +645,7 @@ describe("EX13-033 Mistymon", () => {
     expect(s.perm("attacker").currentDP).toBe(5000);
   });
 
-  it("fires when the OPPONENT checks your security stack", async () => {
+  it("Q7310: fires after the opponent finishes checking your security stack", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -679,6 +682,104 @@ describe("EX13-033 Mistymon", () => {
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("attacker").permanentId,
     ]);
+  });
+
+  it("Q7311: finishes the printed deletion before the 0-DP rules check", async () => {
+    const preferred: string[] = [];
+    let zeroDpStillPresentWhenAfterTargetWasDeleted = false;
+    let s!: ReturnType<typeof setupEngine>;
+    s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "mistymon" }],
+          hand: [{ card: OWN_SECURITY_REMOVER, as: "remover" }],
+          security: ["BT1-010", "BT1-011"],
+          deck: DECK,
+        },
+        1: {
+          battleArea: [
+            { card: OPPONENT, as: "zeroTarget", dp: 6000 },
+            { card: INERT, as: "afterTarget", dp: 3000 },
+          ],
+          security: [INERT],
+          deck: DECK,
+        },
+      },
+      {
+        ...AUTOMATION,
+        preferInstanceIds: preferred,
+        onEvent(event) {
+          if (event.kind !== "cardsMoved" || !event.instanceIds.includes(s.inst("afterTarget").instanceId)) return;
+          zeroDpStillPresentWhenAfterTargetWasDeleted = s.state.players[1]!.battleArea.some(
+            ({ permanentId }) => permanentId === s.perm("zeroTarget").permanentId,
+          );
+        },
+      },
+    );
+    preferred.includes = (id: string) =>
+      s.perm("zeroTarget").currentDP === 6000
+        ? id === s.perm("zeroTarget").permanentId
+        : id === s.perm("afterTarget").permanentId;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(zeroDpStillPresentWhenAfterTargetWasDeleted).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("zeroTarget").instanceId, s.inst("afterTarget").instanceId]),
+    );
+  });
+
+  it("Q7312: cannot activate after EX13-004 digivolves Mistymon before its simultaneous trigger", async () => {
+    const preferred: string[] = [];
+    const automation = { ...AUTOMATION, autoOrderTriggers: false, preferInstanceIds: preferred };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "mistymon", under: ["EX13-004"] }],
+          hand: [
+            { card: WITCHELNY_LV4, as: "securityPlacement" },
+            { card: "EX13-037", as: "dynasmon" },
+          ],
+          security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: DECK,
+        },
+        1: {
+          battleArea: [{ card: OPPONENT, as: "victim", dp: 20_000 }],
+          security: [INERT, INERT],
+          deck: DECK,
+        },
+      },
+      automation,
+    );
+    s.state.memory = 10;
+    preferred.push(s.inst("securityPlacement").instanceId);
+    await s.ready();
+
+    const resolution = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mistymon"));
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")!.req;
+    expect(order.options?.triggerCardIds).toEqual(expect.arrayContaining([CARD_ID, "EX13-004"]));
+    const demiMeramonIndex = order.options!.triggerCardIds!.findIndex((id) => id === "EX13-004");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [order.options!.triggerKeys![demiMeramonIndex]!] },
+      }),
+    ).toEqual({ ok: true });
+    automation.autoOrderTriggers = true;
+    await resolution;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("mistymon").topCard.cardId).toBe("EX13-037");
+    // Dynasmon's own security-removal watcher supplies -12000; Mistymon's stale -6000
+    // trigger must not activate after Mistymon becomes a digivolution card.
+    expect(s.perm("victim").currentDP).toBe(8000);
   });
 
   it("resets the watcher on the controller's next turn", async () => {

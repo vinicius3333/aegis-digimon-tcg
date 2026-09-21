@@ -338,6 +338,40 @@ describe("EX13-052 Gladimon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("Q7374: both Guard copies resolve after the first prevents the leave, then both On Deletion effects fire", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "firstGuard" },
+            { card: cardId, as: "secondGuard" },
+            { card: NEUTRAL_LV4, as: "ally" },
+          ],
+          deck: inertDeck,
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_TOP, as: "victim", under: [OPPONENT_BOTTOM, OPPONENT_MID] }],
+          deck: inertDeck,
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    const allyId = s.perm("ally").permanentId;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([allyId], "byEffect")).toBe(0);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([allyId]);
+    expect(s.state.players[0]!.trash.filter(({ cardId: id }) => id === cardId)).toHaveLength(2);
+    expect(s.perm("victim").topCard.cardId).toBe(OPPONENT_BOTTOM);
+    expect(s.perm("victim").stack).toHaveLength(0);
+  });
+
   it("does not offer ＜Guard＞ against the controller's own effect", async () => {
     const s = setupEngine(
       {
@@ -392,7 +426,7 @@ describe("EX13-052 Gladimon", () => {
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual([cardId]);
   });
 
-  it("keeps the host in play by deleting a [Knightmon]-in-text Digimon", async () => {
+  it("Q7373: keeps the host in play by deleting a text-only [Knightmon] Digimon", async () => {
     const s = setupEngine(
       {
         0: {

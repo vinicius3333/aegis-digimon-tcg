@@ -373,6 +373,41 @@ describe("EX13-015 Gallantmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("Q7249 trashes security when the mandatory 12000 DP target prevents its deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "gallantmon" }], deck: ["BT1-009"], security: ["BT1-009"] },
+        1: {
+          battleArea: [{ card: "EX3-018", as: "evadeTarget", dp: 12_000 }],
+          security: [
+            { card: "BT1-010", as: "top" },
+            { card: "BT1-011", as: "second" },
+          ],
+          deck: ["BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    const effect = attackWindow(s, "gallantmon");
+    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondEvade",
+        permanentId: s.perm("evadeTarget").permanentId,
+        accept: true,
+      }),
+    ).toEqual({ ok: true });
+    await effect;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("evadeTarget").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("second").instanceId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
   it("spends ONE shared once-per-turn use across [When Digivolving] and [When Attacking], resetting next own turn", async () => {
     const s = setupEngine(
       {
@@ -467,6 +502,58 @@ describe("EX13-015 Gallantmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("Q7250 closes the Counter window after one Counter effect is activated", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "first" },
+            { card: CARD_ID, as: "second" },
+          ],
+          deck: ["BT1-009"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "attacker", dp: 5000 }],
+          deck: ["BT1-012"],
+          security: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const first = opened.eligibleCounters.find((entry) => entry.instanceId === s.perm("first").topCard.instanceId)!;
+    const second = opened.eligibleCounters.find((entry) => entry.instanceId === s.perm("second").topCard.instanceId)!;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: first.instanceId,
+        effectKey: first.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !combatOf(s).hasOpenCounterWindow);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: second.instanceId,
+        effectKey: second.effectKey,
+      }).ok,
+    ).toBe(false);
   });
 
   it("＜Raid＞ switches a player attack onto the opponent's highest-DP unsuspended Digimon", async () => {
@@ -696,6 +783,69 @@ describe("EX13-015 Gallantmon", () => {
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("tooBig").permanentId,
     ]);
+  });
+
+  it("Q7247 leaves when the selected deletion cost is prevented", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "gallantmon" }], deck: ["BT1-009"], security: ["BT1-009"] },
+        1: {
+          battleArea: [{ card: "EX3-018", as: "evadeCost", dp: 9000 }],
+          deck: ["BT1-010"],
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const gallantmonId = s.perm("gallantmon").permanentId;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    const deletion = advance(s.engine).verb.deletePermanent([gallantmonId], "byEffect");
+    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondEvade",
+        permanentId: s.perm("evadeCost").permanentId,
+        accept: true,
+      }),
+    ).toEqual({ ok: true });
+    expect(await deletion).toBe(1);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.perm("evadeCost").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("Q7252 raises the leave-prevention deletion maximum from 9000 to 11000", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "gallantmon", under: ["EX13-007"] }],
+          deck: ["BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "raisedTarget", dp: 11_000 }],
+          deck: ["BT1-010"],
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const gallantmonId = s.perm("gallantmon").permanentId;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([gallantmonId], "byEffect")).toBe(0);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([gallantmonId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
   });
 
   it("does NOT prevent a leave caused by the controller's own effect", async () => {

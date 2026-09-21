@@ -267,7 +267,7 @@ describe("EX13-069 Rina Shinomiya", () => {
     await turn;
   });
 
-  it("does nothing when the suspend cost is declined", async () => {
+  it("Q7437 does nothing after the suspend cost is declined", async () => {
     const s = setupEngine(
       {
         0: {
@@ -297,6 +297,62 @@ describe("EX13-069 Rina Shinomiya", () => {
     expect(s.state.players[0]!.deck).toHaveLength(3);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
+  });
+
+  it("Q7438 still digivolves but pays full cost while Syakomon blocks digivolution-cost reductions", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "rina" },
+            { card: "BT3-021", as: "veemon", suspended: true },
+          ],
+          hand: [{ card: "BT1-115", as: "veedramon" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { battleArea: [{ card: "BT5-021", as: "syakomon" }], deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = STARTING_MEMORY;
+    await s.ready();
+
+    await advance(s.engine).verb.unsuspend([s.perm("veemon").permanentId]);
+    await settle(() => s.perm("veemon").topCard.instanceId === s.inst("veedramon").instanceId);
+    await settle();
+
+    expect(s.perm("rina").isSuspended).toBe(true);
+    expect(s.perm("veemon").topCard.instanceId).toBe(s.inst("veedramon").instanceId);
+    expect(s.state.memory).toBe(STARTING_MEMORY - 3);
+  });
+
+  it("Q7439 does not combine two Rina reductions onto one digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "rinaA" },
+            { card: CARD_ID, as: "rinaB" },
+            { card: "BT3-021", as: "veemon", suspended: true },
+          ],
+          hand: [{ card: "BT1-115", as: "veedramon" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = STARTING_MEMORY;
+    await s.ready();
+
+    await advance(s.engine).verb.unsuspend([s.perm("veemon").permanentId]);
+    await settle(() => s.perm("veemon").topCard.instanceId === s.inst("veedramon").instanceId);
+    await settle();
+
+    expect(s.perm("rinaA").isSuspended).toBe(true);
+    expect(s.perm("rinaB").isSuspended).toBe(true);
+    expect(s.perm("veemon").topCard.instanceId).toBe(s.inst("veedramon").instanceId);
+    expect(s.state.memory).toBe(STARTING_MEMORY - 1);
   });
 
   it("draws but cannot digivolve when the only hand card is not [Veedramon]-named", async () => {

@@ -167,7 +167,7 @@ describe("EX13-051 Guardromon", () => {
     expect(s.perm("ally").isSuspended).toBe(false);
   });
 
-  it('saves EVERY ally ＜Blocker＞ named in one leave for a single suspend ("they don\'t leave")', async () => {
+  it('Q7372: saves EVERY ally ＜Blocker＞ named in one leave for a single suspend ("they don\'t leave")', async () => {
     const s = setupEngine(
       boardWith([
         { card: ALLY_BLOCKER, as: "allyOne" },
@@ -186,6 +186,32 @@ describe("EX13-051 Guardromon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.filter(({ isSuspended }) => isSuspended)).toHaveLength(1);
+    expect(s.perm("guardromon").isSuspended).toBe(true);
+  });
+
+  it("Q7372: prevents every matching Blocker while nonmatching Digimon in the same leave still leave", async () => {
+    const s = setupEngine(
+      boardWith([
+        { card: ALLY_BLOCKER, as: "blockerOne" },
+        { card: NO_KEYWORD, as: "nonBlocker" },
+        { card: ALLY_BLOCKER, as: "blockerTwo" },
+      ]),
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const blockerIds = [s.perm("blockerOne").permanentId, s.perm("blockerTwo").permanentId];
+    const nonBlockerId = s.perm("nonBlocker").permanentId;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([...blockerIds, nonBlockerId], "byEffect")).toBe(1);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
+      expect.arrayContaining([s.perm("guardromon").permanentId, ...blockerIds]),
+    );
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(nonBlockerId);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([NO_KEYWORD]);
     expect(s.perm("guardromon").isSuspended).toBe(true);
   });
 

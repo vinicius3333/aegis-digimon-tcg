@@ -188,7 +188,7 @@ describe("EX13-063 PrinceMamemon", () => {
     );
   });
 
-  it("plays by Assembly from the trash for 4 less, stacking the materials, and fires [On Play]", async () => {
+  it("Q7414: Assembly accepts a material whose Mamemon reference is only in effect text", async () => {
     const s = setupEngine(
       {
         0: {
@@ -348,7 +348,7 @@ describe("EX13-063 PrinceMamemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("free-plays the [Mutant]-TRAIT Garbagemon although its name answers nothing", async () => {
+  it("Q7415: applies the Digimon and cost-10 limits to the Mutant alternative too", async () => {
     const s = setupEngine(
       {
         0: {
@@ -392,7 +392,7 @@ describe("EX13-063 PrinceMamemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("refuses a play cost 11 [Mamemon] card and a text-only near-match, trashing all three", async () => {
+  it("Q7415: refuses cost 11 on the Mamemon alternative and text-only on the name alternative", async () => {
     const s = setupEngine(
       {
         0: {
@@ -437,7 +437,7 @@ describe("EX13-063 PrinceMamemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("trashes every revealed card when the printed 'You may' is declined", async () => {
+  it("Q7416: keeps revealed cards out of trash until the play choice finishes", async () => {
     const s = setupEngine(
       {
         0: {
@@ -475,6 +475,14 @@ describe("EX13-063 PrinceMamemon", () => {
       [s.inst("declined").instanceId, s.inst("alsoDeclined").instanceId].sort(),
     );
     expect(payload.min ?? 0).toBe(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("declined").instanceId,
+        s.inst("alsoDeclined").instanceId,
+        s.inst("nonMatch").instanceId,
+      ]),
+    );
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -542,6 +550,41 @@ describe("EX13-063 PrinceMamemon", () => {
       [s.inst("prince").instanceId, s.inst("nonMatch").instanceId, s.inst("nearMatch").instanceId].sort(),
     );
     assertNoLoudGap(s);
+  });
+
+  it("Q7417: lets the player order both simultaneous On Deletion effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "prince" }],
+          deck: [NON_MATCH, NON_MATCH, NON_MATCH, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: { battleArea: [{ card: HIGHEST, as: "victim" }], deck: DECK, security: [SENTINEL] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("prince").permanentId], "byEffect");
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")!.req;
+    expect(order.options?.triggerCardIds).toEqual([cardId, cardId]);
+    expect(order.options?.triggerKeys).toHaveLength(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [order.options!.triggerKeys!.at(-1)!] },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(4);
   });
 
   it("takes exactly one of two tied most-expensive Digimon and nothing when the board is empty", async () => {

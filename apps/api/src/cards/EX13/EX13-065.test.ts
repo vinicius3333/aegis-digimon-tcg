@@ -783,6 +783,94 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(s.perm("target").currentDP).toBe(12_000 - 6000);
   });
 
+  it("Q7429 finishes the Then clause before rule-deleting the newly played 0 DP Digimon", async () => {
+    const auraId = "TEST-EX13-065-Q7429-AURA";
+    syntheticDefinitions.set(auraId, {
+      ...getCardDefinition(BIG_VANILLA)!,
+      cardId: auraId,
+      nameEn: "Synthetic Sistermon DP Aura",
+    });
+    registerIrCard(auraId, {
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "Aura",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Sistermon Blanc"], match: "nameExact" }],
+                },
+                count: "all",
+              },
+              effect: { kind: "modifyDP", amount: -5000 },
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WHITE_SOURCE, as: "colourSource" }],
+          hand: [
+            { card: cardId, as: "divinePierce" },
+            { card: BLANC, as: "freePlay" },
+          ],
+          deck: inertDeck,
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [
+            { card: auraId, as: "aura" },
+            { card: BIG_VANILLA, as: "target" },
+          ],
+          deck: inertDeck,
+          security: [SENTINEL],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: false,
+        autoOrderTriggers: true,
+        declinePrompts: ["Arts Digivolve"],
+      },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("divinePierce").instanceId,
+        useAs: "option",
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+
+    expect(s.perm("freePlay").currentDP).toBe(0);
+    expect(
+      s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("freePlay").permanentId),
+    ).toBe(true);
+    const thenDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: thenDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("target").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === BLANC));
+
+    expect(s.perm("target").currentDP).toBe(12_000 - 6000);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === BLANC)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain(BLANC);
+  });
+
   it("§4-19 Arts Digivolve: after the Option resolves, a [Sistermon Blanc] may digivolve into it", async () => {
     const s = setupEngine(
       {
@@ -817,6 +905,55 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(s.perm("artsTarget").stack.map(({ instanceId }) => instanceId)).toEqual([blancInstanceId]);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).not.toContain(cardId);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("Q7430 does not activate the played Sistermon Blanc's lost On Play effect after Arts Digivolve", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WHITE_SOURCE, as: "colourSource" }],
+          hand: [
+            { card: cardId, as: "divinePierce" },
+            { card: BLANC, as: "artsTarget" },
+          ],
+          deck: inertDeck,
+          security: [SENTINEL],
+        },
+        1: { battleArea: [{ card: BIG_VANILLA, as: "target" }], deck: inertDeck, security: [SENTINEL] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false, autoOrderTriggers: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const deckBefore = s.state.players[0]!.deck.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("divinePierce").instanceId,
+        useAs: "option",
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(decision.promptText).toContain("Arts Digivolve");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("artsTarget").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("artsTarget").topCard.cardId === cardId);
+    await settle();
+
+    expect(s.perm("artsTarget").stack.map(({ cardId: id }) => id)).toEqual([BLANC]);
+    expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
+    expect(
+      s.events.some(
+        (event) => event.kind === "effectResolved" && event.sourceCardId === BLANC && event.timing === "OnPlay",
+      ),
+    ).toBe(false);
   });
 
   it("rejects a Digimon play declaration without firing the Option body", async () => {

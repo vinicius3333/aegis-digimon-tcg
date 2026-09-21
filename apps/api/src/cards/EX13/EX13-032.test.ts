@@ -281,7 +281,7 @@ describe("EX13-032 Chirinmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("victim"), "cannotActivateWhenDigivolving")).toBe(true);
   });
 
-  it("leaves the board untouched when the cost is declined", async () => {
+  it("Q7301 resolves nothing after After when the cost is declined", async () => {
     const s = setupEngine(
       {
         0: {
@@ -307,7 +307,7 @@ describe("EX13-032 Chirinmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("victim"), "cannotActivateWhenDigivolving")).toBe(false);
   });
 
-  it("does nothing when neither printed cost half can be paid", async () => {
+  it("Q7301 resolves nothing after After when neither printed cost can be paid", async () => {
     const s = setupEngine(
       {
         0: {
@@ -390,7 +390,7 @@ describe("EX13-032 Chirinmon", () => {
     await nextOwnTurn;
   });
 
-  it("suppresses only the locked Digimon's own [When Digivolving] effect", async () => {
+  it("Q7302-Q7306 suppresses only the locked Digimon's [When Digivolving] activation", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -525,7 +525,7 @@ describe("EX13-032 Chirinmon", () => {
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(chirinmonInstanceId);
   });
 
-  it("leaves when it has no stacked card to place", async () => {
+  it("Q7307 leaves when it has no stacked card to place", async () => {
     const s = setupEngine(
       {
         0: {
@@ -584,7 +584,7 @@ describe("EX13-032 Chirinmon", () => {
     expect(s.state.players[0]!.security[0]!.cardId).toBe(cardId);
   });
 
-  it("keeps a [Kentaurosmon] host in play once per turn and lets the second leave resolve", async () => {
+  it("Q7308 promotes Chirinmon, then its own leave replacement can answer the next leave", async () => {
     const s = setupEngine(
       {
         0: {

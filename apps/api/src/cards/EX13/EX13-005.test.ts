@@ -1,5 +1,6 @@
 import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -127,33 +128,58 @@ describe("EX13-005 Bebydomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("discriminates [Dracomon]/[Examon] text from near-miss and unrelated hand cards", async () => {
+  it("Q7221 includes inherited text in the card's complete printed text", () => {
+    const reference: Parameters<typeof matchNameOrTrait>[1] = {
+      tokens: ["Dracomon", "Examon"],
+      match: "text",
+    };
+
+    expect(
+      matchNameOrTrait(
+        {
+          cardId: "TEST-INHERITED-TEXT",
+          nameEn: "Neutralmon",
+          effectText: "No referenced name occurs here.",
+          inheritedEffectText: "While attacking, this Digimon is treated as [Dracomon].",
+        },
+        reference,
+      ),
+    ).toBe(true);
+    expect(
+      matchNameOrTrait(
+        {
+          cardId: "TEST-INHERITED-NEAR-MISS",
+          nameEn: "Neutralmon",
+          inheritedEffectText: "While attacking, this Digimon is treated as [Draco].",
+        },
+        reference,
+      ),
+    ).toBe(false);
+  });
+
+  it("Q7222 accepts [Examon] independently of [Dracomon]", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT1-064", as: "host", under: [{ card: CARD_ID, as: "egg" }] }],
           hand: [
-            { card: "BT1-009", as: "nearMiss" },
+            { card: "BT13-059", as: "examon" },
             { card: "BT1-010", as: "unrelated" },
-            { card: "EX13-018", as: "textOnly" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.memory = 4;
+    s.state.memory = 14;
     await s.ready();
 
     await attackWindow(s, "host");
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("nearMiss").instanceId,
-      s.inst("unrelated").instanceId,
-    ]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unrelated").instanceId]);
     expect(
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("textOnly").instanceId),
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("examon").instanceId),
     ).toBe(true);
   });
 
