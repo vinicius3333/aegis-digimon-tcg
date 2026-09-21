@@ -148408,6 +148408,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -149714,6 +149715,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -150419,29 +150421,29 @@
       {
         "cost": 0,
         "materials": [
-          { "color": "Blue", "level": 5 },
-          { "color": "Purple", "level": 5 }
+          { "color": "Blue", "level": 4 },
+          { "color": "Purple", "level": 4 }
         ]
       },
       {
         "cost": 0,
         "materials": [
-          { "color": "Blue", "level": 5 },
-          { "color": "Red", "level": 5 }
+          { "color": "Blue", "level": 4 },
+          { "color": "Red", "level": 4 }
         ]
       },
       {
         "cost": 0,
         "materials": [
-          { "color": "Yellow", "level": 5 },
-          { "color": "Purple", "level": 5 }
+          { "color": "Yellow", "level": 4 },
+          { "color": "Purple", "level": 4 }
         ]
       },
       {
         "cost": 0,
         "materials": [
-          { "color": "Yellow", "level": 5 },
-          { "color": "Red", "level": 5 }
+          { "color": "Yellow", "level": 4 },
+          { "color": "Red", "level": 4 }
         ]
       }
     ]
@@ -151304,6 +151306,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -151425,6 +151428,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -151670,6 +151674,7 @@
                 "from": ["hand"],
                 "payCost": true,
                 "reduceCostBy": 2,
+                "allowDigiXros": true,
                 "optional": true
               }
             ]
@@ -152014,8 +152019,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "level": 5, "texts": ["Gokuumon"], "cost": 3, "isAlternate": true },
-      { "level": 5, "traits": ["Shambala"], "cost": 3, "isAlternate": true }
+      { "level": 5, "texts": ["Gokuumon"], "cost": 4, "isAlternate": true },
+      { "level": 5, "traits": ["Shambala"], "cost": 4, "isAlternate": true }
     ],
     "assemblyRequirement": [
       {
@@ -152100,6 +152105,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
+                  "allowDigiXros": true,
                   "optional": true
                 }
               ],
@@ -153955,6 +153961,7 @@
                 "from": ["hand"],
                 "payCost": true,
                 "reduceCostBy": 3,
+                "allowDigiXros": true,
                 "optional": true
               }
             ]
@@ -154383,6 +154390,7 @@
             "from": ["hand"],
             "payCost": true,
             "reduceCostBy": 3,
+            "allowDigiXros": true,
             "optional": true
           }
         ]

@@ -17,8 +17,8 @@ describe("EX12-048 SeitenGokuumon", () => {
     expect(getCardDefinition("EX12-048")).toMatchObject({
       nameEn: "SeitenGokuumon",
       colors: ["Yellow", "Red", "Blue"],
-      playCost: 5,
-      dp: 12000,
+      playCost: 13,
+      dp: 13000,
       level: 6,
       forms: ["Mega"],
       attributes: ["Virus"],
@@ -30,8 +30,8 @@ describe("EX12-048 SeitenGokuumon", () => {
       ],
     });
     expect(digivolutionRequirementsFor("EX12-048")).toEqual([
-      { level: 5, texts: ["Gokuumon"], cost: 3, isAlternate: true },
-      { level: 5, traits: ["Shambala"], cost: 3, isAlternate: true },
+      { level: 5, texts: ["Gokuumon"], cost: 4, isAlternate: true },
+      { level: 5, traits: ["Shambala"], cost: 4, isAlternate: true },
     ]);
     expect(compiled.assemblyRequirement).toEqual([
       {
@@ -113,6 +113,26 @@ describe("EX12-048 SeitenGokuumon", () => {
     }
   });
 
+  it("applies the reported public On Play DP reduction before offering its optional attack", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-048", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-024", as: "target", dp: 20000 }], security: ["BT1-009"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 12000);
+
+    expect(s.perm("target").currentDP).toBe(12000);
+    expect(s.events.some(({ kind }) => kind === "attackDeclared")).toBe(false);
+  });
+
   it("Q6822 keeps a 0-DP target present through the optional attack and Raid redirection", async () => {
     const s = setupEngine(
       {
@@ -148,7 +168,7 @@ describe("EX12-048 SeitenGokuumon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 7;
 
     expect(
       s.engine.applyIntent(0, {
@@ -297,8 +317,8 @@ describe("EX12-048 SeitenGokuumon", () => {
       ["EX12-045", false, 5],
       ["BT1-020", false, 5],
       ["EX12-029", false, 5],
-      ["EX6-024", true, 3],
-      ["EX12-063", true, 3],
+      ["EX6-024", true, 4],
+      ["EX12-063", true, 4],
     ] as const) {
       const s = setupEngine({
         0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "EX12-048", as: "target" }] },

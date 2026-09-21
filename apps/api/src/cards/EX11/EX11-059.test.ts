@@ -110,8 +110,8 @@ describe("EX11-059 Reina Oumi", () => {
         0: {
           battleArea: [
             { card: "EX11-059", as: "reina" },
-            { card: "EX8-013", as: "deletedNso", dp: 1000, suspended: true },
-            { card: "EX8-033", as: "fieldMaterial", dp: 3000 },
+            { card: "EX8-032", as: "deletedNso", dp: 1000, suspended: true },
+            { card: "EX12-024", as: "fieldMaterial", dp: 3000 },
           ],
           hand: [{ card: "EX12-032", as: "dnaTarget" }],
         },
@@ -131,11 +131,35 @@ describe("EX11-059 Reina Oumi", () => {
     await settle(() => s.perm("reina").isSuspended);
     expect(s.perm("reina").isSuspended).toBe(true);
     const dnaStack = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "EX12-032")!.stack;
-    expect(dnaStack.map(({ cardId }) => cardId)).toEqual(["EX8-033", "EX8-013"]);
+    expect(dnaStack.map(({ cardId }) => cardId)).toEqual(["EX12-024", "EX8-032"]);
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX12-032")).toBe(false);
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX8-013")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX8-032")).toBe(false);
     assertNoLoudGap(s);
+  });
+
+  it("triggers on the controller's turn when a valid NSo DNA material is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-059", as: "reina" },
+            { card: "EX8-032", as: "deletedNso" },
+            { card: "EX12-024", as: "fieldMaterial" },
+          ],
+          hand: [{ card: "EX12-032", as: "dnaTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deletedNso").permanentId], "byEffect");
+    await settle(() => s.perm("reina").isSuspended);
+
+    expect(s.perm("reina").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-032")).toBe(true);
   });
 
   it("plays itself from security through a public security check", async () => {

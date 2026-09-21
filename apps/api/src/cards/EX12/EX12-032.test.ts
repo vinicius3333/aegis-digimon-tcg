@@ -38,29 +38,29 @@ describe("EX12-032 WereGarurumon", () => {
       {
         cost: 0,
         materials: [
-          { color: "Blue", level: 5 },
-          { color: "Purple", level: 5 },
+          { color: "Blue", level: 4 },
+          { color: "Purple", level: 4 },
         ],
       },
       {
         cost: 0,
         materials: [
-          { color: "Blue", level: 5 },
-          { color: "Red", level: 5 },
+          { color: "Blue", level: 4 },
+          { color: "Red", level: 4 },
         ],
       },
       {
         cost: 0,
         materials: [
-          { color: "Yellow", level: 5 },
-          { color: "Purple", level: 5 },
+          { color: "Yellow", level: 4 },
+          { color: "Purple", level: 4 },
         ],
       },
       {
         cost: 0,
         materials: [
-          { color: "Yellow", level: 5 },
-          { color: "Red", level: 5 },
+          { color: "Yellow", level: 4 },
+          { color: "Red", level: 4 },
         ],
       },
     ];
@@ -159,6 +159,37 @@ describe("EX12-032 WereGarurumon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended"));
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended")).toBe(true);
+  });
+
+  it("publishes and accepts the reported EX8 Apemon + EX12 Garurumon DNA route", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX8-032", as: "apemon" },
+          { card: "EX12-024", as: "garurumon" },
+        ],
+        hand: [{ card: cardId, as: "source" }],
+      },
+    });
+    await s.ready();
+
+    const materialIds = [s.perm("apemon").permanentId, s.perm("garurumon").permanentId];
+    expect(
+      s
+        .inst("source")
+        .dnaDigivolveRoutes.some(
+          ({ materialPermanentIdsJson }) => materialPermanentIdsJson === JSON.stringify(materialIds),
+        ),
+    ).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: materialIds,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
+    expect(s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === cardId)?.stack).toHaveLength(2);
   });
 
   it("applies the same suspension restriction to an opposing Tamer when digivolving", async () => {
@@ -380,10 +411,10 @@ describe("EX12-032 WereGarurumon", () => {
 
   it("DNA digivolves through all four printed color pairs for zero and rejects an invalid pair", async () => {
     for (const [firstCardId, secondCardId] of [
-      ["BT1-040", "BT2-078"],
-      ["BT1-040", "EX12-016"],
-      ["EX12-044", "BT2-078"],
-      ["EX12-044", "EX12-016"],
+      ["BT1-036", "BT2-073"],
+      ["BT1-036", "EX12-012"],
+      ["EX8-032", "BT2-073"],
+      ["EX8-032", "EX12-012"],
     ] as const) {
       const s = setupEngine({
         0: {
@@ -408,8 +439,8 @@ describe("EX12-032 WereGarurumon", () => {
     const invalid = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-040", as: "first" },
-          { card: "EX12-044", as: "second" },
+          { card: "BT1-036", as: "first" },
+          { card: "EX8-032", as: "second" },
         ],
         hand: [{ card: cardId, as: "source" }],
       },

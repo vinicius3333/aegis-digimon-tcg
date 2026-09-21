@@ -141,29 +141,29 @@ const compiled: CompiledCard = {
     {
       cost: 0,
       materials: [
-        { color: "Blue", level: 5 },
-        { color: "Purple", level: 5 },
+        { color: "Blue", level: 4 },
+        { color: "Purple", level: 4 },
       ],
     },
     {
       cost: 0,
       materials: [
-        { color: "Blue", level: 5 },
-        { color: "Red", level: 5 },
+        { color: "Blue", level: 4 },
+        { color: "Red", level: 4 },
       ],
     },
     {
       cost: 0,
       materials: [
-        { color: "Yellow", level: 5 },
-        { color: "Purple", level: 5 },
+        { color: "Yellow", level: 4 },
+        { color: "Purple", level: 4 },
       ],
     },
     {
       cost: 0,
       materials: [
-        { color: "Yellow", level: 5 },
-        { color: "Red", level: 5 },
+        { color: "Yellow", level: 4 },
+        { color: "Red", level: 4 },
       ],
     },
   ],

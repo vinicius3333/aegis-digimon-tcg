@@ -129,7 +129,7 @@ describe("EX12-045 Sanzomon", () => {
     expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
   });
 
-  it("matches Gokuumon anywhere in card text, not only by name or trait (Q6809)", async () => {
+  it("matches Gokuumon in card text and permits its paid effect-play DigiXros (Q6809)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: cardId, as: "source" }], hand: [{ card: "EX6-024", as: "target" }] },
@@ -143,7 +143,11 @@ describe("EX12-045 Sanzomon", () => {
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("target").instanceId),
     );
 
-    expect(s.state.memory).toBe(0);
+    const played = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("target").instanceId,
+    );
+    expect(played?.stack.map(({ cardId: sourceCardId }) => sourceCardId)).toContain(cardId);
+    expect(s.state.memory).toBe(2);
   });
 
   it("does not combine two copies' reductions into one play (Q6810)", async () => {

@@ -62,6 +62,7 @@ const compiled: CompiledCard = {
               from: ["hand"],
               payCost: true,
               reduceCostBy: 3,
+              allowDigiXros: true,
               optional: true,
             },
           ],

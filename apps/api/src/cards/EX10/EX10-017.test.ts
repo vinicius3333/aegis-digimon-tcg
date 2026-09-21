@@ -124,6 +124,31 @@ describe("EX10-017 Mienumon", () => {
     assertNoLoudGap(s);
   });
 
+  it("publishes App Fusion for the reported Mirrormon and Copipemon co-link", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX10-016", as: "host", linked: [{ card: "EX10-038", as: "copipemon" }] }],
+        hand: [{ card: CARD_ID, as: "result" }],
+        deck: ["BT1-009"],
+      },
+    });
+    await s.ready();
+
+    expect(
+      s.inst("result").appFusionRoutes.map(({ hostPermanentId, linkedInstanceId, projectedCost }) => ({
+        hostPermanentId,
+        linkedInstanceId,
+        projectedCost,
+      })),
+    ).toEqual([
+      {
+        hostPermanentId: s.perm("host").permanentId,
+        linkedInstanceId: s.inst("copipemon").instanceId,
+        projectedCost: 0,
+      },
+    ]);
+  });
+
   it("links only to Appmon for 2 and contributes +3000 DP", async () => {
     const s = setupEngine({
       0: {
