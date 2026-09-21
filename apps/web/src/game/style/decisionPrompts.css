@@ -463,9 +463,8 @@
   width: fit-content;
   padding: 4px 10px;
   color: #fff;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #ff6fae, var(--battle-keyword));
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--battle-keyword) 34%, transparent);
+  border-radius: 0.125rem;
+  background: rgb(58 105 174 / 72%);
   white-space: nowrap;
 }
 .board-prompt__text {

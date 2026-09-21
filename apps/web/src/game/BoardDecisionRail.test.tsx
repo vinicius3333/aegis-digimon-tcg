@@ -257,9 +257,10 @@ describe("BoardAlliancePrompt", () => {
     expect(screen.getByRole("region", { name: "Alliance window" }).classList.contains("board-prompt--alliance")).toBe(
       true,
     );
-    expect(screen.getByText("Choose another Digimon to suspend. Add its DP and gain 1 extra security check.")).toBeTruthy();
+    expect(screen.getByText(/Suspend 1 of your other Digimon to add its DP/)).toBeTruthy();
     expect(screen.getByText("＜Alliance＞").classList.contains("board-prompt__eyebrow")).toBe(true);
     expect(screen.queryByRole("dialog", { name: "Alliance window" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Pass" }).querySelector("svg")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Pass" }));
     expect(onPass).toHaveBeenCalledTimes(1);
   });

@@ -268,7 +268,7 @@ export function BoardAlliancePrompt({ attackerCardId, onPass }: { attackerCardId
       art={attackerCardId}
       prompt={t("overlay.alliancePrompt")}
     >
-      <Button variant="secondary" icon={Icons.ChevronRight} onClick={onPass}>
+      <Button variant="secondary" onClick={onPass}>
         {t("overlay.passAlliance")}
       </Button>
     </BoardPromptRail>

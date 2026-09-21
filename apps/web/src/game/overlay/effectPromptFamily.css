@@ -95,15 +95,6 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.action-confirmation__title[data-tone="keyword"] {
-  display: inline-flex;
-  padding: 4px 10px;
-  color: #fff;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #ff6fae, var(--battle-keyword));
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--battle-keyword) 34%, transparent);
-  white-space: nowrap;
-}
 .action-confirmation__detail {
   margin-top: 7px;
   color: var(--ds-fg);

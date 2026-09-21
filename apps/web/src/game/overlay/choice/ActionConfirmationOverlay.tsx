@@ -9,8 +9,8 @@ import "../effectPromptFamily.css";
 export function ActionConfirmationOverlay({
   cardId,
   title,
-  titleTone,
   detail,
+  showSummary = true,
   confirmLabel,
   alternateLabel,
   onConfirm,
@@ -19,8 +19,8 @@ export function ActionConfirmationOverlay({
 }: {
   cardId: string;
   title: string;
-  titleTone?: "keyword";
   detail: string;
+  showSummary?: boolean;
   confirmLabel: string;
   alternateLabel?: string;
   onConfirm: () => void;
@@ -61,15 +61,15 @@ export function ActionConfirmationOverlay({
           boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
         }}
       >
-        <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 18 }}>
-          <CardFull cardId={cardId} width={92} />
-          <div className="action-confirmation__copy">
-            <div className="action-confirmation__title" data-tone={titleTone}>
-              {title}
+        {showSummary ? (
+          <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 18 }}>
+            <CardFull cardId={cardId} width={92} />
+            <div className="action-confirmation__copy">
+              <div className="action-confirmation__title">{title}</div>
+              <div className="action-confirmation__detail">{detail}</div>
             </div>
-            <div className="action-confirmation__detail">{detail}</div>
           </div>
-        </div>
+        ) : null}
         <div className="game-actions-row">
           <Button full onClick={onConfirm}>
             {confirmLabel}
