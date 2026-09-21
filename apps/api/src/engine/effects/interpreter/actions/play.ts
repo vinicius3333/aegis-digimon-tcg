@@ -897,6 +897,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                     candidates: materialCandidates.map((candidate) => candidate.instanceId),
                     min: 0,
                     max: materialCap,
+                    digiXrosCardId: playedCard.cardId,
                   });
                   const selectedCandidates = selected
                     .map((instanceId) => materialCandidates.find((candidate) => candidate.instanceId === instanceId))

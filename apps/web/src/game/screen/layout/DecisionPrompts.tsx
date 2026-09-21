@@ -4,17 +4,24 @@
    over a lit field — and everything else is asked in the dialog. The pill is the other
    half of the same idea: the opponent has a question open and the viewer is waiting. */
 
-import { assemblyRequirementFor, type DecisionRequest, type DecisionResponse, type Permanent } from "@aegis/shared";
+import {
+  assemblyRequirementFor,
+  digiXrosRequirementFor,
+  type DecisionRequest,
+  type DecisionResponse,
+  type Permanent,
+} from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../../BoardDecisionRail";
 import { decisionPermanentDetails, decisionSourceCounts, type CandidateZone } from "../../decisionModel";
 import {
   AssemblyMaterialOverlay,
   DecisionOverlay,
+  DigiXrosMaterialOverlay,
   playerFacingEffectClause,
   playerFacingPromptText,
 } from "../../overlay";
-import type { TriggerDetail } from "../../overlay";
+import type { DigiXrosCandidate, TriggerDetail } from "../../overlay";
 
 export function DecisionPrompts({
   decision,
@@ -66,9 +73,13 @@ export function DecisionPrompts({
   const assemblyCardId = decision?.kind === "selectCards" ? decision.options?.assemblyCardId : undefined;
   const assemblyRequirement = assemblyCardId ? assemblyRequirementFor(assemblyCardId)?.[0] : undefined;
   const isAssemblyDecision = assemblyCardId !== undefined && assemblyRequirement !== undefined;
+  const digiXrosCardId = decision?.kind === "selectCards" ? decision.options?.digiXrosCardId : undefined;
+  const digiXrosRequirements = digiXrosCardId ? digiXrosRequirementFor(digiXrosCardId) : undefined;
+  const isDigiXrosDecision = digiXrosCardId !== undefined && digiXrosRequirements !== undefined;
+  const isMaterialDecision = isAssemblyDecision || isDigiXrosDecision;
   return (
     <>
-      {decision && decision.kind !== "mulligan" && !answerOnBoard && !isAssemblyDecision
+      {decision && decision.kind !== "mulligan" && !answerOnBoard && !isMaterialDecision
         ? (() => {
             const sourceCounts = decisionSourceCounts(permanents);
             const permanentDetails = decisionPermanentDetails(permanents);
@@ -99,7 +110,7 @@ export function DecisionPrompts({
           })()
         : null}
 
-      {decision && answerOnBoard && boardSelectionKind && !isAssemblyDecision ? (
+      {decision && answerOnBoard && boardSelectionKind && !isMaterialDecision ? (
         <BoardSelectionRail
           attackSelection={decision.options?.selectionContext === "attackTarget"}
           fieldSelection={candidates.some(
@@ -133,6 +144,53 @@ export function DecisionPrompts({
               ? [{ instanceId: candidate.instanceId, cardId: candidate.cardId, artId: candidate.artId }]
               : [],
           )}
+          onConfirm={(instanceIds) => onRespond({ kind: "selectCards", instanceIds })}
+          onSkip={() => onRespond({ kind: "selectCards", instanceIds: [] })}
+        />
+      ) : null}
+
+      {decision?.kind === "selectCards" && digiXrosCardId && digiXrosRequirements ? (
+        <DigiXrosMaterialOverlay
+          playingCardId={digiXrosCardId}
+          requirements={digiXrosRequirements}
+          candidates={candidates.flatMap<DigiXrosCandidate>((candidate) => {
+            if (!candidate.cardId || (candidate.zone !== "hand" && candidate.zone !== "battle")) return [];
+            const permanent = permanents.find((entry) => entry.topCard?.instanceId === candidate.instanceId);
+            return [
+              {
+                instanceId: candidate.instanceId,
+                cardId: candidate.cardId,
+                artId: candidate.artId,
+                zone: candidate.zone,
+                ...(permanent
+                  ? {
+                      digiXrosNames: [...permanent.digiXrosNames],
+                      canSubstitute: permanent.keywords.includes("DigiXrosSubstitute"),
+                    }
+                  : {}),
+              },
+            ];
+          })}
+          lockedCandidates={candidates.flatMap<DigiXrosCandidate>((candidate) => {
+            if (!candidate.cardId) return [];
+            if (candidate.zone === "trash")
+              return [
+                { instanceId: candidate.instanceId, cardId: candidate.cardId, artId: candidate.artId, zone: "trash" },
+              ];
+            if (candidate.zone === "digivolutionCards")
+              return [
+                {
+                  instanceId: candidate.instanceId,
+                  cardId: candidate.cardId,
+                  artId: candidate.artId,
+                  zone: "underTamer",
+                },
+              ];
+            return [];
+          })}
+          eligibleExpanders={[]}
+          intrinsicTrashMax={candidates.filter((candidate) => candidate.zone === "trash").length}
+          intrinsicUnderTamerMax={candidates.filter((candidate) => candidate.zone === "digivolutionCards").length}
           onConfirm={(instanceIds) => onRespond({ kind: "selectCards", instanceIds })}
           onSkip={() => onRespond({ kind: "selectCards", instanceIds: [] })}
         />

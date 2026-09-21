@@ -21,6 +21,7 @@ export function digiXrosMaterialPool({
   eligibleExpanders,
   chosenExpanderPermanentIds,
   intrinsicTrashMax,
+  intrinsicUnderTamerMax,
   picks,
 }: {
   requirement: DigiXrosRequirement;
@@ -29,10 +30,11 @@ export function digiXrosMaterialPool({
   eligibleExpanders: DigiXrosEligibleExpander[];
   chosenExpanderPermanentIds: string[];
   intrinsicTrashMax: number;
+  intrinsicUnderTamerMax: number;
   picks: string[];
 }): DigiXrosMaterialPool {
   const chosenExpanders = eligibleExpanders.filter((e) => chosenExpanderPermanentIds.includes(e.permanentId));
-  const underTamerMax = chosenExpanders.reduce((max, e) => Math.max(max, e.underTamerMax), 0);
+  const underTamerMax = chosenExpanders.reduce((max, e) => Math.max(max, e.underTamerMax), intrinsicUnderTamerMax);
   const trashMax = chosenExpanders.reduce((max, e) => Math.max(max, e.trashMax), intrinsicTrashMax);
   const trashCandidates = lockedCandidates.filter((c) => c.zone === "trash");
   const underTamerCandidates = lockedCandidates.filter((c) => c.zone === "underTamer");

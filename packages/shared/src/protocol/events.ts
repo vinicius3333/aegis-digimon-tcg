@@ -538,6 +538,8 @@ export interface DecisionRequest {
     purpose?: "cost";
     /** Effect-driven play awaiting the existing Assembly material picker for this card. */
     assemblyCardId?: string;
+    /** Effect-driven play awaiting the existing DigiXros material picker for this card. */
+    digiXrosCardId?: string;
   };
 }
 

@@ -31,6 +31,7 @@ export function DigiXrosMaterialOverlay({
   lockedCandidates,
   eligibleExpanders,
   intrinsicTrashMax = 0,
+  intrinsicUnderTamerMax = 0,
   onConfirm,
   onSkip,
   onCancel,
@@ -47,12 +48,14 @@ export function DigiXrosMaterialOverlay({
   eligibleExpanders: DigiXrosEligibleExpander[];
   /** Trash capacity granted by the played card itself, without suspending a Tamer. */
   intrinsicTrashMax?: number;
+  /** Under-Tamer capacity already authorized by the resolving effect. */
+  intrinsicUnderTamerMax?: number;
   /** Confirm with the chosen materials and expander Tamers to suspend. */
   onConfirm: (materialInstanceIds: string[], expanderPermanentIds: string[]) => void;
   /** Play the card normally without DigiXros (full cost, no materials). */
   onSkip: () => void;
   /** Cancel: go back without playing. */
-  onCancel: () => void;
+  onCancel?: () => void;
 }) {
   const { t } = useTranslation();
   const titleId = useId();
@@ -86,6 +89,7 @@ export function DigiXrosMaterialOverlay({
     eligibleExpanders,
     chosenExpanderPermanentIds,
     intrinsicTrashMax,
+    intrinsicUnderTamerMax,
     picks,
   });
 
@@ -194,9 +198,11 @@ export function DigiXrosMaterialOverlay({
           <Button full variant="secondary" onClick={onSkip}>
             {t("overlay.xrosPlayWithout")}
           </Button>
-          <Button full variant="ghost" onClick={onCancel}>
-            {t("common.cancel")}
-          </Button>
+          {onCancel ? (
+            <Button full variant="ghost" onClick={onCancel}>
+              {t("common.cancel")}
+            </Button>
+          ) : null}
         </div>
         <div className="effect-prompt-family__board-action">
           <DecisionViewBoardButton onOpenBoard={openBoard} />
