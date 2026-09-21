@@ -36,6 +36,12 @@ export function shieldBreakStep({
     replace,
     async run(context) {
       if (context.mode !== "live") return;
+      // Raid can redirect an attack into a field battle and Piercing can then continue that
+      // same attack into security. These scenes use independent tracks, so keep the shield
+      // behind the field clash rather than drawing both combats at once.
+      while (!context.cancelled && queue.hasPendingStep((step) => step.id.startsWith("field-clash-")))
+        await context.wait(16);
+      if (context.cancelled) return;
       // Whatever the attack itself raised reads before the shield breaks. The server
       // resolves a [When Attacking] effect ahead of the reveal, but its toast glows the
       // source card first, so without this wait the check opened over a clause that had

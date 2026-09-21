@@ -11,12 +11,12 @@ import type { AttackLunge } from "../types";
  * check to come will be fought against.
  *
  * The attacker is captured while it is still on the field, because an effect deletion names
- * the card instance rather than the permanent — so both ways in are kept. A declaration that
- * redirects the same attacker off the player takes the memory back.
+ * the card instance rather than the permanent — so both ways in are kept. A Raid redirect
+ * keeps that memory: Piercing may continue the same attack into security after the field
+ * battle, and the reveal event identifies that same permanent.
  */
 export function presentSecurityAttack({
   securityAttack,
-  redirectedOffPlayer,
   viewerSeat,
   cardSiteRef,
   securityAttackerRef,
@@ -24,7 +24,6 @@ export function presentSecurityAttack({
   enqueue,
 }: {
   securityAttack: ServerEvent | undefined;
-  redirectedOffPlayer: ServerEvent | undefined;
   viewerSeat: Seat;
   cardSiteRef: MutableRefObject<{ topInstanceOf: (permanentId: string) => string | undefined }>;
   /** Mutated: the attacker the next security check is resolved against. */
@@ -55,11 +54,5 @@ export function presentSecurityAttack({
       permanentId: securityAttack.attackerPermanentId,
       topInstanceId: cardSiteRef.current.topInstanceOf(securityAttack.attackerPermanentId),
     };
-  }
-  if (
-    redirectedOffPlayer?.kind === "attackDeclared" &&
-    securityAttackerRef.current?.permanentId === redirectedOffPlayer.attackerPermanentId
-  ) {
-    securityAttackerRef.current = undefined;
   }
 }

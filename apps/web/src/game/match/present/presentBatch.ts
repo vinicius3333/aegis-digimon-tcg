@@ -297,7 +297,6 @@ export function presentServerBatch({
     closingCheck,
     turnEnd,
     securityAttack,
-    redirectedOffPlayer,
     usedOption,
     optionRouted,
   } = batchFacts({ fresh });
@@ -332,6 +331,16 @@ export function presentServerBatch({
     openAttackRef,
     anchors,
     lastVisibleArtRef,
+  });
+  // Start the field battle before a Piercing continuation can enqueue its security scene.
+  // The shield step observes this track and waits until Raid's redirected battle has landed.
+  enqueueCombatImpact({
+    clashScenes,
+    beaten,
+    setFieldClash,
+    setAttackLunge,
+    setCombatImpactIds,
+    enqueue,
   });
   // Notices a security check owns. They read as what the revealed card did, so they
   // are handed to the centre-stage sequence below instead of being raised here, where
@@ -532,7 +541,6 @@ export function presentServerBatch({
   if (refusal?.kind === "actionRejected") onActionRejected(refusal.reason);
   presentSecurityAttack({
     securityAttack,
-    redirectedOffPlayer,
     viewerSeat,
     cardSiteRef,
     securityAttackerRef,
@@ -581,7 +589,22 @@ export function presentServerBatch({
     securityCountOf,
   });
 
-  if (securityReveal?.kind === "securityRevealed")
+  if (securityReveal?.kind === "securityRevealed") {
+    // Piercing can reach security after an attack declared directly on a Digimon, so there
+    // may be no earlier player-attack cue to remember. Rebuild the public attacker while it
+    // is still on the field; Raid normally takes the preserved path above, but benefits from
+    // the same fallback if its batches were joined after a reconnect.
+    if (securityAttackerRef.current?.permanentId !== securityReveal.attackerPermanentId) {
+      const cardId = anchors.permanentCardId?.(securityReveal.attackerPermanentId);
+      if (cardId)
+        securityAttackerRef.current = {
+          seat: otherSeat(securityReveal.seat),
+          cardId,
+          artId: securityReveal.attackerArtId,
+          permanentId: securityReveal.attackerPermanentId,
+          topInstanceId: cardSiteRef.current.topInstanceOf(securityReveal.attackerPermanentId),
+        };
+    }
     presentSecurityRevealed({
       securityReveal,
       closingCheck,
@@ -596,6 +619,7 @@ export function presentServerBatch({
       stage,
       enqueueDeferredSecurityArrivals,
     });
+  }
   refreshSecurityAttacker({ fresh, securityAttackerRef, setSecurityClash });
   if (securityCheck?.kind === "securityChecked")
     presentSecurityClose({
@@ -634,14 +658,6 @@ export function presentServerBatch({
     releaseSecurityCard,
     releaseSecurityCardWhenIdle,
     releaseSecurityPresentation: stage.releaseSecurityPresentation,
-    enqueue,
-  });
-  enqueueCombatImpact({
-    clashScenes,
-    beaten,
-    setFieldClash,
-    setAttackLunge,
-    setCombatImpactIds,
     enqueue,
   });
   enqueueDeletionBursts({
