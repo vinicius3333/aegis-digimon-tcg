@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
   bannedPairViolations,
   effectiveCopyLimit as banlistLimit,
@@ -67,6 +67,11 @@ export function DeckListCard({
   return (
     <article
       className={`deck-list-card${compact ? " is-compact" : ""}${active ? " is-active" : ""}${disabled ? " is-disabled" : ""}`}
+      style={
+        compact
+          ? ({ "--deck-color": color.base, "--deck-color-soft": color.soft } as CSSProperties)
+          : undefined
+      }
     >
       {onSelect ? (
         <button
@@ -93,20 +98,18 @@ export function DeckListCard({
       <div className="deck-list-card__body">
         <div className="deck-list-card__heading">
           <div className="deck-list-card__identity">
-            <h3>{deck.name}</h3>
-            {compact ? (
-              <div
-                className="deck-list-card__colors"
-                aria-label={colors.map((deckColor) => t(`game.color.${deckColor}`)).join(", ")}
-              >
+            {compact ? <span className="deck-list-card__eyebrow">{t("deck.cardEyebrow")}</span> : null}
+            <div className="deck-list-card__name-row">
+              <h3>{deck.name}</h3>
+              {compact ? (
                 <span
                   className="deck-list-card__split-color"
-                  style={{
-                    background: COLORS[colors[0] ?? "Neutral"].base,
-                  }}
+                  aria-label={colors.map((deckColor) => t(`game.color.${deckColor}`)).join(", ")}
+                  style={{ background: COLORS[colors[0] ?? "Neutral"].base }}
                 />
-              </div>
-            ) : (
+              ) : null}
+            </div>
+            {!compact ? (
               <div className="deck-list-card__counts">
                 <ColorDot color={deck.color} size={9} />
                 <span className={legal ? "is-legal" : undefined}>
@@ -114,7 +117,7 @@ export function DeckListCard({
                   {legal ? t("deck.legal") : t("deck.draft")}
                 </span>
               </div>
-            )}
+            ) : null}
           </div>
           {active ? (
             <Badge tone="primary">

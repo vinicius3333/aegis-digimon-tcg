@@ -255,6 +255,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "deck.costCurve": "Curva de custo",
   "deck.levelCurve": "Curva por nível",
   "deck.colorBalance": "Equilíbrio de cores",
+  "deck.cardEyebrow": "Deck",
   "deck.importTitle": "Importar deck",
   "deck.importHint": "Cole uma lista do DigimonCard.io. Cada linha:",
   "deck.exportTitle": "Exportar deck",

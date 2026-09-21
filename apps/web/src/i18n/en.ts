@@ -252,6 +252,7 @@ export const en = {
   "deck.costCurve": "Cost curve",
   "deck.levelCurve": "Level curve",
   "deck.colorBalance": "Color balance",
+  "deck.cardEyebrow": "Deck",
   "deck.importTitle": "Import deck",
   "deck.importHint": "Paste a DigimonCard.io deck list. Each line:",
   "deck.exportTitle": "Export deck",
