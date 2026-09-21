@@ -57,7 +57,7 @@ describe("recent player-report arena scenarios", () => {
     );
   });
 
-  it("installs one Reina deletion watcher in #4890's live Main phase", async () => {
+  it("installs one Reina and Piedmon deletion watcher in #4890's live Main phase", async () => {
     const s = setupEngine({ 0: {}, 1: {} });
     s.engine.stagedDecks[0] = BLUE_DECK;
     s.engine.stagedDecks[1] = RED_DECK;
@@ -73,6 +73,12 @@ describe("recent player-report arena scenarios", () => {
       s.engine.subTriggers
         .subscriptionsFor("onDeletionOf")
         .filter(({ sourcePermanentId }) => sourcePermanentId === reina.permanentId),
+    ).toHaveLength(1);
+    const piedmon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX8-062")!;
+    expect(
+      s.engine.subTriggers
+        .subscriptionsFor("onDeletionOf")
+        .filter(({ sourcePermanentId }) => sourcePermanentId === piedmon.permanentId),
     ).toHaveLength(1);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

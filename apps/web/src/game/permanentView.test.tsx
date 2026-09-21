@@ -22,6 +22,22 @@ it("inspects a field-selection candidate without activating its primary choice",
   expect(choose).not.toHaveBeenCalled();
 });
 
+it("keeps a deletion target selectable without covering it with a Delete pill", () => {
+  render(
+    <I18nProvider>
+      <PermanentView
+        perm={opponentWithDpDown()}
+        candidate
+        fate={{ fate: "delete", labelKey: "game.fate.delete", glyph: "✕", tone: "danger" }}
+        onClick={vi.fn<() => void>()}
+      />
+    </I18nProvider>,
+  );
+
+  expect(screen.getByRole("button", { name: /SaberLeomon/i })).toBeTruthy();
+  expect(screen.queryByText("Delete")).toBeNull();
+});
+
 it("shows printed and granted Security Attack modifiers in field badges", () => {
   const printed = new Permanent();
   printed.permanentId = "fighter";
