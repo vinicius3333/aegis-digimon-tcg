@@ -151,6 +151,10 @@ describe("recent player-report arena scenarios", () => {
         order.options?.triggerCardIds?.includes("EX8-062") ? 1 : 0,
       );
     }
+    const piedmonAnnouncements = s.events.filter(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "EX8-062",
+    );
+    expect(piedmonAnnouncements).toHaveLength(1);
   });
 
   it("stages #4891 with enough memory to play SeitenGokuumon into a DP target", () => {

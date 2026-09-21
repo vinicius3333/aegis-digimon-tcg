@@ -125,6 +125,10 @@ export function resolutionDeps(
       // A deferred trigger belongs to its original event, not every nested resolver that
       // can see engine pending pool. Retire it before its body can open another window.
       engine.pendingNestedTimingEffects = engine.pendingNestedTimingEffects.filter((pending) => pending !== collected);
+      const stableOptWatcher = collected.effect.effectKey.startsWith("subtrigger/opt/");
+      const announcementKey = `${engine.state.turnCount}:${collected.effect.effectKey}`;
+      if (stableOptWatcher && engine.announcedSubTriggerEffectKeys.has(announcementKey)) return;
+      if (stableOptWatcher) engine.announcedSubTriggerEffectKeys.add(announcementKey);
       engine.hooks.emit({
         kind: "effectTriggered",
         seat: collected.source.ownerSeat,

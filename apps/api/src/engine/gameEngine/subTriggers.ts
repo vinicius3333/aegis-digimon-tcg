@@ -618,7 +618,7 @@ export function subTriggerAsCollected(engine: GameEngine, { sub, ctx }: ArmedSub
     timingLabel: sub.event,
     printedTiming: sub.printedTiming,
     effect: {
-      effectKey: `subtrigger/${sub.id}/${sub.description}`,
+      effectKey: subTriggerEffectKey(sub),
       description: sub.printedClause ?? sub.description,
       optional: false,
       isInherited: sub.isInheritedSource === true,
@@ -647,7 +647,10 @@ export function announceSubTrigger(
   ctx: EffectContext | undefined,
 ): void | (() => void) {
   if (ctx === undefined) return;
-  const effectKey = `subtrigger/${sub.id}/${sub.description}`;
+  const effectKey = subTriggerEffectKey(sub);
+  const announcementKey = `${engine.state.turnCount}:${effectKey}`;
+  if (sub.oncePerTurnKey !== undefined && engine.announcedSubTriggerEffectKeys.has(announcementKey)) return;
+  if (sub.oncePerTurnKey !== undefined) engine.announcedSubTriggerEffectKeys.add(announcementKey);
   const description = sub.printedClause ?? subTriggerDescriptionFor(sub, ctx);
   engine.hooks.emit({
     kind: "effectTriggered",
@@ -676,6 +679,16 @@ export function announceSubTrigger(
       timing: sub.event,
       ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
     });
+}
+
+/**
+ * Keep a printed [Once Per Turn] watcher's resolver identity stable across
+ * continuous recomputes. Registry ids are intentionally ephemeral; using one
+ * there makes the same pending occurrence look new after a nested evolution.
+ */
+function subTriggerEffectKey(sub: SubTriggerSubscription): string {
+  if (sub.oncePerTurnKey === undefined) return `subtrigger/${sub.id}/${sub.description}`;
+  return `subtrigger/opt/${sub.oncePerTurnKey}/${sub.dedupeKey ?? sub.description}`;
 }
 
 /**
