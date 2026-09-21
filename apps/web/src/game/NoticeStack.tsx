@@ -24,6 +24,14 @@ import { type MatchNotice, type NoticeKeyword } from "./notices";
 const NOTICE_THUMB_WIDTH = 46;
 const NOTICE_THUMB_WIDTH_DESKTOP = 92;
 
+const PREVENTION_KEYWORD_DESCRIPTION_KEYS = {
+  scapegoat: "notice.keywordDescription.scapegoat",
+  decoy: "notice.keywordDescription.decoy",
+  guard: "notice.keywordDescription.guard",
+  fragment: "notice.keywordDescription.fragment",
+  armorPurge: "notice.keywordDescription.armorPurge",
+} as const;
+
 /**
  * The notice's art, opening the card when the board has somewhere to open it.
  *
@@ -114,14 +122,21 @@ function KeywordNoticeBody({
   materialCardIds?: readonly string[];
 }) {
   const { t } = useTranslation();
+  const descriptionKey =
+    keyword in PREVENTION_KEYWORD_DESCRIPTION_KEYS
+      ? PREVENTION_KEYWORD_DESCRIPTION_KEYS[keyword as keyof typeof PREVENTION_KEYWORD_DESCRIPTION_KEYS]
+      : undefined;
   return (
     <>
       <NoticeThumb cardId={cardId} />
       <div className="match-notice__copy">
         <strong className="match-notice__keyword">{t(`notice.keyword.${keyword}` as const)}</strong>
-        <span className="match-notice__label">
-          <CardLink cardId={cardId} />
-        </span>
+        {keyword === "guard" ? null : (
+          <span className="match-notice__label">
+            <CardLink cardId={cardId} />
+          </span>
+        )}
+        {descriptionKey ? <p className="match-notice__text">{t(descriptionKey)}</p> : null}
         {materialCardIds?.length ? (
           <div className="match-notice__materials" aria-label={t("notice.digiXrosMaterials")}>
             {materialCardIds.map((materialCardId, index) => (

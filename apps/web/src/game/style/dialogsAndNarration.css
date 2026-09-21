@@ -653,6 +653,23 @@ button.side-panel__name:focus-visible {
   color: #ffb4d5;
 }
 
+.match-notice[data-keyword="guard"]::before,
+.match-notice[data-keyword="guard"]::after {
+  border-color: var(--battle-cyan);
+}
+
+.match-notice[data-keyword="guard"] .match-notice__keyword {
+  padding: 0.16rem 0.6rem;
+  font-size: 0.72rem;
+  color: #e8fbff;
+  background: rgb(25 139 180 / 82%);
+  box-shadow: 0 3px 10px rgb(25 139 180 / 34%);
+}
+
+.match-notice[data-keyword="guard"] .match-notice__label {
+  color: var(--battle-cyan);
+}
+
 .match-notice[data-keyword="digiXros"]::before,
 .match-notice[data-keyword="digiXros"]::after {
   border-color: rgb(58 105 174);

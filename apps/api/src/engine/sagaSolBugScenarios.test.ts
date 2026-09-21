@@ -19,7 +19,7 @@ describe("SagaSol bug arena scenarios", () => {
     layDevScenario("arena-sagasol-guard-source", s.state, [BLUE_DECK, RED_DECK]);
 
     expect(s.state.turnSeat).toBe(1);
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX12-005", "EX12-008"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX12-064", "EX12-008"]);
     expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "EX12-072", faceUp: true });
     expect(s.state.players[1]!.hand.some(({ cardId }) => cardId === "ST1-16")).toBe(true);
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-085")).toBe(true);

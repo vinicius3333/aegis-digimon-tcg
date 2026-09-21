@@ -334,6 +334,7 @@ describe("Guard departure lifecycle", () => {
         permanentId: aPermanentId,
         cardId: "BT1-043",
         paidPermanentId: princePermanentId,
+        paidCardId: "EX13-063",
       },
       {
         kind: "deletionPrevented",
@@ -342,6 +343,7 @@ describe("Guard departure lifecycle", () => {
         permanentId: bPermanentId,
         cardId: "BT1-043",
         paidPermanentId: princePermanentId,
+        paidCardId: "EX13-063",
       },
     ]);
     assertNoLoudGap(s);
@@ -752,11 +754,9 @@ describe("Guard departure lifecycle", () => {
     const request = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!;
     expect(request.seat).toBe(1);
     expect(request.req).toMatchObject({
-      sourceCardId: "EX13-063",
-      sourceInstanceId: s.inst("prince").instanceId,
-      options: {
-        effectText: "[All Turns] All of your Digimon with [Mamemon] in their names gain ＜Blocker＞ and ＜Guard＞",
-      },
+      sourceCardId: TARGET,
+      sourceInstanceId: s.inst("guard").instanceId,
+      options: { effectText: "＜Guard＞: delete this Digimon to prevent your other Digimon from leaving." },
     });
     expect(
       s.engine.applyIntent(0, {

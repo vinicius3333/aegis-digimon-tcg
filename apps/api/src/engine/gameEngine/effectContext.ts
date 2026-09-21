@@ -228,16 +228,6 @@ export async function engineConsultLeavePrevention(
             permanentById: (id) => engine.access.permanentById(id),
             isBattleAreaDigimon: (permanent) => engine.access.isBattleAreaDigimon(permanent, engine.continuous),
             hasGuard: (id) => engine.continuous.hasKeyword(id, "Guard"),
-            guardSource: (id) => {
-              const source = engine.continuous.keywordGrantSources(id, "Guard")[0];
-              return source === undefined
-                ? undefined
-                : {
-                    cardId: source.sourceCardId,
-                    instanceId: source.sourceInstanceId,
-                    effectText: source.effectText,
-                  };
-            },
           },
         ),
       ],
@@ -263,7 +253,7 @@ export async function engineConsultLeavePrevention(
       markOncePerTurnFired: (key) => engine.tracker.register(key, "replacement"),
       // ＜Guard＞ is the one prevention keyword that resolves as a replacement subscription
       // rather than inline in the deletion paths, so its announcement is wired here.
-      keywordPrevented: (activationIdentity, sourcePermanentId, savedPermanentId) => {
+      keywordPrevented: (activationIdentity, sourcePermanentId, sourceCardId, savedPermanentId) => {
         if (activationIdentity !== "keyword-guard") return;
         const saved = engine.access.permanentById(savedPermanentId);
         if (saved === undefined) return;
@@ -274,6 +264,7 @@ export async function engineConsultLeavePrevention(
           permanentId: saved.permanentId,
           ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
           ...(sourcePermanentId === undefined ? {} : { paidPermanentId: sourcePermanentId }),
+          ...(sourceCardId === undefined ? {} : { paidCardId: sourceCardId }),
         });
       },
       orderReplacements: async (replacements, seat) => {

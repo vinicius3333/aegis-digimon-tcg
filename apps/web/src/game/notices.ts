@@ -199,7 +199,8 @@ export function securityGainNoticeFromEvent(
  *
  * These keywords have no prompt/resolved event pair of their own: without this the viewer
  * sees the cost card leave and the deletion silently not happen, with nothing naming the
- * keyword that did it. The saved card is the subject, because it is the one still there.
+ * keyword that did it. Guard is drawn over the Digimon that paid for it; older prevention
+ * events without that identity retain the saved card as their subject.
  */
 export function preventionNoticeFromEvent(
   event: ServerEvent,
@@ -212,7 +213,14 @@ export function preventionNoticeFromEvent(
     id,
     side: sideOf(event.seat, viewerSeat),
     fromSecurity: false,
-    body: { variant: "keyword", keyword: PREVENTION_NOTICE_KEYWORDS[event.keyword], cardId: event.cardId },
+    body: {
+      variant: "keyword",
+      keyword: PREVENTION_NOTICE_KEYWORDS[event.keyword],
+      cardId:
+        ["Guard", "Scapegoat", "Decoy"].includes(event.keyword) && event.paidCardId !== undefined
+          ? event.paidCardId
+          : event.cardId,
+    },
     createdAt: nowMs,
   };
 }

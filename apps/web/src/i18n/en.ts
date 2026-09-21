@@ -825,11 +825,21 @@ export const en = {
   "notice.digiXrosMaterials": "DigiXros materials",
   "notice.keyword.cannotAttack": "Can't attack",
   "notice.keyword.cannotBlock": "Can't block",
-  "notice.keyword.scapegoat": "＜Scapegoat＞ saved it",
-  "notice.keyword.decoy": "＜Decoy＞ saved it",
-  "notice.keyword.guard": "＜Guard＞ saved it",
-  "notice.keyword.fragment": "＜Fragment＞ saved it",
-  "notice.keyword.armorPurge": "＜Armor Purge＞ saved it",
+  "notice.keyword.scapegoat": "＜Scapegoat＞",
+  "notice.keyword.decoy": "＜Decoy＞",
+  "notice.keyword.guard": "＜Guard＞",
+  "notice.keyword.fragment": "＜Fragment＞",
+  "notice.keyword.armorPurge": "＜Armor Purge＞",
+  "notice.keywordDescription.scapegoat":
+    "When this Digimon would be deleted other than by your effects, by deleting 1 of your other Digimon, prevent that deletion.",
+  "notice.keywordDescription.decoy":
+    "When 1 of your other eligible Digimon would be deleted by an opponent's effect, by deleting this Digimon, prevent that deletion.",
+  "notice.keywordDescription.guard":
+    "By deleting this Digimon, prevent your other Digimon from leaving the battle area by an opponent's effect.",
+  "notice.keywordDescription.fragment":
+    "By trashing the required number of this Digimon's digivolution cards, prevent its deletion.",
+  "notice.keywordDescription.armorPurge":
+    "When this Digimon would be deleted, by trashing its top card, prevent that deletion.",
   "notice.dismiss": "Dismiss notice",
   "notice.expand": "Show the full notice",
   "notice.collapse": "Fold the notice back",

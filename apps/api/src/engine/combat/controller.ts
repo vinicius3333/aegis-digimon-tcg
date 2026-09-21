@@ -229,7 +229,12 @@ export class CombatController {
    * through a plain decision and then a silent board change, so without this the viewer sees
    * only the cost card leaving and a battle that quietly failed.
    */
-  private emitDeletionPrevented(keyword: PreventionKeyword, saved: Permanent, paidPermanentId?: string): void {
+  private emitDeletionPrevented(
+    keyword: PreventionKeyword,
+    saved: Permanent,
+    paidPermanentId?: string,
+    paidCardId?: string,
+  ): void {
     this.hooks.emit({
       kind: "deletionPrevented",
       keyword,
@@ -237,6 +242,7 @@ export class CombatController {
       permanentId: saved.permanentId,
       ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
       ...(paidPermanentId === undefined ? {} : { paidPermanentId }),
+      ...(paidCardId === undefined ? {} : { paidCardId }),
     });
   }
 
@@ -1364,7 +1370,7 @@ export class CombatController {
           removalCause: "byEffect",
         });
       }
-      this.emitDeletionPrevented("Scapegoat", perm, sacrifice.permanentId);
+      this.emitDeletionPrevented("Scapegoat", perm, sacrifice.permanentId, sacrifice.topCard?.cardId);
       scapegoatSavedIds.add(permanentId);
     }
     const postScapegoatDeletedIds = postFragmentDeletedIds.filter((id) => !scapegoatSavedIds.has(id));

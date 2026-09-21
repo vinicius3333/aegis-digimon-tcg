@@ -94,12 +94,12 @@ describe("EX12-072 Metal Empire", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX12-008");
   });
 
-  it("names Metal Empire and its granted Guard clause in the prevention decision", async () => {
+  it("names the Digimon using granted Guard in the prevention decision", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "EX12-008", as: "guard" },
-          { card: "EX12-005", as: "protected" },
+          { card: "EX12-064", as: "protected" },
         ],
         security: [{ card: CARD_ID, as: "metal", faceUp: true }],
       },
@@ -113,9 +113,9 @@ describe("EX12-072 Metal Empire", () => {
 
     const request = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)?.req;
     expect(request).toMatchObject({
-      sourceCardId: CARD_ID,
-      sourceInstanceId: s.inst("metal").instanceId,
-      options: { effectText: "[Security] [All Turns] All of your [ME] trait Digimon gain ＜Guard＞" },
+      sourceCardId: "EX12-008",
+      sourceInstanceId: s.inst("guard").instanceId,
+      options: { effectText: "＜Guard＞: delete this Digimon to prevent your other Digimon from leaving." },
     });
 
     expect(

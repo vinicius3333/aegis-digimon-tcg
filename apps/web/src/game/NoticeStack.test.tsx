@@ -190,6 +190,29 @@ describe("NoticeStack", () => {
     expect(screen.getByLabelText("DigiXros materials").children).toHaveLength(2);
   });
 
+  it("shows Guard's full text without saved-it copy or a repeated card name", () => {
+    renderNotice(notice({ body: { variant: "keyword", keyword: "guard", cardId: "EX12-008" } }));
+    const shown = screen.getByTestId("match-notice");
+    expect(shown.textContent).toContain("＜Guard＞");
+    expect(shown.textContent).not.toContain("saved it");
+    expect(shown.textContent).not.toContain("ToyAgumon");
+    expect(shown.textContent).toContain(
+      "By deleting this Digimon, prevent your other Digimon from leaving the battle area by an opponent's effect.",
+    );
+  });
+
+  it.each([
+    ["scapegoat", "by deleting 1 of your other Digimon"],
+    ["decoy", "by deleting this Digimon"],
+    ["fragment", "required number of this Digimon's digivolution cards"],
+    ["armorPurge", "by trashing its top card"],
+  ] as const)("shows the full %s prevention text", (keyword, expected) => {
+    renderNotice(notice({ body: { variant: "keyword", keyword, cardId: "EX12-008" } }));
+    const shown = screen.getByTestId("match-notice");
+    expect(shown.textContent).toContain(expected);
+    expect(shown.textContent).not.toContain("saved it");
+  });
+
   it("advances to the next moment through its close button", () => {
     const onDismiss = vi.fn<(id: string) => void>();
     renderNotice(notice(), {}, onDismiss);

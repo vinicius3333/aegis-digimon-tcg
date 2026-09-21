@@ -171,21 +171,28 @@ describe("keywordNoticeFromEvent", () => {
 });
 
 describe("preventionNoticeFromEvent", () => {
-  const prevented = (keyword: "Scapegoat" | "Armor Purge", seat: Seat = 0): ServerEvent => ({
+  const prevented = (keyword: "Scapegoat" | "Guard" | "Armor Purge", seat: Seat = 0): ServerEvent => ({
     kind: "deletionPrevented",
     keyword,
     seat,
     permanentId: "p1",
     cardId: "BT1-010",
     paidPermanentId: "p2",
+    paidCardId: "EX12-008",
   });
 
-  it("names the keyword that paid, over the card it kept on the board", () => {
+  it("draws Guard over the Digimon that paid for it", () => {
+    expect(preventionNoticeFromEvent(prevented("Guard"), VIEWER, "k", 4)).toMatchObject({
+      body: { variant: "keyword", keyword: "guard", cardId: "EX12-008" },
+    });
+  });
+
+  it("draws sacrifice keywords over the card that paid", () => {
     expect(preventionNoticeFromEvent(prevented("Scapegoat"), VIEWER, "k", 4)).toEqual({
       id: "k",
       side: Side.Viewer,
       fromSecurity: false,
-      body: { variant: "keyword", keyword: "scapegoat", cardId: "BT1-010" },
+      body: { variant: "keyword", keyword: "scapegoat", cardId: "EX12-008" },
       createdAt: 4,
     });
     expect(preventionNoticeFromEvent(prevented("Armor Purge", 1), VIEWER, "k", 0)).toMatchObject({

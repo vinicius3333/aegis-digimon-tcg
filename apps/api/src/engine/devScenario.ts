@@ -450,7 +450,7 @@ function layJupitermonSirenScenario(state: GameState, decks: readonly [Decklist,
   state.memory = 1;
 }
 
-/** BT25-044 Junomon [On Play]: both players' Digimon must be offered for its placement cost. */
+/** BT25-044 Junomon [On Play]: the opponent's Digimon must be offered for its placement cost. */
 function layJunomonOpponentTargetScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -462,7 +462,6 @@ function layJunomonOpponentTargetScenario(state: GameState, decks: readonly [Dec
 
   const human = state.players[0];
   if (human !== undefined) {
-    placePermanent(human, establishedDigimon(0, ["BT1-010"], "-junomon-own-target"));
     insertCard(human, Zone.Hand, faceDownCard("dev-junomon", "BT25-044", 0));
   }
 
@@ -543,9 +542,9 @@ function laySagaSolGuardSourceScenario(state: GameState, decks: readonly [Deckli
   }
   const human = state.players[0];
   if (human !== undefined) {
-    placePermanent(human, establishedDigimon(0, ["EX12-005"], "-sagasol-protected"));
+    placePermanent(human, establishedDigimon(0, ["EX12-064"], "-sagasol-protected"));
     // The bot deterministically picks the first legal Gaia Force target. Put the protected
-    // Digimon first and the Guard holder second so the replacement decision is exercised.
+    // Megadramon first and ToyAgumon second so ToyAgumon can pay the granted Guard cost.
     placePermanent(human, establishedDigimon(0, ["EX12-008"], "-sagasol-guard"));
     insertCard(human, Zone.Security, faceUpCard("dev-sagasol-metal-empire", "EX12-072", 0), "top");
   }

@@ -315,6 +315,7 @@ export function playerFacingEffectClause({
   const keywordPrefix = supplied?.match(/^＜[^＞]+＞/)?.[0];
   const printedKeyword =
     keywordPrefix && !/^(?:\[|＜)/.test(supplied!.slice(keywordPrefix.length).trim()) ? keywordPrefix : undefined;
+  const standaloneKeyword = supplied?.match(/^＜[^＞]+＞$/)?.[0];
   // Synthesized keyword effects describe their activation after a colon. The
   // keyword may have been granted by another card and be absent from this card.
   const keywordActivation = supplied?.match(/^＜[^＞]+＞:\s*\S/) ? supplied : undefined;
@@ -332,7 +333,8 @@ export function playerFacingEffectClause({
         .find(Boolean)
     : undefined;
   const clause =
-    (keywordActivation ||
+    (standaloneKeyword ||
+      keywordActivation ||
       matchingKeyword ||
       delayClause ||
       ((exactPrintedClause || containedPrintedClause) &&

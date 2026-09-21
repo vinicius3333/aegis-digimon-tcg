@@ -56,6 +56,11 @@
     padding: 0.28rem 0.95rem;
   }
 
+  .match-notice[data-keyword="guard"] .match-notice__keyword {
+    font-size: 0.96rem;
+    padding: 0.22rem 0.75rem;
+  }
+
   .match-notice__close {
     top: 0.5rem;
     right: 0.5rem;

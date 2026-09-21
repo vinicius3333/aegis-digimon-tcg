@@ -53,8 +53,8 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "End breeding and play Etemon, choosing Kabuterimon. While it is protected, the attack badge must stay hidden. At the start of the Main Phase, the forced attack must be announced by a toast.",
   },
   "arena-sagasol-guard-source": {
-    ptBR: "O bot usa Gaia Force. A decisão de Guard deve mostrar Metal Empire e seu texto, não o efeito do Digimon.",
-    en: "The bot uses Gaia Force. The Guard decision must show Metal Empire and its text, not the Digimon's effect.",
+    ptBR: "O bot usa Gaia Force no Megadramon. A decisão deve mostrar ToyAgumon usando Guard para salvá-lo.",
+    en: "The bot uses Gaia Force on Megadramon. The decision must show ToyAgumon using Guard to save it.",
   },
   "arena-ex13-gotsumon-blocker-search": {
     ptBR: "Compre BT1-009, encerre a criação e jogue Gotsumon. Na busca por Blocker, somente BT20-047 deve ser elegível; BT19-069 e EX8-046 têm Blocker apenas herdado e devem voltar ao fundo.",

@@ -34,7 +34,12 @@ export interface LeavePreventionHost {
    * `activationIdentity`, and only they need this: an authored card's replacement already
    * narrates itself through its own effect events.
    */
-  keywordPrevented?(activationIdentity: string, sourcePermanentId: string | undefined, savedPermanentId: string): void;
+  keywordPrevented?(
+    activationIdentity: string,
+    sourcePermanentId: string | undefined,
+    sourceCardId: string | undefined,
+    savedPermanentId: string,
+  ): void;
 }
 
 /**
@@ -103,6 +108,7 @@ export async function consultLeavePrevention(
       ctx: EffectContext;
       activationKey: string;
       sourceTopInstanceId?: string;
+      sourceCardId?: string;
       sourceRole?: "top" | "stack" | "linked";
       sourceFaceUp?: boolean;
     }[] = [];
@@ -165,6 +171,7 @@ export async function consultLeavePrevention(
         ctx,
         activationKey,
         sourceTopInstanceId: srcPerm?.topCard?.instanceId,
+        sourceCardId: sourceCard?.cardId ?? srcPerm?.topCard?.cardId,
         sourceRole,
         sourceFaceUp: sourceCard?.faceUp,
       });
@@ -189,7 +196,7 @@ export async function consultLeavePrevention(
 
     // The source whose "instead" replacement already replaced this leave event, if any.
     let insteadAppliedBySource: string | undefined;
-    for (const { repl, ctx, activationKey, sourceTopInstanceId, sourceRole, sourceFaceUp } of ordered) {
+    for (const { repl, ctx, activationKey, sourceTopInstanceId, sourceCardId, sourceRole, sourceFaceUp } of ordered) {
       if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;
       // A replacement body may resolve another effect before its sibling is reached. If
       // that effect removes or evolves the replacement source, the earlier eligibility
@@ -277,7 +284,7 @@ export async function consultLeavePrevention(
       if (!did) continue;
       const announce = (savedId: string) => {
         if (repl.activationIdentity === undefined) return;
-        host.keywordPrevented?.(repl.activationIdentity, repl.sourcePermanentId, savedId);
+        host.keywordPrevented?.(repl.activationIdentity, repl.sourcePermanentId, sourceCardId, savedId);
       };
       announce(leavingId);
       prevented.add(leavingId);

@@ -214,7 +214,7 @@ function peekSummary(
   if (body?.variant === "keyword")
     return {
       label: t(`notice.keyword.${body.keyword}` as const),
-      name: cardDisplayName(body.cardId, t),
+      name: body.keyword === "guard" ? "" : cardDisplayName(body.cardId, t),
       tone: "keyword",
       cardId: body.cardId,
     };

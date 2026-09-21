@@ -212,6 +212,7 @@ describe("§16-32 <Scapegoat> — delete another Digimon to prevent a non-owner-
         permanentId: scapegoater.permanentId,
         cardId: "BT20-080",
         paidPermanentId: other.permanentId,
+        paidCardId: NON_KEYWORD_CARD,
       },
     ]);
   });
@@ -314,6 +315,7 @@ describe("§16-18 <Decoy> — delete this Digimon to prevent an opponent-effect 
         permanentId: protectedDigimon.permanentId,
         cardId: "BT10-070",
         paidPermanentId: decoyHolder.permanentId,
+        paidCardId: "BT11-082",
       },
     ]);
   });

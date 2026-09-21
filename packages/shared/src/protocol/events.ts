@@ -173,6 +173,8 @@ export type ServerEvent =
       cardId?: string;
       /** The Digimon deleted to pay for it (＜Decoy＞, ＜Scapegoat＞, ＜Guard＞). */
       paidPermanentId?: string;
+      /** Its public identity, captured before the payment removes it from the battle area. */
+      paidCardId?: string;
     }
   | {
       // The top security card was turned face up. Emitted the moment the card is flipped —

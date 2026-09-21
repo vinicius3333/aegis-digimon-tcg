@@ -832,11 +832,21 @@ export const ptBR: Record<keyof typeof en, string> = {
   "notice.digiXrosMaterials": "Materiais de DigiXros",
   "notice.keyword.cannotAttack": "Não pode atacar",
   "notice.keyword.cannotBlock": "Não pode bloquear",
-  "notice.keyword.scapegoat": "＜Scapegoat＞ salvou",
-  "notice.keyword.decoy": "＜Decoy＞ salvou",
-  "notice.keyword.guard": "＜Guard＞ salvou",
-  "notice.keyword.fragment": "＜Fragment＞ salvou",
-  "notice.keyword.armorPurge": "＜Armor Purge＞ salvou",
+  "notice.keyword.scapegoat": "＜Scapegoat＞",
+  "notice.keyword.decoy": "＜Decoy＞",
+  "notice.keyword.guard": "＜Guard＞",
+  "notice.keyword.fragment": "＜Fragment＞",
+  "notice.keyword.armorPurge": "＜Armor Purge＞",
+  "notice.keywordDescription.scapegoat":
+    "Quando este Digimon seria deletado, exceto por seus efeitos, ao deletar 1 dos seus outros Digimon, impeça essa deleção.",
+  "notice.keywordDescription.decoy":
+    "Quando 1 dos seus outros Digimon elegíveis seria deletado por um efeito do oponente, ao deletar este Digimon, impeça essa deleção.",
+  "notice.keywordDescription.guard":
+    "Ao deletar este Digimon, impeça que seus outros Digimon saiam da área de batalha por um efeito do oponente.",
+  "notice.keywordDescription.fragment":
+    "Ao descartar a quantidade exigida de cartas de digievolução deste Digimon, impeça sua deleção.",
+  "notice.keywordDescription.armorPurge":
+    "Quando este Digimon seria deletado, ao descartar sua carta do topo, impeça essa deleção.",
   "notice.dismiss": "Fechar aviso",
   "notice.expand": "Mostrar o aviso completo",
   "notice.collapse": "Recolher o aviso",

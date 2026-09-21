@@ -66,7 +66,12 @@ function createContextState(engine: PrimitivesEngine) {
    * only the cost card leaving and a deletion that quietly did not happen. The battle path has
    * its own copy of these keywords (combat/controller.ts) and emits the same event.
    */
-  const emitDeletionPrevented = (keyword: PreventionKeyword, saved: Permanent, paidPermanentId?: string): void => {
+  const emitDeletionPrevented = (
+    keyword: PreventionKeyword,
+    saved: Permanent,
+    paidPermanentId?: string,
+    paidCardId?: string,
+  ): void => {
     engine.emit({
       kind: "deletionPrevented",
       keyword,
@@ -74,6 +79,7 @@ function createContextState(engine: PrimitivesEngine) {
       permanentId: saved.permanentId,
       ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
       ...(paidPermanentId === undefined ? {} : { paidPermanentId }),
+      ...(paidCardId === undefined ? {} : { paidCardId }),
     });
   };
   const currentHandAddProvenance = () => {

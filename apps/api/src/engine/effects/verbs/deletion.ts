@@ -283,7 +283,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
               decoyCostPermanentIds.delete(holder.permanentId);
             }
             if (costDeleted > 0) {
-              emitDeletionPrevented("Decoy", perm, holder.permanentId);
+              emitDeletionPrevented("Decoy", perm, holder.permanentId, holder.topCard?.cardId);
               decoySaved.add(permanentId);
             }
             break;
@@ -385,7 +385,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         const sacrifice = candidates.find((p) => p.topCard?.instanceId === chosen[0]);
         if (sacrifice === undefined) continue;
         await deletePermanent([sacrifice.permanentId], "byEffect");
-        emitDeletionPrevented("Scapegoat", perm, sacrifice.permanentId);
+        emitDeletionPrevented("Scapegoat", perm, sacrifice.permanentId, sacrifice.topCard?.cardId);
         scapegoatSaved.add(permanentId);
       }
       if (scapegoatSaved.size > 0) toDelete = toDelete.filter((id) => !scapegoatSaved.has(id));

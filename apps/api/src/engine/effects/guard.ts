@@ -1,5 +1,7 @@
-import { CardKind, requireCardDefinition, type Permanent } from "@aegis/shared";
+import { CardKind, type Permanent } from "@aegis/shared";
 import type { ReplacementSubscriptionPrevent } from "./subtriggers.js";
+
+export const GUARD_EFFECT_TEXT = "＜Guard＞: delete this Digimon to prevent your other Digimon from leaving.";
 
 /** CR §16-45: each live Guard holder protects its controller's OTHER Digimon. */
 export function guardLeaveReplacements(
@@ -10,7 +12,6 @@ export function guardLeaveReplacements(
     permanentById(id: string): Permanent | undefined;
     isBattleAreaDigimon(permanent: Permanent | undefined): boolean;
     hasGuard(id: string): boolean;
-    guardSource?(id: string): { cardId?: string; instanceId?: string; effectText?: string } | undefined;
   },
 ): ReplacementSubscriptionPrevent[] {
   return holderIds.flatMap((id, index) => {
@@ -35,7 +36,7 @@ export function guardLeaveReplacements(
         sourcePermanentId: id,
         sourceInstanceId: holderInstanceId,
         activationIdentity: "keyword-guard",
-        description: "＜Guard＞: delete this Digimon to prevent your other Digimon from leaving.",
+        description: GUARD_EFFECT_TEXT,
         affectsAll: true,
         causeAllows: (cause, resolvingSeat) =>
           cause === "byEffect" && resolvingSeat !== undefined && resolvingSeat !== ownerSeat,
@@ -47,22 +48,7 @@ export function guardLeaveReplacements(
         },
         preventCheck: async (ctx) => {
           if (liveHolder() === undefined) return false;
-          const grantedBy = deps.guardSource?.(id);
-          const askCtx = {
-            ...ctx,
-            ...(grantedBy?.cardId === undefined
-              ? {}
-              : {
-                  source: {
-                    ...ctx.source,
-                    cardId: grantedBy.cardId,
-                    instanceId: grantedBy.instanceId ?? ctx.source.instanceId,
-                    definition: requireCardDefinition(grantedBy.cardId),
-                  },
-                }),
-            activeTiming: "AllTurns",
-            activeEffectText: grantedBy?.effectText ?? "＜Guard＞",
-          };
+          const askCtx = { ...ctx, activeTiming: "AllTurns", activeEffectText: GUARD_EFFECT_TEXT };
           if (!(await askCtx.ask.optional(askCtx, "Delete this Digimon to use Guard?"))) return false;
           if (liveHolder() === undefined) return false;
           // This is the holder's Digimon effect, including when its keyword came from an

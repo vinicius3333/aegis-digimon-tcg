@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { cardEffectClauseForTiming, effectClauseForTiming, playerFacingEffectClause } from "./overlay";
 
+it("shows a granted keyword's full reminder instead of the holder's printed effect", () => {
+  const guardText = "＜Guard＞: delete this Digimon to prevent your other Digimon from leaving.";
+  expect(
+    playerFacingEffectClause({
+      cardId: "EX12-008",
+      timing: "AllTurns",
+      description: guardText,
+    }),
+  ).toBe(guardText);
+});
+
 it("names Execute when an inherited grant gives it to a card without the printed keyword", () => {
   const description =
     "＜Execute＞: at the end of this turn, this Digimon may attack (including an unsuspended opponent's Digimon). At the end of the attack, this Digimon is deleted.";
