@@ -7,7 +7,7 @@ import {
 } from "@aegis/shared";
 import { Badge, ColorDot } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
-import { COLORS } from "../design/theme";
+import { COLORS, colorKey, type ColorName } from "../design/theme";
 import { Icons } from "../design/icons";
 import { deckBlurbLabel, displayCoverCard, displayCoverArt, type DeckListing } from "../game/decks";
 import { useTranslation } from "../i18n";
@@ -38,6 +38,21 @@ export function deckLegality(deck: DeckListing): DeckLegality {
   };
 }
 
+type DeckColor = Exclude<ColorName, "Neutral">;
+
+function deckColors(deck: DeckListing): DeckColor[] {
+  const colors = new Set<DeckColor>();
+  if (deck.color !== "Neutral") colors.add(deck.color);
+  for (const cardId of [...deck.mainDeck, ...deck.eggDeck]) {
+    const definition = getCardDefinition(cardId);
+    for (const printedColor of definition?.colors ?? []) {
+      const color = colorKey(printedColor);
+      if (color !== "Neutral") colors.add(color);
+    }
+  }
+  return [...colors];
+}
+
 export function DeckListCard({
   deck,
   active,
@@ -56,6 +71,7 @@ export function DeckListCard({
   const { t } = useTranslation();
   const color = COLORS[deck.color];
   const { legal, banViolations, pairViolations } = deckLegality(deck);
+  const colors = compact ? deckColors(deck) : [];
 
   return (
     <article
@@ -87,13 +103,24 @@ export function DeckListCard({
         <div className="deck-list-card__heading">
           <div className="deck-list-card__identity">
             <h3>{deck.name}</h3>
-            <div className="deck-list-card__counts">
-              <ColorDot color={deck.color} size={9} />
-              <span className={legal ? "is-legal" : undefined}>
-                {deck.mainDeck.length} + {deck.eggDeck.length}
-                {legal ? t("deck.legal") : t("deck.draft")}
-              </span>
-            </div>
+            {compact ? (
+              <div
+                className="deck-list-card__colors"
+                aria-label={colors.map((deckColor) => t(`game.color.${deckColor}`)).join(", ")}
+              >
+                {colors.map((deckColor) => (
+                  <ColorDot key={deckColor} color={deckColor} size={10} />
+                ))}
+              </div>
+            ) : (
+              <div className="deck-list-card__counts">
+                <ColorDot color={deck.color} size={9} />
+                <span className={legal ? "is-legal" : undefined}>
+                  {deck.mainDeck.length} + {deck.eggDeck.length}
+                  {legal ? t("deck.legal") : t("deck.draft")}
+                </span>
+              </div>
+            )}
           </div>
           {active ? (
             <Badge tone="primary">

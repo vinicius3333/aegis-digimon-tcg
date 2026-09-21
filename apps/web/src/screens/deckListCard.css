@@ -108,6 +108,14 @@
   color: var(--ds-success);
 }
 
+.deck-list-card__colors {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  min-height: 14px;
+  margin-top: var(--ds-space-2);
+}
+
 .deck-list-card__blurb {
   display: -webkit-box;
   overflow: hidden;
