@@ -74,7 +74,7 @@ export function createGateway({ state, upstreamFor = (slot, index) => `http://ae
   function target(request, manifest) {
     syncHealthRevisions(manifest);
     const url = new URL(request.url, "http://gateway");
-    const slotRoute = /^\/api\/(blue|green|g-[a-f0-9]{12})(?:\/p([123]))?(?=\/|$)/.exec(url.pathname);
+    const slotRoute = /^\/api\/(blue|red|green|g-[a-f0-9]{12})(?:\/p([123]))?(?=\/|$)/.exec(url.pathname);
     const legacyOwner = /^\/p([123])(?=\/|$)/.exec(url.pathname);
     const slot = slotRoute?.[1] ?? manifest.active.slot;
     if (!isApiPath(url.pathname, request.headers) && !slotRoute && !legacyOwner) return undefined;
@@ -217,9 +217,8 @@ export function createGateway({ state, upstreamFor = (slot, index) => `http://ae
       if (url.pathname === "/deployment/manifest.json") {
         const bundleRevision = request.headers["x-aegis-web-revision"];
         if (manifest.webRevision && typeof bundleRevision === "string" && bundleRevision !== manifest.webRevision) {
-          // Bundles shipped before dynamic generations only understand blue/green.
-          // Give them a parseable revision mismatch so they reload the current web
-          // release before they ever try to route matchmaking with this manifest.
+          // Older bundles understand fewer slot names. Give them a parseable
+          // revision mismatch so they reload before routing with this manifest.
           return json(response, 200, {
             version: 1,
             active: { slot: "green", revision: manifest.webRevision },

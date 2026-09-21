@@ -1,16 +1,8 @@
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync, renameSync, existsSync, rmSync, cpSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync, renameSync, existsSync, rmSync, cpSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { isDeploymentSlot, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
-import {
-  createHandoffAdminPort,
-  createJsonHandoffStore,
-  createMigrationId,
-  HANDOFF_ACTIONS,
-  runHandoffController,
-  assertHandoffCleanupSafe,
-} from "./handoff-controller.mjs";
+import { FIXED_SLOTS, isDeploymentSlot, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
 
 function run(program, args, { capture = false } = {}) {
   return new Promise((resolveResult, reject) => {
@@ -30,6 +22,17 @@ function atomicJson(path, value, mode = 0o600) {
   const temporary = `${path}.${process.pid}.tmp`;
   writeFileSync(temporary, JSON.stringify(value, null, 2) + "\n", { mode });
   renameSync(temporary, path);
+}
+
+function parseComposeProcessList(output) {
+  const trimmed = output.trim();
+  if (!trimmed) return [];
+  try {
+    const parsed = JSON.parse(trimmed);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch {
+    return trimmed.split("\n").map((line) => JSON.parse(line));
+  }
 }
 
 export function buildSlotCompose({ slot, revision, apiEnvironment, network, state }) {
@@ -98,11 +101,10 @@ export function buildSlotCompose({ slot, revision, apiEnvironment, network, stat
   return { services, networks: { default: { external: true, name: network } }, volumes: { redis_data: {} } };
 }
 
-export function generationForRevision(revision) {
-  if (typeof revision !== "string" || !/^[a-fA-F0-9]{40}$/.test(revision)) {
-    throw new Error("A full Git revision is required for a deployment generation");
-  }
-  return `g-${revision.slice(0, 12).toLowerCase()}`;
+export function fixedSlotRotation(activeSlot) {
+  const activeIndex = FIXED_SLOTS.indexOf(activeSlot);
+  const start = activeIndex < 0 ? 0 : (activeIndex + 1) % FIXED_SLOTS.length;
+  return [...FIXED_SLOTS.slice(start), ...FIXED_SLOTS.slice(0, start)];
 }
 
 /** Compose config emits escaped dollars so its output can itself be reloaded. */
@@ -115,19 +117,7 @@ export function restoreComposeEnvironment(environment) {
   );
 }
 
-export async function controller({
-  action,
-  source,
-  envFile,
-  state,
-  revision,
-  sourceSlot,
-  destinationSlot,
-  migrationId,
-  canaryCount,
-  batchSize,
-  concurrencyLimit,
-}) {
+export async function controller({ action, source, envFile, state, revision }) {
   mkdirSync(state, { recursive: true, mode: 0o755 });
   for (const directory of ["routing", "releases", "assets"])
     mkdirSync(`${state}/${directory}`, { recursive: true, mode: 0o755 });
@@ -144,6 +134,7 @@ export async function controller({
       JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString(), action }),
     );
     const slotPath = (slot) => `${state}/slots/${slot}/compose.json`;
+    const slotDirectory = (slot) => `${state}/slots/${slot}`;
     const compose = (slot, args, capture = false) =>
       run("docker", ["compose", "-p", `aegis-${slot}`, "-f", slotPath(slot), ...args], { capture });
     const admin = async (slot, index, path, method = "GET", body) => {
@@ -154,14 +145,68 @@ export async function controller({
       return JSON.parse(raw);
     };
     const statuses = (slot) => Promise.all([1, 2, 3].map((index) => admin(slot, index, "/deployment/status")));
-    const readiness = (slot) => Promise.all([1, 2, 3].map((index) => admin(slot, index, "/ready")));
-    const handoffStore = createJsonHandoffStore(`${state}/handoff-transfers.json`);
     const setAccepting = (slot, accepting) =>
       Promise.all(
         [1, 2, 3].map((index) => admin(slot, index, `/deployment/${accepting ? "activate" : "drain"}`, "POST")),
       );
+    const processStatuses = (slot, indexes) =>
+      Promise.all(indexes.map((index) => admin(slot, index, "/deployment/status")));
+    const setAcceptingProcesses = (slot, indexes, accepting) =>
+      Promise.all(
+        indexes.map((index) => admin(slot, index, `/deployment/${accepting ? "activate" : "drain"}`, "POST")),
+      );
+    const composeProcesses = async (slot) =>
+      parseComposeProcessList(await compose(slot, ["ps", "--all", "--format", "json"], true));
+    const getReferencedSlots = (manifest) =>
+      new Set(manifest ? [manifest.active, ...manifest.draining].map(({ slot }) => slot) : []);
+    const orphanSlots = (manifest) => {
+      const directory = `${state}/slots`;
+      if (!existsSync(directory)) return [];
+      const referenced = getReferencedSlots(manifest);
+      return readdirSync(directory, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory() && isDeploymentSlot(entry.name) && !referenced.has(entry.name))
+        .map((entry) => entry.name)
+        .sort();
+    };
+    const runningApiIndexes = (slot, processes) => {
+      const byService = new Map();
+      for (const process of processes) {
+        const service = process.Service ?? process.service;
+        const processState = String(process.State ?? process.state ?? "").toLowerCase();
+        if (!service || !["redis", "api1", "api2", "api3"].includes(service) || byService.has(service)) {
+          throw new Error(`${slot} has an unknown or duplicate Compose service; leaving it untouched`);
+        }
+        if (!["running", "created", "exited"].includes(processState)) {
+          throw new Error(`${slot} has an unverifiable ${service} Compose state; leaving it untouched`);
+        }
+        byService.set(service, processState);
+      }
+      return [1, 2, 3].filter((index) => byService.get(`api${index}`) === "running");
+    };
+    const assertEmptyProcesses = (slot, processStatuses, expectedCount) => {
+      if (
+        processStatuses.length !== expectedCount ||
+        processStatuses.some(
+          (status) =>
+            status.slot !== slot ||
+            status.acceptingNewRooms !== false ||
+            !Number.isInteger(status.activeRooms) ||
+            status.activeRooms !== 0 ||
+            !Number.isInteger(status.connectedClients) ||
+            status.connectedClients !== 0,
+        )
+      ) {
+        throw new Error(
+          `${slot} still owns rooms/clients, accepts creation, or has unverifiable processes; leaving it running`,
+        );
+      }
+    };
     const installedManifest = () => (existsSync(`${state}/routing/manifest.json`) ? readManifest(state) : undefined);
-    const publish = (manifest) => atomicJson(`${state}/routing/manifest.json`, validateManifest(manifest), 0o644);
+    const publish = (manifest) => {
+      const withoutHandoff = { ...manifest };
+      delete withoutHandoff.capabilities;
+      atomicJson(`${state}/routing/manifest.json`, validateManifest(withoutHandoff), 0o644);
+    };
     const composeConfig = async () =>
       JSON.parse(
         await run(
@@ -213,7 +258,7 @@ export async function controller({
       }
       await buildWebRelease(await composeConfig(), revision);
       publish({ ...manifest, webRevision: revision });
-      console.log(`WEB ${revision}; API generation ${manifest.active.slot} unchanged`);
+      console.log(`WEB ${revision}; API slot ${manifest.active.slot} unchanged`);
       return;
     }
 
@@ -225,11 +270,6 @@ export async function controller({
       const manifest = installedManifest();
       if (manifest?.active.slot === slot) throw new Error("Cannot remove the active slot");
       if (!existsSync(slotPath(slot))) return;
-      const handoffFeatureAdvertised = manifest?.capabilities?.liveRoomHandoff === true;
-      const handoffHistory = await handoffStore.hasTransferForSlot(slot);
-      if (handoffFeatureAdvertised || handoffHistory) {
-        assertHandoffCleanupSafe(await admin(slot, 1, "/deployment/handoff/cleanup-safety"), slot);
-      }
       await setAccepting(slot, false);
       assertEmptySlot(await statuses(slot), slot);
       // Every process is closed to creation, including internal creation, before the zero-room check.
@@ -240,33 +280,50 @@ export async function controller({
       }
       console.log(`${slot}: empty slot removed; immutable web assets retained`);
     }
-    const handoffMode = Object.hasOwn(HANDOFF_ACTIONS, action) ? HANDOFF_ACTIONS[action] : undefined;
-    if (handoffMode) {
-      const manifest = installedManifest();
-      if (
-        (handoffMode === "prepare" || handoffMode === "migrate" || handoffMode === "promote") &&
-        manifest?.capabilities?.liveRoomHandoff !== true
-      ) {
-        throw new Error("Live room handoff is not enabled by the deployment manifest; refusing to mutate rooms");
+    async function inspectOrphanSlot(slot) {
+      if (!existsSync(slotPath(slot))) {
+        return { slot, state: "unverifiable", reason: "compose.json is missing; directory retained" };
       }
-      const adminPort = createHandoffAdminPort({
-        request: (slot, path, method, body) => admin(slot, 1, path, method, body),
-        statuses,
-        readiness,
-      });
-      const result = await runHandoffController({
-        mode: handoffMode,
-        migrationId: migrationId ?? (handoffMode === "check" ? createMigrationId() : undefined),
-        sourceSlot,
-        destinationSlot,
-        store: handoffStore,
-        admin: adminPort,
-        canaryCount,
-        batchSize,
-        concurrencyLimit,
-      });
-      console.log(JSON.stringify(result, null, 2));
-      return;
+      try {
+        const indexes = runningApiIndexes(slot, await composeProcesses(slot));
+        const currentStatuses = await processStatuses(slot, indexes);
+        assertEmptyProcesses(slot, currentStatuses, indexes.length);
+        return { slot, state: "verified-empty", runningApiProcesses: indexes, statuses: currentStatuses };
+      } catch (error) {
+        return { slot, state: "not-proven-empty", error: error.message };
+      }
+    }
+    async function cleanupOrphanSlot(slot) {
+      const manifest = installedManifest();
+      if (getReferencedSlots(manifest).has(slot)) throw new Error("Cannot clean a referenced slot as an orphan");
+      if (!existsSync(slotDirectory(slot))) return;
+      if (!existsSync(slotPath(slot))) throw new Error("compose.json is missing; refusing to remove unverifiable slot");
+
+      const processes = await composeProcesses(slot);
+      const indexes = runningApiIndexes(slot, processes);
+      if (indexes.length === 3) {
+        await cleanupSlot(slot);
+        return;
+      }
+
+      // A failed `compose up` can leave only some API services created. Drain and verify every
+      // running API process; absent/stopped services cannot own rooms, but unknown states fail closed.
+      if (indexes.length > 0) {
+        await setAcceptingProcesses(slot, indexes, false);
+        assertEmptyProcesses(slot, await processStatuses(slot, indexes), indexes.length);
+      }
+
+      // Ensure no API process appeared while the partial slot was being inspected. A changed or
+      // unknown inventory remains untouched for operator recovery.
+      const confirmedIndexes = runningApiIndexes(slot, await composeProcesses(slot));
+      if (confirmedIndexes.length !== indexes.length || confirmedIndexes.some((index) => !indexes.includes(index))) {
+        throw new Error("Compose process inventory changed during orphan inspection; leaving it untouched");
+      }
+      const latestManifest = installedManifest();
+      if (getReferencedSlots(latestManifest).has(slot)) throw new Error("Slot became referenced; refusing removal");
+      await compose(slot, ["down", "--volumes"]);
+      rmSync(slotDirectory(slot), { recursive: true });
+      console.log(`${slot}: partial orphan removed after all running API processes were proven empty`);
     }
     if (action === "status") {
       const manifest = readManifest(state);
@@ -277,9 +334,10 @@ export async function controller({
             processes: await Promise.all(
               [manifest.active, ...manifest.draining].map(async ({ slot }) => ({
                 slot,
-                statuses: await statuses(slot),
+                statuses: await statuses(slot).catch((error) => ({ error: error.message })),
               })),
             ),
+            orphans: await Promise.all(orphanSlots(manifest).map(inspectOrphanSlot)),
           },
           null,
           2,
@@ -289,9 +347,17 @@ export async function controller({
     }
     if (action === "cleanup") {
       const pending = [];
-      for (const { slot } of readManifest(state).draining) {
+      const manifest = readManifest(state);
+      for (const { slot } of manifest.draining) {
         try {
           await cleanupSlot(slot);
+        } catch (error) {
+          pending.push({ slot, error });
+        }
+      }
+      for (const slot of orphanSlots(installedManifest() ?? manifest)) {
+        try {
+          await cleanupOrphanSlot(slot);
         } catch (error) {
           pending.push({ slot, error });
         }
@@ -318,21 +384,51 @@ export async function controller({
       return;
     }
     if (action !== "deploy") {
-      throw new Error(
-        `Expected deploy, deploy-web, status, cleanup, rollback, or ${Object.keys(HANDOFF_ACTIONS).join(", ")}`,
-      );
+      throw new Error("Expected deploy, deploy-web, status, cleanup, or rollback");
     }
     const before = installedManifest();
     revision ??= await run("git", ["-c", `safe.directory=${source}`, "-C", source, "rev-parse", "HEAD"], {
       capture: true,
     });
-    const slot = generationForRevision(revision);
-    validateManifest({ version: 1, active: { slot, revision }, draining: [] });
-    if (before?.active.revision === revision) {
+    if (before && FIXED_SLOTS.includes(before.active.slot) && before.active.revision === revision) {
       console.log(`Revision ${revision} already active; no running services recreated`);
       return;
     }
-    if (existsSync(slotPath(slot))) throw new Error(`${slot} already exists for a non-active release`);
+    for (const draining of before?.draining ?? []) {
+      try {
+        await cleanupSlot(draining.slot);
+      } catch {
+        // Busy or unverifiable draining slots stay online and routable.
+      }
+    }
+    const current = installedManifest();
+    const referencedSlots = new Set(current ? [current.active, ...current.draining].map(({ slot }) => slot) : []);
+    let slot;
+    for (const candidate of fixedSlotRotation(current?.active.slot)) {
+      if (referencedSlots.has(candidate)) continue;
+      if (existsSync(slotDirectory(candidate))) {
+        try {
+          await cleanupOrphanSlot(candidate);
+        } catch {
+          // Never reuse a busy, incomplete, or unverifiable orphan slot.
+        }
+      }
+      if (!existsSync(slotDirectory(candidate))) {
+        slot = candidate;
+        break;
+      }
+    }
+    if (!slot) {
+      throw new Error(
+        "No fixed deployment slot is available; run status/cleanup and retry after a retired slot is proven empty",
+      );
+    }
+    validateManifest({
+      version: 1,
+      webRevision: revision,
+      active: { slot, revision },
+      draining: current ? [current.active, ...current.draining] : [],
+    });
     const config = await composeConfig();
     const apiEnvironment = restoreComposeEnvironment(config.services.api.environment);
     apiEnvironment.AEGIS_DEPLOYMENT_ADMIN_TOKEN = adminToken;
@@ -382,7 +478,6 @@ export async function controller({
       );
     }
     await setAccepting(slot, true);
-    const current = installedManifest();
     try {
       if (current) await setAccepting(current.active.slot, false);
       publish({
@@ -429,12 +524,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     envFile: resolve(option("env-file", `${source}/.env`)),
     state: resolve(option("state", "/opt/aegis-rollout")),
     revision: option("revision"),
-    sourceSlot: option("source-slot"),
-    destinationSlot: option("destination-slot"),
-    migrationId: option("migration-id"),
-    canaryCount: option("canary-count") === undefined ? undefined : Number(option("canary-count")),
-    batchSize: option("batch-size") === undefined ? undefined : Number(option("batch-size")),
-    concurrencyLimit: option("concurrency") === undefined ? undefined : Number(option("concurrency")),
   }).catch((error) => {
     console.error(`[aegis/deploy] ${error.message}`);
     process.exitCode = 1;

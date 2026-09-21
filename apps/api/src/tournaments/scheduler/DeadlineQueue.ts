@@ -82,8 +82,8 @@ type DeadlineRow = {
  * created the thing being scheduled.
  *
  * Idempotent through `UNIQUE (kind, subject_id)`: enqueueing the same rung for the same subject
- * twice inserts once. That is what lets two workers race the same ladder step during a blue/green
- * overlap without producing two copies of the rung that follows it.
+ * twice inserts once. That is what lets workers race the same ladder step across overlapping
+ * fixed-slot instances without producing two copies of the rung that follows it.
  *
  * Returns whether this call was the one that inserted, which is only interesting to a caller that
  * wants to log the difference.

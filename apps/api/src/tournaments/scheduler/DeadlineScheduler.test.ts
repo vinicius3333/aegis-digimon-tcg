@@ -18,8 +18,8 @@ import { startDeadlineWorker } from "./worker.js";
  * CAN: that the queue's SQL is valid, that a lease keeps a due row away from a second claim until
  * it lapses, that `executed_at IS NULL` counts an execution once, that every command re-reads the
  * state it acts on, and — the important one — that running the same command twice concurrently
- * leaves the tournament record identical to running it once. The last is the guarantee blue/green
- * actually depends on.
+ * leaves the tournament record identical to running it once. The last is the guarantee a fixed-slot
+ * rollout actually depends on.
  *
  * CANNOT: anything about `FOR UPDATE SKIP LOCKED` itself. pg-mem parses the clause and ignores it
  * — no row locks, no skipping — so under these tests it is an ordinary SELECT, and two workers
@@ -171,29 +171,6 @@ async function resultOf(kind: DeadlineKind): Promise<string | null | undefined> 
   return (await fixture.queue.find(kind, fixture.matchId))?.result;
 }
 
-async function beginFrozenHandoff(matchId: string): Promise<{ sessionId: string; transferId: string }> {
-  const sessionId = `session-${matchId}`;
-  const transferId = `transfer-${matchId}`;
-  await fixture.accounts.pool.query(
-    `INSERT INTO room_sessions
-       (id,mode,status,participants,tournament_match_id,owner_generation_id,owner_process_id,owner_room_id,created_at,updated_at)
-     VALUES ($1,'tournament','active','[]',$2,'generation-a','process-a','room-a',$3,$3)`,
-    [sessionId, matchId, PUBLISHED_AT],
-  );
-  await fixture.accounts.pool.query(
-    `INSERT INTO room_transfers
-       (id,session_id,from_generation_id,from_process_id,from_room_id,to_generation_id,to_process_id,to_room_id,
-        from_owner_epoch,to_owner_epoch,status,started_at,updated_at)
-     VALUES ($1,$2,'generation-a','process-a','room-a','generation-b','process-b','room-b',1,2,'frozen',$3,$3)`,
-    [transferId, sessionId, PUBLISHED_AT],
-  );
-  await fixture.accounts.pool.query("UPDATE room_sessions SET active_transfer_id=$1 WHERE id=$2", [
-    transferId,
-    sessionId,
-  ]);
-  return { sessionId, transferId };
-}
-
 beforeEach(async () => {
   fixture = await build();
 });
@@ -227,22 +204,6 @@ describe("the published timeline", () => {
 });
 
 describe("the due boundary", () => {
-  it("releases a due penalty during handoff freeze and applies it exactly once after transfer", async () => {
-    await publishRound();
-    await arrive(fixture.alice, PUBLISHED_AT);
-    const { sessionId, transferId } = await beginFrozenHandoff(fixture.matchId);
-
-    expect(await fixture.scheduler.processDueDeadlines(GAME_LOSS_AT)).toBe(0);
-    expect(await resultOf("join_game_loss")).toBeNull();
-    expect(await fixture.series.seriesForMatch(fixture.matchId)).toBeUndefined();
-
-    await fixture.accounts.pool.query("UPDATE room_transfers SET status='completed' WHERE id=$1", [transferId]);
-    await fixture.accounts.pool.query("UPDATE room_sessions SET active_transfer_id=NULL WHERE id=$1", [sessionId]);
-    expect(await fixture.scheduler.processDueDeadlines(GAME_LOSS_AT + 1)).toBe(1);
-    expect(await fixture.scheduler.processDueDeadlines(GAME_LOSS_AT + 2)).toBe(0);
-    expect((await fixture.series.seriesForMatch(fixture.matchId))?.wins).toEqual([1, 0]);
-  });
-
   it("leaves a rung alone one millisecond early and fires it exactly on the instant", async () => {
     await publishRound();
     await arrive(fixture.alice, PUBLISHED_AT);
@@ -582,11 +543,11 @@ describe("leases and recovery", () => {
 });
 
 /**
- * Two API containers, two sets of stores, one database — the shape of a blue/green rollout. They
+ * Two API containers, two sets of stores, one database — the shape of overlapping fixed slots. They
  * share no in-process lock, exactly as two processes would not, so this is the case where both may
  * genuinely run the same command. What must hold is that the tournament record cannot tell.
  */
-describe("blue/green overlap", () => {
+describe("fixed-slot overlap", () => {
   it("applies a no-show penalty once even when both slots run the command", async () => {
     await publishRound();
     await arrive(fixture.alice, PUBLISHED_AT);

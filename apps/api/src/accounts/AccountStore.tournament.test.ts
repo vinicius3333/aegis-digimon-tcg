@@ -1,7 +1,6 @@
 import { newDb } from "pg-mem";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type Account, AccountStore, type TournamentMatch } from "./AccountStore.js";
-import { resultEffectIdempotencyKey } from "../rooms/handoff/stage5Primitives.js";
 
 // Characterization tests: they pin the tournament MVP exactly as it behaves today, including
 // the rough edges called out as `characterizes` — those describe current behavior, not intent.
@@ -324,31 +323,6 @@ describe("AccountStore tournament draws", () => {
 });
 
 describe("AccountStore tournament results", () => {
-  it("uses a stable tournament-result key to suppress duplicate result effects across room ids", async () => {
-    const store = createStore();
-    const [alice, bob] = await createPlayers(store, 2);
-    const key = resultEffectIdempotencyKey("logical-game-1", "match-1", "tournament-result");
-    const result = {
-      mode: "tournament" as const,
-      playerAccountIds: [alice!.id, bob!.id] as [string, string],
-      winnerAccountId: alice!.id,
-      reason: "security",
-      resultKey: key,
-    };
-
-    const writes = await Promise.all([
-      store.recordMatch({ roomId: "physical-room-1", ...result }),
-      store.recordMatch({ roomId: "physical-room-2", ...result }),
-    ]);
-    expect(writes.filter(Boolean)).toHaveLength(1);
-    expect(writes.filter((recorded) => !recorded)).toHaveLength(1);
-    expect(await store.recordMatch({ roomId: "physical-room-3", ...result })).toBe(false);
-    expect((await store.profile(alice!.id)).stats.tournamentWins).toBe(1);
-    expect((await store.profile(bob!.id)).stats.tournamentLosses).toBe(1);
-    expect((await store.pool.query("SELECT id FROM match_records WHERE result_effect_key=$1", [key])).rowCount).toBe(1);
-    await store.close();
-  });
-
   it("advances the winner into round+1 at floor(position/2) on the slot given by position parity", async () => {
     const store = createStore();
     const { id } = await startTournament(store, 4);

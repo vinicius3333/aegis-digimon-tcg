@@ -1,13 +1,7 @@
-import type { DecisionResponse, Seat } from "@aegis/shared";
+import type { Seat } from "@aegis/shared";
 import { buildTriggerKey, EffectTiming } from "@aegis/shared";
 import type { CollectedEffect } from "../effects/collect.js";
-import type { DecisionExecutionFrame, DecisionJsonValue, DecisionManager } from "./index.js";
-import {
-  DECISION_API_CONTINUATION,
-  decisionApiExecutionContinuation,
-  normalizeOptional,
-  resumeDecisionApiFrame,
-} from "./decisionApi.js";
+import type { DecisionManager } from "./index.js";
 import { log } from "../../logger.js";
 
 export interface ResolverDecisions {
@@ -22,69 +16,10 @@ export interface ResolverDecisions {
   askOptional(seat: Seat, collected: CollectedEffect): Promise<boolean>;
 }
 
-export const RESOLVER_CHOOSE_ORDER_CONTINUATION = "resolver.choose-order";
-const RESOLVER_CHOOSE_ORDER_CONTINUATION_VERSION = 1;
-
-interface ChooseOrderContinuationResult {
-  readonly [key: string]: DecisionJsonValue;
-  readonly selectedTriggerKey: string | null;
-  readonly selectedIndex: number | null;
-}
-
-/** Resolve the stable portion of chooseOrder after an answer, including on a restored process. */
-export function resumeChooseOrderFrame(
-  frame: DecisionExecutionFrame,
-  response: DecisionResponse,
-): ChooseOrderContinuationResult {
-  const triggerKeys = frame.continuation.data.triggerKeys;
-  const requestTriggerKeys = frame.request.options?.triggerKeys;
-  const validationTriggerKeys = frame.validation.triggerKeys;
-  if (
-    frame.request.kind !== "orderTriggers" ||
-    !Array.isArray(triggerKeys) ||
-    triggerKeys.length < 2 ||
-    !triggerKeys.every((key) => typeof key === "string") ||
-    new Set(triggerKeys).size !== triggerKeys.length ||
-    !sameStrings(requestTriggerKeys, triggerKeys) ||
-    !sameStrings(validationTriggerKeys, triggerKeys)
-  ) {
-    throw new Error("invalid choose-order execution frame");
-  }
-  return chooseOrderContinuation(triggerKeys, response);
-}
-
-function sameStrings(actual: readonly string[] | undefined | null, expected: readonly string[]): boolean {
-  return (
-    actual !== undefined &&
-    actual !== null &&
-    actual.length === expected.length &&
-    actual.every((key, index) => key === expected[index])
-  );
-}
-
-function chooseOrderContinuation(
-  triggerKeys: readonly string[],
-  response: DecisionResponse,
-): ChooseOrderContinuationResult {
-  if (response.kind !== "orderTriggers") return { selectedTriggerKey: null, selectedIndex: null };
-  const selectedTriggerKey = response.order[0] ?? null;
-  const index = selectedTriggerKey === null ? -1 : triggerKeys.indexOf(selectedTriggerKey);
-  return {
-    selectedTriggerKey: index >= 0 ? selectedTriggerKey : null,
-    selectedIndex: index >= 0 ? index : null,
-  };
-}
-
 export function createResolverDecisions(
   manager: DecisionManager,
   beforeRequest: () => Promise<void> = async () => {},
 ): ResolverDecisions {
-  manager.registerExecutionFrameResumer(DECISION_API_CONTINUATION, 1, resumeDecisionApiFrame);
-  manager.registerExecutionFrameResumer(
-    RESOLVER_CHOOSE_ORDER_CONTINUATION,
-    RESOLVER_CHOOSE_ORDER_CONTINUATION_VERSION,
-    resumeChooseOrderFrame,
-  );
   return {
     async chooseOrder(seat, active, timing) {
       log(
@@ -156,13 +91,13 @@ export function createResolverDecisions(
           ...(triggerTimings.some((entry) => entry !== "") ? { triggerTimings } : {}),
           ...(decisionTiming !== undefined ? { timing: decisionTiming } : {}),
         },
-        executionContinuation: {
-          kind: RESOLVER_CHOOSE_ORDER_CONTINUATION,
-          version: RESOLVER_CHOOSE_ORDER_CONTINUATION_VERSION,
-          data: { triggerKeys },
-        },
       });
-      return chooseOrderContinuation(triggerKeys, response).selectedIndex;
+      if (response.kind !== "orderTriggers") return null;
+
+      const first = response.order[0];
+      if (first === undefined) return null; // declined / empty
+      const index = triggerKeys.indexOf(first);
+      return index >= 0 ? index : null;
     },
 
     async askOptional(seat, collected) {
@@ -186,9 +121,8 @@ export function createResolverDecisions(
               ? { timing: EffectTiming[collected.timing] }
               : {}),
         },
-        executionContinuation: decisionApiExecutionContinuation("optional"),
       });
-      return normalizeOptional(response);
+      return response.kind === "optional" ? response.accept : false;
     },
   };
 }

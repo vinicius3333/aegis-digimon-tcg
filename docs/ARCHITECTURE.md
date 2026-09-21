@@ -104,15 +104,11 @@ re-installs every continuous watcher under a fresh subscription id.
 Database schema upgrades live in `apps/api/src/db/migrations`; they are active
 runtime migrations and must remain sequential.
 
-The synchronized `GameState` is not a complete durable match snapshot. Live handoff also has to
-account for process-local room ownership, async engine continuations, effect ledgers, bots, timers,
-IDs and RNG state. Experimental foundations now include a PostgreSQL handoff store, owner-epoch
-room seams, a stopped-Main checkpoint proof, client queue/resolver abstractions, and a feature-gated
-deploy-controller state machine. They do not form an end-to-end or production-enabled migration:
-the server endpoints and client wiring are missing, and the snapshot proof rejects pending choices
-and combat. The inventory, target invariants, and exact current limits are in
-[Live room handoff contracts](live-room-handoff-contracts.md); operational gates and fallback are
-in the [rollout runbook](live-room-handoff-runbook.md).
+The synchronized `GameState` is not a durable match snapshot. A Colyseus room and its
+in-memory engine continuations belong to one process. Reconnect tokens resume a seat
+while that owner stays available. Production deploys use fixed blue, red, and green
+slots; older slots remain routable until their rooms and clients drain, then verified
+cleanup removes them.
 
 ## Processes
 

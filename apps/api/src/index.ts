@@ -1,5 +1,4 @@
 import { createServer } from "node:http";
-import { createHash } from "node:crypto";
 import { matchMaker } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import express from "express";
@@ -30,16 +29,6 @@ import {
 import { drainForShutdown, startDeadlineWorker, type DeadlineWorker } from "./tournaments/scheduler/index.js";
 import { accountStore } from "./accounts/runtime.js";
 import { createDeploymentRuntime, installDeploymentRoutes, type DeploymentSlot } from "./deployment/runtime.js";
-import { RoomHandoffStore } from "./db/roomHandoff/RoomHandoffStore.js";
-import { resolveDeploymentIdentity } from "./deployment/generation.js";
-import {
-  createLogicalRoomReconnectHandler,
-  RoomHandoffCoordinator,
-  installRoomHandoffRoutes,
-  installRoomOwnerResolutionRoute,
-} from "./deployment/roomHandoff.js";
-import { createAegisRoomHandoffPorts } from "./deployment/roomHandoffAegisPorts.js";
-import { roomHandoffServerEnabled } from "./rooms/RoomHandoffLifecycle.js";
 import { DeploymentServer } from "./deployment/DeploymentServer.js";
 import { isActiveDeploymentSlot, setRoomCreationAdmission } from "./deployment/admission.js";
 import { corsOriginForRequest } from "./http/cors.js";
@@ -88,7 +77,10 @@ installAccountRoutes(
 const cluster = createClusterRuntime();
 setRoomCodeDirectory(cluster.roomCodes);
 
-const { slot: configuredSlot, generationId } = resolveDeploymentIdentity();
+const configuredSlot = process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy";
+if (!/^(?:blue|red|green|legacy|g-[a-f0-9]{12})$/.test(configuredSlot)) {
+  throw new Error(`Invalid AEGIS_DEPLOYMENT_SLOT: ${configuredSlot}`);
+}
 const deploymentRuntime = createDeploymentRuntime({
   slot: configuredSlot as DeploymentSlot,
   revision: process.env.AEGIS_REVISION ?? "development",
@@ -107,48 +99,6 @@ const deploymentRuntime = createDeploymentRuntime({
 setRoomCreationAdmission(() => deploymentRuntime.allowMatchmaking("create"));
 cluster.onAcceptingNewRoomsChanged((accepting) => deploymentRuntime.applyAcceptingNewRooms(accepting));
 installDeploymentRoutes({ app, runtime: deploymentRuntime });
-const roomHandoffEnabled = roomHandoffServerEnabled();
-const handoffDescriptorSecret = process.env.AEGIS_ROOM_HANDOFF_DESCRIPTOR_SECRET;
-const handoffDescriptorConfigured =
-  typeof handoffDescriptorSecret === "string" && Buffer.byteLength(handoffDescriptorSecret) >= 32;
-const roomHandoffStore = new RoomHandoffStore(accountStore.pool);
-const handoffCoordinator = new RoomHandoffCoordinator({
-  generationId,
-  processId: matchMaker.processId ?? `${process.env.HOSTNAME ?? "local"}:${process.pid}`,
-  executionVersion: process.env.AEGIS_HANDOFF_EXECUTION_VERSION ?? "engine-v1",
-  rulesVersion: process.env.AEGIS_HANDOFF_RULES_VERSION ?? "rules-v1",
-  sourceRevision: process.env.AEGIS_REVISION ?? "development",
-  authorizationSecret: handoffDescriptorSecret,
-  store: roomHandoffStore,
-  rooms: createAegisRoomHandoffPorts({ store: roomHandoffStore, generationId }),
-});
-const verifyRoomResumeCredential = async (gameId: string, credential: string) => {
-  if (!/^[A-Za-z0-9_-]{43}$/.test(credential)) return undefined;
-  return roomHandoffStore.verifyResumeCredential({
-    sessionId: gameId,
-    credentialHash: createHash("sha256").update(credential).digest("hex"),
-    now: Date.now(),
-  });
-};
-installRoomHandoffRoutes({
-  app,
-  runtime: deploymentRuntime,
-  coordinator: handoffCoordinator,
-  enabled: roomHandoffEnabled && handoffDescriptorConfigured,
-});
-installRoomOwnerResolutionRoute({
-  app,
-  coordinator: handoffCoordinator,
-  enabled: roomHandoffEnabled && handoffDescriptorConfigured,
-  verifyResumeCredential: verifyRoomResumeCredential,
-});
-const logicalReconnectHandler = createLogicalRoomReconnectHandler({
-  coordinator: handoffCoordinator,
-  currentGenerationId: generationId,
-  verifyResumeCredential: verifyRoomResumeCredential,
-  createRoomTicket: (accountId) => accountStore.createRoomTicket(accountId),
-  joinById: (roomId, options) => matchMaker.joinById(roomId, options),
-});
 
 /**
  * POST /bot/join  { roomId: string }
@@ -243,7 +193,7 @@ const gameServer = new DeploymentServer(deploymentRuntime, {
   driver: cluster.driver,
   // Undefined in single-process mode, where Colyseus keeps its own default.
   ...(cluster.publicAddress === undefined ? {} : { publicAddress: cluster.publicAddress }),
-}, roomHandoffEnabled && handoffDescriptorConfigured ? logicalReconnectHandler : undefined);
+});
 // Explicit false values are security boundaries: Colyseus merges handler options
 // over client-supplied create options, so clients cannot promote another room type
 // into bot mode by sending `{ botRoom: true }` themselves.

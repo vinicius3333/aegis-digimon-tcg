@@ -2,7 +2,7 @@ import { CardKind, type DecisionRequest, type Intent, type ServerEvent } from "@
 import { enumerateMainPhaseCandidates, digivolveCost, type Candidate } from "./candidates.js";
 import { appraiseBlock, bodyValue, scoreCandidate, shouldPayBarrier } from "./evaluate.js";
 import { DEFAULT_BOT_PROFILE, type BotProfile } from "./profiles.js";
-import { createBotRandom, createBotRandomFromState, type BotRandom } from "./rng.js";
+import { createBotRandom, type BotRandom } from "./rng.js";
 import { isDigimonCard, type BotUnit, type BotView } from "./view.js";
 
 /**
@@ -28,16 +28,6 @@ export interface BotPolicy {
   answerDecision(view: BotView | undefined, request: DecisionRequest): Intent;
   /** The engine refused this intent; do not offer it again this turn. */
   noteRejected(intent: Intent): void;
-  /** Optional, versioned state export. Policies without it are not transferable. */
-  exportHandoffState?(): BotPolicyHandoffState;
-}
-
-export interface BotPolicyHandoffState {
-  readonly protocol: "aegis-evaluation-policy";
-  readonly version: 1;
-  readonly randomState: number;
-  readonly rejectedKeys: readonly string[];
-  readonly attemptedKeys: readonly string[];
 }
 
 export interface BlockContext {
@@ -54,7 +44,6 @@ export type AllianceContext = Extract<ServerEvent, { kind: "alliancePrompt" }>;
 export interface EvaluationPolicyOptions {
   profile?: BotProfile;
   seed?: number;
-  handoffState?: BotPolicyHandoffState;
 }
 
 /**
@@ -66,11 +55,9 @@ export interface EvaluationPolicyOptions {
  */
 export function createEvaluationPolicy(options: EvaluationPolicyOptions = {}): BotPolicy {
   const profile = options.profile ?? DEFAULT_BOT_PROFILE;
-  const random: BotRandom = options.handoffState
-    ? createBotRandomFromState(options.handoffState.randomState)
-    : createBotRandom(options.seed ?? 0x5eed);
-  const rejectedThisTurn = new Set<string>(options.handoffState?.rejectedKeys ?? []);
-  const attemptedThisTurn = new Set<string>(options.handoffState?.attemptedKeys ?? []);
+  const random: BotRandom = createBotRandom(options.seed ?? 0x5eed);
+  const rejectedThisTurn = new Set<string>();
+  const attemptedThisTurn = new Set<string>();
 
   /**
    * Tie-break jitter. Small enough never to reorder candidates that differ meaningfully,
@@ -193,16 +180,6 @@ export function createEvaluationPolicy(options: EvaluationPolicyOptions = {}): B
     noteRejected(intent: Intent): void {
       const key = candidateKeyOf(intent);
       if (key !== undefined) rejectedThisTurn.add(key);
-    },
-
-    exportHandoffState(): BotPolicyHandoffState {
-      return {
-        protocol: "aegis-evaluation-policy",
-        version: 1,
-        randomState: random.exportState(),
-        rejectedKeys: [...rejectedThisTurn].sort(),
-        attemptedKeys: [...attemptedThisTurn].sort(),
-      };
     },
   };
 }

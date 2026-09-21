@@ -26,18 +26,19 @@ describe("reconnect session storage", () => {
     expect(loadReconnectSession(session.savedAt + 1_000)).toEqual(session);
   });
 
-  it("stores a separate resume credential and drops it at its expiry", () => {
-    const withCredential: ReconnectSession = {
-      ...session,
-      logicalSession: { gameId: "logical-game-1", ownerEpoch: 3 },
-      resumeCredential: "distinct-resume-credential",
-      resumeCredentialExpiresAt: 2_000,
-    };
-    saveReconnectSession(withCredential);
-    expect(loadReconnectSession(1_500)).toEqual(withCredential);
-    expect(loadReconnectSession(2_000)).toMatchObject({ reconnectionToken: session.reconnectionToken });
-    expect(loadReconnectSession(2_000)).not.toHaveProperty("resumeCredential");
-    expect(JSON.parse(sessionStorage.getItem("aegis:matchSession") ?? "{}")).not.toHaveProperty("resumeCredential");
+  it("strips obsolete handoff identity and credentials while preserving the persisted seat", () => {
+    sessionStorage.setItem(
+      "aegis:matchSession",
+      JSON.stringify({
+        ...session,
+        logicalSession: { gameId: "logical-game-1", ownerEpoch: 3 },
+        resumeCredential: "obsolete-resume-credential",
+        resumeCredentialExpiresAt: 2_000,
+      }),
+    );
+
+    expect(loadReconnectSession(1_500)).toEqual(session);
+    expect(JSON.parse(sessionStorage.getItem("aegis:matchSession") ?? "{}")).toEqual(session);
   });
 
   it("keeps the match out of localStorage so other tabs never resume it", () => {

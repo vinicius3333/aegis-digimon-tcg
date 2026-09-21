@@ -3,9 +3,6 @@ import { ArraySchema } from "@colyseus/schema";
 import { CardInstance, GameState, type Seat } from "@aegis/shared";
 import {
   makeRng,
-  makeRngFromState,
-  exportMatchRngState,
-  restoreMatchRngState,
   seatSeed,
   shuffleInPlace,
   buildPlayerState,
@@ -49,19 +46,6 @@ describe("makeRng / shuffleInPlace (deterministic)", () => {
 
   it("derives distinct sub-seeds per seat", () => {
     expect(seatSeed(7, 0)).not.toBe(seatSeed(7, 1));
-  });
-
-  it("imports and exports per-seat shuffle streams at their exact continuation point", () => {
-    const rngs = [makeRng(10), makeRng(20)] as const;
-    rngs[0]();
-    rngs[1]();
-    rngs[1]();
-    const frame = JSON.parse(JSON.stringify(exportMatchRngState((seat) => rngs[seat])));
-    const restored = restoreMatchRngState(frame);
-    for (const seat of [0, 1] as const) {
-      const direct = makeRngFromState(rngs[seat].exportState());
-      expect(Array.from({ length: 5 }, () => restored(seat)())).toEqual(Array.from({ length: 5 }, () => direct()));
-    }
   });
 
   it("shuffles deterministically and preserves the multiset", () => {

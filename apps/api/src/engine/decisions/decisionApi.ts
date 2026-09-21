@@ -1,50 +1,7 @@
-import type { DecisionResponse, Seat } from "@aegis/shared";
+import type { Seat } from "@aegis/shared";
 import type { DecisionApi, EffectContext, SeatScopedDecisionApi } from "../effects/EffectContext.js";
 import type { ChooseOptionExtras } from "../effects/context/decisions.js";
-import type {
-  DecisionExecutionContinuation,
-  DecisionExecutionFrame,
-  DecisionJsonValue,
-  DecisionManager,
-} from "./index.js";
-
-export const DECISION_API_CONTINUATION = "decision-api";
-const DECISION_API_CONTINUATION_VERSION = 1;
-export type DecisionApiContinuationAction = "optional" | "selection" | "order-cards" | "choose-option";
-
-/** Re-run the pure response mapping used after a supported decision API await. */
-export function resumeDecisionApiFrame(frame: DecisionExecutionFrame, response: DecisionResponse): DecisionJsonValue {
-  const action = frame.continuation.data.action;
-  switch (action) {
-    case "optional":
-      if (frame.request.kind !== "optional") throw new Error("optional decision frame kind mismatch");
-      return normalizeOptional(response);
-    case "selection": {
-      if (frame.request.kind !== "chooseTargets" && frame.request.kind !== "selectCards") {
-        throw new Error("selection decision frame kind mismatch");
-      }
-      const candidates = frame.request.options?.candidateInstanceIds ?? [];
-      const max = frame.request.options?.max ?? candidates.length;
-      return normalizeSelection(response, candidates, max);
-    }
-    case "order-cards": {
-      if (frame.request.kind !== "orderCards") throw new Error("order-cards decision frame kind mismatch");
-      const candidates = frame.request.options?.candidateInstanceIds ?? [];
-      return normalizeCardOrder(response, candidates);
-    }
-    case "choose-option": {
-      if (frame.request.kind !== "chooseOption") throw new Error("choose-option decision frame kind mismatch");
-      const count = frame.request.options?.choices?.length ?? 0;
-      return normalizeOptionIndex(response, count);
-    }
-    default:
-      throw new Error(`unsupported decision API continuation: ${String(action)}`);
-  }
-}
-
-export function decisionApiExecutionContinuation(action: DecisionApiContinuationAction): DecisionExecutionContinuation {
-  return { kind: DECISION_API_CONTINUATION, version: DECISION_API_CONTINUATION_VERSION, data: { action } };
-}
+import type { DecisionManager } from "./index.js";
 
 /**
  * Concrete {@link DecisionApi} (`ctx.ask.*`) backed by the {@link DecisionManager}
@@ -87,11 +44,6 @@ export function decisionApiExecutionContinuation(action: DecisionApiContinuation
  * order or sequence multiple effects.
  */
 export function createDecisionApi(manager: DecisionManager): DecisionApi {
-  manager.registerExecutionFrameResumer(
-    DECISION_API_CONTINUATION,
-    DECISION_API_CONTINUATION_VERSION,
-    resumeDecisionApiFrame,
-  );
   const controller = buildSeatScopedApi(manager, (ctx) => ctx.source.ownerSeat);
   const opponent = buildSeatScopedApi(manager, (ctx) => ctx.game.opponentOf(ctx.source.ownerSeat));
   return { ...controller, opponent };
@@ -146,9 +98,8 @@ function buildSeatScopedApi(
         sourceInstanceId: ctx.source.instanceId,
         sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: provenance(ctx),
-        executionContinuation: decisionApiExecutionContinuation("optional"),
       });
-      return normalizeOptional(response);
+      return response.kind === "optional" ? response.accept : false;
     },
 
     async chooseTargets(
@@ -181,11 +132,12 @@ function buildSeatScopedApi(
           ...(ctx.activeTargetFate !== undefined ? { targetFate: ctx.activeTargetFate } : {}),
           ...provenance(ctx),
         },
-        ...(opts.maxTotalPlayCost === undefined
-          ? { executionContinuation: decisionApiExecutionContinuation("selection") }
-          : {}),
       });
-      const selected = normalizeSelection(response, opts.candidates, opts.max);
+      const selected = clampSelection(
+        response.kind === "chooseTargets" ? response.instanceIds : [],
+        opts.candidates,
+        opts.max,
+      );
       return clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => loosePlayCost(ctx, id));
     },
 
@@ -224,11 +176,12 @@ function buildSeatScopedApi(
           assemblyCardId: opts.assemblyCardId,
           ...provenance(ctx),
         },
-        ...(opts.maxTotalPlayCost === undefined
-          ? { executionContinuation: decisionApiExecutionContinuation("selection") }
-          : {}),
       });
-      const selected = normalizeSelection(response, opts.candidates, opts.max);
+      const selected = clampSelection(
+        response.kind === "selectCards" ? response.instanceIds : [],
+        opts.candidates,
+        opts.max,
+      );
       return clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => loosePlayCost(ctx, id));
     },
 
@@ -250,11 +203,12 @@ function buildSeatScopedApi(
           ...(opts.maxTotalPlayCost !== undefined ? { maxTotalPlayCost: opts.maxTotalPlayCost } : {}),
           ...provenance(ctx),
         },
-        ...(opts.maxTotalPlayCost === undefined
-          ? { executionContinuation: decisionApiExecutionContinuation("selection") }
-          : {}),
       });
-      const selected = normalizeSelection(response, opts.candidates, opts.max);
+      const selected = clampSelection(
+        response.kind === "chooseTargets" ? response.instanceIds : [],
+        opts.candidates,
+        opts.max,
+      );
       return clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => permanentPlayCost(ctx, id));
     },
 
@@ -282,9 +236,11 @@ function buildSeatScopedApi(
           max: opts.candidates.length,
           ...provenance(ctx),
         },
-        executionContinuation: decisionApiExecutionContinuation("order-cards"),
       });
-      return normalizeCardOrder(response, opts.candidates);
+      if (response.kind !== "orderCards") return opts.candidates;
+      const allowed = new Set(opts.candidates);
+      const unique = [...new Set(response.order)].filter((id) => allowed.has(id));
+      return unique.length === opts.candidates.length ? unique : opts.candidates;
     },
 
     async chooseOption(ctx: EffectContext, choices: string[], extras?: ChooseOptionExtras): Promise<number> {
@@ -296,9 +252,12 @@ function buildSeatScopedApi(
         sourceInstanceId: ctx.source.instanceId,
         sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: { choices, ...(extras ?? {}), ...provenance(ctx) },
-        executionContinuation: decisionApiExecutionContinuation("choose-option"),
       });
-      return normalizeOptionIndex(response, choices.length);
+      if (response.kind !== "chooseOption") return 0;
+      // Guard the index into range; an out-of-range pick falls back to the first
+      // choice (the safe-default behaviour the manager also applies on timeout).
+      if (response.optionIndex < 0 || response.optionIndex >= choices.length) return 0;
+      return response.optionIndex;
     },
   };
 }
@@ -373,26 +332,4 @@ function clampSelection(chosen: readonly string[], candidates: readonly string[]
     if (out.length >= max) break;
   }
   return out;
-}
-
-function normalizeSelection(response: DecisionResponse, candidates: readonly string[], max: number): string[] {
-  const chosen = response.kind === "chooseTargets" || response.kind === "selectCards" ? response.instanceIds : [];
-  return clampSelection(chosen, candidates, max);
-}
-
-function normalizeCardOrder(response: DecisionResponse, candidates: readonly string[]): string[] {
-  if (response.kind !== "orderCards") return [...candidates];
-  const allowed = new Set(candidates);
-  const unique = [...new Set(response.order)].filter((id) => allowed.has(id));
-  return unique.length === candidates.length ? unique : [...candidates];
-}
-
-function normalizeOptionIndex(response: DecisionResponse, count: number): number {
-  if (response.kind !== "chooseOption") return 0;
-  // Guard the index into range; an out-of-range pick falls back to the first choice.
-  return response.optionIndex >= 0 && response.optionIndex < count ? response.optionIndex : 0;
-}
-
-export function normalizeOptional(response: DecisionResponse): boolean {
-  return response.kind === "optional" && response.accept;
 }

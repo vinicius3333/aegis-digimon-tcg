@@ -39,7 +39,7 @@ test("cutover retains established sockets, routes reconnect to the old owner, an
     renameSync(`${state}/routing/next.json`, `${state}/routing/manifest.json`);
   };
   const origins = new Map();
-  for (const slot of ["blue", "green", "g-333333333333"]) {
+  for (const slot of ["blue", "green", "g-333333333333", "red"]) {
     for (const index of [1, 2, 3]) {
       const server = createServer((request, response) => {
         response.setHeader("content-type", "application/json");
@@ -138,4 +138,21 @@ test("cutover retains established sockets, routes reconnect to the old owner, an
     active: { slot: "green", revision: "web-v3" },
     draining: [],
   });
+  publish(
+    { slot: "red", revision: "v4" },
+    [
+      { slot: "g-333333333333", revision: "v3" },
+      { slot: "green", revision: "v2" },
+      { slot: "blue", revision: "v1" },
+    ],
+    "web-v4",
+  );
+  await new Promise((done) => setTimeout(done, 2100));
+  const red = await (await fetch(`${origin}/api/red/matchmake/create/aegis`, { method: "POST" })).json();
+  assert.equal(red.slot, "red");
+  const oldGeneration = await (await fetch(`${origin}/api/g-333333333333/p2/health`)).json();
+  assert.equal(oldGeneration.slot, "g-333333333333");
+  const migratedManifest = await (await fetch(`${origin}/deployment/manifest.json`)).json();
+  assert.equal(migratedManifest.active.slot, "red");
+  assert.equal(migratedManifest.draining[0].slot, "g-333333333333");
 });

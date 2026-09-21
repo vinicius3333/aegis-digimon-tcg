@@ -30,15 +30,8 @@ export const OPENING_HAND_SIZE = 5;
 /** Cards set face-down as the initial security stack (Comprehensive Rules §5-2-1-6). */
 export const SECURITY_STACK_SIZE = 5;
 
-/** A deterministic, exportable PRNG returning floats in [0, 1). */
-export type Rng = (() => number) & { exportState(): number };
-
-export interface MatchRngStateFrame {
-  readonly protocol: "aegis-match-rng";
-  readonly version: 1;
-  readonly algorithm: "mulberry32";
-  readonly seatStates: readonly [number, number];
-}
+/** A deterministic PRNG returning floats in [0, 1). */
+export type Rng = () => number;
 
 /**
  * Build a deterministic PRNG from a 32-bit seed (mulberry32). Chosen for being tiny,
@@ -48,45 +41,13 @@ export interface MatchRngStateFrame {
  * what makes a dealt match reproducible in tests.
  */
 export function makeRng(seed: number): Rng {
-  return makeRngFromState(seed >>> 0);
-}
-
-/** Restore a seat stream without replaying the shuffles and mulligans that consumed it. */
-export function makeRngFromState(initialState: number): Rng {
-  if (!Number.isSafeInteger(initialState) || initialState < 0 || initialState > 0xffff_ffff)
-    throw new Error("match RNG state must be an unsigned 32-bit integer");
-  let state = initialState >>> 0;
-  const rng = (() => {
+  let state = seed >>> 0;
+  return () => {
     state = (state + 0x6d2b79f5) | 0;
     let t = Math.imul(state ^ (state >>> 15), 1 | state);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  }) as Rng;
-  rng.exportState = () => state >>> 0;
-  return rng;
-}
-
-export function exportMatchRngState(rngForSeat: (seat: Seat) => Rng): MatchRngStateFrame {
-  return {
-    protocol: "aegis-match-rng",
-    version: 1,
-    algorithm: "mulberry32",
-    seatStates: [rngForSeat(0).exportState(), rngForSeat(1).exportState()],
   };
-}
-
-export function restoreMatchRngState(frame: MatchRngStateFrame): (seat: Seat) => Rng {
-  if (
-    frame.protocol !== "aegis-match-rng" ||
-    frame.version !== 1 ||
-    frame.algorithm !== "mulberry32" ||
-    !Array.isArray(frame.seatStates) ||
-    frame.seatStates.length !== 2
-  ) {
-    throw new Error("invalid match RNG state frame");
-  }
-  const rngs: [Rng, Rng] = [makeRngFromState(frame.seatStates[0]), makeRngFromState(frame.seatStates[1])];
-  return (seat) => rngs[seat];
 }
 
 /**

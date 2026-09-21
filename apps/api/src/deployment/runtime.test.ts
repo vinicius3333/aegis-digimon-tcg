@@ -109,6 +109,27 @@ describe("deployment HTTP contract", () => {
     await harness.close();
   });
 
+  it("reports red as a fixed deployment slot and preserves reconnect while drained", async () => {
+    const runtime = createDeploymentRuntime({
+      slot: "red",
+      revision: "red-revision",
+      adminToken: ADMIN_TOKEN,
+      activeRooms: () => 1,
+      connectedClients: () => 2,
+      readiness: async () => true,
+    });
+
+    expect(runtime.health()).toEqual({
+      status: "ok",
+      slot: "red",
+      revision: "red-revision",
+      acceptingNewRooms: true,
+    });
+    runtime.drain();
+    expect(runtime.allowMatchmaking("reconnect")).toBe(true);
+    expect(runtime.allowMatchmaking("create")).toBe(false);
+  });
+
   it("drains idempotently while preserving reconnect and existing-room joins", async () => {
     const harness = await startHarness();
 

@@ -22,11 +22,6 @@ vi.mock("./client", () => ({
   resumeReconnectSession: (session: { reconnectionToken: string; slot: string }) =>
     reconnect(session.reconnectionToken, session.slot),
   connectionSlot: () => "legacy",
-  roomHandoffIdentity: () => undefined,
-  roomHandoffEnabled: () => false,
-  updateRoomHandoffIdentity: () => undefined,
-  reconcileHandoffCommandReceipt: () => false,
-  requestHandoffCommandReconciliation: vi.fn(),
   flushIntents: vi.fn(),
   clearPendingIntents: vi.fn(),
   sendIntent: vi.fn(),
@@ -101,13 +96,12 @@ describe("useRoom reconnection token persistence", () => {
     });
   });
 
-  it("resumes a persisted session instead of matchmaking on a fresh mount", async () => {
+  it("resumes a persisted legacy seat instead of matchmaking on a fresh mount", async () => {
     saveReconnectSession({
       reconnectionToken: "room-1:token",
       roomId: "room-1",
       slot: "legacy",
       savedAt: Date.now(),
-      logicalSession: { gameId: "logical-game-1", ownerEpoch: 7 },
     });
     const resumed = fakeRoom("room-1");
     reconnect.mockResolvedValue(resumed.room);
@@ -118,7 +112,12 @@ describe("useRoom reconnection token persistence", () => {
     await waitFor(() => expect(result.current.status).toBe("connected"));
     expect(reconnect).toHaveBeenCalledWith("room-1:token", "legacy");
     expect(joinOrCreate).not.toHaveBeenCalled();
-    expect(loadReconnectSession()?.logicalSession).toEqual({ gameId: "logical-game-1", ownerEpoch: 7 });
+    expect(loadReconnectSession()).toEqual({
+      reconnectionToken: "room-1:token",
+      roomId: "room-1",
+      slot: "legacy",
+      savedAt: expect.any(Number),
+    });
   });
 
   it("retries the original persisted session instead of matchmaking after a transient reload failure", async () => {

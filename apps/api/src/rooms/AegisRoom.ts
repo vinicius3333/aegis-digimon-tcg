@@ -1,10 +1,9 @@
 import { log, logError, withMatchLog } from "../logger.js";
-import { Room, Client, ServerError, matchMaker, type Delayed } from "colyseus";
+import { Room, Client, ServerError, type Delayed } from "colyseus";
 import { canCreateRoom } from "../deployment/admission.js";
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import {
   GameState,
-  Phase,
   RECONNECT_GRACE_SECONDS,
   combatWindowKey,
   type CombatWindow,
@@ -18,90 +17,20 @@ import {
   PRESENTATION_CHANNEL,
 } from "@aegis/shared";
 import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
-import { GameEngine, type GameEngineContinuityFrame, type SeatJoinOptions } from "../engine/GameEngine.js";
+import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
 import type { VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
 import { playableBotDeck } from "../engine/botDeck.js";
 import { accountStore } from "../accounts/runtime.js";
 import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
-import {
-  RoomHandoffStore,
-  type JsonValue,
-  type RoomCommandRecord,
-  type RoomOwner,
-  type RoomParticipant,
-  type RoomSessionRecord,
-} from "../db/roomHandoff/RoomHandoffStore.js";
 import { seriesStore } from "../tournaments/runtime.js";
 import type { SeriesStore } from "../tournaments/series/index.js";
 import { createLocalRoomCodeDirectory, type RoomCodeDirectory } from "../cluster/roomCodes.js";
 import { parsePresentationReport } from "./presentationReport.js";
-import { loadPreparedMainCheckpoint, RoomHandoffLifecycle, roomHandoffServerEnabled } from "./RoomHandoffLifecycle.js";
-import {
-  restoreMigrationPauseReceipt,
-  resultEffectIdempotencyKey,
-  type DormantBotRosterFrame,
-  type MigrationPauseReceipt,
-} from "./handoff/stage5Primitives.js";
-import {
-  ROOM_HANDOFF_SNAPSHOT_VERSION,
-  exportPendingMulliganBoundary,
-  exportStoppedMainBoundary,
-} from "./handoff/experiment.js";
 
 /** Hand-laid boards must never be reachable by a real player. */
 const DEV_SCENARIOS_ENABLED = process.env.NODE_ENV !== "production";
 const WAITING_ROOM_TIMEOUT_SECONDS = positiveSeconds(process.env.AEGIS_WAITING_ROOM_TIMEOUT_SECONDS, 30 * 60);
-const ROOM_RUNTIME_PROTOCOL = "aegis-room-runtime-continuity" as const;
-const COMMAND_CHANNEL = "command";
-const COMMAND_RECEIPT_CHANNEL = "commandReceipt";
-const COMMAND_RECONCILIATION_CHANNEL = "reconcileCommands";
-const COMMAND_CHECKPOINT_TRANSFER_ID = "__room-command-checkpoint__";
-const DURABLE_COMMAND_TYPES = new Set<Intent["type"]>([
-  "ready",
-  "mulligan",
-  "playCard",
-  "appFusion",
-  "digivolve",
-  "hatchEgg",
-  "moveFromBreeding",
-  "activateEffect",
-  "linkCard",
-  "dnaDigivolve",
-  "endPhase",
-  "attack",
-  "declareBlock",
-  "declineBlock",
-  "respondCounter",
-  "respondAlliance",
-  "respondEvade",
-  "respondBarrier",
-  "respondDecision",
-  "surrender",
-]);
-
-type DurableCommandEnvelope = {
-  gameId: string;
-  ownerEpoch: number;
-  commandId: string;
-  kind: Intent["type"];
-  payload: Record<string, unknown>;
-};
-type DurableCommandReconciliationRequest = {
-  gameId: string;
-  ownerEpoch: number;
-  commands: { commandId: string }[];
-};
-const DEFAULT_ROOM_RESUME_CREDENTIAL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-
-interface RoomRuntimeContinuityFrame {
-  readonly protocol: typeof ROOM_RUNTIME_PROTOCOL;
-  readonly version: 1;
-  readonly transferId: string;
-  readonly pausedAtMs: number;
-  readonly engine: GameEngineContinuityFrame;
-  readonly botRoster: DormantBotRosterFrame | null;
-}
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
 
@@ -118,107 +47,6 @@ function positiveSeconds(value: string | undefined, fallback: number): number {
   if (value === undefined) return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-}
-
-function roomResumeCredentialLifetimeMs(): number {
-  const configured = Number(process.env.AEGIS_ROOM_RESUME_CREDENTIAL_TTL_MS);
-  if (!Number.isSafeInteger(configured) || configured < 60_000 || configured > 30 * 24 * 60 * 60 * 1000)
-    return DEFAULT_ROOM_RESUME_CREDENTIAL_TTL_MS;
-  return configured;
-}
-
-function roomResumeCredentialsEnabled(): boolean {
-  const descriptorSecret = process.env.AEGIS_ROOM_HANDOFF_DESCRIPTOR_SECRET;
-  return (
-    roomHandoffServerEnabled() && typeof descriptorSecret === "string" && Buffer.byteLength(descriptorSecret) >= 32
-  );
-}
-
-function restoreRoomRuntimeFrame(value: unknown, transferId: string): RoomRuntimeContinuityFrame | undefined {
-  if (typeof value !== "object" || value === null) return undefined;
-  const frame = value as Partial<RoomRuntimeContinuityFrame>;
-  if (
-    frame.protocol !== ROOM_RUNTIME_PROTOCOL ||
-    frame.version !== 1 ||
-    (frame.transferId !== transferId && frame.transferId !== COMMAND_CHECKPOINT_TRANSFER_ID) ||
-    !Number.isSafeInteger(frame.pausedAtMs) ||
-    frame.pausedAtMs! < 0 ||
-    typeof frame.engine !== "object" ||
-    frame.engine === null ||
-    frame.botRoster !== null
-  )
-    return undefined;
-  return frame as RoomRuntimeContinuityFrame;
-}
-
-function checkpointDigest(value: unknown): string {
-  return createHash("sha256").update(stableJson(value)).digest("hex");
-}
-
-function stableJson(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
-  if (typeof value === "object" && value !== null) {
-    const record = value as Record<string, unknown>;
-    return `{${Object.keys(record)
-      .sort()
-      .map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`)
-      .join(",")}}`;
-  }
-  return JSON.stringify(value) ?? "null";
-}
-
-function parseDurableCommand(value: unknown): DurableCommandEnvelope | undefined {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
-  const envelope = value as Record<string, unknown>;
-  if (
-    typeof envelope.gameId !== "string" ||
-    !Number.isSafeInteger(envelope.ownerEpoch) ||
-    typeof envelope.commandId !== "string" ||
-    envelope.commandId.length < 1 ||
-    envelope.commandId.length > 200 ||
-    typeof envelope.kind !== "string" ||
-    !DURABLE_COMMAND_TYPES.has(envelope.kind as Intent["type"]) ||
-    typeof envelope.payload !== "object" ||
-    envelope.payload === null ||
-    Array.isArray(envelope.payload)
-  )
-    return undefined;
-  try {
-    JSON.stringify(envelope.payload);
-  } catch {
-    return undefined;
-  }
-  return envelope as unknown as DurableCommandEnvelope;
-}
-
-function parseCommandReconciliationRequest(value: unknown): DurableCommandReconciliationRequest | undefined {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
-  const request = value as Record<string, unknown>;
-  if (
-    typeof request.gameId !== "string" ||
-    !/^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$/.test(request.gameId) ||
-    !Number.isSafeInteger(request.ownerEpoch) ||
-    (request.ownerEpoch as number) < 1 ||
-    !Array.isArray(request.commands) ||
-    request.commands.length === 0 ||
-    request.commands.length > 64
-  )
-    return undefined;
-  const commands: DurableCommandReconciliationRequest["commands"] = [];
-  const seen = new Set<string>();
-  for (const candidate of request.commands) {
-    if (typeof candidate !== "object" || candidate === null || Array.isArray(candidate)) return undefined;
-    const command = candidate as Record<string, unknown>;
-    if (
-      typeof command.commandId !== "string" ||
-      !/^[A-Za-z0-9][A-Za-z0-9:._-]{0,199}$/.test(command.commandId)
-    )
-      return undefined;
-    if (seen.has(command.commandId)) continue;
-    seen.add(command.commandId);
-    commands.push({ commandId: command.commandId });
-  }
-  return { gameId: request.gameId, ownerEpoch: request.ownerEpoch as number, commands };
 }
 
 /**
@@ -308,12 +136,6 @@ export const roomRegistry = new Map<string, AegisRoom>();
  * the local directory so nothing has to configure anything to run a single process.
  */
 let roomCodes: RoomCodeDirectory = createLocalRoomCodeDirectory();
-let persistentRoomHandoffStore: RoomHandoffStore | undefined;
-
-function defaultRoomHandoffStore(): RoomHandoffStore {
-  persistentRoomHandoffStore ??= new RoomHandoffStore(accountStore.pool);
-  return persistentRoomHandoffStore;
-}
 
 /** Point every room at a shared code directory (called once, at boot). */
 export function setRoomCodeDirectory(directory: RoomCodeDirectory): void {
@@ -376,25 +198,6 @@ export class AegisRoom extends Room<GameState> {
   private readyTimeout: Delayed | undefined;
   private waitingRoomTimeout: Delayed | undefined;
   private matchStartRequested = false;
-  private handoffAuthority = new RoomHandoffLifecycle({ enabled: false });
-  private handoffStoreInstance: RoomHandoffStore | undefined;
-  private handoffSessionId: string | undefined;
-  private handoffTransferId: string | undefined;
-  private handoffSessionCreation: Promise<void> | undefined;
-  private handoffSessionAttempted = false;
-  private handoffSessionUnsupported = false;
-  private handoffSessionFailure: unknown;
-  private handoffParticipants: RoomParticipant[] | undefined;
-  private issuedResumeCredentials = new Map<string, { credential: string; expiresAt: number }>();
-  private handoffRestored = false;
-  private handoffPausedAtMs: number | undefined;
-  private handoffRuntimeFrame: RoomRuntimeContinuityFrame | undefined;
-  private commandQueue: Promise<void> = Promise.resolve();
-  private commandQuarantined = false;
-  private unsequencedHandoffIntentCount = 0;
-  private prevalidatedJoinSessions = new Set<string>();
-  private migrationDisposal = false;
-  private engineSeed = 1;
 
   /** Position of the last event put on the wire; the first event of a room is `seq` 1. */
   private eventSeq = 0;
@@ -425,11 +228,6 @@ export class AegisRoom extends Room<GameState> {
     return accountStore;
   }
 
-  /** Seam: the persistence port is constructed only when the server-side experiment is enabled. */
-  protected roomHandoffStore(): RoomHandoffStore | undefined {
-    return roomHandoffServerEnabled() ? defaultRoomHandoffStore() : undefined;
-  }
-
   // How long the in-memory match is held open for a client that dropped without
   // a consented leave (network blip, tab reload, mobile browser backgrounded —
   // phones kill the socket seconds after the app loses focus). A reconnect within
@@ -455,49 +253,17 @@ export class AegisRoom extends Room<GameState> {
   private combatWindowTimeoutKey: string | undefined;
 
   override async onAuth(client: Client, options: AegisJoinOptions): Promise<boolean> {
-    const ownerEpoch = this.handoffAuthority.ownerEpoch;
-    if (!this.handoffAuthority.acceptsAuthority(ownerEpoch)) return false;
-    if (!(await this.hasCurrentDurableAuthority(ownerEpoch))) return false;
-    if (this.matchStartRequested && !this.handoffRestored) return false;
-    if (this.seatByClient.size >= this.maxClients) return false;
+    if (this.matchStartRequested || this.seatByClient.size >= this.maxClients) return false;
     const identity = await this.resolveIdentity(options);
     if (!identity) return false;
-    if (!this.handoffAuthority.acceptsAuthority(ownerEpoch)) return false;
-    if (!(await this.hasCurrentDurableAuthority(ownerEpoch))) return false;
     const account = identity.account;
-    const restoredParticipant = !!(
-      account &&
-      this.handoffRestored &&
-      this.handoffSessionId &&
-      this.handoffParticipants?.some(
-        (participant) => participant.kind === "account" && participant.principalId === account.id,
-      )
-    );
-    if (this.matchStartRequested && !restoredParticipant) return false;
-    if (
-      this.handoffParticipants &&
-      (!account ||
-        !this.handoffParticipants.some(
-          (participant) => participant.kind === "account" && participant.principalId === account.id,
-        ))
-    )
-      return false;
     if (account) options.displayName = account.displayName;
     const normalizedName = options.displayName.trim().toLocaleLowerCase();
-    if (!normalizedName) return false;
-    const duplicateName = this.state.players.find(
-      (player) => player?.displayName.trim().toLocaleLowerCase() === normalizedName,
-    );
-    const reattachingOwnSeat =
-      restoredParticipant &&
-      account !== undefined &&
-      this.handoffParticipants?.some(
-        (participant) =>
-          participant.kind === "account" &&
-          participant.principalId === account.id &&
-          duplicateName?.seat === participant.seat,
-      );
-    if (duplicateName && !reattachingOwnSeat) return false;
+    if (
+      !normalizedName ||
+      this.state.players.some((player) => player?.displayName.trim().toLocaleLowerCase() === normalizedName)
+    )
+      return false;
     if ((options.ranked === true) !== this.isRankedRoom || ((this.isRankedRoom || this.isTournamentRoom) && !account))
       return false;
     // A private room allows beta cards without the client asking for them, so only the
@@ -603,58 +369,19 @@ export class AegisRoom extends Room<GameState> {
     };
   }
 
-  override async onCreate(options: {
+  override onCreate(options: {
     seed?: number;
     private?: boolean;
     botRoom?: boolean;
     rankedRoom?: boolean;
     betaBattleRoom?: boolean;
     tournamentRoom?: boolean;
-    /** Internal server-to-server handoff preparation; inert even if an untrusted caller requests it. */
-    handoffPrepared?: boolean;
-    handoffOwnerEpoch?: number;
-    handoffReservationToken?: string;
     devScenario?: unknown;
-  }): Promise<void> {
+  }): void {
     this.setState(new GameState());
-    this.handoffStoreInstance = this.roomHandoffStore();
-    let reservation: Awaited<ReturnType<RoomHandoffStore["redeemRoomHandoffReservation"]>> | undefined;
-    if (
-      options.handoffPrepared === true &&
-      this.handoffStoreInstance &&
-      typeof options.handoffReservationToken === "string"
-    ) {
-      const deploymentGenerationId =
-        process.env.AEGIS_DEPLOYMENT_GENERATION_ID ?? process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy";
-      reservation = await this.handoffStoreInstance.redeemRoomHandoffReservation({
-        tokenHash: createHash("sha256").update(options.handoffReservationToken).digest("hex"),
-        destinationGenerationId: deploymentGenerationId,
-        ownerEpoch: options.handoffOwnerEpoch ?? 1,
-        roomId: this.roomId,
-        processId:
-          process.env.AEGIS_PROCESS_ID ?? matchMaker.processId ?? `${process.env.HOSTNAME ?? "local"}:${process.pid}`,
-        now: Date.now(),
-      });
-    }
-    const preparedHandoff = reservation !== undefined;
-    if (options.handoffPrepared === true && !preparedHandoff)
-      throw new ServerError(403, "A valid internal room handoff reservation is required.");
-    if (!canCreateRoom() && !preparedHandoff)
-      throw new ServerError(503, "This game server is draining; retry on the active slot.");
+    if (!canCreateRoom()) throw new ServerError(503, "This game server is draining; retry on the active slot.");
     this.state.matchLogId = randomUUID();
     const seed = options.seed ?? Date.now() >>> 0;
-    this.engineSeed = seed;
-    if (preparedHandoff && options.private)
-      throw new ServerError(400, "Prepared handoff rooms cannot be private rooms.");
-    if (reservation) {
-      this.handoffSessionId = reservation.sessionId;
-      this.handoffTransferId = reservation.transferId;
-    }
-    this.handoffAuthority = new RoomHandoffLifecycle({
-      enabled: this.handoffStoreInstance !== undefined,
-      ownerEpoch: reservation?.ownerEpoch ?? 1,
-      mode: preparedHandoff ? "prepared" : "active",
-    });
     this.debug("room.created", {
       seed,
       private: options.private,
@@ -680,44 +407,14 @@ export class AegisRoom extends Room<GameState> {
       roomCodes.claim(code, this.roomId);
       this.autoDispose = true;
     }
-    if (!preparedHandoff && !this.isTournamentRoom && this.devScenario === undefined) {
-      this.waitingRoomTimeout = this.setHandoffAwareTimeout(() => {
+    if (!this.isTournamentRoom && this.devScenario === undefined) {
+      this.waitingRoomTimeout = this.clock.setTimeout(() => {
         if (!this.matchStartRequested) void this.disconnect();
       }, WAITING_ROOM_TIMEOUT_SECONDS * 1000);
     }
-    this.engine = this.createEngine(seed);
-
-    // One catch-all handler: every client intent type is reassembled into a
-    // discriminated-union Intent and handed to the engine, which validates,
-    // mutates state, and emits events. Rejections are surfaced to the client.
-    this.onMessage("*", (client, type, payload) => {
-      if (type === COMMAND_CHANNEL) {
-        this.handleDurableCommand(client, payload);
-        return;
-      }
-      if (type === COMMAND_RECONCILIATION_CHANNEL) {
-        this.handleCommandReconciliation(client, payload);
-        return;
-      }
-      if (type === "requestRoomResumeCredential") {
-        void this.issueRoomResumeCredential(client, payload);
-        return;
-      }
-      if (type === PRESENTATION_CHANNEL) {
-        this.handlePresentationReport(client, payload);
-        return;
-      }
-      this.handleIntent(client, { type, ...(payload as object) } as Intent);
-    });
-
-    roomRegistry.set(this.roomId, this);
-  }
-
-  private createEngine(seed: number, state: GameState = this.state): GameEngine {
-    const engine = new GameEngine(state, {
+    this.engine = new GameEngine(this.state, {
       seed,
       requestDecision: (seat, req) => this.requestDecision(seat, req),
-      executionFramesEnabled: roomHandoffServerEnabled(),
       onBothReady: () => this.startMatchNow(),
       onActionSettled: (seat, intentType) => {
         this.bots[seat]?.onActionSettled(intentType);
@@ -732,10 +429,9 @@ export class AegisRoom extends Room<GameState> {
           void this.lock().catch((error: unknown) =>
             this.debugError("[AegisRoom] failed to lock finished room", error),
           );
-          if (!this.migrationDisposal)
-            void this.recordAuthoritativeResult(event).catch((error) =>
-              this.debugError("[AegisRoom] failed to persist match result", error),
-            );
+          void this.recordAuthoritativeResult(event).catch((error) =>
+            this.debugError("[AegisRoom] failed to persist match result", error),
+          );
         }
         this.broadcast(EVENT_CHANNEL, this.stamp(event));
         // Rebuild each client's StateView after any event that can move a CardInstance
@@ -775,181 +471,21 @@ export class AegisRoom extends Room<GameState> {
     });
     // Route zone arrivals to the per-client StateViews (see exposeCardToClients). Installed
     // before any seat is filled so `seatPlayer` picks it up for both PlayerStates.
-    engine.installVisibility(this.exposeCardToClients);
-    return engine;
-  }
+    this.engine.installVisibility(this.exposeCardToClients);
 
-  private ensureLogicalSession(): Promise<void> {
-    if (this.handoffSessionFailure) return Promise.reject(this.handoffSessionFailure);
-    if (
-      !this.handoffStoreInstance ||
-      this.handoffAuthority.mode === "disabled" ||
-      this.handoffSessionId ||
-      this.handoffSessionAttempted ||
-      !this.state.players[0] ||
-      !this.state.players[1]
-    )
-      return Promise.resolve();
-    if (this.handoffSessionCreation) return this.handoffSessionCreation;
-
-    const participants = this.stableHandoffParticipants();
-    if (!participants) {
-      this.handoffSessionAttempted = true;
-      this.handoffSessionUnsupported = true;
-      this.debug("handoff.session.unsupported", { reason: "both stable participants are required" });
-      return Promise.resolve();
-    }
-    this.handoffSessionAttempted = true;
-    this.state.matchId = this.state.matchLogId;
-    this.handoffParticipants = participants;
-    this.handoffSessionCreation = (async () => {
-      const owner: RoomOwner = {
-        generationId: process.env.AEGIS_DEPLOYMENT_GENERATION_ID ?? process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy",
-        processId:
-          process.env.AEGIS_PROCESS_ID ?? matchMaker.processId ?? `${process.env.HOSTNAME ?? "local"}:${process.pid}`,
-        roomId: this.roomId,
-      };
-      let logicalTournamentMatchId = this.tournamentMatchId;
-      if (this.tournamentGameId) {
-        const series = await this.series().seriesForGame(this.tournamentGameId);
-        if (!series) throw new Error(`tournament game has no logical series: ${this.tournamentGameId}`);
-        logicalTournamentMatchId = series.matchId;
-      }
-      const created = await this.handoffStoreInstance!.createSession({
-        sessionId: this.state.matchLogId,
-        mode: this.roomMode(),
-        participants,
-        owner,
-        tournamentMatchId: logicalTournamentMatchId,
-        tournamentGameId: this.tournamentGameId,
-        now: Date.now(),
-      });
-      if (!created.ok) throw new Error(`logical room session rejected: ${created.reason}`);
-      this.handoffSessionId = created.value.sessionId;
-      this.handoffAuthority = new RoomHandoffLifecycle({ enabled: true, ownerEpoch: created.value.ownerEpoch });
-    })()
-      .catch((error: unknown) => {
-        this.handoffSessionFailure = error;
-        throw error;
-      })
-      .finally(() => {
-        this.handoffSessionCreation = undefined;
-      });
-    return this.handoffSessionCreation;
-  }
-
-  private async issueRoomResumeCredential(client: Client, payload: unknown): Promise<void> {
-    const store = this.handoffStoreInstance;
-    if (
-      !store ||
-      !roomResumeCredentialsEnabled() ||
-      !this.handoffAuthority.acceptsAuthority(this.handoffAuthority.ownerEpoch)
-    )
-      return;
-    if (typeof payload !== "object" || payload === null || Array.isArray(payload)) return;
-    const requestedGameId = (payload as { gameId?: unknown }).gameId;
-    if (typeof requestedGameId !== "string") return;
-    const participantId = this.accountByClient.get(client.sessionId);
-    if (!participantId) return;
-    try {
-      await this.ensureLogicalSession();
-      const sessionId = this.handoffSessionId;
-      if (!sessionId || sessionId !== requestedGameId || this.seatByClient.get(client.sessionId) === undefined) return;
-      const now = Date.now();
-      let current = this.issuedResumeCredentials.get(participantId);
-      if (!current || current.expiresAt <= now) {
-        const credential = randomBytes(32).toString("base64url");
-        const expiresAt = now + roomResumeCredentialLifetimeMs();
-        const persisted = await store.rotateResumeCredential({
-          sessionId,
-          participantId,
-          credentialHash: createHash("sha256").update(credential).digest("hex"),
-          now,
-          expiresAt,
-        });
-        if (!persisted) return;
-        current = { credential, expiresAt };
-        this.issuedResumeCredentials.set(participantId, current);
-      }
-      client.send("roomResumeCredential", {
-        gameId: sessionId,
-        resumeCredential: current.credential,
-        ownerEpoch: this.handoffAuthority.ownerEpoch,
-        expiresAt: current.expiresAt,
-      });
-    } catch {
-      // Never log the credential or a request payload; the feature is optional until rollout.
-      this.debug("handoff.resume_credential.issue_failed");
-    }
-  }
-
-  private stableHandoffParticipants(): RoomParticipant[] | undefined {
-    const participants: RoomParticipant[] = [];
-    for (const seat of [0, 1] as const) {
-      if (this.bots[seat]) {
-        const holder = this.tournamentSeatHolders[seat];
-        const participantId =
-          holder && "participantId" in holder ? holder.participantId : `bot:${this.state.matchLogId}:${seat}`;
-        participants.push({ seat, kind: "bot", principalId: participantId });
-        continue;
-      }
-      const client = [...this.seatByClient].find(([, seated]) => seated === seat)?.[0];
-      const accountId = client ? this.accountByClient.get(client) : undefined;
-      if (!accountId) return undefined;
-      participants.push({ seat, kind: "account", principalId: accountId });
-    }
-    if (new Set(participants.map(({ principalId }) => principalId)).size !== 2) return undefined;
-    return participants;
-  }
-
-  private roomMode(): string {
-    if (this.isTournamentRoom) return "tournament";
-    if (this.isRankedRoom) return "ranked";
-    if (this.isPrivate) return "private";
-    if (this.isBotRoom) return "bot";
-    return "casual";
-  }
-
-  private setHandoffAwareTimeout(callback: () => void, delayMs: number): Delayed {
-    const ownerEpoch = this.handoffAuthority.ownerEpoch;
-    return this.clock.setTimeout(() => {
-      if (!this.handoffAuthority.acceptsAuthority(ownerEpoch)) return;
-      if (!this.handoffStoreInstance || this.handoffAuthority.mode === "disabled") {
-        callback();
+    // One catch-all handler: every client intent type is reassembled into a
+    // discriminated-union Intent and handed to the engine, which validates,
+    // mutates state, and emits events. Rejections are surfaced as an
+    // "actionRejected" event to the offending client only.
+    this.onMessage("*", (client, type, payload) => {
+      if (type === PRESENTATION_CHANNEL) {
+        this.handlePresentationReport(client, payload);
         return;
       }
-      void this.ensureLogicalSession()
-        .then(async () => {
-          if (!this.handoffSessionId) {
-            if (!this.handoffSessionAttempted || this.handoffSessionUnsupported) callback();
-            return;
-          }
-          if ((await this.hasCurrentDurableAuthority(ownerEpoch)) && this.handoffAuthority.acceptsAuthority(ownerEpoch))
-            callback();
-        })
-        .catch((error: unknown) => this.debugError("[AegisRoom] timer owner fence failed", error));
-    }, delayMs);
-  }
+      this.handleIntent(client, { type, ...(payload as object) } as Intent);
+    });
 
-  private async hasCurrentDurableAuthority(ownerEpoch: number): Promise<boolean> {
-    if (!this.handoffAuthority.acceptsAuthority(ownerEpoch)) return false;
-    if (this.handoffSessionFailure) return false;
-    if (!this.handoffSessionId || !this.handoffStoreInstance) return true;
-    try {
-      await this.ensureLogicalSession();
-      const session = await this.handoffStoreInstance.getSession(this.handoffSessionId);
-      return !!(
-        session &&
-        session.status === "active" &&
-        session.ownerEpoch === ownerEpoch &&
-        session.owner.roomId === this.roomId &&
-        session.activeTransferId === null &&
-        this.handoffAuthority.acceptsAuthority(ownerEpoch)
-      );
-    } catch (error) {
-      this.debugError("[AegisRoom] durable owner fence failed", error);
-      return false;
-    }
+    roomRegistry.set(this.roomId, this);
   }
 
   /**
@@ -962,13 +498,10 @@ export class AegisRoom extends Room<GameState> {
   private async recordAuthoritativeResult(
     event: Extract<import("@aegis/shared").ServerEvent, { kind: "gameOver" }>,
   ): Promise<void> {
-    if (this.migrationDisposal) return;
-    if (!(await this.hasCurrentDurableAuthority(this.handoffAuthority.ownerEpoch))) return;
     // The Tournament Game path comes first and does not require two Accounts: a seat driven by a
     // bot has no client, so `accountByClient` holds nothing for it and the two-account guard below
     // would silently discard a perfectly good result.
     if (this.tournamentGameId) {
-      // A Tournament Game ID is the durable logical result key; unlike roomId it survives a move.
       const outcome =
         event.result.outcome === "draw" ? ({ kind: "draw" } as const) : this.winnerOutcome(event.result.winnerSeat);
       if (!outcome) {
@@ -1004,12 +537,8 @@ export class AegisRoom extends Room<GameState> {
       const player = this.state.players[seat];
       return player ? this.deckByClient.get(player.sessionId) : undefined;
     });
-    const logicalMatchId = this.state.matchId || undefined;
     if (this.isTournamentRoom && this.tournamentMatchId) {
       const snapshots = decks[0] && decks[1] ? ([decks[0], decks[1]] as [DeckSnapshot, DeckSnapshot]) : undefined;
-      const resultKey = logicalMatchId
-        ? resultEffectIdempotencyKey(logicalMatchId, logicalMatchId, "tournament-result")
-        : undefined;
       if (event.result.outcome === "draw") {
         await this.accounts().recordTournamentRoomDraw(
           this.tournamentMatchId,
@@ -1017,7 +546,6 @@ export class AegisRoom extends Room<GameState> {
           [accounts[0], accounts[1]],
           event.reason,
           snapshots,
-          resultKey,
         );
         return;
       }
@@ -1029,7 +557,6 @@ export class AegisRoom extends Room<GameState> {
         accounts[winner],
         event.reason,
         snapshots,
-        resultKey,
       );
       return;
     }
@@ -1041,9 +568,6 @@ export class AegisRoom extends Room<GameState> {
         playerAccountIds: [accounts[0], accounts[1]],
         reason: event.reason,
         deckSnapshots: decks[0] && decks[1] ? [decks[0], decks[1]] : undefined,
-        ...(logicalMatchId
-          ? { resultKey: resultEffectIdempotencyKey(logicalMatchId, logicalMatchId, "ranked-record") }
-          : {}),
       });
       return;
     }
@@ -1055,9 +579,6 @@ export class AegisRoom extends Room<GameState> {
       winnerAccountId: accounts[winner],
       reason: event.reason,
       deckSnapshots: decks[0] && decks[1] ? [decks[0], decks[1]] : undefined,
-      ...(logicalMatchId
-        ? { resultKey: resultEffectIdempotencyKey(logicalMatchId, logicalMatchId, "ranked-record") }
-        : {}),
     });
   }
 
@@ -1103,7 +624,7 @@ export class AegisRoom extends Room<GameState> {
     authorizationToken: string;
     botOptions?: BotOptions;
   }): Promise<boolean> {
-    if (!this.isTournamentRoom || this.matchStartRequested || this.handoffStoreInstance) return false;
+    if (!this.isTournamentRoom || this.matchStartRequested) return false;
     if (this.tournamentGameId && this.tournamentGameId !== input.gameId) return false;
     if (this.seatByClient.size + this.occupiedBotSeats().length >= 2) return false;
 
@@ -1180,7 +701,7 @@ export class AegisRoom extends Room<GameState> {
     if (this.matchStartRequested) return;
     if (this.seatByClient.size + this.occupiedBotSeats().length !== 2) return;
     this.readyTimeout?.clear();
-    this.readyTimeout = this.setHandoffAwareTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
+    this.readyTimeout = this.clock.setTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
   }
 
   override onDispose(): void {
@@ -1190,450 +711,64 @@ export class AegisRoom extends Room<GameState> {
     // Legacy only. A Tournament Game's room binding is permanent by design: the game either
     // finished here or is voided by the scheduler, and re-binding it to a second room would be the
     // duplicate-claim the UNIQUE room_id exists to prevent.
-    if (!this.migrationDisposal && !this.tournamentGameId && this.tournamentMatchId)
+    if (!this.tournamentGameId && this.tournamentMatchId)
       void this.accounts()
         .releaseTournamentRoom(this.tournamentMatchId, this.roomId)
         .catch((error) => this.debugError("[AegisRoom] failed to release tournament room", error));
     roomRegistry.delete(this.roomId);
-    this.issuedResumeCredentials.clear();
-    if (!this.migrationDisposal && this.state.roomCode) {
+    if (this.state.roomCode) {
       roomCodes.release(this.state.roomCode);
     }
   }
 
-  /** Freeze this physical owner before a transfer coordinator persists its frozen barrier. */
-  freezeForHandoff(ownerEpoch = this.handoffAuthority.ownerEpoch, transferId?: string): boolean {
-    if (!this.handoffSessionId || this.state.gameOver || !this.handoffAuthority.freeze(ownerEpoch)) return false;
-    this.handoffTransferId = transferId;
-    this.handoffPausedAtMs = transferId === undefined ? undefined : Date.now();
-    return true;
-  }
-
-  /** A privacy-safe eligibility result for the authenticated deployment coordinator. */
-  async inspectHandoffCompatibility(sessionId: string): Promise<{ eligible: boolean; reasonCode?: string }> {
-    this.resetBootstrapIntentCountAtSettledMain();
-    if (!this.handoffStoreInstance || !this.handoffSessionId || this.handoffSessionId !== sessionId)
-      return { eligible: false, reasonCode: "session_not_registered" };
-    if (this.handoffAuthority.mode !== "active") return { eligible: false, reasonCode: "source_not_active" };
-    if (this.roomMode() !== "casual" && this.roomMode() !== "ranked")
-      return { eligible: false, reasonCode: "unsupported_room_mode" };
-    const supportedMulligan = this.isSupportedPendingMulliganHandoff();
-    const stoppedMain =
-      this.state.phase === Phase.Main &&
-      !this.state.gameOver &&
-      this.state.pendingDecision === undefined &&
-      this.state.combatWindow === undefined;
-    if (!stoppedMain && !supportedMulligan) {
-      if (this.state.pendingDecision !== undefined || this.state.combatWindow !== undefined)
-        return { eligible: false, reasonCode: "pending_decision_or_combat" };
-      return { eligible: false, reasonCode: "unsupported_phase" };
-    }
-    if (this.state.gameOver) return { eligible: false, reasonCode: "unsupported_phase" };
-    if (!supportedMulligan && (this.state.pendingDecision !== undefined || this.state.combatWindow !== undefined))
-      return { eligible: false, reasonCode: "pending_decision_or_combat" };
-    if (
-      this.currentBatch !== undefined ||
-      this.batchDepth !== 0 ||
-      this.engine.mainVerbContinuationsInFlight !== 0 ||
-      this.engine.counterResolutionInFlight ||
-      this.engine.optionResolutionDepth !== 0 ||
-      this.engine.effectResolutionDepth !== 0 ||
-      this.engine.mainEntryPending
-    )
-      return { eligible: false, reasonCode: "execution_not_quiescent" };
-    const session = await this.handoffStoreInstance.getSession(sessionId);
-    if (
-      !session ||
-      session.status !== "active" ||
-      session.ownerEpoch !== this.handoffAuthority.ownerEpoch ||
-      session.owner.roomId !== this.roomId ||
-      session.activeTransferId !== null
-    )
-      return { eligible: false, reasonCode: "stale_source_owner" };
-    if (session.participants.some((participant) => participant.kind !== "account"))
-      return { eligible: false, reasonCode: "unsupported_participant" };
-    return { eligible: true };
-  }
-
-  /** Return authority to the source after a pre-claim abort was committed in the store. */
-  async unfreezeAfterAbortedHandoff(): Promise<boolean> {
-    const sessionId = this.handoffSessionId;
-    const store = this.handoffStoreInstance;
-    const ownerEpoch = this.handoffAuthority.ownerEpoch;
-    if (!sessionId || !store || !["frozen", "active"].includes(this.handoffAuthority.mode)) return false;
-    const session = await store.getSession(sessionId);
-    const transfer = this.handoffTransferId ? await store.getTransfer(this.handoffTransferId) : undefined;
-    if (
-      !session ||
-      (this.handoffTransferId !== undefined && transfer?.status !== "aborted") ||
-      session.status !== "active" ||
-      session.ownerEpoch !== ownerEpoch ||
-      session.owner.roomId !== this.roomId ||
-      session.activeTransferId !== null ||
-      (this.handoffAuthority.mode === "frozen" && !this.handoffAuthority.unfreeze(ownerEpoch))
-    )
-      return false;
-    if (this.handoffAuthority.mode === "active") return true;
-    this.handoffTransferId = undefined;
-    this.handoffPausedAtMs = undefined;
-
-    if (!this.matchStartRequested) {
-      if (!this.isTournamentRoom && this.devScenario === undefined) {
-        this.waitingRoomTimeout?.clear();
-        this.waitingRoomTimeout = this.setHandoffAwareTimeout(() => {
-          if (!this.matchStartRequested) void this.disconnect();
-        }, WAITING_ROOM_TIMEOUT_SECONDS * 1000);
-      }
-      this.armReadyTimeoutIfSeated();
-    } else {
-      this.combatWindowTimeout?.clear();
-      this.combatWindowTimeout = undefined;
-      this.combatWindowTimeoutKey = undefined;
-      this.syncCombatWindowTimeout();
-    }
-    return true;
-  }
-
-  /** Persist only a quiescent boundary the experiment can faithfully restore. */
-  async saveStoppedMainCheckpoint(input: {
-    executionVersion: string;
-    rulesVersion: string;
-    sourceRevision: string;
-    commandSequence: number;
-  }): Promise<boolean> {
-    this.resetBootstrapIntentCountAtSettledMain();
-    const store = this.handoffStoreInstance;
-    const sessionId = this.handoffSessionId;
-    const transferId = this.handoffTransferId;
-    const ownerEpoch = this.handoffAuthority.ownerEpoch;
-    const stoppedMain =
-      this.state.phase === Phase.Main &&
-      !this.state.gameOver &&
-      this.state.pendingDecision === undefined &&
-      this.state.combatWindow === undefined;
-    const pendingMulligan = this.isSupportedPendingMulliganHandoff();
-    if (
-      !store ||
-      !sessionId ||
-      !transferId ||
-      this.handoffPausedAtMs === undefined ||
-      this.state.matchId !== sessionId ||
-      this.isPrivate ||
-      this.isBotRoom ||
-      this.bots.some((bot) => bot !== undefined) ||
-      (this.isTournamentRoom && !this.tournamentGameId) ||
-      this.handoffAuthority.mode !== "frozen" ||
-      (!stoppedMain && !pendingMulligan)
-    )
-      return false;
-    if (stoppedMain) await this.engine.mainVerbChain;
-    if (
-      this.currentBatch !== undefined ||
-      this.batchDepth !== 0 ||
-      this.engine.mainVerbContinuationsInFlight !== 0 ||
-      this.engine.counterResolutionInFlight ||
-      this.engine.optionResolutionDepth !== 0 ||
-      this.engine.effectResolutionDepth !== 0 ||
-      this.engine.mainEntryPending
-    )
-      return false;
-    let snapshot;
-    try {
-      const boundary = stoppedMain
-        ? exportStoppedMainBoundary(this.state)
-        : exportPendingMulliganBoundary(this.state);
-      snapshot = {
-        ...boundary,
-        runtime: {
-          protocol: ROOM_RUNTIME_PROTOCOL,
-          version: 1,
-          transferId,
-          pausedAtMs: this.handoffPausedAtMs,
-          engine: this.engine.exportContinuityState(),
-          botRoster: null,
-        } satisfies RoomRuntimeContinuityFrame,
-      };
-    } catch {
-      return false;
-    }
-    const session = await store.getSession(sessionId);
-    const transfer = await store.getTransfer(transferId);
-    if (
-      !session ||
-      !transfer ||
-      transfer.sessionId !== sessionId ||
-      transfer.fromOwnerEpoch !== ownerEpoch ||
-      transfer.from.roomId !== this.roomId ||
-      transfer.status !== "frozen" ||
-      session.status !== "active" ||
-      session.ownerEpoch !== ownerEpoch ||
-      session.owner.roomId !== this.roomId ||
-      session.activeTransferId !== transferId
-    )
-      return false;
-    const saved = await store.saveCheckpoint({
-      sessionId,
-      ownerEpoch,
-      checkpointId: randomUUID(),
-      snapshotSchemaVersion: ROOM_HANDOFF_SNAPSHOT_VERSION,
-      executionVersion: input.executionVersion,
-      rulesVersion: input.rulesVersion,
-      sourceRevision: input.sourceRevision,
-      commandSequence: input.commandSequence,
-      checksum: checkpointDigest(snapshot),
-      snapshot: snapshot as unknown as import("../db/roomHandoff/RoomHandoffStore.js").JsonValue,
-      now: Date.now(),
-    });
-    return saved.ok;
-  }
-
-  /**
-   * Restore the deliberately narrow stopped-Main experiment into an inert destination room.
-   * This is an in-process server seam, not a client option or HTTP operation. The destination
-   * remains unable to authenticate, mutate state, or run timers until activatePreparedHandoff.
-   */
-  async prepareFromHandoffCheckpoint(input: {
-    sessionId: string;
-    transferId: string;
-    ownerEpoch: number;
-    executionVersion: string;
-    rulesVersion: string;
-    sourceRevision: string;
-  }): Promise<boolean> {
-    const store = this.handoffStoreInstance;
-    if (!store || this.handoffAuthority.mode !== "prepared" || this.isPrivate || this.isBotRoom) return false;
-    const restored = await loadPreparedMainCheckpoint(store, {
-      sessionId: input.sessionId,
-      transferId: input.transferId,
-      expectedOwnerEpoch: input.ownerEpoch,
-      expectedRoomId: this.roomId,
-      expectedExecutionVersion: input.executionVersion,
-      expectedRulesVersion: input.rulesVersion,
-      expectedSourceRevision: input.sourceRevision,
-    });
-    if (!restored) return false;
-    if (checkpointDigest(restored.checkpoint.snapshot) !== restored.checkpoint.checksum) return false;
-    const restoredRuntime = restoreRoomRuntimeFrame(
-      (restored.checkpoint.snapshot as unknown as Record<string, unknown>).runtime,
-      input.transferId,
-    );
-    const runtime =
-      restoredRuntime?.transferId === COMMAND_CHECKPOINT_TRANSFER_ID
-        ? { ...restoredRuntime, transferId: input.transferId, pausedAtMs: restored.transfer.startedAt }
-        : restoredRuntime;
-    if (!runtime || runtime.botRoster !== null || restored.session.participants.some((p) => p.kind !== "account"))
-      return false;
-    const modeSupported =
-      (restored.session.mode === "casual" && !this.isRankedRoom && !this.isTournamentRoom) ||
-      (restored.session.mode === "ranked" && this.isRankedRoom && !this.isTournamentRoom) ||
-      (restored.session.mode === "tournament" &&
-        this.isTournamentRoom &&
-        restored.session.tournamentGameId !== null &&
-        restored.session.tournamentMatchId !== null);
-    if (!modeSupported) return false;
-
-    this.waitingRoomTimeout?.clear();
-    this.waitingRoomTimeout = undefined;
-    this.readyTimeout?.clear();
-    this.readyTimeout = undefined;
-    this.combatWindowTimeout?.clear();
-    this.combatWindowTimeout = undefined;
-    this.combatWindowTimeoutKey = undefined;
-    const restoredEngine = this.createEngine(this.engineSeed, restored.state);
-    try {
-      restoredEngine.restoreContinuityState(runtime.engine);
-    } catch {
-      return false;
-    }
-    this.setState(restored.state);
-    this.engine = restoredEngine;
-    this.pendingDecisionRequest = restoredEngine.mulligan.pendingRequest;
-    this.handoffSessionId = input.sessionId;
-    this.handoffTransferId = input.transferId;
-    this.handoffPausedAtMs = runtime.pausedAtMs;
-    this.handoffRuntimeFrame = runtime;
-    this.handoffParticipants = restored.session.participants;
-    this.handoffRestored = true;
-    this.tournamentMatchId = restored.session.tournamentMatchId ?? undefined;
-    this.tournamentGameId = restored.session.tournamentGameId ?? undefined;
-    if (this.tournamentGameId) {
-      for (const participant of restored.session.participants)
-        if (participant.kind === "account")
-          this.tournamentSeatHolders[participant.seat] = { accountId: participant.principalId };
-    }
-    this.unsequencedHandoffIntentCount = 0;
-    this.handoffAuthority = new RoomHandoffLifecycle({
-      enabled: true,
-      ownerEpoch: input.ownerEpoch,
-      mode: "prepared",
-    });
-    this.matchStartRequested = true;
-    return true;
-  }
-
-  /** Activate only after the durable owner switch completed and its active-transfer barrier cleared. */
-  async activatePreparedHandoff(ownerEpoch: number, pauseReceipt?: MigrationPauseReceipt): Promise<boolean> {
-    if (!this.handoffSessionId || !this.handoffTransferId || !this.handoffStoreInstance) return false;
-    const session = await this.handoffStoreInstance.getSession(this.handoffSessionId);
-    const transfer = await this.handoffStoreInstance.getTransfer(this.handoffTransferId);
-    const transferReady = !!(
-      transfer &&
-      transfer.toOwnerEpoch === ownerEpoch &&
-      transfer.to.roomId === this.roomId &&
-      ((transfer.status === "destination_active" && session?.activeTransferId === this.handoffTransferId) ||
-        (transfer.status === "completed" && session?.activeTransferId === null))
-    );
-    if (
-      !session ||
-      session.status !== "active" ||
-      session.ownerEpoch !== ownerEpoch ||
-      session.owner.roomId !== this.roomId ||
-      !transferReady
-    )
-      return false;
-    if (this.handoffAuthority.mode === "active" && this.handoffAuthority.ownerEpoch === ownerEpoch) return true;
-    if (!(await this.recoverAdmittedCommand(ownerEpoch))) return false;
-    if (this.tournamentGameId) {
-      if (!this.handoffRuntimeFrame || !pauseReceipt) return false;
-      let receipt: MigrationPauseReceipt;
-      try {
-        receipt = restoreMigrationPauseReceipt(pauseReceipt);
-      } catch {
-        return false;
-      }
-      if (receipt.transferId !== this.handoffTransferId || receipt.pausedAtMs !== this.handoffRuntimeFrame.pausedAtMs)
-        return false;
-      const rebound = await this.series().rebindGameRoomForHandoff({
-        gameId: this.tournamentGameId,
-        sessionId: this.handoffSessionId,
-        transferId: this.handoffTransferId,
-        fromRoomId: transfer!.from.roomId,
-        toRoomId: this.roomId,
-        ownerEpoch,
-      });
-      if (!rebound.ok) return false;
-      const series = await this.series().seriesForGame(this.tournamentGameId);
-      if (!series || series.matchId !== session.tournamentMatchId) return false;
-      if (series.seriesDeadlineAt !== null) {
-        const compensated = await this.series().compensateSeriesDeadline({
-          seriesId: series.id,
-          transferId: receipt.transferId,
-          pausedAtMs: receipt.pausedAtMs,
-          resumedAtMs: receipt.resumedAtMs,
-        });
-        if (!compensated.ok) return false;
-      }
-    }
-    if (!this.handoffAuthority.activate(ownerEpoch)) return false;
-    if (this.engine.mulliganWindowCursor !== undefined) {
-      void this.engine.resumeRestoredMatchSetup().catch((error: unknown) => {
-        this.debugError("[AegisRoom] restored mulligan continuation failed", error);
-        this.quarantineCommandOwner(ownerEpoch);
-      });
-    }
-    return true;
-  }
-
-  /**
-   * Dispose an old owner only after the durable claim moved elsewhere. The local onLeave/onDispose
-   * hooks then suppress abandonment, results, tournament unlink, and private-code unlink.
-   */
-  async disposeAfterHandoff(nextOwnerEpoch: number): Promise<boolean> {
-    if (!this.handoffSessionId || !this.handoffStoreInstance || this.migrationDisposal) return false;
-    const session = await this.handoffStoreInstance.getSession(this.handoffSessionId);
-    const previousEpoch = this.handoffAuthority.ownerEpoch;
-    if (
-      !session ||
-      session.ownerEpoch !== nextOwnerEpoch ||
-      nextOwnerEpoch <= previousEpoch ||
-      session.owner.roomId === this.roomId ||
-      !this.handoffAuthority.migrate(previousEpoch, nextOwnerEpoch)
-    )
-      return false;
-    this.migrationDisposal = true;
-    await this.disconnect();
-    return true;
-  }
-
   override onJoin(client: Client, options: AegisJoinOptions): void {
-    if (!this.handoffAuthority.acceptsAuthority(this.handoffAuthority.ownerEpoch)) return;
-    if (this.handoffSessionId && !this.prevalidatedJoinSessions.has(client.sessionId)) {
-      const ownerEpoch = this.handoffAuthority.ownerEpoch;
-      void this.hasCurrentDurableAuthority(ownerEpoch).then((current) => {
-        if (!current || !this.handoffAuthority.acceptsAuthority(ownerEpoch)) return;
-        this.prevalidatedJoinSessions.add(client.sessionId);
-        this.onJoin(client, options);
-        this.prevalidatedJoinSessions.delete(client.sessionId);
-      });
-      return;
-    }
     this.debug("player.join", { sessionId: client.sessionId, deck: options.deck });
     // The room type, not the payload, decides whether unreleased cards are legal: a private
     // room accepts them and its clients never send the flag (onAuth already vetted the pair).
     if (this.isBetaBattleRoom) options = { ...options, betaBattleMode: true };
     this.rankedByClient.set(client.sessionId, options.ranked === true);
-    // Logical reconnects are authorized with a fresh room ticket and intentionally do not
-    // resend the original deck. The restored state already owns its zones, so an empty deck
-    // snapshot is sufficient for transport bookkeeping on that path.
-    const joinedDeck = options.deck ?? { mainDeck: [], eggDeck: [] };
     this.deckByClient.set(client.sessionId, {
       deckId: options.deckId ?? null,
       deckName: options.deckName ?? "Deck sem nome",
-      mainDeck: [...joinedDeck.mainDeck],
-      eggDeck: [...joinedDeck.eggDeck],
-      mainDeckArts: joinedDeck.mainDeckArts?.slice(),
-      eggDeckArts: joinedDeck.eggDeckArts?.slice(),
+      mainDeck: [...options.deck.mainDeck],
+      eggDeck: [...options.deck.eggDeck],
+      mainDeckArts: options.deck.mainDeckArts?.slice(),
+      eggDeckArts: options.deck.eggDeckArts?.slice(),
     });
     // Assign the first free seat instead of using clients.length - 1, which
     // breaks when a client disconnects and reconnects (e.g. React StrictMode
     // double-mounts, or genuine network reconnect).
     // Bot seats count as taken: a tournament bot may already be driving seat 0.
     const taken = new Set<Seat>([...this.seatByClient.values(), ...this.occupiedBotSeats()]);
-    const accountId = this.accountByClient.get(client.sessionId);
-    const restoredSeat = this.handoffParticipants?.find(
-      (participant) => participant.kind === "account" && participant.principalId === accountId,
-    )?.seat;
-    let seat: Seat = restoredSeat ?? (taken.has(0) ? 1 : 0);
-    if (restoredSeat !== undefined && taken.has(restoredSeat)) {
-      this.debug("handoff.join.rejected", { accountId, seat: restoredSeat, reason: "seat already reattached" });
-      return;
-    }
+    let seat: Seat = taken.has(0) ? 1 : 0;
 
     // A real reconnection is handled by allowReconnection() in onLeave. If a
     // staged PlayerState remains in a now-free seat, this is a replacement
     // player and their own identity/deck must replace the departed player's.
     const existing = this.state.players[seat];
-    if (restoredSeat !== undefined && existing) {
-      this.debug("handoff.player.reattached", { sessionId: client.sessionId, seat });
-      existing.sessionId = client.sessionId;
-      this.seatByClient.set(client.sessionId, seat);
-      client.view = this.engine.makeStateView(seat);
-      this.withBatch(() => this.engine.handleReconnect(seat));
-    } else if (existing && existing.sessionId !== client.sessionId) {
+    if (existing && existing.sessionId !== client.sessionId) {
       this.debug(
         `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} → replacing departed player ${existing.sessionId}`,
       );
       this.seatByClient.set(client.sessionId, seat);
-      this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, { ...options, deck: joinedDeck }));
+      this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, options));
       client.view = this.engine.makeStateView(seat);
     } else {
       this.debug(
         `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} takenSeats=[${[...taken].join(",")}] totalClients=${this.clients.length} allSessionIds=[${this.clients.map((c) => c.sessionId).join(", ")}]`,
       );
       this.seatByClient.set(client.sessionId, seat);
-      this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, { ...options, deck: joinedDeck }));
+      this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, options));
       // Per-client visibility: hide hidden zones from the other seat.
       client.view = this.engine.makeStateView(seat);
     }
+    const accountId = this.accountByClient.get(client.sessionId);
     if (this.tournamentGameId && accountId) this.tournamentSeatHolders[seat] = { accountId };
     // The match starts once both seats have sent `ready` (GameEngineHooks.onBothReady),
     // not on join — starting on join races the client's asset loading against the
     // mulligan window. Arm a fallback so a stuck/never-readying client can't hang the
     // room forever.
     this.armReadyTimeoutIfSeated();
-    void this.ensureLogicalSession().catch((error: unknown) =>
-      this.debugError("[AegisRoom] failed to create logical room session", error),
-    );
   }
 
   /** A hand-laid board instead of the pre-game procedure; bot rooms outside production only. */
@@ -1647,7 +782,6 @@ export class AegisRoom extends Room<GameState> {
 
   /** Idempotent: only the first caller (ready-gate or timeout) actually starts the match. */
   private startMatchNow(): void {
-    if (!this.handoffAuthority.acceptsAuthority(this.handoffAuthority.ownerEpoch)) return;
     if (this.matchStartRequested) return;
     this.matchStartRequested = true;
     this.readyTimeout?.clear();
@@ -1662,15 +796,6 @@ export class AegisRoom extends Room<GameState> {
   }
 
   override async onLeave(client: Client, consented: boolean): Promise<void> {
-    if (
-      this.migrationDisposal ||
-      this.handoffAuthority.mode === "prepared" ||
-      this.handoffAuthority.mode === "frozen" ||
-      this.handoffAuthority.mode === "migrated"
-    )
-      return;
-    const ownerEpoch = this.handoffAuthority.ownerEpoch;
-    if (!(await this.hasCurrentDurableAuthority(ownerEpoch))) return;
     const seat = this.seatByClient.get(client.sessionId);
     const accountId = this.accountByClient.get(client.sessionId);
     const countsAsDodge =
@@ -1691,15 +816,13 @@ export class AegisRoom extends Room<GameState> {
         this.readyTimeout = undefined;
       } else {
         await this.lock();
-        if (!(await this.hasCurrentDurableAuthority(ownerEpoch))) return;
       }
       this.seatByClient.delete(client.sessionId);
       this.withBatch(() => {
         this.engine.clearReady(seat);
         this.engine.handleDisconnect(seat, true);
       });
-      if (countsAsDodge && accountId && (await this.hasCurrentDurableAuthority(ownerEpoch)))
-        await this.accounts().recordRankedDodge(this.roomId, accountId);
+      if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
       return;
@@ -1711,25 +834,19 @@ export class AegisRoom extends Room<GameState> {
     this.readyTimeout?.clear();
     this.readyTimeout = undefined;
     await this.lock();
-    if (!(await this.hasCurrentDurableAuthority(ownerEpoch))) return;
     this.withBatch(() => this.engine.handleDisconnect(seat, false));
     try {
       await this.allowReconnection(client, this.RECONNECT_GRACE_SECONDS);
-      if (!(await this.hasCurrentDurableAuthority(ownerEpoch))) return;
       this.debug(`[AegisRoom] reconnected sessionId=${client.sessionId} seat=${seat}`);
       this.withBatch(() => this.engine.handleReconnect(seat));
       if (!this.matchStartRequested) {
         await this.unlock();
         if (this.clients.length === 2)
-          this.readyTimeout = this.setHandoffAwareTimeout(
-            () => this.startMatchNow(),
-            this.READY_TIMEOUT_SECONDS * 1000,
-          );
+          this.readyTimeout = this.clock.setTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
       }
       client.view = this.engine.makeStateView(seat);
       this.resendOpenPrompts(client, seat);
     } catch {
-      if (!(await this.hasCurrentDurableAuthority(ownerEpoch))) return;
       // Grace elapsed (or room disposed) without a reconnect: resolve as a real
       // departure — the opponent wins an in-progress match.
       this.debug(`[AegisRoom] reconnect grace elapsed sessionId=${client.sessionId} seat=${seat}`);
@@ -1740,8 +857,7 @@ export class AegisRoom extends Room<GameState> {
         this.engine.clearReady(seat);
         this.engine.handleDisconnect(seat, true);
       });
-      if (countsAsDodge && accountId && (await this.hasCurrentDurableAuthority(ownerEpoch)))
-        await this.accounts().recordRankedDodge(this.roomId, accountId);
+      if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
       if (!this.matchStartRequested) await this.unlock();
@@ -1759,14 +875,7 @@ export class AegisRoom extends Room<GameState> {
     // Tournament rooms stay refused here, and that refusal is what `POST /bot/join` inherits. A
     // tournament bot is seated only through seatTournamentBot(), against an authorization no HTTP
     // caller can obtain.
-    if (
-      this.handoffStoreInstance ||
-      this.isRankedRoom ||
-      this.isTournamentRoom ||
-      this.isPrivate ||
-      this.clients.length !== 1
-    )
-      return false;
+    if (this.isRankedRoom || this.isTournamentRoom || this.isPrivate || this.clients.length !== 1) return false;
 
     // Reloads and reconnections can repeat /bot/join for the same match.
     // Acknowledge the existing bot without replacing it or restarting the engine.
@@ -2002,7 +1111,7 @@ export class AegisRoom extends Room<GameState> {
     this.combatWindowTimeout = undefined;
     this.combatWindowTimeoutKey = key;
     if (key === undefined) return;
-    this.combatWindowTimeout = this.setHandoffAwareTimeout(() => {
+    this.combatWindowTimeout = this.clock.setTimeout(() => {
       this.combatWindowTimeout = undefined;
       this.combatWindowTimeoutKey = undefined;
       this.withBatch(() => this.engine.expireCombatWindow());
@@ -2067,563 +1176,24 @@ export class AegisRoom extends Room<GameState> {
         : intent.type === "mulligan"
           ? this.state.pendingDecision?.decisionId
           : undefined;
-    const ownerEpoch = this.handoffAuthority.ownerEpoch;
-    if (this.commandQuarantined) {
-      this.rejectClientIntent(client, intent, decisionId, "room_command_recovery_required");
-      return;
-    }
-    if (!this.handoffAuthority.acceptsAuthority(ownerEpoch)) {
-      this.rejectClientIntent(client, intent, decisionId, "room_handoff_frozen");
-      return;
-    }
-    if (this.handoffStoreInstance) {
-      if (this.isSafePreMainIntent(seat, intent)) {
-        void this.applyFencedIntent(client, seat, intent, decisionId, ownerEpoch).catch((error: unknown) => {
-          this.debugError("[AegisRoom] pre-main intent failed", error);
-          this.rejectClientIntent(client, intent, decisionId, "room_not_authoritative");
-        });
-        return;
-      }
-      this.rejectClientIntent(client, intent, decisionId, "durable_command_required");
-      return;
-    }
-    if (!this.handoffStoreInstance) {
-      const result = this.applyLoggedIntent(seat, intent);
-      if (!result.ok) this.rejectClientIntent(client, intent, decisionId, result.reason);
-      return;
-    }
-    void this.applyFencedIntent(client, seat, intent, decisionId, ownerEpoch).catch((error: unknown) => {
-      this.debugError("[AegisRoom] fenced intent failed", error);
-      this.rejectClientIntent(client, intent, decisionId, "room_not_authoritative");
-    });
-  }
-
-  private async applyFencedIntent(
-    client: Client,
-    seat: Seat,
-    intent: Intent,
-    decisionId: string | undefined,
-    ownerEpoch: number,
-  ): Promise<void> {
-    await this.ensureLogicalSession();
-    if (!this.handoffAuthority.acceptsAuthority(ownerEpoch)) {
-      this.rejectClientIntent(client, intent, decisionId, "room_handoff_frozen");
-      return;
-    }
-    if (this.handoffSessionId && !(await this.hasCurrentDurableAuthority(ownerEpoch))) {
-      this.rejectClientIntent(client, intent, decisionId, "room_not_authoritative");
-      return;
-    }
-    if (this.seatByClient.get(client.sessionId) !== seat) return;
-    if (this.handoffStoreInstance && !this.isSafePreMainIntent(seat, intent)) {
-      this.rejectClientIntent(client, intent, decisionId, "durable_command_required");
-      return;
-    }
     const result = this.applyLoggedIntent(seat, intent);
-    if (result.ok && this.handoffStoreInstance) this.unsequencedHandoffIntentCount += 1;
-    if (!result.ok) this.rejectClientIntent(client, intent, decisionId, result.reason);
-  }
-
-  /**
-   * Allow only the inputs needed to reach a migratable boundary. These inputs stay on the
-   * current, fenced owner and are folded into the first Main checkpoint; transfer inspection
-   * remains unavailable until setup and the pre-Main phase windows are fully settled.
-   */
-  private isSafePreMainIntent(seat: Seat, intent: Intent): boolean {
-    if (this.state.gameOver || this.state.phase === Phase.Main) return false;
-    if (this.state.phase === Phase.None) {
-      if (intent.type === "ready") {
-        return !this.engine.matchSetupStarted && this.state.pendingDecision === undefined;
-      }
-      if (intent.type === "mulligan") {
-        return (
-          this.engine.matchSetupStarted &&
-          this.state.pendingDecision?.kind === "mulligan" &&
-          this.state.pendingDecision.seat === seat
-        );
-      }
-      return (
-        intent.type === "respondDecision" &&
-        this.engine.matchSetupStarted &&
-        this.state.pendingDecision?.seat === seat &&
-        this.state.pendingDecision.decisionId === intent.decisionId
+    if (!result.ok) {
+      // A refusal is the offending client's alone, so it travels in its own batch rather
+      // than in the (empty) batch of the intent it refused.
+      this.withBatch(
+        () =>
+          client.send(
+            EVENT_CHANNEL,
+            this.stamp({
+              kind: "actionRejected",
+              intent: intent.type,
+              reason: result.reason,
+              ...(decisionId ? { decisionId } : {}),
+            }),
+          ),
+        client,
       );
     }
-    if (this.state.phase === Phase.Breeding) {
-      if (intent.type === "respondDecision")
-        return this.state.pendingDecision?.seat === seat && this.state.pendingDecision.decisionId === intent.decisionId;
-      return (
-        this.state.turnSeat === seat &&
-        (intent.type === "hatchEgg" || intent.type === "moveFromBreeding" || intent.type === "endPhase")
-      );
-    }
-    return (
-      intent.type === "respondDecision" &&
-      this.state.pendingDecision?.seat === seat &&
-      this.state.pendingDecision.decisionId === intent.decisionId
-    );
-  }
-
-  private isSupportedPendingMulliganHandoff(): boolean {
-    if (
-      this.state.phase !== Phase.None ||
-      this.state.gameOver ||
-      !this.engine.matchSetupStarted ||
-      this.state.pendingDecision?.kind !== "mulligan" ||
-      this.state.combatWindow !== undefined ||
-      !this.engine.mulligan.isOpen
-    ) {
-      return false;
-    }
-    try {
-      const frame = this.engine.exportContinuityState().mulliganWindow;
-      if (frame === null || frame === undefined) return false;
-      const expectedSeat =
-        frame.nextSeatIndex === 0 ? frame.firstSeat : ((1 - frame.firstSeat) as Seat);
-      return (
-        expectedSeat === this.state.pendingDecision.seat &&
-        frame.decision.request.decisionId === this.state.pendingDecision.decisionId &&
-        frame.decision.request.seat === this.state.pendingDecision.seat
-      );
-    } catch {
-      return false;
-    }
-  }
-
-  private rejectClientIntent(client: Client, intent: Intent, decisionId: string | undefined, reason: string): void {
-    // A refusal is the offending client's alone, so it travels in its own batch rather
-    // than in the (empty) batch of the intent it refused.
-    this.withBatch(
-      () =>
-        client.send(
-          EVENT_CHANNEL,
-          this.stamp({
-            kind: "actionRejected",
-            intent: intent.type,
-            reason,
-            ...(decisionId ? { decisionId } : {}),
-          }),
-        ),
-      client,
-    );
-  }
-
-  private sendCommandReceipt(
-    client: Client | undefined,
-    input: {
-      commandId: string;
-      sequence?: number;
-      status: "admitted" | "applied" | "rejected" | "missing";
-      error?: string;
-    },
-  ): void {
-    client?.send(COMMAND_RECEIPT_CHANNEL, {
-      ...input,
-      ownerEpoch: this.handoffAuthority.ownerEpoch,
-    });
-  }
-
-  private handleDurableCommand(client: Client, payload: unknown): void {
-    const envelope = parseDurableCommand(payload);
-    if (!envelope) {
-      const commandId =
-        typeof payload === "object" && payload !== null && "commandId" in payload
-          ? String((payload as { commandId: unknown }).commandId)
-          : "invalid";
-      this.sendCommandReceipt(client, { commandId, status: "rejected", error: "invalid_command" });
-      return;
-    }
-    const queued = this.commandQueue.then(() => this.admitAndApplyDurableCommand(client, envelope));
-    this.commandQueue = queued.then(
-      () => undefined,
-      () => undefined,
-    );
-    void queued.catch((error: unknown) => {
-      this.commandQuarantined = true;
-      this.handoffAuthority.freeze(this.handoffAuthority.ownerEpoch);
-      this.debugError("[AegisRoom] durable command failed closed", error);
-      this.sendCommandReceipt(client, {
-        commandId: envelope.commandId,
-        status: "rejected",
-        error: "command_recovery_required",
-      });
-    });
-  }
-
-  private handleCommandReconciliation(client: Client, payload: unknown): void {
-    const request = parseCommandReconciliationRequest(payload);
-    if (!request) return;
-    const queued = this.commandQueue.then(() => this.reconcileDurableCommands(client, request));
-    this.commandQueue = queued.then(
-      () => undefined,
-      () => undefined,
-    );
-    void queued.catch((error: unknown) => this.debugError("[AegisRoom] command receipt reconciliation failed", error));
-  }
-
-  private async reconcileDurableCommands(
-    client: Client,
-    input: DurableCommandReconciliationRequest,
-  ): Promise<void> {
-    const store = this.handoffStoreInstance;
-    const seat = this.seatByClient.get(client.sessionId);
-    const participantId = this.accountByClient.get(client.sessionId);
-    const ownerEpoch = this.handoffAuthority.ownerEpoch;
-    if (
-      !store ||
-      this.handoffAuthority.mode === "disabled" ||
-      this.commandQuarantined ||
-      seat === undefined ||
-      !participantId ||
-      input.ownerEpoch !== ownerEpoch ||
-      !this.handoffAuthority.acceptsAuthority(ownerEpoch)
-    )
-      return;
-    try {
-      await this.ensureLogicalSession();
-      const sessionId = this.handoffSessionId;
-      if (!sessionId || sessionId !== input.gameId) return;
-      const session = await store.getSession(sessionId);
-      const participant = session?.participants.find((candidate) => candidate.seat === seat);
-      if (
-        !session ||
-        session.status !== "active" ||
-        session.ownerEpoch !== ownerEpoch ||
-        session.owner.roomId !== this.roomId ||
-        (session.activeTransferId !== null && session.activeTransferId !== this.handoffTransferId) ||
-        participant?.kind !== "account" ||
-        participant.principalId !== participantId ||
-        !this.handoffAuthority.acceptsAuthority(ownerEpoch)
-      )
-        return;
-
-      for (const requested of input.commands) {
-        const command = await store.getCommand(sessionId, requested.commandId);
-        if (
-          !command ||
-          command.participantId !== participantId ||
-          command.seat !== seat
-        ) {
-          this.sendCommandReceipt(client, {
-            commandId: requested.commandId,
-            status: "missing",
-          });
-          continue;
-        }
-        this.sendStoredCommandReceipt(client, command);
-      }
-    } catch (error) {
-      this.debugError("[AegisRoom] command receipt reconciliation could not read durable state", error);
-    }
-  }
-
-  private async admitAndApplyDurableCommand(client: Client, envelope: DurableCommandEnvelope): Promise<void> {
-    const seat = this.seatByClient.get(client.sessionId);
-    const participantId = this.accountByClient.get(client.sessionId);
-    const store = this.handoffStoreInstance;
-    if (!store || seat === undefined || !participantId || this.commandQuarantined) {
-      this.sendCommandReceipt(client, {
-        commandId: envelope.commandId,
-        status: "rejected",
-        error: store ? "room_command_recovery_required" : "room_command_feature_disabled",
-      });
-      return;
-    }
-    await this.ensureLogicalSession();
-    const sessionId = this.handoffSessionId;
-    if (!sessionId || envelope.gameId !== sessionId) {
-      this.sendCommandReceipt(client, {
-        commandId: envelope.commandId,
-        status: "rejected",
-        error: "room_session_unavailable",
-      });
-      return;
-    }
-
-    const existing = await store.getCommand(sessionId, envelope.commandId);
-    if (existing) {
-      if (
-        existing.participantId !== participantId ||
-        existing.seat !== seat ||
-        stableJson(existing.payload) !== stableJson({ intent: { ...envelope.payload, type: envelope.kind } })
-      ) {
-        this.sendCommandReceipt(client, {
-          commandId: envelope.commandId,
-          status: "rejected",
-          error: "command_id_conflict",
-        });
-        return;
-      }
-      if (existing.status !== "admitted") {
-        this.sendStoredCommandReceipt(client, existing);
-        return;
-      }
-      this.sendCommandReceipt(client, {
-        commandId: envelope.commandId,
-        sequence: existing.participantSequence,
-        status: "admitted",
-      });
-      await this.applyAdmittedCommand(existing, envelope.ownerEpoch, client, false);
-      return;
-    }
-
-    if (
-      envelope.ownerEpoch !== this.handoffAuthority.ownerEpoch ||
-      !this.handoffAuthority.acceptsAuthority(envelope.ownerEpoch) ||
-      !(await this.hasCurrentDurableAuthority(envelope.ownerEpoch))
-    ) {
-      this.sendCommandReceipt(client, {
-        commandId: envelope.commandId,
-        status: "rejected",
-        error: "owner_epoch_mismatch",
-      });
-      return;
-    }
-    if (!this.isDurableCommandBoundary()) {
-      this.sendCommandReceipt(client, {
-        commandId: envelope.commandId,
-        status: "rejected",
-        error: "unsupported_execution_boundary",
-      });
-      return;
-    }
-    const session = await store.getSession(sessionId);
-    if (!session || !(await this.persistCommandCheckpoint(session, session.lastCompletedCommandSequence))) {
-      this.sendCommandReceipt(client, {
-        commandId: envelope.commandId,
-        status: "rejected",
-        error: "checkpoint_unavailable",
-      });
-      return;
-    }
-    const admitted = await store.admitCommand({
-      sessionId,
-      commandId: envelope.commandId,
-      participantId,
-      seat,
-      ownerEpoch: envelope.ownerEpoch,
-      expectedRevision: null,
-      payload: { intent: { ...envelope.payload, type: envelope.kind } },
-      now: Date.now(),
-    });
-    if (!admitted.ok) {
-      this.sendCommandReceipt(client, {
-        commandId: envelope.commandId,
-        status: "rejected",
-        error: admitted.reason,
-      });
-      return;
-    }
-    if (admitted.value.status !== "admitted") {
-      this.sendStoredCommandReceipt(client, admitted.value);
-      return;
-    }
-    this.sendCommandReceipt(client, {
-      commandId: envelope.commandId,
-      sequence: admitted.value.participantSequence,
-      status: "admitted",
-    });
-    await this.applyAdmittedCommand(admitted.value, envelope.ownerEpoch, client, false);
-  }
-
-  private sendStoredCommandReceipt(client: Client, command: RoomCommandRecord): void {
-    const result = command.result as Record<string, unknown> | null;
-    this.sendCommandReceipt(client, {
-      commandId: command.commandId,
-      sequence: command.participantSequence,
-      status: command.status,
-      ...(command.status === "rejected"
-        ? { error: typeof result?.error === "string" ? result.error : "command_rejected" }
-        : {}),
-    });
-  }
-
-  private async recoverAdmittedCommand(ownerEpoch: number): Promise<boolean> {
-    const store = this.handoffStoreInstance;
-    const sessionId = this.handoffSessionId;
-    if (!store || !sessionId) return false;
-    const pending = await store.getNextAdmittedCommand(sessionId);
-    if (!pending) return true;
-    return this.applyAdmittedCommand(pending, ownerEpoch, undefined, true);
-  }
-
-  private async applyAdmittedCommand(
-    command: RoomCommandRecord,
-    ownerEpoch: number,
-    client: Client | undefined,
-    recovering: boolean,
-  ): Promise<boolean> {
-    const store = this.handoffStoreInstance;
-    const sessionId = this.handoffSessionId;
-    if (!store || !sessionId || command.sessionId !== sessionId) return false;
-    const next = await store.getNextAdmittedCommand(sessionId);
-    if (!next || next.commandId !== command.commandId) {
-      if (client)
-        this.sendCommandReceipt(client, {
-          commandId: command.commandId,
-          sequence: command.participantSequence,
-          status: "rejected",
-          error: "command_sequence_gap",
-        });
-      return false;
-    }
-    const session = await store.getSession(sessionId);
-    const ownerCurrent = !!(
-      session &&
-      session.status === "active" &&
-      session.ownerEpoch === ownerEpoch &&
-      session.owner.roomId === this.roomId &&
-      (recovering
-        ? session.activeTransferId === this.handoffTransferId
-        : session.activeTransferId === null && this.handoffAuthority.acceptsAuthority(ownerEpoch))
-    );
-    if (!ownerCurrent || (!recovering && !(await this.hasCurrentDurableAuthority(ownerEpoch)))) return false;
-    if (!this.isDurableCommandBoundary()) return false;
-    const stored = command.payload as { intent?: unknown };
-    const intentValue = stored?.intent;
-    if (typeof intentValue !== "object" || intentValue === null || Array.isArray(intentValue)) return false;
-    const intent = intentValue as Intent;
-    if (!DURABLE_COMMAND_TYPES.has(intent.type)) return false;
-    const currentSequence = session!.lastCompletedCommandSequence;
-    if (command.commandSequence !== currentSequence + 1) return false;
-
-    let result: ReturnType<AegisRoom["applyLoggedIntent"]>;
-    try {
-      result = this.applyLoggedIntent(command.seat, intent);
-      if (result.ok) await this.engine.mainVerbChain;
-    } catch (error) {
-      this.debugError("[AegisRoom] admitted command application failed", error);
-      this.quarantineCommandOwner(ownerEpoch);
-      if (client)
-        this.sendCommandReceipt(client, {
-          commandId: command.commandId,
-          sequence: command.participantSequence,
-          status: "rejected",
-          error: "command_recovery_required",
-        });
-      return false;
-    }
-
-    let checkpoint: ReturnType<AegisRoom["commandCheckpoint"]> | undefined;
-    if (result.ok) {
-      if (!this.isDurableCommandBoundary()) {
-        this.quarantineCommandOwner(ownerEpoch);
-        if (client)
-          this.sendCommandReceipt(client, {
-            commandId: command.commandId,
-            sequence: command.participantSequence,
-            status: "rejected",
-            error: "command_recovery_required",
-          });
-        return false;
-      }
-      try {
-        checkpoint = this.commandCheckpoint();
-      } catch {
-        this.quarantineCommandOwner(ownerEpoch);
-        return false;
-      }
-    }
-    const terminalStatus: "applied" | "rejected" = result.ok ? "applied" : "rejected";
-    let terminalResult: JsonValue;
-    if (result.ok) terminalResult = { ok: true };
-    else terminalResult = { ok: false, error: result.reason };
-    const completed = await store.completeCommand({
-      sessionId,
-      commandId: command.commandId,
-      ownerEpoch,
-      status: terminalStatus,
-      result: terminalResult,
-      now: Date.now(),
-      ...(checkpoint ? { checkpoint } : {}),
-    });
-    if (!completed.ok) {
-      this.quarantineCommandOwner(ownerEpoch);
-      if (client)
-        this.sendCommandReceipt(client, {
-          commandId: command.commandId,
-          sequence: command.participantSequence,
-          status: "rejected",
-          error: "command_recovery_required",
-        });
-      return false;
-    }
-    if (result.ok) this.unsequencedHandoffIntentCount = Math.max(0, this.unsequencedHandoffIntentCount - 1);
-    if (client) this.sendStoredCommandReceipt(client, completed.value);
-    return true;
-  }
-
-  private quarantineCommandOwner(ownerEpoch: number): void {
-    this.commandQuarantined = true;
-    this.handoffAuthority.freeze(ownerEpoch);
-  }
-
-  private isDurableCommandBoundary(): boolean {
-    return (
-      this.state.phase === Phase.Main &&
-      !this.state.gameOver &&
-      this.state.pendingDecision === undefined &&
-      this.state.combatWindow === undefined &&
-      this.currentBatch === undefined &&
-      this.batchDepth === 0 &&
-      this.engine.mainVerbContinuationsInFlight === 0 &&
-      !this.engine.counterResolutionInFlight &&
-      this.engine.optionResolutionDepth === 0 &&
-      this.engine.effectResolutionDepth === 0 &&
-      !this.engine.mainEntryPending
-    );
-  }
-
-  /** Pre-Main bootstrap actions are captured in full by the first settled Main checkpoint. */
-  private resetBootstrapIntentCountAtSettledMain(): void {
-    if (this.unsequencedHandoffIntentCount > 0 && this.isDurableCommandBoundary())
-      this.unsequencedHandoffIntentCount = 0;
-  }
-
-  private commandCheckpoint(): NonNullable<Parameters<RoomHandoffStore["completeCommand"]>[0]["checkpoint"]> {
-    const boundary = exportStoppedMainBoundary(this.state);
-    const snapshot = {
-      ...boundary,
-      runtime: {
-        protocol: ROOM_RUNTIME_PROTOCOL,
-        version: 1,
-        transferId: COMMAND_CHECKPOINT_TRANSFER_ID,
-        pausedAtMs: 0,
-        engine: this.engine.exportContinuityState(),
-        botRoster: null,
-      } satisfies RoomRuntimeContinuityFrame,
-    };
-    return {
-      checkpointId: randomUUID(),
-      snapshotSchemaVersion: ROOM_HANDOFF_SNAPSHOT_VERSION,
-      executionVersion: process.env.AEGIS_HANDOFF_EXECUTION_VERSION ?? "engine-v1",
-      rulesVersion: process.env.AEGIS_HANDOFF_RULES_VERSION ?? "rules-v1",
-      sourceRevision: process.env.AEGIS_SOURCE_REVISION ?? "development",
-      checksum: checkpointDigest(snapshot),
-      snapshot: snapshot as unknown as JsonValue,
-    };
-  }
-
-  private async persistCommandCheckpoint(session: RoomSessionRecord, commandSequence: number): Promise<boolean> {
-    const store = this.handoffStoreInstance;
-    if (!store || !this.handoffSessionId || !this.isDurableCommandBoundary() || this.unsequencedHandoffIntentCount > 0)
-      return false;
-    const existing = await store.getCheckpoint(this.handoffSessionId);
-    if (existing?.commandSequence === commandSequence) return true;
-    let checkpoint: ReturnType<AegisRoom["commandCheckpoint"]>;
-    try {
-      checkpoint = this.commandCheckpoint();
-    } catch {
-      return false;
-    }
-    const saved = await store.saveCheckpoint({
-      sessionId: this.handoffSessionId,
-      ownerEpoch: session.ownerEpoch,
-      ...checkpoint,
-      now: Date.now(),
-      commandSequence,
-    });
-    return saved.ok;
   }
 
   /**

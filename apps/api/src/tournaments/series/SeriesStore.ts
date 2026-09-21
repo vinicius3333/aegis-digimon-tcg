@@ -19,7 +19,6 @@ import {
 // layer imports this store back, and going through the barrel would close that cycle.
 import { derivedUuid, insertDeadline, retireDeadlines } from "../scheduler/DeadlineQueue.js";
 import { appendTournamentEvent } from "../audit/index.js";
-import { compensatePausedDeadline, createDeadlineFrame } from "../../rooms/handoff/stage5Primitives.js";
 
 export type SeriesStatus = "playing" | "overtime" | "resolved" | "needs_organizer_decision";
 export type SeriesOfficialResult = "participant0" | "participant1" | "draw" | "double_loss" | "voided";
@@ -51,9 +50,7 @@ export type SeriesFailure =
   | "room_mismatch"
   | "deadline_not_reached"
   | "no_deadline"
-  | "presence_changed"
-  | "handoff_in_progress"
-  | "handoff_transfer_mismatch";
+  | "presence_changed";
 
 export type SeriesResult<T> = { ok: true; value: T } | { ok: false; reason: SeriesFailure };
 
@@ -611,76 +608,6 @@ export class SeriesStore {
   }
 
   /**
-   * Rebinds a program Tournament Game to the physical destination room after the durable room
-   * session has switched owners. The transfer/session proof and game update share one transaction;
-   * a stale epoch or arbitrary room ID cannot steal a live game.
-   */
-  async rebindGameRoomForHandoff(input: {
-    gameId: string;
-    sessionId: string;
-    transferId: string;
-    fromRoomId: string;
-    toRoomId: string;
-    ownerEpoch: number;
-  }): Promise<SeriesResult<{ gameId: string; roomId: string; replayed: boolean }>> {
-    const seriesId = await this.seriesIdForGame(input.gameId);
-    if (!seriesId) return failure("game_not_found");
-    return this.mutate(seriesId, async (client) => {
-      const game = await lockGame(client, input.gameId);
-      if (!game) return failure("game_not_found");
-      const proof = (
-        await client.query<{
-          session_status: string;
-          session_mode: string;
-          tournament_game_id: string | null;
-          owner_room_id: string;
-          owner_epoch: string | number;
-          active_transfer_id: string | null;
-          from_room_id: string;
-          to_room_id: string;
-          from_owner_epoch: string | number;
-          to_owner_epoch: string | number;
-          transfer_status: string;
-        }>(
-          `SELECT s.status AS session_status,s.mode AS session_mode,s.tournament_game_id,s.owner_room_id,s.owner_epoch,s.active_transfer_id,
-                  t.from_room_id,t.to_room_id,t.from_owner_epoch,t.to_owner_epoch,t.status AS transfer_status
-             FROM room_sessions s JOIN room_transfers t ON t.session_id=s.id
-            WHERE s.id=$1 AND t.id=$2 FOR UPDATE`,
-          [input.sessionId, input.transferId],
-        )
-      ).rows[0];
-      if (
-        !proof ||
-        proof.session_status !== "active" ||
-        proof.session_mode !== "tournament" ||
-        proof.tournament_game_id !== input.gameId ||
-        proof.owner_room_id !== input.toRoomId ||
-        Number(proof.owner_epoch) !== input.ownerEpoch ||
-        proof.from_room_id !== input.fromRoomId ||
-        proof.to_room_id !== input.toRoomId ||
-        Number(proof.to_owner_epoch) !== input.ownerEpoch ||
-        Number(proof.from_owner_epoch) + 1 !== input.ownerEpoch ||
-        !["owner_switched", "destination_active", "completed"].includes(proof.transfer_status) ||
-        (proof.transfer_status === "completed"
-          ? proof.active_transfer_id !== null
-          : proof.active_transfer_id !== input.transferId)
-      )
-        return failure("handoff_transfer_mismatch");
-      if (!["room_claimed", "playing"].includes(game.status)) return failure("game_already_finished");
-      if (game.roomId === input.toRoomId)
-        return { ok: true, value: { gameId: game.id, roomId: input.toRoomId, replayed: true } };
-      if (game.roomId !== input.fromRoomId) return failure("room_mismatch");
-      const updated = await client.query("UPDATE tournament_games SET room_id=$1 WHERE id=$2 AND room_id=$3", [
-        input.toRoomId,
-        input.gameId,
-        input.fromRoomId,
-      ]);
-      if (updated.rowCount !== 1) return failure("room_mismatch");
-      return { ok: true, value: { gameId: game.id, roomId: input.toRoomId, replayed: false } };
-    });
-  }
-
-  /**
    * Applies the timeout policy when the shared clock runs out.
    *
    * The score already on the board decides first — whoever is ahead on game wins takes the
@@ -703,7 +630,6 @@ export class SeriesStore {
     const result = await this.mutate<SeriesResult<SeriesRecord>>(input.seriesId, async (client) => {
       const series = await lockSeries(client, input.seriesId);
       if (!series) return failure("series_not_found");
-      if (await hasFrozenHandoff(client, series.matchId)) return failure("handoff_in_progress");
       if (CLOSED_SERIES_STATUSES.includes(series.status)) return ok(series);
       if (series.seriesDeadlineAt === null) return failure("no_deadline");
       if (now < series.seriesDeadlineAt) return failure("deadline_not_reached");
@@ -723,86 +649,6 @@ export class SeriesStore {
     });
     await this.announceIfResolved(result);
     return result;
-  }
-
-  /**
-   * Adds transfer downtime to the shared series clock exactly once.
-   *
-   * The durable receipt and both deadline writes share one transaction. Re-delivery from a
-   * completed transfer therefore cannot add its pause twice; reusing a transfer ID with a
-   * different interval is treated as a conflict rather than silently changing the clock.
-   */
-  async compensateSeriesDeadline(input: {
-    seriesId: string;
-    transferId: string;
-    pausedAtMs: number;
-    resumedAtMs: number;
-    now?: number;
-  }): Promise<SeriesResult<{ seriesId: string; deadlineAtMs: number; compensatedMs: number; replayed: boolean }>> {
-    const now = input.now ?? Date.now();
-    return this.mutate(input.seriesId, async (client) => {
-      const series = await lockSeries(client, input.seriesId);
-      if (!series) return failure("series_not_found");
-
-      const previous = (
-        await client.query<{
-          paused_at_ms: string | number;
-          resumed_at_ms: string | number;
-          compensated_ms: string | number;
-        }>(
-          "SELECT paused_at_ms,resumed_at_ms,compensated_ms FROM tournament_deadline_compensations WHERE series_id=$1 AND transfer_id=$2",
-          [series.id, input.transferId],
-        )
-      ).rows[0];
-      if (previous) {
-        if (
-          Number(previous.paused_at_ms) !== input.pausedAtMs ||
-          Number(previous.resumed_at_ms) !== input.resumedAtMs
-        ) {
-          throw new Error(`conflicting deadline compensation replay: ${input.transferId}`);
-        }
-        if (series.seriesDeadlineAt === null) return failure("no_deadline");
-        return ok({
-          seriesId: series.id,
-          deadlineAtMs: series.seriesDeadlineAt,
-          compensatedMs: Number(previous.compensated_ms),
-          replayed: true,
-        });
-      }
-
-      if (CLOSED_SERIES_STATUSES.includes(series.status) || series.seriesDeadlineAt === null)
-        return failure("no_deadline");
-      const deadline = (
-        await client.query<{ id: string; executed_at: string | number | null }>(
-          "SELECT id,executed_at FROM tournament_deadlines WHERE kind='series_deadline' AND subject_id=$1 FOR UPDATE",
-          [series.id],
-        )
-      ).rows[0];
-      if (!deadline || deadline.executed_at !== null) return failure("no_deadline");
-
-      const frame = compensatePausedDeadline(
-        createDeadlineFrame({ timerId: deadline.id, kind: "series_deadline", dueAtMs: series.seriesDeadlineAt }),
-        { transferId: input.transferId, pausedAtMs: input.pausedAtMs, resumedAtMs: input.resumedAtMs },
-      );
-      const updatedSeries = await client.query(
-        "UPDATE match_series SET series_deadline_at=$1,version=version+1 WHERE id=$2 AND series_deadline_at=$3",
-        [frame.dueAtMs, series.id, series.seriesDeadlineAt],
-      );
-      if (updatedSeries.rowCount !== 1) return failure("no_deadline");
-      const updatedDeadline = await client.query(
-        "UPDATE tournament_deadlines SET due_at=$1 WHERE id=$2 AND executed_at IS NULL",
-        [frame.dueAtMs, deadline.id],
-      );
-      if (updatedDeadline.rowCount !== 1) throw new Error("series deadline changed while compensating handoff pause");
-      const compensatedMs = input.resumedAtMs - input.pausedAtMs;
-      await client.query(
-        `INSERT INTO tournament_deadline_compensations
-           (series_id,transfer_id,paused_at_ms,resumed_at_ms,compensated_ms,created_at)
-         VALUES ($1,$2,$3,$4,$5,$6)`,
-        [series.id, input.transferId, input.pausedAtMs, input.resumedAtMs, compensatedMs, now],
-      );
-      return ok({ seriesId: series.id, deadlineAtMs: frame.dueAtMs, compensatedMs, replayed: false });
-    });
   }
 
   /**
@@ -831,7 +677,6 @@ export class SeriesStore {
     const result = await this.mutate<SeriesResult<SeriesRecord>>(input.matchId, async (client) => {
       const match = await lockMatch(client, input.matchId);
       if (!match || match.tournamentId !== input.tournamentId) return failure("match_not_found");
-      if (await hasFrozenHandoff(client, input.matchId)) return failure("handoff_in_progress");
       const loserSeat = seatOf(match, { kind: "account", accountId: input.loserAccountId });
       if (loserSeat === undefined) return failure("not_a_participant");
       if (!presenceMatches(match, input)) return failure("presence_changed");
@@ -892,7 +737,6 @@ export class SeriesStore {
     const result = await this.mutate<SeriesResult<SeriesRecord>>(input.matchId, async (client) => {
       const match = await lockMatch(client, input.matchId);
       if (!match || match.tournamentId !== input.tournamentId) return failure("match_not_found");
-      if (await hasFrozenHandoff(client, input.matchId)) return failure("handoff_in_progress");
       if (!presenceMatches(match, input)) return failure("presence_changed");
 
       const series = await this.ensureSeries(client, match, input.winsRequired, input.seriesDurationMs, now);
@@ -1001,11 +845,6 @@ export class SeriesStore {
   async seriesForMatch(matchId: string): Promise<SeriesRecord | undefined> {
     await this.accounts.ensureReady();
     return readSeriesByMatch(this.accounts.pool, matchId);
-  }
-
-  async seriesForGame(gameId: string): Promise<SeriesRecord | undefined> {
-    const seriesId = await this.seriesIdForGame(gameId);
-    return seriesId ? this.series(seriesId) : undefined;
   }
 
   /** Presence and series state for one match, without asserting presence. */
@@ -1487,28 +1326,6 @@ async function lockSeries(client: PoolClient, seriesId: string): Promise<SeriesR
     await client.query<SeriesRow>(`SELECT ${SERIES_COLUMNS} FROM match_series WHERE id=$1 FOR UPDATE`, [seriesId])
   ).rows[0];
   return row && hydrate(client, row);
-}
-
-/** Lock the session fence before applying a deadline decision, so freeze and timeout serialize. */
-async function hasFrozenHandoff(client: PoolClient, matchId: string): Promise<boolean> {
-  const session = (
-    await client.query<{ active_transfer_id: string | null }>(
-      "SELECT active_transfer_id FROM room_sessions WHERE tournament_match_id=$1 AND status='active' LIMIT 1 FOR UPDATE",
-      [matchId],
-    )
-  ).rows[0];
-  if (!session?.active_transfer_id) return false;
-  const transfer = (
-    await client.query<{ status: string }>("SELECT status FROM room_transfers WHERE id=$1", [
-      session.active_transfer_id,
-    ])
-  ).rows[0];
-  return (
-    transfer !== undefined &&
-    ["frozen", "snapshot_saved", "destination_validated", "owner_switched", "destination_active"].includes(
-      transfer.status,
-    )
-  );
 }
 
 async function readSeriesByMatch(db: Queryable, matchId: string): Promise<SeriesRecord | undefined> {

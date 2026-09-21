@@ -133,12 +133,8 @@ export function applyIntent(engine: GameEngine, seat: Seat, intent: Intent): Int
       }
       return handleEndPhase(intentRouterDeps(engine), seat);
 
-    case "respondDecision": {
-      const isRestoredFrame = engine.decisions.isRestoredExecutionFramePending(intent.decisionId);
-      const result = handleRespondDecision(intentRouterDeps(engine), seat, intent);
-      if (result.ok && isRestoredFrame) engine.captureResumedDecisionExecutionFrameResult(intent.decisionId);
-      return result;
-    }
+    case "respondDecision":
+      return handleRespondDecision(intentRouterDeps(engine), seat, intent);
 
     case "ready":
       return handleReady(intentRouterDeps(engine), seat);

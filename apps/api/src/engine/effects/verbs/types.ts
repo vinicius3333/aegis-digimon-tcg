@@ -2,7 +2,6 @@ import type { ModifierLedger } from "../modifiers.js";
 import type { ContinuousEffectLedger } from "../continuous.js";
 import type { DnaMemoryGain, SubTriggerRegistry } from "../subtriggers.js";
 import type { SubTriggerSourceScope } from "../EffectContext.js";
-import type { Rng } from "../../setup.js";
 import type {
   AttackTarget,
   CardDefinition,
@@ -67,8 +66,8 @@ export interface PrimitivesEngine {
   nextPermanentId(): string;
   /** Allocate an instanceId for token spawn / synthetic instances. */
   nextInstanceId?(): string;
-  /** Per-seat deterministic stream for handoff-safe hidden-card shuffles. */
-  rngForSeat?(seat: Seat): Rng;
+  /** Per-seat seeded stream for shuffles that occur during a match. */
+  rngForSeat?(seat: Seat): () => number;
   /** Transient security-DP modifiers for the active security check. */
   securityDp?: import("../../security/securityDp.js").SecurityDpLedger;
   /** Continuous DP-based-deletion maximum bonuses (static-continuous-effects). */

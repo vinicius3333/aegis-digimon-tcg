@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs";
 
-const LEGACY_SLOTS = new Set(["blue", "green"]);
+export const FIXED_SLOTS = ["blue", "red", "green"];
+
+const LEGACY_GENERATION = /^g-[a-f0-9]{12}$/;
 
 export function isDeploymentSlot(value) {
-  return typeof value === "string" && (LEGACY_SLOTS.has(value) || /^g-[a-f0-9]{12}$/.test(value));
+  return typeof value === "string" && (FIXED_SLOTS.includes(value) || LEGACY_GENERATION.test(value));
 }
 
 export function validateManifest(value) {

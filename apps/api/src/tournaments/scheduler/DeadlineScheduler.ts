@@ -39,8 +39,7 @@ export type DeadlineResultCode =
   | "skipped_subject_missing"
   | "skipped_no_opponent"
   | "retry_deadline_not_reached"
-  | "retry_presence_changed"
-  | "retry_handoff_in_progress";
+  | "retry_presence_changed";
 
 /**
  * An outcome, and whether it is the row's last word.
@@ -75,7 +74,8 @@ const RETRY = (code: DeadlineResultCode): Outcome => ({ code, retry: true });
  * Two things make this safe to run on every API instance at once. Rows are claimed under
  * `FOR UPDATE SKIP LOCKED` with a short lease, so instances take disjoint work and a dead
  * instance's work becomes claimable again on its own. And every command is idempotent, so the
- * cases the lease cannot cover — a lapsed lease, a blue/green overlap — apply once anyway.
+ * cases the lease cannot cover — a lapsed lease, an overlap between fixed-slot instances — apply
+ * once anyway.
  *
  * Every policy number is read from the tournament's frozen `rules_snapshot`. There is no constant
  * in this file for a grace period, a penalty threshold or a tie rule: an event created last month
@@ -222,9 +222,7 @@ export class DeadlineScheduler {
       let outcome: Outcome;
       try {
         await this.queue.renewLease(deadline.id, now, this.workerId);
-        outcome = (await this.handoffPaused(deadline))
-          ? RETRY("retry_handoff_in_progress")
-          : await this.execute(deadline, now);
+        outcome = await this.execute(deadline, now);
       } catch (error) {
         logError(`[TOURNAMENT_DEADLINE] ${JSON.stringify({ ...context(deadline), outcome: "failed" })}`, error);
         continue;
@@ -247,39 +245,6 @@ export class DeadlineScheduler {
       );
     }
     return executed;
-  }
-
-  /** A source room's frozen interval suspends match penalties and series clocks. */
-  private async handoffPaused(deadline: DeadlineRecord): Promise<boolean> {
-    let matchId = deadline.subjectId;
-    if (deadline.kind === "series_deadline") {
-      const series = (
-        await this.accounts.pool.query<{ tournament_match_id: string }>(
-          "SELECT tournament_match_id FROM match_series WHERE id=$1",
-          [deadline.subjectId],
-        )
-      ).rows[0];
-      if (!series) return false;
-      matchId = series.tournament_match_id;
-    }
-    const session = (
-      await this.accounts.pool.query<{ active_transfer_id: string | null }>(
-        "SELECT active_transfer_id FROM room_sessions WHERE tournament_match_id=$1 AND status='active' LIMIT 1",
-        [matchId],
-      )
-    ).rows[0];
-    if (!session?.active_transfer_id) return false;
-    const transfer = (
-      await this.accounts.pool.query<{ status: string }>("SELECT status FROM room_transfers WHERE id=$1", [
-        session.active_transfer_id,
-      ])
-    ).rows[0];
-    return (
-      transfer !== undefined &&
-      ["frozen", "snapshot_saved", "destination_validated", "owner_switched", "destination_active"].includes(
-        transfer.status,
-      )
-    );
   }
 
   /**
@@ -351,9 +316,7 @@ export class DeadlineScheduler {
       // has a later instant to fire at, not that it has nothing to do.
       return resolved.reason === "deadline_not_reached"
         ? RETRY("retry_deadline_not_reached")
-        : resolved.reason === "handoff_in_progress"
-          ? RETRY("retry_handoff_in_progress")
-          : TERMINAL("skipped_subject_missing");
+        : TERMINAL("skipped_subject_missing");
     return TERMINAL(this.reportSeries(deadline, resolved.value, "series_resolved", "series_needs_organizer_decision"));
   }
 
@@ -454,11 +417,7 @@ export class DeadlineScheduler {
       reason: "administrative_game_loss_no_show",
     });
     if (!lost.ok)
-      return lost.reason === "presence_changed"
-        ? RETRY("retry_presence_changed")
-        : lost.reason === "handoff_in_progress"
-          ? RETRY("retry_handoff_in_progress")
-          : TERMINAL("skipped_subject_missing");
+      return lost.reason === "presence_changed" ? RETRY("retry_presence_changed") : TERMINAL("skipped_subject_missing");
 
     if (!CLOSED_SERIES.includes(lost.value.status))
       await this.queue.enqueue({ ...nextRung, tournamentId: tournament.id, subjectId: deadline.subjectId, now });
@@ -482,9 +441,7 @@ export class DeadlineScheduler {
       if (!resolved.ok)
         return resolved.reason === "presence_changed"
           ? RETRY("retry_presence_changed")
-          : resolved.reason === "handoff_in_progress"
-            ? RETRY("retry_handoff_in_progress")
-            : TERMINAL("skipped_subject_missing");
+          : TERMINAL("skipped_subject_missing");
       return TERMINAL(
         resolved.value.status === "needs_organizer_decision"
           ? "double_no_show_needs_organizer_decision"
@@ -501,9 +458,7 @@ export class DeadlineScheduler {
     if (!resolved.ok)
       return resolved.reason === "presence_changed"
         ? RETRY("retry_presence_changed")
-        : resolved.reason === "handoff_in_progress"
-          ? RETRY("retry_handoff_in_progress")
-          : TERMINAL("skipped_subject_missing");
+        : TERMINAL("skipped_subject_missing");
     return TERMINAL("match_loss_applied");
   }
 

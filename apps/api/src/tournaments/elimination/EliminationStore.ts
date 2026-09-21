@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import type { LedgerEntry, MatchOutcome, ParticipantKind, PhaseKind } from "@aegis/shared";
 import type { PoolClient } from "pg";
 import type { AccountStore } from "../../accounts/AccountStore.js";
-import { resultEffectIdempotencyKey } from "../../rooms/handoff/stage5Primitives.js";
 import { appendTournamentEvent } from "../audit/index.js";
 import { type AcquireTournamentLock, inProcessTournamentLock } from "../participants/index.js";
 import type { SeriesRecord } from "../series/index.js";
@@ -628,7 +627,6 @@ export class EliminationStore {
           outcome: winnerSeat === 0 ? "player0" : "player1",
           reason: context.reason,
           opponentKind: "human",
-          resultKey: resultEffectIdempotencyKey(context.seriesId, context.seriesId, "tournament-result"),
         },
         client,
       );
@@ -647,7 +645,6 @@ export class EliminationStore {
         reason: context.reason,
         opponentKind: "bot",
         opponentDisplayName: bot.displayName,
-        resultKey: resultEffectIdempotencyKey(context.seriesId, context.seriesId, "tournament-result"),
       },
       client,
     );

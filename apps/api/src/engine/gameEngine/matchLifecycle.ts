@@ -171,31 +171,12 @@ export function chooseFirstPlayer(engine: GameEngine): Seat {
  * §5-2-1-4). Each seat is prompted via the MulliganCoordinator and answers with a
  * `mulligan` intent; a redraw is applied on the seat's own seeded PRNG stream.
  */
-export async function runMulliganWindow(
-  engine: GameEngine,
-  firstSeat: Seat,
-  startIndex: 0 | 1 = 0,
-): Promise<void> {
+export async function runMulliganWindow(engine: GameEngine, firstSeat: Seat): Promise<void> {
   const order: Seat[] = [firstSeat, (1 - firstSeat) as Seat];
-  for (let index = startIndex; index < order.length; index += 1) {
-    const seat = order[index]!;
+  for (const seat of order) {
     if (engine.state.gameOver) return;
-    engine.mulliganWindowCursor = { firstSeat, nextSeatIndex: index as 0 | 1 };
-    let decisionId = engine.state.pendingDecision?.decisionId;
-    let answerPromise: Promise<boolean>;
-    if (engine.mulligan.isOpen) {
-      answerPromise = engine.mulligan.waitForOpen();
-    } else {
-      answerPromise = engine.mulligan.request(seat);
-      decisionId = engine.state.pendingDecision?.decisionId;
-    }
-    const keep = await answerPromise;
-    const resumed = decisionId ? engine.mulligan.takeResumedExecutionFrameResult(decisionId) : undefined;
-    if (resumed !== undefined && resumed.value !== keep) {
-      throw new Error("mulligan execution result did not match its awaited answer");
-    }
-    const keepHand = resumed?.value ?? keep;
-    if (!keepHand && engine.rngForSeat !== undefined) {
+    const keep = await engine.mulligan.request(seat);
+    if (!keep && engine.rngForSeat !== undefined) {
       const player = engine.state.players[seat];
       if (player !== undefined) {
         mulliganRedraw(player, engine.rngForSeat(seat), (deck) =>
@@ -204,17 +185,6 @@ export async function runMulliganWindow(
       }
     }
   }
-  engine.mulliganWindowCursor = undefined;
-}
-
-/** Re-enter the match setup continuation when a destination imports an open mulligan frame. */
-export async function resumeRestoredMatchSetup(engine: GameEngine): Promise<void> {
-  const cursor = engine.mulliganWindowCursor;
-  if (!cursor || !engine.mulligan.isOpen) throw new Error("no restored mulligan setup continuation is available");
-  await runMulliganWindow(engine, cursor.firstSeat, cursor.nextSeatIndex);
-  if (engine.state.gameOver) return;
-  finalizeSecurity(engine.state);
-  void startTurnLoop(engine);
 }
 
 /**

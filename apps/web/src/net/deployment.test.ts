@@ -16,23 +16,25 @@ describe("deployment manifest", () => {
     expect(usesSlotDeploymentRouter({ production: false, deploymentMode: undefined })).toBe(false);
   });
 
-  it("parses a dynamic active generation, independent web revision, and multiple draining generations", () => {
+  it("parses a red active slot, independent web revision, and multiple draining slots", () => {
     expect(
       parseDeploymentManifest({
         version: 1,
         webRevision: "web-sha",
-        active: { slot: "g-333333333333", revision: "api-sha" },
+        active: { slot: "red", revision: "api-sha" },
         draining: [
-          { slot: "green", revision: "old-sha" },
+          { slot: "blue", revision: "old-sha" },
+          { slot: "green", revision: "older-green-sha" },
           { slot: "g-111111111111", revision: "older-sha" },
         ],
       }),
     ).toEqual({
       version: 1,
       webRevision: "web-sha",
-      active: { slot: "g-333333333333", revision: "api-sha" },
+      active: { slot: "red", revision: "api-sha" },
       draining: [
-        { slot: "green", revision: "old-sha" },
+        { slot: "blue", revision: "old-sha" },
+        { slot: "green", revision: "older-green-sha" },
         { slot: "g-111111111111", revision: "older-sha" },
       ],
     });
@@ -137,6 +139,14 @@ describe("deployment manifest", () => {
     expect(deploymentEndpoint(location, "g-abcdef012345")).toEqual({
       http: "https://aegis-digi.online/api/g-abcdef012345",
       websocket: "wss://aegis-digi.online/api/g-abcdef012345",
+    });
+  });
+
+  it("builds same-origin HTTP and WebSocket endpoints for red", () => {
+    const location = { protocol: "https:", host: "aegis-digi.online" };
+    expect(deploymentEndpoint(location, "red")).toEqual({
+      http: "https://aegis-digi.online/api/red",
+      websocket: "wss://aegis-digi.online/api/red",
     });
   });
 

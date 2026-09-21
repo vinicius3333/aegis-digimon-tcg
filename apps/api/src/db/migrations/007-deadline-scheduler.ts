@@ -3,8 +3,8 @@ import type { Migration } from "../migrator.js";
 // The persisted work queue the deadline scheduler drains.
 //
 // Deadlines are rows, not timers. A timer lives in one process's heap: it dies with a deploy, a
-// crash or a drain, and it cannot be shared between the two API containers a blue/green rollout
-// runs at once. A row survives all three, so "this confrontation is late" is a fact the database
+// crash or a drain, and it cannot be shared between API containers that overlap during a fixed-slot
+// rollout. A row survives all three, so "this confrontation is late" is a fact the database
 // owns and any instance can act on. In-memory timers may still exist later to cut latency, but
 // they are a cache of this table, never the source of truth.
 //
@@ -18,7 +18,7 @@ import type { Migration } from "../migrator.js";
 //    referential integrity and the logging scope.
 //  - `UNIQUE (kind, subject_id)` is the idempotency of ENQUEUE: a rung fires at most once per
 //    subject for the lifetime of the event, so a retried enqueue — two workers executing the same
-//    rung during a blue/green overlap, a round republished — inserts nothing. It is deliberately
+//    rung during a fixed-slot overlap, a round republished — inserts nothing. It is deliberately
 //    not partial on `executed_at IS NULL`: an executed rung must stay in the way of a duplicate,
 //    not be superseded by one.
 //  - `lease_expires_at` / `leased_by` are the idempotency of EXECUTION: a worker takes a short

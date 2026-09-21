@@ -94,19 +94,11 @@ Combat windows use dedicated response intents for mechanics such as blocking,
 Alliance, Evade, and Barrier. These are distinct from general effect decisions
 because they belong to the attack sequence.
 
-The synchronized `pendingDecision` and `combatWindow` are reconnect mirrors, not
-serializable continuations. The decision manager and combat controller also hold
-in-memory promises, validation state and execution position. Cross-process recovery
-therefore requires explicit command, identity, snapshot and ownership contracts;
-see [Live room handoff contracts](live-room-handoff-contracts.md) for the current
-inventory, experimental foundations, and proposed wire/storage invariants. The API
-has a gated logical-session store and a stopped-Main snapshot/owner lifecycle proof,
-but it does not expose a handoff HTTP API or restore pending decisions/combat. The
-client's current `useRoom` path still uses the established reconnect token/slot flow;
-the current-owner resolver and command queue are not wired into it. Thus handoff is
-not part of the supported client/server protocol and must remain disabled in
-production. See the [rollout runbook](live-room-handoff-runbook.md) before changing
-any gate.
+The synchronized `pendingDecision` and `combatWindow` mirror live room state. The
+decision manager and combat controller also hold in-memory promises, validation
+state and execution position. A reconnect token resumes a seat only while its
+owning room process remains available. Production deployments route new rooms to
+the active blue, red, or green slot and retain older slots until their rooms drain.
 
 ## Events and errors
 

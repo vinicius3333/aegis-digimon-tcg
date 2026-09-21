@@ -1,9 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Room } from "colyseus.js";
 import type { GameState } from "@aegis/shared";
-import { AegisConnectionRouter, connectionSlot, roomHandoffIdentity, type ColyseusClientPort } from "./client";
+import { AegisConnectionRouter, connectionSlot, type ColyseusClientPort } from "./client";
 import type { DeploymentManifest, DeploymentSlot } from "./deployment";
-import type { ReconnectSession } from "./reconnectSession";
 
 const OPTIONS = { displayName: "Tamer", deck: { mainDeck: [], eggDeck: [] } };
 
@@ -21,7 +20,6 @@ function clientPort(overrides: Partial<ColyseusClientPort> = {}): ColyseusClient
     create: unavailable,
     joinById: unavailable,
     reconnect: unavailable,
-    consumeSeatReservation: unavailable,
     ...overrides,
   };
 }
@@ -221,145 +219,27 @@ describe("room-scoped deployment affinity", () => {
     expect(connectionSlot(resumed)).toBe("blue");
   });
 
-  it("resolves the current owner and consumes its seat reservation when handoff is advertised", async () => {
-    const resumed = room("new-physical-room");
-    const consume = vi.fn(async () => resumed);
-    const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      if (String(input).endsWith("/room/resolve-owner")) {
-        return Response.json({
-          gameId: "logical-game-1",
-          slot: "green",
-          processId: "proc-2",
-          physicalRoomId: "new-physical-room",
-          ownerEpoch: 9,
-          reconnectEndpoint: "/matchmake/reconnect",
-        });
-      }
-      return Response.json({
-        room: { name: "aegis", roomId: "new-physical-room", processId: "proc-2" },
-        sessionId: "s2",
-        reconnectionToken: "new-physical-room:token",
-      });
-    });
-    const green = clientPort({ consumeSeatReservation: consume });
-    const client = new AegisConnectionRouter({
-      loadManifest: async () => ({
-        version: 1,
-        capabilities: { liveRoomHandoff: true },
-        active: { slot: "green", revision: "new" },
-        draining: [],
-      }),
-      endpointForSlot: (slot) => ({
-        http: `https://example.test/api/${slot}`,
-        websocket: `wss://example.test/api/${slot}`,
-      }),
-      createClient: () => green,
-      fetcher,
-    });
-    const saved: ReconnectSession = {
-      reconnectionToken: "old-room:secret",
-      roomId: "old-room",
-      slot: "blue",
-      savedAt: Date.now(),
-      logicalSession: { gameId: "logical-game-1", ownerEpoch: 8 },
-      resumeCredential: "x".repeat(43),
-      resumeCredentialExpiresAt: Date.now() + 60_000,
+  it("routes joins through the fixed red slot", async () => {
+    const redRoom = room("red-room");
+    const redJoin = vi.fn(async () => redRoom);
+    const clients: Record<string, ColyseusClientPort> = {
+      blue: clientPort(),
+      red: clientPort({ joinOrCreate: redJoin }),
+      green: clientPort(),
     };
-
-    await expect(client.resumeSession(saved)).resolves.toBe(resumed);
-
-    expect(fetcher).toHaveBeenNthCalledWith(
-      1,
-      "https://example.test/api/green/room/resolve-owner",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({ gameId: "logical-game-1", resumeCredential: "x".repeat(43), minimumOwnerEpoch: 8 }),
-      }),
-    );
-    expect(fetcher).toHaveBeenNthCalledWith(
-      1,
-      expect.anything(),
-      expect.objectContaining({
-        body: expect.not.stringContaining("old-room:secret"),
-      }),
-    );
-    expect(fetcher).toHaveBeenNthCalledWith(
-      2,
-      "https://example.test/api/green/matchmake/reconnect",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({
-          gameId: "logical-game-1",
-          resumeCredential: "x".repeat(43),
-          physicalRoomId: "new-physical-room",
-          ownerEpoch: 9,
-        }),
-      }),
-    );
-    expect(consume).toHaveBeenCalledWith(
-      expect.objectContaining({ room: expect.objectContaining({ roomId: "new-physical-room", processId: "proc-2" }) }),
-    );
-    expect(connectionSlot(resumed)).toBe("green");
-    expect(roomHandoffIdentity(resumed)).toEqual({ gameId: "logical-game-1", ownerEpoch: 9 });
-  });
-
-  it("keeps SDK reconnect when the handoff capability is absent", async () => {
-    const resumed = room("old-room");
-    const legacyReconnect = vi.fn(async () => resumed);
-    const fetcher = vi.fn(async () => Response.json({}));
     const client = new AegisConnectionRouter({
-      loadManifest: async () => ({ version: 1, active: { slot: "green", revision: "new" }, draining: [] }),
+      loadManifest: async () => ({ version: 1, active: { slot: "red", revision: "red-sha" }, draining: [] }),
       endpointForSlot: (slot) => ({
         http: `https://example.test/api/${slot}`,
         websocket: `wss://example.test/api/${slot}`,
       }),
-      createClient: () => clientPort({ reconnect: legacyReconnect }),
-      fetcher,
+      createClient: (_endpoint, slot) => clients[slot]!,
+      fetcher: vi.fn(async () => new Response("{}", { status: 404 })),
     });
 
-    await expect(
-      client.resumeSession({
-        reconnectionToken: "old-room:secret",
-        roomId: "old-room",
-        slot: "blue",
-        savedAt: Date.now(),
-        logicalSession: { gameId: "logical-game-1", ownerEpoch: 8 },
-      }),
-    ).resolves.toBe(resumed);
-    expect(legacyReconnect).toHaveBeenCalledWith("old-room:secret");
-    expect(fetcher).not.toHaveBeenCalled();
-  });
-
-  it("keeps legacy reconnect for an old session without a separate resume credential", async () => {
-    const resumed = room("old-room");
-    const legacyReconnect = vi.fn(async () => resumed);
-    const fetcher = vi.fn(async () => Response.json({}));
-    const client = new AegisConnectionRouter({
-      loadManifest: async () => ({
-        version: 1,
-        capabilities: { liveRoomHandoff: true },
-        active: { slot: "green", revision: "new" },
-        draining: [],
-      }),
-      endpointForSlot: (slot) => ({
-        http: `https://example.test/api/${slot}`,
-        websocket: `wss://example.test/api/${slot}`,
-      }),
-      createClient: () => clientPort({ reconnect: legacyReconnect }),
-      fetcher,
-    });
-
-    await expect(
-      client.resumeSession({
-        reconnectionToken: "old-room:secret",
-        roomId: "old-room",
-        slot: "blue",
-        savedAt: Date.now(),
-        logicalSession: { gameId: "logical-game-1", ownerEpoch: 8 },
-      }),
-    ).resolves.toBe(resumed);
-    expect(legacyReconnect).toHaveBeenCalledWith("old-room:secret");
-    expect(fetcher).not.toHaveBeenCalled();
+    await expect(client.joinOrCreate(OPTIONS)).resolves.toBe(redRoom);
+    expect(redJoin).toHaveBeenCalledOnce();
+    expect(connectionSlot(redRoom)).toBe("red");
   });
 
   it("refreshes the manifest once when active starts draining during matchmaking", async () => {

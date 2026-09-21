@@ -9,8 +9,7 @@
     "build": "tsc -p tsconfig.build.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests",
-    "test:handoff:production-like": "pnpm --filter @aegis/shared build && pnpm --filter @aegis/api build && node handoff-production-like.e2e.mjs"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@aegis/shared": "workspace:*",

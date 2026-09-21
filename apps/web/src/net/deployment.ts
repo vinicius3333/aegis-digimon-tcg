@@ -1,4 +1,4 @@
-export type DeploymentSlot = "blue" | "green" | `g-${string}`;
+export type DeploymentSlot = "blue" | "red" | "green" | `g-${string}`;
 
 export interface DeploymentRevision {
   slot: DeploymentSlot;
@@ -8,10 +8,6 @@ export interface DeploymentRevision {
 export interface DeploymentManifest {
   version: 1;
   webRevision?: string;
-  capabilities?: {
-    /** Cross-process room ownership is opt-in; absent means the current reconnect protocol. */
-    liveRoomHandoff: boolean;
-  };
   active: DeploymentRevision;
   draining: DeploymentRevision[];
 }
@@ -51,7 +47,6 @@ export function parseDeploymentManifest(input: unknown): DeploymentManifest {
     !isRecord(input) ||
     input.version !== 1 ||
     (input.webRevision !== undefined && !isSafeRevision(input.webRevision)) ||
-    (input.capabilities !== undefined && !isDeploymentCapabilities(input.capabilities)) ||
     !isRevision(input.active) ||
     !Array.isArray(input.draining)
   ) {
@@ -64,14 +59,9 @@ export function parseDeploymentManifest(input: unknown): DeploymentManifest {
   return {
     version: 1,
     ...(typeof input.webRevision === "string" ? { webRevision: input.webRevision } : {}),
-    ...(input.capabilities !== undefined ? { capabilities: input.capabilities } : {}),
     active: input.active,
     draining,
   };
-}
-
-function isDeploymentCapabilities(value: unknown): value is DeploymentManifest["capabilities"] {
-  return isRecord(value) && typeof value.liveRoomHandoff === "boolean";
 }
 
 export async function loadDeploymentManifest(
@@ -181,7 +171,7 @@ function isRevision(value: unknown): value is DeploymentRevision {
   return (
     isRecord(value) &&
     typeof value.slot === "string" &&
-    /^(?:blue|green|g-[a-f0-9]{12})$/.test(value.slot) &&
+    /^(?:blue|red|green|g-[a-f0-9]{12})$/.test(value.slot) &&
     isSafeRevision(value.revision)
   );
 }

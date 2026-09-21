@@ -22,10 +22,10 @@ import {
   type SelectionPort,
 } from "./primitives.js";
 import { makeInstance, setupEngine, type BoardSpec, type EngineSetup, type PermanentSpec } from "../testkit/harness.js";
+import { makeRng, shuffleInPlace } from "../setup.js";
 import { registerCard, unregisterCard } from "./registry.js";
 import type { EffectContext } from "./EffectContext.js";
 import type { EffectModule } from "./EffectModule.js";
-import { makeRng, shuffleInPlace } from "../setup.js";
 
 // Concrete card ids present in the generated card data (packages/shared cards.json):
 const DIGIMON = "AD1-001"; // Digimon, DP 5000, playCost 5
@@ -2284,7 +2284,7 @@ describe("primitives: recoverToSecurity", () => {
 });
 
 describe("primitives: shuffleSecurity re-hides face-up cards", () => {
-  it("uses the match's serializable per-seat stream rather than process randomness", () => {
+  it("uses the match's seeded per-seat stream rather than process randomness", () => {
     const expectedRng = makeRng(73);
     const security = [DIGIMON, TAMER, OPTION, "BT1-001"];
     const expected = shuffleInPlace([...security], expectedRng);
@@ -2297,7 +2297,7 @@ describe("primitives: shuffleSecurity re-hides face-up cards", () => {
     h.fx.shuffleSecurity(0);
 
     expect(h.state.players[0]!.security.map((card) => card.cardId)).toEqual(expected);
-    expect(actualRng.exportState()).toBe(expectedRng.exportState());
+    expect(Array.from({ length: 5 }, () => actualRng())).toEqual(Array.from({ length: 5 }, () => expectedRng()));
   });
 
   it("publishes one chosen card identity without revealing any surrounding private cards", () => {

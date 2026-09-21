@@ -12,17 +12,11 @@ import {
   connectionSlot,
   flushIntents,
   clearPendingIntents,
-  roomHandoffIdentity,
-  roomHandoffEnabled,
-  updateRoomHandoffIdentity,
-  reconcileHandoffCommandReceipt,
-  requestHandoffCommandReconciliation,
   type AegisRoom,
   type RoomSlot,
 } from "./client";
 import { intents } from "./intents";
 import { clearReconnectSession, loadReconnectSession, saveReconnectSession } from "./reconnectSession";
-import { CurrentOwnerResolutionError } from "./liveRoomHandoffClient";
 import type { AegisJoinOptions } from "./types";
 
 export type ConnectionStatus = "connecting" | "connected" | "reconnecting" | "error" | "closed";
@@ -196,104 +190,15 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       roomRef.current = room;
       roomSlotRef.current = connectionSlot(room);
       setSessionId(room.sessionId);
-      const previouslySavedSession = loadReconnectSession();
-      const previouslySavedIdentity = previouslySavedSession?.logicalSession;
-      const currentIdentity = roomHandoffIdentity(room) ?? previouslySavedIdentity;
-      let lastSavedIdentity = currentIdentity;
       saveReconnectSession({
         reconnectionToken: room.reconnectionToken,
         roomId: room.roomId,
         slot: roomSlotRef.current,
         savedAt: Date.now(),
-        ...(currentIdentity ? { logicalSession: currentIdentity } : {}),
-        ...(previouslySavedSession !== undefined &&
-        currentIdentity !== undefined &&
-        previouslySavedSession.logicalSession?.gameId === currentIdentity.gameId &&
-        previouslySavedSession.resumeCredential &&
-        (previouslySavedSession.resumeCredentialExpiresAt ?? 0) > Date.now()
-          ? {
-              resumeCredential: previouslySavedSession.resumeCredential,
-              resumeCredentialExpiresAt: previouslySavedSession.resumeCredentialExpiresAt,
-            }
-          : {}),
-      });
-      let requestedCredentialGameId: string | undefined;
-      const requestResumeCredential = (identity: { gameId: string } | undefined) => {
-        if (!identity || !roomHandoffEnabled(room) || requestedCredentialGameId === identity.gameId) return;
-        const saved = loadReconnectSession();
-        if (
-          saved?.logicalSession?.gameId === identity.gameId &&
-          saved.resumeCredential &&
-          (saved.resumeCredentialExpiresAt ?? 0) > Date.now()
-        )
-          return;
-        requestedCredentialGameId = identity.gameId;
-        room.send("requestRoomResumeCredential", { gameId: identity.gameId });
-      };
-
-      room.onMessage("roomResumeCredential", (message: unknown) => {
-        if (typeof message !== "object" || message === null || Array.isArray(message)) return;
-        const credential = message as {
-          gameId?: unknown;
-          resumeCredential?: unknown;
-          ownerEpoch?: unknown;
-          expiresAt?: unknown;
-        };
-        const identity = roomHandoffIdentity(room) ?? loadReconnectSession()?.logicalSession;
-        if (
-          !identity ||
-          credential.gameId !== identity.gameId ||
-          typeof credential.resumeCredential !== "string" ||
-          credential.resumeCredential.length < 32 ||
-          !Number.isSafeInteger(credential.ownerEpoch) ||
-          !Number.isSafeInteger(credential.expiresAt) ||
-          (credential.expiresAt as number) <= Date.now()
-        )
-          return;
-        const updatedIdentity =
-          updateRoomHandoffIdentity(room, {
-            gameId: identity.gameId,
-            ownerEpoch: credential.ownerEpoch as number,
-          }) ?? identity;
-        saveReconnectSession({
-          reconnectionToken: room.reconnectionToken,
-          roomId: room.roomId,
-          slot: roomSlotRef.current,
-          savedAt: Date.now(),
-          logicalSession: updatedIdentity,
-          resumeCredential: credential.resumeCredential,
-          resumeCredentialExpiresAt: credential.expiresAt as number,
-        });
-        lastSavedIdentity = updatedIdentity;
-        requestedCredentialGameId = updatedIdentity.gameId;
       });
 
       room.onStateChange((next) => {
         stateRef.current = next;
-        const logicalSession =
-          updateRoomHandoffIdentity(room, {
-            gameId: typeof next.matchId === "string" ? next.matchId : undefined,
-          }) ?? loadReconnectSession()?.logicalSession;
-        if (!next.gameOver && logicalSession && !sameLogicalSession(logicalSession, lastSavedIdentity)) {
-          const saved = loadReconnectSession();
-          saveReconnectSession({
-            reconnectionToken: room.reconnectionToken,
-            roomId: room.roomId,
-            slot: roomSlotRef.current,
-            savedAt: Date.now(),
-            logicalSession,
-            ...(saved?.logicalSession?.gameId === logicalSession.gameId &&
-            saved.resumeCredential &&
-            (saved.resumeCredentialExpiresAt ?? 0) > Date.now()
-              ? {
-                  resumeCredential: saved.resumeCredential,
-                  resumeCredentialExpiresAt: saved.resumeCredentialExpiresAt,
-                }
-              : {}),
-          });
-          lastSavedIdentity = logicalSession;
-        }
-        requestResumeCredential(logicalSession);
         if (next.gameOver) clearReconnectSession();
         // The client is mounted and has synchronized state; signal the server it is
         // ready to start (ARCHITECTURE.md / API-CONTRACT "ready"). Sent once per
@@ -342,29 +247,6 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
           stateRef.current?.pendingDecision?.decisionId === req.decisionId ? req.decisionId : undefined;
         setDecision(req);
       });
-      room.onMessage("commandReceipt", (receipt: unknown) => {
-        if (!reconcileHandoffCommandReceipt(room, receipt)) return;
-        const logicalSession = roomHandoffIdentity(room);
-        if (!logicalSession) return;
-        if (sameLogicalSession(logicalSession, lastSavedIdentity)) return;
-        const saved = loadReconnectSession();
-        saveReconnectSession({
-          reconnectionToken: room.reconnectionToken,
-          roomId: room.roomId,
-          slot: roomSlotRef.current,
-          savedAt: Date.now(),
-          logicalSession,
-          ...(saved?.logicalSession?.gameId === logicalSession.gameId &&
-          saved.resumeCredential &&
-          (saved.resumeCredentialExpiresAt ?? 0) > Date.now()
-            ? {
-                resumeCredential: saved.resumeCredential,
-                resumeCredentialExpiresAt: saved.resumeCredentialExpiresAt,
-              }
-            : {}),
-        });
-        lastSavedIdentity = logicalSession;
-      });
       room.onError((code, message) => {
         setStatus("error");
         setError(`${code}: ${message ?? "room error"}`);
@@ -380,8 +262,6 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         }
         void attemptReconnect();
       });
-      requestHandoffCommandReconciliation(room);
-      requestResumeCredential(currentIdentity);
     };
 
     // Recover a dropped connection within the server's grace window. Reconnect
@@ -424,14 +304,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
           setStatus("connected");
           flushIntents(next);
           return;
-        } catch (error) {
-          if (isTerminalHandoffResumeError(error)) {
-            clearReconnectSession();
-            clearPendingIntents();
-            setStatus("closed");
-            setError("This match can no longer be resumed.");
-            return;
-          }
+        } catch {
           await delay(Math.min(1000 * 2 ** attempt, 8000));
         }
       }
@@ -458,11 +331,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
           if (cancelled) throw new Error("cancelled");
           try {
             return await resumeReconnectSession(saved);
-          } catch (error) {
-            if (isTerminalHandoffResumeError(error)) {
-              clearReconnectSession();
-              throw error;
-            }
+          } catch {
             if (attempt < MAX_RECONNECT_ATTEMPTS - 1) {
               await delay(Math.min(1000 * 2 ** attempt, 8000));
             }
@@ -536,19 +405,4 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     snapshots,
     roomCode,
   };
-}
-
-function sameLogicalSession(
-  left: { gameId: string; ownerEpoch: number } | undefined,
-  right: { gameId: string; ownerEpoch: number } | undefined,
-): boolean {
-  return left?.gameId === right?.gameId && left?.ownerEpoch === right?.ownerEpoch;
-}
-
-function isTerminalHandoffResumeError(error: unknown): error is CurrentOwnerResolutionError {
-  return (
-    error instanceof CurrentOwnerResolutionError &&
-    ((error.status === 401 && error.code === "ROOM_RESUME_CREDENTIAL_INVALID") ||
-      (error.status === 404 && error.code === "ROOM_SESSION_UNAVAILABLE"))
-  );
 }

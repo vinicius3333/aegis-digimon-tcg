@@ -41,6 +41,38 @@ describe("persistent deployment admission", () => {
     expect(runtime.allowMatchmaking("create")).toBe(false);
   });
 
+  it("routes fixed red slot room creation from the active manifest and leaves reconnect available", () => {
+    const directory = mkdtempSync(`${tmpdir()}/aegis-red-admission-`);
+    directories.push(directory);
+    mkdirSync(`${directory}/routing`);
+    const path = `${directory}/routing/manifest.json`;
+    writeFileSync(path, JSON.stringify({ active: { slot: "red" } }));
+    const runtime = createDeploymentRuntime({
+      slot: "red",
+      revision: "red-revision",
+      adminToken: "token",
+      activeRooms: () => 0,
+      connectedClients: () => 0,
+      readiness: async () => true,
+      canAcceptNewRooms: () => isActiveDeploymentSlot(path, "red"),
+    });
+
+    setRoomCreationAdmission(() => runtime.allowMatchmaking("create"));
+    expect(canCreateRoom()).toBe(true);
+    const room = new AegisRoom();
+    room.roomId = "red-active-room";
+    room.onCreate({});
+    expect(roomRegistry.has(room.roomId)).toBe(true);
+    room.onDispose();
+    expect(runtime.allowMatchmaking("reconnect")).toBe(true);
+
+    writeFileSync(`${path}.next`, JSON.stringify({ active: { slot: "blue" } }));
+    renameSync(`${path}.next`, path);
+    expect(canCreateRoom()).toBe(false);
+    expect(() => new AegisRoom().onCreate({})).toThrow("draining");
+    expect(runtime.allowMatchmaking("reconnect")).toBe(true);
+  });
+
   it("blocks direct internal room construction before it can acquire a registry entry", () => {
     setRoomCreationAdmission(() => false);
     const room = new AegisRoom();

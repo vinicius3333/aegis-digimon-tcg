@@ -10,6 +10,7 @@ describe("readClusterConfig", () => {
 
   it("namespaces matchmaking state per deployment slot", () => {
     expect(readClusterConfig({ AEGIS_DEPLOYMENT_SLOT: "green" }).keyPrefix).toBe("aegis:green:");
+    expect(readClusterConfig({ AEGIS_DEPLOYMENT_SLOT: "red" }).keyPrefix).toBe("aegis:red:");
     expect(readClusterConfig({}).keyPrefix).toBe("aegis:legacy:");
   });
 

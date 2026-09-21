@@ -18,10 +18,10 @@ const MIGRATION_LOCK_KEY = "1869113953";
  * `schema_migrations` so re-runs are no-ops. Ids must be immutable once released: an applied
  * migration is never re-run, so edits to its body reach existing installations only as a new id.
  *
- * The whole run is serialized by a lock, because the blue/green topology boots two API containers
- * against one database: without it both compute the same pending list and the loser dies on a
- * duplicate `schema_migrations` insert. `acquireLock` is a seam for tests; production uses the
- * Postgres advisory lock.
+ * The whole run is serialized by a lock because multiple API containers can boot against one
+ * database during a fixed-slot rollout: without it both compute the same pending list and the
+ * loser dies on a duplicate `schema_migrations` insert. `acquireLock` is a seam for tests;
+ * production uses the Postgres advisory lock.
  */
 export async function runMigrations(
   pool: Pool,

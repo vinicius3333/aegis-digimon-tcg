@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 it("starts a fresh bot match from the lobby after reloading the previous match", async () => {
-  window.history.replaceState(null, "", "/play/game");
+  window.history.replaceState(null, "", "/play");
   saveReconnectSession({
     roomId: "previous-bot-room",
     reconnectionToken: "previous-bot-room:token",
