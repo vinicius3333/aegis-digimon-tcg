@@ -99,6 +99,7 @@ export interface PermanentChrome {
   fateBadges: ReadonlyMap<string, PendingFateBadge>;
   combatImpactIds: ReadonlySet<string>;
   dpPulses: ReadonlyMap<string, DpPulse>;
+  dpBadgeSuppressedIds: ReadonlySet<string>;
   freezePulses: ReadonlyMap<string, FreezePulse>;
   attackLunge: AttackLunge | null;
   heldSuspendedIds: ReadonlySet<string>;

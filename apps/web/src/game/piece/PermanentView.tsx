@@ -41,6 +41,7 @@ export function PermanentView({
   shake,
   claw,
   dpPulse,
+  dpBadgeSuppressed = false,
   freezePulse,
   effectSource,
   effectLinked,
@@ -70,6 +71,7 @@ export function PermanentView({
   claw?: boolean;
   /** The DP change this permanent is currently pulsing over. */
   dpPulse?: DpPulse;
+  dpBadgeSuppressed?: boolean;
   /** The attack/block lock that just landed on this permanent, which jolts the card. */
   freezePulse?: FreezePulse;
   /** This permanent's own effect is activating: it glows and throws a small particle. */
@@ -211,8 +213,11 @@ export function PermanentView({
       {blocker ? <PermanentBlockerBadge /> : null}
       {fate ? <PermanentFateBadge fate={fate} /> : null}
       {activeKeywords.length > 0 ? <PermanentKeywordBadges keywords={activeKeywords} width={permanentWidth} /> : null}
-      {restrictions.length > 0 || hasDpDelta ? (
-        <PermanentRestrictionBadges restrictions={restrictions} dpDelta={hasDpDelta ? delta : undefined} />
+      {restrictions.length > 0 || (hasDpDelta && !dpBadgeSuppressed) ? (
+        <PermanentRestrictionBadges
+          restrictions={restrictions}
+          dpDelta={hasDpDelta && !dpBadgeSuppressed ? delta : undefined}
+        />
       ) : null}
       {transformation ? (
         <PermanentTransformToken

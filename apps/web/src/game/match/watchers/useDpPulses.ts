@@ -1,4 +1,4 @@
-import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
+import { useLayoutEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import type { GameState } from "@aegis/shared";
 import type { AnimationQueue } from "../../animationQueue";
 import { dpPulses as diffDpPulses, type DpPulse } from "../../dpPulse";
@@ -22,6 +22,7 @@ export function useDpPulses({
   dpPulseKeyRef,
   causingEffectGateRef,
   setDpPulses,
+  setDpBadgeSuppressions,
 }: {
   state: GameState | undefined;
   queue: AnimationQueue;
@@ -31,6 +32,7 @@ export function useDpPulses({
   /** The clause that moved the figure, which is read out before the number pulses. */
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   setDpPulses: Dispatch<SetStateAction<ReadonlyMap<string, DpPulse>>>;
+  setDpBadgeSuppressions: Dispatch<SetStateAction<ReadonlyMap<string, number>>>;
 }) {
   const dpSignature = state
     ? [...state.players]
@@ -38,7 +40,7 @@ export function useDpPulses({
         .map((permanent) => `${permanent.permanentId}:${permanent.currentDP}`)
         .join(",")
     : "";
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!state) return;
     const current = new Map<string, number>();
     for (const player of state.players) {
@@ -53,6 +55,7 @@ export function useDpPulses({
     dpPulseKeyRef.current += pulses.length;
     const causingEffectGate = causingEffectGateRef.current;
     for (const pulse of pulses) {
+      setDpBadgeSuppressions((suppressed) => new Map(suppressed).set(pulse.permanentId, pulse.key));
       queue.enqueue({
         id: `dp-pulse-${pulse.key}`,
         track: `dpPulse-${pulse.permanentId}`,
@@ -68,6 +71,12 @@ export function useDpPulses({
             setDpPulses((pulsing) => {
               if (pulsing.get(pulse.permanentId)?.key !== pulse.key) return pulsing;
               const next = new Map(pulsing);
+              next.delete(pulse.permanentId);
+              return next;
+            });
+            setDpBadgeSuppressions((suppressed) => {
+              if (suppressed.get(pulse.permanentId) !== pulse.key) return suppressed;
+              const next = new Map(suppressed);
               next.delete(pulse.permanentId);
               return next;
             });

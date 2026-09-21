@@ -210,7 +210,7 @@ describe("PermanentView DP changes", () => {
 
     expect(screen.getByRole("button", { name: /Darkdramon, 14,000 DP, DP \+2K/i })).toBeTruthy();
     expect(screen.getByText("14K")).toBeTruthy();
-    expect(screen.getByText((_, element) => element?.textContent === "↑DP 2K")).toBeTruthy();
+    expect(screen.getByTitle(/DP \+2K/)).toBeTruthy();
   });
 
   it("labels a DP reduction explicitly on the affected Digimon", () => {
@@ -220,7 +220,42 @@ describe("PermanentView DP changes", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText((_, element) => element?.textContent === "↓DP 6K")).toBeTruthy();
+    expect(document.querySelector('[data-dp="down"][data-label="DP −6K"]')).toBeTruthy();
+  });
+
+  it("reveals the persistent DP-down badge only after the impact animation", () => {
+    const permanent = opponentWithDpDown();
+    const pulse = {
+      permanentId: permanent.permanentId,
+      kind: "debuff" as const,
+      from: 10_000,
+      to: 4_000,
+      key: 1,
+      emphasized: true,
+    };
+    const view = render(
+      <I18nProvider>
+        <PermanentView perm={permanent} dpBadgeSuppressed />
+      </I18nProvider>,
+    );
+
+    expect(view.container.querySelector(".game-dp-pulse--emphasized")).toBeNull();
+    expect(view.container.querySelector('[data-dp="down"]')).toBeNull();
+
+    view.rerender(
+      <I18nProvider>
+        <PermanentView perm={permanent} dpPulse={pulse} dpBadgeSuppressed />
+      </I18nProvider>,
+    );
+    expect(view.container.querySelector(".game-dp-pulse--emphasized")).toBeTruthy();
+    expect(view.container.querySelector('[data-dp="down"]')).toBeNull();
+
+    view.rerender(
+      <I18nProvider>
+        <PermanentView perm={permanent} />
+      </I18nProvider>,
+    );
+    expect(view.container.querySelector('[data-dp="down"][data-label="DP −6K"]')).toBeTruthy();
   });
 
   it("renders BT5-068's inherited +2000 DP from the synchronized current DP", () => {
@@ -230,7 +265,7 @@ describe("PermanentView DP changes", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText((_, element) => element?.textContent === "↑DP 2K")).toBeTruthy();
+    expect(screen.getByTitle(/DP \+2K/)).toBeTruthy();
     expect(screen.getByText("14K")).toBeTruthy();
   });
 });
@@ -317,7 +352,7 @@ describe("PermanentView activatable effects", () => {
 
     expect(screen.getByText("×5")).toBeTruthy();
     expect(screen.getByText("13K")).toBeTruthy();
-    expect(screen.getByText((_, element) => element?.textContent === "↑DP 1K")).toBeTruthy();
+    expect(screen.getByTitle(/DP \+1K/)).toBeTruthy();
   });
 });
 
