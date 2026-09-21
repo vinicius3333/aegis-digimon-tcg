@@ -347,7 +347,12 @@ export async function runSubTriggersInChosenOrder(
   engine: GameEngine,
   armed: readonly ArmedSubTrigger[],
 ): Promise<void> {
-  const remaining = [...armed];
+  // Nested resolution can expose the same armed watcher through both the
+  // enclosing deletion window and its resumed remainder. A printed
+  // [Once Per Turn] effect is still one occurrence in that simultaneous
+  // group; distinct clauses remain separate because their identity carries
+  // a different dedupeKey.
+  const remaining = uniqueOncePerTurnWatcherOccurrences(armed);
   while (remaining.length > 0) {
     // Drop watchers whose trigger condition lapsed while an earlier one resolved, so the
     // ordering prompt never offers an effect that can no longer activate (CR §15-4-4-5).

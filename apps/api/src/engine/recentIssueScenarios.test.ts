@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import "../cards/index.js";
 import { layDevScenario } from "./devScenario.js";
 import { BLUE_DECK, RED_DECK } from "./testDecks.js";
-import { setupEngine } from "./testkit/harness.js";
+import { setupEngine, settle } from "./testkit/harness.js";
 
 describe("recent player-report arena scenarios", () => {
   it("keeps #4888's App Fusion route when the live turn loop reaches Main", async () => {
@@ -82,6 +82,75 @@ describe("recent player-report arena scenarios", () => {
     ).toHaveLength(1);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+  });
+
+  it("offers each #4890 deletion reaction exactly once after Heat Viper", async () => {
+    const automation = {
+      autoAcceptOptional: true,
+      autoChooseOption: true,
+      autoOrderCards: true,
+      autoOrderTriggers: true,
+      autoSelectCards: false,
+      preferTriggerKeys: ["EX11-059"],
+    };
+    const s = setupEngine({ 0: {}, 1: {} }, automation);
+    s.engine.stagedDecks[0] = BLUE_DECK;
+    s.engine.stagedDecks[1] = RED_DECK;
+    s.engine.startDevScenario("arena-issue-4890-reina-deletion");
+
+    for (let tick = 0; tick < 400 && s.state.phase !== Phase.Main; tick += 1) {
+      if (s.state.phase === Phase.Breeding) s.engine.applyIntent(0, { type: "endPhase" });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    const heatViper = s.state.players[0]!.hand.find(({ cardId }) => cardId === "BT2-109")!;
+    const myotismon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX8-060")!;
+    const opponents = s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId);
+    if (s.state.pendingDecision?.kind === "selectCards") {
+      const startOfMain = s.state.pendingDecision;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: startOfMain.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+    }
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: heatViper.instanceId })).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const cost = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: cost.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [myotismon.permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== cost.decisionId);
+    const targets = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targets.decisionId,
+        response: { kind: "chooseTargets", instanceIds: opponents },
+      }),
+    ).toEqual({ ok: true });
+
+    automation.autoSelectCards = true;
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX8-064"));
+    const orders = s.decisions.filter(({ req }) => req.kind === "orderTriggers").map(({ req }) => req);
+    expect(orders).toHaveLength(1);
+    for (const order of orders) {
+      expect(order.options?.triggerCardIds?.filter((cardId) => cardId === "EX11-059") ?? []).toHaveLength(
+        order.options?.triggerCardIds?.includes("EX11-059") ? 1 : 0,
+      );
+      expect(order.options?.triggerCardIds?.filter((cardId) => cardId === "EX8-062") ?? []).toHaveLength(
+        order.options?.triggerCardIds?.includes("EX8-062") ? 1 : 0,
+      );
+    }
   });
 
   it("stages #4891 with enough memory to play SeitenGokuumon into a DP target", () => {
