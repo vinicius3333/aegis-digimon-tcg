@@ -53,6 +53,8 @@ export type GitHubIssueTrackerOptions = {
   labels?: readonly string[];
   /** Stamped on every issue: which build served the reporter. */
   serverRevision?: string;
+  /** Player-facing release identity, kept separate from the exact build revision. */
+  publicVersion?: string;
   fetch?: typeof globalThis.fetch;
 };
 
@@ -88,6 +90,7 @@ export class GitHubIssueTracker implements IssueTracker {
       token,
       labels: labels?.length ? labels : ["player-report"],
       serverRevision: env.AEGIS_REVISION,
+      publicVersion: env.AEGIS_PUBLIC_VERSION,
     });
   }
 
@@ -102,7 +105,7 @@ export class GitHubIssueTracker implements IssueTracker {
       },
       body: JSON.stringify({
         title: issueTitle(report),
-        body: issueBody(report, this.options.serverRevision),
+        body: issueBody(report, this.options.serverRevision, this.options.publicVersion),
         labels: this.options.labels,
       }),
     });
@@ -121,7 +124,7 @@ export function issueTitle({ summary, cardIds }: NewBugReport): string {
   return truncate(`${prefix}${summary}`, ISSUE_TITLE_LIMIT);
 }
 
-export function issueBody(report: NewBugReport, serverRevision?: string): string {
+export function issueBody(report: NewBugReport, serverRevision?: string, publicVersion?: string): string {
   const { reporterName, cardIds, description, opponentDeck, attachmentUrl } = report;
   const sections = [
     "### Cards",
@@ -136,18 +139,27 @@ export function issueBody(report: NewBugReport, serverRevision?: string): string
   // A bare URL, never a markdown link: the reporter must not get to choose the text it hides behind.
   if (attachmentUrl) sections.push("", "### Attachment", attachmentUrl);
   const credit = reporterName ? `**${neutralizeMarkdownRefs(reporterName)}**` : "an anonymous player";
-  sections.push("", "---", `Reported in-game by ${credit}.`, reportContext(report, serverRevision));
+  sections.push("", "---", `Reported in-game by ${credit}.`, reportContext(report, serverRevision, publicVersion));
   return sections.join("\n");
 }
 
 /** The build and browser the reporter was on, which they should never have to type. */
-function reportContext({ clientRevision, userAgent }: NewBugReport, serverRevision?: string): string {
+function reportContext(
+  { clientRevision, userAgent }: NewBugReport,
+  serverRevision?: string,
+  publicVersion?: string,
+): string {
   const parts = [
+    ...(publicVersion ? [`version \`${code(displayVersion(publicVersion))}\``] : []),
     `client \`${code(clientRevision ?? "unknown")}\``,
     `server \`${code(serverRevision ?? "unknown")}\``,
     ...(userAgent ? [`\`${code(truncate(userAgent, USER_AGENT_LIMIT))}\``] : []),
   ];
   return parts.join(" · ");
+}
+
+function displayVersion(version: string): string {
+  return `v${version.replace(/-beta$/i, "-BETA")}`;
 }
 
 // GitHub turns `@handle` into a notification and `#123` into a cross-link, so text a stranger typed
