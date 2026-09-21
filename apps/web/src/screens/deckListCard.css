@@ -166,17 +166,23 @@
 }
 
 .deck-list-card.is-compact .deck-list-card__body {
+  position: relative;
   padding: var(--ds-space-4);
+}
+
+.deck-list-card.is-compact .deck-list-card__heading {
+  min-height: 42px;
+  padding-right: 86px;
+}
+
+.deck-list-card.is-compact .aegis-badge {
+  position: absolute;
+  top: var(--ds-space-4);
+  right: var(--ds-space-4);
 }
 
 .deck-list-card.is-compact .deck-list-card__identity h3 {
   font-size: var(--ds-text-lg);
-}
-
-.deck-list-card.is-compact .deck-list-card__blurb {
-  margin: var(--ds-space-2) 0 0;
-  font-size: var(--ds-text-xs);
-  -webkit-line-clamp: 1;
 }
 
 .deck-list-card.is-compact .deck-list-card__violation,
@@ -220,6 +226,14 @@
   .deck-list-card.is-compact .deck-list-card__cover img {
     width: 64px !important;
     height: 90px !important;
+  }
+
+  .deck-list-card.is-compact .deck-list-card__heading {
+    padding-right: 0;
+  }
+
+  .deck-list-card.is-compact .aegis-badge {
+    position: static;
   }
 
   /* A phone-width body cannot hold "Edit" and "Make active" side by side, and the

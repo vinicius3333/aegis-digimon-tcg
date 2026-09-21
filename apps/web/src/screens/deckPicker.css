@@ -109,6 +109,7 @@
 }
 
 .deck-picker__random-action {
+  min-width: 220px;
   flex-shrink: 0;
   margin-bottom: 2px;
 }

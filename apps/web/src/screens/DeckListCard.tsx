@@ -102,7 +102,7 @@ export function DeckListCard({
             </Badge>
           ) : null}
         </div>
-        <p className="deck-list-card__blurb">{deckBlurbLabel(t, deck.blurb)}</p>
+        {!compact ? <p className="deck-list-card__blurb">{deckBlurbLabel(t, deck.blurb)}</p> : null}
         {banViolations.length > 0 ? (
           <div className="deck-list-card__violation">
             {banViolations.map(([id]) => (
