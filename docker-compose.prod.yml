@@ -158,6 +158,7 @@ services:
       args:
         VITE_AEGIS_API_URL: ${AEGIS_PUBLIC_WS_URL:?AEGIS_PUBLIC_WS_URL must be set}
         VITE_AEGIS_REVISION: ${AEGIS_REVISION:-production}
+        VITE_AEGIS_PUBLIC_VERSION: ${AEGIS_PUBLIC_VERSION:-1.0.0-beta}
         VITE_AEGIS_DEPLOYMENT_MODE: ${AEGIS_DEPLOYMENT_MODE:-direct}
     restart: unless-stopped
     cpus: 0.5

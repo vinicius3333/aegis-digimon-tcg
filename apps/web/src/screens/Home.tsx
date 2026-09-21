@@ -80,7 +80,9 @@ export function Home({
           ) : null}
           {onOpenReleases ? (
             <button type="button" onClick={onOpenReleases}>
-              <Icons.Sparkles size={15} />
+              <span aria-hidden="true">
+                <Icons.Sparkles size={15} />
+              </span>
               {displayVersion(currentRelease().version)} · {t("releases.nav")}
             </button>
           ) : null}

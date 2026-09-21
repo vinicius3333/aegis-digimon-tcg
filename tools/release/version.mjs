@@ -26,14 +26,25 @@ function validate() {
   if (!Array.isArray(releases) || releases.length === 0) throw new Error("Release catalog is empty");
   if (releases[0].version !== version) throw new Error("Newest release must match package version");
   const seen = new Set();
-  for (const release of releases) {
+  const releaseKeys = ["features", "fixes", "releasedAt", "summary", "version"];
+  const itemKeys = ["issue", "text"];
+  for (const [index, release] of releases.entries()) {
     if (!pattern.test(release.version) || seen.has(release.version))
       throw new Error(`Invalid or duplicate release: ${release.version}`);
+    if (JSON.stringify(Object.keys(release).sort()) !== JSON.stringify(releaseKeys))
+      throw new Error(`Unknown release fields: ${release.version}`);
+    if (index > 0 && compare(releases[index - 1].version, release.version) <= 0)
+      throw new Error("Releases must be newest first");
     seen.add(release.version);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(release.releasedAt)) throw new Error(`Invalid release date: ${release.releasedAt}`);
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(release.releasedAt) ||
+      new Date(`${release.releasedAt}T00:00:00Z`).toISOString().slice(0, 10) !== release.releasedAt
+    )
+      throw new Error(`Invalid release date: ${release.releasedAt}`);
     if (!release.summary?.en || !release.summary?.["pt-BR"])
       throw new Error(`Missing localized summary: ${release.version}`);
     for (const item of [...release.features, ...release.fixes]) {
+      if (Object.keys(item).some((key) => !itemKeys.includes(key))) throw new Error("Unknown release item fields");
       if (!item.text?.en || !item.text?.["pt-BR"])
         throw new Error(`Missing localized release item: ${release.version}`);
       if (item.issue !== undefined && (!Number.isInteger(item.issue) || item.issue <= 0))
@@ -52,7 +63,7 @@ function compare(left, right) {
 function setVersion(next) {
   if (!pattern.test(next)) throw new Error("Version must match X.Y.Z-beta");
   const current = readJson("package.json").version;
-  if (pattern.test(current) && compare(next, current) >= 0 === false) throw new Error("Version cannot move backwards");
+  if (pattern.test(current) && compare(next, current) <= 0) throw new Error("Version must move forward");
   for (const path of manifests) {
     const absolute = resolve(root, path);
     const manifest = JSON.parse(readFileSync(absolute, "utf8"));

@@ -20,6 +20,10 @@ function run(program, args, options = {}) {
 try {
   if (requested !== tag) throw new Error(`Confirm the exact tag: pnpm release:publish -- ${tag}`);
   run("node", ["tools/release/version.mjs", "check"], { inherit: true });
+  run("pnpm", ["typecheck"], { inherit: true });
+  run("pnpm", ["test:deploy"], { inherit: true });
+  run("pnpm", ["exec", "oxlint", "tools/release", "apps/web/src/releases"], { inherit: true });
+  run("pnpm", ["exec", "oxfmt", "--check", "tools/release", "apps/web/src/releases"], { inherit: true });
   if (run("git", ["status", "--porcelain"])) throw new Error("The worktree must be clean");
   if (run("git", ["tag", "--list", tag])) throw new Error(`${tag} already exists locally`);
   try {
@@ -27,9 +31,16 @@ try {
     throw new Error(`${tag} already exists on origin`);
   } catch (error) {
     if (error.message.includes("already exists")) throw error;
-    if (error.status !== 2) throw new Error("Could not verify the remote tag state");
+    if (error.status !== 2) throw new Error("Could not verify the remote tag state", { cause: error });
   }
-  const notes = run("node", ["tools/release/render-notes.mjs"]);
+  try {
+    run("gh", ["release", "view", tag]);
+    throw new Error(`GitHub Release ${tag} already exists`);
+  } catch (error) {
+    if (error.message.includes("already exists")) throw error;
+    if (error.status !== 1) throw new Error("Could not verify the GitHub Release state", { cause: error });
+  }
+  const notes = `${run("node", ["tools/release/render-notes.mjs"])}\n\nPlay and read the in-app notes: https://aegis-digi.online/whats-new`;
   run("git", ["tag", "-a", tag, "-m", `${tag} release`], { inherit: true });
   run("git", ["push", "origin", tag], { inherit: true });
   run("gh", ["release", "create", tag, "--prerelease", "--title", tag, "--notes", notes], { inherit: true });

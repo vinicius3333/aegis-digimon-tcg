@@ -1,4 +1,5 @@
 import { Icons } from "../design/icons";
+import { Badge, Panel } from "../design/primitives";
 import { useTranslation } from "../i18n";
 import { allReleases, displayVersion, issueUrl, releaseUrl, type ReleaseItem } from "./catalog";
 import "./releases.css";
@@ -16,28 +17,35 @@ export function ReleasesScreen() {
       </header>
       <div className="releases-list">
         {allReleases().map((release, index) => (
-          <article className="release" key={release.version}>
-            <header className="release__head">
-              <div className="release__identity">
-                <strong>{displayVersion(release.version)}</strong>
-                {index === 0 ? <span>{t("releases.current")}</span> : null}
-                <time dateTime={release.releasedAt}>
-                  {new Intl.DateTimeFormat(dateLocale, { dateStyle: "long", timeZone: "UTC" }).format(
-                    new Date(`${release.releasedAt}T00:00:00Z`),
-                  )}
-                </time>
-              </div>
-              <a href={releaseUrl(release.version)} target="_blank" rel="noreferrer">
-                <Icons.Github size={18} /> {t("releases.github")}
-              </a>
-            </header>
-            <p className="release__summary">{release.summary[locale]}</p>
-            {release.features.length ? (
-              <ReleaseSection title={t("releases.features")} items={release.features} locale={locale} />
-            ) : null}
-            {release.fixes.length ? (
-              <ReleaseSection title={t("releases.fixes")} items={release.fixes} locale={locale} />
-            ) : null}
+          <article key={release.version}>
+            <Panel className="release" pad={24}>
+              <header className="release__head">
+                <div className="release__identity">
+                  <Badge className="release__version" tone="warning">
+                    {displayVersion(release.version)}
+                  </Badge>
+                  {index === 0 ? <span>{t("releases.current")}</span> : null}
+                  <time dateTime={release.releasedAt}>
+                    {new Intl.DateTimeFormat(dateLocale, { dateStyle: "long", timeZone: "UTC" }).format(
+                      new Date(`${release.releasedAt}T00:00:00Z`),
+                    )}
+                  </time>
+                </div>
+                <a href={releaseUrl(release.version)} target="_blank" rel="noreferrer">
+                  <span aria-hidden="true">
+                    <Icons.Github size={18} />
+                  </span>{" "}
+                  {t("releases.github")}
+                </a>
+              </header>
+              <p className="release__summary">{release.summary[locale]}</p>
+              {release.features.length ? (
+                <ReleaseSection title={t("releases.features")} items={release.features} locale={locale} />
+              ) : null}
+              {release.fixes.length ? (
+                <ReleaseSection title={t("releases.fixes")} items={release.fixes} locale={locale} />
+              ) : null}
+            </Panel>
           </article>
         ))}
       </div>
@@ -53,7 +61,6 @@ function ReleaseSection({ title, items, locale }: { title: string; items: Releas
       <ul>
         {items.map((item) => (
           <li key={`${item.text.en}:${item.issue ?? "none"}`}>
-            <Icons.Sparkles size={20} />
             <div>
               <p>{item.text[locale]}</p>
               {item.issue ? (
