@@ -88,10 +88,6 @@ export function displayVersion(version: string): string {
   return `v${version.replace(/-beta$/, "-BETA")}`;
 }
 
-export function releaseUrl(version: string): string {
-  return `${GITHUB_REPO_URL}/releases/tag/${displayVersion(version)}`;
-}
-
 export function issueUrl(issue: number): string {
   return `${GITHUB_REPO_URL}/issues/${issue}`;
 }

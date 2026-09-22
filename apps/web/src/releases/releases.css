@@ -49,22 +49,6 @@
   color: var(--ds-fg-muted);
   font-size: var(--ds-text-sm);
 }
-.release__head > a {
-  display: inline-flex;
-  min-height: var(--ds-touch-target);
-  align-items: center;
-  gap: var(--ds-space-2);
-  color: var(--ds-accent);
-  font-size: var(--ds-text-sm);
-  font-weight: 600;
-  text-decoration: none;
-}
-.release__head > a:hover {
-  color: var(--ds-accent-hover);
-}
-.release__head > a:active {
-  color: var(--ds-accent-active);
-}
 .release__summary {
   max-width: var(--ds-readable-max);
   margin: var(--ds-space-5) 0 var(--ds-space-6);
@@ -124,10 +108,6 @@
   }
   .releases-page__head p {
     font-size: var(--ds-text-base);
-  }
-  .release__head {
-    align-items: flex-start;
-    flex-direction: column;
   }
   .release__identity {
     align-items: flex-start;

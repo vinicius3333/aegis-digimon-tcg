@@ -8,7 +8,7 @@ import { ReleasesScreen } from "./ReleasesScreen";
 describe("release notes screen", () => {
   beforeEach(() => localStorage.clear());
 
-  it("shows the current public beta and its GitHub release", () => {
+  it("shows the current public beta without a GitHub release link", () => {
     render(
       <I18nProvider>
         <ReleasesScreen />
@@ -16,9 +16,7 @@ describe("release notes screen", () => {
     );
     expect(screen.getByRole("heading", { name: "What's new" })).toBeTruthy();
     expect(screen.getByText("v1.0.0-BETA")).toBeTruthy();
-    expect(screen.getByRole<HTMLAnchorElement>("link", { name: /View details on GitHub/ }).href).toMatch(
-      /v1\.0\.0-BETA$/,
-    );
+    expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
   it("translates the release content through the app i18n", () => {

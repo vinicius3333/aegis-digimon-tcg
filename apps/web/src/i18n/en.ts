@@ -72,7 +72,6 @@ export const en = {
   "releases.title": "What's new",
   "releases.subtitle": "See what arrived and what got better in Aegis.",
   "releases.current": "Current version",
-  "releases.github": "View details on GitHub",
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",

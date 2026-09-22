@@ -1,7 +1,6 @@
-import { Icons } from "../design/icons";
 import { Badge, Panel } from "../design/primitives";
 import { useTranslation, type TranslationKey } from "../i18n";
-import { allReleases, displayVersion, issueUrl, releaseUrl, type ReleaseItem } from "./catalog";
+import { allReleases, displayVersion, issueUrl, type ReleaseItem } from "./catalog";
 import "./releases.css";
 
 export function ReleasesScreen() {
@@ -31,12 +30,6 @@ export function ReleasesScreen() {
                     )}
                   </time>
                 </div>
-                <a href={releaseUrl(release.version)} target="_blank" rel="noreferrer">
-                  <span aria-hidden="true">
-                    <Icons.Github size={18} />
-                  </span>{" "}
-                  {t("releases.github")}
-                </a>
               </header>
               <p className="release__summary">{t(release.summaryKey as TranslationKey)}</p>
               {release.features.length ? (

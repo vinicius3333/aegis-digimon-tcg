@@ -74,7 +74,6 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.title": "O que h\u00e1 de novo",
   "releases.subtitle": "Veja o que chegou e o que ficou melhor no Aegis.",
   "releases.current": "Vers\u00e3o atual",
-  "releases.github": "Ver detalhes no GitHub",
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",

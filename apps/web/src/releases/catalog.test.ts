@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allReleases, currentRelease, displayVersion, issueUrl, parseCatalog, releaseUrl } from "./catalog";
+import { allReleases, currentRelease, displayVersion, issueUrl, parseCatalog } from "./catalog";
 
 describe("release catalog", () => {
   it("exposes the first official beta as the current release", () => {
@@ -8,8 +8,7 @@ describe("release catalog", () => {
     expect(allReleases()).toHaveLength(1);
   });
 
-  it("builds public GitHub links", () => {
-    expect(releaseUrl("1.0.0-beta")).toMatch(/releases\/tag\/v1\.0\.0-BETA$/);
+  it("builds public GitHub issue links", () => {
     expect(issueUrl(4894)).toMatch(/issues\/4894$/);
   });
 
