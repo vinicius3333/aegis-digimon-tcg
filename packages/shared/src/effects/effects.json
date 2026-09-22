@@ -43784,6 +43784,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "reduceCostBy": 2,
             "optional": true
           }
@@ -222191,6 +222192,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 5,
                   "optional": true
                 }
@@ -230134,6 +230136,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 3,
                   "optional": true
                 }
