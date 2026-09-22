@@ -33,6 +33,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-alliance-20",
   "arena-bt11-analogman-redirect-timing",
   "arena-bt20-grademon-redirect",
+  "arena-bt20-takemikazuchi-turn-continue",
   "arena-bt21-davis-top-stack",
   "arena-bt26-chronomon-dm-succession",
   "arena-face-up-security",
@@ -693,6 +694,50 @@ function layBt11AnalogmanRedirectTimingScenario(state: GameState, decks: readonl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/**
+ * BT17-069 Fenriloogamon's inherited [Your Turn] clause under BT20-081 Fenriloogamon:
+ * Takemikazuchi: the turn ends only once the opponent reaches 3 memory (KB Q2831 — "your turn
+ * will continue when your opponent's memory is at 1 or 2"). Two 2-cost plays walk the gauge from
+ * +2 to -2 (opponent 2) without ending the turn; the 3-cost play then crosses to 3 and ends it.
+ */
+function layBt20TakemikazuchiTurnContinueScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    // Fenriloogamon is a digivolution card, so only its INHERITED clause is live — exactly the
+    // placement the Blast DNA / DNA digivolve into Takemikazuchi leaves behind.
+    // The reporter's stack shape: BT17-091's awaiting Aura is ordered ahead of BT17-069's
+    // inherited SetTurnEndMemory in the continuous pass, which is what exposed the
+    // clear-before-refill window the turn-end check used to read.
+    placePermanent(
+      human,
+      establishedDigimon(0, ["BT17-091", "BT16-076", "BT17-069", "BT17-040", "BT20-081"], "-bt20-takemikazuchi"),
+    );
+    insertCard(human, Zone.Hand, faceDownCard("dev-takemikazuchi-play-1", "BT1-009", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-takemikazuchi-play-2", "BT1-009", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-takemikazuchi-play-3", "BT14-069", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-bt20-takemikazuchi-bot"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 2;
 }
 
 /** BT20-053 inherited effect: redirect the bot's player attack to the human's Digimon. */
@@ -1424,6 +1469,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
+  "arena-bt20-takemikazuchi-turn-continue": layBt20TakemikazuchiTurnContinueScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-bt26-chronomon-dm-succession": layBt26ChronomonDmSuccessionScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,

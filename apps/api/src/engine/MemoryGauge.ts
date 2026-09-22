@@ -43,6 +43,8 @@ export type MemoryGainPolicyCheck = (seat: Seat, opts: { isTamerEffect: boolean 
 
 export class MemoryGauge {
   private readonly turnEndMinMemoryOverrides = new Map<Seat, number>();
+  /** Set only while a continuous pass is staging the next tier; see beginTurnEndMinMemoryRecompute. */
+  private turnEndMinMemoryStaging: Map<Seat, number> | undefined;
 
   constructor(
     private readonly state: GameState,
@@ -76,12 +78,43 @@ export class MemoryGauge {
 
   /** Raise the threshold for a seat; multiple continuous effects combine by maximum. */
   setTurnEndMinMemory(seat: Seat, minimum: number): void {
-    const current = this.turnEndMinMemoryOverrides.get(seat) ?? DEFAULT_TURN_END_MIN_MEMORY;
-    if (minimum > current) this.turnEndMinMemoryOverrides.set(seat, minimum);
+    const target = this.turnEndMinMemoryStaging ?? this.turnEndMinMemoryOverrides;
+    const current = target.get(seat) ?? DEFAULT_TURN_END_MIN_MEMORY;
+    if (minimum > current) target.set(seat, minimum);
   }
 
-  /** Clear continuous threshold effects before re-deriving the persistent tier. */
+  /**
+   * Open a staged re-derivation of the continuous threshold tier.
+   *
+   * The turn-end condition is read SYNCHRONOUSLY (MainPhaseController.checkTurnEnd, the
+   * attack gate, the attack-target projection) while the continuous pass that produces it
+   * is ASYNCHRONOUS: any awaiting continuous effect ordered ahead of the one raising the
+   * threshold yields mid-pass. Clearing the live map up front therefore made the gauge
+   * report the default of 1 for the duration of that await, and a turn-end check landing
+   * in the window (for example the one `onCombatComplete` runs after an attack) ended a
+   * turn that BT17-069's inherited "the turn end condition is the opponent having 3 or
+   * more memory" was still keeping open (KB Q2831).
+   *
+   * So the pass writes into a staging map and {@link commitTurnEndMinMemoryRecompute}
+   * swaps it in at the end: readers always see the last COMPLETE snapshot, never a
+   * half-derived one.
+   */
+  beginTurnEndMinMemoryRecompute(): void {
+    this.turnEndMinMemoryStaging = new Map<Seat, number>();
+  }
+
+  /** Publish the staged tier as the live one. A pass that staged nothing clears the tier. */
+  commitTurnEndMinMemoryRecompute(): void {
+    if (this.turnEndMinMemoryStaging === undefined) return;
+    const staged = this.turnEndMinMemoryStaging;
+    this.turnEndMinMemoryStaging = undefined;
+    this.turnEndMinMemoryOverrides.clear();
+    for (const [seat, minimum] of staged) this.turnEndMinMemoryOverrides.set(seat, minimum);
+  }
+
+  /** Drop the continuous threshold tier outright (isolated callers and tests). */
   clearTurnEndMinMemoryOverrides(): void {
+    this.turnEndMinMemoryStaging = undefined;
     this.turnEndMinMemoryOverrides.clear();
   }
 
