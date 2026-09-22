@@ -581,6 +581,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.resolveEffect": "Resolver efeito",
   "overlay.chooseEffectPrompt": "Escolha um efeito",
   "overlay.useEffectPrompt": "Usar este efeito?",
+  "overlay.choiceRevealedCards": "Cartas reveladas",
   "overlay.selectTargets": "Selecione {range} alvo(s)",
   "overlay.sourceCountOne": "{count} fonte",
   "overlay.sourceCountMany": "{count} fontes",

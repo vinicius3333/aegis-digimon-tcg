@@ -11,6 +11,7 @@ import { printedCardName } from "../printedCardName";
 import type { TriggerDetail } from "../types";
 import { DecisionBoardReturn } from "./DecisionBoardReturn";
 import { DecisionCandidateGrid } from "./DecisionCandidateGrid";
+import { DecisionChoiceCards } from "./DecisionChoiceCards";
 import { DecisionChooseFooter } from "./DecisionChooseFooter";
 import { DecisionEffectChoice } from "./DecisionEffectChoice";
 import { trapDialogFocus } from "./decisionFocusTrap";
@@ -203,6 +204,11 @@ export function DecisionOverlay({
           orderDestination={request.options?.orderDestination}
           onMove={moveOrderedCard}
         />
+      ) : null}
+
+      {/* A choice about revealed cards shows them; the player must not decide blind. */}
+      {isChoose && choiceEffects === undefined && candidates.length > 0 ? (
+        <DecisionChoiceCards candidates={candidates} wideDialog={wideDialog} />
       ) : null}
 
       {isChoose && choiceEffects !== undefined ? (
