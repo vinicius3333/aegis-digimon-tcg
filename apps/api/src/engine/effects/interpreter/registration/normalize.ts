@@ -132,14 +132,16 @@ function isSelfDelayGrant(action: Action): boolean {
   return target?.isSelf === true || target?.filter?.isSelfRef === true;
 }
 
-/** The reactive listener (or the clause itself) whose whole body is that ＜Delay＞ grant. */
-function delayArmingActionIndex(effect: CardEffect): number {
-  return (effect.actions ?? []).findIndex((action) => {
-    if (isSelfDelayGrant(action)) return true;
-    if (action.kind !== "SubTrigger" && action.kind !== "Replacement") return false;
-    const nested = (action as { actions?: Action[] }).actions;
-    return Array.isArray(nested) && nested.length === 1 && isSelfDelayGrant(nested[0]!);
-  });
+/** A reactive listener (or the clause itself) whose whole body is that ＜Delay＞ grant. */
+function isDelayArmingAction(action: Action): boolean {
+  if (isSelfDelayGrant(action)) return true;
+  if (action.kind !== "SubTrigger" && action.kind !== "Replacement") return false;
+  const nested = (action as { actions?: Action[] }).actions;
+  return Array.isArray(nested) && nested.length === 1 && isSelfDelayGrant(nested[0]!);
+}
+
+function delayArmingActions(effect: CardEffect): Action[] {
+  return (effect.actions ?? []).filter(isDelayArmingAction);
 }
 
 function hasDelayKeyword(effect: CardEffect): boolean {
@@ -189,27 +191,34 @@ function withTriggeredDelayWindows(compiled: CompiledCard): CompiledCard {
   if (payloads.length !== 1) return compiled;
   const payload = payloads[0]!;
   if (payload.condition !== undefined) return compiled;
-  const armers = compiled.effects.filter((effect) => effect !== payload && delayArmingActionIndex(effect) >= 0);
+  const armers = compiled.effects.filter((effect) => effect !== payload && delayArmingActions(effect).length > 0);
   if (armers.length !== 1) return compiled;
   const armer = armers[0]!;
   if (hasDelayKeyword(armer)) return compiled;
   const body = withoutDelayArmedMarker(payload.actions ?? []);
   if (body.length === 0) return compiled;
-  const armingIndex = delayArmingActionIndex(armer);
-  const armingAction = (armer.actions ?? [])[armingIndex]!;
-  const reactive = armingAction.kind === "SubTrigger" || armingAction.kind === "Replacement";
+  const armingActions = delayArmingActions(armer);
+  const reactive = armingActions.every((action) => action.kind === "SubTrigger" || action.kind === "Replacement");
+  if (!reactive && armingActions.length !== 1) return compiled;
   // The armer often carries the clause's "if ..." gate on the grant ACTION rather than on the
   // clause (EX6-070's "If you have a Digimon with [Lilithmon] in its name"). The grant is what
   // the fold replaces, so lift that gate onto the clause it belongs to, and leave the card alone
   // when it would have to compete with a gate already there.
-  const grantCondition = reactive
-    ? ((armingAction as { actions?: Action[] }).actions?.[0] as { condition?: CardEffect["condition"] } | undefined)
-        ?.condition
-    : (armingAction as { condition?: CardEffect["condition"] }).condition;
+  const grantConditions = armingActions.map((action) =>
+    action.kind === "SubTrigger" || action.kind === "Replacement"
+      ? ((action as { actions?: Action[] }).actions?.[0] as { condition?: CardEffect["condition"] } | undefined)
+          ?.condition
+      : (action as { condition?: CardEffect["condition"] }).condition,
+  );
+  const distinctGrantConditions = new Set(
+    grantConditions.map((condition) => (condition === undefined ? "<unconditional>" : JSON.stringify(condition))),
+  );
+  if (distinctGrantConditions.size > 1) return compiled;
+  const grantCondition = grantConditions[0];
   if (grantCondition !== undefined && armer.condition !== undefined) return compiled;
   const actions = reactive
-    ? (armer.actions ?? []).map((action, index) =>
-        index === armingIndex ? ({ ...action, actions: body } as Action) : action,
+    ? (armer.actions ?? []).map((action) =>
+        isDelayArmingAction(action) ? ({ ...action, actions: body } as Action) : action,
       )
     : body;
   const rewritten: CardEffect = {

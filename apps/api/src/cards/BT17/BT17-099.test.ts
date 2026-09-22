@@ -176,7 +176,14 @@ describe("BT17-099 Awakening of the Sun", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT17-099"));
 
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(true);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(s.inst("marcus").instanceId),
+      ),
+    ).toBe(true);
+    // ShineGreymon's resulting [When Digivolving] plays the returned Marcus back out.
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-087")).toBe(true);
     // The return opens the window on the opponent's turn: the player is asked, and accepting pays
     // §16-17-1's cost by trashing this card from the battle area.
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);

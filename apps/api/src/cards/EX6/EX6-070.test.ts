@@ -54,8 +54,8 @@ describe("EX6-070 Phantom Pain", () => {
         entry.actions[0]?.target?.filter?.unsuspended === true,
     );
     expect(securityDeleteEntries).toHaveLength(1);
-    // The authored record keeps the grant/activate pair; only the runtime record is folded.
-    expect(compiled.effects).toHaveLength(4);
+    // The synchronized authored record is already folded and remains idempotent at registration.
+    expect(compiled.effects).toHaveLength(3);
   });
 
   it("publicly plays Phantom Pain into the battle area through Main", async () => {

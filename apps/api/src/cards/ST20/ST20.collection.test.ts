@@ -208,14 +208,13 @@ describe("ST20 collection audit proof", () => {
     ]);
     expect(
       effects("ST20-14").find(
-        (effect) => effect.trigger === "Main" && effect.keywords?.some((keyword) => keyword.keyword === "Delay"),
+        (effect) => effect.trigger === "AllTurns" && effect.keywords?.some((keyword) => keyword.keyword === "Delay"),
       )?.actions[0],
-    ).toMatchObject({ kind: "PlayWithoutCost", optional: true, from: ["hand"] });
-    expect(effects("ST20-14").find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({
+    ).toMatchObject({
       kind: "SubTrigger",
       event: "whenDigimonWouldLeave",
       sourceFilter: { kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } },
-      actions: [{ kind: "GainKeyword", keyword: { keyword: "Delay" } }],
+      actions: [{ kind: "PlayWithoutCost", optional: true, from: ["hand"] }],
     });
     expect(effects("ST20-14").find((effect) => effect.trigger === "Security")).toMatchObject({
       isSecurity: true,
