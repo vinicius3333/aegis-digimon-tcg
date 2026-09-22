@@ -6,11 +6,11 @@ import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
-import { type LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
+import { type LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
-import { CardKind, assemblyRequirementFor, filterToDistinctColors, isDigimon } from "@aegis/shared";
+import { CardKind, filterToDistinctColors, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
-import { materialMatchesAssemblySlot, materialsSatisfyAssemblyRecipe } from "../../../actions/assembly.js";
+import { prepareEffectPlayAssembly } from "./effectPlayAssembly.js";
 
 /** Cards whose rule text changes a static fact only while they are revealed from deck. */
 export function revealedDefinition(
@@ -450,37 +450,13 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   if (toPlay.length > 0) {
     const toPlayIds = toPlay.map((p) => p.instanceId);
     await ctx.fx.returnToHand(toPlayIds, { silent: true });
-    const assemblyMaterialInstanceIdsByPlay: Record<string, string[]> = {};
-    const assemblyReductionByPlay: Record<string, number> = {};
-    const reservedAssemblyMaterials = new Set<string>();
-    for (const entry of toPlay) {
-      const playedCard = revealed.find((card) => card.instanceId === entry.instanceId);
-      if (playedCard === undefined) continue;
-      const playedDefinition = ctx.game.definitionOf(playedCard);
-      const requirement = assemblyRequirementFor(playedCard.cardId)?.[0];
-      if (requirement === undefined) continue;
-      const requiredCount = requirement.materials.reduce((sum, slot) => sum + slot.count, 0);
-      const materialCandidates = looseCardsInZone(ctx, playedCard.ownerSeat, "trash").filter((candidate) => {
-        if (reservedAssemblyMaterials.has(candidate.instanceId)) return false;
-        const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
-        return requirement.materials.some((slot) => materialMatchesAssemblySlot(definition, slot, playedDefinition));
-      });
-      if (requiredCount === 0 || materialCandidates.length < requiredCount) continue;
-      const selected = await ctx.ask.selectCards(ctx, {
-        candidates: materialCandidates.map((candidate) => candidate.instanceId),
-        min: 0,
-        max: requiredCount,
-        assemblyCardId: playedCard.cardId,
-      });
-      const selectedDefinitions = selected
-        .map((selectedId) => materialCandidates.find((candidate) => candidate.instanceId === selectedId))
-        .filter((candidate): candidate is LooseCandidate => candidate !== undefined)
-        .map((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never));
-      if (!materialsSatisfyAssemblyRecipe(selectedDefinitions, requirement.materials, playedDefinition)) continue;
-      assemblyMaterialInstanceIdsByPlay[entry.instanceId] = selected;
-      assemblyReductionByPlay[entry.instanceId] = requirement.reduceCost;
-      for (const materialId of selected) reservedAssemblyMaterials.add(materialId);
-    }
+    const playedCards = toPlayIds
+      .map((instanceId) => revealed.find((card) => card.instanceId === instanceId))
+      .filter((card): card is (typeof revealed)[number] => card !== undefined);
+    const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
+      ctx,
+      playedCards,
+    );
     // Group by costDelta so a "play with the cost reduced by N" spec (BT25-074) plays
     // separately from a plain "without paying the cost" spec (payCost: false) in the
     // same RevealAdd action.
@@ -506,13 +482,17 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     // `playFromHand` is the legacy placement-only primitive; `playInstances` owns the
     // complete effect-play lifecycle (ST13-02 revealing ST13-09, and the wider reveal-play
     // family). The revealed cards were staged into hand above solely to leave the reveal pool.
+    const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
     if (freeReadyIds.length > 0)
-      await ctx.fx.playInstances(freeReadyIds, { payCost: false, assemblyMaterialInstanceIdsByPlay });
+      await ctx.fx.playInstances(freeReadyIds, {
+        payCost: false,
+        ...(hasAssembly ? { assemblyMaterialInstanceIdsByPlay } : {}),
+      });
     if (freeSuspendedIds.length > 0) {
       await ctx.fx.playInstances(freeSuspendedIds, {
         payCost: false,
         suspended: true,
-        assemblyMaterialInstanceIdsByPlay,
+        ...(hasAssembly ? { assemblyMaterialInstanceIdsByPlay } : {}),
       });
     }
     for (const { costDelta, suspended, ids } of reducedGroups.values()) {
@@ -520,10 +500,14 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       // `payCost:true`, silently waiving the remaining cost in every RevealAdd reduced-play.
       await ctx.fx.playInstances(ids, {
         payCost: true,
-        costDeltaByPlay: Object.fromEntries(
-          ids.map((id) => [id, costDelta + (assemblyReductionByPlay[id] ?? 0)]),
-        ),
-        assemblyMaterialInstanceIdsByPlay,
+        ...(hasAssembly
+          ? {
+              costDeltaByPlay: Object.fromEntries(
+                ids.map((id) => [id, costDelta + (assemblyReductionByPlay[id] ?? 0)]),
+              ),
+              assemblyMaterialInstanceIdsByPlay,
+            }
+          : { costDelta }),
         ...(suspended ? { suspended: true } : {}),
       });
     }
@@ -879,8 +863,25 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
           ctx.boundPlayed.set(action.bindResultAs, new Set(selectedIds));
         }
         if (action.then?.kind === "PlayWithoutCost") {
+          const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
+            ctx,
+            selected,
+          );
+          const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
           const played =
-            selectedIds.length > 0 ? await ctx.fx.playInstances(selectedIds, { payCost: action.then.payCost }) : [];
+            selectedIds.length > 0
+              ? await ctx.fx.playInstances(selectedIds, {
+                  payCost: action.then.payCost,
+                  ...(hasAssembly
+                    ? {
+                        assemblyMaterialInstanceIdsByPlay,
+                        costDeltaByPlay: Object.fromEntries(
+                          selectedIds.map((instanceId) => [instanceId, assemblyReductionByPlay[instanceId] ?? 0]),
+                        ),
+                      }
+                    : {}),
+                })
+              : [];
           ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
         } else if (action.to === "hand" && selectedIds.length > 0) {
           await ctx.fx.returnToHand(selectedIds);
@@ -930,7 +931,25 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
         ctx.fx.shuffleSecurity(ctx.source.ownerSeat);
         return false;
       }
-      const played = await ctx.fx.playInstances(selectedIds, { payCost: action.then.payCost });
+      const selectedCards = selectedIds
+        .map((instanceId) => candidates.find((card) => card.instanceId === instanceId))
+        .filter((card): card is (typeof candidates)[number] => card !== undefined);
+      const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
+        ctx,
+        selectedCards,
+      );
+      const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
+      const played = await ctx.fx.playInstances(selectedIds, {
+        payCost: action.then.payCost,
+        ...(hasAssembly
+          ? {
+              assemblyMaterialInstanceIdsByPlay,
+              costDeltaByPlay: Object.fromEntries(
+                selectedIds.map((instanceId) => [instanceId, assemblyReductionByPlay[instanceId] ?? 0]),
+              ),
+            }
+          : {}),
+      });
       ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
       ctx.lastEffectActed = ctx.lastPlayedPermanentIds.length > 0;
       ctx.fx.shuffleSecurity(ctx.source.ownerSeat);

@@ -25,3 +25,20 @@ Verification is scoped to these fixes. Existing collection scores are not recalc
 - Independent read-only review found the own-hand name-identity fallback and bot classification follow-ups; both were addressed with regressions.
 
 All Vitest commands used `--maxWorkers=1 --no-file-parallelism`. Changes are local and have not been deployed to the VPS.
+
+## Comprehensive Assembly follow-up (2026-09-21)
+
+- The September 19 correction was narrower than its generic wording implied: it prepared Assembly
+  only inside filtered `PlayWithoutCost`. Mervamon uses `PlayMultiple`, while `PlayFromZone`,
+  security searches, and parts of the reveal family had independent effect-play paths.
+- Assembly preparation now lives in one interpreter helper and is used by `PlayMultiple`, filtered
+  and own-stack `PlayWithoutCost`, `PlayFromZone`, `RevealAdd`, `Search`, and `SearchSecurity`.
+  Each batch excludes the cards being played, reserves a material for at most one declaration,
+  validates the complete printed recipe, supplies decision metadata, and applies the reduction per
+  paid play. Free plays still place selected materials before On Play processing.
+- Public regressions prove Mervamon playing Aegiochusmon: Dark from trash with Assembly, declining
+  that Assembly without cancelling the free play, a generic `PlayFromZone` entry, and a
+  security-search entry. The retained Wizardmon and reveal regressions cover the previously fixed
+  `PlayWithoutCost` and `RevealAdd` states.
+- This follow-up is a targeted engine correction. It does not recalculate any collection score or
+  claim a new full-engine certification.

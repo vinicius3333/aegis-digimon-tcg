@@ -186,6 +186,124 @@ describe("BT26-081 compiled behavior", () => {
     expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.currentDP).toBe(2000);
   });
 
+  it("lets an Aegiochusmon: Dark played from trash by this effect use Assembly", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-081", as: "mervamon" }],
+          trash: [
+            { card: "BT26-073", as: "dark" },
+            { card: "BT26-069", as: "assemblyMaterial" },
+          ],
+        },
+      },
+      {
+        autoSelectCards: false,
+      },
+    );
+    await s.ready();
+
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("dark").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "selectCards" &&
+        JSON.parse(s.state.pendingDecision.payloadJson).assemblyCardId === "BT26-073",
+    );
+    expect(JSON.parse(s.state.pendingDecision!.payloadJson)).toMatchObject({
+      candidateInstanceIds: [s.inst("assemblyMaterial").instanceId],
+      min: 0,
+      max: 1,
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("assemblyMaterial").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-073"));
+
+    const dark = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT26-073");
+    expect(dark?.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("assemblyMaterial").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("assemblyMaterial").instanceId,
+    );
+    expect(s.state.memory).toBe(7);
+  });
+
+  it("still plays Aegiochusmon: Dark when its effect-played Assembly is declined", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-081", as: "mervamon" }],
+        trash: [
+          { card: "BT26-073", as: "dark" },
+          { card: "BT26-069", as: "assemblyMaterial" },
+        ],
+      },
+    });
+    await s.ready();
+
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("dark").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "selectCards" &&
+        JSON.parse(s.state.pendingDecision.payloadJson).assemblyCardId === "BT26-073",
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-073"));
+
+    const dark = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT26-073");
+    expect(dark?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("assemblyMaterial").instanceId,
+    );
+    expect(s.state.memory).toBe(7);
+  });
+
   it("offers cost-8 Iliad cards but excludes Iliad cards over the total play-cost budget", async () => {
     const s = setupEngine(
       {
