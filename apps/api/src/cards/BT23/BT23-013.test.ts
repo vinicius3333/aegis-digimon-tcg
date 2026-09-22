@@ -275,7 +275,113 @@ describe("BT23-013 Jesmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("jesmon").instanceId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("aliasCiel").instanceId);
-    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).not.toContain(
+      s.inst("aliasCiel").instanceId,
+    );
+    // The Sistermon bullet has no legal card left, so the modal only offers the token route.
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("TOKEN-AthoRenePor-Token");
+  });
+
+  it("does not offer a second Atho, René & Por token When Attacking, per Q5224 and Q1033", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-013", as: "jesmon" },
+            { card: "TOKEN-AthoRenePor-Token", as: "token" },
+          ],
+          hand: [{ card: "BT10-085", as: "ciel" }],
+        },
+        1: { security: ["BT1-009", "BT1-013", "BT1-027"] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
+    );
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    // Exactly one token: the token bullet was withheld and the legal Sistermon route ran.
+    expect(
+      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token"),
+    ).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("ciel").instanceId,
+    );
+  });
+
+  it("does not offer a second Atho, René & Por token When Digivolving, per Q5224 and Q1033", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-015", as: "base" },
+            { card: "TOKEN-AthoRenePor-Token", as: "token" },
+          ],
+          hand: [
+            { card: "BT23-013", as: "jesmon" },
+            { card: "BT10-085", as: "ciel" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jesmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("jesmon").instanceId);
+
+    expect(
+      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token"),
+    ).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("ciel").instanceId,
+    );
+  });
+
+  it("still plays the token when no Atho, René & Por token is in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-015", as: "base" }],
+          hand: [{ card: "BT23-013", as: "jesmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jesmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token"),
+    );
+    expect(
+      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token"),
+    ).toHaveLength(1);
   });
 
   it("lets the newly played token pay Alliance but does not nest Jesmon's watcher attack, per Q5222-Q5223", async () => {

@@ -8,6 +8,12 @@ import type { CardDefinition } from "./types.js";
 const STATIC_NAME_ALIASES_BY_CARD_ID: Record<string, string[]> = {
   // Q1033: a Diaboromon token has the same name as the printed Digimon.
   "TOKEN-Diaboromon-Token": ["Diaboromon"],
+  // Same rule for BT19-091's three tokens: the registry name carries a " Token"
+  // suffix the printed text never uses, so without these a gate on [WarGrowlmon]
+  // misses the token it just played and the card plays a duplicate.
+  "TOKEN-WarGrowlmon-Token": ["WarGrowlmon"],
+  "TOKEN-Taomon-Token": ["Taomon"],
+  "TOKEN-Rapidmon-Token": ["Rapidmon"],
   "AD1-020": ["Tommy Himi", "Takuya Kanbara", "Zoe Orimoto"],
   "AD1-023": ["J.P. Shibayama", "Koji Minamoto", "Koichi Kimura"],
   "BT18-088": ["Takuya Kanbara", "Koji Minamoto"],

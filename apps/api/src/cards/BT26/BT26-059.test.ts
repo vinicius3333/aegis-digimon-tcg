@@ -23,7 +23,11 @@ describe("BT26-059 Plutomon", () => {
         actions: [
           expect.objectContaining({
             kind: "PlayWithoutCost",
-            target: expect.objectContaining({ filter: expect.objectContaining({ excludeNames: ["Plutomon"] }) }),
+            target: expect.objectContaining({
+              filter: expect.objectContaining({
+                excludeNameOrTrait: [{ tokens: ["Plutomon"], match: "nameExact" }],
+              }),
+            }),
             condition: expect.objectContaining({ kind: "isYourTurn" }),
           }),
         ],
@@ -135,6 +139,42 @@ describe("BT26-059 Plutomon", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT26-059", "BT26-060"]),
     );
+  });
+
+  it("plays ZombiePlutomon: [Plutomon] is an exact name, not a substring (Q2277)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-071", as: "base" }],
+          hand: [
+            { card: "BT26-059", as: "plutomon" },
+            { card: "BT1-001", as: "cost" },
+          ],
+          trash: [
+            { card: "BT26-079", as: "zombiePlutomon" },
+            { card: "BT26-059", as: "excludedPlutomon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("plutomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    // ZombiePlutomon merely contains "Plutomon"; only the exact name is refused.
+    const board = s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId);
+    expect(board).toContain("BT26-079");
+    // The one Plutomon on the board is the digivolved source, never the trash copy.
+    expect(board.filter((cardId) => cardId === "BT26-059")).toHaveLength(1);
   });
 
   it("reduces its play cost by 6 only when its hand is strictly smaller at announcement", async () => {

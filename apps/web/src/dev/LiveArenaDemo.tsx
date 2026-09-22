@@ -56,6 +56,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Selecione SeitenGokuumon e evolua sobre Gokuumon pela condição especial. O custo exibido e pago deve ser 4.",
     en: "Select SeitenGokuumon and digivolve onto Gokuumon through the special condition. The shown and paid cost must be 4.",
   },
+  "arena-issue-4894-jesmon-token-limit": {
+    ptBR: "Ataque com Jesmon tendo um token Atho, René & Por em jogo. O modal não deve oferecer a rota do token: apenas Sistermon Ciel, e nenhum segundo token pode entrar em jogo.",
+    en: "Attack with Jesmon while an Atho, René & Por token is in play. The modal must not offer the token route: only Sistermon Ciel, and no second token may enter play.",
+  },
   "arena-ex13-magnamon-end-turn": {
     ptBR: "Encerre a criação, ataque a segurança com Magnamon e Meteormon e encerre o turno. Aceite dessuspender Magnamon: deve ocorrer ainda no seu turno. Reboot de Meteormon deve ocorrer na Dessuspensão do oponente, antes da Main. Reinicie para testar recusar o efeito.",
     en: "End breeding, attack security with Magnamon and Meteormon, then end your turn. Accept Magnamon’s unsuspend: it should resolve during your turn. Meteormon’s Reboot should resolve in the opponent’s Unsuspend phase, before Main. Reset to test declining the effect.",
@@ -179,6 +183,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4891-seiten-on-play", "#4891 · SeitenGokuumon On Play"],
   ["arena-issue-4892-effect-digixros", "#4892 · effect DigiXros"],
   ["arena-issue-4893-seiten-evo-cost", "#4893 · SeitenGokuumon evo cost"],
+  ["arena-issue-4894-jesmon-token-limit", "#4894 · Jesmon token limit"],
   ["arena-junomon-opponent-target", "Junomon · opponent target"],
   ["arena-jupitermon-siren", "Jupitermon · Sirenmon + Dan & Kanan"],
   ["arena-magnamon-x", "Magnamon X · Sonic Shot unsuspend"],

@@ -9,7 +9,12 @@ import { scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances } from "../targeting/loose.js";
 import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
-import { applyPlayCostCeiling, playableCandidates } from "./play.js";
+import {
+  applyPlayCostCeiling,
+  candidatesAllowedBySameNameRestriction,
+  playableCandidates,
+  playableTokenRefs,
+} from "./play.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
 import type { Action } from "@aegis/shared";
 
@@ -197,6 +202,12 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
   // Without this the modal is offered with no legal destination, the activation cost is
   // charged, and the placement silently no-ops (BT17-050 Q2803).
   if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);
+  // An effect that "can't play cards with the same names as any of your Digimon" cannot create
+  // a token whose name is already on your field, so that bullet must not be offered as a
+  // guaranteed no-op (BT23-013 / Q5224 + Q1033, issue #4894).
+  if (action.kind === "PlayToken") {
+    return playableTokenRefs(ctx, action.tokens ?? (action.token !== undefined ? [action.token] : [])).length > 0;
+  }
   if (action.kind === "Digivolve") return canAttemptDigivolve(ctx, action);
   if (action.kind === "DnaDigivolve") return canAttemptDnaDigivolve(ctx, action);
   if (
@@ -208,9 +219,11 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
   ) {
     const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
     const target = applyPlayCostCeiling(ctx, action, action.target);
-    return playableCandidates(ctx, target, candidateLooseInstances(ctx, target, zones), action.chooseDualMode).some(
-      (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
+    const candidates = candidatesAllowedBySameNameRestriction(
+      ctx,
+      playableCandidates(ctx, target, candidateLooseInstances(ctx, target, zones), action.chooseDualMode),
     );
+    return candidates.some((candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"));
   }
   return action.kind !== "RawUnparsed";
 }
