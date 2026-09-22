@@ -16,7 +16,7 @@ describe("P-097 Zubamon reveal-order dev scenario", () => {
     expect(state.memory).toBe(3);
     expect(human.hand).toContainEqual(expect.objectContaining({ cardId: "P-097" }));
     expect(human.battleArea).toHaveLength(1);
-    expect(human.battleArea[0]!.topCard.cardId).toBe("BT3-008");
+    expect(human.battleArea[0]!.topCard.cardId).toBe("BT3-013");
     expect(human.deck.slice(0, 4).map(({ cardId }) => cardId)).toEqual(["BT1-019", "BT1-009", "BT1-010", "BT1-011"]);
     expect(human.security).toHaveLength(5);
   });

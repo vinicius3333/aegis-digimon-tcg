@@ -639,7 +639,7 @@ function layP097ZubamonRevealOrderScenario(state: GameState, decks: readonly [De
   const human = state.players[0];
   if (human !== undefined) {
     // A Legend-Arms Digimon to place Zubamon under, which also arms the "gain 2 memory" clause.
-    placePermanent(human, establishedDigimon(0, ["BT3-008"], "-p097-host"));
+    placePermanent(human, establishedDigimon(0, ["BT3-013"], "-p097-host"));
     insertCard(human, Zone.Hand, faceDownCard("dev-p097-zubamon", "P-097", 0));
     // Insert in reverse because deck[0] is the top card. The first card absorbs the turn draw,
     // so the three below it are the ones Zubamon reveals.
