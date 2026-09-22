@@ -148,13 +148,19 @@
   margin-top: var(--ds-space-1);
 }
 
+/* The row spans the body, so only its controls take the pointer; the gaps fall
+   through to the card selector underneath. */
 .deck-list-card__actions {
   position: relative;
   z-index: 2;
-  pointer-events: auto;
+  pointer-events: none;
   display: flex;
   align-items: center;
   gap: var(--ds-space-2);
+}
+
+.deck-list-card__actions > * {
+  pointer-events: auto;
 }
 
 .deck-list-card:not(.is-compact) .deck-list-card__actions {
