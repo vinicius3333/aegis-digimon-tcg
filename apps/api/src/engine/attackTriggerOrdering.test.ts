@@ -267,4 +267,50 @@ describe("attack trigger ordering", () => {
       s.events.find((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT26-009"),
     ).not.toMatchObject({ duringSecurityCheck: true });
   });
+  // Turn-player priority on an EFFECT-DRIVEN attack (KB Q1976/Q1993 — BT10-052/BT10-070 ask
+  // exactly this): the attacker's [When Attacking] effect pools into the ordering effect's
+  // paused window, so the non-turn player's "when an opponent's Digimon attacks" watcher must
+  // wait for that pool to drain instead of firing at the declaration. Uses a Digimon-hosted,
+  // cost-free watcher to prove the ordering is event-level, not specific to Tamer-hosted
+  // suspend-cost redirects (BT11-092).
+  it("keeps an effect-driven attack's When Attacking ahead of an opponent-attack watcher", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-052", as: "watcher" },
+            { card: "BT1-009", as: "suspendedAlly", suspended: true },
+          ],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT13-021", as: "attacker", dp: 13000 }],
+          hand: [{ card: "BT25-016", as: "grapLeomon" }],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009"],
+          security: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("attacker").permanentId);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("grapLeomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared") && !observe(s.engine).isAttacking());
+
+    const triggered = s.events
+      .filter((event) => event.kind === "effectTriggered")
+      .map((event) => `${String(event.sourceCardId)}:${String(event.timing)}`);
+    const whenAttacking = triggered.indexOf("BT13-021:OnUseAttack");
+    const watcher = triggered.indexOf("BT10-052:whenOpponentAttacks");
+    expect(whenAttacking).toBeGreaterThanOrEqual(0);
+    expect(watcher).toBeGreaterThanOrEqual(0);
+    expect(whenAttacking).toBeLessThan(watcher);
+  });
 });
