@@ -1,4 +1,64 @@
 {
+  "releases.1.1.0-beta.summary": {
+    "en": "This update tightens turn timing, triggered Delay effects, token restrictions, and several card-specific interactions while making their presentation easier to follow.",
+    "pt-BR": "Esta atualização aprimora o timing dos turnos, efeitos Delay disparados, restrições de tokens e várias interações específicas de cartas, além de deixar sua apresentação mais clara."
+  },
+  "releases.1.1.0-beta.fix.redirectPriority": {
+    "en": "Effects owned by the turn player now resolve before an opponent's attack-redirection effects, including Analogman's redirect timing.",
+    "pt-BR": "Efeitos do jogador do turno agora resolvem antes dos efeitos de redirecionamento de ataque do oponente, incluindo o timing de Analogman."
+  },
+  "releases.1.1.0-beta.fix.redirectPrompt": {
+    "en": "Attack redirection no longer asks for the redirect target a second time after activation.",
+    "pt-BR": "O redirecionamento de ataque não solicita mais o alvo uma segunda vez após a ativação."
+  },
+  "releases.1.1.0-beta.fix.breedingTurnEnd": {
+    "en": "A turn now ends in the breeding phase when memory crosses to the opponent there, so Start of Main Phase effects do not activate incorrectly; this fixes Digimon Emperor interactions.",
+    "pt-BR": "O turno agora termina na fase de criação quando a memória passa para o oponente nessa fase, impedindo ativações incorretas de Início da Fase Principal; isso corrige interações com Digimon Emperor."
+  },
+  "releases.1.1.0-beta.fix.memoryPresentation": {
+    "en": "The memory gauge stays on the correct side until the effect that moved it has been presented, and breeding hints identify the correct Digimon.",
+    "pt-BR": "O medidor de memória permanece no lado correto até a apresentação do efeito que o moveu, e as dicas da área de criação identificam o Digimon correto."
+  },
+  "releases.1.1.0-beta.fix.takemikazuchi": {
+    "en": "Fenriloogamon: Takemikazuchi now preserves its modified turn-end memory threshold through continuous-effect recalculation, allowing the turn to continue and end at the correct values.",
+    "pt-BR": "Fenriloogamon: Takemikazuchi agora preserva seu limite modificado de memória para encerrar o turno durante o recálculo de efeitos contínuos, permitindo que o turno continue e termine nos valores corretos."
+  },
+  "releases.1.1.0-beta.fix.delayTiming": {
+    "en": "Triggered Delay effects now open at their printed trigger instead of being deferred to a later Main phase.",
+    "pt-BR": "Efeitos Delay disparados agora abrem no gatilho impresso, em vez de serem adiados para uma Fase Principal posterior."
+  },
+  "releases.1.1.0-beta.fix.bitingCrush": {
+    "en": "Biting Crush now plays its Digimon at the correct triggered Delay window.",
+    "pt-BR": "Biting Crush agora joga seu Digimon na janela correta do Delay disparado."
+  },
+  "releases.1.1.0-beta.fix.delayCatalog": {
+    "en": "Cards with multiple or conditional Delay arming clauses now keep the correct runtime behavior after effect-catalog synchronization.",
+    "pt-BR": "Cartas com múltiplas cláusulas ou condições para armar Delay agora mantêm o comportamento correto após a sincronização do catálogo de efeitos."
+  },
+  "releases.1.1.0-beta.fix.jesmonTokenLimit": {
+    "en": "Token plays now obey effects that prevent playing another Digimon with the same name, fixing Jesmon's token limit.",
+    "pt-BR": "Jogadas de tokens agora obedecem a efeitos que impedem jogar outro Digimon com o mesmo nome, corrigindo o limite de tokens de Jesmon."
+  },
+  "releases.1.1.0-beta.fix.tokenNames": {
+    "en": "Tokens created by BT19-091 now answer to their printed names for rules and restrictions.",
+    "pt-BR": "Tokens criados por BT19-091 agora usam seus nomes impressos para regras e restrições."
+  },
+  "releases.1.1.0-beta.fix.plutomonName": {
+    "en": "BT26-059's Plutomon exclusion now checks the exact name instead of matching longer names unintentionally.",
+    "pt-BR": "A exclusão de Plutomon de BT26-059 agora verifica o nome exato, sem corresponder indevidamente a nomes mais longos."
+  },
+  "releases.1.1.0-beta.fix.tokenPresentation": {
+    "en": "Tokens now use their printed card art and arrive after the effect cue that created them.",
+    "pt-BR": "Tokens agora usam a arte impressa da carta e aparecem após a indicação do efeito que os criou."
+  },
+  "releases.1.1.0-beta.fix.dnaCharge": {
+    "en": "DNA Charge now pays its Start of Main Phase cost by placing itself under the chosen Tamer, with valid cost candidates detected across the correct zones.",
+    "pt-BR": "DNA Charge agora paga seu custo de Início da Fase Principal colocando a si mesma sob o Tamer escolhido, com candidatos válidos detectados nas zonas corretas."
+  },
+  "releases.1.1.0-beta.fix.decisionLayout": {
+    "en": "Optional decisions and pending-effect text now stay inside their choice panels and remain readable.",
+    "pt-BR": "Decisões opcionais e textos de efeitos pendentes agora permanecem dentro de seus painéis de escolha e continuam legíveis."
+  },
   "releases.1.0.0-beta.summary": {
     "en": "The first official Aegis beta milestone. From now on, every player-facing update is recorded here.",
     "pt-BR": "O primeiro marco oficial do beta do Aegis. Daqui para frente, todas as novidades para jogadores ficam registradas aqui."

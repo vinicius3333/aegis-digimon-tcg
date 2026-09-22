@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { allReleases, currentRelease, displayVersion, issueUrl, parseCatalog } from "./catalog";
 
 describe("release catalog", () => {
-  it("exposes the first official beta as the current release", () => {
-    expect(currentRelease().version).toBe("1.0.0-beta");
-    expect(displayVersion(currentRelease().version)).toBe("v1.0.0-BETA");
-    expect(allReleases()).toHaveLength(1);
+  it("exposes the latest beta as the current release", () => {
+    expect(currentRelease().version).toBe("1.1.0-beta");
+    expect(displayVersion(currentRelease().version)).toBe("v1.1.0-BETA");
+    expect(allReleases()).toHaveLength(2);
   });
 
   it("builds public GitHub issue links", () => {

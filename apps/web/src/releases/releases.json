@@ -1,5 +1,27 @@
 [
   {
+    "version": "1.1.0-beta",
+    "releasedAt": "2026-09-22",
+    "summaryKey": "releases.1.1.0-beta.summary",
+    "features": [],
+    "fixes": [
+      { "textKey": "releases.1.1.0-beta.fix.redirectPriority" },
+      { "textKey": "releases.1.1.0-beta.fix.redirectPrompt" },
+      { "textKey": "releases.1.1.0-beta.fix.breedingTurnEnd" },
+      { "textKey": "releases.1.1.0-beta.fix.memoryPresentation" },
+      { "textKey": "releases.1.1.0-beta.fix.takemikazuchi" },
+      { "textKey": "releases.1.1.0-beta.fix.delayTiming" },
+      { "textKey": "releases.1.1.0-beta.fix.bitingCrush" },
+      { "textKey": "releases.1.1.0-beta.fix.delayCatalog" },
+      { "textKey": "releases.1.1.0-beta.fix.jesmonTokenLimit", "issue": 4894 },
+      { "textKey": "releases.1.1.0-beta.fix.tokenNames" },
+      { "textKey": "releases.1.1.0-beta.fix.plutomonName" },
+      { "textKey": "releases.1.1.0-beta.fix.tokenPresentation" },
+      { "textKey": "releases.1.1.0-beta.fix.dnaCharge" },
+      { "textKey": "releases.1.1.0-beta.fix.decisionLayout" }
+    ]
+  },
+  {
     "version": "1.0.0-beta",
     "releasedAt": "2026-09-21",
     "summaryKey": "releases.1.0.0-beta.summary",

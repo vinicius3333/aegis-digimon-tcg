@@ -15,7 +15,7 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { name: "What's new" })).toBeTruthy();
-    expect(screen.getByText("v1.0.0-BETA")).toBeTruthy();
+    expect(screen.getByText("v1.1.0-BETA")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
@@ -27,6 +27,6 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { name: "O que há de novo" })).toBeTruthy();
-    expect(screen.getByText(/O primeiro marco oficial do beta do Aegis/)).toBeTruthy();
+    expect(screen.getByText(/Esta atualização aprimora o timing dos turnos/)).toBeTruthy();
   });
 });
