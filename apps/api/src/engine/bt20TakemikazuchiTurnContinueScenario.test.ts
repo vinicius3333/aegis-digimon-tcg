@@ -17,7 +17,7 @@ describe("BT20 Takemikazuchi turn-continue dev scenario", () => {
 
     const host = human.battleArea.find((perm) => perm.topCard?.cardId === "BT20-081");
     expect(host).toBeDefined();
-    expect(host!.stack.map(({ cardId }) => cardId)).toEqual(["BT17-069"]);
+    expect(host!.stack.map(({ cardId }) => cardId)).toEqual(["BT17-091", "BT16-076", "BT17-069", "BT17-040"]);
 
     // Two 2-cost plays walk the gauge to 2 on the opponent's side, the 3-cost play crosses to 3.
     expect(human.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-009", "BT14-069"]);

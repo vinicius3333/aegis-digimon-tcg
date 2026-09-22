@@ -647,7 +647,13 @@ function layBt20TakemikazuchiTurnContinueScenario(
   if (human !== undefined) {
     // Fenriloogamon is a digivolution card, so only its INHERITED clause is live — exactly the
     // placement the Blast DNA / DNA digivolve into Takemikazuchi leaves behind.
-    placePermanent(human, establishedDigimon(0, ["BT17-069", "BT20-081"], "-bt20-takemikazuchi"));
+    // The reporter's stack shape: BT17-091's awaiting Aura is ordered ahead of BT17-069's
+    // inherited SetTurnEndMemory in the continuous pass, which is what exposed the
+    // clear-before-refill window the turn-end check used to read.
+    placePermanent(
+      human,
+      establishedDigimon(0, ["BT17-091", "BT16-076", "BT17-069", "BT17-040", "BT20-081"], "-bt20-takemikazuchi"),
+    );
     insertCard(human, Zone.Hand, faceDownCard("dev-takemikazuchi-play-1", "BT1-009", 0));
     insertCard(human, Zone.Hand, faceDownCard("dev-takemikazuchi-play-2", "BT1-009", 0));
     insertCard(human, Zone.Hand, faceDownCard("dev-takemikazuchi-play-3", "BT14-069", 0));
