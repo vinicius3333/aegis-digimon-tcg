@@ -408,4 +408,51 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
       s.perm("victim").permanentId,
     );
   });
+  it("Succession confers Holy Mode's When Digivolving through an effect-driven digivolution", async () => {
+    // CR 16-47-1: ＜Succession＞ reads "This Digimon gains all effects other than ＜Succession＞ on
+    // its topmost specified digivolution card", so the gained [When Digivolving] must fire in the
+    // same window as Destroy Mode's own — including when the digivolution is driven by an effect
+    // (BT26-085 Giant Slayer's replacement digivolve) rather than by the player's own action.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-085", as: "giantSlayer", under: [{ card: "BT26-016", as: "holyMode" }] }],
+          hand: [{ card: CARD_ID, as: "destroyMode" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          trash: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "victim", dp: 1000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("giantSlayer").permanentId], "byEffect")).toBe(0);
+    await settle(() => s.perm("giantSlayer").topCard.cardId === CARD_ID);
+
+    const whenDigivolving = s.events
+      .filter((event) => event.kind === "effectTriggered" && event.timing === "WhenDigivolving")
+      .map((event) => (event.kind === "effectTriggered" ? event.sourceCardId : ""));
+    expect(whenDigivolving).toEqual(expect.arrayContaining(["BT26-016", CARD_ID]));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("Succession still confers Holy Mode's When Attacking after an effect-driven digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "destroyMode", under: [{ card: "BT26-016", as: "holyMode" }] }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          trash: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "victim", dp: 1000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("destroyMode"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });

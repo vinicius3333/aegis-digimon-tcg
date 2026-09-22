@@ -245,8 +245,22 @@ function visibleDigivolveSourceIds(
   ctx: EffectContext,
   action: Extract<Action, { kind: "Digivolve" }>,
   zones: ZoneRef[],
+  candidates?: readonly LooseCandidate[],
 ): string[] {
-  let visible = candidateLooseInstances(ctx, { filter: { controllerDefault: "mine" }, count: "all" }, zones);
+  // A zone is shown only when the offer can actually draw from it. "Into [Chronomon: Destroy
+  // Mode] in the hand or trash" (BT26-085) with the only copies in hand used to open a trash
+  // pane too, listing cards the player cannot pick — here, the three cards sitting in the trash
+  // for an unrelated cost.
+  const byZone = zones.map((zone) => ({
+    zone,
+    cards: candidateLooseInstances(ctx, { filter: { controllerDefault: "mine" }, count: "all" }, [zone]),
+  }));
+  const candidateIds = new Set((candidates ?? []).map(({ instanceId }) => instanceId));
+  const offered =
+    candidates === undefined
+      ? byZone
+      : byZone.filter(({ cards }) => cards.some(({ instanceId }) => candidateIds.has(instanceId)));
+  let visible = offered.flatMap(({ cards }) => cards);
   visible = filterToTriggeredSource(ctx, action, visible);
   if (action.amongPreviousSearch) {
     const searched = new Set((ctx.lastRevealedCards ?? []).map((card) => card.instanceId));
@@ -320,9 +334,16 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
           candidates,
           undefined,
           ctx.ask,
-          visibleDigivolveSourceIds(ctx, action, zones),
+          visibleDigivolveSourceIds(ctx, action, zones, candidates),
         )
-      : await pickLoose(ctx, intoTarget, candidates, undefined, ctx.ask, visibleDigivolveSourceIds(ctx, action, zones));
+      : await pickLoose(
+          ctx,
+          intoTarget,
+          candidates,
+          undefined,
+          ctx.ask,
+          visibleDigivolveSourceIds(ctx, action, zones, candidates),
+        );
     if (chosen.length === 0) return;
     const result = await ctx.fx.digivolveFromInstance(pid, chosen[0]!, {
       payCost: pays || numericPayCost !== undefined,
@@ -455,7 +476,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       candidates,
       undefined,
       ctx.ask,
-      visibleDigivolveSourceIds(ctx, action, zones),
+      visibleDigivolveSourceIds(ctx, action, zones, candidates),
     );
     if (chosen.length === 0) continue;
     let useAlternateCost = action.useAlternateCost;
